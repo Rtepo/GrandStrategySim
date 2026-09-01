@@ -37,7 +37,7 @@ impl I18nManager {
     /// Load all locale files from the locales directory.
     pub fn load_locales(locales_dir: &std::path::Path) -> Result<Self, String> {
         let mut locales = HashMap::new();
-        
+
         // Load pl.json (default)
         let pl_path = locales_dir.join("pl.json");
         let pl_content = std::fs::read_to_string(&pl_path)
@@ -45,7 +45,7 @@ impl I18nManager {
         let pl_locale: Locale = serde_json::from_str(&pl_content)
             .map_err(|e| format!("Failed to parse pl.json: {}", e))?;
         locales.insert("pl".to_string(), pl_locale);
-        
+
         // Load en.json
         let en_path = locales_dir.join("en.json");
         if en_path.exists() {
@@ -55,13 +55,13 @@ impl I18nManager {
                 .map_err(|e| format!("Failed to parse en.json: {}", e))?;
             locales.insert("en".to_string(), en_locale);
         }
-        
+
         Ok(Self {
             current_locale: "pl".to_string(),
             locales,
         })
     }
-    
+
     /// Set the active locale.
     pub fn set_locale(&mut self, locale: &str) -> Result<(), String> {
         if self.locales.contains_key(locale) {
@@ -71,27 +71,30 @@ impl I18nManager {
             Err(format!("Locale '{}' not found", locale))
         }
     }
-    
+
     /// Get a translated UI string.
     pub fn t(&self, category: &str, key: &str) -> String {
-        self.locales.get(&self.current_locale)
+        self.locales
+            .get(&self.current_locale)
             .and_then(|locale| locale.ui.get(category))
             .and_then(|category_map| category_map.get(key))
             .cloned()
             .unwrap_or_else(|| format!("{}.{}", category, key))
     }
-    
+
     /// Get a translated sector name.
     pub fn sector(&self, sector_key: &str) -> String {
-        self.locales.get(&self.current_locale)
+        self.locales
+            .get(&self.current_locale)
             .and_then(|locale| locale.sectors.get(sector_key))
             .cloned()
             .unwrap_or_else(|| sector_key.to_string())
     }
-    
+
     /// Get a translated commodity name.
     pub fn commodity(&self, commodity_key: &str) -> String {
-        self.locales.get(&self.current_locale)
+        self.locales
+            .get(&self.current_locale)
             .and_then(|locale| locale.commodities.get(commodity_key))
             .cloned()
             .unwrap_or_else(|| commodity_key.to_string())
@@ -104,13 +107,15 @@ static I18N_MANAGER: OnceLock<I18nManager> = OnceLock::new();
 /// Initialize the global i18n manager (thread-safe).
 pub fn init_i18n(locales_dir: &std::path::Path) -> Result<(), String> {
     let manager = I18nManager::load_locales(locales_dir)?;
-    I18N_MANAGER.set(manager)
+    I18N_MANAGER
+        .set(manager)
         .map_err(|_| "i18n already initialized".to_string())
 }
 
 /// Get the global i18n manager (thread-safe).
 pub fn i18n() -> &'static I18nManager {
-    I18N_MANAGER.get()
+    I18N_MANAGER
+        .get()
         .expect("i18n not initialized. Call init_i18n() first.")
 }
 

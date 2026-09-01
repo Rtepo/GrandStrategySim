@@ -12,15 +12,12 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LogisticsConfig {
     /// Transport cost per ton-km
-
     pub transport_cost_per_ton_km: f64,
-    
+
     /// Consolidation discount (0.0-1.0) for bulk shipments
-
     pub consolidation_discount: f64,
-    
-    /// Minimum tons for consolidation eligibility
 
+    /// Minimum tons for consolidation eligibility
     pub min_consolidation_tons: f64,
 }
 
@@ -38,19 +35,15 @@ impl Default for LogisticsConfig {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ProcurementRequest {
     /// Retailer building ID
-
     pub retailer_building_id: String,
-    
+
     /// Commodity requested
-
     pub commodity: Commodity,
-    
+
     /// Quantity requested (tons)
-
     pub quantity: f64,
-    
-    /// Maximum price per unit
 
+    /// Maximum price per unit
     pub max_price_per_unit: f64,
 }
 
@@ -58,27 +51,21 @@ pub struct ProcurementRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ConsolidatedShipment {
     /// Source wholesaler building ID
-
     pub wholesaler_id: String,
-    
+
     /// Destination micro-region
-
     pub destination_micro_region: String,
-    
+
     /// Total tons in shipment
-
     pub total_tons: f64,
-    
+
     /// Commodities in shipment
-
     pub commodities: BTreeMap<Commodity, f64>,
-    
+
     /// Original transport cost (before consolidation)
-
     pub original_transport_cost: f64,
-    
-    /// Consolidated transport cost (after discount)
 
+    /// Consolidated transport cost (after discount)
     pub consolidated_transport_cost: f64,
 }
 
@@ -103,7 +90,7 @@ pub fn apply_consolidation(
     config: &LogisticsConfig,
 ) -> Vec<ConsolidatedShipment> {
     let mut shipments = Vec::new();
-    
+
     // Group requests by destination micro-region
     let mut by_destination: BTreeMap<String, Vec<&ProcurementRequest>> = BTreeMap::new();
     for req in requests {
@@ -112,21 +99,21 @@ pub fn apply_consolidation(
         let destination = "placeholder_region".to_string();
         by_destination.entry(destination).or_default().push(req);
     }
-    
+
     // Create consolidated shipments
     for (destination, reqs) in by_destination {
         let total_tons: f64 = reqs.iter().map(|r| r.quantity).sum();
-        
+
         if total_tons >= config.min_consolidation_tons {
             // Apply consolidation discount
             let original_cost = total_tons * config.transport_cost_per_ton_km * 100.0; // 100km average
             let consolidated_cost = original_cost * (1.0 - config.consolidation_discount);
-            
+
             let mut commodities: BTreeMap<Commodity, f64> = BTreeMap::new();
             for req in reqs {
                 *commodities.entry(req.commodity).or_insert(0.0) += req.quantity;
             }
-            
+
             shipments.push(ConsolidatedShipment {
                 wholesaler_id: "placeholder_wholesaler".to_string(),
                 destination_micro_region: destination,
@@ -137,7 +124,7 @@ pub fn apply_consolidation(
             });
         }
     }
-    
+
     shipments
 }
 
@@ -161,7 +148,8 @@ pub fn enforce_procurement_cap(
     requested_quantity: f64,
 ) -> f64 {
     if let Some(profile) = &wholesaler.wholesale_profile {
-        let remaining_capacity = profile.consolidation_capacity_tons - profile.committed_tons_this_turn;
+        let remaining_capacity =
+            profile.consolidation_capacity_tons - profile.committed_tons_this_turn;
         requested_quantity.min(remaining_capacity)
     } else {
         requested_quantity
@@ -199,11 +187,11 @@ pub fn apply_clearance_discount(
             .unwrap_or(0.0);
         let stock_target = profile.consolidation_capacity_tons * 0.5;
         let is_above_target = total_inventory > stock_target;
-        
+
         if is_above_target {
             let stale_turns = profile.stale_turns.entry(commodity).or_insert(0);
             *stale_turns += 1;
-            
+
             // Escalating discount based on stale turns
             let discount = match *stale_turns {
                 0 => 0.0, // No discount if just became stale
@@ -213,7 +201,7 @@ pub fn apply_clearance_discount(
                 4 => 0.40,
                 5.. => 0.50, // Forced sale at 50% discount
             };
-            
+
             Some(discount)
         } else {
             // Reset stale counter if below target

@@ -1,7 +1,7 @@
 use crate::state::AppState;
 use sim_engine::ui::snapshot::{
-    build_country_snapshot, MacroIndicatorsResponse, TreasurySummary,
-    FinanceSnapshot, CommodityRow, SectorRow, ViewQuery,
+    build_country_snapshot, CommodityRow, FinanceSnapshot, MacroIndicatorsResponse, SectorRow,
+    TreasurySummary, ViewQuery,
 };
 
 fn get_country_and_build(
@@ -9,9 +9,7 @@ fn get_country_and_build(
     country: &str,
 ) -> Result<sim_engine::ui::snapshot::CountrySnapshot, String> {
     let engine_guard = state.engine.blocking_read();
-    let engine_state = engine_guard
-        .as_ref()
-        .ok_or("No game loaded")?;
+    let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
     let country_ref = engine_state
         .game_state

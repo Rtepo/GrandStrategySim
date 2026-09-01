@@ -359,7 +359,12 @@ pub fn initialize_parliament(
             seats: legacy_seats.clone(),
             presidium: ChamberPresidium {
                 speaker: speaker.clone(),
-                deputy_speakers: generate_deputy_speakers(politics, cultural_group, rng, used_names),
+                deputy_speakers: generate_deputy_speakers(
+                    politics,
+                    cultural_group,
+                    rng,
+                    used_names,
+                ),
                 speaker_club,
                 agenda_control,
             },
@@ -419,7 +424,7 @@ pub fn assign_club_chairpersons(
     country_name: &str,
     rng: &mut impl rand::Rng,
 ) {
-    use super::vip_registry::{Vip, VipRoleExtended, assign_core_traits};
+    use super::vip_registry::{assign_core_traits, Vip, VipRoleExtended};
 
     for club in &mut parliament.clubs {
         // Skip if already has a chairperson.
@@ -439,7 +444,10 @@ pub fn assign_club_chairpersons(
             full_name: vip_name.full_name.clone(),
             gender: vip_name.gender,
             age: 40 + rng.gen_range(0..25),
-            health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+            health: crate::politics::vip_registry::VipHealth {
+                physical_health: 1.0,
+                mental_health: 1.0,
+            },
             traits,
             main_trait,
             ideology,
@@ -466,9 +474,7 @@ fn build_clubs_from_seats(
         .map(|(party_id, &seat_count)| {
             let party = active_parties.get(party_id);
             let ideology = party.map(|p| p.ideology.clone()).unwrap_or_default();
-            let discipline = party
-                .map(|p| p.organization.discipline)
-                .unwrap_or(0.5);
+            let discipline = party.map(|p| p.organization.discipline).unwrap_or(0.5);
 
             ParliamentaryClub {
                 id: party_id.clone(),
@@ -769,7 +775,10 @@ pub fn check_faction_splintering(
         }
 
         // Get party organization metrics.
-        let party = club.parent_party.as_ref().and_then(|p| active_parties.get(p));
+        let party = club
+            .parent_party
+            .as_ref()
+            .and_then(|p| active_parties.get(p));
         let (factional_tension, discipline, split_risk) = if let Some(p) = party {
             (
                 p.organization.factional_tension,
@@ -889,7 +898,9 @@ mod tests {
             name: "Jan Kowalski".to_string(),
             ..Default::default()
         };
-        politics.active_parties.insert("TestParty".to_string(), test_party);
+        politics
+            .active_parties
+            .insert("TestParty".to_string(), test_party);
 
         let mut opp_party = Party::default();
         opp_party.ideology = "Classical Liberalism".to_string();
@@ -898,7 +909,9 @@ mod tests {
             factional_tension: 0.0,
             ..Default::default()
         };
-        politics.active_parties.insert("OppParty".to_string(), opp_party);
+        politics
+            .active_parties
+            .insert("OppParty".to_string(), opp_party);
 
         let mut ally_party = Party::default();
         ally_party.ideology = "Social Liberalism".to_string();
@@ -907,7 +920,9 @@ mod tests {
             factional_tension: 0.0,
             ..Default::default()
         };
-        politics.active_parties.insert("AllyParty".to_string(), ally_party);
+        politics
+            .active_parties
+            .insert("AllyParty".to_string(), ally_party);
 
         politics
     }
@@ -916,7 +931,8 @@ mod tests {
     fn test_initialize_parliament_two_chambers() {
         let politics = make_test_politics();
         let mut rng = rand::thread_rng();
-        let parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         assert_eq!(parliament.chambers.len(), 2); // ParliamentaryDemocracy → 2 chambers
         assert!(parliament.lower_chamber().is_some());
         assert!(parliament.upper_chamber().is_some());
@@ -927,7 +943,8 @@ mod tests {
         let mut politics = make_test_politics();
         politics.government_form = GovernmentForm::AbsoluteMonarchy;
         let mut rng = rand::thread_rng();
-        let parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         assert_eq!(parliament.chambers.len(), 0);
     }
 
@@ -936,7 +953,8 @@ mod tests {
         let mut politics = make_test_politics();
         politics.government_form = GovernmentForm::OnePartyState;
         let mut rng = rand::thread_rng();
-        let parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         assert_eq!(parliament.chambers.len(), 1);
     }
 
@@ -944,9 +962,14 @@ mod tests {
     fn test_clubs_built_from_seats() {
         let politics = make_test_politics();
         let mut rng = rand::thread_rng();
-        let parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         assert_eq!(parliament.clubs.len(), 3); // TestParty, OppParty, AllyParty
-        let test_club = parliament.clubs.iter().find(|c| c.id == "TestParty").unwrap();
+        let test_club = parliament
+            .clubs
+            .iter()
+            .find(|c| c.id == "TestParty")
+            .unwrap();
         assert_eq!(test_club.seats, 60);
         assert!(!test_club.is_splinter);
     }
@@ -955,18 +978,26 @@ mod tests {
     fn test_vips_populated() {
         let politics = make_test_politics();
         let mut rng = rand::thread_rng();
-        let parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         assert!(!parliament.vips.is_empty());
         // Should have at least Head of State and PM.
-        assert!(parliament.vips.iter().any(|v| v.role == VipRole::HeadOfState));
-        assert!(parliament.vips.iter().any(|v| v.role == VipRole::PrimeMinister));
+        assert!(parliament
+            .vips
+            .iter()
+            .any(|v| v.role == VipRole::HeadOfState));
+        assert!(parliament
+            .vips
+            .iter()
+            .any(|v| v.role == VipRole::PrimeMinister));
     }
 
     #[test]
     fn test_speaker_from_ruling_party() {
         let politics = make_test_politics();
         let mut rng = rand::thread_rng();
-        let parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         let lower = parliament.lower_chamber().unwrap();
         assert_eq!(lower.presidium.speaker.party, "TestParty");
         assert!(!lower.presidium.speaker.full_name.is_empty());
@@ -1035,8 +1066,10 @@ mod tests {
     fn test_splintering_no_trigger_when_stable() {
         let politics = make_test_politics();
         let mut rng = rand::thread_rng();
-        let mut parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
-        let events = check_faction_splintering(&mut parliament, &politics.active_parties, 60.0, 10.0, 5);
+        let mut parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let events =
+            check_faction_splintering(&mut parliament, &politics.active_parties, 60.0, 10.0, 5);
         assert!(events.is_empty()); // High approval, low unrest → no splinter
     }
 
@@ -1044,12 +1077,24 @@ mod tests {
     fn test_splintering_triggers_with_high_tension() {
         let mut politics = make_test_politics();
         // Set high factional tension on TestParty.
-        politics.active_parties.get_mut("TestParty").unwrap().organization.factional_tension = 0.9;
-        politics.active_parties.get_mut("TestParty").unwrap().organization.cohesion = 0.2;
+        politics
+            .active_parties
+            .get_mut("TestParty")
+            .unwrap()
+            .organization
+            .factional_tension = 0.9;
+        politics
+            .active_parties
+            .get_mut("TestParty")
+            .unwrap()
+            .organization
+            .cohesion = 0.2;
 
         let mut rng = rand::thread_rng();
-        let mut parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
-        let events = check_faction_splintering(&mut parliament, &politics.active_parties, 20.0, 60.0, 5);
+        let mut parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let events =
+            check_faction_splintering(&mut parliament, &politics.active_parties, 20.0, 60.0, 5);
         assert!(!events.is_empty()); // Should splinter
         let event = &events[0];
         assert_eq!(event.source_club, "TestParty");
@@ -1060,11 +1105,22 @@ mod tests {
     #[test]
     fn test_splintering_creates_new_club() {
         let mut politics = make_test_politics();
-        politics.active_parties.get_mut("TestParty").unwrap().organization.factional_tension = 0.9;
-        politics.active_parties.get_mut("TestParty").unwrap().organization.cohesion = 0.2;
+        politics
+            .active_parties
+            .get_mut("TestParty")
+            .unwrap()
+            .organization
+            .factional_tension = 0.9;
+        politics
+            .active_parties
+            .get_mut("TestParty")
+            .unwrap()
+            .organization
+            .cohesion = 0.2;
 
         let mut rng = rand::thread_rng();
-        let mut parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let mut parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         let initial_clubs = parliament.clubs.len();
         check_faction_splintering(&mut parliament, &politics.active_parties, 20.0, 60.0, 5);
         assert!(parliament.clubs.len() > initial_clubs);
@@ -1075,27 +1131,62 @@ mod tests {
     #[test]
     fn test_splintering_reallocates_seats() {
         let mut politics = make_test_politics();
-        politics.active_parties.get_mut("TestParty").unwrap().organization.factional_tension = 0.9;
-        politics.active_parties.get_mut("TestParty").unwrap().organization.cohesion = 0.2;
+        politics
+            .active_parties
+            .get_mut("TestParty")
+            .unwrap()
+            .organization
+            .factional_tension = 0.9;
+        politics
+            .active_parties
+            .get_mut("TestParty")
+            .unwrap()
+            .organization
+            .cohesion = 0.2;
 
         let mut rng = rand::thread_rng();
-        let mut parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
-        let initial_test_seats = parliament.lower_chamber().unwrap().seats.get("TestParty").copied().unwrap_or(0);
+        let mut parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let initial_test_seats = parliament
+            .lower_chamber()
+            .unwrap()
+            .seats
+            .get("TestParty")
+            .copied()
+            .unwrap_or(0);
         check_faction_splintering(&mut parliament, &politics.active_parties, 20.0, 60.0, 5);
-        let final_test_seats = parliament.lower_chamber().unwrap().seats.get("TestParty").copied().unwrap_or(0);
+        let final_test_seats = parliament
+            .lower_chamber()
+            .unwrap()
+            .seats
+            .get("TestParty")
+            .copied()
+            .unwrap_or(0);
         assert!(final_test_seats < initial_test_seats); // Seats reduced
     }
 
     #[test]
     fn test_splintering_skipped_when_suspended() {
         let mut politics = make_test_politics();
-        politics.active_parties.get_mut("TestParty").unwrap().organization.factional_tension = 0.9;
-        politics.active_parties.get_mut("TestParty").unwrap().organization.cohesion = 0.2;
+        politics
+            .active_parties
+            .get_mut("TestParty")
+            .unwrap()
+            .organization
+            .factional_tension = 0.9;
+        politics
+            .active_parties
+            .get_mut("TestParty")
+            .unwrap()
+            .organization
+            .cohesion = 0.2;
 
         let mut rng = rand::thread_rng();
-        let mut parliament = initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
+        let mut parliament =
+            initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         parliament.suspended = true;
-        let events = check_faction_splintering(&mut parliament, &politics.active_parties, 20.0, 60.0, 5);
+        let events =
+            check_faction_splintering(&mut parliament, &politics.active_parties, 20.0, 60.0, 5);
         assert!(events.is_empty());
     }
 
@@ -1112,7 +1203,10 @@ mod tests {
         }
         assert_eq!(parliament.lower_chamber().unwrap().recent_votes.len(), 20);
         // Most recent should be first.
-        assert_eq!(parliament.lower_chamber().unwrap().recent_votes[0].bill_id, "bill_24");
+        assert_eq!(
+            parliament.lower_chamber().unwrap().recent_votes[0].bill_id,
+            "bill_24"
+        );
     }
 
     #[test]
@@ -1121,11 +1215,20 @@ mod tests {
         parliament.chambers.push(Chamber::default());
         parliament.queue_bill("BILL-001".to_string());
         parliament.queue_bill("BILL-002".to_string());
-        assert_eq!(parliament.lower_chamber().unwrap().legislative_queue.len(), 2);
+        assert_eq!(
+            parliament.lower_chamber().unwrap().legislative_queue.len(),
+            2
+        );
         // Queueing same bill again should not duplicate.
         parliament.queue_bill("BILL-001".to_string());
-        assert_eq!(parliament.lower_chamber().unwrap().legislative_queue.len(), 2);
+        assert_eq!(
+            parliament.lower_chamber().unwrap().legislative_queue.len(),
+            2
+        );
         parliament.dequeue_bill("BILL-001");
-        assert_eq!(parliament.lower_chamber().unwrap().legislative_queue.len(), 1);
+        assert_eq!(
+            parliament.lower_chamber().unwrap().legislative_queue.len(),
+            1
+        );
     }
 }

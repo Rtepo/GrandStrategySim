@@ -32,8 +32,7 @@ fn solidarity_factor(cultural_group: &str) -> f64 {
 
 /// Check if a company is an OSP (NGO with NonProfit legal form).
 pub fn is_osp(company: &Company) -> bool {
-    company.sector == Sector::NGO
-        && matches!(company.legal_form, LegalForm::NonProfit(_))
+    company.sector == Sector::NGO && matches!(company.legal_form, LegalForm::NonProfit(_))
 }
 
 /// Allocate volunteer FTE to OSP buildings based on regional population.
@@ -102,7 +101,8 @@ pub fn process_osp_volunteer_allocation(
         }
 
         // Inject volunteer FTE into current_employment, capped by worker_capacity.
-        let new_employment = (building.current_employment + volunteer_fte).min(building.worker_capacity);
+        let new_employment =
+            (building.current_employment + volunteer_fte).min(building.worker_capacity);
         building.current_employment = new_employment;
     }
 }

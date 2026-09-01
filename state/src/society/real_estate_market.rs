@@ -23,10 +23,9 @@ use rand::Rng;
 
 use crate::corporate::market_behavior::MarketBehaviorModifiers;
 use crate::society::cadastre::{
-    Cadastre, CadastreConfig, ParcelChunk, ParcelId, ParcelOwnerType, ZoningDesignation,
-    LandPriceHistoryRegistry, compute_parcel_value, foreign_ownership_percentage,
-    ArbitrationCourt, ArbitrationCase, ArbitrationStatus, ArbitrationConfig,
-    parcel_id_to_index,
+    compute_parcel_value, foreign_ownership_percentage, parcel_id_to_index, ArbitrationCase,
+    ArbitrationConfig, ArbitrationCourt, ArbitrationStatus, Cadastre, CadastreConfig,
+    LandPriceHistoryRegistry, ParcelChunk, ParcelId, ParcelOwnerType, ZoningDesignation,
 };
 
 // ============================================================================
@@ -323,11 +322,7 @@ pub fn calculate_compensation(
             let price_per_hectare = fiat_prices_by_soil
                 .get(&parcel.soil_class)
                 .copied()
-                .or_else(|| {
-                    fiat_prices_by_zoning
-                        .get(&parcel.zoning)
-                        .copied()
-                })
+                .or_else(|| fiat_prices_by_zoning.get(&parcel.zoning).copied())
                 .unwrap_or(0.0);
             price_per_hectare * parcel.size_hectares
         }
@@ -341,7 +336,9 @@ pub fn calculate_compensation(
 
             // Check if we have SUFFICIENT history for the full lookback window
             if price_history.has_sufficient_history(&parcel.region_id, lookback_entries) {
-                if let Some(avg_price) = price_history.rolling_average(&parcel.region_id, lookback_entries) {
+                if let Some(avg_price) =
+                    price_history.rolling_average(&parcel.region_id, lookback_entries)
+                {
                     // Sufficient history — use rolling average
                     return avg_price * average_multiplier * parcel.size_hectares;
                 }
@@ -399,7 +396,8 @@ pub fn execute_agrarian_reform(
     let mut result = ExpropriationResult::default();
 
     // Group parcels by owner to find estates exceeding the limit
-    let mut owner_parcels: BTreeMap<String, Vec<(ParcelId, f64, ParcelOwnerType)>> = BTreeMap::new();
+    let mut owner_parcels: BTreeMap<String, Vec<(ParcelId, f64, ParcelOwnerType)>> =
+        BTreeMap::new();
     for (id, parcel) in cadastre.iter() {
         if parcel.is_frozen {
             continue;
@@ -419,7 +417,8 @@ pub fn execute_agrarian_reform(
         if law.max_estate_size > 0.0 && total_hectares > law.max_estate_size {
             // Expropriate the excess — sort by size descending, expropriate largest first
             let mut sorted_parcels = parcels.clone();
-            sorted_parcels.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+            sorted_parcels
+                .sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
             let mut remaining = total_hectares;
             for (id, size, owner_type) in &sorted_parcels {
@@ -433,7 +432,8 @@ pub fn execute_agrarian_reform(
 
         // Check foreign ownership cap
         if law.foreign_ownership_cap > 0.0 {
-            let is_foreign = parcels.first().map(|(_, _, t)| *t) == Some(ParcelOwnerType::ForeignFund);
+            let is_foreign =
+                parcels.first().map(|(_, _, t)| *t) == Some(ParcelOwnerType::ForeignFund);
             if is_foreign {
                 let total_land: f64 = cadastre.parcels.values().map(|p| p.size_hectares).sum();
                 let foreign_land: f64 = cadastre
@@ -491,8 +491,12 @@ pub fn execute_agrarian_reform(
         // File arbitration case
         let filing_prob = match law.compensation_scheme {
             CompensationScheme::None => arbitration_config.base_filing_probability,
-            CompensationScheme::StatutoryFiat { .. } => arbitration_config.base_filing_probability * 0.7,
-            CompensationScheme::FairMarketAverage { .. } => arbitration_config.base_filing_probability * 0.5,
+            CompensationScheme::StatutoryFiat { .. } => {
+                arbitration_config.base_filing_probability * 0.7
+            }
+            CompensationScheme::FairMarketAverage { .. } => {
+                arbitration_config.base_filing_probability * 0.5
+            }
         };
 
         if rng.gen_range(0.0..1.0) < filing_prob {
@@ -663,16 +667,26 @@ pub fn generate_ministry_land_report(
                     count += 1;
                 }
             }
-            if count > 0 { sum / count as f64 } else { 0.0 }
+            if count > 0 {
+                sum / count as f64
+            } else {
+                0.0
+            }
         };
         let region_foreign: f64 = {
             let foreign: f64 = cadastre
                 .parcels
                 .values()
-                .filter(|p| p.region_id == region.id && p.owner_type == ParcelOwnerType::ForeignFund)
+                .filter(|p| {
+                    p.region_id == region.id && p.owner_type == ParcelOwnerType::ForeignFund
+                })
                 .map(|p| p.size_hectares)
                 .sum();
-            if region_hectares > 0.0 { foreign / region_hectares } else { 0.0 }
+            if region_hectares > 0.0 {
+                foreign / region_hectares
+            } else {
+                0.0
+            }
         };
 
         regional_summaries.push(MinistryRegionalSummary {
@@ -699,7 +713,10 @@ pub fn generate_ministry_land_report(
         total_arbitration_cases: total_arb,
         total_arbitration_exposure: total_exposure,
         regional_summaries,
-        delay_note: format!("Report delayed by bureaucratic processing. Data as of turn {}.", report_turn),
+        delay_note: format!(
+            "Report delayed by bureaucratic processing. Data as of turn {}.",
+            report_turn
+        ),
     }
 }
 
@@ -707,9 +724,7 @@ pub fn generate_ministry_land_report(
 // PHASE 62: ADVERSE POSSESSION (ZASIEDZIE) & VINDICATION
 // ============================================================================
 
-use crate::society::cadastre::{
-    AdversePossessionConfig, AdversePossessionState,
-};
+use crate::society::cadastre::{AdversePossessionConfig, AdversePossessionState};
 
 /// Result of processing adverse possession for one turn.
 #[derive(Debug, Clone, Default)]
@@ -806,7 +821,9 @@ pub fn process_adverse_possession(
         };
 
         // Compute landless laborer fraction as unemployment proxy
-        let landless_pop: i64 = region.class_demographics.rural_classes
+        let landless_pop: i64 = region
+            .class_demographics
+            .rural_classes
             .get("LandlessLaborer")
             .map(|d| d.population)
             .unwrap_or(0);
@@ -966,7 +983,13 @@ pub fn process_immissions(
     for pid in &parcel_ids {
         let (pollution, zoning, _region_id, owner_id, acquisition_price) = {
             if let Some(p) = cadastre.parcels.get(*pid) {
-                (p.pollution_level, p.zoning, p.region_id.clone(), p.owner_id.clone(), p.acquisition_price)
+                (
+                    p.pollution_level,
+                    p.zoning,
+                    p.region_id.clone(),
+                    p.owner_id.clone(),
+                    p.acquisition_price,
+                )
             } else {
                 continue;
             }
@@ -983,7 +1006,8 @@ pub fn process_immissions(
                 // Find the nearest industrial parcel as defendant
                 let defendant = {
                     if let Some(p) = cadastre.parcels.get(*pid) {
-                        p.adjacent_parcels.iter()
+                        p.adjacent_parcels
+                            .iter()
                             .find_map(|&nid| {
                                 cadastre.parcels.get(nid).and_then(|np| {
                                     if np.zoning == ZoningDesignation::Industrial {
@@ -1038,13 +1062,27 @@ pub fn distribute_sale_proceeds(
     regions: &mut [crate::society::geography::Region],
 ) {
     if co_owners.is_empty() {
-        credit_owner(sole_owner_id, sole_owner_type, net_proceeds, companies, country, regions);
+        credit_owner(
+            sole_owner_id,
+            sole_owner_type,
+            net_proceeds,
+            companies,
+            country,
+            regions,
+        );
     } else {
         for (owner_id, share) in co_owners {
             let proceed_share = net_proceeds * share;
             // Infer owner type from owner_id prefix
             let owner_type = infer_owner_type_from_id(owner_id);
-            credit_owner(owner_id, owner_type, proceed_share, companies, country, regions);
+            credit_owner(
+                owner_id,
+                owner_type,
+                proceed_share,
+                companies,
+                country,
+                regions,
+            );
         }
     }
 }
@@ -1114,7 +1152,11 @@ fn credit_owner(
                 // Credit to the FreePeasant savings pool of the first region
                 // (This is a fallback — in practice, private owners should map to companies)
                 if let Some(region) = regions.first_mut() {
-                    if let Some(fp) = region.class_demographics.rural_classes.get_mut("FreePeasant") {
+                    if let Some(fp) = region
+                        .class_demographics
+                        .rural_classes
+                        .get_mut("FreePeasant")
+                    {
                         fp.savings += amount;
                     }
                 }
@@ -1143,7 +1185,10 @@ pub struct VipHealthResult {
 }
 
 /// Infer the region a VIP is located in based on their role.
-pub fn infer_vip_region(vip: &crate::politics::vip_registry::Vip, country: &crate::state::Country) -> Option<String> {
+pub fn infer_vip_region(
+    vip: &crate::politics::vip_registry::Vip,
+    country: &crate::state::Country,
+) -> Option<String> {
     // Check roles to determine location
     for role in &vip.roles {
         match role {
@@ -1157,9 +1202,13 @@ pub fn infer_vip_region(vip: &crate::politics::vip_registry::Vip, country: &crat
                     }
                 }
             }
-            VipRoleExtended::Minister | VipRoleExtended::PrimeMinister | VipRoleExtended::HeadOfState => {
+            VipRoleExtended::Minister
+            | VipRoleExtended::PrimeMinister
+            | VipRoleExtended::HeadOfState => {
                 // Capital region
-                return country.regions.iter()
+                return country
+                    .regions
+                    .iter()
                     .find(|r| r.is_capital)
                     .or_else(|| country.regions.first())
                     .map(|r| r.id.clone());
@@ -1188,10 +1237,14 @@ pub fn process_vip_health_from_pollution(
     let mut result = VipHealthResult::default();
 
     // Compute average pollution per region
-    let mut region_pollution: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
-    let mut region_counts: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
+    let mut region_pollution: std::collections::HashMap<String, f64> =
+        std::collections::HashMap::new();
+    let mut region_counts: std::collections::HashMap<String, u32> =
+        std::collections::HashMap::new();
     for parcel in cadastre.parcels.values() {
-        *region_pollution.entry(parcel.region_id.clone()).or_insert(0.0) += parcel.pollution_level;
+        *region_pollution
+            .entry(parcel.region_id.clone())
+            .or_insert(0.0) += parcel.pollution_level;
         *region_counts.entry(parcel.region_id.clone()).or_insert(0) += 1;
     }
     let region_ids: Vec<String> = region_pollution.keys().cloned().collect();
@@ -1239,15 +1292,20 @@ pub fn process_vip_health_from_pollution(
             // Check for mental breakdown
             if vip.health.mental_health < config.breakdown_threshold {
                 // Set incapacity to Sick (representing breakdown)
-                if matches!(vip.incapacity, crate::politics::vip_registry::IncapacityStatus::Healthy) {
+                if matches!(
+                    vip.incapacity,
+                    crate::politics::vip_registry::IncapacityStatus::Healthy
+                ) {
                     vip.incapacity = crate::politics::vip_registry::IncapacityStatus::Sick;
                 }
                 result.breakdowns += 1;
             }
         } else {
             // Recover health slowly
-            vip.health.physical_health = (vip.health.physical_health + config.health_recovery_rate).min(1.0);
-            vip.health.mental_health = (vip.health.mental_health + config.health_recovery_rate).min(1.0);
+            vip.health.physical_health =
+                (vip.health.physical_health + config.health_recovery_rate).min(1.0);
+            vip.health.mental_health =
+                (vip.health.mental_health + config.health_recovery_rate).min(1.0);
             if vip.health.physical_health > config.death_threshold
                 && vip.health.mental_health > config.breakdown_threshold
             {
@@ -1263,7 +1321,9 @@ pub fn process_vip_health_from_pollution(
 // PHASE 64: REAL ESTATE DEVELOPERS & SPATIAL LOBBYING
 // ============================================================================
 
-use crate::politics::lobbying::{LobbyingOperation, LobbyingOperationType, LobbyingTarget, LobbyingStatus};
+use crate::politics::lobbying::{
+    LobbyingOperation, LobbyingOperationType, LobbyingStatus, LobbyingTarget,
+};
 use crate::registries::enums::Sector;
 
 /// Phase 64.2: Developer land acquisition.
@@ -1293,10 +1353,21 @@ pub fn developer_acquire_land(
     }
 
     let mut acquired = 0usize;
-    let candidate_ids: Vec<ParcelId> = cadastre.parcels.iter()
+    let candidate_ids: Vec<ParcelId> = cadastre
+        .parcels
+        .iter()
         .filter(|(_, p)| p.region_id == region_id)
-        .filter(|(_, p)| matches!(p.zoning, ZoningDesignation::Unplanned | ZoningDesignation::Residential | ZoningDesignation::Agricultural))
-        .filter(|(_, p)| p.owner_type == ParcelOwnerType::Private || p.owner_type == ParcelOwnerType::State)
+        .filter(|(_, p)| {
+            matches!(
+                p.zoning,
+                ZoningDesignation::Unplanned
+                    | ZoningDesignation::Residential
+                    | ZoningDesignation::Agricultural
+            )
+        })
+        .filter(|(_, p)| {
+            p.owner_type == ParcelOwnerType::Private || p.owner_type == ParcelOwnerType::State
+        })
         .map(|(id, _)| id)
         .take(max_parcels)
         .collect();
@@ -1354,7 +1425,9 @@ pub fn developer_lobby_for_zoning(
     }
 
     // Lobbying cost scales with company cash
-    let lobby_cost = (developer.available_cash * 0.05).min(500_000.0).max(50_000.0);
+    let lobby_cost = (developer.available_cash * 0.05)
+        .min(500_000.0)
+        .max(50_000.0);
     developer.available_cash -= lobby_cost;
 
     let op = LobbyingOperation {
@@ -1398,9 +1471,18 @@ pub fn apply_zoning_lobbying_result(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::cadastre::{Cadastre, CadastreConfig, ParcelChunk, ParcelOwnerType, ZoningDesignation, LandPriceHistoryRegistry};
+    use crate::society::cadastre::{
+        Cadastre, CadastreConfig, LandPriceHistoryRegistry, ParcelChunk, ParcelOwnerType,
+        ZoningDesignation,
+    };
 
-    fn make_parcel(region_id: &str, size: f64, owner_type: ParcelOwnerType, owner_id: &str, certainty: f64) -> ParcelChunk {
+    fn make_parcel(
+        region_id: &str,
+        size: f64,
+        owner_type: ParcelOwnerType,
+        owner_id: &str,
+        certainty: f64,
+    ) -> ParcelChunk {
         ParcelChunk {
             region_id: region_id.to_string(),
             size_hectares: size,
@@ -1433,9 +1515,28 @@ mod tests {
             share_price_premium: 0.3, // 30% premium
             ..Default::default()
         };
-        let normal_bid = evaluate_max_bid(&parcel, &config, &normal_modifiers, 10_000_000.0, 10000.0, 0.0).unwrap();
-        let ambitious_bid = evaluate_max_bid(&parcel, &config, &ambitious_modifiers, 10_000_000.0, 10000.0, 0.0).unwrap();
-        assert!(ambitious_bid > normal_bid, "Ambitious buyer should bid more");
+        let normal_bid = evaluate_max_bid(
+            &parcel,
+            &config,
+            &normal_modifiers,
+            10_000_000.0,
+            10000.0,
+            0.0,
+        )
+        .unwrap();
+        let ambitious_bid = evaluate_max_bid(
+            &parcel,
+            &config,
+            &ambitious_modifiers,
+            10_000_000.0,
+            10000.0,
+            0.0,
+        )
+        .unwrap();
+        assert!(
+            ambitious_bid > normal_bid,
+            "Ambitious buyer should bid more"
+        );
     }
 
     #[test]
@@ -1447,8 +1548,24 @@ mod tests {
             share_price_premium: -0.2, // 20% discount
             ..Default::default()
         };
-        let normal_bid = evaluate_max_bid(&parcel, &config, &normal_modifiers, 10_000_000.0, 10000.0, 0.0).unwrap();
-        let paranoid_bid = evaluate_max_bid(&parcel, &config, &paranoid_modifiers, 10_000_000.0, 10000.0, 0.0).unwrap();
+        let normal_bid = evaluate_max_bid(
+            &parcel,
+            &config,
+            &normal_modifiers,
+            10_000_000.0,
+            10000.0,
+            0.0,
+        )
+        .unwrap();
+        let paranoid_bid = evaluate_max_bid(
+            &parcel,
+            &config,
+            &paranoid_modifiers,
+            10_000_000.0,
+            10000.0,
+            0.0,
+        )
+        .unwrap();
         assert!(paranoid_bid < normal_bid, "Paranoid buyer should bid less");
     }
 
@@ -1461,7 +1578,10 @@ mod tests {
             ..Default::default()
         };
         let bid = evaluate_max_bid(&parcel, &config, &risk_averse, 1_000_000.0, 1000.0, 0.0);
-        assert!(bid.is_none(), "Risk-averse buyer should skip low-certainty parcel");
+        assert!(
+            bid.is_none(),
+            "Risk-averse buyer should skip low-certainty parcel"
+        );
     }
 
     #[test]
@@ -1514,10 +1634,14 @@ mod tests {
 
         assert!(result.is_some(), "Transaction should succeed");
         let r = result.unwrap();
-        assert!((buyer_cash - (2_000_000.0 - 500_000.0 - r.stamp_duty)).abs() < 0.01,
-            "Buyer cash should be debited by price + stamp duty");
-        assert!((seller_cash - 500_000.0).abs() < 0.01,
-            "Seller cash should be credited with price");
+        assert!(
+            (buyer_cash - (2_000_000.0 - 500_000.0 - r.stamp_duty)).abs() < 0.01,
+            "Buyer cash should be debited by price + stamp duty"
+        );
+        assert!(
+            (seller_cash - 500_000.0).abs() < 0.01,
+            "Seller cash should be credited with price"
+        );
     }
 
     #[test]
@@ -1544,9 +1668,18 @@ mod tests {
             5,
         );
 
-        assert!(result.is_none(), "Transaction should be rejected with insufficient funds");
-        assert!((buyer_cash - 100_000.0).abs() < 0.01, "Buyer cash should be unchanged");
-        assert!((seller_cash - 0.0).abs() < 0.01, "Seller cash should be unchanged");
+        assert!(
+            result.is_none(),
+            "Transaction should be rejected with insufficient funds"
+        );
+        assert!(
+            (buyer_cash - 100_000.0).abs() < 0.01,
+            "Buyer cash should be unchanged"
+        );
+        assert!(
+            (seller_cash - 0.0).abs() < 0.01,
+            "Seller cash should be unchanged"
+        );
     }
 
     #[test]
@@ -1571,10 +1704,14 @@ mod tests {
             &config,
             None,
             10,
-        ).unwrap();
+        )
+        .unwrap();
 
         let p = cadastre.get(parcel_id).unwrap();
-        assert!((p.acquisition_price - 750_000.0).abs() < 0.01, "acquisition_price should be updated");
+        assert!(
+            (p.acquisition_price - 750_000.0).abs() < 0.01,
+            "acquisition_price should be updated"
+        );
         assert_eq!(p.acquisition_turn, 10);
         assert_eq!(p.owner_type, ParcelOwnerType::Corporate);
         assert_eq!(p.owner_id, "CORP_1");
@@ -1638,12 +1775,15 @@ mod tests {
             &config,
             Some(&mut budget),
             5,
-        ).unwrap();
+        )
+        .unwrap();
 
         let expected_stamp = 500_000.0 * config.stamp_duty_rate;
         assert!((result.stamp_duty - expected_stamp).abs() < 0.01);
-        assert!((budget.liquid_reserves - (initial_reserves + expected_stamp)).abs() < 0.01,
-            "Stamp duty should be credited to regional budget");
+        assert!(
+            (budget.liquid_reserves - (initial_reserves + expected_stamp)).abs() < 0.01,
+            "Stamp duty should be credited to regional budget"
+        );
     }
 
     #[test]
@@ -1666,7 +1806,11 @@ mod tests {
         };
         let comp = calculate_compensation(&parcel, &scheme, &history, 24);
         // 20_000 per hectare × 100 hectares = 2_000_000
-        assert!((comp - 2_000_000.0).abs() < 0.01, "Expected 2M, got {}", comp);
+        assert!(
+            (comp - 2_000_000.0).abs() < 0.01,
+            "Expected 2M, got {}",
+            comp
+        );
     }
 
     #[test]
@@ -1684,7 +1828,11 @@ mod tests {
         let comp = calculate_compensation(&parcel, &scheme, &history, 24);
         // 3 years × 24 turns = 72 turns lookback
         // Average = 30_000, × 1.0 × 100 hectares = 3_000_000
-        assert!((comp - 3_000_000.0).abs() < 0.01, "Expected 3M, got {}", comp);
+        assert!(
+            (comp - 3_000_000.0).abs() < 0.01,
+            "Expected 3M, got {}",
+            comp
+        );
     }
 
     #[test]
@@ -1698,8 +1846,11 @@ mod tests {
         };
         let comp = calculate_compensation(&parcel, &scheme, &history, 24);
         // **FALLBACK**: Should use acquisition_price (500_000), NOT hedonic valuation
-        assert!((comp - 500_000.0).abs() < 0.01,
-            "FairMarketAverage fallback should use acquisition_price, got {}", comp);
+        assert!(
+            (comp - 500_000.0).abs() < 0.01,
+            "FairMarketAverage fallback should use acquisition_price, got {}",
+            comp
+        );
     }
 
     #[test]
@@ -1716,15 +1867,24 @@ mod tests {
         };
         let comp = calculate_compensation(&parcel, &scheme, &history, 24);
         // Insufficient history → fallback to acquisition_price
-        assert!((comp - 500_000.0).abs() < 0.01,
-            "Insufficient history should fallback to acquisition_price, got {}", comp);
+        assert!(
+            (comp - 500_000.0).abs() < 0.01,
+            "Insufficient history should fallback to acquisition_price, got {}",
+            comp
+        );
     }
 
     #[test]
     fn test_foreign_purchase_allowed_normal() {
         let mut cadastre = Cadastre::default();
         // 1000 hectares state, 0 foreign. Cap is 20% = 200 hectares.
-        cadastre.insert(make_parcel("R1", 1000.0, ParcelOwnerType::State, "TREASURY", 0.8));
+        cadastre.insert(make_parcel(
+            "R1",
+            1000.0,
+            ParcelOwnerType::State,
+            "TREASURY",
+            0.8,
+        ));
         let law = AgrarianReformLaw {
             foreign_ownership_cap: 0.2,
             foreign_border_zone_ban_km: 10.0,
@@ -1732,8 +1892,10 @@ mod tests {
         };
         // Buying 50 hectares → 50/1050 = ~4.8% foreign, well under 20% cap
         let parcel = make_parcel("R1", 50.0, ParcelOwnerType::State, "TREASURY", 0.8);
-        assert!(check_foreign_purchase_allowed(&cadastre, &parcel, &law, None, "", "", None, 0),
-            "Normal purchase should be allowed");
+        assert!(
+            check_foreign_purchase_allowed(&cadastre, &parcel, &law, None, "", "", None, 0),
+            "Normal purchase should be allowed"
+        );
     }
 
     #[test]
@@ -1745,15 +1907,23 @@ mod tests {
         };
         let mut parcel = make_parcel("R1", 50.0, ParcelOwnerType::State, "TREASURY", 0.8);
         parcel.is_border_zone = true;
-        assert!(!check_foreign_purchase_allowed(&cadastre, &parcel, &law, None, "", "", None, 0),
-            "Border zone purchase should be blocked for foreign funds");
+        assert!(
+            !check_foreign_purchase_allowed(&cadastre, &parcel, &law, None, "", "", None, 0),
+            "Border zone purchase should be blocked for foreign funds"
+        );
     }
 
     #[test]
     fn test_foreign_purchase_blocked_cap_exceeded() {
         let mut cadastre = Cadastre::default();
         // 800 hectares state, 200 hectares foreign = 20% foreign
-        cadastre.insert(make_parcel("R1", 800.0, ParcelOwnerType::State, "TREASURY", 0.8));
+        cadastre.insert(make_parcel(
+            "R1",
+            800.0,
+            ParcelOwnerType::State,
+            "TREASURY",
+            0.8,
+        ));
         cadastre.insert(ParcelChunk {
             region_id: "R1".to_string(),
             size_hectares: 200.0,
@@ -1766,16 +1936,30 @@ mod tests {
             ..Default::default()
         };
         let parcel = make_parcel("R1", 100.0, ParcelOwnerType::State, "TREASURY", 0.8);
-        assert!(!check_foreign_purchase_allowed(&cadastre, &parcel, &law, None, "", "", None, 0),
-            "Purchase should be blocked when foreign cap exceeded");
+        assert!(
+            !check_foreign_purchase_allowed(&cadastre, &parcel, &law, None, "", "", None, 0),
+            "Purchase should be blocked when foreign cap exceeded"
+        );
     }
 
     #[test]
     fn test_agrarian_reform_expropriation() {
         let mut cadastre = Cadastre::default();
         // One owner with 1000 hectares — exceeds 500 limit
-        cadastre.insert(make_parcel("R1", 600.0, ParcelOwnerType::Private, "DYNASTY_1", 0.5));
-        cadastre.insert(make_parcel("R1", 400.0, ParcelOwnerType::Private, "DYNASTY_1", 0.5));
+        cadastre.insert(make_parcel(
+            "R1",
+            600.0,
+            ParcelOwnerType::Private,
+            "DYNASTY_1",
+            0.5,
+        ));
+        cadastre.insert(make_parcel(
+            "R1",
+            400.0,
+            ParcelOwnerType::Private,
+            "DYNASTY_1",
+            0.5,
+        ));
 
         let mut court = ArbitrationCourt::default();
         let law = AgrarianReformLaw {
@@ -1805,16 +1989,28 @@ mod tests {
             &mut rng,
         );
 
-        assert!(result.parcels_expropriated > 0, "Should expropriate parcels exceeding limit");
+        assert!(
+            result.parcels_expropriated > 0,
+            "Should expropriate parcels exceeding limit"
+        );
         assert!(result.hectares_expropriated > 0.0);
         // With 100% filing probability and None compensation, cases should be filed
-        assert!(result.arbitration_cases_filed > 0, "Should file arbitration cases");
+        assert!(
+            result.arbitration_cases_filed > 0,
+            "Should file arbitration cases"
+        );
     }
 
     #[test]
     fn test_agrarian_reform_redistribute_to_peasants() {
         let mut cadastre = Cadastre::default();
-        cadastre.insert(make_parcel("R1", 600.0, ParcelOwnerType::Private, "DYNASTY_1", 0.5));
+        cadastre.insert(make_parcel(
+            "R1",
+            600.0,
+            ParcelOwnerType::Private,
+            "DYNASTY_1",
+            0.5,
+        ));
 
         let mut court = ArbitrationCourt::default();
         let law = AgrarianReformLaw {
@@ -1843,13 +2039,22 @@ mod tests {
         // Expropriated parcel should now be owned by a peasant
         let p = cadastre.parcels.values().next().unwrap();
         assert_eq!(p.owner_type, ParcelOwnerType::Private);
-        assert!(p.owner_id.starts_with("PEASANT_REFORM_"), "Should be redistributed to peasant");
+        assert!(
+            p.owner_id.starts_with("PEASANT_REFORM_"),
+            "Should be redistributed to peasant"
+        );
     }
 
     #[test]
     fn test_agrarian_reform_no_expropriation_under_limit() {
         let mut cadastre = Cadastre::default();
-        cadastre.insert(make_parcel("R1", 300.0, ParcelOwnerType::Private, "DYNASTY_1", 0.5));
+        cadastre.insert(make_parcel(
+            "R1",
+            300.0,
+            ParcelOwnerType::Private,
+            "DYNASTY_1",
+            0.5,
+        ));
 
         let mut court = ArbitrationCourt::default();
         let law = AgrarianReformLaw {
@@ -1874,7 +2079,10 @@ mod tests {
             &mut rng,
         );
 
-        assert_eq!(result.parcels_expropriated, 0, "Should not expropriate under limit");
+        assert_eq!(
+            result.parcels_expropriated, 0,
+            "Should not expropriate under limit"
+        );
     }
 
     #[test]
@@ -1889,8 +2097,20 @@ mod tests {
     #[test]
     fn test_ministry_land_report_generation() {
         let mut cadastre = Cadastre::default();
-        cadastre.insert(make_parcel("R1", 100.0, ParcelOwnerType::State, "TREASURY", 0.8));
-        cadastre.insert(make_parcel("R1", 50.0, ParcelOwnerType::ForeignFund, "FF_1", 0.6));
+        cadastre.insert(make_parcel(
+            "R1",
+            100.0,
+            ParcelOwnerType::State,
+            "TREASURY",
+            0.8,
+        ));
+        cadastre.insert(make_parcel(
+            "R1",
+            50.0,
+            ParcelOwnerType::ForeignFund,
+            "FF_1",
+            0.6,
+        ));
 
         let border_conflicts = crate::society::cadastre::BorderConflictRegistry::default();
         let court = ArbitrationCourt::default();
@@ -1900,7 +2120,8 @@ mod tests {
             ..Default::default()
         }];
 
-        let report = generate_ministry_land_report(&cadastre, &border_conflicts, &court, &regions, 10);
+        let report =
+            generate_ministry_land_report(&cadastre, &border_conflicts, &court, &regions, 10);
         assert_eq!(report.report_turn, 10);
         assert!(report.total_hectares > 0.0);
         assert!(report.foreign_ownership_pct > 0.0);
@@ -1912,13 +2133,12 @@ mod tests {
     // ========================================================================
 
     use crate::society::cadastre::{
-        AdversePossessionConfig, AdversePossessionState, ImmissionConfig,
-        ArbitrationCourt,
+        AdversePossessionConfig, AdversePossessionState, ArbitrationCourt, ImmissionConfig,
     };
 
     #[test]
     fn test_adjacency_graph_connected() {
-        use crate::society::geography::{Region, NodeType, Climate};
+        use crate::society::geography::{Climate, NodeType, Region};
         let region = Region {
             id: "R1".to_string(),
             display_name: "Test".to_string(),
@@ -1930,11 +2150,14 @@ mod tests {
             ..Default::default()
         };
         let mut rng = rand::thread_rng();
-        let cadastre = crate::society::cadastre::generate_cadastre("TestLand", &[region], &mut rng, 0);
+        let cadastre =
+            crate::society::cadastre::generate_cadastre("TestLand", &[region], &mut rng, 0);
         // All parcels should have at least one adjacent parcel (graph is connected)
         for parcel in cadastre.parcels.values() {
-            assert!(!parcel.adjacent_parcels.is_empty(),
-                "Every parcel should have at least one adjacent parcel");
+            assert!(
+                !parcel.adjacent_parcels.is_empty(),
+                "Every parcel should have at least one adjacent parcel"
+            );
         }
     }
 
@@ -2028,8 +2251,12 @@ mod tests {
         let mut regions: Vec<crate::society::geography::Region> = vec![];
         let config = AdversePossessionConfig::default();
         let mut rng = rand::thread_rng();
-        let result = process_adverse_possession(&mut cadastre, &mut regions, 100, &config, &mut rng);
-        assert_eq!(result.transfers_completed, 0, "Contested parcel should not transfer");
+        let result =
+            process_adverse_possession(&mut cadastre, &mut regions, 100, &config, &mut rng);
+        assert_eq!(
+            result.transfers_completed, 0,
+            "Contested parcel should not transfer"
+        );
         let parcel = cadastre.get(pid).unwrap();
         assert_eq!(parcel.owner_type, ParcelOwnerType::State);
     }
@@ -2094,10 +2321,16 @@ mod tests {
         let result = process_immissions(&mut cadastre, &mut court, &config, 1);
         // Industrial parcel should emit pollution
         let parcel_a = cadastre.get(pid_a).unwrap();
-        assert!(parcel_a.pollution_level > 0.0, "Industrial parcel should have pollution");
+        assert!(
+            parcel_a.pollution_level > 0.0,
+            "Industrial parcel should have pollution"
+        );
         // Residential parcel should receive pollution via adjacency
         let parcel_b = cadastre.get(pid_b).unwrap();
-        assert!(parcel_b.pollution_level > 0.0, "Residential parcel should receive pollution via adjacency");
+        assert!(
+            parcel_b.pollution_level > 0.0,
+            "Residential parcel should receive pollution via adjacency"
+        );
         assert!(result.parcels_polluted >= 1);
     }
 
@@ -2139,7 +2372,10 @@ mod tests {
         let parcel = cadastre.parcels.values().next().unwrap();
         assert_eq!(parcel.co_owners.len(), 2);
         let total: f64 = parcel.co_owners.values().sum();
-        assert!((total - 1.0).abs() < 1e-6, "Co-ownership shares should sum to 1.0");
+        assert!(
+            (total - 1.0).abs() < 1e-6,
+            "Co-ownership shares should sum to 1.0"
+        );
     }
 
     #[test]
@@ -2193,14 +2429,14 @@ mod tests {
 
     #[test]
     fn test_developer_acquire_land() {
+        use crate::corporate::market_behavior::MarketBehaviorModifiers;
         use crate::entities::Company;
         use crate::registries::enums::Sector;
-        use crate::corporate::market_behavior::MarketBehaviorModifiers;
 
         let mut cadastre = Cadastre::default();
         let pid = cadastre.insert(ParcelChunk {
             region_id: "R1".to_string(),
-            size_hectares: 5.0, // Small parcel to keep value low
+            size_hectares: 5.0,                 // Small parcel to keep value low
             soil_class: "Class_VI".to_string(), // Lowest soil class
             zoning: ZoningDesignation::Unplanned,
             owner_type: ParcelOwnerType::State,
@@ -2216,19 +2452,30 @@ mod tests {
         let config = CadastreConfig::default();
         let history = LandPriceHistoryRegistry::default();
         let modifiers = MarketBehaviorModifiers::default();
-        let acquired = developer_acquire_land(&mut developer, &mut cadastre, &config, &history, &modifiers, "R1", 5);
+        let acquired = developer_acquire_land(
+            &mut developer,
+            &mut cadastre,
+            &config,
+            &history,
+            &modifiers,
+            "R1",
+            5,
+        );
         assert_eq!(acquired, 1, "Developer should acquire 1 parcel");
         let parcel = cadastre.get(pid).unwrap();
         assert_eq!(parcel.owner_id, "DEV_001");
         assert_eq!(parcel.owner_type, ParcelOwnerType::Corporate);
-        assert!(developer.available_cash < 5_000_000.0, "Developer cash should decrease");
+        assert!(
+            developer.available_cash < 5_000_000.0,
+            "Developer cash should decrease"
+        );
     }
 
     #[test]
     fn test_developer_acquire_land_non_construction_rejected() {
+        use crate::corporate::market_behavior::MarketBehaviorModifiers;
         use crate::entities::Company;
         use crate::registries::enums::Sector;
-        use crate::corporate::market_behavior::MarketBehaviorModifiers;
 
         let mut cadastre = Cadastre::default();
         cadastre.insert(ParcelChunk {
@@ -2248,8 +2495,19 @@ mod tests {
         let config = CadastreConfig::default();
         let history = LandPriceHistoryRegistry::default();
         let modifiers = MarketBehaviorModifiers::default();
-        let acquired = developer_acquire_land(&mut developer, &mut cadastre, &config, &history, &modifiers, "R1", 5);
-        assert_eq!(acquired, 0, "Non-construction company should not acquire land");
+        let acquired = developer_acquire_land(
+            &mut developer,
+            &mut cadastre,
+            &config,
+            &history,
+            &modifiers,
+            "R1",
+            5,
+        );
+        assert_eq!(
+            acquired, 0,
+            "Non-construction company should not acquire land"
+        );
     }
 
     #[test]
@@ -2263,13 +2521,28 @@ mod tests {
             available_cash: 1_000_000.0,
             ..Default::default()
         };
-        let op = developer_lobby_for_zoning(&mut developer, "R1", ZoningDesignation::Residential, "LOB_001", 10);
+        let op = developer_lobby_for_zoning(
+            &mut developer,
+            "R1",
+            ZoningDesignation::Residential,
+            "LOB_001",
+            10,
+        );
         assert!(op.is_some());
         let op = op.unwrap();
-        assert_eq!(op.target_type, crate::politics::lobbying::LobbyingTarget::Councilor);
-        assert_eq!(op.operation_type, crate::politics::lobbying::LobbyingOperationType::LegalLobbying);
+        assert_eq!(
+            op.target_type,
+            crate::politics::lobbying::LobbyingTarget::Councilor
+        );
+        assert_eq!(
+            op.operation_type,
+            crate::politics::lobbying::LobbyingOperationType::LegalLobbying
+        );
         assert!(op.amount > 0.0);
-        assert!(developer.available_cash < 1_000_000.0, "Lobbying cost should be deducted");
+        assert!(
+            developer.available_cash < 1_000_000.0,
+            "Lobbying cost should be deducted"
+        );
     }
 
     #[test]
@@ -2283,8 +2556,17 @@ mod tests {
             available_cash: 50_000.0, // Below 100k threshold
             ..Default::default()
         };
-        let op = developer_lobby_for_zoning(&mut developer, "R1", ZoningDesignation::Residential, "LOB_001", 10);
-        assert!(op.is_none(), "Developer with insufficient funds should not lobby");
+        let op = developer_lobby_for_zoning(
+            &mut developer,
+            "R1",
+            ZoningDesignation::Residential,
+            "LOB_001",
+            10,
+        );
+        assert!(
+            op.is_none(),
+            "Developer with insufficient funds should not lobby"
+        );
     }
 
     #[test]
@@ -2312,10 +2594,26 @@ mod tests {
             zoning: ZoningDesignation::Unplanned,
             ..Default::default()
         });
-        let rezoned = apply_zoning_lobbying_result(&mut cadastre, "DEV_005", "R1", ZoningDesignation::Residential, 10);
+        let rezoned = apply_zoning_lobbying_result(
+            &mut cadastre,
+            "DEV_005",
+            "R1",
+            ZoningDesignation::Residential,
+            10,
+        );
         assert_eq!(rezoned, 2);
-        assert_eq!(cadastre.get(pid1).unwrap().zoning, ZoningDesignation::Residential);
-        assert_eq!(cadastre.get(pid2).unwrap().zoning, ZoningDesignation::Residential);
-        assert_eq!(cadastre.get(pid3).unwrap().zoning, ZoningDesignation::Unplanned, "Other region should not be rezoned");
+        assert_eq!(
+            cadastre.get(pid1).unwrap().zoning,
+            ZoningDesignation::Residential
+        );
+        assert_eq!(
+            cadastre.get(pid2).unwrap().zoning,
+            ZoningDesignation::Residential
+        );
+        assert_eq!(
+            cadastre.get(pid3).unwrap().zoning,
+            ZoningDesignation::Unplanned,
+            "Other region should not be rezoned"
+        );
     }
 }

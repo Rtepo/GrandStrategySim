@@ -31,10 +31,11 @@ pub fn allocate_owner_infrastructure_funding(
     local_governments: &mut BTreeMap<String, f64>,
     companies: &mut BTreeMap<String, f64>,
     config: &InfrastructureConfig,
+    average_wage: f64,
 ) {
     for building in buildings.iter_mut() {
         let owner_id = &building.owner_id;
-        let funding_amount = calculate_funding_requirement(building, config);
+        let funding_amount = calculate_funding_requirement(building, config, average_wage);
 
         // Determine funding source based on owner_id
         if owner_id.starts_with("STATE_") {
@@ -67,24 +68,21 @@ pub fn allocate_owner_infrastructure_funding(
 ///
 /// # Arguments
 /// * `building` - The building to calculate funding for
+/// * `config` - Infrastructure config with wage multipliers
+/// * `average_wage` - Current national average wage (Rule 2: dynamic scaling)
 ///
 /// # Returns
 /// Required funding amount for this turn
 ///
 /// # Rules
-/// * Based on worker capacity and sector-specific cost multipliers
-/// * Education: 100 currency units per worker
-/// * Healthcare: 150 currency units per worker
-/// * Municipal: 80 currency units per worker
-fn calculate_funding_requirement(building: &Building, config: &InfrastructureConfig) -> f64 {
-    let cost_per_worker = match building.sector {
-        crate::registries::enums::Sector::EducationalServices => config.education_cost_per_worker,
-        crate::registries::enums::Sector::MedicalServices => config.healthcare_cost_per_worker,
-        crate::registries::enums::Sector::PublicServices => config.municipal_cost_per_worker,
-        crate::registries::enums::Sector::PublicAdministration => config.municipal_cost_per_worker,
-        _ => config.default_cost_per_worker,
-    };
-
+/// * Phase C.1: Cost per worker = `average_wage * sector_multiplier`
+/// * Total = `worker_capacity * cost_per_worker` (Rule 15: physical scaling)
+fn calculate_funding_requirement(
+    building: &Building,
+    config: &InfrastructureConfig,
+    average_wage: f64,
+) -> f64 {
+    let cost_per_worker = config.cost_per_worker(building.sector, average_wage);
     building.worker_capacity as f64 * cost_per_worker
 }
 
@@ -109,16 +107,17 @@ pub fn submit_infrastructure_procurement_orders(
 
         // Get input requirements from active method
         let inputs = &building.active_method.inputs;
-        
+
         for (commodity, quantity_per_1000) in inputs.iter() {
             let required_quantity = quantity_per_1000 * (building.worker_capacity as f64 / 1000.0);
             let max_price = building.reserve / required_quantity;
-            
+
             if max_price > 0.0 {
-                order_book
-                    .entry(*commodity)
-                    .or_default()
-                    .push((building.id.clone(), required_quantity, max_price));
+                order_book.entry(*commodity).or_default().push((
+                    building.id.clone(),
+                    required_quantity,
+                    max_price,
+                ));
             }
         }
     }
@@ -140,11 +139,11 @@ pub fn execute_infrastructure_production(
 ) {
     for building in buildings.iter_mut() {
         let building_inventory = inventories.entry(building.id.clone()).or_default();
-        
+
         // Check input availability
         let inputs = &building.active_method.inputs;
         let mut fulfillment_ratio: f64 = 1.0_f64;
-        
+
         for (commodity, required_quantity) in inputs.iter() {
             let available = building_inventory.get(commodity).copied().unwrap_or(0.0);
             let ratio: f64 = if *required_quantity > 0.0 {
@@ -154,24 +153,29 @@ pub fn execute_infrastructure_production(
             };
             fulfillment_ratio = fulfillment_ratio.min(ratio);
         }
-        
+
         // Consume inputs proportionally
         for (commodity, required_quantity) in inputs.iter() {
             let consumed = required_quantity * fulfillment_ratio;
             *building_inventory.entry(*commodity).or_insert(0.0) -= consumed;
         }
-        
+
         // Produce outputs proportionally
         let outputs = &building.active_method.outputs;
         for (commodity, base_quantity) in outputs.iter() {
             let produced = base_quantity * fulfillment_ratio * building.active_method.efficiency;
             *building_inventory.entry(*commodity).or_insert(0.0) += produced;
         }
-        
+
         // Update last production tracking
         building.last_production = outputs
             .iter()
-            .map(|(c, q)| (*c, q * fulfillment_ratio * building.active_method.efficiency))
+            .map(|(c, q)| {
+                (
+                    *c,
+                    q * fulfillment_ratio * building.active_method.efficiency,
+                )
+            })
             .collect();
     }
 }
@@ -186,9 +190,10 @@ mod tests {
         let mut building = Building::default();
         building.sector = Sector::EducationalServices;
         building.worker_capacity = 100;
-        
-        let requirement = calculate_funding_requirement(&building, &InfrastructureConfig::default());
-        assert_eq!(requirement, 10000.0); // 100 workers * 100 cost
+
+        let requirement =
+            calculate_funding_requirement(&building, &InfrastructureConfig::default(), 1000.0);
+        assert_eq!(requirement, 1_000_000.0); // 100 workers * 1000 wage * 10 multiplier
     }
 
     #[test]
@@ -197,15 +202,16 @@ mod tests {
         building.owner_id = "STATE_CENTRAL".to_string();
         building.worker_capacity = 10;
         building.sector = Sector::EducationalServices;
-        
+
+        // Phase C.1: cost = 10 workers * 1000 wage * 10 multiplier = 100,000
         let mut treasury = Treasury {
-            liquid_reserves: 2000.0,
+            liquid_reserves: 200_000.0,
             ..Default::default()
         };
-        
+
         let mut local_governments = BTreeMap::new();
         let mut companies = BTreeMap::new();
-        
+
         let mut buildings = vec![building];
         allocate_owner_infrastructure_funding(
             &mut buildings,
@@ -213,9 +219,11 @@ mod tests {
             &mut local_governments,
             &mut companies,
             &InfrastructureConfig::default(),
+            1000.0, // average_wage for test
         );
 
-        assert_eq!(treasury.liquid_reserves, 1000.0); // 10 * 100 deducted
+        // 10 workers * 1000 wage * 10 edu_multiplier = 100,000 deducted
+        assert_eq!(treasury.liquid_reserves, 100_000.0);
     }
 
     #[test]
@@ -224,15 +232,15 @@ mod tests {
         building.owner_id = "STATE_CENTRAL".to_string();
         building.worker_capacity = 100;
         building.sector = Sector::EducationalServices;
-        
+
         let mut treasury = Treasury {
             liquid_reserves: 500.0, // Insufficient for 10000 requirement
             ..Default::default()
         };
-        
+
         let mut local_governments = BTreeMap::new();
         let mut companies = BTreeMap::new();
-        
+
         let mut buildings = vec![building];
         allocate_owner_infrastructure_funding(
             &mut buildings,
@@ -240,6 +248,7 @@ mod tests {
             &mut local_governments,
             &mut companies,
             &InfrastructureConfig::default(),
+            1000.0, // average_wage for test
         );
 
         assert_eq!(treasury.liquid_reserves, 500.0); // No deduction

@@ -545,7 +545,11 @@ mod tests {
         let reg = registry();
         let a = reg.from_key("Illyrian").unwrap();
         let distance = cultural_distance(a, a);
-        assert!((distance - 0.0).abs() < 0.01, "identical cultures should have ~0 distance, got {}", distance);
+        assert!(
+            (distance - 0.0).abs() < 0.01,
+            "identical cultures should have ~0 distance, got {}",
+            distance
+        );
     }
 
     #[test]
@@ -554,7 +558,11 @@ mod tests {
         let a = reg.from_key("Illyrian").unwrap();
         let b = reg.from_key("nordian").unwrap();
         let distance = cultural_distance(a, b);
-        assert!(distance > 0.5, "different group + different family should be > 0.5, got {}", distance);
+        assert!(
+            distance > 0.5,
+            "different group + different family should be > 0.5, got {}",
+            distance
+        );
     }
 
     #[test]
@@ -563,7 +571,11 @@ mod tests {
         let a = reg.from_key("Illyrian").unwrap();
         let b = reg.from_key("thracian").unwrap();
         let distance = cultural_distance(a, b);
-        assert!(distance < 0.3, "same group + same family should be < 0.3, got {}", distance);
+        assert!(
+            distance < 0.3,
+            "same group + same family should be < 0.3, got {}",
+            distance
+        );
     }
 
     #[test]

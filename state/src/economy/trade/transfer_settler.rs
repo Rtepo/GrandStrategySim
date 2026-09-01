@@ -19,8 +19,8 @@
 //! 3. `bank.balance_sheet.reserves_at_central_bank += amount` (bank asset increases — reserves transfer in)
 
 use crate::entities::Company;
-use crate::state::Country;
 use crate::society::geography::Region;
+use crate::state::Country;
 use std::collections::HashMap;
 
 /// What kind of recipient receives the transfer.
@@ -237,11 +237,19 @@ pub fn settle_transfer_mapped<S: std::hash::BuildHasher>(
     // Check and debit payer's cash
     let has_brokerage = companies[payer_idx].brokerage_account.is_some();
     if has_brokerage {
-        let cash = companies[payer_idx].brokerage_account.as_ref().unwrap().cash;
+        let cash = companies[payer_idx]
+            .brokerage_account
+            .as_ref()
+            .unwrap()
+            .cash;
         if cash < amount {
             return Err(TransferError::InsufficientCash);
         }
-        companies[payer_idx].brokerage_account.as_mut().unwrap().cash -= amount;
+        companies[payer_idx]
+            .brokerage_account
+            .as_mut()
+            .unwrap()
+            .cash -= amount;
     } else {
         if companies[payer_idx].available_cash < amount {
             return Err(TransferError::InsufficientCash);
@@ -267,7 +275,11 @@ pub fn settle_transfer_mapped<S: std::hash::BuildHasher>(
         TransferRecipient::Treasury => {
             country.budget.liquid_reserves += amount;
         }
-        TransferRecipient::CitizenSavings { region_idx, is_rural, class_key } => {
+        TransferRecipient::CitizenSavings {
+            region_idx,
+            is_rural,
+            class_key,
+        } => {
             if let Some(region) = country.regions.get_mut(*region_idx) {
                 let classes = if *is_rural {
                     &mut region.class_demographics.rural_classes
@@ -427,7 +439,13 @@ pub fn settle_transfer_to_treasury(
     amount: f64,
     country: &mut Country,
 ) -> Result<TransferResult, TransferError> {
-    settle_transfer(companies, payer_idx, amount, &TransferRecipient::Treasury, country)
+    settle_transfer(
+        companies,
+        payer_idx,
+        amount,
+        &TransferRecipient::Treasury,
+        country,
+    )
 }
 
 /// Convenience: settle a wage payment from a company to citizen savings.
@@ -548,10 +566,7 @@ pub fn settle_treasury_to_company(
 /// Debit citizen savings from all classes in a region proportionally to their savings.
 ///
 /// Returns the actual amount debited (may be less than requested if savings are insufficient).
-pub fn debit_citizen_savings_region(
-    region: &mut Region,
-    amount: f64,
-) -> f64 {
+pub fn debit_citizen_savings_region(region: &mut Region, amount: f64) -> f64 {
     if amount <= 0.0 {
         return 0.0;
     }
@@ -595,10 +610,7 @@ pub fn debit_citizen_savings_region(
 /// Credit citizen savings across all classes in a region, distributed proportionally by population.
 ///
 /// Returns the actual amount credited (equal to `amount` if there are citizens, 0 otherwise).
-pub fn credit_citizen_savings_region(
-    region: &mut Region,
-    amount: f64,
-) -> f64 {
+pub fn credit_citizen_savings_region(region: &mut Region, amount: f64) -> f64 {
     if amount <= 0.0 {
         return 0.0;
     }
@@ -641,11 +653,7 @@ pub fn credit_citizen_savings_region(
 /// Credit a company by ID: credits brokerage_account.cash (or available_cash) and syncs bank.
 ///
 /// Returns `true` if the company was found and credited, `false` otherwise.
-pub fn credit_company_by_id(
-    companies: &mut [Company],
-    company_id: &str,
-    amount: f64,
-) -> bool {
+pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount: f64) -> bool {
     if amount <= 0.0 {
         return false;
     }
@@ -670,16 +678,13 @@ pub fn credit_company_by_id(
 /// Debit a company by ID: debits brokerage_account.cash (or available_cash) and syncs bank.
 ///
 /// Returns the actual amount debited (may be less than requested if cash is insufficient).
-pub fn debit_company_by_id(
-    companies: &mut [Company],
-    company_id: &str,
-    amount: f64,
-) -> f64 {
+pub fn debit_company_by_id(companies: &mut [Company], company_id: &str, amount: f64) -> f64 {
     if amount <= 0.0 {
         return 0.0;
     }
 
-    let (actual, bank_id) = if let Some(company) = companies.iter_mut().find(|c| c.id == company_id) {
+    let (actual, bank_id) = if let Some(company) = companies.iter_mut().find(|c| c.id == company_id)
+    {
         if let Some(ba) = &mut company.brokerage_account {
             let affordable = amount.min(ba.cash);
             ba.cash -= affordable;
@@ -716,7 +721,8 @@ pub fn sync_bank_credit_by_company_id(
     if amount <= 0.0 {
         return false;
     }
-    let bank_id = companies.iter()
+    let bank_id = companies
+        .iter()
         .find(|c| c.id == company_id)
         .and_then(|c| c.primary_bank_id.clone());
 
@@ -730,23 +736,26 @@ pub fn sync_bank_credit_by_company_id(
 
 /// Get the total liquid cash available to a company (brokerage_account.cash + available_cash).
 pub fn company_liquid_cash(company: &Company) -> f64 {
-    company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0)
+    company
+        .brokerage_account
+        .as_ref()
+        .map(|ba| ba.cash)
+        .unwrap_or(0.0)
         + company.available_cash
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entities::legal_form::{JointStockData, LegalForm};
     use crate::entities::Company;
-    use crate::entities::legal_form::{LegalForm, JointStockData};
     use crate::registries::enums::Sector;
-    use crate::state::{Country, Treasury};
+    use crate::society::geography::{ClassDemographics, Region, RegionalClassDemographics};
     use crate::state::banking::BankBalanceSheet;
-    use crate::society::geography::{Region, RegionalClassDemographics, ClassDemographics};
+    use crate::state::{Country, Treasury};
     use std::collections::BTreeMap;
 
     fn make_test_company(id: &str, cash: f64) -> Company {
-        
         Company::new(
             id.to_string(),
             id.to_string(),
@@ -791,20 +800,26 @@ mod tests {
             class_demographics: RegionalClassDemographics {
                 rural_classes: {
                     let mut m = BTreeMap::new();
-                    m.insert("peasants".to_string(), ClassDemographics {
-                        population: 100,
-                        savings: 50_000.0,
-                        ..Default::default()
-                    });
+                    m.insert(
+                        "peasants".to_string(),
+                        ClassDemographics {
+                            population: 100,
+                            savings: 50_000.0,
+                            ..Default::default()
+                        },
+                    );
                     m
                 },
                 urban_classes: {
                     let mut m = BTreeMap::new();
-                    m.insert("mieszczanie".to_string(), ClassDemographics {
-                        population: 200,
-                        savings: 80_000.0,
-                        ..Default::default()
-                    });
+                    m.insert(
+                        "mieszczanie".to_string(),
+                        ClassDemographics {
+                            population: 200,
+                            savings: 80_000.0,
+                            ..Default::default()
+                        },
+                    );
                     m
                 },
             },
@@ -825,7 +840,11 @@ mod tests {
         let initial_treasury = country.budget.liquid_reserves;
         let initial_cash = companies[0].brokerage_account.as_ref().unwrap().cash;
         let initial_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
-        let initial_reserves = companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank;
+        let initial_reserves = companies[1]
+            .balance_sheet
+            .as_ref()
+            .unwrap()
+            .reserves_at_central_bank;
 
         let result = settle_transfer_to_treasury(&mut companies, 0, 1_000.0, &mut country);
         assert!(result.is_ok());
@@ -833,13 +852,26 @@ mod tests {
         assert_eq!(r.amount_transferred, 1_000.0);
 
         // Payer cash decreased
-        assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, initial_cash - 1_000.0);
+        assert_eq!(
+            companies[0].brokerage_account.as_ref().unwrap().cash,
+            initial_cash - 1_000.0
+        );
         // Treasury increased
         assert_eq!(country.budget.liquid_reserves, initial_treasury + 1_000.0);
         // Bank deposits decreased
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().deposits, initial_deposits - 1_000.0);
+        assert_eq!(
+            companies[1].balance_sheet.as_ref().unwrap().deposits,
+            initial_deposits - 1_000.0
+        );
         // Bank reserves decreased
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank, initial_reserves - 1_000.0);
+        assert_eq!(
+            companies[1]
+                .balance_sheet
+                .as_ref()
+                .unwrap()
+                .reserves_at_central_bank,
+            initial_reserves - 1_000.0
+        );
     }
 
     #[test]
@@ -860,7 +892,10 @@ mod tests {
 
         let result = settle_transfer_to_treasury(&mut companies, 0, 1_000.0, &mut country);
         assert!(result.is_ok());
-        assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, initial_cash - 1_000.0);
+        assert_eq!(
+            companies[0].brokerage_account.as_ref().unwrap().cash,
+            initial_cash - 1_000.0
+        );
         assert_eq!(country.budget.liquid_reserves, initial_treasury + 1_000.0);
     }
 
@@ -878,9 +913,17 @@ mod tests {
         let mut country = make_test_country();
         let initial_payer_cash = companies[0].brokerage_account.as_ref().unwrap().cash;
         let initial_bank_x_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
-        let initial_bank_x_reserves = companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank;
+        let initial_bank_x_reserves = companies[1]
+            .balance_sheet
+            .as_ref()
+            .unwrap()
+            .reserves_at_central_bank;
         let initial_bank_y_deposits = companies[3].balance_sheet.as_ref().unwrap().deposits;
-        let initial_bank_y_reserves = companies[3].balance_sheet.as_ref().unwrap().reserves_at_central_bank;
+        let initial_bank_y_reserves = companies[3]
+            .balance_sheet
+            .as_ref()
+            .unwrap()
+            .reserves_at_central_bank;
 
         let result = settle_company_to_company(&mut companies, 0, 2, 1_000.0, &mut country);
         assert!(result.is_ok());
@@ -888,15 +931,41 @@ mod tests {
         assert!(r.inter_bank);
 
         // Payer cash decreased
-        assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, initial_payer_cash - 1_000.0);
+        assert_eq!(
+            companies[0].brokerage_account.as_ref().unwrap().cash,
+            initial_payer_cash - 1_000.0
+        );
         // Recipient cash increased (1.0 initial + 1_000.0 received)
-        assert_eq!(companies[2].brokerage_account.as_ref().unwrap().cash, 1_001.0);
+        assert_eq!(
+            companies[2].brokerage_account.as_ref().unwrap().cash,
+            1_001.0
+        );
         // Bank X: deposits and reserves decreased
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().deposits, initial_bank_x_deposits - 1_000.0);
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank, initial_bank_x_reserves - 1_000.0);
+        assert_eq!(
+            companies[1].balance_sheet.as_ref().unwrap().deposits,
+            initial_bank_x_deposits - 1_000.0
+        );
+        assert_eq!(
+            companies[1]
+                .balance_sheet
+                .as_ref()
+                .unwrap()
+                .reserves_at_central_bank,
+            initial_bank_x_reserves - 1_000.0
+        );
         // Bank Y: deposits and reserves increased
-        assert_eq!(companies[3].balance_sheet.as_ref().unwrap().deposits, initial_bank_y_deposits + 1_000.0);
-        assert_eq!(companies[3].balance_sheet.as_ref().unwrap().reserves_at_central_bank, initial_bank_y_reserves + 1_000.0);
+        assert_eq!(
+            companies[3].balance_sheet.as_ref().unwrap().deposits,
+            initial_bank_y_deposits + 1_000.0
+        );
+        assert_eq!(
+            companies[3]
+                .balance_sheet
+                .as_ref()
+                .unwrap()
+                .reserves_at_central_bank,
+            initial_bank_y_reserves + 1_000.0
+        );
     }
 
     #[test]
@@ -911,7 +980,11 @@ mod tests {
 
         let mut country = make_test_country();
         let initial_bank_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
-        let initial_bank_reserves = companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank;
+        let initial_bank_reserves = companies[1]
+            .balance_sheet
+            .as_ref()
+            .unwrap()
+            .reserves_at_central_bank;
 
         let result = settle_company_to_company(&mut companies, 0, 2, 1_000.0, &mut country);
         assert!(result.is_ok());
@@ -919,8 +992,18 @@ mod tests {
         assert!(!r.inter_bank);
 
         // Bank deposits and reserves unchanged (intra-bank)
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().deposits, initial_bank_deposits);
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank, initial_bank_reserves);
+        assert_eq!(
+            companies[1].balance_sheet.as_ref().unwrap().deposits,
+            initial_bank_deposits
+        );
+        assert_eq!(
+            companies[1]
+                .balance_sheet
+                .as_ref()
+                .unwrap()
+                .reserves_at_central_bank,
+            initial_bank_reserves
+        );
     }
 
     #[test]
@@ -932,13 +1015,31 @@ mod tests {
         companies[0].primary_bank_id = Some("bank_0".to_string());
 
         let mut country = make_test_country();
-        let initial_savings = country.regions[0].class_demographics.rural_classes.get("peasants").unwrap().savings;
+        let initial_savings = country.regions[0]
+            .class_demographics
+            .rural_classes
+            .get("peasants")
+            .unwrap()
+            .savings;
 
-        let result = settle_wage_payment(&mut companies, 0, 1_000.0, &mut country, 0, true, "peasants");
+        let result = settle_wage_payment(
+            &mut companies,
+            0,
+            1_000.0,
+            &mut country,
+            0,
+            true,
+            "peasants",
+        );
         assert!(result.is_ok());
 
         // Citizen savings increased
-        let new_savings = country.regions[0].class_demographics.rural_classes.get("peasants").unwrap().savings;
+        let new_savings = country.regions[0]
+            .class_demographics
+            .rural_classes
+            .get("peasants")
+            .unwrap()
+            .savings;
         assert_eq!(new_savings, initial_savings + 1_000.0);
     }
 
@@ -955,11 +1056,14 @@ mod tests {
             class_demographics: RegionalClassDemographics {
                 rural_classes: {
                     let mut m = BTreeMap::new();
-                    m.insert("peasants".to_string(), ClassDemographics {
-                        population: 100,
-                        savings: 5_000.0,
-                        ..Default::default()
-                    });
+                    m.insert(
+                        "peasants".to_string(),
+                        ClassDemographics {
+                            population: 100,
+                            savings: 5_000.0,
+                            ..Default::default()
+                        },
+                    );
                     m
                 },
                 urban_classes: BTreeMap::new(),
@@ -967,23 +1071,61 @@ mod tests {
             ..Default::default()
         };
 
-        let initial_savings = region.class_demographics.rural_classes.get("peasants").unwrap().savings;
+        let initial_savings = region
+            .class_demographics
+            .rural_classes
+            .get("peasants")
+            .unwrap()
+            .savings;
         let initial_bank_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
-        let initial_bank_reserves = companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank;
+        let initial_bank_reserves = companies[1]
+            .balance_sheet
+            .as_ref()
+            .unwrap()
+            .reserves_at_central_bank;
 
-        let result = settle_b2c_purchase(&mut companies, 0, 1_000.0, &mut region, true, "peasants", 0.0);
+        let result = settle_b2c_purchase(
+            &mut companies,
+            0,
+            1_000.0,
+            &mut region,
+            true,
+            "peasants",
+            0.0,
+        );
         assert!(result.is_ok());
         let r = result.unwrap();
         assert_eq!(r.amount_transferred, 1_000.0);
 
         // Citizen savings decreased
-        assert_eq!(region.class_demographics.rural_classes.get("peasants").unwrap().savings, initial_savings - 1_000.0);
+        assert_eq!(
+            region
+                .class_demographics
+                .rural_classes
+                .get("peasants")
+                .unwrap()
+                .savings,
+            initial_savings - 1_000.0
+        );
         // Company cash increased (1.0 initial + 1_000.0 received)
-        assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, 1_001.0);
+        assert_eq!(
+            companies[0].brokerage_account.as_ref().unwrap().cash,
+            1_001.0
+        );
         // Bank deposits increased
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().deposits, initial_bank_deposits + 1_000.0);
+        assert_eq!(
+            companies[1].balance_sheet.as_ref().unwrap().deposits,
+            initial_bank_deposits + 1_000.0
+        );
         // Bank reserves increased
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank, initial_bank_reserves + 1_000.0);
+        assert_eq!(
+            companies[1]
+                .balance_sheet
+                .as_ref()
+                .unwrap()
+                .reserves_at_central_bank,
+            initial_bank_reserves + 1_000.0
+        );
     }
 
     #[test]
@@ -994,11 +1136,14 @@ mod tests {
             class_demographics: RegionalClassDemographics {
                 rural_classes: {
                     let mut m = BTreeMap::new();
-                    m.insert("peasants".to_string(), ClassDemographics {
-                        population: 100,
-                        savings: 500.0,
-                        ..Default::default()
-                    });
+                    m.insert(
+                        "peasants".to_string(),
+                        ClassDemographics {
+                            population: 100,
+                            savings: 500.0,
+                            ..Default::default()
+                        },
+                    );
                     m
                 },
                 urban_classes: BTreeMap::new(),
@@ -1007,12 +1152,28 @@ mod tests {
         };
 
         // Request 1_000 but only 500 available
-        let result = settle_b2c_purchase(&mut companies, 0, 1_000.0, &mut region, true, "peasants", 0.0);
+        let result = settle_b2c_purchase(
+            &mut companies,
+            0,
+            1_000.0,
+            &mut region,
+            true,
+            "peasants",
+            0.0,
+        );
         assert!(result.is_ok());
         let r = result.unwrap();
         assert_eq!(r.amount_transferred, 500.0);
         assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, 501.0);
-        assert_eq!(region.class_demographics.rural_classes.get("peasants").unwrap().savings, 0.0);
+        assert_eq!(
+            region
+                .class_demographics
+                .rural_classes
+                .get("peasants")
+                .unwrap()
+                .savings,
+            0.0
+        );
     }
 
     #[test]
@@ -1037,17 +1198,34 @@ mod tests {
 
         let initial_cash = companies[0].brokerage_account.as_ref().unwrap().cash;
         let initial_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
-        let initial_reserves = companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank;
+        let initial_reserves = companies[1]
+            .balance_sheet
+            .as_ref()
+            .unwrap()
+            .reserves_at_central_bank;
 
         let ok = credit_company_by_id(&mut companies, "seller_0", 2_000.0);
         assert!(ok);
 
         // Cash increased
-        assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, initial_cash + 2_000.0);
+        assert_eq!(
+            companies[0].brokerage_account.as_ref().unwrap().cash,
+            initial_cash + 2_000.0
+        );
         // Bank deposits increased
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().deposits, initial_deposits + 2_000.0);
+        assert_eq!(
+            companies[1].balance_sheet.as_ref().unwrap().deposits,
+            initial_deposits + 2_000.0
+        );
         // Bank reserves increased
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank, initial_reserves + 2_000.0);
+        assert_eq!(
+            companies[1]
+                .balance_sheet
+                .as_ref()
+                .unwrap()
+                .reserves_at_central_bank,
+            initial_reserves + 2_000.0
+        );
     }
 
     #[test]
@@ -1058,7 +1236,10 @@ mod tests {
 
         let ok = credit_company_by_id(&mut companies, "seller_0", 500.0);
         assert!(ok);
-        assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, initial_cash + 500.0);
+        assert_eq!(
+            companies[0].brokerage_account.as_ref().unwrap().cash,
+            initial_cash + 500.0
+        );
     }
 
     #[test]
@@ -1087,21 +1268,32 @@ mod tests {
 
         let mut country = make_test_country();
         // Phase 46: Add FX reserves so the transfer can succeed
-        country.central_bank.fx_reserves.insert("USD".to_string(), 5_000.0);
-        country.central_bank.fx_reserves.insert("EUR".to_string(), 3_000.0);
+        country
+            .central_bank
+            .fx_reserves
+            .insert("USD".to_string(), 5_000.0);
+        country
+            .central_bank
+            .fx_reserves
+            .insert("EUR".to_string(), 3_000.0);
         let initial_cash = companies[0].brokerage_account.as_ref().unwrap().cash;
         let initial_treasury = country.budget.liquid_reserves;
         let initial_total_fx: f64 = country.central_bank.fx_reserves.values().sum();
 
         let result = settle_transfer(
-            &mut companies, 0, 1_000.0,
+            &mut companies,
+            0,
+            1_000.0,
             &TransferRecipient::ForeignEntity,
             &mut country,
         );
         assert!(result.is_ok());
 
         // Cash decreased
-        assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, initial_cash - 1_000.0);
+        assert_eq!(
+            companies[0].brokerage_account.as_ref().unwrap().cash,
+            initial_cash - 1_000.0
+        );
         // Treasury unchanged (money left the system)
         assert_eq!(country.budget.liquid_reserves, initial_treasury);
         // Phase 46: FX reserves decreased by transfer amount (proportional drawdown)
@@ -1119,13 +1311,22 @@ mod tests {
 
         let mut country = make_test_country();
         // Insufficient FX reserves: only 500 available, transfer requests 1_000
-        country.central_bank.fx_reserves.insert("USD".to_string(), 500.0);
+        country
+            .central_bank
+            .fx_reserves
+            .insert("USD".to_string(), 500.0);
         let initial_cash = companies[0].brokerage_account.as_ref().unwrap().cash;
         let initial_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
-        let initial_reserves = companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank;
+        let initial_reserves = companies[1]
+            .balance_sheet
+            .as_ref()
+            .unwrap()
+            .reserves_at_central_bank;
 
         let result = settle_transfer(
-            &mut companies, 0, 1_000.0,
+            &mut companies,
+            0,
+            1_000.0,
             &TransferRecipient::ForeignEntity,
             &mut country,
         );
@@ -1133,9 +1334,22 @@ mod tests {
         assert!(matches!(result, Err(TransferError::InsufficientFxReserves)));
 
         // No state mutated (atomicity)
-        assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, initial_cash);
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().deposits, initial_deposits);
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank, initial_reserves);
+        assert_eq!(
+            companies[0].brokerage_account.as_ref().unwrap().cash,
+            initial_cash
+        );
+        assert_eq!(
+            companies[1].balance_sheet.as_ref().unwrap().deposits,
+            initial_deposits
+        );
+        assert_eq!(
+            companies[1]
+                .balance_sheet
+                .as_ref()
+                .unwrap()
+                .reserves_at_central_bank,
+            initial_reserves
+        );
         assert_eq!(country.central_bank.fx_reserves.get("USD"), Some(&500.0));
     }
 
@@ -1150,16 +1364,33 @@ mod tests {
         let mut country = make_test_country();
         let initial_cash = companies[0].brokerage_account.as_ref().unwrap().cash;
         let initial_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
-        let initial_reserves = companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank;
+        let initial_reserves = companies[1]
+            .balance_sheet
+            .as_ref()
+            .unwrap()
+            .reserves_at_central_bank;
 
         // Transfer 1_000 would cause bank reserves to go negative (100 - 1000 = -900)
         let result = settle_transfer_to_treasury(&mut companies, 0, 1_000.0, &mut country);
         assert!(matches!(result, Err(TransferError::InsufficientReserves)));
 
         // No state mutated (atomicity)
-        assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, initial_cash);
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().deposits, initial_deposits);
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank, initial_reserves);
+        assert_eq!(
+            companies[0].brokerage_account.as_ref().unwrap().cash,
+            initial_cash
+        );
+        assert_eq!(
+            companies[1].balance_sheet.as_ref().unwrap().deposits,
+            initial_deposits
+        );
+        assert_eq!(
+            companies[1]
+                .balance_sheet
+                .as_ref()
+                .unwrap()
+                .reserves_at_central_bank,
+            initial_reserves
+        );
     }
 
     #[test]
@@ -1177,6 +1408,13 @@ mod tests {
         assert!(matches!(result, Err(TransferError::InsufficientReserves)));
 
         // Verify reserves were NOT silently clamped — they remain at original value
-        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank, 50.0);
+        assert_eq!(
+            companies[1]
+                .balance_sheet
+                .as_ref()
+                .unwrap()
+                .reserves_at_central_bank,
+            50.0
+        );
     }
 }

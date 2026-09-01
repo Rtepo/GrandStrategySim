@@ -138,8 +138,7 @@ pub fn update_corruption_index(
     // Oversight: high justice coverage reduces corruption
     let oversight = justice_coverage * 0.01;
 
-    *corruption_index = (*corruption_index + entrenchment - oversight)
-        .clamp(0.0, 1.0);
+    *corruption_index = (*corruption_index + entrenchment - oversight).clamp(0.0, 1.0);
 }
 
 /// Phase 29: Apply corruption-based tax revenue leakage.

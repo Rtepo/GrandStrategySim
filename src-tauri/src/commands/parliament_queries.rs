@@ -1,6 +1,6 @@
 use crate::state::AppState;
 use sim_engine::ui::snapshot::{
-    build_country_snapshot, ParliamentResponse, GovernmentSnapshot, ViewQuery,
+    build_country_snapshot, GovernmentSnapshot, ParliamentResponse, ViewQuery,
 };
 
 #[tauri::command]
@@ -11,9 +11,7 @@ pub async fn get_parliament(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -56,9 +54,7 @@ pub async fn get_government(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state

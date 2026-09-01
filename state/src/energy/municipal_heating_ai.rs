@@ -163,7 +163,9 @@ pub fn run_municipal_heating_ai(
             .min_by(|a, b| {
                 let a_opex = a.fuel_opex_per_gj + a.maintenance_opex_per_gj;
                 let b_opex = b.fuel_opex_per_gj + b.maintenance_opex_per_gj;
-                a_opex.partial_cmp(&b_opex).unwrap_or(std::cmp::Ordering::Equal)
+                a_opex
+                    .partial_cmp(&b_opex)
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
 
         if let Some(plant) = best_plant {
@@ -184,8 +186,7 @@ pub fn run_municipal_heating_ai(
     // Step 4: Cost-benefit gate
     // Expected mortality reduction: assume 30% of smog deaths preventable
     let expected_deaths_prevented = estimated_deaths_from_smog * 0.3;
-    plan.expected_mortality_reduction_value =
-        expected_deaths_prevented * mortality_cost_per_death;
+    plan.expected_mortality_reduction_value = expected_deaths_prevented * mortality_cost_per_death;
 
     plan.passes_cost_benefit_gate = financing_available
         && plan.estimated_capex > 0.0
@@ -329,7 +330,10 @@ mod tests {
             true,
         );
         // Geothermal has lowest OPEX but is geologically ineligible
-        assert_ne!(plan.new_plant_type, Some(HeatingPlantType::GeothermalHeatPlant));
+        assert_ne!(
+            plan.new_plant_type,
+            Some(HeatingPlantType::GeothermalHeatPlant)
+        );
     }
 
     #[test]

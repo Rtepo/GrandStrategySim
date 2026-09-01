@@ -66,12 +66,11 @@ impl BlueprintSpec {
         for (i, role) in self.roles.iter().enumerate() {
             let (qf, df) = match choices.get(i) {
                 Some(MaterialChoice::Ideal) => (1.0, 1.0),
-                Some(MaterialChoice::Substitute(idx)) => {
-                    role.substitutes
-                        .get(*idx)
-                        .map(|(_, q, d)| (*q, *d))
-                        .unwrap_or((1.0, 1.0))
-                }
+                Some(MaterialChoice::Substitute(idx)) => role
+                    .substitutes
+                    .get(*idx)
+                    .map(|(_, q, d)| (*q, *d))
+                    .unwrap_or((1.0, 1.0)),
                 None => (1.0, 1.0),
             };
             q_acc += role.share * qf;
@@ -90,9 +89,11 @@ impl BlueprintSpec {
         let mut bom = HashMap::new();
         for (i, role) in self.roles.iter().enumerate() {
             let material = match choices.get(i) {
-                Some(MaterialChoice::Substitute(idx)) => {
-                    role.substitutes.get(*idx).map(|(c, _, _)| *c).unwrap_or(role.ideal)
-                }
+                Some(MaterialChoice::Substitute(idx)) => role
+                    .substitutes
+                    .get(*idx)
+                    .map(|(c, _, _)| *c)
+                    .unwrap_or(role.ideal),
                 _ => role.ideal,
             };
             *bom.entry(material).or_insert(0.0) += role.share;
@@ -120,8 +121,14 @@ pub enum MaterialChoice {
 pub fn blueprint_specs() -> HashMap<Commodity, BlueprintSpec> {
     let mut m = HashMap::new();
     m.insert(Commodity::IndustrialMachinery, industrial_machinery_spec());
-    m.insert(Commodity::ConstructionMachinery, construction_machinery_spec());
-    m.insert(Commodity::AgriculturalMachinery, agricultural_machinery_spec());
+    m.insert(
+        Commodity::ConstructionMachinery,
+        construction_machinery_spec(),
+    );
+    m.insert(
+        Commodity::AgriculturalMachinery,
+        agricultural_machinery_spec(),
+    );
     m.insert(Commodity::OfficeMachinery, office_machinery_spec());
     m.insert(Commodity::Trucks, trucks_spec());
     m.insert(Commodity::Cars, cars_spec());
@@ -153,7 +160,7 @@ fn industrial_machinery_spec() -> BlueprintSpec {
                 ideal: Commodity::ElectronicComponents,
                 substitutes: vec![
                     (Commodity::MechanicalComponents, 0.8, 0.9),
-                    (Commodity::Semiconductors, 1.15, 0.85),  // Phase 20: better quality, worse durability
+                    (Commodity::Semiconductors, 1.15, 0.85), // Phase 20: better quality, worse durability
                 ],
                 share: 0.3,
             },
@@ -255,7 +262,7 @@ fn trucks_spec() -> BlueprintSpec {
             MaterialRole {
                 ideal: Commodity::Batteries,
                 substitutes: vec![(Commodity::Fuels, 0.5, 0.7)],
-                share: 0.1,  // Phase 20: Batteries
+                share: 0.1, // Phase 20: Batteries
             },
         ],
     }
@@ -285,12 +292,12 @@ fn cars_spec() -> BlueprintSpec {
             MaterialRole {
                 ideal: Commodity::Plastics,
                 substitutes: vec![(Commodity::Steel, 0.7, 0.8)],
-                share: 0.2,  // Phase 20: Plastics
+                share: 0.2, // Phase 20: Plastics
             },
             MaterialRole {
                 ideal: Commodity::Batteries,
                 substitutes: vec![(Commodity::Fuels, 0.5, 0.7)],
-                share: 0.2,  // Phase 20: Batteries (EV variant)
+                share: 0.2, // Phase 20: Batteries (EV variant)
             },
         ],
     }
@@ -315,7 +322,7 @@ fn agd_spec() -> BlueprintSpec {
             MaterialRole {
                 ideal: Commodity::Plastics,
                 substitutes: vec![(Commodity::Steel, 0.6, 0.7)],
-                share: 0.2,  // Phase 20: Plastics
+                share: 0.2, // Phase 20: Plastics
             },
             MaterialRole {
                 ideal: Commodity::Chemicals,
@@ -340,12 +347,12 @@ fn televisions_spec() -> BlueprintSpec {
             MaterialRole {
                 ideal: Commodity::Semiconductors,
                 substitutes: vec![(Commodity::ElectronicComponents, 0.7, 0.8)],
-                share: 0.2,  // Phase 20: Semiconductors
+                share: 0.2, // Phase 20: Semiconductors
             },
             MaterialRole {
                 ideal: Commodity::Plastics,
                 substitutes: vec![(Commodity::Steel, 0.5, 0.7)],
-                share: 0.15,  // Phase 20: Plastics
+                share: 0.15, // Phase 20: Plastics
             },
             MaterialRole {
                 ideal: Commodity::Glass,

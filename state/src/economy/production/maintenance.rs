@@ -6,8 +6,8 @@
 
 #![allow(missing_docs)]
 
+use crate::economy::transfer_settler::{credit_company_by_id, debit_company_by_id};
 use crate::entities::{Building, Company};
-use crate::economy::transfer_settler::{debit_company_by_id, credit_company_by_id};
 use crate::registries::enums::Sector;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -97,7 +97,8 @@ pub fn process_maintenance_spending(
         let mut map = std::collections::HashMap::new();
         for c in companies.iter() {
             if c.sector == Sector::Construction && !c.region_id.is_empty() {
-                map.entry(c.region_id.clone()).or_insert_with(|| c.id.clone());
+                map.entry(c.region_id.clone())
+                    .or_insert_with(|| c.id.clone());
             }
         }
         map
@@ -127,7 +128,10 @@ pub fn process_maintenance_spending(
             .iter()
             .find(|c| &c.id == owner_id)
             .map(|c| {
-                c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0)
+                c.brokerage_account
+                    .as_ref()
+                    .map(|ba| ba.cash)
+                    .unwrap_or(0.0)
                     + c.available_cash
             })
             .unwrap_or(0.0);

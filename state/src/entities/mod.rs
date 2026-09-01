@@ -54,7 +54,6 @@ pub struct CropBatch {
     pub crop_id: String,
 
     /// Planned hectares (max physical size of the field, permanent)
-
     pub planned_hectares: f64,
 
     /// Active hectares (actually growing this cycle, resets each harvest)
@@ -90,7 +89,6 @@ pub enum CropState {
     Harvesting,
 }
 
-
 // ============================================================================
 // PHASE 7: PATENT AND LICENSING STRUCTURES
 // ============================================================================
@@ -99,16 +97,12 @@ pub enum CropState {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Patent {
     /// Technology ID this patent covers.
-
     pub tech_id: TechId,
     /// Turn when patent was granted.
-
     pub granted_turn: u32,
     /// Turn when patent expires.
-
     pub expires_turn: u32,
     /// VWAP ratio for royalty calculation (e.g., 0.05 for 5% of output commodity VWAP).
-
     pub royalty_vwap_ratio: f64,
 }
 
@@ -116,13 +110,10 @@ pub struct Patent {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LicensedMethod {
     /// Technology ID of the licensed method.
-
     pub tech_id: TechId,
     /// Company ID of the licensor (patent holder).
-
     pub licensor_company_id: String,
     /// Turn when license was signed.
-
     pub licensed_turn: u32,
 }
 
@@ -152,7 +143,9 @@ pub trait TaxExempt {
 impl TaxExempt for Company {
     fn is_tax_exempt(&self, sovereign_id: &str) -> bool {
         // Check if sovereign entity owns 100% of the company
-        self.owners.get(sovereign_id).is_some_and(|&share| share >= 1.0)
+        self.owners
+            .get(sovereign_id)
+            .is_some_and(|&share| share >= 1.0)
     }
 
     fn exemption_reason(&self) -> Option<String> {
@@ -189,6 +182,32 @@ pub struct PendingExpansion {
     pub investment: f64,
     /// New worker capacity to add on completion.
     pub new_workers: u32,
+}
+
+/// Phase 95: Pending blueprint design request from `CorporateAction::DesignBlueprint`.
+/// Set by `apply_action`, consumed by `process_companies` to process the
+/// design fee transfer to Treasury and call `design_blueprint`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct PendingBlueprintDesign {
+    /// The commodity this blueprint will produce.
+    pub output_commodity: crate::registries::enums::Commodity,
+    /// The base technology ID for this blueprint.
+    pub base_tech: crate::registries::tech_tree::TechId,
+    /// The method slot this blueprint targets.
+    pub required_slot: crate::registries::production_methods::MethodSlot,
+    /// Dynamic design cost (paid from `available_cash` to Treasury).
+    pub design_cost: f64,
+}
+
+impl Default for PendingBlueprintDesign {
+    fn default() -> Self {
+        Self {
+            output_commodity: crate::registries::enums::Commodity::IndustrialMachinery,
+            base_tech: String::new(),
+            required_slot: crate::registries::production_methods::MethodSlot::Production,
+            design_cost: 0.0,
+        }
+    }
 }
 
 /// A company / corporate entity (`firma`).
@@ -560,6 +579,12 @@ pub struct Company {
     /// Phase 7: Licensed production methods from other companies.
     #[serde(default)]
     pub licensed_methods: Vec<LicensedMethod>,
+    /// Phase 95: Accumulated Innovation Points toward each in-progress tech.
+    /// Keyed by TechId. Incremented by points purchased from universities.
+    /// Entry removed when patent is granted or company is liquidated.
+    /// Birth: empty at genesis. Life: incremented by R&D spending. Death: removed on patent grant.
+    #[serde(default)]
+    pub research_progress: std::collections::HashMap<crate::registries::tech_tree::TechId, f64>,
     /// Phase 24C.7: Bounded rationality information quality tier.
     /// Determines how accurately the company estimates costs and market conditions.
     /// Computed each turn from company capital and average wage.
@@ -570,6 +595,11 @@ pub struct Company {
     /// a `ConstructionProject` on the appropriate building.
     #[serde(skip)]
     pub pending_expansion: Option<PendingExpansion>,
+    /// Phase 95: Pending blueprint design from `CorporateAction::DesignBlueprint`.
+    /// Set by `apply_action`, consumed by `process_companies` to process the
+    /// design fee transfer and call `design_blueprint`.
+    #[serde(skip)]
+    pub pending_blueprint_design: Option<PendingBlueprintDesign>,
     /// Phase 18A: Shadow employment (off-the-books undocumented workers).
     /// None for companies that don't hire illegals or aren't in labor-intensive sectors.
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -697,7 +727,7 @@ impl Company {
     ) -> Self {
         let company_capital = fixed_capital + liquid_capital;
         let is_listed = legal_form.is_listed();
-        
+
         // Create brokerage account and transfer liquid capital
         let brokerage_account = if liquid_capital > 0.0 {
             Some(crate::securities::BrokerageAccount {
@@ -713,7 +743,7 @@ impl Company {
         } else {
             None
         };
-        
+
         Self {
             id,
             file_stem: String::new(),
@@ -776,9 +806,11 @@ impl Company {
             rd_budget: 0.0,
             patents: Vec::new(),
             licensed_methods: Vec::new(),
+            research_progress: std::collections::HashMap::new(),
             information_quality: None,
             shadow_employment: None,
             pending_expansion: None,
+            pending_blueprint_design: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
             reputation_score: 50.0,
@@ -789,12 +821,16 @@ impl Company {
             seasonal_profile: None,
             furloughed_workers_count: 0.0,
             ceo_vip_id: None,
-            eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+            eps: 0.0,
+            pe_ratio: 0.0,
+            dividend_yield: 0.0,
+            open_price: 0.0,
+            close_price: 0.0,
             action_ledger: ActionLedger::default(),
             extra: Map::new(),
         }
     }
-    
+
     /// Compute liquid capital from brokerage account (runtime query).
     ///
     /// # Returns
@@ -804,7 +840,10 @@ impl Company {
     /// * Use this instead of the liquid_capital field for runtime queries
     /// * liquid_capital field is zeroed after transfer to prevent cloning
     pub fn computed_liquid_capital(&self) -> f64 {
-        self.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0)
+        self.brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0)
     }
 
     /// Phase 87+: Operational cash available for payroll and short-term obligations.
@@ -814,7 +853,11 @@ impl Company {
     /// is a capital reserve reduced by seed-inventory deductions).
     pub fn operational_cash(&self) -> f64 {
         self.available_cash.max(0.0)
-            + self.brokerage_account.as_ref().map(|b| b.cash.max(0.0)).unwrap_or(0.0)
+            + self
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash.max(0.0))
+                .unwrap_or(0.0)
     }
 
     /// AI & Stability Audit (Pillar 4A): Moving average of net profit over
@@ -855,25 +898,26 @@ impl Borrower for Company {
     fn id(&self) -> &str {
         &self.id
     }
-    
+
     fn liquid_capital(&self) -> f64 {
         self.liquid_capital
     }
-    
+
     fn fixed_capital(&self) -> f64 {
         self.fixed_capital
     }
-    
+
     fn liabilities(&self) -> f64 {
         self.liabilities
     }
-    
+
     fn computed_liquid_capital(&self) -> f64 {
-        self.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0)
+        self.brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0)
     }
 }
-
-
 
 /// Cluster metadata for a building (`"cluster_info"`).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -962,6 +1006,13 @@ pub struct ActiveProductionMethod {
     /// `ProductionMethod.discharge_quality`.
     #[serde(default)]
     pub discharge_quality: f64,
+    /// Phase A.2: Physical seat/capacity tier this method produces, if any.
+    /// Mirrors `ProductionMethod.seat_type`. Read by `sync_education_capacity_pool`
+    /// and the Phase 8 seat clamp to enforce physical capacity limits (Rule 20).
+    /// `None` for methods that produce tradable commodities or have no seat
+    /// semantics. Never derived via string matching — typed at construction.
+    #[serde(default)]
+    pub seat_type: Option<crate::registries::enums::CapacityType>,
     /// Any additional method fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -1040,6 +1091,11 @@ pub struct Building {
     /// (never per-item) for RAM predictability — see `economy/fixed_assets.rs`.
     #[serde(default)]
     pub fixed_assets: Vec<crate::economy::fixed_assets::FixedAssetCohort>,
+    /// Phase 95: Inventory cohorts for blueprint-eligible outputs.
+    /// Each cohort tracks blueprint provenance, quality, and durability.
+    /// Empty for buildings that don't produce blueprint-eligible goods.
+    #[serde(default)]
+    pub inventory_cohorts: Vec<crate::economy::fixed_assets::InventoryCohort>,
     /// Whether this building is a protected heritage site.
     #[serde(default)]
     pub is_heritage_site: bool,
@@ -1155,6 +1211,7 @@ impl Building {
             landfill_state: None,
             deposit_id: None,
             fixed_assets: Vec::new(),
+            inventory_cohorts: Vec::new(),
             structural_defect: 0.0,
             land_hectares: 0.0,
             extra: Map::new(),
@@ -1188,7 +1245,8 @@ mod tests {
             "is_national_champion": true,
             "is_listed": false
         }"#;
-        let company: Company = serde_json::from_str(english_json).expect("English JSON must deserialize");
+        let company: Company =
+            serde_json::from_str(english_json).expect("English JSON must deserialize");
         assert_eq!(company.id, "COMP-001");
         assert!(company.is_national_champion);
         assert!(!company.is_listed);

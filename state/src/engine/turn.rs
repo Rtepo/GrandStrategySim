@@ -5,52 +5,62 @@
 //! `InMemoryTurnContext` — no disk I/O occurs during turn processing.
 
 use crate::corporate::{process_companies, process_unions, CompanyLifecycle};
-use crate::economy::{
-    market_history, order_book, process_building_cycle_with_geology,
-    process_demographics_and_labor, resolve_market_prices, update_gdp_shares_from_employment,
-    apply_payment_in_kind, build_consumer_demand, clear_b2c_markets, settle_b2c_clearing,
-    generate_store_offers, accrue_retail_rents, calculate_diversity_bonus, reset_procurement_commitment, apply_clearance_discount,
-    apply_rationing_to_demand,
-    CountryTurnCtx,
-    submit_company_b2b_orders, settle_trades_with_tariffs, settle_trades, execute_production_cycle,
-    settle_defense_trades, refund_unfilled_defense_bids_per_country,
-    refund_unfilled_b2b_bids,
-    submit_maintenance_service_bids, settle_maintenance_service_trades,
-    submit_fixed_asset_purchase_bids,
-    process_fishing_turn, process_all_royalty_payments,
-    process_blueprint_royalty_payments, process_cross_border_royalty_queue,
-    trade_innovation_points_b2b, clear_education_slots_b2c, clear_health_capacity_b2c,
-    allocate_owner_infrastructure_funding,
-    process_prison_labor_turn, process_justice_turn,
-    populate_education_service_needs, populate_health_service_needs,
-    populate_information_service_needs, clear_information_b2c,
-    process_propaganda_turn, check_terrorism_triggers, compute_propaganda_subsidy_rate,
+use crate::economy::debt_market::{
+    clear_arrears, clear_savings_bonds_b2c, clear_secondary_debt_market, issue_treasury_securities,
+    process_debt_service,
 };
-use crate::economy::order_book::{OrderBook, Trade, Ask, Bid, match_orders, match_orders_with_embargoes};
 use crate::economy::market::{GlobalMarket, MarketOrders, MarketSignal};
+use crate::economy::order_book::{
+    match_orders, match_orders_with_embargoes, Ask, Bid, OrderBook, Trade,
+};
+use crate::economy::{
+    accrue_retail_rents, allocate_owner_infrastructure_funding, apply_clearance_discount,
+    apply_payment_in_kind, apply_rationing_to_demand, build_consumer_demand,
+    calculate_diversity_bonus, check_terrorism_triggers, clear_b2c_markets,
+    clear_education_slots_b2c, clear_health_capacity_b2c, clear_information_b2c,
+    compute_propaganda_subsidy_rate, execute_production_cycle, generate_store_offers,
+    market_history, order_book, populate_education_service_needs, populate_health_service_needs,
+    populate_information_service_needs, process_all_royalty_payments,
+    process_blueprint_royalty_payments, process_building_cycle_with_geology,
+    process_cross_border_royalty_queue, process_demographics_and_labor, process_fishing_turn,
+    process_justice_turn, process_prison_labor_turn, process_propaganda_turn,
+    refund_unfilled_b2b_bids, refund_unfilled_defense_bids_per_country,
+    reset_procurement_commitment, resolve_market_prices, settle_b2c_clearing,
+    settle_defense_trades, settle_maintenance_service_trades, settle_trades,
+    settle_trades_with_tariffs, submit_company_b2b_orders, submit_fixed_asset_purchase_bids,
+    submit_maintenance_service_bids, trade_innovation_points_b2b,
+    update_gdp_shares_from_employment, CountryTurnCtx,
+};
 use crate::entities::{Building, Company, LegalForm, Union};
 use crate::government::{
-    check_emergency_conditions, apply_rationing_consequences, accumulate_storage_fees,
+    accumulate_storage_fees, apply_rationing_consequences, check_emergency_conditions,
     process_black_ops_funding, process_state_reserve_maintenance,
 };
 use crate::international::{balance_global_trade, process_diplomacy_turn};
-use crate::military::{process_military_turn, add_military_demand_to_market};
 use crate::military::war_economy::{
-    execute_conscription, process_expired_decrees, issue_war_bonds, WarEconomyConfig,
+    execute_conscription, issue_war_bonds, process_expired_decrees, WarEconomyConfig,
 };
-use crate::state::Country;
-use rand::SeedableRng;
+use crate::military::{add_military_demand_to_market, process_military_turn};
+use crate::politics::budget_lifecycle::{
+    apply_budget_failure_consequence, draft_budget_bill, process_budget_lifecycle,
+};
+use crate::politics::fiscal_transfers::{
+    check_commissary_administration, process_fiscal_transfers, process_municipal_debt_service,
+    process_regional_taxes,
+};
+use crate::politics::ministries::{
+    allocate_cash_to_ministries, calculate_budget_needs, prepare_minister_strategies_with_parties,
+    process_minister_post_clearing, sum_ministry_allocations,
+};
+use crate::politics::process_political_year;
 use crate::registries::enums::Commodity;
 use crate::registries::enums::Sector;
-use crate::state::{process_banking_turn, process_tax_collection_turn, settle_trade_deficits};
-use crate::politics::process_political_year;
-use crate::politics::ministries::{allocate_cash_to_ministries, calculate_budget_needs, sum_ministry_allocations, prepare_minister_strategies_with_parties, process_minister_post_clearing};
-use crate::politics::budget_lifecycle::{draft_budget_bill, process_budget_lifecycle, apply_budget_failure_consequence};
-use crate::politics::fiscal_transfers::{process_regional_taxes, process_fiscal_transfers, check_commissary_administration, process_municipal_debt_service};
-use crate::economy::debt_market::{process_debt_service, clear_arrears, issue_treasury_securities, clear_savings_bonds_b2c, clear_secondary_debt_market};
 use crate::registries::Registries;
-use crate::state::GameState;
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
+use crate::state::Country;
+use crate::state::GameState;
+use crate::state::{process_banking_turn, process_tax_collection_turn, settle_trade_deficits};
+use rand::SeedableRng;
 use rayon::prelude::*;
 use rustc_hash::FxHashMap;
 use std::collections::HashMap;
@@ -111,67 +121,122 @@ impl From<crate::io::entity_store::EntityStoreError> for TurnError {
 /// struct is `Send` and `Sync` because it owns all of its per-country data and
 /// only borrows shared or disjoint mutable state from `GameState`.
 #[derive(Debug)]
-struct CountryTask<'a> {
-    ctx: CountryTurnCtx<'a>,
-    companies: Vec<Company>,
-    unions: Vec<Union>,
-    commercial_buildings: Vec<CommercialBuilding>,
-    housing_buildings: Vec<HousingBuilding>,
-    despawned_company_ids: Vec<String>,
-    climate_config: crate::state::climate::ClimateConfig,
-    orders: MarketOrders,
-    market_signal: MarketSignal,
+pub(crate) struct CountryTask<'a> {
+    pub(crate) ctx: CountryTurnCtx<'a>,
+    pub(crate) companies: Vec<Company>,
+    pub(crate) unions: Vec<Union>,
+    pub(crate) commercial_buildings: Vec<CommercialBuilding>,
+    pub(crate) housing_buildings: Vec<HousingBuilding>,
+    pub(crate) despawned_company_ids: Vec<String>,
+    pub(crate) climate_config: crate::state::climate::ClimateConfig,
+    pub(crate) orders: MarketOrders,
+    pub(crate) market_signal: MarketSignal,
     /// Per-country B2B order book for infrastructure/maritime/cultural orders
-    order_book: OrderBook,
+    pub(crate) order_book: OrderBook,
     /// Phase 9: Tourism turn result (foreign inflow to be debited from GlobalMarket sequentially)
-    tourism_result: crate::society::tourism::TourismTurnResult,
+    pub(crate) tourism_result: crate::society::tourism::TourismTurnResult,
     /// Phase 12: Labor allocation from W1, passed to D.5 payment in kind
-    labor_allocation: Option<crate::economy::labor_market::LaborAllocationMatrix>,
+    pub(crate) labor_allocation: Option<crate::economy::labor_market::LaborAllocationMatrix>,
     /// Saved defense bids from pending_defense_orders, captured before draining
     /// into the global order book. Used for post-clearing refund calculation.
-    saved_defense_bids: Vec<crate::economy::order_book::Bid>,
+    pub(crate) saved_defense_bids: Vec<crate::economy::order_book::Bid>,
     /// Phase 17B: Education consumption per region (from B2C clearing), for assimilation.
-    education_consumption: std::collections::BTreeMap<String, f64>,
+    pub(crate) education_consumption: std::collections::BTreeMap<String, f64>,
     /// Phase 17B: Education needs per region (from populate_education_service_needs), for assimilation.
-    education_needs: std::collections::BTreeMap<String, f64>,
+    pub(crate) education_needs: std::collections::BTreeMap<String, f64>,
     /// Phase 17C: Apostolic See remittance result (for sequential aggregation into global ledger).
-    see_remittance: crate::economy::religious_economy::SeeRemittanceResult,
+    pub(crate) see_remittance: crate::economy::religious_economy::SeeRemittanceResult,
     /// Phase 19A: Cross-border blueprint royalty outbox (emitted by this
     /// country's parallel royalty phase; consumed by the sequential post-parallel
     /// crediting pass that credits foreign licensors in their home country).
-    cross_border_royalty_outbox: Vec<crate::economy::blueprints::CrossBorderRoyaltyQueueEntry>,
+    pub(crate) cross_border_royalty_outbox:
+        Vec<crate::economy::blueprints::CrossBorderRoyaltyQueueEntry>,
+    /// Phase 95: Foreign patent fee outbox (emitted by this country's parallel
+    /// R&D research phase; consumed by the sequential post-parallel pass that
+    /// credits GlobalMarket.offshore_capital — money preserved, never destroyed).
+    pub(crate) foreign_patent_fee_outbox: f64,
     /// Phase 23C: Per-region commute coverage ratio (0.0–1.0) from
     /// `clear_passenger_transport_b2c`. Used by the labor-market phase to
     /// compute how much FTE can commute into each region from neighbors.
-    commute_coverage: std::collections::BTreeMap<String, f64>,
+    pub(crate) commute_coverage: std::collections::BTreeMap<String, f64>,
     /// Phase 24D: Per-country GDP expenditure accumulator (consumption, G, I, NX, shadow).
     /// Populated during the turn by B2C clearing, ministry procurement,
     /// fixed-asset purchases, construction, and shadow economy phases.
-    gdp_acc: crate::economy::telemetry::GdpAccumulator,
+    pub(crate) gdp_acc: crate::economy::telemetry::GdpAccumulator,
     /// Phase 25: Retail prices collected from B2C clearing, for CPI calculation.
-    retail_prices: Vec<(crate::registries::enums::Commodity, f64, f64)>,
+    pub(crate) retail_prices: Vec<(crate::registries::enums::Commodity, f64, f64)>,
     /// Phase 44: B2C consumer demand per commodity, collected for Market UI.
-    b2c_demand: std::collections::HashMap<crate::registries::enums::Commodity, f64>,
+    pub(crate) b2c_demand: std::collections::HashMap<crate::registries::enums::Commodity, f64>,
     /// Phase 44: In-kind ledger from payment-in-kind processing (for imputed GDP).
-    in_kind_ledger: crate::economy::finance::payment_in_kind::InKindLedger,
+    pub(crate) in_kind_ledger: crate::economy::finance::payment_in_kind::InKindLedger,
     /// Phase 44: Total imputed consumption value from subsistence economy.
-    imputed_consumption: f64,
+    pub(crate) imputed_consumption: f64,
     /// Phase 28: Index of the State Employer pseudo-company in `companies`,
     /// if one was injected for labor clearing. Removed after wage accumulation.
-    state_employer_idx: Option<usize>,
+    pub(crate) state_employer_idx: Option<usize>,
     /// Phase 33: Ministry public service wage pool routed to the State Employer.
     /// This amount was already debited from liquid_reserves by allocate_cash_to_ministries,
     /// so the State Employer post-clearing debit must be reduced by this amount
     /// to avoid double-debiting.
-    ministry_public_service_pool: f64,
+    pub(crate) ministry_public_service_pool: f64,
     /// Phase 93: Immutable Planet reference for vein-based geology lookups
     /// during the parallel production pass. Depletion is collected into
     /// `depletion_buffer` and applied sequentially after the parallel pass.
-    planet: &'a crate::society::planet::Planet,
+    pub(crate) planet: &'a crate::society::planet::Planet,
     /// Phase 93: Per-country depletion request buffer. Collected during the
     /// parallel production pass and applied to `state.planet` sequentially
     /// with pro-rata clamping after the parallel pass completes.
-    depletion_buffer: Vec<crate::economy::production::geology::DepletionRequest>,
+    pub(crate) depletion_buffer: Vec<crate::economy::production::geology::DepletionRequest>,
+    /// Phase 94: Cached owner_id → building indices. Rebuilt with .clear()
+    /// at phase boundaries that need it. Retains allocated capacity across
+    /// turns to avoid allocator thrashing.
+    pub(crate) owner_to_building_indices: rustc_hash::FxHashMap<String, Vec<usize>>,
+    /// Phase 94: Cached company_id → company index. Rebuilt with .clear()
+    /// at phase boundaries that need it.
+    pub(crate) company_id_to_idx: rustc_hash::FxHashMap<String, usize>,
+    /// Phase 94: Cached commercial building id → owner_id. Rebuilt with
+    /// .clear() at phase boundaries that need it.
+    pub(crate) store_id_to_owner: rustc_hash::FxHashMap<String, String>,
+    /// Phase 15B (Agent 4): Total value of cross-border B2B trades settled
+    /// this turn (sum of trade_value where buyer_country != seller_country).
+    /// Used by the smuggling phase as the real trade volume instead of the
+    /// previous magic `sum(production) * 1000.0` estimate (Rule 2).
+    pub(crate) cross_border_trade_value: f64,
+}
+
+impl<'a> CountryTask<'a> {
+    /// Rebuild the owner→buildings index map. Called at phase boundaries
+    /// where building ownership lookups are needed. Uses .clear() to retain
+    /// capacity from previous turns.
+    pub(crate) fn rebuild_owner_to_building_indices(&mut self) {
+        self.owner_to_building_indices.clear();
+        for (i, b) in self.ctx.buildings.iter().enumerate() {
+            self.owner_to_building_indices
+                .entry(b.owner_id.clone())
+                .or_default()
+                .push(i);
+        }
+    }
+
+    /// Rebuild the company_id→index map. Called at phase boundaries where
+    /// company lookups are needed.
+    pub(crate) fn rebuild_company_id_to_idx(&mut self) {
+        self.company_id_to_idx.clear();
+        for (i, c) in self.companies.iter().enumerate() {
+            self.company_id_to_idx.insert(c.id.clone(), i);
+        }
+    }
+
+    /// Rebuild the store_id→owner map from commercial buildings.
+    pub(crate) fn rebuild_store_id_to_owner(&mut self) {
+        self.store_id_to_owner.clear();
+        for b in &self.commercial_buildings {
+            if !b.owner_id.is_empty() {
+                self.store_id_to_owner
+                    .insert(b.id.clone(), b.owner_id.clone());
+            }
+        }
+    }
 }
 
 /// Run a turn using in-memory context. NO disk I/O.
@@ -198,6 +263,26 @@ pub fn run_turn_in_memory(
     registries: &Registries,
     ctx: &mut crate::engine::turn_context::InMemoryTurnContext,
 ) -> Result<(), TurnError> {
+    run_turn_inner(
+        state,
+        registries,
+        ctx,
+        &mut crate::engine::diagnostic::NoopProbe,
+    )
+}
+
+/// Generic turn runner with probe instrumentation.
+///
+/// When `P = NoopProbe`, all checkpoint calls are compiled away by LLVM
+/// (zero-cost abstraction via `#[inline(always)]`).
+/// When `P = CapturingProbe` (feature `diagnostic`), state snapshots are
+/// captured at each phase seam for conservation analysis.
+pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
+    state: &mut GameState,
+    registries: &Registries,
+    ctx: &mut crate::engine::turn_context::InMemoryTurnContext,
+    probe: &mut P,
+) -> Result<(), TurnError> {
     // Extract context fields to avoid borrow conflicts with state.countries.iter_mut().
     let mut market = std::mem::take(&mut ctx.market);
     let mut diplomacy = std::mem::take(&mut ctx.diplomacy);
@@ -211,9 +296,27 @@ pub fn run_turn_in_memory(
 
     {
         // Convert CountryEntities into the tuple format expected by the turn loop.
-        let mut entity_tuples: HashMap<String, (Vec<Company>, Vec<Building>, Vec<Union>, Vec<CommercialBuilding>, Vec<HousingBuilding>)> = HashMap::new();
+        let mut entity_tuples: HashMap<
+            String,
+            (
+                Vec<Company>,
+                Vec<Building>,
+                Vec<Union>,
+                Vec<CommercialBuilding>,
+                Vec<HousingBuilding>,
+            ),
+        > = HashMap::new();
         for (name, ents) in entities.drain() {
-            entity_tuples.insert(name, (ents.companies, ents.buildings, ents.unions, ents.commercial_buildings, ents.housing_buildings));
+            entity_tuples.insert(
+                name,
+                (
+                    ents.companies,
+                    ents.buildings,
+                    ents.unions,
+                    ents.commercial_buildings,
+                    ents.housing_buildings,
+                ),
+            );
         }
 
         // Phase 6.5: Use unified calendar from GameState
@@ -223,7 +326,10 @@ pub fn run_turn_in_memory(
         // This replaces static `.max(1.0)` and `.max(1000.0)` floors with
         // a market-derived subsistence basket cost (Food + Clothing VWAP).
         // Computed before tasks creation to avoid borrow conflicts.
-        let turn_config = state.countries.values().next()
+        let turn_config = state
+            .countries
+            .values()
+            .next()
             .map(|c| c.turn_config.clone())
             .unwrap_or_default();
         let subsistence_wage_floor = crate::engine::turn_config::effective_wage(
@@ -242,7 +348,13 @@ pub fn run_turn_in_memory(
             .iter_mut()
             .map(|(name, country)| {
                 let (companies, buildings, unions, commercial_buildings, housing_buildings) =
-                    entity_tuples.remove(name).unwrap_or((Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new()));
+                    entity_tuples.remove(name).unwrap_or((
+                        Vec::new(),
+                        Vec::new(),
+                        Vec::new(),
+                        Vec::new(),
+                        Vec::new(),
+                    ));
                 let climate_config = state.climate_config.clone();
                 CountryTask {
                     ctx: CountryTurnCtx {
@@ -268,18 +380,25 @@ pub fn run_turn_in_memory(
                     saved_defense_bids: Vec::new(),
                     education_consumption: std::collections::BTreeMap::new(),
                     education_needs: std::collections::BTreeMap::new(),
-                    see_remittance: crate::economy::religious_economy::SeeRemittanceResult::default(),
+                    see_remittance: crate::economy::religious_economy::SeeRemittanceResult::default(
+                    ),
                     cross_border_royalty_outbox: Vec::new(),
+                    foreign_patent_fee_outbox: 0.0,
                     commute_coverage: std::collections::BTreeMap::new(),
                     gdp_acc: crate::economy::telemetry::GdpAccumulator::default(),
                     retail_prices: Vec::new(),
                     b2c_demand: std::collections::HashMap::new(),
-                    in_kind_ledger: crate::economy::finance::payment_in_kind::InKindLedger::default(),
+                    in_kind_ledger: crate::economy::finance::payment_in_kind::InKindLedger::default(
+                    ),
                     imputed_consumption: 0.0,
                     state_employer_idx: None,
                     ministry_public_service_pool: 0.0,
                     planet: planet_ref,
                     depletion_buffer: Vec::new(),
+                    owner_to_building_indices: rustc_hash::FxHashMap::default(),
+                    company_id_to_idx: rustc_hash::FxHashMap::default(),
+                    store_id_to_owner: rustc_hash::FxHashMap::default(),
+                    cross_border_trade_value: 0.0,
                 }
             })
             .collect();
@@ -303,9 +422,24 @@ pub fn run_turn_in_memory(
             .currencies
             .iter()
             .flat_map(|(ccy_code, currency)| {
-                currency.members.iter().map(move |m| (m.clone(), ccy_code.clone()))
+                currency
+                    .members
+                    .iter()
+                    .map(move |m| (m.clone(), ccy_code.clone()))
             })
             .collect();
+
+        // Agent 4 — Phase 3: Build currency exchange rate map for FX conversion.
+        // Maps currency code → exchange_rate vs global numeraire.
+        // Used by settle_trades_with_tariffs to replace hardcoded exchange_rate = 1.0.
+        let currency_rates: HashMap<String, f64> = state
+            .currencies
+            .iter()
+            .map(|(ccy_code, currency)| (ccy_code.clone(), currency.exchange_rate))
+            .collect();
+
+        // ── DIAGNOSTIC CHECKPOINT 0: turn_start ──
+        probe.checkpoint("turn_start", 0, turn, &market, &tasks);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 85: FACTIONAL DOMAIN MODIFIERS
@@ -325,11 +459,7 @@ pub fn run_turn_in_memory(
         // - IsolationCamp: targeted demographics have available_fte zeroed before labor pool
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
-            process_prison_labor_turn(
-                task.ctx.country,
-                &task.ctx.buildings,
-                &mut task.companies,
-            );
+            process_prison_labor_turn(task.ctx.country, &task.ctx.buildings, &mut task.companies);
         });
 
         tasks.par_iter_mut().for_each(|task| {
@@ -357,6 +487,8 @@ pub fn run_turn_in_memory(
         tasks.par_iter_mut().for_each(|task| {
             process_banking_turn(task.ctx.country, &mut task.companies, task.ctx.turn);
         });
+        // ── DIAGNOSTIC CHECKPOINT: banking_turn_post ──
+        probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         tasks.par_iter_mut().for_each(|task| {
             update_gdp_shares_from_employment(&mut task.ctx);
         });
@@ -368,10 +500,7 @@ pub fn run_turn_in_memory(
         // ═══════════════════════════════════════════════════════════
         let surplus_snapshot = market.net_surplus.clone();
         tasks.par_iter_mut().for_each(|task| {
-            check_emergency_conditions(
-                task.ctx.country,
-                &surplus_snapshot,
-            );
+            check_emergency_conditions(task.ctx.country, &surplus_snapshot);
         });
 
         tasks.par_iter_mut().for_each(|task| {
@@ -387,12 +516,49 @@ pub fn run_turn_in_memory(
             );
         });
         tasks.par_iter_mut().for_each(|task| {
-            let base_wage = task.ctx.country.macro_indicators.average_wage.max(subsistence_wage_floor);
+            let base_wage = task
+                .ctx
+                .country
+                .macro_indicators
+                .average_wage
+                .max(subsistence_wage_floor);
+
+            // Phase 95: Build a blueprint lookup map (blueprint_id → ProductBlueprint)
+            // from all companies' owned and licensed blueprints.
+            let bp_lookup: std::collections::HashMap<
+                String,
+                &crate::economy::trade::blueprints::ProductBlueprint,
+            > = {
+                let mut m = std::collections::HashMap::new();
+                for company in &task.companies {
+                    for bp in &company.blueprints {
+                        m.insert(bp.id.clone(), bp);
+                    }
+                }
+                m
+            };
+
+            // Phase 94: Build a company_id → disruption map to avoid O(B×C)
+            // linear scan inside the building loop.
+            let mut company_disruption: rustc_hash::FxHashMap<String, f64> =
+                rustc_hash::FxHashMap::default();
+            for c in &task.companies {
+                company_disruption.insert(c.id.clone(), c.temporary_disruption_modifier);
+            }
+
             for building in &mut task.ctx.buildings {
-                let disruption = task.companies.iter()
-                    .find(|c| c.id == building.owner_id)
-                    .map(|c| c.temporary_disruption_modifier)
+                let disruption = company_disruption
+                    .get(&building.owner_id)
+                    .copied()
                     .unwrap_or(0.0);
+
+                // Phase 95: Look up the active blueprint for this building.
+                let active_bp = building
+                    .active_method
+                    .active_blueprint
+                    .as_ref()
+                    .and_then(|id| bp_lookup.get(id).copied());
+
                 process_building_cycle_with_geology(
                     building,
                     task.ctx.country,
@@ -404,17 +570,25 @@ pub fn run_turn_in_memory(
                     task.ctx.year,
                     task.ctx.registries,
                     disruption,
+                    active_bp,
                 );
             }
         });
+        // ── DIAGNOSTIC CHECKPOINT 1: building_cycle_post ──
+        probe.checkpoint("building_cycle_post", 1, turn, &market, &tasks);
+
         // Emergency Stabilization: Clone the immutable base prices (set once at
         // world generation in market_history.global_base_prices) so the clearing
         // engine can anchor PRICE_CAP/FLOOR to a stable reference instead of the
         // dynamically-updated VWAP-smoothed base prices that compound recursively.
         let immutable_base_prices = state.market_history.global_base_prices.clone();
         tasks.par_iter_mut().for_each(|task| {
-            task.ctx.market_prices =
-                resolve_market_prices(&task.orders, task.ctx.country, &market, &immutable_base_prices);
+            task.ctx.market_prices = resolve_market_prices(
+                &task.orders,
+                task.ctx.country,
+                &market,
+                &immutable_base_prices,
+            );
             task.market_signal = build_market_signal(
                 task.ctx.country,
                 &task.orders,
@@ -436,7 +610,8 @@ pub fn run_turn_in_memory(
             // Save defense bids before draining for post-clearing refund calculation
             task.saved_defense_bids = task.ctx.country.pending_defense_orders.clone();
             for bid in task.ctx.country.pending_defense_orders.drain(..) {
-                global_order_book.bids
+                global_order_book
+                    .bids
                     .entry(bid.commodity)
                     .or_insert_with(Vec::new)
                     .push(bid);
@@ -470,7 +645,8 @@ pub fn run_turn_in_memory(
                     if let Some(ref owner_id) = building.owner_company_id {
                         let transfer = building.available_cash;
                         building.available_cash = 0.0;
-                        if let Some(company) = task.companies.iter_mut().find(|c| &c.id == owner_id) {
+                        if let Some(company) = task.companies.iter_mut().find(|c| &c.id == owner_id)
+                        {
                             company.available_cash += transfer;
                             // Create or update brokerage account for labor market participation.
                             // The labor market requires brokerage_account.cash to compute
@@ -479,10 +655,11 @@ pub fn run_turn_in_memory(
                             if let Some(ref mut ba) = company.brokerage_account {
                                 ba.cash += transfer;
                             } else {
-                                company.brokerage_account = Some(crate::securities::BrokerageAccount {
-                                    cash: transfer,
-                                    ..Default::default()
-                                });
+                                company.brokerage_account =
+                                    Some(crate::securities::BrokerageAccount {
+                                        cash: transfer,
+                                        ..Default::default()
+                                    });
                             }
                         }
                     }
@@ -493,11 +670,16 @@ pub fn run_turn_in_memory(
         // Phase 17C: Apostolic See remittance (parallel — each country debits its own buildings/treasury)
         // The See ledger aggregation happens sequentially below.
         tasks.par_iter_mut().for_each(|task| {
-            let religious_law = task.ctx.country.politics.religious_law_struct
+            let religious_law = task
+                .ctx
+                .country
+                .politics
+                .religious_law_struct
                 .clone()
                 .unwrap_or_else(|| {
                     let reg = crate::society::culture_registry::registry();
-                    let religion_key = reg.religion_key_from_display(&task.ctx.country.macro_indicators.religion);
+                    let religion_key =
+                        reg.religion_key_from_display(&task.ctx.country.macro_indicators.religion);
                     crate::politics::laws::ReligiousLaw::from_raw(
                         &task.ctx.country.politics.religious_law,
                         &religion_key,
@@ -515,8 +697,11 @@ pub fn run_turn_in_memory(
         });
 
         // Phase 17C: Sequentially aggregate See remittances into the global ledger.
-        let total_see_remittance: f64 = tasks.iter()
-            .map(|t| t.see_remittance.secular_remittance + t.see_remittance.state_religion_remittance)
+        let total_see_remittance: f64 = tasks
+            .iter()
+            .map(|t| {
+                t.see_remittance.secular_remittance + t.see_remittance.state_religion_remittance
+            })
             .sum();
         market.apostolic_see_ledger.total_remittances += total_see_remittance;
         market.apostolic_see_ledger.global_charity_pool += total_see_remittance;
@@ -588,11 +773,17 @@ pub fn run_turn_in_memory(
         tasks.par_iter_mut().for_each(|task| {
             let mut tenders = std::mem::take(&mut task.ctx.country.phase22_tenders);
             // Use the first region's micro-region ID as the target
-            let micro_region_id = task.ctx.country.regions
+            let micro_region_id = task
+                .ctx
+                .country
+                .regions
                 .first()
                 .map(|r| r.id.clone())
                 .unwrap_or_else(|| "CENTRAL".to_string());
-            let population = task.ctx.country.regions
+            let population = task
+                .ctx
+                .country
+                .regions
                 .first()
                 .map(|r| r.population)
                 .unwrap_or(100_000);
@@ -601,7 +792,8 @@ pub fn run_turn_in_memory(
                 buildings: task.housing_buildings.clone(),
             };
             // Convert market prices to String-keyed map for the developer API
-            let market_prices: std::collections::BTreeMap<String, f64> = state.market_history
+            let market_prices: std::collections::BTreeMap<String, f64> = state
+                .market_history
                 .last_trade_price
                 .iter()
                 .map(|(k, v)| (format!("{:?}", k), *v))
@@ -649,7 +841,12 @@ pub fn run_turn_in_memory(
                         )
                     {
                         let _ = crate::construction::tender_market::submit_bid(
-                            tender, company, bid_cost, bid_margin, consortium, task.ctx.turn,
+                            tender,
+                            company,
+                            bid_cost,
+                            bid_margin,
+                            consortium,
+                            task.ctx.turn,
                         );
                     }
                 }
@@ -668,7 +865,12 @@ pub fn run_turn_in_memory(
                 // Phase 29: If this is an expansion tender, attach to the
                 // specific building being expanded.
                 if let Some(target_bldg_id) = expansion_target {
-                    if let Some(building) = task.ctx.buildings.iter_mut().find(|b| b.id == target_bldg_id) {
+                    if let Some(building) = task
+                        .ctx
+                        .buildings
+                        .iter_mut()
+                        .find(|b| b.id == target_bldg_id)
+                    {
                         if building.active_project.is_none() {
                             building.active_project = Some(project);
                         }
@@ -693,7 +895,8 @@ pub fn run_turn_in_memory(
 
         // 3.9: Submit agricultural harvest asks (must be before global merge at 6.3)
         tasks.par_iter_mut().for_each(|task| {
-            let market_prices: std::collections::BTreeMap<Commodity, f64> = state.market_history
+            let market_prices: std::collections::BTreeMap<Commodity, f64> = state
+                .market_history
                 .vwap_per_commodity
                 .iter()
                 .map(|(c, p)| (*c, *p))
@@ -706,7 +909,8 @@ pub fn run_turn_in_memory(
                         &market_prices,
                     );
                     for (commodity, quantity, ask_price) in sell_orders {
-                        task.order_book.asks
+                        task.order_book
+                            .asks
                             .entry(commodity)
                             .or_insert_with(Vec::new)
                             .push(Ask {
@@ -727,17 +931,16 @@ pub fn run_turn_in_memory(
         tasks.par_iter_mut().for_each(|task| {
             // Fleets not yet stored on Country; pass empty slice
             let fleets: Vec<crate::military::fleet::Fleet> = Vec::new();
-            crate::military::add_fleet_demand_to_market(
-                &fleets,
-                &mut task.orders.orders,
-            );
+            crate::military::add_fleet_demand_to_market(&fleets, &mut task.orders.orders);
         });
 
         // Collect all bids and asks from countries — Phase 6.3: Production Planning
         // Phase 23A: Manage deferred trades (increment counters, expire old ones).
         for task in &mut tasks {
             let freight_config = task.ctx.country.freight_logistics_config.clone();
-            crate::economy::logistics::increment_deferral_counters(&mut task.ctx.country.deferred_trades);
+            crate::economy::logistics::increment_deferral_counters(
+                &mut task.ctx.country.deferred_trades,
+            );
             let _expired = crate::economy::logistics::expire_deferred_trades(
                 &mut task.ctx.country.deferred_trades,
                 freight_config.max_deferred_turns,
@@ -750,6 +953,10 @@ pub fn run_turn_in_memory(
             let b2b_config = task.ctx.country.b2b_order_config.clone();
             let gen_cfg = task.ctx.country.generative_goods_config.clone();
 
+            // Phase 94: Rebuild owner→buildings index map with .clear() to
+            // retain capacity and avoid allocator thrashing.
+            task.rebuild_owner_to_building_indices();
+
             let messages = submit_company_b2b_orders(
                 &mut task.companies,
                 &task.ctx.buildings,
@@ -757,6 +964,7 @@ pub fn run_turn_in_memory(
                 &state.market_history,
                 &b2b_config,
                 &gen_cfg,
+                &task.owner_to_building_indices,
             );
             // Phase 19B: Submit maintenance-service bids for factories with
             // degraded fixed-asset cohorts. MaintenanceServices Sell Asks are
@@ -769,6 +977,7 @@ pub fn run_turn_in_memory(
                 &state.market_history,
                 &b2b_config,
                 &gen_cfg,
+                &task.owner_to_building_indices,
             );
 
             // Phase 19C: Submit fixed-asset purchase bids (cash-bottlenecked).
@@ -782,13 +991,22 @@ pub fn run_turn_in_memory(
                 &state.market_history,
                 &b2b_config,
                 &gen_cfg,
+                &task.owner_to_building_indices,
             );
             // Merge per-country order_book into global_order_book
             for (commodity, bids) in &task.order_book.bids {
-                global_order_book.bids.entry(*commodity).or_default().extend(bids.iter().cloned());
+                global_order_book
+                    .bids
+                    .entry(*commodity)
+                    .or_default()
+                    .extend(bids.iter().cloned());
             }
             for (commodity, asks) in &task.order_book.asks {
-                global_order_book.asks.entry(*commodity).or_default().extend(asks.iter().cloned());
+                global_order_book
+                    .asks
+                    .entry(*commodity)
+                    .or_default()
+                    .extend(asks.iter().cloned());
             }
             task.order_book = OrderBook::default();
             let _ = messages;
@@ -797,6 +1015,9 @@ pub fn run_turn_in_memory(
         // Match orders (Phase 11: embargo-aware matching)
         match_orders_with_embargoes(&mut global_order_book, &company_country, &diplomacy);
         let all_trades = global_order_book.trades.clone();
+
+        // ── DIAGNOSTIC CHECKPOINT 2: b2b_orders_post ──
+        probe.checkpoint("b2b_orders_post", 2, turn, &market, &tasks);
 
         // Phase 24A.1: Redistribute unfilled bids from global_order_book back to
         // per-country task.order_book so that refund functions can process them.
@@ -830,34 +1051,44 @@ pub fn run_turn_in_memory(
             let country_trades: Vec<Trade> = all_trades
                 .iter()
                 .filter(|t| {
-                    task.companies.iter().any(|c| c.id == t.buyer_id || c.id == t.seller_id)
+                    task.companies
+                        .iter()
+                        .any(|c| c.id == t.buyer_id || c.id == t.seller_id)
                 })
                 .cloned()
                 .collect();
 
             // Phase 23A-3: FREIGHT PROCUREMENT GATE
-            let freight_config = task.ctx.country.freight_logistics_config.clone();
+            // Agent 4 — Phase 6: Scale freight config by average_wage for
+            // inflation-proofing (Rule 2).
+            let freight_config = task
+                .ctx
+                .country
+                .freight_logistics_config
+                .scaled_for_economy(task.ctx.country.macro_indicators.average_wage);
             let mut network_overlay = task.ctx.country.transport_networks.clone();
             let regions = task.ctx.country.regions.clone();
             // Phase 30: Use market prices as fuel prices for multi-modal routing.
             let fuel_prices = task.ctx.market_prices.clone();
-            let (secured_trades, new_deferred) = crate::economy::logistics::procure_freight_and_split_trades(
-                &country_trades,
-                &mut task.companies,
-                &mut task.ctx.buildings,
-                &regions,
-                &mut network_overlay,
-                &freight_config,
-                task.ctx.country,
-                &fuel_prices,
-                &diplomacy,
-                &company_country,
-            );
+            let (secured_trades, new_deferred) =
+                crate::economy::logistics::procure_freight_and_split_trades(
+                    &country_trades,
+                    &mut task.companies,
+                    &mut task.ctx.buildings,
+                    &regions,
+                    &mut network_overlay,
+                    &freight_config,
+                    task.ctx.country,
+                    &fuel_prices,
+                    &diplomacy,
+                    &company_country,
+                );
             // Phase 30: Update the country's network overlay with congestion changes.
             task.ctx.country.transport_networks = network_overlay;
             // Merge deferred trades into the country's deferred list.
             task.ctx.country.deferred_trades.extend(new_deferred);
 
+            let gen_config_clone = task.ctx.country.generative_goods_config.clone();
             let _msgs = settle_trades_with_tariffs(
                 &secured_trades,
                 &mut task.companies,
@@ -866,7 +1097,24 @@ pub fn run_turn_in_memory(
                 &company_country,
                 &diplomacy,
                 &country_to_currency,
+                &currency_rates,
+                task.ctx.turn,
+                &gen_config_clone,
             );
+
+            // Agent 4 — Phase 4: Accumulate cross-border trade value for the
+            // smuggling phase. Replaces the previous magic `sum(production) * 1000.0`
+            // estimate with the actual settled cross-border trade value (Rule 2).
+            let cross_border_value: f64 = secured_trades
+                .iter()
+                .filter(|t| {
+                    let bc = company_country.get(&t.buyer_id);
+                    let sc = company_country.get(&t.seller_id);
+                    bc.is_some() && sc.is_some() && bc != sc
+                })
+                .map(|t| t.quantity * t.execution_price)
+                .sum();
+            task.cross_border_trade_value = cross_border_value;
 
             // Phase 13: Storage transaction settlement will be wired when
             // warehouse extraction system produces FinancialTransaction records.
@@ -882,11 +1130,7 @@ pub fn run_turn_in_memory(
                 .cloned()
                 .collect();
             if !defense_trades.is_empty() {
-                settle_defense_trades(
-                    &defense_trades,
-                    &mut task.companies,
-                    task.ctx.country,
-                );
+                settle_defense_trades(&defense_trades, &mut task.companies, task.ctx.country);
             }
 
             // Phase 19B: Settle maintenance-service trades.
@@ -903,12 +1147,16 @@ pub fn run_turn_in_memory(
             // Phase 24D: Accumulate fixed-asset purchases as GDP investment (I).
             // Only trades in fixed-asset commodities count as investment;
             // intermediate-goods trades are excluded to avoid double-counting.
-            let investment: f64 = secured_trades.iter()
+            let investment: f64 = secured_trades
+                .iter()
                 .filter(|t| t.commodity.is_fixed_asset())
                 .map(|t| t.quantity * t.execution_price)
                 .sum();
             task.gdp_acc.investment += investment;
         }
+
+        // ── DIAGNOSTIC CHECKPOINT 3: b2b_settlement_post ──
+        probe.checkpoint("b2b_settlement_post", 3, turn, &market, &tasks);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 31: CRISIS MANAGEMENT AI — EXECUTIVE DECREES
@@ -936,13 +1184,17 @@ pub fn run_turn_in_memory(
             // EVERY turn BEFORE crisis detection. This provides a smooth
             // Keynesian fiscal/monetary response to unemployment spikes,
             // preventing panic spirals before they become full crises.
-            let counter_cyclical_msgs = crate::politics::crisis_management::counter_cyclical_response(
-                task.ctx.country,
-                turn,
-            );
+            let counter_cyclical_msgs =
+                crate::politics::crisis_management::counter_cyclical_response(
+                    task.ctx.country,
+                    turn,
+                );
             if !counter_cyclical_msgs.is_empty() {
                 let entry = serde_json::json!(counter_cyclical_msgs);
-                task.ctx.country.macro_indicators.extra
+                task.ctx
+                    .country
+                    .macro_indicators
+                    .extra
                     .insert("counter_cyclical_messages".to_string(), entry);
             }
 
@@ -957,7 +1209,11 @@ pub fn run_turn_in_memory(
             // Log crisis messages to the country's extra for telemetry.
             if !crisis_msgs.is_empty() {
                 let entry = serde_json::json!(crisis_msgs);
-                if let Some(arr) = task.ctx.country.macro_indicators.extra
+                if let Some(arr) = task
+                    .ctx
+                    .country
+                    .macro_indicators
+                    .extra
                     .get_mut("crisis_decrees")
                     .and_then(|v| v.as_array_mut())
                 {
@@ -979,13 +1235,14 @@ pub fn run_turn_in_memory(
         // capital crashes, coalition tension rises. No money printed.
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
-            let parliament_msgs = process_parliament_building_payroll(
-                task.ctx.country,
-                turn,
-            );
+            let parliament_msgs = process_parliament_building_payroll(task.ctx.country, turn);
             for msg in parliament_msgs {
                 let entry = serde_json::json!(msg);
-                if let Some(arr) = task.ctx.country.macro_indicators.extra
+                if let Some(arr) = task
+                    .ctx
+                    .country
+                    .macro_indicators
+                    .extra
                     .get_mut("parliament_messages")
                     .and_then(|v| v.as_array_mut())
                 {
@@ -1032,7 +1289,10 @@ pub fn run_turn_in_memory(
                 let ref_prices = &task.ctx.country.budget.extra.clone();
                 for company in &task.companies {
                     // Compute company inventory from buildings owned by this company
-                    let company_inventory: HashMap<Commodity, f64> = task.ctx.buildings.iter()
+                    let company_inventory: HashMap<Commodity, f64> = task
+                        .ctx
+                        .buildings
+                        .iter()
                         .filter(|b| b.owner_id == company.id)
                         .flat_map(|b| b.inventory.iter())
                         .fold(HashMap::new(), |mut acc, (commodity, &qty)| {
@@ -1071,17 +1331,28 @@ pub fn run_turn_in_memory(
                 match_orders(&mut local_order_book);
                 // Settle ministry trades — DOMESTIC: use settle_trades (no tariffs)
                 let ministry_trades = local_order_book.trades.clone();
+                let gen_config_clone2 = task.ctx.country.generative_goods_config.clone();
                 let _msgs = settle_trades(
                     &ministry_trades,
                     &mut task.companies,
                     &mut task.ctx.buildings,
+                    task.ctx.turn,
+                    &gen_config_clone2,
                 );
                 // Phase 24D: Accumulate ministry procurement as GDP government spending (G).
-                let ministry_spend: f64 = ministry_trades.iter().map(|t| t.quantity * t.execution_price).sum();
+                let ministry_spend: f64 = ministry_trades
+                    .iter()
+                    .map(|t| t.quantity * t.execution_price)
+                    .sum();
                 task.gdp_acc.government_spending += ministry_spend;
                 // Process post-clearing refunds for unfilled ministry bids
                 for ministry in &mut config.ministries {
-                    process_minister_post_clearing(ministry, &local_order_book, &mut task.companies, task.ctx.country);
+                    process_minister_post_clearing(
+                        ministry,
+                        &local_order_book,
+                        &mut task.companies,
+                        task.ctx.country,
+                    );
                 }
             }
             // Restore ministry config
@@ -1114,9 +1385,12 @@ pub fn run_turn_in_memory(
         // The old order_book::refund_unfilled_bids credited liquid_capital
         // (wrong field) and has been deleted.
         tasks.par_iter_mut().for_each(|task| {
+            // Phase 94: Rebuild company_id→index map with .clear() to retain capacity.
+            task.rebuild_company_id_to_idx();
             refund_unfilled_b2b_bids(
                 &task.order_book,
                 &mut task.companies,
+                &task.company_id_to_idx,
             );
         });
 
@@ -1189,10 +1463,8 @@ pub fn run_turn_in_memory(
             // Fleets not yet stored on Country; pass empty slice
             let fleets: Vec<crate::military::fleet::Fleet> = Vec::new();
             let mut fleet_demand: HashMap<Commodity, f64> = HashMap::new();
-            let (maintenance, wages) = crate::military::process_fleet_upkeep(
-                &fleets,
-                &mut fleet_demand,
-            );
+            let (maintenance, wages) =
+                crate::military::process_fleet_upkeep(&fleets, &mut fleet_demand);
             // Deduct from treasury
             let total_cost = maintenance + wages;
             let actual_deducted = task.ctx.country.budget.liquid_reserves.min(total_cost);
@@ -1206,8 +1478,7 @@ pub fn run_turn_in_memory(
                     let per_region = wage_portion / num_regions as f64;
                     for region in &mut task.ctx.country.regions {
                         crate::economy::transfer_settler::credit_citizen_savings_region(
-                            region,
-                            per_region,
+                            region, per_region,
                         );
                     }
                 }
@@ -1216,7 +1487,9 @@ pub fn run_turn_in_memory(
             // Credit maintenance to a Construction sector company
             let maint_portion = actual_deducted - wage_portion;
             if maint_portion > 0.0 {
-                let contractor_id = task.companies.iter()
+                let contractor_id = task
+                    .companies
+                    .iter()
                     .find(|c| c.sector == crate::registries::enums::Sector::Construction)
                     .map(|c| c.id.clone());
                 if let Some(ref cid) = contractor_id {
@@ -1285,7 +1558,11 @@ pub fn run_turn_in_memory(
                 let deficit_threshold = gdp * war_economy_config.war_bond_deficit_threshold;
                 if liquid < deficit_threshold {
                     let amount_needed = deficit_threshold - liquid;
-                    let avg_wage = task.ctx.country.regions.iter()
+                    let avg_wage = task
+                        .ctx
+                        .country
+                        .regions
+                        .iter()
                         .map(|r| r.gdp / (r.population as f64).max(1.0))
                         .sum::<f64>()
                         / (task.ctx.country.regions.len() as f64).max(1.0);
@@ -1309,12 +1586,13 @@ pub fn run_turn_in_memory(
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
             let unit_costs = std::collections::BTreeMap::new();
-            let (_msgs, construction_investment) = crate::construction::orders::advance_construction_projects(
-                &mut task.ctx.buildings,
-                &mut task.companies,
-                &unit_costs,
-                task.ctx.country,
-            );
+            let (_msgs, construction_investment) =
+                crate::construction::orders::advance_construction_projects(
+                    &mut task.ctx.buildings,
+                    &mut task.companies,
+                    &unit_costs,
+                    task.ctx.country,
+                );
             // Phase 34: Accumulate materials consumed (cost_spent delta) as
             // GDP investment (I). This is NOT tranche payments — tranches are
             // cash transfers, not capital formation. I only counts physical
@@ -1343,11 +1621,19 @@ pub fn run_turn_in_memory(
         // projects. Defects accumulate on the project struct.
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
-            let justice_coverage = task.ctx.country.politics.justice_state
+            let justice_coverage = task
+                .ctx
+                .country
+                .politics
+                .justice_state
                 .as_ref()
                 .map(|js| js.justice_coverage)
                 .unwrap_or(0.0);
-            let inspection_prob = task.ctx.country.politics.inspectorate_state
+            let inspection_prob = task
+                .ctx
+                .country
+                .politics
+                .inspectorate_state
                 .as_ref()
                 .map(|ist| ist.labor_inspection_capacity / 100.0)
                 .unwrap_or(0.0)
@@ -1360,7 +1646,9 @@ pub fn run_turn_in_memory(
                     if project.main_contractor_id.is_empty() {
                         continue;
                     }
-                    let contractor_rep = task.companies.iter()
+                    let contractor_rep = task
+                        .companies
+                        .iter()
                         .find(|c| c.id == project.main_contractor_id)
                         .map(|c| c.reputation_score)
                         .unwrap_or(50.0);
@@ -1381,7 +1669,9 @@ pub fn run_turn_in_memory(
                         &mut rng,
                     );
                     // Workplace accident check
-                    if let Some(casualties) = crate::construction::fraud::check_workplace_accident(project, &mut rng) {
+                    if let Some(casualties) =
+                        crate::construction::fraud::check_workplace_accident(project, &mut rng)
+                    {
                         project.ohs_accidents += 1;
                         // Phase 24D: Apply casualties to class demographics (not just region population).
                         // Split: 30% dead, 70% disabled (typical OHS accident ratio).
@@ -1394,18 +1684,20 @@ pub fn run_turn_in_memory(
                         // compensation = COMPENSATION_WAGE_MULTIPLIER × average_wage × total_casualties
                         // Debit the employer company, credit the victim households.
                         let avg_wage = task.ctx.country.macro_indicators.average_wage;
-                        let compensation_per_casualty = avg_wage
-                            * crate::construction::fraud::COMPENSATION_WAGE_MULTIPLIER;
+                        let compensation_per_casualty =
+                            avg_wage * crate::construction::fraud::COMPENSATION_WAGE_MULTIPLIER;
                         let total_compensation = compensation_per_casualty * casualties_i as f64;
 
                         // Find the employer company (the project's contractor).
                         let employer_id = project.main_contractor_id.clone();
                         if total_compensation > 0.0 {
-                            if let Some(employer) = task.companies.iter_mut()
-                                .find(|c| c.id == employer_id)
+                            if let Some(employer) =
+                                task.companies.iter_mut().find(|c| c.id == employer_id)
                             {
                                 // Debit the employer's cash.
-                                let employer_cash = employer.brokerage_account.as_ref()
+                                let employer_cash = employer
+                                    .brokerage_account
+                                    .as_ref()
                                     .map(|ba| ba.cash)
                                     .unwrap_or(employer.available_cash);
                                 let actual_compensation = total_compensation.min(employer_cash);
@@ -1417,17 +1709,27 @@ pub fn run_turn_in_memory(
                                     }
                                     // Credit the victim households via region class savings.
                                     // Distribute proportionally across rural and urban classes.
-                                    if let Some(region) = task.ctx.country.regions.iter_mut()
+                                    if let Some(region) = task
+                                        .ctx
+                                        .country
+                                        .regions
+                                        .iter_mut()
                                         .find(|r| r.id == region_id)
                                     {
-                                        let total_classes = region.class_demographics.rural_classes.len()
-                                            + region.class_demographics.urban_classes.len();
+                                        let total_classes =
+                                            region.class_demographics.rural_classes.len()
+                                                + region.class_demographics.urban_classes.len();
                                         if total_classes > 0 {
-                                            let per_class = actual_compensation / total_classes as f64;
-                                            for demo in region.class_demographics.rural_classes.values_mut() {
+                                            let per_class =
+                                                actual_compensation / total_classes as f64;
+                                            for demo in
+                                                region.class_demographics.rural_classes.values_mut()
+                                            {
                                                 demo.savings += per_class;
                                             }
-                                            for demo in region.class_demographics.urban_classes.values_mut() {
+                                            for demo in
+                                                region.class_demographics.urban_classes.values_mut()
+                                            {
                                                 demo.savings += per_class;
                                             }
                                         }
@@ -1436,12 +1738,22 @@ pub fn run_turn_in_memory(
                             }
                         }
 
-                        if let Some(region) = task.ctx.country.regions.iter_mut().find(|r| r.id == region_id) {
+                        if let Some(region) = task
+                            .ctx
+                            .country
+                            .regions
+                            .iter_mut()
+                            .find(|r| r.id == region_id)
+                        {
                             region.population = region.population.saturating_sub(dead);
                             // Apply to both rural and urban classes (construction workers
                             // can be from either demographic).
-                            crate::economy::telemetry::apply_casualties_to_labor(region, dead, disabled, true);
-                            crate::economy::telemetry::apply_casualties_to_labor(region, dead, disabled, false);
+                            crate::economy::telemetry::apply_casualties_to_labor(
+                                region, dead, disabled, true,
+                            );
+                            crate::economy::telemetry::apply_casualties_to_labor(
+                                region, dead, disabled, false,
+                            );
                         }
                     }
                 }
@@ -1465,7 +1777,9 @@ pub fn run_turn_in_memory(
             // Phase 25: Only repair if a Construction-sector company exists.
             // If no construction company is available, the work cannot physically
             // happen — links remain degraded.
-            let has_construction_company = task.companies.iter()
+            let has_construction_company = task
+                .companies
+                .iter()
                 .any(|c| c.sector == Sector::Construction);
             if has_construction_company {
                 let spent = crate::economy::transport_networks::process_network_maintenance(
@@ -1476,7 +1790,9 @@ pub fn run_turn_in_memory(
                 // Phase 25: Credit the first Construction-sector company for
                 // the repair work (double-entry: treasury debited, company credited).
                 if spent > 0.0 {
-                    if let Some(construction_co) = task.companies.iter_mut()
+                    if let Some(construction_co) = task
+                        .companies
+                        .iter_mut()
                         .find(|c| c.sector == Sector::Construction)
                     {
                         if let Some(ref mut ba) = construction_co.brokerage_account {
@@ -1566,14 +1882,19 @@ pub fn run_turn_in_memory(
             );
         });
 
+        // ── DIAGNOSTIC CHECKPOINT: production_cycle_post ──
+        probe.checkpoint("production_cycle_post", 5, turn, &market, &tasks);
+
         // Phase 8.1: Grid Distribution — Phase 81: New energy grid distribution.
         // Replaces the old distribute_utilities for electricity. The new system
         // performs DC flow balancing, overproduction handling, and load shedding.
         // Water/heat distribution still uses the old distribute_utilities.
         // Phase 81 Wave 2: Clone market_history for PPA VWAP computation.
         let ppa_market_history = state.market_history.clone();
-        let grid_penalties_per_task: Vec<std::collections::HashMap<String, f64>> =
-            tasks.par_iter_mut().enumerate().map(|(_i, task)| {
+        let grid_penalties_per_task: Vec<std::collections::HashMap<String, f64>> = tasks
+            .par_iter_mut()
+            .enumerate()
+            .map(|(_i, task)| {
                 let utility_config = task.ctx.country.utility_config.clone();
                 // Phase 81 Wave 2: Build fuel prices from market prices for
                 // merit-order spot market clearing.
@@ -1592,7 +1913,12 @@ pub fn run_turn_in_memory(
                     .get(&Commodity::Energy)
                     .copied()
                     .unwrap_or(100.0);
-                let avg_wage = task.ctx.country.macro_indicators.average_wage.max(subsistence_wage_floor);
+                let avg_wage = task
+                    .ctx
+                    .country
+                    .macro_indicators
+                    .average_wage
+                    .max(subsistence_wage_floor);
                 crate::energy::ppa::negotiate_ppas(
                     task.ctx.country,
                     &task.ctx.buildings,
@@ -1771,7 +2097,12 @@ pub fn run_turn_in_memory(
         // budget.liquid_reserves for funded crisis CAPEX.
         // ═══════════════════════════════════════════════════════════
         for task in &mut tasks {
-            let avg_wage = task.ctx.country.macro_indicators.average_wage.max(subsistence_wage_floor);
+            let avg_wage = task
+                .ctx
+                .country
+                .macro_indicators
+                .average_wage
+                .max(subsistence_wage_floor);
             // Mortality cost per death: dynamic multiple of average wage (Rule 2).
             let mortality_cost_per_death = avg_wage * 50.0;
             // Municipal budget allocation: a fraction of liquid reserves.
@@ -1828,7 +2159,9 @@ pub fn run_turn_in_memory(
             };
 
             // Build plant cost data for water AI.
-            let water_plant_costs: Vec<crate::energy::municipal_infrastructure_ai::WaterPlantCostData> = {
+            let water_plant_costs: Vec<
+                crate::energy::municipal_infrastructure_ai::WaterPlantCostData,
+            > = {
                 use crate::utilities::hydro_types::WaterPlantType;
                 vec![
                     crate::energy::municipal_infrastructure_ai::WaterPlantCostData {
@@ -1859,7 +2192,9 @@ pub fn run_turn_in_memory(
             };
 
             // Build plant cost data for wastewater (sanitation) AI.
-            let wastewater_plant_costs: Vec<crate::energy::municipal_infrastructure_ai::WastewaterPlantCostData> = {
+            let wastewater_plant_costs: Vec<
+                crate::energy::municipal_infrastructure_ai::WastewaterPlantCostData,
+            > = {
                 use crate::utilities::hydro_types::WastewaterPlantType;
                 vec![
                     crate::energy::municipal_infrastructure_ai::WastewaterPlantCostData {
@@ -1882,17 +2217,25 @@ pub fn run_turn_in_memory(
             // Aggregate per-region plans into country-level plans.
             // For countries with multiple regions, we sum CAPEX and take the
             // highest-priority (crisis) plan as the representative.
-            let mut combined_thermal = crate::energy::municipal_heating_ai::HeatingInvestmentPlan::default();
-            let mut combined_water = crate::energy::municipal_infrastructure_ai::WaterInvestmentPlan::default();
-            let mut combined_sanitation = crate::energy::municipal_infrastructure_ai::SanitationInvestmentPlan::default();
-            let mut combined_waste = crate::energy::municipal_infrastructure_ai::WasteInvestmentPlan::default();
-            let mut combined_electrical = crate::energy::municipal_infrastructure_ai::ElectricalInvestmentPlan::default();
+            let mut combined_thermal =
+                crate::energy::municipal_heating_ai::HeatingInvestmentPlan::default();
+            let mut combined_water =
+                crate::energy::municipal_infrastructure_ai::WaterInvestmentPlan::default();
+            let mut combined_sanitation =
+                crate::energy::municipal_infrastructure_ai::SanitationInvestmentPlan::default();
+            let mut combined_waste =
+                crate::energy::municipal_infrastructure_ai::WasteInvestmentPlan::default();
+            let mut combined_electrical =
+                crate::energy::municipal_infrastructure_ai::ElectricalInvestmentPlan::default();
 
             for region in &task.ctx.country.regions {
                 // --- Heating AI ---
                 // Derive district heating demand from urban population.
                 // Approximate buildings wanting DH from urban class population.
-                let urban_pop: i64 = region.class_demographics.urban_classes.values()
+                let urban_pop: i64 = region
+                    .class_demographics
+                    .urban_classes
+                    .values()
                     .map(|d| d.population)
                     .sum();
                 let district_heating_demand = (urban_pop / 5).max(0) as usize; // ~5 people per building
@@ -1900,11 +2243,14 @@ pub fn run_turn_in_memory(
                 // Effective heat supply from thermal grid throughput.
                 // Use throughput as raw supply; with 1 active plant as default.
                 let raw_heat_supply = region.thermal_grid.pipe_network_km * 50.0; // ~50 GJ per km of pipe
-                let effective_heat_supply = region.thermal_grid.effective_heat_supply(raw_heat_supply, 1);
+                let effective_heat_supply = region
+                    .thermal_grid
+                    .effective_heat_supply(raw_heat_supply, 1);
                 let heat_demand_gj = urban_pop as f64 * 0.5; // ~0.5 GJ per person per turn
 
                 // Estimated deaths from smog: scale smog level by population.
-                let estimated_deaths_from_smog = region.local_pollution.smog_level * urban_pop as f64 * 0.001;
+                let estimated_deaths_from_smog =
+                    region.local_pollution.smog_level * urban_pop as f64 * 0.001;
 
                 let thermal_plan = crate::energy::municipal_heating_ai::run_municipal_heating_ai(
                     &region.thermal_grid,
@@ -1920,7 +2266,8 @@ pub fn run_turn_in_memory(
 
                 // Accumulate thermal plan
                 combined_thermal.estimated_capex += thermal_plan.estimated_capex;
-                combined_thermal.expected_mortality_reduction_value += thermal_plan.expected_mortality_reduction_value;
+                combined_thermal.expected_mortality_reduction_value +=
+                    thermal_plan.expected_mortality_reduction_value;
                 combined_thermal.pipe_expansion_km += thermal_plan.pipe_expansion_km;
                 if thermal_plan.new_plant_type.is_some() {
                     combined_thermal.new_plant_type = thermal_plan.new_plant_type;
@@ -1932,36 +2279,43 @@ pub fn run_turn_in_memory(
                     if !combined_thermal.rationale.is_empty() {
                         combined_thermal.rationale.push_str("; ");
                     }
-                    combined_thermal.rationale.push_str(&format!("[{}] {}", region.id, thermal_plan.rationale));
+                    combined_thermal
+                        .rationale
+                        .push_str(&format!("[{}] {}", region.id, thermal_plan.rationale));
                 }
 
                 // --- Water AI ---
                 let buildings_wanting_mains = district_heating_demand; // Same building count approximation
                 let treatment_throughput = region.water_network.throughput_liters;
                 let water_demand = urban_pop as f64 * 200.0; // ~200 liters per person per turn
-                let estimated_deaths_from_water_quality = if region.water_network.current_quality < 0.9 && region.water_network.current_quality > 0.0 {
+                let estimated_deaths_from_water_quality = if region.water_network.current_quality
+                    < 0.9
+                    && region.water_network.current_quality > 0.0
+                {
                     urban_pop as f64 * (1.0 - region.water_network.current_quality) * 0.01
                 } else {
                     0.0
                 };
                 let dehydration_mortality = region.winter_mortality_multiplier; // Reuse as proxy
 
-                let water_plan = crate::energy::municipal_infrastructure_ai::run_water_investment_ai(
-                    &region.water_network,
-                    &region.water_reserves,
-                    buildings_wanting_mains,
-                    treatment_throughput,
-                    water_demand,
-                    &water_plant_costs,
-                    avg_wage,
-                    mortality_cost_per_death,
-                    estimated_deaths_from_water_quality,
-                    dehydration_mortality,
-                    financing_available,
-                );
+                let water_plan =
+                    crate::energy::municipal_infrastructure_ai::run_water_investment_ai(
+                        &region.water_network,
+                        &region.water_reserves,
+                        buildings_wanting_mains,
+                        treatment_throughput,
+                        water_demand,
+                        &water_plant_costs,
+                        avg_wage,
+                        mortality_cost_per_death,
+                        estimated_deaths_from_water_quality,
+                        dehydration_mortality,
+                        financing_available,
+                    );
 
                 combined_water.estimated_capex += water_plan.estimated_capex;
-                combined_water.expected_mortality_reduction_value += water_plan.expected_mortality_reduction_value;
+                combined_water.expected_mortality_reduction_value +=
+                    water_plan.expected_mortality_reduction_value;
                 combined_water.expand_pipes_km += water_plan.expand_pipes_km;
                 if water_plan.build_treatment_plant.is_some() {
                     combined_water.build_treatment_plant = water_plan.build_treatment_plant;
@@ -1976,7 +2330,9 @@ pub fn run_turn_in_memory(
                     if !combined_water.rationale.is_empty() {
                         combined_water.rationale.push_str("; ");
                     }
-                    combined_water.rationale.push_str(&format!("[{}] {}", region.id, water_plan.rationale));
+                    combined_water
+                        .rationale
+                        .push_str(&format!("[{}] {}", region.id, water_plan.rationale));
                 }
 
                 // --- Sanitation AI ---
@@ -1987,26 +2343,29 @@ pub fn run_turn_in_memory(
                 let estimated_deaths_from_biohazard = biohazard_level * urban_pop as f64 * 0.001;
                 let industrial_corrosion_cost = 0.0; // Simplified; no industrial corrosion data at this phase
 
-                let sanitation_plan = crate::energy::municipal_infrastructure_ai::run_sanitation_investment_ai(
-                    &region.sewer_network,
-                    &region.water_reserves,
-                    buildings_wanting_sewers,
-                    sewer_throughput,
-                    wastewater_treatment_capacity,
-                    biohazard_level,
-                    &wastewater_plant_costs,
-                    avg_wage,
-                    mortality_cost_per_death,
-                    estimated_deaths_from_biohazard,
-                    industrial_corrosion_cost,
-                    financing_available,
-                );
+                let sanitation_plan =
+                    crate::energy::municipal_infrastructure_ai::run_sanitation_investment_ai(
+                        &region.sewer_network,
+                        &region.water_reserves,
+                        buildings_wanting_sewers,
+                        sewer_throughput,
+                        wastewater_treatment_capacity,
+                        biohazard_level,
+                        &wastewater_plant_costs,
+                        avg_wage,
+                        mortality_cost_per_death,
+                        estimated_deaths_from_biohazard,
+                        industrial_corrosion_cost,
+                        financing_available,
+                    );
 
                 combined_sanitation.estimated_capex += sanitation_plan.estimated_capex;
-                combined_sanitation.expected_mortality_reduction_value += sanitation_plan.expected_mortality_reduction_value;
+                combined_sanitation.expected_mortality_reduction_value +=
+                    sanitation_plan.expected_mortality_reduction_value;
                 combined_sanitation.expand_sewers_km += sanitation_plan.expand_sewers_km;
                 if sanitation_plan.build_wastewater_plant.is_some() {
-                    combined_sanitation.build_wastewater_plant = sanitation_plan.build_wastewater_plant;
+                    combined_sanitation.build_wastewater_plant =
+                        sanitation_plan.build_wastewater_plant;
                 }
                 if sanitation_plan.is_crisis {
                     combined_sanitation.is_crisis = true;
@@ -2018,37 +2377,55 @@ pub fn run_turn_in_memory(
                     if !combined_sanitation.rationale.is_empty() {
                         combined_sanitation.rationale.push_str("; ");
                     }
-                    combined_sanitation.rationale.push_str(&format!("[{}] {}", region.id, sanitation_plan.rationale));
+                    combined_sanitation
+                        .rationale
+                        .push_str(&format!("[{}] {}", region.id, sanitation_plan.rationale));
                 }
 
                 // --- Waste AI (Phase 84) ---
                 // Aggregate waste grid state into a waste investment plan.
                 let uncollected_waste_mass = region.waste_grid.total_uncollected();
                 let landfill_utilization = region.waste_grid.landfill_utilization;
-                let waste_crisis = landfill_utilization >= 1.0 || uncollected_waste_mass > avg_wage * 100.0;
+                let waste_crisis =
+                    landfill_utilization >= 1.0 || uncollected_waste_mass > avg_wage * 100.0;
                 let waste_plan = crate::energy::municipal_infrastructure_ai::WasteInvestmentPlan {
-                    expand_collection_routes_km: if uncollected_waste_mass > 0.0 { 5.0 } else { 0.0 },
+                    expand_collection_routes_km: if uncollected_waste_mass > 0.0 {
+                        5.0
+                    } else {
+                        0.0
+                    },
                     build_waste_plant: if landfill_utilization >= 0.9 {
                         Some(crate::utilities::waste_grid::WastePlantType::ControlledLandfill)
                     } else {
                         None
                     },
-                    estimated_capex: if uncollected_waste_mass > 0.0 { 5.0 * avg_wage * 500.0 } else { 0.0 },
-                    expected_mortality_reduction_value: uncollected_waste_mass * mortality_cost_per_death * 0.01,
+                    estimated_capex: if uncollected_waste_mass > 0.0 {
+                        5.0 * avg_wage * 500.0
+                    } else {
+                        0.0
+                    },
+                    expected_mortality_reduction_value: uncollected_waste_mass
+                        * mortality_cost_per_death
+                        * 0.01,
                     landfill_utilization,
                     uncollected_waste_mass,
                     passes_cost_benefit_gate: financing_available && uncollected_waste_mass > 0.0,
                     is_crisis: waste_crisis,
                     rationale: if uncollected_waste_mass > 0.0 {
-                        format!("[{}] Uncollected waste: {:.1} tons, landfill util: {:.2}", region.id, uncollected_waste_mass, landfill_utilization)
+                        format!(
+                            "[{}] Uncollected waste: {:.1} tons, landfill util: {:.2}",
+                            region.id, uncollected_waste_mass, landfill_utilization
+                        )
                     } else {
                         String::new()
                     },
                 };
 
                 combined_waste.estimated_capex += waste_plan.estimated_capex;
-                combined_waste.expected_mortality_reduction_value += waste_plan.expected_mortality_reduction_value;
-                combined_waste.expand_collection_routes_km += waste_plan.expand_collection_routes_km;
+                combined_waste.expected_mortality_reduction_value +=
+                    waste_plan.expected_mortality_reduction_value;
+                combined_waste.expand_collection_routes_km +=
+                    waste_plan.expand_collection_routes_km;
                 if waste_plan.build_waste_plant.is_some() {
                     combined_waste.build_waste_plant = waste_plan.build_waste_plant;
                 }
@@ -2100,8 +2477,9 @@ pub fn run_turn_in_memory(
                 let owner = &hb.owner;
 
                 // Determine which region this housing belongs to
-                let region = task.ctx.country.regions.iter_mut()
-                    .find(|r| r.id == hb.micro_region_id || r.micro_regions.contains_key(&hb.micro_region_id));
+                let region = task.ctx.country.regions.iter_mut().find(|r| {
+                    r.id == hb.micro_region_id || r.micro_regions.contains_key(&hb.micro_region_id)
+                });
                 if region.is_none() {
                     continue;
                 }
@@ -2110,31 +2488,51 @@ pub fn run_turn_in_memory(
                 // Debit rent from the occupying class's savings.
                 // Distribute the debit proportionally across all classes in the region
                 // based on their population share (simplified model).
-                let total_class_pop: i64 = region.class_demographics.rural_classes.values()
-                    .map(|d| d.population).sum::<i64>()
-                    + region.class_demographics.urban_classes.values()
-                    .map(|d| d.population).sum::<i64>();
+                let total_class_pop: i64 = region
+                    .class_demographics
+                    .rural_classes
+                    .values()
+                    .map(|d| d.population)
+                    .sum::<i64>()
+                    + region
+                        .class_demographics
+                        .urban_classes
+                        .values()
+                        .map(|d| d.population)
+                        .sum::<i64>();
                 if total_class_pop <= 0 {
                     continue;
                 }
 
                 let debit_per_capita = total_rent / total_class_pop as f64;
                 for demographics in region.class_demographics.rural_classes.values_mut() {
-                    demographics.savings = (demographics.savings - debit_per_capita * demographics.population as f64).max(0.0);
+                    demographics.savings = (demographics.savings
+                        - debit_per_capita * demographics.population as f64)
+                        .max(0.0);
                 }
                 for demographics in region.class_demographics.urban_classes.values_mut() {
-                    demographics.savings = (demographics.savings - debit_per_capita * demographics.population as f64).max(0.0);
+                    demographics.savings = (demographics.savings
+                        - debit_per_capita * demographics.population as f64)
+                        .max(0.0);
                 }
 
                 // Credit rent to the owner entity.
                 if owner.starts_with("STATE:") {
                     task.ctx.country.budget.liquid_reserves += total_rent;
                 } else if owner.starts_with("CLASS:Aristocracy:") {
-                    if let Some(d) = region.class_demographics.rural_classes.get_mut("Aristocracy") {
+                    if let Some(d) = region
+                        .class_demographics
+                        .rural_classes
+                        .get_mut("Aristocracy")
+                    {
                         d.savings += total_rent;
                     }
                 } else if owner.starts_with("CLASS:Bourgeoisie:") {
-                    if let Some(d) = region.class_demographics.urban_classes.get_mut("Bourgeoisie") {
+                    if let Some(d) = region
+                        .class_demographics
+                        .urban_classes
+                        .get_mut("Bourgeoisie")
+                    {
                         d.savings += total_rent;
                     }
                 }
@@ -2189,9 +2587,15 @@ pub fn run_turn_in_memory(
             let mut regional_overflow: std::collections::BTreeMap<String, f64> =
                 std::collections::BTreeMap::new();
             for building in &task.ctx.buildings {
-                if let Some(costs) = building.extra.get("overflow_costs_this_turn").and_then(|v| v.as_f64()) {
+                if let Some(costs) = building
+                    .extra
+                    .get("overflow_costs_this_turn")
+                    .and_then(|v| v.as_f64())
+                {
                     if costs > 0.0 {
-                        *regional_overflow.entry(building.region_id.clone()).or_insert(0.0) += costs;
+                        *regional_overflow
+                            .entry(building.region_id.clone())
+                            .or_insert(0.0) += costs;
                     }
                 }
             }
@@ -2264,7 +2668,8 @@ pub fn run_turn_in_memory(
 
             // Build a map: region_id → list of (building_idx, commodity, qty)
             // for producer buildings with surplus output goods
-            let mut surplus_by_region: HashMap<String, Vec<(usize, Commodity, f64)>> = HashMap::new();
+            let mut surplus_by_region: HashMap<String, Vec<(usize, Commodity, f64)>> =
+                HashMap::new();
             for (i, b) in task.ctx.buildings.iter().enumerate() {
                 for &commodity in &consumer_goods {
                     let qty = b.inventory.get(&commodity).copied().unwrap_or(0.0);
@@ -2305,9 +2710,13 @@ pub fn run_turn_in_memory(
                     // Deduct from producer building
                     let remaining = (qty - transfer_qty).max(0.0);
                     if remaining > 0.0 {
-                        task.ctx.buildings[building_idx].inventory.insert(commodity, remaining);
+                        task.ctx.buildings[building_idx]
+                            .inventory
+                            .insert(commodity, remaining);
                     } else {
-                        task.ctx.buildings[building_idx].inventory.remove(&commodity);
+                        task.ctx.buildings[building_idx]
+                            .inventory
+                            .remove(&commodity);
                     }
 
                     // Add to retail store inventory
@@ -2315,7 +2724,9 @@ pub fn run_turn_in_memory(
                     // Phase 76: Use dynamic reference price instead of hardcoded 100.0.
                     // Falls back to 100.0 only if no market history exists (should not
                     // happen after Phase 76 generator fix that seeds global_base_prices).
-                    let ref_price = market_history::get_reference_price(&commodity, &restock_market_history).unwrap_or(100.0);
+                    let ref_price =
+                        market_history::get_reference_price(&commodity, &restock_market_history)
+                            .unwrap_or(100.0);
                     let batch = InventoryBatch {
                         quantity: transfer_qty,
                         storage_turn: turn,
@@ -2333,7 +2744,10 @@ pub fn run_turn_in_memory(
         // Update market history with VWAP
         market_history::update_vwap(&mut state.market_history, &all_trades);
         // Phase 79: Update rolling VWAP history for SRA shock-responsive triggers.
-        market_history::update_vwap_history(&mut state.market_history, market_history::VWAP_HISTORY_WINDOW);
+        market_history::update_vwap_history(
+            &mut state.market_history,
+            market_history::VWAP_HISTORY_WINDOW,
+        );
 
         // Phase 81 Wave 2: Expire PPAs that have reached their end turn.
         // Runs after market history update so the next turn's PPA negotiation
@@ -2392,14 +2806,9 @@ pub fn run_turn_in_memory(
                 &task.ctx.buildings,
             );
             // 2. Attrition: workers quit after prolonged unpaid furlough
-            crate::corporate::process_furlough_attrition(
-                &mut task.companies,
-            );
+            crate::corporate::process_furlough_attrition(&mut task.companies);
             // 3. Seasonal furlough (existing)
-            crate::corporate::apply_seasonal_furlough_all(
-                &mut task.companies,
-                current_season,
-            );
+            crate::corporate::apply_seasonal_furlough_all(&mut task.companies, current_season);
         });
 
         // Phase 25: Set wage offers AFTER agricultural FTE demand is computed
@@ -2467,15 +2876,24 @@ pub fn run_turn_in_memory(
             // Aggregates all state buildings' worker_capacity as labor demand.
             // Funded from country.budget.liquid_reserves (treasury payroll).
             task.state_employer_idx = {
-                let state_buildings_capacity: u32 = task.ctx.buildings.iter()
+                let state_buildings_capacity: u32 = task
+                    .ctx
+                    .buildings
+                    .iter()
                     .filter(|b| b.owner_id == "State")
                     .map(|b| b.worker_capacity)
                     .sum();
                 if state_buildings_capacity == 0 {
                     None
                 } else {
-                    let base_wage = task.ctx.country.macro_indicators.average_wage.max(subsistence_wage_floor);
-                    let civil_service_wage = base_wage * task.ctx.country.turn_config.civil_service_wage_ratio;
+                    let base_wage = task
+                        .ctx
+                        .country
+                        .macro_indicators
+                        .average_wage
+                        .max(subsistence_wage_floor);
+                    let civil_service_wage =
+                        base_wage * task.ctx.country.turn_config.civil_service_wage_ratio;
                     let total_payroll = state_buildings_capacity as f64 * civil_service_wage;
                     // Phase 33: Add ministry public service wage pool to the
                     // State Employer's funded_payroll. This pool was contributed
@@ -2493,14 +2911,20 @@ pub fn run_turn_in_memory(
                     } else {
                         let funded_fte = funded_payroll / civil_service_wage;
                         // Distribute state FTE across regions proportionally to population
-                        let first_region = task.ctx.country.regions.first()
+                        let first_region = task
+                            .ctx
+                            .country
+                            .regions
+                            .first()
                             .map(|r| r.id.clone())
                             .unwrap_or_default();
                         let mut state_company = crate::entities::Company::new(
                             format!("STATE-EMPLOYER-{}", task.ctx.country.name),
                             format!("State Employer ({})", task.ctx.country.name),
                             crate::registries::enums::Sector::PublicServices,
-                            crate::entities::LegalForm::StateMonopoly(crate::entities::legal_form::StateMonopolyData::default()),
+                            crate::entities::LegalForm::StateMonopoly(
+                                crate::entities::legal_form::StateMonopolyData::default(),
+                            ),
                             0.0,
                             funded_payroll,
                             state_buildings_capacity,
@@ -2517,9 +2941,15 @@ pub fn run_turn_in_memory(
             };
 
             // Phase 18B: Compute garnishment rates from justice state BEFORE mutable borrow
-            let garnishment_rates = task.ctx.country.politics.justice_state
+            let garnishment_rates = task
+                .ctx
+                .country
+                .politics
+                .justice_state
                 .as_ref()
-                .map(|js| crate::economy::sentencing::compute_garnishment_rates(js, task.ctx.country))
+                .map(|js| {
+                    crate::economy::sentencing::compute_garnishment_rates(js, task.ctx.country)
+                })
                 .unwrap_or_default();
 
             let pit_rate = task.ctx.country.tax_rates.income_tax.rate;
@@ -2527,21 +2957,33 @@ pub fn run_turn_in_memory(
             // Phase 25: Clear labor market for ALL regions, not just the first.
             // The old code only processed regions.iter_mut().next(), leaving
             // all other regions' labor markets uncleared.
-            let mut aggregated_allocation = crate::economy::labor_market::LaborAllocationMatrix::default();
+            let mut aggregated_allocation =
+                crate::economy::labor_market::LaborAllocationMatrix::default();
 
             let num_regions = task.ctx.country.regions.len();
             for region_idx in 0..num_regions {
                 // Phase 23C: Compute commuter inflow FTE for this region.
                 let commuter_inflow_fte = {
                     let region = &task.ctx.country.regions[region_idx];
-                    let coverage = task.commute_coverage.get(&region.id).copied().unwrap_or(0.0);
+                    let coverage = task
+                        .commute_coverage
+                        .get(&region.id)
+                        .copied()
+                        .unwrap_or(0.0);
                     if coverage <= 0.0 {
                         0.0
                     } else {
-                        let adjacent_land = region.edges.iter()
-                            .filter(|e| e.edge_type == crate::society::geography::EdgeType::LandBorder)
+                        let adjacent_land = region
+                            .edges
+                            .iter()
+                            .filter(|e| {
+                                e.edge_type == crate::society::geography::EdgeType::LandBorder
+                            })
                             .count();
-                        let local_pool: f64 = region.class_demographics.rural_classes.values()
+                        let local_pool: f64 = region
+                            .class_demographics
+                            .rural_classes
+                            .values()
                             .chain(region.class_demographics.urban_classes.values())
                             .map(|d| d.available_fte)
                             .sum();
@@ -2583,10 +3025,10 @@ pub fn run_turn_in_memory(
         // overwrite them with REAL values from actual hiring, so that next
         // turn's top-down model starts from the correct baseline.
         tasks.par_iter_mut().for_each(|task| {
-            let total_fulfilled: f64 = task.companies.iter()
-                .map(|c| c.fulfilled_fte as f64)
-                .sum();
-            let total_wages: f64 = task.companies.iter()
+            let total_fulfilled: f64 = task.companies.iter().map(|c| c.fulfilled_fte as f64).sum();
+            let total_wages: f64 = task
+                .companies
+                .iter()
                 .map(|c| c.offered_wage_per_fte * c.fulfilled_fte as f64)
                 .sum();
             let actual_avg_wage = if total_fulfilled > 0.0 {
@@ -2598,14 +3040,17 @@ pub fn run_turn_in_memory(
             };
             let labor_market = &mut task.ctx.country.macro_indicators.labor_market;
             let labor_force = (task.ctx.country.budget.population as f64
-                * labor_market.labor_force_participation / 100.0).max(1.0);
+                * labor_market.labor_force_participation
+                / 100.0)
+                .max(1.0);
             labor_market.employed_total = total_fulfilled;
             let unemployed = (labor_force - total_fulfilled).max(0.0);
             labor_market.unemployed = unemployed;
             labor_market.unemployment_rate = (unemployed / labor_force * 100.0).max(0.0);
             // Emergency Stabilization: Aggregate total furloughed workers
             // across all companies for the macro dashboard.
-            labor_market.furloughed_total = task.companies
+            labor_market.furloughed_total = task
+                .companies
                 .iter()
                 .map(|c| c.furloughed_workers_count)
                 .sum();
@@ -2671,7 +3116,10 @@ pub fn run_turn_in_memory(
             // proportionally across the owner's buildings (by worker_capacity).
             let mut buildings_by_owner: HashMap<String, Vec<usize>> = HashMap::new();
             for (i, b) in task.ctx.buildings.iter().enumerate() {
-                buildings_by_owner.entry(b.owner_id.clone()).or_default().push(i);
+                buildings_by_owner
+                    .entry(b.owner_id.clone())
+                    .or_default()
+                    .push(i);
             }
             for (owner_id, building_indices) in &buildings_by_owner {
                 let total_fulfilled = fulfilled_by_company.get(owner_id).copied().unwrap_or(0.0);
@@ -2681,7 +3129,8 @@ pub fn run_turn_in_memory(
                     }
                     continue;
                 }
-                let total_capacity: u32 = building_indices.iter()
+                let total_capacity: u32 = building_indices
+                    .iter()
                     .map(|&i| task.ctx.buildings[i].worker_capacity)
                     .sum();
                 if total_capacity == 0 {
@@ -2707,14 +3156,23 @@ pub fn run_turn_in_memory(
                     // Find adjacent regions and distribute wages proportionally
                     // to their available FTE.
                     if let Some(host_region) = task.ctx.country.regions.first() {
-                        let adjacent_ids: Vec<String> = host_region.edges.iter()
-                            .filter(|e| e.edge_type == crate::society::geography::EdgeType::LandBorder)
+                        let adjacent_ids: Vec<String> = host_region
+                            .edges
+                            .iter()
+                            .filter(|e| {
+                                e.edge_type == crate::society::geography::EdgeType::LandBorder
+                            })
                             .map(|e| e.target_node.clone())
                             .collect();
                         let mut total_adjacent_fte = 0.0_f64;
                         for adj_id in &adjacent_ids {
-                            if let Some(adj) = task.ctx.country.regions.iter().find(|r| &r.id == adj_id) {
-                                total_adjacent_fte += adj.class_demographics.rural_classes.values()
+                            if let Some(adj) =
+                                task.ctx.country.regions.iter().find(|r| &r.id == adj_id)
+                            {
+                                total_adjacent_fte += adj
+                                    .class_demographics
+                                    .rural_classes
+                                    .values()
                                     .chain(adj.class_demographics.urban_classes.values())
                                     .map(|d| d.available_fte)
                                     .sum::<f64>();
@@ -2722,34 +3180,63 @@ pub fn run_turn_in_memory(
                         }
                         if total_adjacent_fte > 0.0 {
                             for adj_id in &adjacent_ids {
-                                let adj_fte: f64 = task.ctx.country.regions.iter()
+                                let adj_fte: f64 = task
+                                    .ctx
+                                    .country
+                                    .regions
+                                    .iter()
                                     .find(|r| &r.id == adj_id)
-                                    .map(|r| r.class_demographics.rural_classes.values()
-                                        .chain(r.class_demographics.urban_classes.values())
-                                        .map(|d| d.available_fte)
-                                        .sum())
+                                    .map(|r| {
+                                        r.class_demographics
+                                            .rural_classes
+                                            .values()
+                                            .chain(r.class_demographics.urban_classes.values())
+                                            .map(|d| d.available_fte)
+                                            .sum()
+                                    })
                                     .unwrap_or(0.0);
                                 let share = adj_fte / total_adjacent_fte;
                                 let remittance = wages * share;
                                 if remittance > 0.0 {
-                                    if let Some(adj) = task.ctx.country.regions.iter_mut().find(|r| &r.id == adj_id) {
+                                    if let Some(adj) = task
+                                        .ctx
+                                        .country
+                                        .regions
+                                        .iter_mut()
+                                        .find(|r| &r.id == adj_id)
+                                    {
                                         // Distribute proportionally across classes by available FTE.
-                                        let classes: Vec<(bool, String, f64)> = adj.class_demographics.rural_classes.iter()
+                                        let classes: Vec<(bool, String, f64)> = adj
+                                            .class_demographics
+                                            .rural_classes
+                                            .iter()
                                             .map(|(k, v)| (false, k.clone(), v.available_fte))
-                                            .chain(adj.class_demographics.urban_classes.iter()
-                                                .map(|(k, v)| (true, k.clone(), v.available_fte)))
+                                            .chain(
+                                                adj.class_demographics.urban_classes.iter().map(
+                                                    |(k, v)| (true, k.clone(), v.available_fte),
+                                                ),
+                                            )
                                             .collect();
-                                        let class_total: f64 = classes.iter().map(|(_, _, f)| *f).sum();
+                                        let class_total: f64 =
+                                            classes.iter().map(|(_, _, f)| *f).sum();
                                         if class_total > 0.0 {
                                             for (is_urban, class_id, fte) in classes {
                                                 let class_share = fte / class_total;
                                                 let class_remittance = remittance * class_share;
                                                 if is_urban {
-                                                    if let Some(d) = adj.class_demographics.urban_classes.get_mut(&class_id) {
+                                                    if let Some(d) = adj
+                                                        .class_demographics
+                                                        .urban_classes
+                                                        .get_mut(&class_id)
+                                                    {
                                                         d.savings += class_remittance;
                                                     }
                                                 } else {
-                                                    if let Some(d) = adj.class_demographics.rural_classes.get_mut(&class_id) {
+                                                    if let Some(d) = adj
+                                                        .class_demographics
+                                                        .rural_classes
+                                                        .get_mut(&class_id)
+                                                    {
                                                         d.savings += class_remittance;
                                                     }
                                                 }
@@ -2790,12 +3277,11 @@ pub fn run_turn_in_memory(
                     if let Some(ref mut state) = task.ctx.country.politics.shadow_economy_state {
                         state.total_remittances_outbound = remittance;
                     } else {
-                        task.ctx.country.politics.shadow_economy_state = Some(
-                            crate::economy::legal_status::ShadowEconomyState {
+                        task.ctx.country.politics.shadow_economy_state =
+                            Some(crate::economy::legal_status::ShadowEconomyState {
                                 total_remittances_outbound: remittance,
                                 ..Default::default()
-                            }
-                        );
+                            });
                     }
                 }
             }
@@ -2835,11 +3321,16 @@ pub fn run_turn_in_memory(
             let num_regions = task.ctx.country.regions.len();
             for region_idx in 0..num_regions {
                 let region = &mut task.ctx.country.regions[region_idx];
-                let mut harvest_bundle: std::collections::BTreeMap<String, std::collections::BTreeMap<Commodity, f64>> = std::collections::BTreeMap::new();
+                let mut harvest_bundle: std::collections::BTreeMap<
+                    String,
+                    std::collections::BTreeMap<Commodity, f64>,
+                > = std::collections::BTreeMap::new();
 
                 for company in &task.companies {
                     if company.sector == Sector::Agriculture {
-                        let company_harvest: std::collections::BTreeMap<Commodity, f64> = task.ctx.buildings
+                        let company_harvest: std::collections::BTreeMap<Commodity, f64> = task
+                            .ctx
+                            .buildings
                             .iter()
                             .filter(|b| b.owner_id == company.id)
                             .flat_map(|b| b.inventory.iter())
@@ -2852,22 +3343,26 @@ pub fn run_turn_in_memory(
                 }
 
                 let labor_allocation = task.labor_allocation.take().unwrap_or_default();
-                let (in_kind_ledger, _nutritional_deficit) = apply_payment_in_kind(
-                    region,
-                    &labor_allocation,
-                    &mut harvest_bundle,
-                    turn,
-                );
+                let (in_kind_ledger, _nutritional_deficit) =
+                    apply_payment_in_kind(region, &labor_allocation, &mut harvest_bundle, turn);
                 // Phase 44: Capture the in-kind ledger for imputed GDP calculation.
                 // Merge deductions into the task-level ledger.
                 for (company_id, deductions) in &in_kind_ledger.deductions {
-                    let entry = task.in_kind_ledger.deductions.entry(company_id.clone()).or_default();
+                    let entry = task
+                        .in_kind_ledger
+                        .deductions
+                        .entry(company_id.clone())
+                        .or_default();
                     for (&commodity, &qty) in deductions {
                         *entry.entry(commodity).or_insert(0.0) += qty;
                     }
                 }
                 for (company_id, &offset) in &in_kind_ledger.cash_offsets {
-                    *task.in_kind_ledger.cash_offsets.entry(company_id.clone()).or_insert(0.0) += offset;
+                    *task
+                        .in_kind_ledger
+                        .cash_offsets
+                        .entry(company_id.clone())
+                        .or_insert(0.0) += offset;
                 }
             }
         });
@@ -2882,7 +3377,9 @@ pub fn run_turn_in_memory(
             let mut total_imputed = 0.0;
             for (company_id, deductions) in &task.in_kind_ledger.deductions {
                 // Find the region for this company
-                let company_region = task.companies.iter()
+                let company_region = task
+                    .companies
+                    .iter()
                     .find(|c| &c.id == company_id)
                     .map(|c| c.region_id.clone());
                 if company_region.is_none() {
@@ -2896,15 +3393,18 @@ pub fn run_turn_in_memory(
                         continue;
                     }
                     // Use VWAP from market history, fallback to base_price, fallback to 100.0
-                    let price = state.market_history.last_trade_price.get(&commodity).copied()
-                        .unwrap_or_else(|| {
-                            base_prices.get(&commodity).copied().unwrap_or(100.0)
-                        });
+                    let price = state
+                        .market_history
+                        .last_trade_price
+                        .get(&commodity)
+                        .copied()
+                        .unwrap_or_else(|| base_prices.get(&commodity).copied().unwrap_or(100.0));
                     company_imputed += qty * price;
                 }
                 if company_imputed > 0.0 {
                     total_imputed += company_imputed;
-                    task.gdp_acc.add_imputed_consumption(&region_id, company_imputed);
+                    task.gdp_acc
+                        .add_imputed_consumption(&region_id, company_imputed);
                 }
             }
             task.imputed_consumption = total_imputed;
@@ -2920,7 +3420,10 @@ pub fn run_turn_in_memory(
         tasks.par_iter_mut().for_each(|task| {
             for company in &mut task.companies {
                 // Find the company's own region by region_id.
-                let region_idx = task.ctx.country.regions
+                let region_idx = task
+                    .ctx
+                    .country
+                    .regions
                     .iter()
                     .position(|r| r.id == company.region_id);
                 if let Some(region_idx) = region_idx {
@@ -2973,12 +3476,13 @@ pub fn run_turn_in_memory(
         });
         tasks.par_iter_mut().for_each(|task| {
             for company in &mut task.companies {
-                let (despawn_signal, reclamation_data) = crate::agriculture::process_agricultural_despawn(
-                    company,
-                    &mut task.ctx.country.budget,
-                    &mut task.commercial_buildings,
-                    company.is_in_receivership,
-                );
+                let (despawn_signal, reclamation_data) =
+                    crate::agriculture::process_agricultural_despawn(
+                        company,
+                        &mut task.ctx.country.budget,
+                        &mut task.commercial_buildings,
+                        company.is_in_receivership,
+                    );
                 if let Some(id) = despawn_signal {
                     task.despawned_company_ids.push(id);
                 }
@@ -2986,41 +3490,51 @@ pub fn run_turn_in_memory(
                     // Phase 25: Reclaim land in the company's actual region,
                     // not just the first region.
                     let company_region_id = company.region_id.clone();
-                    if let Some(region) = task.ctx.country.regions.iter_mut().find(|r| r.id == company_region_id) {
+                    if let Some(region) = task
+                        .ctx
+                        .country
+                        .regions
+                        .iter_mut()
+                        .find(|r| r.id == company_region_id)
+                    {
                         crate::agriculture::reclaim_agricultural_land(region, reclamation_data);
                     }
                 }
             }
         });
         tasks.par_iter_mut().for_each(|task| {
-            task.companies.retain(|c| !task.despawned_company_ids.contains(&c.id));
+            task.companies
+                .retain(|c| !task.despawned_company_ids.contains(&c.id));
         });
-        
+
         // Phase 6.5: B2C Market Phases R1-R7
         // Phase 44: Removed the wasted R1 consumer demand build — it was computed
         // and immediately discarded (`let _consumer_demand = ...`). The demand is
         // rebuilt during R6 clearing where it is actually used.
-        
+
         tasks.par_iter_mut().for_each(|task| {
             // R4: Reset procurement commitments for wholesalers
             for building in &mut task.commercial_buildings {
                 reset_procurement_commitment(building);
             }
         });
-        
+
         tasks.par_iter_mut().for_each(|task| {
             // R5: Apply clearance discounts for stale inventory
             for building in &mut task.commercial_buildings {
-                let commodity_keys: Vec<String> = building.current_inventory.keys().cloned().collect();
+                let commodity_keys: Vec<String> =
+                    building.current_inventory.keys().cloned().collect();
                 for commodity_key in commodity_keys {
                     if let Ok(commodity) = Commodity::try_from(commodity_key.as_str()) {
-                        let market_price = market_history::get_reference_price(&commodity, &state.market_history).unwrap_or(1.0);
+                        let market_price =
+                            market_history::get_reference_price(&commodity, &state.market_history)
+                                .unwrap_or(1.0);
                         apply_clearance_discount(building, commodity, turn, market_price);
                     }
                 }
             }
         });
-        
+
         tasks.par_iter_mut().for_each(|task| {
             // R6: Clear B2C markets
             // Phase 25: Process ALL regions, not just the first. The old code
@@ -3029,10 +3543,22 @@ pub fn run_turn_in_memory(
             // Phase 41: Reset accumulated_vat before B2C clearing.
             task.ctx.country.accumulated_vat = 0.0;
             let num_regions = task.ctx.country.regions.len();
+            // Phase 94: Rebuild index maps BEFORE the region loop to avoid
+            // borrow conflicts with &mut task.ctx.country.regions[region_idx].
+            // These maps don't depend on region — they map commercial_buildings
+            // and companies, which are stable within the B2C phase.
+            task.rebuild_store_id_to_owner();
+            task.rebuild_company_id_to_idx();
             for region_idx in 0..num_regions {
                 let region = &mut task.ctx.country.regions[region_idx];
                 let avg_wage = task.ctx.country.macro_indicators.average_wage;
-                let mut consumer_demand = build_consumer_demand(region, turn, &task.ctx.market_prices, avg_wage, &task.housing_buildings);
+                let mut consumer_demand = build_consumer_demand(
+                    region,
+                    turn,
+                    &task.ctx.market_prices,
+                    avg_wage,
+                    &task.housing_buildings,
+                );
                 // Phase 44: Net out in-kind deductions from B2C consumer demand.
                 // Serfs (and partially FreePeasants/LandlessLaborers) have their
                 // subsistence needs met in-kind. Their B2C demand for those
@@ -3062,7 +3588,13 @@ pub fn run_turn_in_memory(
                     apply_rationing_to_demand(&mut consumer_demand, &rationing);
                 }
                 let mut store_offers = generate_store_offers(&task.commercial_buildings, turn);
-                let clearing_result = clear_b2c_markets(&mut store_offers, &consumer_demand, &mut task.commercial_buildings, turn, Some(&task.ctx.country.generative_goods_config));
+                let clearing_result = clear_b2c_markets(
+                    &mut store_offers,
+                    &consumer_demand,
+                    &mut task.commercial_buildings,
+                    turn,
+                    Some(&task.ctx.country.generative_goods_config),
+                );
                 // Phase 16A: Route B2C revenue through TransferSettler for proper bank sync
                 // Phase 41: Pass VAT rates for transactional VAT collection.
                 let vat_rates = task.ctx.country.tax_rates.vat.clone();
@@ -3073,6 +3605,8 @@ pub fn run_turn_in_memory(
                     &mut task.companies,
                     region,
                     &vat_rates,
+                    &task.store_id_to_owner,
+                    &task.company_id_to_idx,
                 );
                 // Phase 41: Credit treasury with VAT (SINGLE credit — no double-counting in tax turn).
                 if vat_collected > 0.0 {
@@ -3084,13 +3618,17 @@ pub fn run_turn_in_memory(
                 let b2c_revenue: f64 = clearing_result.store_revenue.values().sum();
                 task.gdp_acc.add_consumption(&region.id, b2c_revenue);
                 // Phase 25: Collect retail prices for CPI calculation
-                task.retail_prices.extend(clearing_result.retail_prices.iter().cloned());
+                task.retail_prices
+                    .extend(clearing_result.retail_prices.iter().cloned());
                 // Phase 44: Collect B2C consumer demand per commodity for Market UI.
                 for (&commodity, &qty) in &consumer_demand.total_demand {
                     *task.b2c_demand.entry(commodity).or_insert(0.0) += qty;
                 }
             }
         });
+
+        // ── DIAGNOSTIC CHECKPOINT: b2c_clearing_post ──
+        probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
         // Phase 47: Degrade household durable cohorts by one turn.
         // Runs after B2C clearing, before telemetry. Durable goods
@@ -3136,20 +3674,27 @@ pub fn run_turn_in_memory(
                 *market.b2c_demand_volume.entry(commodity).or_insert(0.0) += qty;
             }
         }
-        
+
         tasks.par_iter_mut().for_each(|task| {
             // R7: Accrue retail rents and update leases
-            let shopping_center_ids: Vec<String> = task.commercial_buildings
+            let shopping_center_ids: Vec<String> = task
+                .commercial_buildings
                 .iter()
-                .filter(|b| b.building_type == crate::society::housing::CommercialBuildingType::ShoppingCenter)
+                .filter(|b| {
+                    b.building_type
+                        == crate::society::housing::CommercialBuildingType::ShoppingCenter
+                })
                 .map(|b| b.id.clone())
                 .collect();
-            
+
             for building_id in &shopping_center_ids {
                 // Phase 24C.9: Compute diversity bonus and anchor tenant before
                 // mutable borrow to avoid borrow checker conflicts.
                 let diversity_bonus = {
-                    let building = task.commercial_buildings.iter().find(|b| b.id == *building_id);
+                    let building = task
+                        .commercial_buildings
+                        .iter()
+                        .find(|b| b.id == *building_id);
                     if let Some(b) = building {
                         calculate_diversity_bonus(b, &task.commercial_buildings)
                     } else {
@@ -3157,14 +3702,23 @@ pub fn run_turn_in_memory(
                     }
                 };
                 let anchor_tenant = {
-                    let building = task.commercial_buildings.iter().find(|b| b.id == *building_id);
+                    let building = task
+                        .commercial_buildings
+                        .iter()
+                        .find(|b| b.id == *building_id);
                     if let Some(b) = building {
                         let mut best: Option<String> = None;
                         let mut best_sales: f64 = 0.0;
                         if let Some(profile) = &b.shopping_center_profile {
                             for tenant_id in &profile.tenant_building_ids {
-                                if let Some(tenant) = task.commercial_buildings.iter().find(|t| t.id == *tenant_id) {
-                                    let sales: f64 = tenant.retail_profile.as_ref()
+                                if let Some(tenant) = task
+                                    .commercial_buildings
+                                    .iter()
+                                    .find(|t| t.id == *tenant_id)
+                                {
+                                    let sales: f64 = tenant
+                                        .retail_profile
+                                        .as_ref()
                                         .map(|p| p.units_sold_last_turn.values().sum())
                                         .unwrap_or(0.0);
                                     if sales > best_sales {
@@ -3183,12 +3737,16 @@ pub fn run_turn_in_memory(
                 // Pre-collect tenant owner IDs and rent amounts while we have
                 // immutable access to commercial_buildings, then process the
                 // transfers with mutable access to companies and country.
-                let sc_idx = task.commercial_buildings.iter().position(|b| b.id == *building_id);
+                let sc_idx = task
+                    .commercial_buildings
+                    .iter()
+                    .position(|b| b.id == *building_id);
                 if let Some(idx) = sc_idx {
                     // Step 1: Collect rent payment info (immutable borrow)
                     let tenant_payments: Vec<(String, f64, String)> = {
                         let sc = &task.commercial_buildings[idx];
-                        sc.retail_leases.iter()
+                        sc.retail_leases
+                            .iter()
                             .filter(|lease| {
                                 let age = turn.saturating_sub(lease.start_turn);
                                 age < lease.duration_turns
@@ -3196,7 +3754,8 @@ pub fn run_turn_in_memory(
                             .map(|lease| {
                                 let rent_due = lease.leased_sqm * lease.rent_per_sqm;
                                 // Look up tenant building's owner
-                                let owner_id = task.commercial_buildings
+                                let owner_id = task
+                                    .commercial_buildings
                                     .iter()
                                     .find(|b| b.id == lease.tenant_id)
                                     .map(|b| b.owner_id.clone())
@@ -3208,7 +3767,8 @@ pub fn run_turn_in_memory(
                     // Step 2: Update lease list (keep only active leases)
                     let active_leases: Vec<crate::society::housing::RetailLease> = {
                         let sc = &task.commercial_buildings[idx];
-                        sc.retail_leases.iter()
+                        sc.retail_leases
+                            .iter()
                             .filter(|lease| {
                                 let age = turn.saturating_sub(lease.start_turn);
                                 age < lease.duration_turns
@@ -3226,25 +3786,34 @@ pub fn run_turn_in_memory(
                         turn,
                     );
                     // Apply the diversity bonus and anchor tenant
-                    if let Some(ref mut profile) = task.commercial_buildings[idx].shopping_center_profile {
+                    if let Some(ref mut profile) =
+                        task.commercial_buildings[idx].shopping_center_profile
+                    {
                         profile.diversity_bonus = diversity_bonus;
                         profile.anchor_tenant = anchor_tenant;
                     }
                 }
             }
-            
+
             // Sign leases using index-based two-pass pattern to avoid borrow conflict
-            let lease_pairs: Vec<(usize, Vec<usize>)> = task.commercial_buildings
+            let lease_pairs: Vec<(usize, Vec<usize>)> = task
+                .commercial_buildings
                 .iter()
                 .enumerate()
-                .filter(|(_, b)| b.building_type == crate::society::housing::CommercialBuildingType::ShoppingCenter)
+                .filter(|(_, b)| {
+                    b.building_type
+                        == crate::society::housing::CommercialBuildingType::ShoppingCenter
+                })
                 .map(|(sc_idx, _)| {
-                    let candidates: Vec<usize> = task.commercial_buildings
+                    let candidates: Vec<usize> = task
+                        .commercial_buildings
                         .iter()
                         .enumerate()
                         .filter(|(i, store)| {
                             *i != sc_idx
-                                && store.retail_profile.as_ref()
+                                && store
+                                    .retail_profile
+                                    .as_ref()
                                     .map(|p| p.landlord_building_id.is_none())
                                     .unwrap_or(false)
                         })
@@ -3321,13 +3890,21 @@ pub fn run_turn_in_memory(
 
         // FIX #1: Sequential post-processing — debit GlobalMarket.offshore_capital
         // Foreign tourist spending comes from OUTSIDE the domestic economy.
-        let total_foreign_inflow: f64 = tasks.iter().map(|t| t.tourism_result.foreign_tourism_inflow).sum();
+        let total_foreign_inflow: f64 = tasks
+            .iter()
+            .map(|t| t.tourism_result.foreign_tourism_inflow)
+            .sum();
         market.offshore_capital -= total_foreign_inflow;
 
         tasks.par_iter_mut().for_each(|task| {
             // Phase 24C.7: Update information quality tier for each company
             // based on capital and average wage (fog-of-war information asymmetry).
-            let avg_wage = task.ctx.country.macro_indicators.average_wage.max(subsistence_wage_floor);
+            let avg_wage = task
+                .ctx
+                .country
+                .macro_indicators
+                .average_wage
+                .max(subsistence_wage_floor);
             for company in &mut task.companies {
                 let total_capital = company.fixed_capital + company.liquid_capital;
                 let quality = crate::corporate::bounded_rationality::determine_information_quality(
@@ -3401,7 +3978,11 @@ pub fn run_turn_in_memory(
             );
 
             // SEC-3: Securitize eligible loans into MBS (banks submit Ask orders)
-            for bank in task.companies.iter_mut().filter(|c| c.balance_sheet.is_some()) {
+            for bank in task
+                .companies
+                .iter_mut()
+                .filter(|c| c.balance_sheet.is_some())
+            {
                 crate::securities::mbs::securitize_loans(
                     bank,
                     &mut task.ctx.country.mbs_pool,
@@ -3412,14 +3993,18 @@ pub fn run_turn_in_memory(
             }
 
             // SEC-4: Create covered bonds from eligible mortgage pools
-            for bank in task.companies.iter_mut().filter(|c| c.balance_sheet.is_some()) {
+            for bank in task
+                .companies
+                .iter_mut()
+                .filter(|c| c.balance_sheet.is_some())
+            {
                 let _ = crate::securities::covered_bonds::create_covered_bond(
                     bank,
                     &mut task.ctx.country.covered_bonds_issued,
                     &mut task.ctx.country.stock_exchange,
                     &config,
-                    1_000_000.0, // Default principal
-                    0.05,        // Default coupon rate
+                    1_000_000.0,       // Default principal
+                    0.05,              // Default coupon rate
                     current_turn + 48, // 4-year maturity
                     current_turn,
                 );
@@ -3472,11 +4057,7 @@ pub fn run_turn_in_memory(
             // SEC-8: Charge fund management and performance fees
             let len = task.companies.len();
             let (funds_half, companies_half) = task.companies.split_at_mut(len);
-            crate::securities::funds::charge_fund_fees(
-                funds_half,
-                companies_half,
-                &config,
-            );
+            crate::securities::funds::charge_fund_fees(funds_half, companies_half, &config);
 
             // SEC-8a: Process fund coupon payments from MBS/covered bonds
             // Phase 86.5B: Wire previously-disconnected coupon payment logic.
@@ -3520,9 +4101,16 @@ pub fn run_turn_in_memory(
             // If any CCP member has a margin_deficit exceeding their posted
             // margin, they are in default and the CCP waterfall kicks in
             // (margin → default fund → mutualization).
-            let defaulted_members: Vec<String> = task.ctx.country.central_counterparty.members.iter()
-                .filter(|(_, m)| m.margin_deficit > m.posted_margin
-                    && m.status != crate::securities::ccp::MemberStatus::Defaulted)
+            let defaulted_members: Vec<String> = task
+                .ctx
+                .country
+                .central_counterparty
+                .members
+                .iter()
+                .filter(|(_, m)| {
+                    m.margin_deficit > m.posted_margin
+                        && m.status != crate::securities::ccp::MemberStatus::Defaulted
+                })
                 .map(|(id, _)| id.clone())
                 .collect();
             for member_id in &defaulted_members {
@@ -3601,7 +4189,11 @@ pub fn run_turn_in_memory(
                 + tax_result.state_property_revenue;
             let mut total_cit_debited = 0.0;
             for liability in &tax_result.liabilities {
-                if let Some(company) = task.companies.iter_mut().find(|c| c.id == liability.company_id) {
+                if let Some(company) = task
+                    .companies
+                    .iter_mut()
+                    .find(|c| c.id == liability.company_id)
+                {
                     let to_debit = liability.cit_actual + liability.wealth_tax_actual;
                     if to_debit > 0.0 {
                         // Debit from available_cash first, then brokerage cash.
@@ -3630,7 +4222,9 @@ pub fn run_turn_in_memory(
                 extra: Default::default(),
             };
             // Only route PIT + CIT + wealth tax (VAT/customs already credited).
-            let route_amount = tax_result.actual_pit_collected + total_cit_debited + tax_result.wealth_tax_collected;
+            let route_amount = tax_result.actual_pit_collected
+                + total_cit_debited
+                + tax_result.wealth_tax_collected;
             if route_amount > 0.0 {
                 crate::state::route_tax_collection_to_country(
                     route_amount,
@@ -3646,7 +4240,8 @@ pub fn run_turn_in_memory(
             // Update cit_collected to reflect actual debited amount.
             // Phase 43: Add withheld PIT (collected at source in labor market)
             // to the stored tax_result so the Finance tab displays the real total.
-            let withheld_pit = task.labor_allocation
+            let withheld_pit = task
+                .labor_allocation
                 .as_ref()
                 .map(|la| la.pit_withheld)
                 .unwrap_or(0.0);
@@ -3677,7 +4272,11 @@ pub fn run_turn_in_memory(
 
             // Phase 29: Corruption tax leakage — corruption reduces effective
             // tax collection by embezzling a fraction of collected revenue.
-            let corruption_index = task.ctx.country.politics.inspectorate_state
+            let corruption_index = task
+                .ctx
+                .country
+                .politics
+                .inspectorate_state
                 .as_ref()
                 .map(|ist| ist.corruption_index)
                 .unwrap_or(0.0);
@@ -3724,14 +4323,11 @@ pub fn run_turn_in_memory(
             }
 
             // 5. WHOLESALE DEBT ISSUANCE (BEFORE ministry allocation)
-            let promised_total = sum_ministry_allocations(&task.ctx.country.politics.ministry_config);
+            let promised_total =
+                sum_ministry_allocations(&task.ctx.country.politics.ministry_config);
             let deficit = promised_total - task.ctx.country.budget.liquid_reserves;
             if deficit > 0.0 && !task.ctx.country.debt_market.is_locked_out_of_primary {
-                issue_treasury_securities(
-                    task.ctx.country,
-                    deficit,
-                    current_turn,
-                );
+                issue_treasury_securities(task.ctx.country, deficit, current_turn);
                 // Phase 38: DSPW auction settlement — primary dealer banks
                 // pull-purchase from auction inventory created above.
                 // This runs immediately after issuance so the treasury
@@ -3746,9 +4342,8 @@ pub fn run_turn_in_memory(
             // Phase 29: Anti-corruption budget reallocation feedback loop.
             // If corruption is high, shift budget priorities toward
             // Justice/InternalSecurity before cash allocation.
-            let _severity = crate::politics::anti_corruption::run_anti_corruption_feedback(
-                task.ctx.country,
-            );
+            let _severity =
+                crate::politics::anti_corruption::run_anti_corruption_feedback(task.ctx.country);
 
             // 6. MINISTRY CASH ALLOCATION (HARD-CAPPED by physical reserves)
             // Phase 40: Recalculate budget needs before the second allocation
@@ -3795,7 +4390,12 @@ pub fn run_turn_in_memory(
             if let Some(ref mut config) = ministry_config {
                 let order_book = OrderBook::default(); // placeholder — would be the global order book
                 for ministry in &mut config.ministries {
-                    process_minister_post_clearing(ministry, &order_book, &mut task.companies, task.ctx.country);
+                    process_minister_post_clearing(
+                        ministry,
+                        &order_book,
+                        &mut task.companies,
+                        task.ctx.country,
+                    );
                 }
             }
             task.ctx.country.politics.ministry_config = ministry_config;
@@ -3838,18 +4438,12 @@ pub fn run_turn_in_memory(
         // 9. RETAIL SAVINGS BONDS B2C WINDOW
         // Cash raised here funds NEXT turn's budget (causality rule)
         tasks.par_iter_mut().for_each(|task| {
-            clear_savings_bonds_b2c(
-                task.ctx.country,
-                task.ctx.turn,
-            );
+            clear_savings_bonds_b2c(task.ctx.country, task.ctx.turn);
         });
 
         // 10. SECONDARY DEBT MARKET CLEARING (wholesale only)
         tasks.par_iter_mut().for_each(|task| {
-            clear_secondary_debt_market(
-                &mut task.ctx.country.debt_market,
-                task.ctx.turn,
-            );
+            clear_secondary_debt_market(&mut task.ctx.country.debt_market, task.ctx.turn);
         });
 
         // Phase 35: Gate process_political_year to run only once per year
@@ -3884,7 +4478,8 @@ pub fn run_turn_in_memory(
         // This ensures snap elections take effect immediately.
         tasks.par_iter_mut().for_each(|task| {
             let unrest = task.ctx.country.macro_indicators.social_unrest;
-            let msgs = crate::politics::run_election_if_due(task.ctx.country, unrest, task.ctx.turn);
+            let msgs =
+                crate::politics::run_election_if_due(task.ctx.country, unrest, task.ctx.turn);
             for msg in msgs {
                 task.ctx.country.budget.extra.insert(
                     format!("election_msg_{}", task.ctx.turn),
@@ -3895,7 +4490,12 @@ pub fn run_turn_in_memory(
 
         if is_year_boundary {
             tasks.par_iter_mut().for_each(|task| {
-                process_political_year(task.ctx.country, &mut task.companies, &mut task.unions, task.ctx.year);
+                process_political_year(
+                    task.ctx.country,
+                    &mut task.companies,
+                    &mut task.unions,
+                    task.ctx.year,
+                );
             });
         }
 
@@ -3911,7 +4511,9 @@ pub fn run_turn_in_memory(
         // assassinated/couped/executed leaders (Zombie Leader prevention).
         tasks.par_iter_mut().for_each(|task| {
             // Collect councilors from regional governance structures.
-            let councilors: Vec<crate::politics::local_council::Councilor> = task.ctx.country
+            let councilors: Vec<crate::politics::local_council::Councilor> = task
+                .ctx
+                .country
                 .regions
                 .iter()
                 .flat_map(|r| {
@@ -4003,7 +4605,10 @@ pub fn run_turn_in_memory(
 
         // Add military commodity demand to market before clearing
         tasks.par_iter_mut().for_each(|task| {
-            add_military_demand_to_market(&task.ctx.country.order_of_battle.flatten(), &mut task.orders.orders);
+            add_military_demand_to_market(
+                &task.ctx.country.order_of_battle.flatten(),
+                &mut task.orders.orders,
+            );
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -4014,6 +4619,7 @@ pub fn run_turn_in_memory(
         tasks.par_iter_mut().for_each(|task| {
             // 9.1: Corporate R&D and patent expiration
             let corp_config = task.ctx.country.corporate_tech_config.clone();
+            let average_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
             crate::economy::corporate_rd::check_patent_expiration(
                 &mut task.companies,
                 task.ctx.turn,
@@ -4021,16 +4627,41 @@ pub fn run_turn_in_memory(
             crate::economy::corporate_rd::allocate_corporate_rd_budget(
                 &mut task.companies,
                 &corp_config,
+                average_wage,
             );
-            // Phase 24C.4: Hook R&D method research and licensing evaluation
-            // to close the R&D cash-drain loop. Companies now discover techs
-            // and license methods from each other, generating royalty payments.
+            // Phase 24C.4/95: Hook R&D method research and licensing evaluation.
+            // R&D spending now purchases Innovation Points from universities via
+            // B2B settle_transfer (no cash destruction). Foreign patent fees
+            // are collected in the outbox for sequential GlobalMarket crediting.
             let tech_tree = task.ctx.registries.tech_tree.clone();
-            crate::economy::corporate_rd::execute_corporate_method_research(
+
+            // Build building inventories snapshot (same pattern as innovation trading).
+            let mut building_inventories: std::collections::BTreeMap<
+                String,
+                std::collections::BTreeMap<Commodity, f64>,
+            > = std::collections::BTreeMap::new();
+            for building in &task.ctx.buildings {
+                building_inventories.insert(building.id.clone(), building.inventory.clone());
+            }
+
+            let foreign_fees = crate::economy::corporate_rd::execute_corporate_method_research(
                 &mut task.companies,
+                &mut task.ctx.buildings,
+                &mut building_inventories,
                 &tech_tree,
+                task.ctx.country,
+                average_wage,
                 task.ctx.turn,
             );
+            task.foreign_patent_fee_outbox += foreign_fees;
+
+            // Sync building inventories back.
+            for building in &mut task.ctx.buildings {
+                if let Some(inv) = building_inventories.get(&building.id) {
+                    building.inventory = inv.clone();
+                }
+            }
+
             // Evaluate licensing opportunities (needs a snapshot of all companies)
             let companies_snapshot = task.companies.clone();
             crate::economy::corporate_rd::evaluate_licensing_opportunities(
@@ -4038,7 +4669,93 @@ pub fn run_turn_in_memory(
                 &companies_snapshot,
                 &tech_tree,
                 &corp_config,
+                average_wage,
+                &state.market_history,
+                task.ctx.turn,
             );
+
+            // Phase 95: Assign active_blueprint to buildings.
+            // For each company, for each building owned by that company:
+            // - If the building produces a blueprint-eligible commodity, find
+            //   the company's best blueprint for that commodity and assign it.
+            // - If the company has no blueprint but has a LicensedBlueprint,
+            //   assign the licensed blueprint ID.
+            // - Otherwise, clear active_blueprint (legacy behavior).
+            {
+                // Build a lookup: company_id → Vec<(commodity, blueprint_id, design_score)>
+                let mut bp_lookup: std::collections::HashMap<
+                    String,
+                    Vec<(crate::registries::enums::Commodity, String, f64)>,
+                > = std::collections::HashMap::new();
+                for company in &task.companies {
+                    let entries: Vec<(crate::registries::enums::Commodity, String, f64)> = company
+                        .blueprints
+                        .iter()
+                        .map(|bp| (bp.output_commodity, bp.id.clone(), bp.quality))
+                        .collect();
+                    bp_lookup.insert(company.id.clone(), entries);
+
+                    // Licensed blueprints are handled in the second pass below
+                    // (they require cross-company blueprint lookup).
+                }
+
+                // Second pass: add licensed blueprints to the lookup.
+                // For each company with licensed_blueprints, find the output_commodity
+                // by searching all companies' blueprints for the matching blueprint_id.
+                let all_bps: std::collections::HashMap<
+                    String,
+                    crate::registries::enums::Commodity,
+                > = {
+                    let mut m = std::collections::HashMap::new();
+                    for company in &task.companies {
+                        for bp in &company.blueprints {
+                            m.insert(bp.id.clone(), bp.output_commodity);
+                        }
+                    }
+                    m
+                };
+
+                for company in &task.companies {
+                    if company.licensed_blueprints.is_empty() {
+                        continue;
+                    }
+                    let entry = bp_lookup.entry(company.id.clone()).or_default();
+                    for licensed in &company.licensed_blueprints {
+                        if let Some(&commodity) = all_bps.get(&licensed.blueprint_id) {
+                            // Use a low score so owned blueprints are preferred.
+                            entry.push((commodity, licensed.blueprint_id.clone(), -1.0));
+                        }
+                    }
+                }
+
+                // Now assign active_blueprint to each building.
+                for building in &mut task.ctx.buildings {
+                    // Find the first blueprint-eligible output commodity.
+                    let eligible_commodity = building
+                        .active_method
+                        .outputs
+                        .keys()
+                        .find(|c| c.is_blueprint_eligible())
+                        .copied();
+
+                    if let Some(commodity) = eligible_commodity {
+                        // Find the best blueprint for this commodity owned by the building's owner.
+                        let best_bp = bp_lookup.get(&building.owner_id).and_then(|entries| {
+                            entries
+                                .iter()
+                                .filter(|(c, _, _)| *c == commodity)
+                                .max_by(|a, b| {
+                                    a.2.partial_cmp(&b.2).unwrap_or(std::cmp::Ordering::Equal)
+                                })
+                                .map(|(_, id, _)| id.clone())
+                        });
+
+                        building.active_method.active_blueprint = best_bp;
+                    } else {
+                        building.active_method.active_blueprint = None;
+                    }
+                }
+            }
 
             // 9.2: Fishing turn — deterministic, no rand
             let fishing_config = task.ctx.country.fishing_config.clone();
@@ -4061,13 +4778,31 @@ pub fn run_turn_in_memory(
             for company in &task.companies {
                 company_cash.insert(company.id.clone(), company.available_cash);
             }
+            let average_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
             allocate_owner_infrastructure_funding(
                 &mut task.ctx.buildings,
                 &mut task.ctx.country.budget,
                 &mut local_govs,
                 &mut company_cash,
                 &infra_config,
+                average_wage,
             );
+            // Phase A.4: Write back the mutated cash maps to their source
+            // entities (Rule 1: double-entry bookkeeping — every debit must
+            // have a counterparty credit, and the debit must actually persist).
+            // Without this write-back, `company_cash` deductions were silently
+            // discarded, creating a money-creation leak (Rule 1 violation).
+            for company in &mut task.companies {
+                if let Some(&cash) = company_cash.get(&company.id) {
+                    company.available_cash = cash;
+                }
+            }
+            // Write back local government cash if the country has local govs.
+            // NOTE: `Country` does not currently have a `local_governments`
+            // field — the `local_govs` map is populated empty and only used
+            // in-memory by `allocate_owner_infrastructure_funding`. When local
+            // government treasury support is added, write back here. This is
+            // a latent gap documented in the plan (Risks section).
         });
 
         // Phase 9.1: B2C Service Clearing (Education + Healthcare)
@@ -4101,6 +4836,18 @@ pub fn run_turn_in_memory(
             task.education_consumption = edu_consumption;
             task.education_needs = education_needs;
 
+            // Phase B.3: Education Progression — consume EducationSlots to shift
+            // demographics.education shares (none → basic → secondary → higher).
+            // Runs after B2C clearing (temporal causality: consumption data is
+            // available) and before assimilation (Phase 17B benefits from
+            // updated education coverage). The updated shares are visible to
+            // process_demographics_and_labor NEXT turn (one-turn lag — Rule 16).
+            let _progression_result = crate::economy::labor::process_education_progression_turn(
+                task.ctx.country,
+                &task.education_consumption,
+                &task.education_needs,
+            );
+
             // Clear health capacity (Phase 16A: routed through TransferSettler)
             clear_health_capacity_b2c(
                 &mut task.ctx.buildings,
@@ -4125,10 +4872,8 @@ pub fn run_turn_in_memory(
             );
 
             // Phase 18C: Process propaganda effects (scaled by consumption ratio)
-            let _propaganda_result = process_propaganda_turn(
-                task.ctx.country,
-                info_result.consumption_ratio,
-            );
+            let _propaganda_result =
+                process_propaganda_turn(task.ctx.country, info_result.consumption_ratio);
 
             // Sync building inventories back from the temporary map
             for building in &mut task.ctx.buildings {
@@ -4179,9 +4924,8 @@ pub fn run_turn_in_memory(
         });
 
         tasks.par_iter_mut().for_each(|task| {
-            let _ombudsman_result = crate::economy::sentencing::process_ombudsman_turn(
-                task.ctx.country,
-            );
+            let _ombudsman_result =
+                crate::economy::sentencing::process_ombudsman_turn(task.ctx.country);
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -4217,10 +4961,20 @@ pub fn run_turn_in_memory(
                 }
                 let dead = (event.casualties as f64 * 0.4).round() as i64;
                 let disabled = event.casualties - dead;
-                if let Some(region) = task.ctx.country.regions.iter_mut().find(|r| r.id == event.region_id) {
+                if let Some(region) = task
+                    .ctx
+                    .country
+                    .regions
+                    .iter_mut()
+                    .find(|r| r.id == event.region_id)
+                {
                     // Apply to both rural and urban classes.
-                    crate::economy::telemetry::apply_casualties_to_labor(region, dead, disabled, true);
-                    crate::economy::telemetry::apply_casualties_to_labor(region, dead, disabled, false);
+                    crate::economy::telemetry::apply_casualties_to_labor(
+                        region, dead, disabled, true,
+                    );
+                    crate::economy::telemetry::apply_casualties_to_labor(
+                        region, dead, disabled, false,
+                    );
                 }
             }
         });
@@ -4233,13 +4987,15 @@ pub fn run_turn_in_memory(
         // Runs after disasters so collapse events can trigger lawsuits.
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
-            let justice_coverage = task.ctx.country.politics.justice_state
+            let justice_coverage = task
+                .ctx
+                .country
+                .politics
+                .justice_state
                 .as_ref()
                 .map(|js| js.justice_coverage)
                 .unwrap_or(0.0);
-            let mut rng = rand::rngs::StdRng::seed_from_u64(
-                (current_turn as u64).wrapping_mul(23),
-            );
+            let mut rng = rand::rngs::StdRng::seed_from_u64((current_turn as u64).wrapping_mul(23));
             // Process pending civil lawsuits
             let mut lawsuits = std::mem::take(&mut task.ctx.country.phase22_lawsuits);
             let _resolved = crate::economy::civil_lawsuits::process_civil_lawsuits(
@@ -4271,10 +5027,11 @@ pub fn run_turn_in_memory(
         // Both run in parallel (per-country, no cross-country deps).
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
-            // Estimate trade volume from building production outputs
-            let trade_volume: f64 = task.ctx.buildings.iter()
-                .flat_map(|b| b.last_production.values().copied())
-                .sum::<f64>() * 1000.0; // Scale to currency units
+            // Agent 4 — Phase 4: Use actual cross-border trade value instead of
+            // the previous magic `sum(production) * 1000.0` estimate (Rule 2).
+            // Smuggling is a function of cross-border trade only, not total
+            // domestic output (Rule 15).
+            let trade_volume = task.cross_border_trade_value;
 
             let _smuggling_result = crate::economy::smuggling::process_smuggling_turn(
                 task.ctx.country,
@@ -4315,9 +5072,12 @@ pub fn run_turn_in_memory(
                 std::collections::BTreeMap::new();
             for building in &task.ctx.buildings {
                 let scale = building.current_employment as f64 / 1000.0;
-                let total_output: f64 = building.active_method.outputs.values().sum::<f64>() * scale;
+                let total_output: f64 =
+                    building.active_method.outputs.values().sum::<f64>() * scale;
                 if total_output > 0.0 {
-                    *planned_production.entry(building.owner_id.clone()).or_insert(0.0) += total_output;
+                    *planned_production
+                        .entry(building.owner_id.clone())
+                        .or_insert(0.0) += total_output;
                 }
             }
 
@@ -4328,6 +5088,7 @@ pub fn run_turn_in_memory(
                 &innovation_config,
                 &corp_tech_config,
                 &mut task.ctx.country.budget,
+                task.ctx.country.macro_indicators.average_wage.max(1.0),
             );
 
             // Phase 19A: Process blueprint royalties via TransferSettler.
@@ -4349,7 +5110,9 @@ pub fn run_turn_in_memory(
         // (debited licensees); here we credit foreign licensors in their home
         // country's company slice. Runs sequentially for determinism.
         // Step 1: Collect all outbox entries into a single flat queue (immutable borrow).
-        let mut all_cross_border_entries: Vec<crate::economy::blueprints::CrossBorderRoyaltyQueueEntry> = Vec::new();
+        let mut all_cross_border_entries: Vec<
+            crate::economy::blueprints::CrossBorderRoyaltyQueueEntry,
+        > = Vec::new();
         for task in tasks.iter() {
             all_cross_border_entries.extend(task.cross_border_royalty_outbox.iter().cloned());
         }
@@ -4357,20 +5120,37 @@ pub fn run_turn_in_memory(
         if !all_cross_border_entries.is_empty() {
             for dest_task in &mut tasks {
                 let dest_country = dest_task.ctx.country_name.clone();
-                let entries_for_dest: Vec<crate::economy::blueprints::CrossBorderRoyaltyQueueEntry> =
-                    all_cross_border_entries
-                        .iter()
-                        .filter(|e| e.licensor_country == dest_country)
-                        .cloned()
-                        .collect();
+                let entries_for_dest: Vec<
+                    crate::economy::blueprints::CrossBorderRoyaltyQueueEntry,
+                > = all_cross_border_entries
+                    .iter()
+                    .filter(|e| e.licensor_country == dest_country)
+                    .cloned()
+                    .collect();
                 if !entries_for_dest.is_empty() {
-                    let _msgs = process_cross_border_royalty_queue(&entries_for_dest, &mut dest_task.companies);
+                    let _msgs = process_cross_border_royalty_queue(
+                        &entries_for_dest,
+                        &mut dest_task.companies,
+                    );
                 }
             }
         }
         // Step 3: Clear all outboxes after processing.
         for task in &mut tasks {
             task.cross_border_royalty_outbox.clear();
+        }
+
+        // Phase 95: Sequential post-parallel crediting of foreign patent fees.
+        // Each country's parallel R&D phase emitted FX outflows (debited
+        // companies via settle_transfer to ForeignEntity). Here we credit the
+        // sum to GlobalMarket.offshore_capital — money preserved, never destroyed.
+        let total_foreign_fees: f64 = tasks.iter().map(|t| t.foreign_patent_fee_outbox).sum();
+        if total_foreign_fees > 0.0 {
+            market.foreign_patent_fee_ledger += total_foreign_fees;
+            market.offshore_capital += total_foreign_fees;
+        }
+        for task in &mut tasks {
+            task.foreign_patent_fee_outbox = 0.0;
         }
 
         // Phase 28/36: Store current-turn sector employment and wage data for
@@ -4383,7 +5163,8 @@ pub fn run_turn_in_memory(
         // data, making the snapshot compare current-to-current (ToT always 0%).
         for task in &mut tasks {
             use std::collections::HashMap;
-            let mut by_sector: HashMap<crate::registries::enums::Sector, (f64, f64)> = HashMap::new();
+            let mut by_sector: HashMap<crate::registries::enums::Sector, (f64, f64)> =
+                HashMap::new();
             for c in &task.companies {
                 let entry = by_sector.entry(c.sector).or_insert((0.0, 0.0));
                 entry.0 += c.fulfilled_fte as f64;
@@ -4400,8 +5181,13 @@ pub fn run_turn_in_memory(
                         share.extra.insert("_prev_avg_wage".to_string(), cur_wage);
                     }
                     // Store current turn's values as _cur_*
-                    share.extra.insert("_cur_employment".to_string(), serde_json::Value::from(*fte));
-                    share.extra.insert("_cur_avg_wage".to_string(), serde_json::Value::from(avg_wage));
+                    share
+                        .extra
+                        .insert("_cur_employment".to_string(), serde_json::Value::from(*fte));
+                    share.extra.insert(
+                        "_cur_avg_wage".to_string(),
+                        serde_json::Value::from(avg_wage),
+                    );
                 }
             }
         }
@@ -4435,7 +5221,10 @@ pub fn run_turn_in_memory(
         // ═══════════════════════════════════════════════════════════
         {
             // Pass 1: Collect migration flows (read-only access to countries)
-            let mut country_refs: HashMap<String, (&crate::state::Country, &[crate::entities::Building], u32)> = HashMap::new();
+            let mut country_refs: HashMap<
+                String,
+                (&crate::state::Country, &[crate::entities::Building], u32),
+            > = HashMap::new();
             for task in &tasks {
                 let disaster_count = task.ctx.country.weather_state.active_events.len() as u32;
                 country_refs.insert(
@@ -4443,7 +5232,11 @@ pub fn run_turn_in_memory(
                     (task.ctx.country, &task.ctx.buildings, disaster_count),
                 );
             }
-            let flows = crate::economy::migration::collect_migration_flows(&country_refs, turn, Some(&state.treaty_registry));
+            let flows = crate::economy::migration::collect_migration_flows(
+                &country_refs,
+                turn,
+                Some(&state.treaty_registry),
+            );
 
             // Pass 2: Apply migration flows (mutable access to countries)
             let mut country_mut_refs: HashMap<String, &mut crate::state::Country> = HashMap::new();
@@ -4454,8 +5247,10 @@ pub fn run_turn_in_memory(
 
             // Pass 3: Process deportations per country (parallel-safe, single country)
             tasks.par_iter_mut().for_each(|task| {
-                let border_cap = crate::economy::migration::sum_border_enforcement_capacity(&task.ctx.buildings);
-                let _deported = crate::economy::migration::process_deportations(task.ctx.country, border_cap);
+                let border_cap =
+                    crate::economy::migration::sum_border_enforcement_capacity(&task.ctx.buildings);
+                let _deported =
+                    crate::economy::migration::process_deportations(task.ctx.country, border_cap);
             });
         }
 
@@ -4498,16 +5293,26 @@ pub fn run_turn_in_memory(
                 &task.ctx.buildings,
                 crate::registries::enums::Commodity::LaborInspectionCapacity,
             );
-            let pip_capacity: f64 = task.ctx.buildings.iter()
-                .map(|b| b.last_production.get(&crate::registries::enums::Commodity::LaborInspectionCapacity).copied().unwrap_or(0.0))
+            let pip_capacity: f64 = task
+                .ctx
+                .buildings
+                .iter()
+                .map(|b| {
+                    b.last_production
+                        .get(&crate::registries::enums::Commodity::LaborInspectionCapacity)
+                        .copied()
+                        .unwrap_or(0.0)
+                })
                 .sum();
-            let corruption_index = task.ctx.country.politics.inspectorate_state
+            let corruption_index = task
+                .ctx
+                .country
+                .politics
+                .inspectorate_state
                 .as_ref()
                 .map(|ist| ist.corruption_index)
                 .unwrap_or(0.0);
-            let mut rng = rand::rngs::StdRng::seed_from_u64(
-                (current_turn as u64).wrapping_mul(22),
-            );
+            let mut rng = rand::rngs::StdRng::seed_from_u64((current_turn as u64).wrapping_mul(22));
             // Reset bribe counter
             if let Some(ref mut ist) = task.ctx.country.politics.inspectorate_state {
                 ist.bribes_accepted_this_turn = 0;
@@ -4515,36 +5320,50 @@ pub fn run_turn_in_memory(
             }
             // Inspect construction sites within range
             for building in &task.ctx.buildings {
-                let (has_project, defect, ohs_ratio, contractor_id, region_id) = match &building.active_project {
-                    Some(p) if !p.main_contractor_id.is_empty() => (
-                        true,
-                        p.structural_defect,
-                        p.ohs_coverage_ratio,
-                        p.main_contractor_id.clone(),
-                        building.region_id.clone(),
-                    ),
-                    _ => continue,
-                };
-                if !has_project { continue; }
+                let (has_project, defect, ohs_ratio, contractor_id, region_id) =
+                    match &building.active_project {
+                        Some(p) if !p.main_contractor_id.is_empty() => (
+                            true,
+                            p.structural_defect,
+                            p.ohs_coverage_ratio,
+                            p.main_contractor_id.clone(),
+                            building.region_id.clone(),
+                        ),
+                        _ => continue,
+                    };
+                if !has_project {
+                    continue;
+                }
                 // Check if within PIP range
                 let in_range = crate::economy::inspectorate_fleet::is_within_inspection_range(
                     &pip_ranges,
                     &region_id,
                     crate::economy::inspectorate_fleet::simple_region_distance,
                 );
-                if !in_range { continue; }
+                if !in_range {
+                    continue;
+                }
                 // Find contractor index
-                let contractor_idx = match task.companies.iter().position(|c| c.id == contractor_id) {
+                let contractor_idx = match task.companies.iter().position(|c| c.id == contractor_id)
+                {
                     Some(idx) => idx,
                     None => continue,
                 };
                 // Detect violations
                 let violation_detected = defect > 0.05 || ohs_ratio < 0.8;
-                if !violation_detected { continue; }
+                if !violation_detected {
+                    continue;
+                }
                 // Compute fine
                 let fine = (defect * 50_000.0 + (1.0 - ohs_ratio) * 20_000.0).max(5_000.0);
                 // Attempt bribe
-                let inspector_region_idx = task.ctx.country.regions.iter().position(|r| r.id == region_id).unwrap_or(0);
+                let inspector_region_idx = task
+                    .ctx
+                    .country
+                    .regions
+                    .iter()
+                    .position(|r| r.id == region_id)
+                    .unwrap_or(0);
                 let bribe_result = crate::economy::bribery::try_bribe(
                     contractor_idx,
                     fine,
@@ -4560,20 +5379,35 @@ pub fn run_turn_in_memory(
                 // If bribe rejected or no bribe attempted, levy the fine
                 let bribe_accepted = bribe_result.as_ref().map(|b| b.accepted).unwrap_or(false);
                 if !bribe_accepted {
-                    let available = task.companies[contractor_idx].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(task.companies[contractor_idx].available_cash);
+                    let available = task.companies[contractor_idx]
+                        .brokerage_account
+                        .as_ref()
+                        .map(|b| b.cash)
+                        .unwrap_or(task.companies[contractor_idx].available_cash);
                     let actual_fine = fine.min(available);
                     if actual_fine > 0.01 {
                         let _ = crate::economy::transfer_settler::settle_transfer_to_treasury(
-                            &mut task.companies, contractor_idx, actual_fine, task.ctx.country,
+                            &mut task.companies,
+                            contractor_idx,
+                            actual_fine,
+                            task.ctx.country,
                         );
                         // Reputation penalty for detected violation
-                        task.companies[contractor_idx].reputation_score = (task.companies[contractor_idx].reputation_score - 5.0).max(0.0);
+                        task.companies[contractor_idx].reputation_score =
+                            (task.companies[contractor_idx].reputation_score - 5.0).max(0.0);
                     }
                 }
             }
             // Update corruption index
             if let Some(ref mut ist) = task.ctx.country.politics.inspectorate_state {
-                let justice_cov = task.ctx.country.politics.justice_state.as_ref().map(|js| js.justice_coverage).unwrap_or(0.0);
+                let justice_cov = task
+                    .ctx
+                    .country
+                    .politics
+                    .justice_state
+                    .as_ref()
+                    .map(|js| js.justice_coverage)
+                    .unwrap_or(0.0);
                 crate::economy::bribery::update_corruption_index(
                     &mut ist.corruption_index,
                     ist.bribes_accepted_this_turn,
@@ -4598,11 +5432,16 @@ pub fn run_turn_in_memory(
         });
 
         tasks.par_iter_mut().for_each(|task| {
-            let religious_law = task.ctx.country.politics.religious_law_struct
+            let religious_law = task
+                .ctx
+                .country
+                .politics
+                .religious_law_struct
                 .clone()
                 .unwrap_or_else(|| {
                     let reg = crate::society::culture_registry::registry();
-                    let religion_key = reg.religion_key_from_display(&task.ctx.country.macro_indicators.religion);
+                    let religion_key =
+                        reg.religion_key_from_display(&task.ctx.country.macro_indicators.religion);
                     crate::politics::laws::ReligiousLaw::from_raw(
                         &task.ctx.country.politics.religious_law,
                         &religion_key,
@@ -4660,10 +5499,11 @@ pub fn run_turn_in_memory(
         tasks.par_iter_mut().for_each(|task| {
             // Step 1: Religious conversion (driven by ReligiousAuthority).
             let authority = task.ctx.country.religious_authority_state.authority.clone();
-            let _conversion_result = crate::economy::assimilation::process_religious_conversion_turn(
-                task.ctx.country,
-                &authority,
-            );
+            let _conversion_result =
+                crate::economy::assimilation::process_religious_conversion_turn(
+                    task.ctx.country,
+                    &authority,
+                );
 
             // Step 2: Institutional assimilation (dual-channel: education + integration centers).
             let edu_consumption = task.education_consumption.clone();
@@ -4700,11 +5540,8 @@ pub fn run_turn_in_memory(
         // Runs after pogroms (Phase 17C), before See reinvestment.
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
-            let _terrorism_result = check_terrorism_triggers(
-                task.ctx.country,
-                &mut task.ctx.buildings,
-                current_turn,
-            );
+            let _terrorism_result =
+                check_terrorism_triggers(task.ctx.country, &mut task.ctx.buildings, current_turn);
         });
 
         tasks.sort_by(|a, b| a.ctx.country_name.cmp(&b.ctx.country_name));
@@ -4717,28 +5554,40 @@ pub fn run_turn_in_memory(
         // ═══════════════════════════════════════════════════════════
         {
             let see_config = crate::economy::religious_economy::ApostolicSeeConfig::default();
-            let _gdp_per_capita: std::collections::BTreeMap<String, f64> = tasks.iter()
-                .map(|t| (t.ctx.country_name.clone(), t.ctx.country.macro_indicators.average_wage))
+            let _gdp_per_capita: std::collections::BTreeMap<String, f64> = tasks
+                .iter()
+                .map(|t| {
+                    (
+                        t.ctx.country_name.clone(),
+                        t.ctx.country.macro_indicators.average_wage,
+                    )
+                })
                 .collect();
             let see_country = market.apostolic_see_ledger.see_country.clone();
 
             // Collect Religion-sector company IDs from all tasks for charity distribution.
-            let religion_company_ids: Vec<String> = tasks.iter()
-                .flat_map(|t| t.companies.iter()
-                    .filter(|c| c.sector == crate::registries::enums::Sector::Religion)
-                    .take(3)
-                    .map(|c| c.id.clone()))
+            let religion_company_ids: Vec<String> = tasks
+                .iter()
+                .flat_map(|t| {
+                    t.companies
+                        .iter()
+                        .filter(|c| c.sector == crate::registries::enums::Sector::Religion)
+                        .take(3)
+                        .map(|c| c.id.clone())
+                })
                 .collect();
 
             // Collect See country company IDs for FDI.
-            let see_company_ids: Vec<String> = tasks.iter()
+            let see_company_ids: Vec<String> = tasks
+                .iter()
                 .filter(|t| t.ctx.country_name == see_country)
                 .flat_map(|t| t.companies.iter().map(|c| c.id.clone()))
                 .collect();
 
             // Process See reinvestment by crediting companies across tasks.
             if market.apostolic_see_ledger.global_charity_pool > see_config.reinvestment_threshold {
-                let available = market.apostolic_see_ledger.global_charity_pool - see_config.reinvestment_threshold;
+                let available = market.apostolic_see_ledger.global_charity_pool
+                    - see_config.reinvestment_threshold;
                 let charity_amount = available * see_config.charity_distribution_rate;
                 let fdi_amount = available * see_config.fdi_rate;
 
@@ -4748,12 +5597,19 @@ pub fn run_turn_in_memory(
                     let mut distributed = 0.0_f64;
                     for task in tasks.iter_mut() {
                         for company_id in &religion_company_ids {
-                            if distributed >= charity_amount { break; }
+                            if distributed >= charity_amount {
+                                break;
+                            }
                             let amount = per_company.min(charity_amount - distributed);
                             if amount > 0.0
-                                && crate::economy::transfer_settler::credit_company_by_id(&mut task.companies, company_id, amount) {
-                                    distributed += amount;
-                                }
+                                && crate::economy::transfer_settler::credit_company_by_id(
+                                    &mut task.companies,
+                                    company_id,
+                                    amount,
+                                )
+                            {
+                                distributed += amount;
+                            }
                         }
                     }
                     market.apostolic_see_ledger.global_charity_pool -= distributed;
@@ -4765,12 +5621,19 @@ pub fn run_turn_in_memory(
                     let mut invested = 0.0_f64;
                     for task in tasks.iter_mut() {
                         for company_id in &see_company_ids {
-                            if invested >= fdi_amount { break; }
+                            if invested >= fdi_amount {
+                                break;
+                            }
                             let amount = per_company.min(fdi_amount - invested);
                             if amount > 0.0
-                                && crate::economy::transfer_settler::credit_company_by_id(&mut task.companies, company_id, amount) {
-                                    invested += amount;
-                                }
+                                && crate::economy::transfer_settler::credit_company_by_id(
+                                    &mut task.companies,
+                                    company_id,
+                                    amount,
+                                )
+                            {
+                                invested += amount;
+                            }
                         }
                     }
                     market.apostolic_see_ledger.global_charity_pool -= invested;
@@ -4825,7 +5688,12 @@ pub fn run_turn_in_memory(
                     let share = task.ctx.country.budget.sectors.get(&sector);
                     let mut prev = HashMap::new();
                     if let Some(s) = share {
-                        for key in &["_prev_orders", "_prev_production", "_prev_deliveries", "_prev_inventory"] {
+                        for key in &[
+                            "_prev_orders",
+                            "_prev_production",
+                            "_prev_deliveries",
+                            "_prev_inventory",
+                        ] {
                             if let Some(v) = s.extra.get(*key).and_then(|v| v.as_f64()) {
                                 prev.insert(key.to_string(), v);
                             }
@@ -4843,9 +5711,13 @@ pub fn run_turn_in_memory(
 
                 // Store PMI and sub-components in sector.extra
                 if let Some(share) = task.ctx.country.budget.sectors.get_mut(&sector) {
-                    share.extra.insert("pmi".to_string(), serde_json::Value::from(pmi));
+                    share
+                        .extra
+                        .insert("pmi".to_string(), serde_json::Value::from(pmi));
                     for (key, value) in &components {
-                        share.extra.insert(key.clone(), serde_json::Value::from(*value));
+                        share
+                            .extra
+                            .insert(key.clone(), serde_json::Value::from(*value));
                     }
                 }
             }
@@ -4869,10 +5741,8 @@ pub fn run_turn_in_memory(
             );
 
             let prev_m3 = task.ctx.country.macro_indicators.money_supply.m3;
-            let mut money_supply = crate::economy::telemetry::compute_money_supply(
-                &task.companies,
-                task.ctx.country,
-            );
+            let mut money_supply =
+                crate::economy::telemetry::compute_money_supply(&task.companies, task.ctx.country);
             money_supply.previous_m3 = prev_m3;
 
             // Update MacroData: inflation is now driven by CPI delta.
@@ -4882,7 +5752,8 @@ pub fn run_turn_in_memory(
             task.ctx.country.macro_indicators.money_supply = money_supply;
 
             // Also update Treasury.gdp for downstream consumers (CB rate setter, etc.)
-            task.ctx.country.budget.gdp = task.ctx.country.macro_indicators.gdp_breakdown.official_gdp;
+            task.ctx.country.budget.gdp =
+                task.ctx.country.macro_indicators.gdp_breakdown.official_gdp;
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -4898,14 +5769,20 @@ pub fn run_turn_in_memory(
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
             let guild_config = task.ctx.country.guild_config.clone();
-            let average_wage = task.ctx.country.macro_indicators.average_wage
+            let average_wage = task
+                .ctx
+                .country
+                .macro_indicators
+                .average_wage
                 .max(subsistence_wage_floor);
 
             // 85A.1: Check guild formation in GuildBurgher domains
             for region in &task.ctx.country.regions {
                 for micro in region.micro_regions.values() {
-                    if !matches!(micro.faction_type,
-                        crate::society::geography::FactionDomainType::GuildBurgher) {
+                    if !matches!(
+                        micro.faction_type,
+                        crate::society::geography::FactionDomainType::GuildBurgher
+                    ) {
                         continue;
                     }
                     // Aggregate cottage_fte by sector from class demographics
@@ -4914,34 +5791,47 @@ pub fn run_turn_in_memory(
                     for demographics in region.class_demographics.rural_classes.values() {
                         // Sum cottage FTE — the sector is derived from the domain
                         // For now, aggregate all cottage FTE into a single sector key
-                        *cottage_fte_by_sector.entry("crafts".to_string()).or_insert(0.0)
-                            += demographics.cottage_fte_allocated;
+                        *cottage_fte_by_sector
+                            .entry("crafts".to_string())
+                            .or_insert(0.0) += demographics.cottage_fte_allocated;
                     }
-                    if let Some(sector_str) = crate::economy::guild_system::check_guild_formation_trigger(
-                        micro, &cottage_fte_by_sector, &guild_config,
-                    ) {
+                    if let Some(sector_str) =
+                        crate::economy::guild_system::check_guild_formation_trigger(
+                            micro,
+                            &cottage_fte_by_sector,
+                            &guild_config,
+                        )
+                    {
                         // Check if a guild for this domain+sector already exists
                         let guild_id = format!("GUILD-{}-{}", micro.id, sector_str);
                         let already_exists = task.companies.iter().any(|c| c.id == guild_id);
                         if !already_exists {
                             // Gather contributing classes with their savings
-                            let contributing_classes: Vec<(String, f64, f64)> =
-                                region.class_demographics.rural_classes.iter()
-                                    .filter(|(_, d)| d.cottage_fte_allocated > 0.0)
-                                    .map(|(class_id, d)| (
-                                        class_id.clone(),
-                                        d.cottage_fte_allocated,
-                                        d.savings,
-                                    ))
-                                    .collect();
+                            let contributing_classes: Vec<(String, f64, f64)> = region
+                                .class_demographics
+                                .rural_classes
+                                .iter()
+                                .filter(|(_, d)| d.cottage_fte_allocated > 0.0)
+                                .map(|(class_id, d)| {
+                                    (class_id.clone(), d.cottage_fte_allocated, d.savings)
+                                })
+                                .collect();
                             if !contributing_classes.is_empty() {
                                 let sector = match sector_str.as_str() {
-                                    "LightIndustry" => crate::registries::enums::Sector::LightIndustry,
-                                    "LocalServices" => crate::registries::enums::Sector::LocalServices,
+                                    "LightIndustry" => {
+                                        crate::registries::enums::Sector::LightIndustry
+                                    }
+                                    "LocalServices" => {
+                                        crate::registries::enums::Sector::LocalServices
+                                    }
                                     _ => crate::registries::enums::Sector::LightIndustry,
                                 };
                                 let mut guild = crate::economy::guild_system::create_guild(
-                                    micro, sector, &contributing_classes, average_wage, &guild_config,
+                                    micro,
+                                    sector,
+                                    &contributing_classes,
+                                    average_wage,
+                                    &guild_config,
                                 );
                                 guild.region_id = region.id.clone();
                                 task.companies.push(guild);
@@ -4955,12 +5845,16 @@ pub fn run_turn_in_memory(
             // Guilds consume from guild_raw_inventory (purchased in N-1)
             // and produce finished goods. Output is added to company inventory.
             for company in &mut task.companies {
-                if !matches!(company.legal_form,
-                    crate::entities::legal_form::LegalForm::Guild(_)) {
+                if !matches!(
+                    company.legal_form,
+                    crate::entities::legal_form::LegalForm::Guild(_)
+                ) {
                     continue;
                 }
                 // Get member FTE from the guild's domain region
-                let member_fte = company.legal_form.guild_data()
+                let member_fte = company
+                    .legal_form
+                    .guild_data()
                     .map(|d| d.member_workshop_ids.len() as f64 * 10.0)
                     .unwrap_or(0.0);
                 if member_fte <= 0.0 {
@@ -4979,8 +5873,10 @@ pub fn run_turn_in_memory(
                     _ => continue,
                 };
                 let result = crate::economy::guild_system::execute_guild_production(
-                    company, member_fte,
-                    recipe_input, recipe_output,
+                    company,
+                    member_fte,
+                    recipe_input,
+                    recipe_output,
                     1.0,  // 1 unit input per unit output
                     10.0, // 10 FTE per unit output
                     crate::registries::enums::Commodity::MixedWaste,
@@ -4995,28 +5891,43 @@ pub fn run_turn_in_memory(
 
             // 85A.3: Distribute dividends for profitable guilds
             for company in &mut task.companies {
-                if !matches!(company.legal_form,
-                    crate::entities::legal_form::LegalForm::Guild(_)) {
+                if !matches!(
+                    company.legal_form,
+                    crate::entities::legal_form::LegalForm::Guild(_)
+                ) {
                     continue;
                 }
                 // Estimate profit as a fraction of liquid_capital
                 let profit = company.liquid_capital * 0.1;
                 if profit > 0.0 {
-                    let member_shares: Vec<(String, f64)> = company.legal_form.guild_data()
-                        .map(|d| d.master_class_ids.iter()
-                            .map(|id| (id.clone(), 1.0))
-                            .collect())
+                    let member_shares: Vec<(String, f64)> = company
+                        .legal_form
+                        .guild_data()
+                        .map(|d| {
+                            d.master_class_ids
+                                .iter()
+                                .map(|id| (id.clone(), 1.0))
+                                .collect()
+                        })
                         .unwrap_or_default();
                     let dividends = crate::economy::guild_system::distribute_guild_dividends(
-                        company, profit, &member_shares,
+                        company,
+                        profit,
+                        &member_shares,
                     );
                     // Credit dividends to class savings in the guild's region
                     let region_id = company.region_id.clone();
-                    if let Some(region) = task.ctx.country.regions.iter_mut()
+                    if let Some(region) = task
+                        .ctx
+                        .country
+                        .regions
+                        .iter_mut()
                         .find(|r| r.id == region_id)
                     {
                         for (class_id, amount) in &dividends {
-                            if let Some(demographics) = region.class_demographics.rural_classes.get_mut(class_id) {
+                            if let Some(demographics) =
+                                region.class_demographics.rural_classes.get_mut(class_id)
+                            {
                                 demographics.savings += amount;
                             }
                         }
@@ -5028,11 +5939,15 @@ pub fn run_turn_in_memory(
             let config = task.ctx.country.guild_config.clone();
             let mut guilds_to_dissolve: Vec<usize> = Vec::new();
             for (idx, company) in task.companies.iter().enumerate() {
-                if !matches!(company.legal_form,
-                    crate::entities::legal_form::LegalForm::Guild(_)) {
+                if !matches!(
+                    company.legal_form,
+                    crate::entities::legal_form::LegalForm::Guild(_)
+                ) {
                     continue;
                 }
-                let member_count = company.legal_form.guild_data()
+                let member_count = company
+                    .legal_form
+                    .guild_data()
                     .map(|d| d.member_workshop_ids.len() as u32)
                     .unwrap_or(0);
                 if member_count < config.min_members {
@@ -5044,21 +5959,31 @@ pub fn run_turn_in_memory(
             // Dissolve guilds in reverse order
             for &idx in guilds_to_dissolve.iter().rev() {
                 let mut company = task.companies[idx].clone();
-                let remaining_members: Vec<(String, f64)> = company.legal_form.guild_data()
-                    .map(|d| d.master_class_ids.iter()
-                        .map(|id| (id.clone(), 1.0))
-                        .collect())
+                let remaining_members: Vec<(String, f64)> = company
+                    .legal_form
+                    .guild_data()
+                    .map(|d| {
+                        d.master_class_ids
+                            .iter()
+                            .map(|id| (id.clone(), 1.0))
+                            .collect()
+                    })
                     .unwrap_or_default();
-                let distributions = crate::economy::guild_system::dissolve_guild(
-                    &mut company, &remaining_members,
-                );
+                let distributions =
+                    crate::economy::guild_system::dissolve_guild(&mut company, &remaining_members);
                 // Credit welfare fund distributions to class savings
                 let region_id = company.region_id.clone();
-                if let Some(region) = task.ctx.country.regions.iter_mut()
+                if let Some(region) = task
+                    .ctx
+                    .country
+                    .regions
+                    .iter_mut()
                     .find(|r| r.id == region_id)
                 {
                     for (class_id, amount) in &distributions {
-                        if let Some(demographics) = region.class_demographics.rural_classes.get_mut(class_id) {
+                        if let Some(demographics) =
+                            region.class_demographics.rural_classes.get_mut(class_id)
+                        {
                             demographics.savings += amount;
                         }
                     }
@@ -5097,16 +6022,22 @@ pub fn run_turn_in_memory(
             all_depletion_requests.append(&mut task.depletion_buffer);
         }
 
+        // ── DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ──
+        probe.checkpoint("turn_end", 4, turn, &market, &tasks);
+
         // Collect entities back from tasks into ctx.entities format.
         for task in tasks {
             let name = task.ctx.country_name.clone();
-            entities.insert(name, crate::engine::turn_context::CountryEntities {
-                companies: task.companies,
-                buildings: task.ctx.buildings,
-                unions: task.unions,
-                commercial_buildings: task.commercial_buildings,
-                housing_buildings: task.housing_buildings,
-            });
+            entities.insert(
+                name,
+                crate::engine::turn_context::CountryEntities {
+                    companies: task.companies,
+                    buildings: task.ctx.buildings,
+                    unions: task.unions,
+                    commercial_buildings: task.commercial_buildings,
+                    housing_buildings: task.housing_buildings,
+                },
+            );
         }
 
         // Phase 93: Apply batch depletion to state.planet with pro-rata clamping.
@@ -5153,7 +6084,10 @@ pub fn run_turn_in_memory(
                 }
             }
         }
-        let history = state.banking_history.entry(country_name.clone()).or_default();
+        let history = state
+            .banking_history
+            .entry(country_name.clone())
+            .or_default();
         history.record(turn, total_reserves, total_deposits, total_loans);
     }
 
@@ -5178,7 +6112,8 @@ pub fn run_turn_in_memory(
     }
 
     // Phase 10: Settle trade deficits via Forex/Gold reserves
-    let trade_balances: HashMap<String, f64> = trade_result.deltas
+    let trade_balances: HashMap<String, f64> = trade_result
+        .deltas
         .iter()
         .map(|d| (d.country_name.clone(), d.trade_balance))
         .collect();
@@ -5192,9 +6127,9 @@ pub fn run_turn_in_memory(
             country.macro_indicators.gdp_breakdown.net_exports = *net_exports;
             country.macro_indicators.gdp_breakdown.official_gdp =
                 country.macro_indicators.gdp_breakdown.consumption
-                + country.macro_indicators.gdp_breakdown.government_spending
-                + country.macro_indicators.gdp_breakdown.investment
-                + country.macro_indicators.gdp_breakdown.net_exports;
+                    + country.macro_indicators.gdp_breakdown.government_spending
+                    + country.macro_indicators.gdp_breakdown.investment
+                    + country.macro_indicators.gdp_breakdown.net_exports;
             country.budget.gdp = country.macro_indicators.gdp_breakdown.official_gdp;
         }
     }
@@ -5245,7 +6180,11 @@ pub fn run_turn_in_memory(
         }
         let furloughed = md.labor_market.furloughed_total;
         let pop = country.budget.population as f64;
-        let gdp_pc = if pop > 0.0 { md.gdp_breakdown.official_gdp / pop } else { 0.0 };
+        let gdp_pc = if pop > 0.0 {
+            md.gdp_breakdown.official_gdp / pop
+        } else {
+            0.0
+        };
         let sample = crate::state::macro_data::TelemetrySample {
             turn,
             year,
@@ -5259,13 +6198,15 @@ pub fn run_turn_in_memory(
             m3: md.money_supply.m3,
             unemployment_pct: md.labor_market.unemployment_rate,
             average_wage: md.average_wage,
-            corruption_index: country.politics.inspectorate_state
+            corruption_index: country
+                .politics
+                .inspectorate_state
                 .as_ref()
                 .map(|ist| ist.corruption_index)
                 .unwrap_or(0.0),
-            total_deceased: 0,  // filled below
-            total_disabled: 0,  // filled below
-            unable_to_work_fte: 0.0,  // filled below
+            total_deceased: 0,       // filled below
+            total_disabled: 0,       // filled below
+            unable_to_work_fte: 0.0, // filled below
             population: country.budget.population,
             liquid_reserves: country.budget.liquid_reserves,
             peasant_population: peasant_pop,
@@ -5292,7 +6233,12 @@ pub fn run_turn_in_memory(
                 unable_to_work_fte += demo.unable_to_work;
             }
         }
-        if let Some(last) = country.macro_indicators.telemetry_history.samples.last_mut() {
+        if let Some(last) = country
+            .macro_indicators
+            .telemetry_history
+            .samples
+            .last_mut()
+        {
             last.total_deceased = total_deceased;
             last.total_disabled = total_disabled;
             last.unable_to_work_fte = unable_to_work_fte;
@@ -5303,7 +6249,10 @@ pub fn run_turn_in_memory(
     // This runs after all parallel per-country processing is complete,
     // safely handling cross-country mutations (embassy construction,
     // funding transfers) without borrow-checker conflicts.
-    crate::state::diplomatic_actions::drain_diplomatic_actions(state, &state.diplomatic_config.clone());
+    crate::state::diplomatic_actions::drain_diplomatic_actions(
+        state,
+        &state.diplomatic_config.clone(),
+    );
 
     // Phase 24C.3: Auto re-entry for sovereign default forex lockout.
     // Decrement the remaining turns and unlock countries whose default period has ended.
@@ -5324,7 +6273,8 @@ pub fn run_turn_in_memory(
     // Must run after balance_global_trade (needs trade balance data) and after
     // military processing (needs front data). New relations apply to next turn's B2B.
     // Phase 66: Also processes ambassador presence, spy activity, and espionage risk.
-    let mut intel_updates: Vec<(String, String, crate::international::fog_of_war::IntelLevel)> = Vec::new();
+    let mut intel_updates: Vec<(String, String, crate::international::fog_of_war::IntelLevel)> =
+        Vec::new();
     let mut expel_actions: Vec<(String, String)> = Vec::new();
     process_diplomacy_turn(
         state,
@@ -5345,14 +6295,22 @@ pub fn run_turn_in_memory(
         let true_military = target_country.order_of_battle.unit_count() as u32;
         let true_treasury = target_country.budget.liquid_reserves;
 
-        let observer_intel = state.foreign_intelligence
+        let observer_intel = state
+            .foreign_intelligence
             .entry(observer.clone())
             .or_default();
         let intel = observer_intel
             .entry(target.clone())
             .or_insert_with(crate::international::fog_of_war::ForeignIntelligence::unknown);
         let mut rng = rand::thread_rng();
-        intel.update_from_true_values(true_gdp, true_military, true_treasury, *new_level, state.calendar.global_turn, &mut rng);
+        intel.update_from_true_values(
+            true_gdp,
+            true_military,
+            true_treasury,
+            *new_level,
+            state.calendar.global_turn,
+            &mut rng,
+        );
     }
 
     // Phase 66: Process expelled spies — queue ExpelDiplomat actions
@@ -5361,11 +6319,14 @@ pub fn run_turn_in_memory(
             crate::state::diplomatic_actions::DiplomaticAction::ExpelDiplomat {
                 home_country: home.clone(),
                 host_country: host.clone(),
-            }
+            },
         );
     }
     // Drain the newly queued expulsion actions
-    crate::state::diplomatic_actions::drain_diplomatic_actions(state, &state.diplomatic_config.clone());
+    crate::state::diplomatic_actions::drain_diplomatic_actions(
+        state,
+        &state.diplomatic_config.clone(),
+    );
 
     // Phase 66: Process intel for all observer-target pairs
     let country_names: Vec<String> = state.countries.keys().cloned().collect();
@@ -5395,8 +6356,10 @@ pub fn run_turn_in_memory(
 
     // Advance treaty negotiations (requires diplomacy matrix + ambassador counts)
     let diplomacy_ref = &diplomacy;
-    let mut ambassador_counts: std::collections::BTreeMap<String, std::collections::BTreeMap<String, u32>> =
-        std::collections::BTreeMap::new();
+    let mut ambassador_counts: std::collections::BTreeMap<
+        String,
+        std::collections::BTreeMap<String, u32>,
+    > = std::collections::BTreeMap::new();
     for (name, country) in &state.countries {
         if let Some(reg) = &country.politics.vip_registry {
             for vip in reg.vips.values() {
@@ -5418,7 +6381,9 @@ pub fn run_turn_in_memory(
     );
 
     // Expire treaties that have reached their duration
-    state.treaty_registry.expire_finished_treaties(current_turn_for_treaties);
+    state
+        .treaty_registry
+        .expire_finished_treaties(current_turn_for_treaties);
 
     // Reputation recovery for all countries (if no new violations this turn)
     let rep_config = state.reputation_config.clone();
@@ -5458,7 +6423,9 @@ pub fn run_turn_in_memory(
 
     // Phase 68: Process international organizations — integration progression, voting evolution.
     let org_config = state.org_config.clone();
-    let populations: std::collections::BTreeMap<String, u64> = state.countries.iter()
+    let populations: std::collections::BTreeMap<String, u64> = state
+        .countries
+        .iter()
         .map(|(k, v)| (k.clone(), v.budget.population))
         .collect();
     state.international_organizations.process_turn(
@@ -5468,7 +6435,9 @@ pub fn run_turn_in_memory(
     );
 
     // Phase 68: Enforce directives — apply fines for non-compliance (double-entry).
-    let fines = state.international_organizations.enforce_directives(current_turn_for_treaties);
+    let fines = state
+        .international_organizations
+        .enforce_directives(current_turn_for_treaties);
     for (country_name, fine_amount, _reason) in fines {
         if let Some(country) = state.countries.get_mut(&country_name) {
             if country.budget.liquid_reserves >= fine_amount {
@@ -5486,19 +6455,28 @@ pub fn run_turn_in_memory(
     }
 
     // Phase 68: Expire sanctions that have reached their duration.
-    state.active_sanctions.expire_finished_sanctions(current_turn_for_treaties);
+    state
+        .active_sanctions
+        .expire_finished_sanctions(current_turn_for_treaties);
 
     // Phase 68: Apply reputation damage to sanctioned countries.
     let sanction_config = state.sanction_config.clone();
     let _rep_config = state.reputation_config.clone();
-    let sanctioned_countries: Vec<String> = state.countries.keys()
-        .filter(|name| state.active_sanctions.is_sanctioned(name, current_turn_for_treaties))
+    let sanctioned_countries: Vec<String> = state
+        .countries
+        .keys()
+        .filter(|name| {
+            state
+                .active_sanctions
+                .is_sanctioned(name, current_turn_for_treaties)
+        })
         .cloned()
         .collect();
     for country_name in sanctioned_countries {
         if let Some(country) = state.countries.get_mut(&country_name) {
-            country.global_reputation.score =
-                (country.global_reputation.score - sanction_config.reputation_damage_per_turn).max(-100.0);
+            country.global_reputation.score = (country.global_reputation.score
+                - sanction_config.reputation_damage_per_turn)
+                .max(-100.0);
         }
     }
 
@@ -5528,12 +6506,14 @@ pub fn run_turn_in_memory(
         // applies tax-loss harvesting with 5-year carry-forward, and credits treasury.
         for country in state.countries.values_mut() {
             // Collect entity IDs and their brokerage cash for the settlement.
-            let entity_ids: Vec<String> = country.capital_gains_tax.accruals.keys().cloned().collect();
+            let entity_ids: Vec<String> =
+                country.capital_gains_tax.accruals.keys().cloned().collect();
 
             // Build a map of entity_id → mutable brokerage cash reference.
             // We need to debit from brokerage accounts, so we collect the cash amounts
             // and update them after settlement.
-            let mut entity_cash: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
+            let mut entity_cash: std::collections::HashMap<String, f64> =
+                std::collections::HashMap::new();
 
             // Get cash from companies' brokerage accounts.
             for entity_id in &entity_ids {
@@ -5549,18 +6529,18 @@ pub fn run_turn_in_memory(
 
             // Settle year-end: debit entity cash, credit treasury.
             let treasury_ref = &mut country.budget.liquid_reserves;
-            let total_tax = country.capital_gains_tax.settle_year_end(
-                treasury_ref,
-                |_entity_id, _amount| {
-                    // The debit function — in this sequential phase, we can't
-                    // borrow the entities mutably here, so we record the debit
-                    // and apply it after settlement.
-                    // For now, we just return true to indicate the debit is "accepted".
-                    // The actual cash debit will be applied in the next turn's
-                    // parallel phase when entities are mutable.
-                    true
-                },
-            );
+            let total_tax =
+                country
+                    .capital_gains_tax
+                    .settle_year_end(treasury_ref, |_entity_id, _amount| {
+                        // The debit function — in this sequential phase, we can't
+                        // borrow the entities mutably here, so we record the debit
+                        // and apply it after settlement.
+                        // For now, we just return true to indicate the debit is "accepted".
+                        // The actual cash debit will be applied in the next turn's
+                        // parallel phase when entities are mutable.
+                        true
+                    });
 
             // Record the tax collected for UI display.
             country.capital_gains_tax.tax_collected_this_year = total_tax;
@@ -5575,21 +6555,19 @@ pub fn run_turn_in_memory(
     // Runs sequentially (post-parallel) for determinism. Each country processes
     // its own cadastre, border conflicts, zoning plans, and arbitration cases.
     for (country_name, country) in &mut state.countries {
+        use crate::corporate::market_behavior::evaluate_market_behavior;
         use crate::society::cadastre as cad;
         use crate::society::real_estate_market as rem;
-        use crate::corporate::market_behavior::evaluate_market_behavior;
 
         let current_turn = turn;
 
         // 59.1: Legal certainty degradation
-        cad::process_certainty_degradation(
-            &mut country.cadastre,
-            &country.legal_certainty_config,
-        );
+        cad::process_certainty_degradation(&mut country.cadastre, &country.legal_certainty_config);
 
         // 59.1: Cadastral survey funding (per region, debiting RegionalBudget)
         // Collect region IDs first to avoid borrow issues
-        let region_ids: Vec<String> = country.regions
+        let region_ids: Vec<String> = country
+            .regions
             .iter()
             .filter(|r| r.node_type == crate::society::geography::NodeType::LandRegion)
             .map(|r| r.id.clone())
@@ -5597,7 +6575,8 @@ pub fn run_turn_in_memory(
 
         for region_id in &region_ids {
             // Find the region's governance and development level
-            let (dev_level, has_governance) = country.regions
+            let (dev_level, has_governance) = country
+                .regions
                 .iter()
                 .find(|r| &r.id == region_id)
                 .map(|r| (r.development_level, r.governance.is_some()))
@@ -5637,20 +6616,20 @@ pub fn run_turn_in_memory(
         );
 
         // 59.6: Court capacity and border conflict resolution
-        let justice_law = country.politics.justice_law.clone()
-            .unwrap_or_default();
+        let justice_law = country.politics.justice_law.clone().unwrap_or_default();
         let court_wait_time = justice_law.court_wait_time_target;
         for region_id in &region_ids {
-            let court_capacity = if let Some(idx) = country.regions.iter().position(|r| &r.id == region_id) {
-                let gov = &country.regions[idx].governance;
-                if let Some(g) = gov {
-                    cad::compute_court_capacity(&g.budget, &justice_law, &court_wait_time)
+            let court_capacity =
+                if let Some(idx) = country.regions.iter().position(|r| &r.id == region_id) {
+                    let gov = &country.regions[idx].governance;
+                    if let Some(g) = gov {
+                        cad::compute_court_capacity(&g.budget, &justice_law, &court_wait_time)
+                    } else {
+                        0.0
+                    }
                 } else {
                     0.0
-                }
-            } else {
-                0.0
-            };
+                };
 
             cad::process_border_conflicts(
                 &mut country.cadastre,
@@ -5664,7 +6643,9 @@ pub fn run_turn_in_memory(
         // Governors enact plans based on national quotas and their traits.
         let quota = country.national_zoning_quota.clone();
         for region_idx in 0..country.regions.len() {
-            if country.regions[region_idx].node_type != crate::society::geography::NodeType::LandRegion {
+            if country.regions[region_idx].node_type
+                != crate::society::geography::NodeType::LandRegion
+            {
                 continue;
             }
             let region_id = country.regions[region_idx].id.clone();
@@ -5727,10 +6708,7 @@ pub fn run_turn_in_memory(
         }
 
         // 59.4: Apply externality penalties
-        cad::apply_externality_penalties(
-            &mut country.cadastre,
-            &country.externality_config,
-        );
+        cad::apply_externality_penalties(&mut country.cadastre, &country.externality_config);
 
         // 59.5: Arbitration case processing
         cad::process_arbitration_cases(
@@ -5781,7 +6759,8 @@ pub fn run_turn_in_memory(
         // Compute regional pollution levels
         let region_pollution: std::collections::HashMap<String, f64> = {
             let mut rp = std::collections::HashMap::new();
-            let mut counts: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
+            let mut counts: std::collections::HashMap<String, u32> =
+                std::collections::HashMap::new();
             for parcel in country.cadastre.parcels.values() {
                 *rp.entry(parcel.region_id.clone()).or_insert(0.0) += parcel.pollution_level;
                 *counts.entry(parcel.region_id.clone()).or_insert(0) += 1;
@@ -5801,15 +6780,19 @@ pub fn run_turn_in_memory(
                     Some(v) => v,
                     None => continue,
                 };
-                if vip.is_dead { continue; }
+                if vip.is_dead {
+                    continue;
+                }
                 let region_id = match vip_region_map.get(&vip_id) {
                     Some(r) => r.clone(),
                     None => continue,
                 };
                 let pollution = *region_pollution.get(&region_id).unwrap_or(&0.0);
                 if pollution > immission_config.health_impact_threshold {
-                    vip.health.physical_health -= pollution * immission_config.physical_health_decay_rate;
-                    vip.health.mental_health -= pollution * immission_config.mental_health_decay_rate;
+                    vip.health.physical_health -=
+                        pollution * immission_config.physical_health_decay_rate;
+                    vip.health.mental_health -=
+                        pollution * immission_config.mental_health_decay_rate;
                     vip.health.physical_health = vip.health.physical_health.max(0.0);
                     vip.health.mental_health = vip.health.mental_health.max(0.0);
                     if vip.health.physical_health < immission_config.death_threshold {
@@ -5818,12 +6801,19 @@ pub fn run_turn_in_memory(
                         vip.incapacity = crate::politics::vip_registry::IncapacityStatus::Dead;
                     }
                     if vip.health.mental_health < immission_config.breakdown_threshold
-                        && matches!(vip.incapacity, crate::politics::vip_registry::IncapacityStatus::Healthy) {
-                            vip.incapacity = crate::politics::vip_registry::IncapacityStatus::Sick;
-                        }
+                        && matches!(
+                            vip.incapacity,
+                            crate::politics::vip_registry::IncapacityStatus::Healthy
+                        )
+                    {
+                        vip.incapacity = crate::politics::vip_registry::IncapacityStatus::Sick;
+                    }
                 } else {
-                    vip.health.physical_health = (vip.health.physical_health + immission_config.health_recovery_rate).min(1.0);
-                    vip.health.mental_health = (vip.health.mental_health + immission_config.health_recovery_rate).min(1.0);
+                    vip.health.physical_health = (vip.health.physical_health
+                        + immission_config.health_recovery_rate)
+                        .min(1.0);
+                    vip.health.mental_health =
+                        (vip.health.mental_health + immission_config.health_recovery_rate).min(1.0);
                 }
             }
         }
@@ -5971,7 +6961,10 @@ fn process_parliament_building_payroll(
         .unwrap_or(false);
 
     // Calculate total seats (MPs) and staff.
-    let total_seats = country.politics.parliament_struct.as_ref()
+    let total_seats = country
+        .politics
+        .parliament_struct
+        .as_ref()
         .map(|p| p.lower_seats())
         .unwrap_or(0);
     if total_seats == 0 {
@@ -5979,8 +6972,9 @@ fn process_parliament_building_payroll(
     }
 
     let staff_count = total_seats * 2; // 2 staff per MP.
-    // Phase 86.5A: Use config-driven wage ratios instead of magic numbers.
-    let average_wage = country.budget.gdp / country.budget.population.max(1) as f64 * country.turn_config.parliament_mp_salary_wage_ratio;
+                                       // Phase 86.5A: Use config-driven wage ratios instead of magic numbers.
+    let average_wage = country.budget.gdp / country.budget.population.max(1) as f64
+        * country.turn_config.parliament_mp_salary_wage_ratio;
     let mp_salary = average_wage * country.turn_config.parliament_mp_salary_multiplier;
     let staff_salary = average_wage * country.turn_config.parliament_staff_salary_ratio;
 
@@ -6039,7 +7033,11 @@ fn process_parliament_building_payroll(
     if mp_payroll > 0.0 {
         if let Some(cap_idx) = capital_idx {
             let region = &mut country.regions[cap_idx];
-            if let Some(bourgeoisie) = region.class_demographics.urban_classes.get_mut("Bourgeoisie") {
+            if let Some(bourgeoisie) = region
+                .class_demographics
+                .urban_classes
+                .get_mut("Bourgeoisie")
+            {
                 bourgeoisie.savings += mp_payroll;
             } else if let Some(worker) = region.class_demographics.urban_classes.get_mut("Worker") {
                 // Fallback: if no Bourgeoisie, credit to Worker.
@@ -6063,7 +7061,11 @@ fn process_parliament_building_payroll(
         total_payroll,
         mp_payroll,
         staff_payroll,
-        if parliament_suspended { "(suspended — MPs unpaid)" } else { "" }
+        if parliament_suspended {
+            "(suspended — MPs unpaid)"
+        } else {
+            ""
+        }
     ));
 
     messages

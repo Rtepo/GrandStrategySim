@@ -50,11 +50,23 @@ pub fn compute_company_inventory(
     total
 }
 
-/// Calculate the total inventory capacity for a company's buildings.
-fn compute_company_inventory_capacity(
-    company: &Company,
+/// Phase 94: Index-based variant — compute aggregate inventory using
+/// pre-looked-up building indices instead of scanning all buildings.
+pub fn compute_company_inventory_indexed(
     buildings: &[Building],
-) -> f64 {
+    building_indices: &[usize],
+) -> BTreeMap<Commodity, f64> {
+    let mut total: BTreeMap<Commodity, f64> = BTreeMap::new();
+    for &i in building_indices {
+        for (&commodity, &qty) in &buildings[i].inventory {
+            *total.entry(commodity).or_insert(0.0) += qty;
+        }
+    }
+    total
+}
+
+/// Calculate the total inventory capacity for a company's buildings.
+fn compute_company_inventory_capacity(company: &Company, buildings: &[Building]) -> f64 {
     buildings
         .iter()
         .filter(|b| b.owner_id == company.id)
@@ -62,21 +74,47 @@ fn compute_company_inventory_capacity(
         .sum()
 }
 
+/// Phase 94: Index-based variant — compute inventory capacity using
+/// pre-looked-up building indices instead of scanning all buildings.
+fn compute_company_inventory_capacity_indexed(
+    buildings: &[Building],
+    building_indices: &[usize],
+) -> f64 {
+    building_indices
+        .iter()
+        .map(|&i| buildings[i].inventory_capacity)
+        .sum()
+}
+
 /// Calculate the utilization ratio of a company's inventory.
 ///
 /// # Returns
 /// A value in `[0.0, 1.0+]` representing current inventory / max capacity.
-fn compute_inventory_utilization(
-    company: &Company,
-    buildings: &[Building],
-) -> f64 {
+fn compute_inventory_utilization(company: &Company, buildings: &[Building]) -> f64 {
     let capacity = compute_company_inventory_capacity(company, buildings);
     if capacity <= 0.0 {
         return 0.0;
     }
-    let total_qty: f64 = compute_company_inventory(company, buildings)
-        .values()
-        .sum();
+    let total_qty: f64 = compute_company_inventory(company, buildings).values().sum();
+    total_qty / capacity
+}
+
+/// Phase 94: Index-based variant — compute inventory utilization using
+/// pre-looked-up building indices instead of scanning all buildings.
+fn compute_inventory_utilization_indexed(
+    buildings: &[Building],
+    building_indices: &[usize],
+) -> f64 {
+    let capacity = compute_company_inventory_capacity_indexed(buildings, building_indices);
+    if capacity <= 0.0 {
+        return 0.0;
+    }
+    let mut total_qty: f64 = 0.0;
+    for &i in building_indices {
+        for (&_commodity, &qty) in &buildings[i].inventory {
+            total_qty += qty;
+        }
+    }
     total_qty / capacity
 }
 
@@ -177,16 +215,32 @@ pub fn submit_company_b2b_orders(
     market_history: &MarketHistory,
     config: &B2bOrderConfig,
     gen_config: &GenerativeGoodsConfig,
+    owner_to_buildings: &rustc_hash::FxHashMap<String, Vec<usize>>,
 ) -> Vec<String> {
     let mut messages = Vec::new();
+
+    // Phase 95: Build a global blueprint lookup (blueprint_id → (quality, durability))
+    // before the mutable company loop to avoid borrow conflicts.
+    let all_bp_metadata: std::collections::HashMap<String, (f64, f64)> = companies
+        .iter()
+        .flat_map(|c| c.blueprints.iter())
+        .map(|bp| (bp.id.clone(), (bp.quality, bp.durability)))
+        .collect();
 
     for company in companies.iter_mut() {
         // Sync available_cash from brokerage account
         let liquid = company.computed_liquid_capital();
         company.available_cash = liquid;
 
-        // Compute inventory utilization for dynamic pricing
-        let utilization = compute_inventory_utilization(company, buildings);
+        // Phase 94: Use pre-built index map instead of O(B) filter scan.
+        let company_building_indices = match owner_to_buildings.get(&company.id) {
+            Some(indices) if !indices.is_empty() => indices.clone(),
+            _ => continue,
+        };
+
+        // Compute inventory utilization for dynamic pricing (index-based)
+        let utilization =
+            compute_inventory_utilization_indexed(buildings, &company_building_indices);
         let dynamic_markup = calculate_dynamic_markup(utilization, config);
 
         // Phase 76: Bootstrap pricing when no VWAP exists (Turn 0 condition).
@@ -208,15 +262,30 @@ pub fn submit_company_b2b_orders(
         let max_encumber = liquid * config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
 
-        // Collect company's buildings
-        let company_buildings: Vec<&Building> = buildings
+        // Phase 94: Use pre-looked-up building indices instead of O(B) filter.
+        let company_buildings: Vec<&Building> = company_building_indices
             .iter()
-            .filter(|b| b.owner_id == company.id)
+            .map(|&i| &buildings[i])
             .collect();
 
         if company_buildings.is_empty() {
             continue;
         }
+
+        // Phase 95: Build a blueprint lookup for this company's owned + licensed blueprints.
+        // blueprint_id → (quality, durability)
+        let bp_lookup: std::collections::HashMap<String, (f64, f64)> = {
+            let mut m = std::collections::HashMap::new();
+            for bp in &company.blueprints {
+                m.insert(bp.id.clone(), (bp.quality, bp.durability));
+            }
+            for licensed in &company.licensed_blueprints {
+                if let Some(&(q, d)) = all_bp_metadata.get(&licensed.blueprint_id) {
+                    m.insert(licensed.blueprint_id.clone(), (q, d));
+                }
+            }
+            m
+        };
 
         // Submit Buy Bids for inputs
         for building in &company_buildings {
@@ -256,7 +325,11 @@ pub fn submit_company_b2b_orders(
                 // is the buyer's max_affordable_budget (cash encumbrance limit).
                 // NO profitability ceiling is applied.
                 let base_price = ref_price.unwrap();
-                let last_unfilled = company.unfilled_bid_prices.get(&commodity).copied().unwrap_or(0.0);
+                let last_unfilled = company
+                    .unfilled_bid_prices
+                    .get(&commodity)
+                    .copied()
+                    .unwrap_or(0.0);
                 let limit_price = if last_unfilled > 0.0 {
                     // Raise bid by 10% above last unfilled price
                     (last_unfilled * 1.10).max(base_price * (1.0 + config.buy_premium_ratio))
@@ -289,35 +362,27 @@ pub fn submit_company_b2b_orders(
                     company.debit_cash += partial_encumbrance;
                     total_encumbered += partial_encumbrance;
 
-                    order_book
-                        .bids
-                        .entry(commodity)
-                        .or_default()
-                        .push(Bid {
-                            buyer_id: company.id.clone(),
-                            commodity,
-                            quantity: affordable_qty,
-                            limit_price,
-                            blueprint_id: None,
-                            min_quality: None,
-                        });
+                    order_book.bids.entry(commodity).or_default().push(Bid {
+                        buyer_id: company.id.clone(),
+                        commodity,
+                        quantity: affordable_qty,
+                        limit_price,
+                        blueprint_id: None,
+                        min_quality: None,
+                    });
                 } else {
                     company.available_cash -= encumbrance;
                     company.debit_cash += encumbrance;
                     total_encumbered += encumbrance;
 
-                    order_book
-                        .bids
-                        .entry(commodity)
-                        .or_default()
-                        .push(Bid {
-                            buyer_id: company.id.clone(),
-                            commodity,
-                            quantity: desired_qty,
-                            limit_price,
-                            blueprint_id: None,
-                            min_quality: None,
-                        });
+                    order_book.bids.entry(commodity).or_default().push(Bid {
+                        buyer_id: company.id.clone(),
+                        commodity,
+                        quantity: desired_qty,
+                        limit_price,
+                        blueprint_id: None,
+                        min_quality: None,
+                    });
                 }
             }
         }
@@ -354,35 +419,27 @@ pub fn submit_company_b2b_orders(
                     company.debit_cash += affordable_qty * limit_price;
                     total_encumbered += affordable_qty * limit_price;
 
-                    order_book
-                        .bids
-                        .entry(commodity)
-                        .or_default()
-                        .push(Bid {
-                            buyer_id: company.id.clone(),
-                            commodity,
-                            quantity: affordable_qty,
-                            limit_price,
-                            blueprint_id: None,
-                            min_quality: None,
-                        });
+                    order_book.bids.entry(commodity).or_default().push(Bid {
+                        buyer_id: company.id.clone(),
+                        commodity,
+                        quantity: affordable_qty,
+                        limit_price,
+                        blueprint_id: None,
+                        min_quality: None,
+                    });
                 } else {
                     company.available_cash -= encumbrance;
                     company.debit_cash += encumbrance;
                     total_encumbered += encumbrance;
 
-                    order_book
-                        .bids
-                        .entry(commodity)
-                        .or_default()
-                        .push(Bid {
-                            buyer_id: company.id.clone(),
-                            commodity,
-                            quantity: desired_qty,
-                            limit_price,
-                            blueprint_id: None,
-                            min_quality: None,
-                        });
+                    order_book.bids.entry(commodity).or_default().push(Bid {
+                        buyer_id: company.id.clone(),
+                        commodity,
+                        quantity: desired_qty,
+                        limit_price,
+                        blueprint_id: None,
+                        min_quality: None,
+                    });
                 }
             }
         }
@@ -432,12 +489,22 @@ pub fn submit_company_b2b_orders(
                 // Cash-flow distress: payroll coverage ratio (0.0 = broke, 1.0 = covered)
                 let total_payroll = company.fulfilled_fte as f64 * company.offered_wage_per_fte;
                 let op_cash = company.available_cash.max(0.0)
-                    + company.brokerage_account.as_ref().map(|b| b.cash.max(0.0)).unwrap_or(0.0);
-                let payroll_coverage = if total_payroll > 0.0 { op_cash / total_payroll } else { 99.0 };
-                let distress_signal = (1.0 - payroll_coverage.clamp(0.0, 2.0) / 2.0).clamp(0.0, 1.0);
+                    + company
+                        .brokerage_account
+                        .as_ref()
+                        .map(|b| b.cash.max(0.0))
+                        .unwrap_or(0.0);
+                let payroll_coverage = if total_payroll > 0.0 {
+                    op_cash / total_payroll
+                } else {
+                    99.0
+                };
+                let distress_signal =
+                    (1.0 - payroll_coverage.clamp(0.0, 2.0) / 2.0).clamp(0.0, 1.0);
 
                 // Sell fraction: base 0.5 + price 0.3 + distress 0.2, clamped [0.2, 1.0]
-                let sell_fraction = (0.5 + price_signal * 0.3 + distress_signal * 0.2).clamp(0.2, 1.0);
+                let sell_fraction =
+                    (0.5 + price_signal * 0.3 + distress_signal * 0.2).clamp(0.2, 1.0);
                 let sell_qty = total_available * sell_fraction;
                 if sell_qty <= 0.0 {
                     continue;
@@ -466,7 +533,9 @@ pub fn submit_company_b2b_orders(
                     // Bootstrap: use reference price with minimal markup to guarantee crossing
                     if let Some(ref_p) = get_reference_price(&commodity, market_history) {
                         ref_p * (1.0 + config.min_markup_ratio)
-                    } else if let Some(base_p) = market_history.global_base_prices.get(&commodity).copied() {
+                    } else if let Some(base_p) =
+                        market_history.global_base_prices.get(&commodity).copied()
+                    {
                         base_p * (1.0 + config.min_markup_ratio)
                     } else {
                         continue;
@@ -475,7 +544,9 @@ pub fn submit_company_b2b_orders(
                     unit_cost * (1.0 + markup)
                 } else if let Some(ref_p) = get_reference_price(&commodity, market_history) {
                     ref_p * (1.0 + markup)
-                } else if let Some(base_p) = market_history.global_base_prices.get(&commodity).copied() {
+                } else if let Some(base_p) =
+                    market_history.global_base_prices.get(&commodity).copied()
+                {
                     base_p * (1.0 + config.min_markup_ratio)
                 } else {
                     continue;
@@ -493,25 +564,34 @@ pub fn submit_company_b2b_orders(
                     continue;
                 }
 
-                order_book
-                    .asks
-                    .entry(commodity)
-                    .or_default()
-                    .push(Ask {
-                        seller_id: company.id.clone(),
-                        commodity,
-                        quantity: sell_qty,
-                        limit_price: sell_price,
-                        blueprint_id: None,
-                        quality: None,
-                        durability: None,
-                    });
+                // Phase 95: Look up blueprint metadata for this building's output.
+                let (bp_id, bp_quality, bp_durability) = building
+                    .active_method
+                    .active_blueprint
+                    .as_ref()
+                    .and_then(|id| {
+                        bp_lookup
+                            .get(id)
+                            .map(|&(q, d)| (Some(id.clone()), Some(q), Some(d)))
+                    })
+                    .unwrap_or((None, None, None));
+
+                order_book.asks.entry(commodity).or_default().push(Ask {
+                    seller_id: company.id.clone(),
+                    commodity,
+                    quantity: sell_qty,
+                    limit_price: sell_price,
+                    blueprint_id: bp_id,
+                    quality: bp_quality,
+                    durability: bp_durability,
+                });
             }
         }
 
         // Also submit Sell Asks for excess inventory (fire sale if utilization is high)
         if utilization >= config.fire_sale_threshold {
-            let company_inventory = compute_company_inventory(company, buildings);
+            let company_inventory =
+                compute_company_inventory_indexed(buildings, &company_building_indices);
             for (&commodity, &qty) in &company_inventory {
                 if qty <= 0.0 {
                     continue;
@@ -522,19 +602,15 @@ pub fn submit_company_b2b_orders(
                 };
                 let fire_sale_price = ref_price * (1.0 + config.min_markup_ratio);
 
-                order_book
-                    .asks
-                    .entry(commodity)
-                    .or_default()
-                    .push(Ask {
-                        seller_id: company.id.clone(),
-                        commodity,
-                        quantity: qty * 0.5, // Sell half of excess inventory
-                        limit_price: fire_sale_price,
-                        blueprint_id: None,
-                        quality: None,
-                        durability: None,
-                    });
+                order_book.asks.entry(commodity).or_default().push(Ask {
+                    seller_id: company.id.clone(),
+                    commodity,
+                    quantity: qty * 0.5, // Sell half of excess inventory
+                    limit_price: fire_sale_price,
+                    blueprint_id: None,
+                    quality: None,
+                    durability: None,
+                });
             }
         }
     }
@@ -563,6 +639,8 @@ pub fn settle_trades(
     trades: &[Trade],
     companies: &mut [Company],
     buildings: &mut [Building],
+    current_turn: u32,
+    gen_config: &GenerativeGoodsConfig,
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
@@ -595,7 +673,9 @@ pub fn settle_trades(
                     &company_id_to_idx,
                     bi,
                     trade_value,
-                    &crate::economy::transfer_settler::TransferRecipient::OtherCompany { recipient_idx: si },
+                    &crate::economy::transfer_settler::TransferRecipient::OtherCompany {
+                        recipient_idx: si,
+                    },
                     &mut dummy_country,
                 );
                 companies[bi].debit_cash -= trade_value;
@@ -624,7 +704,8 @@ pub fn settle_trades(
         for &i in buyer_buildings {
             let b = &buildings[i];
             if b.active_method.inputs.contains_key(&trade.commodity)
-                || b.active_project.as_ref()
+                || b.active_project
+                    .as_ref()
                     .map(|p| p.required_materials.contains_key(&trade.commodity))
                     .unwrap_or(false)
             {
@@ -637,10 +718,48 @@ pub fn settle_trades(
         }
         if let Some(idx) = buyer_b_idx {
             let building = &mut buildings[idx];
-            *building
-                .inventory
-                .entry(trade.commodity)
-                .or_insert(0.0) += trade.quantity;
+
+            // Phase 95: If the commodity is a fixed asset, install it as a
+            // FixedAssetCohort with the trade's blueprint/quality metadata.
+            // This ensures physical asset capacity is increased only by
+            // delivered goods with known provenance (Rule 15, Rule 4).
+            if trade.commodity.is_fixed_asset() {
+                let blueprint_id = trade.blueprint_id.clone().unwrap_or_default();
+                let quality = trade.quality.unwrap_or(0.0);
+                let durability = trade.durability.unwrap_or(0.0);
+                let cohort = crate::economy::fixed_assets::FixedAssetCohort::new(
+                    blueprint_id,
+                    trade.commodity,
+                    trade.quantity,
+                    quality,
+                    durability,
+                    String::new(), // base_tech — not tracked in Trade (simplified)
+                    0,             // base_tech_year — not tracked in Trade
+                    current_turn,
+                );
+                // Install the cohort (handles compaction).
+                crate::economy::fixed_assets::install_fixed_asset(
+                    &mut building.fixed_assets,
+                    cohort,
+                    gen_config,
+                );
+            } else {
+                // Non-fixed-asset: add to flat inventory.
+                *building.inventory.entry(trade.commodity).or_insert(0.0) += trade.quantity;
+
+                // Phase 95: If blueprint-eligible, also add to inventory cohorts.
+                if trade.commodity.is_blueprint_eligible() {
+                    let cohort = crate::economy::fixed_assets::InventoryCohort::new(
+                        trade.blueprint_id.clone().unwrap_or_default(),
+                        trade.commodity,
+                        trade.quantity,
+                        trade.quality.unwrap_or(0.0),
+                        trade.durability.unwrap_or(0.0),
+                        current_turn,
+                    );
+                    building.inventory_cohorts.push(cohort);
+                }
+            }
         }
 
         let seller_buildings = owner_to_buildings
@@ -659,7 +778,13 @@ pub fn settle_trades(
         }
         if seller_b_idx.is_none() {
             for &i in seller_buildings {
-                if buildings[i].inventory.get(&trade.commodity).copied().unwrap_or(0.0) >= trade.quantity {
+                if buildings[i]
+                    .inventory
+                    .get(&trade.commodity)
+                    .copied()
+                    .unwrap_or(0.0)
+                    >= trade.quantity
+                {
                     seller_b_idx = Some(i);
                     break;
                 }
@@ -667,12 +792,27 @@ pub fn settle_trades(
         }
         if let Some(idx) = seller_b_idx {
             let building = &mut buildings[idx];
-            let current = building.inventory.get(&trade.commodity).copied().unwrap_or(0.0);
+            let current = building
+                .inventory
+                .get(&trade.commodity)
+                .copied()
+                .unwrap_or(0.0);
             let new_qty = (current - trade.quantity).max(0.0);
             if new_qty > 0.0 {
                 building.inventory.insert(trade.commodity, new_qty);
             } else {
                 building.inventory.remove(&trade.commodity);
+            }
+
+            // Phase 95: Consume from inventory cohorts (FIFO — oldest first).
+            // This tracks the actual physical goods sold, preserving blueprint
+            // provenance for the buyer.
+            if trade.commodity.is_blueprint_eligible() {
+                consume_inventory_cohorts(
+                    &mut building.inventory_cohorts,
+                    trade.commodity,
+                    trade.quantity,
+                );
             }
         } else {
             messages.push(format!(
@@ -717,11 +857,17 @@ pub fn settle_trades_with_tariffs(
     buildings: &mut [Building],
     country: &mut crate::state::Country,
     company_country: &std::collections::HashMap<String, String>,
-    diplomacy: &std::collections::HashMap<String, std::collections::HashMap<String, crate::international::DiplomaticRelation>>,
+    diplomacy: &std::collections::HashMap<
+        String,
+        std::collections::HashMap<String, crate::international::DiplomaticRelation>,
+    >,
     country_to_currency: &std::collections::HashMap<String, String>,
+    currency_rates: &std::collections::HashMap<String, f64>,
+    current_turn: u32,
+    gen_config: &GenerativeGoodsConfig,
 ) -> Vec<String> {
     // Phase 1: Standard settlement (cash + inventory)
-    let messages = settle_trades(trades, companies, buildings);
+    let messages = settle_trades(trades, companies, buildings, current_turn, gen_config);
 
     // Phase 42: FX Reserves — forced currency conversion and import hard floor.
     // For cross-border trades, the buyer's country Central Bank must:
@@ -750,28 +896,57 @@ pub fn settle_trades_with_tariffs(
         }
 
         // Phase 42: FX conversion for cross-border trades.
+        // Agent 4 — Phase 3: Replaced hardcoded exchange_rate = 1.0 with real
+        // currency rates from state.currencies. Removed export-side fx_reserves
+        // credit (was fiat creation — settle_trades already paid the seller).
+        // The import-side fx_reserves debit is retained as a liquidity constraint.
         let is_import = buyer_country == country.name;
         let is_export = seller_country == country.name;
 
         if is_export {
-            // Export: foreign buyer pays in foreign currency.
-            // The Central Bank accumulates the foreign currency in fx_reserves.
-            // Phase 43: Use the buyer's real currency code, not fake "IEU".
-            let foreign_ccy = country_to_currency.get(&buyer_country)
-                .cloned()
-                .unwrap_or_else(|| "???".to_string());
-            let exchange_rate = 1.0;
-            let foreign_amount = trade_value * exchange_rate;
-            *country.central_bank.fx_reserves.entry(foreign_ccy.clone()).or_insert(0.0) += foreign_amount;
+            // Export: settle_trades already credited the domestic seller's cash
+            // and debited the foreign buyer's cash. The FX reserves adjustment
+            // was removed (Agent 4) because it credited fx_reserves with no
+            // offsetting debit — pure fiat creation (Rule 1 violation).
+            // The Central Bank's FX reserves are adjusted by settle_trade_deficits
+            // in a later phase, which handles the actual balance-of-payments
+            // settlement via Forex/Gold/sovereign default.
+            //
+            // NOTE: A proper model would route the export payment through the
+            // Central Bank (foreign buyer pays foreign currency → CB converts
+            // to domestic → credits exporter). This requires refactoring
+            // settle_trades to not handle cross-border cash directly. Deferred
+            // to a future phase to avoid breaking the settlement pipeline.
         } else if is_import {
             // Import: check FX reserves for the seller's currency.
             // Phase 43: Use the seller's real currency code, not fake "IEU".
-            let seller_ccy = country_to_currency.get(&seller_country)
+            let seller_ccy = country_to_currency
+                .get(&seller_country)
                 .cloned()
                 .unwrap_or_else(|| "???".to_string());
-            let exchange_rate = 1.0;
-            let foreign_needed = trade_value * exchange_rate;
-            let available_fx = country.central_bank.fx_reserves.get(&seller_ccy).copied().unwrap_or(0.0);
+            // Agent 4 — Phase 3: Use the real exchange rate from state.currencies.
+            // The rate converts domestic currency to foreign currency.
+            // A rate of 1.0 means 1:1 parity; a rate of 0.5 means 1 domestic
+            // = 2 foreign (strong domestic currency).
+            let domestic_ccy = country_to_currency
+                .get(&country.name)
+                .cloned()
+                .unwrap_or_else(|| "???".to_string());
+            let domestic_rate = currency_rates.get(&domestic_ccy).copied().unwrap_or(1.0);
+            let foreign_rate = currency_rates.get(&seller_ccy).copied().unwrap_or(1.0);
+            // Cross rate: how much foreign currency per unit domestic.
+            let cross_rate = if foreign_rate > 0.0 {
+                domestic_rate / foreign_rate
+            } else {
+                1.0
+            };
+            let foreign_needed = trade_value * cross_rate;
+            let available_fx = country
+                .central_bank
+                .fx_reserves
+                .get(&seller_ccy)
+                .copied()
+                .unwrap_or(0.0);
             if available_fx < foreign_needed {
                 // Phase 42: Import fails — revert settlement.
                 if let Some(buyer_idx) = companies.iter().position(|c| c.id == trade.buyer_id) {
@@ -791,65 +966,127 @@ pub fn settle_trades_with_tariffs(
                         *qty = (*qty - trade.quantity).max(0.0);
                     }
                 }
+                // Agent 4: Restore goods to seller's inventory (asymmetric revert fix).
+                // Previously, the goods vanished — the buyer lost them but the
+                // seller didn't get them back (Rule 1 violation).
+                if let Some(idx) = buildings.iter().position(|b| b.owner_id == trade.seller_id) {
+                    *buildings[idx]
+                        .inventory
+                        .entry(trade.commodity)
+                        .or_insert(0.0) += trade.quantity;
+                }
                 continue; // Skip tariff collection for failed trade
             }
             // Sufficient FX: debit reserves.
-            *country.central_bank.fx_reserves.entry(seller_ccy.clone()).or_insert(0.0) -= foreign_needed;
+            *country
+                .central_bank
+                .fx_reserves
+                .entry(seller_ccy.clone())
+                .or_insert(0.0) -= foreign_needed;
         }
 
-        // Phase 29: Check FTA/customs union between buyer and seller countries.
-        // If they have a free trade agreement or customs union, tariffs are
-        // reduced or eliminated. Embargo penalties add to the tariff.
-        let mut tariff_rate = country
-            .trade_policy
-            .import_tariffs
-            .get(&trade.commodity)
-            .copied()
-            .unwrap_or(0.0);
+        // Phase 29: Import tariff collection (only when the current country
+        // is the importer — buyer is domestic).
+        // Agent 4: Guarded with is_import to prevent incorrect tariff
+        // application on export trades. Added export tax collection below.
+        if is_import {
+            // Check FTA/customs union between buyer and seller countries.
+            // If they have a free trade agreement or customs union, tariffs are
+            // reduced or eliminated. Embargo penalties add to the tariff.
+            let mut tariff_rate = country
+                .trade_policy
+                .import_tariffs
+                .get(&trade.commodity)
+                .copied()
+                .unwrap_or(0.0);
 
-        // Check diplomatic relations for FTA/embargo overrides
-        if let Some(buyer_diplomacy) = diplomacy.get(&buyer_country) {
-            if let Some(rel) = buyer_diplomacy.get(&seller_country) {
-                if rel.customs_union {
-                    // Customs union: eliminate all tariffs
-                    tariff_rate = 0.0;
-                } else if rel.free_trade {
-                    // FTA: reduce tariff by 90% (not fully eliminated for non-customs-union)
-                    tariff_rate *= 0.10;
+            // Check diplomatic relations for FTA/embargo overrides
+            if let Some(buyer_diplomacy) = diplomacy.get(&buyer_country) {
+                if let Some(rel) = buyer_diplomacy.get(&seller_country) {
+                    if rel.customs_union {
+                        // Customs union: eliminate all tariffs
+                        tariff_rate = 0.0;
+                    } else if rel.free_trade {
+                        // FTA: reduce tariff by 90% (not fully eliminated for non-customs-union)
+                        tariff_rate *= 0.10;
+                    }
+                    // Embargo penalty adds to the effective tariff
+                    if rel.embargo_penalty > 0.0 {
+                        tariff_rate += rel.embargo_penalty;
+                    }
                 }
-                // Embargo penalty adds to the effective tariff
-                if rel.embargo_penalty > 0.0 {
-                    tariff_rate += rel.embargo_penalty;
+            }
+
+            if tariff_rate > 0.0 {
+                let tariff_amount = trade_value * tariff_rate;
+
+                // Phase 24A.4: Use TransferSettler for tariff collection (double-entry).
+                // Debits buyer's cash and credits treasury via proper bank sync.
+                // Agent 4: Removed the fiat-creating fallback that credited
+                // liquid_reserves without debiting real cash. If the buyer is not
+                // found, the tariff is simply not collected (revenue loss) — no fiat.
+                if let Some(buyer_idx) = companies.iter().position(|c| c.id == trade.buyer_id) {
+                    let _ = crate::economy::transfer_settler::settle_transfer_to_treasury(
+                        companies,
+                        buyer_idx,
+                        tariff_amount,
+                        country,
+                    );
+                    // Also release the buyer's encumbered debit_cash for the tariff
+                    if let Some(buyer) = companies.get_mut(buyer_idx) {
+                        buyer.debit_cash = (buyer.debit_cash - tariff_amount).max(0.0);
+                    }
+                }
+                // Agent 4: No else branch — if buyer not found, no tariff collected.
+                // Previously, the fallback created fiat by crediting liquid_reserves
+                // without debiting real cash (Rule 1 violation).
+            }
+        }
+
+        // Agent 4 — Phase 1.5: Export tax collection (only when the current
+        // country is the exporter — seller is domestic).
+        // Previously, export taxes were only applied as a price reduction in
+        // clearing.rs::resolve_surplus, but the tax revenue was never collected
+        // by the treasury. This branch debits the seller (exporter) and credits
+        // the domestic treasury via settle_transfer_to_treasury (Rule 1).
+        if is_export {
+            let mut export_tax_rate = country
+                .trade_policy
+                .export_taxes
+                .get(&trade.commodity)
+                .copied()
+                .unwrap_or(0.0);
+
+            // Check diplomatic relations for FTA/embargo overrides on export side
+            if let Some(seller_diplomacy) = diplomacy.get(&seller_country) {
+                if let Some(rel) = seller_diplomacy.get(&buyer_country) {
+                    if rel.customs_union {
+                        export_tax_rate = 0.0;
+                    } else if rel.free_trade {
+                        export_tax_rate *= 0.10;
+                    }
                 }
             }
-        }
 
-        if tariff_rate <= 0.0 {
-            continue;
-        }
+            if export_tax_rate > 0.0 {
+                let export_tax_amount = trade_value * export_tax_rate;
 
-        let tariff_amount = trade_value * tariff_rate;
-
-        // Phase 24A.4: Use TransferSettler for tariff collection (double-entry).
-        // Debits buyer's cash and credits treasury via proper bank sync.
-        if let Some(buyer_idx) = companies.iter().position(|c| c.id == trade.buyer_id) {
-            let _ = crate::economy::transfer_settler::settle_transfer_to_treasury(
-                companies,
-                buyer_idx,
-                tariff_amount,
-                country,
-            );
-            // Also release the buyer's encumbered debit_cash for the tariff
-            if let Some(buyer) = companies.get_mut(buyer_idx) {
-                buyer.debit_cash = (buyer.debit_cash - tariff_amount).max(0.0);
+                // Debit the seller (exporter) and credit the domestic treasury.
+                // The seller is a domestic company, so it's in the `companies` slice.
+                if let Some(seller_idx) = companies.iter().position(|c| c.id == trade.seller_id) {
+                    let _ = crate::economy::transfer_settler::settle_transfer_to_treasury(
+                        companies,
+                        seller_idx,
+                        export_tax_amount,
+                        country,
+                    );
+                    // Release the seller's encumbered debit_cash for the tax amount.
+                    if let Some(seller) = companies.get_mut(seller_idx) {
+                        seller.debit_cash = (seller.debit_cash - export_tax_amount).max(0.0);
+                    }
+                }
+                // If seller not found, no tax collected — no fiat creation.
             }
-        } else {
-            // Fallback: manual debit if buyer not found
-            if let Some(buyer) = companies.iter_mut().find(|c| c.id == trade.buyer_id) {
-                buyer.debit_cash = (buyer.debit_cash - tariff_amount).max(0.0);
-            }
-            // Credit tariff to the buyer's country treasury
-            country.budget.liquid_reserves += tariff_amount;
         }
     }
 
@@ -868,10 +1105,13 @@ pub fn settle_trades_with_tariffs(
 pub fn refund_unfilled_bids(
     order_book: &OrderBook,
     companies: &mut [Company],
+    company_id_to_idx: &rustc_hash::FxHashMap<String, usize>,
 ) {
     for bids in order_book.bids.values() {
         for bid in bids {
-            if let Some(company) = companies.iter_mut().find(|c| c.id == bid.buyer_id) {
+            // Phase 94: O(1) lookup via pre-built index map.
+            if let Some(&idx) = company_id_to_idx.get(&bid.buyer_id) {
+                let company = &mut companies[idx];
                 let refund = bid.quantity * bid.limit_price;
                 company.debit_cash -= refund;
                 company.available_cash += refund;
@@ -880,7 +1120,9 @@ pub fn refund_unfilled_bids(
                 }
                 // Phase 45: Track unfilled bid prices for dynamic price feedback.
                 // Store the limit price so next turn's bid can be raised.
-                company.unfilled_bid_prices.insert(bid.commodity, bid.limit_price);
+                company
+                    .unfilled_bid_prices
+                    .insert(bid.commodity, bid.limit_price);
             }
         }
     }
@@ -955,9 +1197,7 @@ pub fn refund_unfilled_defense_bids_per_country(
 
     let filled_paid: f64 = trades
         .iter()
-        .filter(|t| {
-            t.buyer_id == "MIN-DEF" && companies.iter().any(|c| c.id == t.seller_id)
-        })
+        .filter(|t| t.buyer_id == "MIN-DEF" && companies.iter().any(|c| c.id == t.seller_id))
         .map(|t| t.quantity * t.execution_price)
         .sum();
 
@@ -1086,7 +1326,8 @@ pub fn execute_production_cycle(
         // Produce outputs (multiplied by the Phase 19B machinery capacity factor).
         let mut outputs_produced: HashMap<Commodity, f64> = HashMap::default();
         for (&commodity, &qty_per_1k) in &method.outputs {
-            let produced = qty_per_1k * production_scale * fulfillment_ratio * efficiency * machinery_factor;
+            let produced =
+                qty_per_1k * production_scale * fulfillment_ratio * efficiency * machinery_factor;
             if produced > 0.0 {
                 *building.inventory.entry(commodity).or_insert(0.0) += produced;
                 outputs_produced.insert(commodity, produced);
@@ -1106,16 +1347,15 @@ pub fn execute_production_cycle(
             let overflow = total_inventory - building.inventory_capacity;
 
             // Try to route overflow to warehouse
-            let warehouse_capacity = find_warehouse_capacity(
-                commercial_buildings,
-                &building.region_id,
-            );
+            let warehouse_capacity =
+                find_warehouse_capacity(commercial_buildings, &building.region_id);
 
             if warehouse_capacity >= overflow {
                 // Route to warehouse — deduct storage fees from company, credit warehouse owner
                 let storage_fee = overflow * config.warehouse_storage_fee_per_ton;
                 overflow_costs_this_turn += storage_fee;
-                let warehouse_owner = find_warehouse_owner(commercial_buildings, &building.region_id);
+                let warehouse_owner =
+                    find_warehouse_owner(commercial_buildings, &building.region_id);
                 let _debited = debit_company_by_id(companies, &building.owner_id, storage_fee);
                 if let Some(ref owner_id) = warehouse_owner {
                     if !owner_id.is_empty() {
@@ -1148,7 +1388,8 @@ pub fn execute_production_cycle(
                 let _ratio = storable / overflow;
                 let storage_fee = storable * config.warehouse_storage_fee_per_ton;
                 overflow_costs_this_turn += storage_fee;
-                let warehouse_owner = find_warehouse_owner(commercial_buildings, &building.region_id);
+                let warehouse_owner =
+                    find_warehouse_owner(commercial_buildings, &building.region_id);
                 let _debited = debit_company_by_id(companies, &building.owner_id, storage_fee);
                 if let Some(ref owner_id) = warehouse_owner {
                     if !owner_id.is_empty() {
@@ -1259,10 +1500,58 @@ pub fn execute_production_cycle(
             input_costs,
             output_revenue,
             gross_profit,
+            blueprint_id: None,
+            quality: None,
+            durability: None,
         });
     }
 
     results
+}
+
+/// Phase 95: Consume inventory cohorts for a commodity (FIFO — oldest first).
+///
+/// # Rules
+/// * Sorts cohorts by `produced_turn` (ascending) and consumes from oldest first.
+/// * Removes depleted cohorts (quantity ≤ 0).
+/// * Does not sell more physical goods than exist — clamps to available.
+fn consume_inventory_cohorts(
+    cohorts: &mut Vec<crate::economy::fixed_assets::InventoryCohort>,
+    commodity: Commodity,
+    quantity: f64,
+) {
+    // Filter to cohorts of this commodity and sort by produced_turn (FIFO).
+    let mut remaining = quantity;
+    let mut to_remove: Vec<usize> = Vec::new();
+
+    // Sort indices by produced_turn (ascending) for FIFO consumption.
+    let mut indices: Vec<(usize, u32)> = cohorts
+        .iter()
+        .enumerate()
+        .filter(|(_, c)| c.commodity == commodity)
+        .map(|(i, c)| (i, c.produced_turn))
+        .collect();
+    indices.sort_by_key(|&(_, t)| t);
+
+    for (i, _) in indices {
+        if remaining <= 0.0 {
+            break;
+        }
+        let available = cohorts[i].quantity;
+        let consumed = remaining.min(available);
+        cohorts[i].quantity -= consumed;
+        remaining -= consumed;
+        if cohorts[i].quantity <= 0.0 {
+            to_remove.push(i);
+        }
+    }
+
+    // Remove depleted cohorts (in reverse order to preserve indices).
+    to_remove.sort();
+    to_remove.dedup();
+    for &i in to_remove.iter().rev() {
+        cohorts.remove(i);
+    }
 }
 
 /// Find available warehouse capacity in a region.
@@ -1383,6 +1672,7 @@ pub fn submit_maintenance_service_bids(
     market_history: &MarketHistory,
     b2b_config: &B2bOrderConfig,
     gen_config: &crate::economy::generative_goods_config::GenerativeGoodsConfig,
+    owner_to_buildings: &rustc_hash::FxHashMap<String, Vec<usize>>,
 ) -> Vec<String> {
     use crate::economy::fixed_assets::maintenance_services_needed;
     use crate::registries::enums::Commodity;
@@ -1394,7 +1684,14 @@ pub fn submit_maintenance_service_bids(
         let max_encumber = liquid * b2b_config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
 
-        for building in buildings.iter().filter(|b| b.owner_id == company.id) {
+        // Phase 94: Use pre-built index map instead of O(B) filter scan.
+        let company_building_indices = match owner_to_buildings.get(&company.id) {
+            Some(indices) => indices.as_slice(),
+            None => continue,
+        };
+
+        for &i in company_building_indices {
+            let building = &buildings[i];
             if building.fixed_assets.is_empty() {
                 continue;
             }
@@ -1402,8 +1699,8 @@ pub fn submit_maintenance_service_bids(
             if needed <= 0.0 {
                 continue;
             }
-            let ref_price = get_reference_price(&Commodity::MaintenanceServices, market_history)
-                .unwrap_or(1.0);
+            let ref_price =
+                get_reference_price(&Commodity::MaintenanceServices, market_history).unwrap_or(1.0);
             let limit_price = ref_price * (1.0 + b2b_config.buy_premium_ratio);
             let encumbrance = needed * limit_price;
             if total_encumbered + encumbrance > max_encumber {
@@ -1475,6 +1772,7 @@ pub fn submit_fixed_asset_purchase_bids(
     market_history: &MarketHistory,
     b2b_config: &B2bOrderConfig,
     gen_config: &crate::economy::generative_goods_config::GenerativeGoodsConfig,
+    owner_to_buildings: &rustc_hash::FxHashMap<String, Vec<usize>>,
 ) -> Vec<String> {
     let messages = Vec::new();
     for company in companies.iter_mut() {
@@ -1483,7 +1781,14 @@ pub fn submit_fixed_asset_purchase_bids(
         let max_encumber = liquid * b2b_config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
 
-        for building in buildings.iter().filter(|b| b.owner_id == company.id) {
+        // Phase 94: Use pre-built index map instead of O(B) filter scan.
+        let company_building_indices = match owner_to_buildings.get(&company.id) {
+            Some(indices) => indices.as_slice(),
+            None => continue,
+        };
+
+        for &i in company_building_indices {
+            let building = &buildings[i];
             let method = &building.active_method;
             let production_scale = building.current_employment as f64 / 1000.0;
 
@@ -1529,18 +1834,14 @@ pub fn submit_fixed_asset_purchase_bids(
                 company.debit_cash += encumbrance;
                 total_encumbered += encumbrance;
 
-                order_book
-                    .bids
-                    .entry(commodity)
-                    .or_default()
-                    .push(Bid {
-                        buyer_id: company.id.clone(),
-                        commodity,
-                        quantity: desired_qty,
-                        limit_price,
-                        blueprint_id: None,
-                        min_quality: None,
-                    });
+                order_book.bids.entry(commodity).or_default().push(Bid {
+                    buyer_id: company.id.clone(),
+                    commodity,
+                    quantity: desired_qty,
+                    limit_price,
+                    blueprint_id: None,
+                    min_quality: None,
+                });
             }
 
             // Phase 45: Replacement demand from degraded fixed-asset cohorts.
@@ -1548,7 +1849,8 @@ pub fn submit_fixed_asset_purchase_bids(
             //   replacement_demand = count * (1.0 - condition)
             // This represents the quantity of new machinery needed to restore
             // the building's production capacity to full.
-            let mut replacement_needed: std::collections::HashMap<Commodity, f64> = std::collections::HashMap::default();
+            let mut replacement_needed: std::collections::HashMap<Commodity, f64> =
+                std::collections::HashMap::default();
             for cohort in &building.fixed_assets {
                 if cohort.is_scrapped() {
                     continue;
@@ -1582,18 +1884,14 @@ pub fn submit_fixed_asset_purchase_bids(
                 company.available_cash -= encumbrance;
                 company.debit_cash += encumbrance;
                 total_encumbered += encumbrance;
-                order_book
-                    .bids
-                    .entry(commodity)
-                    .or_default()
-                    .push(Bid {
-                        buyer_id: company.id.clone(),
-                        commodity,
-                        quantity: qty,
-                        limit_price,
-                        blueprint_id: None,
-                        min_quality: None,
-                    });
+                order_book.bids.entry(commodity).or_default().push(Bid {
+                    buyer_id: company.id.clone(),
+                    commodity,
+                    quantity: qty,
+                    limit_price,
+                    blueprint_id: None,
+                    min_quality: None,
+                });
             }
         }
     }
@@ -1622,7 +1920,10 @@ pub fn settle_maintenance_service_trades(
     use crate::registries::enums::Commodity;
 
     let mut messages = Vec::new();
-    for trade in trades.iter().filter(|t| t.commodity == Commodity::MaintenanceServices) {
+    for trade in trades
+        .iter()
+        .filter(|t| t.commodity == Commodity::MaintenanceServices)
+    {
         let trade_value = trade.quantity * trade.execution_price;
 
         // Release buyer's encumbered cash.
@@ -1633,7 +1934,8 @@ pub fn settle_maintenance_service_trades(
         // Credit seller via TransferSettler helper (strict double-entry).
         // This syncs the seller's bank balance sheet — unlike the legacy
         // `settle_trades` which directly mutates `available_cash`/`brokerage_account.cash`.
-        let credited = crate::economy::credit_company_by_id(companies, &trade.seller_id, trade_value);
+        let credited =
+            crate::economy::credit_company_by_id(companies, &trade.seller_id, trade_value);
         if !credited {
             messages.push(format!(
                 "Maintenance service trade: seller {} not found for trade value {}",
@@ -1727,6 +2029,7 @@ mod tests {
             bid_limit_price: price,
             blueprint_id: None,
             quality: None,
+            durability: None,
         }
     }
 
@@ -1753,7 +2056,11 @@ mod tests {
 
         let initial_cash = companies[0].brokerage_account.as_ref().unwrap().cash;
         let initial_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
-        let initial_reserves = companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank;
+        let initial_reserves = companies[1]
+            .balance_sheet
+            .as_ref()
+            .unwrap()
+            .reserves_at_central_bank;
 
         let trades = vec![make_defense_trade("seller_0", 100.0, 50.0)];
         let mut country = make_test_country();
@@ -1772,7 +2079,11 @@ mod tests {
         );
         // Bank reserves increased
         assert_eq!(
-            companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank,
+            companies[1]
+                .balance_sheet
+                .as_ref()
+                .unwrap()
+                .reserves_at_central_bank,
             initial_reserves + 5_000.0
         );
     }
@@ -1797,6 +2108,7 @@ mod tests {
             bid_limit_price: 50.0,
             blueprint_id: None,
             quality: None,
+            durability: None,
         }];
         let mut country = make_test_country();
 
@@ -1886,10 +2198,7 @@ mod tests {
         refund_unfilled_defense_bids_per_country(&bids, &trades, &companies, &mut country);
 
         // Full refund: 100 * 50 = 5000
-        assert_eq!(
-            country.budget.liquid_reserves,
-            initial_reserves + 5_000.0
-        );
+        assert_eq!(country.budget.liquid_reserves, initial_reserves + 5_000.0);
     }
 
     #[test]
@@ -1906,10 +2215,7 @@ mod tests {
         // Encumbered: 100 * 50 = 5000
         // Filled paid: 60 * 40 = 2400
         // Refund: 5000 - 2400 = 2600
-        assert_eq!(
-            country.budget.liquid_reserves,
-            initial_reserves + 2_600.0
-        );
+        assert_eq!(country.budget.liquid_reserves, initial_reserves + 2_600.0);
     }
 
     #[test]
@@ -1924,10 +2230,7 @@ mod tests {
         refund_unfilled_defense_bids_per_country(&bids, &trades, &companies, &mut country);
 
         // Fully filled at limit price — no refund
-        assert_eq!(
-            country.budget.liquid_reserves,
-            initial_reserves
-        );
+        assert_eq!(country.budget.liquid_reserves, initial_reserves);
     }
 
     #[test]
@@ -1942,10 +2245,7 @@ mod tests {
         refund_unfilled_defense_bids_per_country(&bids, &trades, &companies, &mut country);
 
         // No bids — no refund
-        assert_eq!(
-            country.budget.liquid_reserves,
-            initial_reserves
-        );
+        assert_eq!(country.budget.liquid_reserves, initial_reserves);
     }
 
     #[test]
@@ -1960,10 +2260,7 @@ mod tests {
         refund_unfilled_defense_bids_per_country(&bids, &trades, &companies, &mut country);
 
         // Seller not found in this country's companies — full refund
-        assert_eq!(
-            country.budget.liquid_reserves,
-            initial_reserves + 5_000.0
-        );
+        assert_eq!(country.budget.liquid_reserves, initial_reserves + 5_000.0);
     }
 
     // --- settle_trades defense skip test ---
@@ -1982,7 +2279,13 @@ mod tests {
         let trades = vec![make_defense_trade("seller_0", 100.0, 50.0)];
         let mut buildings: Vec<Building> = vec![];
 
-        settle_trades(&trades, &mut companies, &mut buildings);
+        settle_trades(
+            &trades,
+            &mut companies,
+            &mut buildings,
+            0,
+            &GenerativeGoodsConfig::default(),
+        );
 
         // Seller cash NOT credited by settle_trades for defense trades
         assert_eq!(

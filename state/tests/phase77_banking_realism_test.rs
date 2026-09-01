@@ -21,11 +21,21 @@ struct TestBorrower {
 }
 
 impl sim_engine::state::banking::Borrower for TestBorrower {
-    fn id(&self) -> &str { &self.id }
-    fn liquid_capital(&self) -> f64 { self.liquid }
-    fn fixed_capital(&self) -> f64 { self.fixed }
-    fn liabilities(&self) -> f64 { self.liabilities }
-    fn computed_liquid_capital(&self) -> f64 { self.liquid }
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn liquid_capital(&self) -> f64 {
+        self.liquid
+    }
+    fn fixed_capital(&self) -> f64 {
+        self.fixed
+    }
+    fn liabilities(&self) -> f64 {
+        self.liabilities
+    }
+    fn computed_liquid_capital(&self) -> f64 {
+        self.liquid
+    }
 }
 
 fn test_central_bank() -> CentralBank {
@@ -77,7 +87,10 @@ fn issue_loan_rejects_insufficient_excess_reserves() {
         &cb,
         0.05,
     );
-    assert!(result.is_err(), "Should reject loan when no excess reserves");
+    assert!(
+        result.is_err(),
+        "Should reject loan when no excess reserves"
+    );
 }
 
 #[test]
@@ -104,7 +117,10 @@ fn issue_loan_succeeds_with_excess_reserves() {
         &cb,
         0.05,
     );
-    assert!(result.is_ok(), "Should accept loan with sufficient excess reserves");
+    assert!(
+        result.is_ok(),
+        "Should accept loan with sufficient excess reserves"
+    );
 }
 
 #[test]
@@ -131,7 +147,10 @@ fn issue_loan_subtracts_lombard_from_effective_reserves() {
         &cb,
         0.05,
     );
-    assert!(result.is_err(), "Should reject when effective reserves (after Lombard) are insufficient");
+    assert!(
+        result.is_err(),
+        "Should reject when effective reserves (after Lombard) are insufficient"
+    );
 }
 
 #[test]
@@ -147,8 +166,15 @@ fn bank_operational_capacity_scales_with_fte() {
     let capacity_100 = bank_operational_capacity(100.0, 5000.0);
     let capacity_200 = bank_operational_capacity(200.0, 5000.0);
     // Doubling FTE should double capacity
-    assert!((capacity_200.max_asset_under_management / capacity_100.max_asset_under_management - 2.0).abs() < 0.01);
-    assert!((capacity_200.max_new_loans_per_turn / capacity_100.max_new_loans_per_turn - 2.0).abs() < 0.01);
+    assert!(
+        (capacity_200.max_asset_under_management / capacity_100.max_asset_under_management - 2.0)
+            .abs()
+            < 0.01
+    );
+    assert!(
+        (capacity_200.max_new_loans_per_turn / capacity_100.max_new_loans_per_turn - 2.0).abs()
+            < 0.01
+    );
 }
 
 #[test]
@@ -156,7 +182,13 @@ fn bank_operational_capacity_scales_with_wage() {
     let capacity_low_wage = bank_operational_capacity(100.0, 2000.0);
     let capacity_high_wage = bank_operational_capacity(100.0, 10000.0);
     // 5x wage should 5x capacity
-    assert!((capacity_high_wage.max_asset_under_management / capacity_low_wage.max_asset_under_management - 5.0).abs() < 0.01);
+    assert!(
+        (capacity_high_wage.max_asset_under_management
+            / capacity_low_wage.max_asset_under_management
+            - 5.0)
+            .abs()
+            < 0.01
+    );
 }
 
 #[test]

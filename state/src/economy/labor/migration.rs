@@ -21,9 +21,7 @@
 
 use crate::economy::legal_status::LegalStatus;
 use crate::entities::Building;
-use crate::politics::laws::{
-    DeportationPolicy, MigrationFlow, MigrationReason,
-};
+use crate::politics::laws::{DeportationPolicy, MigrationFlow, MigrationReason};
 use crate::registries::enums::Commodity;
 use crate::state::macro_data::ImmigrantCohort;
 use crate::state::Country;
@@ -152,15 +150,8 @@ pub fn calculate_migration_pressure(
 /// * `emigrants = population * pressure * MAX_EMIGRATION_RATE * (1.0 - enforcement_ratio)`
 /// * If borders are open, enforcement does not reduce migration.
 /// * Minimum population is preserved.
-pub fn calculate_emigrants(
-    country: &Country,
-    pressure: f64,
-    border_enforcement_ratio: f64,
-) -> u64 {
-    let migration_law = country
-        .politics
-        .migration_law
-        .as_ref();
+pub fn calculate_emigrants(country: &Country, pressure: f64, border_enforcement_ratio: f64) -> u64 {
+    let migration_law = country.politics.migration_law.as_ref();
 
     let open_borders = migration_law.map(|m| m.open_borders).unwrap_or(false);
 
@@ -212,7 +203,11 @@ pub fn collect_migration_flows(
     // Phase 67: Helper to check if two countries share a Schengen free movement treaty.
     let has_schengen = |a: &str, b: &str| -> bool {
         treaty_registry.is_some_and(|reg| {
-            reg.has_active_clause_between(a, b, &crate::international::treaties::TreatyClause::SchengenFreeMovement)
+            reg.has_active_clause_between(
+                a,
+                b,
+                &crate::international::treaties::TreatyClause::SchengenFreeMovement,
+            )
         })
     };
 
@@ -240,10 +235,15 @@ pub fn collect_migration_flows(
             // but we also boost the base attractiveness for Schengen members
             // since they have more open economies.
             let schengen_partners = treaty_registry.map_or(0, |reg| {
-                reg.treaties.iter()
-                    .filter(|t| t.is_active()
-                        && t.participants.contains(name)
-                        && t.clauses.contains(&crate::international::treaties::TreatyClause::SchengenFreeMovement))
+                reg.treaties
+                    .iter()
+                    .filter(|t| {
+                        t.is_active()
+                            && t.participants.contains(name)
+                            && t.clauses.contains(
+                                &crate::international::treaties::TreatyClause::SchengenFreeMovement,
+                            )
+                    })
                     .flat_map(|t| t.participants.iter())
                     .filter(|p| *p != name && countries.contains_key(*p))
                     .count()
@@ -268,9 +268,8 @@ pub fn collect_migration_flows(
 
         let origin_border_cap = border_capacities[origin_name];
         // Border enforcement ratio: capacity relative to total border crossings (approx population)
-        let origin_enforcement = (origin_border_cap
-            / (origin_country.budget.population as f64).max(1.0))
-        .min(1.0);
+        let origin_enforcement =
+            (origin_border_cap / (origin_country.budget.population as f64).max(1.0)).min(1.0);
 
         let emigrants = calculate_emigrants(origin_country, pressure, origin_enforcement);
         if emigrants == 0 {
@@ -295,14 +294,10 @@ pub fn collect_migration_flows(
                 // Check destination border enforcement
                 let dest_country = countries[dest_name].0;
                 let dest_border_cap = border_capacities[dest_name];
-                let dest_enforcement = (dest_border_cap
-                    / (dest_country.budget.population as f64).max(1.0))
-                .min(1.0);
+                let dest_enforcement =
+                    (dest_border_cap / (dest_country.budget.population as f64).max(1.0)).min(1.0);
 
-                let migration_law = dest_country
-                    .politics
-                    .migration_law
-                    .as_ref();
+                let migration_law = dest_country.politics.migration_law.as_ref();
                 let open_borders = migration_law.map(|m| m.open_borders).unwrap_or(false);
 
                 // Phase 67: Schengen free movement — zero border enforcement between participants.
@@ -393,7 +388,9 @@ pub fn apply_migration_flows(
     let mut dest_inflows: HashMap<String, Vec<(u64, &MigrationReason)>> = HashMap::new();
 
     for flow in flows {
-        *origin_outflows.entry(flow.origin_country.clone()).or_insert(0) += flow.count as u64;
+        *origin_outflows
+            .entry(flow.origin_country.clone())
+            .or_insert(0) += flow.count as u64;
         dest_inflows
             .entry(flow.dest_country.clone())
             .or_default()
@@ -418,7 +415,10 @@ pub fn apply_migration_flows(
             }
 
             // Phase 36: Distribute population delta to class demographics bottom-up.
-            crate::economy::labor::labor::distribute_population_delta_and_reconcile(country, total_in as i64);
+            crate::economy::labor::labor::distribute_population_delta_and_reconcile(
+                country,
+                total_in as i64,
+            );
 
             // Create immigrant cohort for total inflow
             // Phase 18A: Assign LegalStatus based on MigrationLaw
@@ -431,7 +431,9 @@ pub fn apply_migration_flows(
             } else if visa_required {
                 // Visa required but entered without one → Illegal
                 // Refugees/asylum seekers get TemporaryWorker status
-                let has_refugees = inflows.iter().any(|(_, r)| matches!(r, MigrationReason::Unrest | MigrationReason::Persecution));
+                let has_refugees = inflows.iter().any(|(_, r)| {
+                    matches!(r, MigrationReason::Unrest | MigrationReason::Persecution)
+                });
                 if has_refugees {
                     LegalStatus::TemporaryWorker
                 } else {
@@ -533,7 +535,10 @@ pub fn process_deportations(country: &mut Country, border_capacity: f64) -> u64 
 
     // Remove from population
     // Phase 36: Use bottom-up distribution instead of direct budget.population write.
-    crate::economy::labor::labor::distribute_population_delta_and_reconcile(country, -(deport_count as i64));
+    crate::economy::labor::labor::distribute_population_delta_and_reconcile(
+        country,
+        -(deport_count as i64),
+    );
 
     // Record in border state
     if let Some(border_state) = &mut country.politics.border_state {
@@ -545,9 +550,7 @@ pub fn process_deportations(country: &mut Country, border_capacity: f64) -> u64 
 
 /// Helper: get nested f64 from serde Map.
 fn get_nested_f64(map: &Map<String, serde_json::Value>, key1: &str, key2: &str) -> Option<f64> {
-    map.get(key1)?
-        .get(key2)?
-        .as_f64()
+    map.get(key1)?.get(key2)?.as_f64()
 }
 
 #[cfg(test)]
@@ -555,8 +558,8 @@ mod tests {
     use super::*;
     use crate::entities::Building;
     use crate::politics::MigrationLaw;
+    use crate::society::geography::{ClassDemographics, Region, RegionalClassDemographics};
     use crate::state::Country;
-    use crate::society::geography::{Region, RegionalClassDemographics, ClassDemographics};
 
     /// Phase 36: Create a test region with class demographics matching the
     /// given population. This is needed because bottom-up reconciliation
@@ -568,11 +571,14 @@ mod tests {
         region.population = pop;
         // Put all population in a single rural class
         let mut rural = std::collections::BTreeMap::new();
-        rural.insert("FreePeasant".to_string(), ClassDemographics {
-            population: pop,
-            labor_participation: 0.55,
-            ..Default::default()
-        });
+        rural.insert(
+            "FreePeasant".to_string(),
+            ClassDemographics {
+                population: pop,
+                labor_participation: 0.55,
+                ..Default::default()
+            },
+        );
         region.class_demographics = RegionalClassDemographics {
             rural_classes: rural,
             urban_classes: std::collections::BTreeMap::new(),
@@ -588,10 +594,7 @@ mod tests {
         let mut b2 = Building::default();
         b2.last_production
             .insert(Commodity::BorderEnforcementCapacity, 5.0);
-        assert_eq!(
-            sum_border_enforcement_capacity(&[b1, b2]),
-            15.0
-        );
+        assert_eq!(sum_border_enforcement_capacity(&[b1, b2]), 15.0);
     }
 
     #[test]
@@ -610,19 +613,20 @@ mod tests {
         country.budget.gdp = 5_000_000_000.0;
         country.macro_indicators.average_wage = 1000.0;
         // Set low security index
-        country
-            .macro_indicators
-            .extra
-            .insert(
-                "crime_rate".to_string(),
-                serde_json::json!({"safety_index": 10.0}),
-            );
+        country.macro_indicators.extra.insert(
+            "crime_rate".to_string(),
+            serde_json::json!({"safety_index": 10.0}),
+        );
         let buildings = vec![];
         let pressure = calculate_migration_pressure(&country, &buildings, 0);
         // Phase 31: Weights were rebalanced to add unemployment and subsistence
         // components. With high unrest, poverty, and low wage, pressure should
         // still be significant (> 0.35).
-        assert!(pressure > 0.35, "high unrest should produce high pressure: {}", pressure);
+        assert!(
+            pressure > 0.35,
+            "high unrest should produce high pressure: {}",
+            pressure
+        );
     }
 
     #[test]
@@ -656,7 +660,10 @@ mod tests {
             deportation_policy: DeportationPolicy::None,
         });
         let emigrants = calculate_emigrants(&country, 0.5, 1.0);
-        assert!(emigrants > 0, "open borders should allow migration despite enforcement");
+        assert!(
+            emigrants > 0,
+            "open borders should allow migration despite enforcement"
+        );
     }
 
     #[test]
@@ -666,13 +673,10 @@ mod tests {
         country_a.budget.population = 1_000_000;
         country_a.budget.gdp = 1_000_000_000.0;
         country_a.macro_indicators.average_wage = 500.0;
-        country_a
-            .macro_indicators
-            .extra
-            .insert(
-                "crime_rate".to_string(),
-                serde_json::json!({"safety_index": 10.0}),
-            );
+        country_a.macro_indicators.extra.insert(
+            "crime_rate".to_string(),
+            serde_json::json!({"safety_index": 10.0}),
+        );
         // Phase 36: Add a region with class demographics so bottom-up
         // reconciliation preserves the population instead of resetting to 0.
         country_a.regions = vec![test_region_with_population("REG-A", "CountryA", 1_000_000)];
@@ -683,13 +687,10 @@ mod tests {
         country_b.budget.gdp = 50_000_000_000.0;
         country_b.regions = vec![test_region_with_population("REG-B", "CountryB", 2_000_000)];
         country_b.macro_indicators.average_wage = 8000.0;
-        country_b
-            .macro_indicators
-            .extra
-            .insert(
-                "crime_rate".to_string(),
-                serde_json::json!({"safety_index": 90.0}),
-            );
+        country_b.macro_indicators.extra.insert(
+            "crime_rate".to_string(),
+            serde_json::json!({"safety_index": 90.0}),
+        );
 
         let buildings_a: Vec<Building> = vec![];
         let buildings_b: Vec<Building> = vec![];
@@ -722,7 +723,10 @@ mod tests {
 
         // Conservation: A lost people, B gained people, total is conserved
         assert!(pop_a_after <= pop_a_before, "origin should lose population");
-        assert!(pop_b_after >= pop_b_before, "destination should gain population");
+        assert!(
+            pop_b_after >= pop_b_before,
+            "destination should gain population"
+        );
         assert_eq!(
             pop_a_before + pop_b_before,
             pop_a_after + pop_b_after,
@@ -756,6 +760,9 @@ mod tests {
         });
         let deported = process_deportations(&mut country, 100.0);
         assert_eq!(deported, 5000);
-        assert_eq!(country.macro_indicators.demographics.illegal_immigrants, 0.0);
+        assert_eq!(
+            country.macro_indicators.demographics.illegal_immigrants,
+            0.0
+        );
     }
 }

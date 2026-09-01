@@ -25,27 +25,27 @@ pub struct HeritageBuilding {
     /// Building identifier
     #[serde(default)]
     pub id: String,
-    
+
     /// Year the building was built
     #[serde(default)]
     pub year_built: u32,
-    
+
     /// Current condition (0.0 to 1.0)
     #[serde(default)]
     pub condition: f64,
-    
+
     /// Heritage site flag
     #[serde(default)]
     pub is_heritage_site: bool,
-    
+
     /// Reserve fund for maintenance
     #[serde(default)]
     pub reserve: f64,
-    
+
     /// Fixed capital value (asset value)
     #[serde(default)]
     pub fixed_capital: f64,
-    
+
     /// Building sector
     #[serde(default)]
     pub sector: Sector,
@@ -59,7 +59,7 @@ pub trait Market {
         buyer_id: String,
         orders: BTreeMap<String, f64>,
     ) -> Result<BTreeMap<String, f64>, String>;
-    
+
     /// Calculates market cost for given commodity quantities.
     fn calculate_market_cost(&self, orders: &BTreeMap<String, f64>) -> f64;
 }
@@ -93,17 +93,17 @@ pub struct Budget {
 /// * Must not have been significantly renovated (preserves authenticity)
 pub fn check_heritage_eligibility(building: &HeritageBuilding, current_year: u32) -> bool {
     let years_since_build = current_year - building.year_built;
-    
+
     // Must be at least 50 years old
     if years_since_build < 50 {
         return false;
     }
-    
+
     // Must have maintained condition > 0.6 for most of its life
     if building.condition < 0.6 {
         return false;
     }
-    
+
     true
 }
 
@@ -128,10 +128,10 @@ pub fn apply_heritage_effects(
     if !building.is_heritage_site {
         return;
     }
-    
+
     // Massive localized prestige boost
     *region_prestige += 5.0;
-    
+
     // Tourism demand multiplier
     *tourism_revenue *= 1.2;
 }
@@ -187,7 +187,7 @@ pub fn process_heritage_effects(
 /// `false` if heritage site (protected), `true` otherwise
 pub fn can_demolish(building: &HeritageBuilding) -> bool {
     if building.is_heritage_site {
-        return false;  // Heritage sites are protected
+        return false; // Heritage sites are protected
     }
     true
 }
@@ -201,7 +201,7 @@ pub fn can_demolish(building: &HeritageBuilding) -> bool {
 /// `false` if heritage site (preserves original technology), `true` otherwise
 pub fn can_upgrade_technology(building: &HeritageBuilding) -> bool {
     if building.is_heritage_site {
-        return false;  // Heritage sites preserve original technology
+        return false; // Heritage sites preserve original technology
     }
     true
 }
@@ -229,22 +229,22 @@ pub fn apply_heritage_subsidy<M: Market>(
     if building.is_heritage_site {
         // Calculate physical material requirements for maintenance
         let maintenance_bom = calculate_maintenance_bom(&building.sector);
-        
+
         // Convert BTreeMap<Commodity, f64> to BTreeMap<String, f64> for market interface
         let mut market_orders: BTreeMap<String, f64> = BTreeMap::new();
         for (commodity, quantity) in &maintenance_bom {
-            let commodity_name = serde_json::to_string(commodity)
-                .unwrap_or_else(|_| format!("{:?}", commodity));
+            let commodity_name =
+                serde_json::to_string(commodity).unwrap_or_else(|_| format!("{:?}", commodity));
             market_orders.insert(commodity_name, *quantity);
         }
-        
+
         // Check if building has sufficient reserve for estimated cost
         let estimated_cost = market.calculate_market_cost(&market_orders);
         if building.reserve < estimated_cost {
-            building.is_heritage_site = false;  // Lose status due to gross negligence
+            building.is_heritage_site = false; // Lose status due to gross negligence
             return Err(HeritageError::InsufficientFunds);
         }
-        
+
         // Submit buy orders to market clearing engine
         let cleared_orders = match market.submit_buy_orders(building.id.clone(), market_orders) {
             Ok(orders) => orders,
@@ -254,22 +254,22 @@ pub fn apply_heritage_subsidy<M: Market>(
                 return Err(HeritageError::MarketClearingFailed);
             }
         };
-        
+
         // Calculate actual cost based on cleared orders
         let actual_cost = market.calculate_market_cost(&cleared_orders);
-        let subsidy = actual_cost * 0.5;  // State covers 50%
-        
+        let subsidy = actual_cost * 0.5; // State covers 50%
+
         // CRITICAL: Building pays full cost first
         building.reserve -= actual_cost;
-        
+
         // Then state provides subsidy
         country.budget.nominal_budget -= subsidy;
         building.reserve += subsidy;
-        
+
         // Net effect: building pays (actual_cost - subsidy)
         // Cash flows naturally to commodity producers via market clearing
     }
-    
+
     Ok(())
 }
 
@@ -280,16 +280,16 @@ mod tests {
     struct MockMarket {
         base_price: f64,
     }
-    
+
     impl Market for MockMarket {
         fn submit_buy_orders(
             &mut self,
             _buyer_id: String,
             orders: BTreeMap<String, f64>,
         ) -> Result<BTreeMap<String, f64>, String> {
-            Ok(orders)  // Mock: all orders cleared
+            Ok(orders) // Mock: all orders cleared
         }
-        
+
         fn calculate_market_cost(&self, orders: &BTreeMap<String, f64>) -> f64 {
             orders.values().sum::<f64>() * self.base_price
         }
@@ -302,7 +302,7 @@ mod tests {
             condition: 0.8,
             ..Default::default()
         };
-        let current_year = 2040;  // 40 years old
+        let current_year = 2040; // 40 years old
         assert!(!check_heritage_eligibility(&building, current_year));
     }
 
@@ -310,10 +310,10 @@ mod tests {
     fn test_check_heritage_eligibility_poor_condition() {
         let building = HeritageBuilding {
             year_built: 1950,
-            condition: 0.5,  // Below 0.6 threshold
+            condition: 0.5, // Below 0.6 threshold
             ..Default::default()
         };
-        let current_year = 2020;  // 70 years old
+        let current_year = 2020; // 70 years old
         assert!(!check_heritage_eligibility(&building, current_year));
     }
 
@@ -324,7 +324,7 @@ mod tests {
             condition: 0.8,
             ..Default::default()
         };
-        let current_year = 2020;  // 70 years old
+        let current_year = 2020; // 70 years old
         assert!(check_heritage_eligibility(&building, current_year));
     }
 
@@ -336,11 +336,11 @@ mod tests {
         };
         let mut prestige = 10.0;
         let mut tourism = 100.0;
-        
+
         apply_heritage_effects(&building, &mut prestige, &mut tourism);
-        
-        assert_eq!(prestige, 15.0);  // +5 prestige
-        assert_eq!(tourism, 120.0);  // +20% tourism revenue
+
+        assert_eq!(prestige, 15.0); // +5 prestige
+        assert_eq!(tourism, 120.0); // +20% tourism revenue
     }
 
     #[test]
@@ -385,7 +385,7 @@ mod tests {
             },
         };
         let mut market = MockMarket { base_price: 1.0 };
-        
+
         let result = apply_heritage_subsidy(&mut building, &mut country, &mut market);
         assert!(result.is_ok());
         assert!(building.is_heritage_site);
@@ -395,7 +395,7 @@ mod tests {
     fn test_apply_heritage_subsidy_insufficient_funds() {
         let mut building = HeritageBuilding {
             is_heritage_site: true,
-            reserve: 10.0,  // Too low
+            reserve: 10.0, // Too low
             fixed_capital: 10000.0,
             sector: Sector::Construction,
             ..Default::default()
@@ -406,9 +406,9 @@ mod tests {
             },
         };
         let mut market = MockMarket { base_price: 1.0 };
-        
+
         let result = apply_heritage_subsidy(&mut building, &mut country, &mut market);
         assert!(matches!(result, Err(HeritageError::InsufficientFunds)));
-        assert!(!building.is_heritage_site);  // Lost status
+        assert!(!building.is_heritage_site); // Lost status
     }
 }

@@ -15,9 +15,9 @@ fn rich_country_has_more_units_than_poor() {
     let rich_oob = generate_asymmetric_oob(
         "RichNation",
         50_000_000_000.0, // 50B GDP
-        5000.0,            // High GDP per capita
-        4000.0,            // High average wage
-        40_000_000,        // 40M population
+        5000.0,           // High GDP per capita
+        4000.0,           // High average wage
+        40_000_000,       // 40M population
         vec!["r1".to_string(), "r2".to_string(), "r3".to_string()],
         &mut rng,
     );
@@ -25,9 +25,9 @@ fn rich_country_has_more_units_than_poor() {
     let poor_oob = generate_asymmetric_oob(
         "PoorNation",
         30_000_000.0, // 30M GDP
-        300.0,         // Low GDP per capita
-        240.0,         // Low average wage
-        2_000_000,     // 2M population
+        300.0,        // Low GDP per capita
+        240.0,        // Low average wage
+        2_000_000,    // 2M population
         vec!["r1".to_string()],
         &mut rng,
     );
@@ -111,8 +111,16 @@ fn different_gdp_pc_produces_different_oob() {
 
     // Countries with different GDP per capita should have different unit counts
     // or different regiment/unit structure (richer = more regiments/units).
-    let struct_a = (oob_a.armies.len(), oob_a.unit_count(), oob_a.total_manpower());
-    let struct_b = (oob_b.armies.len(), oob_b.unit_count(), oob_b.total_manpower());
+    let struct_a = (
+        oob_a.armies.len(),
+        oob_a.unit_count(),
+        oob_a.total_manpower(),
+    );
+    let struct_b = (
+        oob_b.armies.len(),
+        oob_b.unit_count(),
+        oob_b.total_manpower(),
+    );
     assert!(
         struct_a != struct_b || oob_a.unit_count() != oob_b.unit_count(),
         "Countries with different GDP per capita should have different OOB structure"
@@ -144,17 +152,26 @@ fn tiny_country_has_minimal_oob() {
     let mut rng = rand::thread_rng();
     let oob = generate_asymmetric_oob(
         "TinyNation",
-        1_000_000.0,  // 1M GDP
-        100.0,         // Very low GDP per capita
-        80.0,          // Very low average wage
-        100_000,       // 100K population
+        1_000_000.0, // 1M GDP
+        100.0,       // Very low GDP per capita
+        80.0,        // Very low average wage
+        100_000,     // 100K population
         vec!["r1".to_string()],
         &mut rng,
     );
 
-    assert!(!oob.armies.is_empty(), "Tiny country should have at least 1 army");
-    assert!(oob.total_manpower() > 0, "Tiny country should have positive manpower");
-    assert!(oob.unit_count() > 0, "Tiny country should have at least 1 unit");
+    assert!(
+        !oob.armies.is_empty(),
+        "Tiny country should have at least 1 army"
+    );
+    assert!(
+        oob.total_manpower() > 0,
+        "Tiny country should have positive manpower"
+    );
+    assert!(
+        oob.unit_count() > 0,
+        "Tiny country should have at least 1 unit"
+    );
 }
 
 /// Test 7: Base unit manpower should not be artificially inflated to 5000 for small countries.
@@ -175,7 +192,9 @@ fn small_country_unit_manpower_not_inflated() {
     // Total units should be small enough that unit manpower is reasonable.
     // The old code clamped to min 100, max 5000 — we removed the max clamp.
     // So unit manpower should be well below 5000 for a small country.
-    let max_manpower: i64 = oob.armies.iter()
+    let max_manpower: i64 = oob
+        .armies
+        .iter()
         .flat_map(|a| a.divisions.iter())
         .flat_map(|d| d.regiments.iter())
         .flat_map(|r| r.units.iter())

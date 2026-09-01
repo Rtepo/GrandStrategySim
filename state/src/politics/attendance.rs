@@ -23,9 +23,7 @@ pub struct AttendanceModel {
 
 impl Default for AttendanceModel {
     fn default() -> Self {
-        AttendanceModel {
-            base_rate: 0.85,
-        }
+        AttendanceModel { base_rate: 0.85 }
     }
 }
 
@@ -120,8 +118,7 @@ impl AttendanceModel {
             let unrest_penalty = social_unrest.clamp(0.0, 1.0);
 
             // Per-party attendance probability.
-            let attendance_prob = (self.base_rate
-                + discipline * 0.10
+            let attendance_prob = (self.base_rate + discipline * 0.10
                 - health_penalty * 0.15
                 - unrest_penalty * 0.10)
                 .clamp(0.50, 0.98);
@@ -253,8 +250,8 @@ mod tests {
         let result = calculate_attendance(
             &lower_seats,
             &parties,
-            1.0,  // perfect health
-            0.0,  // no unrest
+            1.0, // perfect health
+            0.0, // no unrest
             LegislativeWeight::Ordinary,
             "test_bill",
             1,
@@ -276,8 +273,8 @@ mod tests {
         let result = calculate_attendance(
             &lower_seats,
             &parties,
-            0.0,  // terrible health
-            1.0,  // max unrest
+            0.0, // terrible health
+            1.0, // max unrest
             LegislativeWeight::Constitutional,
             "const_amendment",
             1,

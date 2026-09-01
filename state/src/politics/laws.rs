@@ -11,19 +11,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HealthcareLaw {
     /// Healthcare system type
-
     pub healthcare_system: HealthcareSystem,
 
     /// Funding configuration
-
     pub funding: ServiceFundingConfig,
 
     /// Universality level
-
     pub universality: UniversalityLevel,
 
     /// Healthcare priorities
-
     pub priorities: HealthcarePriorities,
 }
 
@@ -32,16 +28,12 @@ pub struct HealthcareLaw {
 #[serde(rename_all = "snake_case")]
 pub enum HealthcareSystem {
     /// Polish NFZ model
-
     NationalHealthFund,
     /// Bismarck model
-
     InsuranceBased,
     /// Beveridge model
-
     Budgetary,
     /// US-style
-
     MarketBased,
 }
 
@@ -63,19 +55,15 @@ pub enum UniversalityLevel {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HealthcarePriorities {
     /// Emergency priority
-
     pub emergency_priority: bool,
 
     /// Elderly priority
-
     pub elderly_priority: bool,
 
     /// Children priority
-
     pub children_priority: bool,
 
     /// Chronic condition priority
-
     pub chronic_priority: bool,
 }
 
@@ -83,19 +71,15 @@ pub struct HealthcarePriorities {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct EducationLaw {
     /// Education model
-
     pub education_model: EducationModel,
 
     /// School system
-
     pub school_system: SchoolSystem,
 
     /// Funding configuration
-
     pub funding: ServiceFundingConfig,
 
     /// Compulsory education configuration
-
     pub compulsory_education: CompulsoryEducationConfig,
 }
 
@@ -104,16 +88,12 @@ pub struct EducationLaw {
 #[serde(rename_all = "snake_case")]
 pub enum EducationModel {
     /// State-run
-
     StateRun,
     /// Private
-
     Private,
     /// Mixed
-
     Mixed,
     /// Religious
-
     Religious,
 }
 
@@ -122,16 +102,12 @@ pub enum EducationModel {
 #[serde(rename_all = "snake_case")]
 pub enum SchoolSystem {
     /// Primary 4, Middle 4, High 4
-
     FourPlusFourPlusFour,
     /// Primary 6, Middle 3, High 3
-
     SixPlusThreePlusThree,
     /// Primary 8, High 4
-
     EightPlusFour,
     /// Direct Primary → High
-
     NoMiddleSchool,
 }
 
@@ -139,15 +115,12 @@ pub enum SchoolSystem {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CompulsoryEducationConfig {
     /// Compulsory years
-
     pub compulsory_years: u32,
 
     /// End age
-
     pub end_age: u32,
 
     /// Enforcement level
-
     pub enforcement: EnforcementLevel,
 }
 
@@ -322,34 +295,30 @@ pub enum LawType {
 /// * Tax rate change: Directly mutates `country.tax_rates`.
 /// * Economic policy: Sets `country.economic_policy` field.
 /// * Infrastructure mandate: Adjusts `country.infrastructure_config` allocation.
-pub fn enact_law(
-    country: &mut crate::state::Country,
-    law_type: LawType,
-) -> String {
+pub fn enact_law(country: &mut crate::state::Country, law_type: LawType) -> String {
     match law_type {
         LawType::Healthcare(law) => {
             country.politics.healthcare_law = Some(law.clone());
-            // Adjust service pricing for healthcare based on universality
+            // Phase C.2: Use force_free flag instead of magic nominal price.
             let is_universal = law.universality == UniversalityLevel::Universal;
-            if is_universal {
-                country.service_pricing_config.health_price_per_capacity = 0.0;
-            } else {
-                country.service_pricing_config.health_price_per_capacity = 75.0;
-            }
-            format!("Healthcare law enacted: universality={:?}", law.universality)
+            country.service_pricing_config.force_free_healthcare = is_universal;
+            format!(
+                "Healthcare law enacted: universality={:?}",
+                law.universality
+            )
         }
         LawType::Education(law) => {
             country.politics.education_law = Some(law.clone());
-            // Adjust service pricing for education based on model
+            // Phase C.2: Use force_free flag instead of magic nominal price.
             let is_state_run = law.education_model == EducationModel::StateRun;
-            if is_state_run {
-                country.service_pricing_config.education_price_per_slot = 0.0;
-            } else {
-                country.service_pricing_config.education_price_per_slot = 50.0;
-            }
+            country.service_pricing_config.force_free_education = is_state_run;
             format!("Education law enacted: model={:?}", law.education_model)
         }
-        LawType::TaxRateChange { income_tax, vat, corporate_tax } => {
+        LawType::TaxRateChange {
+            income_tax,
+            vat,
+            corporate_tax,
+        } => {
             let mut changes = Vec::new();
             if let Some(rate) = income_tax {
                 country.tax_rates.income_tax.rate = rate;
@@ -370,14 +339,20 @@ pub fn enact_law(
         }
         LawType::EconomicPolicyChange { policy } => {
             // EconomicPolicy has price_interventions, not a policy string
-            format!("Economic policy change requested: {} (requires price intervention setup)", policy)
+            format!(
+                "Economic policy change requested: {} (requires price intervention setup)",
+                policy
+            )
         }
         LawType::InfrastructureMandate { allocation_pct } => {
             // InfrastructureConfig has cost_per_worker fields, not allocation
             // Adjust education cost as proxy for infrastructure investment
             let old = country.infrastructure_config.education_cost_per_worker;
             country.infrastructure_config.education_cost_per_worker = old * (1.0 + allocation_pct);
-            format!("Infrastructure mandate: education cost/worker {:.0} → {:.0}", old, country.infrastructure_config.education_cost_per_worker)
+            format!(
+                "Infrastructure mandate: education cost/worker {:.0} → {:.0}",
+                old, country.infrastructure_config.education_cost_per_worker
+            )
         }
         LawType::Justice(law) => {
             country.politics.justice_law = Some(law.clone());
@@ -413,9 +388,7 @@ pub fn enact_law(
             country.politics.free_speech_law = Some(law.clone());
             format!(
                 "Free speech law enacted: level={:?}, assembly={:?}, press={:?}",
-                law.free_speech_level,
-                law.assembly_rights,
-                law.press_freedom
+                law.free_speech_level, law.assembly_rights, law.press_freedom
             )
         }
         LawType::Transport(law) => {
@@ -654,7 +627,11 @@ impl ReligiousLaw {
     pub fn from_raw(raw: &str, religion_engine_key: &str) -> Self {
         match raw {
             "State" => Self {
-                state_religion: if religion_engine_key.is_empty() { None } else { Some(religion_engine_key.to_string()) },
+                state_religion: if religion_engine_key.is_empty() {
+                    None
+                } else {
+                    Some(religion_engine_key.to_string())
+                },
                 separation_of_church_and_state: false,
                 church_tax_rate: 0.02,
                 apostolic_remittance_rate: 0.10,

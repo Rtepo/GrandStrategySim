@@ -107,7 +107,7 @@ impl Default for Gender {
 ///
 /// # Rules
 /// * The `secondary` and `higher` fields are maps of specialization → share
-///   (e.g. `"Techniczne": 0.105`).
+///   (e.g. `"Technical": 0.105`).
 /// * `basic` and `none` are scalar shares.
 /// * The Python `workforce.py` uses `higher` for experts, `basic` for the
 ///   `skilled` tier, and `none` for the `unskilled` tier.
@@ -410,8 +410,7 @@ pub struct HealthStatistics {
     pub hospital_coverage: f64,
 }
 
-impl HealthStatistics {
-}
+impl HealthStatistics {}
 
 /// Education statistics.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -429,8 +428,7 @@ pub struct EducationStatistics {
     pub higher_education_rate: f64,
 }
 
-impl EducationStatistics {
-}
+impl EducationStatistics {}
 
 /// Phase 24F: A single telemetry sample stored in the rolling history buffer.
 ///
@@ -918,8 +916,7 @@ impl Default for MacroData {
     }
 }
 
-impl MacroData {
-}
+impl MacroData {}
 
 #[cfg(test)]
 mod tests {

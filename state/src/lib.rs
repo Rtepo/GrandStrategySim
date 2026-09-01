@@ -60,8 +60,8 @@
 #![allow(deprecated)]
 
 pub mod agriculture;
-pub mod corporate;
 pub mod construction;
+pub mod corporate;
 pub mod data;
 pub mod economy;
 pub mod energy;

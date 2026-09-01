@@ -4,14 +4,17 @@
 //! and the market-driven `IpoStrategy` used by family businesses and
 //! cooperatives to decide whether to go public.
 
+use crate::corporate::market_behavior::MarketBehaviorModifiers;
 use crate::economy::market::MarketSignal;
-use crate::entities::legal_form::{CooperativeData, FamilyBusinessData, JointStockData, LegalForm, LegalFormTransition, LegalTransition, TransitionContext};
+use crate::entities::legal_form::{
+    CooperativeData, FamilyBusinessData, JointStockData, LegalForm, LegalFormTransition,
+    LegalTransition, TransitionContext,
+};
 use crate::entities::{ActiveProductionMethod, Company};
 use crate::registries::enums::Sector;
 use crate::state::macro_data::LaborMarket;
 use crate::state::treasury::{SectorShare, StockMarket};
 use crate::state::Country;
-use crate::corporate::market_behavior::MarketBehaviorModifiers;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -48,6 +51,8 @@ pub struct CorporateDecisionCtx<'a> {
     pub avg_fulfillment_ratio: f64,
     /// Phase 88: Current global turn (for agricultural grace hardcap computation).
     pub current_turn: u32,
+    /// Phase 95: All buildings in the country (for blueprint design evaluation).
+    pub buildings: &'a [crate::entities::Building],
 }
 
 /// Actions a company can choose.
@@ -135,6 +140,18 @@ pub enum CorporateAction {
         /// The company-chosen search depth target in meters.
         target_depth: f64,
     },
+    /// Phase 95: Design a new product blueprint (commercial engineering).
+    /// The company spends `available_cash` (NOT `rd_budget`) to design a
+    /// blueprint for a blueprint-eligible commodity. The design fee is paid
+    /// to the State Treasury as a patent/certification fee (double-entry).
+    DesignBlueprint {
+        /// The commodity this blueprint will produce.
+        output_commodity: crate::registries::enums::Commodity,
+        /// The base technology ID for this blueprint.
+        base_tech: crate::registries::tech_tree::TechId,
+        /// The method slot this blueprint targets.
+        required_slot: crate::registries::production_methods::MethodSlot,
+    },
 }
 
 /// Source of expansion financing.
@@ -186,8 +203,8 @@ pub fn evaluate_board_conflict(
         return BoardDecision::Approve;
     }
 
-    let avg_loyalty: f64 = board_members.iter().map(|s| s.loyalty_to_ceo).sum::<f64>()
-        / board_members.len() as f64;
+    let avg_loyalty: f64 =
+        board_members.iter().map(|s| s.loyalty_to_ceo).sum::<f64>() / board_members.len() as f64;
 
     // Fire CEO if loyalty is critically low and company is bleeding.
     if avg_loyalty < 0.3 && !is_profitable {
@@ -264,6 +281,18 @@ impl CorporateStrategy for LegalForm {
             }
         }
 
+        // Phase 95: Industrial companies may design product blueprints.
+        // Evaluated before expansion because a new blueprint can improve
+        // the profitability of existing production capacity.
+        if ctx.company.sector == Sector::HeavyIndustry
+            || ctx.company.sector == Sector::LightIndustry
+        {
+            let blueprint = evaluate_blueprint_design(ctx);
+            if !matches!(blueprint, CorporateAction::Idle) {
+                return blueprint;
+            }
+        }
+
         // Prioritize expansion over dividends to match original behavior
         let expansion = self.evaluate_expansion(ctx);
         if !matches!(expansion, CorporateAction::Idle) {
@@ -292,16 +321,22 @@ impl CorporateStrategy for LegalForm {
         match self {
             LegalForm::FamilyBusiness(data) => {
                 let total = ctx.net_profit * (1.0 - data.family_retained_share).max(0.0);
-                CorporateAction::PayDividend { total: total.max(0.0) }
+                CorporateAction::PayDividend {
+                    total: total.max(0.0),
+                }
             }
             LegalForm::JointStockCompany(data) => {
                 let ratio = dividend_payout_ratio(data);
                 let total = ctx.net_profit * ratio;
-                CorporateAction::PayDividend { total: total.max(0.0) }
+                CorporateAction::PayDividend {
+                    total: total.max(0.0),
+                }
             }
             LegalForm::Cooperative(_data) => {
                 let total = ctx.net_profit * 0.5;
-                CorporateAction::PayDividend { total: total.max(0.0) }
+                CorporateAction::PayDividend {
+                    total: total.max(0.0),
+                }
             }
             _ => CorporateAction::PayDividend { total: 0.0 },
         }
@@ -372,19 +407,19 @@ pub enum DisposalReason {
 /// * AI hard rule: Never dispose if state intervention is imminent
 fn evaluate_inventory_disposal(_ctx: &CorporateDecisionCtx) -> Vec<DisposalOrder> {
     let disposal_orders = Vec::new();
-    
+
     // Phase 13: Requires warehouse batch tracking access
-    
+
     // Example logic (when batches are accessible):
     // for batch in company.owned_batches.iter() {
     //     let current_market_price = get_market_price(batch.commodity, ctx);
     //     let projected_transport_cost = estimate_transport_cost(batch);
     //     let total_cost = batch.accumulated_fees + projected_transport_cost;
-    //     
+    //
     //     let should_dispose = total_cost > current_market_price
     //         && !state_intervention_expected(batch.commodity, ctx)
     //         && company.liquid_capital > batch.accumulated_fees;
-    //     
+    //
     //     if should_dispose {
     //         disposal_orders.push(DisposalOrder {
     //             batch_id: batch.id,
@@ -393,7 +428,7 @@ fn evaluate_inventory_disposal(_ctx: &CorporateDecisionCtx) -> Vec<DisposalOrder
     //         });
     //     }
     // }
-    
+
     disposal_orders
 }
 
@@ -412,7 +447,7 @@ fn evaluate_method_switch(ctx: &CorporateDecisionCtx) -> CorporateAction {
     // For Phase 1, we use a simplified approach: check if the company has buildings
     // and evaluate method switching based on market conditions
     // Phase 13: Requires per-building method evaluation from company registry
-    
+
     // Find alternative methods from registry for this building type
     // For Phase 1, we implement a simplified version with hardcoded synthetic alternatives
     // We create a dummy current method for evaluation
@@ -429,9 +464,9 @@ fn evaluate_method_switch(ctx: &CorporateDecisionCtx) -> CorporateAction {
         extra: serde_json::Map::new(),
         ..Default::default()
     };
-    
+
     let alternatives = find_alternative_methods(&dummy_current, ctx.year);
-    
+
     for alt_method in alternatives {
         // Calculate projected Gross Margin for alternative method
         let alt_gm = calculate_gross_margin(
@@ -439,19 +474,17 @@ fn evaluate_method_switch(ctx: &CorporateDecisionCtx) -> CorporateAction {
             &ctx.market_signal.prices,
             ctx.country.macro_indicators.average_wage,
         );
-        
+
         // Calculate switch cost (equipment, retraining, downtime)
         let switch_cost = calculate_switch_cost(&dummy_current, &alt_method);
-        
+
         // Switch only if alternative is profitable AND switch cost is justified
         // For Phase 1, we use a simpler threshold: positive gross margin with reasonable payback
         if alt_gm > 0.0 {
             let payback_turns = switch_cost / alt_gm.max(0.01);
-            
+
             if payback_turns <= 20.0 {
-                return CorporateAction::SwitchMethod {
-                    method: alt_method,
-                };
+                return CorporateAction::SwitchMethod { method: alt_method };
             }
         }
     }
@@ -474,25 +507,30 @@ fn calculate_gross_margin(
     market_prices: &rustc_hash::FxHashMap<crate::registries::enums::Commodity, f64>,
     base_wage: f64,
 ) -> f64 {
-    let wage_multiplier = method.experts_ratio * 3.0 + method.skilled_ratio * 2.0 + method.basic_ratio;
+    let wage_multiplier =
+        method.experts_ratio * 3.0 + method.skilled_ratio * 2.0 + method.basic_ratio;
     let wages_per_1k = wage_multiplier * base_wage;
-    
+
     // Calculate input costs using current market prices
-    let input_costs: f64 = method.inputs.iter()
+    let input_costs: f64 = method
+        .inputs
+        .iter()
         .map(|(commodity, amount_per_1k)| {
             let price = market_prices.get(commodity).copied().unwrap_or(100.0);
             amount_per_1k * price
         })
         .sum();
-    
+
     // Calculate output revenue using current market prices
-    let output_revenue: f64 = method.outputs.iter()
+    let output_revenue: f64 = method
+        .outputs
+        .iter()
         .map(|(commodity, amount_per_1k)| {
             let price = market_prices.get(commodity).copied().unwrap_or(100.0);
             amount_per_1k * price
         })
         .sum();
-    
+
     // Gross margin per 1000 workers
     output_revenue - input_costs - wages_per_1k
 }
@@ -510,17 +548,17 @@ fn calculate_switch_cost(
     alternative: &ActiveProductionMethod,
 ) -> f64 {
     // Equipment replacement cost (simplified: 10% of fixed capital)
-    let equipment_cost = 10000.0;  // Placeholder - should reference building.fixed_capital
-    
+    let equipment_cost = 10000.0; // Placeholder - should reference building.fixed_capital
+
     // Worker retraining cost (based on labor ratio differences)
     let labor_diff = (current.experts_ratio - alternative.experts_ratio).abs()
         + (current.skilled_ratio - alternative.skilled_ratio).abs()
         + (current.basic_ratio - alternative.basic_ratio).abs();
     let retraining_cost = labor_diff * 5000.0;
-    
+
     // Downtime cost (estimated 2 turns of lost production)
-    let downtime_cost = 2000.0;  // Placeholder
-    
+    let downtime_cost = 2000.0; // Placeholder
+
     equipment_cost + retraining_cost + downtime_cost
 }
 
@@ -540,27 +578,25 @@ fn find_alternative_methods(
     year: u32,
 ) -> Vec<ActiveProductionMethod> {
     let mut alternatives = Vec::new();
-    
+
     // Coal to Energy synthetic fuel production (available from year 2000)
     if year >= 2000 {
         // Create synthetic coal-to-energy method
         let mut synthetic_method = current_method.clone();
-        
+
         // Add coal input
-        synthetic_method.inputs.insert(
-            crate::registries::enums::Commodity::HardCoal,
-            100.0,
-        );
-        
+        synthetic_method
+            .inputs
+            .insert(crate::registries::enums::Commodity::HardCoal, 100.0);
+
         // Add energy output (synthetic fuel)
-        synthetic_method.outputs.insert(
-            crate::registries::enums::Commodity::Energy,
-            60.0,
-        );
-        
+        synthetic_method
+            .outputs
+            .insert(crate::registries::enums::Commodity::Energy, 60.0);
+
         alternatives.push(synthetic_method);
     }
-    
+
     alternatives
 }
 
@@ -584,7 +620,7 @@ pub fn calculate_administrative_overhead(
     region_id: &str,
 ) -> f64 {
     match legal_form {
-        crate::entities::legal_form::LegalForm::JointStockCompany(_) 
+        crate::entities::legal_form::LegalForm::JointStockCompany(_)
         | crate::entities::legal_form::LegalForm::StateMonopoly(_) => {
             // Check if company has leased office space
             // Phase 13: Requires company registry for office lease checking
@@ -722,7 +758,10 @@ impl Company {
     }
 }
 
-fn evaluate_family_ipo(data: &FamilyBusinessData, ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
+fn evaluate_family_ipo(
+    data: &FamilyBusinessData,
+    ctx: &CorporateDecisionCtx,
+) -> Option<CorporateAction> {
     if ctx.company.company_capital < 10_000_000.0 {
         return None;
     }
@@ -738,7 +777,10 @@ fn evaluate_family_ipo(data: &FamilyBusinessData, ctx: &CorporateDecisionCtx) ->
     .evaluate(ctx)
 }
 
-fn evaluate_cooperative_ipo(data: &CooperativeData, ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
+fn evaluate_cooperative_ipo(
+    data: &CooperativeData,
+    ctx: &CorporateDecisionCtx,
+) -> Option<CorporateAction> {
     if data.member_count < 500 {
         return None;
     }
@@ -797,7 +839,8 @@ fn is_within_material_shortage_grace(company: &Company, current_turn: u32) -> bo
             }
             // Check if the company has recorded its first non-zero revenue.
             let has_nonzero_revenue = company.financial_history.iter().any(|record| {
-                record.get("revenue")
+                record
+                    .get("revenue")
                     .and_then(|v| v.as_f64())
                     .map(|r| r > 0.0)
                     .unwrap_or(false)
@@ -807,15 +850,19 @@ fn is_within_material_shortage_grace(company: &Company, current_turn: u32) -> bo
             }
             true // Still waiting for first harvest sale — grace active
         }
-        Sector::Mining | Sector::HeavyIndustry | Sector::LightIndustry
-        | Sector::Energy | Sector::Construction => {
+        Sector::Mining
+        | Sector::HeavyIndustry
+        | Sector::LightIndustry
+        | Sector::Energy
+        | Sector::Construction => {
             // Phase 89: 12-turn hardcap for industrial sectors.
             if current_turn.saturating_sub(company.founded_turn) >= 12 {
                 return false;
             }
             // Same revenue-based check as agriculture.
             let has_nonzero_revenue = company.financial_history.iter().any(|record| {
-                record.get("revenue")
+                record
+                    .get("revenue")
                     .and_then(|v| v.as_f64())
                     .map(|r| r > 0.0)
                     .unwrap_or(false)
@@ -916,7 +963,8 @@ fn family_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
             return CorporateAction::Idle;
         }
         let investment = ctx.gross_profit * 0.30 * (1.0 - expansion_weight);
-        let new_workers = cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
+        let new_workers =
+            cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
         CorporateAction::Expand {
             investment,
             new_workers,
@@ -936,7 +984,8 @@ fn cooperative_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
             return CorporateAction::Idle;
         }
         let investment = ctx.gross_profit * 0.20 * (1.0 - expansion_weight);
-        let new_workers = cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
+        let new_workers =
+            cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
         CorporateAction::Expand {
             investment,
             new_workers,
@@ -954,7 +1003,8 @@ fn mutual_aid_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
             return CorporateAction::Idle;
         }
         let investment = ctx.gross_profit * 0.10 * (1.0 - expansion_weight);
-        let new_workers = cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
+        let new_workers =
+            cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
         CorporateAction::Expand {
             investment,
             new_workers,
@@ -1063,7 +1113,9 @@ fn evaluate_geological_survey(ctx: &CorporateDecisionCtx) -> CorporateAction {
     // The safety buffer is 6 months of wages (TURNS_PER_YEAR / 4 turns).
     let payroll = ctx.company.fulfilled_fte as f64 * ctx.company.offered_wage_per_fte;
     let safety_buffer = payroll * 6.0;
-    let available = ctx.company.brokerage_account
+    let available = ctx
+        .company
+        .brokerage_account
         .as_ref()
         .map(|ba| ba.cash.max(0.0))
         .unwrap_or(ctx.company.available_cash.max(0.0));
@@ -1109,6 +1161,110 @@ fn evaluate_geological_survey(ctx: &CorporateDecisionCtx) -> CorporateAction {
         region_id,
         commodity,
         target_depth,
+    }
+}
+
+/// Phase 95: Evaluate whether the company should design a new product blueprint.
+///
+/// # Rules
+/// * Only HeavyIndustry and LightIndustry companies design blueprints.
+/// * Only if the company has fewer than `max_blueprints_per_company` blueprints.
+/// * Only if the company has a patented or licensed Commercial tech.
+/// * Only if `available_cash >= compute_blueprint_design_cost(sector, average_wage)`.
+/// * Only if the company has operational capacity (`fulfilled_fte > 0`).
+/// * Returns `DesignBlueprint` with the highest-margin eligible commodity, or `Idle`.
+fn evaluate_blueprint_design(ctx: &CorporateDecisionCtx) -> CorporateAction {
+    use crate::registries::enums::Commodity;
+
+    // Only industrial sectors design blueprints.
+    if ctx.company.sector != Sector::HeavyIndustry && ctx.company.sector != Sector::LightIndustry {
+        return CorporateAction::Idle;
+    }
+
+    // Must have operational capacity.
+    if ctx.company.fulfilled_fte == 0 {
+        return CorporateAction::Idle;
+    }
+
+    // Must have at least one patent or licensed method (Commercial tech).
+    if ctx.company.patents.is_empty() && ctx.company.licensed_methods.is_empty() {
+        return CorporateAction::Idle;
+    }
+
+    // Compute dynamic design cost.
+    let average_wage = ctx.country.macro_indicators.average_wage.max(1.0);
+    let design_cost = crate::economy::generative_goods_config::compute_blueprint_design_cost(
+        ctx.company.sector,
+        average_wage,
+        &ctx.country.generative_goods_config,
+    );
+
+    // Must have available_cash (NOT rd_budget) for the design fee.
+    let available = ctx
+        .company
+        .brokerage_account
+        .as_ref()
+        .map(|ba| ba.cash.max(0.0))
+        .unwrap_or(ctx.company.available_cash.max(0.0));
+
+    // Keep a safety buffer: 6 months of payroll.
+    let payroll = ctx.company.fulfilled_fte as f64 * ctx.company.offered_wage_per_fte;
+    let safety_buffer = payroll * 6.0;
+    if available <= safety_buffer + design_cost {
+        return CorporateAction::Idle;
+    }
+
+    // Choose the output commodity: pick the first blueprint-eligible commodity
+    // from the company's first building's outputs.
+    // This is a simplification — a full implementation would evaluate all
+    // eligible commodities and pick the highest-margin one.
+    let building = ctx.buildings.iter().find(|b| b.owner_id == ctx.company.id);
+
+    let output_commodity = if let Some(b) = building {
+        // Find the first blueprint-eligible output.
+        b.active_method
+            .outputs
+            .keys()
+            .find(|c| c.is_blueprint_eligible())
+            .copied()
+    } else {
+        None
+    };
+
+    let output_commodity = match output_commodity {
+        Some(c) => c,
+        None => {
+            // Fallback: use sector-default blueprint-eligible commodities.
+            match ctx.company.sector {
+                Sector::HeavyIndustry => Commodity::IndustrialMachinery,
+                Sector::LightIndustry => Commodity::Cars,
+                _ => return CorporateAction::Idle,
+            }
+        }
+    };
+
+    // Use the first patent's tech_id as the base tech.
+    let base_tech = ctx
+        .company
+        .patents
+        .first()
+        .map(|p| p.tech_id.clone())
+        .or_else(|| {
+            ctx.company
+                .licensed_methods
+                .first()
+                .map(|lm| lm.tech_id.clone())
+        });
+
+    let base_tech = match base_tech {
+        Some(t) => t,
+        None => return CorporateAction::Idle,
+    };
+
+    CorporateAction::DesignBlueprint {
+        output_commodity,
+        base_tech,
+        required_slot: crate::registries::production_methods::MethodSlot::Production,
     }
 }
 

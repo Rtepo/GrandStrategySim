@@ -76,7 +76,11 @@ impl UpgradeProject {
             if required <= 0.0 {
                 continue;
             }
-            let delivered = self.delivered_materials.get(&commodity).copied().unwrap_or(0.0);
+            let delivered = self
+                .delivered_materials
+                .get(&commodity)
+                .copied()
+                .unwrap_or(0.0);
             let ratio = (delivered / required).min(1.0);
             if ratio < min_ratio {
                 min_ratio = ratio;
@@ -113,11 +117,19 @@ impl UpgradeProject {
     ///   commodity, so over-deliveries do not carry forward.
     /// * Updates `progress` after accumulation.
     pub fn accumulate_delivery(&mut self, commodity: Commodity, quantity: f64) -> f64 {
-        let required = self.required_materials.get(&commodity).copied().unwrap_or(0.0);
+        let required = self
+            .required_materials
+            .get(&commodity)
+            .copied()
+            .unwrap_or(0.0);
         if required <= 0.0 {
             return 0.0;
         }
-        let already = self.delivered_materials.get(&commodity).copied().unwrap_or(0.0);
+        let already = self
+            .delivered_materials
+            .get(&commodity)
+            .copied()
+            .unwrap_or(0.0);
         let remaining = (required - already).max(0.0);
         if remaining <= 0.0 {
             return 0.0;
@@ -204,7 +216,7 @@ mod tests {
         // Turn 2: deliver 7.0 Glass (complete)
         project.accumulate_delivery(Commodity::Glass, 7.0);
         assert!(!project.is_complete()); // Still need ElectronicComponents
-        // Turn 3: deliver 5.0 ElectronicComponents (complete)
+                                         // Turn 3: deliver 5.0 ElectronicComponents (complete)
         project.accumulate_delivery(Commodity::ElectronicComponents, 5.0);
         assert!(project.is_complete());
         assert!((project.progress - 1.0).abs() < 1e-9);

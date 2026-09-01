@@ -6,11 +6,13 @@
 //! - Central Bank parameter integration
 //! - Full banking sector workflow
 
-use sim_engine::state::{BankBalanceSheet, BankType, CentralBank, InterbankMarket, Loan, LoanStatus};
-use sim_engine::state::banking::{InterestType, LoanType};
 use sim_engine::entities::{Company, LegalForm};
 use sim_engine::registries::enums::Sector;
 use sim_engine::state::banking::{calculate_credit_score, issue_loan};
+use sim_engine::state::banking::{InterestType, LoanType};
+use sim_engine::state::{
+    BankBalanceSheet, BankType, CentralBank, InterbankMarket, Loan, LoanStatus,
+};
 
 #[test]
 fn test_full_loan_issuance_workflow() {
@@ -48,7 +50,10 @@ fn test_full_loan_issuance_workflow() {
         &bank_balance_sheet.loans_issued,
     );
 
-    assert!(credit_score.approved, "Credit score should approve healthy borrower");
+    assert!(
+        credit_score.approved,
+        "Credit score should approve healthy borrower"
+    );
     assert!(credit_score.score > 0.5, "Credit score should be above 0.5");
 
     // Step 2: Issue loan
@@ -69,9 +74,19 @@ fn test_full_loan_issuance_workflow() {
     let result = loan_result.unwrap();
 
     // Step 3: Verify balance sheet changes (double-entry bookkeeping)
-    assert_eq!(bank_balance_sheet.loans_issued.len(), 1, "Should have one loan");
-    assert!((bank_balance_sheet.deposits - 2_150_000.0).abs() < 1e-9, "Deposits should increase by loan amount");
-    assert!((bank_balance_sheet.reserves_at_central_bank - 500_000.0).abs() < 1e-9, "Reserves unchanged during loan creation");
+    assert_eq!(
+        bank_balance_sheet.loans_issued.len(),
+        1,
+        "Should have one loan"
+    );
+    assert!(
+        (bank_balance_sheet.deposits - 2_150_000.0).abs() < 1e-9,
+        "Deposits should increase by loan amount"
+    );
+    assert!(
+        (bank_balance_sheet.reserves_at_central_bank - 500_000.0).abs() < 1e-9,
+        "Reserves unchanged during loan creation"
+    );
 
     // Step 4: Verify loan record
     assert_eq!(result.loan.principal, 150_000.0);
@@ -156,26 +171,44 @@ fn test_interbank_market_clearing_with_multiple_banks() {
     // Total surplus: 280k, Total deficit: 50k
     // Transfer: 50k from surplus banks to deficit bank
 
-    assert!((market.available_liquidity - 280_000.0).abs() < 1e-9, "Available liquidity should be 280k");
-    assert!((market.demanded_liquidity - 50_000.0).abs() < 1e-9, "Demanded liquidity should be 50k");
+    assert!(
+        (market.available_liquidity - 280_000.0).abs() < 1e-9,
+        "Available liquidity should be 280k"
+    );
+    assert!(
+        (market.demanded_liquidity - 50_000.0).abs() < 1e-9,
+        "Demanded liquidity should be 50k"
+    );
 
     // Verify XIBOR calculation
     // Supply/demand ratio: 280k / 50k = 5.6 (surplus > deficit)
     // XIBOR should be near deposit rate (0.02)
-    assert!(market.xibor >= 0.02, "XIBOR should be at least deposit rate");
+    assert!(
+        market.xibor >= 0.02,
+        "XIBOR should be at least deposit rate"
+    );
     assert!(market.xibor <= 0.05, "XIBOR should not exceed lombard rate");
 
     // Verify bank balance sheet updates
     // Bank 1 should have lent proportionally: (200k/280k) * 50k = 35.7k
     let bank1_bs = bank1.balance_sheet.as_ref().unwrap();
     let bank1_lent: f64 = bank1_bs.interbank_loans_given.values().sum();
-    assert!((bank1_lent - 35_714.0).abs() < 100.0, "Bank 1 should have lent ~35.7k");
+    assert!(
+        (bank1_lent - 35_714.0).abs() < 100.0,
+        "Bank 1 should have lent ~35.7k"
+    );
 
     // Bank 2 should have borrowed 50k
     let bank2_bs = bank2.balance_sheet.as_ref().unwrap();
     let bank2_borrowed: f64 = bank2_bs.interbank_loans_taken.values().sum();
-    assert!((bank2_borrowed - 50_000.0).abs() < 1e-9, "Bank 2 should have borrowed 50k");
-    assert!((bank2_bs.reserves_at_central_bank - 150_000.0).abs() < 1e-9, "Bank 2 reserves should increase to 150k");
+    assert!(
+        (bank2_borrowed - 50_000.0).abs() < 1e-9,
+        "Bank 2 should have borrowed 50k"
+    );
+    assert!(
+        (bank2_bs.reserves_at_central_bank - 150_000.0).abs() < 1e-9,
+        "Bank 2 reserves should increase to 150k"
+    );
 }
 
 #[test]
@@ -229,8 +262,10 @@ fn test_central_bank_parameter_integration() {
     );
 
     // Higher interest rates should increase risk premium
-    assert!(credit_high.risk_premium_bps >= credit_low.risk_premium_bps, 
-            "Higher CB rates should increase risk premium");
+    assert!(
+        credit_high.risk_premium_bps >= credit_low.risk_premium_bps,
+        "Higher CB rates should increase risk premium"
+    );
 
     // Both should approve the same borrower
     assert!(credit_low.approved, "Low rate environment should approve");
@@ -292,9 +327,18 @@ fn test_consolidation_loan_with_equity_swap() {
         &balance_sheet.loans_issued,
     );
 
-    assert!(credit_score.approved, "Consolidation should be approved for existing debtor");
-    assert!(credit_score.required_equity_swap.is_some(), "Should require equity swap");
-    assert!((credit_score.required_equity_swap.unwrap() - 0.15).abs() < 1e-9, "Should require 15% equity swap");
+    assert!(
+        credit_score.approved,
+        "Consolidation should be approved for existing debtor"
+    );
+    assert!(
+        credit_score.required_equity_swap.is_some(),
+        "Should require equity swap"
+    );
+    assert!(
+        (credit_score.required_equity_swap.unwrap() - 0.15).abs() < 1e-9,
+        "Should require 15% equity swap"
+    );
 
     // Issue consolidation loan
     let loan_result = issue_loan(
@@ -318,5 +362,9 @@ fn test_consolidation_loan_with_equity_swap() {
     assert_eq!(result.loan.principal, 100_000.0);
 
     // Verify that the bank now has two loans (old + new)
-    assert_eq!(balance_sheet.loans_issued.len(), 2, "Should have two loans after consolidation");
+    assert_eq!(
+        balance_sheet.loans_issued.len(),
+        2,
+        "Should have two loans after consolidation"
+    );
 }

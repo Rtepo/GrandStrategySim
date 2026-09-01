@@ -178,7 +178,8 @@ pub fn process_propaganda_turn(
                 // Hate speech only fires when majority of population consumes state media
                 if consumption_ratio > 0.5 {
                     result.hate_speech_active = true;
-                    let reduction = propaganda_config.hate_speech_threshold_reduction * consumption_ratio;
+                    let reduction =
+                        propaganda_config.hate_speech_threshold_reduction * consumption_ratio;
                     result.applied_threshold_reduction = reduction;
                 }
             }
@@ -190,13 +191,17 @@ pub fn process_propaganda_turn(
                 // Apply to all classes across all regions
                 for region in &mut country.regions {
                     for class in region.class_demographics.rural_classes.values_mut() {
-                        class.political_sentiment.loyalists = (class.political_sentiment.loyalists + boost).min(1.0);
-                        class.political_sentiment.radicals = (class.political_sentiment.radicals - boost).max(0.0);
+                        class.political_sentiment.loyalists =
+                            (class.political_sentiment.loyalists + boost).min(1.0);
+                        class.political_sentiment.radicals =
+                            (class.political_sentiment.radicals - boost).max(0.0);
                         class.political_sentiment.normalize();
                     }
                     for class in region.class_demographics.urban_classes.values_mut() {
-                        class.political_sentiment.loyalists = (class.political_sentiment.loyalists + boost).min(1.0);
-                        class.political_sentiment.radicals = (class.political_sentiment.radicals - boost).max(0.0);
+                        class.political_sentiment.loyalists =
+                            (class.political_sentiment.loyalists + boost).min(1.0);
+                        class.political_sentiment.radicals =
+                            (class.political_sentiment.radicals - boost).max(0.0);
                         class.political_sentiment.normalize();
                     }
                 }
@@ -214,7 +219,10 @@ pub fn process_propaganda_turn(
     }
 
     // Update media state
-    let media_state = country.politics.media_state.get_or_insert_with(MediaState::default);
+    let media_state = country
+        .politics
+        .media_state
+        .get_or_insert_with(MediaState::default);
     media_state.last_consumption_ratio = consumption_ratio;
     media_state.propaganda_active = !propaganda_config.active_campaigns.is_empty();
 
@@ -240,10 +248,7 @@ pub fn process_propaganda_turn(
 ///
 /// # Returns
 /// Updated `IntelligenceState` with capacity and coverage.
-pub fn compute_intelligence_state(
-    buildings: &[Building],
-    country: &Country,
-) -> IntelligenceState {
+pub fn compute_intelligence_state(buildings: &[Building], country: &Country) -> IntelligenceState {
     let total_capacity: f64 = buildings
         .iter()
         .filter_map(|b| {
@@ -335,7 +340,8 @@ pub fn check_terrorism_triggers(
         for (class_id, class) in &region.class_demographics.rural_classes {
             let is_minority = !class.religion.is_empty() && class.religion != dominant_religion;
             if is_minority && class.political_sentiment.radicals > 0.6 {
-                let radical_pop = (class.population as f64 * class.political_sentiment.radicals) as i64;
+                let radical_pop =
+                    (class.population as f64 * class.political_sentiment.radicals) as i64;
                 radical_minority_pop += radical_pop;
                 if target_class_id.is_none() {
                     target_class_id = Some(class_id.clone());
@@ -346,7 +352,8 @@ pub fn check_terrorism_triggers(
         for (class_id, class) in &region.class_demographics.urban_classes {
             let is_minority = !class.religion.is_empty() && class.religion != dominant_religion;
             if is_minority && class.political_sentiment.radicals > 0.6 {
-                let radical_pop = (class.population as f64 * class.political_sentiment.radicals) as i64;
+                let radical_pop =
+                    (class.population as f64 * class.political_sentiment.radicals) as i64;
                 radical_minority_pop += radical_pop;
                 if target_class_id.is_none() {
                     target_class_id = Some(class_id.clone());
@@ -404,8 +411,8 @@ pub fn check_terrorism_triggers(
                 continue;
             }
             // Target state buildings (courthouses, police stations, government)
-            let is_state_building = building.owner_id.starts_with("STATE_")
-                || building.owner_id.starts_with("LOCAL_");
+            let is_state_building =
+                building.owner_id.starts_with("STATE_") || building.owner_id.starts_with("LOCAL_");
             if is_state_building && destroyed_count < buildings_destroyed {
                 building.condition = (building.condition * (1.0 - severity)).max(0.0);
                 if building.condition < 0.1 {
@@ -447,7 +454,8 @@ pub fn check_terrorism_triggers(
 
         // Economic damage
         let economic_damage = severity * 1_000_000.0;
-        country.budget.liquid_reserves = (country.budget.liquid_reserves - economic_damage).max(0.0);
+        country.budget.liquid_reserves =
+            (country.budget.liquid_reserves - economic_damage).max(0.0);
 
         // Unrest spike
         country.macro_indicators.social_unrest += severity * 20.0;
@@ -524,7 +532,7 @@ pub fn compute_propaganda_subsidy_rate(country: &Country) -> f64 {
 mod tests {
     use super::*;
     use crate::politics::free_speech::{FreeSpeechLaw, FreeSpeechLevel};
-    use crate::society::geography::{Region, ClassDemographics, PoliticalSentiment};
+    use crate::society::geography::{ClassDemographics, PoliticalSentiment, Region};
 
     #[test]
     fn test_propaganda_ruling_party_boost() {
@@ -549,7 +557,10 @@ mod tests {
             undecided: 0.2,
             ..Default::default()
         };
-        region.class_demographics.urban_classes.insert("workers".to_string(), class);
+        region
+            .class_demographics
+            .urban_classes
+            .insert("workers".to_string(), class);
         country.regions.push(region);
 
         let result = process_propaganda_turn(&mut country, 0.8);
@@ -639,14 +650,19 @@ mod tests {
             undecided: 0.1,
             ..Default::default()
         };
-        region.class_demographics.urban_classes.insert("minority".to_string(), class);
+        region
+            .class_demographics
+            .urban_classes
+            .insert("minority".to_string(), class);
         country.regions.push(region);
         country.macro_indicators.religion = "Catholicism".to_string();
 
         // Add intelligence building with high capacity
         let mut building = Building::default();
         building.region_id = "r1".to_string();
-        building.last_production.insert(Commodity::IntelligenceCapacity, 1000.0);
+        building
+            .last_production
+            .insert(Commodity::IntelligenceCapacity, 1000.0);
         let mut buildings = vec![building];
 
         let result = check_terrorism_triggers(&mut country, &mut buildings, 1);
@@ -671,7 +687,10 @@ mod tests {
             undecided: 0.1,
             ..Default::default()
         };
-        region.class_demographics.urban_classes.insert("minority".to_string(), class);
+        region
+            .class_demographics
+            .urban_classes
+            .insert("minority".to_string(), class);
         country.regions.push(region);
         country.macro_indicators.religion = "Catholicism".to_string();
 
@@ -684,7 +703,10 @@ mod tests {
         assert!(result.severity > 0.0);
         assert!(result.casualties > 0);
         assert_eq!(result.events.len(), 1);
-        assert_eq!(result.events[0].disaster_type, DisasterType::TerroristAttack);
+        assert_eq!(
+            result.events[0].disaster_type,
+            DisasterType::TerroristAttack
+        );
     }
 
     #[test]
@@ -703,7 +725,10 @@ mod tests {
             undecided: 0.1,
             ..Default::default()
         };
-        region.class_demographics.urban_classes.insert("minority".to_string(), class);
+        region
+            .class_demographics
+            .urban_classes
+            .insert("minority".to_string(), class);
         country.regions.push(region);
         country.macro_indicators.religion = "Catholicism".to_string();
 

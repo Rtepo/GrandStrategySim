@@ -249,9 +249,9 @@ pub fn process_budget_amendments(
                 // Find a ministry to cut from (deprioritized by this ideology)
                 let cut_idx = bill.final_ministries.iter().position(|m| {
                     m.ministry_id != bill.final_ministries[m_idx].ministry_id
-                        && m.competencies.iter().any(|c| {
-                            priorities.weight_for(*c) < 0.3
-                        })
+                        && m.competencies
+                            .iter()
+                            .any(|c| priorities.weight_for(*c) < 0.3)
                 });
                 if let Some(c_idx) = cut_idx {
                     if let Some(other) = bill.final_ministries.get_mut(c_idx) {
@@ -311,10 +311,7 @@ pub fn process_budget_lifecycle(
     // Stage 2: Floor Vote
     bill.stage = BudgetBillStage::FloorVote;
     let total_seats: u32 = parliament.values().sum();
-    let coalition_seats: u32 = coalition
-        .iter()
-        .filter_map(|pid| parliament.get(pid))
-        .sum();
+    let coalition_seats: u32 = coalition.iter().filter_map(|pid| parliament.get(pid)).sum();
 
     let mut yes_votes = coalition_seats;
 
@@ -342,7 +339,9 @@ pub fn process_budget_lifecycle(
                 .final_ministries
                 .iter()
                 .map(|m| {
-                    let weight = m.competencies.iter()
+                    let weight = m
+                        .competencies
+                        .iter()
                         .map(|c| priorities.weight_for(*c))
                         .sum::<f64>()
                         / m.competencies.len().max(1) as f64;
@@ -437,10 +436,7 @@ fn country_is_autocratic(_ruling_party: &str, _active_parties: &HashMap<String, 
 /// Checks if the coalition is a minority government.
 fn country_is_minority(coalition: &[String], parliament: &HashMap<String, u32>) -> bool {
     let total: u32 = parliament.values().sum();
-    let coalition_seats: u32 = coalition
-        .iter()
-        .filter_map(|pid| parliament.get(pid))
-        .sum();
+    let coalition_seats: u32 = coalition.iter().filter_map(|pid| parliament.get(pid)).sum();
     if total == 0 {
         return false;
     }
@@ -465,10 +461,7 @@ fn country_is_minority(coalition: &[String], parliament: &HashMap<String, u32>) 
 /// * `DictatorialDecree`: PM's original budget enacted without amendments.
 ///   Sets `iron_fist += 1`. May trigger unrest.
 pub fn apply_budget_failure_consequence(country: &mut Country, bill: BudgetBill) {
-    let consequence = country
-        .politics
-        .constitution
-        .budget_failure_consequence;
+    let consequence = country.politics.constitution.budget_failure_consequence;
 
     match consequence {
         BudgetFailureConsequence::SnapElections => {
@@ -507,7 +500,7 @@ pub fn apply_budget_failure_consequence(country: &mut Country, bill: BudgetBill)
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::politics::ministries::{GovernmentCompetency, MinistryConfig, Ministry};
+    use crate::politics::ministries::{GovernmentCompetency, Ministry, MinistryConfig};
 
     #[test]
     fn test_draft_budget_bill() {

@@ -15,8 +15,8 @@
 use crate::economy::disasters::{DisasterEvent, DisasterType};
 use crate::registries::enums::Commodity;
 use crate::society::culture_registry::{registry as culture_registry, ReligionDefinition};
-use crate::state::Country;
 use crate::society::geography::Region;
+use crate::state::Country;
 use std::collections::BTreeMap;
 
 /// Configuration for pogrom triggers and effects (no magic numbers).
@@ -192,8 +192,19 @@ fn check_region_pogrom(
     );
     if rural_result.triggered {
         // Apply effects to the region.
-        apply_wealth_transfer(region, &rural_result.minority_class, "rural", dominant_religion, rural_result.wealth_transferred);
-        reduce_minority_population(region, &rural_result.minority_class, "rural", rural_result.casualties);
+        apply_wealth_transfer(
+            region,
+            &rural_result.minority_class,
+            "rural",
+            dominant_religion,
+            rural_result.wealth_transferred,
+        );
+        reduce_minority_population(
+            region,
+            &rural_result.minority_class,
+            "rural",
+            rural_result.casualties,
+        );
         let mut pogrom = PogromResult::default();
         pogrom.triggered = true;
         pogrom.severity = rural_result.severity;
@@ -218,8 +229,19 @@ fn check_region_pogrom(
         &region.id,
     );
     if urban_result.triggered {
-        apply_wealth_transfer(region, &urban_result.minority_class, "urban", dominant_religion, urban_result.wealth_transferred);
-        reduce_minority_population(region, &urban_result.minority_class, "urban", urban_result.casualties);
+        apply_wealth_transfer(
+            region,
+            &urban_result.minority_class,
+            "urban",
+            dominant_religion,
+            urban_result.wealth_transferred,
+        );
+        reduce_minority_population(
+            region,
+            &urban_result.minority_class,
+            "urban",
+            urban_result.casualties,
+        );
         let mut pogrom = PogromResult::default();
         pogrom.triggered = true;
         pogrom.severity = urban_result.severity;
@@ -313,8 +335,7 @@ fn check_class_map_pogrom(
         let security_factor = 1.0 - security_ratio * 0.5;
 
         let severity = (unrest_factor * 0.4 + distance_factor * 0.3 + justice_gap * 0.3)
-            * security_factor
-            .min(config.max_severity);
+            * security_factor.min(config.max_severity);
 
         if severity < 0.01 {
             continue;
@@ -391,7 +412,8 @@ fn apply_wealth_transfer(
         let debit = minority.savings.min(amount);
         minority.savings -= debit;
 
-        let dominant_pop: f64 = class_map.values()
+        let dominant_pop: f64 = class_map
+            .values()
             .filter(|d| d.religion == *dominant_religion || d.religion.is_empty())
             .map(|d| d.population as f64)
             .sum();
@@ -455,8 +477,14 @@ mod tests {
         dominant.savings = 1000.0;
         dominant.savings_per_capita = 0.125;
 
-        region.class_demographics.rural_classes.insert("minority_class".to_string(), minority);
-        region.class_demographics.rural_classes.insert("dominant_class".to_string(), dominant);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("minority_class".to_string(), minority);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("dominant_class".to_string(), dominant);
 
         region
     }
@@ -470,10 +498,16 @@ mod tests {
         let minority = &region.class_demographics.rural_classes["minority_class"];
         let dominant = &region.class_demographics.rural_classes["dominant_class"];
 
-        assert!((minority.savings - 4500.0).abs() < 0.01,
-            "minority savings should be 4500, got {}", minority.savings);
-        assert!((dominant.savings - 1500.0).abs() < 0.01,
-            "dominant savings should be 1500, got {}", dominant.savings);
+        assert!(
+            (minority.savings - 4500.0).abs() < 0.01,
+            "minority savings should be 4500, got {}",
+            minority.savings
+        );
+        assert!(
+            (dominant.savings - 1500.0).abs() < 0.01,
+            "dominant savings should be 1500, got {}",
+            dominant.savings
+        );
     }
 
     #[test]
@@ -486,7 +520,10 @@ mod tests {
         let config = PogromConfig::default();
         let results = check_pogrom_triggers(&mut country, &[], &config, 1);
 
-        assert!(results.is_empty(), "no pogroms when unrest is below threshold");
+        assert!(
+            results.is_empty(),
+            "no pogroms when unrest is below threshold"
+        );
     }
 
     #[test]
@@ -510,20 +547,26 @@ mod tests {
         country.politics.civil_rights_law = "5-Year Assimilation".to_string();
 
         let mut building = crate::entities::Building::default();
-        building.last_production.insert(Commodity::JusticeCapacity, 10000.0);
+        building
+            .last_production
+            .insert(Commodity::JusticeCapacity, 10000.0);
         let buildings = vec![building];
 
         let config = PogromConfig::default();
         let results = check_pogrom_triggers(&mut country, &buildings, &config, 1);
 
-        assert!(results.is_empty(), "no pogroms when justice coverage is high");
+        assert!(
+            results.is_empty(),
+            "no pogroms when justice coverage is high"
+        );
     }
 
     #[test]
     fn test_pogrom_casualties_reduce_population() {
         let mut region = make_test_region_with_minority();
         let original_pop = region.population;
-        let original_minority_pop = region.class_demographics.rural_classes["minority_class"].population;
+        let original_minority_pop =
+            region.class_demographics.rural_classes["minority_class"].population;
 
         reduce_minority_population(&mut region, "minority_class", "rural", 200);
 

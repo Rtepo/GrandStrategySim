@@ -8,9 +8,9 @@
 //! systems.
 
 pub mod banking;
-pub mod central_bank;
 /// Phase 55: Capital gains tax system for securities and commodities.
 pub mod capital_gains_tax;
+pub mod central_bank;
 /// Climate configuration and seasonal modifiers (Phase 6.1)
 pub mod climate;
 pub mod currency;
@@ -24,34 +24,53 @@ pub mod special_economic_zones;
 pub mod tax;
 pub mod treasury;
 
-pub use banking::{Bank, BankBalanceSheet, BankType, InterbankMarket, Loan, LoanStatus, LoanType as BankingLoanType, InterestType, BfgFund, SobkScheme, BankResolution, BankTax, process_banking_turn, BankingTurnResult};
-pub use capital_gains_tax::{CapitalGainsTaxRegistry, EntityGainsAccrual};
-pub use crate::securities::BrokerageAccount;
-pub use central_bank::{CentralBank, CentralBankIndependence, MonetaryMandate, MonetaryPolicyCouncil, RppInterestRates};
-pub use climate::{SeasonalModifiers, ClimateConfig};
-pub use currency::{Currency, CurrencyPolicy};
-pub use economic_policy::{EconomicPolicy, PriceIntervention};
-pub use forex::{ForexMarket, ForexOrder, ForexOrderType, ForexLiquidityPool, ForexTrade, settle_trade_deficits, TradeSettlementResult};
-pub use gold::{GlobalGoldExchange, GoldOrder, GoldTrade};
-pub use macro_data::MacroData;
-pub use policy::{CentralBankPolicy, KnfPolicy, BankruptcyPolicy};
-pub use special_economic_zones::{SpecialEconomicZone, SpecialEconomicZoneType, InvestmentSubvention, get_sse_tax_multiplier, apply_sse_property_tax_rebate, apply_sse_vat_exemption, calculate_corporate_tax_with_sse, grant_investment_subvention, process_subvention_conversions, execute_clawback, check_zone_eligibility_for_clawback, fund_sse_budgets};
 pub use crate::military::MilitaryUnit;
 pub use crate::politics::Politics;
-pub use tax::{TaxRates, AggregateVatRecord, process_tax_collection_turn, TaxCollectionResult, TaxLiability, route_tax_collection_to_country, TaxType, TaxRouting};
+pub use crate::securities::BrokerageAccount;
+pub use banking::{
+    process_banking_turn, Bank, BankBalanceSheet, BankResolution, BankTax, BankType,
+    BankingTurnResult, BfgFund, InterbankMarket, InterestType, Loan, LoanStatus,
+    LoanType as BankingLoanType, SobkScheme,
+};
+pub use capital_gains_tax::{CapitalGainsTaxRegistry, EntityGainsAccrual};
+pub use central_bank::{
+    CentralBank, CentralBankIndependence, MonetaryMandate, MonetaryPolicyCouncil, RppInterestRates,
+};
+pub use climate::{ClimateConfig, SeasonalModifiers};
+pub use currency::{Currency, CurrencyPolicy};
+pub use economic_policy::{EconomicPolicy, PriceIntervention};
+pub use forex::{
+    settle_trade_deficits, ForexLiquidityPool, ForexMarket, ForexOrder, ForexOrderType, ForexTrade,
+    TradeSettlementResult,
+};
+pub use gold::{GlobalGoldExchange, GoldOrder, GoldTrade};
+pub use macro_data::MacroData;
+pub use policy::{BankruptcyPolicy, CentralBankPolicy, KnfPolicy};
+pub use special_economic_zones::{
+    apply_sse_property_tax_rebate, apply_sse_vat_exemption, calculate_corporate_tax_with_sse,
+    check_zone_eligibility_for_clawback, execute_clawback, fund_sse_budgets,
+    get_sse_tax_multiplier, grant_investment_subvention, process_subvention_conversions,
+    InvestmentSubvention, SpecialEconomicZone, SpecialEconomicZoneType,
+};
+pub use tax::{
+    process_tax_collection_turn, route_tax_collection_to_country, AggregateVatRecord,
+    TaxCollectionResult, TaxLiability, TaxRates, TaxRouting, TaxType,
+};
 pub use treasury::Treasury;
 
-use crate::economy::market_history::MarketHistory;
 use crate::economy::banking_history::BankingHistory;
+use crate::economy::market_history::MarketHistory;
 use crate::registries::enums::Commodity;
-use crate::society::geography::{Region, Megaregion};
+use crate::society::geography::{Megaregion, Region};
+use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::collections::{HashMap, BTreeMap};
-use rustc_hash::FxHashMap;
+use std::collections::{BTreeMap, HashMap};
 
 /// Season of the year for climate modifiers
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize, Default)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize, Default,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum Season {
     #[default]
@@ -100,7 +119,9 @@ pub struct Calendar {
     pub start_month: u32,
 }
 
-fn default_start_month() -> u32 { 9 }
+fn default_start_month() -> u32 {
+    9
+}
 
 impl Calendar {
     /// Advance by one half-month tick
@@ -112,17 +133,17 @@ impl Calendar {
         self.current_month = (turn_in_year / 2 + self.start_month - 1) % 12 + 1;
         self.half_month = turn_in_year % 2 == 1;
     }
-    
+
     /// Check if this is the last half-month of the year (turn 24, 48, 72...)
     pub fn is_year_end(&self) -> bool {
         self.global_turn.is_multiple_of(24)
     }
-    
+
     /// Check if this is the first half-month of the year (turn 1, 25, 49...)
     pub fn is_year_start(&self) -> bool {
         self.global_turn % 24 == 1
     }
-    
+
     /// Get season based on current month
     pub fn get_season(&self) -> Season {
         match self.current_month {
@@ -180,7 +201,6 @@ pub enum RationingLevel {
     Emergency,
 }
 
-
 /// Rationing system for managing commodity shortages (Phase 4).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct RationingSystem {
@@ -213,7 +233,6 @@ pub enum EmergencyPowers {
     /// Martial law - complete state control.
     MartialLaw,
 }
-
 
 /// Intelligence budget for espionage operations (Phase 10).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -412,7 +431,8 @@ pub struct Country {
     pub cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig,
     /// Resurrection Phase 1: Building condition configuration
     #[serde(default)]
-    pub building_condition_config: crate::infrastructure::building_condition::BuildingConditionConfig,
+    pub building_condition_config:
+        crate::infrastructure::building_condition::BuildingConditionConfig,
     /// Resurrection Phase 1: Maritime configuration
     #[serde(default)]
     pub maritime_config: crate::infrastructure::maritime::MaritimeConfig,
@@ -627,7 +647,26 @@ pub struct Country {
     /// heating and infrastructure AI decision trees each turn. Stored so the
     /// construction system can execute the funded plans in subsequent phases.
     #[serde(default)]
-    pub municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan,
+    pub municipal_infrastructure_plan:
+        crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan,
+    /// Phase 15B (Agent 4): State Customs Warehouse — physical inventory of
+    /// goods confiscated from intercepted smugglers. Goods are stored here
+    /// until auctioned onto the GlobalMarket in subsequent turns. No fiat is
+    /// booked at seizure time; revenue is realized only at auction settlement.
+    /// (Rule 1: no fiat creation; Rule 19: no teleportation; Rule 20: clamped.)
+    #[serde(default)]
+    pub state_customs_warehouse: rustc_hash::FxHashMap<crate::registries::enums::Commodity, f64>,
+    /// Phase 15B (Agent 4): Last smuggling turn result (diagnostics only).
+    /// Stored for UI snapshot exposure and fog-of-war role-gating (Rule 11).
+    #[serde(default)]
+    pub last_smuggling_result: Option<crate::economy::smuggling::SmugglingTurnResult>,
+    /// Phase 30 (Agent 4): Pending foreign maritime transit fees — fees
+    /// collected from domestic buyers on behalf of foreign territorial-water
+    /// owners. The domestic treasury holds these in trust until a sequential
+    /// post-parallel phase credits the foreign country's treasury.
+    /// Each tuple is (foreign_country_name, fee_amount).
+    #[serde(default)]
+    pub pending_foreign_transit_fees: Vec<(String, f64)>,
 }
 
 impl Country {
@@ -674,7 +713,13 @@ impl Country {
             bank_resolution: BankResolution::default(),
             bank_tax: BankTax::default(),
             stock_exchange: crate::securities::StockExchange::default(),
-            dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(),
+            dividend_queue: Vec::new(),
+            ipo_queue: Vec::new(),
+            bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(),
+            demolition_queue: Vec::new(),
+            halt_queue: Vec::new(),
+            furlough_wage_queue: Vec::new(),
+            recruitment_cost_queue: Vec::new(),
             knf: crate::securities::KNF::default(),
             capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
             sovereign_default_turns_remaining: 0,
@@ -683,9 +728,12 @@ impl Country {
             economic_policy: EconomicPolicy::default(),
             debt_market: crate::economy::debt_market::DebtMarket::default(),
             cultural_institutions: Vec::new(),
-            maritime_infrastructure: crate::infrastructure::maritime::MaritimeInfrastructure::default(),
-            cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(),
-            building_condition_config: crate::infrastructure::building_condition::BuildingConditionConfig::default(),
+            maritime_infrastructure:
+                crate::infrastructure::maritime::MaritimeInfrastructure::default(),
+            cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(
+            ),
+            building_condition_config:
+                crate::infrastructure::building_condition::BuildingConditionConfig::default(),
             maritime_config: crate::infrastructure::maritime::MaritimeConfig::default(),
             securities_config: crate::securities::SecuritiesMarketConfig::default(),
             central_counterparty: crate::securities::CentralCounterparty::default(),
@@ -698,7 +746,8 @@ impl Country {
             b2b_order_config: crate::economy::b2b_config::B2bOrderConfig::default(),
             fishing_config: crate::economy::fishing_config::FishingConfig::default(),
             service_pricing_config: crate::economy::service_config::ServicePricingConfig::default(),
-            infrastructure_config: crate::economy::infrastructure_config::InfrastructureConfig::default(),
+            infrastructure_config:
+                crate::economy::infrastructure_config::InfrastructureConfig::default(),
             innovation_config: crate::economy::innovation_config::InnovationConfig::default(),
             corporate_tech_config: crate::economy::corporate_config::CorporateTechConfig::default(),
             fish_stocks: Vec::new(),
@@ -716,17 +765,22 @@ impl Country {
             weather_state: crate::economy::weather::WeatherState::default(),
             maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
             state_forest_state: crate::economy::state_forests::ForestDistrictState::default(),
-            religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
-            generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
+            religious_authority_state:
+                crate::society::religious_authority::ReligiousAuthorityState::default(),
+            generative_goods_config:
+                crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
             geological_formations: Vec::new(),
-            mining_concessions: crate::economy::production::geology::MiningConcessionRegistry::default(),
-            geological_survey_ledger: crate::economy::production::geology::GeologicalSurveyLedger::default(),
+            mining_concessions:
+                crate::economy::production::geology::MiningConcessionRegistry::default(),
+            geological_survey_ledger:
+                crate::economy::production::geology::GeologicalSurveyLedger::default(),
             phase22_tenders: Vec::new(),
             phase22_lawsuits: Vec::new(),
             phase22_kio_appeals: Vec::new(),
             freight_logistics_config: crate::economy::logistics::FreightLogisticsConfig::default(),
             deferred_trades: Vec::new(),
-            transport_networks: crate::economy::transport_networks::TransportNetworkOverlay::default(),
+            transport_networks:
+                crate::economy::transport_networks::TransportNetworkOverlay::default(),
             commuting_config: crate::economy::commuting::CommutingConfig::default(),
             regional_overflow_fees: std::collections::BTreeMap::new(),
             last_tax_result: None,
@@ -743,14 +797,20 @@ impl Country {
             national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
             subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
             global_reputation: crate::international::reputation::GlobalReputation::default(),
-            geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
+            geopolitical_doctrine:
+                crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
             power_grid_state: crate::energy::PowerGridState::default(),
             ppa_registry: crate::energy::types::PpaRegistry::default(),
             turn_config: crate::engine::turn_config::TurnConfig::default(),
-            market_clearing_config: crate::economy::market::clearing_config::MarketClearingConfig::default(),
+            market_clearing_config:
+                crate::economy::market::clearing_config::MarketClearingConfig::default(),
             labor_config: crate::economy::labor::labor_config::LaborConfig::default(),
             geography_config: crate::society::geography_config::GeographyConfig::default(),
-            municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
+            municipal_infrastructure_plan:
+                crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
+            state_customs_warehouse: rustc_hash::FxHashMap::default(),
+            last_smuggling_result: None,
+            pending_foreign_transit_fees: Vec::new(),
         }
     }
 
@@ -768,7 +828,7 @@ impl Country {
     pub fn trigger_sovereign_default(&mut self, turns: u32) {
         self.sovereign_default_turns_remaining = turns;
     }
-    
+
     /// Decrement default counter each turn.
     pub fn process_default_turn(&mut self) {
         if self.sovereign_default_turns_remaining > 0 {
@@ -833,7 +893,8 @@ pub struct GameState {
     /// Phase 66: Foreign intelligence data per observer country.
     /// Keyed by observer country name → (target country name → ForeignIntelligence).
     #[serde(default)]
-    pub foreign_intelligence: HashMap<String, HashMap<String, crate::international::fog_of_war::ForeignIntelligence>>,
+    pub foreign_intelligence:
+        HashMap<String, HashMap<String, crate::international::fog_of_war::ForeignIntelligence>>,
     /// Phase 66: Fog of War configuration (intel rates, estimation errors).
     #[serde(default)]
     pub fog_of_war_config: crate::international::fog_of_war::FogOfWarConfig,
@@ -893,7 +954,8 @@ impl GameState {
             treaty_config: crate::international::treaties::TreatyConfig::default(),
             reputation_config: crate::international::reputation::ReputationConfig::default(),
             doctrine_config: crate::international::ai_doctrines::DoctrineConfig::default(),
-            international_organizations: crate::international::organizations::OrganizationRegistry::default(),
+            international_organizations:
+                crate::international::organizations::OrganizationRegistry::default(),
             active_sanctions: crate::international::sanctions::SanctionRegistry::default(),
             org_config: crate::international::organizations::OrgConfig::default(),
             sanction_config: crate::international::sanctions::SanctionConfig::default(),
@@ -901,7 +963,7 @@ impl GameState {
             extra: Map::new(),
         }
     }
-    
+
     /// Validates that the save version is compatible with the current engine.
     ///
     /// # Returns
@@ -913,7 +975,7 @@ impl GameState {
     pub fn is_save_compatible(&self) -> bool {
         self.save_version >= 1
     }
-    
+
     /// Returns a human-readable error message if the save is incompatible.
     ///
     /// # Returns
@@ -1046,7 +1108,13 @@ impl CountryBuilder {
             bank_resolution: BankResolution::default(),
             bank_tax: BankTax::default(),
             stock_exchange: crate::securities::StockExchange::default(),
-            dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(),
+            dividend_queue: Vec::new(),
+            ipo_queue: Vec::new(),
+            bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(),
+            demolition_queue: Vec::new(),
+            halt_queue: Vec::new(),
+            furlough_wage_queue: Vec::new(),
+            recruitment_cost_queue: Vec::new(),
             knf: crate::securities::KNF::default(),
             capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
             sovereign_default_turns_remaining: 0,
@@ -1055,9 +1123,12 @@ impl CountryBuilder {
             economic_policy: EconomicPolicy::default(),
             debt_market: crate::economy::debt_market::DebtMarket::default(),
             cultural_institutions: Vec::new(),
-            maritime_infrastructure: crate::infrastructure::maritime::MaritimeInfrastructure::default(),
-            cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(),
-            building_condition_config: crate::infrastructure::building_condition::BuildingConditionConfig::default(),
+            maritime_infrastructure:
+                crate::infrastructure::maritime::MaritimeInfrastructure::default(),
+            cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(
+            ),
+            building_condition_config:
+                crate::infrastructure::building_condition::BuildingConditionConfig::default(),
             maritime_config: crate::infrastructure::maritime::MaritimeConfig::default(),
             securities_config: crate::securities::SecuritiesMarketConfig::default(),
             central_counterparty: crate::securities::CentralCounterparty::default(),
@@ -1070,7 +1141,8 @@ impl CountryBuilder {
             b2b_order_config: crate::economy::b2b_config::B2bOrderConfig::default(),
             fishing_config: crate::economy::fishing_config::FishingConfig::default(),
             service_pricing_config: crate::economy::service_config::ServicePricingConfig::default(),
-            infrastructure_config: crate::economy::infrastructure_config::InfrastructureConfig::default(),
+            infrastructure_config:
+                crate::economy::infrastructure_config::InfrastructureConfig::default(),
             innovation_config: crate::economy::innovation_config::InnovationConfig::default(),
             corporate_tech_config: crate::economy::corporate_config::CorporateTechConfig::default(),
             fish_stocks: Vec::new(),
@@ -1088,17 +1160,22 @@ impl CountryBuilder {
             weather_state: crate::economy::weather::WeatherState::default(),
             maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
             state_forest_state: crate::economy::state_forests::ForestDistrictState::default(),
-            religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
-            generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
+            religious_authority_state:
+                crate::society::religious_authority::ReligiousAuthorityState::default(),
+            generative_goods_config:
+                crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
             geological_formations: Vec::new(),
-            mining_concessions: crate::economy::production::geology::MiningConcessionRegistry::default(),
-            geological_survey_ledger: crate::economy::production::geology::GeologicalSurveyLedger::default(),
+            mining_concessions:
+                crate::economy::production::geology::MiningConcessionRegistry::default(),
+            geological_survey_ledger:
+                crate::economy::production::geology::GeologicalSurveyLedger::default(),
             phase22_tenders: Vec::new(),
             phase22_lawsuits: Vec::new(),
             phase22_kio_appeals: Vec::new(),
             freight_logistics_config: crate::economy::logistics::FreightLogisticsConfig::default(),
             deferred_trades: Vec::new(),
-            transport_networks: crate::economy::transport_networks::TransportNetworkOverlay::default(),
+            transport_networks:
+                crate::economy::transport_networks::TransportNetworkOverlay::default(),
             commuting_config: crate::economy::commuting::CommutingConfig::default(),
             regional_overflow_fees: std::collections::BTreeMap::new(),
             last_tax_result: None,
@@ -1115,14 +1192,20 @@ impl CountryBuilder {
             national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
             subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
             global_reputation: crate::international::reputation::GlobalReputation::default(),
-            geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
+            geopolitical_doctrine:
+                crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
             power_grid_state: crate::energy::PowerGridState::default(),
             ppa_registry: crate::energy::types::PpaRegistry::default(),
             turn_config: crate::engine::turn_config::TurnConfig::default(),
-            market_clearing_config: crate::economy::market::clearing_config::MarketClearingConfig::default(),
+            market_clearing_config:
+                crate::economy::market::clearing_config::MarketClearingConfig::default(),
             labor_config: crate::economy::labor::labor_config::LaborConfig::default(),
             geography_config: crate::society::geography_config::GeographyConfig::default(),
-            municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
+            municipal_infrastructure_plan:
+                crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
+            state_customs_warehouse: rustc_hash::FxHashMap::default(),
+            last_smuggling_result: None,
+            pending_foreign_transit_fees: Vec::new(),
         }
     }
 }

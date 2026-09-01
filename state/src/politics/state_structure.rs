@@ -16,11 +16,9 @@ pub enum StateStructure {
     /// local taxes; the rest goes to the central budget. Regions cannot pass
     /// their own law variations.
     #[default]
-
     Unitary,
     /// Federation: regions retain a large percentage of taxes and gain the
     /// ability to pass regional variations of certain laws.
-
     Federation,
     /// Totalitarian / Absolute: 100% of tax revenue goes to the central
     /// treasury; JSTs only survive on central grants.
@@ -29,14 +27,16 @@ pub enum StateStructure {
     /// Autonomous Republic: a specific regional designation for areas with
     /// distinct cultures/nationalities. Has its own VIP Premier and a high
     /// risk of separatist provocations if unrest grows.
-
     AutonomousRepublic,
 }
 
 impl StateStructure {
     /// Returns true if regions can pass their own law variations.
     pub fn allows_regional_laws(self) -> bool {
-        matches!(self, StateStructure::Federation | StateStructure::AutonomousRepublic)
+        matches!(
+            self,
+            StateStructure::Federation | StateStructure::AutonomousRepublic
+        )
     }
 
     /// Returns true if the central government controls all tax revenue.
@@ -163,9 +163,15 @@ impl StateStructureConfig {
         let tolerance = 1e-6;
         let sums = [
             self.unitary_central_share + self.unitary_region_share + self.unitary_microregion_share,
-            self.federation_central_share + self.federation_region_share + self.federation_microregion_share,
-            self.totalitarian_central_share + self.totalitarian_region_share + self.totalitarian_microregion_share,
-            self.autonomous_republic_central_share + self.autonomous_republic_region_share + self.autonomous_republic_microregion_share,
+            self.federation_central_share
+                + self.federation_region_share
+                + self.federation_microregion_share,
+            self.totalitarian_central_share
+                + self.totalitarian_region_share
+                + self.totalitarian_microregion_share,
+            self.autonomous_republic_central_share
+                + self.autonomous_republic_region_share
+                + self.autonomous_republic_microregion_share,
         ];
         sums.iter().all(|s| (s - 1.0).abs() < tolerance)
     }
@@ -236,7 +242,10 @@ mod tests {
         assert_eq!(StateStructure::Unitary.as_str(), "Unitary");
         assert_eq!(StateStructure::Federation.as_str(), "Federation");
         assert_eq!(StateStructure::Totalitarian.as_str(), "Totalitarian");
-        assert_eq!(StateStructure::AutonomousRepublic.as_str(), "Autonomous Republic");
+        assert_eq!(
+            StateStructure::AutonomousRepublic.as_str(),
+            "Autonomous Republic"
+        );
     }
 
     #[test]

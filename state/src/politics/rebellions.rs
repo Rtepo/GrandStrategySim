@@ -27,19 +27,19 @@ pub struct RebellionTrigger {
     /// Minimum social unrest threshold (0-100)
     #[serde(default)]
     pub unrest_threshold: f64,
-    
+
     /// Maximum tax burden threshold (0-1)
     #[serde(default)]
     pub tax_burden_threshold: f64,
-    
+
     /// Minimum war exhaustion threshold (0-100)
     #[serde(default)]
     pub war_exhaustion_threshold: f64,
-    
+
     /// Minimum region poverty rate (0-1)
     #[serde(default)]
     pub poverty_threshold: f64,
-    
+
     /// Minimum support from specific rural class
     #[serde(default)]
     pub class_support_threshold: f64,
@@ -47,7 +47,7 @@ pub struct RebellionTrigger {
 
 impl RebellionTrigger {
     /// Create default rebellion trigger thresholds
-    /// 
+    ///
     /// # Returns
     /// Default trigger conditions
     #[allow(clippy::should_implement_trait)]
@@ -60,15 +60,15 @@ impl RebellionTrigger {
             class_support_threshold: 0.6,
         }
     }
-    
+
     /// Check if conditions are met for rebellion in a region
-    /// 
+    ///
     /// # Arguments
     /// * `region` - Region to check
     /// * `country_unrest` - Country-wide social unrest
     /// * `tax_burden` - Current tax burden
     /// * `war_exhaustion` - Current war exhaustion
-    /// 
+    ///
     /// # Returns
     /// True if rebellion conditions are met
     pub fn check_conditions(
@@ -82,31 +82,31 @@ impl RebellionTrigger {
         if country_unrest < self.unrest_threshold {
             return false;
         }
-        
+
         // Check tax burden
         if tax_burden < self.tax_burden_threshold {
             return false;
         }
-        
+
         // Check war exhaustion (if applicable)
         if war_exhaustion > 0.0 && war_exhaustion < self.war_exhaustion_threshold {
             return false;
         }
-        
+
         // Check regional poverty
         let region_poverty = self.calculate_region_poverty(region);
         if region_poverty < self.poverty_threshold {
             return false;
         }
-        
+
         true
     }
-    
+
     /// Calculate poverty rate for a region
-    /// 
+    ///
     /// # Arguments
     /// * `region` - Region to analyze
-    /// 
+    ///
     /// # Returns
     /// Poverty rate (0-1)
     fn calculate_region_poverty(&self, region: &Region) -> f64 {
@@ -115,21 +115,24 @@ impl RebellionTrigger {
         if total_pop == 0.0 {
             return 0.0;
         }
-        
-        let poor_pop: i64 = region.class_demographics.rural_classes.values()
+
+        let poor_pop: i64 = region
+            .class_demographics
+            .rural_classes
+            .values()
             .filter(|d| d.economic_status == crate::society::geography::EconomicStatus::Destitute)
             .map(|d| d.population)
             .sum();
-        
+
         (poor_pop as f64 / total_pop).min(1.0)
     }
-    
+
     /// Determine rebellion type based on conditions
-    /// 
+    ///
     /// # Arguments
     /// * `region` - Region spawning rebellion
     /// * `country_politics` - Current political system
-    /// 
+    ///
     /// # Returns
     /// Most likely rebellion type
     pub fn determine_rebellion_type(
@@ -139,38 +142,41 @@ impl RebellionTrigger {
     ) -> RebellionType {
         // Check for peasant uprising (high serf/peasant population)
         // Note: rural_classes uses String keys, so we check by string comparison
-        let peasant_pop: i64 = region.class_demographics.rural_classes.iter()
+        let peasant_pop: i64 = region
+            .class_demographics
+            .rural_classes
+            .iter()
             .filter(|(class, _)| *class == "Serf" || *class == "FreePeasant")
             .map(|(_, d)| d.population)
             .sum();
-        
+
         if peasant_pop > region.population / 2 {
             return RebellionType::PeasantUprising;
         }
-        
+
         // Check for separatist (region far from capital)
         if !region.is_capital {
             return RebellionType::Separatist;
         }
-        
+
         // Check for ideological revolution (extreme political polarization)
         if country_politics.iron_fist > 50 {
             return RebellionType::IdeologicalRevolution;
         }
-        
+
         // Default to peasant uprising
         RebellionType::PeasantUprising
     }
 }
 
 /// Spawn a rebel proto-state from a region
-/// 
+///
 /// # Arguments
 /// * `mother_country` - Original country
 /// * `rebel_region` - Region that will form the rebellion
 /// * `rebellion_type` - Type of rebellion
 /// * `goals` - Ideological goals of the rebellion
-/// 
+///
 /// # Returns
 /// New rebel Country instance
 pub fn spawn_rebel_proto_state(
@@ -180,7 +186,7 @@ pub fn spawn_rebel_proto_state(
     goals: Vec<String>,
 ) -> crate::state::Country {
     let rebel_name = format!("Uprising in {}", rebel_region.id);
-    
+
     // Create rebel proto-state with inherited systems
     let mut rebel_country = crate::state::Country {
         name: rebel_name,
@@ -189,15 +195,15 @@ pub fn spawn_rebel_proto_state(
         tax_rates: mother_country.tax_rates.clone(), // Inherit tax system
         trade_policy: mother_country.trade_policy.clone(), // Inherit trade policy
         politics: mother_country.politics.clone(), // Inherit political structure
-        regions: vec![rebel_region], // Only the rebel region
-        megaregions: Vec::new(), // No megaregions initially
+        regions: vec![rebel_region],           // Only the rebel region
+        megaregions: Vec::new(),               // No megaregions initially
         is_rebellion: true,
         mother_country: Some(mother_country.name.clone()),
         rebellion_type: Some(rebellion_type.clone()),
         rebellion_goals: Some(goals),
         economic_policy: mother_country.economic_policy.clone(), // Inherit economic policy
         order_of_battle: crate::military::oob::OrderOfBattle::default(), // No military units initially
-        military_fronts: Vec::new(), // No fronts initially
+        military_fronts: Vec::new(),                                     // No fronts initially
         military_stockpile: rustc_hash::FxHashMap::default(),
         military_config: crate::military::config::MilitaryCombatConfig::default(),
         pow_camp: crate::military::pows::PowCamp::default(),
@@ -221,17 +227,24 @@ pub fn spawn_rebel_proto_state(
         bank_resolution: crate::state::BankResolution::default(), // New bank resolution
         bank_tax: crate::state::BankTax::default(), // New bank tax
         stock_exchange: crate::securities::StockExchange::default(), // New stock exchange
-        dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(), // Phase 24A.6
+        dividend_queue: Vec::new(),
+        ipo_queue: Vec::new(),
+        bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(),
+        demolition_queue: Vec::new(),
+        halt_queue: Vec::new(),
+        furlough_wage_queue: Vec::new(),
+        recruitment_cost_queue: Vec::new(),     // Phase 24A.6
         knf: crate::securities::KNF::default(), // New KNF
         capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
         sovereign_default_turns_remaining: 0, // No default initially
-        foreign_debt: 0.0, // No foreign debt initially
+        foreign_debt: 0.0,                    // No foreign debt initially
         minimum_wage: mother_country.minimum_wage, // Inherit minimum wage policy
         debt_market: crate::economy::debt_market::DebtMarket::default(),
         cultural_institutions: Vec::new(),
         maritime_infrastructure: crate::infrastructure::maritime::MaritimeInfrastructure::default(),
         cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(),
-        building_condition_config: crate::infrastructure::building_condition::BuildingConditionConfig::default(),
+        building_condition_config:
+            crate::infrastructure::building_condition::BuildingConditionConfig::default(),
         maritime_config: crate::infrastructure::maritime::MaritimeConfig::default(),
         securities_config: crate::securities::SecuritiesMarketConfig::default(),
         central_counterparty: crate::securities::CentralCounterparty::default(),
@@ -244,7 +257,8 @@ pub fn spawn_rebel_proto_state(
         b2b_order_config: crate::economy::b2b_config::B2bOrderConfig::default(),
         fishing_config: crate::economy::fishing_config::FishingConfig::default(),
         service_pricing_config: crate::economy::service_config::ServicePricingConfig::default(),
-        infrastructure_config: crate::economy::infrastructure_config::InfrastructureConfig::default(),
+        infrastructure_config: crate::economy::infrastructure_config::InfrastructureConfig::default(
+        ),
         innovation_config: crate::economy::innovation_config::InnovationConfig::default(),
         corporate_tech_config: crate::economy::corporate_config::CorporateTechConfig::default(),
         fish_stocks: Vec::new(),
@@ -262,11 +276,15 @@ pub fn spawn_rebel_proto_state(
         weather_state: crate::economy::weather::WeatherState::default(),
         maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
         state_forest_state: crate::economy::state_forests::ForestDistrictState::default(),
-        religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
-        generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
+        religious_authority_state:
+            crate::society::religious_authority::ReligiousAuthorityState::default(),
+        generative_goods_config:
+            crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
         geological_formations: Vec::new(),
-        mining_concessions: crate::economy::production::geology::MiningConcessionRegistry::default(),
-        geological_survey_ledger: crate::economy::production::geology::GeologicalSurveyLedger::default(),
+        mining_concessions: crate::economy::production::geology::MiningConcessionRegistry::default(
+        ),
+        geological_survey_ledger:
+            crate::economy::production::geology::GeologicalSurveyLedger::default(),
         phase22_tenders: Vec::new(),
         phase22_lawsuits: Vec::new(),
         phase22_kio_appeals: Vec::new(),
@@ -293,42 +311,52 @@ pub fn spawn_rebel_proto_state(
         power_grid_state: crate::energy::PowerGridState::default(),
         ppa_registry: crate::energy::types::PpaRegistry::default(),
         turn_config: crate::engine::turn_config::TurnConfig::default(),
-        market_clearing_config: crate::economy::market::clearing_config::MarketClearingConfig::default(),
+        market_clearing_config:
+            crate::economy::market::clearing_config::MarketClearingConfig::default(),
         labor_config: crate::economy::labor::labor_config::LaborConfig::default(),
         geography_config: crate::society::geography_config::GeographyConfig::default(),
-        municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
+        municipal_infrastructure_plan:
+            crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
+        state_customs_warehouse: rustc_hash::FxHashMap::default(),
+        last_smuggling_result: None,
+        pending_foreign_transit_fees: Vec::new(),
     };
-    
+
     // Set rebel government type based on rebellion type
     match rebellion_type {
         RebellionType::PeasantUprising => {
-            rebel_country.politics.government_form = crate::politics::system::GovernmentForm::OnePartyState;
+            rebel_country.politics.government_form =
+                crate::politics::system::GovernmentForm::OnePartyState;
         }
         RebellionType::Separatist => {
-            rebel_country.politics.government_form = crate::politics::system::GovernmentForm::ParliamentaryDemocracy;
+            rebel_country.politics.government_form =
+                crate::politics::system::GovernmentForm::ParliamentaryDemocracy;
         }
         RebellionType::IdeologicalRevolution => {
-            rebel_country.politics.government_form = crate::politics::system::GovernmentForm::OnePartyState;
+            rebel_country.politics.government_form =
+                crate::politics::system::GovernmentForm::OnePartyState;
         }
         RebellionType::MilitaryCoup => {
-            rebel_country.politics.government_form = crate::politics::system::GovernmentForm::MilitaryDictatorship;
+            rebel_country.politics.government_form =
+                crate::politics::system::GovernmentForm::MilitaryDictatorship;
         }
         RebellionType::ReligiousFundamentalist => {
-            rebel_country.politics.government_form = crate::politics::system::GovernmentForm::Theocracy;
+            rebel_country.politics.government_form =
+                crate::politics::system::GovernmentForm::Theocracy;
         }
     }
-    
+
     rebel_country
 }
 
 /// Check for rebellion triggers across all regions
-/// 
+///
 /// # Arguments
 /// * `country` - Country to check
 /// * `trigger` - Rebellion trigger conditions
 /// * `tax_burden` - Current tax burden
 /// * `war_exhaustion` - Current war exhaustion
-/// 
+///
 /// # Returns
 /// Vector of regions at risk of rebellion
 pub fn check_rebellion_risk(
@@ -338,7 +366,7 @@ pub fn check_rebellion_risk(
     war_exhaustion: f64,
 ) -> Vec<Region> {
     let mut at_risk_regions = Vec::new();
-    
+
     for region in &country.regions {
         if trigger.check_conditions(
             region,
@@ -349,18 +377,18 @@ pub fn check_rebellion_risk(
             at_risk_regions.push(region.clone());
         }
     }
-    
+
     at_risk_regions
 }
 
 /// Process rebellion spawning for a turn
-/// 
+///
 /// # Arguments
 /// * `country` - Country to process
 /// * `trigger` - Rebellion trigger conditions
 /// * `tax_burden` - Current tax burden
 /// * `war_exhaustion` - Current war exhaustion
-/// 
+///
 /// # Returns
 /// (spawned_rebels, messages)
 pub fn process_rebellion_spawning(
@@ -371,24 +399,23 @@ pub fn process_rebellion_spawning(
 ) -> (Vec<crate::state::Country>, Vec<String>) {
     let mut messages = Vec::new();
     let mut spawned_rebels = Vec::new();
-    
+
     let at_risk_regions = check_rebellion_risk(country, trigger, tax_burden, war_exhaustion);
-    
+
     for region in at_risk_regions {
         // 10% chance per at-risk region to actually spawn rebellion
         if rand::random::<f64>() < 0.1 {
             let rebellion_type = trigger.determine_rebellion_type(&region, &country.politics);
-            let goals = vec![
-                match rebellion_type {
-                    RebellionType::PeasantUprising => "Agrarian Reform".to_string(),
-                    RebellionType::Separatist => "Independence".to_string(),
-                    RebellionType::IdeologicalRevolution => "Regime Change".to_string(),
-                    RebellionType::MilitaryCoup => "Stabilization".to_string(),
-                    RebellionType::ReligiousFundamentalist => "Divine Law".to_string(),
-                }
-            ];
-            
-            let rebel = spawn_rebel_proto_state(country, region.clone(), rebellion_type.clone(), goals);
+            let goals = vec![match rebellion_type {
+                RebellionType::PeasantUprising => "Agrarian Reform".to_string(),
+                RebellionType::Separatist => "Independence".to_string(),
+                RebellionType::IdeologicalRevolution => "Regime Change".to_string(),
+                RebellionType::MilitaryCoup => "Stabilization".to_string(),
+                RebellionType::ReligiousFundamentalist => "Divine Law".to_string(),
+            }];
+
+            let rebel =
+                spawn_rebel_proto_state(country, region.clone(), rebellion_type.clone(), goals);
             messages.push(format!(
                 "[REBELLION] Rebellion of type {:?} erupted in region {}",
                 rebellion_type, region.id
@@ -396,6 +423,6 @@ pub fn process_rebellion_spawning(
             spawned_rebels.push(rebel);
         }
     }
-    
+
     (spawned_rebels, messages)
 }

@@ -83,7 +83,10 @@ pub fn check_guild_formation_trigger(
     cottage_fte_by_sector: &BTreeMap<String, f64>,
     config: &GuildConfig,
 ) -> Option<String> {
-    if !matches!(domain.faction_type, crate::society::geography::FactionDomainType::GuildBurgher) {
+    if !matches!(
+        domain.faction_type,
+        crate::society::geography::FactionDomainType::GuildBurgher
+    ) {
         return None;
     }
 
@@ -134,7 +137,10 @@ pub fn create_guild(
 
     let guild_data = GuildData {
         member_workshop_ids: Vec::new(),
-        master_class_ids: contributing_classes.iter().map(|(id, _, _)| id.clone()).collect(),
+        master_class_ids: contributing_classes
+            .iter()
+            .map(|(id, _, _)| id.clone())
+            .collect(),
         welfare_fund: 0.0,
         welfare_contribution_rate: config.default_welfare_contribution_rate,
         quality_standard: config.default_quality_standard,
@@ -197,7 +203,11 @@ pub fn execute_guild_production(
     }
 
     // Available raw material from inventory (purchased in N-1)
-    let available_raw = guild_data.guild_raw_inventory.get(&recipe_input).copied().unwrap_or(0.0);
+    let available_raw = guild_data
+        .guild_raw_inventory
+        .get(&recipe_input)
+        .copied()
+        .unwrap_or(0.0);
     if available_raw <= 0.0 {
         return result;
     }
@@ -216,7 +226,10 @@ pub fn execute_guild_production(
 
     // Consume raw material (mass conservation)
     let raw_consumed = output * input_per_unit;
-    let current_raw = guild_data.guild_raw_inventory.entry(recipe_input).or_insert(0.0);
+    let current_raw = guild_data
+        .guild_raw_inventory
+        .entry(recipe_input)
+        .or_insert(0.0);
     *current_raw = (*current_raw - raw_consumed).max(0.0);
 
     // Generate waste byproduct (mass conservation: input = output + waste)
@@ -353,7 +366,11 @@ pub fn plan_guild_raw_material_purchase(
     let needed = target_output * input_per_unit;
 
     // How much do we already have in inventory?
-    let current = guild_data.guild_raw_inventory.get(&recipe_input).copied().unwrap_or(0.0);
+    let current = guild_data
+        .guild_raw_inventory
+        .get(&recipe_input)
+        .copied()
+        .unwrap_or(0.0);
     let to_buy = (needed - current).max(0.0);
 
     if to_buy <= 0.0 {

@@ -6,18 +6,20 @@
 //! on this context without any disk I/O — disk access is reserved strictly for
 //! explicit Save/Load actions via `load_from_disk` / `save_to_disk`.
 
+use super::turn::TurnError;
 use crate::economy::market::{GlobalMarket, MarketOrders};
 use crate::economy::market_history::MarketHistory;
 use crate::entities::{Building, Company, Union};
 use crate::international::DiplomaticRelation;
 use crate::io::entity_store::{DiskEntityStore, EntityStore};
 use crate::registries::enums::Commodity;
-use crate::society::housing::{CommercialBuilding, CommercialBuildingType, HousingBuilding, HousingType};
+use crate::society::housing::{
+    CommercialBuilding, CommercialBuildingType, HousingBuilding, HousingType,
+};
 use crate::state::GameState;
-use super::turn::TurnError;
+use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use rustc_hash::FxHashMap;
 use std::fs;
 use std::path::Path;
 
@@ -64,10 +66,7 @@ impl InMemoryTurnContext {
     ///
     /// # Returns
     /// A fully populated `InMemoryTurnContext`, or a `TurnError` on failure.
-    pub fn load_from_disk(
-        data_dir: &Path,
-        state: &mut GameState,
-    ) -> Result<Self, TurnError> {
+    pub fn load_from_disk(data_dir: &Path, state: &mut GameState) -> Result<Self, TurnError> {
         let market = load_market(data_dir)?;
         let diplomacy = load_diplomacy(data_dir)?;
 
@@ -85,7 +84,10 @@ impl InMemoryTurnContext {
             let mut companies = load_companies(data_dir, name)?;
             // Backfill empty region_id for banks.
             if let Some(country) = state.countries.get(name) {
-                if let Some(capital_region) = country.regions.iter().find(|r| r.is_capital)
+                if let Some(capital_region) = country
+                    .regions
+                    .iter()
+                    .find(|r| r.is_capital)
                     .or_else(|| country.regions.first())
                 {
                     for company in &mut companies {
@@ -114,16 +116,23 @@ impl InMemoryTurnContext {
             commercial_buildings.sort_by(|a, b| a.id.cmp(&b.id));
             housing_buildings.sort_by(|a, b| a.id.cmp(&b.id));
 
-            entities.insert(name.clone(), CountryEntities {
-                companies,
-                buildings,
-                unions,
-                commercial_buildings,
-                housing_buildings,
-            });
+            entities.insert(
+                name.clone(),
+                CountryEntities {
+                    companies,
+                    buildings,
+                    unions,
+                    commercial_buildings,
+                    housing_buildings,
+                },
+            );
         }
 
-        Ok(Self { market, diplomacy, entities })
+        Ok(Self {
+            market,
+            diplomacy,
+            entities,
+        })
     }
 
     /// Save all context to disk. Used for explicit Save Game action only.
@@ -157,7 +166,11 @@ impl InMemoryTurnContext {
         let year = state.calendar.current_year;
         for (country_name, country) in &state.countries {
             let _ = crate::io::telemetry_export::append_telemetry_row(
-                data_dir, country_name, country, turn, year,
+                data_dir,
+                country_name,
+                country,
+                turn,
+                year,
             );
         }
 
@@ -170,8 +183,7 @@ impl InMemoryTurnContext {
         let mh_path = data_dir.join("market_history.json");
         let mh_text = serde_json::to_string_pretty(&state.market_history)
             .map_err(|e| TurnError::Io(std::io::Error::other(e.to_string())))?;
-        fs::write(&mh_path, mh_text)
-            .map_err(TurnError::Io)?;
+        fs::write(&mh_path, mh_text).map_err(TurnError::Io)?;
 
         // Persist market.json.
         save_market(data_dir, &self.market, global_orders, trade_result)?;
@@ -239,6 +251,7 @@ fn load_market(data_dir: &Path) -> Result<GlobalMarket, TurnError> {
         demand_volume,
         net_trade: FxHashMap::default(),
         b2c_demand_volume: FxHashMap::default(),
+        foreign_patent_fee_ledger: 0.0,
     })
 }
 
@@ -254,10 +267,7 @@ fn load_diplomacy(
     Ok(map)
 }
 
-fn load_regions_into_state(
-    data_dir: &Path,
-    state: &mut GameState,
-) -> Result<(), TurnError> {
+fn load_regions_into_state(data_dir: &Path, state: &mut GameState) -> Result<(), TurnError> {
     let path = data_dir.join("regions.json");
     if !path.exists() {
         return Ok(());
@@ -267,7 +277,8 @@ fn load_regions_into_state(
         serde_json::from_str(&text)?;
 
     for country in state.countries.values_mut() {
-        country.regions = all_regions.values()
+        country.regions = all_regions
+            .values()
             .filter(|r| r.owner_country == country.name)
             .cloned()
             .collect();
@@ -291,10 +302,7 @@ fn load_regions_into_state(
     Ok(())
 }
 
-fn load_megaregions_into_state(
-    data_dir: &Path,
-    state: &mut GameState,
-) -> Result<(), TurnError> {
+fn load_megaregions_into_state(data_dir: &Path, state: &mut GameState) -> Result<(), TurnError> {
     let path = data_dir.join("megaregions.json");
     if !path.exists() {
         return Ok(());
@@ -304,7 +312,8 @@ fn load_megaregions_into_state(
         serde_json::from_str(&text)?;
 
     for country in state.countries.values_mut() {
-        country.megaregions = all_megaregions.values()
+        country.megaregions = all_megaregions
+            .values()
             .filter(|m| m.country == country.name)
             .cloned()
             .collect();
@@ -331,9 +340,14 @@ fn load_market_history_into_state(data_dir: &Path, state: &mut GameState) {
                 if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&text) {
                     if let Some(prices) = parsed.get("prices").and_then(|v| v.as_object()) {
                         for (key, value) in prices {
-                            if let Ok(commodity) = serde_json::from_str::<Commodity>(&format!("\"{}\"", key)) {
+                            if let Ok(commodity) =
+                                serde_json::from_str::<Commodity>(&format!("\"{}\"", key))
+                            {
                                 if let Some(price) = value.as_f64() {
-                                    state.market_history.global_base_prices.insert(commodity, price);
+                                    state
+                                        .market_history
+                                        .global_base_prices
+                                        .insert(commodity, price);
                                 }
                             }
                         }
@@ -418,7 +432,10 @@ fn load_companies(data_dir: &Path, country: &str) -> Result<Vec<Company>, TurnEr
     Ok(companies)
 }
 
-fn load_commercial_buildings(data_dir: &Path, country: &str) -> Result<Vec<CommercialBuilding>, TurnError> {
+fn load_commercial_buildings(
+    data_dir: &Path,
+    country: &str,
+) -> Result<Vec<CommercialBuilding>, TurnError> {
     let mut commercial_buildings = Vec::new();
     let commercial_dir = data_dir.join("entities").join(country).join("commercial");
 
@@ -430,7 +447,10 @@ fn load_commercial_buildings(data_dir: &Path, country: &str) -> Result<Vec<Comme
     let entries = match fs::read_dir(&commercial_dir) {
         Ok(e) => e,
         Err(e) => {
-            eprintln!("Warning: Could not read commercial buildings directory for {}: {}", country, e);
+            eprintln!(
+                "Warning: Could not read commercial buildings directory for {}: {}",
+                country, e
+            );
             return Ok(commercial_buildings);
         }
     };
@@ -455,7 +475,10 @@ fn load_commercial_buildings(data_dir: &Path, country: &str) -> Result<Vec<Comme
         let loaded = match store.load_sector(country, &sector, None) {
             Ok(l) => l,
             Err(e) => {
-                eprintln!("Warning: Could not load commercial building sector '{}' for country '{}': {}", sector, country, e);
+                eprintln!(
+                    "Warning: Could not load commercial building sector '{}' for country '{}': {}",
+                    sector, country, e
+                );
                 continue;
             }
         };
@@ -465,7 +488,10 @@ fn load_commercial_buildings(data_dir: &Path, country: &str) -> Result<Vec<Comme
     Ok(commercial_buildings)
 }
 
-fn load_housing_buildings(data_dir: &Path, country: &str) -> Result<Vec<HousingBuilding>, TurnError> {
+fn load_housing_buildings(
+    data_dir: &Path,
+    country: &str,
+) -> Result<Vec<HousingBuilding>, TurnError> {
     let mut housing_buildings = Vec::new();
     let housing_dir = data_dir.join("entities").join(country).join("housing");
 
@@ -477,7 +503,10 @@ fn load_housing_buildings(data_dir: &Path, country: &str) -> Result<Vec<HousingB
     let entries = match fs::read_dir(&housing_dir) {
         Ok(e) => e,
         Err(e) => {
-            eprintln!("Warning: Could not read housing buildings directory for {}: {}", country, e);
+            eprintln!(
+                "Warning: Could not read housing buildings directory for {}: {}",
+                country, e
+            );
             return Ok(housing_buildings);
         }
     };
@@ -502,7 +531,10 @@ fn load_housing_buildings(data_dir: &Path, country: &str) -> Result<Vec<HousingB
         let loaded = match store.load_sector(country, &sector, None) {
             Ok(l) => l,
             Err(e) => {
-                eprintln!("Warning: Could not load housing building sector '{}' for country '{}': {}", sector, country, e);
+                eprintln!(
+                    "Warning: Could not load housing building sector '{}' for country '{}': {}",
+                    sector, country, e
+                );
                 continue;
             }
         };
@@ -523,7 +555,10 @@ fn load_unions(data_dir: &Path, country: &str) -> Result<Vec<Union>, TurnError> 
     let entries = match fs::read_dir(&unions_dir) {
         Ok(e) => e,
         Err(e) => {
-            eprintln!("Warning: Could not read unions directory for {}: {}", country, e);
+            eprintln!(
+                "Warning: Could not read unions directory for {}: {}",
+                country, e
+            );
             return Ok(unions);
         }
     };
@@ -550,7 +585,10 @@ fn load_unions(data_dir: &Path, country: &str) -> Result<Vec<Union>, TurnError> 
         let loaded = match store.load_sector(country, "unions", Some(&sector)) {
             Ok(l) => l,
             Err(e) => {
-                eprintln!("Warning: Could not load union sector {} for {}: {}", sector, country, e);
+                eprintln!(
+                    "Warning: Could not load union sector {} for {}: {}",
+                    sector, country, e
+                );
                 continue;
             }
         };
@@ -569,7 +607,10 @@ fn load_buildings(data_dir: &Path, country: &str) -> Result<Vec<Building>, TurnE
     let entries = match fs::read_dir(&spatial_dir) {
         Ok(e) => e,
         Err(e) => {
-            eprintln!("Warning: Could not read spatial registry directory for {}: {}", country, e);
+            eprintln!(
+                "Warning: Could not read spatial registry directory for {}: {}",
+                country, e
+            );
             return Ok(buildings);
         }
     };
@@ -597,7 +638,10 @@ fn load_buildings(data_dir: &Path, country: &str) -> Result<Vec<Building>, TurnE
         let building_entries = match fs::read_dir(&buildings_dir) {
             Ok(e) => e,
             Err(e) => {
-                eprintln!("Warning: Could not read buildings directory for region {} in {}: {}", region, country, e);
+                eprintln!(
+                    "Warning: Could not read buildings directory for region {} in {}: {}",
+                    region, country, e
+                );
                 continue;
             }
         };
@@ -621,7 +665,10 @@ fn load_buildings(data_dir: &Path, country: &str) -> Result<Vec<Building>, TurnE
             let mut sector_buildings = match store.load_sector(country, &sector, Some(&region)) {
                 Ok(b) => b,
                 Err(e) => {
-                    eprintln!("Warning: Could not load building sector {} for region {} in {}: {}", sector, region, country, e);
+                    eprintln!(
+                        "Warning: Could not load building sector {} for region {} in {}: {}",
+                        sector, region, country, e
+                    );
                     continue;
                 }
             };
@@ -677,7 +724,10 @@ fn save_market(
         "supply_volume": market.supply_volume.iter().collect::<HashMap<_, _>>(),
         "demand_volume": market.demand_volume.iter().collect::<HashMap<_, _>>(),
     });
-    let _ = fs::write(sv_path, serde_json::to_string_pretty(&volumes_json).unwrap_or_default());
+    let _ = fs::write(
+        sv_path,
+        serde_json::to_string_pretty(&volumes_json).unwrap_or_default(),
+    );
     let path = data_dir.join("market.json");
     fs::write(path, serde_json::to_string_pretty(&market_json)?)?;
     Ok(())
@@ -692,7 +742,10 @@ fn save_companies(data_dir: &Path, country: &str, companies: &[Company]) -> Resu
         } else {
             company.file_stem.clone()
         };
-        by_file_stem.entry(file_stem).or_default().push(company.clone());
+        by_file_stem
+            .entry(file_stem)
+            .or_default()
+            .push(company.clone());
     }
     for (file_stem, list) in by_file_stem {
         store.save_sector(country, &file_stem, None, &list)?;
@@ -705,10 +758,9 @@ fn save_unions(data_dir: &Path, country: &str, unions: &[Union]) -> Result<(), T
         return Ok(());
     }
     let unions_dir = data_dir.join("entities").join(country).join("unions");
-    if !unions_dir.exists()
-        && fs::create_dir_all(&unions_dir).is_err() {
-            return Ok(());
-        }
+    if !unions_dir.exists() && fs::create_dir_all(&unions_dir).is_err() {
+        return Ok(());
+    }
     let store = DiskEntityStore::<Union>::new(data_dir);
     let mut by_sector: HashMap<String, Vec<Union>> = HashMap::new();
     for union in unions {
@@ -719,7 +771,10 @@ fn save_unions(data_dir: &Path, country: &str, unions: &[Union]) -> Result<(), T
         if list.is_empty() {
             continue;
         }
-        if store.save_sector(country, "unions", Some(&sector), &list).is_err() {
+        if store
+            .save_sector(country, "unions", Some(&sector), &list)
+            .is_err()
+        {
             // Ignore errors - unions are optional
         }
     }
@@ -743,13 +798,21 @@ fn save_buildings(data_dir: &Path, country: &str, buildings: &[Building]) -> Res
     Ok(())
 }
 
-fn save_commercial_buildings(data_dir: &Path, country: &str, commercial_buildings: &[CommercialBuilding]) -> Result<(), TurnError> {
+fn save_commercial_buildings(
+    data_dir: &Path,
+    country: &str,
+    commercial_buildings: &[CommercialBuilding],
+) -> Result<(), TurnError> {
     let store = DiskEntityStore::<CommercialBuilding>::new(data_dir);
 
-    let mut by_type: std::collections::HashMap<CommercialBuildingType, Vec<CommercialBuilding>> = std::collections::HashMap::new();
+    let mut by_type: std::collections::HashMap<CommercialBuildingType, Vec<CommercialBuilding>> =
+        std::collections::HashMap::new();
 
     for building in commercial_buildings {
-        by_type.entry(building.building_type).or_default().push(building.clone());
+        by_type
+            .entry(building.building_type)
+            .or_default()
+            .push(building.clone());
     }
 
     for (building_type, buildings) in by_type {
@@ -776,13 +839,20 @@ fn save_commercial_buildings(data_dir: &Path, country: &str, commercial_building
     Ok(())
 }
 
-fn save_housing_buildings(data_dir: &Path, country: &str, housing_buildings: &[HousingBuilding]) -> Result<(), TurnError> {
+fn save_housing_buildings(
+    data_dir: &Path,
+    country: &str,
+    housing_buildings: &[HousingBuilding],
+) -> Result<(), TurnError> {
     let store = DiskEntityStore::<HousingBuilding>::new(data_dir);
 
     let mut by_type: HashMap<HousingType, Vec<HousingBuilding>> = HashMap::new();
 
     for building in housing_buildings {
-        by_type.entry(building.housing_type).or_default().push(building.clone());
+        by_type
+            .entry(building.housing_type)
+            .or_default()
+            .push(building.clone());
     }
 
     for (housing_type, buildings) in by_type {
@@ -819,6 +889,7 @@ fn default_market() -> GlobalMarket {
         demand_volume: FxHashMap::default(),
         net_trade: FxHashMap::default(),
         b2c_demand_volume: FxHashMap::default(),
+        foreign_patent_fee_ledger: 0.0,
     }
 }
 

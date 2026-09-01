@@ -12,8 +12,8 @@
 //! * Maximum 3 syncretic cultures per country to prevent fragmentation.
 //! * All engine keys are English; Polish strings appear only in serde renames.
 
-use crate::entities::Building;
 use crate::economy::legal_status::LegalStatus;
+use crate::entities::Building;
 use crate::registries::enums::Commodity;
 use crate::society::culture_registry::{cultural_distance, registry as culture_registry};
 use crate::state::Country;
@@ -78,21 +78,33 @@ pub fn process_assimilation_turn(
     }
 
     let dominant_def = reg.from_display_name(&dominant_culture);
-    let base_rate: f64 = if civil_law == "5-Year Assimilation" { 0.08 } else { 0.03 };
+    let base_rate: f64 = if civil_law == "5-Year Assimilation" {
+        0.08
+    } else {
+        0.03
+    };
 
     // Phase 18A: Legal status gate — Illegals cannot assimilate.
     // Compute the fraction of the total population that is legally eligible
     // (Citizen, Resident, or TemporaryWorker). Illegal classes are excluded.
-    let total_pop: i64 = country.regions.iter()
+    let total_pop: i64 = country
+        .regions
+        .iter()
         .flat_map(|r| {
-            r.class_demographics.rural_classes.values()
+            r.class_demographics
+                .rural_classes
+                .values()
                 .chain(r.class_demographics.urban_classes.values())
         })
         .map(|d| d.population)
         .sum();
-    let illegal_pop: i64 = country.regions.iter()
+    let illegal_pop: i64 = country
+        .regions
+        .iter()
         .flat_map(|r| {
-            r.class_demographics.rural_classes.values()
+            r.class_demographics
+                .rural_classes
+                .values()
                 .chain(r.class_demographics.urban_classes.values())
         })
         .filter(|d| d.legal_status == LegalStatus::Illegal)
@@ -114,16 +126,24 @@ pub fn process_assimilation_turn(
     // Sum AssimilationCapacity from buildings per region.
     let mut assimilation_capacity_per_region: BTreeMap<String, f64> = BTreeMap::new();
     for building in buildings {
-        if let Some(&cap) = building.last_production.get(&Commodity::AssimilationCapacity) {
+        if let Some(&cap) = building
+            .last_production
+            .get(&Commodity::AssimilationCapacity)
+        {
             if cap > 0.0 {
-                *assimilation_capacity_per_region.entry(building.region_id.clone()).or_insert(0.0) += cap;
+                *assimilation_capacity_per_region
+                    .entry(building.region_id.clone())
+                    .or_insert(0.0) += cap;
             }
         }
     }
 
     for region in &country.regions {
         // Education coverage.
-        let consumed = education_consumption.get(&region.id).copied().unwrap_or(0.0);
+        let consumed = education_consumption
+            .get(&region.id)
+            .copied()
+            .unwrap_or(0.0);
         let needed = education_needs.get(&region.id).copied().unwrap_or(0.0);
         let education_coverage = if needed > 0.0 {
             (consumed / needed).clamp(0.0, 1.0)
@@ -133,15 +153,24 @@ pub fn process_assimilation_turn(
 
         // Integration coverage.
         let minority_pop: f64 = {
-            let total_pop: f64 = region.class_demographics.rural_classes.values()
+            let total_pop: f64 = region
+                .class_demographics
+                .rural_classes
+                .values()
                 .map(|d| d.population as f64)
                 .sum::<f64>()
-                + region.class_demographics.urban_classes.values()
+                + region
+                    .class_demographics
+                    .urban_classes
+                    .values()
                     .map(|d| d.population as f64)
                     .sum::<f64>();
             // Estimate minority adult population: ~60% of total pop is adult, minority share varies.
             // Use ethnic_composition to estimate minority fraction.
-            let minority_fraction: f64 = country.macro_indicators.demographics.ethnic_composition
+            let minority_fraction: f64 = country
+                .macro_indicators
+                .demographics
+                .ethnic_composition
                 .iter()
                 .filter(|(k, v)| *k != &dominant_culture && **v > 0.0)
                 .map(|(_, v)| *v)
@@ -149,7 +178,10 @@ pub fn process_assimilation_turn(
             total_pop * 0.6 * minority_fraction
         };
 
-        let integration_capacity = assimilation_capacity_per_region.get(&region.id).copied().unwrap_or(0.0);
+        let integration_capacity = assimilation_capacity_per_region
+            .get(&region.id)
+            .copied()
+            .unwrap_or(0.0);
         let integration_coverage = if minority_pop > 0.0 {
             (integration_capacity / minority_pop).clamp(0.0, 1.0)
         } else {
@@ -164,7 +196,10 @@ pub fn process_assimilation_turn(
     result.region_coverage = region_coverage.clone();
 
     // Count existing syncretic cultures.
-    let existing_syncretic = country.macro_indicators.demographics.ethnic_composition
+    let existing_syncretic = country
+        .macro_indicators
+        .demographics
+        .ethnic_composition
         .keys()
         .filter(|k| k.starts_with("SYNCRETIC_"))
         .count();
@@ -175,7 +210,11 @@ pub fn process_assimilation_turn(
     let ethnic_comp = &country.macro_indicators.demographics.ethnic_composition;
     let mut syncretism_pairs: Vec<(String, String, f64, f64)> = Vec::new();
 
-    let culture_keys: Vec<String> = ethnic_comp.keys().filter(|k| !k.starts_with("SYNCRETIC_")).cloned().collect();
+    let culture_keys: Vec<String> = ethnic_comp
+        .keys()
+        .filter(|k| !k.starts_with("SYNCRETIC_"))
+        .cloned()
+        .collect();
     for i in 0..culture_keys.len() {
         for j in (i + 1)..culture_keys.len() {
             let key_a = &culture_keys[i];
@@ -188,7 +227,9 @@ pub fn process_assimilation_turn(
             }
 
             // Compute cultural distance between the two.
-            let dist = if let (Some(def_a), Some(def_b)) = (reg.from_display_name(key_a), reg.from_display_name(key_b)) {
+            let dist = if let (Some(def_a), Some(def_b)) =
+                (reg.from_display_name(key_a), reg.from_display_name(key_b))
+            {
                 cultural_distance(def_a, def_b)
             } else {
                 0.5 // Unknown cultures: moderate distance.
@@ -201,7 +242,11 @@ pub fn process_assimilation_turn(
             // Check combined coverage in any region (use country-wide average).
             let avg_coverage: f64 = {
                 let coverages: Vec<f64> = result.region_coverage.values().copied().collect();
-                if coverages.is_empty() { 0.0 } else { coverages.iter().sum::<f64>() / coverages.len() as f64 }
+                if coverages.is_empty() {
+                    0.0
+                } else {
+                    coverages.iter().sum::<f64>() / coverages.len() as f64
+                }
             };
 
             if avg_coverage <= 0.5 {
@@ -254,7 +299,11 @@ pub fn process_assimilation_turn(
             // Use country-wide average coverage for this minority.
             let avg_coverage: f64 = {
                 let coverages: Vec<f64> = result.region_coverage.values().copied().collect();
-                if coverages.is_empty() { 0.0 } else { coverages.iter().sum::<f64>() / coverages.len() as f64 }
+                if coverages.is_empty() {
+                    0.0
+                } else {
+                    coverages.iter().sum::<f64>() / coverages.len() as f64
+                }
             };
 
             if avg_coverage <= 0.0 {
@@ -263,7 +312,9 @@ pub fn process_assimilation_turn(
                 continue;
             }
 
-            let rate = if let (Some(dom_def), Some(min_def)) = (dominant_def, reg.from_display_name(etnos)) {
+            let rate = if let (Some(dom_def), Some(min_def)) =
+                (dominant_def, reg.from_display_name(etnos))
+            {
                 let dist = cultural_distance(dom_def, min_def);
                 base_rate * (1.0 - dist) * avg_coverage * legal_assimilation_factor
             } else {
@@ -282,7 +333,11 @@ pub fn process_assimilation_turn(
         if etnos.starts_with("SYNCRETIC_") {
             let avg_coverage: f64 = {
                 let coverages: Vec<f64> = result.region_coverage.values().copied().collect();
-                if coverages.is_empty() { 0.0 } else { coverages.iter().sum::<f64>() / coverages.len() as f64 }
+                if coverages.is_empty() {
+                    0.0
+                } else {
+                    coverages.iter().sum::<f64>() / coverages.len() as f64
+                }
             };
 
             if avg_coverage <= 0.0 {
@@ -300,10 +355,8 @@ pub fn process_assimilation_turn(
 
     let dominant_share = nowy_sklad.get(&dominant_culture).copied().unwrap_or(0.0);
     nowy_sklad.insert(dominant_culture.clone(), dominant_share + total_assimilated);
-    country.macro_indicators.demographics.ethnic_composition = nowy_sklad
-        .into_iter()
-        .filter(|(_, v)| *v > 0.001)
-        .collect();
+    country.macro_indicators.demographics.ethnic_composition =
+        nowy_sklad.into_iter().filter(|(_, v)| *v > 0.001).collect();
 
     result.total_assimilated = total_assimilated;
     result
@@ -357,20 +410,28 @@ pub fn process_religious_conversion_turn(
     // Find the highest-authority religion for conversion target.
     let highest_authority_religion: Option<(String, f64)> = religion_authority_map
         .iter()
-        .max_by(|a, b| a.1.1.partial_cmp(&b.1.1).unwrap_or(std::cmp::Ordering::Equal))
+        .max_by(|a, b| {
+            a.1 .1
+                .partial_cmp(&b.1 .1)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        })
         .map(|(display, (_, auth))| (display.clone(), *auth));
 
     // Process per-region, per-class conversions.
     for region in &mut country.regions {
         // Check if this region has a holy site (doubles conversion rate TO that religion).
-        let holy_site_religion_key: Option<String> = region.holy_site.as_ref().map(|hs| hs.religion_key.clone());
+        let holy_site_religion_key: Option<String> =
+            region.holy_site.as_ref().map(|hs| hs.religion_key.clone());
 
         for demo in region.class_demographics.rural_classes.values_mut() {
             if demo.religion.is_empty() {
                 continue;
             }
 
-            let current_auth = religion_authority_map.get(&demo.religion).map(|(_, a)| *a).unwrap_or(0.3);
+            let current_auth = religion_authority_map
+                .get(&demo.religion)
+                .map(|(_, a)| *a)
+                .unwrap_or(0.3);
 
             // Apostasy: low authority causes followers to leave.
             if current_auth < 0.2 && demo.population > 1000 {
@@ -414,7 +475,10 @@ pub fn process_religious_conversion_turn(
                 continue;
             }
 
-            let current_auth = religion_authority_map.get(&demo.religion).map(|(_, a)| *a).unwrap_or(0.3);
+            let current_auth = religion_authority_map
+                .get(&demo.religion)
+                .map(|(_, a)| *a)
+                .unwrap_or(0.3);
 
             // Apostasy.
             if current_auth < 0.2 && demo.population > 1000 {
@@ -456,13 +520,17 @@ pub fn process_religious_conversion_turn(
     for region in &country.regions {
         for demo in region.class_demographics.rural_classes.values() {
             if !demo.religion.is_empty() {
-                *new_religious_comp.entry(demo.religion.clone()).or_insert(0.0) += demo.population as f64;
+                *new_religious_comp
+                    .entry(demo.religion.clone())
+                    .or_insert(0.0) += demo.population as f64;
                 total_pop += demo.population as f64;
             }
         }
         for demo in region.class_demographics.urban_classes.values() {
             if !demo.religion.is_empty() {
-                *new_religious_comp.entry(demo.religion.clone()).or_insert(0.0) += demo.population as f64;
+                *new_religious_comp
+                    .entry(demo.religion.clone())
+                    .or_insert(0.0) += demo.population as f64;
                 total_pop += demo.population as f64;
             }
         }
@@ -489,7 +557,10 @@ mod tests {
         let mut class = ClassDemographics::default();
         class.population = pop;
         class.religion = religion.to_string();
-        region.class_demographics.rural_classes.insert("peasants".into(), class);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("peasants".into(), class);
         region
     }
 
@@ -499,26 +570,46 @@ mod tests {
     fn test_no_education_no_integration_zero_assimilation() {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.culture = "Illyria".into();
-        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
-        country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Illyria".into(), 0.7);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Weneda".into(), 0.3);
         country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         let buildings: Vec<Building> = vec![];
         let edu_consumption: BTreeMap<String, f64> = BTreeMap::new();
         let edu_needs: BTreeMap<String, f64> = BTreeMap::new();
 
-        let result = process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
+        let result =
+            process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
 
-        assert!((result.total_assimilated).abs() < 0.001,
-            "no education + no integration → 0 assimilation, got {}", result.total_assimilated);
+        assert!(
+            (result.total_assimilated).abs() < 0.001,
+            "no education + no integration → 0 assimilation, got {}",
+            result.total_assimilated
+        );
     }
 
     #[test]
     fn test_education_only_partial_assimilation() {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.culture = "Illyria".into();
-        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
-        country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Illyria".into(), 0.7);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Weneda".into(), 0.3);
         country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         let mut region = Region::default();
@@ -526,27 +617,42 @@ mod tests {
         let mut class = ClassDemographics::default();
         class.population = 1000;
         class.religion = "Catholicism".into();
-        region.class_demographics.rural_classes.insert("peasants".into(), class);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("peasants".into(), class);
         country.regions = vec![region];
 
         let buildings: Vec<Building> = vec![];
         let edu_consumption: BTreeMap<String, f64> = BTreeMap::from([("test_region".into(), 50.0)]);
         let edu_needs: BTreeMap<String, f64> = BTreeMap::from([("test_region".into(), 100.0)]);
 
-        let result = process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
+        let result =
+            process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
 
         // Education coverage = 0.5, integration = 0, combined = 0.25.
         // Should have some assimilation.
-        assert!(result.total_assimilated > 0.0,
-            "education-only should produce some assimilation, got {}", result.total_assimilated);
+        assert!(
+            result.total_assimilated > 0.0,
+            "education-only should produce some assimilation, got {}",
+            result.total_assimilated
+        );
     }
 
     #[test]
     fn test_integration_only_partial_assimilation() {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.culture = "Illyria".into();
-        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
-        country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Illyria".into(), 0.7);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Weneda".into(), 0.3);
         country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         let mut region = Region::default();
@@ -554,30 +660,47 @@ mod tests {
         let mut class = ClassDemographics::default();
         class.population = 1000;
         class.religion = "Catholicism".into();
-        region.class_demographics.rural_classes.insert("peasants".into(), class);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("peasants".into(), class);
         country.regions = vec![region];
 
         let mut building = Building::default();
         building.region_id = "test_region".into();
-        building.last_production.insert(Commodity::AssimilationCapacity, 1000.0);
+        building
+            .last_production
+            .insert(Commodity::AssimilationCapacity, 1000.0);
         let buildings = vec![building];
 
         let edu_consumption: BTreeMap<String, f64> = BTreeMap::new();
         let edu_needs: BTreeMap<String, f64> = BTreeMap::new();
 
-        let result = process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
+        let result =
+            process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
 
         // Integration coverage should be > 0 (capacity / minority_pop).
-        assert!(result.total_assimilated > 0.0,
-            "integration-only should produce some assimilation, got {}", result.total_assimilated);
+        assert!(
+            result.total_assimilated > 0.0,
+            "integration-only should produce some assimilation, got {}",
+            result.total_assimilated
+        );
     }
 
     #[test]
     fn test_both_channels_full_assimilation() {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.culture = "Illyria".into();
-        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
-        country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Illyria".into(), 0.7);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Weneda".into(), 0.3);
         country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         let mut region = Region::default();
@@ -585,44 +708,69 @@ mod tests {
         let mut class = ClassDemographics::default();
         class.population = 1000;
         class.religion = "Catholicism".into();
-        region.class_demographics.rural_classes.insert("peasants".into(), class);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("peasants".into(), class);
         country.regions = vec![region];
 
         let mut building = Building::default();
         building.region_id = "test_region".into();
-        building.last_production.insert(Commodity::AssimilationCapacity, 10000.0);
+        building
+            .last_production
+            .insert(Commodity::AssimilationCapacity, 10000.0);
         let buildings = vec![building];
 
-        let edu_consumption: BTreeMap<String, f64> = BTreeMap::from([("test_region".into(), 100.0)]);
+        let edu_consumption: BTreeMap<String, f64> =
+            BTreeMap::from([("test_region".into(), 100.0)]);
         let edu_needs: BTreeMap<String, f64> = BTreeMap::from([("test_region".into(), 100.0)]);
 
-        let result = process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
+        let result =
+            process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
 
         // Both channels at full → combined = 1.0, should have significant assimilation.
-        assert!(result.total_assimilated > 0.0,
-            "both channels should produce assimilation, got {}", result.total_assimilated);
+        assert!(
+            result.total_assimilated > 0.0,
+            "both channels should produce assimilation, got {}",
+            result.total_assimilated
+        );
         // Rate capped at 0.10.
         let minority_share = 0.3;
-        assert!(result.total_assimilated <= minority_share * 0.10 + 0.001,
-            "assimilation should be capped at 10% of minority, got {}", result.total_assimilated);
+        assert!(
+            result.total_assimilated <= minority_share * 0.10 + 0.001,
+            "assimilation should be capped at 10% of minority, got {}",
+            result.total_assimilated
+        );
     }
 
     #[test]
     fn test_segregation_blocks_assimilation() {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.culture = "Illyria".into();
-        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
-        country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Illyria".into(), 0.7);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Weneda".into(), 0.3);
         country.politics.civil_rights_law = "Segregation".into();
 
         let buildings: Vec<Building> = vec![];
         let edu_consumption: BTreeMap<String, f64> = BTreeMap::from([("r1".into(), 100.0)]);
         let edu_needs: BTreeMap<String, f64> = BTreeMap::from([("r1".into(), 100.0)]);
 
-        let result = process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
+        let result =
+            process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
 
-        assert!((result.total_assimilated).abs() < 0.001,
-            "segregation should block assimilation, got {}", result.total_assimilated);
+        assert!(
+            (result.total_assimilated).abs() < 0.001,
+            "segregation should block assimilation, got {}",
+            result.total_assimilated
+        );
     }
 
     // === SYNCRETISM TESTS ===
@@ -634,40 +782,77 @@ mod tests {
         country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         // Pre-fill with 3 syncretic cultures (at the limit).
-        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.3);
-        country.macro_indicators.demographics.ethnic_composition.insert("SYNCRETIC_A_B".into(), 0.1);
-        country.macro_indicators.demographics.ethnic_composition.insert("SYNCRETIC_C_D".into(), 0.1);
-        country.macro_indicators.demographics.ethnic_composition.insert("SYNCRETIC_E_F".into(), 0.1);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Illyria".into(), 0.3);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("SYNCRETIC_A_B".into(), 0.1);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("SYNCRETIC_C_D".into(), 0.1);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("SYNCRETIC_E_F".into(), 0.1);
         // Add two highly diverse cultures that would trigger syncretism.
-        country.macro_indicators.demographics.ethnic_composition.insert("Nordian".into(), 0.2);
-        country.macro_indicators.demographics.ethnic_composition.insert("Saharan".into(), 0.2);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Nordian".into(), 0.2);
+        country
+            .macro_indicators
+            .demographics
+            .ethnic_composition
+            .insert("Saharan".into(), 0.2);
 
         let mut region = Region::default();
         region.id = "test_region".into();
         let mut class = ClassDemographics::default();
         class.population = 1000;
-        region.class_demographics.rural_classes.insert("peasants".into(), class);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("peasants".into(), class);
         country.regions = vec![region];
 
         // Full coverage to trigger syncretism conditions.
         let mut building = Building::default();
         building.region_id = "test_region".into();
-        building.last_production.insert(Commodity::AssimilationCapacity, 100000.0);
+        building
+            .last_production
+            .insert(Commodity::AssimilationCapacity, 100000.0);
         let buildings = vec![building];
 
-        let edu_consumption: BTreeMap<String, f64> = BTreeMap::from([("test_region".into(), 100.0)]);
+        let edu_consumption: BTreeMap<String, f64> =
+            BTreeMap::from([("test_region".into(), 100.0)]);
         let edu_needs: BTreeMap<String, f64> = BTreeMap::from([("test_region".into(), 100.0)]);
 
-        let result = process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
+        let result =
+            process_assimilation_turn(&mut country, &buildings, &edu_consumption, &edu_needs);
 
-        assert_eq!(result.syncretic_cultures_created, 0,
-            "should not create new syncretic cultures when limit reached");
+        assert_eq!(
+            result.syncretic_cultures_created, 0,
+            "should not create new syncretic cultures when limit reached"
+        );
     }
 
     #[test]
     fn test_syncretic_engine_key_format() {
         // Verify the engine key format is SYNCRETIC_{A}_{B} with uppercase.
-        let key = format!("SYNCRETIC_{}_{}", "Illyrian".to_uppercase(), "wenetian".to_uppercase());
+        let key = format!(
+            "SYNCRETIC_{}_{}",
+            "Illyrian".to_uppercase(),
+            "wenetian".to_uppercase()
+        );
         assert_eq!(key, "SYNCRETIC_ILLYRIAN_WENETIAN");
     }
 
@@ -676,61 +861,79 @@ mod tests {
     #[test]
     fn test_no_conversion_at_baseline_authority() {
         let mut country = Country::mock_for_tests();
-        country.regions.push(make_region_with_religion("r1", "Catholicism", 500));
+        country
+            .regions
+            .push(make_region_with_religion("r1", "Catholicism", 500));
 
-        let authority: BTreeMap<String, f64> = BTreeMap::from([
-            ("catholicism".into(), 0.3),
-        ]);
+        let authority: BTreeMap<String, f64> = BTreeMap::from([("catholicism".into(), 0.3)]);
 
         let result = process_religious_conversion_turn(&mut country, &authority);
 
         // Baseline authority 0.3 → no conversion, no apostasy.
-        assert!((result.total_converted).abs() < 0.5,
-            "baseline authority should not trigger conversion, got {}", result.total_converted);
-        assert!((result.total_apostasy).abs() < 0.5,
-            "baseline authority should not trigger apostasy, got {}", result.total_apostasy);
+        assert!(
+            (result.total_converted).abs() < 0.5,
+            "baseline authority should not trigger conversion, got {}",
+            result.total_converted
+        );
+        assert!(
+            (result.total_apostasy).abs() < 0.5,
+            "baseline authority should not trigger apostasy, got {}",
+            result.total_apostasy
+        );
     }
 
     #[test]
     fn test_high_authority_attracts_converts() {
         let mut country = Country::mock_for_tests();
         // Two regions with different religions.
-        country.regions.push(make_region_with_religion("r1", "Catholicism", 2000));
-        country.regions.push(make_region_with_religion("r2", "Protestantism", 2000));
+        country
+            .regions
+            .push(make_region_with_religion("r1", "Catholicism", 2000));
+        country
+            .regions
+            .push(make_region_with_religion("r2", "Protestantism", 2000));
 
-        let authority: BTreeMap<String, f64> = BTreeMap::from([
-            ("catholicism".into(), 0.8),
-            ("protestantism".into(), 0.3),
-        ]);
+        let authority: BTreeMap<String, f64> =
+            BTreeMap::from([("catholicism".into(), 0.8), ("protestantism".into(), 0.3)]);
 
         let result = process_religious_conversion_turn(&mut country, &authority);
 
         // High authority catholicism should attract converts from low authority protestantism.
-        assert!(result.total_converted > 0.0,
-            "high authority should attract converts, got {}", result.total_converted);
+        assert!(
+            result.total_converted > 0.0,
+            "high authority should attract converts, got {}",
+            result.total_converted
+        );
     }
 
     #[test]
     fn test_low_authority_apostasy() {
         let mut country = Country::mock_for_tests();
-        country.regions.push(make_region_with_religion("r1", "Catholicism", 5000));
+        country
+            .regions
+            .push(make_region_with_religion("r1", "Catholicism", 5000));
 
-        let authority: BTreeMap<String, f64> = BTreeMap::from([
-            ("catholicism".into(), 0.1),
-        ]);
+        let authority: BTreeMap<String, f64> = BTreeMap::from([("catholicism".into(), 0.1)]);
 
         let result = process_religious_conversion_turn(&mut country, &authority);
 
         // Authority < 0.2 with > 1000 followers → apostasy.
-        assert!(result.total_apostasy > 0.0,
-            "low authority should cause apostasy, got {}", result.total_apostasy);
+        assert!(
+            result.total_apostasy > 0.0,
+            "low authority should cause apostasy, got {}",
+            result.total_apostasy
+        );
     }
 
     #[test]
     fn test_holy_site_amplifies_conversion() {
         let mut country = Country::mock_for_tests();
-        country.regions.push(make_region_with_religion("r1", "Catholicism", 2000));
-        country.regions.push(make_region_with_religion("r2", "Protestantism", 2000));
+        country
+            .regions
+            .push(make_region_with_religion("r1", "Catholicism", 2000));
+        country
+            .regions
+            .push(make_region_with_religion("r2", "Protestantism", 2000));
 
         // Add holy site to r1 for catholicism.
         country.regions[0].holy_site = Some(crate::society::geography::HolySite {
@@ -739,23 +942,28 @@ mod tests {
             display_name: "Sanktuarium".into(),
         });
 
-        let authority: BTreeMap<String, f64> = BTreeMap::from([
-            ("catholicism".into(), 0.7),
-            ("protestantism".into(), 0.4),
-        ]);
+        let authority: BTreeMap<String, f64> =
+            BTreeMap::from([("catholicism".into(), 0.7), ("protestantism".into(), 0.4)]);
 
         let result_with_hs = process_religious_conversion_turn(&mut country, &authority);
 
         // Now test without holy site.
         let mut country2 = Country::mock_for_tests();
-        country2.regions.push(make_region_with_religion("r1", "Catholicism", 2000));
-        country2.regions.push(make_region_with_religion("r2", "Protestantism", 2000));
+        country2
+            .regions
+            .push(make_region_with_religion("r1", "Catholicism", 2000));
+        country2
+            .regions
+            .push(make_region_with_religion("r2", "Protestantism", 2000));
 
         let result_without_hs = process_religious_conversion_turn(&mut country2, &authority);
 
         // Holy site should amplify conversion (or at minimum not reduce it).
-        assert!(result_with_hs.total_converted >= result_without_hs.total_converted,
+        assert!(
+            result_with_hs.total_converted >= result_without_hs.total_converted,
             "holy site should amplify conversion, with={}, without={}",
-            result_with_hs.total_converted, result_without_hs.total_converted);
+            result_with_hs.total_converted,
+            result_without_hs.total_converted
+        );
     }
 }

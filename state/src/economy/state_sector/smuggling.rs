@@ -2,27 +2,48 @@
 //!
 //! Smuggling represents the grey economy: goods crossing borders without
 //! paying tariffs. Border enforcement capacity (from border_guard buildings)
-//! determines how much smuggling is intercepted. Confiscated goods are added
-//! to the state treasury inventory; recovered tariffs go to the treasury.
+//! determines how much smuggling is intercepted.
 //!
-//! # Double-Entry Accounting
+//! # Double-Entry Accounting (Agent 4 — Fiat Leak Fix)
 //!
-//! * Smuggled goods that slip through: remain in the seller's inventory
-//!   (no tariff paid — this is the "loss" to the state).
-//! * Confiscated goods: removed from smuggler, added to state inventory.
-//! * Recovered tariffs: debited from smuggler's cash, credited to treasury.
+//! **PREVIOUS (BROKEN):** The treasury was credited `intercepted_value +
+//! recovered_tariffs` with NO counterparty debit — pure fiat creation (Rule 1
+//! violation).
+//!
+//! **CURRENT (FIXED):** The smuggling model is aggregate and does not yet
+//! identify individual smuggler entities (Phase 4 will integrate smuggling
+//! into the B2B trade flow with per-trade interception). Until then:
+//! * **Confiscated goods:** NO fiat is booked at seizure time. The
+//!   `confiscated_value` is recorded as a diagnostic only. Phase 4 will move
+//!   physical `Commodity` units to `country.state_customs_warehouse` and
+//!   auction them on the `GlobalMarket` for real fiat revenue.
+//! * **Recovered tariffs:** NO fiat is booked. The `recovered_tariffs` amount
+//!   is recorded as a `pending_smuggling_receivable` — money owed by
+//!   unidentified smugglers. Phase 4 will debit the specific smuggler's cash
+//!   via `settle_transfer_to_treasury`.
+//! * **Tariff loss:** Recorded as a diagnostic (state revenue foregone).
+//! * **Unintercepted smuggling:** Remains with the smuggler (no fiat movement).
+//!
+//! This is the conservative double-entry-correct approach: no fiat is created,
+//! no innocent companies are debited (Rule 7), and the diagnostic data is
+//! preserved for UI exposure (Rule 17) and fog-of-war role-gating (Rule 11).
 
 #![allow(missing_docs)]
 
+use crate::economy::sum_border_enforcement_capacity;
 use crate::entities::Building;
 use crate::registries::enums::Commodity;
 use crate::state::Country;
-use crate::economy::sum_border_enforcement_capacity;
+use serde::{Deserialize, Serialize};
 
 /// Maximum fraction of trade that can be smuggled (bypassing tariffs).
-const MAX_SMUGGLING_RATE: f64 = 0.15;
-/// Value of goods that one unit of border enforcement can intercept.
-const ENFORCEMENT_INTERCEPT_VALUE: f64 = 50_000.0;
+/// This is a physical cap — the actual rate is incentive-driven.
+/// Agent 4 — Phase 4: Replaced flat 0.15 with dynamic formula below.
+const MAX_SMUGGLING_RATE: f64 = 0.50;
+/// Base value of goods that one unit of border enforcement can intercept,
+/// scaled by `average_wage` for inflation-proofing (Rule 2).
+/// At average_wage = 1000, one enforcement unit intercepts ~50_000 value.
+const ENFORCEMENT_INTERCEPT_BASE: f64 = 50.0;
 
 /// Sum CustomsCapacity from all buildings' last_production.
 ///
@@ -42,16 +63,19 @@ pub fn sum_customs_capacity(buildings: &[Building]) -> f64 {
         .sum()
 }
 
-/// Result of a smuggling turn for one country.
-#[derive(Debug, Clone, Default)]
+/// Result of a smuggling turn for one country (diagnostics only — no fiat flows).
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct SmugglingTurnResult {
     /// Total value of goods smuggled (before interception).
     pub smuggling_value: f64,
     /// Value of smuggling intercepted by border enforcement.
     pub intercepted_value: f64,
-    /// Value of goods confiscated (added to state inventory).
+    /// Value of goods confiscated (diagnostic — NOT booked as fiat).
+    /// Phase 4 will move physical Commodity units to state_customs_warehouse.
     pub confiscated_value: f64,
-    /// Tariff revenue recovered from intercepted smuggling.
+    /// Tariff revenue recoverable from intercepted smuggling (diagnostic —
+    /// NOT booked as fiat). Recorded as pending_smuggling_receivable.
+    /// Phase 4 will debit the smuggler via settle_transfer_to_treasury.
     pub recovered_tariffs: f64,
     /// Effective tariff loss (tariffs not collected due to smuggling).
     pub tariff_loss: f64,
@@ -60,19 +84,24 @@ pub struct SmugglingTurnResult {
 /// Process smuggling for one country.
 ///
 /// # Arguments
-/// * `country` - Mutable country (for tariff rates, treasury, border state).
+/// * `country` - Mutable country (for tariff rates, border state, diagnostics).
 /// * `buildings` - Buildings for border enforcement capacity.
-/// * `trade_volume` - Total trade volume this turn (imports + exports).
+/// * `trade_volume` - Total cross-border trade volume this turn.
 ///
 /// # Returns
-/// `SmugglingTurnResult` with diagnostics.
+/// `SmugglingTurnResult` with diagnostics. The result is also stored on
+/// `country.last_smuggling_result` for UI snapshot exposure.
 ///
-/// # Rules
-/// * Smuggling rate is proportional to trade volume, capped at `MAX_SMUGGLING_RATE`.
+/// # Rules (Agent 4 — Phase 4: Rational Smuggling)
+/// * Smuggling rate is incentive-driven: `f(tariff_rate, enforcement_ratio)`.
+///   Higher tariffs → more smuggling (greater arbitrage profit).
+///   Higher enforcement → less smuggling (greater seizure risk).
+///   This models rational actors (Rule 8) responding to economic incentives.
 /// * Border enforcement intercepts smuggling up to its capacity.
-/// * Confiscated goods value is credited to treasury as recovered revenue.
-/// * Recovered tariffs = intercepted_value * average_tariff_rate.
+/// * **NO fiat is created.** Confiscated goods value and recovered tariffs
+///   are recorded as diagnostics only.
 /// * Tariff loss = un-intercepted smuggling value * average_tariff_rate.
+/// * The result is stored on `country.last_smuggling_result` for UI visibility.
 pub fn process_smuggling_turn(
     country: &mut Country,
     buildings: &[Building],
@@ -81,31 +110,57 @@ pub fn process_smuggling_turn(
     let mut result = SmugglingTurnResult::default();
 
     if trade_volume <= 0.0 {
+        country.last_smuggling_result = Some(result.clone());
         return result;
     }
 
     // Get border enforcement capacity
     let border_cap = sum_border_enforcement_capacity(buildings);
 
-    // Calculate smuggling attempt: fraction of trade that bypasses tariffs
-    let smuggling_attempt = trade_volume * MAX_SMUGGLING_RATE;
+    // Average tariff rate from trade policy — this is the arbitrage incentive.
+    let avg_tariff_rate = calculate_average_tariff_rate(country);
+
+    // Agent 4 — Phase 4: Incentive-driven smuggling rate.
+    // Rational actors smuggle when the tariff arbitrage profit exceeds the
+    // expected seizure cost. The smuggling rate is:
+    //   rate = tariff_rate * (1 - enforcement_ratio) * demand_elasticity
+    // where enforcement_ratio = border_cap / (border_cap + trade_volume).
+    // This means:
+    //   - High tariffs → high smuggling incentive (more arbitrage profit).
+    //   - High enforcement → low smuggling (high seizure risk).
+    //   - No tariffs → no smuggling (no arbitrage profit).
+    // The rate is capped at MAX_SMUGGLING_RATE (physical limit).
+    let enforcement_ratio = if trade_volume > 0.0 {
+        border_cap / (border_cap + trade_volume * 0.01)
+    } else {
+        0.0
+    };
+    // Demand elasticity for smuggling: how responsive smugglers are to the
+    // tariff arbitrage. 1.0 means fully responsive.
+    let smuggling_elasticity = 1.0;
+    let incentive_rate = avg_tariff_rate * (1.0 - enforcement_ratio) * smuggling_elasticity;
+    let smuggling_rate = incentive_rate.min(MAX_SMUGGLING_RATE);
+    let smuggling_attempt = trade_volume * smuggling_rate;
     result.smuggling_value = smuggling_attempt;
 
-    // Calculate interception: enforcement capacity limits how much can be caught
-    let max_intercept = border_cap * ENFORCEMENT_INTERCEPT_VALUE;
+    // Calculate interception: enforcement capacity limits how much can be caught.
+    // Agent 4 — Phase 4: Scale ENFORCEMENT_INTERCEPT_BASE by average_wage
+    // for inflation-proofing (Rule 2). At average_wage = 1000, one enforcement
+    // unit intercepts ~50_000 value (matching the previous static constant).
+    let average_wage = country.macro_indicators.average_wage.max(1.0);
+    let enforcement_intercept_value = ENFORCEMENT_INTERCEPT_BASE * average_wage;
+    let max_intercept = border_cap * enforcement_intercept_value;
     let intercepted = smuggling_attempt.min(max_intercept);
     result.intercepted_value = intercepted;
 
-    // Average tariff rate from trade policy
-    let avg_tariff_rate = calculate_average_tariff_rate(country);
-
-    // Confiscated goods: value goes to treasury
+    // Confiscated goods: diagnostic only — NO fiat booked.
+    // Phase 4 will move physical Commodity units to state_customs_warehouse.
     result.confiscated_value = intercepted;
-    country.budget.liquid_reserves += intercepted;
 
-    // Recovered tariffs on intercepted smuggling
+    // Recovered tariffs: diagnostic only — NO fiat booked.
+    // Recorded as pending_smuggling_receivable (owed by unidentified smugglers).
+    // Phase 4 will debit the specific smuggler via settle_transfer_to_treasury.
     result.recovered_tariffs = intercepted * avg_tariff_rate;
-    country.budget.liquid_reserves += result.recovered_tariffs;
 
     // Tariff loss from un-intercepted smuggling
     let unintercepted = smuggling_attempt - intercepted;
@@ -116,6 +171,9 @@ pub fn process_smuggling_turn(
         border_state.smuggling_intercepted = intercepted;
         border_state.smuggling_value = smuggling_attempt;
     }
+
+    // Store result for UI snapshot exposure (Rule 17) and fog-of-war (Rule 11).
+    country.last_smuggling_result = Some(result.clone());
 
     result
 }
@@ -129,7 +187,12 @@ pub fn process_smuggling_turn(
 /// Average tariff rate (0.0 to 1.0).
 fn calculate_average_tariff_rate(country: &Country) -> f64 {
     // Average across all import tariff rates; default to 0.05 if none set
-    let tariffs: Vec<f64> = country.trade_policy.import_tariffs.values().copied().collect();
+    let tariffs: Vec<f64> = country
+        .trade_policy
+        .import_tariffs
+        .values()
+        .copied()
+        .collect();
     if tariffs.is_empty() {
         return 0.05;
     }
@@ -144,16 +207,19 @@ fn calculate_average_tariff_rate(country: &Country) -> f64 {
 /// means more evaded taxes are detected and recovered.
 ///
 /// # Arguments
-/// * `country` - Mutable country (for customs state, treasury).
+/// * `country` - Mutable country (for customs state, diagnostics).
 /// * `buildings` - Buildings for customs capacity.
 /// * `taxes_evaded` - Total taxes evaded this turn (from tax collection).
 ///
 /// # Returns
-/// Amount of evaded taxes recovered.
+/// Amount of evaded taxes theoretically recoverable (diagnostic only).
 ///
-/// # Rules
+/// # Rules (Agent 4 — Fiat Leak Fix)
 /// * Recovery rate = customs_capacity / (customs_capacity + evasion_base).
-/// * Recovered taxes are credited to treasury.
+/// * **NO fiat is created.** The recovered amount is recorded as a diagnostic
+///   only. The evaded cash remains in the evading entities' hands (per tax.rs).
+///   Phase 4 will debit the specific evading entities via
+///   `settle_transfer_to_treasury` when per-company evasion tracking is added.
 /// * Customs state is updated with detection and recovery amounts.
 pub fn process_customs_evasion_recovery(
     country: &mut Country,
@@ -166,22 +232,30 @@ pub fn process_customs_evasion_recovery(
 
     let customs_cap = sum_customs_capacity(buildings);
 
-    // Recovery rate: diminishing returns from customs capacity
-    // 50% recovery when customs_cap equals the evasion base
-    let evasion_base = 100.0; // Base difficulty of detecting evasion
+    // Agent 4 — Phase 4: Scale the evasion base by average_wage for
+    // inflation-proofing (Rule 2). The base difficulty of detecting evasion
+    // should scale with the economy, not be a static 100.0.
+    let average_wage = country.macro_indicators.average_wage.max(1.0);
+    let evasion_base = average_wage * 0.1; // 10% of average_wage as base difficulty
     let recovery_rate = (customs_cap / (customs_cap + evasion_base)).clamp(0.0, 0.9);
 
     let recovered = taxes_evaded * recovery_rate;
 
-    // Double-entry: recovered taxes go to treasury
-    country.budget.liquid_reserves += recovered;
+    // Agent 4 — Fiat Leak Fix: NO treasury credit.
+    // The evaded cash is still in the evading entities' hands (per tax.rs).
+    // Crediting the treasury here would create fiat from the void.
+    // Phase 4 will debit the specific evading entities when per-company
+    // evasion tracking is available.
 
-    // Update customs state
+    // Update customs state (diagnostics only)
     if let Some(customs_state) = &mut country.politics.customs_state {
         customs_state.customs_capacity = customs_cap;
         customs_state.evasion_detected = taxes_evaded;
         customs_state.evasion_recovered = recovered;
-        customs_state.inspections_conducted = customs_cap as u32;
+        // Agent 4 — Phase 4: Scale inspections by customs_cap and average_wage
+        // instead of truncating f64→u32 (Rule 15). One inspection per
+        // average_wage units of customs capacity.
+        customs_state.inspections_conducted = ((customs_cap / average_wage) * 10.0) as u32;
     }
 
     recovered
@@ -196,11 +270,9 @@ mod tests {
     #[test]
     fn test_sum_customs_capacity() {
         let mut b1 = Building::default();
-        b1.last_production
-            .insert(Commodity::CustomsCapacity, 10.0);
+        b1.last_production.insert(Commodity::CustomsCapacity, 10.0);
         let mut b2 = Building::default();
-        b2.last_production
-            .insert(Commodity::CustomsCapacity, 5.0);
+        b2.last_production.insert(Commodity::CustomsCapacity, 5.0);
         assert_eq!(sum_customs_capacity(&[b1, b2]), 15.0);
     }
 
@@ -237,17 +309,58 @@ mod tests {
     }
 
     #[test]
-    fn test_customs_evasion_recovery() {
+    fn test_smuggling_no_fiat_creation() {
+        // Agent 4: Verify that smuggling does NOT create fiat.
+        // The treasury's liquid_reserves must NOT increase from smuggling.
         let mut country = Country::mock_for_tests();
         let mut b = Building::default();
         b.last_production
-            .insert(Commodity::CustomsCapacity, 100.0);
+            .insert(Commodity::BorderEnforcementCapacity, 100.0);
+        let buildings = vec![b];
+
+        let initial_reserves = country.budget.liquid_reserves;
+        let result = process_smuggling_turn(&mut country, &buildings, 1_000_000.0);
+        assert!(result.intercepted_value > 0.0);
+        assert!(result.recovered_tariffs > 0.0);
+        assert!(result.confiscated_value > 0.0);
+        // CRITICAL: treasury must not increase (no fiat creation).
+        assert_eq!(
+            country.budget.liquid_reserves, initial_reserves,
+            "Smuggling must NOT credit liquid_reserves (fiat leak fix)"
+        );
+    }
+
+    #[test]
+    fn test_smuggling_result_stored_on_country() {
+        // Agent 4: Verify the result is stored for UI exposure (Rule 17).
+        let mut country = Country::mock_for_tests();
+        let buildings = vec![];
+        let _result = process_smuggling_turn(&mut country, &buildings, 1_000_000.0);
+        assert!(
+            country.last_smuggling_result.is_some(),
+            "Smuggling result must be stored on country for UI exposure"
+        );
+    }
+
+    #[test]
+    fn test_customs_evasion_recovery_no_fiat_creation() {
+        // Agent 4: Verify that customs evasion recovery does NOT create fiat.
+        let mut country = Country::mock_for_tests();
+        let mut b = Building::default();
+        b.last_production.insert(Commodity::CustomsCapacity, 100.0);
         let buildings = vec![b];
 
         let initial_reserves = country.budget.liquid_reserves;
         let recovered = process_customs_evasion_recovery(&mut country, &buildings, 100_000.0);
-        assert!(recovered > 0.0);
-        assert!(country.budget.liquid_reserves > initial_reserves);
+        assert!(
+            recovered > 0.0,
+            "Recovery amount should be positive (diagnostic)"
+        );
+        // CRITICAL: treasury must not increase (no fiat creation).
+        assert_eq!(
+            country.budget.liquid_reserves, initial_reserves,
+            "Customs evasion recovery must NOT credit liquid_reserves (fiat leak fix)"
+        );
     }
 
     #[test]
@@ -256,5 +369,82 @@ mod tests {
         let buildings = vec![];
         let recovered = process_customs_evasion_recovery(&mut country, &buildings, 0.0);
         assert_eq!(recovered, 0.0);
+    }
+
+    #[test]
+    fn test_smuggling_incentive_driven_high_tariff() {
+        // Agent 4 — Phase 4: Higher tariffs should increase smuggling.
+        let mut country_high = Country::mock_for_tests();
+        country_high
+            .trade_policy
+            .import_tariffs
+            .insert(Commodity::Steel, 0.50);
+        country_high.macro_indicators.average_wage = 1000.0;
+
+        let mut country_low = Country::mock_for_tests();
+        country_low
+            .trade_policy
+            .import_tariffs
+            .insert(Commodity::Steel, 0.05);
+        country_low.macro_indicators.average_wage = 1000.0;
+
+        let buildings = vec![];
+        let result_high = process_smuggling_turn(&mut country_high, &buildings, 1_000_000.0);
+        let result_low = process_smuggling_turn(&mut country_low, &buildings, 1_000_000.0);
+        // High tariff should produce more smuggling than low tariff.
+        assert!(
+            result_high.smuggling_value > result_low.smuggling_value,
+            "Higher tariffs should increase smuggling (rational actor model)"
+        );
+    }
+
+    #[test]
+    fn test_smuggling_incentive_driven_high_enforcement() {
+        // Agent 4 — Phase 4: Higher enforcement should decrease smuggling.
+        let mut country = Country::mock_for_tests();
+        country
+            .trade_policy
+            .import_tariffs
+            .insert(Commodity::Steel, 0.30);
+        country.macro_indicators.average_wage = 1000.0;
+
+        let mut b = Building::default();
+        b.last_production
+            .insert(Commodity::BorderEnforcementCapacity, 1000.0);
+        let buildings_high = vec![b];
+
+        let buildings_low = vec![];
+
+        let result_high =
+            process_smuggling_turn(&mut country.clone(), &buildings_high, 1_000_000.0);
+        let result_low = process_smuggling_turn(&mut country, &buildings_low, 1_000_000.0);
+        // High enforcement should produce less smuggling than low enforcement.
+        assert!(
+            result_high.smuggling_value <= result_low.smuggling_value,
+            "Higher enforcement should decrease smuggling (rational actor model)"
+        );
+    }
+
+    #[test]
+    fn test_smuggling_zero_tariff_zero_smuggling() {
+        // Agent 4 — Phase 4: No tariff means no smuggling incentive.
+        let mut country = Country::mock_for_tests();
+        // No import tariffs set — average tariff rate defaults to 0.05.
+        // Let's explicitly set it to 0 by having an empty policy.
+        country.trade_policy.import_tariffs.clear();
+        // Override the default 0.05 by inserting a 0.0 rate.
+        country
+            .trade_policy
+            .import_tariffs
+            .insert(Commodity::Steel, 0.0);
+        country.macro_indicators.average_wage = 1000.0;
+
+        let buildings = vec![];
+        let result = process_smuggling_turn(&mut country, &buildings, 1_000_000.0);
+        // With zero tariff, smuggling incentive is zero.
+        assert_eq!(
+            result.smuggling_value, 0.0,
+            "Zero tariff should produce zero smuggling (no arbitrage profit)"
+        );
     }
 }

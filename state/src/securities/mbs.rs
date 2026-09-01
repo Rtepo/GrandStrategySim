@@ -10,7 +10,6 @@ use serde_json::Map;
 
 /// Tranche priority in loss waterfall.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
-
 #[derive(Default)]
 pub enum TranchePriority {
     /// Senior tranche - absorbs losses last (appears AAA).
@@ -18,13 +17,10 @@ pub enum TranchePriority {
     #[default]
     Senior,
     /// Mezzanine tranche - absorbs losses after Junior.
-
     Mezzanine,
     /// Junior/Equity tranche - absorbs losses first (highest risk).
-
     Junior,
 }
-
 
 /// Single tranche of an MBS.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -33,31 +29,31 @@ pub struct MbsTranche {
     /// Tranche ID.
     #[serde(default)]
     pub id: String,
-    
+
     /// Priority level for loss absorption.
     #[serde(default)]
     pub priority: TranchePriority,
-    
+
     /// Notional value of this tranche.
     #[serde(default)]
     pub notional: f64,
-    
+
     /// Current outstanding balance (decreases as loans amortize).
     #[serde(default)]
     pub outstanding_balance: f64,
-    
+
     /// Yield paid to tranche holders (weighted avg of loans - servicing spread).
     #[serde(default)]
     pub yield_rate: f64,
-    
+
     /// Current tranche value (mark-to-market based on underlying loan performance).
     #[serde(default)]
     pub market_value: f64,
-    
+
     /// Owner of this tranche (fund_id, bank_id, etc.).
     #[serde(default)]
     pub owner_id: String,
-    
+
     /// Any additional tranche fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -70,39 +66,39 @@ pub struct MortgageBackedSecurity {
     /// MBS ID.
     #[serde(default)]
     pub id: String,
-    
+
     /// Originating bank (created the SPV).
     #[serde(default)]
     pub originator_bank_id: String,
-    
+
     /// SPV Company ID holding the underlying loans.
     #[serde(default)]
     pub spv_id: String,
-    
+
     /// Underlying loan IDs (from BankBalanceSheet.loans_issued).
     #[serde(default)]
     pub underlying_loan_ids: Vec<String>,
-    
+
     /// Tranches (Senior, Mezzanine, Junior).
     #[serde(default)]
     pub tranches: Vec<MbsTranche>,
-    
+
     /// Servicing spread paid to originator (e.g., 0.5%).
     #[serde(default)]
     pub servicing_spread: f64,
-    
+
     /// Current weighted average yield of underlying loans.
     #[serde(default)]
     pub weighted_avg_loan_rate: f64,
-    
+
     /// Total notional of all underlying loans.
     #[serde(default)]
     pub total_underlying_notional: f64,
-    
+
     /// Current default rate of underlying loans.
     #[serde(default)]
     pub current_default_rate: f64,
-    
+
     /// Any additional MBS fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -129,14 +125,14 @@ impl MortgageBackedSecurity {
         servicing_spread: f64,
     ) -> f64 {
         let base_yield = weighted_avg_loan_rate - servicing_spread;
-        
+
         match priority {
             TranchePriority::Senior => base_yield, // No premium (appears safe)
             TranchePriority::Mezzanine => base_yield + 0.02, // 2% risk premium
             TranchePriority::Junior => base_yield + 0.05, // 5% risk premium (high yield bait)
         }
     }
-    
+
     /// Distribute losses from underlying loan defaults to tranches.
     /// Loss waterfall: Junior absorbs 100% first, then Mezzanine, then Senior.
     ///
@@ -149,15 +145,19 @@ impl MortgageBackedSecurity {
     /// - Market value marked to outstanding_balance
     pub fn distribute_losses(&mut self, total_loss: f64) {
         let mut remaining_loss = total_loss;
-        
+
         // Sort tranches by priority (Junior first, then Mezzanine, then Senior)
-        let tranche_order = vec![TranchePriority::Junior, TranchePriority::Mezzanine, TranchePriority::Senior];
-        
+        let tranche_order = vec![
+            TranchePriority::Junior,
+            TranchePriority::Mezzanine,
+            TranchePriority::Senior,
+        ];
+
         for priority in tranche_order {
             if remaining_loss <= 0.0 {
                 break;
             }
-            
+
             if let Some(tranche) = self.tranches.iter_mut().find(|t| t.priority == priority) {
                 let absorbable = tranche.outstanding_balance.min(remaining_loss);
                 tranche.outstanding_balance -= absorbable;
@@ -198,8 +198,12 @@ pub fn securitize_loans(
     let balance_sheet = bank.balance_sheet.as_mut()?;
 
     // Collect eligible loan IDs and total notional
-    let eligible: Vec<(String, f64, f64)> = balance_sheet.loans_issued.iter()
-        .filter(|l| !l.securitized && l.pledged_to_covered_bond.is_none() && l.outstanding_balance > 0.0)
+    let eligible: Vec<(String, f64, f64)> = balance_sheet
+        .loans_issued
+        .iter()
+        .filter(|l| {
+            !l.securitized && l.pledged_to_covered_bond.is_none() && l.outstanding_balance > 0.0
+        })
         .map(|l| (l.id.clone(), l.outstanding_balance, l.interest_rate))
         .collect();
 
@@ -214,14 +218,22 @@ pub fn securitize_loans(
 
     let weighted_avg_rate: f64 = {
         let total_rate_weighted: f64 = eligible.iter().map(|(_, bal, rate)| bal * rate).sum();
-        if total_notional > 0.0 { total_rate_weighted / total_notional } else { 0.0 }
+        if total_notional > 0.0 {
+            total_rate_weighted / total_notional
+        } else {
+            0.0
+        }
     };
 
     let mbs_id = format!("MBS-{}-{}", bank.id, current_turn);
 
     // Mark loans as securitized
     for (loan_id, _, _) in &eligible {
-        if let Some(loan) = balance_sheet.loans_issued.iter_mut().find(|l| &l.id == loan_id) {
+        if let Some(loan) = balance_sheet
+            .loans_issued
+            .iter_mut()
+            .find(|l| &l.id == loan_id)
+        {
             loan.securitized = true;
         }
     }
@@ -232,13 +244,19 @@ pub fn securitize_loans(
     let junior_notional = total_notional * config.mbs_junior_fraction;
 
     let senior_yield = MortgageBackedSecurity::calculate_tranche_yield(
-        TranchePriority::Senior, weighted_avg_rate, config.mbs_servicing_spread,
+        TranchePriority::Senior,
+        weighted_avg_rate,
+        config.mbs_servicing_spread,
     );
     let mezzanine_yield = MortgageBackedSecurity::calculate_tranche_yield(
-        TranchePriority::Mezzanine, weighted_avg_rate, config.mbs_servicing_spread,
+        TranchePriority::Mezzanine,
+        weighted_avg_rate,
+        config.mbs_servicing_spread,
     );
     let junior_yield = MortgageBackedSecurity::calculate_tranche_yield(
-        TranchePriority::Junior, weighted_avg_rate, config.mbs_servicing_spread,
+        TranchePriority::Junior,
+        weighted_avg_rate,
+        config.mbs_servicing_spread,
     );
 
     let tranches = vec![
@@ -306,11 +324,17 @@ pub fn securitize_loans(
             current_turn + 10,
         );
         let book = exchange.order_book.entry(instrument_id).or_default();
-        if let Some(pos) = book.asks.iter().position(|(p, _)| *p == tranche.outstanding_balance) {
+        if let Some(pos) = book
+            .asks
+            .iter()
+            .position(|(p, _)| *p == tranche.outstanding_balance)
+        {
             book.asks[pos].1.push(ask_order);
         } else {
-            book.asks.push((tranche.outstanding_balance, vec![ask_order]));
-            book.asks.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+            book.asks
+                .push((tranche.outstanding_balance, vec![ask_order]));
+            book.asks
+                .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
         }
         book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
     }
@@ -375,7 +399,11 @@ pub fn process_mbs_turn(
         let amortization = mbs.total_underlying_notional * mbs.weighted_avg_loan_rate * 0.1;
         if amortization > 0.0 {
             let mut remaining_amort = amortization;
-            let tranche_order = vec![TranchePriority::Senior, TranchePriority::Mezzanine, TranchePriority::Junior];
+            let tranche_order = vec![
+                TranchePriority::Senior,
+                TranchePriority::Mezzanine,
+                TranchePriority::Junior,
+            ];
             for priority in tranche_order {
                 if remaining_amort <= 0.0 {
                     break;

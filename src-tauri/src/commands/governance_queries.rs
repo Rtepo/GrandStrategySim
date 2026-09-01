@@ -1,6 +1,6 @@
 use crate::state::AppState;
-use sim_engine::ui::snapshot::{GovernanceDetail, BoardMemberRow};
 use sim_engine::entities::LegalForm;
+use sim_engine::ui::snapshot::{BoardMemberRow, GovernanceDetail};
 
 /// Phase 55: Get governance detail for a specific company.
 /// Returns board members, succession info, and financial metrics.
@@ -13,9 +13,7 @@ pub async fn get_governance_detail(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -40,16 +38,24 @@ pub async fn get_governance_detail(
         // Resolve board members from VIP registry.
         let (board_members, has_board, board_independence) =
             if let LegalForm::JointStockCompany(ref jsd) = company.legal_form {
-                let members: Vec<BoardMemberRow> = jsd.board_members.iter()
+                let members: Vec<BoardMemberRow> = jsd
+                    .board_members
+                    .iter()
                     .filter_map(|seat| {
                         let vip = registry.and_then(|r| r.get(&seat.vip_id))?;
                         Some(BoardMemberRow {
                             vip_id: seat.vip_id.clone(),
                             name: vip.full_name.clone(),
                             role: match seat.role {
-                                sim_engine::entities::legal_form::BoardRole::Chair => "Chair".to_string(),
-                                sim_engine::entities::legal_form::BoardRole::Founder => "Founder".to_string(),
-                                sim_engine::entities::legal_form::BoardRole::Independent => "Independent".to_string(),
+                                sim_engine::entities::legal_form::BoardRole::Chair => {
+                                    "Chair".to_string()
+                                }
+                                sim_engine::entities::legal_form::BoardRole::Founder => {
+                                    "Founder".to_string()
+                                }
+                                sim_engine::entities::legal_form::BoardRole::Independent => {
+                                    "Independent".to_string()
+                                }
                             },
                             loyalty_to_ceo: seat.loyalty_to_ceo,
                             appointed_turn: seat.appointed_turn,
@@ -58,7 +64,11 @@ pub async fn get_governance_detail(
                         })
                     })
                     .collect();
-                (members, !jsd.board_members.is_empty(), jsd.board_independence)
+                (
+                    members,
+                    !jsd.board_members.is_empty(),
+                    jsd.board_independence,
+                )
             } else {
                 (Vec::new(), false, 0.0)
             };
@@ -66,7 +76,9 @@ pub async fn get_governance_detail(
         // Resolve family business succession info.
         let (is_family_business, successor_generation, heir_count, succession_crisis, heirs) =
             if let LegalForm::FamilyBusiness(ref fbd) = company.legal_form {
-                let heir_rows: Vec<BoardMemberRow> = fbd.heir_vip_ids.iter()
+                let heir_rows: Vec<BoardMemberRow> = fbd
+                    .heir_vip_ids
+                    .iter()
                     .filter_map(|heir_id| {
                         let vip = registry.and_then(|r| r.get(heir_id))?;
                         Some(BoardMemberRow {
@@ -80,7 +92,13 @@ pub async fn get_governance_detail(
                         })
                     })
                     .collect();
-                (true, fbd.successor_generation, heir_rows.len() as u32, fbd.succession_crisis, heir_rows)
+                (
+                    true,
+                    fbd.successor_generation,
+                    heir_rows.len() as u32,
+                    fbd.succession_crisis,
+                    heir_rows,
+                )
             } else {
                 (false, 0, 0, false, Vec::new())
             };

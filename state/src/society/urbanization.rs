@@ -27,12 +27,10 @@
 //! - **No Vaporware (Rule 14)**: Failed annexation uses only existing variables
 //!   (`social_unrest`, `autonomy_level`, `development_level`).
 
-use crate::society::cadastre::{ParcelChunk, ParcelId, ParcelOwnerType};
-use crate::society::geography::{
-    CityRegionMetadata, FactionDomainType, MicroRegion, Region,
-};
-use crate::state::Country;
 use crate::entities::Company;
+use crate::society::cadastre::{ParcelChunk, ParcelId, ParcelOwnerType};
+use crate::society::geography::{CityRegionMetadata, FactionDomainType, MicroRegion, Region};
+use crate::state::Country;
 
 /// Configuration for the urbanization cycle. All thresholds are dynamic,
 /// scaled by macroeconomic variables (Rule 2 — No Magic Numbers).
@@ -320,7 +318,9 @@ pub fn execute_emancipation(
     };
     // Zero out the domain's budget (funds moved to city treasury).
     transferred_domain.sub_budget.liquid_reserves = 0.0;
-    new_region.micro_regions.insert(domain_id_owned.clone(), transferred_domain);
+    new_region
+        .micro_regions
+        .insert(domain_id_owned.clone(), transferred_domain);
 
     // Update parcel region_id.
     for &pid in &domain_controlled_parcels {
@@ -339,7 +339,9 @@ pub fn execute_emancipation(
     let parent_region = country.regions.get_mut(parent_region_idx)?;
     parent_region.micro_regions.remove(&domain_id_owned);
     parent_region.microregion_budgets.remove(&domain_id_owned);
-    parent_region.parcel_ids.retain(|p| !domain_controlled_parcels.contains(p));
+    parent_region
+        .parcel_ids
+        .retain(|p| !domain_controlled_parcels.contains(p));
 
     // Deduct transferred water from parent region's water_reserves.
     // (The actual amount is computed during building transfer in the turn loop.)
@@ -464,8 +466,7 @@ pub fn execute_annexation(
     // Check if city can afford the buyout.
     if city_region.treasury.liquid_reserves < buyout_cost {
         // Failed annexation — grounded penalties only (no vaporware).
-        city_region.treasury.liquid_reserves =
-            (city_region.treasury.liquid_reserves).max(0.0);
+        city_region.treasury.liquid_reserves = (city_region.treasury.liquid_reserves).max(0.0);
         // Apply cooldown.
         if let Some(ref mut meta) = city_region.city_metadata {
             meta.annexation_cooldown = config.annexation_cooldown_turns;
@@ -562,7 +563,9 @@ pub fn execute_annexation(
     // Remove from source domain if applicable.
     if let Some(ref old_domain_id) = parcel.micro_region_id {
         if let Some(source_domain) = source_region.micro_regions.get_mut(old_domain_id) {
-            source_domain.controlled_parcel_ids.retain(|p| *p != parcel_id);
+            source_domain
+                .controlled_parcel_ids
+                .retain(|p| *p != parcel_id);
         }
     }
     // Add to city domain.
@@ -717,10 +720,7 @@ pub fn process_urbanization_cycle(
                     .regions
                     .iter()
                     .position(|r| r.id == result.parent_region_id);
-                let city_idx = country
-                    .regions
-                    .iter()
-                    .position(|r| r.id == *city_id);
+                let city_idx = country.regions.iter().position(|r| r.id == *city_id);
 
                 if let (Some(p_idx), Some(c_idx)) = (parent_idx, city_idx) {
                     // We can't borrow both regions mutably at once, so use split_at.
@@ -729,7 +729,10 @@ pub fn process_urbanization_cycle(
                         let parent = &mut left[p_idx];
                         let city = &mut right[0];
                         for building in buildings.iter() {
-                            if let Some(&water) = building.inventory.get(&crate::registries::enums::Commodity::Water) {
+                            if let Some(&water) = building
+                                .inventory
+                                .get(&crate::registries::enums::Commodity::Water)
+                            {
                                 if water > 0.0 && building.region_id == *city_id {
                                     transfer_physical_water(parent, city, water);
                                 }
@@ -740,7 +743,10 @@ pub fn process_urbanization_cycle(
                         let city = &mut left[c_idx];
                         let parent = &mut right[0];
                         for building in buildings.iter() {
-                            if let Some(&water) = building.inventory.get(&crate::registries::enums::Commodity::Water) {
+                            if let Some(&water) = building
+                                .inventory
+                                .get(&crate::registries::enums::Commodity::Water)
+                            {
                                 if water > 0.0 && building.region_id == *city_id {
                                     transfer_physical_water(parent, city, water);
                                 }
@@ -815,12 +821,8 @@ pub fn process_urbanization_cycle(
                 .map(|d| d.faction_type == FactionDomainType::AristocraticEstate)
                 .unwrap_or(false);
 
-            let buyout_cost = evaluate_annexation_cost(
-                &parcel,
-                average_land_price,
-                is_aristocratic,
-                config,
-            );
+            let buyout_cost =
+                evaluate_annexation_cost(&parcel, average_land_price, is_aristocratic, config);
 
             // Find source region index.
             let source_idx = country
@@ -873,7 +875,8 @@ pub fn process_urbanization_cycle(
                 // Apply tension for successful aristocratic buyout.
                 if result.success && result.was_aristocratic {
                     country.macro_indicators.social_unrest =
-                        (country.macro_indicators.social_unrest + config.aristocratic_tension_per_buyout)
+                        (country.macro_indicators.social_unrest
+                            + config.aristocratic_tension_per_buyout)
                             .min(100.0);
                 }
 

@@ -12,18 +12,15 @@
 //! - Peacetime conscription drafts zero recruits
 //! - Expired decrees are automatically cleaned up
 
-use sim_engine::entities::{Building, ActiveProductionMethod};
-use sim_engine::military::war_economy::{
-    WarEconomyState, WarEconomyConfig, ConscriptionLevel,
-    apply_production_decree, lift_production_decree, process_expired_decrees,
-    execute_conscription, issue_war_bonds,
-};
+use sim_engine::entities::{ActiveProductionMethod, Building};
 use sim_engine::military::oob::OrderOfBattle;
 use sim_engine::military::units::UnitType;
-use sim_engine::registries::enums::{Commodity, Sector};
-use sim_engine::society::geography::{
-    Region, RegionalClassDemographics, ClassDemographics,
+use sim_engine::military::war_economy::{
+    apply_production_decree, execute_conscription, issue_war_bonds, lift_production_decree,
+    process_expired_decrees, ConscriptionLevel, WarEconomyConfig, WarEconomyState,
 };
+use sim_engine::registries::enums::{Commodity, Sector};
+use sim_engine::society::geography::{ClassDemographics, Region, RegionalClassDemographics};
 use sim_engine::state::Country;
 use std::collections::BTreeMap;
 
@@ -105,10 +102,7 @@ fn test_decree_swaps_to_military_method_with_distinct_inputs() {
     let military_method = ActiveProductionMethod {
         year: 1935,
         efficiency: 0.9,
-        inputs: BTreeMap::from([
-            (Commodity::Steel, 30.0),
-            (Commodity::Aluminum, 20.0),
-        ]),
+        inputs: BTreeMap::from([(Commodity::Steel, 30.0), (Commodity::Aluminum, 20.0)]),
         outputs: BTreeMap::from([(Commodity::MediumTanks, 10.0)]),
         ..Default::default()
     };
@@ -125,15 +119,34 @@ fn test_decree_swaps_to_military_method_with_distinct_inputs() {
 
     assert!(decree.is_some());
     // Verify: military method has DIFFERENT physical inputs than original (Rule 3)
-    assert!(buildings[0].active_method.inputs.contains_key(&Commodity::Aluminum));
-    assert!(!buildings[0].active_method.inputs.contains_key(&Commodity::Steel)
-        || buildings[0].active_method.inputs.get(&Commodity::Steel) != Some(&50.0));
+    assert!(buildings[0]
+        .active_method
+        .inputs
+        .contains_key(&Commodity::Aluminum));
+    assert!(
+        !buildings[0]
+            .active_method
+            .inputs
+            .contains_key(&Commodity::Steel)
+            || buildings[0].active_method.inputs.get(&Commodity::Steel) != Some(&50.0)
+    );
     // Verify: output is now military
-    assert!(buildings[0].active_method.outputs.contains_key(&Commodity::MediumTanks));
+    assert!(buildings[0]
+        .active_method
+        .outputs
+        .contains_key(&Commodity::MediumTanks));
     // Verify: civilian output is gone
-    assert!(!buildings[0].active_method.outputs.contains_key(&Commodity::Steel)
-        || buildings[0].active_method.outputs.get(&Commodity::Steel) == Some(&0.0)
-        || !buildings[0].active_method.outputs.contains_key(&Commodity::Steel));
+    assert!(
+        !buildings[0]
+            .active_method
+            .outputs
+            .contains_key(&Commodity::Steel)
+            || buildings[0].active_method.outputs.get(&Commodity::Steel) == Some(&0.0)
+            || !buildings[0]
+                .active_method
+                .outputs
+                .contains_key(&Commodity::Steel)
+    );
 }
 
 #[test]
@@ -156,7 +169,8 @@ fn test_decree_restores_original_method() {
         10,
         None,
         0.15,
-    ).unwrap();
+    )
+    .unwrap();
 
     lift_production_decree(&mut buildings, &decree);
 
@@ -189,7 +203,8 @@ fn test_decree_skips_unemployed_buildings() {
         10,
         None,
         0.0,
-    ).unwrap();
+    )
+    .unwrap();
 
     assert_eq!(decree.affected_building_ids.len(), 1);
     assert_eq!(decree.affected_building_ids[0], "b1");
@@ -231,7 +246,10 @@ fn test_conscription_drains_population_from_demographics() {
     };
     let config = WarEconomyConfig::default();
 
-    let original_total_pop: i64 = regions[0].class_demographics.rural_classes.values()
+    let original_total_pop: i64 = regions[0]
+        .class_demographics
+        .rural_classes
+        .values()
         .chain(regions[0].class_demographics.urban_classes.values())
         .map(|d| d.population)
         .sum();
@@ -248,7 +266,10 @@ fn test_conscription_drains_population_from_demographics() {
     assert!(result.recruits_drafted > 0);
     assert_eq!(units.unit_count(), 1);
 
-    let new_total_pop: i64 = regions[0].class_demographics.rural_classes.values()
+    let new_total_pop: i64 = regions[0]
+        .class_demographics
+        .rural_classes
+        .values()
         .chain(regions[0].class_demographics.urban_classes.values())
         .map(|d| d.population)
         .sum();
@@ -297,7 +318,9 @@ fn test_conscription_applies_labor_penalty() {
     };
     let config = WarEconomyConfig::default();
 
-    let original_labor: f64 = regions[0].class_demographics.rural_classes
+    let original_labor: f64 = regions[0]
+        .class_demographics
+        .rural_classes
         .get("FreePeasant")
         .map(|d| d.labor_participation)
         .unwrap_or(0.0);
@@ -313,7 +336,9 @@ fn test_conscription_applies_labor_penalty() {
 
     assert!(result.labor_penalty_applied > 0.0);
 
-    let new_labor: f64 = regions[0].class_demographics.rural_classes
+    let new_labor: f64 = regions[0]
+        .class_demographics
+        .rural_classes
         .get("FreePeasant")
         .map(|d| d.labor_participation)
         .unwrap_or(0.0);
@@ -363,7 +388,10 @@ fn test_conscription_tracks_total_drafted() {
         1,
     );
 
-    assert_eq!(war_economy.total_conscripts_drafted, result.recruits_drafted);
+    assert_eq!(
+        war_economy.total_conscripts_drafted,
+        result.recruits_drafted
+    );
 }
 
 // ============================================================================
@@ -378,9 +406,15 @@ fn test_war_bond_credits_treasury_and_debits_savings() {
     country.war_economy.conscription_level = ConscriptionLevel::Selective;
 
     let original_treasury = country.budget.liquid_reserves;
-    let original_savings: f64 = country.regions.iter()
-        .flat_map(|r| r.class_demographics.rural_classes.values()
-            .chain(r.class_demographics.urban_classes.values()))
+    let original_savings: f64 = country
+        .regions
+        .iter()
+        .flat_map(|r| {
+            r.class_demographics
+                .rural_classes
+                .values()
+                .chain(r.class_demographics.urban_classes.values())
+        })
         .map(|d| d.savings)
         .sum();
 
@@ -397,9 +431,15 @@ fn test_war_bond_credits_treasury_and_debits_savings() {
     assert!((country.budget.liquid_reserves - original_treasury - raised).abs() < 0.01);
 
     // Savings must have decreased (at least partially — retail portion)
-    let new_savings: f64 = country.regions.iter()
-        .flat_map(|r| r.class_demographics.rural_classes.values()
-            .chain(r.class_demographics.urban_classes.values()))
+    let new_savings: f64 = country
+        .regions
+        .iter()
+        .flat_map(|r| {
+            r.class_demographics
+                .rural_classes
+                .values()
+                .chain(r.class_demographics.urban_classes.values())
+        })
         .map(|d| d.savings)
         .sum();
     assert!(new_savings < original_savings);
@@ -425,7 +465,12 @@ fn test_war_bond_respects_gdp_cap() {
     let gdp: f64 = country.regions.iter().map(|r| r.gdp).sum();
     let max_issuance = gdp * config.max_war_bond_gdp_fraction;
 
-    assert!(raised <= max_issuance + 0.01, "War bond issuance {} exceeds GDP cap {}", raised, max_issuance);
+    assert!(
+        raised <= max_issuance + 0.01,
+        "War bond issuance {} exceeds GDP cap {}",
+        raised,
+        max_issuance
+    );
 }
 
 #[test]
@@ -450,7 +495,10 @@ fn test_war_bond_adds_security_to_debt_market() {
 
     let _raised = issue_war_bonds(&mut country, 5_000.0, &config, 1, 1000.0);
 
-    assert_eq!(country.debt_market.outstanding_securities.len(), original_count + 1);
+    assert_eq!(
+        country.debt_market.outstanding_securities.len(),
+        original_count + 1
+    );
 }
 
 // ============================================================================
@@ -475,7 +523,8 @@ fn test_expired_decree_auto_cleanup() {
         10,
         Some(15), // Expires at turn 15
         0.15,
-    ).unwrap();
+    )
+    .unwrap();
 
     let mut war_economy = WarEconomyState {
         active_decrees: vec![decree],
@@ -535,10 +584,7 @@ fn test_full_war_economy_flow() {
     let military_method = ActiveProductionMethod {
         year: 1935,
         efficiency: 0.9,
-        inputs: BTreeMap::from([
-            (Commodity::Steel, 30.0),
-            (Commodity::Aluminum, 20.0),
-        ]),
+        inputs: BTreeMap::from([(Commodity::Steel, 30.0), (Commodity::Aluminum, 20.0)]),
         outputs: BTreeMap::from([(Commodity::MediumTanks, 10.0)]),
         ..Default::default()
     };
@@ -554,10 +600,16 @@ fn test_full_war_economy_flow() {
     );
 
     assert!(decree.is_some());
-    assert!(buildings[0].active_method.outputs.contains_key(&Commodity::MediumTanks));
+    assert!(buildings[0]
+        .active_method
+        .outputs
+        .contains_key(&Commodity::MediumTanks));
 
     // 5. Verify the full cycle: conscription + war bonds + production decree
     assert!(country.war_economy.total_conscripts_drafted > 0);
     assert!(country.war_economy.war_bonds_issued > 0.0);
-    assert!(buildings[0].active_method.outputs.contains_key(&Commodity::MediumTanks));
+    assert!(buildings[0]
+        .active_method
+        .outputs
+        .contains_key(&Commodity::MediumTanks));
 }

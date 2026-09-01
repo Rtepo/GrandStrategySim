@@ -1,11 +1,11 @@
 //! Combat resolution and battle mechanics — deterministic, no RNG.
 
-use std::collections::{HashMap, BTreeMap};
+use std::collections::{BTreeMap, HashMap};
 
 use crate::military::config::MilitaryCombatConfig;
 use crate::military::fronts::{Battle, BattleResult, Casualties};
 use crate::military::units::MilitaryUnit;
-use crate::society::geography::{RuralClass, ClassDemographics};
+use crate::society::geography::{ClassDemographics, RuralClass};
 
 /// Resolve a battle between attacking and defending units.
 ///
@@ -46,52 +46,79 @@ pub fn resolve_battle(
 
     for unit in attacker_units.iter_mut() {
         let manpower_ratio = unit.manpower as f64 / 1000.0;
-        let ammo_req = config.base_ammo_burn_per_battle * manpower_ratio * config.decisive_combat_intensity;
-        let fuel_req = config.base_fuel_burn_per_battle * manpower_ratio * config.decisive_combat_intensity;
+        let ammo_req =
+            config.base_ammo_burn_per_battle * manpower_ratio * config.decisive_combat_intensity;
+        let fuel_req =
+            config.base_fuel_burn_per_battle * manpower_ratio * config.decisive_combat_intensity;
         unit.burn_combat_supplies(ammo_req, fuel_req);
     }
 
     for unit in defender_units.iter_mut() {
         let manpower_ratio = unit.manpower as f64 / 1000.0;
-        let ammo_req = config.base_ammo_burn_per_battle * manpower_ratio * config.decisive_combat_intensity;
-        let fuel_req = config.base_fuel_burn_per_battle * manpower_ratio * config.decisive_combat_intensity;
+        let ammo_req =
+            config.base_ammo_burn_per_battle * manpower_ratio * config.decisive_combat_intensity;
+        let fuel_req =
+            config.base_fuel_burn_per_battle * manpower_ratio * config.decisive_combat_intensity;
         unit.burn_combat_supplies(ammo_req, fuel_req);
     }
 
     // ── Phase 2: Calculate combat power (deterministic) ──
-    let attacker_power: f64 = attacker_units.iter()
+    let attacker_power: f64 = attacker_units
+        .iter()
         .map(|u| u.combat_power(config, false, terrain))
         .sum();
 
-    let defender_power: f64 = defender_units.iter()
+    let defender_power: f64 = defender_units
+        .iter()
         .map(|u| u.combat_power(config, true, terrain))
         .sum();
 
     // ── Phase 3: Determine battle result ──
-    let (result, attacker_casualty_ratio, defender_casualty_ratio) = if attacker_power > defender_power * config.decisive_victory_ratio {
-        // Decisive attacker victory
-        let power_diff = (attacker_power - defender_power) / attacker_power.max(1.0);
-        let loser_ratio = power_diff * config.max_loser_casualty_ratio;
-        (BattleResult::AttackerVictory, loser_ratio * config.winner_casualty_multiplier, loser_ratio)
-    } else if attacker_power > defender_power * config.pyrrhic_victory_ratio {
-        // Pyrrhic attacker victory
-        let power_diff = (attacker_power - defender_power) / attacker_power.max(1.0);
-        let loser_ratio = power_diff * config.max_loser_casualty_ratio;
-        (BattleResult::PyrrhicVictory, loser_ratio * config.winner_casualty_multiplier, loser_ratio)
-    } else if defender_power > attacker_power * config.decisive_victory_ratio {
-        // Decisive defender victory
-        let power_diff = (defender_power - attacker_power) / defender_power.max(1.0);
-        let loser_ratio = power_diff * config.max_loser_casualty_ratio;
-        (BattleResult::DefenderVictory, loser_ratio, loser_ratio * config.winner_casualty_multiplier)
-    } else if defender_power > attacker_power {
-        // Marginal defender victory
-        let power_diff = (defender_power - attacker_power) / defender_power.max(1.0);
-        let loser_ratio = power_diff * config.max_loser_casualty_ratio;
-        (BattleResult::DefenderVictory, loser_ratio, loser_ratio * config.winner_casualty_multiplier)
-    } else {
-        // Stalemate
-        (BattleResult::Stalemate, config.stalemate_casualty_ratio, config.stalemate_casualty_ratio)
-    };
+    let (result, attacker_casualty_ratio, defender_casualty_ratio) =
+        if attacker_power > defender_power * config.decisive_victory_ratio {
+            // Decisive attacker victory
+            let power_diff = (attacker_power - defender_power) / attacker_power.max(1.0);
+            let loser_ratio = power_diff * config.max_loser_casualty_ratio;
+            (
+                BattleResult::AttackerVictory,
+                loser_ratio * config.winner_casualty_multiplier,
+                loser_ratio,
+            )
+        } else if attacker_power > defender_power * config.pyrrhic_victory_ratio {
+            // Pyrrhic attacker victory
+            let power_diff = (attacker_power - defender_power) / attacker_power.max(1.0);
+            let loser_ratio = power_diff * config.max_loser_casualty_ratio;
+            (
+                BattleResult::PyrrhicVictory,
+                loser_ratio * config.winner_casualty_multiplier,
+                loser_ratio,
+            )
+        } else if defender_power > attacker_power * config.decisive_victory_ratio {
+            // Decisive defender victory
+            let power_diff = (defender_power - attacker_power) / defender_power.max(1.0);
+            let loser_ratio = power_diff * config.max_loser_casualty_ratio;
+            (
+                BattleResult::DefenderVictory,
+                loser_ratio,
+                loser_ratio * config.winner_casualty_multiplier,
+            )
+        } else if defender_power > attacker_power {
+            // Marginal defender victory
+            let power_diff = (defender_power - attacker_power) / defender_power.max(1.0);
+            let loser_ratio = power_diff * config.max_loser_casualty_ratio;
+            (
+                BattleResult::DefenderVictory,
+                loser_ratio,
+                loser_ratio * config.winner_casualty_multiplier,
+            )
+        } else {
+            // Stalemate
+            (
+                BattleResult::Stalemate,
+                config.stalemate_casualty_ratio,
+                config.stalemate_casualty_ratio,
+            )
+        };
 
     // ── Phase 4: Calculate casualties (deterministic) ──
     let attacker_casualties = calculate_casualties(attacker_units, attacker_casualty_ratio, config);

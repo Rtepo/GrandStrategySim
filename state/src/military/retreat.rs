@@ -118,16 +118,14 @@ pub fn evaluate_retreat(
     let catastrophic = config.catastrophic_power_ratio;
 
     // Check if defender is overwhelmed
-    if defender_power < attacker_power * catastrophic
-        && defender_commander.will_retreat {
-            return RetreatEvaluation::DefenderRetreats;
-        }
+    if defender_power < attacker_power * catastrophic && defender_commander.will_retreat {
+        return RetreatEvaluation::DefenderRetreats;
+    }
 
     // Check if attacker walked into a meat grinder
-    if attacker_power < defender_power * catastrophic
-        && attacker_commander.will_retreat {
-            return RetreatEvaluation::AttackerRetreats;
-        }
+    if attacker_power < defender_power * catastrophic && attacker_commander.will_retreat {
+        return RetreatEvaluation::AttackerRetreats;
+    }
 
     RetreatEvaluation::NoRetreat
 }
@@ -186,18 +184,12 @@ pub fn process_retreat(
     let mut captured_equipment: HashMap<Commodity, f64> = HashMap::new();
 
     // Calculate casualties for the retreating side (reduced)
-    let retreating_casualties = calculate_retreat_casualties(
-        retreating_units,
-        config.retreat_casualty_ratio,
-        config,
-    );
+    let retreating_casualties =
+        calculate_retreat_casualties(retreating_units, config.retreat_casualty_ratio, config);
 
     // Calculate casualties for the victorious side (minimal)
-    let victor_casualties = calculate_retreat_casualties(
-        victor_units,
-        config.retreat_attacker_casualty_ratio,
-        config,
-    );
+    let victor_casualties =
+        calculate_retreat_casualties(victor_units, config.retreat_attacker_casualty_ratio, config);
 
     // Strip equipment from retreating units
     let equipment_loss_rate = config.retreat_equipment_loss_rate;
@@ -408,12 +400,20 @@ mod tests {
 
         // Retreating side should have very low casualties (5% of 1000 = 50)
         let retreating_total = result.retreating_casualties.total();
-        assert!(retreating_total <= 55, "Retreating casualties must be low (5%), got {}", retreating_total);
+        assert!(
+            retreating_total <= 55,
+            "Retreating casualties must be low (5%), got {}",
+            retreating_total
+        );
         assert!(retreating_total > 0, "Retreating casualties must be > 0");
 
         // Victor should have minimal casualties (2% of 1000 = 20)
         let victor_total = result.victor_casualties.total();
-        assert!(victor_total <= 25, "Victor casualties must be minimal (2%), got {}", victor_total);
+        assert!(
+            victor_total <= 25,
+            "Victor casualties must be minimal (2%), got {}",
+            victor_total
+        );
     }
 
     #[test]
@@ -422,7 +422,9 @@ mod tests {
         let mut retreating = vec![make_unit("ret-1", UnitType::Infantry, 1000)];
         let victor = vec![make_unit("vic-1", UnitType::Infantry, 1000)];
 
-        let original_rifles = retreating[0].equipment_reserves.iter()
+        let original_rifles = retreating[0]
+            .equipment_reserves
+            .iter()
             .find(|r| r.commodity == Commodity::Rifles)
             .map(|r| r.current_quantity)
             .unwrap();
@@ -436,20 +438,34 @@ mod tests {
         );
 
         // Equipment should be captured (15% loss rate)
-        let captured_rifles = result.captured_equipment.get(&Commodity::Rifles).copied().unwrap_or(0.0);
-        assert!(captured_rifles > 0.0, "Rifles must be captured during retreat");
+        let captured_rifles = result
+            .captured_equipment
+            .get(&Commodity::Rifles)
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            captured_rifles > 0.0,
+            "Rifles must be captured during retreat"
+        );
 
         // Retreating unit should have lost equipment
-        let remaining_rifles = retreating[0].equipment_reserves.iter()
+        let remaining_rifles = retreating[0]
+            .equipment_reserves
+            .iter()
             .find(|r| r.commodity == Commodity::Rifles)
             .map(|r| r.current_quantity)
             .unwrap();
-        assert!(remaining_rifles < original_rifles, "Retreating unit must lose equipment");
+        assert!(
+            remaining_rifles < original_rifles,
+            "Retreating unit must lose equipment"
+        );
 
         // Captured amount should equal the loss
         let expected_loss = original_rifles * config.retreat_equipment_loss_rate;
-        assert!((captured_rifles - expected_loss).abs() < 0.01,
-            "Captured equipment must equal lost equipment");
+        assert!(
+            (captured_rifles - expected_loss).abs() < 0.01,
+            "Captured equipment must equal lost equipment"
+        );
     }
 
     #[test]
@@ -544,10 +560,14 @@ mod tests {
 
         // The retreating side's casualties should be much less than a decisive defeat
         let total_casualties = result.retreating_casualties.total();
-        let decisive_defeat_casualties = (original_manpower as f64 * config.max_loser_casualty_ratio) as i64;
+        let decisive_defeat_casualties =
+            (original_manpower as f64 * config.max_loser_casualty_ratio) as i64;
 
-        assert!(total_casualties < decisive_defeat_casualties,
+        assert!(
+            total_casualties < decisive_defeat_casualties,
             "Retreat casualties ({}) must be less than decisive defeat casualties ({})",
-            total_casualties, decisive_defeat_casualties);
+            total_casualties,
+            decisive_defeat_casualties
+        );
     }
 }

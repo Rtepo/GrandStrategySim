@@ -38,9 +38,7 @@ use crate::entities::Company;
 use crate::registries::enums::Commodity;
 use crate::registries::enums::Sector;
 use crate::society::geography::{ClassDemographics, Region};
-use crate::state::macro_data::{
-    GdpBreakdown, InflationIndices, MoneySupplySnapshot,
-};
+use crate::state::macro_data::{GdpBreakdown, InflationIndices, MoneySupplySnapshot};
 use crate::state::Country;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
@@ -67,7 +65,11 @@ pub struct RegionalGdpAccumulator {
 impl RegionalGdpAccumulator {
     /// Compute official GDP (C + G + I + NX) for this region.
     pub fn official_gdp(&self) -> f64 {
-        self.consumption + self.imputed_consumption + self.government_spending + self.investment + self.net_exports
+        self.consumption
+            + self.imputed_consumption
+            + self.government_spending
+            + self.investment
+            + self.net_exports
     }
 }
 
@@ -99,31 +101,46 @@ impl GdpAccumulator {
     /// Phase 35: Record consumption in a specific region.
     pub fn add_consumption(&mut self, region_id: &str, amount: f64) {
         self.consumption += amount;
-        self.regional.entry(region_id.to_string()).or_default().consumption += amount;
+        self.regional
+            .entry(region_id.to_string())
+            .or_default()
+            .consumption += amount;
     }
 
     /// Phase 44: Record imputed consumption (subsistence economy) in a specific region.
     pub fn add_imputed_consumption(&mut self, region_id: &str, amount: f64) {
         self.imputed_consumption += amount;
-        self.regional.entry(region_id.to_string()).or_default().imputed_consumption += amount;
+        self.regional
+            .entry(region_id.to_string())
+            .or_default()
+            .imputed_consumption += amount;
     }
 
     /// Phase 35: Record government spending in a specific region.
     pub fn add_government_spending(&mut self, region_id: &str, amount: f64) {
         self.government_spending += amount;
-        self.regional.entry(region_id.to_string()).or_default().government_spending += amount;
+        self.regional
+            .entry(region_id.to_string())
+            .or_default()
+            .government_spending += amount;
     }
 
     /// Phase 35: Record investment in a specific region.
     pub fn add_investment(&mut self, region_id: &str, amount: f64) {
         self.investment += amount;
-        self.regional.entry(region_id.to_string()).or_default().investment += amount;
+        self.regional
+            .entry(region_id.to_string())
+            .or_default()
+            .investment += amount;
     }
 
     /// Phase 35: Record net exports for a specific region.
     pub fn add_net_exports(&mut self, region_id: &str, amount: f64) {
         self.net_exports += amount;
-        self.regional.entry(region_id.to_string()).or_default().net_exports += amount;
+        self.regional
+            .entry(region_id.to_string())
+            .or_default()
+            .net_exports += amount;
     }
 }
 
@@ -277,10 +294,7 @@ fn compute_weighted_index(
 /// * PPI basket is a fixed set of producer goods.
 /// * `cpi_inflation = (cpi_index - previous_cpi_index) / previous_cpi_index × 100`.
 /// * If previous index is zero, inflation is 0.0 (first turn).
-pub fn compute_inflation(
-    history: &MarketHistory,
-    previous: &InflationIndices,
-) -> InflationIndices {
+pub fn compute_inflation(history: &MarketHistory, previous: &InflationIndices) -> InflationIndices {
     let cpi_weights = build_cpi_basket_weights();
     let ppi_weights = build_ppi_basket_weights();
 
@@ -345,10 +359,7 @@ pub fn compute_inflation(
 /// * M0 = `cash_in_circulation + bank_reserves`.
 /// * M3 = `M0 + demand_deposits + time_deposits`.
 /// * `multiplier = M3 / M0` (0.0 if M0 ≤ 0).
-pub fn compute_money_supply(
-    companies: &[Company],
-    country: &Country,
-) -> MoneySupplySnapshot {
+pub fn compute_money_supply(companies: &[Company], country: &Country) -> MoneySupplySnapshot {
     // Cash in circulation: company brokerage cash + citizen class savings.
     let mut cash_in_circulation: f64 = 0.0;
     let mut total_bank_deposits: f64 = 0.0;
@@ -394,7 +405,9 @@ pub fn compute_money_supply(
     let time_deposits = total_bank_deposits * 0.2;
 
     // Use the CentralBank's formulas for consistency.
-    let m0 = country.central_bank.calculate_m0(cash_in_circulation, bank_reserves);
+    let m0 = country
+        .central_bank
+        .calculate_m0(cash_in_circulation, bank_reserves);
     let m3 = country.central_bank.calculate_m3(
         m0,
         demand_deposits,
@@ -446,9 +459,17 @@ pub fn apply_casualties_to_labor(
     }
 
     let classes: Vec<&mut ClassDemographics> = if is_rural {
-        region.class_demographics.rural_classes.values_mut().collect()
+        region
+            .class_demographics
+            .rural_classes
+            .values_mut()
+            .collect()
     } else {
-        region.class_demographics.urban_classes.values_mut().collect()
+        region
+            .class_demographics
+            .urban_classes
+            .values_mut()
+            .collect()
     };
 
     // If no classes, nothing to do.
@@ -574,13 +595,11 @@ pub fn mark_commuting_out(home_region: &mut Region, fte_commuting_out: f64) {
 mod tests {
     use super::*;
     use crate::economy::market::market_history::MarketHistory;
-    use crate::registries::enums::Commodity;
-    use crate::state::macro_data::{
-        GdpBreakdown, InflationIndices,
-    };
-    use crate::state::{Country, Treasury};
     use crate::entities::Company;
+    use crate::registries::enums::Commodity;
     use crate::registries::enums::Sector;
+    use crate::state::macro_data::{GdpBreakdown, InflationIndices};
+    use crate::state::{Country, Treasury};
     use rustc_hash::FxHashMap as HashMap;
 
     // ── GDP tests ──
@@ -857,7 +876,10 @@ mod tests {
         demo.population = 1000;
         demo.available_fte = 500.0;
         demo.labor_participation = 0.5;
-        region.class_demographics.rural_classes.insert("Worker".to_string(), demo);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("Worker".to_string(), demo);
 
         apply_casualties_to_labor(&mut region, 100, 0, true);
 
@@ -865,8 +887,10 @@ mod tests {
         assert_eq!(demo.population, 900, "population should decrease by dead");
         assert_eq!(demo.deceased, 100, "deceased counter should increase");
         // FTE lost = 100 dead × 0.5 participation = 50
-        assert!((demo.available_fte - 450.0).abs() < 1e-6,
-            "available_fte should decrease by dead × labor_participation");
+        assert!(
+            (demo.available_fte - 450.0).abs() < 1e-6,
+            "available_fte should decrease by dead × labor_participation"
+        );
     }
 
     #[test]
@@ -877,7 +901,10 @@ mod tests {
         demo.population = 1000;
         demo.available_fte = 500.0;
         demo.labor_participation = 0.5;
-        region.class_demographics.rural_classes.insert("Worker".to_string(), demo);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("Worker".to_string(), demo);
 
         apply_casualties_to_labor(&mut region, 0, 50, true);
 
@@ -885,10 +912,14 @@ mod tests {
         assert_eq!(demo.population, 1000, "disabled workers stay in population");
         assert_eq!(demo.active_disabled, 50, "active_disabled should increase");
         // FTE lost = 50 disabled × 0.5 participation = 25
-        assert!((demo.available_fte - 475.0).abs() < 1e-6,
-            "available_fte should decrease by disabled × labor_participation");
-        assert!((demo.unable_to_work - 25.0).abs() < 1e-6,
-            "unable_to_work should track lost FTE");
+        assert!(
+            (demo.available_fte - 475.0).abs() < 1e-6,
+            "available_fte should decrease by disabled × labor_participation"
+        );
+        assert!(
+            (demo.unable_to_work - 25.0).abs() < 1e-6,
+            "unable_to_work should track lost FTE"
+        );
     }
 
     #[test]
@@ -903,13 +934,23 @@ mod tests {
         demo2.population = 400;
         demo2.available_fte = 200.0;
         demo2.labor_participation = 0.5;
-        region.class_demographics.rural_classes.insert("Class1".to_string(), demo1);
-        region.class_demographics.rural_classes.insert("Class2".to_string(), demo2);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("Class1".to_string(), demo1);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("Class2".to_string(), demo2);
 
         apply_casualties_to_labor(&mut region, 100, 0, true);
 
-        let total_dead = region.class_demographics.rural_classes.values()
-            .map(|d| d.deceased).sum::<i64>();
+        let total_dead = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .map(|d| d.deceased)
+            .sum::<i64>();
         assert_eq!(total_dead, 100, "total dead should equal input");
     }
 
@@ -920,7 +961,10 @@ mod tests {
         let mut demo = ClassDemographics::default();
         demo.population = 1000;
         demo.available_fte = 500.0;
-        region.class_demographics.rural_classes.insert("Worker".to_string(), demo);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("Worker".to_string(), demo);
 
         apply_casualties_to_labor(&mut region, 0, 0, true);
 
@@ -937,13 +981,18 @@ mod tests {
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.available_fte = 1000.0;
-        region.class_demographics.rural_classes.insert("Worker".to_string(), demo);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("Worker".to_string(), demo);
 
         mark_commuting_out(&mut region, 200.0);
 
         let demo = &region.class_demographics.rural_classes["Worker"];
-        assert!((demo.available_fte - 800.0).abs() < 1e-6,
-            "available_fte should decrease by commuting out amount");
+        assert!(
+            (demo.available_fte - 800.0).abs() < 1e-6,
+            "available_fte should decrease by commuting out amount"
+        );
     }
 
     #[test]
@@ -952,7 +1001,10 @@ mod tests {
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.available_fte = 1000.0;
-        region.class_demographics.rural_classes.insert("Worker".to_string(), demo);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("Worker".to_string(), demo);
 
         mark_commuting_out(&mut region, 0.0);
 
@@ -968,17 +1020,27 @@ mod tests {
         demo1.available_fte = 600.0;
         let mut demo2 = ClassDemographics::default();
         demo2.available_fte = 400.0;
-        region.class_demographics.rural_classes.insert("Class1".to_string(), demo1);
-        region.class_demographics.urban_classes.insert("Class2".to_string(), demo2);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("Class1".to_string(), demo1);
+        region
+            .class_demographics
+            .urban_classes
+            .insert("Class2".to_string(), demo2);
 
         mark_commuting_out(&mut region, 100.0);
 
         let d1 = &region.class_demographics.rural_classes["Class1"];
         let d2 = &region.class_demographics.urban_classes["Class2"];
         // Class1 has 60% of FTE, so should lose 60; Class2 loses 40.
-        assert!((d1.available_fte - 540.0).abs() < 1e-6,
-            "Class1 should lose 60% of commuting out");
-        assert!((d2.available_fte - 360.0).abs() < 1e-6,
-            "Class2 should lose 40% of commuting out");
+        assert!(
+            (d1.available_fte - 540.0).abs() < 1e-6,
+            "Class1 should lose 60% of commuting out"
+        );
+        assert!(
+            (d2.available_fte - 360.0).abs() < 1e-6,
+            "Class2 should lose 40% of commuting out"
+        );
     }
 }

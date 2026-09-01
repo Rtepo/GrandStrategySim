@@ -4,8 +4,8 @@
 //! portfolios, pending orders, and frozen cash for trading securities.
 
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
 use serde_json::Value;
+use std::collections::{BTreeMap, HashMap};
 
 use crate::securities::exchange::Order;
 
@@ -34,23 +34,23 @@ pub struct MarginAccount {
     /// Initial margin requirement (e.g., 10% of notional).
     #[serde(default)]
     pub initial_margin: f64,
-    
+
     /// Maintenance margin requirement (e.g., 5% of notional).
     #[serde(default)]
     pub maintenance_margin: f64,
-    
+
     /// Locked margin cash (collateral for open positions).
     #[serde(default)]
     pub locked_margin: f64,
-    
+
     /// Unrealized P&L from mark-to-market.
     #[serde(default)]
     pub unrealized_pnl: f64,
-    
+
     /// Margin call status (true if below maintenance).
     #[serde(default)]
     pub margin_call_active: bool,
-    
+
     /// Any additional margin fields.
     #[serde(flatten, default)]
     pub extra: HashMap<String, Value>,
@@ -62,14 +62,13 @@ pub struct MarginAccount {
 
 pub struct BrokerageAccount {
     /// Cash available for trading (domestic fiat currency only).
-
     pub cash: f64,
-    
+
     /// Phase E.1: Foreign currency balances (currency_code -> amount).
     /// Used for Forex trading - cannot mix PLN and USD in the same scalar field.
     #[serde(default)]
     pub fx_balances: HashMap<String, f64>,
-    
+
     /// Portfolio: Maps instrument_id -> list of position lots (FIFO order).
     /// Each lot tracks its own cost basis and acquisition turn for
     /// accurate capital gains computation.
@@ -77,26 +76,22 @@ pub struct BrokerageAccount {
     /// Old saves with bare u64 values will fail to deserialize — this is
     /// intentional to avoid zero-cost-basis migration that would create
     /// false taxable gains.
-
     pub portfolio: BTreeMap<String, Vec<PositionLot>>,
-    
+
     /// Pending orders: Maps order_id -> Order.
-
     pub pending_orders: BTreeMap<String, Order>,
-    
-    /// Frozen cash (reserved for open orders).
 
+    /// Frozen cash (reserved for open orders).
     pub frozen_cash: f64,
-    
+
     /// KNF freeze status: when true, cannot place new Buy/Sell orders.
     /// Dividends can still be received (operational preservation).
-
     pub is_frozen: bool,
-    
+
     /// Phase D.5: Margin account for derivative trading.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub margin_account: Option<MarginAccount>,
-    
+
     /// Any additional brokerage fields.
     #[serde(flatten, default)]
     pub extra: HashMap<String, Value>,
@@ -198,13 +193,10 @@ impl BrokerageAccount {
         if total_qty == 0 {
             return 0.0;
         }
-        let total_cost: f64 = lots
-            .iter()
-            .map(|l| l.quantity as f64 * l.cost_basis)
-            .sum();
+        let total_cost: f64 = lots.iter().map(|l| l.quantity as f64 * l.cost_basis).sum();
         total_cost / total_qty as f64
     }
-    
+
     /// Freezes cash for an order.
     pub fn freeze_cash(&mut self, amount: f64) -> Result<(), String> {
         if self.cash < amount {
@@ -214,27 +206,27 @@ impl BrokerageAccount {
         self.frozen_cash += amount;
         Ok(())
     }
-    
+
     /// Releases frozen cash after order execution/cancellation.
     pub fn release_cash(&mut self, amount: f64) {
         self.frozen_cash = (self.frozen_cash - amount).max(0.0);
         self.cash += amount;
     }
-    
+
     /// Checks if the account can place new orders (not frozen by KNF).
     pub fn can_place_orders(&self) -> bool {
         !self.is_frozen
     }
-    
+
     /// Phase E.1: Get balance for a specific currency (domestic or foreign).
-    /// 
+    ///
     /// # Arguments
     /// * `currency_code` - Currency code (e.g., "PLN", "USD")
     /// * `domestic_currency` - Domestic currency code for this account
-    /// 
+    ///
     /// # Returns
     /// Balance in the specified currency
-    /// 
+    ///
     /// # Rules
     /// - If currency matches domestic, return cash field
     /// - If currency is foreign, return fx_balances[currency_code]
@@ -245,14 +237,14 @@ impl BrokerageAccount {
             *self.fx_balances.get(currency_code).unwrap_or(&0.0)
         }
     }
-    
+
     /// Phase E.1: Debit balance for a specific currency.
-    /// 
+    ///
     /// # Arguments
     /// * `currency_code` - Currency code to debit
     /// * `amount` - Amount to debit
     /// * `domestic_currency` - Domestic currency code for this account
-    /// 
+    ///
     /// # Rules
     /// - If currency matches domestic, debit cash field
     /// - If currency is foreign, debit fx_balances[currency_code]
@@ -260,17 +252,20 @@ impl BrokerageAccount {
         if currency_code == domestic_currency {
             self.cash -= amount;
         } else {
-            *self.fx_balances.entry(currency_code.to_string()).or_insert(0.0) -= amount;
+            *self
+                .fx_balances
+                .entry(currency_code.to_string())
+                .or_insert(0.0) -= amount;
         }
     }
-    
+
     /// Phase E.1: Credit balance for a specific currency.
-    /// 
+    ///
     /// # Arguments
     /// * `currency_code` - Currency code to credit
     /// * `amount` - Amount to credit
     /// * `domestic_currency` - Domestic currency code for this account
-    /// 
+    ///
     /// # Rules
     /// - If currency matches domestic, credit cash field
     /// - If currency is foreign, credit fx_balances[currency_code]
@@ -278,7 +273,10 @@ impl BrokerageAccount {
         if currency_code == domestic_currency {
             self.cash += amount;
         } else {
-            *self.fx_balances.entry(currency_code.to_string()).or_insert(0.0) += amount;
+            *self
+                .fx_balances
+                .entry(currency_code.to_string())
+                .or_insert(0.0) += amount;
         }
     }
 }

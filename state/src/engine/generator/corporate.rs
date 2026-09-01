@@ -8,15 +8,16 @@
 //! companies (1-2 large players, 3-5 medium firms, and many small firms) while
 //! still using `scale_factor` on individual buildings to keep simulation cost low.
 
-use crate::corporate::capital_intensity::{minimum_capital_for_sector, CapitalIntensity, sector_capital_intensity};
-use crate::economy::{update_gdp_shares_from_employment, CountryTurnCtx};
+use crate::corporate::capital_intensity::{
+    minimum_capital_for_sector, sector_capital_intensity, CapitalIntensity,
+};
 use crate::economy::fixed_assets::FixedAssetCohort;
+use crate::economy::{update_gdp_shares_from_employment, CountryTurnCtx};
 use crate::entities::{
-    ActiveProductionMethod, AggregatedStats, Building, ClusterInfo, Company,
-    CooperativeData, FamilyBusinessData, JointStockData, LegalForm, SeasonalProfile,
-    SeasonalState, Union, UnionScale,
-    StrategicReserveData, PurchaseTrigger, ReleaseTrigger, NonProfitData,
-    CropBatch, CropState,
+    ActiveProductionMethod, AggregatedStats, Building, ClusterInfo, Company, CooperativeData,
+    CropBatch, CropState, FamilyBusinessData, JointStockData, LegalForm, NonProfitData,
+    PurchaseTrigger, ReleaseTrigger, SeasonalProfile, SeasonalState, StrategicReserveData, Union,
+    UnionScale,
 };
 use crate::io::entity_store::{DiskEntityStore, EntityStore};
 use crate::registries::enums::{Commodity, Sector};
@@ -24,8 +25,8 @@ use crate::registries::production_methods::ProductionMethod;
 use crate::registries::Registries;
 use crate::society::geography::{ClimateProfile, Region};
 use crate::society::planet::Planet;
-use crate::state::{Country, Season};
 use crate::state::macro_data::TURNS_PER_YEAR;
+use crate::state::{Country, Season};
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde_json::{Map, Value};
@@ -146,6 +147,206 @@ fn seasonal_profile_for_sector(
     }
 }
 
+/// Phase 94: Hard absolute cap on companies per region.
+///
+/// Policy reversal: despite Rule 2 (no magic numbers) and Rule 5 (market forces),
+/// technical pragmatism requires a hard ceiling to prevent O(N²) turn-loop
+/// degradation. This is a Genesis-only cap — runtime M&A and startups are
+/// unaffected.
+const MAX_COMPANIES_PER_REGION: usize = 25;
+
+/// Phase 94: Consolidate companies per region to enforce MAX_COMPANIES_PER_REGION.
+///
+/// # Algorithm
+/// 1. Group all non-state companies by `region_id`.
+/// 2. For each region exceeding the cap:
+///    a. Sort companies by `company_capital` descending (largest first).
+///    b. Keep the top 25, but reserve slots for critical sectors:
+///       - At least 1 Mining (if any exist), 1 Agriculture, 1 HeavyIndustry,
+///         1 Retail (LocalServices).
+///    c. Merge the smallest excess companies into the largest surviving company
+///       of the same sector: combine `company_capital`, `fixed_capital`,
+///       `liquid_capital`, `worker_capacity`, `scale_factor`, and `building_ids`.
+///    d. Mark merged companies as `is_liquidated = true` with `merged_into` set.
+/// 3. Remove liquidated companies and their buildings from the vectors.
+///
+/// # Rules
+/// * State-owned companies (`owner_id == "State"`, `state_share >= 1.0`) are
+///   exempt — they represent infrastructure, not competitive firms.
+/// * The Strategic Reserve Agency is exempt (LegalForm::StrategicReserveAgency).
+/// * Mining concessions are preserved: merged companies transfer their
+///   concession-bearing buildings to the survivor.
+fn consolidate_region_companies(
+    all_companies: &mut Vec<Company>,
+    all_buildings: &mut Vec<Building>,
+    _planet: &Planet,
+) {
+    // Phase 94: Index buildings by building_id for O(1) ownership transfer.
+    let mut building_id_to_idx: HashMap<String, usize> = HashMap::new();
+    for (i, b) in all_buildings.iter().enumerate() {
+        if !b.id.is_empty() {
+            building_id_to_idx.insert(b.id.clone(), i);
+        }
+    }
+
+    // Group non-state company indices by region_id.
+    let mut companies_by_region: HashMap<String, Vec<usize>> = HashMap::new();
+    for (i, c) in all_companies.iter().enumerate() {
+        // Exempt state-owned and strategic reserve.
+        if c.state_share >= 1.0 || matches!(c.legal_form, LegalForm::StrategicReserveAgency(_)) {
+            continue;
+        }
+        if c.region_id.is_empty() {
+            continue;
+        }
+        companies_by_region
+            .entry(c.region_id.clone())
+            .or_default()
+            .push(i);
+    }
+
+    // Track which company indices to remove (merged into survivors).
+    let mut to_remove: BTreeSet<usize> = BTreeSet::new();
+
+    for (_region_id, indices) in &companies_by_region {
+        if indices.len() <= MAX_COMPANIES_PER_REGION {
+            continue;
+        }
+
+        // Sort by company_capital descending (largest first).
+        let mut sorted: Vec<usize> = indices.clone();
+        sorted.sort_by(|&a, &b| {
+            all_companies[b]
+                .company_capital
+                .partial_cmp(&all_companies[a].company_capital)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        // Reserve critical sector slots: ensure at least 1 company from each
+        // critical sector survives, even if it's small.
+        let critical_sectors = [
+            Sector::Mining,
+            Sector::Agriculture,
+            Sector::HeavyIndustry,
+            Sector::LocalServices,
+        ];
+
+        let mut survivors: BTreeSet<usize> = BTreeSet::new();
+        let mut excess: Vec<usize> = Vec::new();
+
+        // First pass: reserve one slot per critical sector (the largest in each).
+        for sector in &critical_sectors {
+            if let Some(&best) = sorted
+                .iter()
+                .find(|&&idx| all_companies[idx].sector == *sector)
+            {
+                survivors.insert(best);
+            }
+        }
+
+        // Second pass: fill remaining slots with the largest companies.
+        for &idx in &sorted {
+            if survivors.len() >= MAX_COMPANIES_PER_REGION {
+                excess.push(idx);
+                continue;
+            }
+            if survivors.contains(&idx) {
+                continue;
+            }
+            survivors.insert(idx);
+        }
+        // Any remaining go to excess.
+        for &idx in &sorted {
+            if !survivors.contains(&idx) && !excess.contains(&idx) {
+                excess.push(idx);
+            }
+        }
+
+        // Merge each excess company into the largest survivor in the same sector.
+        for &excess_idx in &excess {
+            let excess_sector = all_companies[excess_idx].sector;
+
+            // Find the largest survivor in the same sector.
+            let survivor_idx = survivors
+                .iter()
+                .filter(|&&idx| all_companies[idx].sector == excess_sector)
+                .max_by(|&a, &b| {
+                    all_companies[*a]
+                        .company_capital
+                        .partial_cmp(&all_companies[*b].company_capital)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                })
+                .copied();
+
+            let survivor_idx = match survivor_idx {
+                Some(idx) => idx,
+                None => {
+                    // No survivor in the same sector — merge into the largest
+                    // survivor of any sector in this region.
+                    match survivors
+                        .iter()
+                        .max_by(|&a, &b| {
+                            all_companies[*a]
+                                .company_capital
+                                .partial_cmp(&all_companies[*b].company_capital)
+                                .unwrap_or(std::cmp::Ordering::Equal)
+                        })
+                        .copied()
+                    {
+                        Some(idx) => idx,
+                        None => continue,
+                    }
+                }
+            };
+
+            let survivor_id = all_companies[survivor_idx].id.clone();
+
+            // Merge financial and physical attributes.
+            let excess_capital = all_companies[excess_idx].company_capital;
+            let excess_fixed = all_companies[excess_idx].fixed_capital;
+            let excess_liquid = all_companies[excess_idx].liquid_capital;
+            let excess_workers = all_companies[excess_idx].worker_capacity;
+            let excess_scale = all_companies[excess_idx].scale_factor;
+            let excess_building_ids = all_companies[excess_idx].building_ids.clone();
+
+            all_companies[survivor_idx].company_capital += excess_capital;
+            all_companies[survivor_idx].fixed_capital += excess_fixed;
+            all_companies[survivor_idx].liquid_capital += excess_liquid;
+            all_companies[survivor_idx].available_cash += excess_liquid;
+            all_companies[survivor_idx].worker_capacity += excess_workers;
+            all_companies[survivor_idx].scale_factor += excess_scale;
+
+            // Transfer building ownership to the survivor.
+            for building_id in &excess_building_ids {
+                // Phase 94: Look up building by ID (not owner_id) and update ownership.
+                if let Some(&b_idx) = building_id_to_idx.get(building_id) {
+                    all_buildings[b_idx].owner_id = survivor_id.clone();
+                    all_buildings[b_idx].cluster_info.owner_id = survivor_id.clone();
+                }
+                all_companies[survivor_idx]
+                    .building_ids
+                    .push(building_id.clone());
+            }
+
+            // Mark the excess company as merged/liquidated.
+            all_companies[excess_idx].is_liquidated = true;
+            all_companies[excess_idx].merged_into = Some(survivor_id.clone());
+
+            to_remove.insert(excess_idx);
+            // Buildings are NOT removed — they're physically real assets that
+            // have been re-assigned to the survivor via owner_id update above.
+        }
+    }
+
+    // Remove merged companies from all_companies (in reverse order to preserve indices).
+    for &idx in to_remove.iter().rev() {
+        all_companies.remove(idx);
+    }
+
+    // Note: buildings are NOT removed — they are physically real and have been
+    // re-assigned to surviving companies via owner_id update above.
+}
+
 /// Generates a full corporate sector for `country` and persists it.
 ///
 /// # Rules
@@ -201,13 +402,20 @@ pub fn generate_corporate_entities(
     if total_population <= 0 {
         return Ok(());
     }
-    
+
     // Create Strategic Reserve Agency (Phase 2, Phase 79: physical warehouses + 8 commodities)
     let country_regions_vec: Vec<Region> = country_regions.iter().map(|r| (*r).clone()).collect();
     let (mut reserve_agency, reserve_warehouses) = create_strategic_reserve_agency(
-        country, start_year, total_population, base_wage, &country_regions_vec, &mut idgen, registries,
+        country,
+        start_year,
+        total_population,
+        base_wage,
+        &country_regions_vec,
+        &mut idgen,
+        registries,
     );
-    let reserve_building_ids: Vec<String> = reserve_warehouses.iter().map(|b| b.id.clone()).collect();
+    let reserve_building_ids: Vec<String> =
+        reserve_warehouses.iter().map(|b| b.id.clone()).collect();
     reserve_agency.building_ids = reserve_building_ids;
     all_companies.push(reserve_agency);
     all_buildings.extend(reserve_warehouses);
@@ -215,7 +423,13 @@ pub fn generate_corporate_entities(
     // Phase 20A: Seed minimum viable supply chain Ă˘â‚¬â€ť guarantee at least one
     // building per critical sector per region, regardless of budget shares.
     let seed_entities = seed_minimum_viable_supply_chain(
-        country, &country_regions, planet, start_year, registries, &mut idgen, rng,
+        country,
+        &country_regions,
+        planet,
+        start_year,
+        registries,
+        &mut idgen,
+        rng,
     );
     // Phase 46: Consume seed_entities via into_iter() to avoid redundant clones.
     // Build seed_by_sector in the same loop, then move companies/buildings into
@@ -240,7 +454,10 @@ pub fn generate_corporate_entities(
             }
         }
         let sname = sector_json_name(company.sector);
-        seed_by_sector.entry(sname).or_default().push(company.clone());
+        seed_by_sector
+            .entry(sname)
+            .or_default()
+            .push(company.clone());
         all_companies.push(company);
         all_buildings.push(building);
     }
@@ -312,21 +529,21 @@ pub fn generate_corporate_entities(
             }
         }
 
-        // Phase 27: Merge seed companies with budget-share companies before
-        // saving. Both go to the same file (entities/{country}/companies/
-        // {sector}.json) so we must save them together to avoid overwriting.
+        // Phase 27: Merge seed companies into sector_companies (for tracking),
+        // but do NOT save to disk yet — consolidation happens after all sectors
+        // are generated. Seed companies are already in all_companies via the
+        // seed loop above; sector_companies are already in all_companies via
+        // the clone at line 513.
         if let Some(seed_companies) = seed_by_sector.remove(&sector_name) {
             sector_companies.extend(seed_companies);
         }
-
-        company_store.save_sector(&country.name, &sector_name, None, &sector_companies)?;
+        // Phase 94: Deferred save — companies are saved AFTER consolidation.
     }
 
-    // Phase 27: Save any remaining seed companies for sectors that don't have
-    // budget-share companies (e.g., Mining with geology-based seeds only).
-    for (sector_name, companies) in seed_by_sector {
-        company_store.save_sector(&country.name, &sector_name, None, &companies)?;
-    }
+    // Phase 94: Drain remaining seed_by_sector entries. These companies are
+    // already in all_companies (pushed at line 448 via clone), so we just drop
+    // the map to prevent stale references.
+    seed_by_sector.clear();
 
     // State-owned public-service buildings.
     // Phase 80: All keys are strict snake_case — no Title Case, no spaces.
@@ -345,7 +562,12 @@ pub fn generate_corporate_entities(
         ("monastery_scriptorium", 50u32),
     ];
     let public_sector = sector_json_name(Sector::PublicServices);
-    for (region, (name, base_capacity)) in country_regions.iter().cycle().zip(state_buildings.iter().cycle()).take(country_regions.len() * state_buildings.len()) {
+    for (region, (name, base_capacity)) in country_regions
+        .iter()
+        .cycle()
+        .zip(state_buildings.iter().cycle())
+        .take(country_regions.len() * state_buildings.len())
+    {
         let (name, method) = state_building_recipe(name, start_year);
         let capacity = (base_capacity + rng.gen_range(0..base_capacity / 4)).max(1);
         let current = (capacity as f64 * (0.9 + rng.gen::<f64>() * 0.1)) as u32;
@@ -379,7 +601,8 @@ pub fn generate_corporate_entities(
             is_heritage_site: false,
             experience_level: None,
             aggregated_stats: AggregatedStats::default(),
-            structural_defect: 0.0, land_hectares: 0.0,
+            structural_defect: 0.0,
+            land_hectares: 0.0,
             extra: Map::new(),
             inventory: BTreeMap::new(),
             inventory_capacity: 0.0,
@@ -387,6 +610,7 @@ pub fn generate_corporate_entities(
             landfill_state: None,
             deposit_id: None,
             fixed_assets: Vec::new(),
+            inventory_cohorts: Vec::new(),
             pending_method_upgrade: None,
             active_emission_control: String::new(),
         };
@@ -400,7 +624,10 @@ pub fn generate_corporate_entities(
     let mut by_region: HashMap<String, Vec<Building>> = HashMap::new();
     for b in all_buildings.iter() {
         if b.owner_id == "State" && b.sector == Sector::PublicServices {
-            by_region.entry(b.region_id.clone()).or_default().push(b.clone());
+            by_region
+                .entry(b.region_id.clone())
+                .or_default()
+                .push(b.clone());
         }
     }
     for (region, list) in by_region {
@@ -463,7 +690,8 @@ pub fn generate_corporate_entities(
             is_heritage_site: false,
             experience_level: None,
             aggregated_stats: AggregatedStats::default(),
-            structural_defect: 0.0, land_hectares: 0.0,
+            structural_defect: 0.0,
+            land_hectares: 0.0,
             extra: Map::new(),
             inventory: BTreeMap::new(),
             inventory_capacity: 0.0,
@@ -471,6 +699,7 @@ pub fn generate_corporate_entities(
             landfill_state: Some(landfill_state),
             deposit_id: None,
             fixed_assets: Vec::new(),
+            inventory_cohorts: Vec::new(),
             pending_method_upgrade: None,
             active_emission_control: String::new(),
         };
@@ -484,7 +713,10 @@ pub fn generate_corporate_entities(
     let mut landfill_by_region: HashMap<String, Vec<Building>> = HashMap::new();
     for b in all_buildings.iter() {
         if b.sector == Sector::WasteManagement {
-            landfill_by_region.entry(b.region_id.clone()).or_default().push(b.clone());
+            landfill_by_region
+                .entry(b.region_id.clone())
+                .or_default()
+                .push(b.clone());
         }
     }
     for (region, list) in landfill_by_region {
@@ -547,8 +779,14 @@ pub fn generate_corporate_entities(
         if !retail_indices.is_empty() {
             let n = retail_indices.len() as f64;
             for &idx in &retail_indices {
-                *all_buildings[idx].inventory.entry(Commodity::Cereal).or_insert(0.0) += cereal_buffer / n;
-                *all_buildings[idx].inventory.entry(Commodity::Food).or_insert(0.0) += food_buffer / n;
+                *all_buildings[idx]
+                    .inventory
+                    .entry(Commodity::Cereal)
+                    .or_insert(0.0) += cereal_buffer / n;
+                *all_buildings[idx]
+                    .inventory
+                    .entry(Commodity::Food)
+                    .or_insert(0.0) += food_buffer / n;
             }
         }
     }
@@ -584,7 +822,12 @@ pub fn generate_corporate_entities(
                     .cloned()
                     .collect();
                 if !region_sra.is_empty() {
-                    building_store.save_sector(&country.name, &public_sector_name, Some(&region.id), &region_sra)?;
+                    building_store.save_sector(
+                        &country.name,
+                        &public_sector_name,
+                        Some(&region.id),
+                        &region_sra,
+                    )?;
                 }
             }
         }
@@ -602,9 +845,42 @@ pub fn generate_corporate_entities(
                     .cloned()
                     .collect();
                 if !region_retail.is_empty() {
-                    building_store.save_sector(&country.name, &local_services_name, Some(&region.id), &region_retail)?;
+                    building_store.save_sector(
+                        &country.name,
+                        &local_services_name,
+                        Some(&region.id),
+                        &region_retail,
+                    )?;
                 }
             }
+        }
+    }
+
+    // ── Phase 94: Hard per-region company cap with merge-down consolidation ──
+    // Policy reversal: theoretical purity yields to technical pragmatism.
+    // Enforce MAX_COMPANIES_PER_REGION with merge-down of smallest into largest
+    // within the same sector, combining seed capital and physical capacity.
+    consolidate_region_companies(&mut all_companies, &mut all_buildings, planet);
+
+    // Phase 94: Save surviving companies to disk AFTER consolidation.
+    // Group by file_stem (with sector_json_name fallback) to mirror the
+    // save_companies pattern in turn_context.rs. This avoids duplicate
+    // sector files and ensures the disk-loaded test sees the consolidated set.
+    {
+        let mut by_file_stem: HashMap<String, Vec<Company>> = HashMap::new();
+        for company in &all_companies {
+            if company.is_liquidated {
+                continue;
+            }
+            let stem = if company.file_stem.is_empty() {
+                sector_json_name(company.sector)
+            } else {
+                company.file_stem.clone()
+            };
+            by_file_stem.entry(stem).or_default().push(company.clone());
+        }
+        for (file_stem, list) in by_file_stem {
+            company_store.save_sector(&country.name, &file_stem, None, &list)?;
         }
     }
 
@@ -631,20 +907,48 @@ pub fn generate_corporate_entities(
     generate_unions(data_dir, country, &all_companies, &code, start_year, rng)?;
 
     // Phase 9: Generate tourism entities (wonders, destinations, hospitality companies + buildings)
-    generate_tourism_entities(data_dir, country, &country_regions, start_year, &mut idgen, rng)?;
+    generate_tourism_entities(
+        data_dir,
+        country,
+        &country_regions,
+        start_year,
+        &mut idgen,
+        rng,
+    )?;
 
     // Phase 25: Generate retail stores in each region.
     // Without retail stores, the B2C market has no outlets to sell goods
     // to consumers, so GDP (which is largely final consumption) stays at 0.
-    generate_retail_stores(data_dir, country, &country_regions, start_year, &mut idgen, rng)?;
+    generate_retail_stores(
+        data_dir,
+        country,
+        &country_regions,
+        start_year,
+        &mut idgen,
+        rng,
+    )?;
 
     // Phase 44: Generate genesis housing (Mega-Estates with ownership).
     // Without housing, the population is homeless on Turn 1, triggering
     // a flood of construction tenders and winter mortality crises.
-    generate_housing(data_dir, country, &country_regions, start_year, &mut idgen, rng)?;
+    generate_housing(
+        data_dir,
+        country,
+        &country_regions,
+        start_year,
+        &mut idgen,
+        rng,
+    )?;
 
     // Phase 13: Generate NGO and Church entities (Third Pillar)
-    generate_charity_entities(data_dir, country, &country_regions, start_year, &mut idgen, rng)?;
+    generate_charity_entities(
+        data_dir,
+        country,
+        &country_regions,
+        start_year,
+        &mut idgen,
+        rng,
+    )?;
 
     // Phase 27: Credit total seed inventory cost to country's treasury.
     // The State acts as the initial importer/provider of seed materials.
@@ -660,7 +964,7 @@ pub fn generate_corporate_entities(
     // Major companies are the top 30% by worker_capacity (or company_capital).
     // CEOs are registered as VIPs in the country's vip_registry with the
     // Ceo role, and their VIP ID is stored on the company.
-    use crate::politics::vip_registry::{Vip, VipRegistry, VipRoleExtended, assign_core_traits};
+    use crate::politics::vip_registry::{assign_core_traits, Vip, VipRegistry, VipRoleExtended};
     if country.politics.vip_registry.is_none() {
         country.politics.vip_registry = Some(VipRegistry::new());
     }
@@ -688,7 +992,10 @@ pub fn generate_corporate_entities(
             full_name: ceo_name.full_name.clone(),
             gender: ceo_name.gender,
             age,
-            health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+            health: crate::politics::vip_registry::VipHealth {
+                physical_health: 1.0,
+                mental_health: 1.0,
+            },
             traits,
             main_trait,
             ideology,
@@ -734,7 +1041,10 @@ pub fn generate_corporate_entities(
                     full_name: bm_name.full_name.clone(),
                     gender: bm_name.gender,
                     age: 40 + rng.gen_range(0..25),
-                    health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+                    health: crate::politics::vip_registry::VipHealth {
+                        physical_health: 1.0,
+                        mental_health: 1.0,
+                    },
                     traits: bm_traits,
                     main_trait: bm_main_trait,
                     ideology: bm_ideology,
@@ -777,12 +1087,16 @@ pub fn generate_corporate_entities(
                     if !heir_traits.contains(&"Loyal".to_string()) {
                         heir_traits.push("Loyal".to_string());
                     }
-                    let heir_ideology = ceo_ideology_from_traits(&heir_traits, &heir_main_trait, rng);
+                    let heir_ideology =
+                        ceo_ideology_from_traits(&heir_traits, &heir_main_trait, rng);
                     let heir_vip = Vip {
                         full_name: heir_name.full_name.clone(),
                         gender: heir_name.gender,
                         age: 18 + rng.gen_range(0..13), // 18–30
-                        health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+                        health: crate::politics::vip_registry::VipHealth {
+                            physical_health: 1.0,
+                            mental_health: 1.0,
+                        },
                         traits: heir_traits,
                         main_trait: heir_main_trait,
                         ideology: heir_ideology,
@@ -881,13 +1195,7 @@ pub fn generate_corporate_entities(
     // of payroll coverage to survive until their first revenue clears.
     // The loan is recorded as a liability on the company's balance sheet and an
     // asset on the bank's balance sheet (Rule 1: strict double-entry).
-    issue_working_capital_loans(
-        data_dir,
-        country,
-        &mut all_companies,
-        &code,
-        start_year,
-    )?;
+    issue_working_capital_loans(data_dir, country, &mut all_companies, &code, start_year)?;
 
     // Phase 90: Re-save companies AFTER Working Capital Loans so the
     // loan-modified available_cash and liabilities persist to disk.
@@ -898,7 +1206,10 @@ pub fn generate_corporate_entities(
     let mut by_sector_post_loan: HashMap<String, Vec<Company>> = HashMap::new();
     for c in &all_companies {
         let sname = sector_json_name(c.sector);
-        by_sector_post_loan.entry(sname).or_default().push(c.clone());
+        by_sector_post_loan
+            .entry(sname)
+            .or_default()
+            .push(c.clone());
     }
     for (sector_name, companies) in by_sector_post_loan {
         let _ = company_store.save_sector(&country.name, &sector_name, None, &companies);
@@ -950,7 +1261,7 @@ fn issue_working_capital_loans(
     _start_year: u32,
 ) -> Result<(), Box<dyn Error>> {
     use crate::io::entity_store::{DiskEntityStore, EntityStore};
-    use crate::state::banking::{Loan, LoanRef, LoanStatus, InterestType, LoanType, BankType};
+    use crate::state::banking::{BankType, InterestType, Loan, LoanRef, LoanStatus, LoanType};
 
     // Load ALL bank companies from disk.
     let bank_store = DiskEntityStore::<Company>::new(data_dir);
@@ -1058,7 +1369,9 @@ fn issue_working_capital_loans(
         //   overhead_reserve = 3 turns of 5% of payroll (proxy for overhead)
         let initial_fte = company.fulfilled_fte as f64;
         let initial_wage = company.offered_wage_per_fte.max(50.0);
-        let seed_cost = company.extra.get("seed_inventory_cost")
+        let seed_cost = company
+            .extra
+            .get("seed_inventory_cost")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0);
 
@@ -1184,9 +1497,7 @@ fn issue_working_capital_loans(
                     total_injected += injection;
                     // Record shareholder entry in bank's extra map
                     let key = "state_treasury_equity";
-                    let current = bs.extra.get(key)
-                        .and_then(|v| v.as_f64())
-                        .unwrap_or(0.0);
+                    let current = bs.extra.get(key).and_then(|v| v.as_f64()).unwrap_or(0.0);
                     bs.extra.insert(
                         key.to_string(),
                         serde_json::Value::from(current + injection),
@@ -1232,7 +1543,10 @@ fn generate_unions(
     // Group companies by sector
     let mut companies_by_sector: HashMap<Sector, Vec<&Company>> = HashMap::new();
     for company in companies {
-        companies_by_sector.entry(company.sector).or_default().push(company);
+        companies_by_sector
+            .entry(company.sector)
+            .or_default()
+            .push(company);
     }
 
     // Create one sector-wide union per sector
@@ -1302,9 +1616,15 @@ fn generate_unions(
 /// existing `capital_intensity` registry and inflation-proof macro indicators.
 /// The power-law distribution in `generate_region_companies` produces variation
 /// around this average — some companies will be smaller, some larger.
-fn target_workers_per_company(sector: Sector, start_year: u32, region: &Region, average_wage: f64) -> f64 {
+fn target_workers_per_company(
+    sector: Sector,
+    start_year: u32,
+    region: &Region,
+    average_wage: f64,
+    genesis_multiplier: f64,
+) -> f64 {
     let safe_wage = average_wage.max(1.0);
-    let min_capital = minimum_capital_for_sector(&sector, safe_wage);
+    let min_capital = minimum_capital_for_sector(&sector, safe_wage) * genesis_multiplier;
     let era = ((start_year.saturating_sub(1900) as f64) / 75.0).clamp(0.0, 1.0);
     let development_scaling = 1.0 + 0.5 * region.development_level * era;
     (min_capital / safe_wage) / TURNS_PER_YEAR as f64 * development_scaling
@@ -1346,7 +1666,7 @@ fn generate_region_companies(
     // absurd 90K-worker monopolies, use sector-and-era-specific target sizes.
     // This produces many small farms/workshops and a few large industrial
     // plants, matching historical reality.
-    let target_size = target_workers_per_company(sector, start_year, region, average_wage);
+    let target_size = target_workers_per_company(sector, start_year, region, average_wage, 2.0);
     let raw_count = region_emp / target_size;
     let ci = sector_capital_intensity(&sector);
     let ordinal = match ci {
@@ -1363,14 +1683,19 @@ fn generate_region_companies(
         (raw_count.ln() * concentration_exponent).exp()
     };
     let arable_factor = if sector == Sector::Agriculture {
-        (region.arable_land_max as f64 / 10_000.0).max(1.0)
+        (region.arable_land_max as f64 / 50_000.0).max(1.0)
     } else {
         1.0
     };
+    // Phase 94: Hard per-sector-per-region cap to prevent generation-loop waste.
+    // The merge-down consolidation in consolidate_region_companies will further
+    // reduce the total to MAX_COMPANIES_PER_REGION (25) per region.
+    const MAX_COMPANIES_PER_SECTOR_PER_REGION: usize = 5;
     let company_count = (base_count * arable_factor)
         .round()
         .max(1.0)
-        .min(raw_count) as usize;
+        .min(raw_count)
+        .min(MAX_COMPANIES_PER_SECTOR_PER_REGION as f64) as usize;
 
     // Phase 44: Compute diversified methods for this sector (one call per region).
     let diversified_methods = {
@@ -1388,10 +1713,7 @@ fn generate_region_companies(
     }
     let total_weight = weights.iter().sum::<f64>().max(f64::EPSILON);
 
-    let mut shares: Vec<f64> = weights
-        .iter()
-        .map(|w| w / total_weight)
-        .collect();
+    let mut shares: Vec<f64> = weights.iter().map(|w| w / total_weight).collect();
 
     // Sort descending by share so the largest firms get the top ranks.
     shares.sort_by(|a, b| b.partial_cmp(a).unwrap());
@@ -1493,7 +1815,8 @@ fn generate_region_companies(
         let company_id = idgen.next_company();
         // Phase 37: Use English-only company name generator with cultural surname prefix.
         // Phase 53: Pass cultural_group for culture-scoped surnames.
-        let company_name = generate_company_name(sector, &legal_form, &region.id, rank, cultural_group, rng);
+        let company_name =
+            generate_company_name(sector, &legal_form, &region.id, rank, cultural_group, rng);
         let share_price = if shares_count > 0 {
             company_capital / shares_count as f64
         } else {
@@ -1539,15 +1862,19 @@ fn generate_region_companies(
             balance_sheet: None,
             loan_margin: None,
             brokerage_account: None,
-            primary_bank_id: None, outstanding_loans: Vec::new(),
+            primary_bank_id: None,
+            outstanding_loans: Vec::new(),
             merged_into: None,
             is_liquidated: false,
             fund_type: None,
             fund_ledger: None,
             temporary_disruption_modifier: 0.0,
             target_fte_demand: actual_capacity,
-            offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
-            prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
+            offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+                .max(1.0),
+            prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+                .max(1.0)
+                .max(50.0),
             wage_arrears: 0.0,
             wages_paid_this_turn: 0.0,
             arrears_accrued_this_turn: 0.0,
@@ -1564,17 +1891,26 @@ fn generate_region_companies(
             rd_budget: 0.0,
             patents: Vec::new(),
             licensed_methods: Vec::new(),
+            research_progress: std::collections::HashMap::new(),
             information_quality: None,
             shadow_employment: None,
             pending_expansion: None,
+            pending_blueprint_design: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
-            reputation_score: 50.0, donation_history: Vec::new(), is_dspw: false, consumer_loans: Vec::new(),
+            reputation_score: 50.0,
+            donation_history: Vec::new(),
+            is_dspw: false,
+            consumer_loans: Vec::new(),
             annual_profit_accumulator: 0.0,
             seasonal_profile: seasonal_profile_for_sector(sector, &region.climate_profile),
             furloughed_workers_count: 0.0,
             ceo_vip_id: None,
-            eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+            eps: 0.0,
+            pe_ratio: 0.0,
+            dividend_yield: 0.0,
+            open_price: 0.0,
+            close_price: 0.0,
             action_ledger: crate::entities::ActionLedger::default(),
             extra: serde_json::Map::new(),
         };
@@ -1616,7 +1952,9 @@ fn generate_region_companies(
         let deductible = seed_cost.min(company.liquid_capital * 0.5);
         company.liquid_capital -= deductible;
         company.available_cash -= deductible;
-        company.extra.insert("seed_inventory_cost".to_string(), Value::from(deductible));
+        company
+            .extra
+            .insert("seed_inventory_cost".to_string(), Value::from(deductible));
 
         let building = Building {
             id: building_id.clone(),
@@ -1647,7 +1985,8 @@ fn generate_region_companies(
             is_heritage_site: false,
             experience_level: None,
             aggregated_stats: AggregatedStats::default(),
-            structural_defect: 0.0, land_hectares: 0.0,
+            structural_defect: 0.0,
+            land_hectares: 0.0,
             extra: Map::new(),
             inventory,
             inventory_capacity,
@@ -1655,6 +1994,7 @@ fn generate_region_companies(
             landfill_state: None,
             deposit_id: None,
             fixed_assets,
+            inventory_cohorts: Vec::new(),
             pending_method_upgrade: None,
             active_emission_control: String::new(),
         };
@@ -1757,28 +2097,182 @@ fn sector_display(sector: Sector) -> String {
 /// Phase 51: Multiple variants per sector for name variety.
 fn sector_suffix(sector: Sector, rng: &mut impl rand::Rng) -> &'static str {
     match sector {
-        Sector::Agriculture => ["Agricultural Trust", "Farming Co", "Agro Holdings", "Rural Estates"].choose(rng).unwrap(),
-        Sector::Mining => ["Mining Corp", "Extractive Ltd", "Mineral Holdings", "Quarry Group"].choose(rng).unwrap(),
-        Sector::HeavyIndustry => ["Steel Works", "Heavy Industries", "Iron & Steel", "Industrial Corp"].choose(rng).unwrap(),
-        Sector::LightIndustry => ["Manufacturing Co", "Industrial Works", "Production Ltd", "Goods Manufacturing"].choose(rng).unwrap(),
-        Sector::ArmamentsIndustry => ["Defense Industries", "Armaments Corp", "Military Industries", "Ordnance Works"].choose(rng).unwrap(),
-        Sector::LocalServices => ["Services Ltd", "Local Services", "Community Services", "Civic Holdings"].choose(rng).unwrap(),
-        Sector::ExportServices => ["Trading Co", "Export Holdings", "International Trade", "Commerce Ltd"].choose(rng).unwrap(),
-        Sector::Construction => ["Construction Group", "Building Corp", "Infrastructure Ltd", "Construction Works"].choose(rng).unwrap(),
-        Sector::Energy => ["Energy Holdings", "Power Corp", "Utility Group", "Energy Works"].choose(rng).unwrap(),
-        Sector::PublicServices => ["Public Utilities", "Civic Services", "Municipal Holdings", "Public Corp"].choose(rng).unwrap(),
-        Sector::MedicalServices => ["Healthcare Group", "Medical Holdings", "Health Services", "Clinic Group"].choose(rng).unwrap(),
-        Sector::EducationalServices => ["Education Trust", "Academic Holdings", "Learning Group", "Education Corp"].choose(rng).unwrap(),
-        Sector::TransportLogistics => ["Logistics Inc", "Transport Holdings", "Freight Corp", "Shipping Group"].choose(rng).unwrap(),
-        Sector::PublicAdministration => ["Administration", "State Bureau", "Public Office", "Civic Administration"].choose(rng).unwrap(),
-        Sector::Banking => ["Banking Group", "Financial Holdings", "Capital Trust", "Finance Corp"].choose(rng).unwrap(),
-        Sector::MediaAndEntertainment => ["Media Holdings", "Broadcast Group", "Entertainment Corp", "Media Trust"].choose(rng).unwrap(),
-        Sector::WasteManagement => ["Waste Management Ltd", "Sanitation Corp", "Environmental Services", "Waste Holdings"].choose(rng).unwrap(),
-        Sector::Hospitality => ["Hospitality Group", "Hotel Holdings", "Tourism Corp", "Leisure Group"].choose(rng).unwrap(),
-        Sector::NGO => ["Foundation", "Charitable Trust", "Civic Foundation", "Social Initiative"].choose(rng).unwrap(),
-        Sector::Religion => ["Religious Trust", "Ecclesiastical Holdings", "Diocesan Trust", "Religious Foundation"].choose(rng).unwrap(),
-        Sector::MaintenanceWorkshops => ["Maintenance Services", "Repair Works", "Technical Services", "Workshop Ltd"].choose(rng).unwrap(),
-        Sector::Government => ["State Agency", "Government Bureau", "State Holdings", "Public Authority"].choose(rng).unwrap(),
+        Sector::Agriculture => [
+            "Agricultural Trust",
+            "Farming Co",
+            "Agro Holdings",
+            "Rural Estates",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::Mining => [
+            "Mining Corp",
+            "Extractive Ltd",
+            "Mineral Holdings",
+            "Quarry Group",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::HeavyIndustry => [
+            "Steel Works",
+            "Heavy Industries",
+            "Iron & Steel",
+            "Industrial Corp",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::LightIndustry => [
+            "Manufacturing Co",
+            "Industrial Works",
+            "Production Ltd",
+            "Goods Manufacturing",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::ArmamentsIndustry => [
+            "Defense Industries",
+            "Armaments Corp",
+            "Military Industries",
+            "Ordnance Works",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::LocalServices => [
+            "Services Ltd",
+            "Local Services",
+            "Community Services",
+            "Civic Holdings",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::ExportServices => [
+            "Trading Co",
+            "Export Holdings",
+            "International Trade",
+            "Commerce Ltd",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::Construction => [
+            "Construction Group",
+            "Building Corp",
+            "Infrastructure Ltd",
+            "Construction Works",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::Energy => [
+            "Energy Holdings",
+            "Power Corp",
+            "Utility Group",
+            "Energy Works",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::PublicServices => [
+            "Public Utilities",
+            "Civic Services",
+            "Municipal Holdings",
+            "Public Corp",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::MedicalServices => [
+            "Healthcare Group",
+            "Medical Holdings",
+            "Health Services",
+            "Clinic Group",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::EducationalServices => [
+            "Education Trust",
+            "Academic Holdings",
+            "Learning Group",
+            "Education Corp",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::TransportLogistics => [
+            "Logistics Inc",
+            "Transport Holdings",
+            "Freight Corp",
+            "Shipping Group",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::PublicAdministration => [
+            "Administration",
+            "State Bureau",
+            "Public Office",
+            "Civic Administration",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::Banking => [
+            "Banking Group",
+            "Financial Holdings",
+            "Capital Trust",
+            "Finance Corp",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::MediaAndEntertainment => [
+            "Media Holdings",
+            "Broadcast Group",
+            "Entertainment Corp",
+            "Media Trust",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::WasteManagement => [
+            "Waste Management Ltd",
+            "Sanitation Corp",
+            "Environmental Services",
+            "Waste Holdings",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::Hospitality => [
+            "Hospitality Group",
+            "Hotel Holdings",
+            "Tourism Corp",
+            "Leisure Group",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::NGO => [
+            "Foundation",
+            "Charitable Trust",
+            "Civic Foundation",
+            "Social Initiative",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::Religion => [
+            "Religious Trust",
+            "Ecclesiastical Holdings",
+            "Diocesan Trust",
+            "Religious Foundation",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::MaintenanceWorkshops => [
+            "Maintenance Services",
+            "Repair Works",
+            "Technical Services",
+            "Workshop Ltd",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::Government => [
+            "State Agency",
+            "Government Bureau",
+            "State Holdings",
+            "Public Authority",
+        ]
+        .choose(rng)
+        .unwrap(),
     }
 }
 
@@ -1819,7 +2313,11 @@ fn generate_company_name(
     rng: &mut impl rand::Rng,
 ) -> String {
     // Phase 53: Draw surnames from the culture-specific pool.
-    let cg = if cultural_group.is_empty() { "slavic" } else { cultural_group };
+    let cg = if cultural_group.is_empty() {
+        "slavic"
+    } else {
+        cultural_group
+    };
     let pool = crate::politics::names::name_pool_for_culture(cg);
     let surname = pool.surnames.choose(rng).copied().unwrap_or("Smith");
 
@@ -1871,6 +2369,7 @@ fn find_storage_method_by_name(
         biohazard_factor: pm.biohazard_factor,
         output_water_quality: pm.output_water_quality,
         discharge_quality: pm.discharge_quality,
+        seat_type: pm.seat_type,
         extra: Default::default(),
     })
 }
@@ -1920,19 +2419,23 @@ fn best_machinery_method(
     let building_name = default_building_name(Sector::HeavyIndustry);
 
     let building_methods = registries.production_methods.get(&sector_key)?;
-    let best = building_methods.production.values()
+    let best = building_methods
+        .production
+        .values()
         .filter(|pm| pm.year <= start_year)
-        .filter(|pm| {
-            match &pm.required_tech {
-                None => true,
-                Some(tech_id) => {
-                    registries.tech_tree.get(tech_id)
-                        .map(|node| node.year <= start_year)
-                        .unwrap_or(false)
-                }
-            }
+        .filter(|pm| match &pm.required_tech {
+            None => true,
+            Some(tech_id) => registries
+                .tech_tree
+                .get(tech_id)
+                .map(|node| node.year <= start_year)
+                .unwrap_or(false),
         })
-        .filter(|pm| pm.outputs.iter().any(|(c, _)| *c == Commodity::IndustrialMachinery))
+        .filter(|pm| {
+            pm.outputs
+                .iter()
+                .any(|(c, _)| *c == Commodity::IndustrialMachinery)
+        })
         .max_by_key(|pm| pm.year)?;
 
     let method = method_from_ratios(
@@ -1960,19 +2463,23 @@ fn best_simple_machinery_method(
     let building_name = default_building_name(Sector::HeavyIndustry);
 
     let building_methods = registries.production_methods.get(&sector_key)?;
-    let best = building_methods.production.values()
+    let best = building_methods
+        .production
+        .values()
         .filter(|pm| pm.year <= start_year)
-        .filter(|pm| {
-            match &pm.required_tech {
-                None => true,
-                Some(tech_id) => {
-                    registries.tech_tree.get(tech_id)
-                        .map(|node| node.year <= start_year)
-                        .unwrap_or(false)
-                }
-            }
+        .filter(|pm| match &pm.required_tech {
+            None => true,
+            Some(tech_id) => registries
+                .tech_tree
+                .get(tech_id)
+                .map(|node| node.year <= start_year)
+                .unwrap_or(false),
         })
-        .filter(|pm| pm.outputs.iter().any(|(c, _)| *c == Commodity::IndustrialMachinery))
+        .filter(|pm| {
+            pm.outputs
+                .iter()
+                .any(|(c, _)| *c == Commodity::IndustrialMachinery)
+        })
         // Key filter: exclude methods that need ElectronicComponents or Semiconductors.
         .filter(|pm| {
             !pm.inputs.iter().any(|(c, _)| {
@@ -2008,24 +2515,23 @@ fn best_simple_steel_method(
     let building_name = default_building_name(Sector::HeavyIndustry);
 
     let building_methods = registries.production_methods.get(&sector_key)?;
-    let best = building_methods.production.values()
+    let best = building_methods
+        .production
+        .values()
         .filter(|pm| pm.year <= start_year)
-        .filter(|pm| {
-            match &pm.required_tech {
-                None => true,
-                Some(tech_id) => {
-                    registries.tech_tree.get(tech_id)
-                        .map(|node| node.year <= start_year)
-                        .unwrap_or(false)
-                }
-            }
+        .filter(|pm| match &pm.required_tech {
+            None => true,
+            Some(tech_id) => registries
+                .tech_tree
+                .get(tech_id)
+                .map(|node| node.year <= start_year)
+                .unwrap_or(false),
         })
         .filter(|pm| pm.outputs.iter().any(|(c, _)| *c == Commodity::Steel))
         // Key filter: exclude methods that need ElectronicComponents.
         .filter(|pm| {
             !pm.inputs.iter().any(|(c, _)| {
-                *c == Commodity::ElectronicComponents
-                    || *c == Commodity::Semiconductors
+                *c == Commodity::ElectronicComponents || *c == Commodity::Semiconductors
             })
         })
         .max_by_key(|pm| pm.year)?;
@@ -2052,19 +2558,23 @@ fn best_mechanical_components_method(
     let building_name = default_building_name(Sector::HeavyIndustry);
 
     let building_methods = registries.production_methods.get(&sector_key)?;
-    let best = building_methods.production.values()
+    let best = building_methods
+        .production
+        .values()
         .filter(|pm| pm.year <= start_year)
-        .filter(|pm| {
-            match &pm.required_tech {
-                None => true,
-                Some(tech_id) => {
-                    registries.tech_tree.get(tech_id)
-                        .map(|node| node.year <= start_year)
-                        .unwrap_or(false)
-                }
-            }
+        .filter(|pm| match &pm.required_tech {
+            None => true,
+            Some(tech_id) => registries
+                .tech_tree
+                .get(tech_id)
+                .map(|node| node.year <= start_year)
+                .unwrap_or(false),
         })
-        .filter(|pm| pm.outputs.iter().any(|(c, _)| *c == Commodity::MechanicalComponents))
+        .filter(|pm| {
+            pm.outputs
+                .iter()
+                .any(|(c, _)| *c == Commodity::MechanicalComponents)
+        })
         // Exclude methods that need ElectronicComponents (may not exist yet).
         .filter(|pm| {
             !pm.inputs.iter().any(|(c, _)| {
@@ -2096,24 +2606,29 @@ fn best_registry_method(
 
     match registries.production_methods.get(&sector_key) {
         Some(building_methods) => {
-            let best = building_methods.production.values()
+            let best = building_methods
+                .production
+                .values()
                 .filter(|pm| pm.year <= start_year)
-                .filter(|pm| {
-                    match &pm.required_tech {
-                        None => true,
-                        Some(tech_id) => {
-                            registries.tech_tree.get(tech_id)
-                                .map(|node| node.year <= start_year)
-                                .unwrap_or(false)
-                        }
-                    }
+                .filter(|pm| match &pm.required_tech {
+                    None => true,
+                    Some(tech_id) => registries
+                        .tech_tree
+                        .get(tech_id)
+                        .map(|node| node.year <= start_year)
+                        .unwrap_or(false),
                 })
                 .max_by_key(|pm| pm.year)
-                .or_else(|| building_methods.production.values().min_by_key(|pm| pm.year));
+                .or_else(|| {
+                    building_methods
+                        .production
+                        .values()
+                        .min_by_key(|pm| pm.year)
+                });
 
             match best {
                 Some(pm) => {
-                    let method = method_from_ratios(
+                    let mut method = method_from_ratios(
                         pm.experts_ratio,
                         pm.skilled_ratio,
                         pm.basic_ratio,
@@ -2121,12 +2636,34 @@ fn best_registry_method(
                         pm.outputs.iter().map(|(c, q)| (*c, *q)).collect(),
                         pm.year,
                     );
+                    // Phase A.7: Propagate typed seat_type from registry (no string matching).
+                    method.seat_type = pm.seat_type;
                     (building_name, method)
                 }
-                None => (building_name, method_from_ratios(0.10, 0.40, 0.50, BTreeMap::new(), BTreeMap::new(), start_year)),
+                None => (
+                    building_name,
+                    method_from_ratios(
+                        0.10,
+                        0.40,
+                        0.50,
+                        BTreeMap::new(),
+                        BTreeMap::new(),
+                        start_year,
+                    ),
+                ),
             }
         }
-        None => (building_name, method_from_ratios(0.10, 0.40, 0.50, BTreeMap::new(), BTreeMap::new(), start_year)),
+        None => (
+            building_name,
+            method_from_ratios(
+                0.10,
+                0.40,
+                0.50,
+                BTreeMap::new(),
+                BTreeMap::new(),
+                start_year,
+            ),
+        ),
     }
 }
 
@@ -2149,17 +2686,17 @@ fn diversified_registry_methods(
     match registries.production_methods.get(&sector_key) {
         Some(building_methods) => {
             // Collect all era-eligible methods.
-            let mut eligible: Vec<&ProductionMethod> = building_methods.production.values()
+            let mut eligible: Vec<&ProductionMethod> = building_methods
+                .production
+                .values()
                 .filter(|pm| pm.year <= start_year)
-                .filter(|pm| {
-                    match &pm.required_tech {
-                        None => true,
-                        Some(tech_id) => {
-                            registries.tech_tree.get(tech_id)
-                                .map(|node| node.year <= start_year)
-                                .unwrap_or(false)
-                        }
-                    }
+                .filter(|pm| match &pm.required_tech {
+                    None => true,
+                    Some(tech_id) => registries
+                        .tech_tree
+                        .get(tech_id)
+                        .map(|node| node.year <= start_year)
+                        .unwrap_or(false),
                 })
                 .collect();
 
@@ -2168,10 +2705,13 @@ fn diversified_registry_methods(
 
             if eligible.is_empty() {
                 // Fallback: use the earliest method if no era-eligible one exists.
-                let earliest = building_methods.production.values().min_by_key(|pm| pm.year);
+                let earliest = building_methods
+                    .production
+                    .values()
+                    .min_by_key(|pm| pm.year);
                 match earliest {
                     Some(pm) => {
-                        let method = method_from_ratios(
+                        let mut method = method_from_ratios(
                             pm.experts_ratio,
                             pm.skilled_ratio,
                             pm.basic_ratio,
@@ -2179,25 +2719,52 @@ fn diversified_registry_methods(
                             pm.outputs.iter().map(|(c, q)| (*c, *q)).collect(),
                             pm.year,
                         );
+                        // Phase A.7: Propagate typed seat_type.
+                        method.seat_type = pm.seat_type;
                         vec![(building_name, method)]
                     }
-                    None => vec![(building_name, method_from_ratios(0.10, 0.40, 0.50, BTreeMap::new(), BTreeMap::new(), start_year))],
+                    None => vec![(
+                        building_name,
+                        method_from_ratios(
+                            0.10,
+                            0.40,
+                            0.50,
+                            BTreeMap::new(),
+                            BTreeMap::new(),
+                            start_year,
+                        ),
+                    )],
                 }
             } else {
-                eligible.iter().map(|pm| {
-                    let method = method_from_ratios(
-                        pm.experts_ratio,
-                        pm.skilled_ratio,
-                        pm.basic_ratio,
-                        pm.inputs.iter().map(|(c, q)| (*c, *q)).collect(),
-                        pm.outputs.iter().map(|(c, q)| (*c, *q)).collect(),
-                        pm.year,
-                    );
-                    (building_name.clone(), method)
-                }).collect()
+                eligible
+                    .iter()
+                    .map(|pm| {
+                        let mut method = method_from_ratios(
+                            pm.experts_ratio,
+                            pm.skilled_ratio,
+                            pm.basic_ratio,
+                            pm.inputs.iter().map(|(c, q)| (*c, *q)).collect(),
+                            pm.outputs.iter().map(|(c, q)| (*c, *q)).collect(),
+                            pm.year,
+                        );
+                        // Phase A.7: Propagate typed seat_type.
+                        method.seat_type = pm.seat_type;
+                        (building_name.clone(), method)
+                    })
+                    .collect()
             }
         }
-        None => vec![(building_name, method_from_ratios(0.10, 0.40, 0.50, BTreeMap::new(), BTreeMap::new(), start_year))],
+        None => vec![(
+            building_name,
+            method_from_ratios(
+                0.10,
+                0.40,
+                0.50,
+                BTreeMap::new(),
+                BTreeMap::new(),
+                start_year,
+            ),
+        )],
     }
 }
 
@@ -2211,7 +2778,10 @@ fn select_diversified_method(
     rank: usize,
 ) -> (String, ActiveProductionMethod) {
     if methods.is_empty() {
-        return (default_building_name(Sector::Agriculture), method_from_ratios(0.10, 0.40, 0.50, BTreeMap::new(), BTreeMap::new(), 1900));
+        return (
+            default_building_name(Sector::Agriculture),
+            method_from_ratios(0.10, 0.40, 0.50, BTreeMap::new(), BTreeMap::new(), 1900),
+        );
     }
     let idx = rank % methods.len();
     methods[idx].clone()
@@ -2242,9 +2812,12 @@ fn era_filtered_methods(
     methods: Vec<(String, ActiveProductionMethod)>,
     start_year: u32,
 ) -> Vec<(String, ActiveProductionMethod)> {
-    methods.into_iter()
+    methods
+        .into_iter()
         .filter(|(_, m)| {
-            m.outputs.keys().all(|c| is_era_appropriate_commodity(*c, start_year))
+            m.outputs
+                .keys()
+                .all(|c| is_era_appropriate_commodity(*c, start_year))
         })
         .collect()
 }
@@ -2323,32 +2896,22 @@ fn seed_minimum_viable_supply_chain(
                 // this region's geological formations. Each mine gets the
                 // method that produces the deposit's commodity.
                 let mining_entities = seed_geology_based_mines(
-                    country,
-                    region,
-                    planet,
-                    start_year,
-                    registries,
-                    idgen,
-                    rng,
+                    country, region, planet, start_year, registries, idgen, rng,
                 );
                 result.extend(mining_entities);
                 // Phase 44: Spawn processing plants for mined commodities.
                 // Mines produce raw ores; processing plants transform them
                 // into usable industrial goods (Steel, Copper, Aluminum, etc.).
                 let processing_entities = seed_processing_plants_for_region(
-                    country,
-                    region,
-                    planet,
-                    start_year,
-                    registries,
-                    idgen,
-                    rng,
+                    country, region, planet, start_year, registries, idgen, rng,
                 );
                 result.extend(processing_entities);
                 continue;
             }
 
-            let seed_workers = target_workers_per_company(sector, start_year, region, base_wage).round() as u32;
+            let seed_workers =
+                target_workers_per_company(sector, start_year, region, base_wage, 2.0).round()
+                    as u32;
             let (company, building) = if sector == Sector::Energy {
                 // Phase 27: Ensure era-appropriate fallback energy methods.
                 // Not all energy plants should use the highest-year method
@@ -2449,12 +3012,8 @@ fn seed_geology_based_mines(
     // Genesis concessions are grandfathered (fee_paid = 0.0) to prevent
     // Turn 0 bankruptcy. Post-genesis concessions pay a dynamic fee.
 
-    let target_workers = target_workers_per_company(
-        Sector::Mining,
-        start_year,
-        region,
-        average_wage,
-    ).max(50.0); // Floor to avoid 0-worker mines
+    let target_workers =
+        target_workers_per_company(Sector::Mining, start_year, region, average_wage, 2.0).max(50.0); // Floor to avoid 0-worker mines
 
     let min_capital = crate::corporate::capital_intensity::minimum_capital_for_sector(
         &Sector::Mining,
@@ -2483,17 +3042,12 @@ fn seed_geology_based_mines(
         let pop_factor = (region.population as f64 / 1_000_000.0).max(0.1).min(2.0);
         let density_dampener = 1.0 / (1.0 + mining_company_count as f64 * 0.3);
 
-        let economic_mines = ((concessions_for_vein as f64
-            * dev_factor
-            * pop_factor
-            * density_dampener)
-            .ceil() as usize)
-            .clamp(1, concessions_for_vein);
+        let economic_mines =
+            ((concessions_for_vein as f64 * dev_factor * pop_factor * density_dampener).ceil()
+                as usize)
+                .clamp(1, concessions_for_vein);
 
-        let vein_id = vein
-            .composite_id
-            .clone()
-            .unwrap_or_else(|| vein.id.clone());
+        let vein_id = vein.composite_id.clone().unwrap_or_else(|| vein.id.clone());
         let method_name = mining_method_name_for_commodity(vein.commodity);
 
         for _ in 0..economic_mines {
@@ -2548,7 +3102,8 @@ fn seed_processing_plants_for_region(
     let mut result = Vec::new();
 
     // Phase 88: Collect mined commodities for this region from Planet veins.
-    let mut mined_commodities: std::collections::BTreeSet<Commodity> = std::collections::BTreeSet::new();
+    let mut mined_commodities: std::collections::BTreeSet<Commodity> =
+        std::collections::BTreeSet::new();
     for vein in planet.veins_for_region(&region.id) {
         mined_commodities.insert(vein.commodity);
     }
@@ -2593,19 +3148,19 @@ fn seed_processing_plants_for_region(
         }
 
         // Find the processing method by name, filtered by era.
-        let pm = building_methods.production.iter()
+        let pm = building_methods
+            .production
+            .iter()
             .find(|(name, _)| name.to_lowercase() == method_name.to_lowercase())
             .map(|(_, pm)| pm)
             .filter(|pm| pm.year <= start_year)
-            .filter(|pm| {
-                match &pm.required_tech {
-                    None => true,
-                    Some(tech_id) => {
-                        registries.tech_tree.get(tech_id)
-                            .map(|node| node.year <= start_year)
-                            .unwrap_or(false)
-                    }
-                }
+            .filter(|pm| match &pm.required_tech {
+                None => true,
+                Some(tech_id) => registries
+                    .tech_tree
+                    .get(tech_id)
+                    .map(|node| node.year <= start_year)
+                    .unwrap_or(false),
             });
 
         if pm.is_none() {
@@ -2667,10 +3222,7 @@ fn mining_method_name_for_commodity(commodity: Commodity) -> &'static str {
 
 /// Phase 88: Find any vein on the planet for a given commodity (not region-specific).
 /// Returns the vein's ID (or composite_id if merged) for deposit binding.
-fn find_any_vein_for_commodity(
-    planet: &Planet,
-    commodity: &Commodity,
-) -> Option<String> {
+fn find_any_vein_for_commodity(planet: &Planet, commodity: &Commodity) -> Option<String> {
     for vein in &planet.veins {
         if vein.commodity == *commodity {
             return Some(vein.composite_id.clone().unwrap_or_else(|| vein.id.clone()));
@@ -2723,25 +3275,27 @@ fn find_method_by_name(
     let building_methods = registries.production_methods.get(&sector_key)?;
 
     // Try exact key match first (case-insensitive).
-    let pm = building_methods.production.iter()
+    let pm = building_methods
+        .production
+        .iter()
         .find(|(name, _)| name.to_lowercase() == method_name.to_lowercase())
         .map(|(_, pm)| pm)
         // Fallback: contains match.
         .or_else(|| {
-            building_methods.production.iter()
+            building_methods
+                .production
+                .iter()
                 .find(|(name, _)| name.to_lowercase().contains(&method_name.to_lowercase()))
                 .map(|(_, pm)| pm)
         })
         .filter(|pm| pm.year <= start_year)
-        .filter(|pm| {
-            match &pm.required_tech {
-                None => true,
-                Some(tech_id) => {
-                    registries.tech_tree.get(tech_id)
-                        .map(|node| node.year <= start_year)
-                        .unwrap_or(false)
-                }
-            }
+        .filter(|pm| match &pm.required_tech {
+            None => true,
+            Some(tech_id) => registries
+                .tech_tree
+                .get(tech_id)
+                .map(|node| node.year <= start_year)
+                .unwrap_or(false),
         })?;
 
     let method = method_from_ratios(
@@ -2773,7 +3327,12 @@ fn create_seed_company_with_explicit_method(
     let actual_capacity = base_capacity * scale_factor;
 
     let company_id = idgen.next_company();
-    let company_name = format!("Seed {} ({}) #{}", sector_display(sector), region.id, idgen.company_counter);
+    let company_name = format!(
+        "Seed {} ({}) #{}",
+        sector_display(sector),
+        region.id,
+        idgen.company_counter
+    );
     let company_capital = (actual_capacity as f64) * 1000.0;
     let company_fixed = company_capital * 0.6;
     let company_liquid = company_capital * 0.4;
@@ -2820,18 +3379,21 @@ fn create_seed_company_with_explicit_method(
         balance_sheet: None,
         loan_margin: None,
         brokerage_account: None,
-        primary_bank_id: None, outstanding_loans: Vec::new(),
-            merged_into: None,
-            is_liquidated: false,
+        primary_bank_id: None,
+        outstanding_loans: Vec::new(),
+        merged_into: None,
+        is_liquidated: false,
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
         target_fte_demand: actual_capacity,
         offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
-        prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
+        prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+            .max(1.0)
+            .max(50.0),
         wage_arrears: 0.0,
-            wages_paid_this_turn: 0.0,
-            arrears_accrued_this_turn: 0.0,
+        wages_paid_this_turn: 0.0,
+        arrears_accrued_this_turn: 0.0,
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
@@ -2845,17 +3407,26 @@ fn create_seed_company_with_explicit_method(
         rd_budget: 0.0,
         patents: Vec::new(),
         licensed_methods: Vec::new(),
+        research_progress: std::collections::HashMap::new(),
         information_quality: None,
         shadow_employment: None,
         pending_expansion: None,
+        pending_blueprint_design: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
-        reputation_score: 50.0, donation_history: Vec::new(), is_dspw: false, consumer_loans: Vec::new(),
+        reputation_score: 50.0,
+        donation_history: Vec::new(),
+        is_dspw: false,
+        consumer_loans: Vec::new(),
         annual_profit_accumulator: 0.0,
         seasonal_profile: None,
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
-        eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+        eps: 0.0,
+        pe_ratio: 0.0,
+        dividend_yield: 0.0,
+        open_price: 0.0,
+        close_price: 0.0,
         action_ledger: crate::entities::ActionLedger::default(),
         extra: serde_json::Map::new(),
     };
@@ -2887,7 +3458,9 @@ fn create_seed_company_with_explicit_method(
     let deductible = seed_cost.min(company.liquid_capital * 0.5);
     company.liquid_capital -= deductible;
     company.available_cash -= deductible;
-    company.extra.insert("seed_inventory_cost".to_string(), Value::from(deductible));
+    company
+        .extra
+        .insert("seed_inventory_cost".to_string(), Value::from(deductible));
 
     let building = Building {
         id: building_id.clone(),
@@ -2918,7 +3491,8 @@ fn create_seed_company_with_explicit_method(
         is_heritage_site: false,
         experience_level: None,
         aggregated_stats: AggregatedStats::default(),
-        structural_defect: 0.0, land_hectares: 0.0,
+        structural_defect: 0.0,
+        land_hectares: 0.0,
         extra: Map::new(),
         inventory,
         inventory_capacity,
@@ -2926,6 +3500,7 @@ fn create_seed_company_with_explicit_method(
         landfill_state: None,
         deposit_id: None,
         fixed_assets,
+        inventory_cohorts: Vec::new(),
         pending_method_upgrade: None,
         active_emission_control: String::new(),
     };
@@ -2997,9 +3572,10 @@ fn has_geological_resource_vein(
 /// area — Phase 87+: lowered threshold from 1000 to 500 hectares to allow
 /// more regions to support biomass power plants.
 fn has_forest_tract(region: &Region) -> bool {
-    if let Some(forest_data) = region.land_use_inventory.get_category(
-        crate::society::geography::LandCategory::Forests,
-    ) {
+    if let Some(forest_data) = region
+        .land_use_inventory
+        .get_category(crate::society::geography::LandCategory::Forests)
+    {
         return forest_data.area_hectares > 500.0;
     }
     false
@@ -3020,8 +3596,8 @@ fn create_specialized_power_plant(
     rng: &mut impl Rng,
 ) -> (Company, Building) {
     use crate::energy::generation::{
-        available_plant_types, nameplate_per_plant, plant_count,
-        target_regional_capacity_mw, workers_per_plant,
+        available_plant_types, nameplate_per_plant, plant_count, target_regional_capacity_mw,
+        workers_per_plant,
     };
     use crate::energy::types::{CoolingType, PowerPlantMetadata, PowerPlantType};
 
@@ -3095,19 +3671,21 @@ fn create_specialized_power_plant(
 
     // Select the best available production method for this plant type.
     let sector_key = selected_type.registry_key();
-    let method = registries.production_methods.get(sector_key)
+    let method = registries
+        .production_methods
+        .get(sector_key)
         .and_then(|methods| {
-            methods.production.values()
+            methods
+                .production
+                .values()
                 .filter(|pm| pm.year <= start_year)
-                .filter(|pm| {
-                    match &pm.required_tech {
-                        None => true,
-                        Some(tech_id) => {
-                            registries.tech_tree.get(tech_id)
-                                .map(|node| node.year <= start_year)
-                                .unwrap_or(false)
-                        }
-                    }
+                .filter(|pm| match &pm.required_tech {
+                    None => true,
+                    Some(tech_id) => registries
+                        .tech_tree
+                        .get(tech_id)
+                        .map(|node| node.year <= start_year)
+                        .unwrap_or(false),
                 })
                 .max_by_key(|pm| pm.year)
         });
@@ -3174,7 +3752,11 @@ fn create_specialized_power_plant(
         cooling_type,
         has_cooling_upgrade: cooling_type == CoolingType::ClosedLoop,
         fuel_source_deposit_id: None,
-        water_source_region: if has_water { Some(region.id.clone()) } else { None },
+        water_source_region: if has_water {
+            Some(region.id.clone())
+        } else {
+            None
+        },
         nameplate_capacity_mw: total_nameplate,
         capacity_factor: 0.5,
     };
@@ -3253,18 +3835,21 @@ fn create_seed_company(
         balance_sheet: None,
         loan_margin: None,
         brokerage_account: None,
-        primary_bank_id: None, outstanding_loans: Vec::new(),
-            merged_into: None,
-            is_liquidated: false,
+        primary_bank_id: None,
+        outstanding_loans: Vec::new(),
+        merged_into: None,
+        is_liquidated: false,
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
         target_fte_demand: actual_capacity,
         offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
-        prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
+        prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+            .max(1.0)
+            .max(50.0),
         wage_arrears: 0.0,
-            wages_paid_this_turn: 0.0,
-            arrears_accrued_this_turn: 0.0,
+        wages_paid_this_turn: 0.0,
+        arrears_accrued_this_turn: 0.0,
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
@@ -3278,17 +3863,26 @@ fn create_seed_company(
         rd_budget: 0.0,
         patents: Vec::new(),
         licensed_methods: Vec::new(),
+        research_progress: std::collections::HashMap::new(),
         information_quality: None,
         shadow_employment: None,
         pending_expansion: None,
+        pending_blueprint_design: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
-        reputation_score: 50.0, donation_history: Vec::new(), is_dspw: false, consumer_loans: Vec::new(),
+        reputation_score: 50.0,
+        donation_history: Vec::new(),
+        is_dspw: false,
+        consumer_loans: Vec::new(),
         annual_profit_accumulator: 0.0,
         seasonal_profile: None,
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
-        eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+        eps: 0.0,
+        pe_ratio: 0.0,
+        dividend_yield: 0.0,
+        open_price: 0.0,
+        close_price: 0.0,
         action_ledger: crate::entities::ActionLedger::default(),
         extra: serde_json::Map::new(),
     };
@@ -3345,7 +3939,9 @@ fn create_seed_company(
     let deductible = seed_cost.min(company.liquid_capital * 0.5);
     company.liquid_capital -= deductible;
     company.available_cash -= deductible;
-    company.extra.insert("seed_inventory_cost".to_string(), Value::from(deductible));
+    company
+        .extra
+        .insert("seed_inventory_cost".to_string(), Value::from(deductible));
 
     let building = Building {
         id: building_id.clone(),
@@ -3376,7 +3972,8 @@ fn create_seed_company(
         is_heritage_site: false,
         experience_level: None,
         aggregated_stats: AggregatedStats::default(),
-        structural_defect: 0.0, land_hectares: 0.0,
+        structural_defect: 0.0,
+        land_hectares: 0.0,
         extra: Map::new(),
         inventory,
         inventory_capacity,
@@ -3384,6 +3981,7 @@ fn create_seed_company(
         landfill_state: None,
         deposit_id: None,
         fixed_assets,
+        inventory_cohorts: Vec::new(),
         pending_method_upgrade: None,
         active_emission_control: String::new(),
     };
@@ -3399,11 +3997,7 @@ fn create_seed_company(
 /// * Machinery-type sectors get the machinery they produce (self-supply).
 /// * Non-machinery sectors get IndustrialMachinery as a generic capital good.
 /// * Cohorts are legacy (no blueprint), quality 0.8, condition 0.7-1.0.
-fn seed_fixed_assets(
-    sector: Sector,
-    start_year: u32,
-    rng: &mut impl Rng,
-) -> Vec<FixedAssetCohort> {
+fn seed_fixed_assets(sector: Sector, start_year: u32, rng: &mut impl Rng) -> Vec<FixedAssetCohort> {
     // Phase 45: Era-aware fixed asset seeding.
     // Pre-tractor agriculture uses DraftAnimals, not AgriculturalMachinery.
     // Pre-truck logistics uses DraftAnimals; rail era uses Trains; truck era uses Trucks.
@@ -3417,7 +4011,9 @@ fn seed_fixed_assets(
                 Commodity::AgriculturalMachinery
             }
         }
-        Sector::PublicServices | Sector::PublicAdministration | Sector::Banking => Commodity::OfficeMachinery,
+        Sector::PublicServices | Sector::PublicAdministration | Sector::Banking => {
+            Commodity::OfficeMachinery
+        }
         Sector::TransportLogistics | Sector::ExportServices => {
             if start_year < 1900 {
                 Commodity::DraftAnimals
@@ -3609,14 +4205,17 @@ fn initialize_agricultural_profiles(
     regions: &mut HashMap<String, Region>,
 ) {
     use crate::entities::AgriculturalProfile;
-    use crate::society::cadastre::{ParcelOwnerType, ZoningDesignation, parcel_id_to_index};
+    use crate::society::cadastre::{parcel_id_to_index, ParcelOwnerType, ZoningDesignation};
 
     // Collect parcel indices by region for assignment.
     // Only Agricultural or Unplanned parcels currently owned by State are eligible.
-    let mut available_parcels_by_region: HashMap<String, Vec<crate::society::cadastre::ParcelId>> = HashMap::new();
+    let mut available_parcels_by_region: HashMap<String, Vec<crate::society::cadastre::ParcelId>> =
+        HashMap::new();
     for (parcel_id, parcel) in cadastre.iter() {
-        let eligible = matches!(parcel.zoning, ZoningDesignation::Agricultural | ZoningDesignation::Unplanned)
-            && matches!(parcel.owner_type, ParcelOwnerType::State);
+        let eligible = matches!(
+            parcel.zoning,
+            ZoningDesignation::Agricultural | ZoningDesignation::Unplanned
+        ) && matches!(parcel.owner_type, ParcelOwnerType::State);
         if eligible {
             available_parcels_by_region
                 .entry(parcel.region_id.clone())
@@ -3734,29 +4333,16 @@ fn build_crop_batches(
     // planted_turn represents when the crop was sown in the PREVIOUS year
     // so it's ready for harvest at the September start.
     let arable_crop_sets: &[(&str, u32)] = match climate_profile {
-        CP::Tropical | CP::Coastal => &[
-            ("rice", 13),
-            ("soybeans", 13),
-            ("potatoes", 13),
-        ],
-        CP::SubTropical => &[
-            ("rice", 13),
-            ("corn", 13),
-            ("soybeans", 13),
-        ],
+        CP::Tropical | CP::Coastal => &[("rice", 13), ("soybeans", 13), ("potatoes", 13)],
+        CP::SubTropical => &[("rice", 13), ("corn", 13), ("soybeans", 13)],
         CP::Temperate | CP::Continental => &[
             ("wheat", 13),
             ("corn", 13),
             ("potatoes", 13),
             ("soybeans", 13),
         ],
-        CP::Mountainous => &[
-            ("potatoes", 13),
-            ("alfalfa", 11),
-        ],
-        CP::Desert => &[
-            ("soybeans", 13),
-        ],
+        CP::Mountainous => &[("potatoes", 13), ("alfalfa", 11)],
+        CP::Desert => &[("soybeans", 13)],
         CP::Arctic => &[],
     };
 
@@ -3773,14 +4359,10 @@ fn build_crop_batches(
             ("olives", 1),
             ("cattle", 1),
         ],
-        CP::Temperate | CP::Continental | CP::Mountainous => &[
-            ("cattle", 1),
-            ("orchard", 1),
-            ("tobacco", 1),
-        ],
-        CP::Desert => &[
-            ("cattle", 1),
-        ],
+        CP::Temperate | CP::Continental | CP::Mountainous => {
+            &[("cattle", 1), ("orchard", 1), ("tobacco", 1)]
+        }
+        CP::Desert => &[("cattle", 1)],
         CP::Arctic => &[],
     };
 
@@ -3879,19 +4461,19 @@ fn create_strategic_reserve_agency(
     // Buy when price < 0.75 * moving_avg_vwap (glut), sell when price > 1.5 * moving_avg_vwap (shock).
     // surplus_threshold and deficit_threshold are scaled to total_population.
     let pop_f = total_population.max(1) as f64;
-    let surplus_scale = pop_f * 0.01;  // 1% of population as surplus/deficit threshold
+    let surplus_scale = pop_f * 0.01; // 1% of population as surplus/deficit threshold
     let deficit_scale = pop_f * 0.005; // 0.5% of population as deficit threshold
 
     // (commodity_key, budget_fraction, surplus_threshold_factor, deficit_threshold_factor)
     let commodity_config: &[(&str, f64, f64, f64)] = &[
-        ("food",            0.15, 1.0,  1.0),  // basic survival
-        ("hard_coal",       0.12, 0.5,  0.5),  // primary industrial fuel
-        ("brown_coal",      0.08, 0.5,  0.5),  // lower-tier fuel
-        ("peat",            0.05, 0.3,  0.3),  // lowest-tier fuel
-        ("oil",             0.15, 0.3,  0.3),  // strategic military/industrial fuel
-        ("ammunition",      0.15, 0.2,  0.2),  // defense
-        ("steel",           0.15, 0.3,  0.3),  // industry
-        ("pharmaceuticals", 0.15, 0.2,  0.2),  // healthcare
+        ("food", 0.15, 1.0, 1.0),            // basic survival
+        ("hard_coal", 0.12, 0.5, 0.5),       // primary industrial fuel
+        ("brown_coal", 0.08, 0.5, 0.5),      // lower-tier fuel
+        ("peat", 0.05, 0.3, 0.3),            // lowest-tier fuel
+        ("oil", 0.15, 0.3, 0.3),             // strategic military/industrial fuel
+        ("ammunition", 0.15, 0.2, 0.2),      // defense
+        ("steel", 0.15, 0.3, 0.3),           // industry
+        ("pharmaceuticals", 0.15, 0.2, 0.2), // healthcare
     ];
 
     let mut purchase_triggers = BTreeMap::new();
@@ -3901,7 +4483,7 @@ fn create_strategic_reserve_agency(
         purchase_triggers.insert(
             key.to_string(),
             PurchaseTrigger {
-                buy_threshold_ratio: 0.75,  // Buy when price < 75% of moving avg VWAP
+                buy_threshold_ratio: 0.75, // Buy when price < 75% of moving avg VWAP
                 surplus_threshold: surplus_scale * surp_factor,
                 budget_fraction: budget_frac,
             },
@@ -3909,7 +4491,7 @@ fn create_strategic_reserve_agency(
         release_triggers.insert(
             key.to_string(),
             ReleaseTrigger {
-                sell_threshold_ratio: 1.5,  // Release when price > 150% of moving avg VWAP
+                sell_threshold_ratio: 1.5, // Release when price > 150% of moving avg VWAP
                 deficit_threshold: deficit_scale * def_factor,
                 release_fraction: 0.5,
             },
@@ -3926,13 +4508,13 @@ fn create_strategic_reserve_agency(
 
     // Distribute total capacity across 8 commodities (percentages sum to 1.0).
     let capacity_shares: &[(&str, f64)] = &[
-        ("food",            0.25),
-        ("hard_coal",       0.15),
-        ("brown_coal",      0.10),
-        ("peat",            0.05),
-        ("oil",             0.15),
-        ("ammunition",      0.10),
-        ("steel",           0.10),
+        ("food", 0.25),
+        ("hard_coal", 0.15),
+        ("brown_coal", 0.10),
+        ("peat", 0.05),
+        ("oil", 0.15),
+        ("ammunition", 0.10),
+        ("steel", 0.10),
         ("pharmaceuticals", 0.10),
     ];
     let mut max_capacity = BTreeMap::new();
@@ -3983,6 +4565,7 @@ fn create_strategic_reserve_agency(
             landfill_state: None,
             deposit_id: None,
             fixed_assets: Vec::new(),
+            inventory_cohorts: Vec::new(),
             pending_method_upgrade: None,
             active_emission_control: String::new(),
         };
@@ -3998,17 +4581,22 @@ fn create_strategic_reserve_agency(
         let storage_id = idgen.next_building();
         let storage_staff = 80u32;
         // Look up the "Pumped Storage Plant" method from the energy sector registry.
-        let storage_method = find_storage_method_by_name(registries, "energy", "Pumped Storage Plant", start_year)
-            .unwrap_or_else(|| method_from_ratios(
-                0.15, 0.30, 0.55,
-                BTreeMap::from([
-                    (Commodity::Energy, 100.0),
-                    (Commodity::Water, 20.0),
-                    (Commodity::MechanicalComponents, 5.0),
-                ]),
-                BTreeMap::from([(Commodity::Energy, 72.0)]),
-                1907,
-            ));
+        let storage_method =
+            find_storage_method_by_name(registries, "energy", "Pumped Storage Plant", start_year)
+                .unwrap_or_else(|| {
+                    method_from_ratios(
+                        0.15,
+                        0.30,
+                        0.55,
+                        BTreeMap::from([
+                            (Commodity::Energy, 100.0),
+                            (Commodity::Water, 20.0),
+                            (Commodity::MechanicalComponents, 5.0),
+                        ]),
+                        BTreeMap::from([(Commodity::Energy, 72.0)]),
+                        1907,
+                    )
+                });
         warehouses.push(Building {
             id: storage_id,
             name: "Pumped Storage Plant".to_string(),
@@ -4047,6 +4635,7 @@ fn create_strategic_reserve_agency(
             landfill_state: None,
             deposit_id: None,
             fixed_assets: Vec::new(),
+            inventory_cohorts: Vec::new(),
             pending_method_upgrade: None,
             active_emission_control: String::new(),
         });
@@ -4096,9 +4685,10 @@ fn create_strategic_reserve_agency(
         balance_sheet: None,
         loan_margin: None,
         brokerage_account: None,
-        primary_bank_id: None, outstanding_loans: Vec::new(),
-            merged_into: None,
-            is_liquidated: false,
+        primary_bank_id: None,
+        outstanding_loans: Vec::new(),
+        merged_into: None,
+        is_liquidated: false,
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
@@ -4106,8 +4696,8 @@ fn create_strategic_reserve_agency(
         offered_wage_per_fte: 0.0,
         prev_offered_wage_per_fte: 0.0,
         wage_arrears: 0.0,
-            wages_paid_this_turn: 0.0,
-            arrears_accrued_this_turn: 0.0,
+        wages_paid_this_turn: 0.0,
+        arrears_accrued_this_turn: 0.0,
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
@@ -4121,17 +4711,26 @@ fn create_strategic_reserve_agency(
         rd_budget: 0.0,
         patents: Vec::new(),
         licensed_methods: Vec::new(),
+        research_progress: std::collections::HashMap::new(),
         information_quality: None,
         shadow_employment: None,
         pending_expansion: None,
+        pending_blueprint_design: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
-        reputation_score: 50.0, donation_history: Vec::new(), is_dspw: false, consumer_loans: Vec::new(),
+        reputation_score: 50.0,
+        donation_history: Vec::new(),
+        is_dspw: false,
+        consumer_loans: Vec::new(),
         annual_profit_accumulator: 0.0,
         seasonal_profile: None,
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
-        eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+        eps: 0.0,
+        pe_ratio: 0.0,
+        dividend_yield: 0.0,
+        open_price: 0.0,
+        close_price: 0.0,
         action_ledger: crate::entities::ActionLedger::default(),
         extra: Map::new(),
     };
@@ -4227,10 +4826,7 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                 0.05,
                 0.25,
                 0.70,
-                BTreeMap::from([
-                    (Commodity::Food, 10.0),
-                    (Commodity::Rifles, 1.0),
-                ]),
+                BTreeMap::from([(Commodity::Food, 10.0), (Commodity::Rifles, 1.0)]),
                 BTreeMap::from([(Commodity::BorderEnforcementCapacity, 10.0)]),
                 year,
             ),
@@ -4241,10 +4837,7 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                 0.10,
                 0.30,
                 0.60,
-                BTreeMap::from([
-                    (Commodity::Food, 8.0),
-                    (Commodity::Paper, 2.0),
-                ]),
+                BTreeMap::from([(Commodity::Food, 8.0), (Commodity::Paper, 2.0)]),
                 BTreeMap::from([(Commodity::CustomsCapacity, 10.0)]),
                 year,
             ),
@@ -4255,10 +4848,7 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                 0.40,
                 0.40,
                 0.20,
-                BTreeMap::from([
-                    (Commodity::Paper, 20.0),
-                    (Commodity::Chemicals, 10.0),
-                ]),
+                BTreeMap::from([(Commodity::Paper, 20.0), (Commodity::Chemicals, 10.0)]),
                 BTreeMap::from([(Commodity::InnovationPoints, 5.0)]),
                 year,
             ),
@@ -4269,14 +4859,15 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                 0.20,
                 0.50,
                 0.30,
-                BTreeMap::from([
-                    (Commodity::Paper, 5.0),
-                ]),
+                BTreeMap::from([(Commodity::Paper, 5.0)]),
                 BTreeMap::from([(Commodity::ReligiousTexts, 5.0)]),
                 year,
             ),
         ),
-        _ => (name.to_string(), method_from_ratios(0.10, 0.40, 0.50, BTreeMap::new(), BTreeMap::new(), year)),
+        _ => (
+            name.to_string(),
+            method_from_ratios(0.10, 0.40, 0.50, BTreeMap::new(), BTreeMap::new(), year),
+        ),
     }
 }
 
@@ -4294,11 +4885,10 @@ fn generate_retail_stores(
     idgen: &mut IdGen,
     _rng: &mut impl Rng,
 ) -> Result<(), Box<dyn Error>> {
-    use crate::society::housing::{
-        CommercialBuilding, InventoryBatch, RetailProfile,
-        UtilityConnections, StorageType,
-    };
     use crate::registries::enums::Commodity;
+    use crate::society::housing::{
+        CommercialBuilding, InventoryBatch, RetailProfile, StorageType, UtilityConnections,
+    };
 
     if country_regions.is_empty() {
         return Ok(());
@@ -4429,7 +5019,9 @@ fn generate_retail_stores(
             temporary_disruption_modifier: 0.0,
             target_fte_demand: base_capacity,
             offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(1.0),
-            prev_offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(1.0).max(50.0),
+            prev_offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0))
+                .max(1.0)
+                .max(50.0),
             wage_arrears: 0.0,
             wages_paid_this_turn: 0.0,
             arrears_accrued_this_turn: 0.0,
@@ -4446,17 +5038,26 @@ fn generate_retail_stores(
             rd_budget: 0.0,
             patents: Vec::new(),
             licensed_methods: Vec::new(),
+            research_progress: std::collections::HashMap::new(),
             information_quality: None,
             shadow_employment: None,
             pending_expansion: None,
+            pending_blueprint_design: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
-            reputation_score: 50.0, donation_history: Vec::new(), is_dspw: false, consumer_loans: Vec::new(),
+            reputation_score: 50.0,
+            donation_history: Vec::new(),
+            is_dspw: false,
+            consumer_loans: Vec::new(),
             annual_profit_accumulator: 0.0,
             seasonal_profile: None,
             furloughed_workers_count: 0.0,
             ceo_vip_id: None,
-            eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+            eps: 0.0,
+            pe_ratio: 0.0,
+            dividend_yield: 0.0,
+            open_price: 0.0,
+            close_price: 0.0,
             action_ledger: crate::entities::ActionLedger::default(),
             extra: serde_json::Map::new(),
         };
@@ -4485,15 +5086,18 @@ fn generate_retail_stores(
 
         for (commodity, qty) in &seed_goods {
             let key: String = (*commodity).into();
-            current_inventory.insert(key, vec![InventoryBatch {
-                quantity: *qty,
-                storage_turn: 0,
-                owner_id: company_id.clone(),
-                accumulated_fees: 0.0,
-                warehouse_id: building_id.clone(),
-                fire_sale_discount: 0.0,
-                acquisition_cost_per_unit: 100.0, // Base price
-            }]);
+            current_inventory.insert(
+                key,
+                vec![InventoryBatch {
+                    quantity: *qty,
+                    storage_turn: 0,
+                    owner_id: company_id.clone(),
+                    accumulated_fees: 0.0,
+                    warehouse_id: building_id.clone(),
+                    fire_sale_discount: 0.0,
+                    acquisition_cost_per_unit: 100.0, // Base price
+                }],
+            );
         }
 
         let retail_profile = RetailProfile {
@@ -4547,22 +5151,11 @@ fn generate_retail_stores(
 
     // Save retail companies
     let company_store = DiskEntityStore::<Company>::new(data_dir);
-    company_store.save_sector(
-        &country.name,
-        "local_services",
-        None,
-        &retail_companies,
-    )?;
+    company_store.save_sector(&country.name, "local_services", None, &retail_companies)?;
 
     // Save retail commercial buildings
-    let commercial_store =
-        DiskEntityStore::<CommercialBuilding>::new(data_dir);
-    commercial_store.save_sector(
-        &country.name,
-        "retail_store",
-        None,
-        &retail_buildings,
-    )?;
+    let commercial_store = DiskEntityStore::<CommercialBuilding>::new(data_dir);
+    commercial_store.save_sector(&country.name, "retail_store", None, &retail_buildings)?;
 
     Ok(())
 }
@@ -4669,7 +5262,11 @@ fn generate_tourism_entities(
         let wonder_name = format!("{} ({})", wonder_names[wonder_idx], region.id);
 
         let wonder = NaturalWonder {
-            id: format!("WONDER-{}-{}", country.name[..3.min(country.name.len())].to_uppercase(), idgen.company_counter),
+            id: format!(
+                "WONDER-{}-{}",
+                country.name[..3.min(country.name.len())].to_uppercase(),
+                idgen.company_counter
+            ),
             name: wonder_name.clone(),
             wonder_type,
             region_id: region.id.clone(),
@@ -4685,7 +5282,11 @@ fn generate_tourism_entities(
         wonders.push(wonder);
 
         // Create tourism destination for this region
-        let dest_id = format!("DEST-{}-{}", country.name[..3.min(country.name.len())].to_uppercase(), region.id);
+        let dest_id = format!(
+            "DEST-{}-{}",
+            country.name[..3.min(country.name.len())].to_uppercase(),
+            region.id
+        );
         let dest = TourismDestination {
             id: dest_id.clone(),
             region_id: region.id.clone(),
@@ -4716,7 +5317,9 @@ fn generate_tourism_entities(
 
             let (office_cap, retail_cap) = match btype {
                 CommercialBuildingType::Hotel => (rng.gen_range(50.0..200.0), 0.0),
-                CommercialBuildingType::Resort => (rng.gen_range(80.0..300.0), rng.gen_range(20.0..80.0)),
+                CommercialBuildingType::Resort => {
+                    (rng.gen_range(80.0..300.0), rng.gen_range(20.0..80.0))
+                }
                 CommercialBuildingType::Restaurant => (0.0, rng.gen_range(30.0..100.0)),
                 CommercialBuildingType::Casino => (0.0, rng.gen_range(50.0..200.0)),
                 _ => (50.0, 0.0),
@@ -4759,7 +5362,12 @@ fn generate_tourism_entities(
             };
             tourism_buildings.push(commercial_building);
 
-            let company_name = format!("Hospitality {} {} #{}", sector_display(Sector::Hospitality), region.id, i + 1);
+            let company_name = format!(
+                "Hospitality {} {} #{}",
+                sector_display(Sector::Hospitality),
+                region.id,
+                i + 1
+            );
             let company_capital = base_wage * 500.0;
 
             let mut company = Company {
@@ -4781,7 +5389,7 @@ fn generate_tourism_entities(
                 available_cash: company_capital * 0.2,
                 debit_cash: 0.0,
                 credit_cash: 0.0,
-            unfilled_bid_prices: std::collections::HashMap::new(),
+                unfilled_bid_prices: std::collections::HashMap::new(),
                 liabilities: 0.0,
                 company_capital,
                 shares_count: 0,
@@ -4804,9 +5412,10 @@ fn generate_tourism_entities(
                 balance_sheet: None,
                 loan_margin: None,
                 brokerage_account: None,
-                primary_bank_id: None, outstanding_loans: Vec::new(),
-            merged_into: None,
-            is_liquidated: false,
+                primary_bank_id: None,
+                outstanding_loans: Vec::new(),
+                merged_into: None,
+                is_liquidated: false,
                 fund_type: None,
                 fund_ledger: None,
                 temporary_disruption_modifier: 0.0,
@@ -4814,8 +5423,8 @@ fn generate_tourism_entities(
                 offered_wage_per_fte: base_wage * 0.5,
                 prev_offered_wage_per_fte: (base_wage * 0.5).max(50.0),
                 wage_arrears: 0.0,
-            wages_paid_this_turn: 0.0,
-            arrears_accrued_this_turn: 0.0,
+                wages_paid_this_turn: 0.0,
+                arrears_accrued_this_turn: 0.0,
                 severance_arrears: 0.0,
                 furlough_turns_accumulated: 0,
                 productivity_penalty: 0.0,
@@ -4829,12 +5438,17 @@ fn generate_tourism_entities(
                 rd_budget: 0.0,
                 patents: Vec::new(),
                 licensed_methods: Vec::new(),
+                research_progress: std::collections::HashMap::new(),
                 information_quality: None,
                 shadow_employment: None,
                 pending_expansion: None,
+                pending_blueprint_design: None,
                 blueprints: Vec::new(),
                 licensed_blueprints: Vec::new(),
-                reputation_score: 50.0, donation_history: Vec::new(), is_dspw: false, consumer_loans: Vec::new(),
+                reputation_score: 50.0,
+                donation_history: Vec::new(),
+                is_dspw: false,
+                consumer_loans: Vec::new(),
                 annual_profit_accumulator: 0.0,
                 seasonal_profile: seasonal_profile_for_sector(
                     Sector::Hospitality,
@@ -4842,7 +5456,11 @@ fn generate_tourism_entities(
                 ),
                 furloughed_workers_count: 0.0,
                 ceo_vip_id: None,
-                eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+                eps: 0.0,
+                pe_ratio: 0.0,
+                dividend_yield: 0.0,
+                open_price: 0.0,
+                close_price: 0.0,
                 action_ledger: crate::entities::ActionLedger::default(),
                 extra: serde_json::Map::new(),
             };
@@ -4859,7 +5477,12 @@ fn generate_tourism_entities(
     // Save hospitality companies
     let company_store = DiskEntityStore::<Company>::new(data_dir);
     let hospitality_sector_name = sector_json_name(Sector::Hospitality);
-    company_store.save_sector(&country.name, &hospitality_sector_name, None, &hospitality_companies)?;
+    company_store.save_sector(
+        &country.name,
+        &hospitality_sector_name,
+        None,
+        &hospitality_companies,
+    )?;
 
     // Save tourism commercial buildings grouped by type
     let commercial_store = DiskEntityStore::<CommercialBuilding>::new(data_dir);
@@ -4903,8 +5526,8 @@ fn generate_housing(
     idgen: &mut IdGen,
     rng: &mut impl Rng,
 ) -> Result<(), Box<dyn Error>> {
-    use crate::society::housing::{HousingBuilding, HousingType, HousingSlots, UtilityConnections};
     use crate::society::geography::RuralClass;
+    use crate::society::housing::{HousingBuilding, HousingSlots, HousingType, UtilityConnections};
 
     if country_regions.is_empty() {
         return Ok(());
@@ -4974,10 +5597,18 @@ fn generate_housing(
             let aristocracy_owner = format!("CLASS:Aristocracy:{}", region.id);
             let bourgeoisie_owner = format!("CLASS:Bourgeoisie:{}", region.id);
 
-            let rural_pop = region.class_demographics.rural_classes.values()
-                .map(|d| d.population).sum::<i64>();
-            let urban_pop = region.class_demographics.urban_classes.values()
-                .map(|d| d.population).sum::<i64>();
+            let rural_pop = region
+                .class_demographics
+                .rural_classes
+                .values()
+                .map(|d| d.population)
+                .sum::<i64>();
+            let urban_pop = region
+                .class_demographics
+                .urban_classes
+                .values()
+                .map(|d| d.population)
+                .sum::<i64>();
             let total_pop = (rural_pop + urban_pop).max(1) as f64;
             let rural_share = rural_pop as f64 / total_pop;
             let _urban_share = 1.0 - rural_share;
@@ -4992,21 +5623,63 @@ fn generate_housing(
                 let (ht, owner, target, ls, rent) = if start_year <= 1925 {
                     // 1900/1925 rural: Huts for peasants, EstateHousing for serfs, Palace for aristocracy
                     match i % 10 {
-                        0 => (HousingType::Palace, state_owner.clone(), Some(RuralClass::Aristocracy), 0.90, 50.0),
-                        1..=3 => (HousingType::EstateHousing, state_owner.clone(), Some(RuralClass::Serf), 0.40, 5.0),
-                        _ => (HousingType::Hut, aristocracy_owner.clone(), Some(RuralClass::FreePeasant), 0.35, 10.0),
+                        0 => (
+                            HousingType::Palace,
+                            state_owner.clone(),
+                            Some(RuralClass::Aristocracy),
+                            0.90,
+                            50.0,
+                        ),
+                        1..=3 => (
+                            HousingType::EstateHousing,
+                            state_owner.clone(),
+                            Some(RuralClass::Serf),
+                            0.40,
+                            5.0,
+                        ),
+                        _ => (
+                            HousingType::Hut,
+                            aristocracy_owner.clone(),
+                            Some(RuralClass::FreePeasant),
+                            0.35,
+                            10.0,
+                        ),
                     }
                 } else if start_year <= 1950 {
                     // 1950 rural: WorkersHousing for workers, Huts modernized
                     match i % 5 {
-                        0 => (HousingType::Palace, state_owner.clone(), Some(RuralClass::Aristocracy), 0.90, 50.0),
-                        _ => (HousingType::WorkersHousing, bourgeoisie_owner.clone(), None, 0.50, 15.0),
+                        0 => (
+                            HousingType::Palace,
+                            state_owner.clone(),
+                            Some(RuralClass::Aristocracy),
+                            0.90,
+                            50.0,
+                        ),
+                        _ => (
+                            HousingType::WorkersHousing,
+                            bourgeoisie_owner.clone(),
+                            None,
+                            0.50,
+                            15.0,
+                        ),
                     }
                 } else {
                     // 1975 rural: Modernized housing
                     match i % 5 {
-                        0 => (HousingType::SocialHousing, state_owner.clone(), None, 0.70, 20.0),
-                        _ => (HousingType::WorkersHousing, bourgeoisie_owner.clone(), None, 0.55, 15.0),
+                        0 => (
+                            HousingType::SocialHousing,
+                            state_owner.clone(),
+                            None,
+                            0.70,
+                            20.0,
+                        ),
+                        _ => (
+                            HousingType::WorkersHousing,
+                            bourgeoisie_owner.clone(),
+                            None,
+                            0.55,
+                            15.0,
+                        ),
                     }
                 };
                 configs.push((ht, owner, target, ls, rent));
@@ -5017,20 +5690,56 @@ fn generate_housing(
                 let (ht, owner, target, ls, rent) = if start_year <= 1925 {
                     // 1900/1925 urban: Tenements for workers, CityPalace for bourgeoisie
                     match i % 8 {
-                        0 => (HousingType::CityPalace, bourgeoisie_owner.clone(), None, 1.00, 100.0),
-                        _ => (HousingType::Tenement, bourgeoisie_owner.clone(), None, 0.55, 25.0),
+                        0 => (
+                            HousingType::CityPalace,
+                            bourgeoisie_owner.clone(),
+                            None,
+                            1.00,
+                            100.0,
+                        ),
+                        _ => (
+                            HousingType::Tenement,
+                            bourgeoisie_owner.clone(),
+                            None,
+                            0.55,
+                            25.0,
+                        ),
                     }
                 } else if start_year <= 1950 {
                     // 1950 urban: Tenements + some SocialHousing
                     match i % 5 {
-                        0..=1 => (HousingType::SocialHousing, state_owner.clone(), None, 0.65, 20.0),
-                        _ => (HousingType::Tenement, bourgeoisie_owner.clone(), None, 0.60, 25.0),
+                        0..=1 => (
+                            HousingType::SocialHousing,
+                            state_owner.clone(),
+                            None,
+                            0.65,
+                            20.0,
+                        ),
+                        _ => (
+                            HousingType::Tenement,
+                            bourgeoisie_owner.clone(),
+                            None,
+                            0.60,
+                            25.0,
+                        ),
                     }
                 } else {
                     // 1975 urban: SocialHousing + SkilledHousing
                     match i % 4 {
-                        0..=1 => (HousingType::SocialHousing, state_owner.clone(), None, 0.70, 20.0),
-                        _ => (HousingType::SkilledHousing, bourgeoisie_owner.clone(), None, 0.65, 30.0),
+                        0..=1 => (
+                            HousingType::SocialHousing,
+                            state_owner.clone(),
+                            None,
+                            0.70,
+                            20.0,
+                        ),
+                        _ => (
+                            HousingType::SkilledHousing,
+                            bourgeoisie_owner.clone(),
+                            None,
+                            0.65,
+                            30.0,
+                        ),
                     }
                 };
                 configs.push((ht, owner, target, ls, rent));
@@ -5065,8 +5774,16 @@ fn generate_housing(
                     surface_water_capacity: total_capacity as f64 * 50.0,
                     groundwater_capacity: total_capacity as f64 * 20.0,
                     sewage_treatment_capacity: total_capacity as f64 * 30.0,
-                    district_heating_capacity: if start_year >= 1925 { total_capacity as f64 * 5.0 } else { 0.0 },
-                    electricity_capacity: if start_year >= 1925 { total_capacity as f64 * 10.0 } else { 0.0 },
+                    district_heating_capacity: if start_year >= 1925 {
+                        total_capacity as f64 * 5.0
+                    } else {
+                        0.0
+                    },
+                    electricity_capacity: if start_year >= 1925 {
+                        total_capacity as f64 * 10.0
+                    } else {
+                        0.0
+                    },
                     water_quality_received: 0.0,
                 },
                 active_lighting: default_lighting.clone(),
@@ -5137,6 +5854,7 @@ fn generate_charity_entities(
             },
             ngo_capacity,
             start_year,
+            country.macro_indicators.average_wage,
         );
         ngo_companies.push(ngo);
 
@@ -5156,6 +5874,7 @@ fn generate_charity_entities(
                 },
                 church_capacity,
                 start_year,
+                country.macro_indicators.average_wage,
             );
             church_companies.push(church);
 
@@ -5165,7 +5884,7 @@ fn generate_charity_entities(
                 building_type: crate::infrastructure::cultural::CulturalBuildingType::Temple,
                 region_id: region.id.clone(),
                 capacity: church_capacity as f64 * 10.0, // Temple serves more than just clergy
-                available_cash: 0.0, // Funded organically via donations
+                available_cash: 0.0,                     // Funded organically via donations
                 donations_collected_this_turn: 0.0,
                 relief_distributed_this_turn: 0.0,
                 year_built: start_year,
@@ -5179,7 +5898,8 @@ fn generate_charity_entities(
             cultural_buildings.push(temple);
 
             // Phase 28: Create a Monastery for some regions (rural preference).
-            let avg_gdp_pc = country_regions.iter().map(|r| r.gdp_pc).sum::<f64>() / country_regions.len() as f64;
+            let avg_gdp_pc = country_regions.iter().map(|r| r.gdp_pc).sum::<f64>()
+                / country_regions.len() as f64;
             let is_rural = region.gdp_pc < avg_gdp_pc;
             let monastery_chance = if is_rural { 0.7 } else { 0.3 };
             if rng.gen::<f64>() < monastery_chance {
@@ -5197,6 +5917,7 @@ fn generate_charity_entities(
                     },
                     monastery_capacity,
                     start_year,
+                    country.macro_indicators.average_wage,
                 );
                 church_companies.push(monastery);
 
@@ -5280,12 +6001,16 @@ fn create_charity_company(
     non_profit_data: NonProfitData,
     worker_capacity: u32,
     _start_year: u32,
+    average_wage: f64,
 ) -> Company {
     // Phase 28: Set a subsistence wage offer. The labor market clamps hiring
     // by available_cash / offered_wage_per_fte, so if no donations have flowed,
     // the charity hires 0 workers. When donations arrive (via collect_cultural_donations
     // Ă˘â€ â€™ building.available_cash Ă˘â€ â€™ company.available_cash), the charity can hire.
-    let subsistence_wage = 500.0; // Minimal wage, will be clamped by available cash
+    // Phase C.3: Dynamic subsistence wage — 5% of average_wage (Rule 2).
+    // This is a physical minimum below which workers cannot survive.
+    // It scales with the economy, preventing hyperinflation breakage.
+    let subsistence_wage = average_wage.max(1.0) * 0.05;
 
     Company {
         id: id.clone(),
@@ -5326,9 +6051,10 @@ fn create_charity_company(
             cash: 0.0, // Phase 33: Empty account exists so labor market doesn't clamp to 0.
             ..Default::default()
         }), // Funded organically by donations (Phase 28 rule: NO seed grants)
-        primary_bank_id: None, outstanding_loans: Vec::new(),
-            merged_into: None,
-            is_liquidated: false,
+        primary_bank_id: None,
+        outstanding_loans: Vec::new(),
+        merged_into: None,
+        is_liquidated: false,
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
@@ -5336,8 +6062,8 @@ fn create_charity_company(
         offered_wage_per_fte: subsistence_wage,
         prev_offered_wage_per_fte: subsistence_wage.max(50.0),
         wage_arrears: 0.0,
-            wages_paid_this_turn: 0.0,
-            arrears_accrued_this_turn: 0.0,
+        wages_paid_this_turn: 0.0,
+        arrears_accrued_this_turn: 0.0,
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
@@ -5354,17 +6080,26 @@ fn create_charity_company(
         rd_budget: 0.0,
         patents: Vec::new(),
         licensed_methods: Vec::new(),
+        research_progress: std::collections::HashMap::new(),
         information_quality: None,
         shadow_employment: None,
         pending_expansion: None,
+        pending_blueprint_design: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
-        reputation_score: 50.0, donation_history: Vec::new(), is_dspw: false, consumer_loans: Vec::new(),
+        reputation_score: 50.0,
+        donation_history: Vec::new(),
+        is_dspw: false,
+        consumer_loans: Vec::new(),
         annual_profit_accumulator: 0.0,
         seasonal_profile: None,
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
-        eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+        eps: 0.0,
+        pe_ratio: 0.0,
+        dividend_yield: 0.0,
+        open_price: 0.0,
+        close_price: 0.0,
         action_ledger: crate::entities::ActionLedger::default(),
         extra: serde_json::Map::new(),
     }
@@ -5390,13 +6125,17 @@ pub fn generate_investment_funds(
     _start_year: u32,
     rng: &mut impl Rng,
 ) {
-    use crate::politics::vip_registry::{Vip, VipRoleExtended, assign_core_traits};
-    use crate::securities::{FundType, FundLedger, InvestmentMandate, BrokerageAccount};
     use crate::entities::AggregatedStats;
     use crate::io::entity_store::{DiskEntityStore, EntityStore};
+    use crate::politics::vip_registry::{assign_core_traits, Vip, VipRoleExtended};
+    use crate::securities::{BrokerageAccount, FundLedger, FundType, InvestmentMandate};
 
     // Determine fund count based on GDP (2–5 funds).
-    let total_gdp: f64 = country.regions.iter().map(|r| r.gdp_pc * r.population as f64).sum();
+    let total_gdp: f64 = country
+        .regions
+        .iter()
+        .map(|r| r.gdp_pc * r.population as f64)
+        .sum();
     let fund_count = if total_gdp > 1e12 {
         5
     } else if total_gdp > 5e11 {
@@ -5413,7 +6152,11 @@ pub fn generate_investment_funds(
     }
 
     // Pick a region for the fund HQ (first region).
-    let hq_region = country.regions.first().map(|r| r.id.clone()).unwrap_or_default();
+    let hq_region = country
+        .regions
+        .first()
+        .map(|r| r.id.clone())
+        .unwrap_or_default();
 
     // Weighted fund type distribution: FIO 40%, Mutual 25%, ETF 15%, FIZ 12%, Hedge 8%.
     let type_weights: Vec<(FundType, f64)> = vec![
@@ -5447,16 +6190,14 @@ pub fn generate_investment_funds(
             ),
             FundType::MutualFund | FundType::ExchangeTradedFund => (
                 vec!["Conservative".to_string(), "Diplomatic".to_string()],
-                if matches!(chosen_type, FundType::ExchangeTradedFund) { "ETF" } else { "Mutual Fund" },
+                if matches!(chosen_type, FundType::ExchangeTradedFund) {
+                    "ETF"
+                } else {
+                    "Mutual Fund"
+                },
             ),
-            FundType::ClosedEndInvestmentFund => (
-                vec!["Ambitious".to_string()],
-                "Closed-End Fund",
-            ),
-            FundType::OpenEndInvestmentFund => (
-                vec!["Conservative".to_string()],
-                "Open-End Fund",
-            ),
+            FundType::ClosedEndInvestmentFund => (vec!["Ambitious".to_string()], "Closed-End Fund"),
+            FundType::OpenEndInvestmentFund => (vec!["Conservative".to_string()], "Open-End Fund"),
         };
 
         let manager_name = crate::politics::names::generate_full_vip(cultural_group, rng);
@@ -5474,7 +6215,10 @@ pub fn generate_investment_funds(
             full_name: manager_name.full_name.clone(),
             gender: manager_name.gender,
             age: 35 + rng.gen_range(0..30),
-            health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+            health: crate::politics::vip_registry::VipHealth {
+                physical_health: 1.0,
+                mental_health: 1.0,
+            },
             traits: traits.clone(),
             main_trait: main_trait.clone(),
             ideology,
@@ -5504,9 +6248,13 @@ pub fn generate_investment_funds(
         let ledger = FundLedger {
             nav_per_share: 1.0,
             shares_outstanding: (seed_capital / 1.0) as u64, // 1M shares at NAV 1.0
-            management_fee: 0.02,   // 2% management fee
-            performance_fee: 0.20,  // 20% performance fee (for hedge funds)
-            leverage_ratio: if matches!(chosen_type, FundType::HedgeFund) { 2.0 } else { 0.0 },
+            management_fee: 0.02,                            // 2% management fee
+            performance_fee: 0.20, // 20% performance fee (for hedge funds)
+            leverage_ratio: if matches!(chosen_type, FundType::HedgeFund) {
+                2.0
+            } else {
+                0.0
+            },
             investment_mandate: InvestmentMandate::default(),
             liquidity_provision: BTreeMap::new(),
             unit_holders: {
@@ -5571,15 +6319,15 @@ pub fn generate_investment_funds(
             fund_ledger: Some(ledger),
             temporary_disruption_modifier: 0.0,
             target_fte_demand: 10,
-            offered_wage_per_fte: 5000.0,
-            prev_offered_wage_per_fte: 5000.0,
+            offered_wage_per_fte: country.macro_indicators.average_wage.max(1.0),
+            prev_offered_wage_per_fte: country.macro_indicators.average_wage.max(1.0),
             wage_arrears: 0.0,
             wages_paid_this_turn: 0.0,
             arrears_accrued_this_turn: 0.0,
             severance_arrears: 0.0,
             furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,
-            target_wage: 5000.0,
+            target_wage: country.macro_indicators.average_wage.max(1.0),
             is_striking: false,
             fulfilled_fte: 0,
             prev_fulfilled_fte: 0,
@@ -5589,9 +6337,11 @@ pub fn generate_investment_funds(
             rd_budget: 0.0,
             patents: Vec::new(),
             licensed_methods: Vec::new(),
+            research_progress: std::collections::HashMap::new(),
             information_quality: None,
             shadow_employment: None,
             pending_expansion: None,
+            pending_blueprint_design: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
             reputation_score: 60.0,

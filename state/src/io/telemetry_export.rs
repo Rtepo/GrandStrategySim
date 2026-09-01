@@ -157,13 +157,11 @@ fn sanitize_filename(name: &str) -> String {
 ///
 /// # Returns
 /// Vector of (turn, value) tuples, or empty if file doesn't exist.
-pub fn read_telemetry_column(
-    data_dir: &Path,
-    country_name: &str,
-    column: &str,
-) -> Vec<(u32, f64)> {
+pub fn read_telemetry_column(data_dir: &Path, country_name: &str, column: &str) -> Vec<(u32, f64)> {
     let safe_name = sanitize_filename(country_name);
-    let csv_path = data_dir.join("telemetry").join(format!("{}_macro.csv", safe_name));
+    let csv_path = data_dir
+        .join("telemetry")
+        .join(format!("{}_macro.csv", safe_name));
 
     let file = match std::fs::File::open(&csv_path) {
         Ok(f) => f,
@@ -187,10 +185,12 @@ pub fn read_telemetry_column(
 
     let mut result = Vec::new();
     for record in reader.records().flatten() {
-        let turn: u32 = record.get(turn_idx)
+        let turn: u32 = record
+            .get(turn_idx)
             .and_then(|s| s.parse().ok())
             .unwrap_or(0);
-        let value: f64 = record.get(col_idx)
+        let value: f64 = record
+            .get(col_idx)
             .and_then(|s| s.parse().ok())
             .unwrap_or(0.0);
         result.push((turn, value));
@@ -213,7 +213,7 @@ mod tests {
 
     #[test]
     fn test_csv_roundtrip() {
-        use crate::state::{Country, Treasury, MacroData};
+        use crate::state::{Country, MacroData, Treasury};
         use tempfile::TempDir;
 
         let dir = TempDir::new().unwrap();
@@ -231,10 +231,8 @@ mod tests {
         country.macro_indicators.average_wage = 1200.0;
 
         // Write two rows.
-        append_telemetry_row(dir.path(), "TestLand", &country, 1, 1900)
-            .expect("write row 1");
-        append_telemetry_row(dir.path(), "TestLand", &country, 2, 1900)
-            .expect("write row 2");
+        append_telemetry_row(dir.path(), "TestLand", &country, 1, 1900).expect("write row 1");
+        append_telemetry_row(dir.path(), "TestLand", &country, 2, 1900).expect("write row 2");
 
         // Read back the GDP column.
         let gdp_data = read_telemetry_column(dir.path(), "TestLand", "Official_GDP");
@@ -251,9 +249,9 @@ mod tests {
 
     #[test]
     fn test_csv_header_written_once() {
-        use crate::state::{Country, Treasury, MacroData};
-        use tempfile::TempDir;
+        use crate::state::{Country, MacroData, Treasury};
         use std::io::Read;
+        use tempfile::TempDir;
 
         let dir = TempDir::new().unwrap();
         let mut country = Country::default();
@@ -261,10 +259,8 @@ mod tests {
         country.budget = Treasury::default();
         country.macro_indicators = MacroData::default();
 
-        append_telemetry_row(dir.path(), "HeaderTest", &country, 1, 1900)
-            .unwrap();
-        append_telemetry_row(dir.path(), "HeaderTest", &country, 2, 1900)
-            .unwrap();
+        append_telemetry_row(dir.path(), "HeaderTest", &country, 1, 1900).unwrap();
+        append_telemetry_row(dir.path(), "HeaderTest", &country, 2, 1900).unwrap();
 
         let path = dir.path().join("telemetry").join("HeaderTest_macro.csv");
         let mut content = String::new();

@@ -162,45 +162,123 @@ pub struct MilitaryCombatConfig {
 
 // ── Default value functions ──
 
-fn default_terrain_mountain() -> f64 { 1.3 }
-fn default_terrain_forest() -> f64 { 1.2 }
-fn default_terrain_plains() -> f64 { 1.0 }
-fn default_decisive_victory() -> f64 { 1.5 }
-fn default_pyrrhic_victory() -> f64 { 1.0 }
-fn default_max_loser_casualty() -> f64 { 0.3 }
-fn default_winner_casualty_mult() -> f64 { 0.4 }
-fn default_stalemate_casualty() -> f64 { 0.1 }
-fn default_dead_ratio() -> f64 { 0.5 }
-fn default_wounded_ratio() -> f64 { 0.35 }
-fn default_deserters_ratio() -> f64 { 0.15 }
-fn default_ammo_burn() -> f64 { 10.0 }
-fn default_fuel_burn() -> f64 { 5.0 }
-fn default_stalemate_intensity() -> f64 { 0.5 }
-fn default_decisive_intensity() -> f64 { 1.0 }
-fn default_supply_full() -> f64 { 80.0 }
-fn default_supply_zero_penalty() -> f64 { 0.3 }
-fn default_attrition_threshold() -> f64 { 25.0 }
-fn default_attrition_loss() -> f64 { 0.01 }
-fn default_org_loss() -> f64 { 5.0 }
-fn default_food_upkeep() -> f64 { 2.0 }
-fn default_supply_capacity() -> f64 { 3.0 }
-fn default_we_decay() -> f64 { 0.05 }
-fn default_we_per_casualty() -> f64 { 0.1 }
-fn default_peasant_devastation() -> f64 { 0.3 }
-fn default_air_superiority_offensive() -> f64 { 1.25 }
-fn default_air_superiority_defensive() -> f64 { 1.15 }
-fn default_naval_bombardment() -> f64 { 1.20 }
-fn default_catastrophic_power_ratio() -> f64 { 0.333 }
-fn default_retreat_casualty_ratio() -> f64 { 0.05 }
-fn default_retreat_attacker_casualty_ratio() -> f64 { 0.02 }
-fn default_retreat_equipment_loss_rate() -> f64 { 0.15 }
-fn default_devastation_per_decisive_battle() -> f64 { 0.15 }
-fn default_devastation_per_stalemate_turn() -> f64 { 0.05 }
-fn default_devastation_decay_rate() -> f64 { 0.02 }
-fn default_devastation_spread_rate() -> f64 { 0.10 }
-fn default_damage_threshold() -> f64 { 0.3 }
-fn default_destruction_threshold() -> f64 { 0.7 }
-fn default_damage_factor() -> f64 { 0.5 }
+fn default_terrain_mountain() -> f64 {
+    1.3
+}
+fn default_terrain_forest() -> f64 {
+    1.2
+}
+fn default_terrain_plains() -> f64 {
+    1.0
+}
+fn default_decisive_victory() -> f64 {
+    1.5
+}
+fn default_pyrrhic_victory() -> f64 {
+    1.0
+}
+fn default_max_loser_casualty() -> f64 {
+    0.3
+}
+fn default_winner_casualty_mult() -> f64 {
+    0.4
+}
+fn default_stalemate_casualty() -> f64 {
+    0.1
+}
+fn default_dead_ratio() -> f64 {
+    0.5
+}
+fn default_wounded_ratio() -> f64 {
+    0.35
+}
+fn default_deserters_ratio() -> f64 {
+    0.15
+}
+fn default_ammo_burn() -> f64 {
+    10.0
+}
+fn default_fuel_burn() -> f64 {
+    5.0
+}
+fn default_stalemate_intensity() -> f64 {
+    0.5
+}
+fn default_decisive_intensity() -> f64 {
+    1.0
+}
+fn default_supply_full() -> f64 {
+    80.0
+}
+fn default_supply_zero_penalty() -> f64 {
+    0.3
+}
+fn default_attrition_threshold() -> f64 {
+    25.0
+}
+fn default_attrition_loss() -> f64 {
+    0.01
+}
+fn default_org_loss() -> f64 {
+    5.0
+}
+fn default_food_upkeep() -> f64 {
+    2.0
+}
+fn default_supply_capacity() -> f64 {
+    3.0
+}
+fn default_we_decay() -> f64 {
+    0.05
+}
+fn default_we_per_casualty() -> f64 {
+    0.1
+}
+fn default_peasant_devastation() -> f64 {
+    0.3
+}
+fn default_air_superiority_offensive() -> f64 {
+    1.25
+}
+fn default_air_superiority_defensive() -> f64 {
+    1.15
+}
+fn default_naval_bombardment() -> f64 {
+    1.20
+}
+fn default_catastrophic_power_ratio() -> f64 {
+    0.333
+}
+fn default_retreat_casualty_ratio() -> f64 {
+    0.05
+}
+fn default_retreat_attacker_casualty_ratio() -> f64 {
+    0.02
+}
+fn default_retreat_equipment_loss_rate() -> f64 {
+    0.15
+}
+fn default_devastation_per_decisive_battle() -> f64 {
+    0.15
+}
+fn default_devastation_per_stalemate_turn() -> f64 {
+    0.05
+}
+fn default_devastation_decay_rate() -> f64 {
+    0.02
+}
+fn default_devastation_spread_rate() -> f64 {
+    0.10
+}
+fn default_damage_threshold() -> f64 {
+    0.3
+}
+fn default_destruction_threshold() -> f64 {
+    0.7
+}
+fn default_damage_factor() -> f64 {
+    0.5
+}
 
 impl Default for MilitaryCombatConfig {
     fn default() -> Self {

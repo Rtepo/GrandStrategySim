@@ -35,7 +35,9 @@ pub fn sector_capital_intensity(sector: &Sector) -> CapitalIntensity {
     match sector {
         Sector::LocalServices | Sector::ExportServices => CapitalIntensity::Low,
         Sector::LightIndustry => CapitalIntensity::Medium,
-        Sector::HeavyIndustry | Sector::ArmamentsIndustry | Sector::Mining => CapitalIntensity::High,
+        Sector::HeavyIndustry | Sector::ArmamentsIndustry | Sector::Mining => {
+            CapitalIntensity::High
+        }
         Sector::Construction => CapitalIntensity::Medium,
         Sector::Agriculture => CapitalIntensity::Low,
         Sector::Energy => CapitalIntensity::Massive,
@@ -47,7 +49,7 @@ pub fn sector_capital_intensity(sector: &Sector) -> CapitalIntensity {
         Sector::Banking => CapitalIntensity::High, // Banking requires significant capital
         Sector::MediaAndEntertainment => CapitalIntensity::Medium, // Media requires moderate capital
         Sector::WasteManagement => CapitalIntensity::High, // Waste management requires significant capital
-        Sector::Hospitality => CapitalIntensity::Medium, // Hospitality requires moderate capital
+        Sector::Hospitality => CapitalIntensity::Medium,   // Hospitality requires moderate capital
         Sector::NGO => CapitalIntensity::Micro, // NGOs are service entities, minimal capital
         Sector::Religion => CapitalIntensity::Micro, // Religious institutions are service entities
         Sector::MaintenanceWorkshops => CapitalIntensity::Medium, // Phase 19B: repair shops need moderate capital (tools, benches)
@@ -77,6 +79,29 @@ pub fn minimum_capital_for_sector(sector: &Sector, average_wage: f64) -> f64 {
     }
 }
 
+/// Maps a `CapitalIntensity` tier to a fractional multiplier for per-unit cost
+/// estimation. Used by R&D and licensing cost-benefit analysis to derive
+/// dynamic unit costs that scale with sector capital intensity.
+///
+/// # Rules
+/// * Micro sectors (services) have low per-unit costs (0.5× average_wage).
+/// * Massive sectors (infrastructure) have high per-unit costs (8.0× average_wage).
+/// * All values are relative to `average_wage` — inflation-proof (Rule 2).
+pub fn capital_intensity_multiplier(intensity: CapitalIntensity) -> f64 {
+    match intensity {
+        CapitalIntensity::Micro => 0.5,
+        CapitalIntensity::Low => 1.0,
+        CapitalIntensity::Medium => 2.0,
+        CapitalIntensity::High => 4.0,
+        CapitalIntensity::Massive => 8.0,
+    }
+}
+
+/// Convenience: returns the capital intensity multiplier for a sector.
+pub fn sector_capital_intensity_multiplier(sector: Sector) -> f64 {
+    capital_intensity_multiplier(sector_capital_intensity(&sector))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -102,7 +127,7 @@ mod tests {
     #[test]
     fn test_minimum_capital_for_sector_low() {
         let min_cap = minimum_capital_for_sector(&Sector::LocalServices, 10.0);
-        assert_eq!(min_cap, 1000.0);  // Low intensity = 100x average_wage
+        assert_eq!(min_cap, 1000.0); // Low intensity = 100x average_wage
     }
 
     #[test]

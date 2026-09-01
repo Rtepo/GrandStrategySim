@@ -56,7 +56,6 @@ pub struct LocalPollutionState {
     // Distinct from smog — waterborne/pathogenic pollution with different
     // sources, decay rates, mortality effects, and cadastre deposition.
     // ════════════════════════════════════════════════════════════════════════
-
     /// Accumulated biological contamination (0.0 = clean, 100.0 = epidemic).
     /// Distinct from smog — this is waterborne/pathogenic pollution.
     #[serde(default)]
@@ -88,7 +87,6 @@ pub struct LocalPollutionState {
     // Distinct pollution vectors from waste disposal: burning → smog,
     // dumping → biohazard, uncollected → biohazard + cadastre pollution.
     // ════════════════════════════════════════════════════════════════════════
-
     /// Phase 84: Per-turn smog mass from open trash burning.
     /// Feeds into `compute_smog_for_region()` alongside standalone/centralized/
     /// industrial emissions. Trash Burning produces severe localized smog.
@@ -180,11 +178,7 @@ pub fn compute_smog_for_region(
 /// * `cadastre` - Mutable cadastre
 /// * `region_id` - Region ID to distribute smog for
 /// * `smog_level` - Current smog concentration for the region
-pub fn distribute_smog_to_parcels(
-    cadastre: &mut Cadastre,
-    region_id: &str,
-    smog_level: f64,
-) {
+pub fn distribute_smog_to_parcels(cadastre: &mut Cadastre, region_id: &str, smog_level: f64) {
     if smog_level <= 0.0 {
         return;
     }
@@ -282,7 +276,8 @@ pub fn compute_biohazard_for_region(
         let quality_deficit =
             (SAFE_WATER_QUALITY_THRESHOLD - receipt.water_quality_received).max(0.0);
         // Biohazard = quality_deficit * water_consumed * PATHOGEN_SEVERITY_FACTOR
-        let building_biohazard = quality_deficit * receipt.water_consumed * PATHOGEN_SEVERITY_FACTOR;
+        let building_biohazard =
+            quality_deficit * receipt.water_consumed * PATHOGEN_SEVERITY_FACTOR;
         low_quality_water_biohazard += building_biohazard;
     }
     pollution.low_quality_water_biohazard = low_quality_water_biohazard;

@@ -26,8 +26,10 @@ pub enum TreatyClause {
     /// Tariff reduction between participants (parameterized).
     TradePreference,
     /// Grants access to a specific commodity market.
-    ResourceAccess { /// The commodity this treaty grants access to.
-        commodity: String },
+    ResourceAccess {
+        /// The commodity this treaty grants access to.
+        commodity: String,
+    },
 }
 
 impl TreatyClause {
@@ -238,19 +240,25 @@ impl TreatyRegistry {
 
     /// Returns all treaties involving a specific country.
     pub fn treaties_for_country(&self, country: &str) -> Vec<&Treaty> {
-        self.treaties.iter().filter(|t| t.participants.contains(&country.to_string())).collect()
+        self.treaties
+            .iter()
+            .filter(|t| t.participants.contains(&country.to_string()))
+            .collect()
     }
 
     /// Returns active treaties shared between two countries.
     pub fn active_treaties_between(&self, a: &str, b: &str) -> Vec<&Treaty> {
-        self.treaties.iter()
+        self.treaties
+            .iter()
             .filter(|t| t.is_active() && t.has_participants(a, b))
             .collect()
     }
 
     /// Checks if two countries share an active treaty with the given clause.
     pub fn has_active_clause_between(&self, a: &str, b: &str, clause: &TreatyClause) -> bool {
-        self.active_treaties_between(a, b).iter().any(|t| t.has_clause(clause))
+        self.active_treaties_between(a, b)
+            .iter()
+            .any(|t| t.has_clause(clause))
     }
 
     /// Advances negotiation progress for all pending treaties.
@@ -258,11 +266,15 @@ impl TreatyRegistry {
         &mut self,
         current_turn: u32,
         config: &TreatyConfig,
-        diplomacy: &std::collections::HashMap<String, std::collections::HashMap<String, crate::international::DiplomaticRelation>>,
+        diplomacy: &std::collections::HashMap<
+            String,
+            std::collections::HashMap<String, crate::international::DiplomaticRelation>,
+        >,
         ambassador_counts: &BTreeMap<String, BTreeMap<String, u32>>,
     ) {
         for treaty in &mut self.treaties {
-            if treaty.status != TreatyStatus::Proposed && treaty.status != TreatyStatus::Negotiating {
+            if treaty.status != TreatyStatus::Proposed && treaty.status != TreatyStatus::Negotiating
+            {
                 continue;
             }
 
@@ -316,9 +328,15 @@ impl TreatyRegistry {
     }
 
     /// Signs a treaty immediately (bypassing negotiation progress).
-    pub fn sign_treaty(&mut self, treaty_id: &str, current_turn: u32, config: &TreatyConfig) -> bool {
+    pub fn sign_treaty(
+        &mut self,
+        treaty_id: &str,
+        current_turn: u32,
+        config: &TreatyConfig,
+    ) -> bool {
         if let Some(treaty) = self.treaties.iter_mut().find(|t| t.id == treaty_id) {
-            if treaty.status == TreatyStatus::Proposed || treaty.status == TreatyStatus::Negotiating {
+            if treaty.status == TreatyStatus::Proposed || treaty.status == TreatyStatus::Negotiating
+            {
                 treaty.status = TreatyStatus::Active;
                 treaty.signed_turn = Some(current_turn);
                 treaty.negotiation_progress = 1.0;
@@ -392,7 +410,9 @@ mod tests {
             "Customs Pact".to_string(),
             vec!["A".to_string(), "B".to_string()],
             vec![TreatyClause::CustomsUnion],
-            1, 100, "A".to_string(),
+            1,
+            100,
+            "A".to_string(),
         );
         t1.status = TreatyStatus::Active;
         t1.signed_turn = Some(5);
@@ -403,7 +423,9 @@ mod tests {
             "Defense Pact".to_string(),
             vec!["B".to_string(), "C".to_string()],
             vec![TreatyClause::MutualDefense],
-            2, 100, "B".to_string(),
+            2,
+            100,
+            "B".to_string(),
         );
         t2.status = TreatyStatus::Proposed;
         registry.treaties.push(t2);
@@ -423,7 +445,9 @@ mod tests {
             "Test".to_string(),
             vec!["A".to_string(), "B".to_string()],
             vec![TreatyClause::TradePreference],
-            1, 100, "A".to_string(),
+            1,
+            100,
+            "A".to_string(),
         ));
 
         // Sign
@@ -445,7 +469,9 @@ mod tests {
             "Short Treaty".to_string(),
             vec!["A".to_string(), "B".to_string()],
             vec![TreatyClause::TradePreference],
-            1, 10, "A".to_string(),
+            1,
+            10,
+            "A".to_string(),
         );
         t.status = TreatyStatus::Active;
         t.signed_turn = Some(5);
@@ -470,7 +496,9 @@ mod tests {
             "Test".to_string(),
             vec!["A".to_string(), "B".to_string()],
             vec![TreatyClause::TradePreference],
-            1, 100, "A".to_string(),
+            1,
+            100,
+            "A".to_string(),
         ));
 
         let diplomacy = std::collections::HashMap::new();

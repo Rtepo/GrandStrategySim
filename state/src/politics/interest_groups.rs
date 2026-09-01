@@ -1,5 +1,5 @@
-use std::collections::{BTreeMap, HashMap};
 use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, HashMap};
 
 use crate::entities::Company;
 use crate::entities::Union;
@@ -53,7 +53,6 @@ pub struct SuffrageSystem {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum SuffrageType {
     #[default]
-
     UniversalSuffrage,
 
     WealthWeightedVoting,
@@ -132,7 +131,8 @@ fn calculate_nominal_power(
     // Aggregate rural class nominal power
     for region in regions {
         for (class_key, class_data) in &region.class_demographics.rural_classes {
-            let class_config = class_group_mapping.rural_class_mapping
+            let class_config = class_group_mapping
+                .rural_class_mapping
                 .get(class_key)
                 .cloned()
                 .unwrap_or_else(|| {
@@ -145,7 +145,9 @@ fn calculate_nominal_power(
                 });
 
             let population = class_data.population as f64 * class_config.voting_weight;
-            *nominal_power.entry(class_config.interest_group.clone()).or_insert(0.0) += population;
+            *nominal_power
+                .entry(class_config.interest_group.clone())
+                .or_insert(0.0) += population;
         }
     }
 
@@ -190,12 +192,21 @@ fn calculate_nominal_power(
 
     // Add manufacturing employment to configured group
     // Use GDP share as proxy for employment since SectorShare doesn't have employment field
-    let manufacturing_employment = country.budget.sectors.get(&Sector::HeavyIndustry)
+    let manufacturing_employment = country
+        .budget
+        .sectors
+        .get(&Sector::HeavyIndustry)
         .map(|s| s.gdp_share * 1000.0) // Scale GDP share to approximate employment
-        .unwrap_or(0.0) + country.budget.sectors.get(&Sector::LightIndustry)
-        .map(|s| s.gdp_share * 1000.0)
-        .unwrap_or(0.0);
-    *nominal_power.entry(class_group_mapping.manufacturing_employment_group.clone()).or_insert(0.0) += manufacturing_employment;
+        .unwrap_or(0.0)
+        + country
+            .budget
+            .sectors
+            .get(&Sector::LightIndustry)
+            .map(|s| s.gdp_share * 1000.0)
+            .unwrap_or(0.0);
+    *nominal_power
+        .entry(class_group_mapping.manufacturing_employment_group.clone())
+        .or_insert(0.0) += manufacturing_employment;
 
     nominal_power
 }
@@ -221,12 +232,17 @@ fn calculate_financial_power(
     // Aggregate company financial power by legal form mapping
     for company in companies {
         let legal_form_str = format!("{:?}", company.legal_form);
-        let group_name = class_group_mapping.company_form_mapping
+        let group_name = class_group_mapping
+            .company_form_mapping
             .get(&legal_form_str)
             .unwrap_or(&class_group_mapping.default_group);
 
-        let total_assets = company.brokerage_account.as_ref()
-            .map(|a| a.cash).unwrap_or(0.0) + company.fixed_capital;
+        let total_assets = company
+            .brokerage_account
+            .as_ref()
+            .map(|a| a.cash)
+            .unwrap_or(0.0)
+            + company.fixed_capital;
 
         *financial_power.entry(group_name.clone()).or_insert(0.0) += total_assets;
     }
@@ -241,7 +257,8 @@ fn calculate_financial_power(
     // Aggregate rural class financial power with land value proxy
     for region in regions {
         for (class_key, class_data) in &region.class_demographics.rural_classes {
-            let class_config = class_group_mapping.rural_class_mapping
+            let class_config = class_group_mapping
+                .rural_class_mapping
                 .get(class_key)
                 .cloned()
                 .unwrap_or_else(|| {
@@ -255,12 +272,15 @@ fn calculate_financial_power(
 
             let land_value = class_data.population as f64 * class_config.land_value_per_capita;
             let total_wealth = class_data.savings + land_value;
-            *financial_power.entry(class_config.interest_group.clone()).or_insert(0.0) += total_wealth;
+            *financial_power
+                .entry(class_config.interest_group.clone())
+                .or_insert(0.0) += total_wealth;
         }
     }
 
     // Logarithmic scaling to prevent extreme dominance
-    financial_power.into_iter()
+    financial_power
+        .into_iter()
         .map(|(k, v)| {
             let scaled = if v > 1.0 { v.log10() } else { 0.0 };
             (k, scaled)
@@ -304,7 +324,7 @@ fn calculate_total_political_weight(
         if !total_weight.contains_key(group_name) {
             let financial = financial_power.get(group_name).copied().unwrap_or(0.0);
             let _mobilization = mobilization_factors.get(group_name).copied().unwrap_or(0.5);
-            let w_total = beta * financial ;
+            let w_total = beta * financial;
             total_weight.insert(group_name.clone(), w_total);
         }
     }
@@ -312,7 +332,8 @@ fn calculate_total_political_weight(
     // Normalize to sum to 100.0
     let total: f64 = total_weight.values().sum();
     if total > 0.0 {
-        total_weight.into_iter()
+        total_weight
+            .into_iter()
             .map(|(k, v)| (k, (v / total) * 100.0))
             .collect()
     } else {
@@ -349,7 +370,8 @@ pub fn calculate_interest_groups_power(
     class_group_mapping: &ClassToGroupMapping,
 ) -> HashMap<String, InterestGroup> {
     let nominal_power = calculate_nominal_power(class_group_mapping, country, regions);
-    let financial_power = calculate_financial_power(class_group_mapping, companies, unions, regions);
+    let financial_power =
+        calculate_financial_power(class_group_mapping, companies, unions, regions);
 
     // Default mobilization factors from blueprint
     let mut mobilization_factors: HashMap<String, f64> = HashMap::new();
@@ -384,23 +406,37 @@ pub fn calculate_interest_groups_power(
     radicalization_factors.insert("Internal Cliques".to_string(), 0.8);
 
     let suffrage_system = &country.politics.constitution.suffrage_system;
-    let total_weight = calculate_total_political_weight(&nominal_power, &financial_power, suffrage_system, &mobilization_factors);
+    let total_weight = calculate_total_political_weight(
+        &nominal_power,
+        &financial_power,
+        suffrage_system,
+        &mobilization_factors,
+    );
 
     // Build InterestGroup structs
     let mut interest_groups: HashMap<String, InterestGroup> = HashMap::new();
     for (group_name, weight) in total_weight {
         let nominal = nominal_power.get(&group_name).copied().unwrap_or(0.0);
         let financial = financial_power.get(&group_name).copied().unwrap_or(0.0);
-        let mobilization = mobilization_factors.get(&group_name).copied().unwrap_or(0.5);
-        let radicalization = radicalization_factors.get(&group_name).copied().unwrap_or(0.3);
+        let mobilization = mobilization_factors
+            .get(&group_name)
+            .copied()
+            .unwrap_or(0.5);
+        let radicalization = radicalization_factors
+            .get(&group_name)
+            .copied()
+            .unwrap_or(0.3);
 
-        interest_groups.insert(group_name, InterestGroup {
-            nominal_power: nominal,
-            financial_power: financial,
-            total_political_weight: weight,
-            mobilization,
-            radicalization,
-        });
+        interest_groups.insert(
+            group_name,
+            InterestGroup {
+                nominal_power: nominal,
+                financial_power: financial,
+                total_political_weight: weight,
+                mobilization,
+                radicalization,
+            },
+        );
     }
 
     interest_groups
@@ -435,19 +471,22 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
     let export_services_share = sector_share(sectors, &Sector::ExportServices);
     let public_services_share = sector_share(sectors, &Sector::PublicServices);
 
-    let mut trade_union_strength = (industry_total * 100.0) * (1.0 - (unemployment / 100.0)) * (1.0 + illiteracy_rate);
+    let mut trade_union_strength =
+        (industry_total * 100.0) * (1.0 - (unemployment / 100.0)) * (1.0 + illiteracy_rate);
 
     let kapital_scaled = if private_capital > 1.0 {
         private_capital.log10()
     } else {
         1.0
     };
-    let mut capitalist_strength = (kapital_scaled * 2.0) + (stock_confidence * 0.2) + (export_services_share * 50.0);
+    let mut capitalist_strength =
+        (kapital_scaled * 2.0) + (stock_confidence * 0.2) + (export_services_share * 50.0);
     let mut petty_bourgeois_strength = (local_services_share * 150.0) + (kapital_scaled * 1.5);
     let mut agrarian_strength = (agriculture_share * 150.0) * (1.0 + (illiteracy_rate * 3.0));
 
     let education_budget = allocation_share(allocations, "Education and Propaganda");
-    let mut intelligentsia_strength = ((export_services_share * 50.0) + (education_budget * 50.0)) * (1.0 + (higher_education_total * 6.0));
+    let mut intelligentsia_strength = ((export_services_share * 50.0) + (education_budget * 50.0))
+        * (1.0 + (higher_education_total * 6.0));
 
     let military_expenditure = allocation_share(allocations, "Armed Forces");
     let military_strength = military_expenditure * 300.0;
@@ -474,7 +513,8 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
         clergy_strength *= 3.0;
     }
 
-    let mut student_strength = (higher_education_total * 200.0) + (education_budget * 150.0) * (1.0 - illiteracy_rate);
+    let mut student_strength =
+        (higher_education_total * 200.0) + (education_budget * 150.0) * (1.0 - illiteracy_rate);
     let mut aristocracy_strength = (kapital_scaled * 3.0) + (gini * 200.0);
     if matches!(
         politics.government_form,
@@ -499,9 +539,10 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
         bureaucrat_strength *= 1.5;
     }
 
-    let higher_tech = education.higher.get("Techniczne").unwrap_or(&0.0);
-    let higher_med = education.higher.get("Medyczne").unwrap_or(&0.0);
-    let specialist_strength = (higher_tech + higher_med) * 300.0 + (export_services_share + public_services_share) * 150.0;
+    let higher_tech = education.higher.get("Technical").unwrap_or(&0.0);
+    let higher_med = education.higher.get("Medical").unwrap_or(&0.0);
+    let specialist_strength = (higher_tech + higher_med) * 300.0
+        + (export_services_share + public_services_share) * 150.0;
 
     let artisan_strength = (light_industry_share + local_services_share + agriculture_share)
         * 100.0
@@ -607,10 +648,16 @@ pub fn allocation_share_from_ministries(
     use crate::politics::ministries::GovernmentCompetency;
 
     let target_competency = match name {
-        "Industry" => vec![GovernmentCompetency::HeavyIndustry, GovernmentCompetency::LightIndustry],
+        "Industry" => vec![
+            GovernmentCompetency::HeavyIndustry,
+            GovernmentCompetency::LightIndustry,
+        ],
         "Education and Propaganda" => vec![GovernmentCompetency::Education],
         "Healthcare" => vec![GovernmentCompetency::Healthcare],
-        "Infrastruktura i Transport" => vec![GovernmentCompetency::Infrastructure, GovernmentCompetency::Transport],
+        "Infrastruktura i Transport" => vec![
+            GovernmentCompetency::Infrastructure,
+            GovernmentCompetency::Transport,
+        ],
         "Programy Socjalne" => vec![GovernmentCompetency::SocialWelfare],
         "Rolnictwo i Gospodarka Wiejska" => vec![GovernmentCompetency::Agriculture],
         "Armed Forces" => vec![GovernmentCompetency::Defense],
@@ -635,7 +682,7 @@ pub fn allocation_share_from_ministries(
 }
 
 /// Calculate available unskilled labor for factories
-/// 
+///
 /// # Rules
 /// * Explicitly build pool from available classes - DO NOT subtract serfs
 /// * Serfs are completely invisible to cash labor market (tied to latifundia)
@@ -648,15 +695,17 @@ pub fn calculate_available_unskilled_labor(
     class_demographics: &RegionalClassDemographics,
 ) -> f64 {
     // Explicitly build pool from available classes - DO NOT subtract serfs
-    let landless_laborers = class_demographics.get_class(RuralClass::LandlessLaborer)
+    let landless_laborers = class_demographics
+        .get_class(RuralClass::LandlessLaborer)
         .map(|d| d.population as f64 * d.labor_participation)
         .unwrap_or(0.0);
-    
-    let free_peasants = class_demographics.get_class(RuralClass::FreePeasant)
+
+    let free_peasants = class_demographics
+        .get_class(RuralClass::FreePeasant)
         .map(|d| d.population as f64 * d.labor_participation * 0.3) // 30% seek secondary work
         .unwrap_or(0.0);
-    
+
     let urban_unemployed = labor_market.unskilled_tier.unemployed;
-    
+
     landless_laborers + free_peasants + urban_unemployed
 }

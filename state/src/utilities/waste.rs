@@ -22,11 +22,11 @@ pub struct WasteProcessingResult {
     /// Waste destroyed (tons)
     #[serde(default)]
     pub waste_destroyed: f64,
-    
+
     /// Commodities recovered (Commodity -> tons)
     #[serde(default)]
     pub commodities_recovered: BTreeMap<String, f64>,
-    
+
     /// Pollution generated (0-1)
     #[serde(default)]
     pub pollution_generated: f64,
@@ -38,27 +38,27 @@ pub struct Landfill {
     /// Unique landfill ID
     #[serde(default)]
     pub id: String,
-    
+
     /// Micro-region where landfill is located
     #[serde(default)]
     pub micro_region_id: String,
-    
+
     /// Total capacity (tons)
     #[serde(default)]
     pub total_capacity: f64,
-    
+
     /// Current waste volume (tons)
     #[serde(default)]
     pub current_volume: f64,
-    
+
     /// Modular upgrades installed
     #[serde(default)]
     pub upgrades: Vec<LandfillUpgrade>,
-    
+
     /// Processing capacity per turn (tons)
     #[serde(default)]
     pub processing_capacity: f64,
-    
+
     /// Operating cost per turn
     #[serde(default)]
     pub operating_cost: f64,
@@ -82,14 +82,14 @@ impl Landfill {
         let base_processed = waste_input.min(self.processing_capacity);
         let mut waste_destroyed = base_processed * 0.3; // 30% volume reduction via compaction
         let mut pollution = base_processed * 0.05; // Low pollution from compaction
-        
+
         // Incinerator module: destroys 90% of waste, generates pollution
         if has_incinerator {
             let incinerated = base_processed * 0.9;
             waste_destroyed += incinerated;
             pollution += incinerated * 0.15; // Higher pollution from incineration
         }
-        
+
         // Recycling module: recovers 40% of waste as commodities
         if has_recycling {
             let recycled = base_processed * 0.4;
@@ -99,18 +99,18 @@ impl Landfill {
             commodities_recovered.insert("paper".to_string(), recycled * 0.5);
             pollution -= recycled * 0.02; // Slightly reduces pollution
         }
-        
+
         // Update landfill volume
         let remaining_waste = waste_input - waste_destroyed;
         self.current_volume = (self.current_volume + remaining_waste).min(self.total_capacity);
-        
+
         WasteProcessingResult {
             waste_destroyed,
             commodities_recovered,
             pollution_generated: pollution.max(0.0).min(1.0),
         }
     }
-    
+
     /// Install a modular upgrade
     ///
     /// # Arguments
@@ -122,7 +122,7 @@ impl Landfill {
             self.operating_cost *= 1.2; // Upgrades increase operating cost
         }
     }
-    
+
     /// Check if landfill has capacity for more waste
     ///
     /// # Returns
@@ -130,7 +130,7 @@ impl Landfill {
     pub fn has_capacity(&self) -> bool {
         self.current_volume < self.total_capacity
     }
-    
+
     /// Get remaining capacity
     ///
     /// # Returns

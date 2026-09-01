@@ -3,8 +3,8 @@
 //! Aggregates waste generation from all buildings per micro-region, routes it to
 //! landfill Buildings (Sector::WasteManagement), and applies overflow penalties.
 
+use crate::economy::transfer_settler::{credit_company_by_id, debit_company_by_id};
 use crate::entities::{Building, Company};
-use crate::economy::transfer_settler::{debit_company_by_id, credit_company_by_id};
 use crate::registries::enums::Sector;
 use crate::society::geography::Region;
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
@@ -108,7 +108,10 @@ pub fn process_waste_turn(
 
             // LOGISTICAL BOUND 2: Hard capacity stop — accept_waste returns 0 if full
             let mut waste_input = std::collections::HashMap::new();
-            waste_input.insert(crate::registries::enums::Commodity::MixedWaste, waste_per_landfill);
+            waste_input.insert(
+                crate::registries::enums::Commodity::MixedWaste,
+                waste_per_landfill,
+            );
             let accepted = landfill_state.accept_waste(&waste_input);
             if accepted <= 0.0 {
                 overflow_total += waste_per_landfill;
@@ -133,11 +136,19 @@ pub fn process_waste_turn(
             }
         }
 
-        result.waste_processed.insert(region_id.clone(), processed_total);
-        result.waste_overflow.insert(region_id.clone(), overflow_total);
-        result.pollution_generated.insert(region_id.clone(), pollution_total);
+        result
+            .waste_processed
+            .insert(region_id.clone(), processed_total);
+        result
+            .waste_overflow
+            .insert(region_id.clone(), overflow_total);
+        result
+            .pollution_generated
+            .insert(region_id.clone(), pollution_total);
         if !all_recovered.is_empty() {
-            result.commodities_recovered.insert(region_id, all_recovered);
+            result
+                .commodities_recovered
+                .insert(region_id, all_recovered);
         }
     }
 

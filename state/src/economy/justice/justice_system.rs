@@ -106,7 +106,7 @@ pub fn levy_fines(
                 Some(ideo) if ideo.is_pro_business() => {
                     // Flat range 10,000–50,000, capped at 5% of available cash
                     let base = 10_000.0 + (i as f64 % 40_000.0);
-                    
+
                     base.min(companies[i].available_cash * 0.05)
                 }
                 Some(ideo) if ideo.is_pro_worker() => {
@@ -345,8 +345,7 @@ pub fn process_justice_turn(
     }
 
     // 2. Calculate dynamic demand
-    let (justice_demand, security_demand) =
-        calculate_national_demand(country, companies.len());
+    let (justice_demand, security_demand) = calculate_national_demand(country, companies.len());
 
     // 3. Coverage ratios
     let justice_coverage = if justice_demand > 0.0 {
@@ -452,7 +451,12 @@ pub fn process_justice_turn(
     let intel_capacity: f64 = buildings
         .iter()
         .filter(|b| b.name == "intelligence_hq")
-        .map(|b| b.last_production.get(&Commodity::IntelligenceCapacity).copied().unwrap_or(0.0))
+        .map(|b| {
+            b.last_production
+                .get(&Commodity::IntelligenceCapacity)
+                .copied()
+                .unwrap_or(0.0)
+        })
         .sum();
 
     if intel_capacity > 0.0 {
@@ -461,7 +465,9 @@ pub fn process_justice_turn(
             .regions
             .iter()
             .flat_map(|r| {
-                r.class_demographics.rural_classes.values()
+                r.class_demographics
+                    .rural_classes
+                    .values()
                     .chain(r.class_demographics.urban_classes.values())
             })
             .map(|c| c.population as f64 * c.political_sentiment.radicals)
@@ -472,7 +478,8 @@ pub fn process_justice_turn(
 
         // Update intelligence state
         if country.politics.intelligence_state.is_none() {
-            country.politics.intelligence_state = Some(crate::politics::system::IntelligenceState::default());
+            country.politics.intelligence_state =
+                Some(crate::politics::system::IntelligenceState::default());
         }
         if let Some(intel) = country.politics.intelligence_state.as_mut() {
             intel.total_capacity = intel_capacity;
@@ -480,7 +487,8 @@ pub fn process_justice_turn(
         }
 
         // Chilling effect: reduce social unrest passively
-        country.macro_indicators.social_unrest = (country.macro_indicators.social_unrest - surveillance_coverage * 2.0).max(0.0);
+        country.macro_indicators.social_unrest =
+            (country.macro_indicators.social_unrest - surveillance_coverage * 2.0).max(0.0);
     }
 
     JusticeTurnResult {

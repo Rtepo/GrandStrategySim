@@ -1,9 +1,9 @@
 mod commands;
 mod state;
 
-use std::sync::Arc;
-use state::AppState;
 use sim_engine::registries::Registries;
+use state::AppState;
+use std::sync::Arc;
 
 fn main() {
     let registries = Registries::native_only();

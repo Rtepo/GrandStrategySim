@@ -75,6 +75,9 @@ pub struct Trade {
     /// Phase 19C: Quality of the traded product (None = unknown / legacy).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub quality: Option<f64>,
+    /// Phase 95: Durability of the traded product (None = unknown / legacy).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub durability: Option<f64>,
 }
 
 /// Order book container holding bids, asks, and executed trades.
@@ -150,6 +153,7 @@ pub fn match_orders(order_book: &mut OrderBook) {
                     bid_limit_price: bid.limit_price, // Capture for encumbrance refund
                     blueprint_id: bid.blueprint_id.clone().or(ask.blueprint_id.clone()),
                     quality: ask.quality,
+                    durability: ask.durability,
                 });
 
                 bid.quantity -= trade_quantity;
@@ -189,7 +193,10 @@ pub fn match_orders(order_book: &mut OrderBook) {
 pub fn match_orders_with_embargoes(
     order_book: &mut OrderBook,
     company_country: &std::collections::HashMap<String, String>,
-    diplomacy: &std::collections::HashMap<String, std::collections::HashMap<String, crate::international::DiplomaticRelation>>,
+    diplomacy: &std::collections::HashMap<
+        String,
+        std::collections::HashMap<String, crate::international::DiplomaticRelation>,
+    >,
 ) {
     for commodity in order_book.bids.keys().cloned().collect::<Vec<_>>() {
         let bids = order_book.bids.get_mut(&commodity).unwrap();
@@ -269,6 +276,7 @@ pub fn match_orders_with_embargoes(
                     bid_limit_price: bid.limit_price,
                     blueprint_id: bid.blueprint_id.clone().or(ask.blueprint_id.clone()),
                     quality: ask.quality,
+                    durability: ask.durability,
                 });
 
                 bids[bid_idx].quantity -= trade_quantity;
@@ -323,7 +331,10 @@ pub fn submit_bid(
     commodity: Commodity,
     desired_quantity: f64,
     limit_price: f64,
-    interventions: &std::collections::HashMap<Commodity, crate::state::economic_policy::PriceIntervention>,
+    interventions: &std::collections::HashMap<
+        Commodity,
+        crate::state::economic_policy::PriceIntervention,
+    >,
 ) {
     let mut clamped_price = limit_price;
 
@@ -353,18 +364,14 @@ pub fn submit_bid(
         company.available_cash -= encumbrance;
         company.debit_cash += encumbrance;
 
-        order_book
-            .bids
-            .entry(commodity)
-            .or_default()
-            .push(Bid {
-                buyer_id: company.id.clone(),
-                commodity,
-                quantity: bid_quantity,
-                limit_price: clamped_price,
-                blueprint_id: None,
-                min_quality: None,
-            });
+        order_book.bids.entry(commodity).or_default().push(Bid {
+            buyer_id: company.id.clone(),
+            commodity,
+            quantity: bid_quantity,
+            limit_price: clamped_price,
+            blueprint_id: None,
+            min_quality: None,
+        });
     }
 }
 
@@ -386,7 +393,10 @@ pub fn submit_ask(
     commodity: Commodity,
     quantity: f64,
     limit_price: f64,
-    interventions: &std::collections::HashMap<Commodity, crate::state::economic_policy::PriceIntervention>,
+    interventions: &std::collections::HashMap<
+        Commodity,
+        crate::state::economic_policy::PriceIntervention,
+    >,
 ) {
     let mut clamped_price = limit_price;
 
@@ -401,19 +411,15 @@ pub fn submit_ask(
     }
 
     if quantity > 0.0 && clamped_price > 0.0 {
-        order_book
-            .asks
-            .entry(commodity)
-            .or_default()
-            .push(Ask {
-                seller_id,
-                commodity,
-                quantity,
-                limit_price: clamped_price,
-                blueprint_id: None,
-                quality: None,
-                durability: None,
-            });
+        order_book.asks.entry(commodity).or_default().push(Ask {
+            seller_id,
+            commodity,
+            quantity,
+            limit_price: clamped_price,
+            blueprint_id: None,
+            quality: None,
+            durability: None,
+        });
     }
 }
 
@@ -441,7 +447,10 @@ pub fn refund_unfilled_bids_cultural(
 ) {
     for bids in order_book.bids.values() {
         for bid in bids {
-            if let Some(building) = cultural_institutions.iter_mut().find(|b| b.id == bid.buyer_id) {
+            if let Some(building) = cultural_institutions
+                .iter_mut()
+                .find(|b| b.id == bid.buyer_id)
+            {
                 let refund = bid.quantity * bid.limit_price;
                 building.available_cash += refund;
             }

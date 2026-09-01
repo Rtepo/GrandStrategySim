@@ -1,12 +1,12 @@
 #![allow(missing_docs)]
 
-use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
 use crate::economy::legal_status::LegalStatus;
 use crate::entities::Company;
 use crate::registries::enums::Sector;
 use crate::society::geography::{DemographyType, Region};
 use crate::state::Calendar;
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, HashMap};
 
 /// Default remittance rate for TemporaryWorkers (10% of net income).
 fn default_remittance_rate() -> f64 {
@@ -15,16 +15,13 @@ fn default_remittance_rate() -> f64 {
 
 /// Data-driven configuration for labor market mechanics
 /// Loaded via JSON to avoid hardcoded simulation logic
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct LaborConfig {
     /// Suitability matrix: class_id -> (sector -> multiplier)
     /// Multipliers represent class suitability for specific sectors
     /// Missing keys default to 1.0 (neutral suitability)
-
     pub suitability_matrix: HashMap<String, HashMap<Sector, f64>>,
 }
-
 
 /// Labor market bid from a company
 pub struct LaborBid {
@@ -118,11 +115,7 @@ pub struct RegionalLaborPool {
 /// * Looks up multiplier from config.suitability_matrix
 /// * Missing keys default to 1.0 (neutral suitability)
 /// * Multiplier affects labor share during bid distribution, NOT actual FTE count
-fn get_suitability_multiplier(
-    class_id: &str,
-    sector: &Sector,
-    config: &LaborConfig,
-) -> f64 {
+fn get_suitability_multiplier(class_id: &str, sector: &Sector, config: &LaborConfig) -> f64 {
     config
         .suitability_matrix
         .get(class_id)
@@ -202,7 +195,8 @@ pub fn resolve_regional_labor_market(
         // This prevents companies loaded from old saves (without brokerage_account)
         // from being clamped to 0 FTE and mass-bankrupting.
         let max_affordable_fte = if company.offered_wage_per_fte > 0.0 {
-            company.brokerage_account
+            company
+                .brokerage_account
                 .as_ref()
                 .map(|ba| ba.cash / company.offered_wage_per_fte)
                 .unwrap_or(company.available_cash / company.offered_wage_per_fte)
@@ -448,7 +442,8 @@ pub fn resolve_regional_labor_market(
         let wage_payment = company.fulfilled_fte as f64 * company.offered_wage_per_fte;
 
         // Compute how much cash is actually available
-        let available_cash = company.brokerage_account
+        let available_cash = company
+            .brokerage_account
             .as_ref()
             .map(|ba| ba.cash.max(0.0))
             .unwrap_or(company.available_cash.max(0.0));
@@ -493,7 +488,8 @@ pub fn resolve_regional_labor_market(
         // Phase 40: Repay existing arrears from available cash (30% of cash).
         // This runs after the current turn's payroll, so it uses remaining cash.
         if company.wage_arrears > 0.0 {
-            let remaining_cash = company.brokerage_account
+            let remaining_cash = company
+                .brokerage_account
                 .as_ref()
                 .map(|ba| ba.cash.max(0.0))
                 .unwrap_or(company.available_cash.max(0.0));
@@ -532,7 +528,9 @@ pub fn resolve_regional_labor_market(
             continue;
         }
         let gross_severance = laid_off * company.offered_wage_per_fte * SEVERANCE_MULTIPLIER;
-        let available = company.brokerage_account.as_ref()
+        let available = company
+            .brokerage_account
+            .as_ref()
             .map(|ba| ba.cash.max(0.0))
             .unwrap_or(company.available_cash.max(0.0));
         let payable = gross_severance.min(available);
@@ -563,7 +561,8 @@ pub fn resolve_regional_labor_market(
         if company.severance_arrears <= 0.0 {
             continue;
         }
-        let remaining_cash = company.brokerage_account
+        let remaining_cash = company
+            .brokerage_account
             .as_ref()
             .map(|ba| ba.cash.max(0.0))
             .unwrap_or(company.available_cash.max(0.0));
@@ -602,20 +601,37 @@ pub fn resolve_regional_labor_market(
     }
     // Credit severance to regional class savings proportionally to their FTE share
     if total_severance_to_workers > 0.0 {
-        let total_class_fte: f64 = region.class_demographics.rural_classes.values()
-            .map(|c| c.allocated_fte).sum::<f64>()
-            + region.class_demographics.urban_classes.values()
-                .map(|c| c.allocated_fte).sum::<f64>();
+        let total_class_fte: f64 = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .map(|c| c.allocated_fte)
+            .sum::<f64>()
+            + region
+                .class_demographics
+                .urban_classes
+                .values()
+                .map(|c| c.allocated_fte)
+                .sum::<f64>();
         if total_class_fte > 0.0 {
-            let distribute = |classes: &mut std::collections::BTreeMap<String, crate::society::geography::ClassDemographics>,
+            let distribute = |classes: &mut std::collections::BTreeMap<
+                String,
+                crate::society::geography::ClassDemographics,
+            >,
                               total: f64| {
                 for demo in classes.values_mut() {
                     let share = demo.allocated_fte / total;
                     demo.savings += total_severance_to_workers * share;
                 }
             };
-            distribute(&mut region.class_demographics.rural_classes, total_class_fte);
-            distribute(&mut region.class_demographics.urban_classes, total_class_fte);
+            distribute(
+                &mut region.class_demographics.rural_classes,
+                total_class_fte,
+            );
+            distribute(
+                &mut region.class_demographics.urban_classes,
+                total_class_fte,
+            );
         }
     }
 
@@ -626,7 +642,10 @@ pub fn resolve_regional_labor_market(
 
     // CRITICAL FIX: Use tuple keys (DemographyType, class_id) to access ledgers
     for (class_id, demographics) in region.class_demographics.rural_classes.iter_mut() {
-        if let Some(ledger) = pool.class_ledgers.get(&(DemographyType::Rural, class_id.clone())) {
+        if let Some(ledger) = pool
+            .class_ledgers
+            .get(&(DemographyType::Rural, class_id.clone()))
+        {
             let gross_wage = ledger.earned_wages;
 
             // Phase 18B: Source-level community service garnishment (deducted from gross wage)
@@ -657,7 +676,10 @@ pub fn resolve_regional_labor_market(
     }
 
     for (class_id, demographics) in region.class_demographics.urban_classes.iter_mut() {
-        if let Some(ledger) = pool.class_ledgers.get(&(DemographyType::Urban, class_id.clone())) {
+        if let Some(ledger) = pool
+            .class_ledgers
+            .get(&(DemographyType::Urban, class_id.clone()))
+        {
             let gross_wage = ledger.earned_wages;
 
             // Phase 18B: Source-level community service garnishment (deducted from gross wage)
@@ -700,7 +722,10 @@ pub fn resolve_regional_labor_market(
     // wages must be remitted to their home regions by the caller — they are
     // NOT credited to local `class_demographics` (the synthetic
     // "__commuter__" key is not present in `rural_classes`/`urban_classes`).
-    if let Some(commuter_ledger) = pool.class_ledgers.get(&(DemographyType::Rural, COMMUTER_CLASS_ID.to_string())) {
+    if let Some(commuter_ledger) = pool
+        .class_ledgers
+        .get(&(DemographyType::Rural, COMMUTER_CLASS_ID.to_string()))
+    {
         let gross = commuter_ledger.earned_wages;
         if gross > 0.0 {
             // PIT on commuter wages (host region keeps it).
@@ -730,7 +755,10 @@ mod tests {
         demo.available_fte = fte;
         demo.population = (fte * 2.0) as i64;
         demo.labor_participation = 0.5;
-        region.class_demographics.rural_classes.insert("peasants".to_string(), demo);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("peasants".to_string(), demo);
         region
     }
 
@@ -772,10 +800,22 @@ mod tests {
 
         // Company demanded 20 FTE, local pool 10 + commuter 5 = 15 available.
         // Should fulfill 15 (or close to it).
-        assert!(companies[0].fulfilled_fte >= 14, "fulfilled_fte = {}", companies[0].fulfilled_fte);
+        assert!(
+            companies[0].fulfilled_fte >= 14,
+            "fulfilled_fte = {}",
+            companies[0].fulfilled_fte
+        );
         // Commuter wages should be tracked.
-        assert!(alloc.commuter_fte > 0.0, "commuter_fte = {}", alloc.commuter_fte);
-        assert!(alloc.commuter_wages > 0.0, "commuter_wages = {}", alloc.commuter_wages);
+        assert!(
+            alloc.commuter_fte > 0.0,
+            "commuter_fte = {}",
+            alloc.commuter_fte
+        );
+        assert!(
+            alloc.commuter_wages > 0.0,
+            "commuter_wages = {}",
+            alloc.commuter_wages
+        );
     }
 
     #[test]

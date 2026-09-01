@@ -3,8 +3,8 @@
 //! Defines crop types, categories, land requirements, and labor profiles
 //! for the dynamic agricultural state machine.
 
-use crate::society::geography::ClimateProfile;
 use crate::registries::enums::Commodity;
+use crate::society::geography::ClimateProfile;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -98,22 +98,18 @@ pub struct CropDefinition {
     pub name: String,
 
     /// Crop category for economic classification
-
     pub category: CropCategory,
 
     /// Land type requirement
-
     pub land_type: LandType,
 
     /// Compatible climate profiles
     pub compatible_climates: Vec<ClimateProfile>,
 
     /// Sowing schedule (turns 1-24)
-
     pub sowing_schedule: TurnRange,
 
     /// Harvest schedule (turns 1-24)
-
     pub harvest_schedule: TurnRange,
 
     /// Base FTE demand per hectare by phase

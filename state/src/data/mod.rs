@@ -7,5 +7,7 @@ pub mod consumption_registry;
 pub mod crop_registry;
 pub mod perishability_registry;
 
-pub use consumption_registry::{consumption_registry, substitution_matrix, subsistence_config, ConsumptionBasket, NeedTier};
+pub use consumption_registry::{
+    consumption_registry, subsistence_config, substitution_matrix, ConsumptionBasket, NeedTier,
+};
 pub use perishability_registry::perishability_registry;

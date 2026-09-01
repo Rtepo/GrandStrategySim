@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use super::ideology::Ideology;
-use super::system::{Constitution, Party};
 use super::interest_groups::InterestGroup;
+use super::system::{Constitution, Party};
 use serde::{Deserialize, Serialize};
 
 /// Concession clause in a coalition agreement
@@ -11,15 +11,15 @@ pub struct ConcessionClause {
     /// Description of the concession
     #[serde(default)]
     pub description: String,
-    
+
     /// Target party/faction receiving the concession
     #[serde(default)]
     pub target: String,
-    
+
     /// Budget cost of the concession
     #[serde(default)]
     pub cost: f64,
-    
+
     /// Ideological distance reduction provided by this concession
     #[serde(default)]
     pub distance_reduction: f64,
@@ -159,7 +159,8 @@ pub fn build_coalition(
     parliament: &HashMap<String, u32>,
     active_parties: &HashMap<String, Party>,
 ) -> (String, Vec<String>, bool, String) {
-    let (ruling, coalition, minority, _id, _cost) = build_coalition_with_concessions(parliament, active_parties, &[]);
+    let (ruling, coalition, minority, _id, _cost) =
+        build_coalition_with_concessions(parliament, active_parties, &[]);
     (ruling, coalition, minority, _id)
 }
 
@@ -240,11 +241,23 @@ pub fn build_coalition_with_concessions(
         coalition.push(partner.clone());
         seats_count += partner_seats;
         if seats_count >= majority {
-            return (leader, coalition, false, "[COA-000]".to_string(), total_concession_cost);
+            return (
+                leader,
+                coalition,
+                false,
+                "[COA-000]".to_string(),
+                total_concession_cost,
+            );
         }
     }
 
-    (leader, coalition, true, "[COA-000]".to_string(), total_concession_cost)
+    (
+        leader,
+        coalition,
+        true,
+        "[COA-000]".to_string(),
+        total_concession_cost,
+    )
 }
 
 /// Checks whether the ideological spread in a coalition is too wide.
@@ -316,16 +329,37 @@ pub fn calculate_upper_house_composition(
     if let Some(upper_house) = &constitution.upper_house {
         let method = upper_house.elections.clone();
         if method.contains("Hereditary") {
-            composition.insert("Aristocracy".to_string(), interest_groups.get("Aristocracy").map(|ig| ig.total_political_weight).unwrap_or(30.0));
-            composition.insert("Clergy".to_string(), interest_groups.get("Clergy").map(|ig| ig.total_political_weight).unwrap_or(20.0));
-            composition.insert("Armed Forces".to_string(), interest_groups.get("Armed Forces").map(|ig| ig.total_political_weight).unwrap_or(15.0));
+            composition.insert(
+                "Aristocracy".to_string(),
+                interest_groups
+                    .get("Aristocracy")
+                    .map(|ig| ig.total_political_weight)
+                    .unwrap_or(30.0),
+            );
+            composition.insert(
+                "Clergy".to_string(),
+                interest_groups
+                    .get("Clergy")
+                    .map(|ig| ig.total_political_weight)
+                    .unwrap_or(20.0),
+            );
+            composition.insert(
+                "Armed Forces".to_string(),
+                interest_groups
+                    .get("Armed Forces")
+                    .map(|ig| ig.total_political_weight)
+                    .unwrap_or(15.0),
+            );
             composition.insert("Independent Conservatives".to_string(), 35.0);
         } else if method.contains("Appointment") {
             composition.insert(ruling_party.to_string(), 60.0);
             composition.insert("Bureaucrats".to_string(), 20.0);
             composition.insert("Specialists / Technocrats".to_string(), 20.0);
         } else if method.contains("Indirect") {
-            let mut groups: Vec<(&String, f64)> = interest_groups.iter().map(|(k, v)| (k, v.total_political_weight)).collect();
+            let mut groups: Vec<(&String, f64)> = interest_groups
+                .iter()
+                .map(|(k, v)| (k, v.total_political_weight))
+                .collect();
             groups.sort_by(|(a, va), (b, vb)| vb.partial_cmp(va).unwrap().then_with(|| a.cmp(b)));
             for (group, power) in groups.iter().take(4) {
                 composition.insert((*group).clone(), *power);
@@ -445,16 +479,15 @@ pub fn calculate_seats_fptp(
             .iter()
             .map(|(name, support)| {
                 // Noise factor: ±20% variation per district.
-                let noise = 1.0 + ((seed.wrapping_mul(district_idx as u64 + 1) % 41) as f64 / 100.0) - 0.2;
+                let noise =
+                    1.0 + ((seed.wrapping_mul(district_idx as u64 + 1) % 41) as f64 / 100.0) - 0.2;
                 (name.clone(), support * noise)
             })
             .collect();
 
         // Winner takes all in this district.
         district_votes.sort_by(|(na, va), (nb, vb)| {
-            vb.partial_cmp(va)
-                .unwrap()
-                .then_with(|| na.cmp(nb)) // Tie-break: lexicographically smallest wins.
+            vb.partial_cmp(va).unwrap().then_with(|| na.cmp(nb)) // Tie-break: lexicographically smallest wins.
         });
 
         if let Some((winner, _)) = district_votes.first() {
@@ -644,9 +677,9 @@ pub fn calculate_seats_wealth_census_with_threshold(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::politics::system::Party;
     use crate::politics::interest_groups::{ClassToGroupMapping, RuralClassConfig, SuffrageType};
-    use crate::society::geography::{Region, RegionalClassDemographics, ClassDemographics};
+    use crate::politics::system::Party;
+    use crate::society::geography::{ClassDemographics, Region, RegionalClassDemographics};
 
     fn make_test_parties() -> HashMap<String, Party> {
         let mut parties = HashMap::new();
@@ -670,31 +703,43 @@ mod tests {
     fn make_test_regions() -> Vec<Region> {
         let mut region = Region::default();
         let mut rural = std::collections::BTreeMap::new();
-        rural.insert("Aristocracy".to_string(), ClassDemographics {
-            population: 1000,
-            savings: 5_000_000.0,
-            savings_per_capita: 5000.0,
-            ..Default::default()
-        });
-        rural.insert("LandlessLaborer".to_string(), ClassDemographics {
-            population: 10000,
-            savings: 50_000.0,
-            savings_per_capita: 5.0,
-            ..Default::default()
-        });
+        rural.insert(
+            "Aristocracy".to_string(),
+            ClassDemographics {
+                population: 1000,
+                savings: 5_000_000.0,
+                savings_per_capita: 5000.0,
+                ..Default::default()
+            },
+        );
+        rural.insert(
+            "LandlessLaborer".to_string(),
+            ClassDemographics {
+                population: 10000,
+                savings: 50_000.0,
+                savings_per_capita: 5.0,
+                ..Default::default()
+            },
+        );
         let mut urban = std::collections::BTreeMap::new();
-        urban.insert("Bourgeoisie".to_string(), ClassDemographics {
-            population: 3000,
-            savings: 3_000_000.0,
-            savings_per_capita: 1000.0,
-            ..Default::default()
-        });
-        urban.insert("Worker".to_string(), ClassDemographics {
-            population: 7000,
-            savings: 200_000.0,
-            savings_per_capita: 28.0,
-            ..Default::default()
-        });
+        urban.insert(
+            "Bourgeoisie".to_string(),
+            ClassDemographics {
+                population: 3000,
+                savings: 3_000_000.0,
+                savings_per_capita: 1000.0,
+                ..Default::default()
+            },
+        );
+        urban.insert(
+            "Worker".to_string(),
+            ClassDemographics {
+                population: 7000,
+                savings: 200_000.0,
+                savings_per_capita: 28.0,
+                ..Default::default()
+            },
+        );
         region.class_demographics = RegionalClassDemographics {
             rural_classes: rural,
             urban_classes: urban,
@@ -704,16 +749,26 @@ mod tests {
 
     fn make_test_mapping() -> ClassToGroupMapping {
         let mut mapping = ClassToGroupMapping::default();
-        mapping.rural_class_mapping.insert("Aristocracy".to_string(), RuralClassConfig {
-            interest_group: "Aristocracy".to_string(),
-            ..Default::default()
-        });
-        mapping.rural_class_mapping.insert("LandlessLaborer".to_string(), RuralClassConfig {
-            interest_group: "FreePeasant".to_string(),
-            ..Default::default()
-        });
-        mapping.urban_class_mapping.insert("Bourgeoisie".to_string(), "Bourgeoisie".to_string());
-        mapping.urban_class_mapping.insert("Worker".to_string(), "Worker".to_string());
+        mapping.rural_class_mapping.insert(
+            "Aristocracy".to_string(),
+            RuralClassConfig {
+                interest_group: "Aristocracy".to_string(),
+                ..Default::default()
+            },
+        );
+        mapping.rural_class_mapping.insert(
+            "LandlessLaborer".to_string(),
+            RuralClassConfig {
+                interest_group: "FreePeasant".to_string(),
+                ..Default::default()
+            },
+        );
+        mapping
+            .urban_class_mapping
+            .insert("Bourgeoisie".to_string(), "Bourgeoisie".to_string());
+        mapping
+            .urban_class_mapping
+            .insert("Worker".to_string(), "Worker".to_string());
         mapping.default_group = "FreePeasant".to_string();
         mapping
     }
@@ -725,7 +780,11 @@ mod tests {
         let total: u32 = seats.values().sum();
         assert_eq!(total, 100);
         let conservative_seats = seats.get("Conservative").copied().unwrap_or(0);
-        assert!(conservative_seats > 45, "Conservative should get majoritarian bonus, got {}", conservative_seats);
+        assert!(
+            conservative_seats > 45,
+            "Conservative should get majoritarian bonus, got {}",
+            conservative_seats
+        );
     }
 
     #[test]
@@ -743,7 +802,10 @@ mod tests {
         let dhondt_seats = calculate_seats(&parties, "D'Hondt", 0.0, 100);
         let fptp_con = fptp_seats.get("Conservative").copied().unwrap_or(0);
         let dhondt_con = dhondt_seats.get("Conservative").copied().unwrap_or(0);
-        assert!(fptp_con >= dhondt_con, "FPTP should give >= D'Hondt for largest party");
+        assert!(
+            fptp_con >= dhondt_con,
+            "FPTP should give >= D'Hondt for largest party"
+        );
     }
 
     #[test]
@@ -752,11 +814,18 @@ mod tests {
         let regions = make_test_regions();
         let mapping = make_test_mapping();
         let seats = calculate_seats_wealth_census(
-            &parties, &regions, &mapping, SuffrageType::WealthWeightedVoting, 100,
+            &parties,
+            &regions,
+            &mapping,
+            SuffrageType::WealthWeightedVoting,
+            100,
         );
         let con_seats = seats.get("Conservative").copied().unwrap_or(0);
         let labor_seats = seats.get("Labor").copied().unwrap_or(0);
-        assert!(con_seats > labor_seats, "Wealth-weighted should favor Conservative over Labor");
+        assert!(
+            con_seats > labor_seats,
+            "Wealth-weighted should favor Conservative over Labor"
+        );
     }
 
     #[test]
@@ -765,17 +834,26 @@ mod tests {
         let regions = make_test_regions();
         let mapping = make_test_mapping();
         let census_seats = calculate_seats_wealth_census(
-            &parties, &regions, &mapping, SuffrageType::CensusRestrictedVoting, 100,
+            &parties,
+            &regions,
+            &mapping,
+            SuffrageType::CensusRestrictedVoting,
+            100,
         );
         let universal_seats = calculate_seats_wealth_census(
-            &parties, &regions, &mapping, SuffrageType::UniversalSuffrage, 100,
+            &parties,
+            &regions,
+            &mapping,
+            SuffrageType::UniversalSuffrage,
+            100,
         );
         let census_labor = census_seats.get("Labor").copied().unwrap_or(0);
         let universal_labor = universal_seats.get("Labor").copied().unwrap_or(0);
         assert!(
             census_labor <= universal_labor,
             "Census should give Labor <= seats than universal (census: {}, universal: {})",
-            census_labor, universal_labor
+            census_labor,
+            universal_labor
         );
     }
 
@@ -785,7 +863,11 @@ mod tests {
         let regions = make_test_regions();
         let mapping = make_test_mapping();
         let seats = calculate_seats_wealth_census(
-            &parties, &regions, &mapping, SuffrageType::WealthWeightedVoting, 100,
+            &parties,
+            &regions,
+            &mapping,
+            SuffrageType::WealthWeightedVoting,
+            100,
         );
         let total: u32 = seats.values().sum();
         assert_eq!(total, 100);

@@ -12,12 +12,13 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CapacityPricing {
     /// Price per capacity unit by type
-
     pub prices: BTreeMap<CapacityType, f64>,
 }
 
 /// Calculate capacity prices based on market dynamics
-pub fn calculate_capacity_prices(region: &crate::society::geography::Region) -> BTreeMap<CapacityType, f64> {
+pub fn calculate_capacity_prices(
+    region: &crate::society::geography::Region,
+) -> BTreeMap<CapacityType, f64> {
     let mut prices = BTreeMap::new();
 
     for (capacity_type, available_capacity) in &region.capacity_pool {

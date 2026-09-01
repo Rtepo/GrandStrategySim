@@ -1,9 +1,11 @@
 use crate::state::AppState;
-use sim_engine::ui::snapshot::{DiplomacySnapshot, ForeignCountryRow, TreatyRow, InternationalOrgRow, SanctionRow};
+use sim_engine::international::sanctions::{Sanction, SanctionType};
+use sim_engine::international::treaties::{Treaty, TreatyClause};
 use sim_engine::politics::vip_registry::DiplomaticPostType;
 use sim_engine::state::diplomatic_actions::DiplomaticAction;
-use sim_engine::international::treaties::{Treaty, TreatyClause};
-use sim_engine::international::sanctions::{Sanction, SanctionType};
+use sim_engine::ui::snapshot::{
+    DiplomacySnapshot, ForeignCountryRow, InternationalOrgRow, SanctionRow, TreatyRow,
+};
 
 /// Phase 66: Get the diplomacy snapshot for the player's country.
 /// Returns bilateral relations, posted diplomats, and foreign intelligence.
@@ -15,9 +17,7 @@ pub async fn get_diplomacy_snapshot(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let snapshot = sim_engine::ui::snapshot::build_diplomacy_snapshot(
             &engine_state.game_state,
@@ -40,9 +40,7 @@ pub async fn get_foreign_countries(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let rows = sim_engine::ui::snapshot::build_foreign_country_rows(
             &engine_state.game_state,
@@ -68,9 +66,7 @@ pub async fn assign_diplomat(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let mut engine_guard = state_clone.engine.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
         let pt = match post_type.as_str() {
             "Ambassador" => DiplomaticPostType::Ambassador,
@@ -81,15 +77,16 @@ pub async fn assign_diplomat(
         };
 
         let current_turn = engine_state.game_state.calendar.global_turn;
-        engine_state.game_state.pending_diplomatic_actions.push(
-            DiplomaticAction::AssignDiplomat {
+        engine_state
+            .game_state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::AssignDiplomat {
                 vip_id,
                 home_country,
                 host_country,
                 post_type: pt,
                 assigned_turn: current_turn,
-            }
-        );
+            });
 
         // Drain immediately for responsive UI
         let config = engine_state.game_state.diplomatic_config.clone();
@@ -113,16 +110,15 @@ pub async fn recall_diplomat(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let mut engine_guard = state_clone.engine.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
-        engine_state.game_state.pending_diplomatic_actions.push(
-            DiplomaticAction::RecallDiplomat {
+        engine_state
+            .game_state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::RecallDiplomat {
                 vip_id,
                 home_country,
-            }
-        );
+            });
 
         let config = engine_state.game_state.diplomatic_config.clone();
         sim_engine::state::diplomatic_actions::drain_diplomatic_actions(
@@ -145,16 +141,15 @@ pub async fn expel_diplomat(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let mut engine_guard = state_clone.engine.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
-        engine_state.game_state.pending_diplomatic_actions.push(
-            DiplomaticAction::ExpelDiplomat {
+        engine_state
+            .game_state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::ExpelDiplomat {
                 home_country,
                 host_country,
-            }
-        );
+            });
 
         let config = engine_state.game_state.diplomatic_config.clone();
         sim_engine::state::diplomatic_actions::drain_diplomatic_actions(
@@ -179,16 +174,14 @@ pub async fn send_economic_aid(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let mut engine_guard = state_clone.engine.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
         engine_state.game_state.pending_diplomatic_actions.push(
             DiplomaticAction::SendEconomicAid {
                 from_country,
                 to_country,
                 amount,
-            }
+            },
         );
 
         let config = engine_state.game_state.diplomatic_config.clone();
@@ -214,16 +207,14 @@ pub async fn border_provocation(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let mut engine_guard = state_clone.engine.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
         engine_state.game_state.pending_diplomatic_actions.push(
             DiplomaticAction::BorderProvocation {
                 from_country,
                 to_country,
                 intensity,
-            }
+            },
         );
 
         let config = engine_state.game_state.diplomatic_config.clone();
@@ -246,11 +237,11 @@ pub async fn get_active_treaties(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
-        let treaties: Vec<TreatyRow> = engine_state.game_state.treaty_registry
+        let treaties: Vec<TreatyRow> = engine_state
+            .game_state
+            .treaty_registry
             .treaties_for_country(&country)
             .into_iter()
             .map(|t| TreatyRow {
@@ -286,18 +277,21 @@ pub async fn propose_treaty(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let mut engine_guard = state_clone.engine.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
-        let clauses: Vec<TreatyClause> = clause_labels.into_iter().map(|label| match label.as_str() {
-            "CustomsUnion" => TreatyClause::CustomsUnion,
-            "SchengenFreeMovement" => TreatyClause::SchengenFreeMovement,
-            "FinancialMarketIntegration" => TreatyClause::FinancialMarketIntegration,
-            "MutualDefense" => TreatyClause::MutualDefense,
-            "TradePreference" => TreatyClause::TradePreference,
-            other => TreatyClause::ResourceAccess { commodity: other.to_string() },
-        }).collect();
+        let clauses: Vec<TreatyClause> = clause_labels
+            .into_iter()
+            .map(|label| match label.as_str() {
+                "CustomsUnion" => TreatyClause::CustomsUnion,
+                "SchengenFreeMovement" => TreatyClause::SchengenFreeMovement,
+                "FinancialMarketIntegration" => TreatyClause::FinancialMarketIntegration,
+                "MutualDefense" => TreatyClause::MutualDefense,
+                "TradePreference" => TreatyClause::TradePreference,
+                other => TreatyClause::ResourceAccess {
+                    commodity: other.to_string(),
+                },
+            })
+            .collect();
 
         let current_turn = engine_state.game_state.calendar.global_turn;
         let treaty_id = engine_state.game_state.treaty_registry.next_treaty_id();
@@ -310,7 +304,11 @@ pub async fn propose_treaty(
             duration_turns,
             initiator,
         );
-        engine_state.game_state.treaty_registry.treaties.push(treaty);
+        engine_state
+            .game_state
+            .treaty_registry
+            .treaties
+            .push(treaty);
         Ok(treaty_id)
     })
     .await
@@ -326,13 +324,15 @@ pub async fn sign_treaty(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let mut engine_guard = state_clone.engine.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
         let current_turn = engine_state.game_state.calendar.global_turn;
         let config = engine_state.game_state.treaty_config.clone();
-        let result = engine_state.game_state.treaty_registry.sign_treaty(&treaty_id, current_turn, &config);
+        let result =
+            engine_state
+                .game_state
+                .treaty_registry
+                .sign_treaty(&treaty_id, current_turn, &config);
         Ok(result)
     })
     .await
@@ -349,15 +349,20 @@ pub async fn abrogate_treaty(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let mut engine_guard = state_clone.engine.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
-        let abrogated = engine_state.game_state.treaty_registry.abrogate_treaty(&treaty_id);
+        let abrogated = engine_state
+            .game_state
+            .treaty_registry
+            .abrogate_treaty(&treaty_id);
         if let Some(treaty) = abrogated {
             let rep_config = engine_state.game_state.reputation_config.clone();
             let current_turn = engine_state.game_state.calendar.global_turn;
-            if let Some(country) = engine_state.game_state.countries.get_mut(&abrogating_country) {
+            if let Some(country) = engine_state
+                .game_state
+                .countries
+                .get_mut(&abrogating_country)
+            {
                 country.global_reputation.apply_violation(
                     sim_engine::international::reputation::TreatyViolation {
                         treaty_id: treaty.id.clone(),
@@ -386,16 +391,20 @@ pub async fn get_organizations(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let current_turn = engine_state.game_state.calendar.global_turn;
-        let orgs: Vec<InternationalOrgRow> = engine_state.game_state.international_organizations
+        let orgs: Vec<InternationalOrgRow> = engine_state
+            .game_state
+            .international_organizations
             .orgs_for_country(&country)
             .into_iter()
             .map(|org| {
-                let org_sanctions: Vec<SanctionRow> = engine_state.game_state.active_sanctions.sanctions.iter()
+                let org_sanctions: Vec<SanctionRow> = engine_state
+                    .game_state
+                    .active_sanctions
+                    .sanctions
+                    .iter()
                     .filter(|s| s.sanctioning_org == org.id && s.is_active_at(current_turn))
                     .map(|s| SanctionRow {
                         id: s.id.clone(),
@@ -439,9 +448,7 @@ pub async fn propose_sanction(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let mut engine_guard = state_clone.engine.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
         let sanction_type = match sanction_type_label.as_str() {
             "TradeEmbargo" => SanctionType::TradeEmbargo,
@@ -456,7 +463,10 @@ pub async fn propose_sanction(
         let duration = if duration_turns > 0 {
             duration_turns
         } else {
-            engine_state.game_state.sanction_config.default_duration_turns
+            engine_state
+                .game_state
+                .sanction_config
+                .default_duration_turns
         };
 
         let sanction = Sanction::new(
@@ -468,7 +478,10 @@ pub async fn propose_sanction(
             duration,
             reason,
         );
-        engine_state.game_state.active_sanctions.enact_sanction(sanction);
+        engine_state
+            .game_state
+            .active_sanctions
+            .enact_sanction(sanction);
         Ok(sanction_id)
     })
     .await
@@ -484,11 +497,12 @@ pub async fn lift_sanction(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let mut engine_guard = state_clone.engine.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
-        let result = engine_state.game_state.active_sanctions.lift_sanction(&sanction_id);
+        let result = engine_state
+            .game_state
+            .active_sanctions
+            .lift_sanction(&sanction_id);
         Ok(result)
     })
     .await

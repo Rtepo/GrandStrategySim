@@ -4,9 +4,9 @@
 //! materials delivered via the B2B OrderBook. Progress is driven by
 //! material delivery, not by time alone.
 
-use crate::registries::enums::Commodity;
 use crate::construction::tenders::{SubcontractorAssignment, Tranche};
 use crate::economy::transport_networks::NetworkLevel;
+use crate::registries::enums::Commodity;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -96,7 +96,6 @@ pub struct ConstructionProject {
     pub id: String,
 
     /// Project type.
-
     pub project_type: ConstructionProjectType,
 
     /// Micro-region where construction occurs.
@@ -162,7 +161,6 @@ pub struct ConstructionProject {
     pub consecutive_hold_turns: u32,
 
     // ── Phase 22A: Contractor linkage ──
-
     /// Investor entity ID (company ID or "STATE:{region_id}").
     /// Empty for legacy self-build projects (investor = building owner).
     #[serde(default)]
@@ -194,7 +192,6 @@ pub struct ConstructionProject {
     pub contractor_margin: f64,
 
     // ── Phase 22B: Defects & OHS ──
-
     /// Accumulated structural defect (0.0 = sound, 1.0 = catastrophic).
     /// Hidden field — not visible without inspection.
     #[serde(default)]
@@ -225,7 +222,6 @@ pub struct ConstructionProject {
     pub ohs_accidents: u32,
 
     // ── Phase 23B: Network link target ──
-
     /// Region pair this network link connects (None for non-network projects).
     /// Tuple: (region_a_id, region_b_id).
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -252,7 +248,11 @@ impl ConstructionProject {
             if required <= 0.0 {
                 continue;
             }
-            let delivered = self.delivered_materials.get(&commodity).copied().unwrap_or(0.0);
+            let delivered = self
+                .delivered_materials
+                .get(&commodity)
+                .copied()
+                .unwrap_or(0.0);
             let ratio = (delivered / required).min(1.0);
             if ratio < min_ratio {
                 min_ratio = ratio;
@@ -291,7 +291,11 @@ impl ConstructionProject {
             if required <= 0.0 {
                 continue;
             }
-            let already_delivered = self.delivered_materials.get(&commodity).copied().unwrap_or(0.0);
+            let already_delivered = self
+                .delivered_materials
+                .get(&commodity)
+                .copied()
+                .unwrap_or(0.0);
             let remaining_needed = (required - already_delivered).max(0.0);
             if remaining_needed <= 0.0 {
                 continue;

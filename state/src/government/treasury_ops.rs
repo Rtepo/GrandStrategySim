@@ -10,8 +10,8 @@ use crate::registries::enums::Commodity;
 use crate::registries::enums::RegimeType;
 use crate::registries::Registries;
 use crate::state::{Country, EmergencyPowers, RationingLevel};
-use serde_json::Value;
 use rustc_hash::FxHashMap;
+use serde_json::Value;
 
 type HashMap<K, V> = FxHashMap<K, V>;
 
@@ -97,7 +97,9 @@ pub fn check_emergency_conditions(
                 // format!("{:?}", commodity) (PascalCase Debug). The consumer in
                 // retail.rs uses Commodity::try_from() which expects snake_case.
                 let commodity_str = commodity.inventory_key();
-                country.rationing_system.rationed_goods
+                country
+                    .rationing_system
+                    .rationed_goods
                     .insert(commodity_str, default_level);
             }
         }
@@ -146,35 +148,35 @@ pub fn apply_rationing_consequences(country: &mut crate::state::Country) {
     if !country.rationing_system.active {
         return;
     }
-    
+
     // Clone rationed_goods to avoid borrow checker issues
     let rationed_goods = country.rationing_system.rationed_goods.clone();
-    
+
     for (commodity_str, level) in rationed_goods {
         // Phase 79: Essential goods use snake_case keys matching Commodity::inventory_key().
         let is_essential = matches!(
             commodity_str.as_str(),
             "food" | "hard_coal" | "brown_coal" | "peat" | "fuels" | "pharmaceuticals"
         );
-        
+
         if is_essential {
             match level {
                 crate::state::RationingLevel::Critical => {
                     // 25% normal consumption - significant health impact
-                    increase_mortality_from_shortage(country, 0.15);  // +15% mortality
-                    increase_social_unrest_from_shortage(country, 20.0);  // +20 unrest
+                    increase_mortality_from_shortage(country, 0.15); // +15% mortality
+                    increase_social_unrest_from_shortage(country, 20.0); // +20 unrest
                 }
                 crate::state::RationingLevel::Emergency => {
                     // 10% normal consumption - severe health impact
-                    increase_mortality_from_shortage(country, 0.35);  // +35% mortality
-                    increase_social_unrest_from_shortage(country, 40.0);  // +40 unrest
-                    // Emergency rationing on food/heat triggers rebellion risk
+                    increase_mortality_from_shortage(country, 0.35); // +35% mortality
+                    increase_social_unrest_from_shortage(country, 40.0); // +40 unrest
+                                                                         // Emergency rationing on food/heat triggers rebellion risk
                     check_rationing_rebellion_trigger(country);
                 }
                 crate::state::RationingLevel::Reduced => {
                     // 50% normal consumption - moderate health impact
-                    increase_mortality_from_shortage(country, 0.05);  // +5% mortality
-                    increase_social_unrest_from_shortage(country, 10.0);  // +10 unrest
+                    increase_mortality_from_shortage(country, 0.05); // +5% mortality
+                    increase_social_unrest_from_shortage(country, 10.0); // +10 unrest
                 }
                 crate::state::RationingLevel::None => {
                     // No impact
@@ -185,16 +187,16 @@ pub fn apply_rationing_consequences(country: &mut crate::state::Country) {
             // This simulates anger from investors and factory owners who cannot expand/operate
             match level {
                 crate::state::RationingLevel::Critical => {
-                    increase_capitalist_discontent(country, 25.0);  // +25 capitalist discontent
-                    increase_aristocrat_discontent(country, 20.0);  // +20 aristocrat discontent
+                    increase_capitalist_discontent(country, 25.0); // +25 capitalist discontent
+                    increase_aristocrat_discontent(country, 20.0); // +20 aristocrat discontent
                 }
                 crate::state::RationingLevel::Emergency => {
-                    increase_capitalist_discontent(country, 40.0);  // +40 capitalist discontent
-                    increase_aristocrat_discontent(country, 35.0);  // +35 aristocrat discontent
+                    increase_capitalist_discontent(country, 40.0); // +40 capitalist discontent
+                    increase_aristocrat_discontent(country, 35.0); // +35 aristocrat discontent
                 }
                 crate::state::RationingLevel::Reduced => {
-                    increase_capitalist_discontent(country, 10.0);  // +10 capitalist discontent
-                    increase_aristocrat_discontent(country, 8.0);   // +8 aristocrat discontent
+                    increase_capitalist_discontent(country, 10.0); // +10 capitalist discontent
+                    increase_aristocrat_discontent(country, 8.0); // +8 aristocrat discontent
                 }
                 crate::state::RationingLevel::None => {
                     // No impact
@@ -213,7 +215,8 @@ fn increase_mortality_from_shortage(country: &mut crate::state::Country, multipl
     // Interface with Stage 3 Health/Mortality system
     // Increase macro_indicators.mortality_rate based on essential good shortage
     let base_mortality = country.macro_indicators.demographics.death_rate / 100.0;
-    country.macro_indicators.demographics.death_rate = (base_mortality * (1.0 + multiplier) * 100.0).min(100.0);
+    country.macro_indicators.demographics.death_rate =
+        (base_mortality * (1.0 + multiplier) * 100.0).min(100.0);
 }
 
 /// Increases social unrest based on essential good shortage (Stage 4 integration).
@@ -224,7 +227,8 @@ fn increase_mortality_from_shortage(country: &mut crate::state::Country, multipl
 fn increase_social_unrest_from_shortage(country: &mut crate::state::Country, increase: f64) {
     // Interface with Stage 4 Unrest/Rebellion system
     // Directly increase macro_indicators.social_unrest
-    country.macro_indicators.social_unrest = (country.macro_indicators.social_unrest + increase).min(100.0);
+    country.macro_indicators.social_unrest =
+        (country.macro_indicators.social_unrest + increase).min(100.0);
 }
 
 /// Checks if rationing should trigger rebellion (Stage 4 integration).
@@ -250,7 +254,8 @@ fn increase_capitalist_discontent(country: &mut crate::state::Country, increase:
     // Interface with Stage 4 Politics system
     // Increase capitalist discontent in macro indicators as a proxy
     // This is a placeholder - actual faction discontent tracking would be in a separate system
-    country.macro_indicators.social_unrest = (country.macro_indicators.social_unrest + increase * 0.5).min(100.0);
+    country.macro_indicators.social_unrest =
+        (country.macro_indicators.social_unrest + increase * 0.5).min(100.0);
 }
 
 /// Increases aristocrat discontent based on industrial good shortage (Stage 4 integration).
@@ -262,7 +267,8 @@ fn increase_aristocrat_discontent(country: &mut crate::state::Country, increase:
     // Interface with Stage 4 Politics system
     // Increase aristocrat discontent in macro indicators as a proxy
     // This is a placeholder - actual faction discontent tracking would be in a separate system
-    country.macro_indicators.social_unrest = (country.macro_indicators.social_unrest + increase * 0.3).min(100.0);
+    country.macro_indicators.social_unrest =
+        (country.macro_indicators.social_unrest + increase * 0.3).min(100.0);
 }
 
 /// Accumulate storage fees for all warehouse batches (Phase 5.5).
@@ -672,10 +678,7 @@ fn is_democratic(country: &Country, registries: &Registries) -> bool {
 /// * Caps the allocation at 10% of available liquid_reserves.
 /// * Debits `Treasury.liquid_reserves` and credits `intelligence_budget.current_budget`.
 /// * Updates `Treasury.black_ops_budget` for fiscal reporting.
-pub fn process_black_ops_funding(
-    country: &mut Country,
-    registries: &Registries,
-) {
+pub fn process_black_ops_funding(country: &mut Country, registries: &Registries) {
     let black_ops = calculate_black_ops_budget(country, registries);
     let capped = black_ops.min(country.budget.liquid_reserves.max(0.0) * 0.10);
 
@@ -694,10 +697,7 @@ pub fn process_black_ops_funding(
 /// * Maintenance cost = total_reserve_units * base_price * 0.001 (0.1% per turn).
 /// * Debits `Treasury.liquid_reserves`, credits the Strategic Reserve Agency's `liquid_capital`.
 /// * If no agency exists or reserves are negative, the cost is capped at available reserves.
-pub fn process_state_reserve_maintenance(
-    country: &mut Country,
-    companies: &mut [Company],
-) {
+pub fn process_state_reserve_maintenance(country: &mut Country, companies: &mut [Company]) {
     const MAINTENANCE_RATE: f64 = 0.001;
     const BASE_PRICE: f64 = 100.0;
 
@@ -957,10 +957,16 @@ mod tests {
         let surplus = HashMap::default();
         check_emergency_conditions(&mut country, &surplus);
         // First turn: hysteresis prevents escalation.
-        assert_eq!(country.emergency_powers, crate::state::EmergencyPowers::Normal);
+        assert_eq!(
+            country.emergency_powers,
+            crate::state::EmergencyPowers::Normal
+        );
         // Second turn: escalation allowed.
         check_emergency_conditions(&mut country, &surplus);
-        assert_eq!(country.emergency_powers, crate::state::EmergencyPowers::ExciseTaxesEnabled);
+        assert_eq!(
+            country.emergency_powers,
+            crate::state::EmergencyPowers::ExciseTaxesEnabled
+        );
     }
 
     #[test]
@@ -971,16 +977,28 @@ mod tests {
         // Escalate over 2 turns.
         check_emergency_conditions(&mut country, &crisis_surplus);
         check_emergency_conditions(&mut country, &crisis_surplus);
-        assert_eq!(country.emergency_powers, crate::state::EmergencyPowers::MartialLaw);
+        assert_eq!(
+            country.emergency_powers,
+            crate::state::EmergencyPowers::MartialLaw
+        );
         // Now recover.
         country.budget.liquid_reserves = 0.0; // 0% → Normal desired
         let ok_surplus = HashMap::default();
         check_emergency_conditions(&mut country, &ok_surplus);
-        assert_eq!(country.emergency_powers, crate::state::EmergencyPowers::MartialLaw); // Still ML
+        assert_eq!(
+            country.emergency_powers,
+            crate::state::EmergencyPowers::MartialLaw
+        ); // Still ML
         check_emergency_conditions(&mut country, &ok_surplus);
-        assert_eq!(country.emergency_powers, crate::state::EmergencyPowers::MartialLaw); // Still ML
+        assert_eq!(
+            country.emergency_powers,
+            crate::state::EmergencyPowers::MartialLaw
+        ); // Still ML
         check_emergency_conditions(&mut country, &ok_surplus);
-        assert_eq!(country.emergency_powers, crate::state::EmergencyPowers::Normal); // Now de-escalated
+        assert_eq!(
+            country.emergency_powers,
+            crate::state::EmergencyPowers::Normal
+        ); // Now de-escalated
     }
 
     #[test]
@@ -998,6 +1016,9 @@ mod tests {
         // Another single crisis turn should NOT escalate (counter back to 1).
         country.budget.liquid_reserves = -250.0;
         check_emergency_conditions(&mut country, &crisis_surplus);
-        assert_eq!(country.emergency_powers, crate::state::EmergencyPowers::Normal);
+        assert_eq!(
+            country.emergency_powers,
+            crate::state::EmergencyPowers::Normal
+        );
     }
 }

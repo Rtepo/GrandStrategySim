@@ -38,7 +38,9 @@ pub fn parcel_id_to_index(id: ParcelId) -> u32 {
 
 /// Zoning designation (MPZP — Miejscowy Plan Zagospodarowania Przestrzennego).
 /// Stored on each `ParcelChunk`; enacted by local governors, not the player.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize, Default)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize, Default,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum ZoningDesignation {
     /// No zoning plan — chaotic development risk
@@ -61,7 +63,9 @@ pub enum ZoningDesignation {
 }
 
 /// Ownership type for a parcel.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize, Default)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize, Default,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum ParcelOwnerType {
     /// Crown / state land
@@ -694,10 +698,9 @@ impl LandPriceHistoryRegistry {
     pub fn ensure_region(&mut self, region_id: &str) {
         self.regions
             .entry(region_id.to_string())
-            .or_insert_with(|| RegionalLandPriceHistory::new(
-                region_id.to_string(),
-                Self::DEFAULT_MAX_HISTORY,
-            ));
+            .or_insert_with(|| {
+                RegionalLandPriceHistory::new(region_id.to_string(), Self::DEFAULT_MAX_HISTORY)
+            });
     }
 
     /// Record an average transaction price for a region this turn.
@@ -829,14 +832,12 @@ pub fn generate_cadastre(
             let (owner_type, owner_id, land_use_tag) = pick_owner(region, i, num_parcels, rng);
 
             // Initial legal certainty based on development level
-            let legal_certainty = (region.development_level * 0.5
-                + rng.gen_range(0.1..0.3))
-            .clamp(0.1, 0.9);
+            let legal_certainty =
+                (region.development_level * 0.5 + rng.gen_range(0.1..0.3)).clamp(0.1, 0.9);
 
             // Initial infrastructure access based on development level
-            let infrastructure_access = (region.development_level * 0.4
-                + rng.gen_range(0.05..0.15))
-            .clamp(0.05, 0.6);
+            let infrastructure_access =
+                (region.development_level * 0.4 + rng.gen_range(0.05..0.15)).clamp(0.05, 0.6);
 
             // Initial zoning — state forests get ProtectedNatural, others use soil-based zoning
             let zoning = if land_use_tag == "forest_district" {
@@ -851,9 +852,12 @@ pub fn generate_cadastre(
             let is_border_zone = rng.gen_range(0.0..1.0) < 0.10;
 
             // Phase 63.2: Generate topographic traits based on region geography.
-            let water_access = if region.geographic_traits.has_coastline && rng.gen_range(0.0..1.0) < 0.15 {
+            let water_access = if region.geographic_traits.has_coastline
+                && rng.gen_range(0.0..1.0) < 0.15
+            {
                 WaterAccessType::Sea
-            } else if region.geographic_traits.has_navigable_river && rng.gen_range(0.0..1.0) < 0.20 {
+            } else if region.geographic_traits.has_navigable_river && rng.gen_range(0.0..1.0) < 0.20
+            {
                 WaterAccessType::River
             } else if rng.gen_range(0.0..1.0) < 0.10 {
                 WaterAccessType::Lake
@@ -918,11 +922,7 @@ pub fn generate_cadastre(
 ///
 /// Chains parcels in insertion order (guarantees connectivity) then adds
 /// 1-2 random extra edges per parcel for richer topology.
-fn build_adjacency_graph(
-    cadastre: &mut Cadastre,
-    region_id: &str,
-    rng: &mut impl Rng,
-) {
+fn build_adjacency_graph(cadastre: &mut Cadastre, region_id: &str, rng: &mut impl Rng) {
     let parcel_ids: Vec<ParcelId> = cadastre
         .parcels
         .iter()
@@ -1041,10 +1041,7 @@ fn pick_soil_distribution(
 }
 
 /// Pick a soil class from a weighted distribution.
-fn pick_weighted_soil_class<'a>(
-    weights: &'a [(String, f64)],
-    rng: &mut impl Rng,
-) -> &'a str {
+fn pick_weighted_soil_class<'a>(weights: &'a [(String, f64)], rng: &mut impl Rng) -> &'a str {
     let total: f64 = weights.iter().map(|(_, w)| w).sum();
     if total <= 0.0 {
         return "Class_III";
@@ -1056,7 +1053,10 @@ fn pick_weighted_soil_class<'a>(
             return class.as_str();
         }
     }
-    weights.last().map(|(c, _)| c.as_str()).unwrap_or("Class_III")
+    weights
+        .last()
+        .map(|(c, _)| c.as_str())
+        .unwrap_or("Class_III")
 }
 
 /// Pick an owner type for a parcel at generation.
@@ -1071,19 +1071,35 @@ fn pick_owner(
     if index < total / 3 {
         // 40% of state land is forest, 60% is agricultural
         if rng.gen_range(0.0..1.0) < 0.4 {
-            return (ParcelOwnerType::State, "TREASURY".to_string(), "forest_district".to_string());
+            return (
+                ParcelOwnerType::State,
+                "TREASURY".to_string(),
+                "forest_district".to_string(),
+            );
         }
-        return (ParcelOwnerType::State, "TREASURY".to_string(), "StateAgricultural".to_string());
+        return (
+            ParcelOwnerType::State,
+            "TREASURY".to_string(),
+            "StateAgricultural".to_string(),
+        );
     }
     // Next 20%: Aristocracy / Private (large estates)
     if index < total / 2 {
         let dynasty_id = format!("DYNASTY_{}_{}", region.id, index);
-        return (ParcelOwnerType::Private, dynasty_id, "PrivateEstate".to_string());
+        return (
+            ParcelOwnerType::Private,
+            dynasty_id,
+            "PrivateEstate".to_string(),
+        );
     }
     // Next 20%: Corporate (agricultural firms)
     if index < total * 7 / 10 {
         let corp_id = format!("CORP_AGRI_{}_{}", region.id, index);
-        return (ParcelOwnerType::Corporate, corp_id, "CorporateFarm".to_string());
+        return (
+            ParcelOwnerType::Corporate,
+            corp_id,
+            "CorporateFarm".to_string(),
+        );
     }
     // Next 10%: Municipal
     if index < total * 8 / 10 {
@@ -1119,10 +1135,9 @@ fn pick_initial_zoning(
         return ZoningDesignation::Residential;
     }
     // High-fertility soil → Agricultural
-    if (soil_class == "Class_I" || soil_class == "Class_II")
-        && rng.gen_range(0.0..1.0) < 0.7 {
-            return ZoningDesignation::Agricultural;
-        }
+    if (soil_class == "Class_I" || soil_class == "Class_II") && rng.gen_range(0.0..1.0) < 0.7 {
+        return ZoningDesignation::Agricultural;
+    }
     // Default: unplanned
     ZoningDesignation::Unplanned
 }
@@ -1133,11 +1148,7 @@ fn pick_initial_zoning(
 
 /// Total arable land (hectares) for a cadastre — computed from parcels.
 pub fn total_arable_land(cadastre: &Cadastre) -> f64 {
-    cadastre
-        .parcels
-        .values()
-        .map(|p| p.size_hectares)
-        .sum()
+    cadastre.parcels.values().map(|p| p.size_hectares).sum()
 }
 
 /// Total land by owner type.
@@ -1177,11 +1188,7 @@ pub fn average_parcel_value(cadastre: &Cadastre, region_id: &str) -> f64 {
 
 /// Total land value for a cadastre (requires prior `revalue_all_parcels` call).
 pub fn total_land_value(cadastre: &Cadastre) -> f64 {
-    cadastre
-        .parcels
-        .values()
-        .map(|p| p.current_value)
-        .sum()
+    cadastre.parcels.values().map(|p| p.current_value).sum()
 }
 
 /// Total land value for a specific region.
@@ -1410,9 +1417,7 @@ pub fn fund_cadastral_survey(
         .parcels
         .iter()
         .filter(|(_, p)| p.region_id == region_id && p.legal_certainty < 1.0)
-        .map(|(id, p)| {
-            (id.0.as_ffi() as u32, p.legal_certainty, p.size_hectares)
-        })
+        .map(|(id, p)| (id.0.as_ffi() as u32, p.legal_certainty, p.size_hectares))
         .collect();
 
     if parcel_data.is_empty() {
@@ -1549,13 +1554,13 @@ pub fn process_border_conflicts(
     let mut resolved = Vec::new();
 
     // Sort conflicts by age (oldest first) for processing priority
-    let mut conflict_ids: Vec<String> = conflicts
-        .conflicts
-        .keys()
-        .cloned()
-        .collect();
+    let mut conflict_ids: Vec<String> = conflicts.conflicts.keys().cloned().collect();
     conflict_ids.sort_by_key(|id| {
-        conflicts.conflicts.get(id).map(|c| c.filed_turn).unwrap_or(0)
+        conflicts
+            .conflicts
+            .get(id)
+            .map(|c| c.filed_turn)
+            .unwrap_or(0)
     });
 
     let mut remaining_capacity = court_capacity;
@@ -1567,11 +1572,19 @@ pub fn process_border_conflicts(
 
         // Copy the conflict data we need to avoid borrow issues
         let conflict_data = conflicts.conflicts.get(&conflict_id).map(|c| {
-            (c.filed_turn, c.estimated_resolution_turns, c.region_id.clone(),
-             c.compensation_claimed, c.severity, c.parcel_idx)
+            (
+                c.filed_turn,
+                c.estimated_resolution_turns,
+                c.region_id.clone(),
+                c.compensation_claimed,
+                c.severity,
+                c.parcel_idx,
+            )
         });
 
-        if let Some((filed_turn, est_turns, region_id, compensation, severity, _parcel_idx)) = conflict_data {
+        if let Some((filed_turn, est_turns, region_id, compensation, severity, _parcel_idx)) =
+            conflict_data
+        {
             let turns_since_filing = current_turn - filed_turn;
 
             if turns_since_filing >= est_turns {
@@ -1698,10 +1711,15 @@ pub fn derive_governor_preferences(
     let agricultural_preference = 0.5 - modifiers.risk_tolerance * 0.2 + 0.3;
 
     // Fraud probability / profit diversion → corrupt → favors commercial/corporate
-    let corruption_boost = modifiers.fraud_probability * 2.0 + modifiers.profit_diversion_rate * 2.0;
+    let corruption_boost =
+        modifiers.fraud_probability * 2.0 + modifiers.profit_diversion_rate * 2.0;
 
     // Diverts to charity (Pious) → protected natural preference
-    let protected_preference = if modifiers.diverts_to_charity { 0.4 } else { 0.1 };
+    let protected_preference = if modifiers.diverts_to_charity {
+        0.4
+    } else {
+        0.1
+    };
 
     // High cash reserve preference → cautious → less unplanned tolerance
     let unplanned_tolerance = 0.5 - modifiers.cash_reserve_preference * 0.3;
@@ -1734,12 +1752,30 @@ pub fn governor_enact_zoning_plan(
 
     // Start with preferences as raw weights
     let weights = [
-        (ZoningDesignation::Agricultural, preferences.agricultural_preference),
-        (ZoningDesignation::Industrial, preferences.industrial_preference),
-        (ZoningDesignation::Residential, preferences.residential_preference),
-        (ZoningDesignation::Commercial, preferences.commercial_preference),
-        (ZoningDesignation::ProtectedNatural, preferences.protected_preference),
-        (ZoningDesignation::Unplanned, preferences.unplanned_tolerance),
+        (
+            ZoningDesignation::Agricultural,
+            preferences.agricultural_preference,
+        ),
+        (
+            ZoningDesignation::Industrial,
+            preferences.industrial_preference,
+        ),
+        (
+            ZoningDesignation::Residential,
+            preferences.residential_preference,
+        ),
+        (
+            ZoningDesignation::Commercial,
+            preferences.commercial_preference,
+        ),
+        (
+            ZoningDesignation::ProtectedNatural,
+            preferences.protected_preference,
+        ),
+        (
+            ZoningDesignation::Unplanned,
+            preferences.unplanned_tolerance,
+        ),
     ];
 
     let total_weight: f64 = weights.iter().map(|(_, w)| w).sum();
@@ -1776,7 +1812,9 @@ pub fn governor_enact_zoning_plan(
     if let Some(&prot) = target.get(&ZoningDesignation::ProtectedNatural) {
         if prot < quota.min_protected {
             let deficit = quota.min_protected - prot;
-            *target.entry(ZoningDesignation::ProtectedNatural).or_insert(0.0) += deficit;
+            *target
+                .entry(ZoningDesignation::ProtectedNatural)
+                .or_insert(0.0) += deficit;
             if let Some(unplanned) = target.get_mut(&ZoningDesignation::Unplanned) {
                 *unplanned = (*unplanned - deficit).max(0.0);
             }
@@ -1876,8 +1914,11 @@ fn apply_zoning_to_parcels(
     }
 
     // Sort target distribution by weight (highest first)
-    let mut sorted_targets: Vec<(ZoningDesignation, f64)> =
-        plan.target_distribution.iter().map(|(k, v)| (*k, *v)).collect();
+    let mut sorted_targets: Vec<(ZoningDesignation, f64)> = plan
+        .target_distribution
+        .iter()
+        .map(|(k, v)| (*k, *v))
+        .collect();
     sorted_targets.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
     // Number of parcels to zone this step
@@ -1990,10 +2031,7 @@ pub fn compute_externality_penalty(
 
 /// Apply externality penalties to all parcels in a region.
 /// Modifies `current_value` by applying the penalty multiplier.
-pub fn apply_externality_penalties(
-    cadastre: &mut Cadastre,
-    config: &ExternalityConfig,
-) {
+pub fn apply_externality_penalties(cadastre: &mut Cadastre, config: &ExternalityConfig) {
     // Compute zoning mix per region
     let mut region_mixes: BTreeMap<String, BTreeMap<ZoningDesignation, f64>> = BTreeMap::new();
     for parcel in cadastre.parcels.values() {
@@ -2199,9 +2237,10 @@ pub fn resolve_arbitration_case(
         // Intermediate — probabilistic outcome
         let roll: f64 = rng.gen_range(0.0..1.0);
         // Linear interpolation: at weak threshold, 70% plaintiff wins; at strong, 20%
-        let plaintiff_win_prob = 0.7 - (strength - config.weak_state_threshold)
-            / (config.strong_state_threshold - config.weak_state_threshold)
-            * 0.5;
+        let plaintiff_win_prob = 0.7
+            - (strength - config.weak_state_threshold)
+                / (config.strong_state_threshold - config.weak_state_threshold)
+                * 0.5;
 
         if roll < plaintiff_win_prob {
             // Plaintiff wins, but with lower multiplier
@@ -2271,10 +2310,7 @@ pub fn process_arbitration_cases(
 ///
 /// # Returns
 /// Total amount paid.
-pub fn pay_arbitration_compensation(
-    court: &mut ArbitrationCourt,
-    treasury: &mut f64,
-) -> f64 {
+pub fn pay_arbitration_compensation(court: &mut ArbitrationCourt, treasury: &mut f64) -> f64 {
     let mut total_paid = 0.0;
     let case_ids: Vec<String> = court.cases.keys().cloned().collect();
 
@@ -2282,20 +2318,20 @@ pub fn pay_arbitration_compensation(
         let case = court.cases.get_mut(&case_id).unwrap();
         if (case.status == ArbitrationStatus::RuledForPlaintiff
             || case.status == ArbitrationStatus::Settled)
-            && case.compensation_claimed > 0.0 {
-                let payment = case.compensation_claimed.min(*treasury);
-                *treasury -= payment;
-                case.compensation_claimed -= payment;
-                total_paid += payment;
-                court.total_compensation_paid += payment;
-                court.total_compensation_owed =
-                    (court.total_compensation_owed - payment).max(0.0);
+            && case.compensation_claimed > 0.0
+        {
+            let payment = case.compensation_claimed.min(*treasury);
+            *treasury -= payment;
+            case.compensation_claimed -= payment;
+            total_paid += payment;
+            court.total_compensation_paid += payment;
+            court.total_compensation_owed = (court.total_compensation_owed - payment).max(0.0);
 
-                if case.compensation_claimed <= 0.0 {
-                    // Mark as fully paid by changing status to a resolved state
-                    // (keep the original ruling status for historical record)
-                }
+            if case.compensation_claimed <= 0.0 {
+                // Mark as fully paid by changing status to a resolved state
+                // (keep the original ruling status for historical record)
             }
+        }
     }
 
     total_paid
@@ -2442,8 +2478,11 @@ mod tests {
         // Infrastructure: 0.5 * 10 = 5 tenths → 5 * 0.15 = 0.75 → 1.75x → 10,500,000
         // Legal certainty: 1.0 → no discount
         // No border zone, not unplanned
-        assert!((value - 10_500_000.0).abs() < 0.01,
-            "Expected 10,500,000, got {}", value);
+        assert!(
+            (value - 10_500_000.0).abs() < 0.01,
+            "Expected 10,500,000, got {}",
+            value
+        );
     }
 
     #[test]
@@ -2461,8 +2500,11 @@ mod tests {
         // Base: 25000 * 50 = 1,250,000
         // Unplanned: 0.7x → 875,000
         // No infrastructure bonus, no certainty discount
-        assert!((value - 875_000.0).abs() < 0.01,
-            "Expected 875,000, got {}", value);
+        assert!(
+            (value - 875_000.0).abs() < 0.01,
+            "Expected 875,000, got {}",
+            value
+        );
     }
 
     #[test]
@@ -2534,7 +2576,11 @@ mod tests {
     fn test_no_polish_soil_keys_in_constants() {
         for class in SOIL_CLASSES.iter() {
             assert!(!class.contains("Klasa"), "Polish key found: {}", class);
-            assert!(class.starts_with("Class_"), "Expected English key, got: {}", class);
+            assert!(
+                class.starts_with("Class_"),
+                "Expected English key, got: {}",
+                class
+            );
         }
     }
 
@@ -2706,8 +2752,11 @@ mod tests {
             ZoningDesignation::ProtectedNatural,
             ZoningDesignation::StrategicMilitary,
         ] {
-            assert!(config.zoning_premium_multipliers.contains_key(&zoning),
-                "Missing zoning premium for {:?}", zoning);
+            assert!(
+                config.zoning_premium_multipliers.contains_key(&zoning),
+                "Missing zoning premium for {:?}",
+                zoning
+            );
         }
     }
 
@@ -2724,8 +2773,15 @@ mod tests {
         let config = LegalCertaintyConfig::default();
         process_certainty_degradation(&mut cadastre, &config);
         let p = cadastre.parcels.values().next().unwrap();
-        assert!(p.legal_certainty < 0.8, "Certainty should degrade for border parcel");
-        assert!((p.legal_certainty - 0.78).abs() < 0.01, "Expected 0.78, got {}", p.legal_certainty);
+        assert!(
+            p.legal_certainty < 0.8,
+            "Certainty should degrade for border parcel"
+        );
+        assert!(
+            (p.legal_certainty - 0.78).abs() < 0.01,
+            "Expected 0.78, got {}",
+            p.legal_certainty
+        );
     }
 
     #[test]
@@ -2740,7 +2796,11 @@ mod tests {
         let config = LegalCertaintyConfig::default();
         process_certainty_degradation(&mut cadastre, &config);
         let p = cadastre.parcels.values().next().unwrap();
-        assert!((p.legal_certainty - 0.79).abs() < 0.01, "Expected 0.79, got {}", p.legal_certainty);
+        assert!(
+            (p.legal_certainty - 0.79).abs() < 0.01,
+            "Expected 0.79, got {}",
+            p.legal_certainty
+        );
     }
 
     #[test]
@@ -2755,7 +2815,11 @@ mod tests {
         let config = LegalCertaintyConfig::default();
         process_certainty_degradation(&mut cadastre, &config);
         let p = cadastre.parcels.values().next().unwrap();
-        assert!((p.legal_certainty - 0.797).abs() < 0.01, "Expected 0.797, got {}", p.legal_certainty);
+        assert!(
+            (p.legal_certainty - 0.797).abs() < 0.01,
+            "Expected 0.797, got {}",
+            p.legal_certainty
+        );
     }
 
     #[test]
@@ -2773,12 +2837,24 @@ mod tests {
 
         let cad_config = CadastreConfig::default();
         let cert_config = LegalCertaintyConfig::default();
-        let cost = fund_cadastral_survey(&mut cadastre, "R1", &mut budget, &cad_config, &cert_config, 0.5);
+        let cost = fund_cadastral_survey(
+            &mut cadastre,
+            "R1",
+            &mut budget,
+            &cad_config,
+            &cert_config,
+            0.5,
+        );
 
         assert!(cost > 0.0, "Survey should cost money");
-        assert!(budget.liquid_reserves < initial_reserves, "Budget should be debited");
-        assert!((budget.liquid_reserves - (initial_reserves - cost)).abs() < 0.01,
-            "Budget should be reduced by exactly the cost");
+        assert!(
+            budget.liquid_reserves < initial_reserves,
+            "Budget should be debited"
+        );
+        assert!(
+            (budget.liquid_reserves - (initial_reserves - cost)).abs() < 0.01,
+            "Budget should be reduced by exactly the cost"
+        );
         // Certainty should have increased
         let p = cadastre.parcels.values().next().unwrap();
         assert!(p.legal_certainty > 0.5, "Certainty should have recovered");
@@ -2798,14 +2874,27 @@ mod tests {
 
         let cad_config = CadastreConfig::default();
         let cert_config = LegalCertaintyConfig::default();
-        let cost = fund_cadastral_survey(&mut cadastre, "R1", &mut budget, &cad_config, &cert_config, 0.5);
+        let cost = fund_cadastral_survey(
+            &mut cadastre,
+            "R1",
+            &mut budget,
+            &cad_config,
+            &cert_config,
+            0.5,
+        );
 
         // Should only spend what's available
         assert!(cost <= 10.0, "Cost should not exceed available budget");
-        assert!((budget.liquid_reserves - 0.0).abs() < 0.01, "Budget should be fully drained");
+        assert!(
+            (budget.liquid_reserves - 0.0).abs() < 0.01,
+            "Budget should be fully drained"
+        );
         // Certainty should have recovered partially
         let p = cadastre.parcels.values().next().unwrap();
-        assert!(p.legal_certainty > 0.5, "Certainty should have recovered partially");
+        assert!(
+            p.legal_certainty > 0.5,
+            "Certainty should have recovered partially"
+        );
     }
 
     #[test]
@@ -2822,11 +2911,21 @@ mod tests {
 
         let cad_config = CadastreConfig::default();
         let cert_config = LegalCertaintyConfig::default();
-        let cost = fund_cadastral_survey(&mut cadastre, "R1", &mut budget, &cad_config, &cert_config, 0.5);
+        let cost = fund_cadastral_survey(
+            &mut cadastre,
+            "R1",
+            &mut budget,
+            &cad_config,
+            &cert_config,
+            0.5,
+        );
 
         assert_eq!(cost, 0.0, "No cost when budget is zero");
         let p = cadastre.parcels.values().next().unwrap();
-        assert!((p.legal_certainty - 0.5).abs() < 0.01, "Certainty should NOT recover with zero budget");
+        assert!(
+            (p.legal_certainty - 0.5).abs() < 0.01,
+            "Certainty should NOT recover with zero budget"
+        );
     }
 
     #[test]
@@ -2848,14 +2947,27 @@ mod tests {
         // Run multiple times to catch the probabilistic trigger
         let mut conflict_generated = false;
         for _ in 0..100 {
-            generate_border_conflicts(&mut cadastre, &mut conflicts, &cert_config, &cad_config, 1, &mut rng);
+            generate_border_conflicts(
+                &mut cadastre,
+                &mut conflicts,
+                &cert_config,
+                &cad_config,
+                1,
+                &mut rng,
+            );
             if !conflicts.conflicts.is_empty() {
                 conflict_generated = true;
                 break;
             }
         }
-        assert!(conflict_generated, "Border conflict should eventually be generated with low certainty");
-        assert!(cadastre.parcels.values().next().unwrap().is_frozen, "Parcel should be frozen");
+        assert!(
+            conflict_generated,
+            "Border conflict should eventually be generated with low certainty"
+        );
+        assert!(
+            cadastre.parcels.values().next().unwrap().is_frozen,
+            "Parcel should be frozen"
+        );
     }
 
     #[test]
@@ -2871,10 +2983,23 @@ mod tests {
         let mut rng = rand::thread_rng();
 
         for _ in 0..100 {
-            generate_border_conflicts(&mut cadastre, &mut conflicts, &cert_config, &cad_config, 1, &mut rng);
+            generate_border_conflicts(
+                &mut cadastre,
+                &mut conflicts,
+                &cert_config,
+                &cad_config,
+                1,
+                &mut rng,
+            );
         }
-        assert!(conflicts.conflicts.is_empty(), "No conflicts with high certainty");
-        assert!(!cadastre.parcels.values().next().unwrap().is_frozen, "Parcel should not be frozen");
+        assert!(
+            conflicts.conflicts.is_empty(),
+            "No conflicts with high certainty"
+        );
+        assert!(
+            !cadastre.parcels.values().next().unwrap().is_frozen,
+            "Parcel should not be frozen"
+        );
     }
 
     #[test]
@@ -2903,8 +3028,14 @@ mod tests {
             ..Default::default()
         };
         let prefs = derive_governor_preferences(&modifiers);
-        assert!(prefs.industrial_preference > 0.5, "Ambitious governor should prefer industrial");
-        assert!(prefs.commercial_preference > 0.3, "Ambitious governor should prefer commercial");
+        assert!(
+            prefs.industrial_preference > 0.5,
+            "Ambitious governor should prefer industrial"
+        );
+        assert!(
+            prefs.commercial_preference > 0.3,
+            "Ambitious governor should prefer commercial"
+        );
     }
 
     #[test]
@@ -2916,8 +3047,14 @@ mod tests {
             ..Default::default()
         };
         let prefs = derive_governor_preferences(&modifiers);
-        assert!(prefs.agricultural_preference > 0.5, "Conservative governor should prefer agricultural");
-        assert!(prefs.unplanned_tolerance < 0.4, "Conservative governor should have low unplanned tolerance");
+        assert!(
+            prefs.agricultural_preference > 0.5,
+            "Conservative governor should prefer agricultural"
+        );
+        assert!(
+            prefs.unplanned_tolerance < 0.4,
+            "Conservative governor should have low unplanned tolerance"
+        );
     }
 
     #[test]
@@ -2928,7 +3065,10 @@ mod tests {
             ..Default::default()
         };
         let prefs = derive_governor_preferences(&modifiers);
-        assert!(prefs.protected_preference > 0.3, "Pious governor should prefer protected natural");
+        assert!(
+            prefs.protected_preference > 0.3,
+            "Pious governor should prefer protected natural"
+        );
     }
 
     #[test]
@@ -2953,8 +3093,16 @@ mod tests {
         assert_eq!(plan.enacted_turn, 5);
         assert_eq!(plan.implementation_progress, 0.0);
         // Check that agricultural meets minimum quota
-        let agri = plan.target_distribution.get(&ZoningDesignation::Agricultural).copied().unwrap_or(0.0);
-        assert!(agri >= 0.3, "Agricultural should meet minimum quota, got {}", agri);
+        let agri = plan
+            .target_distribution
+            .get(&ZoningDesignation::Agricultural)
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            agri >= 0.3,
+            "Agricultural should meet minimum quota, got {}",
+            agri
+        );
     }
 
     #[test]
@@ -2987,11 +3135,18 @@ mod tests {
         };
 
         let cad_config = CadastreConfig::default();
-        let cost = advance_zoning_implementation(&mut cadastre, &mut plan, &mut budget, &cad_config, 2);
+        let cost =
+            advance_zoning_implementation(&mut cadastre, &mut plan, &mut budget, &cad_config, 2);
 
         assert!(cost > 0.0, "Implementation should cost money");
-        assert!(budget.liquid_reserves < initial_reserves, "Budget should be debited");
-        assert!(plan.implementation_progress > 0.0, "Progress should advance");
+        assert!(
+            budget.liquid_reserves < initial_reserves,
+            "Budget should be debited"
+        );
+        assert!(
+            plan.implementation_progress > 0.0,
+            "Progress should advance"
+        );
     }
 
     #[test]
@@ -3016,10 +3171,14 @@ mod tests {
         };
 
         let cad_config = CadastreConfig::default();
-        let cost = advance_zoning_implementation(&mut cadastre, &mut plan, &mut budget, &cad_config, 2);
+        let cost =
+            advance_zoning_implementation(&mut cadastre, &mut plan, &mut budget, &cad_config, 2);
 
         assert_eq!(cost, 0.0, "No cost with zero budget");
-        assert!((plan.implementation_progress - 0.0).abs() < 0.01, "Progress should stall with zero budget");
+        assert!(
+            (plan.implementation_progress - 0.0).abs() < 0.01,
+            "Progress should stall with zero budget"
+        );
     }
 
     #[test]
@@ -3046,7 +3205,10 @@ mod tests {
         mix.insert(ZoningDesignation::Industrial, 0.3);
         mix.insert(ZoningDesignation::Residential, 0.7);
         let penalty = compute_externality_penalty(&parcel, &mix, &config);
-        assert!(penalty < 1.0, "Residential near Industrial should have penalty");
+        assert!(
+            penalty < 1.0,
+            "Residential near Industrial should have penalty"
+        );
     }
 
     #[test]
@@ -3060,7 +3222,10 @@ mod tests {
         mix.insert(ZoningDesignation::Agricultural, 0.9);
         mix.insert(ZoningDesignation::Residential, 0.1);
         let penalty = compute_externality_penalty(&parcel, &mix, &config);
-        assert!((penalty - 1.0).abs() < 0.01, "No penalty for compatible zoning");
+        assert!(
+            (penalty - 1.0).abs() < 0.01,
+            "No penalty for compatible zoning"
+        );
     }
 
     #[test]
@@ -3082,10 +3247,15 @@ mod tests {
         });
         let config = ExternalityConfig::default();
         apply_externality_penalties(&mut cadastre, &config);
-        let residential = cadastre.parcels.values()
+        let residential = cadastre
+            .parcels
+            .values()
             .find(|p| p.zoning == ZoningDesignation::Residential)
             .unwrap();
-        assert!(residential.current_value < 1_000_000.0, "Residential value should decrease");
+        assert!(
+            residential.current_value < 1_000_000.0,
+            "Residential value should decrease"
+        );
     }
 
     #[test]
@@ -3109,7 +3279,7 @@ mod tests {
 
     #[test]
     fn test_state_strength_assessment_strong() {
-        use crate::politics::laws::{JusticeLaw, CourtWaitTime};
+        use crate::politics::laws::{CourtWaitTime, JusticeLaw};
         let justice = JusticeLaw {
             krs_separated: true,
             prosecutor_general_separated: true,
@@ -3119,12 +3289,16 @@ mod tests {
         let wait = CourtWaitTime::Expedited;
         let config = ArbitrationConfig::default();
         let strength = assess_state_strength(&justice, &wait, 2_000_000.0, &config);
-        assert!(strength > 0.7, "Strong state should have high strength, got {}", strength);
+        assert!(
+            strength > 0.7,
+            "Strong state should have high strength, got {}",
+            strength
+        );
     }
 
     #[test]
     fn test_state_strength_assessment_weak() {
-        use crate::politics::laws::{JusticeLaw, CourtWaitTime};
+        use crate::politics::laws::{CourtWaitTime, JusticeLaw};
         let justice = JusticeLaw {
             krs_separated: false,
             prosecutor_general_separated: false,
@@ -3134,7 +3308,11 @@ mod tests {
         let wait = CourtWaitTime::Paralyzed;
         let config = ArbitrationConfig::default();
         let strength = assess_state_strength(&justice, &wait, 0.0, &config);
-        assert!(strength < 0.3, "Weak state should have low strength, got {}", strength);
+        assert!(
+            strength < 0.3,
+            "Weak state should have low strength, got {}",
+            strength
+        );
     }
 
     #[test]
@@ -3149,10 +3327,15 @@ mod tests {
             ..Default::default()
         };
         let outcome = resolve_arbitration_case(&mut case, &config, &mut rng);
-        assert_eq!(outcome, ArbitrationStatus::RuledForPlaintiff,
-            "Weak state should lose");
-        assert!(case.compensation_claimed > 1_000_000.0,
-            "Punitive damages should exceed original value");
+        assert_eq!(
+            outcome,
+            ArbitrationStatus::RuledForPlaintiff,
+            "Weak state should lose"
+        );
+        assert!(
+            case.compensation_claimed > 1_000_000.0,
+            "Punitive damages should exceed original value"
+        );
     }
 
     #[test]
@@ -3187,14 +3370,17 @@ mod tests {
 
         let mut treasury = 300_000.0;
         let paid = pay_arbitration_compensation(&mut court, &mut treasury);
-        assert!((paid - 300_000.0).abs() < 0.01, "Should pay available amount");
+        assert!(
+            (paid - 300_000.0).abs() < 0.01,
+            "Should pay available amount"
+        );
         assert!((treasury - 0.0).abs() < 0.01, "Treasury should be drained");
         assert!((court.total_compensation_paid - 300_000.0).abs() < 0.01);
     }
 
     #[test]
     fn test_court_capacity() {
-        use crate::politics::laws::{JusticeLaw, CourtWaitTime};
+        use crate::politics::laws::{CourtWaitTime, JusticeLaw};
         let budget = crate::politics::local_government::RegionalBudget {
             liquid_reserves: 100_000.0,
             ..Default::default()
@@ -3206,12 +3392,15 @@ mod tests {
         };
         let wait = CourtWaitTime::Normal;
         let capacity = compute_court_capacity(&budget, &justice, &wait);
-        assert!(capacity > 0.0, "Well-funded court should have positive capacity");
+        assert!(
+            capacity > 0.0,
+            "Well-funded court should have positive capacity"
+        );
     }
 
     #[test]
     fn test_court_capacity_paralyzed() {
-        use crate::politics::laws::{JusticeLaw, CourtWaitTime};
+        use crate::politics::laws::{CourtWaitTime, JusticeLaw};
         let budget = crate::politics::local_government::RegionalBudget {
             liquid_reserves: 100_000.0,
             ..Default::default()
@@ -3223,7 +3412,10 @@ mod tests {
         };
         let wait = CourtWaitTime::Paralyzed;
         let capacity = compute_court_capacity(&budget, &justice, &wait);
-        assert!(capacity < 5.0, "Paralyzed, corrupt court should have very low capacity");
+        assert!(
+            capacity < 5.0,
+            "Paralyzed, corrupt court should have very low capacity"
+        );
     }
 
     #[test]
@@ -3247,7 +3439,10 @@ mod tests {
 
         let resolved = process_border_conflicts(&mut cadastre, &mut conflicts, 10.0, 10);
         assert_eq!(resolved.len(), 1, "Conflict should be resolved");
-        assert!(!cadastre.parcels.values().next().unwrap().is_frozen, "Parcel should be unfrozen");
+        assert!(
+            !cadastre.parcels.values().next().unwrap().is_frozen,
+            "Parcel should be unfrozen"
+        );
     }
 
     #[test]
@@ -3285,7 +3480,7 @@ mod tests {
 
     #[test]
     fn test_generate_cadastre_has_state_forests() {
-        use crate::society::geography::{Region, NodeType, Climate};
+        use crate::society::geography::{Climate, NodeType, Region};
         let region = Region {
             id: "R1".to_string(),
             display_name: "Test Region".to_string(),
@@ -3299,24 +3494,30 @@ mod tests {
         let mut rng = rand::thread_rng();
         let cadastre = generate_cadastre("TestLand", &[region], &mut rng, 0);
         // Should have at least one state-owned parcel
-        let state_parcels: Vec<_> = cadastre.parcels.values()
+        let state_parcels: Vec<_> = cadastre
+            .parcels
+            .values()
             .filter(|p| p.owner_type == ParcelOwnerType::State)
             .collect();
         assert!(!state_parcels.is_empty(), "Should have state-owned parcels");
         // Should have at least one state forest with ProtectedNatural zoning
-        let state_forests: Vec<_> = state_parcels.iter()
+        let state_forests: Vec<_> = state_parcels
+            .iter()
             .filter(|p| p.land_use_tag == "forest_district")
             .collect();
         // State forests may or may not appear due to randomness, but if they do, they must have ProtectedNatural
         for sf in state_forests {
-            assert_eq!(sf.zoning, ZoningDesignation::ProtectedNatural,
-                "State Forest parcels must have ProtectedNatural zoning");
+            assert_eq!(
+                sf.zoning,
+                ZoningDesignation::ProtectedNatural,
+                "State Forest parcels must have ProtectedNatural zoning"
+            );
         }
     }
 
     #[test]
     fn test_generate_cadastre_has_municipal_parcels() {
-        use crate::society::geography::{Region, NodeType, Climate};
+        use crate::society::geography::{Climate, NodeType, Region};
         let region = Region {
             id: "R1".to_string(),
             display_name: "Test Region".to_string(),
@@ -3329,10 +3530,15 @@ mod tests {
         };
         let mut rng = rand::thread_rng();
         let cadastre = generate_cadastre("TestLand", &[region], &mut rng, 0);
-        let municipal_parcels: Vec<_> = cadastre.parcels.values()
+        let municipal_parcels: Vec<_> = cadastre
+            .parcels
+            .values()
             .filter(|p| p.owner_type == ParcelOwnerType::Municipal)
             .collect();
-        assert!(!municipal_parcels.is_empty(), "Should have municipal parcels");
+        assert!(
+            !municipal_parcels.is_empty(),
+            "Should have municipal parcels"
+        );
         for mp in municipal_parcels {
             assert_eq!(mp.land_use_tag, "MunicipalReserve");
             assert!(mp.owner_id.starts_with("JST:"));
@@ -3350,7 +3556,10 @@ mod tests {
         });
         let split_id = cadastre.split_parcel(id, 80.0, 5).unwrap();
         let split = cadastre.get(split_id).unwrap();
-        assert_eq!(split.land_use_tag, "forest_district", "land_use_tag should persist through split");
+        assert_eq!(
+            split.land_use_tag, "forest_district",
+            "land_use_tag should persist through split"
+        );
     }
 
     // ========================================================================
@@ -3419,7 +3628,10 @@ mod tests {
             ..base
         };
         let wonder_value = compute_parcel_value(&wonder, &config);
-        assert!(wonder_value > base_value, "Natural wonder should boost value");
+        assert!(
+            wonder_value > base_value,
+            "Natural wonder should boost value"
+        );
         assert!((wonder_value - base_value * (1.0 + config.natural_wonder_premium)).abs() < 1.0);
     }
 
@@ -3433,7 +3645,7 @@ mod tests {
 
     #[test]
     fn test_topography_generation_assigns_traits() {
-        use crate::society::geography::{Region, NodeType, Climate, GeographicTraits};
+        use crate::society::geography::{Climate, GeographicTraits, NodeType, Region};
         let region = Region {
             id: "R1".to_string(),
             display_name: "Coastal Region".to_string(),
@@ -3452,7 +3664,9 @@ mod tests {
         let mut rng = rand::thread_rng();
         let cadastre = generate_cadastre("TestLand", &[region], &mut rng, 0);
         // With coastline and river, at least some parcels should have water access
-        let water_parcels: Vec<_> = cadastre.parcels.values()
+        let water_parcels: Vec<_> = cadastre
+            .parcels
+            .values()
             .filter(|p| p.topography.water_access != WaterAccessType::None)
             .collect();
         // Due to randomness, we can't guarantee water parcels, but the code should not crash
@@ -3460,8 +3674,10 @@ mod tests {
         let _ = water_parcels;
         // Verify all parcels have valid topography
         for parcel in cadastre.parcels.values() {
-            assert!(parcel.topography.subsurface_rights == SubsurfaceRights::StateOwned,
-                "Default subsurface rights should be StateOwned");
+            assert!(
+                parcel.topography.subsurface_rights == SubsurfaceRights::StateOwned,
+                "Default subsurface rights should be StateOwned"
+            );
         }
     }
 
@@ -3483,6 +3699,9 @@ mod tests {
         let split = cadastre.get(split_id).unwrap();
         assert_eq!(split.topography.water_access, WaterAccessType::Sea);
         assert!(split.topography.is_forest);
-        assert_eq!(split.topography.subsurface_rights, SubsurfaceRights::SurfaceOwner);
+        assert_eq!(
+            split.topography.subsurface_rights,
+            SubsurfaceRights::SurfaceOwner
+        );
     }
 }

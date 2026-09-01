@@ -1,7 +1,7 @@
 //! Regional governance and fiscal structures for local government (JST)
 
-use crate::politics::system::Leader;
 use crate::politics::local_council::LocalCouncil;
+use crate::politics::system::Leader;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -11,35 +11,35 @@ pub struct RegionalGovernance {
     /// Unique identifier for the regional government
     #[serde(default)]
     pub id: String,
-    
+
     /// Type of regional head (Mayor/Village Head/Governor)
     #[serde(default)]
     pub head_type: RegionalHeadType,
-    
+
     /// Current regional head
     #[serde(default)]
     pub head: Leader,
-    
+
     /// Local council structure
     #[serde(default)]
     pub council: LocalCouncil,
-    
+
     /// Regional budget
     #[serde(default)]
     pub budget: RegionalBudget,
-    
+
     /// Debt issued by the region
     #[serde(default)]
     pub debt: RegionalDebt,
-    
+
     /// Administrative status (Normal, Commissary Administration)
     #[serde(default)]
     pub admin_status: AdministrativeStatus,
-    
+
     /// Date of last local election
     #[serde(default)]
     pub last_election_year: u32,
-    
+
     /// Years until next local election
     #[serde(default)]
     pub years_to_next_election: u32,
@@ -83,47 +83,47 @@ pub struct RegionalBudget {
     /// Liquid reserves
     #[serde(default)]
     pub liquid_reserves: f64,
-    
+
     /// Annual tax revenue collected
     #[serde(default)]
     pub tax_revenue: f64,
-    
+
     /// Local property/land tax revenue
     #[serde(default)]
     pub property_tax: f64,
-    
+
     /// Local service fees
     #[serde(default)]
     pub local_fees: f64,
-    
+
     /// Transfer from central government (grants)
     #[serde(default)]
     pub central_grants: f64,
-    
+
     /// Upward transfer to Megaregion (percentage of revenue)
     #[serde(default)]
     pub megaregion_transfer: f64,
-    
+
     /// Upward transfer to Central Budget (percentage of revenue)
     #[serde(default)]
     pub central_transfer: f64,
-    
+
     /// Local expenditures (infrastructure, services)
     #[serde(default)]
     pub local_expenditures: f64,
-    
+
     /// Debt service payments
     #[serde(default)]
     pub debt_service: f64,
-    
+
     /// Budget balance (revenue - expenditures - transfers)
     #[serde(default)]
     pub budget_balance: f64,
-    
+
     /// Municipal land value (asset)
     #[serde(default)]
     pub municipal_land_value: f64,
-    
+
     /// Any additional budget fields
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -135,19 +135,19 @@ pub struct RegionalDebt {
     /// Total outstanding debt
     #[serde(default)]
     pub total_debt: f64,
-    
+
     /// Municipal bonds issued
     #[serde(default)]
     pub municipal_bonds: Vec<MunicipalBond>,
-    
+
     /// Debt-to-revenue ratio (warning threshold: 3.0, critical: 5.0)
     #[serde(default)]
     pub debt_to_revenue_ratio: f64,
-    
+
     /// Credit rating (AAA to D)
     #[serde(default)]
     pub credit_rating: String,
-    
+
     /// Years until debt maturity
     #[serde(default)]
     pub years_to_maturity: u32,
@@ -159,23 +159,23 @@ pub struct MunicipalBond {
     /// Bond identifier
     #[serde(default)]
     pub id: String,
-    
+
     /// Principal amount
     #[serde(default)]
     pub principal: f64,
-    
+
     /// Interest rate
     #[serde(default)]
     pub interest_rate: f64,
-    
+
     /// Year issued
     #[serde(default)]
     pub issue_year: u32,
-    
+
     /// Year of maturity
     #[serde(default)]
     pub maturity_year: u32,
-    
+
     /// Bondholders
     #[serde(default)]
     pub holders: Vec<String>,
@@ -187,19 +187,19 @@ pub struct MegaregionGovernance {
     /// Unique identifier for the megaregion government
     #[serde(default)]
     pub id: String,
-    
+
     /// Megaregion governor
     #[serde(default)]
     pub governor: Leader,
-    
+
     /// Megaregion budget
     #[serde(default)]
     pub budget: MegaregionBudget,
-    
+
     /// Whether governor is appointed centrally or elected
     #[serde(default)]
     pub governor_appointed: bool,
-    
+
     /// Administrative competence level (from national law)
     #[serde(default)]
     pub competence_level: MegaregionCompetence,
@@ -219,7 +219,7 @@ pub enum MegaregionCompetence {
 }
 
 /// Megaregion budget (aggregated from regions)
-/// 
+///
 /// # CRITICAL: No Upward Transfer to Central
 /// Megaregions keep 100% of their regional transfers. They do NOT send
 /// another cut to the Central Government. The Region already split its
@@ -229,23 +229,23 @@ pub struct MegaregionBudget {
     /// Liquid reserves
     #[serde(default)]
     pub liquid_reserves: f64,
-    
+
     /// Total transfers received from member regions
     #[serde(default)]
     pub regional_transfers: f64,
-    
+
     /// Regional development spending
     #[serde(default)]
     pub development_expenditures: f64,
-    
+
     /// Inter-regional coordination spending
     #[serde(default)]
     pub coordination_expenditures: f64,
-    
+
     /// Budget balance
     #[serde(default)]
     pub budget_balance: f64,
-    
+
     /// Any additional budget fields
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,

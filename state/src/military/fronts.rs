@@ -37,12 +37,12 @@ pub struct Casualties {
 
 impl Casualties {
     /// Create new casualties record
-    /// 
+    ///
     /// # Arguments
     /// * `dead` - Number of dead
     /// * `wounded` - Number of wounded
     /// * `deserters` - Number of deserters
-    /// 
+    ///
     /// # Returns
     /// New Casualties instance
     pub fn new(dead: i64, wounded: i64, deserters: i64) -> Self {
@@ -53,17 +53,17 @@ impl Casualties {
             demographic_breakdown: HashMap::new(),
         }
     }
-    
+
     /// Set demographic breakdown
-    /// 
+    ///
     /// # Arguments
     /// * `breakdown` - HashMap of RuralClass to casualty count
     pub fn set_demographic_breakdown(&mut self, breakdown: HashMap<RuralClass, i64>) {
         self.demographic_breakdown = breakdown;
     }
-    
+
     /// Get total casualties
-    /// 
+    ///
     /// # Returns
     /// Sum of dead, wounded, and deserters
     pub fn total(&self) -> i64 {
@@ -157,31 +157,26 @@ pub struct Front {
 
 impl Front {
     /// Create a new military front
-    /// 
+    ///
     /// # Arguments
     /// * `id` - Unique front identifier
     /// * `name` - Front name
     /// * `regions` - Regions in this front
     /// * `countries` - Countries involved
-    /// 
+    ///
     /// # Returns
     /// New Front instance
-    pub fn new(
-        id: String,
-        name: String,
-        regions: Vec<String>,
-        countries: Vec<String>,
-    ) -> Self {
+    pub fn new(id: String, name: String, regions: Vec<String>, countries: Vec<String>) -> Self {
         let mut region_control = HashMap::new();
         for region in &regions {
             region_control.insert(region.clone(), RegionControl::Owner);
         }
-        
+
         let mut war_exhaustion = HashMap::new();
         for country in &countries {
             war_exhaustion.insert(country.clone(), 0.0);
         }
-        
+
         Front {
             id,
             name,
@@ -193,35 +188,35 @@ impl Front {
             combat_zones: Vec::new(),
         }
     }
-    
+
     /// Add a battle to this front
-    /// 
+    ///
     /// # Arguments
     /// * `battle` - Battle to add
     pub fn add_battle(&mut self, battle: Battle) {
         self.battles.push(battle);
     }
-    
+
     /// Update region control
-    /// 
+    ///
     /// # Arguments
     /// * `region` - Region to update
     /// * `control` - New control status
     pub fn update_region_control(&mut self, region: String, control: RegionControl) {
         self.region_control.insert(region, control);
     }
-    
+
     /// Increase war exhaustion for a country
-    /// 
+    ///
     /// # Arguments
     /// * `country` - Country to affect
     /// * `amount` - Amount to increase
     pub fn increase_war_exhaustion(&mut self, country: String, amount: f64) {
         *self.war_exhaustion.entry(country).or_insert(0.0) += amount;
     }
-    
+
     /// Decay war exhaustion for all countries
-    /// 
+    ///
     /// # Arguments
     /// * `decay_rate` - Rate to decay (0-1)
     pub fn decay_war_exhaustion(&mut self, decay_rate: f64) {
@@ -229,12 +224,12 @@ impl Front {
             *exhaustion *= (1.0 - decay_rate).max(0.0);
         }
     }
-    
+
     /// Get total casualties for a country
-    /// 
+    ///
     /// # Arguments
     /// * `country` - Country to query
-    /// 
+    ///
     /// # Returns
     /// Total casualties (dead + wounded + deserters)
     pub fn get_country_casualties(&self, country: &str) -> i64 {
@@ -249,17 +244,18 @@ impl Front {
         }
         total
     }
-    
+
     /// Check if front is active (has recent battles)
-    /// 
+    ///
     /// # Arguments
     /// * `current_turn` - Current game turn
     /// * `active_turns` - Number of turns to consider active
-    /// 
+    ///
     /// # Returns
     /// True if front has battles within active_turns
     pub fn is_active(&self, current_turn: u32, active_turns: u32) -> bool {
-        self.battles.iter()
+        self.battles
+            .iter()
             .any(|b| current_turn - b.turn <= active_turns)
     }
 }

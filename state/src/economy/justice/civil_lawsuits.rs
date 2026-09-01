@@ -7,9 +7,7 @@
 //! `settle_company_to_company`.
 
 use crate::construction::fraud::MaterialSubstitution;
-use crate::economy::transfer_settler::{
-    settle_company_to_company, settle_transfer_to_treasury,
-};
+use crate::economy::transfer_settler::{settle_company_to_company, settle_transfer_to_treasury};
 use crate::entities::Company;
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
@@ -137,11 +135,7 @@ pub fn file_lawsuit(
 ///
 /// Adds a tagged entry to `JusticeSystemState.frozen_company_cash` with
 /// key `"lawsuit:{case_id}:{defendant_id}"`.
-pub fn freeze_defendant_assets(
-    country: &mut Country,
-    lawsuit: &CivilLawsuit,
-    freeze_amount: f64,
-) {
+pub fn freeze_defendant_assets(country: &mut Country, lawsuit: &CivilLawsuit, freeze_amount: f64) {
     if let Some(ref mut js) = country.politics.justice_state {
         let key = format!("lawsuit:{}:{}", lawsuit.id, lawsuit.defendant_id);
         js.frozen_company_cash.insert(key, freeze_amount);
@@ -189,15 +183,15 @@ pub fn process_lawsuit(
 
     if plaintiff_wins {
         // Calculate damages
-        let penalty_multiplier = if lawsuit.evidence.defect_severity > CATASTROPHIC_DEFECT_THRESHOLD {
+        let penalty_multiplier = if lawsuit.evidence.defect_severity > CATASTROPHIC_DEFECT_THRESHOLD
+        {
             CATASTROPHIC_DEFECT_PENALTY
         } else {
             1.0
         };
 
-        let damages = lawsuit.damages_claimed
-            * lawsuit.evidence.evidence_strength
-            * penalty_multiplier;
+        let damages =
+            lawsuit.damages_claimed * lawsuit.evidence.evidence_strength * penalty_multiplier;
 
         // Find defendant index
         let defendant_idx = match companies.iter().position(|c| c.id == lawsuit.defendant_id) {
@@ -215,9 +209,18 @@ pub fn process_lawsuit(
 
         if actual_damages > 0.0 {
             if lawsuit.plaintiff_id == "STATE" {
-                let _ = settle_transfer_to_treasury(companies, defendant_idx, actual_damages, country);
-            } else if let Some(plaintiff_idx) = companies.iter().position(|c| c.id == lawsuit.plaintiff_id) {
-                let _ = settle_company_to_company(companies, defendant_idx, plaintiff_idx, actual_damages, country);
+                let _ =
+                    settle_transfer_to_treasury(companies, defendant_idx, actual_damages, country);
+            } else if let Some(plaintiff_idx) =
+                companies.iter().position(|c| c.id == lawsuit.plaintiff_id)
+            {
+                let _ = settle_company_to_company(
+                    companies,
+                    defendant_idx,
+                    plaintiff_idx,
+                    actual_damages,
+                    country,
+                );
             }
         }
 
@@ -265,7 +268,14 @@ pub fn process_civil_lawsuits(
 ) -> u32 {
     let mut resolved = 0u32;
     for lawsuit in lawsuits.iter_mut() {
-        if process_lawsuit(lawsuit, justice_coverage, companies, country, current_turn, rng) {
+        if process_lawsuit(
+            lawsuit,
+            justice_coverage,
+            companies,
+            country,
+            current_turn,
+            rng,
+        ) {
             resolved += 1;
         }
     }

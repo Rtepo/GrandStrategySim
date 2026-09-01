@@ -11,7 +11,6 @@ use std::collections::BTreeMap;
 
 /// Member status in CCP.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
-
 #[derive(Default)]
 pub enum MemberStatus {
     /// Active member - can trade.
@@ -19,13 +18,10 @@ pub enum MemberStatus {
     #[default]
     Active,
     /// Suspended member - cannot trade temporarily.
-
     Suspended,
     /// Defaulted member - in resolution process.
-
     Defaulted,
 }
-
 
 /// CCP member with margin account.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -34,19 +30,19 @@ pub struct CcpMember {
     /// Member ID.
     #[serde(default)]
     pub id: String,
-    
+
     /// Posted margin (collateral).
     #[serde(default)]
     pub posted_margin: f64,
-    
+
     /// Current margin deficit (if below requirements).
     #[serde(default)]
     pub margin_deficit: f64,
-    
+
     /// Member status (active, suspended, defaulted).
     #[serde(default)]
     pub status: MemberStatus,
-    
+
     /// Any additional member fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -59,11 +55,11 @@ pub struct MarginRequirements {
     /// Initial margin ratio (e.g., 10%).
     #[serde(default)]
     pub initial_margin_ratio: f64,
-    
+
     /// Maintenance margin ratio (e.g., 5%).
     #[serde(default)]
     pub maintenance_margin_ratio: f64,
-    
+
     /// Any additional requirements fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -76,23 +72,23 @@ pub struct CentralCounterparty {
     /// CCP ID.
     #[serde(default)]
     pub id: String,
-    
+
     /// Member banks/funds cleared by CCP.
     #[serde(default)]
     pub members: BTreeMap<String, CcpMember>,
-    
+
     /// Strict margin requirements (enforced by engine).
     #[serde(default)]
     pub margin_requirements: MarginRequirements,
-    
+
     /// Default fund (buffer for member defaults).
     #[serde(default)]
     pub default_fund: f64,
-    
+
     /// Cleared derivatives positions.
     #[serde(default)]
     pub cleared_positions: Vec<String>,
-    
+
     /// Any additional CCP fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -131,9 +127,12 @@ pub fn process_ccp_margins(
         }
 
         // Calculate total exposure from cleared futures
-        let total_exposure: f64 = futures_contracts.iter()
-            .filter(|f| f.clearing_method == crate::securities::derivatives::ClearingMethod::CCP
-                && (f.owner_id == *member_id || f.counterparty_id == *member_id))
+        let total_exposure: f64 = futures_contracts
+            .iter()
+            .filter(|f| {
+                f.clearing_method == crate::securities::derivatives::ClearingMethod::CCP
+                    && (f.owner_id == *member_id || f.counterparty_id == *member_id)
+            })
             .map(|f| f.contract_size * f.current_price)
             .sum();
 
@@ -216,7 +215,9 @@ pub fn process_ccp_default_waterfall(
 
     // Step 3: Mutualize remaining loss across surviving members
     if remaining_loss > 0.0 {
-        let surviving_ids: Vec<String> = ccp.members.iter()
+        let surviving_ids: Vec<String> = ccp
+            .members
+            .iter()
             .filter(|(_, m)| m.status == MemberStatus::Active)
             .map(|(id, _)| id.clone())
             .collect();

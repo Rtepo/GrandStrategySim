@@ -22,8 +22,8 @@
 //! - **Strict double-entry accounting**: All financial actions debit real
 //!   wallets and credit real wallets. No money creation.
 
-use serde::{Deserialize, Serialize};
 use crate::politics::vip_registry::DiplomaticPostType;
+use serde::{Deserialize, Serialize};
 
 /// A deferred diplomatic action queued during parallel turn processing.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -168,14 +168,21 @@ pub fn drain_diplomatic_actions(
                 if let Some(home) = state.countries.get_mut(&home_country) {
                     if let Some(registry) = &mut home.politics.vip_registry {
                         for vip in registry.vips.values_mut() {
-                            if vip.diplomatic_post.as_ref().is_some_and(|p| p.host_country == host_country) {
+                            if vip
+                                .diplomatic_post
+                                .as_ref()
+                                .is_some_and(|p| p.host_country == host_country)
+                            {
                                 vip.diplomatic_post = None;
                                 // Remove diplomatic role from roles list
-                                vip.roles.retain(|r| !matches!(r,
-                                    crate::politics::vip_registry::VipRoleExtended::Ambassador
-                                    | crate::politics::vip_registry::VipRoleExtended::Consul
-                                    | crate::politics::vip_registry::VipRoleExtended::Spy
-                                ));
+                                vip.roles.retain(|r| {
+                                    !matches!(
+                                        r,
+                                        crate::politics::vip_registry::VipRoleExtended::Ambassador
+                                            | crate::politics::vip_registry::VipRoleExtended::Consul
+                                            | crate::politics::vip_registry::VipRoleExtended::Spy
+                                    )
+                                });
                             }
                         }
                     }
@@ -189,7 +196,10 @@ pub fn drain_diplomatic_actions(
             } => {
                 // Phase 68: FinancialIsolation sanction blocks aid to the sanctioned country.
                 let current_turn = state.calendar.global_turn;
-                if state.active_sanctions.has_financial_isolation(&to_country, current_turn) {
+                if state
+                    .active_sanctions
+                    .has_financial_isolation(&to_country, current_turn)
+                {
                     continue; // Sanctioned — aid blocked
                 }
 
@@ -221,7 +231,9 @@ pub fn drain_diplomatic_actions(
                 // Mark the relation as frozen via the diplomacy matrix if it exists
                 // The actual relation penalty is applied in process_diplomacy_turn
                 // Here we just ensure both countries exist
-                if !state.countries.contains_key(&from_country) || !state.countries.contains_key(&to_country) {
+                if !state.countries.contains_key(&from_country)
+                    || !state.countries.contains_key(&to_country)
+                {
                     continue;
                 }
             }
@@ -237,7 +249,10 @@ pub fn drain_diplomatic_actions(
                 // host than the DiplomaticPostCap allows.
                 let cap = crate::international::diplomacy::DiplomaticPostCap::default();
                 let current_count = crate::international::diplomacy::count_diplomats(
-                    state, &home_country, &host_country, &post_type,
+                    state,
+                    &home_country,
+                    &host_country,
+                    &post_type,
                 );
                 if current_count >= cap.for_post_type(&post_type) {
                     continue; // Cap reached — cannot post another diplomat of this type
@@ -254,11 +269,12 @@ pub fn drain_diplomatic_actions(
                     // Assign the diplomatic post to the VIP
                     if let Some(registry) = &mut home.politics.vip_registry {
                         if let Some(vip) = registry.vips.get_mut(&vip_id) {
-                            vip.diplomatic_post = Some(crate::politics::vip_registry::DiplomaticPost {
-                                host_country: host_country.clone(),
-                                post_type: post_type.clone(),
-                                assigned_turn,
-                            });
+                            vip.diplomatic_post =
+                                Some(crate::politics::vip_registry::DiplomaticPost {
+                                    host_country: host_country.clone(),
+                                    post_type: post_type.clone(),
+                                    assigned_turn,
+                                });
                             // Add the corresponding role
                             let role = match post_type {
                                 DiplomaticPostType::Ambassador => crate::politics::vip_registry::VipRoleExtended::Ambassador,
@@ -282,11 +298,14 @@ pub fn drain_diplomatic_actions(
                     if let Some(registry) = &mut home.politics.vip_registry {
                         if let Some(vip) = registry.vips.get_mut(&vip_id) {
                             vip.diplomatic_post = None;
-                            vip.roles.retain(|r| !matches!(r,
-                                crate::politics::vip_registry::VipRoleExtended::Ambassador
-                                | crate::politics::vip_registry::VipRoleExtended::Consul
-                                | crate::politics::vip_registry::VipRoleExtended::Spy
-                            ));
+                            vip.roles.retain(|r| {
+                                !matches!(
+                                    r,
+                                    crate::politics::vip_registry::VipRoleExtended::Ambassador
+                                        | crate::politics::vip_registry::VipRoleExtended::Consul
+                                        | crate::politics::vip_registry::VipRoleExtended::Spy
+                                )
+                            });
                         }
                     }
                 }
@@ -299,8 +318,8 @@ pub fn drain_diplomatic_actions(
 mod tests {
     use super::*;
     use crate::international::fog_of_war::DiplomaticConfig;
-    use crate::state::{GameState, Country};
-    use crate::politics::vip_registry::{Vip, VipRegistry, DiplomaticPostType, VipRoleExtended};
+    use crate::politics::vip_registry::{DiplomaticPostType, Vip, VipRegistry, VipRoleExtended};
+    use crate::state::{Country, GameState};
 
     #[test]
     fn test_drain_empty_queue() {
@@ -318,11 +337,13 @@ mod tests {
         home.budget.liquid_reserves = 1_000_000.0;
         state.countries.insert("HomeLand".to_string(), home);
 
-        state.pending_diplomatic_actions.push(DiplomaticAction::EmbassyConstructionRequest {
-            home_country: "HomeLand".to_string(),
-            host_country: "NonExistent".to_string(),
-            budget: 300_000.0,
-        });
+        state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::EmbassyConstructionRequest {
+                home_country: "HomeLand".to_string(),
+                host_country: "NonExistent".to_string(),
+                budget: 300_000.0,
+            });
 
         let config = DiplomaticConfig::default();
         drain_diplomatic_actions(&mut state, &config);
@@ -343,11 +364,13 @@ mod tests {
         state.countries.insert("HomeLand".to_string(), home);
         state.countries.insert("HostLand".to_string(), host);
 
-        state.pending_diplomatic_actions.push(DiplomaticAction::EmbassyFundingTransfer {
-            home_country: "HomeLand".to_string(),
-            host_country: "HostLand".to_string(),
-            amount: 50_000.0,
-        });
+        state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::EmbassyFundingTransfer {
+                home_country: "HomeLand".to_string(),
+                host_country: "HostLand".to_string(),
+                amount: 50_000.0,
+            });
 
         let config = DiplomaticConfig::default();
         drain_diplomatic_actions(&mut state, &config);
@@ -366,11 +389,13 @@ mod tests {
         home.budget.liquid_reserves = 10_000.0;
         state.countries.insert("HomeLand".to_string(), home);
 
-        state.pending_diplomatic_actions.push(DiplomaticAction::EmbassyFundingTransfer {
-            home_country: "HomeLand".to_string(),
-            host_country: "HostLand".to_string(),
-            amount: 50_000.0,
-        });
+        state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::EmbassyFundingTransfer {
+                home_country: "HomeLand".to_string(),
+                host_country: "HostLand".to_string(),
+                amount: 50_000.0,
+            });
 
         let config = DiplomaticConfig::default();
         drain_diplomatic_actions(&mut state, &config);
@@ -391,21 +416,27 @@ mod tests {
         state.countries.insert("RichCountry".to_string(), from);
         state.countries.insert("PoorCountry".to_string(), to);
 
-        state.pending_diplomatic_actions.push(DiplomaticAction::SendEconomicAid {
-            from_country: "RichCountry".to_string(),
-            to_country: "PoorCountry".to_string(),
-            amount: 500_000.0,
-        });
+        state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::SendEconomicAid {
+                from_country: "RichCountry".to_string(),
+                to_country: "PoorCountry".to_string(),
+                amount: 500_000.0,
+            });
 
         let config = DiplomaticConfig::default();
         drain_diplomatic_actions(&mut state, &config);
 
         let from = state.countries.get("RichCountry").unwrap();
         let to = state.countries.get("PoorCountry").unwrap();
-        assert!((from.budget.liquid_reserves - 9_500_000.0).abs() < 0.01,
-            "sender should have 9.5M");
-        assert!((to.budget.liquid_reserves - 600_000.0).abs() < 0.01,
-            "receiver should have 600K");
+        assert!(
+            (from.budget.liquid_reserves - 9_500_000.0).abs() < 0.01,
+            "sender should have 9.5M"
+        );
+        assert!(
+            (to.budget.liquid_reserves - 600_000.0).abs() < 0.01,
+            "receiver should have 600K"
+        );
     }
 
     #[test]
@@ -420,19 +451,27 @@ mod tests {
         state.countries.insert("PoorSender".to_string(), from);
         state.countries.insert("Receiver".to_string(), to);
 
-        state.pending_diplomatic_actions.push(DiplomaticAction::SendEconomicAid {
-            from_country: "PoorSender".to_string(),
-            to_country: "Receiver".to_string(),
-            amount: 500_000.0,
-        });
+        state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::SendEconomicAid {
+                from_country: "PoorSender".to_string(),
+                to_country: "Receiver".to_string(),
+                amount: 500_000.0,
+            });
 
         let config = DiplomaticConfig::default();
         drain_diplomatic_actions(&mut state, &config);
 
         let from = state.countries.get("PoorSender").unwrap();
         let to = state.countries.get("Receiver").unwrap();
-        assert!((from.budget.liquid_reserves - 500.0).abs() < 0.01, "no debit");
-        assert!((to.budget.liquid_reserves - 100_000.0).abs() < 0.01, "no credit");
+        assert!(
+            (from.budget.liquid_reserves - 500.0).abs() < 0.01,
+            "no debit"
+        );
+        assert!(
+            (to.budget.liquid_reserves - 100_000.0).abs() < 0.01,
+            "no credit"
+        );
     }
 
     #[test]
@@ -454,13 +493,15 @@ mod tests {
 
         state.countries.insert("HomeLand".to_string(), home);
 
-        state.pending_diplomatic_actions.push(DiplomaticAction::AssignDiplomat {
-            vip_id: "VIP-000001".to_string(),
-            home_country: "HomeLand".to_string(),
-            host_country: "ForeignLand".to_string(),
-            post_type: DiplomaticPostType::Ambassador,
-            assigned_turn: 1,
-        });
+        state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::AssignDiplomat {
+                vip_id: "VIP-000001".to_string(),
+                home_country: "HomeLand".to_string(),
+                host_country: "ForeignLand".to_string(),
+                post_type: DiplomaticPostType::Ambassador,
+                assigned_turn: 1,
+            });
 
         let config = DiplomaticConfig::default();
         drain_diplomatic_actions(&mut state, &config);
@@ -469,7 +510,10 @@ mod tests {
         let home = state.countries.get("HomeLand").unwrap();
         let registry = home.politics.vip_registry.as_ref().unwrap();
         let vip = registry.vips.get("VIP-000001").unwrap();
-        assert!(vip.diplomatic_post.is_none(), "Diplomat should not be assigned without funds");
+        assert!(
+            vip.diplomatic_post.is_none(),
+            "Diplomat should not be assigned without funds"
+        );
     }
 
     #[test]
@@ -490,20 +534,25 @@ mod tests {
 
         state.countries.insert("HomeLand".to_string(), home);
 
-        state.pending_diplomatic_actions.push(DiplomaticAction::AssignDiplomat {
-            vip_id: "VIP-000001".to_string(),
-            home_country: "HomeLand".to_string(),
-            host_country: "ForeignLand".to_string(),
-            post_type: DiplomaticPostType::Ambassador,
-            assigned_turn: 5,
-        });
+        state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::AssignDiplomat {
+                vip_id: "VIP-000001".to_string(),
+                home_country: "HomeLand".to_string(),
+                host_country: "ForeignLand".to_string(),
+                post_type: DiplomaticPostType::Ambassador,
+                assigned_turn: 5,
+            });
 
         let config = DiplomaticConfig::default();
         drain_diplomatic_actions(&mut state, &config);
 
         let home = state.countries.get("HomeLand").unwrap();
         // Assignment cost should have been debited
-        assert!((home.budget.liquid_reserves - (1_000_000.0 - config.diplomat_assignment_cost)).abs() < 0.01);
+        assert!(
+            (home.budget.liquid_reserves - (1_000_000.0 - config.diplomat_assignment_cost)).abs()
+                < 0.01
+        );
         // VIP should have the diplomatic post
         let registry = home.politics.vip_registry.as_ref().unwrap();
         let vip = registry.vips.get("VIP-000001").unwrap();
@@ -538,10 +587,12 @@ mod tests {
 
         state.countries.insert("HomeLand".to_string(), home);
 
-        state.pending_diplomatic_actions.push(DiplomaticAction::RecallDiplomat {
-            vip_id: "VIP-000001".to_string(),
-            home_country: "HomeLand".to_string(),
-        });
+        state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::RecallDiplomat {
+                vip_id: "VIP-000001".to_string(),
+                home_country: "HomeLand".to_string(),
+            });
 
         let config = DiplomaticConfig::default();
         drain_diplomatic_actions(&mut state, &config);
@@ -550,7 +601,10 @@ mod tests {
         let registry = home.politics.vip_registry.as_ref().unwrap();
         let vip = registry.vips.get("VIP-000001").unwrap();
         assert!(vip.diplomatic_post.is_none(), "Post should be cleared");
-        assert!(!vip.roles.contains(&VipRoleExtended::Spy), "Spy role should be removed");
+        assert!(
+            !vip.roles.contains(&VipRoleExtended::Spy),
+            "Spy role should be removed"
+        );
     }
 
     #[test]
@@ -576,10 +630,12 @@ mod tests {
 
         state.countries.insert("HomeLand".to_string(), home);
 
-        state.pending_diplomatic_actions.push(DiplomaticAction::ExpelDiplomat {
-            home_country: "HomeLand".to_string(),
-            host_country: "HostLand".to_string(),
-        });
+        state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::ExpelDiplomat {
+                home_country: "HomeLand".to_string(),
+                host_country: "HostLand".to_string(),
+            });
 
         let config = DiplomaticConfig::default();
         drain_diplomatic_actions(&mut state, &config);
@@ -587,8 +643,14 @@ mod tests {
         let home = state.countries.get("HomeLand").unwrap();
         let registry = home.politics.vip_registry.as_ref().unwrap();
         let vip = registry.vips.get("VIP-000001").unwrap();
-        assert!(vip.diplomatic_post.is_none(), "Post should be cleared on expulsion");
-        assert!(!vip.roles.contains(&VipRoleExtended::Ambassador), "Role should be removed");
+        assert!(
+            vip.diplomatic_post.is_none(),
+            "Post should be cleared on expulsion"
+        );
+        assert!(
+            !vip.roles.contains(&VipRoleExtended::Ambassador),
+            "Role should be removed"
+        );
     }
 
     /// Phase 78: Verify that a second ambassador assignment to the same host
@@ -626,13 +688,15 @@ mod tests {
         home.politics.vip_registry = Some(registry);
         state.countries.insert("HomeLand".to_string(), home);
 
-        state.pending_diplomatic_actions.push(DiplomaticAction::AssignDiplomat {
-            vip_id: "VIP-000002".to_string(),
-            home_country: "HomeLand".to_string(),
-            host_country: "ForeignLand".to_string(),
-            post_type: DiplomaticPostType::Ambassador,
-            assigned_turn: 5,
-        });
+        state
+            .pending_diplomatic_actions
+            .push(DiplomaticAction::AssignDiplomat {
+                vip_id: "VIP-000002".to_string(),
+                home_country: "HomeLand".to_string(),
+                host_country: "ForeignLand".to_string(),
+                post_type: DiplomaticPostType::Ambassador,
+                assigned_turn: 5,
+            });
 
         let config = DiplomaticConfig::default();
         drain_diplomatic_actions(&mut state, &config);
@@ -641,7 +705,9 @@ mod tests {
         let home = state.countries.get("HomeLand").unwrap();
         let registry = home.politics.vip_registry.as_ref().unwrap();
         let vip2 = registry.vips.get("VIP-000002").unwrap();
-        assert!(vip2.diplomatic_post.is_none(),
-            "Second ambassador should not be assigned — cap of 1 reached");
+        assert!(
+            vip2.diplomatic_post.is_none(),
+            "Second ambassador should not be assigned — cap of 1 reached"
+        );
     }
 }

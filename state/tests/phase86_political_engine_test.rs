@@ -6,18 +6,20 @@
 //! 3. Advisory council activation
 //! 4. Dynasty genealogy
 
-use sim_engine::politics::legislative_weight::{LegislativeWeight, derive_weight_from_provisions};
-use sim_engine::politics::legislation::{Bill, Clause, BillProvision, LegislativeStage};
-use sim_engine::politics::attendance::{AttendanceModel, QuorumType, calculate_attendance};
 use sim_engine::politics::advisory_council::{
-    AdvisoryCouncil, CouncilMember, CouncilType, FactionType, CouncilInfluenceModifier,
+    AdvisoryCouncil, CouncilInfluenceModifier, CouncilMember, CouncilType, FactionType,
 };
+use sim_engine::politics::attendance::{calculate_attendance, AttendanceModel, QuorumType};
+use sim_engine::politics::legislation::{Bill, BillProvision, Clause, LegislativeStage};
+use sim_engine::politics::legislative_weight::{derive_weight_from_provisions, LegislativeWeight};
 use sim_engine::politics::succession::{
-    RoyalDynasty, RoyalFamilyMember, RoyalRelation, RoyalMarriage, MarriageSignificance,
+    MarriageSignificance, RoyalDynasty, RoyalFamilyMember, RoyalMarriage, RoyalRelation,
 };
-use sim_engine::politics::vip_registry::{Vip, VipRegistry, VipRoleExtended, VipHealth, IncapacityStatus};
 #[allow(unused_imports)]
 use sim_engine::politics::system::{Party, PartyOrganization};
+use sim_engine::politics::vip_registry::{
+    IncapacityStatus, Vip, VipHealth, VipRegistry, VipRoleExtended,
+};
 
 use std::collections::HashMap;
 
@@ -141,9 +143,18 @@ fn test_attendance_model_default_base_rate() {
 
 #[test]
 fn test_quorum_type_from_weight() {
-    assert_eq!(QuorumType::from_weight(LegislativeWeight::Ordinary), QuorumType::Simple);
-    assert_eq!(QuorumType::from_weight(LegislativeWeight::Organic), QuorumType::Simple);
-    assert_eq!(QuorumType::from_weight(LegislativeWeight::Constitutional), QuorumType::Qualified);
+    assert_eq!(
+        QuorumType::from_weight(LegislativeWeight::Ordinary),
+        QuorumType::Simple
+    );
+    assert_eq!(
+        QuorumType::from_weight(LegislativeWeight::Organic),
+        QuorumType::Simple
+    );
+    assert_eq!(
+        QuorumType::from_weight(LegislativeWeight::Constitutional),
+        QuorumType::Qualified
+    );
 }
 
 #[test]
@@ -155,15 +166,18 @@ fn test_calculate_attendance_quorum_met_with_full_health() {
     let result = calculate_attendance(
         &lower_seats,
         &parties,
-        1.0,  // perfect health
-        0.0,  // no unrest
+        1.0, // perfect health
+        0.0, // no unrest
         LegislativeWeight::Ordinary,
         "test_bill",
         1,
     );
     // Total = 100, quorum = 50. With good conditions, quorum should be met.
     assert_eq!(result.quorum_threshold, 50);
-    assert!(result.quorum_met, "Quorum should be met with perfect health and no unrest");
+    assert!(
+        result.quorum_met,
+        "Quorum should be met with perfect health and no unrest"
+    );
 }
 
 #[test]
@@ -194,7 +208,7 @@ fn test_calculate_attendance_low_health_reduces_present_seats() {
     let result_good = calculate_attendance(
         &lower_seats,
         &parties,
-        1.0,  // perfect health
+        1.0, // perfect health
         0.0,
         LegislativeWeight::Ordinary,
         "test",
@@ -203,8 +217,8 @@ fn test_calculate_attendance_low_health_reduces_present_seats() {
     let result_bad = calculate_attendance(
         &lower_seats,
         &parties,
-        0.0,  // terrible health
-        1.0,  // max unrest
+        0.0, // terrible health
+        1.0, // max unrest
         LegislativeWeight::Ordinary,
         "test",
         1,
@@ -213,7 +227,8 @@ fn test_calculate_attendance_low_health_reduces_present_seats() {
     assert!(
         result_bad.present_seats <= result_good.present_seats,
         "Bad health and unrest should reduce attendance (bad={}, good={})",
-        result_bad.present_seats, result_good.present_seats
+        result_bad.present_seats,
+        result_good.present_seats
     );
 }
 
@@ -226,8 +241,8 @@ fn test_attendance_absent_by_party_populated() {
     let result = calculate_attendance(
         &lower_seats,
         &parties,
-        0.0,  // terrible health
-        1.0,  // max unrest
+        0.0, // terrible health
+        1.0, // max unrest
         LegislativeWeight::Ordinary,
         "test",
         1,
@@ -237,8 +252,14 @@ fn test_attendance_absent_by_party_populated() {
     // but the absent_by_party map should be populated if any party has absences.
     // We verify the data structure is correct rather than asserting specific absences.
     let total_seats: u32 = lower_seats.values().sum();
-    assert!(result.present_seats <= total_seats, "Present seats cannot exceed total");
-    assert!(result.absent_seats == total_seats - result.present_seats, "Absent + present = total");
+    assert!(
+        result.present_seats <= total_seats,
+        "Present seats cannot exceed total"
+    );
+    assert!(
+        result.absent_seats == total_seats - result.present_seats,
+        "Absent + present = total"
+    );
 }
 
 // ============================================================================
@@ -268,9 +289,15 @@ fn test_council_calculate_influence_modifiers_high_loyalty() {
     });
     let modifiers = council.calculate_influence_modifiers();
     // High loyalty → positive decree speed modifier.
-    assert!(modifiers.decree_speed_modifier > 0.0, "High loyalty should speed up decrees");
+    assert!(
+        modifiers.decree_speed_modifier > 0.0,
+        "High loyalty should speed up decrees"
+    );
     // High loyalty → no veto modifier.
-    assert_eq!(modifiers.veto_probability_modifier, 0.0, "High loyalty should not increase veto");
+    assert_eq!(
+        modifiers.veto_probability_modifier, 0.0,
+        "High loyalty should not increase veto"
+    );
 }
 
 #[test]
@@ -287,11 +314,20 @@ fn test_council_calculate_influence_modifiers_low_loyalty() {
     });
     let modifiers = council.calculate_influence_modifiers();
     // Low loyalty → negative decree speed (slower).
-    assert!(modifiers.decree_speed_modifier < 0.0, "Low loyalty should slow decrees");
+    assert!(
+        modifiers.decree_speed_modifier < 0.0,
+        "Low loyalty should slow decrees"
+    );
     // Low loyalty → positive veto modifier.
-    assert!(modifiers.veto_probability_modifier > 0.0, "Low loyalty should increase veto chance");
+    assert!(
+        modifiers.veto_probability_modifier > 0.0,
+        "Low loyalty should increase veto chance"
+    );
     // Military faction with low loyalty → social unrest increases.
-    assert!(modifiers.social_unrest_delta > 0.0, "Low military loyalty should increase unrest");
+    assert!(
+        modifiers.social_unrest_delta > 0.0,
+        "Low military loyalty should increase unrest"
+    );
 }
 
 #[test]
@@ -308,7 +344,10 @@ fn test_council_religious_faction_reduces_unrest() {
     });
     let modifiers = council.calculate_influence_modifiers();
     // Religious faction with high loyalty → social unrest decreases.
-    assert!(modifiers.social_unrest_delta < 0.0, "High religious loyalty should reduce unrest");
+    assert!(
+        modifiers.social_unrest_delta < 0.0,
+        "High religious loyalty should reduce unrest"
+    );
 }
 
 #[test]
@@ -324,8 +363,14 @@ fn test_council_loyalty_drift_positive_gdp() {
     });
     // Positive GDP growth, no inflation, no unrest.
     council.apply_loyalty_drift(5.0, 0.0, 0.0, 0.0);
-    assert!(council.members[0].loyalty > 0.5, "Positive GDP should increase loyalty");
-    assert!(council.aggregate_loyalty > 0.5, "Aggregate loyalty should increase");
+    assert!(
+        council.members[0].loyalty > 0.5,
+        "Positive GDP should increase loyalty"
+    );
+    assert!(
+        council.aggregate_loyalty > 0.5,
+        "Aggregate loyalty should increase"
+    );
 }
 
 #[test]
@@ -341,7 +386,10 @@ fn test_council_loyalty_drift_high_inflation() {
     });
     // High inflation, no GDP growth.
     council.apply_loyalty_drift(0.0, 20.0, 0.0, 0.0);
-    assert!(council.members[0].loyalty < 0.7, "High inflation should decrease loyalty");
+    assert!(
+        council.members[0].loyalty < 0.7,
+        "High inflation should decrease loyalty"
+    );
 }
 
 #[test]
@@ -369,7 +417,8 @@ fn test_council_loyalty_drift_military_bonus() {
     assert!(
         council.members[0].loyalty > council.members[1].loyalty,
         "Military faction should get bonus from military spending (mil={}, nob={})",
-        council.members[0].loyalty, council.members[1].loyalty
+        council.members[0].loyalty,
+        council.members[1].loyalty
     );
 }
 
@@ -386,15 +435,24 @@ fn test_council_loyalty_drift_clamps_to_zero_and_one() {
     });
     // Extreme negative conditions.
     council.apply_loyalty_drift(-10.0, 50.0, 100.0, 0.0);
-    assert!(council.members[0].loyalty >= 0.0, "Loyalty should not go below 0.0");
-    assert!(council.members[0].loyalty <= 1.0, "Loyalty should not exceed 1.0");
+    assert!(
+        council.members[0].loyalty >= 0.0,
+        "Loyalty should not go below 0.0"
+    );
+    assert!(
+        council.members[0].loyalty <= 1.0,
+        "Loyalty should not exceed 1.0"
+    );
 }
 
 #[test]
 fn test_council_coup_risk_active_below_threshold() {
     let mut council = AdvisoryCouncil::new(CouncilType::MilitaryJunta);
     council.aggregate_loyalty = 0.2;
-    assert!(council.coup_risk_active(10), "Coup risk should be active with low loyalty");
+    assert!(
+        council.coup_risk_active(10),
+        "Coup risk should be active with low loyalty"
+    );
 }
 
 #[test]
@@ -402,7 +460,10 @@ fn test_council_coup_cooldown_blocks_risk() {
     let mut council = AdvisoryCouncil::new(CouncilType::MilitaryJunta);
     council.aggregate_loyalty = 0.1;
     council.coup_cooldown_until_turn = 30;
-    assert!(!council.coup_risk_active(10), "Cooldown should block coup risk");
+    assert!(
+        !council.coup_risk_active(10),
+        "Cooldown should block coup risk"
+    );
 }
 
 // ============================================================================
@@ -440,7 +501,10 @@ fn test_royal_dynasty_new_has_empty_event_history() {
 
 #[test]
 fn test_royal_marriage_significance_variants() {
-    assert_eq!(MarriageSignificance::default(), MarriageSignificance::Dynastic);
+    assert_eq!(
+        MarriageSignificance::default(),
+        MarriageSignificance::Dynastic
+    );
     let m = RoyalMarriage {
         turn: 1,
         spouse1_vip_id: "VIP-001".to_string(),
@@ -459,7 +523,10 @@ fn test_dynasty_process_marriage_creates_spouse_vip() {
         full_name: "King Albert".to_string(),
         gender: "M".to_string(),
         age: 25,
-        health: VipHealth { physical_health: 1.0, mental_health: 1.0 },
+        health: VipHealth {
+            physical_health: 1.0,
+            mental_health: 1.0,
+        },
         incapacity: IncapacityStatus::Healthy,
         traits: Vec::new(),
         main_trait: String::new(),
@@ -512,12 +579,21 @@ fn test_dynasty_process_marriage_creates_spouse_vip() {
 
     // The spouse should be a real VIP in the registry.
     let dyn_ref = dynasty.as_ref().unwrap();
-    assert!(!dyn_ref.marriage_history.is_empty(), "Marriage history should be populated");
+    assert!(
+        !dyn_ref.marriage_history.is_empty(),
+        "Marriage history should be populated"
+    );
     let marriage = &dyn_ref.marriage_history[0];
     let registry = registry_opt.as_ref().unwrap();
     let spouse = registry.get(&marriage.spouse2_vip_id);
     assert!(spouse.is_some(), "Spouse VIP should exist in registry");
-    assert!(spouse.unwrap().roles.contains(&VipRoleExtended::RoyalConsort), "Spouse should have RoyalConsort role");
+    assert!(
+        spouse
+            .unwrap()
+            .roles
+            .contains(&VipRoleExtended::RoyalConsort),
+        "Spouse should have RoyalConsort role"
+    );
 }
 
 #[test]
@@ -528,7 +604,10 @@ fn test_dynasty_succession_order_after_birth() {
         full_name: "King Albert".to_string(),
         gender: "M".to_string(),
         age: 30,
-        health: VipHealth { physical_health: 1.0, mental_health: 1.0 },
+        health: VipHealth {
+            physical_health: 1.0,
+            mental_health: 1.0,
+        },
         incapacity: IncapacityStatus::Healthy,
         traits: Vec::new(),
         main_trait: String::new(),
@@ -595,22 +674,41 @@ fn test_dynasty_succession_order_after_birth() {
     // the child is in the registry and has correct genealogy links.
     if birth_occurred {
         let dyn_ref = dynasty.as_ref().unwrap();
-        assert!(!dyn_ref.birth_history.is_empty(), "Birth history should be populated");
+        assert!(
+            !dyn_ref.birth_history.is_empty(),
+            "Birth history should be populated"
+        );
 
         let birth = &dyn_ref.birth_history[0];
         let registry = registry_opt.as_ref().unwrap();
         let child = registry.get(&birth.child_vip_id);
         assert!(child.is_some(), "Child VIP should exist in registry");
         assert_eq!(child.unwrap().age, 0, "Child should be age 0");
-        assert_eq!(child.unwrap().dynasty, Some("Habsburg".to_string()), "Child should be in dynasty");
+        assert_eq!(
+            child.unwrap().dynasty,
+            Some("Habsburg".to_string()),
+            "Child should be in dynasty"
+        );
 
         // Check genealogy links on the child's RoyalFamilyMember entry.
-        let child_member = dyn_ref.members.iter().find(|m| m.vip_id == birth.child_vip_id);
+        let child_member = dyn_ref
+            .members
+            .iter()
+            .find(|m| m.vip_id == birth.child_vip_id);
         assert!(child_member.is_some(), "Child should be in dynasty members");
         let child_member = child_member.unwrap();
-        assert!(child_member.father_vip_id.is_some(), "Child should have father link");
-        assert!(child_member.mother_vip_id.is_some(), "Child should have mother link");
-        assert_eq!(child_member.birth_turn, birth.turn, "Birth turn should match");
+        assert!(
+            child_member.father_vip_id.is_some(),
+            "Child should have father link"
+        );
+        assert!(
+            child_member.mother_vip_id.is_some(),
+            "Child should have mother link"
+        );
+        assert_eq!(
+            child_member.birth_turn, birth.turn,
+            "Birth turn should match"
+        );
     }
 }
 
@@ -622,7 +720,10 @@ fn test_dynasty_death_updates_member_record() {
         full_name: "King Albert".to_string(),
         gender: "M".to_string(),
         age: 80,
-        health: VipHealth { physical_health: 0.1, mental_health: 0.1 },
+        health: VipHealth {
+            physical_health: 0.1,
+            mental_health: 0.1,
+        },
         incapacity: IncapacityStatus::Healthy,
         traits: Vec::new(),
         main_trait: String::new(),
@@ -676,10 +777,16 @@ fn test_dynasty_death_updates_member_record() {
     // Death should be recorded on the dynasty member.
     let dyn_ref = dynasty.as_ref().unwrap();
     let member = dyn_ref.members.iter().find(|m| m.vip_id == monarch_id);
-    assert!(member.is_some(), "Monarch should still be in dynasty members");
+    assert!(
+        member.is_some(),
+        "Monarch should still be in dynasty members"
+    );
     let member = member.unwrap();
     assert_eq!(member.death_turn, Some(50), "Death turn should be recorded");
-    assert!(member.death_cause.is_some(), "Death cause should be recorded");
+    assert!(
+        member.death_cause.is_some(),
+        "Death cause should be recorded"
+    );
 
     // A death message should have been emitted.
     assert!(

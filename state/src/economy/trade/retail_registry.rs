@@ -13,15 +13,12 @@ use std::sync::OnceLock;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CommodityProfile {
     /// Base attractiveness multiplier for this commodity
-
     pub attractiveness_multiplier: f64,
-    
+
     /// Per-unit storage requirements (sq meters per unit)
-
     pub storage_sqm_per_unit: f64,
-    
-    /// Perishability flag (true = requires cold storage)
 
+    /// Perishability flag (true = requires cold storage)
     pub perishable: bool,
 }
 
@@ -29,23 +26,18 @@ pub struct CommodityProfile {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RetailConfig {
     /// Consumer inertia weight (0.0-1.0) for brand loyalty
-
     pub inertia_weight: f64,
-    
+
     /// Grace period turns for new stores before inertia applies
-
     pub newcomer_grace_turns: u32,
-    
+
     /// Expected turnover rate for capacity amortization
-
     pub expected_turnover_rate: f64,
-    
+
     /// Minimum throughput units for pricing floor
-
     pub min_throughput_units: f64,
-    
-    /// Default markup ratio for new stores
 
+    /// Default markup ratio for new stores
     pub default_markup_ratio: f64,
 }
 
@@ -267,38 +259,40 @@ pub fn is_compatible(profile: StoreProfile, commodity: Commodity) -> bool {
     match profile {
         StoreProfile::Grocery => matches!(
             commodity,
-            Commodity::Cereal | Commodity::Vegetable | Commodity::Fruit | Commodity::Food
-                | Commodity::Meat  // Phase 20: Meat in grocery
+            Commodity::Cereal
+                | Commodity::Vegetable
+                | Commodity::Fruit
+                | Commodity::Food
+                | Commodity::Meat // Phase 20: Meat in grocery
         ),
-        StoreProfile::Butcher => matches!(
-            commodity,
-            Commodity::Meat | Commodity::Fish
-        ),
+        StoreProfile::Butcher => matches!(commodity, Commodity::Meat | Commodity::Fish),
         StoreProfile::Bakery => matches!(commodity, Commodity::Cereal | Commodity::Food),
         StoreProfile::Clothing => matches!(
             commodity,
-            Commodity::Clothing | Commodity::LuxuryClothing  // Phase 20: LuxuryClothing
+            Commodity::Clothing | Commodity::LuxuryClothing // Phase 20: LuxuryClothing
         ),
         StoreProfile::Household => matches!(
             commodity,
-            Commodity::Furniture | Commodity::LuxuryFurniture | Commodity::Agd  // Phase 20: Agd
+            Commodity::Furniture | Commodity::LuxuryFurniture | Commodity::Agd // Phase 20: Agd
         ),
         StoreProfile::Electronics => matches!(
             commodity,
-            Commodity::OfficeMachinery | Commodity::ElectronicComponents
-                | Commodity::Radio | Commodity::Televisions  // Phase 20: Radio, Televisions
+            Commodity::OfficeMachinery
+                | Commodity::ElectronicComponents
+                | Commodity::Radio
+                | Commodity::Televisions // Phase 20: Radio, Televisions
         ),
         StoreProfile::Luxury => matches!(
             commodity,
-            Commodity::LuxuryFurniture | Commodity::Luxury | Commodity::LuxuryClothing  // Phase 20: LuxuryClothing
+            Commodity::LuxuryFurniture | Commodity::Luxury | Commodity::LuxuryClothing // Phase 20: LuxuryClothing
         ),
         StoreProfile::CarDealer => matches!(
             commodity,
-            Commodity::Cars | Commodity::Trucks  // Phase 20: Car dealer profile
+            Commodity::Cars | Commodity::Trucks // Phase 20: Car dealer profile
         ),
         StoreProfile::GasStation => matches!(
             commodity,
-            Commodity::Fuels | Commodity::RefinedFuel  // Phase 30: Motor fuel retail
+            Commodity::Fuels | Commodity::RefinedFuel // Phase 30: Motor fuel retail
         ),
     }
 }
@@ -348,11 +342,7 @@ pub fn select_retail_format(
 ) -> RetailFormatSpec {
     // Try formats from most advanced to most basic; pick the first that qualifies.
     // ShoppingCenter: capital + high development + modern era + high wealth
-    if is_capital
-        && development_level >= 0.85
-        && year >= 1975
-        && wealth_per_capita >= 2000.0
-    {
+    if is_capital && development_level >= 0.85 && year >= 1975 && wealth_per_capita >= 2000.0 {
         return RetailFormatSpec {
             building_type: CommercialBuildingType::ShoppingCenter,
             min_development: 0.85,

@@ -5,9 +5,10 @@
 //! input demand and output supply in a [`MarketOrders`] struct; full market
 //! clearing and company-level financial processing are left for later parts.
 
-use crate::economy::market::MarketOrders;
 use crate::economy::geology;
+use crate::economy::market::MarketOrders;
 use crate::entities::{ActiveProductionMethod, Building};
+use crate::infrastructure::CapacityType;
 use crate::registries::enums::{Commodity, Sector};
 use crate::registries::Registries;
 use crate::state::Country;
@@ -31,6 +32,13 @@ pub struct ProductionResult {
     pub output_revenue: f64,
     /// Gross profit (revenue - input costs - wages).
     pub gross_profit: f64,
+    /// Phase 95: Blueprint metadata for the primary blueprint-eligible output.
+    /// None if no blueprint is active (legacy flat production).
+    pub blueprint_id: Option<String>,
+    /// Phase 95: Quality of the blueprint-eligible output (0.0..~2.0).
+    pub quality: Option<f64>,
+    /// Phase 95: Durability (expected lifespan in turns) of the output.
+    pub durability: Option<f64>,
 }
 
 /// Resolves the production method for a building.
@@ -62,7 +70,9 @@ fn resolve_active_method(
     // Phase 24A.5: Try building.name first (Polish display name), then fall
     // back to the English snake_case sector key (canonical key scheme).
     // This bridges the duplicate registry without breaking existing saves.
-    let methods = registries.production_methods.get(&building.name)
+    let methods = registries
+        .production_methods
+        .get(&building.name)
         .or_else(|| {
             let sector_key = serde_json::to_value(building.sector)
                 .ok()
@@ -96,6 +106,7 @@ fn resolve_active_method(
                 biohazard_factor: pm.biohazard_factor,
                 output_water_quality: pm.output_water_quality,
                 discharge_quality: pm.discharge_quality,
+                seat_type: pm.seat_type,
                 extra: Default::default(),
             };
         }
@@ -117,6 +128,7 @@ fn resolve_active_method(
         biohazard_factor: 0.0,
         output_water_quality: 0.0,
         discharge_quality: 0.0,
+        seat_type: None,
         extra: Default::default(),
     }
 }
@@ -126,7 +138,12 @@ fn resolve_active_method(
 /// # Rules
 /// * For inputs, fallback is `max(10.0, base_wage * 0.05)`.
 /// * For outputs, fallback is `max(50.0, base_wage * 0.1)`.
-fn price_for(good: Commodity, market_prices: &HashMap<Commodity, f64>, base_wage: f64, is_input: bool) -> f64 {
+fn price_for(
+    good: Commodity,
+    market_prices: &HashMap<Commodity, f64>,
+    base_wage: f64,
+    is_input: bool,
+) -> f64 {
     if let Some(&price) = market_prices.get(&good) {
         return price;
     }
@@ -147,6 +164,37 @@ fn price_for(good: Commodity, market_prices: &HashMap<Commodity, f64>, base_wage
 /// * `current_year` - In-game year.
 /// * `registries` - Static registries.
 ///
+/// Phase A.3: Compute the physical education seat budget for a building.
+///
+/// Returns `Some(max_seats)` if the building has a typed `seat_type`, or `None`
+/// if the building is not an education provider. The budget is derived from
+/// the building's physical capacity and condition (Rule 15: physical scaling),
+/// NOT from nominal financial values.
+///
+/// The seat budget is:
+///   `worker_capacity * scale_factor * condition * utilization_factor`
+///
+/// where `condition` reflects physical wear (a ruined school has fewer usable
+/// seats) and `utilization_factor` accounts for operational readiness.
+fn education_seat_budget_for_building(building: &Building) -> Option<f64> {
+    let seat_type = building.active_method.seat_type?;
+    // Map the typed CapacityType to a physical seat budget.
+    // The budget is proportional to the building's physical capacity.
+    let base_seats = building.worker_capacity as f64 * building.scale_factor.max(1) as f64;
+    // Condition reduces usable seats (a crumbling school can't use all seats).
+    let condition_factor = building.condition.clamp(0.0, 1.0);
+    // Different capacity types have different seat-to-worker ratios.
+    // Education buildings typically have 5-10 seats per worker (teacher).
+    let seats_per_worker = match seat_type {
+        CapacityType::PrimarySeats => 10.0,
+        CapacityType::HighSchoolSeats => 8.0,
+        CapacityType::UniversitySlots => 5.0,
+        _ => return None,
+    };
+    Some(base_seats * seats_per_worker * condition_factor)
+}
+
+///
 /// # Returns
 /// A [`ProductionResult`] summarizing the quantities consumed and produced
 /// and the financial flows.
@@ -159,6 +207,8 @@ fn price_for(good: Commodity, market_prices: &HashMap<Commodity, f64>, base_wage
 /// * Wages are `base_wage * (3*experts + 2*skilled + 1*unskilled) * employment`.
 /// * `market_orders` is updated for every input (buy) and output (sell).
 /// * `building.last_production` and `building.last_profit` are overwritten.
+/// * Phase A.3: `EducationSlots` output is clamped to the physical seat
+///   budget derived from the building's typed `seat_type` (no string matching).
 pub fn process_building_cycle(
     building: &mut Building,
     market_orders: &mut MarketOrders,
@@ -167,6 +217,7 @@ pub fn process_building_cycle(
     current_year: u32,
     registries: &Registries,
     disruption_factor: f64,
+    active_blueprint: Option<&crate::economy::trade::blueprints::ProductBlueprint>,
 ) -> ProductionResult {
     let method = resolve_active_method(building, current_year, registries);
     building.active_method = method.clone();
@@ -176,10 +227,16 @@ pub fn process_building_cycle(
     let effective_employment = base_employment * scale * (1.0 - disruption_factor.clamp(0.0, 1.0));
     let production_scale = effective_employment / 1000.0;
 
+    // Phase A.3: Compute the physical seat budget for this building.
+    // EducationSlots output is clamped to this budget (Rule 15: physical scaling).
+    // The seat_type is read directly from the typed field (no string matching).
+    let seat_budget = education_seat_budget_for_building(building);
+
     // Condition-based OPEX multiplier: worse condition = higher operating costs
     let opex_multiplier = 1.0 + (1.0 - building.condition) * 1.0;
 
-    let wage_multiplier = method.experts_ratio * 3.0 + method.skilled_ratio * 2.0 + method.basic_ratio;
+    let wage_multiplier =
+        method.experts_ratio * 3.0 + method.skilled_ratio * 2.0 + method.basic_ratio;
     let wages_paid = effective_employment * wage_multiplier * base_wage * opex_multiplier;
 
     let mut result = ProductionResult::default();
@@ -217,7 +274,11 @@ pub fn process_building_cycle(
         fuel_candidates.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
 
         // Determine target energy output (MJ-equivalent) from the method's Energy output
-        let target_energy: f64 = method.outputs.get(&Commodity::Energy).copied().unwrap_or(0.0)
+        let target_energy: f64 = method
+            .outputs
+            .get(&Commodity::Energy)
+            .copied()
+            .unwrap_or(0.0)
             * production_scale;
         // Required fuel energy = target_energy / thermal_efficiency
         let required_mj = if method.thermal_efficiency > 0.0 {
@@ -260,7 +321,9 @@ pub fn process_building_cycle(
         if actual_energy > 0.0 {
             let price = price_for(Commodity::Energy, market_prices, base_wage, false);
             output_revenue += actual_energy * price;
-            result.outputs_produced.insert(Commodity::Energy, actual_energy);
+            result
+                .outputs_produced
+                .insert(Commodity::Energy, actual_energy);
             last_production.insert(Commodity::Energy, actual_energy);
             // Phase 80: Removed market_orders.add_sell(Commodity::Energy, ...)
             // Energy is distributed locally, not traded on the global B2B market.
@@ -317,7 +380,9 @@ pub fn process_building_cycle(
         if output_energy > 0.0 {
             let price = price_for(Commodity::Energy, market_prices, base_wage, false);
             output_revenue += output_energy * price;
-            result.outputs_produced.insert(Commodity::Energy, output_energy);
+            result
+                .outputs_produced
+                .insert(Commodity::Energy, output_energy);
             last_production.insert(Commodity::Energy, output_energy);
             // Phase 80: Removed market_orders.add_sell(Commodity::Energy, ...)
             // Energy is a local grid utility, not a global B2B commodity.
@@ -345,21 +410,74 @@ pub fn process_building_cycle(
         // Wages are still paid (workers maintain crops during growing phase).
     } else {
         // Standard fixed-rate production path (non-energy buildings)
-        for (&input_name, amount_per_1k) in &method.inputs {
-            let amount = amount_per_1k * production_scale;
-            let price = price_for(input_name, market_prices, base_wage, true);
-            input_costs += amount * price;
-            result.inputs_consumed.insert(input_name, amount);
-            market_orders.add_buy(input_name, amount);
-        }
+        //
+        // Phase 95: Blueprint-aware production.
+        // If `active_blueprint` is provided and its `output_commodity` matches
+        // one of the building's outputs, the blueprint's BOM (`inputs`) replaces
+        // the method's default inputs for the blueprint-eligible commodity.
+        // The blueprint's `quality` and `durability` are recorded in the result
+        // for downstream cohort tracking and sell-ask metadata.
+        //
+        // Physical justification (Rule 15): the blueprint's BOM was computed by
+        // `design_blueprint` from `BlueprintSpec` roles — higher quality requires
+        // more/expensive physical materials. No "magic" quality buffs.
+        let bp = active_blueprint.filter(|bp| method.outputs.contains_key(&bp.output_commodity));
 
-        for (&output_name, amount_per_1k) in &method.outputs {
-            let amount = amount_per_1k * production_scale;
-            let price = price_for(output_name, market_prices, base_wage, false);
-            output_revenue += amount * price;
-            result.outputs_produced.insert(output_name, amount);
-            last_production.insert(output_name, amount);
-            market_orders.add_sell(output_name, amount);
+        if let Some(bp) = bp {
+            // Use the blueprint's BOM instead of the method's default inputs.
+            for (&input_name, amount_per_1k) in &bp.inputs {
+                let amount = amount_per_1k * production_scale;
+                let price = price_for(input_name, market_prices, base_wage, true);
+                input_costs += amount * price;
+                result.inputs_consumed.insert(input_name, amount);
+                market_orders.add_buy(input_name, amount);
+            }
+
+            // Outputs: use the method's output quantities (the blueprint doesn't
+            // change output quantity — it changes quality/durability via the BOM).
+            for (&output_name, amount_per_1k) in &method.outputs {
+                let mut amount = amount_per_1k * production_scale;
+                // Phase A.3: Clamp EducationSlots to physical seat budget.
+                if output_name == Commodity::EducationSlots {
+                    if let Some(budget) = seat_budget {
+                        amount = amount.min(budget);
+                    }
+                }
+                let price = price_for(output_name, market_prices, base_wage, false);
+                output_revenue += amount * price;
+                result.outputs_produced.insert(output_name, amount);
+                last_production.insert(output_name, amount);
+                market_orders.add_sell(output_name, amount);
+            }
+
+            // Record blueprint metadata for the primary output.
+            result.blueprint_id = Some(bp.id.clone());
+            result.quality = Some(bp.quality);
+            result.durability = Some(bp.durability);
+        } else {
+            // No blueprint: legacy fixed-rate production.
+            for (&input_name, amount_per_1k) in &method.inputs {
+                let amount = amount_per_1k * production_scale;
+                let price = price_for(input_name, market_prices, base_wage, true);
+                input_costs += amount * price;
+                result.inputs_consumed.insert(input_name, amount);
+                market_orders.add_buy(input_name, amount);
+            }
+
+            for (&output_name, amount_per_1k) in &method.outputs {
+                let mut amount = amount_per_1k * production_scale;
+                // Phase A.3: Clamp EducationSlots to physical seat budget.
+                if output_name == Commodity::EducationSlots {
+                    if let Some(budget) = seat_budget {
+                        amount = amount.min(budget);
+                    }
+                }
+                let price = price_for(output_name, market_prices, base_wage, false);
+                output_revenue += amount * price;
+                result.outputs_produced.insert(output_name, amount);
+                last_production.insert(output_name, amount);
+                market_orders.add_sell(output_name, amount);
+            }
         }
     }
 
@@ -408,12 +526,19 @@ pub fn process_building_cycle_with_geology(
     current_year: u32,
     registries: &Registries,
     disruption_factor: f64,
+    active_blueprint: Option<&crate::economy::trade::blueprints::ProductBlueprint>,
 ) -> ProductionResult {
     // Non-mining buildings: delegate directly, no deposit physics.
     if building.sector != Sector::Mining {
         return process_building_cycle(
-            building, market_orders, market_prices, base_wage,
-            current_year, registries, disruption_factor,
+            building,
+            market_orders,
+            market_prices,
+            base_wage,
+            current_year,
+            registries,
+            disruption_factor,
+            active_blueprint,
         );
     }
 
@@ -423,8 +548,14 @@ pub fn process_building_cycle_with_geology(
         Some(id) if !id.is_empty() => id.clone(),
         _ => {
             return process_building_cycle(
-                building, market_orders, market_prices, base_wage,
-                current_year, registries, disruption_factor,
+                building,
+                market_orders,
+                market_prices,
+                base_wage,
+                current_year,
+                registries,
+                disruption_factor,
+                active_blueprint,
             );
         }
     };
@@ -436,11 +567,12 @@ pub fn process_building_cycle_with_geology(
     // Phase 93: Use vein-based geology if Planet is available, otherwise legacy.
     let (depth_accessible, quality_mult) = if let Some(planet) = planet {
         let depth_ok = crate::economy::production::geology::vein_is_accessible(
-            planet, &deposit_id, method.year,
+            planet,
+            &deposit_id,
+            method.year,
         );
-        let quality = crate::economy::production::geology::vein_quality_multiplier(
-            planet, &deposit_id,
-        );
+        let quality =
+            crate::economy::production::geology::vein_quality_multiplier(planet, &deposit_id);
         (depth_ok, quality)
     } else {
         // Legacy fallback: use country.geological_formations.
@@ -466,7 +598,8 @@ pub fn process_building_cycle_with_geology(
     let production_scale = effective_employment / 1000.0;
 
     let opex_multiplier = 1.0 + (1.0 - building.condition) * 1.0;
-    let wage_multiplier = method.experts_ratio * 3.0 + method.skilled_ratio * 2.0 + method.basic_ratio;
+    let wage_multiplier =
+        method.experts_ratio * 3.0 + method.skilled_ratio * 2.0 + method.basic_ratio;
     let wages_paid = effective_employment * wage_multiplier * base_wage * opex_multiplier;
 
     let mut result = ProductionResult::default();
@@ -537,12 +670,9 @@ mod tests {
                 skilled_ratio: 0.2784,
                 basic_ratio: 0.6701,
                 efficiency: 1.0,
-                inputs: [
-                    (Commodity::Limestone, 10.0),
-                    (Commodity::HardCoal, 5.0),
-                ]
-                .into_iter()
-                .collect(),
+                inputs: [(Commodity::Limestone, 10.0), (Commodity::HardCoal, 5.0)]
+                    .into_iter()
+                    .collect(),
                 outputs: [(Commodity::Cement, 3000.0)].into_iter().collect(),
                 ..Default::default()
             },
@@ -558,6 +688,7 @@ mod tests {
             2020,
             &reg,
             0.0,
+            None,
         );
 
         let scale = 4800.0 / 1000.0;

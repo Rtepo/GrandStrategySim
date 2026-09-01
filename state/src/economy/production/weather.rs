@@ -288,7 +288,10 @@ pub fn process_weather_turn(country: &mut Country, season: Season, turn: u32) {
     };
 
     // Expire events whose remaining_turns has reached 0.
-    country.weather_state.active_events.retain(|e| e.remaining_turns > 0);
+    country
+        .weather_state
+        .active_events
+        .retain(|e| e.remaining_turns > 0);
     for event in &mut country.weather_state.active_events {
         event.remaining_turns = event.remaining_turns.saturating_sub(1);
     }

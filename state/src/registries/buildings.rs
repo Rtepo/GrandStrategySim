@@ -19,23 +19,18 @@ pub type BuildingKind = String;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BuildingTemplate {
     /// GDP sector this building belongs to (`"gdp_sector"`).
-
     pub sector: Sector,
 
     /// One-time construction cost in currency units (`"koszt_budowy"`).
-
     pub build_cost: u64,
 
     /// Construction time in turns (`"czas_budowy"`).
-
     pub build_time_turns: u32,
 
     /// Maximum number of workers employed (`"worker_capacity"`).
-
     pub worker_capacity: u32,
 
     /// Earliest year the building may be constructed (`"min_year"`).
-
     pub min_year: u32,
 
     /// Technology required to unlock, if any (`"required_tech"`).
@@ -47,7 +42,6 @@ pub struct BuildingTemplate {
     pub lower_tier: Option<BuildingKind>,
 
     /// Land footprint in hectares (`"powierzchnia_ha"`).
-
     pub area_ha: u32,
 }
 

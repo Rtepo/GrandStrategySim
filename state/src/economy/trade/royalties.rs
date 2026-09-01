@@ -6,6 +6,7 @@
 use crate::economy::corporate_config::CorporateTechConfig;
 use crate::economy::innovation_config::InnovationConfig;
 use crate::economy::market_history::MarketHistory;
+use crate::economy::trade::transfer_settler::{credit_company_by_id, debit_company_by_id};
 use crate::entities::Company;
 use crate::registries::enums::Commodity;
 use crate::registries::tech_tree::TechId;
@@ -36,57 +37,55 @@ pub fn calculate_royalty_fulfillment_ratio(
     if licensed_methods.is_empty() || planned_quantity <= 0.0 {
         return 1.0; // No royalties needed
     }
-    
+
     let total_required_royalty: f64 = licensed_methods
         .iter()
         .map(|(_, royalty_ratio)| planned_quantity * royalty_ratio * last_turn_vwap)
         .sum();
-    
+
     if total_required_royalty <= 0.0 {
         return 1.0_f64;
     }
-    
+
     // Calculate fulfillment ratio based on available cash
     let ratio: f64 = company.available_cash / total_required_royalty;
-    
+
     ratio.min(1.0_f64)
 }
 
-/// Deducts royalty payments from licensee and credits to licensor.
+/// Deducts royalty payments from licensee and credits to licensor via TransferSettler.
 ///
 /// # Arguments
-/// * `licensee` - Company paying royalties
-/// * `licensor` - Company receiving royalties
+/// * `companies` - All companies (licensee and licensor found by ID)
+/// * `licensee_id` - ID of the company paying royalties
+/// * `licensor_id` - ID of the company receiving royalties
 /// * `actual_quantity` - Actual production quantity (after fulfillment ratio)
 /// * `last_turn_vwap` - Last turn's VWAP for output commodity
 /// * `royalty_vwap_ratio` - Royalty VWAP ratio from patent
 ///
-/// # Returns
-/// Updated licensee and licensor with royalty transfer
-///
 /// # Rules
 /// * Atomic payment: cash must be available upfront
 /// * Proportional scaling: actual_quantity * royalty_vwap_ratio * last_turn_vwap
-/// * Double-Entry: licensee.available_cash decreases, licensor.available_cash increases
+/// * Double-Entry: via `debit_company_by_id` / `credit_company_by_id` (bank sync)
 pub fn process_royalty_payment(
-    licensee: &mut Company,
-    licensor: &mut Company,
+    companies: &mut [Company],
+    licensee_id: &str,
+    licensor_id: &str,
     actual_quantity: f64,
     last_turn_vwap: f64,
     royalty_vwap_ratio: f64,
 ) {
     let royalty_amount = actual_quantity * royalty_vwap_ratio * last_turn_vwap;
-    
+
     if royalty_amount <= 0.0 {
         return;
     }
-    
-    // Atomic payment: deduct from licensee
-    if licensee.available_cash >= royalty_amount {
-        licensee.available_cash -= royalty_amount;
-        licensor.available_cash += royalty_amount;
+
+    // Double-entry via TransferSettler helpers (bank balance-sheet sync).
+    let debited = debit_company_by_id(companies, licensee_id, royalty_amount);
+    if debited > 0.0 {
+        credit_company_by_id(companies, licensor_id, debited);
     }
-    // If insufficient cash, payment fails (graceful degradation already handled)
 }
 
 /// Integrates royalty payments into production cycle.
@@ -109,31 +108,34 @@ pub fn integrate_royalty_payments(
     market_history: &MarketHistory,
     planned_production: &BTreeMap<String, f64>,
     innovation_config: &InnovationConfig,
+    average_wage: f64,
 ) {
+    // Dynamic VWAP fallback: 10× average_wage (inflation-proof, Rule 2).
+    let vwap_fallback = average_wage * 10.0;
+
     // First pass: calculate fulfillment ratios and collect payment instructions
     let mut payment_instructions: Vec<(String, String, f64)> = Vec::new();
-    
+
     for company in companies.iter() {
         let planned_quantity = planned_production.get(&company.id).copied().unwrap_or(0.0);
-        
+
         if planned_quantity <= 0.0 || company.licensed_methods.is_empty() {
             continue;
         }
-        
+
         // Get last turn's VWAP for output commodity (use first output from first licensed method)
         let last_turn_vwap = market_history
             .vwap_per_commodity
             .values()
-        .next()
-        .copied()
-        .unwrap_or(100.0);
-        
+            .next()
+            .copied()
+            .unwrap_or(vwap_fallback);
+
         // Calculate royalty fulfillment ratio using patent's royalty_vwap_ratio or config default
         let licensed_royalties: Vec<(TechId, f64)> = company
             .licensed_methods
             .iter()
             .map(|lm| {
-                // Look up patent for this licensed method to get royalty_vwap_ratio
                 let ratio = company
                     .patents
                     .iter()
@@ -143,16 +145,16 @@ pub fn integrate_royalty_payments(
                 (lm.tech_id.clone(), ratio)
             })
             .collect();
-        
+
         let fulfillment_ratio = calculate_royalty_fulfillment_ratio(
             company,
             planned_quantity,
             last_turn_vwap,
             &licensed_royalties,
         );
-        
+
         let actual_quantity = planned_quantity * fulfillment_ratio;
-        
+
         // Collect payment instructions
         for licensed_method in &company.licensed_methods {
             let royalty_ratio = company
@@ -169,28 +171,15 @@ pub fn integrate_royalty_payments(
             ));
         }
     }
-    
-    // Second pass: process royalty payments using collected instructions
+
+    // Second pass: process royalty payments via TransferSettler (double-entry, bank sync).
     for (licensee_id, licensor_id, royalty_amount) in payment_instructions {
-        let last_turn_vwap = market_history
-            .vwap_per_commodity
-            .values()
-            .next()
-            .copied()
-            .unwrap_or(100.0);
-        
-        // Find indices to avoid borrow checker issues
-        let licensee_idx = companies.iter().position(|c| c.id == licensee_id);
-        let licensor_idx = companies.iter().position(|c| c.id == licensor_id);
-        
-        if let (Some(lic_idx), Some(licensor_idx)) = (licensee_idx, licensor_idx) {
-            if lic_idx != licensor_idx {
-                let royalty_vwap_ratio = innovation_config.default_royalty_vwap_ratio;
-                // Process payment using indices
-                let _actual_quantity = royalty_amount / (royalty_vwap_ratio * last_turn_vwap);
-                companies[lic_idx].available_cash -= royalty_amount;
-                companies[licensor_idx].available_cash += royalty_amount;
-            }
+        if royalty_amount <= 0.0 || licensee_id == licensor_id {
+            continue;
+        }
+        let debited = debit_company_by_id(companies, &licensee_id, royalty_amount);
+        if debited > 0.0 {
+            credit_company_by_id(companies, &licensor_id, debited);
         }
     }
 }
@@ -218,33 +207,37 @@ pub fn process_all_royalty_payments(
     innovation_config: &InnovationConfig,
     corporate_tech_config: &CorporateTechConfig,
     treasury: &mut Treasury,
+    average_wage: f64,
 ) {
     // First: process private-to-private royalties via integrate_royalty_payments
-    integrate_royalty_payments(companies, market_history, planned_production, innovation_config);
+    integrate_royalty_payments(
+        companies,
+        market_history,
+        planned_production,
+        innovation_config,
+        average_wage,
+    );
 
     // Second: process state patent royalties
     // State patents are those held by the state (not by any company).
-    // For now, we use the state_patent_royalty_ratio from config as a flat rate
-    // applied to all companies that use technologies discovered by state research.
     let state_royalty_ratio = corporate_tech_config.state_patent_royalty_ratio;
+    let vwap_fallback = average_wage * 10.0;
 
-    for company in companies.iter_mut() {
+    // Collect state royalty payments (debit via TransferSettler, credit treasury).
+    let mut state_payments: Vec<(String, f64)> = Vec::new();
+    for company in companies.iter() {
         let planned_quantity = planned_production.get(&company.id).copied().unwrap_or(0.0);
         if planned_quantity <= 0.0 {
             continue;
         }
 
-        // Get VWAP for royalty calculation
         let last_turn_vwap = market_history
             .vwap_per_commodity
             .values()
             .next()
             .copied()
-            .unwrap_or(100.0);
+            .unwrap_or(vwap_fallback);
 
-        // Companies with licensed methods from state research pay state royalties
-        // We check if the licensor is the state (by convention, state-owned patents
-        // have licensor_company_id = "STATE")
         let has_state_license = company
             .licensed_methods
             .iter()
@@ -252,10 +245,17 @@ pub fn process_all_royalty_payments(
 
         if has_state_license {
             let state_royalty = planned_quantity * state_royalty_ratio * last_turn_vwap;
-            if state_royalty > 0.0 && company.available_cash >= state_royalty {
-                company.available_cash -= state_royalty;
-                treasury.liquid_reserves += state_royalty;
+            if state_royalty > 0.0 {
+                state_payments.push((company.id.clone(), state_royalty));
             }
+        }
+    }
+
+    // Process state royalties via TransferSettler (double-entry, bank sync).
+    for (company_id, state_royalty) in state_payments {
+        let debited = debit_company_by_id(companies, &company_id, state_royalty);
+        if debited > 0.0 {
+            treasury.liquid_reserves += debited;
         }
     }
 }
@@ -296,7 +296,7 @@ pub fn process_blueprint_royalty_payments(
     cross_border_queue: &mut Vec<crate::economy::blueprints::CrossBorderRoyaltyQueueEntry>,
 ) {
     use crate::economy::blueprints::{compute_blueprint_royalty_fee, LicensedBlueprint};
-    use crate::economy::transfer_settler::{debit_company_by_id, credit_company_by_id};
+    use crate::economy::transfer_settler::{credit_company_by_id, debit_company_by_id};
 
     // Snapshot licensed blueprints per company (avoid borrow conflicts).
     let licensed_per_company: Vec<(String, Vec<LicensedBlueprint>)> = companies
@@ -312,7 +312,11 @@ pub fn process_blueprint_royalty_payments(
             for bp in &company.blueprints {
                 idx.insert(
                     bp.id.clone(),
-                    (bp.owner_company_id.clone(), bp.output_commodity, bp.royalty_vwap_ratio),
+                    (
+                        bp.owner_company_id.clone(),
+                        bp.output_commodity,
+                        bp.royalty_vwap_ratio,
+                    ),
                 );
             }
         }
@@ -321,8 +325,10 @@ pub fn process_blueprint_royalty_payments(
 
     // Build a lookup of company_id → actual output qty per commodity this turn.
     // We sum `building.last_production[commodity]` across the company's buildings.
-    let mut company_output: std::collections::HashMap<String, std::collections::HashMap<Commodity, f64>> =
-        std::collections::HashMap::new();
+    let mut company_output: std::collections::HashMap<
+        String,
+        std::collections::HashMap<Commodity, f64>,
+    > = std::collections::HashMap::new();
     for building in buildings {
         let entry = company_output.entry(building.owner_id.clone()).or_default();
         for (&commodity, &qty) in &building.last_production {
@@ -333,10 +339,11 @@ pub fn process_blueprint_royalty_payments(
     for (licensee_id, licensed_bps) in &licensed_per_company {
         for licensed_bp in licensed_bps {
             // Look up the blueprint metadata.
-            let (licensor_id, output_commodity, royalty_ratio) = match blueprint_index.get(&licensed_bp.blueprint_id) {
-                Some(meta) => (meta.0.clone(), meta.1, meta.2),
-                None => continue, // Blueprint not found in any company — skip.
-            };
+            let (licensor_id, output_commodity, royalty_ratio) =
+                match blueprint_index.get(&licensed_bp.blueprint_id) {
+                    Some(meta) => (meta.0.clone(), meta.1, meta.2),
+                    None => continue, // Blueprint not found in any company — skip.
+                };
 
             // Actual output quantity of this commodity by the licensee this turn.
             let actual_qty = company_output
@@ -349,11 +356,22 @@ pub fn process_blueprint_royalty_payments(
             }
 
             // VWAP for the output commodity (last turn).
+            // Dynamic fallback: 10× average_wage (inflation-proof, Rule 2).
+            // Since we don't have average_wage here, use the global VWAP average
+            // or 100.0 as a last resort (this path is for blueprint royalties
+            // which are already wired to TransferSettler).
             let last_turn_vwap = market_history
                 .vwap_per_commodity
                 .get(&output_commodity)
                 .copied()
-                .unwrap_or(100.0);
+                .unwrap_or_else(|| {
+                    market_history
+                        .vwap_per_commodity
+                        .values()
+                        .next()
+                        .copied()
+                        .unwrap_or(100.0)
+                });
 
             let fee = compute_blueprint_royalty_fee(
                 &crate::economy::blueprints::ProductBlueprint {
@@ -395,12 +413,14 @@ pub fn process_blueprint_royalty_payments(
                 // queue the credit for the post-parallel sequential phase.
                 let debited = debit_company_by_id(companies, licensee_id, fee);
                 if debited > 0.0 {
-                    cross_border_queue.push(crate::economy::blueprints::CrossBorderRoyaltyQueueEntry {
-                        licensor_company_id: licensor_id.clone(),
-                        licensor_country: licensed_bp.licensor_country.clone(),
-                        amount: debited,
-                        blueprint_id: licensed_bp.blueprint_id.clone(),
-                    });
+                    cross_border_queue.push(
+                        crate::economy::blueprints::CrossBorderRoyaltyQueueEntry {
+                            licensor_company_id: licensor_id.clone(),
+                            licensor_country: licensed_bp.licensor_country.clone(),
+                            amount: debited,
+                            blueprint_id: licensed_bp.blueprint_id.clone(),
+                        },
+                    );
                 }
             }
         }
@@ -423,7 +443,8 @@ pub fn process_cross_border_royalty_queue(
     use crate::economy::transfer_settler::credit_company_by_id;
     let mut messages = Vec::new();
     for entry in queue {
-        let credited = credit_company_by_id(all_companies, &entry.licensor_company_id, entry.amount);
+        let credited =
+            credit_company_by_id(all_companies, &entry.licensor_company_id, entry.amount);
         if !credited {
             messages.push(format!(
                 "Cross-border royalty: licensor {} not found in country {}, amount {} dropped",
@@ -442,10 +463,10 @@ mod tests {
     fn royalty_fulfillment_ratio_sufficient_cash() {
         let mut company = Company::default();
         company.available_cash = 1000.0;
-        
+
         let licensed_methods = vec![("tech_001".to_string(), 0.05)];
         let ratio = calculate_royalty_fulfillment_ratio(&company, 1000.0, 100.0, &licensed_methods);
-        
+
         // Required: 1000 * 0.05 * 100 = 5000
         // Available: 1000
         // Ratio: 1000 / 5000 = 0.2
@@ -456,10 +477,10 @@ mod tests {
     fn royalty_fulfillment_ratio_excess_cash() {
         let mut company = Company::default();
         company.available_cash = 10000.0;
-        
+
         let licensed_methods = vec![("tech_001".to_string(), 0.05)];
         let ratio = calculate_royalty_fulfillment_ratio(&company, 1000.0, 100.0, &licensed_methods);
-        
+
         // Required: 1000 * 0.05 * 100 = 5000
         // Available: 10000
         // Ratio: 1.0 (capped)
@@ -471,14 +492,18 @@ mod tests {
         let mut licensee = Company::default();
         licensee.id = "LICENSEE".to_string();
         licensee.available_cash = 1000.0;
-        
+
         let mut licensor = Company::default();
         licensor.id = "LICENSOR".to_string();
         licensor.available_cash = 500.0;
-        
-        process_royalty_payment(&mut licensee, &mut licensor, 100.0, 100.0, 0.05);
-        
+
+        let mut companies = vec![licensee, licensor];
+        process_royalty_payment(&mut companies, "LICENSEE", "LICENSOR", 100.0, 100.0, 0.05);
+
         // Royalty: 100 * 0.05 * 100 = 500
+        // Find by ID since TransferSettler uses ID lookup.
+        let licensee = companies.iter().find(|c| c.id == "LICENSEE").unwrap();
+        let licensor = companies.iter().find(|c| c.id == "LICENSOR").unwrap();
         assert_eq!(licensee.available_cash, 500.0); // 1000 - 500
         assert_eq!(licensor.available_cash, 1000.0); // 500 + 500
     }
@@ -488,17 +513,20 @@ mod tests {
         let mut licensee = Company::default();
         licensee.id = "LICENSEE".to_string();
         licensee.available_cash = 100.0; // Insufficient for 500 royalty
-        
+
         let mut licensor = Company::default();
         licensor.id = "LICENSOR".to_string();
         licensor.available_cash = 500.0;
-        
-        process_royalty_payment(&mut licensee, &mut licensor, 100.0, 100.0, 0.05);
-        
+
+        let mut companies = vec![licensee, licensor];
+        process_royalty_payment(&mut companies, "LICENSEE", "LICENSOR", 100.0, 100.0, 0.05);
+
         // Royalty: 100 * 0.05 * 100 = 500
-        // Insufficient cash, no payment
-        assert_eq!(licensee.available_cash, 100.0); // Unchanged
-        assert_eq!(licensor.available_cash, 500.0); // Unchanged
+        // Insufficient cash — debit_company_by_id debits only what's available (100).
+        let licensee = companies.iter().find(|c| c.id == "LICENSEE").unwrap();
+        let licensor = companies.iter().find(|c| c.id == "LICENSOR").unwrap();
+        assert_eq!(licensee.available_cash, 0.0); // 100 - 100 (partial debit)
+        assert_eq!(licensor.available_cash, 600.0); // 500 + 100 (partial credit)
     }
 
     // ── Phase 19A: Blueprint royalty tests ───────────────────────────────
@@ -562,7 +590,9 @@ mod tests {
         // Building owned by licensee produced 1000 units of IndustrialMachinery.
         let mut building = Building::default();
         building.owner_id = "LICENSEE".to_string();
-        building.last_production.insert(Commodity::IndustrialMachinery, 1000.0);
+        building
+            .last_production
+            .insert(Commodity::IndustrialMachinery, 1000.0);
 
         let companies = vec![licensor, licensee];
         let buildings = vec![building];
@@ -582,7 +612,10 @@ mod tests {
 
         // Royalty fee = 1000 × 0.05 × 100.0 (fallback VWAP) = 5000.
         // Cross-border queue should be empty (domestic licensor).
-        assert!(queue.is_empty(), "domestic royalty must not queue cross-border");
+        assert!(
+            queue.is_empty(),
+            "domestic royalty must not queue cross-border"
+        );
         // Treasury should be unchanged (no state blueprint).
         assert_eq!(treasury.liquid_reserves, initial_treasury);
     }

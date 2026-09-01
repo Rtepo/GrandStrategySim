@@ -9,21 +9,17 @@
 //! - Unilateral abrogation crashes reputation
 //! - AI doctrines generate appropriate diplomatic actions
 
+use sim_engine::international::ai_doctrines::{
+    evaluate_doctrine, execute_doctrine, DoctrineConfig, GeopoliticalDoctrine,
+};
+use sim_engine::international::reputation::{GlobalReputation, ReputationConfig, TreatyViolation};
 use sim_engine::international::treaties::{
     Treaty, TreatyClause, TreatyConfig, TreatyRegistry, TreatyStatus,
 };
-use sim_engine::international::reputation::{
-    GlobalReputation, ReputationConfig, TreatyViolation,
-};
-use sim_engine::international::ai_doctrines::{
-    GeopoliticalDoctrine, DoctrineConfig, evaluate_doctrine, execute_doctrine,
-};
-use sim_engine::society::real_estate_market::{
-    check_foreign_purchase_allowed, AgrarianReformLaw,
-};
 use sim_engine::society::cadastre::{Cadastre, ParcelChunk, ParcelOwnerType};
-use sim_engine::state::{GameState, Country};
+use sim_engine::society::real_estate_market::{check_foreign_purchase_allowed, AgrarianReformLaw};
 use sim_engine::state::diplomatic_actions::DiplomaticAction;
+use sim_engine::state::{Country, GameState};
 
 // ============================================================================
 // TREATY SERIALIZATION & DEFAULTS
@@ -35,7 +31,10 @@ fn test_treaty_serialization_roundtrip() {
         "TREATY-000001".to_string(),
         "Test Pact".to_string(),
         vec!["CountryA".to_string(), "CountryB".to_string()],
-        vec![TreatyClause::CustomsUnion, TreatyClause::SchengenFreeMovement],
+        vec![
+            TreatyClause::CustomsUnion,
+            TreatyClause::SchengenFreeMovement,
+        ],
         10,
         100,
         "CountryA".to_string(),
@@ -60,7 +59,9 @@ fn test_treaty_clause_serialization() {
         TreatyClause::FinancialMarketIntegration,
         TreatyClause::MutualDefense,
         TreatyClause::TradePreference,
-        TreatyClause::ResourceAccess { commodity: "Energy".to_string() },
+        TreatyClause::ResourceAccess {
+            commodity: "Energy".to_string(),
+        },
     ] {
         let json = serde_json::to_string(clause).unwrap();
         let deserialized: TreatyClause = serde_json::from_str(&json).unwrap();
@@ -82,7 +83,9 @@ fn test_treaty_clause_activation() {
         "Test".to_string(),
         vec!["A".to_string(), "B".to_string()],
         vec![TreatyClause::CustomsUnion],
-        1, 100, "A".to_string(),
+        1,
+        100,
+        "A".to_string(),
     );
     treaty.status = TreatyStatus::Active;
     treaty.signed_turn = Some(5);
@@ -100,7 +103,9 @@ fn test_treaty_expiration_removes_clause() {
         "Short Pact".to_string(),
         vec!["A".to_string(), "B".to_string()],
         vec![TreatyClause::CustomsUnion],
-        1, 10, "A".to_string(),
+        1,
+        10,
+        "A".to_string(),
     );
     treaty.status = TreatyStatus::Active;
     treaty.signed_turn = Some(5);
@@ -127,7 +132,9 @@ fn test_customs_union_treaty_recognition() {
         "Customs Pact".to_string(),
         vec!["A".to_string(), "B".to_string(), "C".to_string()],
         vec![TreatyClause::CustomsUnion],
-        1, 100, "A".to_string(),
+        1,
+        100,
+        "A".to_string(),
     );
     treaty.status = TreatyStatus::Active;
     treaty.signed_turn = Some(5);
@@ -180,7 +187,9 @@ fn test_schengen_treaty_zeroes_border_enforcement() {
         "Schengen".to_string(),
         vec!["CountryA".to_string(), "CountryB".to_string()],
         vec![TreatyClause::SchengenFreeMovement],
-        1, 100, "CountryA".to_string(),
+        1,
+        100,
+        "CountryA".to_string(),
     );
     treaty.status = TreatyStatus::Active;
     treaty.signed_turn = Some(1);
@@ -190,19 +199,24 @@ fn test_schengen_treaty_zeroes_border_enforcement() {
 
     // Both should produce flows (the test verifies the function accepts the treaty parameter)
     // With Schengen, more migrants should reach CountryB due to zeroed enforcement
-    let to_b_no_treaty: i64 = flows_no_treaty.iter()
+    let to_b_no_treaty: i64 = flows_no_treaty
+        .iter()
         .filter(|f| f.dest_country == "CountryB")
         .map(|f| f.count)
         .sum();
-    let to_b_with_treaty: i64 = flows_with_treaty.iter()
+    let to_b_with_treaty: i64 = flows_with_treaty
+        .iter()
         .filter(|f| f.dest_country == "CountryB")
         .map(|f| f.count)
         .sum();
 
     // With Schengen, migration to B should be at least as high (enforcement zeroed)
-    assert!(to_b_with_treaty >= to_b_no_treaty,
+    assert!(
+        to_b_with_treaty >= to_b_no_treaty,
         "Schengen should not reduce migration; got {} without, {} with",
-        to_b_no_treaty, to_b_with_treaty);
+        to_b_no_treaty,
+        to_b_with_treaty
+    );
 }
 
 // ============================================================================
@@ -237,8 +251,19 @@ fn test_financial_market_integration_bypasses_ownership_cap() {
     };
 
     // Without treaty — should be blocked (would exceed 20% cap)
-    assert!(!check_foreign_purchase_allowed(&cadastre, &new_parcel, &law, None, "BuyerLand", "SellerLand", None, 0),
-        "Purchase should be blocked without treaty (cap exceeded)");
+    assert!(
+        !check_foreign_purchase_allowed(
+            &cadastre,
+            &new_parcel,
+            &law,
+            None,
+            "BuyerLand",
+            "SellerLand",
+            None,
+            0
+        ),
+        "Purchase should be blocked without treaty (cap exceeded)"
+    );
 
     // With FinancialMarketIntegration treaty — should be allowed
     let mut registry = TreatyRegistry::default();
@@ -247,14 +272,27 @@ fn test_financial_market_integration_bypasses_ownership_cap() {
         "Fin Integration".to_string(),
         vec!["BuyerLand".to_string(), "SellerLand".to_string()],
         vec![TreatyClause::FinancialMarketIntegration],
-        1, 100, "BuyerLand".to_string(),
+        1,
+        100,
+        "BuyerLand".to_string(),
     );
     treaty.status = TreatyStatus::Active;
     treaty.signed_turn = Some(1);
     registry.treaties.push(treaty);
 
-    assert!(check_foreign_purchase_allowed(&cadastre, &new_parcel, &law, Some(&registry), "BuyerLand", "SellerLand", None, 0),
-        "Purchase should be allowed with FinancialMarketIntegration treaty");
+    assert!(
+        check_foreign_purchase_allowed(
+            &cadastre,
+            &new_parcel,
+            &law,
+            Some(&registry),
+            "BuyerLand",
+            "SellerLand",
+            None,
+            0
+        ),
+        "Purchase should be allowed with FinancialMarketIntegration treaty"
+    );
 }
 
 #[test]
@@ -286,15 +324,28 @@ fn test_financial_market_integration_does_not_bypass_for_non_participants() {
         "Fin Integration".to_string(),
         vec!["BuyerLand".to_string(), "SellerLand".to_string()],
         vec![TreatyClause::FinancialMarketIntegration],
-        1, 100, "BuyerLand".to_string(),
+        1,
+        100,
+        "BuyerLand".to_string(),
     );
     treaty.status = TreatyStatus::Active;
     treaty.signed_turn = Some(1);
     registry.treaties.push(treaty);
 
     // Non-participant should NOT get bypass
-    assert!(!check_foreign_purchase_allowed(&cadastre, &new_parcel, &law, Some(&registry), "ThirdCountry", "SellerLand", None, 0),
-        "Non-participant should not get FinancialMarketIntegration bypass");
+    assert!(
+        !check_foreign_purchase_allowed(
+            &cadastre,
+            &new_parcel,
+            &law,
+            Some(&registry),
+            "ThirdCountry",
+            "SellerLand",
+            None,
+            0
+        ),
+        "Non-participant should not get FinancialMarketIntegration bypass"
+    );
 }
 
 // ============================================================================
@@ -315,12 +366,15 @@ fn test_reputation_bounds() {
 
     // Apply many violations — should cap at -100
     for _ in 0..10 {
-        rep.apply_violation(TreatyViolation {
-            treaty_id: "T".to_string(),
-            turn: 1,
-            severity: 1.0,
-            description: "Test".to_string(),
-        }, &config);
+        rep.apply_violation(
+            TreatyViolation {
+                treaty_id: "T".to_string(),
+                turn: 1,
+                severity: 1.0,
+                description: "Test".to_string(),
+            },
+            &config,
+        );
     }
     assert_eq!(rep.score, -100.0, "Reputation should cap at -100");
 
@@ -343,7 +397,9 @@ fn test_premature_abrogation_crashes_reputation() {
         "Test Pact".to_string(),
         vec!["A".to_string(), "B".to_string()],
         vec![TreatyClause::CustomsUnion],
-        1, 100, "A".to_string(),
+        1,
+        100,
+        "A".to_string(),
     );
     treaty.status = TreatyStatus::Active;
     treaty.signed_turn = Some(5);
@@ -358,14 +414,21 @@ fn test_premature_abrogation_crashes_reputation() {
     // Apply reputation penalty
     let mut rep = GlobalReputation::new();
     let config = ReputationConfig::default();
-    rep.apply_violation(TreatyViolation {
-        treaty_id: "TREATY-000001".to_string(),
-        turn: 10,
-        severity: 1.0,
-        description: "Unilateral abrogation".to_string(),
-    }, &config);
+    rep.apply_violation(
+        TreatyViolation {
+            treaty_id: "TREATY-000001".to_string(),
+            turn: 10,
+            severity: 1.0,
+            description: "Unilateral abrogation".to_string(),
+        },
+        &config,
+    );
 
-    assert!(rep.score <= -20.0, "Reputation should crash after abrogation, got {}", rep.score);
+    assert!(
+        rep.score <= -20.0,
+        "Reputation should crash after abrogation, got {}",
+        rep.score
+    );
 }
 
 #[test]
@@ -376,7 +439,9 @@ fn test_natural_expiration_no_reputation_penalty() {
         "Short Pact".to_string(),
         vec!["A".to_string(), "B".to_string()],
         vec![TreatyClause::TradePreference],
-        1, 10, "A".to_string(),
+        1,
+        10,
+        "A".to_string(),
     );
     treaty.status = TreatyStatus::Active;
     treaty.signed_turn = Some(5);
@@ -390,7 +455,10 @@ fn test_natural_expiration_no_reputation_penalty() {
     // No abrogation occurred, so no reputation penalty
     // (This is a behavioral test — natural expiration does NOT call apply_violation)
     let rep = GlobalReputation::new();
-    assert_eq!(rep.score, 0.0, "Natural expiration should not affect reputation");
+    assert_eq!(
+        rep.score, 0.0,
+        "Natural expiration should not affect reputation"
+    );
 }
 
 // ============================================================================
@@ -410,9 +478,12 @@ fn test_diplomatic_capacity_cost_increases_with_low_reputation() {
     rep.score = -80.0;
     let bad_cost = rep.effective_diplomatic_capacity_cost(10, &config);
 
-    assert!(bad_cost > good_cost,
+    assert!(
+        bad_cost > good_cost,
         "Low reputation should increase diplomatic capacity cost; good={}, bad={}",
-        good_cost, bad_cost);
+        good_cost,
+        bad_cost
+    );
     assert!(bad_cost > 10, "Bad reputation cost should exceed base cost");
 }
 
@@ -437,14 +508,22 @@ fn test_debt_interest_penalty_with_low_reputation() {
     // Good reputation — no penalty
     rep.score = 50.0;
     let good_penalty = rep.debt_interest_penalty(&config);
-    assert_eq!(good_penalty, 0.0, "Good reputation should have no debt penalty");
+    assert_eq!(
+        good_penalty, 0.0,
+        "Good reputation should have no debt penalty"
+    );
 
     // Bad reputation — positive penalty
     rep.score = -80.0;
     let bad_penalty = rep.debt_interest_penalty(&config);
-    assert!(bad_penalty > 0.0, "Low reputation should add debt interest penalty");
-    assert!(bad_penalty <= config.debt_interest_penalty_multiplier,
-        "Penalty should be bounded by config max");
+    assert!(
+        bad_penalty > 0.0,
+        "Low reputation should add debt interest penalty"
+    );
+    assert!(
+        bad_penalty <= config.debt_interest_penalty_multiplier,
+        "Penalty should be bounded by config max"
+    );
 }
 
 #[test]
@@ -458,9 +537,12 @@ fn test_debt_interest_penalty_scales_with_reputation() {
     rep.score = -90.0;
     let severe_penalty = rep.debt_interest_penalty(&config);
 
-    assert!(severe_penalty > mild_penalty,
+    assert!(
+        severe_penalty > mild_penalty,
         "Worse reputation should produce higher penalty; mild={}, severe={}",
-        mild_penalty, severe_penalty);
+        mild_penalty,
+        severe_penalty
+    );
 }
 
 // ============================================================================
@@ -478,7 +560,11 @@ fn test_reputation_recovers_over_time() {
         rep.recover(&config);
     }
     assert!(rep.score > initial, "Reputation should recover over time");
-    assert!((rep.score - (-45.0)).abs() < 0.01, "10 turns of recovery should give -45, got {}", rep.score);
+    assert!(
+        (rep.score - (-45.0)).abs() < 0.01,
+        "10 turns of recovery should give -45, got {}",
+        rep.score
+    );
 }
 
 // ============================================================================
@@ -500,7 +586,11 @@ fn test_doctrine_evaluation_expansionist() {
     strong.name = "Strongland".to_string();
     // Add many military units to the OOB
     use sim_engine::military::oob::{Army, Division, Regiment};
-    let mut reg = Regiment::new("REG-test-001".to_string(), "Test Regiment".to_string(), "home".to_string());
+    let mut reg = Regiment::new(
+        "REG-test-001".to_string(),
+        "Test Regiment".to_string(),
+        "home".to_string(),
+    );
     for i in 0..20 {
         reg.add_unit(sim_engine::military::MilitaryUnit::new(
             format!("unit-{}", i),
@@ -510,9 +600,17 @@ fn test_doctrine_evaluation_expansionist() {
             "home".to_string(),
         ));
     }
-    let mut div = Division::new("DIV-test-001".to_string(), "Test Division".to_string(), "home".to_string());
+    let mut div = Division::new(
+        "DIV-test-001".to_string(),
+        "Test Division".to_string(),
+        "home".to_string(),
+    );
     div.add_regiment(reg);
-    let mut army = Army::new("ARMY-test-001".to_string(), "Test Army".to_string(), "home".to_string());
+    let mut army = Army::new(
+        "ARMY-test-001".to_string(),
+        "Test Army".to_string(),
+        "home".to_string(),
+    );
     army.add_division(div);
     strong.order_of_battle.add_army(army);
     let weak = Country::mock_for_tests();
@@ -565,8 +663,18 @@ fn test_execute_doctrine_balanced_no_actions() {
     let state = GameState::default();
     let config = DoctrineConfig::default();
     let mut rng = rand::thread_rng();
-    let actions = execute_doctrine(&state, "Test", &GeopoliticalDoctrine::Balanced, &config, 1, &mut rng);
-    assert!(actions.is_empty(), "Balanced doctrine should produce no actions");
+    let actions = execute_doctrine(
+        &state,
+        "Test",
+        &GeopoliticalDoctrine::Balanced,
+        &config,
+        1,
+        &mut rng,
+    );
+    assert!(
+        actions.is_empty(),
+        "Balanced doctrine should produce no actions"
+    );
 }
 
 #[test]
@@ -575,16 +683,31 @@ fn test_execute_doctrine_expansionist_produces_provocation() {
     let mut strong = Country::mock_for_tests();
     strong.name = "Strongland".to_string();
     state.countries.insert("Strongland".to_string(), strong);
-    state.countries.insert("Weakland".to_string(), Country::mock_for_tests());
+    state
+        .countries
+        .insert("Weakland".to_string(), Country::mock_for_tests());
 
     let config = DoctrineConfig {
         expansionist_provocation_chance: 1.0, // Always provoke
         ..DoctrineConfig::default()
     };
     let mut rng = rand::thread_rng();
-    let actions = execute_doctrine(&state, "Strongland", &GeopoliticalDoctrine::Expansionist, &config, 1, &mut rng);
-    assert!(!actions.is_empty(), "Expansionist should generate provocation");
-    assert!(matches!(actions[0], DiplomaticAction::BorderProvocation { .. }));
+    let actions = execute_doctrine(
+        &state,
+        "Strongland",
+        &GeopoliticalDoctrine::Expansionist,
+        &config,
+        1,
+        &mut rng,
+    );
+    assert!(
+        !actions.is_empty(),
+        "Expansionist should generate provocation"
+    );
+    assert!(matches!(
+        actions[0],
+        DiplomaticAction::BorderProvocation { .. }
+    ));
 }
 
 // ============================================================================
@@ -600,7 +723,9 @@ fn test_treaty_negotiation_progresses_over_turns() {
         "Test".to_string(),
         vec!["A".to_string(), "B".to_string()],
         vec![TreatyClause::TradePreference],
-        1, 100, "A".to_string(),
+        1,
+        100,
+        "A".to_string(),
     ));
 
     let diplomacy = std::collections::HashMap::new();
@@ -613,10 +738,15 @@ fn test_treaty_negotiation_progresses_over_turns() {
             break;
         }
     }
-    assert!(registry.treaties[0].negotiation_progress > initial_progress,
-        "Negotiation should progress over turns");
-    assert_eq!(registry.treaties[0].status, TreatyStatus::Active,
-        "Treaty should eventually become active");
+    assert!(
+        registry.treaties[0].negotiation_progress > initial_progress,
+        "Negotiation should progress over turns"
+    );
+    assert_eq!(
+        registry.treaties[0].status,
+        TreatyStatus::Active,
+        "Treaty should eventually become active"
+    );
 }
 
 #[test]
@@ -628,7 +758,9 @@ fn test_treaty_negotiation_with_ambassador_bonus() {
         "Test".to_string(),
         vec!["A".to_string(), "B".to_string()],
         vec![TreatyClause::TradePreference],
-        1, 100, "A".to_string(),
+        1,
+        100,
+        "A".to_string(),
     ));
 
     let diplomacy = std::collections::HashMap::new();
@@ -647,9 +779,12 @@ fn test_treaty_negotiation_with_ambassador_bonus() {
     registry.advance_negotiations(2, &config, &diplomacy, &empty_ambassadors);
     let progress_without_ambassador = registry.treaties[0].negotiation_progress;
 
-    assert!(progress_with_ambassador > progress_without_ambassador,
+    assert!(
+        progress_with_ambassador > progress_without_ambassador,
         "Ambassador should speed up negotiation; with={}, without={}",
-        progress_with_ambassador, progress_without_ambassador);
+        progress_with_ambassador,
+        progress_without_ambassador
+    );
 }
 
 // ============================================================================
@@ -665,7 +800,9 @@ fn test_treaty_sign_transition() {
         "Test".to_string(),
         vec!["A".to_string(), "B".to_string()],
         vec![TreatyClause::TradePreference],
-        1, 100, "A".to_string(),
+        1,
+        100,
+        "A".to_string(),
     ));
 
     assert!(registry.sign_treaty("TREATY-000001", 5, &config));
@@ -683,7 +820,9 @@ fn test_treaty_abrogate_transition() {
         "Test".to_string(),
         vec!["A".to_string(), "B".to_string()],
         vec![TreatyClause::TradePreference],
-        1, 100, "A".to_string(),
+        1,
+        100,
+        "A".to_string(),
     ));
     registry.sign_treaty("TREATY-000001", 5, &config);
 
@@ -701,7 +840,9 @@ fn test_treaty_expire_transition() {
         "Test".to_string(),
         vec!["A".to_string(), "B".to_string()],
         vec![TreatyClause::TradePreference],
-        1, 10, "A".to_string(),
+        1,
+        10,
+        "A".to_string(),
     ));
     registry.sign_treaty("TREATY-000001", 5, &config);
 
@@ -724,9 +865,19 @@ fn test_multilateral_treaty_all_participants() {
     let mut treaty = Treaty::new(
         "TREATY-000001".to_string(),
         "Multi-Party Pact".to_string(),
-        vec!["A".to_string(), "B".to_string(), "C".to_string(), "D".to_string()],
-        vec![TreatyClause::CustomsUnion, TreatyClause::SchengenFreeMovement],
-        1, 100, "A".to_string(),
+        vec![
+            "A".to_string(),
+            "B".to_string(),
+            "C".to_string(),
+            "D".to_string(),
+        ],
+        vec![
+            TreatyClause::CustomsUnion,
+            TreatyClause::SchengenFreeMovement,
+        ],
+        1,
+        100,
+        "A".to_string(),
     );
     treaty.status = TreatyStatus::Active;
     treaty.signed_turn = Some(5);
@@ -736,10 +887,18 @@ fn test_multilateral_treaty_all_participants() {
     for a in &["A", "B", "C", "D"] {
         for b in &["A", "B", "C", "D"] {
             if a != b {
-                assert!(registry.has_active_clause_between(a, b, &TreatyClause::CustomsUnion),
-                    "CustomsUnion should be active between {} and {}", a, b);
-                assert!(registry.has_active_clause_between(a, b, &TreatyClause::SchengenFreeMovement),
-                    "Schengen should be active between {} and {}", a, b);
+                assert!(
+                    registry.has_active_clause_between(a, b, &TreatyClause::CustomsUnion),
+                    "CustomsUnion should be active between {} and {}",
+                    a,
+                    b
+                );
+                assert!(
+                    registry.has_active_clause_between(a, b, &TreatyClause::SchengenFreeMovement),
+                    "Schengen should be active between {} and {}",
+                    a,
+                    b
+                );
             }
         }
     }

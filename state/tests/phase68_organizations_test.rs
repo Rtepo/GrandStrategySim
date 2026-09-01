@@ -11,16 +11,14 @@
 //! - FinancialIsolation blocking economic aid
 //! - Reputation damage from sanctions
 
-use sim_engine::international::organizations::{
-    InternationalOrganization, IntegrationLevel, VotingMechanism, OrgConfig,
-    OrganizationRegistry, Directive, MandateType, OrgParliament,
-};
-use sim_engine::international::sanctions::{
-    Sanction, SanctionType, SanctionRegistry,
-};
-use sim_engine::state::{GameState, Country};
-use sim_engine::state::diplomatic_actions::{DiplomaticAction, drain_diplomatic_actions};
 use sim_engine::international::fog_of_war::DiplomaticConfig;
+use sim_engine::international::organizations::{
+    Directive, IntegrationLevel, InternationalOrganization, MandateType, OrgConfig, OrgParliament,
+    OrganizationRegistry, VotingMechanism,
+};
+use sim_engine::international::sanctions::{Sanction, SanctionRegistry, SanctionType};
+use sim_engine::state::diplomatic_actions::{drain_diplomatic_actions, DiplomaticAction};
+use sim_engine::state::{Country, GameState};
 
 // ============================================================================
 // ORGANIZATION CREATION & WORLD FORUM
@@ -63,7 +61,10 @@ fn test_custom_organization_creation() {
     );
     assert_eq!(org.name, "Pacific Trade Bloc");
     assert_eq!(org.integration_level, IntegrationLevel::CustomsUnion);
-    assert!(matches!(org.voting_mechanism, VotingMechanism::QualifiedMajority { .. }));
+    assert!(matches!(
+        org.voting_mechanism,
+        VotingMechanism::QualifiedMajority { .. }
+    ));
 }
 
 // ============================================================================
@@ -73,7 +74,12 @@ fn test_custom_organization_creation() {
 #[test]
 fn test_integration_level_advancement() {
     let mut registry = OrganizationRegistry::default();
-    registry.organizations.push(InternationalOrganization::new_world_forum(&["A".to_string()], 1));
+    registry
+        .organizations
+        .push(InternationalOrganization::new_world_forum(
+            &["A".to_string()],
+            1,
+        ));
     let config = OrgConfig {
         min_turns_for_integration: 10,
         ..OrgConfig::default()
@@ -82,11 +88,17 @@ fn test_integration_level_advancement() {
 
     // Before threshold — no advancement
     registry.process_turn(5, &config, &pops);
-    assert_eq!(registry.organizations[0].integration_level, IntegrationLevel::FreeTradeArea);
+    assert_eq!(
+        registry.organizations[0].integration_level,
+        IntegrationLevel::FreeTradeArea
+    );
 
     // After threshold — should advance
     registry.process_turn(51, &config, &pops);
-    assert_eq!(registry.organizations[0].integration_level, IntegrationLevel::CustomsUnion);
+    assert_eq!(
+        registry.organizations[0].integration_level,
+        IntegrationLevel::CustomsUnion
+    );
 }
 
 #[test]
@@ -114,7 +126,8 @@ fn test_voting_mechanism_evolution() {
 #[test]
 fn test_directive_enforcement_applies_fines() {
     let mut registry = OrganizationRegistry::default();
-    let mut org = InternationalOrganization::new_world_forum(&["A".to_string(), "B".to_string()], 1);
+    let mut org =
+        InternationalOrganization::new_world_forum(&["A".to_string(), "B".to_string()], 1);
     org.directives.push(Directive {
         id: "DIR-001".to_string(),
         title: "Emission Standards".to_string(),
@@ -133,7 +146,9 @@ fn test_directive_enforcement_applies_fines() {
     // After deadline — fines for all members
     let fines_after = registry.enforce_directives(15);
     assert_eq!(fines_after.len(), 2, "Both members should be fined");
-    assert!(fines_after.iter().all(|(_, amount, _)| *amount == 5_000_000.0));
+    assert!(fines_after
+        .iter()
+        .all(|(_, amount, _)| *amount == 5_000_000.0));
 }
 
 #[test]
@@ -157,7 +172,9 @@ fn test_directive_fine_double_entry() {
     state.countries.insert("A".to_string(), country_a);
 
     let initial_country_reserves = state.countries["A"].budget.liquid_reserves;
-    let initial_org_reserves = state.international_organizations.organizations[0].budget.liquid_reserves;
+    let initial_org_reserves = state.international_organizations.organizations[0]
+        .budget
+        .liquid_reserves;
 
     // Enforce directives and apply fines
     let fines = state.international_organizations.enforce_directives(10);
@@ -176,8 +193,16 @@ fn test_directive_fine_double_entry() {
     }
 
     // Verify double-entry: country lost 1M, org gained 1M
-    assert_eq!(state.countries["A"].budget.liquid_reserves, initial_country_reserves - 1_000_000.0);
-    assert_eq!(state.international_organizations.organizations[0].budget.liquid_reserves, initial_org_reserves + 1_000_000.0);
+    assert_eq!(
+        state.countries["A"].budget.liquid_reserves,
+        initial_country_reserves - 1_000_000.0
+    );
+    assert_eq!(
+        state.international_organizations.organizations[0]
+            .budget
+            .liquid_reserves,
+        initial_org_reserves + 1_000_000.0
+    );
 }
 
 // ============================================================================
@@ -193,7 +218,9 @@ fn test_sanction_enactment() {
         "Badland".to_string(),
         "World Forum".to_string(),
         SanctionType::TradeEmbargo,
-        1, 50, "Treaty violation".to_string(),
+        1,
+        50,
+        "Treaty violation".to_string(),
     ));
 
     assert!(registry.is_sanctioned("Badland", 25));
@@ -209,7 +236,9 @@ fn test_sanction_expiry() {
         "Badland".to_string(),
         "World Forum".to_string(),
         SanctionType::TradeEmbargo,
-        1, 10, "Test".to_string(),
+        1,
+        10,
+        "Test".to_string(),
     ));
 
     assert!(registry.has_trade_embargo("Badland", 10));
@@ -225,7 +254,9 @@ fn test_sanction_lift() {
         "Badland".to_string(),
         "World Forum".to_string(),
         SanctionType::FullEmbargo,
-        1, 100, "Test".to_string(),
+        1,
+        100,
+        "Test".to_string(),
     ));
 
     assert!(registry.is_sanctioned("Badland", 50));
@@ -241,7 +272,9 @@ fn test_full_embargo_includes_all_types() {
         "Badland".to_string(),
         "World Forum".to_string(),
         SanctionType::FullEmbargo,
-        1, 100, "Test".to_string(),
+        1,
+        100,
+        "Test".to_string(),
     ));
 
     assert!(registry.has_trade_embargo("Badland", 50));
@@ -263,7 +296,9 @@ fn test_trade_embargo_recognition_in_trade() {
         "Embargoed".to_string(),
         "World Forum".to_string(),
         SanctionType::TradeEmbargo,
-        1, 100, "Test".to_string(),
+        1,
+        100,
+        "Test".to_string(),
     ));
 
     assert!(registry.has_trade_embargo("Embargoed", 50));
@@ -276,8 +311,10 @@ fn test_trade_embargo_recognition_in_trade() {
 
 #[test]
 fn test_asset_freeze_blocks_real_estate_purchase() {
-    use sim_engine::society::real_estate_market::{check_foreign_purchase_allowed, AgrarianReformLaw};
     use sim_engine::society::cadastre::{Cadastre, ParcelChunk};
+    use sim_engine::society::real_estate_market::{
+        check_foreign_purchase_allowed, AgrarianReformLaw,
+    };
 
     let cadastre = Cadastre::default();
     let parcel = ParcelChunk::default();
@@ -292,20 +329,40 @@ fn test_asset_freeze_blocks_real_estate_purchase() {
         "Frozenland".to_string(),
         "World Forum".to_string(),
         SanctionType::AssetFreeze,
-        1, 100, "Corruption".to_string(),
+        1,
+        100,
+        "Corruption".to_string(),
     ));
 
     // Asset freeze should block the purchase
-    assert!(!check_foreign_purchase_allowed(
-        &cadastre, &parcel, &law, None, "Frozenland", "SellerLand",
-        Some(&registry), 50,
-    ), "Asset freeze should block foreign purchase");
+    assert!(
+        !check_foreign_purchase_allowed(
+            &cadastre,
+            &parcel,
+            &law,
+            None,
+            "Frozenland",
+            "SellerLand",
+            Some(&registry),
+            50,
+        ),
+        "Asset freeze should block foreign purchase"
+    );
 
     // Non-sanctioned country should be allowed (no cap exceeded with empty cadastre)
-    assert!(check_foreign_purchase_allowed(
-        &cadastre, &parcel, &law, None, "FreeCountry", "SellerLand",
-        Some(&registry), 50,
-    ), "Non-sanctioned country should be allowed");
+    assert!(
+        check_foreign_purchase_allowed(
+            &cadastre,
+            &parcel,
+            &law,
+            None,
+            "FreeCountry",
+            "SellerLand",
+            Some(&registry),
+            50,
+        ),
+        "Non-sanctioned country should be allowed"
+    );
 }
 
 // ============================================================================
@@ -330,27 +387,35 @@ fn test_financial_isolation_blocks_aid() {
         "IsolatedCountry".to_string(),
         "World Forum".to_string(),
         SanctionType::FinancialIsolation,
-        1, 100, "Treaty violation".to_string(),
+        1,
+        100,
+        "Treaty violation".to_string(),
     ));
 
     let initial_from = state.countries["RichCountry"].budget.liquid_reserves;
     let initial_to = state.countries["IsolatedCountry"].budget.liquid_reserves;
 
     // Queue aid to IsolatedCountry
-    state.pending_diplomatic_actions.push(DiplomaticAction::SendEconomicAid {
-        from_country: "RichCountry".to_string(),
-        to_country: "IsolatedCountry".to_string(),
-        amount: 500_000.0,
-    });
+    state
+        .pending_diplomatic_actions
+        .push(DiplomaticAction::SendEconomicAid {
+            from_country: "RichCountry".to_string(),
+            to_country: "IsolatedCountry".to_string(),
+            amount: 500_000.0,
+        });
 
     let config = DiplomaticConfig::default();
     drain_diplomatic_actions(&mut state, &config);
 
     // Aid should be blocked — no money moved
-    assert_eq!(state.countries["RichCountry"].budget.liquid_reserves, initial_from,
-        "Sender should not lose funds when aid is blocked by FinancialIsolation");
-    assert_eq!(state.countries["IsolatedCountry"].budget.liquid_reserves, initial_to,
-        "Receiver should not gain funds when aid is blocked by FinancialIsolation");
+    assert_eq!(
+        state.countries["RichCountry"].budget.liquid_reserves, initial_from,
+        "Sender should not lose funds when aid is blocked by FinancialIsolation"
+    );
+    assert_eq!(
+        state.countries["IsolatedCountry"].budget.liquid_reserves, initial_to,
+        "Receiver should not gain funds when aid is blocked by FinancialIsolation"
+    );
 }
 
 #[test]
@@ -367,18 +432,26 @@ fn test_aid_allowed_without_sanction() {
 
     let initial_from = state.countries["RichCountry"].budget.liquid_reserves;
 
-    state.pending_diplomatic_actions.push(DiplomaticAction::SendEconomicAid {
-        from_country: "RichCountry".to_string(),
-        to_country: "FreeCountry".to_string(),
-        amount: 500_000.0,
-    });
+    state
+        .pending_diplomatic_actions
+        .push(DiplomaticAction::SendEconomicAid {
+            from_country: "RichCountry".to_string(),
+            to_country: "FreeCountry".to_string(),
+            amount: 500_000.0,
+        });
 
     let config = DiplomaticConfig::default();
     drain_diplomatic_actions(&mut state, &config);
 
     // Aid should go through
-    assert_eq!(state.countries["RichCountry"].budget.liquid_reserves, initial_from - 500_000.0);
-    assert_eq!(state.countries["FreeCountry"].budget.liquid_reserves, 600_000.0);
+    assert_eq!(
+        state.countries["RichCountry"].budget.liquid_reserves,
+        initial_from - 500_000.0
+    );
+    assert_eq!(
+        state.countries["FreeCountry"].budget.liquid_reserves,
+        600_000.0
+    );
 }
 
 // ============================================================================
@@ -398,21 +471,28 @@ fn test_sanctioned_country_reputation_damage() {
         "Badland".to_string(),
         "World Forum".to_string(),
         SanctionType::FullEmbargo,
-        1, 100, "Test".to_string(),
+        1,
+        100,
+        "Test".to_string(),
     ));
 
     let sanction_config = state.sanction_config.clone();
     let current_turn = 10u32;
 
     // Apply reputation damage (simulating turn processing)
-    if state.active_sanctions.is_sanctioned("Badland", current_turn) {
+    if state
+        .active_sanctions
+        .is_sanctioned("Badland", current_turn)
+    {
         if let Some(c) = state.countries.get_mut("Badland") {
             c.global_reputation.score -= sanction_config.reputation_damage_per_turn;
         }
     }
 
-    assert!(state.countries["Badland"].global_reputation.score < 0.0,
-        "Sanctioned country should suffer reputation damage");
+    assert!(
+        state.countries["Badland"].global_reputation.score < 0.0,
+        "Sanctioned country should suffer reputation damage"
+    );
 }
 
 // ============================================================================
@@ -442,10 +522,12 @@ fn test_org_add_remove_member() {
 #[test]
 fn test_org_registry_orgs_for_country() {
     let mut registry = OrganizationRegistry::default();
-    registry.organizations.push(InternationalOrganization::new_world_forum(
-        &["A".to_string(), "B".to_string()],
-        1,
-    ));
+    registry
+        .organizations
+        .push(InternationalOrganization::new_world_forum(
+            &["A".to_string(), "B".to_string()],
+            1,
+        ));
     registry.organizations.push(InternationalOrganization::new(
         "ORG-000001".to_string(),
         "Pacific Pact".to_string(),
@@ -513,7 +595,7 @@ fn test_parliament_seat_allocation_proportional() {
     let mut parliament = OrgParliament::default();
     let mut pops = std::collections::BTreeMap::new();
     pops.insert("BigCountry".to_string(), 50_000_000); // 50M → 250 seats at 5/M
-    pops.insert("SmallCountry".to_string(), 200_000);   // 0.2M → 1 seat (min)
+    pops.insert("SmallCountry".to_string(), 200_000); // 0.2M → 1 seat (min)
 
     parliament.allocate_seats(&pops, 5.0);
     assert!(parliament.seats["BigCountry"] > parliament.seats["SmallCountry"]);
@@ -537,7 +619,10 @@ fn test_organization_serialization() {
     assert_eq!(org.integration_level, deserialized.integration_level);
     assert_eq!(org.voting_mechanism, deserialized.voting_mechanism);
     assert_eq!(org.founded_turn, deserialized.founded_turn);
-    assert_eq!(org.council.members.len(), deserialized.council.members.len());
+    assert_eq!(
+        org.council.members.len(),
+        deserialized.council.members.len()
+    );
 }
 
 #[test]
@@ -561,7 +646,9 @@ fn test_directive_serialization() {
     let directive = Directive {
         id: "DIR-001".to_string(),
         title: "Test Directive".to_string(),
-        mandate_type: MandateType::FundedMandate { budget_allocation: 5_000_000.0 },
+        mandate_type: MandateType::FundedMandate {
+            budget_allocation: 5_000_000.0,
+        },
         compliance_deadline: 20,
         fine_for_noncompliance: 1_000_000.0,
         target_law: Some("TaxRateChange".to_string()),

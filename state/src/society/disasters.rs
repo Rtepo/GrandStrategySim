@@ -11,8 +11,8 @@
 //!
 //! All disaster probabilities are configurable — no magic numbers in logic.
 
-use serde::{Deserialize, Serialize};
 use crate::society::cadastre::{Cadastre, ParcelId, WaterAccessType};
+use serde::{Deserialize, Serialize};
 
 // ============================================================================
 // DISASTER TYPES
@@ -50,12 +50,18 @@ impl DisasterType {
 
     /// Returns whether this disaster type is industrial (tied to factories).
     pub fn is_industrial(&self) -> bool {
-        matches!(self, DisasterType::FactoryFire | DisasterType::ChemicalSpill | DisasterType::Explosion)
+        matches!(
+            self,
+            DisasterType::FactoryFire | DisasterType::ChemicalSpill | DisasterType::Explosion
+        )
     }
 
     /// Returns whether this disaster type is natural.
     pub fn is_natural(&self) -> bool {
-        matches!(self, DisasterType::Flood | DisasterType::Wildfire | DisasterType::Earthquake)
+        matches!(
+            self,
+            DisasterType::Flood | DisasterType::Wildfire | DisasterType::Earthquake
+        )
     }
 }
 
@@ -183,70 +189,129 @@ pub fn trigger_disasters(
         is_forest: bool,
     }
 
-    let parcel_infos: Vec<ParcelInfo> = cadastre.iter().map(|(id, p)| {
-        ParcelInfo {
+    let parcel_infos: Vec<ParcelInfo> = cadastre
+        .iter()
+        .map(|(id, p)| ParcelInfo {
             id,
             region_id: p.region_id.clone(),
-            is_industrial: matches!(p.zoning, crate::society::cadastre::ZoningDesignation::Industrial),
+            is_industrial: matches!(
+                p.zoning,
+                crate::society::cadastre::ZoningDesignation::Industrial
+            ),
             has_river: p.topography.water_access == WaterAccessType::River,
             is_forest: p.topography.is_forest,
-        }
-    }).collect();
+        })
+        .collect();
 
     for info in parcel_infos {
         // Safety inspection reduces industrial accident probability
-        let safety_multiplier = 1.0 - (safety_inspection_level * config.safety_inspection_effectiveness);
+        let safety_multiplier =
+            1.0 - (safety_inspection_level * config.safety_inspection_effectiveness);
 
         if info.is_industrial {
             // Factory fire
             let fire_prob = config.factory_fire_base_rate * safety_multiplier;
             if rng.next_f64() < fire_prob {
-                let impact = DisasterType::FactoryFire.base_devastation()
+                let impact = DisasterType::FactoryFire
+                    .base_devastation()
                     .min(config.max_single_event_devastation);
-                apply_disaster(cadastre, &mut result, info.id, &info.region_id,
-                    DisasterType::FactoryFire, impact, turn, config);
+                apply_disaster(
+                    cadastre,
+                    &mut result,
+                    info.id,
+                    &info.region_id,
+                    DisasterType::FactoryFire,
+                    impact,
+                    turn,
+                    config,
+                );
             }
 
             // Chemical spill
             let spill_prob = config.chemical_spill_base_rate * safety_multiplier;
             if rng.next_f64() < spill_prob {
-                let impact = DisasterType::ChemicalSpill.base_devastation()
+                let impact = DisasterType::ChemicalSpill
+                    .base_devastation()
                     .min(config.max_single_event_devastation);
-                apply_disaster(cadastre, &mut result, info.id, &info.region_id,
-                    DisasterType::ChemicalSpill, impact, turn, config);
+                apply_disaster(
+                    cadastre,
+                    &mut result,
+                    info.id,
+                    &info.region_id,
+                    DisasterType::ChemicalSpill,
+                    impact,
+                    turn,
+                    config,
+                );
             }
 
             // Explosion
             let explosion_prob = config.explosion_base_rate * safety_multiplier;
             if rng.next_f64() < explosion_prob {
-                let impact = DisasterType::Explosion.base_devastation()
+                let impact = DisasterType::Explosion
+                    .base_devastation()
                     .min(config.max_single_event_devastation);
-                apply_disaster(cadastre, &mut result, info.id, &info.region_id,
-                    DisasterType::Explosion, impact, turn, config);
+                apply_disaster(
+                    cadastre,
+                    &mut result,
+                    info.id,
+                    &info.region_id,
+                    DisasterType::Explosion,
+                    impact,
+                    turn,
+                    config,
+                );
             }
         }
 
         // Natural disasters
         if info.has_river && rng.next_f64() < config.flood_base_rate {
-            let impact = DisasterType::Flood.base_devastation()
+            let impact = DisasterType::Flood
+                .base_devastation()
                 .min(config.max_single_event_devastation);
-            apply_disaster(cadastre, &mut result, info.id, &info.region_id,
-                DisasterType::Flood, impact, turn, config);
+            apply_disaster(
+                cadastre,
+                &mut result,
+                info.id,
+                &info.region_id,
+                DisasterType::Flood,
+                impact,
+                turn,
+                config,
+            );
         }
 
         if info.is_forest && rng.next_f64() < config.wildfire_base_rate {
-            let impact = DisasterType::Wildfire.base_devastation()
+            let impact = DisasterType::Wildfire
+                .base_devastation()
                 .min(config.max_single_event_devastation);
-            apply_disaster(cadastre, &mut result, info.id, &info.region_id,
-                DisasterType::Wildfire, impact, turn, config);
+            apply_disaster(
+                cadastre,
+                &mut result,
+                info.id,
+                &info.region_id,
+                DisasterType::Wildfire,
+                impact,
+                turn,
+                config,
+            );
         }
 
         // Earthquake: rare, any parcel
         if rng.next_f64() < config.earthquake_base_rate {
-            let impact = DisasterType::Earthquake.base_devastation()
+            let impact = DisasterType::Earthquake
+                .base_devastation()
                 .min(config.max_single_event_devastation);
-            apply_disaster(cadastre, &mut result, info.id, &info.region_id,
-                DisasterType::Earthquake, impact, turn, config);
+            apply_disaster(
+                cadastre,
+                &mut result,
+                info.id,
+                &info.region_id,
+                DisasterType::Earthquake,
+                impact,
+                turn,
+                config,
+            );
         }
     }
 
@@ -275,7 +340,12 @@ fn apply_disaster(
     let casualties = (impact * config.casualty_rate * 1000.0) as i64;
 
     let event = DisasterEvent {
-        id: format!("DISASTER-{}-{}-{}", turn, disaster_type_name(&disaster_type), parcel_idx),
+        id: format!(
+            "DISASTER-{}-{}-{}",
+            turn,
+            disaster_type_name(&disaster_type),
+            parcel_idx
+        ),
         disaster_type: disaster_type.clone(),
         parcel_id,
         region_id: region_id.to_string(),
@@ -322,7 +392,8 @@ fn disaster_type_name(dt: &DisasterType) -> &str {
 pub fn spread_devastation(cadastre: &mut Cadastre, spread_rate: f64) {
     // First pass: compute the devastation to spread from each parcel
     let spread_from: Vec<(ParcelId, f64, Vec<ParcelId>)> = {
-        cadastre.iter()
+        cadastre
+            .iter()
             .map(|(id, p)| {
                 let neighbors: Vec<ParcelId> = p.adjacent_parcels.clone();
                 (id, p.devastation_index, neighbors)
@@ -371,14 +442,12 @@ pub fn decay_devastation(cadastre: &mut Cadastre, decay_rate: f64) {
 ///
 /// # Returns
 /// Average devastation index (0.0–1.0), or 0.0 if no parcels.
-pub fn region_devastation_index(
-    cadastre: &Cadastre,
-    parcel_ids: &[ParcelId],
-) -> f64 {
+pub fn region_devastation_index(cadastre: &Cadastre, parcel_ids: &[ParcelId]) -> f64 {
     if parcel_ids.is_empty() {
         return 0.0;
     }
-    let total: f64 = parcel_ids.iter()
+    let total: f64 = parcel_ids
+        .iter()
         .filter_map(|id| cadastre.get(*id))
         .map(|p| p.devastation_index)
         .sum();
@@ -423,7 +492,9 @@ impl DeterministicRng {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::cadastre::{ParcelChunk, ZoningDesignation, ParcelOwnerType, ParcelTopography};
+    use crate::society::cadastre::{
+        ParcelChunk, ParcelOwnerType, ParcelTopography, ZoningDesignation,
+    };
 
     fn make_cadastre_with_parcels(n: usize) -> Cadastre {
         let mut c = Cadastre::default();
@@ -462,7 +533,10 @@ mod tests {
     #[test]
     fn test_disaster_type_base_devastation() {
         assert!(DisasterType::FactoryFire.base_devastation() > 0.0);
-        assert!(DisasterType::Earthquake.base_devastation() > DisasterType::FactoryFire.base_devastation());
+        assert!(
+            DisasterType::Earthquake.base_devastation()
+                > DisasterType::FactoryFire.base_devastation()
+        );
     }
 
     #[test]
@@ -504,7 +578,10 @@ mod tests {
         };
 
         let result = trigger_disasters(&mut c, &config, 1, 0.0, 42);
-        assert!(!result.events.is_empty(), "Should trigger factory fires on all industrial parcels");
+        assert!(
+            !result.events.is_empty(),
+            "Should trigger factory fires on all industrial parcels"
+        );
         assert!(result.total_devastation_applied > 0.0);
     }
 
@@ -524,7 +601,11 @@ mod tests {
         };
 
         let result = trigger_disasters(&mut c, &config, 1, 0.0, 42);
-        let floods = result.events.iter().filter(|e| e.disaster_type == DisasterType::Flood).count();
+        let floods = result
+            .events
+            .iter()
+            .filter(|e| e.disaster_type == DisasterType::Flood)
+            .count();
         assert_eq!(floods, 1, "Only one river parcel should flood");
     }
 
@@ -544,7 +625,11 @@ mod tests {
         };
 
         let result = trigger_disasters(&mut c, &config, 1, 0.0, 42);
-        let wildfires = result.events.iter().filter(|e| e.disaster_type == DisasterType::Wildfire).count();
+        let wildfires = result
+            .events
+            .iter()
+            .filter(|e| e.disaster_type == DisasterType::Wildfire)
+            .count();
         assert_eq!(wildfires, 1, "Only one forest parcel should have wildfire");
     }
 
@@ -567,8 +652,10 @@ mod tests {
         let result_with_safety = trigger_disasters(&mut c2, &config, 1, 1.0, 42);
 
         // With safety inspections, fewer or equal events should occur
-        assert!(result_with_safety.events.len() <= result_no_safety.events.len(),
-            "Safety inspections should reduce accidents");
+        assert!(
+            result_with_safety.events.len() <= result_no_safety.events.len(),
+            "Safety inspections should reduce accidents"
+        );
     }
 
     #[test]
@@ -595,7 +682,10 @@ mod tests {
 
         // p2 should have received some devastation from p1
         let p2_devastation = c.get(id2).unwrap().devastation_index;
-        assert!(p2_devastation > 0.0, "Devastation must spread to adjacent parcels");
+        assert!(
+            p2_devastation > 0.0,
+            "Devastation must spread to adjacent parcels"
+        );
     }
 
     #[test]
@@ -608,23 +698,37 @@ mod tests {
         decay_devastation(&mut c, 0.1);
 
         for (_, p) in c.iter() {
-            assert!((p.devastation_index - 0.45).abs() < 0.001,
-                "Devastation must decay by 10%");
+            assert!(
+                (p.devastation_index - 0.45).abs() < 0.001,
+                "Devastation must decay by 10%"
+            );
         }
     }
 
     #[test]
     fn test_region_devastation_index_aggregation() {
         let mut c = Cadastre::default();
-        let p1 = ParcelChunk { devastation_index: 0.2, ..Default::default() };
-        let p2 = ParcelChunk { devastation_index: 0.4, ..Default::default() };
-        let p3 = ParcelChunk { devastation_index: 0.6, ..Default::default() };
+        let p1 = ParcelChunk {
+            devastation_index: 0.2,
+            ..Default::default()
+        };
+        let p2 = ParcelChunk {
+            devastation_index: 0.4,
+            ..Default::default()
+        };
+        let p3 = ParcelChunk {
+            devastation_index: 0.6,
+            ..Default::default()
+        };
         let id1 = c.insert(p1);
         let id2 = c.insert(p2);
         let id3 = c.insert(p3);
 
         let avg = region_devastation_index(&c, &[id1, id2, id3]);
-        assert!((avg - 0.4).abs() < 0.001, "Average must be (0.2+0.4+0.6)/3 = 0.4");
+        assert!(
+            (avg - 0.4).abs() < 0.001,
+            "Average must be (0.2+0.4+0.6)/3 = 0.4"
+        );
     }
 
     #[test]
@@ -646,7 +750,11 @@ mod tests {
         let r1 = trigger_disasters(&mut c1, &config, 1, 0.0, 12345);
         let r2 = trigger_disasters(&mut c2, &config, 1, 0.0, 12345);
 
-        assert_eq!(r1.events.len(), r2.events.len(), "Same seed must produce same events");
+        assert_eq!(
+            r1.events.len(),
+            r2.events.len(),
+            "Same seed must produce same events"
+        );
     }
 
     #[test]

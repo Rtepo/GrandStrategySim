@@ -29,7 +29,14 @@ mod tests {
         let small_count = plant_count(small_target, year);
         let large_count = plant_count(large_target, year);
 
-        assert!(large_count > small_count, "Large pop ({}) should get more plants ({}) than small pop ({}) ({})", large_pop, large_count, small_pop, small_count);
+        assert!(
+            large_count > small_count,
+            "Large pop ({}) should get more plants ({}) than small pop ({}) ({})",
+            large_pop,
+            large_count,
+            small_pop,
+            small_count
+        );
     }
 
     /// Turn-0 wage floor: when average_wage is 0.0, the .max(1.0) floor
@@ -43,12 +50,21 @@ mod tests {
         // With wage = 0.0 (uninitialized), the floor .max(1.0) gives wage = 1.0
         let floored_wage = 0.0_f64.max(1.0);
         let target = target_regional_capacity_mw(pop, dev, floored_wage, year);
-        assert!(target > 0.0, "Target capacity with floored wage must be positive, got {}", target);
+        assert!(
+            target > 0.0,
+            "Target capacity with floored wage must be positive, got {}",
+            target
+        );
 
         // With the old hardcoded 500.0, target would be 500x larger — verify
         // the floor gives a much smaller (but non-zero) value.
         let old_target = target_regional_capacity_mw(pop, dev, 500.0, year);
-        assert!(target < old_target, "Floored wage target ({}) should be smaller than old 500.0 target ({})", target, old_target);
+        assert!(
+            target < old_target,
+            "Floored wage target ({}) should be smaller than old 500.0 target ({})",
+            target,
+            old_target
+        );
     }
 
     /// Total nameplate = nameplate_per_plant * plant_count, so larger regions

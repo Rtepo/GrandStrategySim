@@ -1,89 +1,88 @@
 //! Military units and combat system
 
 pub mod combat;
+pub mod commander_traits;
 pub mod config;
+pub mod fleet;
 pub mod fronts;
+pub mod modernization;
+pub mod morale;
+pub mod multi_domain;
+pub mod occupation;
+pub mod oob;
+pub mod pows;
+pub mod propaganda;
+pub mod proxy_wars;
+pub mod retreat;
 pub mod turn;
 pub mod units;
 pub mod upkeep;
-pub mod fleet;
-pub mod war_economy;
-pub mod oob;
-pub mod modernization;
-pub mod multi_domain;
-pub mod pows;
-pub mod retreat;
-pub mod commander_traits;
 pub mod war_declarations;
-pub mod occupation;
-pub mod morale;
-pub mod propaganda;
-pub mod proxy_wars;
+pub mod war_economy;
 
-pub use combat::{resolve_battle, process_wounded, process_dead, process_deserters};
-pub use config::MilitaryCombatConfig;
-pub use fronts::{Front, RegionControl, Battle, BattleResult, Casualties};
-pub use turn::process_military_turn;
-pub use units::{MilitaryUnit, UnitType, UnitStats, PeasantBattalion, EquipmentReserve};
-pub use upkeep::{process_military_upkeep, add_military_demand_to_market, add_fleet_demand_to_market, submit_defense_b2b_orders, deliver_military_supplies, degrade_military_equipment, deliver_military_supplies_and_equipment};
-pub use fleet::{Fleet, Ship, FleetMission, apply_maritime_capacity_constraint, create_fleet, process_fleet_upkeep};
-pub use war_economy::{
-    WarEconomyState, WarEconomyConfig, ConscriptionLevel, ProductionDecree,
-    apply_production_decree, lift_production_decree, process_expired_decrees,
-    execute_conscription, demobilize_unit, issue_war_bonds,
-    MilitaryConversion, military_conversion_methods, find_military_conversion,
-    conversions_for_sector,
-};
-pub use oob::{
-    OrderOfBattle, Army, Division, Regiment,
-    OobGenerationConfig, generate_oob, generate_asymmetric_oob,
-};
-pub use modernization::{
-    ModernizationConfig, EquipmentUpgrade, ModernizationResult,
-    modernize_unit, available_upgrades, apply_scrap_to_stockpile,
-};
-pub use multi_domain::{
-    CombatDomain, DomainModifiers, MultiDomainBattleResult,
-    resolve_multi_domain_battle,
-};
-pub use pows::{
-    PrisonerOfWar, PowStatus, PowCamp, PowCaptureConfig,
-    ForcedLaborLeaseResult,
-    capture_pows_from_casualties, calculate_lease_fee_per_pow,
-    process_forced_labor_lease_fees, repatriate_pows_from_country,
-};
-pub use retreat::{
-    CommanderRetraitProfile, RetreatEvaluation, RetreatResult,
-    evaluate_retreat, process_retreat, apply_captured_equipment_to_stockpile,
-};
+pub use crate::infrastructure::maritime::ShipType;
+pub use combat::{process_dead, process_deserters, process_wounded, resolve_battle};
 pub use commander_traits::{
-    MilitaryTacticModifiers, AirDoctrine,
-    evaluate_military_tactics,
     apply_attack_modifier, apply_defense_modifier, apply_organization_modifier,
-    to_retreat_profile,
+    evaluate_military_tactics, to_retreat_profile, AirDoctrine, MilitaryTacticModifiers,
 };
-pub use war_declarations::{
-    WarReason, PeaceTerms, WarState, BilateralTension, WarDeclarationConfig,
-    WarDeclarationResult, PeaceSettlementResult,
-    declare_war, check_tension_escalations, decay_all_tensions,
-    settle_peace, tension_key,
+pub use config::MilitaryCombatConfig;
+pub use fleet::{
+    apply_maritime_capacity_constraint, create_fleet, process_fleet_upkeep, Fleet, FleetMission,
+    Ship,
 };
-pub use occupation::{
-    OccupationState, OccupationConfig, OccupationTurnResult,
-    compute_cultural_distance, process_occupation_turn, create_occupation_states,
+pub use fronts::{Battle, BattleResult, Casualties, Front, RegionControl};
+pub use modernization::{
+    apply_scrap_to_stockpile, available_upgrades, modernize_unit, EquipmentUpgrade,
+    ModernizationConfig, ModernizationResult,
 };
 pub use morale::{
+    apply_casualty_morale_impact, apply_casualty_morale_to_classes, calculate_desertions,
+    initialize_morale, recover_morale, recover_morale_for_classes, strike_production_factor,
     MoraleConfig, MoraleImpactResult,
-    apply_casualty_morale_impact, apply_casualty_morale_to_classes,
-    recover_morale, recover_morale_for_classes,
-    strike_production_factor, calculate_desertions, initialize_morale,
+};
+pub use multi_domain::{
+    resolve_multi_domain_battle, CombatDomain, DomainModifiers, MultiDomainBattleResult,
+};
+pub use occupation::{
+    compute_cultural_distance, create_occupation_states, process_occupation_turn, OccupationConfig,
+    OccupationState, OccupationTurnResult,
+};
+pub use oob::{
+    generate_asymmetric_oob, generate_oob, Army, Division, OobGenerationConfig, OrderOfBattle,
+    Regiment,
+};
+pub use pows::{
+    calculate_lease_fee_per_pow, capture_pows_from_casualties, process_forced_labor_lease_fees,
+    repatriate_pows_from_country, ForcedLaborLeaseResult, PowCamp, PowCaptureConfig, PowStatus,
+    PrisonerOfWar,
 };
 pub use propaganda::{
-    PropagandaTarget, PropagandaCampaign, PropagandaConfig, PropagandaResult,
-    execute_propaganda, apply_propaganda_boost,
+    apply_propaganda_boost, execute_propaganda, PropagandaCampaign, PropagandaConfig,
+    PropagandaResult, PropagandaTarget,
 };
 pub use proxy_wars::{
-    ProxyWarAction, ProxyWarResult, ProxyWarConfig,
-    fund_separatists, arm_rebels,
+    arm_rebels, fund_separatists, ProxyWarAction, ProxyWarConfig, ProxyWarResult,
 };
-pub use crate::infrastructure::maritime::ShipType;
+pub use retreat::{
+    apply_captured_equipment_to_stockpile, evaluate_retreat, process_retreat,
+    CommanderRetraitProfile, RetreatEvaluation, RetreatResult,
+};
+pub use turn::process_military_turn;
+pub use units::{EquipmentReserve, MilitaryUnit, PeasantBattalion, UnitStats, UnitType};
+pub use upkeep::{
+    add_fleet_demand_to_market, add_military_demand_to_market, degrade_military_equipment,
+    deliver_military_supplies, deliver_military_supplies_and_equipment, process_military_upkeep,
+    submit_defense_b2b_orders,
+};
+pub use war_declarations::{
+    check_tension_escalations, decay_all_tensions, declare_war, settle_peace, tension_key,
+    BilateralTension, PeaceSettlementResult, PeaceTerms, WarDeclarationConfig,
+    WarDeclarationResult, WarReason, WarState,
+};
+pub use war_economy::{
+    apply_production_decree, conversions_for_sector, demobilize_unit, execute_conscription,
+    find_military_conversion, issue_war_bonds, lift_production_decree, military_conversion_methods,
+    process_expired_decrees, ConscriptionLevel, MilitaryConversion, ProductionDecree,
+    WarEconomyConfig, WarEconomyState,
+};

@@ -173,10 +173,40 @@ pub fn compute_cultural_distance(occupier_culture: &str, occupied_culture: &str)
 fn is_same_cultural_group(culture_a: &str, culture_b: &str) -> bool {
     // Known cultural groups (from society/cultures.rs CULTURAL_GROUPS)
     let groups: &[&[&str]] = &[
-        &["slavic", "polish", "russian", "ukrainian", "czech", "serbian", "bulgarian"],
-        &["germanic", "german", "english", "dutch", "swedish", "danish", "norwegian"],
-        &["latin", "italian", "french", "spanish", "portuguese", "romanian"],
-        &["nordic", "swedish", "danish", "norwegian", "finnish", "icelandic"],
+        &[
+            "slavic",
+            "polish",
+            "russian",
+            "ukrainian",
+            "czech",
+            "serbian",
+            "bulgarian",
+        ],
+        &[
+            "germanic",
+            "german",
+            "english",
+            "dutch",
+            "swedish",
+            "danish",
+            "norwegian",
+        ],
+        &[
+            "latin",
+            "italian",
+            "french",
+            "spanish",
+            "portuguese",
+            "romanian",
+        ],
+        &[
+            "nordic",
+            "swedish",
+            "danish",
+            "norwegian",
+            "finnish",
+            "icelandic",
+        ],
         &["asian", "chinese", "japanese", "korean", "vietnamese"],
         &["middle_eastern", "arab", "persian", "turkish"],
     ];
@@ -246,8 +276,8 @@ pub fn process_occupation_turn(
 
     // Update unrest based on garrison sufficiency
     if state.is_garrison_insufficient() {
-        state.unrest_level = (state.unrest_level + config.unrest_increase_per_turn)
-            .min(config.max_unrest);
+        state.unrest_level =
+            (state.unrest_level + config.unrest_increase_per_turn).min(config.max_unrest);
         let deficit = state.garrison_deficit();
         messages.push(format!(
             "[OCCUPATION] Region {} garrison deficit: {} (unrest +{:.2} → {:.2})",
@@ -256,7 +286,8 @@ pub fn process_occupation_turn(
     } else {
         state.unrest_level = (state.unrest_level - config.unrest_decrease_per_turn).max(0.0);
         // Integration progresses when garrison is sufficient
-        state.integration_progress = (state.integration_progress + config.integration_rate).min(1.0);
+        state.integration_progress =
+            (state.integration_progress + config.integration_rate).min(1.0);
         messages.push(format!(
             "[OCCUPATION] Region {} garrison sufficient (unrest -{:.2} → {:.2}, integration +{:.2} → {:.2})",
             state.region_id, config.unrest_decrease_per_turn, state.unrest_level,
@@ -319,7 +350,8 @@ pub fn create_occupation_states(
     for (region_id, control) in region_control {
         if let RegionControl::Occupied(occupier_name) = control {
             if occupier_name == occupier {
-                let region_culture = region_cultures.get(region_id)
+                let region_culture = region_cultures
+                    .get(region_id)
                     .map(|s| s.as_str())
                     .unwrap_or("unknown");
                 let region_pop = region_populations.get(region_id).copied().unwrap_or(1000);
@@ -385,8 +417,10 @@ mod tests {
         let small = OccupationState::new("O".to_string(), "r1".to_string(), 1, 10_000, 0.8);
         let large = OccupationState::new("O".to_string(), "r2".to_string(), 1, 1_000_000, 0.8);
 
-        assert!(large.garrison_required > small.garrison_required,
-            "Larger population must require more garrison");
+        assert!(
+            large.garrison_required > small.garrison_required,
+            "Larger population must require more garrison"
+        );
     }
 
     #[test]
@@ -394,8 +428,10 @@ mod tests {
         let close = OccupationState::new("O".to_string(), "r1".to_string(), 1, 100_000, 0.3);
         let far = OccupationState::new("O".to_string(), "r2".to_string(), 1, 100_000, 0.8);
 
-        assert!(far.garrison_required > close.garrison_required,
-            "Greater cultural distance must require more garrison");
+        assert!(
+            far.garrison_required > close.garrison_required,
+            "Greater cultural distance must require more garrison"
+        );
     }
 
     #[test]
@@ -426,7 +462,10 @@ mod tests {
         let config = OccupationConfig::default();
         let result = process_occupation_turn(&mut state, &config, 2);
 
-        assert!(state.unrest_level > initial_unrest, "Unrest must increase with insufficient garrison");
+        assert!(
+            state.unrest_level > initial_unrest,
+            "Unrest must increase with insufficient garrison"
+        );
         assert!(!result.rebellion_triggered); // Should not trigger immediately
     }
 
@@ -439,7 +478,10 @@ mod tests {
         let config = OccupationConfig::default();
         let _result = process_occupation_turn(&mut state, &config, 2);
 
-        assert!(state.unrest_level < initial_unrest, "Unrest must decrease with sufficient garrison");
+        assert!(
+            state.unrest_level < initial_unrest,
+            "Unrest must decrease with sufficient garrison"
+        );
     }
 
     #[test]
@@ -450,7 +492,10 @@ mod tests {
         let config = OccupationConfig::default();
         let _result = process_occupation_turn(&mut state, &config, 2);
 
-        assert!(state.integration_progress > 0.0, "Integration must progress with sufficient garrison");
+        assert!(
+            state.integration_progress > 0.0,
+            "Integration must progress with sufficient garrison"
+        );
     }
 
     #[test]
@@ -466,7 +511,10 @@ mod tests {
         };
 
         let result = process_occupation_turn(&mut state, &config, 2);
-        assert!(result.rebellion_triggered, "Rebellion must trigger when unrest exceeds threshold");
+        assert!(
+            result.rebellion_triggered,
+            "Rebellion must trigger when unrest exceeds threshold"
+        );
     }
 
     #[test]
@@ -481,7 +529,10 @@ mod tests {
         };
 
         let result = process_occupation_turn(&mut state, &config, 100);
-        assert!(result.fully_integrated, "Region must be fully integrated when progress reaches 1.0");
+        assert!(
+            result.fully_integrated,
+            "Region must be fully integrated when progress reaches 1.0"
+        );
         assert!(state.is_integrated);
     }
 
@@ -494,7 +545,10 @@ mod tests {
     #[test]
     fn test_cultural_distance_same_group() {
         let dist = compute_cultural_distance("polish", "russian");
-        assert!(dist > 0.0 && dist < 0.5, "Same group must have moderate distance");
+        assert!(
+            dist > 0.0 && dist < 0.5,
+            "Same group must have moderate distance"
+        );
     }
 
     #[test]
@@ -506,9 +560,15 @@ mod tests {
     #[test]
     fn test_create_occupation_states() {
         let mut region_control = HashMap::new();
-        region_control.insert("r1".to_string(), RegionControl::Occupied("Occupier".to_string()));
+        region_control.insert(
+            "r1".to_string(),
+            RegionControl::Occupied("Occupier".to_string()),
+        );
         region_control.insert("r2".to_string(), RegionControl::Owner);
-        region_control.insert("r3".to_string(), RegionControl::Occupied("OtherCountry".to_string()));
+        region_control.insert(
+            "r3".to_string(),
+            RegionControl::Occupied("OtherCountry".to_string()),
+        );
 
         let mut cultures = HashMap::new();
         cultures.insert("r1".to_string(), "slavic".to_string());

@@ -53,20 +53,20 @@ fn default_exchange_rate() -> f64 {
 }
 
 /// Calculate cross rate between two currencies via IEU.
-/// 
+///
 /// # Arguments
 /// * `from_currency_rate` - Exchange rate of source currency vs IEU
 /// * `to_currency_rate` - Exchange rate of target currency vs IEU
-/// 
+///
 /// # Returns
 /// Cross rate (how much target currency = 1 source currency)
-/// 
+///
 /// # Rules
 /// - IEU is the absolute reference point (value = 1.0)
 /// - Formula: (from_currency_rate / IEU) * (IEU / to_currency_rate)
 /// - Simplified: to_currency_rate / from_currency_rate (INVERTED to prevent infinite wealth glitch)
 /// - Prevents combinatorial explosion: N currencies require N rates to IEU, not N*(N-1)/2 cross-pairs
-/// 
+///
 /// # Example
 /// - PLN/IEU = 4.0 (1 IEU = 4 PLN)
 /// - USD/IEU = 0.8 (1 IEU = 0.8 USD)
@@ -79,15 +79,15 @@ pub fn calculate_cross_rate(from_currency_rate: f64, to_currency_rate: f64) -> f
 }
 
 /// Converts an amount from one currency to another via IEU.
-/// 
+///
 /// # Arguments
 /// * `amount` - Amount in source currency
 /// * `from_currency_rate` - Exchange rate of source currency vs IEU
 /// * `to_currency_rate` - Exchange rate of target currency vs IEU
-/// 
+///
 /// # Returns
 /// Equivalent amount in target currency
-/// 
+///
 /// # Rules
 /// - Formula: amount * (to_currency_rate / from_currency_rate)
 /// - Example: 10 PLN * (0.8 / 4) = 2 USD (correct conversion)

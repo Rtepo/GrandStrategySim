@@ -1,13 +1,13 @@
 //! Military units and unit types with demographic tracking
 
-use serde::{Deserialize, Serialize};
 use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
 
 type HashMap<K, V> = FxHashMap<K, V>;
 
+use crate::military::config::MilitaryCombatConfig;
 use crate::registries::enums::Commodity;
 use crate::society::geography::RuralClass;
-use crate::military::config::MilitaryCombatConfig;
 
 /// Combat statistics for a military unit
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -51,7 +51,7 @@ pub enum UnitType {
 
 impl UnitType {
     /// Get base stats for this unit type
-    /// 
+    ///
     /// # Returns
     /// Default combat statistics
     pub fn base_stats(&self) -> UnitStats {
@@ -106,9 +106,9 @@ impl UnitType {
             },
         }
     }
-    
+
     /// Get commodity upkeep requirements
-    /// 
+    ///
     /// # Returns
     /// Map of commodity to consumption rate per turn
     pub fn commodity_upkeep(&self) -> HashMap<Commodity, f64> {
@@ -152,7 +152,7 @@ impl UnitType {
             }
         }
     }
-    
+
     /// Get wage cost per turn
     ///
     /// # Returns
@@ -370,9 +370,7 @@ impl UnitType {
                 }
                 toe
             }
-            UnitType::PeasantBattalion => {
-                Vec::new()
-            }
+            UnitType::PeasantBattalion => Vec::new(),
         }
     }
 }
@@ -487,14 +485,14 @@ pub struct MilitaryUnit {
 
 impl MilitaryUnit {
     /// Create a new military unit
-    /// 
+    ///
     /// # Arguments
     /// * `id` - Unique unit identifier
     /// * `unit_type` - Type of unit
     /// * `manpower` - Initial manpower count
     /// * `manpower_origin` - Demographic breakdown of manpower
     /// * `home_region` - Home region
-    /// 
+    ///
     /// # Returns
     /// New MilitaryUnit instance
     pub fn new(
@@ -518,22 +516,23 @@ impl MilitaryUnit {
             equipment_reserves: Vec::new(),
         }
     }
-    
+
     /// Calculate total commodity upkeep cost
-    /// 
+    ///
     /// # Returns
     /// Map of commodity to total consumption (manpower * per-soldier rate)
     pub fn calculate_commodity_upkeep(&self) -> HashMap<Commodity, f64> {
         let base_upkeep = self.unit_type.commodity_upkeep();
         let multiplier = self.manpower as f64 / 1000.0; // Per 1000 soldiers
-        
-        base_upkeep.into_iter()
+
+        base_upkeep
+            .into_iter()
             .map(|(commodity, rate)| (commodity, rate * multiplier))
             .collect()
     }
-    
+
     /// Calculate total wage cost
-    /// 
+    ///
     /// # Returns
     /// Total cash cost for wages (manpower * per-soldier rate)
     pub fn calculate_wage_cost(&self) -> f64 {
@@ -541,26 +540,26 @@ impl MilitaryUnit {
         let multiplier = self.manpower as f64 / 1000.0; // Per 1000 soldiers
         base_cost * multiplier
     }
-    
+
     /// Apply casualties and return demographic breakdown
-    /// 
+    ///
     /// # Arguments
     /// * `casualties` - Total number of casualties
-    /// 
+    ///
     /// # Returns
     /// HashMap of RuralClass to casualties deducted from that class
     pub fn apply_casualties(&mut self, casualties: i64) -> HashMap<RuralClass, i64> {
         if casualties <= 0 || self.manpower <= 0 {
             return HashMap::default();
         }
-        
+
         let actual_casualties = casualties.min(self.manpower);
         self.manpower -= actual_casualties;
-        
+
         // Deduct casualties proportionally from demographic origin
         let mut demographic_casualties = HashMap::default();
         let total_origin: i64 = self.manpower_origin.values().sum();
-        
+
         if total_origin > 0 {
             for (rural_class, &origin_count) in &self.manpower_origin {
                 let proportion = origin_count as f64 / total_origin as f64;
@@ -568,19 +567,19 @@ impl MilitaryUnit {
                 demographic_casualties.insert(*rural_class, class_casualties);
             }
         }
-        
+
         // Update manpower_origin to reflect remaining
         for (rural_class, class_casualties) in &demographic_casualties {
             if let Some(origin_count) = self.manpower_origin.get_mut(rural_class) {
                 *origin_count = (*origin_count - class_casualties).max(0);
             }
         }
-        
+
         demographic_casualties
     }
-    
+
     /// Check if unit is peasant battalion
-    /// 
+    ///
     /// # Returns
     /// True if this is a peasant battalion
     pub fn is_peasant_battalion(&self) -> bool {
@@ -629,13 +628,17 @@ impl MilitaryUnit {
     ///
     /// # Returns
     /// (actual_ammo_burned, actual_fuel_burned)
-    pub fn burn_combat_supplies(
-        &mut self,
-        ammo_required: f64,
-        fuel_required: f64,
-    ) -> (f64, f64) {
-        let ammo_on_hand = self.stockpile.get(&Commodity::Ammunition).copied().unwrap_or(0.0);
-        let fuel_on_hand = self.stockpile.get(&Commodity::Fuels).copied().unwrap_or(0.0);
+    pub fn burn_combat_supplies(&mut self, ammo_required: f64, fuel_required: f64) -> (f64, f64) {
+        let ammo_on_hand = self
+            .stockpile
+            .get(&Commodity::Ammunition)
+            .copied()
+            .unwrap_or(0.0);
+        let fuel_on_hand = self
+            .stockpile
+            .get(&Commodity::Fuels)
+            .copied()
+            .unwrap_or(0.0);
 
         let ammo_burned = ammo_required.min(ammo_on_hand);
         let fuel_burned = fuel_required.min(fuel_on_hand);
@@ -665,7 +668,11 @@ impl MilitaryUnit {
         is_defender: bool,
         terrain: &str,
     ) -> f64 {
-        let base = if is_defender { self.stats.defense } else { self.stats.attack };
+        let base = if is_defender {
+            self.stats.defense
+        } else {
+            self.stats.attack
+        };
         let org_factor = self.stats.organization / 100.0;
 
         let supply_factor = if self.stats.supply >= config.supply_full_threshold {
@@ -675,7 +682,7 @@ impl MilitaryUnit {
         } else {
             config.supply_zero_penalty
                 + (1.0 - config.supply_zero_penalty)
-                * (self.stats.supply / config.supply_full_threshold)
+                    * (self.stats.supply / config.supply_full_threshold)
         };
 
         let terrain_factor = if is_defender {
@@ -727,14 +734,14 @@ pub struct PeasantBattalion {
 
 impl PeasantBattalion {
     /// Create a new peasant battalion
-    /// 
+    ///
     /// # Arguments
     /// * `id` - Unique unit identifier
     /// * `manpower` - Initial manpower count
     /// * `manpower_origin` - Demographic breakdown (should be mostly Serfs/Peasants)
     /// * `home_region` - Home region
     /// * `foraging_intensity` - Foraging intensity (0-1)
-    /// 
+    ///
     /// # Returns
     /// New PeasantBattalion instance
     pub fn new(
@@ -751,31 +758,31 @@ impl PeasantBattalion {
             manpower_origin,
             home_region,
         );
-        
+
         PeasantBattalion {
             unit,
             foraging_intensity: foraging_intensity.clamp(0.0, 1.0),
         }
     }
-    
+
     /// Calculate local economic damage from foraging
-    /// 
+    ///
     /// # Returns
     /// Economic damage multiplier (0-1, higher = more damage)
     pub fn calculate_economic_damage(&self) -> f64 {
         self.foraging_intensity * 0.3 // Up to 30% GDP damage in region
     }
-    
+
     /// Get the underlying military unit
-    /// 
+    ///
     /// # Returns
     /// Reference to the base MilitaryUnit
     pub fn as_military_unit(&self) -> &MilitaryUnit {
         &self.unit
     }
-    
+
     /// Get mutable reference to the underlying military unit
-    /// 
+    ///
     /// # Returns
     /// Mutable reference to the base MilitaryUnit
     pub fn as_military_unit_mut(&mut self) -> &mut MilitaryUnit {

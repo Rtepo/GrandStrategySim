@@ -7,8 +7,8 @@
 //! parallel per-country workers — can access it without cloning, while leaving
 //! the door open to hot-reloading static JSON in development.
 
-pub mod buildings;
 pub mod blueprint_specs;
+pub mod buildings;
 pub mod crops;
 pub mod enums;
 pub mod government;

@@ -64,7 +64,9 @@ pub fn update_gdp_shares_from_employment(ctx: &mut CountryTurnCtx<'_>) {
         }
         for (sector, (emp, capacity)) in employment {
             if let Some(share) = sectors.get_mut(&sector) {
-                share.extra.insert("employment".to_string(), Value::from(emp));
+                share
+                    .extra
+                    .insert("employment".to_string(), Value::from(emp));
                 let pmi = if capacity > 0 {
                     (100.0 * (emp as f64 / capacity as f64)).min(100.0)
                 } else {
@@ -134,10 +136,8 @@ pub fn compute_pmi_diffusion_index(
     prev_telemetry: &HashMap<String, f64>,
 ) -> (f64, HashMap<String, f64>) {
     let sector_commodities = sector.primary_commodities();
-    let sector_buildings: Vec<&crate::entities::Building> = buildings
-        .iter()
-        .filter(|b| b.sector == sector)
-        .collect();
+    let sector_buildings: Vec<&crate::entities::Building> =
+        buildings.iter().filter(|b| b.sector == sector).collect();
 
     // 1. Orders (30%): Sum of bid quantities in the OrderBook for sector commodities
     let current_orders: f64 = sector_commodities
@@ -164,7 +164,10 @@ pub fn compute_pmi_diffusion_index(
         .iter()
         .flat_map(|b| b.last_production.values().copied())
         .sum();
-    let prev_production = prev_telemetry.get("_prev_production").copied().unwrap_or(0.0);
+    let prev_production = prev_telemetry
+        .get("_prev_production")
+        .copied()
+        .unwrap_or(0.0);
     let production_component = if prev_production > 0.0 {
         50.0 + 50.0 * ((current_production - prev_production) / prev_production).clamp(-1.0, 1.0)
     } else if current_production > 0.0 {
@@ -200,7 +203,10 @@ pub fn compute_pmi_diffusion_index(
                 .unwrap_or(0.0)
         })
         .sum();
-    let prev_deliveries = prev_telemetry.get("_prev_deliveries").copied().unwrap_or(0.0);
+    let prev_deliveries = prev_telemetry
+        .get("_prev_deliveries")
+        .copied()
+        .unwrap_or(0.0);
     let deliveries_component = if prev_deliveries > 0.0 {
         50.0 + 50.0 * ((current_deliveries - prev_deliveries) / prev_deliveries).clamp(-1.0, 1.0)
     } else if current_deliveries > 0.0 {
@@ -214,7 +220,10 @@ pub fn compute_pmi_diffusion_index(
         .iter()
         .map(|b| b.inventory.values().sum::<f64>())
         .sum();
-    let prev_inventory = prev_telemetry.get("_prev_inventory").copied().unwrap_or(0.0);
+    let prev_inventory = prev_telemetry
+        .get("_prev_inventory")
+        .copied()
+        .unwrap_or(0.0);
     let inventory_component = if prev_inventory > 0.0 {
         // Rising inventories = above 50 (stockpiling), falling = below 50 (drawdown)
         50.0 + 50.0 * ((current_inventory - prev_inventory) / prev_inventory).clamp(-1.0, 1.0)
@@ -258,6 +267,11 @@ pub fn compute_pmi_diffusion_index(
 /// * The function mutates `ctx.country` in place.
 pub fn run_economic_turn(ctx: &mut CountryTurnCtx<'_>) -> Result<(), String> {
     update_gdp_shares_from_employment(ctx);
+
+    // Phase A.1: Sync capacity_pool from live education/healthcare buildings
+    // BEFORE applying infrastructure effects, so utilization is computed from
+    // real institutional capacity (Rule 16: temporal causality).
+    crate::infrastructure::sync_education_capacity_pool(&ctx.buildings, &mut ctx.country.regions);
 
     // Apply infrastructure capacity effects to all regions
     // This includes healthcare, dependency care, and education effects
@@ -399,15 +413,15 @@ mod tests {
         let order_book = crate::economy::market::order_book::OrderBook::default();
         let prev = HashMap::new();
 
-        let (pmi, components) = compute_pmi_diffusion_index(
-            Sector::HeavyIndustry,
-            &buildings,
-            &order_book,
-            &prev,
-        );
+        let (pmi, components) =
+            compute_pmi_diffusion_index(Sector::HeavyIndustry, &buildings, &order_book, &prev);
 
         // With no data, all components should be 50 (neutral)
-        assert!((pmi - 50.0).abs() < 1.0, "PMI should be ~50 with no data, got {}", pmi);
+        assert!(
+            (pmi - 50.0).abs() < 1.0,
+            "PMI should be ~50 with no data, got {}",
+            pmi
+        );
         assert!((components["orders"] - 50.0).abs() < 0.1);
         assert!((components["production"] - 50.0).abs() < 0.1);
         assert!((components["employment"] - 50.0).abs() < 0.1);
@@ -434,15 +448,14 @@ mod tests {
         let mut prev = HashMap::new();
         prev.insert("_prev_orders".to_string(), 500.0); // Orders doubled
 
-        let (pmi, components) = compute_pmi_diffusion_index(
-            Sector::HeavyIndustry,
-            &buildings,
-            &order_book,
-            &prev,
-        );
+        let (pmi, components) =
+            compute_pmi_diffusion_index(Sector::HeavyIndustry, &buildings, &order_book, &prev);
 
         // Orders doubled → orders component should be 100 (max expansion)
-        assert!(components["orders"] > 50.0, "Orders component should be > 50");
+        assert!(
+            components["orders"] > 50.0,
+            "Orders component should be > 50"
+        );
         assert!(pmi > 50.0, "PMI should be > 50 when orders rising");
     }
 
@@ -450,21 +463,22 @@ mod tests {
     fn test_pmi_falling_when_production_decreases() {
         let mut building = crate::entities::Building::default();
         building.sector = Sector::HeavyIndustry;
-        building.last_production.insert(crate::registries::enums::Commodity::Steel, 100.0);
+        building
+            .last_production
+            .insert(crate::registries::enums::Commodity::Steel, 100.0);
         let buildings = vec![building];
         let order_book = crate::economy::market::order_book::OrderBook::default();
         let mut prev = HashMap::new();
         prev.insert("_prev_production".to_string(), 500.0); // Production fell
 
-        let (pmi, components) = compute_pmi_diffusion_index(
-            Sector::HeavyIndustry,
-            &buildings,
-            &order_book,
-            &prev,
-        );
+        let (pmi, components) =
+            compute_pmi_diffusion_index(Sector::HeavyIndustry, &buildings, &order_book, &prev);
 
         // Production fell 80% → production component should be < 50
-        assert!(components["production"] < 50.0, "Production component should be < 50");
+        assert!(
+            components["production"] < 50.0,
+            "Production component should be < 50"
+        );
         assert!(pmi < 55.0, "PMI should be low when production falling");
     }
 
@@ -479,13 +493,13 @@ mod tests {
         prev.insert("_prev_deliveries".to_string(), 1.0);
         prev.insert("_prev_inventory".to_string(), 1.0);
 
-        let (pmi, _) = compute_pmi_diffusion_index(
-            Sector::HeavyIndustry,
-            &buildings,
-            &order_book,
-            &prev,
-        );
+        let (pmi, _) =
+            compute_pmi_diffusion_index(Sector::HeavyIndustry, &buildings, &order_book, &prev);
 
-        assert!((0.0..=100.0).contains(&pmi), "PMI must be in [0, 100], got {}", pmi);
+        assert!(
+            (0.0..=100.0).contains(&pmi),
+            "PMI must be in [0, 100], got {}",
+            pmi
+        );
     }
 }

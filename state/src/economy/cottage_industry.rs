@@ -179,7 +179,11 @@ pub fn reserve_cottage_fte(
         }
 
         // Inventory clamping (Fix 5): limited by raw inventory from last turn
-        let available_raw = demo.cottage_raw_inventory.get(&recipe.input).copied().unwrap_or(0.0);
+        let available_raw = demo
+            .cottage_raw_inventory
+            .get(&recipe.input)
+            .copied()
+            .unwrap_or(0.0);
         let max_output_from_inventory = available_raw / recipe.input_per_unit;
         let max_output = demand.min(max_output_from_inventory);
         if max_output <= 0.0 {
@@ -200,7 +204,10 @@ pub fn reserve_cottage_fte(
 
             // Plan raw material purchase for next turn (replenish inventory)
             let raw_needed = actual_output * recipe.input_per_unit;
-            *result.raw_material_demand.entry(recipe.input).or_insert(0.0) += raw_needed;
+            *result
+                .raw_material_demand
+                .entry(recipe.input)
+                .or_insert(0.0) += raw_needed;
         }
     }
 
@@ -256,7 +263,11 @@ pub fn execute_cottage_production(
         let efficiency = recipe.efficiency_base + cottage_bonus;
 
         // Available raw material from inventory (purchased in N-1)
-        let available_raw = demo.cottage_raw_inventory.get(&recipe.input).copied().unwrap_or(0.0);
+        let available_raw = demo
+            .cottage_raw_inventory
+            .get(&recipe.input)
+            .copied()
+            .unwrap_or(0.0);
         if available_raw <= 0.0 {
             continue;
         }
@@ -275,7 +286,10 @@ pub fn execute_cottage_production(
 
         // Consume raw material (mass conservation)
         let raw_consumed = output * recipe.input_per_unit;
-        let current_raw = demo.cottage_raw_inventory.entry(recipe.input).or_insert(0.0);
+        let current_raw = demo
+            .cottage_raw_inventory
+            .entry(recipe.input)
+            .or_insert(0.0);
         *current_raw = (*current_raw - raw_consumed).max(0.0);
 
         // Generate waste byproduct (mass conservation: input = output + waste)
@@ -293,7 +307,11 @@ pub fn execute_cottage_production(
 ///
 /// This is the FTE that the labor market should see (Fix 2).
 pub fn get_labor_pool_fte(demo: &ClassDemographics) -> f64 {
-    (demo.available_fte - demo.allocated_fte - demo.cottage_fte_allocated - demo.guild_fte_allocated).max(0.0)
+    (demo.available_fte
+        - demo.allocated_fte
+        - demo.cottage_fte_allocated
+        - demo.guild_fte_allocated)
+        .max(0.0)
 }
 
 /// Reset cottage FTE allocation at the start of a turn (before reservation).

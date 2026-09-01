@@ -185,7 +185,9 @@ fn execute_acquisition(
             id_to_idx,
             acquirer_idx,
             plan.price,
-            &TransferRecipient::OtherCompany { recipient_idx: target_idx },
+            &TransferRecipient::OtherCompany {
+                recipient_idx: target_idx,
+            },
             &mut dummy_country,
         );
     }
@@ -202,11 +204,7 @@ fn execute_acquisition(
     for loan in &target_loans {
         if let Some(&bi) = id_to_idx.get(&loan.bank_id) {
             if let Some(ref mut bs) = companies[bi].balance_sheet {
-                if let Some(issued) = bs
-                    .loans_issued
-                    .iter_mut()
-                    .find(|l| l.id == loan.loan_id)
-                {
+                if let Some(issued) = bs.loans_issued.iter_mut().find(|l| l.id == loan.loan_id) {
                     issued.borrower_id = acquirer_id.clone();
                     issued.status = LoanStatus::Merged;
                 }
@@ -227,8 +225,7 @@ fn execute_acquisition(
     companies[acquirer_idx].credit_cash += companies[target_idx].credit_cash;
     companies[acquirer_idx].debit_cash += companies[target_idx].debit_cash;
     companies[acquirer_idx].worker_capacity += companies[target_idx].worker_capacity;
-    companies[acquirer_idx].is_national_champion |=
-        companies[target_idx].is_national_champion;
+    companies[acquirer_idx].is_national_champion |= companies[target_idx].is_national_champion;
     companies[acquirer_idx].annual_profit_accumulator +=
         companies[target_idx].annual_profit_accumulator;
 
@@ -245,8 +242,7 @@ fn execute_acquisition(
         .get(&acquirer_id)
         .cloned()
         .unwrap_or_default();
-    let same_region =
-        companies[target_idx].region_id == companies[acquirer_idx].region_id;
+    let same_region = companies[target_idx].region_id == companies[acquirer_idx].region_id;
 
     for &b_idx in &plan.target_buildings {
         if b_idx >= buildings.len() {
@@ -260,18 +256,18 @@ fn execute_acquisition(
                 continue;
             }
 
-            let freight_needed = if same_region { 0.0 } else { quantity * FREIGHT_PER_UNIT };
+            let freight_needed = if same_region {
+                0.0
+            } else {
+                quantity * FREIGHT_PER_UNIT
+            };
 
             // Try to consume freight capacity from the acquirer for cross-region loads.
-            if freight_needed > 0.0 && !consume_freight_from_buildings(buildings, &acquirer_buildings, freight_needed) {
+            if freight_needed > 0.0
+                && !consume_freight_from_buildings(buildings, &acquirer_buildings, freight_needed)
+            {
                 // Insufficient logistics — write off the goods and their book value.
-                write_off_inventory(
-                    companies,
-                    acquirer_idx,
-                    commodity,
-                    quantity,
-                    market_signal,
-                );
+                write_off_inventory(companies, acquirer_idx, commodity, quantity, market_signal);
                 continue;
             }
 
@@ -303,7 +299,13 @@ fn execute_acquisition(
             let book_value = quantity * price;
             let recoverable = book_value * (1.0 - FIRE_SALE_DISCOUNT_RATIO);
 
-            if let Some(buyer_idx) = find_fire_sale_buyer(companies, &acquirer_id, &target_id, acquirer_idx, recoverable) {
+            if let Some(buyer_idx) = find_fire_sale_buyer(
+                companies,
+                &acquirer_id,
+                &target_id,
+                acquirer_idx,
+                recoverable,
+            ) {
                 let mut dummy_country = Country::default();
                 if recoverable > 0.0
                     && settle_transfer_mapped(
@@ -311,7 +313,9 @@ fn execute_acquisition(
                         id_to_idx,
                         buyer_idx,
                         recoverable,
-                        &TransferRecipient::OtherCompany { recipient_idx: acquirer_idx },
+                        &TransferRecipient::OtherCompany {
+                            recipient_idx: acquirer_idx,
+                        },
                         &mut dummy_country,
                     )
                     .is_ok()
@@ -321,13 +325,7 @@ fn execute_acquisition(
             }
 
             // No buyer: physical destruction with a real write-off.
-            write_off_inventory(
-                companies,
-                acquirer_idx,
-                commodity,
-                quantity,
-                market_signal,
-            );
+            write_off_inventory(companies, acquirer_idx, commodity, quantity, market_signal);
         }
 
         buildings[b_idx].owner_id = acquirer_id.clone();
@@ -354,10 +352,10 @@ fn execute_acquisition(
     companies[target_idx].liabilities = 0.0;
     companies[target_idx].outstanding_loans.clear();
 
-    companies[acquirer_idx].company_capital =
-        (companies[acquirer_idx].fixed_capital + companies[acquirer_idx].liquid_capital
-            - companies[acquirer_idx].liabilities)
-            .max(0.0);
+    companies[acquirer_idx].company_capital = (companies[acquirer_idx].fixed_capital
+        + companies[acquirer_idx].liquid_capital
+        - companies[acquirer_idx].liabilities)
+        .max(0.0);
     if companies[acquirer_idx].worker_capacity >= 25_000 {
         companies[acquirer_idx].is_national_champion = true;
     }
@@ -393,7 +391,9 @@ fn consume_freight_from_buildings(
                 .inventory
                 .insert(Commodity::FreightCapacity, new_qty);
         } else {
-            buildings[b_idx].inventory.remove(&Commodity::FreightCapacity);
+            buildings[b_idx]
+                .inventory
+                .remove(&Commodity::FreightCapacity);
         }
         remaining -= consumed;
         if remaining <= 0.0 {

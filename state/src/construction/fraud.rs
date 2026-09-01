@@ -114,7 +114,11 @@ pub fn try_material_fraud(
     // Pick a random substitutable commodity
     let original = substitutable[rng.gen_range(0..substitutable.len())];
     let substitute = find_cheaper_substitute(original)?;
-    let required = project.required_materials.get(&original).copied().unwrap_or(0.0);
+    let required = project
+        .required_materials
+        .get(&original)
+        .copied()
+        .unwrap_or(0.0);
     if required <= 0.0 {
         return None;
     }
@@ -206,10 +210,7 @@ pub fn try_ohs_cut(
 /// * `accident_chance = BASE_ACCIDENT_RATE * (1.0 - ohs_coverage_ratio) * (1.0 + progress)`
 /// * Full coverage → zero chance.
 /// * More progress + less coverage → higher chance.
-pub fn check_workplace_accident(
-    project: &ConstructionProject,
-    rng: &mut impl Rng,
-) -> Option<u32> {
+pub fn check_workplace_accident(project: &ConstructionProject, rng: &mut impl Rng) -> Option<u32> {
     let accident_chance =
         BASE_ACCIDENT_RATE * (1.0 - project.ohs_coverage_ratio) * (1.0 + project.progress);
 
@@ -279,8 +280,14 @@ mod tests {
 
     #[test]
     fn test_find_cheaper_substitute() {
-        assert_eq!(find_cheaper_substitute(Commodity::Steel), Some(Commodity::Timber));
-        assert_eq!(find_cheaper_substitute(Commodity::Cement), Some(Commodity::Clay));
+        assert_eq!(
+            find_cheaper_substitute(Commodity::Steel),
+            Some(Commodity::Timber)
+        );
+        assert_eq!(
+            find_cheaper_substitute(Commodity::Cement),
+            Some(Commodity::Clay)
+        );
         assert_eq!(find_cheaper_substitute(Commodity::Energy), None);
     }
 
@@ -329,6 +336,9 @@ mod tests {
                 break;
             }
         }
-        assert!(accident_occurred, "Expected at least one accident with zero coverage");
+        assert!(
+            accident_occurred,
+            "Expected at least one accident with zero coverage"
+        );
     }
 }

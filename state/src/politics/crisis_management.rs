@@ -69,8 +69,8 @@ pub fn classify_crisis_action(
     }
 
     // No Parliament (absolutist/dictatorial) → all decrees.
-    let has_parliament = politics.government_form.chambers() > 0
-        && politics.parliament_struct.is_some();
+    let has_parliament =
+        politics.government_form.chambers() > 0 && politics.parliament_struct.is_some();
     if !has_parliament {
         return CrisisActionType::Decree;
     }
@@ -169,7 +169,10 @@ fn process_state_of_emergency_with_snapshot(
             if let Some(ref mut parliament) = politics.parliament_struct {
                 parliament.suspended = false;
             }
-            return Some("[STATE OF EMERGENCY] Auto-expired — Parliament resumes normal function.".to_string());
+            return Some(
+                "[STATE OF EMERGENCY] Auto-expired — Parliament resumes normal function."
+                    .to_string(),
+            );
         }
         if soe.active {
             return None; // Still active, no new message.
@@ -179,7 +182,9 @@ fn process_state_of_emergency_with_snapshot(
     // Check for new activation.
     let activation = should_activate_soe_with_snapshot(indicators, fiscal_emergency);
     if let Some((reason, parliament_suspended)) = activation {
-        let soe = politics.state_of_emergency.get_or_insert_with(StateOfEmergency::default);
+        let soe = politics
+            .state_of_emergency
+            .get_or_insert_with(StateOfEmergency::default);
 
         // Phase 33: Check cooldown before reactivation.
         // Catastrophic severity (> 0.9) bypasses cooldown.
@@ -204,7 +209,11 @@ fn process_state_of_emergency_with_snapshot(
         return Some(format!(
             "[STATE OF EMERGENCY] Activated: {} — Parliament {}",
             reason,
-            if parliament_suspended { "SUSPENDED" } else { "fast-tracked" }
+            if parliament_suspended {
+                "SUSPENDED"
+            } else {
+                "fast-tracked"
+            }
         ));
     }
 
@@ -357,10 +366,7 @@ pub fn detect_crisis(
 /// Uses the market price of Food to determine the minimum wage needed to
 /// afford the food basket. Never uses hardcoded string keys.
 pub fn compute_subsistence_wage(market_prices: &HashMap<Commodity, f64>) -> f64 {
-    let food_price = market_prices
-        .get(&Commodity::Food)
-        .copied()
-        .unwrap_or(50.0);
+    let food_price = market_prices.get(&Commodity::Food).copied().unwrap_or(50.0);
     // A worker needs ~200 units of food per year for subsistence.
     // Engine runs 24 turns/year, so per-turn subsistence = 200/24 ≈ 8.33 units.
     (200.0 / 24.0) * food_price
@@ -398,108 +404,194 @@ impl CrisisResponseProfile {
     pub fn for_ideology(ideology: Ideology) -> Self {
         match ideology {
             Ideology::OrthodoxMarxism => Self {
-                pit_adjustment: 3.0, cit_adjustment: 5.0, vat_adjustment: 2.0,
-                spending_cut_pct: 0.0, bond_issuance_cap_gdp: 0.15,
+                pit_adjustment: 3.0,
+                cit_adjustment: 5.0,
+                vat_adjustment: 2.0,
+                spending_cut_pct: 0.0,
+                bond_issuance_cap_gdp: 0.15,
                 subsidy_pct_of_payroll: 0.80,
-                subsidized_sectors: vec![Sector::HeavyIndustry, Sector::LightIndustry, Sector::Agriculture, Sector::Energy, Sector::TransportLogistics],
+                subsidized_sectors: vec![
+                    Sector::HeavyIndustry,
+                    Sector::LightIndustry,
+                    Sector::Agriculture,
+                    Sector::Energy,
+                    Sector::TransportLogistics,
+                ],
                 inspectorate_priority: 1.0,
             },
             Ideology::MarxismLeninism => Self {
-                pit_adjustment: 3.0, cit_adjustment: 5.0, vat_adjustment: 2.0,
-                spending_cut_pct: 0.0, bond_issuance_cap_gdp: 0.15,
+                pit_adjustment: 3.0,
+                cit_adjustment: 5.0,
+                vat_adjustment: 2.0,
+                spending_cut_pct: 0.0,
+                bond_issuance_cap_gdp: 0.15,
                 subsidy_pct_of_payroll: 0.80,
-                subsidized_sectors: vec![Sector::HeavyIndustry, Sector::LightIndustry, Sector::Agriculture, Sector::Energy, Sector::TransportLogistics],
+                subsidized_sectors: vec![
+                    Sector::HeavyIndustry,
+                    Sector::LightIndustry,
+                    Sector::Agriculture,
+                    Sector::Energy,
+                    Sector::TransportLogistics,
+                ],
                 inspectorate_priority: 1.0,
             },
             Ideology::Maoism => Self {
-                pit_adjustment: 2.0, cit_adjustment: 4.0, vat_adjustment: 1.0,
-                spending_cut_pct: 0.0, bond_issuance_cap_gdp: 0.12,
+                pit_adjustment: 2.0,
+                cit_adjustment: 4.0,
+                vat_adjustment: 1.0,
+                spending_cut_pct: 0.0,
+                bond_issuance_cap_gdp: 0.12,
                 subsidy_pct_of_payroll: 0.70,
-                subsidized_sectors: vec![Sector::Agriculture, Sector::LightIndustry, Sector::HeavyIndustry],
+                subsidized_sectors: vec![
+                    Sector::Agriculture,
+                    Sector::LightIndustry,
+                    Sector::HeavyIndustry,
+                ],
                 inspectorate_priority: 0.9,
             },
             Ideology::SocialDemocracy => Self {
-                pit_adjustment: 2.0, cit_adjustment: 3.0, vat_adjustment: 1.0,
-                spending_cut_pct: 0.0, bond_issuance_cap_gdp: 0.10,
+                pit_adjustment: 2.0,
+                cit_adjustment: 3.0,
+                vat_adjustment: 1.0,
+                spending_cut_pct: 0.0,
+                bond_issuance_cap_gdp: 0.10,
                 subsidy_pct_of_payroll: 0.60,
-                subsidized_sectors: vec![Sector::HeavyIndustry, Sector::LightIndustry, Sector::Agriculture, Sector::Energy],
+                subsidized_sectors: vec![
+                    Sector::HeavyIndustry,
+                    Sector::LightIndustry,
+                    Sector::Agriculture,
+                    Sector::Energy,
+                ],
                 inspectorate_priority: 0.8,
             },
             Ideology::GreenPolitics => Self {
-                pit_adjustment: 1.0, cit_adjustment: 2.0, vat_adjustment: 0.0,
-                spending_cut_pct: 0.05, bond_issuance_cap_gdp: 0.08,
+                pit_adjustment: 1.0,
+                cit_adjustment: 2.0,
+                vat_adjustment: 0.0,
+                spending_cut_pct: 0.05,
+                bond_issuance_cap_gdp: 0.08,
                 subsidy_pct_of_payroll: 0.50,
-                subsidized_sectors: vec![Sector::Agriculture, Sector::Energy, Sector::LightIndustry],
+                subsidized_sectors: vec![
+                    Sector::Agriculture,
+                    Sector::Energy,
+                    Sector::LightIndustry,
+                ],
                 inspectorate_priority: 0.7,
             },
             Ideology::SocialLiberalism => Self {
-                pit_adjustment: 1.0, cit_adjustment: 1.0, vat_adjustment: 0.0,
-                spending_cut_pct: 0.05, bond_issuance_cap_gdp: 0.08,
+                pit_adjustment: 1.0,
+                cit_adjustment: 1.0,
+                vat_adjustment: 0.0,
+                spending_cut_pct: 0.05,
+                bond_issuance_cap_gdp: 0.08,
                 subsidy_pct_of_payroll: 0.40,
-                subsidized_sectors: vec![Sector::HeavyIndustry, Sector::LightIndustry, Sector::Energy],
+                subsidized_sectors: vec![
+                    Sector::HeavyIndustry,
+                    Sector::LightIndustry,
+                    Sector::Energy,
+                ],
                 inspectorate_priority: 0.6,
             },
             Ideology::ChristianDemocracy => Self {
-                pit_adjustment: 0.0, cit_adjustment: 0.0, vat_adjustment: 0.0,
-                spending_cut_pct: 0.05, bond_issuance_cap_gdp: 0.08,
+                pit_adjustment: 0.0,
+                cit_adjustment: 0.0,
+                vat_adjustment: 0.0,
+                spending_cut_pct: 0.05,
+                bond_issuance_cap_gdp: 0.08,
                 subsidy_pct_of_payroll: 0.40,
-                subsidized_sectors: vec![Sector::Agriculture, Sector::HeavyIndustry, Sector::LightIndustry],
+                subsidized_sectors: vec![
+                    Sector::Agriculture,
+                    Sector::HeavyIndustry,
+                    Sector::LightIndustry,
+                ],
                 inspectorate_priority: 0.5,
             },
             Ideology::Agrarianism => Self {
-                pit_adjustment: 0.0, cit_adjustment: -1.0, vat_adjustment: 0.0,
-                spending_cut_pct: 0.05, bond_issuance_cap_gdp: 0.06,
+                pit_adjustment: 0.0,
+                cit_adjustment: -1.0,
+                vat_adjustment: 0.0,
+                spending_cut_pct: 0.05,
+                bond_issuance_cap_gdp: 0.06,
                 subsidy_pct_of_payroll: 0.50,
                 subsidized_sectors: vec![Sector::Agriculture, Sector::LightIndustry],
                 inspectorate_priority: 0.4,
             },
             Ideology::ClassicalLiberalism => Self {
-                pit_adjustment: -2.0, cit_adjustment: -3.0, vat_adjustment: -1.0,
-                spending_cut_pct: 0.15, bond_issuance_cap_gdp: 0.03,
+                pit_adjustment: -2.0,
+                cit_adjustment: -3.0,
+                vat_adjustment: -1.0,
+                spending_cut_pct: 0.15,
+                bond_issuance_cap_gdp: 0.03,
                 subsidy_pct_of_payroll: 0.10,
                 subsidized_sectors: vec![Sector::Energy, Sector::HeavyIndustry],
                 inspectorate_priority: 0.2,
             },
             Ideology::Neoliberalism => Self {
-                pit_adjustment: -2.0, cit_adjustment: -3.0, vat_adjustment: -1.0,
-                spending_cut_pct: 0.20, bond_issuance_cap_gdp: 0.03,
+                pit_adjustment: -2.0,
+                cit_adjustment: -3.0,
+                vat_adjustment: -1.0,
+                spending_cut_pct: 0.20,
+                bond_issuance_cap_gdp: 0.03,
                 subsidy_pct_of_payroll: 0.05,
                 subsidized_sectors: vec![Sector::Energy],
                 inspectorate_priority: 0.1,
             },
             Ideology::SocialConservatism => Self {
-                pit_adjustment: 0.0, cit_adjustment: 0.0, vat_adjustment: 0.0,
-                spending_cut_pct: 0.10, bond_issuance_cap_gdp: 0.06,
+                pit_adjustment: 0.0,
+                cit_adjustment: 0.0,
+                vat_adjustment: 0.0,
+                spending_cut_pct: 0.10,
+                bond_issuance_cap_gdp: 0.06,
                 subsidy_pct_of_payroll: 0.30,
                 subsidized_sectors: vec![Sector::Agriculture, Sector::HeavyIndustry],
                 inspectorate_priority: 0.4,
             },
             Ideology::Neoconservatism => Self {
-                pit_adjustment: 0.0, cit_adjustment: -1.0, vat_adjustment: 0.0,
-                spending_cut_pct: 0.10, bond_issuance_cap_gdp: 0.08,
+                pit_adjustment: 0.0,
+                cit_adjustment: -1.0,
+                vat_adjustment: 0.0,
+                spending_cut_pct: 0.10,
+                bond_issuance_cap_gdp: 0.08,
                 subsidy_pct_of_payroll: 0.20,
                 subsidized_sectors: vec![Sector::ArmamentsIndustry, Sector::HeavyIndustry],
                 inspectorate_priority: 0.3,
             },
             Ideology::NationalConservatism => Self {
-                pit_adjustment: 1.0, cit_adjustment: 0.0, vat_adjustment: 1.0,
-                spending_cut_pct: 0.05, bond_issuance_cap_gdp: 0.08,
+                pit_adjustment: 1.0,
+                cit_adjustment: 0.0,
+                vat_adjustment: 1.0,
+                spending_cut_pct: 0.05,
+                bond_issuance_cap_gdp: 0.08,
                 subsidy_pct_of_payroll: 0.40,
-                subsidized_sectors: vec![Sector::Agriculture, Sector::HeavyIndustry, Sector::LightIndustry],
+                subsidized_sectors: vec![
+                    Sector::Agriculture,
+                    Sector::HeavyIndustry,
+                    Sector::LightIndustry,
+                ],
                 inspectorate_priority: 0.5,
             },
             Ideology::AnarchoCapitalism => Self {
-                pit_adjustment: -5.0, cit_adjustment: -5.0, vat_adjustment: -5.0,
-                spending_cut_pct: 0.50, bond_issuance_cap_gdp: 0.0,
+                pit_adjustment: -5.0,
+                cit_adjustment: -5.0,
+                vat_adjustment: -5.0,
+                spending_cut_pct: 0.50,
+                bond_issuance_cap_gdp: 0.0,
                 subsidy_pct_of_payroll: 0.0,
                 subsidized_sectors: vec![],
                 inspectorate_priority: 0.0,
             },
             Ideology::Fascism => Self {
-                pit_adjustment: 2.0, cit_adjustment: 3.0, vat_adjustment: 2.0,
-                spending_cut_pct: 0.0, bond_issuance_cap_gdp: 0.12,
+                pit_adjustment: 2.0,
+                cit_adjustment: 3.0,
+                vat_adjustment: 2.0,
+                spending_cut_pct: 0.0,
+                bond_issuance_cap_gdp: 0.12,
                 subsidy_pct_of_payroll: 0.60,
-                subsidized_sectors: vec![Sector::ArmamentsIndustry, Sector::HeavyIndustry, Sector::Mining],
+                subsidized_sectors: vec![
+                    Sector::ArmamentsIndustry,
+                    Sector::HeavyIndustry,
+                    Sector::Mining,
+                ],
                 inspectorate_priority: 0.8,
             },
         }
@@ -605,7 +697,9 @@ pub fn execute_fiscal_response(
         country.tax_rates.income_tax.rate = new_pit;
         messages.push(format!(
             "[CRISIS DECREE] PIT adjusted from {:.1}% to {:.1}% (delta {:+.1}pp)",
-            old_pit * 100.0, new_pit * 100.0, (new_pit - old_pit) * 100.0
+            old_pit * 100.0,
+            new_pit * 100.0,
+            (new_pit - old_pit) * 100.0
         ));
     }
 
@@ -617,7 +711,9 @@ pub fn execute_fiscal_response(
         country.tax_rates.corporate_tax = new_cit;
         messages.push(format!(
             "[CRISIS DECREE] CIT adjusted from {:.1}% to {:.1}% (delta {:+.1}pp)",
-            old_cit * 100.0, new_cit * 100.0, (new_cit - old_cit) * 100.0
+            old_cit * 100.0,
+            new_cit * 100.0,
+            (new_cit - old_cit) * 100.0
         ));
     }
 
@@ -645,7 +741,8 @@ pub fn execute_fiscal_response(
         country.budget.nominal_budget -= cut;
         messages.push(format!(
             "[CRISIS DECREE] Budget cut by {:.1}% (savings: {:.0})",
-            profile.spending_cut_pct * 100.0, cut
+            profile.spending_cut_pct * 100.0,
+            cut
         ));
     }
 
@@ -718,7 +815,9 @@ pub fn issue_crisis_bonds(
         .regions
         .iter()
         .flat_map(|r| {
-            r.class_demographics.rural_classes.values()
+            r.class_demographics
+                .rural_classes
+                .values()
                 .chain(r.class_demographics.urban_classes.values())
         })
         .map(|cd| cd.savings * 0.05)
@@ -770,7 +869,12 @@ pub fn issue_crisis_bonds(
 
     // Step 5: Citizen purchases (deduct from savings, create savings bonds).
     let citizen_purchase = (actual_amount - (actual_amount - remaining)).max(0.0);
-    let citizen_amount = actual_amount - bank_indices.iter().map(|(_, e)| *e).sum::<f64>().min(actual_amount);
+    let citizen_amount = actual_amount
+        - bank_indices
+            .iter()
+            .map(|(_, e)| *e)
+            .sum::<f64>()
+            .min(actual_amount);
     let _ = citizen_purchase; // suppress unused warning
     let _ = citizen_amount;
 
@@ -779,7 +883,10 @@ pub fn issue_crisis_bonds(
     let citizen_share = (actual_amount - (actual_amount - remaining)).max(0.0);
     if citizen_share > 0.0 && citizen_capacity > 0.0 {
         for region in &mut country.regions {
-            for cd in region.class_demographics.rural_classes.values_mut()
+            for cd in region
+                .class_demographics
+                .rural_classes
+                .values_mut()
                 .chain(region.class_demographics.urban_classes.values_mut())
             {
                 if cd.savings <= 0.0 {
@@ -807,8 +914,7 @@ pub fn issue_crisis_bonds(
 
     // Add the security to the debt market.
     use crate::economy::debt_market::{
-        CouponFrequency, SecurityHolder, SecurityHolderType, TreasurySecurity,
-        TreasurySecurityType,
+        CouponFrequency, SecurityHolder, SecurityHolderType, TreasurySecurity, TreasurySecurityType,
     };
 
     let mut holders = Vec::new();
@@ -825,30 +931,33 @@ pub fn issue_crisis_bonds(
         }
     }
 
-    country.debt_market.outstanding_securities.push(TreasurySecurity {
-        id: security_id,
-        security_type: if is_short_term {
-            TreasurySecurityType::TreasuryBill
-        } else {
-            TreasurySecurityType::TreasuryBond
-        },
-        face_value: actual_amount,
-        issue_price,
-        issue_turn: current_turn,
-        maturity_turns,
-        turns_remaining: maturity_turns,
-        coupon_rate: if is_short_term { 0.0 } else { market_yield },
-        coupon_frequency: if is_short_term {
-            CouponFrequency::CapitalizedAtMaturity
-        } else {
-            CouponFrequency::Annual
-        },
-        is_inflation_indexed: false,
-        holders,
-        last_coupon_turn: current_turn,
-        is_matured: false,
-        is_auction_inventory: false,
-    });
+    country
+        .debt_market
+        .outstanding_securities
+        .push(TreasurySecurity {
+            id: security_id,
+            security_type: if is_short_term {
+                TreasurySecurityType::TreasuryBill
+            } else {
+                TreasurySecurityType::TreasuryBond
+            },
+            face_value: actual_amount,
+            issue_price,
+            issue_turn: current_turn,
+            maturity_turns,
+            turns_remaining: maturity_turns,
+            coupon_rate: if is_short_term { 0.0 } else { market_yield },
+            coupon_frequency: if is_short_term {
+                CouponFrequency::CapitalizedAtMaturity
+            } else {
+                CouponFrequency::Annual
+            },
+            is_inflation_indexed: false,
+            holders,
+            last_coupon_turn: current_turn,
+            is_matured: false,
+            is_auction_inventory: false,
+        });
     country.debt_market.recalculate();
 
     messages.push(format!(
@@ -961,7 +1070,9 @@ pub fn allocate_emergency_subsidies(
     if actual_total > 0.0 {
         messages.push(format!(
             "[CRISIS SUBSIDIES] Allocated {:.0} to {} companies in eligible sectors (cap: {:.0})",
-            actual_total, eligible_companies.len(), cap
+            actual_total,
+            eligible_companies.len(),
+            cap
         ));
     }
 
@@ -1033,10 +1144,7 @@ pub fn bounded_production_scale(
 ///
 /// # Returns
 /// Number of workers legalized.
-pub fn voluntary_legalization(
-    country: &mut Country,
-    legalization_rate: f64,
-) -> i64 {
+pub fn voluntary_legalization(country: &mut Country, legalization_rate: f64) -> i64 {
     let rate = legalization_rate.clamp(0.0, 1.0);
     if rate <= 0.0 {
         return 0;
@@ -1063,10 +1171,7 @@ pub fn voluntary_legalization(
 ///
 /// # Returns
 /// Number of companies that had their workforce gradually reduced.
-pub fn gradual_distress_handling(
-    companies: &mut [Company],
-    distress_threshold: f64,
-) -> usize {
+pub fn gradual_distress_handling(companies: &mut [Company], distress_threshold: f64) -> usize {
     let mut affected = 0;
     for c in companies.iter_mut() {
         if c.available_cash < distress_threshold && c.worker_capacity > 0 {
@@ -1196,7 +1301,9 @@ pub fn execute_crisis_response(
                     if let Some(ref mut parl) = country.politics.parliament_struct {
                         parl.suspended = false;
                     }
-                    messages.push("[STATE OF EMERGENCY] Auto-expired — Parliament resumes.".to_string());
+                    messages.push(
+                        "[STATE OF EMERGENCY] Auto-expired — Parliament resumes.".to_string(),
+                    );
                 }
             }
         }
@@ -1249,17 +1356,18 @@ pub fn execute_crisis_response(
 
     // 4. Execute fiscal response (tax adjustments + spending cuts).
     // Phase 32: Classify whether this should be a decree or fast-track legislation.
-    let fiscal_action_type = classify_crisis_action(
-        &country.politics,
-        CrisisActionScope::BroadTaxChange,
-    );
+    let fiscal_action_type =
+        classify_crisis_action(&country.politics, CrisisActionScope::BroadTaxChange);
     match fiscal_action_type {
         CrisisActionType::FastTrack => {
             // Fast-track: fiscal changes go through Parliament.
             // For now, we still execute the fiscal response directly but log
             // that it should go through fast-track legislation.
             // The actual fast-track bill creation will be wired in Step 7.
-            messages.push("[CRISIS FAST-TRACK] Fiscal response routed through Parliament (fast-track).".to_string());
+            messages.push(
+                "[CRISIS FAST-TRACK] Fiscal response routed through Parliament (fast-track)."
+                    .to_string(),
+            );
             let fiscal_msgs = execute_fiscal_response(country, &indicators, &profile);
             messages.extend(fiscal_msgs);
         }
@@ -1272,12 +1380,11 @@ pub fn execute_crisis_response(
 
     // 5. Issue crisis bonds if treasury is low (strict double-entry auction).
     // Phase 32: Bond authorization classification.
-    let bond_action_type = classify_crisis_action(
-        &country.politics,
-        CrisisActionScope::BondAuthorization,
-    );
+    let bond_action_type =
+        classify_crisis_action(&country.politics, CrisisActionScope::BondAuthorization);
     if bond_action_type == CrisisActionType::FastTrack {
-        messages.push("[CRISIS FAST-TRACK] Bond issuance authorized through Parliament.".to_string());
+        messages
+            .push("[CRISIS FAST-TRACK] Bond issuance authorized through Parliament.".to_string());
     }
     let bond_msgs = issue_crisis_bonds_if_needed(country, companies, current_turn);
     messages.extend(bond_msgs);
@@ -1304,7 +1411,8 @@ pub fn execute_crisis_response(
     if legalized > 0 {
         messages.push(format!(
             "[CRISIS AMNESTY] {} shadow workers legalized (rate: {:.1}%)",
-            legalized, legalization_rate * 100.0
+            legalized,
+            legalization_rate * 100.0
         ));
     }
 
@@ -1351,10 +1459,7 @@ pub fn execute_crisis_response(
 /// * National total unemployed FTE is pre-computed to prevent fiat duplication
 /// * Stimulus is capped at 5% of liquid reserves to prevent treasury exhaustion
 /// * Sum of distributed amounts == treasury debit (asserted)
-pub fn counter_cyclical_response(
-    country: &mut Country,
-    _current_turn: u32,
-) -> Vec<String> {
+pub fn counter_cyclical_response(country: &mut Country, _current_turn: u32) -> Vec<String> {
     let mut messages = Vec::new();
 
     let unemployment_rate = country.macro_indicators.labor_market.unemployment_rate;
@@ -1396,28 +1501,30 @@ pub fn counter_cyclical_response(
 
                 for region in &mut country.regions {
                     for class in region.class_demographics.rural_classes.values_mut() {
-                        let class_unemployed =
-                            (class.available_fte - class.allocated_fte).max(0.0);
+                        let class_unemployed = (class.available_fte - class.allocated_fte).max(0.0);
                         if class_unemployed > 0.0 {
-                            let share = stimulus * (class_unemployed / national_total_unemployed_fte);
+                            let share =
+                                stimulus * (class_unemployed / national_total_unemployed_fte);
                             class.savings += share;
                             distributed_total += share;
                             if largest_unemployed.is_none()
-                                || largest_unemployed.as_ref().map(|(_, f)| *f).unwrap_or(0.0) < class_unemployed
+                                || largest_unemployed.as_ref().map(|(_, f)| *f).unwrap_or(0.0)
+                                    < class_unemployed
                             {
                                 largest_unemployed = Some(("rural".to_string(), class_unemployed));
                             }
                         }
                     }
                     for class in region.class_demographics.urban_classes.values_mut() {
-                        let class_unemployed =
-                            (class.available_fte - class.allocated_fte).max(0.0);
+                        let class_unemployed = (class.available_fte - class.allocated_fte).max(0.0);
                         if class_unemployed > 0.0 {
-                            let share = stimulus * (class_unemployed / national_total_unemployed_fte);
+                            let share =
+                                stimulus * (class_unemployed / national_total_unemployed_fte);
                             class.savings += share;
                             distributed_total += share;
                             if largest_unemployed.is_none()
-                                || largest_unemployed.as_ref().map(|(_, f)| *f).unwrap_or(0.0) < class_unemployed
+                                || largest_unemployed.as_ref().map(|(_, f)| *f).unwrap_or(0.0)
+                                    < class_unemployed
                             {
                                 largest_unemployed = Some(("urban".to_string(), class_unemployed));
                             }
@@ -1485,8 +1592,10 @@ pub fn counter_cyclical_response(
     }
 
     // Recovery: restore reserve requirement when unemployment drops below 5%.
-    if unemployment_rate < 5.0 && prev_unemployment >= 5.0
-        && country.central_bank.reserve_requirement_ratio < 0.15 {
+    if unemployment_rate < 5.0
+        && prev_unemployment >= 5.0
+        && country.central_bank.reserve_requirement_ratio < 0.15
+    {
         country.central_bank.reserve_requirement_ratio =
             (country.central_bank.reserve_requirement_ratio + 0.01).min(0.15);
         messages.push(format!(
@@ -1533,7 +1642,11 @@ mod tests {
         politics.parliament_struct = Some(Parliament::default());
         politics.state_of_emergency = Some(StateOfEmergency::default());
         politics.state_of_emergency.as_mut().unwrap().activate(
-            10, "Crisis".to_string(), 24, true, "President".to_string()
+            10,
+            "Crisis".to_string(),
+            24,
+            true,
+            "President".to_string(),
         );
         // SoE with parliament_suspended → all decrees.
         let action_type = classify_crisis_action(&politics, CrisisActionScope::BroadTaxChange);
@@ -1557,7 +1670,8 @@ mod tests {
             treasury_coverage_months: 0.5,
             investment_collapse: true,
             trade_collapse: true,
-            unemployment_rate: 0.05, wage_to_subsistence_ratio: 1.0,
+            unemployment_rate: 0.05,
+            wage_to_subsistence_ratio: 1.0,
         };
         let country = Country::default();
         let result = should_activate_state_of_emergency(&indicators, &country);
@@ -1575,7 +1689,8 @@ mod tests {
             treasury_coverage_months: 3.0,
             investment_collapse: false,
             trade_collapse: false,
-            unemployment_rate: 0.05, wage_to_subsistence_ratio: 1.0,
+            unemployment_rate: 0.05,
+            wage_to_subsistence_ratio: 1.0,
         };
         let country = Country::default();
         let result = should_activate_state_of_emergency(&indicators, &country);
@@ -1587,7 +1702,11 @@ mod tests {
         let mut politics = Politics::default();
         politics.state_of_emergency = Some(StateOfEmergency::default());
         politics.state_of_emergency.as_mut().unwrap().activate(
-            10, "Crisis".to_string(), 3, true, "President".to_string()
+            10,
+            "Crisis".to_string(),
+            3,
+            true,
+            "President".to_string(),
         );
         let country = Country::default();
         // Use mild indicators so SoE doesn't reactivate after expiry.
@@ -1597,7 +1716,8 @@ mod tests {
             treasury_coverage_months: 5.0,
             investment_collapse: false,
             trade_collapse: false,
-            unemployment_rate: 0.05, wage_to_subsistence_ratio: 1.0,
+            unemployment_rate: 0.05,
+            wage_to_subsistence_ratio: 1.0,
         };
         // Tick 1.
         let _ = process_state_of_emergency(&mut politics, &indicators, &country, 11);
@@ -1685,11 +1805,21 @@ mod tests {
     fn crisis_response_profile_all_ideologies() {
         // Ensure all 15 ideologies have a profile.
         let ideologies = [
-            Ideology::OrthodoxMarxism, Ideology::MarxismLeninism, Ideology::Maoism,
-            Ideology::SocialDemocracy, Ideology::GreenPolitics, Ideology::ClassicalLiberalism,
-            Ideology::SocialLiberalism, Ideology::Agrarianism, Ideology::ChristianDemocracy,
-            Ideology::SocialConservatism, Ideology::Neoconservatism, Ideology::Neoliberalism,
-            Ideology::NationalConservatism, Ideology::AnarchoCapitalism, Ideology::Fascism,
+            Ideology::OrthodoxMarxism,
+            Ideology::MarxismLeninism,
+            Ideology::Maoism,
+            Ideology::SocialDemocracy,
+            Ideology::GreenPolitics,
+            Ideology::ClassicalLiberalism,
+            Ideology::SocialLiberalism,
+            Ideology::Agrarianism,
+            Ideology::ChristianDemocracy,
+            Ideology::SocialConservatism,
+            Ideology::Neoconservatism,
+            Ideology::Neoliberalism,
+            Ideology::NationalConservatism,
+            Ideology::AnarchoCapitalism,
+            Ideology::Fascism,
         ];
         for ideo in ideologies {
             let profile = CrisisResponseProfile::for_ideology(ideo);
@@ -1704,8 +1834,14 @@ mod tests {
         let profile = CrisisResponseProfile::for_ideology(Ideology::Neoliberalism);
         assert!(profile.pit_adjustment < 0.0, "Neoliberals should cut PIT");
         assert!(profile.cit_adjustment < 0.0, "Neoliberals should cut CIT");
-        assert!(profile.spending_cut_pct > 0.10, "Neoliberals should cut spending significantly");
-        assert!(profile.bond_issuance_cap_gdp < 0.05, "Neoliberals should have low bond cap");
+        assert!(
+            profile.spending_cut_pct > 0.10,
+            "Neoliberals should cut spending significantly"
+        );
+        assert!(
+            profile.bond_issuance_cap_gdp < 0.05,
+            "Neoliberals should have low bond cap"
+        );
     }
 
     #[test]
@@ -1713,17 +1849,35 @@ mod tests {
         let profile = CrisisResponseProfile::for_ideology(Ideology::MarxismLeninism);
         assert!(profile.pit_adjustment > 0.0, "Marxists should raise PIT");
         assert!(profile.cit_adjustment > 0.0, "Marxists should raise CIT");
-        assert!(profile.spending_cut_pct == 0.0, "Marxists should not cut spending");
-        assert!(profile.subsidy_pct_of_payroll > 0.50, "Marxists should subsidize heavily");
-        assert!(profile.bond_issuance_cap_gdp > 0.10, "Marxists should allow high debt");
+        assert!(
+            profile.spending_cut_pct == 0.0,
+            "Marxists should not cut spending"
+        );
+        assert!(
+            profile.subsidy_pct_of_payroll > 0.50,
+            "Marxists should subsidize heavily"
+        );
+        assert!(
+            profile.bond_issuance_cap_gdp > 0.10,
+            "Marxists should allow high debt"
+        );
     }
 
     #[test]
     fn anarcho_capitalist_no_bonds_no_subsidies() {
         let profile = CrisisResponseProfile::for_ideology(Ideology::AnarchoCapitalism);
-        assert_eq!(profile.bond_issuance_cap_gdp, 0.0, "Anarcho-capitalists should not issue bonds");
-        assert_eq!(profile.subsidy_pct_of_payroll, 0.0, "Anarcho-capitalists should not subsidize");
-        assert!(profile.spending_cut_pct > 0.40, "Anarcho-capitalists should cut spending drastically");
+        assert_eq!(
+            profile.bond_issuance_cap_gdp, 0.0,
+            "Anarcho-capitalists should not issue bonds"
+        );
+        assert_eq!(
+            profile.subsidy_pct_of_payroll, 0.0,
+            "Anarcho-capitalists should not subsidize"
+        );
+        assert!(
+            profile.spending_cut_pct > 0.40,
+            "Anarcho-capitalists should cut spending drastically"
+        );
     }
 
     #[test]
@@ -1743,8 +1897,12 @@ mod tests {
         marxist_party.ideology = "Marxism-Leninism".to_string();
         let mut liberal_party = crate::politics::system::Party::default();
         liberal_party.ideology = "Classical Liberalism".to_string();
-        politics.active_parties.insert("MarxistParty".to_string(), marxist_party);
-        politics.active_parties.insert("LiberalParty".to_string(), liberal_party);
+        politics
+            .active_parties
+            .insert("MarxistParty".to_string(), marxist_party);
+        politics
+            .active_parties
+            .insert("LiberalParty".to_string(), liberal_party);
 
         apply_coalition_moderation(&mut profile, &politics, Ideology::MarxismLeninism);
 
@@ -1766,8 +1924,14 @@ mod tests {
 
         apply_coalition_moderation(&mut profile, &politics, Ideology::MarxismLeninism);
 
-        assert!(profile.pit_adjustment.abs() <= 1.0, "Minority government should cap PIT at ±1pp");
-        assert!(profile.cit_adjustment.abs() <= 1.0, "Minority government should cap CIT at ±1pp");
+        assert!(
+            profile.pit_adjustment.abs() <= 1.0,
+            "Minority government should cap PIT at ±1pp"
+        );
+        assert!(
+            profile.cit_adjustment.abs() <= 1.0,
+            "Minority government should cap CIT at ±1pp"
+        );
     }
 
     #[test]
@@ -1793,7 +1957,11 @@ mod tests {
         prices.insert(Commodity::Food, 75.0);
         let sw = compute_subsistence_wage(&prices);
         // 200/24 * 75 = 625.0
-        assert!((sw - 625.0).abs() < 1e-9, "Subsistence wage should be 625.0, got {}", sw);
+        assert!(
+            (sw - 625.0).abs() < 1e-9,
+            "Subsistence wage should be 625.0, got {}",
+            sw
+        );
     }
 
     #[test]
@@ -2051,14 +2219,20 @@ mod tests {
     fn bounded_freight_quantity_reduces_when_unaffordable() {
         // Request 100 units, but can only afford 50.
         let result = bounded_freight_quantity(100.0, 500.0, 10.0);
-        assert!((result - 50.0).abs() < 1e-9, "Should reduce to affordable quantity");
+        assert!(
+            (result - 50.0).abs() < 1e-9,
+            "Should reduce to affordable quantity"
+        );
     }
 
     #[test]
     fn bounded_freight_quantity_full_when_affordable() {
         // Request 100 units, can afford all.
         let result = bounded_freight_quantity(100.0, 2000.0, 10.0);
-        assert!((result - 100.0).abs() < 1e-9, "Should keep full quantity when affordable");
+        assert!(
+            (result - 100.0).abs() < 1e-9,
+            "Should keep full quantity when affordable"
+        );
     }
 
     #[test]
@@ -2070,13 +2244,19 @@ mod tests {
     #[test]
     fn bounded_production_scale_reduces_when_cash_short() {
         let result = bounded_production_scale(1000.0, 5000.0, 10.0);
-        assert!((result - 500.0).abs() < 1e-9, "Should scale to affordable production");
+        assert!(
+            (result - 500.0).abs() < 1e-9,
+            "Should scale to affordable production"
+        );
     }
 
     #[test]
     fn bounded_production_scale_full_when_affordable() {
         let result = bounded_production_scale(1000.0, 20_000.0, 10.0);
-        assert!((result - 1000.0).abs() < 1e-9, "Should keep full production when affordable");
+        assert!(
+            (result - 1000.0).abs() < 1e-9,
+            "Should keep full production when affordable"
+        );
     }
 
     #[test]
@@ -2166,7 +2346,10 @@ mod tests {
         // Request 50_000 but only ~9_500 available.
         let (raised, msgs) = issue_crisis_bonds(&mut country, &mut companies, 50_000.0, 1);
 
-        assert!(raised > 0.0, "Should raise some money from bank excess reserves");
+        assert!(
+            raised > 0.0,
+            "Should raise some money from bank excess reserves"
+        );
         assert!(raised < 50_000.0, "Should be a partial fill, not full");
         assert!(
             msgs.iter().any(|m| m.contains("succeeded")),
@@ -2192,7 +2375,10 @@ mod tests {
         let indicators = detect_crisis(&country, &prices, 0, 0);
 
         assert!(indicators.is_crisis(), "Should detect crisis");
-        assert!(indicators.gdp_decline_pct < -0.02, "Should detect GDP decline");
+        assert!(
+            indicators.gdp_decline_pct < -0.02,
+            "Should detect GDP decline"
+        );
         assert!(
             indicators.shadow_gdp_ratio > 0.50,
             "Should detect high shadow ratio: {}",
@@ -2219,7 +2405,10 @@ mod tests {
             ..Country::default()
         };
         let result = should_activate_state_of_emergency(&indicators, &country);
-        assert!(result.is_none(), "Fiscal MartialLaw should not auto-escalate to SoE");
+        assert!(
+            result.is_none(),
+            "Fiscal MartialLaw should not auto-escalate to SoE"
+        );
     }
 
     #[test]
@@ -2232,11 +2421,20 @@ mod tests {
         soe.tick();
         soe.tick();
         assert!(!soe.active, "SoE should have expired");
-        assert!(soe.cooldown_turns > 0, "Cooldown should be active after expiry");
+        assert!(
+            soe.cooldown_turns > 0,
+            "Cooldown should be active after expiry"
+        );
         // Cannot reactivate during cooldown (non-catastrophic).
-        assert!(!soe.can_reactivate(false), "Should not reactivate during cooldown");
+        assert!(
+            !soe.can_reactivate(false),
+            "Should not reactivate during cooldown"
+        );
         // CAN reactivate if catastrophic.
-        assert!(soe.can_reactivate(true), "Should allow reactivation if catastrophic");
+        assert!(
+            soe.can_reactivate(true),
+            "Should allow reactivation if catastrophic"
+        );
     }
 
     #[test]
@@ -2251,6 +2449,9 @@ mod tests {
             soe.tick();
         }
         assert_eq!(soe.cooldown_turns, 0, "Cooldown should have expired");
-        assert!(soe.can_reactivate(false), "Should allow reactivation after cooldown");
+        assert!(
+            soe.can_reactivate(false),
+            "Should allow reactivation after cooldown"
+        );
     }
 }

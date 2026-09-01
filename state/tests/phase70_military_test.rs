@@ -10,34 +10,26 @@
 //! - Asymmetric army generation (Phase 70.6)
 //! - Hybrid war declaration (Phase 70.7)
 
-use sim_engine::military::oob::{
-    OobGenerationConfig, generate_oob, generate_asymmetric_oob,
-};
-use sim_engine::military::modernization::{
-    ModernizationConfig, modernize_unit, apply_scrap_to_stockpile,
-};
-use sim_engine::military::multi_domain::resolve_multi_domain_battle;
-use sim_engine::military::pows::{
-    PowCamp, PowCaptureConfig, PrisonerOfWar, PowStatus,
-    capture_pows_from_casualties,
-    process_forced_labor_lease_fees, repatriate_pows_from_country,
-};
-use sim_engine::military::retreat::{
-    CommanderRetraitProfile, RetreatEvaluation, evaluate_retreat,
-    process_retreat,
-};
-use sim_engine::military::commander_traits::{
-    evaluate_military_tactics,
-    to_retreat_profile,
-};
-use sim_engine::military::war_declarations::{
-    WarReason, PeaceTerms, BilateralTension, WarDeclarationConfig,
-    declare_war, check_tension_escalations,
-    settle_peace, tension_key,
-};
-use sim_engine::military::units::{MilitaryUnit, UnitType};
+use sim_engine::military::commander_traits::{evaluate_military_tactics, to_retreat_profile};
 use sim_engine::military::config::MilitaryCombatConfig;
 use sim_engine::military::fronts::Casualties;
+use sim_engine::military::modernization::{
+    apply_scrap_to_stockpile, modernize_unit, ModernizationConfig,
+};
+use sim_engine::military::multi_domain::resolve_multi_domain_battle;
+use sim_engine::military::oob::{generate_asymmetric_oob, generate_oob, OobGenerationConfig};
+use sim_engine::military::pows::{
+    capture_pows_from_casualties, process_forced_labor_lease_fees, repatriate_pows_from_country,
+    PowCamp, PowCaptureConfig, PowStatus, PrisonerOfWar,
+};
+use sim_engine::military::retreat::{
+    evaluate_retreat, process_retreat, CommanderRetraitProfile, RetreatEvaluation,
+};
+use sim_engine::military::units::{MilitaryUnit, UnitType};
+use sim_engine::military::war_declarations::{
+    check_tension_escalations, declare_war, settle_peace, tension_key, BilateralTension,
+    PeaceTerms, WarDeclarationConfig, WarReason,
+};
 use sim_engine::registries::enums::Commodity;
 use sim_engine::society::geography::RuralClass;
 use std::collections::HashMap;
@@ -77,8 +69,8 @@ fn test_asymmetric_oob_rich_vs_poor() {
     let rich_oob = generate_asymmetric_oob(
         "RichNation",
         5_000_000_000.0, // High total GDP
-        5000.0,           // High GDP per capita
-        4000.0,           // High average wage
+        5000.0,          // High GDP per capita
+        4000.0,          // High average wage
         1_000_000,
         vec!["r1".to_string(), "r2".to_string()],
         &mut rng,
@@ -86,8 +78,8 @@ fn test_asymmetric_oob_rich_vs_poor() {
     let poor_oob = generate_asymmetric_oob(
         "PoorNation",
         30_000_000.0, // Low total GDP
-        300.0,         // Low GDP per capita
-        240.0,         // Low average wage
+        300.0,        // Low GDP per capita
+        240.0,        // Low average wage
         100_000,
         vec!["r1".to_string()],
         &mut rng,
@@ -140,7 +132,9 @@ fn test_modernization_generates_procurement_demand() {
     let result = modernize_unit(&mut unit, 1935, &config);
 
     assert!(!result.procurement_demand.is_empty());
-    assert!(result.procurement_demand.contains_key(&Commodity::MediumTanks));
+    assert!(result
+        .procurement_demand
+        .contains_key(&Commodity::MediumTanks));
 }
 
 #[test]
@@ -164,9 +158,7 @@ fn test_multi_domain_air_superiority_boosts_land() {
         make_unit("att-air", UnitType::AirForce, 1000),
         make_unit("att-inf", UnitType::Infantry, 1000),
     ];
-    let mut defender = vec![
-        make_unit("def-inf", UnitType::Infantry, 1000),
-    ];
+    let mut defender = vec![make_unit("def-inf", UnitType::Infantry, 1000)];
 
     let config = MilitaryCombatConfig::default();
     let result = resolve_multi_domain_battle(
@@ -184,8 +176,10 @@ fn test_multi_domain_air_superiority_boosts_land() {
 
     // Attacker has air units, defender has none → attacker should get air superiority
     if result.modifiers.attacker_air_superiority {
-        assert!(result.modifiers.attacker_land_power_multiplier > 1.0,
-            "Air superiority must boost land combat power");
+        assert!(
+            result.modifiers.attacker_land_power_multiplier > 1.0,
+            "Air superiority must boost land combat power"
+        );
     }
 }
 
@@ -254,7 +248,13 @@ fn test_pow_capture_and_forced_labor_lease() {
     let mut counter = 0u64;
 
     let pows = capture_pows_from_casualties(
-        &casualties, "Captor", "Origin", 1, "region", &config, &mut counter,
+        &casualties,
+        "Captor",
+        "Origin",
+        1,
+        "region",
+        &config,
+        &mut counter,
     );
 
     assert!(!pows.is_empty());
@@ -276,12 +276,13 @@ fn test_pow_capture_and_forced_labor_lease() {
     factory_capital.insert("FACTORY-001".to_string(), 10000.0);
     let mut treasury = 5000.0;
 
-    let result = process_forced_labor_lease_fees(
-        &camp, 100.0, &mut factory_capital, &mut treasury,
-    );
+    let result = process_forced_labor_lease_fees(&camp, 100.0, &mut factory_capital, &mut treasury);
 
     // Verify double-entry: factory debited, treasury credited
-    assert!(result.total_fees_collected > 0.0, "Lease fee must be positive — no free labor");
+    assert!(
+        result.total_fees_collected > 0.0,
+        "Lease fee must be positive — no free labor"
+    );
     assert!(treasury > 5000.0, "Treasury must be credited");
 }
 
@@ -352,10 +353,7 @@ fn test_retreat_equipment_captured_not_cash() {
     let mut retreating = vec![make_unit("ret-1", UnitType::Infantry, 1000)];
     let victor = vec![make_unit("vic-1", UnitType::Infantry, 1000)];
 
-    let result = process_retreat(
-        &mut retreating, &victor,
-        "Defender", "Attacker", &config,
-    );
+    let result = process_retreat(&mut retreating, &victor, "Defender", "Attacker", &config);
 
     // Captured equipment must be physical commodities
     for commodity in result.captured_equipment.keys() {
@@ -396,14 +394,22 @@ fn test_commander_tactics_to_retreat_profile() {
 fn test_direct_war_declaration() {
     let mut at_war_with = HashMap::new();
     let result = declare_war(
-        "Aggressor", "Defender", 10,
+        "Aggressor",
+        "Defender",
+        10,
         WarReason::TerritorialConquest,
         &mut at_war_with,
     );
 
     assert!(result.declared);
-    assert!(at_war_with.get("Aggressor").unwrap().contains(&"Defender".to_string()));
-    assert!(at_war_with.get("Defender").unwrap().contains(&"Aggressor".to_string()));
+    assert!(at_war_with
+        .get("Aggressor")
+        .unwrap()
+        .contains(&"Defender".to_string()));
+    assert!(at_war_with
+        .get("Defender")
+        .unwrap()
+        .contains(&"Aggressor".to_string()));
 }
 
 #[test]
@@ -472,7 +478,9 @@ fn test_full_military_flow_oob_to_combat_to_peace() {
     // 3. Declare war
     let mut at_war_with = HashMap::new();
     let war_result = declare_war(
-        "CountryA", "CountryB", 1,
+        "CountryA",
+        "CountryB",
+        1,
         WarReason::TerritorialConquest,
         &mut at_war_with,
     );
@@ -501,14 +509,18 @@ fn test_full_military_flow_oob_to_combat_to_peace() {
 
     // 5. Settle peace
     let peace_result = settle_peace(
-        "CountryA", "CountryB",
+        "CountryA",
+        "CountryB",
         &PeaceTerms::StatusQuoAnte,
         &mut at_war_with,
     );
     assert!(peace_result.peace_established);
 
     // 6. Verify war is over
-    assert!(!at_war_with.get("CountryA").unwrap().contains(&"CountryB".to_string()));
+    assert!(!at_war_with
+        .get("CountryA")
+        .unwrap()
+        .contains(&"CountryB".to_string()));
 }
 
 // ============================================================================

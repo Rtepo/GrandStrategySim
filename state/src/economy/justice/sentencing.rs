@@ -86,12 +86,24 @@ pub struct SentencingLaw {
     pub illegal_sentence_multiplier: f64,
 }
 
-fn default_misdemeanor_range() -> (u32, u32) { (1, 6) }
-fn default_felony_range() -> (u32, u32) { (5, 20) }
-fn default_true() -> bool { true }
-fn default_minority_multiplier() -> f64 { 2.0 }
-fn default_resident_multiplier() -> f64 { 1.5 }
-fn default_illegal_multiplier() -> f64 { 3.0 }
+fn default_misdemeanor_range() -> (u32, u32) {
+    (1, 6)
+}
+fn default_felony_range() -> (u32, u32) {
+    (5, 20)
+}
+fn default_true() -> bool {
+    true
+}
+fn default_minority_multiplier() -> f64 {
+    2.0
+}
+fn default_resident_multiplier() -> f64 {
+    1.5
+}
+fn default_illegal_multiplier() -> f64 {
+    3.0
+}
 
 impl Default for SentencingLaw {
     fn default() -> Self {
@@ -231,7 +243,9 @@ pub fn generate_sentence(
         sentence_months *= multiplier;
 
         // Misdemeanor upgrade to Felony for minorities if multiplier pushes it past felony range
-        if category == CrimeCategory::Misdemeanor && sentence_months > law.felony_range_months.0 as f64 {
+        if category == CrimeCategory::Misdemeanor
+            && sentence_months > law.felony_range_months.0 as f64
+        {
             // The sentence is now in felony territory
         }
     } else if is_minority_religion {
@@ -244,7 +258,9 @@ pub fn generate_sentence(
     // Determine outcome based on category and law
     let outcome = match category {
         CrimeCategory::Capital if law.death_penalty_enabled => SentenceOutcome::DeathPenalty,
-        CrimeCategory::Capital if law.life_imprisonment_enabled => SentenceOutcome::LifeImprisonment,
+        CrimeCategory::Capital if law.life_imprisonment_enabled => {
+            SentenceOutcome::LifeImprisonment
+        }
         CrimeCategory::Capital => SentenceOutcome::Imprisonment(sentence_turns),
         CrimeCategory::Felony => SentenceOutcome::Imprisonment(sentence_turns),
         CrimeCategory::Misdemeanor if law.community_service_enabled => {
@@ -289,7 +305,9 @@ pub fn process_death_penalties(
     // Partition: death penalty cohorts are removed, others stay
     let mut remaining = Vec::new();
     for cohort in justice_state.prisoner_cohorts.drain(..) {
-        if cohort.sentence_outcome == SentenceOutcome::DeathPenalty && cohort.sentence_remaining == 0 {
+        if cohort.sentence_outcome == SentenceOutcome::DeathPenalty
+            && cohort.sentence_remaining == 0
+        {
             executed_total += cohort.count;
             // Unrest spike: executed_count * 10.0 / total_pop * 100.0
             unrest_spike += cohort.count as f64 * 10.0 / total_pop * 100.0;
@@ -301,8 +319,7 @@ pub fn process_death_penalties(
 
     if executed_total > 0 {
         country.budget.population -= executed_total as u64;
-        country.macro_indicators.demographics.population_size =
-            country.budget.population as f64;
+        country.macro_indicators.demographics.population_size = country.budget.population as f64;
         country.macro_indicators.social_unrest += unrest_spike;
     }
 
@@ -471,8 +488,10 @@ pub fn check_vigilante_justice(
     use crate::registries::enums::Commodity;
 
     // Sum justice and security capacity per region
-    let mut region_justice: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
-    let mut region_security: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
+    let mut region_justice: std::collections::HashMap<String, f64> =
+        std::collections::HashMap::new();
+    let mut region_security: std::collections::HashMap<String, f64> =
+        std::collections::HashMap::new();
 
     for b in buildings {
         let justice_cap = b
@@ -522,8 +541,7 @@ pub fn check_vigilante_justice(
             .class_demographics
             .rural_classes
             .values_mut()
-            .chain(region.class_demographics.urban_classes
-            .values_mut())
+            .chain(region.class_demographics.urban_classes.values_mut())
         {
             if class.political_sentiment.radicals <= 0.3 {
                 continue;
@@ -571,11 +589,7 @@ pub fn check_vigilante_justice(
 
     // Unrest increase: severity * 5.0 (state failure breeds more unrest)
     if result.total_casualties > 0 || result.total_disabled_fte > 0.0 {
-        let avg_severity = result
-            .events
-            .iter()
-            .map(|e| e.severity)
-            .sum::<f64>()
+        let avg_severity = result.events.iter().map(|e| e.severity).sum::<f64>()
             / result.events.len().max(1) as f64;
         result.unrest_added = avg_severity * 5.0;
         country.macro_indicators.social_unrest += result.unrest_added;
@@ -643,10 +657,20 @@ mod tests {
             ..Default::default()
         };
 
-        let (citizen_outcome, citizen_turns) =
-            generate_sentence(CrimeCategory::Felony, &law, LegalStatus::Citizen, false, 0.5);
-        let (illegal_outcome, illegal_turns) =
-            generate_sentence(CrimeCategory::Felony, &law, LegalStatus::Illegal, false, 0.5);
+        let (citizen_outcome, citizen_turns) = generate_sentence(
+            CrimeCategory::Felony,
+            &law,
+            LegalStatus::Citizen,
+            false,
+            0.5,
+        );
+        let (illegal_outcome, illegal_turns) = generate_sentence(
+            CrimeCategory::Felony,
+            &law,
+            LegalStatus::Illegal,
+            false,
+            0.5,
+        );
 
         assert!(matches!(citizen_outcome, SentenceOutcome::Imprisonment(_)));
         assert!(matches!(illegal_outcome, SentenceOutcome::Imprisonment(_)));
@@ -740,7 +764,10 @@ mod tests {
         let buildings: Vec<Building> = Vec::new();
 
         let result = check_vigilante_justice(&mut country, &buildings, 1);
-        assert!(!result.events.is_empty(), "should trigger vigilante justice");
+        assert!(
+            !result.events.is_empty(),
+            "should trigger vigilante justice"
+        );
         assert!(result.total_casualties > 0, "should have casualties");
         assert!(result.total_disabled_fte > 0.0, "should have disabled FTE");
         assert_eq!(result.events[0].disaster_type, DisasterType::VigilanteMob);
@@ -779,7 +806,10 @@ mod tests {
         let buildings = vec![building];
 
         let result = check_vigilante_justice(&mut country, &buildings, 1);
-        assert!(result.events.is_empty(), "should NOT trigger with sufficient coverage");
+        assert!(
+            result.events.is_empty(),
+            "should NOT trigger with sufficient coverage"
+        );
     }
 
     #[test]
@@ -811,6 +841,10 @@ mod tests {
         let key = ("r1".to_string(), true, "workers".to_string());
         let rate = rates.get(&key).copied().unwrap_or(0.0);
         // 20 convicts / 100 pop * 0.25 = 0.05
-        assert!((rate - 0.05).abs() < 0.001, "garnishment rate should be 0.05, got {}", rate);
+        assert!(
+            (rate - 0.05).abs() < 0.001,
+            "garnishment rate should be 0.05, got {}",
+            rate
+        );
     }
 }

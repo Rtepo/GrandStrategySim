@@ -5,6 +5,7 @@
 //! era-gated methods defining labor composition, efficiency, and commodity
 //! inputs/outputs.
 
+use crate::registries::enums::CapacityType;
 use crate::registries::enums::Commodity;
 use crate::registries::tech_tree::TechId;
 use serde::{Deserialize, Serialize};
@@ -14,7 +15,6 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ProductionMethod {
     /// Earliest year this method may be adopted (`"year"`).
-
     pub year: u32,
 
     /// TechId required to unlock this method, if any
@@ -24,19 +24,15 @@ pub struct ProductionMethod {
     pub required_tech: Option<TechId>,
 
     /// Fraction of staff who are experts (`"experts_ratio"`).
-
     pub experts_ratio: f64,
 
     /// Fraction of staff who are skilled workers (`"skilled_ratio"`).
-
     pub skilled_ratio: f64,
 
     /// Fraction of staff who are basic workers (`"basic_ratio"`).
-
     pub basic_ratio: f64,
 
     /// Output multiplier of this method (`"efficiency"`).
-
     pub efficiency: f64,
 
     /// Per-turn commodity inputs consumed (`"inputs"`).
@@ -116,6 +112,15 @@ pub struct ProductionMethod {
     /// composition. 0.0 for non-waste-generating methods (default).
     #[serde(default)]
     pub waste_generation_factor: f64,
+
+    /// Phase A.2: Physical seat/capacity tier this method produces, if any.
+    /// Set explicitly in the data layer for education/healthcare/care methods
+    /// that output service capacity (EducationSlots, HealthCapacity, etc.).
+    /// `None` for methods that produce tradable commodities or have no seat
+    /// semantics. Read directly by the production executor to enforce physical
+    /// capacity clamping (Rule 20) — never derived via string matching.
+    #[serde(default)]
+    pub seat_type: Option<CapacityType>,
 }
 
 /// Production method slot, mirroring `ProductionMethodChoice` fields.
@@ -327,7 +332,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
 
     // -- military_base (Military Base) --
     let mut baza = BuildingMethods::default();
-    baza.insert(MethodSlot::Production, "Basic".to_string(),
+    baza.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -346,7 +353,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    baza.insert(MethodSlot::Production, "Mechanized".to_string(),
+    baza.insert(
+        MethodSlot::Production,
+        "Mechanized".to_string(),
         ProductionMethod {
             year: 1910,
             required_tech: None,
@@ -366,7 +375,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    baza.insert(MethodSlot::Production, "Modern".to_string(),
+    baza.insert(
+        MethodSlot::Production,
+        "Modern".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -391,7 +402,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
 
     // -- police_station (Police Station) --
     let mut komis = BuildingMethods::default();
-    komis.insert(MethodSlot::Production, "Basic".to_string(),
+    komis.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -405,13 +418,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::AdministrativeServices, 2.0),
                 (Commodity::Paper, 2.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::SecurityCapacity, 12.0),
-            ]),
+            outputs: HashMap::from([(Commodity::SecurityCapacity, 12.0)]),
             ..Default::default()
         },
     );
-    komis.insert(MethodSlot::Production, "Upgraded".to_string(),
+    komis.insert(
+        MethodSlot::Production,
+        "Upgraded".to_string(),
         ProductionMethod {
             year: 1920,
             required_tech: None,
@@ -426,13 +439,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Paper, 2.0),
                 (Commodity::ElectronicComponents, 1.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::SecurityCapacity, 20.0),
-            ]),
+            outputs: HashMap::from([(Commodity::SecurityCapacity, 20.0)]),
             ..Default::default()
         },
     );
-    komis.insert(MethodSlot::Production, "Digital".to_string(),
+    komis.insert(
+        MethodSlot::Production,
+        "Digital".to_string(),
         ProductionMethod {
             year: 1990,
             required_tech: None,
@@ -447,13 +460,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Paper, 1.0),
                 (Commodity::ElectronicComponents, 5.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::SecurityCapacity, 35.0),
-            ]),
+            outputs: HashMap::from([(Commodity::SecurityCapacity, 35.0)]),
             ..Default::default()
         },
     );
-    komis.insert(MethodSlot::Production, "Militarized".to_string(),
+    komis.insert(
+        MethodSlot::Production,
+        "Militarized".to_string(),
         ProductionMethod {
             year: 1920,
             required_tech: None,
@@ -467,9 +480,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Cars, 4.0),
                 (Commodity::AdministrativeServices, 3.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::SecurityCapacity, 30.0),
-            ]),
+            outputs: HashMap::from([(Commodity::SecurityCapacity, 30.0)]),
             ..Default::default()
         },
     );
@@ -477,7 +488,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
 
     // -- courthouse (Courthouse) --
     let mut sad = BuildingMethods::default();
-    sad.insert(MethodSlot::Production, "Basic".to_string(),
+    sad.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -489,13 +502,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Paper, 5.0),
                 (Commodity::AdministrativeServices, 5.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::JusticeCapacity, 10.0),
-            ]),
+            outputs: HashMap::from([(Commodity::JusticeCapacity, 10.0)]),
             ..Default::default()
         },
     );
-    sad.insert(MethodSlot::Production, "Upgraded".to_string(),
+    sad.insert(
+        MethodSlot::Production,
+        "Upgraded".to_string(),
         ProductionMethod {
             year: 1930,
             required_tech: None,
@@ -508,13 +521,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::AdministrativeServices, 6.0),
                 (Commodity::ElectronicComponents, 1.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::JusticeCapacity, 18.0),
-            ]),
+            outputs: HashMap::from([(Commodity::JusticeCapacity, 18.0)]),
             ..Default::default()
         },
     );
-    sad.insert(MethodSlot::Production, "Digital".to_string(),
+    sad.insert(
+        MethodSlot::Production,
+        "Digital".to_string(),
         ProductionMethod {
             year: 2000,
             required_tech: None,
@@ -527,9 +540,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::AdministrativeServices, 7.0),
                 (Commodity::ElectronicComponents, 4.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::JusticeCapacity, 30.0),
-            ]),
+            outputs: HashMap::from([(Commodity::JusticeCapacity, 30.0)]),
             ..Default::default()
         },
     );
@@ -537,7 +548,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
 
     // -- intelligence_hq (Intelligence HQ) --
     let mut sluzby = BuildingMethods::default();
-    sluzby.insert(MethodSlot::Production, "Basic".to_string(),
+    sluzby.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -551,13 +564,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Cars, 3.0),
                 (Commodity::AdministrativeServices, 5.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::IntelligenceCapacity, 8.0),
-            ]),
+            outputs: HashMap::from([(Commodity::IntelligenceCapacity, 8.0)]),
             ..Default::default()
         },
     );
-    sluzby.insert(MethodSlot::Production, "Upgraded".to_string(),
+    sluzby.insert(
+        MethodSlot::Production,
+        "Upgraded".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -572,13 +585,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::AdministrativeServices, 6.0),
                 (Commodity::Paper, 2.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::IntelligenceCapacity, 15.0),
-            ]),
+            outputs: HashMap::from([(Commodity::IntelligenceCapacity, 15.0)]),
             ..Default::default()
         },
     );
-    sluzby.insert(MethodSlot::Production, "Modern".to_string(),
+    sluzby.insert(
+        MethodSlot::Production,
+        "Modern".to_string(),
         ProductionMethod {
             year: 1990,
             required_tech: None,
@@ -593,9 +606,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::AdministrativeServices, 7.0),
                 (Commodity::Paper, 1.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::IntelligenceCapacity, 25.0),
-            ]),
+            outputs: HashMap::from([(Commodity::IntelligenceCapacity, 25.0)]),
             ..Default::default()
         },
     );
@@ -610,7 +621,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
     let mut prison_methods = BuildingMethods::default();
 
     // VoluntaryLabor: workshop production
-    prison_methods.insert(MethodSlot::Production, "Workshop".to_string(),
+    prison_methods.insert(
+        MethodSlot::Production,
+        "Workshop".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -618,19 +631,16 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.30,
             basic_ratio: 0.65,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Food, 10.0),
-                (Commodity::Timber, 5.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::Furniture, 5.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Food, 10.0), (Commodity::Timber, 5.0)]),
+            outputs: HashMap::from([(Commodity::Furniture, 5.0)]),
             ..Default::default()
         },
     );
 
     // StatePenalColony: forced heavy labor producing raw materials
-    prison_methods.insert(MethodSlot::Production, "Quarry".to_string(),
+    prison_methods.insert(
+        MethodSlot::Production,
+        "Quarry".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -642,16 +652,15 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Food, 8.0),
                 (Commodity::MechanicalComponents, 10.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::Stone, 30.0),
-                (Commodity::HardCoal, 20.0),
-            ]),
+            outputs: HashMap::from([(Commodity::Stone, 30.0), (Commodity::HardCoal, 20.0)]),
             ..Default::default()
         },
     );
 
     // PrivateLaborCamps: no building output — FTEs injected into labor market
-    prison_methods.insert(MethodSlot::Production, "Private Labor Camp".to_string(),
+    prison_methods.insert(
+        MethodSlot::Production,
+        "Private Labor Camp".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -659,16 +668,16 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.08,
             basic_ratio: 0.90,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Food, 5.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Food, 5.0)]),
             outputs: HashMap::new(),
             ..Default::default()
         },
     );
 
     // IsolationCamp: no production — prisoners removed from workforce
-    prison_methods.insert(MethodSlot::Production, "Detention Camp".to_string(),
+    prison_methods.insert(
+        MethodSlot::Production,
+        "Detention Camp".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -676,9 +685,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.15,
             basic_ratio: 0.80,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Food, 5.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Food, 5.0)]),
             outputs: HashMap::new(),
             ..Default::default()
         },
@@ -688,7 +695,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
 
     // -- fire_station (Professional State Fire Brigade) --
     let mut fire_brigade_methods = BuildingMethods::default();
-    fire_brigade_methods.insert(MethodSlot::Production, "Basic".to_string(),
+    fire_brigade_methods.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -701,13 +710,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Cars, 2.0),
                 (Commodity::Water, 10.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::FireProtectionCapacity, 8.0),
-            ]),
+            outputs: HashMap::from([(Commodity::FireProtectionCapacity, 8.0)]),
             ..Default::default()
         },
     );
-    fire_brigade_methods.insert(MethodSlot::Production, "Motorized".to_string(),
+    fire_brigade_methods.insert(
+        MethodSlot::Production,
+        "Motorized".to_string(),
         ProductionMethod {
             year: 1920,
             required_tech: None,
@@ -720,13 +729,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Water, 15.0),
                 (Commodity::Chemicals, 5.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::FireProtectionCapacity, 20.0),
-            ]),
+            outputs: HashMap::from([(Commodity::FireProtectionCapacity, 20.0)]),
             ..Default::default()
         },
     );
-    fire_brigade_methods.insert(MethodSlot::Production, "Professional".to_string(),
+    fire_brigade_methods.insert(
+        MethodSlot::Production,
+        "Professional".to_string(),
         ProductionMethod {
             year: 1980,
             required_tech: None,
@@ -739,9 +748,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::ElectronicComponents, 3.0),
                 (Commodity::Chemicals, 8.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::FireProtectionCapacity, 35.0),
-            ]),
+            outputs: HashMap::from([(Commodity::FireProtectionCapacity, 35.0)]),
             ..Default::default()
         },
     );
@@ -749,7 +756,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
 
     // -- flood_shelter (Flood Shelter / Levee) --
     let mut flood_shelter_methods = BuildingMethods::default();
-    flood_shelter_methods.insert(MethodSlot::Production, "Flood Embankment".to_string(),
+    flood_shelter_methods.insert(
+        MethodSlot::Production,
+        "Flood Embankment".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -757,16 +766,14 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.25,
             basic_ratio: 0.70,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Bricks, 20.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::ShelterCapacity, 10.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Bricks, 20.0)]),
+            outputs: HashMap::from([(Commodity::ShelterCapacity, 10.0)]),
             ..Default::default()
         },
     );
-    flood_shelter_methods.insert(MethodSlot::Production, "Upgraded Embankment".to_string(),
+    flood_shelter_methods.insert(
+        MethodSlot::Production,
+        "Upgraded Embankment".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -774,13 +781,8 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.30,
             basic_ratio: 0.60,
             efficiency: 1.5,
-            inputs: HashMap::from([
-                (Commodity::Bricks, 15.0),
-                (Commodity::Cement, 10.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::ShelterCapacity, 25.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Bricks, 15.0), (Commodity::Cement, 10.0)]),
+            outputs: HashMap::from([(Commodity::ShelterCapacity, 25.0)]),
             ..Default::default()
         },
     );
@@ -788,7 +790,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
 
     // -- border_guard (Border Guard) --
     let mut border_guard_methods = BuildingMethods::default();
-    border_guard_methods.insert(MethodSlot::Production, "Border Patrol".to_string(),
+    border_guard_methods.insert(
+        MethodSlot::Production,
+        "Border Patrol".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -796,17 +800,14 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.25,
             basic_ratio: 0.70,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Food, 10.0),
-                (Commodity::Rifles, 1.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::BorderEnforcementCapacity, 10.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Food, 10.0), (Commodity::Rifles, 1.0)]),
+            outputs: HashMap::from([(Commodity::BorderEnforcementCapacity, 10.0)]),
             ..Default::default()
         },
     );
-    border_guard_methods.insert(MethodSlot::Production, "Motorized Patrol".to_string(),
+    border_guard_methods.insert(
+        MethodSlot::Production,
+        "Motorized Patrol".to_string(),
         ProductionMethod {
             year: 1920,
             required_tech: None,
@@ -819,13 +820,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Cars, 3.0),
                 (Commodity::Rifles, 2.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::BorderEnforcementCapacity, 25.0),
-            ]),
+            outputs: HashMap::from([(Commodity::BorderEnforcementCapacity, 25.0)]),
             ..Default::default()
         },
     );
-    border_guard_methods.insert(MethodSlot::Production, "Modern Border Guard".to_string(),
+    border_guard_methods.insert(
+        MethodSlot::Production,
+        "Modern Border Guard".to_string(),
         ProductionMethod {
             year: 1990,
             required_tech: None,
@@ -838,9 +839,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Cars, 5.0),
                 (Commodity::ElectronicComponents, 5.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::BorderEnforcementCapacity, 50.0),
-            ]),
+            outputs: HashMap::from([(Commodity::BorderEnforcementCapacity, 50.0)]),
             ..Default::default()
         },
     );
@@ -848,7 +847,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
 
     // -- customs_office (Customs House) --
     let mut customs_office_methods = BuildingMethods::default();
-    customs_office_methods.insert(MethodSlot::Production, "Customs Post".to_string(),
+    customs_office_methods.insert(
+        MethodSlot::Production,
+        "Customs Post".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -856,17 +857,14 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.30,
             basic_ratio: 0.60,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Food, 8.0),
-                (Commodity::Paper, 2.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::CustomsCapacity, 10.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Food, 8.0), (Commodity::Paper, 2.0)]),
+            outputs: HashMap::from([(Commodity::CustomsCapacity, 10.0)]),
             ..Default::default()
         },
     );
-    customs_office_methods.insert(MethodSlot::Production, "Upgraded Customs Office".to_string(),
+    customs_office_methods.insert(
+        MethodSlot::Production,
+        "Upgraded Customs Office".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -879,13 +877,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Paper, 1.0),
                 (Commodity::ElectronicComponents, 3.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::CustomsCapacity, 25.0),
-            ]),
+            outputs: HashMap::from([(Commodity::CustomsCapacity, 25.0)]),
             ..Default::default()
         },
     );
-    customs_office_methods.insert(MethodSlot::Production, "e-Toll Customs System".to_string(),
+    customs_office_methods.insert(
+        MethodSlot::Production,
+        "e-Toll Customs System".to_string(),
         ProductionMethod {
             year: 2000,
             required_tech: None,
@@ -898,17 +896,17 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::ElectronicComponents, 8.0),
                 (Commodity::Software, 5.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::CustomsCapacity, 50.0),
-            ]),
+            outputs: HashMap::from([(Commodity::CustomsCapacity, 50.0)]),
             ..Default::default()
         },
     );
     registry.insert("customs_office".to_string(), customs_office_methods);
 
-    // -- sanepid (Sanitary Inspectorate) --
-    let mut sanepid = BuildingMethods::default();
-    sanepid.insert(MethodSlot::Production, "Sanitary Station".to_string(),
+    // -- sanitary_inspectorate (Sanitary Inspectorate) --
+    let mut sanitary_inspectorate = BuildingMethods::default();
+    sanitary_inspectorate.insert(
+        MethodSlot::Production,
+        "Sanitary Station".to_string(),
         ProductionMethod {
             year: 1920,
             required_tech: None,
@@ -921,13 +919,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Paper, 3.0),
                 (Commodity::Food, 4.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::SanitaryInspectionCapacity, 10.0),
-            ]),
+            outputs: HashMap::from([(Commodity::SanitaryInspectionCapacity, 10.0)]),
             ..Default::default()
         },
     );
-    sanepid.insert(MethodSlot::Production, "Upgraded sanepid".to_string(),
+    sanitary_inspectorate.insert(
+        MethodSlot::Production,
+        "Upgraded Sanitary Inspectorate".to_string(),
         ProductionMethod {
             year: 1990,
             required_tech: None,
@@ -941,17 +939,17 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Paper, 2.0),
                 (Commodity::Food, 5.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::SanitaryInspectionCapacity, 25.0),
-            ]),
+            outputs: HashMap::from([(Commodity::SanitaryInspectionCapacity, 25.0)]),
             ..Default::default()
         },
     );
-    registry.insert("sanepid".to_string(), sanepid);
+    registry.insert("sanitary_inspectorate".to_string(), sanitary_inspectorate);
 
     // -- construction_inspectorate (Building Inspectorate) --
-    let mut insp_bud = BuildingMethods::default();
-    insp_bud.insert(MethodSlot::Production, "Supervision Office".to_string(),
+    let mut construction_inspectorate = BuildingMethods::default();
+    construction_inspectorate.insert(
+        MethodSlot::Production,
+        "Supervision Office".to_string(),
         ProductionMethod {
             year: 1920,
             required_tech: None,
@@ -964,13 +962,13 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Food, 5.0),
                 (Commodity::Cars, 2.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::BuildingInspectionCapacity, 8.0),
-            ]),
+            outputs: HashMap::from([(Commodity::BuildingInspectionCapacity, 8.0)]),
             ..Default::default()
         },
     );
-    insp_bud.insert(MethodSlot::Production, "Upgraded Inspectorate".to_string(),
+    construction_inspectorate.insert(
+        MethodSlot::Production,
+        "Upgraded Inspectorate".to_string(),
         ProductionMethod {
             year: 1990,
             required_tech: None,
@@ -984,17 +982,20 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Food, 4.0),
                 (Commodity::Cars, 3.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::BuildingInspectionCapacity, 20.0),
-            ]),
+            outputs: HashMap::from([(Commodity::BuildingInspectionCapacity, 20.0)]),
             ..Default::default()
         },
     );
-    registry.insert("construction_inspectorate".to_string(), insp_bud);
+    registry.insert(
+        "construction_inspectorate".to_string(),
+        construction_inspectorate,
+    );
 
     // -- environmental_inspectorate (Environmental Inspectorate) --
-    let mut insp_srod = BuildingMethods::default();
-    insp_srod.insert(MethodSlot::Production, "Control Station".to_string(),
+    let mut environmental_inspectorate = BuildingMethods::default();
+    environmental_inspectorate.insert(
+        MethodSlot::Production,
+        "Control Station".to_string(),
         ProductionMethod {
             year: 1970,
             required_tech: None,
@@ -1008,13 +1009,14 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Paper, 3.0),
                 (Commodity::Food, 4.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::EnvironmentalInspectionCapacity, 12.0),
-            ]),
+            outputs: HashMap::from([(Commodity::EnvironmentalInspectionCapacity, 12.0)]),
             ..Default::default()
         },
     );
-    registry.insert("environmental_inspectorate".to_string(), insp_srod);
+    registry.insert(
+        "environmental_inspectorate".to_string(),
+        environmental_inspectorate,
+    );
 
     registry
 }
@@ -1033,7 +1035,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- Solvay Process (Soda Ash Production) --
     let mut solvay = BuildingMethods::default();
-    solvay.insert(MethodSlot::Production, "Basic".to_string(),
+    solvay.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1860,
             required_tech: None,
@@ -1054,7 +1058,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- Seed Mill --
     let mut seed_mill = BuildingMethods::default();
-    seed_mill.insert(MethodSlot::Production, "Basic".to_string(),
+    seed_mill.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1071,7 +1077,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- forest_district (Forest District — commercial building owned by State Forests company) --
     let mut state_forest_methods = BuildingMethods::default();
-    state_forest_methods.insert(MethodSlot::Production, "Forestry Management".to_string(),
+    state_forest_methods.insert(
+        MethodSlot::Production,
+        "Forestry Management".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1079,17 +1087,14 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.20,
             basic_ratio: 0.75,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Fuels, 2.0),
-                (Commodity::Food, 1.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::Timber, 10.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Fuels, 2.0), (Commodity::Food, 1.0)]),
+            outputs: HashMap::from([(Commodity::Timber, 10.0)]),
             ..Default::default()
         },
     );
-    state_forest_methods.insert(MethodSlot::Production, "Sustainable Forestry".to_string(),
+    state_forest_methods.insert(
+        MethodSlot::Production,
+        "Sustainable Forestry".to_string(),
         ProductionMethod {
             year: 1990,
             required_tech: None,
@@ -1102,9 +1107,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::ElectronicComponents, 2.0),
                 (Commodity::Food, 1.0),
             ]),
-            outputs: HashMap::from([
-                (Commodity::Timber, 15.0),
-            ]),
+            outputs: HashMap::from([(Commodity::Timber, 15.0)]),
             ..Default::default()
         },
     );
@@ -1116,7 +1119,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // Court — Justice ministry: produces ProsecutionCapacity (service output)
     let mut court_methods = BuildingMethods::default();
-    court_methods.insert(MethodSlot::Production, "Court Operations".to_string(),
+    court_methods.insert(
+        MethodSlot::Production,
+        "Court Operations".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1136,7 +1141,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // CustomsOffice — Treasury: facilitates tariff collection
     let mut customs_methods = BuildingMethods::default();
-    customs_methods.insert(MethodSlot::Production, "Customs Operations".to_string(),
+    customs_methods.insert(
+        MethodSlot::Production,
+        "Customs Operations".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1144,9 +1151,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.30,
             basic_ratio: 0.50,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Food, 1.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Food, 1.0)]),
             outputs: HashMap::new(),
             ..Default::default()
         },
@@ -1155,7 +1160,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // Embassy — Foreign Affairs: diplomatic output
     let mut embassy_methods = BuildingMethods::default();
-    embassy_methods.insert(MethodSlot::Production, "Diplomatic Operations".to_string(),
+    embassy_methods.insert(
+        MethodSlot::Production,
+        "Diplomatic Operations".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1175,7 +1182,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // ResearchInstitute — Science: produces ResearchOutput
     let mut research_methods = BuildingMethods::default();
-    research_methods.insert(MethodSlot::Production, "Research Program".to_string(),
+    research_methods.insert(
+        MethodSlot::Production,
+        "Research Program".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1196,7 +1205,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // LaborInspectorate — Labor: enforces labor regulations
     let mut labor_inspectorate_methods = BuildingMethods::default();
-    labor_inspectorate_methods.insert(MethodSlot::Production, "Labor Inspection".to_string(),
+    labor_inspectorate_methods.insert(
+        MethodSlot::Production,
+        "Labor Inspection".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1216,7 +1227,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // PublicWorksSite — Labor: public employment program
     let mut public_works_methods = BuildingMethods::default();
-    public_works_methods.insert(MethodSlot::Production, "Public Works".to_string(),
+    public_works_methods.insert(
+        MethodSlot::Production,
+        "Public Works".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1238,7 +1251,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // NationalTheater — Culture: produces CulturalOutput
     let mut theater_methods = BuildingMethods::default();
-    theater_methods.insert(MethodSlot::Production, "Theatrical Production".to_string(),
+    theater_methods.insert(
+        MethodSlot::Production,
+        "Theatrical Production".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1259,7 +1274,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // NationalLibrary — Culture: produces CulturalOutput (knowledge)
     let mut library_methods = BuildingMethods::default();
-    library_methods.insert(MethodSlot::Production, "Library Services".to_string(),
+    library_methods.insert(
+        MethodSlot::Production,
+        "Library Services".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1279,7 +1296,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // TransportDepot — Transport: public transport hub
     let mut transport_depot_methods = BuildingMethods::default();
-    transport_depot_methods.insert(MethodSlot::Production, "Public Transport".to_string(),
+    transport_depot_methods.insert(
+        MethodSlot::Production,
+        "Public Transport".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1287,10 +1306,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.20,
             basic_ratio: 0.70,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Fuels, 5.0),
-                (Commodity::Food, 2.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Fuels, 5.0), (Commodity::Food, 2.0)]),
             outputs: HashMap::from([
                 (Commodity::AdministrativeServices, 10.0), // Transport services
             ]),
@@ -1305,7 +1321,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // monastery_wine_production — consumes Fruit, produces Luxury (wine proxy)
     let mut monastery_wine = BuildingMethods::default();
-    monastery_wine.insert(MethodSlot::Production, "monastery_wine_production".to_string(),
+    monastery_wine.insert(
+        MethodSlot::Production,
+        "monastery_wine_production".to_string(),
         ProductionMethod {
             year: 1000,
             required_tech: None,
@@ -1313,13 +1331,8 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.15,
             basic_ratio: 0.80,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Cereal, 5.0),
-                (Commodity::Food, 2.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::LuxuryFurniture, 3.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Cereal, 5.0), (Commodity::Food, 2.0)]),
+            outputs: HashMap::from([(Commodity::LuxuryFurniture, 3.0)]),
             ..Default::default()
         },
     );
@@ -1327,7 +1340,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // monastery_scriptorium — consumes Paper, produces ReligiousTexts
     let mut monastery_scriptorium = BuildingMethods::default();
-    monastery_scriptorium.insert(MethodSlot::Production, "monastery_scriptorium".to_string(),
+    monastery_scriptorium.insert(
+        MethodSlot::Production,
+        "monastery_scriptorium".to_string(),
         ProductionMethod {
             year: 1000,
             required_tech: None,
@@ -1335,13 +1350,8 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.40,
             basic_ratio: 0.30,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Paper, 8.0),
-                (Commodity::Food, 3.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::ReligiousTexts, 5.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Paper, 8.0), (Commodity::Food, 3.0)]),
+            outputs: HashMap::from([(Commodity::ReligiousTexts, 5.0)]),
             ..Default::default()
         },
     );
@@ -1349,7 +1359,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // monastery_workshop — consumes Wood/Furniture, produces LuxuryFurniture + ReligiousArt
     let mut monastery_workshop = BuildingMethods::default();
-    monastery_workshop.insert(MethodSlot::Production, "monastery_workshop".to_string(),
+    monastery_workshop.insert(
+        MethodSlot::Production,
+        "monastery_workshop".to_string(),
         ProductionMethod {
             year: 1000,
             required_tech: None,
@@ -1373,7 +1385,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // temple_artisan_workshop — consumes LuxuryFurniture, produces ReligiousArt
     let mut temple_artisan = BuildingMethods::default();
-    temple_artisan.insert(MethodSlot::Production, "temple_artisan_workshop".to_string(),
+    temple_artisan.insert(
+        MethodSlot::Production,
+        "temple_artisan_workshop".to_string(),
         ProductionMethod {
             year: 1000,
             required_tech: None,
@@ -1381,13 +1395,8 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.45,
             basic_ratio: 0.30,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::LuxuryFurniture, 2.0),
-                (Commodity::Food, 2.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::ReligiousArt, 4.0),
-            ]),
+            inputs: HashMap::from([(Commodity::LuxuryFurniture, 2.0), (Commodity::Food, 2.0)]),
+            outputs: HashMap::from([(Commodity::ReligiousArt, 4.0)]),
             ..Default::default()
         },
     );
@@ -1395,7 +1404,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // monastery_herbal_garden — consumes Seeds, produces Pharmaceuticals
     let mut monastery_herbal = BuildingMethods::default();
-    monastery_herbal.insert(MethodSlot::Production, "monastery_herbal_garden".to_string(),
+    monastery_herbal.insert(
+        MethodSlot::Production,
+        "monastery_herbal_garden".to_string(),
         ProductionMethod {
             year: 1000,
             required_tech: None,
@@ -1403,13 +1414,8 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.30,
             basic_ratio: 0.50,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Seeds, 3.0),
-                (Commodity::Food, 2.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::Pharmaceuticals, 4.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Seeds, 3.0), (Commodity::Food, 2.0)]),
+            outputs: HashMap::from([(Commodity::Pharmaceuticals, 4.0)]),
             ..Default::default()
         },
     );
@@ -1433,7 +1439,9 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- marketplace (Marketplace) --
     let mut targ = BuildingMethods::default();
-    targ.insert(MethodSlot::Production, "Basic".to_string(),
+    targ.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1450,7 +1458,9 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- wholesale (Wholesaler) --
     let mut hurtownia = BuildingMethods::default();
-    hurtownia.insert(MethodSlot::Production, "Basic".to_string(),
+    hurtownia.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1463,7 +1473,9 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    hurtownia.insert(MethodSlot::Automation, "Mechanized".to_string(),
+    hurtownia.insert(
+        MethodSlot::Automation,
+        "Mechanized".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -1480,7 +1492,9 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- retail_shop (Retail Store) --
     let mut retail_shop = BuildingMethods::default();
-    retail_shop.insert(MethodSlot::Production, "Basic".to_string(),
+    retail_shop.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1497,7 +1511,9 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- supermarket --
     let mut supermarket = BuildingMethods::default();
-    supermarket.insert(MethodSlot::Production, "Basic".to_string(),
+    supermarket.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -1514,7 +1530,9 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- department_store (Department Store) --
     let mut department_store = BuildingMethods::default();
-    department_store.insert(MethodSlot::Production, "Basic".to_string(),
+    department_store.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1531,7 +1549,9 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- shopping_mall (Shopping Center) --
     let mut shopping_mall = BuildingMethods::default();
-    shopping_mall.insert(MethodSlot::Production, "Basic".to_string(),
+    shopping_mall.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1970,
             required_tech: None,
@@ -1565,7 +1585,9 @@ pub fn university_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- university (University) --
     let mut uniwersytet = BuildingMethods::default();
-    uniwersytet.insert(MethodSlot::Production, "Basic".to_string(),
+    uniwersytet.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1573,15 +1595,14 @@ pub fn university_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.40,
             basic_ratio: 0.20,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Paper, 20.0),
-                (Commodity::Chemicals, 10.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Paper, 20.0), (Commodity::Chemicals, 10.0)]),
             outputs: HashMap::from([(Commodity::InnovationPoints, 5.0)]),
             ..Default::default()
         },
     );
-    uniwersytet.insert(MethodSlot::Automation, "Mechanized".to_string(),
+    uniwersytet.insert(
+        MethodSlot::Automation,
+        "Mechanized".to_string(),
         ProductionMethod {
             year: 1920,
             required_tech: None,
@@ -1602,7 +1623,9 @@ pub fn university_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- technical_university (Polytechnic) --
     let mut politechnika = BuildingMethods::default();
-    politechnika.insert(MethodSlot::Production, "Basic".to_string(),
+    politechnika.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1610,15 +1633,14 @@ pub fn university_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.35,
             basic_ratio: 0.20,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Paper, 25.0),
-                (Commodity::Chemicals, 15.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Paper, 25.0), (Commodity::Chemicals, 15.0)]),
             outputs: HashMap::from([(Commodity::InnovationPoints, 6.0)]),
             ..Default::default()
         },
     );
-    politechnika.insert(MethodSlot::Automation, "Advanced".to_string(),
+    politechnika.insert(
+        MethodSlot::Automation,
+        "Advanced".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -1657,7 +1679,9 @@ pub fn healthcare_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- clinic (Clinic) --
     let mut clinic = BuildingMethods::default();
-    clinic.insert(MethodSlot::Production, "Basic".to_string(),
+    clinic.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1674,7 +1698,9 @@ pub fn healthcare_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- hospital (Hospital) --
     let mut hospital = BuildingMethods::default();
-    hospital.insert(MethodSlot::Production, "Basic".to_string(),
+    hospital.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1690,7 +1716,9 @@ pub fn healthcare_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    hospital.insert(MethodSlot::Automation, "Advanced".to_string(),
+    hospital.insert(
+        MethodSlot::Automation,
+        "Advanced".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -1710,7 +1738,9 @@ pub fn healthcare_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- research_hospital (Research Hospital) --
     let mut research_hospital = BuildingMethods::default();
-    research_hospital.insert(MethodSlot::Production, "Basic".to_string(),
+    research_hospital.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -1748,7 +1778,9 @@ pub fn education_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- primary_school (Primary School) --
     let mut szkola_podstawowa = BuildingMethods::default();
-    szkola_podstawowa.insert(MethodSlot::Production, "Basic".to_string(),
+    szkola_podstawowa.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1756,10 +1788,7 @@ pub fn education_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.60,
             basic_ratio: 0.30,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Paper, 10.0),
-                (Commodity::OfficeMachinery, 2.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Paper, 10.0), (Commodity::OfficeMachinery, 2.0)]),
             outputs: HashMap::from([(Commodity::EducationSlots, 20.0)]),
             ..Default::default()
         },
@@ -1768,7 +1797,9 @@ pub fn education_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- high_school (High School) --
     let mut liceum = BuildingMethods::default();
-    liceum.insert(MethodSlot::Production, "Basic".to_string(),
+    liceum.insert(
+        MethodSlot::Production,
+        "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1776,15 +1807,14 @@ pub fn education_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.55,
             basic_ratio: 0.30,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Paper, 15.0),
-                (Commodity::OfficeMachinery, 3.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Paper, 15.0), (Commodity::OfficeMachinery, 3.0)]),
             outputs: HashMap::from([(Commodity::EducationSlots, 30.0)]),
             ..Default::default()
         },
     );
-    liceum.insert(MethodSlot::Automation, "Advanced".to_string(),
+    liceum.insert(
+        MethodSlot::Automation,
+        "Advanced".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -1820,7 +1850,9 @@ pub fn osp_building_methods() -> HashMap<String, BuildingMethods> {
     let mut registry: HashMap<String, BuildingMethods> = HashMap::new();
 
     let mut remiza = BuildingMethods::default();
-    remiza.insert(MethodSlot::Production, "Volunteer Station".to_string(),
+    remiza.insert(
+        MethodSlot::Production,
+        "Volunteer Station".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1828,16 +1860,14 @@ pub fn osp_building_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.20,
             basic_ratio: 0.75,
             efficiency: 1.0,
-            inputs: HashMap::from([
-                (Commodity::Water, 5.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::FireProtectionCapacity, 3.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Water, 5.0)]),
+            outputs: HashMap::from([(Commodity::FireProtectionCapacity, 3.0)]),
             ..Default::default()
         },
     );
-    remiza.insert(MethodSlot::Production, "Motorized Station".to_string(),
+    remiza.insert(
+        MethodSlot::Production,
+        "Motorized Station".to_string(),
         ProductionMethod {
             year: 1920,
             required_tech: None,
@@ -1845,13 +1875,8 @@ pub fn osp_building_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.30,
             basic_ratio: 0.60,
             efficiency: 1.3,
-            inputs: HashMap::from([
-                (Commodity::Water, 8.0),
-                (Commodity::Cars, 1.0),
-            ]),
-            outputs: HashMap::from([
-                (Commodity::FireProtectionCapacity, 8.0),
-            ]),
+            inputs: HashMap::from([(Commodity::Water, 8.0), (Commodity::Cars, 1.0)]),
+            outputs: HashMap::from([(Commodity::FireProtectionCapacity, 8.0)]),
             ..Default::default()
         },
     );
@@ -1891,8 +1916,27 @@ mod tests {
             for pm in methods.iter_production_slots() {
                 // Phase 14: courthouse/police_station produce JusticeCapacity/SecurityCapacity;
                 // prison Workshop produces Furniture; Quarry produces Stone/HardCoal.
-                let allowed: Vec<&Commodity> = pm.outputs.keys()
-                    .filter(|c| !matches!(c, Commodity::JusticeCapacity | Commodity::SecurityCapacity | Commodity::IntelligenceCapacity | Commodity::Furniture | Commodity::Stone | Commodity::HardCoal | Commodity::FireProtectionCapacity | Commodity::ShelterCapacity | Commodity::BorderEnforcementCapacity | Commodity::CustomsCapacity | Commodity::SanitaryInspectionCapacity | Commodity::BuildingInspectionCapacity | Commodity::EnvironmentalInspectionCapacity))
+                let allowed: Vec<&Commodity> = pm
+                    .outputs
+                    .keys()
+                    .filter(|c| {
+                        !matches!(
+                            c,
+                            Commodity::JusticeCapacity
+                                | Commodity::SecurityCapacity
+                                | Commodity::IntelligenceCapacity
+                                | Commodity::Furniture
+                                | Commodity::Stone
+                                | Commodity::HardCoal
+                                | Commodity::FireProtectionCapacity
+                                | Commodity::ShelterCapacity
+                                | Commodity::BorderEnforcementCapacity
+                                | Commodity::CustomsCapacity
+                                | Commodity::SanitaryInspectionCapacity
+                                | Commodity::BuildingInspectionCapacity
+                                | Commodity::EnvironmentalInspectionCapacity
+                        )
+                    })
                     .collect();
                 assert!(allowed.is_empty(), "unexpected outputs: {:?}", allowed);
             }
@@ -1902,10 +1946,11 @@ mod tests {
     #[test]
     fn base_military_inputs_match_python() {
         let reg = state_building_methods();
-        let pm = reg["military_base"].get(MethodSlot::Production, "Basic").unwrap();
+        let pm = reg["military_base"]
+            .get(MethodSlot::Production, "Basic")
+            .unwrap();
         assert_eq!(pm.inputs[&Commodity::Ammunition], 10.0);
         assert_eq!(pm.inputs[&Commodity::Food], 20.0);
         assert_eq!(pm.efficiency, 1.0);
     }
 }
-

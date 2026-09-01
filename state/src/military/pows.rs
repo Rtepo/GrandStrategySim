@@ -99,21 +99,24 @@ impl PowCamp {
 
     /// Current count of POWs (excluding deceased and repatriated).
     pub fn current_count(&self) -> i64 {
-        self.prisoners.iter()
+        self.prisoners
+            .iter()
             .filter(|p| p.status != PowStatus::Deceased && p.status != PowStatus::Repatriated)
             .count() as i64
     }
 
     /// Count of POWs available for forced labor (interned, not yet assigned).
     pub fn available_for_labor(&self) -> i64 {
-        self.prisoners.iter()
+        self.prisoners
+            .iter()
             .filter(|p| p.status == PowStatus::Interned)
             .count() as i64
     }
 
     /// Count of POWs currently in forced labor.
     pub fn in_forced_labor(&self) -> i64 {
-        self.prisoners.iter()
+        self.prisoners
+            .iter()
             .filter(|p| p.status == PowStatus::ForcedLabor)
             .count() as i64
     }
@@ -186,9 +189,8 @@ impl PowCamp {
 
     /// Removes deceased and repatriated POWs from the active list.
     pub fn cleanup(&mut self) {
-        self.prisoners.retain(|p| {
-            p.status != PowStatus::Deceased && p.status != PowStatus::Repatriated
-        });
+        self.prisoners
+            .retain(|p| p.status != PowStatus::Deceased && p.status != PowStatus::Repatriated);
     }
 }
 
@@ -230,7 +232,7 @@ pub struct PowCaptureConfig {
 impl Default for PowCaptureConfig {
     fn default() -> Self {
         Self {
-            capture_rate: 0.4, // 40% of surviving casualties are captured
+            capture_rate: 0.4,                // 40% of surviving casualties are captured
             default_productivity_factor: 0.6, // 60% of free worker productivity
         }
     }
@@ -271,7 +273,9 @@ pub fn capture_pows_from_casualties(
         // Determine origin class from demographic breakdown
         let origin_class = if !loser_casualties.demographic_breakdown.is_empty() {
             // Pick the most common class
-            loser_casualties.demographic_breakdown.iter()
+            loser_casualties
+                .demographic_breakdown
+                .iter()
                 .max_by_key(|(_, &count)| count)
                 .map(|(class, _)| *class)
                 .unwrap_or(RuralClass::FreePeasant)
@@ -377,7 +381,9 @@ pub fn process_forced_labor_lease_fees(
         let lease_fee = calculate_lease_fee_per_pow(average_wage, pow.productivity_factor);
 
         // Check if the factory can pay
-        let factory_capital = factory_liquid_capital.entry(factory_id.clone()).or_insert(0.0);
+        let factory_capital = factory_liquid_capital
+            .entry(factory_id.clone())
+            .or_insert(0.0);
         if *factory_capital < lease_fee {
             // Factory can't pay — release the POW from forced labor
             result.messages.push(format!(
@@ -391,7 +397,10 @@ pub fn process_forced_labor_lease_fees(
         *factory_capital -= lease_fee;
         *treasury_liquid_reserves += lease_fee;
 
-        *result.factory_payments.entry(factory_id.clone()).or_insert(0.0) += lease_fee;
+        *result
+            .factory_payments
+            .entry(factory_id.clone())
+            .or_insert(0.0) += lease_fee;
         result.total_fees_collected += lease_fee;
         result.pows_in_labor += 1;
     }
@@ -491,7 +500,13 @@ mod tests {
         let mut counter = 0u64;
 
         let pows = capture_pows_from_casualties(
-            &casualties, "Captor", "Origin", 1, "region", &config, &mut counter,
+            &casualties,
+            "Captor",
+            "Origin",
+            1,
+            "region",
+            &config,
+            &mut counter,
         );
 
         assert_eq!(pows.len(), 0, "Dead soldiers cannot be captured as POWs");
@@ -500,19 +515,17 @@ mod tests {
     #[test]
     fn test_pow_camp_add_prisoners() {
         let mut camp = PowCamp::new();
-        let pows = vec![
-            PrisonerOfWar {
-                id: "POW-1".to_string(),
-                captor_country: "C".to_string(),
-                origin_country: "O".to_string(),
-                capture_turn: 1,
-                internment_region: "r".to_string(),
-                origin_class: RuralClass::FreePeasant,
-                status: PowStatus::Captured,
-                assigned_factory_id: None,
-                productivity_factor: 0.6,
-            },
-        ];
+        let pows = vec![PrisonerOfWar {
+            id: "POW-1".to_string(),
+            captor_country: "C".to_string(),
+            origin_country: "O".to_string(),
+            capture_turn: 1,
+            internment_region: "r".to_string(),
+            origin_class: RuralClass::FreePeasant,
+            status: PowStatus::Captured,
+            assigned_factory_id: None,
+            productivity_factor: 0.6,
+        }];
 
         camp.add_prisoners(pows);
         assert_eq!(camp.current_count(), 1);
@@ -610,25 +623,26 @@ mod tests {
         // Fee = 100 * 0.6 * 0.7 = 42
         assert!((fee - 42.0).abs() < 0.001);
         assert!(fee > 0.0, "Lease fee must be positive — no free labor");
-        assert!(fee < average_wage, "Lease fee must be less than free worker wage");
+        assert!(
+            fee < average_wage,
+            "Lease fee must be less than free worker wage"
+        );
     }
 
     #[test]
     fn test_forced_labor_lease_fee_double_entry() {
         let mut camp = PowCamp::new();
-        camp.add_prisoners(vec![
-            PrisonerOfWar {
-                id: "POW-1".to_string(),
-                captor_country: "C".to_string(),
-                origin_country: "O".to_string(),
-                capture_turn: 1,
-                internment_region: "r".to_string(),
-                origin_class: RuralClass::FreePeasant,
-                status: PowStatus::ForcedLabor,
-                assigned_factory_id: Some("F1".to_string()),
-                productivity_factor: 0.6,
-            },
-        ]);
+        camp.add_prisoners(vec![PrisonerOfWar {
+            id: "POW-1".to_string(),
+            captor_country: "C".to_string(),
+            origin_country: "O".to_string(),
+            capture_turn: 1,
+            internment_region: "r".to_string(),
+            origin_class: RuralClass::FreePeasant,
+            status: PowStatus::ForcedLabor,
+            assigned_factory_id: Some("F1".to_string()),
+            productivity_factor: 0.6,
+        }]);
 
         let mut factory_capital = HashMap::new();
         factory_capital.insert("F1".to_string(), 1000.0);
@@ -648,26 +662,26 @@ mod tests {
         assert!(*factory_balance < 1000.0, "Factory must be debited");
         assert!(treasury > 5000.0, "Treasury must be credited");
         // The amounts must match (double-entry)
-        assert!((1000.0 - *factory_balance) - (treasury - 5000.0) < 0.001,
-            "Factory debit must equal treasury credit (double-entry)");
+        assert!(
+            (1000.0 - *factory_balance) - (treasury - 5000.0) < 0.001,
+            "Factory debit must equal treasury credit (double-entry)"
+        );
     }
 
     #[test]
     fn test_forced_labor_factory_cannot_pay_releases_pow() {
         let mut camp = PowCamp::new();
-        camp.add_prisoners(vec![
-            PrisonerOfWar {
-                id: "POW-1".to_string(),
-                captor_country: "C".to_string(),
-                origin_country: "O".to_string(),
-                capture_turn: 1,
-                internment_region: "r".to_string(),
-                origin_class: RuralClass::FreePeasant,
-                status: PowStatus::ForcedLabor,
-                assigned_factory_id: Some("F1".to_string()),
-                productivity_factor: 0.6,
-            },
-        ]);
+        camp.add_prisoners(vec![PrisonerOfWar {
+            id: "POW-1".to_string(),
+            captor_country: "C".to_string(),
+            origin_country: "O".to_string(),
+            capture_turn: 1,
+            internment_region: "r".to_string(),
+            origin_class: RuralClass::FreePeasant,
+            status: PowStatus::ForcedLabor,
+            assigned_factory_id: Some("F1".to_string()),
+            productivity_factor: 0.6,
+        }]);
 
         let mut factory_capital = HashMap::new();
         factory_capital.insert("F1".to_string(), 1.0); // Very low capital
@@ -683,7 +697,10 @@ mod tests {
 
         // Factory can't pay → no fee collected, POW released
         assert_eq!(result.total_fees_collected, 0.0);
-        assert!(!result.messages.is_empty(), "Must log that factory couldn't pay");
+        assert!(
+            !result.messages.is_empty(),
+            "Must log that factory couldn't pay"
+        );
     }
 
     #[test]
@@ -691,19 +708,17 @@ mod tests {
         // Verify that POWs in forced labor always generate a lease fee > 0
         // (no free labor — Rule 8)
         let mut camp = PowCamp::new();
-        camp.add_prisoners(vec![
-            PrisonerOfWar {
-                id: "POW-1".to_string(),
-                captor_country: "C".to_string(),
-                origin_country: "O".to_string(),
-                capture_turn: 1,
-                internment_region: "r".to_string(),
-                origin_class: RuralClass::FreePeasant,
-                status: PowStatus::ForcedLabor,
-                assigned_factory_id: Some("F1".to_string()),
-                productivity_factor: 0.5,
-            },
-        ]);
+        camp.add_prisoners(vec![PrisonerOfWar {
+            id: "POW-1".to_string(),
+            captor_country: "C".to_string(),
+            origin_country: "O".to_string(),
+            capture_turn: 1,
+            internment_region: "r".to_string(),
+            origin_class: RuralClass::FreePeasant,
+            status: PowStatus::ForcedLabor,
+            assigned_factory_id: Some("F1".to_string()),
+            productivity_factor: 0.5,
+        }]);
 
         let mut factory_capital = HashMap::new();
         factory_capital.insert("F1".to_string(), 10000.0);
@@ -717,8 +732,10 @@ mod tests {
             &mut treasury,
         );
 
-        assert!(result.total_fees_collected > 0.0,
-            "POW labor must never be free — factory must pay lease fee");
+        assert!(
+            result.total_fees_collected > 0.0,
+            "POW labor must never be free — factory must pay lease fee"
+        );
         assert!(treasury > 0.0, "Treasury must receive the lease fee");
     }
 
@@ -776,7 +793,13 @@ mod tests {
 
         // 1. Capture
         let pows = capture_pows_from_casualties(
-            &casualties, "Captor", "Origin", 1, "region", &config, &mut counter,
+            &casualties,
+            "Captor",
+            "Origin",
+            1,
+            "region",
+            &config,
+            &mut counter,
         );
         assert!(!pows.is_empty());
         camp.add_prisoners(pows);
@@ -796,9 +819,8 @@ mod tests {
         let mut factory_capital = HashMap::new();
         factory_capital.insert("FACTORY-001".to_string(), 5000.0);
         let mut treasury = 1000.0;
-        let result = process_forced_labor_lease_fees(
-            &camp, 100.0, &mut factory_capital, &mut treasury,
-        );
+        let result =
+            process_forced_labor_lease_fees(&camp, 100.0, &mut factory_capital, &mut treasury);
         assert!(result.total_fees_collected > 0.0);
 
         // 5. Repatriate

@@ -11,13 +11,13 @@
 
 use crate::economy::production::weather::get_region_weather_modifier;
 use crate::economy::production::weather::WeatherState;
+use crate::energy::generation::{compute_marginal_cost, weather_output_multiplier};
+use crate::energy::types::*;
 use crate::entities::Building;
 use crate::registries::enums::{Commodity, Sector};
 use crate::society::geography::{EdgeType, Region};
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use crate::state::{Country, Season};
-use crate::energy::types::*;
-use crate::energy::generation::{compute_marginal_cost, weather_output_multiplier};
 
 use rand::Rng;
 use std::collections::HashMap;
@@ -90,13 +90,21 @@ pub fn init_power_grid(
         regional_demand_mw.insert(region.id.clone(), 0.0);
     }
     for hb in housing_buildings {
-        if let Some(rid) = sorted_regions.iter().find(|r| r.micro_regions.contains_key(&hb.micro_region_id)).map(|r| r.id.clone()) {
+        if let Some(rid) = sorted_regions
+            .iter()
+            .find(|r| r.micro_regions.contains_key(&hb.micro_region_id))
+            .map(|r| r.id.clone())
+        {
             let demand_mw = hb.utility_connections.electricity_capacity / 1000.0;
             *regional_demand_mw.get_mut(&rid).unwrap() += demand_mw;
         }
     }
     for cb in commercial_buildings {
-        if let Some(rid) = sorted_regions.iter().find(|r| r.micro_regions.contains_key(&cb.micro_region_id)).map(|r| r.id.clone()) {
+        if let Some(rid) = sorted_regions
+            .iter()
+            .find(|r| r.micro_regions.contains_key(&cb.micro_region_id))
+            .map(|r| r.id.clone())
+        {
             let demand_mw = cb.utility_connections.electricity_capacity / 1000.0;
             *regional_demand_mw.get_mut(&rid).unwrap() += demand_mw;
         }
@@ -149,11 +157,8 @@ pub fn init_power_grid(
     let mut line_counter = 0u32;
 
     // Build a lookup of region ID → region for population lookups.
-    let region_map: HashMap<String, &Region> = country
-        .regions
-        .iter()
-        .map(|r| (r.id.clone(), r))
-        .collect();
+    let region_map: HashMap<String, &Region> =
+        country.regions.iter().map(|r| (r.id.clone(), r)).collect();
 
     // Collect candidate edges deterministically (sorted by from_region, to_region).
     let mut candidate_edges: Vec<(String, String, f64)> = Vec::new();
@@ -295,25 +300,30 @@ fn collect_regional_supply_demand(
             continue;
         }
         let region_id = &building.region_id;
-        let energy_in_inventory = building.inventory.get(&Commodity::Energy).copied().unwrap_or(0.0);
+        let energy_in_inventory = building
+            .inventory
+            .get(&Commodity::Energy)
+            .copied()
+            .unwrap_or(0.0);
 
         // Get nameplate capacity from metadata if available.
-        let (nameplate, weather_multiplier, has_metadata) = if let Some(meta) = get_plant_metadata(building) {
-            let weather = get_region_weather_modifier(weather_state, region_id);
-            let wm = weather_output_multiplier(
-                meta.plant_type,
-                meta.cooling_type,
-                meta.has_cooling_upgrade,
-                &weather,
-            );
-            (meta.nameplate_capacity_mw, wm, true)
-        } else {
-            // Bugfix Sprint (5C): Pre-Phase-81 buildings without metadata.
-            // Supply is still estimated from employment so these buildings
-            // contribute to grid supply, but they are EXCLUDED from
-            // max_capacity_mw so regional and national capacity reconcile.
-            (building.current_employment as f64 * 0.5, 1.0, false)
-        };
+        let (nameplate, weather_multiplier, has_metadata) =
+            if let Some(meta) = get_plant_metadata(building) {
+                let weather = get_region_weather_modifier(weather_state, region_id);
+                let wm = weather_output_multiplier(
+                    meta.plant_type,
+                    meta.cooling_type,
+                    meta.has_cooling_upgrade,
+                    &weather,
+                );
+                (meta.nameplate_capacity_mw, wm, true)
+            } else {
+                // Bugfix Sprint (5C): Pre-Phase-81 buildings without metadata.
+                // Supply is still estimated from employment so these buildings
+                // contribute to grid supply, but they are EXCLUDED from
+                // max_capacity_mw so regional and national capacity reconcile.
+                (building.current_employment as f64 * 0.5, 1.0, false)
+            };
 
         // Apply weather multiplier to actual output.
         // Bugfix Sprint (5A): Clamp supply to nameplate capacity — supply can
@@ -392,7 +402,8 @@ fn dc_flow_balancing(
 
     // Sort HV lines deterministically by (from_region, to_region).
     let mut sorted_lines: Vec<&GridLine> = hv_lines.iter().collect();
-    sorted_lines.sort_by(|a, b| (&a.from_region, &a.to_region).cmp(&(&b.from_region, &b.to_region)));
+    sorted_lines
+        .sort_by(|a, b| (&a.from_region, &a.to_region).cmp(&(&b.from_region, &b.to_region)));
 
     // Sort region IDs for deterministic iteration.
     let mut sorted_region_ids: Vec<String> = supply.keys().cloned().collect();
@@ -671,11 +682,12 @@ pub fn distribute_grid_power(
             average_wage,
             &weather_state,
         );
-        let (spot_price, dispatch_results) =
-            clear_spot_market(&merit_stack, demand, average_wage);
+        let (spot_price, dispatch_results) = clear_spot_market(&merit_stack, demand, average_wage);
 
         grid.spot_prices.insert(region_id.clone(), spot_price);
-        result.region_spot_prices.insert(region_id.clone(), spot_price);
+        result
+            .region_spot_prices
+            .insert(region_id.clone(), spot_price);
 
         // Phase 81 Wave 2: Store merit-order results in spot_market state.
         grid.spot_market
@@ -698,7 +710,9 @@ pub fn distribute_grid_power(
         }
 
         // Record final supply/demand.
-        result.region_supply_mw.insert(region_id.clone(), effective_supply);
+        result
+            .region_supply_mw
+            .insert(region_id.clone(), effective_supply);
         result.region_demand_mw.insert(region_id.clone(), demand);
         result
             .region_storage_absorbed_mw
@@ -711,7 +725,11 @@ pub fn distribute_grid_power(
             continue;
         }
         // Remove distributed energy from inventory.
-        let energy = building.inventory.get(&Commodity::Energy).copied().unwrap_or(0.0);
+        let energy = building
+            .inventory
+            .get(&Commodity::Energy)
+            .copied()
+            .unwrap_or(0.0);
         if energy > 0.0 {
             building.inventory.insert(Commodity::Energy, 0.0);
         }
@@ -766,7 +784,8 @@ fn apply_industrial_buff(
         if building.region_id != region_id {
             continue;
         }
-        if building.sector == Sector::HeavyIndustry || building.sector == Sector::ArmamentsIndustry {
+        if building.sector == Sector::HeavyIndustry || building.sector == Sector::ArmamentsIndustry
+        {
             let existing = penalties.get(&building.id).copied().unwrap_or(0.0);
             // Only apply buff if there's no existing load shedding penalty.
             if existing <= 0.0 {
@@ -781,11 +800,7 @@ fn apply_industrial_buff(
 /// Curtailment order: Storage (already absorbed) → Renewable curtailment → Thermal throttling.
 /// Curtailed energy is physically dissipated as waste heat.
 /// Returns total curtailed energy in MW.
-fn apply_curtailment(
-    region_id: &str,
-    surplus_mw: f64,
-    buildings: &mut [Building],
-) -> f64 {
+fn apply_curtailment(region_id: &str, surplus_mw: f64, buildings: &mut [Building]) -> f64 {
     if surplus_mw <= 0.0 {
         return 0.0;
     }
@@ -803,7 +818,11 @@ fn apply_curtailment(
         }
         if let Some(meta) = get_plant_metadata(building) {
             if meta.plant_type.is_renewable() {
-                let energy = building.inventory.get(&Commodity::Energy).copied().unwrap_or(0.0);
+                let energy = building
+                    .inventory
+                    .get(&Commodity::Energy)
+                    .copied()
+                    .unwrap_or(0.0);
                 let curtail_amount = energy.min(remaining);
                 if curtail_amount > 0.0 {
                     let new_energy = (energy - curtail_amount).max(0.0);
@@ -825,7 +844,11 @@ fn apply_curtailment(
         }
         if let Some(meta) = get_plant_metadata(building) {
             if meta.plant_type.is_thermal() {
-                let energy = building.inventory.get(&Commodity::Energy).copied().unwrap_or(0.0);
+                let energy = building
+                    .inventory
+                    .get(&Commodity::Energy)
+                    .copied()
+                    .unwrap_or(0.0);
                 let curtail_amount = energy.min(remaining);
                 if curtail_amount > 0.0 {
                     let new_energy = (energy - curtail_amount).max(0.0);
@@ -993,8 +1016,8 @@ fn clear_spot_market(
         };
         // Blend the marginal cost with the scarcity ceiling based on deficit severity.
         let scarcity_weight = deficit_ratio.min(1.0);
-        let blended = last_marginal_cost * (1.0 - scarcity_weight)
-            + scarcity_ceiling * scarcity_weight;
+        let blended =
+            last_marginal_cost * (1.0 - scarcity_weight) + scarcity_ceiling * scarcity_weight;
         blended.max(last_marginal_cost).min(scarcity_ceiling)
     };
 
@@ -1028,7 +1051,7 @@ fn calculate_spot_price(
     match (overprod_tier, shed_tier) {
         (OverproductionTier::IndustrialBuff, _) => base_price * 0.7, // 30% discount during glut.
         (OverproductionTier::Curtailment, _) => base_price * 0.5, // 50% discount during heavy glut.
-        (OverproductionTier::GridDamage, _) => base_price * 0.3, // Near-free during extreme glut.
+        (OverproductionTier::GridDamage, _) => base_price * 0.3,  // Near-free during extreme glut.
         (_, LoadShedTier::Tier1) => base_price * 1.2,
         (_, LoadShedTier::Tier2) => base_price * 1.5,
         (_, LoadShedTier::Tier3) => base_price * 2.0,

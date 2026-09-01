@@ -13,28 +13,27 @@ use serde_json::Map;
 
 pub enum ReferenceEntity {
     /// Corporate entity.
-
-    Company { 
+    Company {
         /// Company identifier.
-        company_id: String 
+        company_id: String,
     },
     /// Bank entity.
-
-    Bank { 
+    Bank {
         /// Bank identifier.
-        bank_id: String 
+        bank_id: String,
     },
     /// Sovereign country.
-
-    Country { 
+    Country {
         /// Country identifier.
-        country_id: String 
+        country_id: String,
     },
 }
 
 impl Default for ReferenceEntity {
     fn default() -> Self {
-        ReferenceEntity::Company { company_id: String::new() }
+        ReferenceEntity::Company {
+            company_id: String::new(),
+        }
     }
 }
 
@@ -45,35 +44,35 @@ pub struct CreditDefaultSwap {
     /// CDS ID.
     #[serde(default)]
     pub id: String,
-    
+
     /// Protection buyer (pays premium).
     #[serde(default)]
     pub protection_buyer_id: String,
-    
+
     /// Protection seller (receives premium, pays on default).
     #[serde(default)]
     pub protection_seller_id: String,
-    
+
     /// Reference entity (what we're insuring against).
     #[serde(default)]
     pub reference_entity: ReferenceEntity,
-    
+
     /// Notional value (exposure amount).
     #[serde(default)]
     pub notional: f64,
-    
+
     /// Premium rate (annualized, e.g., 0.02 for 2%).
     #[serde(default)]
     pub premium_rate: f64,
-    
+
     /// Clearing method (OTC or CCP).
     #[serde(default)]
     pub clearing_method: ClearingMethod,
-    
+
     /// Current mark-to-market value.
     #[serde(default)]
     pub market_value: f64,
-    
+
     /// Any additional CDS fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -84,28 +83,27 @@ pub struct CreditDefaultSwap {
 
 pub enum FuturesUnderlying {
     /// Physical commodity (e.g., Oil, Wheat).
-
-    Commodity { 
+    Commodity {
         /// Commodity identifier.
-        commodity_id: String 
+        commodity_id: String,
     },
     /// Interest rate (XIBOR).
-
-    InterestRate { 
+    InterestRate {
         /// Benchmark rate identifier.
-        benchmark: String 
+        benchmark: String,
     },
 }
 
 impl Default for FuturesUnderlying {
     fn default() -> Self {
-        FuturesUnderlying::Commodity { commodity_id: String::new() }
+        FuturesUnderlying::Commodity {
+            commodity_id: String::new(),
+        }
     }
 }
 
 /// Futures position type.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
-
 #[derive(Default)]
 pub enum FuturesPosition {
     /// Long position (buyer - profits from price increase).
@@ -113,14 +111,11 @@ pub enum FuturesPosition {
     #[default]
     Long,
     /// Short position (seller - profits from price decrease).
-
     Short,
 }
 
-
 /// Clearing method for derivatives.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
-
 #[derive(Default)]
 pub enum ClearingMethod {
     /// Over-The-Counter: Direct P2P, no margin enforcement.
@@ -128,10 +123,8 @@ pub enum ClearingMethod {
     #[default]
     OTC,
     /// Central Counterparty: Strict margin enforcement.
-
     CCP,
 }
-
 
 /// Futures Contract - Obligation to buy/sell at future price.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -140,47 +133,47 @@ pub struct FuturesContract {
     /// Futures ID.
     #[serde(default)]
     pub id: String,
-    
+
     /// Long position (buyer) or Short position (seller).
     #[serde(default)]
     pub position: FuturesPosition,
-    
+
     /// Owner of the position.
     #[serde(default)]
     pub owner_id: String,
-    
+
     /// Counterparty (for OTC) or CCP (for cleared).
     #[serde(default)]
     pub counterparty_id: String,
-    
+
     /// Underlying asset.
     #[serde(default)]
     pub underlying: FuturesUnderlying,
-    
+
     /// Contract size (units of underlying).
     #[serde(default)]
     pub contract_size: f64,
-    
+
     /// Strike price (agreed future price).
     #[serde(default)]
     pub strike_price: f64,
-    
+
     /// Current market price of underlying.
     #[serde(default)]
     pub current_price: f64,
-    
+
     /// Maturity turn.
     #[serde(default)]
     pub maturity_turn: u32,
-    
+
     /// Clearing method (OTC or CCP).
     #[serde(default)]
     pub clearing_method: ClearingMethod,
-    
+
     /// Unrealized P&L.
     #[serde(default)]
     pub unrealized_pnl: f64,
-    
+
     /// Any additional futures fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -194,12 +187,8 @@ impl FuturesContract {
     /// - Short: P&L = (strike_price - current_price) * contract_size
     pub fn calculate_unrealized_pnl(&self) -> f64 {
         match self.position {
-            FuturesPosition::Long => {
-                (self.current_price - self.strike_price) * self.contract_size
-            }
-            FuturesPosition::Short => {
-                (self.strike_price - self.current_price) * self.contract_size
-            }
+            FuturesPosition::Long => (self.current_price - self.strike_price) * self.contract_size,
+            FuturesPosition::Short => (self.strike_price - self.current_price) * self.contract_size,
         }
     }
 }
@@ -335,7 +324,9 @@ pub fn process_futures_mark_to_market(
                     if let Some(ref mut acct) = owner.brokerage_account {
                         if acct.cash >= loss {
                             acct.cash -= loss;
-                            if let Some(counterparty) = companies.iter_mut().find(|c| c.id == counterparty_id) {
+                            if let Some(counterparty) =
+                                companies.iter_mut().find(|c| c.id == counterparty_id)
+                            {
                                 if let Some(ref mut cp_acct) = counterparty.brokerage_account {
                                     cp_acct.cash += loss;
                                 }

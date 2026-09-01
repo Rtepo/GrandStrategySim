@@ -129,45 +129,73 @@ impl ClimateConfig {
         };
 
         // Temperate: Four distinct seasons, moderate extremes.
-        self.climate_season_matrix.insert((Temperate, Spring), m(1.0, 0.9, 1.0, 1.0, 0.8, 1.0));
-        self.climate_season_matrix.insert((Temperate, Summer), m(1.1, 1.0, 1.1, 1.2, 0.5, 1.1));
-        self.climate_season_matrix.insert((Temperate, Autumn), m(1.0, 1.0, 1.0, 1.0, 0.8, 1.0));
-        self.climate_season_matrix.insert((Temperate, Winter), m(0.3, 1.3, 0.8, 0.6, 1.5, 0.6));
+        self.climate_season_matrix
+            .insert((Temperate, Spring), m(1.0, 0.9, 1.0, 1.0, 0.8, 1.0));
+        self.climate_season_matrix
+            .insert((Temperate, Summer), m(1.1, 1.0, 1.1, 1.2, 0.5, 1.1));
+        self.climate_season_matrix
+            .insert((Temperate, Autumn), m(1.0, 1.0, 1.0, 1.0, 0.8, 1.0));
+        self.climate_season_matrix
+            .insert((Temperate, Winter), m(0.3, 1.3, 0.8, 0.6, 1.5, 0.6));
 
         // Continental: Extreme temperature swings, harsh winters.
-        self.climate_season_matrix.insert((Continental, Spring), m(0.9, 1.0, 0.9, 0.8, 1.0, 0.9));
-        self.climate_season_matrix.insert((Continental, Summer), m(1.2, 1.1, 1.1, 1.0, 0.4, 1.2));
-        self.climate_season_matrix.insert((Continental, Autumn), m(0.9, 1.2, 0.9, 0.8, 1.2, 0.8));
-        self.climate_season_matrix.insert((Continental, Winter), m(0.1, 1.6, 0.7, 0.5, 1.8, 0.3));
+        self.climate_season_matrix
+            .insert((Continental, Spring), m(0.9, 1.0, 0.9, 0.8, 1.0, 0.9));
+        self.climate_season_matrix
+            .insert((Continental, Summer), m(1.2, 1.1, 1.1, 1.0, 0.4, 1.2));
+        self.climate_season_matrix
+            .insert((Continental, Autumn), m(0.9, 1.2, 0.9, 0.8, 1.2, 0.8));
+        self.climate_season_matrix
+            .insert((Continental, Winter), m(0.1, 1.6, 0.7, 0.5, 1.8, 0.3));
 
         // Mountainous: Harsh winters, mild summers, high energy demand.
-        self.climate_season_matrix.insert((Mountainous, Spring), m(0.7, 1.1, 0.9, 0.8, 1.1, 0.7));
-        self.climate_season_matrix.insert((Mountainous, Summer), m(1.0, 1.0, 1.1, 1.3, 0.5, 1.0));
-        self.climate_season_matrix.insert((Mountainous, Autumn), m(0.6, 1.2, 0.9, 0.9, 1.3, 0.6));
-        self.climate_season_matrix.insert((Mountainous, Winter), m(0.05, 1.5, 0.8, 1.1, 1.8, 0.2));
+        self.climate_season_matrix
+            .insert((Mountainous, Spring), m(0.7, 1.1, 0.9, 0.8, 1.1, 0.7));
+        self.climate_season_matrix
+            .insert((Mountainous, Summer), m(1.0, 1.0, 1.1, 1.3, 0.5, 1.0));
+        self.climate_season_matrix
+            .insert((Mountainous, Autumn), m(0.6, 1.2, 0.9, 0.9, 1.3, 0.6));
+        self.climate_season_matrix
+            .insert((Mountainous, Winter), m(0.05, 1.5, 0.8, 1.1, 1.8, 0.2));
 
         // Coastal: Mild winters, tourism boost in summer.
-        self.climate_season_matrix.insert((Coastal, Spring), m(1.0, 0.9, 1.0, 1.0, 0.7, 1.0));
-        self.climate_season_matrix.insert((Coastal, Summer), m(1.0, 1.0, 1.1, 1.4, 0.3, 1.1));
-        self.climate_season_matrix.insert((Coastal, Autumn), m(1.0, 1.0, 1.0, 1.0, 0.6, 1.0));
-        self.climate_season_matrix.insert((Coastal, Winter), m(0.5, 1.2, 0.9, 0.7, 1.2, 0.8));
+        self.climate_season_matrix
+            .insert((Coastal, Spring), m(1.0, 0.9, 1.0, 1.0, 0.7, 1.0));
+        self.climate_season_matrix
+            .insert((Coastal, Summer), m(1.0, 1.0, 1.1, 1.4, 0.3, 1.1));
+        self.climate_season_matrix
+            .insert((Coastal, Autumn), m(1.0, 1.0, 1.0, 1.0, 0.6, 1.0));
+        self.climate_season_matrix
+            .insert((Coastal, Winter), m(0.5, 1.2, 0.9, 0.7, 1.2, 0.8));
 
         // Tropical: Hot year-round, monsoon season, high agricultural productivity.
-        self.climate_season_matrix.insert((Tropical, Spring), m(1.2, 1.1, 1.0, 1.0, 0.2, 1.1));
-        self.climate_season_matrix.insert((Tropical, Summer), m(1.3, 1.3, 0.9, 0.8, 0.1, 1.1));
-        self.climate_season_matrix.insert((Tropical, Autumn), m(1.2, 1.2, 1.0, 1.0, 0.2, 1.1));
-        self.climate_season_matrix.insert((Tropical, Winter), m(1.1, 1.1, 1.0, 1.1, 0.3, 1.1));
+        self.climate_season_matrix
+            .insert((Tropical, Spring), m(1.2, 1.1, 1.0, 1.0, 0.2, 1.1));
+        self.climate_season_matrix
+            .insert((Tropical, Summer), m(1.3, 1.3, 0.9, 0.8, 0.1, 1.1));
+        self.climate_season_matrix
+            .insert((Tropical, Autumn), m(1.2, 1.2, 1.0, 1.0, 0.2, 1.1));
+        self.climate_season_matrix
+            .insert((Tropical, Winter), m(1.1, 1.1, 1.0, 1.1, 0.3, 1.1));
 
         // Desert: Extreme heat, cold nights, water scarcity.
-        self.climate_season_matrix.insert((Desert, Spring), m(0.5, 1.1, 0.9, 0.8, 0.3, 0.9));
-        self.climate_season_matrix.insert((Desert, Summer), m(0.3, 1.4, 0.7, 0.5, 0.1, 0.7));
-        self.climate_season_matrix.insert((Desert, Autumn), m(0.6, 1.1, 0.9, 0.9, 0.3, 0.9));
-        self.climate_season_matrix.insert((Desert, Winter), m(0.4, 1.2, 0.9, 0.8, 0.8, 0.9));
+        self.climate_season_matrix
+            .insert((Desert, Spring), m(0.5, 1.1, 0.9, 0.8, 0.3, 0.9));
+        self.climate_season_matrix
+            .insert((Desert, Summer), m(0.3, 1.4, 0.7, 0.5, 0.1, 0.7));
+        self.climate_season_matrix
+            .insert((Desert, Autumn), m(0.6, 1.1, 0.9, 0.9, 0.3, 0.9));
+        self.climate_season_matrix
+            .insert((Desert, Winter), m(0.4, 1.2, 0.9, 0.8, 0.8, 0.9));
 
         // Arctic: Permafrost, extreme cold, limited activity.
-        self.climate_season_matrix.insert((Arctic, Spring), m(0.1, 1.3, 0.7, 0.6, 1.3, 0.3));
-        self.climate_season_matrix.insert((Arctic, Summer), m(0.5, 1.0, 0.9, 1.0, 0.5, 0.7));
-        self.climate_season_matrix.insert((Arctic, Autumn), m(0.1, 1.4, 0.7, 0.6, 1.5, 0.3));
-        self.climate_season_matrix.insert((Arctic, Winter), m(0.0, 1.8, 0.5, 0.4, 2.0, 0.1));
+        self.climate_season_matrix
+            .insert((Arctic, Spring), m(0.1, 1.3, 0.7, 0.6, 1.3, 0.3));
+        self.climate_season_matrix
+            .insert((Arctic, Summer), m(0.5, 1.0, 0.9, 1.0, 0.5, 0.7));
+        self.climate_season_matrix
+            .insert((Arctic, Autumn), m(0.1, 1.4, 0.7, 0.6, 1.5, 0.3));
+        self.climate_season_matrix
+            .insert((Arctic, Winter), m(0.0, 1.8, 0.5, 0.4, 2.0, 0.1));
     }
 }

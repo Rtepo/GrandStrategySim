@@ -156,7 +156,9 @@ pub fn check_disaster_triggers(
                     if effective_severity < 0.1 {
                         continue;
                     }
-                    let casualties = ((region.population as f64 * effective_severity * 0.001) as i64).min(region.population);
+                    let casualties = ((region.population as f64 * effective_severity * 0.001)
+                        as i64)
+                        .min(region.population);
                     let economic_damage = region.gdp * effective_severity * 0.05;
                     region.population -= casualties;
                     region.gdp -= economic_damage;
@@ -178,7 +180,9 @@ pub fn check_disaster_triggers(
                     if effective_severity < 0.1 {
                         continue;
                     }
-                    let casualties = ((region.population as f64 * effective_severity * 0.0005) as i64).min(region.population);
+                    let casualties = ((region.population as f64 * effective_severity * 0.0005)
+                        as i64)
+                        .min(region.population);
                     let economic_damage = region.gdp * effective_severity * 0.03;
                     region.population -= casualties;
                     region.gdp -= economic_damage;
@@ -214,7 +218,8 @@ pub fn check_disaster_triggers(
                         None => continue,
                     };
                     let damage = b.reserve * severity;
-                    let casualties = ((b.current_employment as f64 * severity * 0.1) as i64).min(b.current_employment as i64);
+                    let casualties = ((b.current_employment as f64 * severity * 0.1) as i64)
+                        .min(b.current_employment as i64);
                     region.population -= casualties;
                     disasters.push(DisasterEvent {
                         disaster_type: DisasterType::IndustrialFire,
@@ -247,12 +252,16 @@ pub fn check_disaster_triggers(
                         Some(r) => r,
                         None => continue,
                     };
-                    let casualties = ((b.current_employment as f64 * severity * 0.2) as i64).min(b.current_employment as i64);
+                    let casualties = ((b.current_employment as f64 * severity * 0.2) as i64)
+                        .min(b.current_employment as i64);
                     region.population -= casualties;
                     let mut extra = Map::new();
                     // Phase 22B: record defect attribution for civil lawsuit evidence.
                     if b.structural_defect > 0.0 {
-                        extra.insert("structural_defect".to_string(), serde_json::Value::from(b.structural_defect));
+                        extra.insert(
+                            "structural_defect".to_string(),
+                            serde_json::Value::from(b.structural_defect),
+                        );
                     }
                     disasters.push(DisasterEvent {
                         disaster_type: DisasterType::BuildingCollapse,

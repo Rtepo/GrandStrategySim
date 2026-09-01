@@ -68,13 +68,10 @@ pub struct TaxHistoryEntry {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct StockMarket {
     /// Headline index level.
-    
     pub index: f64,
     /// Investor confidence, 0–100.
-    
     pub confidence: f64,
     /// Change recorded on the previous turn.
-    
     pub last_change: f64,
     /// Per-industry sub-indices; kept as a raw JSON
     /// value to losslessly preserve its evolving shape.
@@ -102,25 +99,18 @@ impl Default for StockMarket {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct BudgetAllocations {
     /// Industry.
-    
     pub industry: f64,
     /// Education & propaganda.
-    
     pub education_propaganda: f64,
     /// Healthcare.
-    
     pub healthcare: f64,
     /// Infrastructure & transport.
-    
     pub infrastructure_transport: f64,
     /// Social programs.
-    
     pub social_programs: f64,
     /// Agriculture & rural economy.
-    
     pub agriculture_rural: f64,
     /// Armed forces.
-    
     pub armed_forces: f64,
     /// Justice system (courts, police, prisons) — Phase 14.
     #[serde(default, skip_serializing_if = "is_zero_f64")]
@@ -155,13 +145,10 @@ impl Default for BudgetAllocations {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct ProductionMethodChoice {
     /// Automation method.
-
     pub automation: String,
     /// Production method.
-
     pub production: String,
     /// Organization method.
-
     pub organization: String,
     /// Phase 81 Wave 2: Active lighting method (e.g., "Kerosene Lamps", "LED Lighting").
     #[serde(default)]
@@ -224,7 +211,6 @@ pub struct SectorShare {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ScienceState {
     /// Accumulated innovation points.
-    
     pub innovation_points: f64,
     /// Technology currently being researched, if any.
     #[serde(default)]
@@ -233,7 +219,6 @@ pub struct ScienceState {
     #[serde(default)]
     pub discovered: Vec<TechId>,
     /// Baseline innovativeness.
-    
     pub base_innovativeness: f64,
     /// Any additional science fields.
     #[serde(flatten, default)]
@@ -280,7 +265,6 @@ pub struct Treasury {
     /// Stock-market state.
     pub stock_market: StockMarket,
     /// Budget allocation fractions.
-    
     pub allocations: BudgetAllocations,
     /// Hidden black-ops fund; never surfaced in
     /// public fiscal reports.
@@ -351,7 +335,7 @@ impl Default for Treasury {
             max_public_wage_multiplier: 1.2, // Phase 5: Default to prevent crowding out
             outstanding_corporate_debts: HashMap::new(),
             liquidation_expenses: 0.0, // Phase 6.3: Default liquidation expenses
-            logistics_revenue: 0.0, // Phase 6.3.5: Default logistics revenue
+            logistics_revenue: 0.0,    // Phase 6.3.5: Default logistics revenue
             extra: Map::new(),
         }
     }
@@ -413,7 +397,10 @@ mod tests {
 
         let agri = &t.sectors[&Sector::Agriculture];
         assert_eq!(agri.crisis_vulnerability, Some(0.2));
-        assert_eq!(agri.active_method.as_ref().unwrap().production, "Three-Field System");
+        assert_eq!(
+            agri.active_method.as_ref().unwrap().production,
+            "Three-Field System"
+        );
     }
 
     #[test]

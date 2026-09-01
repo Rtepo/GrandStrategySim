@@ -59,19 +59,9 @@ impl RarityTier {
     /// Commodities available at this rarity tier.
     fn commodities(&self) -> &[Commodity] {
         match self {
-            RarityTier::UltraRare => &[
-                Commodity::Uranium,
-                Commodity::Gold,
-            ],
-            RarityTier::Rare => &[
-                Commodity::Silver,
-                Commodity::Tin,
-            ],
-            RarityTier::Uncommon => &[
-                Commodity::Copper,
-                Commodity::Zinc,
-                Commodity::Bauxite,
-            ],
+            RarityTier::UltraRare => &[Commodity::Uranium, Commodity::Gold],
+            RarityTier::Rare => &[Commodity::Silver, Commodity::Tin],
+            RarityTier::Uncommon => &[Commodity::Copper, Commodity::Zinc, Commodity::Bauxite],
             RarityTier::AbundantIndustrial => &[
                 Commodity::Iron,
                 Commodity::HardCoal,
@@ -79,11 +69,7 @@ impl RarityTier {
                 Commodity::Stone,
                 Commodity::Sand,
             ],
-            RarityTier::Ubiquitous => &[
-                Commodity::Limestone,
-                Commodity::Peat,
-                Commodity::Gravel,
-            ],
+            RarityTier::Ubiquitous => &[Commodity::Limestone, Commodity::Peat, Commodity::Gravel],
         }
     }
 }
@@ -287,7 +273,10 @@ impl Planet {
     ///
     /// # Arguments
     /// * `populated_region_ids` - Set of region IDs with population > 0.
-    pub fn discover_base_industrial_veins(&mut self, populated_region_ids: &std::collections::HashSet<String>) {
+    pub fn discover_base_industrial_veins(
+        &mut self,
+        populated_region_ids: &std::collections::HashSet<String>,
+    ) {
         for vein in &mut self.veins {
             // Rare and UltraRare veins stay hidden — they require geological survey.
             if vein.rarity_tier == RarityTier::UltraRare || vein.rarity_tier == RarityTier::Rare {
@@ -295,7 +284,9 @@ impl Planet {
             }
             // AbundantIndustrial, Ubiquitous, and Uncommon tiers are base industrial.
             // Only discover if the vein overlaps at least one populated region.
-            let overlaps_populated = vein.overlapping_regions.iter()
+            let overlaps_populated = vein
+                .overlapping_regions
+                .iter()
                 .any(|r| populated_region_ids.contains(r));
             if overlaps_populated {
                 vein.discovered = true;
@@ -383,8 +374,7 @@ impl Planet {
             // Process ubiquitous commodities (80% presence threshold).
             for &(commodity, tier) in ubiquitous {
                 let already_has = self.veins.iter().any(|v| {
-                    v.commodity == commodity
-                        && v.overlapping_regions.iter().any(|r| r == region_id)
+                    v.commodity == commodity && v.overlapping_regions.iter().any(|r| r == region_id)
                 });
                 if already_has {
                     continue;
@@ -448,8 +438,7 @@ impl Planet {
             // Process industrial commodities (35% presence threshold).
             for &(commodity, tier) in industrial {
                 let already_has = self.veins.iter().any(|v| {
-                    v.commodity == commodity
-                        && v.overlapping_regions.iter().any(|r| r == region_id)
+                    v.commodity == commodity && v.overlapping_regions.iter().any(|r| r == region_id)
                 });
                 if already_has {
                     continue;
@@ -521,15 +510,16 @@ impl Planet {
         self.veins
             .iter()
             .filter(|v| {
-                v.commodity == commodity
-                    && v.overlapping_regions.iter().any(|r| r == region_id)
+                v.commodity == commodity && v.overlapping_regions.iter().any(|r| r == region_id)
             })
             .collect()
     }
 
     /// Check if a region has a geological resource (any vein with that commodity).
     pub fn has_geological_resource(&self, region_id: &str, commodity: Commodity) -> bool {
-        !self.veins_for_region_and_commodity(region_id, commodity).is_empty()
+        !self
+            .veins_for_region_and_commodity(region_id, commodity)
+            .is_empty()
     }
 
     /// Get the total remaining reserves of a commodity in a region.
@@ -564,18 +554,16 @@ impl Planet {
 
     /// Phase 93: Find a vein by its ID (or composite_id).
     pub fn vein_by_id(&self, vein_id: &str) -> Option<&GeologicalVein> {
-        self.veins.iter().find(|v| {
-            v.id == vein_id
-                || v.composite_id.as_deref() == Some(vein_id)
-        })
+        self.veins
+            .iter()
+            .find(|v| v.id == vein_id || v.composite_id.as_deref() == Some(vein_id))
     }
 
     /// Phase 93: Find a mutable vein by its ID (or composite_id).
     pub fn vein_by_id_mut(&mut self, vein_id: &str) -> Option<&mut GeologicalVein> {
-        self.veins.iter_mut().find(|v| {
-            v.id == vein_id
-                || v.composite_id.as_deref() == Some(vein_id)
-        })
+        self.veins
+            .iter_mut()
+            .find(|v| v.id == vein_id || v.composite_id.as_deref() == Some(vein_id))
     }
 }
 
@@ -584,10 +572,7 @@ impl Planet {
 /// # Arguments
 /// * `regions` - Slice of (region_id, lat, lon) tuples for all world regions.
 /// * `rng` - Random number generator.
-pub fn generate_planet<R: Rng>(
-    regions: &[(String, f64, f64)],
-    rng: &mut R,
-) -> Planet {
+pub fn generate_planet<R: Rng>(regions: &[(String, f64, f64)], rng: &mut R) -> Planet {
     let mut planet = Planet::default();
 
     // Build grid cells from regions.

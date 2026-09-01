@@ -8,4 +8,4 @@
 
 pub mod smog;
 
-pub use smog::{LocalPollutionState, compute_smog_for_region, distribute_smog_to_parcels};
+pub use smog::{compute_smog_for_region, distribute_smog_to_parcels, LocalPollutionState};

@@ -1,15 +1,14 @@
+use crate::politics::interest_groups::{ClassToGroupMapping, InterestGroup, SuffrageSystem};
+use crate::securities::BrokerageAccount;
+use crate::state::banking::{Borrower, Loan};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
-use crate::politics::interest_groups::{SuffrageSystem, InterestGroup, ClassToGroupMapping};
-use crate::securities::BrokerageAccount;
-use crate::state::banking::{Borrower, Loan};
 
 /// Government form as stored in `politics.system`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub enum GovernmentForm {
     #[default]
-
     ParliamentaryDemocracy,
 
     PresidentialRepublic,
@@ -123,27 +122,27 @@ pub struct Party {
     pub base: Vec<String>,
     #[serde(default)]
     pub id: String,
-    
+
     // NEW: Brokerage account for double-entry banking integration
     #[serde(default)]
     pub brokerage_account: Option<BrokerageAccount>,
-    
+
     // NEW: Outstanding loans (vector of Loan objects from banking system)
     #[serde(default)]
     pub loans: Vec<Loan>,
-    
+
     // NEW: Internal organization
     #[serde(default)]
     pub organization: PartyOrganization,
-    
+
     // PHASE 3: Black money pool for corruption mechanics
     #[serde(default)]
     pub black_money_pool: Option<super::campaign::BlackMoneyPool>,
-    
+
     // PHASE 3: Campaign spending tracked this cycle
     #[serde(default)]
     pub campaign_spending: f64,
-    
+
     // PHASE 4: Annual donations tracked (revenue tracker)
     #[serde(default)]
     pub annual_donations: f64,
@@ -153,22 +152,22 @@ impl Borrower for Party {
     fn id(&self) -> &str {
         &self.id
     }
-    
+
     fn liquid_capital(&self) -> f64 {
         // Parties use brokerage cash as working capital
         self.liquid_funds()
     }
-    
+
     fn fixed_capital(&self) -> f64 {
         // Parties have no illiquid physical assets (real estate, machinery)
         // Returns 0.0 - parties qualify for Working Capital loans based on liquidity
         0.0
     }
-    
+
     fn liabilities(&self) -> f64 {
         self.total_debt()
     }
-    
+
     fn computed_liquid_capital(&self) -> f64 {
         self.liquid_funds()
     }
@@ -177,16 +176,19 @@ impl Borrower for Party {
 impl Party {
     /// Get current liquid funds from brokerage account
     pub fn liquid_funds(&self) -> f64 {
-        self.brokerage_account.as_ref().map(|a| a.cash).unwrap_or(0.0)
+        self.brokerage_account
+            .as_ref()
+            .map(|a| a.cash)
+            .unwrap_or(0.0)
     }
-    
+
     /// Get total outstanding debt
     pub fn total_debt(&self) -> f64 {
         self.loans.iter().map(|l| l.outstanding_balance).sum()
     }
-    
+
     /// Collect membership dues from interest group members
-    /// 
+    ///
     /// # Arguments
     /// * `party_support` - Party support percentage (0-100)
     /// * `base_interest_groups` - Interest groups backing this party
@@ -212,7 +214,7 @@ impl Party {
         regions: &mut [crate::society::geography::Region],
     ) -> f64 {
         let mut total_collected = 0.0;
-        
+
         // Ensure party has brokerage account
         if self.brokerage_account.is_none() {
             self.brokerage_account = Some(BrokerageAccount {
@@ -226,18 +228,22 @@ impl Party {
                 extra: std::collections::HashMap::new(),
             });
         }
-        
+
         let party_account = self.brokerage_account.as_mut().unwrap();
-        
+
         // Collect dues from companies (Capitalists, Petty Bourgeoisie)
         for group in base_interest_groups {
             if let Some(ig) = interest_groups.get(group) {
                 let dues_per_entity = match group.as_str() {
-                    "Capitalists" => 1000.0 * (ig.total_political_weight / 100.0) * (party_support / 100.0),
-                    "Petty Bourgeoisie" => 200.0 * (ig.total_political_weight / 100.0) * (party_support / 100.0),
+                    "Capitalists" => {
+                        1000.0 * (ig.total_political_weight / 100.0) * (party_support / 100.0)
+                    }
+                    "Petty Bourgeoisie" => {
+                        200.0 * (ig.total_political_weight / 100.0) * (party_support / 100.0)
+                    }
                     _ => continue, // Skip non-corporate groups here
                 };
-                
+
                 // Transfer from company operational cash (NOT brokerage account — that's for securities)
                 for company in companies.iter_mut() {
                     if company.available_cash >= dues_per_entity {
@@ -248,30 +254,33 @@ impl Party {
                 }
             }
         }
-        
+
         // Collect dues from demographic classes (stored in RegionalClassDemographics.savings)
         // Mutable access allows direct deduction from class savings
         for region in regions.iter_mut() {
-            for (class_key, class_demographics) in region.class_demographics.rural_classes.iter_mut() {
+            for (class_key, class_demographics) in
+                region.class_demographics.rural_classes.iter_mut()
+            {
                 let dues_per_capita = match class_key.as_str() {
                     "Aristocracy" => 500.0 * (party_support / 100.0),
                     "FreePeasant" => 50.0 * (party_support / 100.0),
                     "LandlessLaborer" => 20.0 * (party_support / 100.0),
                     _ => continue,
                 };
-                
+
                 let class_dues = dues_per_capita * class_demographics.population as f64;
-                
+
                 // Check if class has sufficient savings
                 if class_demographics.savings >= class_dues {
                     // Transactional transfer: deduct from class savings
                     class_demographics.savings -= class_dues;
-                    
+
                     // Update per-capita savings
                     if class_demographics.population > 0 {
-                        class_demographics.savings_per_capita = class_demographics.savings / class_demographics.population as f64;
+                        class_demographics.savings_per_capita =
+                            class_demographics.savings / class_demographics.population as f64;
                     }
-                    
+
                     // Credit to party brokerage account
                     party_account.cash += class_dues;
                     total_collected += class_dues;
@@ -279,49 +288,46 @@ impl Party {
                 // If insufficient savings, no dues collected (class cannot pay)
             }
         }
-        
+
         total_collected
     }
-    
+
     /// Accept donations from wealthy supporters
-    /// 
+    ///
     /// # Arguments
     /// * `companies` - Mutable reference to companies (for corporate donations)
-    /// 
+    ///
     /// # Returns
     /// Total donations collected (transactional transfer)
-    /// 
+    ///
     /// # Rules
     /// * Only parties with "Capitalists" base receive corporate donations
     /// * Donations are transferred FROM company brokerage accounts TO party brokerage account
     /// * Company accounts accessed directly from Company objects (no global map lookup)
-    pub fn accept_donations(
-        &mut self,
-        companies: &mut Vec<crate::entities::Company>,
-    ) -> f64 {
+    pub fn accept_donations(&mut self, companies: &mut Vec<crate::entities::Company>) -> f64 {
         if !self.base.contains(&"Capitalists".to_string()) {
             return 0.0;
         }
-        
+
         let party_account = self.brokerage_account.as_mut().unwrap();
         let mut total_donations = 0.0;
-        
+
         // Wealthy companies donate based on their operational cash
         for company in companies.iter_mut() {
             let donation_amount = company.available_cash * 0.01; // 1% of company operational cash
-            
+
             if company.available_cash >= donation_amount && donation_amount > 100.0 {
                 company.available_cash -= donation_amount;
                 party_account.cash += donation_amount;
                 total_donations += donation_amount;
             }
         }
-        
+
         total_donations
     }
-    
+
     /// Take loan from a bank (double-entry compliant)
-    /// 
+    ///
     /// # Arguments
     /// * `bank_balance_sheet` - Mutable reference to bank's balance sheet
     /// * `bank_id` - ID of the lending bank
@@ -331,10 +337,10 @@ impl Party {
     /// * `term_turns` - Loan term in turns
     /// * `central_bank` - Reference to central bank
     /// * `xibor` - Current XIBOR rate
-    /// 
+    ///
     /// # Returns
     /// Result with Loan object or error
-    /// 
+    ///
     /// # Rules
     /// * Creates a standard Loan object via banking system's issue_loan()
     /// * Party implements Borrower trait - no dummy wrapper needed
@@ -357,7 +363,7 @@ impl Party {
             bank_balance_sheet,
             bank_id,
             bank_margin,
-            self,  // Party implements Borrower - no dummy wrapper
+            self, // Party implements Borrower - no dummy wrapper
             &self.id,
             principal,
             loan_type,
@@ -365,27 +371,27 @@ impl Party {
             central_bank,
             xibor,
         )?;
-        
+
         // Credit principal to party's brokerage account
         if let Some(ref mut party_account) = self.brokerage_account {
             party_account.cash += loan_result.principal_amount;
         }
-        
+
         // Store loan in party's loan vector
         self.loans.push(loan_result.loan.clone());
-        
+
         Ok(loan_result)
     }
-    
+
     /// Make expenditure (transactional transfer)
-    /// 
+    ///
     /// # Arguments
     /// * `amount` - Amount to spend
     /// * `recipient_brokerage_account` - Mutable reference to recipient's brokerage account
-    /// 
+    ///
     /// # Returns
     /// Result indicating success or insufficient funds
-    /// 
+    ///
     /// # Rules
     /// * Money is transferred FROM party brokerage account TO recipient
     /// * No money is created or destroyed in this transfer
@@ -395,16 +401,18 @@ impl Party {
         amount: f64,
         recipient_brokerage_account: &mut BrokerageAccount,
     ) -> Result<(), String> {
-        let party_account = self.brokerage_account.as_mut()
+        let party_account = self
+            .brokerage_account
+            .as_mut()
             .ok_or("Party has no brokerage account")?;
-        
+
         if party_account.cash < amount {
             return Err("Insufficient funds".to_string());
         }
-        
+
         party_account.cash -= amount;
         recipient_brokerage_account.cash += amount;
-        
+
         Ok(())
     }
 }
@@ -416,19 +424,19 @@ pub enum OrganizationType {
     /// Hierarchical, top-down decision making (Marxist-Leninist parties)
     #[default]
     DemocraticCentralism,
-    
+
     /// Elite vanguard leading the masses (radical revolutionary parties)
     Vanguard,
-    
+
     /// Broad coalition of factions (centrist, catch-all parties)
     BigTent,
-    
+
     /// Personality cult around the leader (authoritarian parties)
     LeaderCult,
-    
+
     /// Decentralized, bottom-up decision making (anarchist, libertarian)
     Decentralized,
-    
+
     /// Military or paramilitary structure (fascist, nationalist)
     Militarized,
 }
@@ -445,7 +453,7 @@ impl OrganizationType {
             OrganizationType::Militarized => 0.85,
         }
     }
-    
+
     /// Base discipline for this organization type
     pub fn base_discipline(self) -> f64 {
         match self {
@@ -457,7 +465,7 @@ impl OrganizationType {
             OrganizationType::Militarized => 0.95,
         }
     }
-    
+
     /// Default faction count for this organization type
     pub fn default_faction_count(self) -> u32 {
         match self {
@@ -477,23 +485,23 @@ pub struct PartyOrganization {
     /// Organizational structure type
     #[serde(default)]
     pub organization_type: OrganizationType,
-    
+
     /// Party cohesion (0.0-1.0): How unified the party is internally
     #[serde(default)]
     pub cohesion: f64,
-    
+
     /// Party discipline (0.0-1.0): How strictly party line is enforced
     #[serde(default)]
     pub discipline: f64,
-    
+
     /// Number of internal factions
     #[serde(default)]
     pub faction_count: u32,
-    
+
     /// Internal factional tension (0.0-1.0): Risk of split
     #[serde(default)]
     pub factional_tension: f64,
-    
+
     /// Leadership stability (0.0-1.0): Risk of leadership challenge
     #[serde(default)]
     pub leadership_stability: f64,
@@ -501,7 +509,10 @@ pub struct PartyOrganization {
 
 impl PartyOrganization {
     /// Initialize organization based on ideology with random variance
-    pub fn from_ideology_with_variance(ideology: crate::politics::ideology::Ideology, rng: &mut impl rand::Rng) -> Self {
+    pub fn from_ideology_with_variance(
+        ideology: crate::politics::ideology::Ideology,
+        rng: &mut impl rand::Rng,
+    ) -> Self {
         let org_type = ideology.organization_with_variance(rng);
         PartyOrganization {
             organization_type: org_type,
@@ -512,39 +523,39 @@ impl PartyOrganization {
             leadership_stability: 0.8,
         }
     }
-    
+
     /// Update organization dynamics annually
     pub fn update_dynamics(&mut self, party_support: f64, party_liquid_funds: f64) {
         // Low support increases factional tension
         if party_support < 5.0 {
             self.factional_tension += 0.1;
         }
-        
+
         // Empty treasury increases leadership instability
         if party_liquid_funds < 1000.0 {
             self.leadership_stability -= 0.15;
         }
-        
+
         // High factional tension reduces cohesion
         if self.factional_tension > 0.7 {
             self.cohesion -= 0.1;
         }
-        
+
         // Clamp values
         self.cohesion = self.cohesion.clamp(0.0, 1.0);
         self.discipline = self.discipline.clamp(0.0, 1.0);
         self.factional_tension = self.factional_tension.clamp(0.0, 1.0);
         self.leadership_stability = self.leadership_stability.clamp(0.0, 1.0);
     }
-    
+
     /// Check for party split risk
     pub fn split_risk(&self) -> f64 {
         if self.factional_tension > 0.8 && self.cohesion < 0.3 {
-            0.8  // High risk
+            0.8 // High risk
         } else if self.factional_tension > 0.6 {
-            0.4  // Moderate risk
+            0.4 // Moderate risk
         } else {
-            0.0  // Low risk
+            0.0 // Low risk
         }
     }
 }
@@ -828,7 +839,7 @@ pub struct Politics {
     pub strike_law: String,
     #[serde(default)]
     pub health_service: String,
-    #[serde(default, rename = "sanepid")]
+    #[serde(default)]
     pub sanitation_policy: String,
     #[serde(default)]
     pub education_model: String,
@@ -966,11 +977,10 @@ pub struct Politics {
     pub extra: Map<String, Value>,
 }
 
-impl Politics {
-}
+impl Politics {}
 
 /// Fiscal transfer configuration (from national Tax & Administrative Law)
-/// 
+///
 /// # CRITICAL: Transfer Mathematics Must Sum to 100%
 /// The three shares (local_retention + megaregion_share + central_share) must
 /// sum to 1.0 (100%). This is enforced at configuration time.
@@ -979,15 +989,15 @@ pub struct FiscalTransferConfig {
     /// Percentage of regional revenue retained locally
     #[serde(default)]
     pub local_retention: f64, // 0.0-1.0
-    
+
     /// Percentage transferred to Megaregion (if applicable)
     #[serde(default)]
     pub megaregion_share: f64, // 0.0-1.0
-    
+
     /// Percentage transferred to Central Budget
     #[serde(default)]
     pub central_share: f64, // 0.0-1.0
-    
+
     /// Minimum local retention (cannot go below this)
     #[serde(default)]
     pub minimum_local_retention: f64,
@@ -999,16 +1009,16 @@ impl FiscalTransferConfig {
         let total = self.local_retention + self.megaregion_share + self.central_share;
         (total - 1.0).abs() < 0.001
     }
-    
+
     /// Calculate upward transfers from regional revenue
-    /// 
+    ///
     /// # Arguments
     /// * `regional_revenue` - Total regional tax revenue
     /// * `has_megaregion` - Whether region belongs to a Megaregion
-    /// 
+    ///
     /// # Returns
     /// (local_retained, megaregion_transfer, central_transfer)
-    /// 
+    ///
     /// # CRITICAL: No Double Dipping
     /// Region splits revenue exactly once according to config.
     /// Megaregion keeps 100% of its transfer - no second upward transfer.
@@ -1017,8 +1027,9 @@ impl FiscalTransferConfig {
         regional_revenue: f64,
         has_megaregion: bool,
     ) -> (f64, f64, f64) {
-        let local_retained = regional_revenue * self.local_retention.max(self.minimum_local_retention);
-        
+        let local_retained =
+            regional_revenue * self.local_retention.max(self.minimum_local_retention);
+
         if has_megaregion {
             let megaregion_transfer = regional_revenue * self.megaregion_share;
             let central_transfer = regional_revenue * self.central_share;

@@ -6,12 +6,12 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-use crate::registries::enums::Sector;
 use crate::entities::Company;
+use crate::registries::enums::Sector;
 use crate::securities::config::SecuritiesMarketConfig;
-use crate::securities::exchange::{StockExchange, Order, InstrumentType};
-use crate::securities::mbs::MortgageBackedSecurity;
 use crate::securities::covered_bonds::CoveredBond;
+use crate::securities::exchange::{InstrumentType, Order, StockExchange};
+use crate::securities::mbs::MortgageBackedSecurity;
 use crate::society::geography::Region;
 
 /// Type of institutional fund.
@@ -19,23 +19,18 @@ use crate::society::geography::Region;
 
 pub enum FundType {
     /// FIO - Open-End Investment Fund (Fundusz Inwestycyjny Otwarty).
-
     OpenEndInvestmentFund,
-    
+
     /// FIZ - Closed-End Investment Fund (Closed-End Investment Fund).
-
     ClosedEndInvestmentFund,
-    
+
     /// Hedge Fund (high-risk, high-leverage strategies).
-
     HedgeFund,
-    
+
     /// ETF - Exchange Traded Fund.
-
     ExchangeTradedFund,
-    
-    /// Mutual Fund (traditional diversified portfolio).
 
+    /// Mutual Fund (traditional diversified portfolio).
     MutualFund,
 }
 
@@ -44,31 +39,24 @@ pub enum FundType {
 
 pub struct FundLedger {
     /// Net Asset Value per share.
-
     pub nav_per_share: f64,
 
     /// Total shares outstanding.
-
     pub shares_outstanding: u64,
 
     /// Management fee (percentage of AUM).
-
     pub management_fee: f64,
 
     /// Performance fee (percentage of profits above benchmark).
-
     pub performance_fee: f64,
 
     /// Leverage ratio (for hedge funds).
-
     pub leverage_ratio: f64,
 
     /// Investment mandate restrictions.
-
     pub investment_mandate: InvestmentMandate,
 
     /// Liquidity provision to AMM pools.
-
     pub liquidity_provision: BTreeMap<String, f64>,
 
     /// Resurrection Phase 2: Unit holder registry — maps contributor_id to units held.
@@ -122,15 +110,12 @@ pub struct FundBondHolding {
 
 pub struct InvestmentMandate {
     /// Maximum position size in single company (percentage).
-
     pub max_position_size: f64,
-    
+
     /// Allowed sectors.
-
     pub allowed_sectors: Vec<Sector>,
-    
-    /// Minimum liquidity requirement.
 
+    /// Minimum liquidity requirement.
     pub min_liquidity: f64,
 }
 
@@ -186,13 +171,20 @@ pub fn collect_fund_capital(
         };
 
         // Calculate current NAV using AUM (cash + portfolio at market prices)
-        let fund_cash = fund.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
+        let fund_cash = fund
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0);
         // Clone bond holdings to avoid borrow conflict with `ledger`
-        let bond_holdings_value: f64 = ledger.bond_holdings.iter()
+        let bond_holdings_value: f64 = ledger
+            .bond_holdings
+            .iter()
             .filter(|h| !h.redeemed)
             .map(|h| h.face_value)
             .sum();
-        let portfolio_value = calculate_portfolio_value(&fund.brokerage_account, companies, &None) + bond_holdings_value;
+        let portfolio_value = calculate_portfolio_value(&fund.brokerage_account, companies, &None)
+            + bond_holdings_value;
         let total_fund_value = fund_cash + portfolio_value;
 
         let nav_per_share = if ledger.shares_outstanding > 0 {
@@ -224,7 +216,9 @@ pub fn collect_fund_capital(
                         }
 
                         // FIZ only targets wealthy classes (savings_per_capita > 500)
-                        if ft == FundType::ClosedEndInvestmentFund && class.savings_per_capita < 500.0 {
+                        if ft == FundType::ClosedEndInvestmentFund
+                            && class.savings_per_capita < 500.0
+                        {
                             continue;
                         }
 
@@ -241,7 +235,10 @@ pub fn collect_fund_capital(
                             0
                         };
                         ledger.shares_outstanding += units_issued;
-                        *ledger.unit_holders.entry(contributor_id.clone()).or_insert(0) += units_issued;
+                        *ledger
+                            .unit_holders
+                            .entry(contributor_id.clone())
+                            .or_insert(0) += units_issued;
 
                         subscriptions.push(FundSubscription {
                             fund_id: fund.id.clone(),
@@ -259,7 +256,9 @@ pub fn collect_fund_capital(
                         }
 
                         // FIZ only targets wealthy classes (savings_per_capita > 500)
-                        if ft == FundType::ClosedEndInvestmentFund && class.savings_per_capita < 500.0 {
+                        if ft == FundType::ClosedEndInvestmentFund
+                            && class.savings_per_capita < 500.0
+                        {
                             continue;
                         }
 
@@ -276,7 +275,10 @@ pub fn collect_fund_capital(
                             0
                         };
                         ledger.shares_outstanding += units_issued;
-                        *ledger.unit_holders.entry(contributor_id.clone()).or_insert(0) += units_issued;
+                        *ledger
+                            .unit_holders
+                            .entry(contributor_id.clone())
+                            .or_insert(0) += units_issued;
 
                         subscriptions.push(FundSubscription {
                             fund_id: fund.id.clone(),
@@ -335,12 +337,19 @@ pub fn collect_fund_capital(
         }
 
         // Update NAV after all collections
-        let fund_cash = fund.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
-        let bond_holdings_value: f64 = ledger.bond_holdings.iter()
+        let fund_cash = fund
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0);
+        let bond_holdings_value: f64 = ledger
+            .bond_holdings
+            .iter()
             .filter(|h| !h.redeemed)
             .map(|h| h.face_value)
             .sum();
-        let portfolio_value = calculate_portfolio_value(&fund.brokerage_account, companies, &None) + bond_holdings_value;
+        let portfolio_value = calculate_portfolio_value(&fund.brokerage_account, companies, &None)
+            + bond_holdings_value;
         let total_fund_value = fund_cash + portfolio_value;
         if ledger.shares_outstanding > 0 {
             ledger.nav_per_share = total_fund_value / ledger.shares_outstanding as f64;
@@ -441,7 +450,10 @@ pub fn fund_purchase_treasury_bond(
     }
 
     // Find the treasury security in the debt market
-    let security = match country.debt_market.outstanding_securities.iter_mut()
+    let security = match country
+        .debt_market
+        .outstanding_securities
+        .iter_mut()
         .find(|s| s.id == security_id)
     {
         Some(s) => s,
@@ -568,10 +580,18 @@ pub fn submit_fund_orders(
         }
 
         let fund_id = fund.id.clone();
-        let fund_cash = fund.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
+        let fund_cash = fund
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0);
 
         // Phase 57: Evaluate fund manager traits via centralized module — no raw string checks.
-        let modifiers = if let Some(ref manager_id) = fund.fund_ledger.as_ref().and_then(|l| l.fund_manager_vip_id.clone()) {
+        let modifiers = if let Some(ref manager_id) = fund
+            .fund_ledger
+            .as_ref()
+            .and_then(|l| l.fund_manager_vip_id.clone())
+        {
             if let Some(registry) = vip_registry {
                 if let Some(vip) = registry.get(manager_id) {
                     evaluate_market_behavior(&vip.traits)
@@ -640,7 +660,9 @@ pub fn submit_fund_orders(
             // Phase 57: Use trait-driven thresholds instead of config-only thresholds.
             // The modifier thresholds are derived from traits via evaluate_market_behavior.
             let buy_pe_threshold = config.fund_min_pe_threshold.min(modifiers.pe_buy_threshold);
-            let sell_pe_threshold = config.fund_max_pe_threshold.max(modifiers.pe_sell_threshold);
+            let sell_pe_threshold = config
+                .fund_max_pe_threshold
+                .max(modifiers.pe_sell_threshold);
 
             // Valuation Score logic — uses P/E ratio, not P/B
             if pe_ratio < buy_pe_threshold && dividend_yield > config.fund_min_dividend_yield {
@@ -667,19 +689,30 @@ pub fn submit_fund_orders(
                         acct.cash -= cost;
                         acct.frozen_cash += cost;
                         // Insert into order book
-                        let book = exchange.order_book.entry(instrument_id.clone()).or_default();
-                        if let Some(pos) = book.bids.iter().position(|(p, _)| *p == company.share_price) {
+                        let book = exchange
+                            .order_book
+                            .entry(instrument_id.clone())
+                            .or_default();
+                        if let Some(pos) = book
+                            .bids
+                            .iter()
+                            .position(|(p, _)| *p == company.share_price)
+                        {
                             book.bids[pos].1.push(order);
                         } else {
                             book.bids.push((company.share_price, vec![order]));
-                            book.bids.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                            book.bids.sort_by(|a, b| {
+                                a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
+                            });
                         }
                         book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
                     }
                 }
             } else if pe_ratio > sell_pe_threshold {
                 // Overvalued: submit Sell order if fund holds shares
-                let held = fund.brokerage_account.as_ref()
+                let held = fund
+                    .brokerage_account
+                    .as_ref()
                     .map(|a| a.get_quantity(&instrument_id))
                     .unwrap_or(0);
                 if held == 0 {
@@ -694,12 +727,20 @@ pub fn submit_fund_orders(
                     company.share_price,
                     current_turn + 3,
                 );
-                let book = exchange.order_book.entry(instrument_id.clone()).or_default();
-                if let Some(pos) = book.asks.iter().position(|(p, _)| *p == company.share_price) {
+                let book = exchange
+                    .order_book
+                    .entry(instrument_id.clone())
+                    .or_default();
+                if let Some(pos) = book
+                    .asks
+                    .iter()
+                    .position(|(p, _)| *p == company.share_price)
+                {
                     book.asks[pos].1.push(order);
                 } else {
                     book.asks.push((company.share_price, vec![order]));
-                    book.asks.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                    book.asks
+                        .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
                 }
                 book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
             }
@@ -711,8 +752,11 @@ pub fn submit_fund_orders(
                 if tranche.owner_id == fund_id {
                     continue; // Already owned
                 }
-                if tranche.yield_rate >= config.fund_min_bond_yield && tranche.outstanding_balance > 0.0 {
-                    let instrument_id = format!("MBS:{}:{:?}", mbs.id, tranche.priority).to_lowercase();
+                if tranche.yield_rate >= config.fund_min_bond_yield
+                    && tranche.outstanding_balance > 0.0
+                {
+                    let instrument_id =
+                        format!("MBS:{}:{:?}", mbs.id, tranche.priority).to_lowercase();
                     let max_investment = fund_cash * 0.05; // Max 5% per fixed-income position
                     let price = tranche.outstanding_balance; // Approximate price
                     let max_units = (max_investment / price) as u64;
@@ -736,12 +780,17 @@ pub fn submit_fund_orders(
                         if acct.cash >= cost {
                             acct.cash -= cost;
                             acct.frozen_cash += cost;
-                            let book = exchange.order_book.entry(instrument_id.clone()).or_default();
+                            let book = exchange
+                                .order_book
+                                .entry(instrument_id.clone())
+                                .or_default();
                             if let Some(pos) = book.bids.iter().position(|(p, _)| *p == price) {
                                 book.bids[pos].1.push(order);
                             } else {
                                 book.bids.push((price, vec![order]));
-                                book.bids.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                                book.bids.sort_by(|a, b| {
+                                    a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
+                                });
                             }
                             book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
                         }
@@ -777,12 +826,17 @@ pub fn submit_fund_orders(
                     if acct.cash >= cost {
                         acct.cash -= cost;
                         acct.frozen_cash += cost;
-                        let book = exchange.order_book.entry(instrument_id.clone()).or_default();
+                        let book = exchange
+                            .order_book
+                            .entry(instrument_id.clone())
+                            .or_default();
                         if let Some(pos) = book.bids.iter().position(|(p, _)| *p == price) {
                             book.bids[pos].1.push(order);
                         } else {
                             book.bids.push((price, vec![order]));
-                            book.bids.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                            book.bids.sort_by(|a, b| {
+                                a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
+                            });
                         }
                         book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
                     }
@@ -820,8 +874,13 @@ pub fn charge_fund_fees(
             continue;
         }
 
-        let fund_cash = fund.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
-        let portfolio_value = calculate_portfolio_value(&fund.brokerage_account, companies, &fund.fund_ledger);
+        let fund_cash = fund
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0);
+        let portfolio_value =
+            calculate_portfolio_value(&fund.brokerage_account, companies, &fund.fund_ledger);
         let aum = fund_cash + portfolio_value;
 
         if aum <= 0.0 {
@@ -941,7 +1000,11 @@ pub fn try_create_fund_from_vip(
         file_stem: "banking".to_string(),
         name: format!("{} Hedge Fund", vip.full_name),
         sector: crate::registries::enums::Sector::Banking,
-        region_id: country.regions.first().map(|r| r.id.clone()).unwrap_or_default(),
+        region_id: country
+            .regions
+            .first()
+            .map(|r| r.id.clone())
+            .unwrap_or_default(),
         legal_form: crate::entities::LegalForm::JointStockCompany(
             crate::entities::JointStockData {
                 shares_issued: (initial_capital / 1.0) as u64,
@@ -996,4 +1059,3 @@ mod tests {
         assert!(mandate.allowed_sectors.is_empty());
     }
 }
-

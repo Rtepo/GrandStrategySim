@@ -7,8 +7,8 @@
 
 use crate::economy::market::{GlobalMarket, MarketOrders};
 use crate::registries::enums::Commodity;
+use crate::state::tax::{route_tax_collection_to_country, AggregateVatRecord, TaxRouting, TaxType};
 use crate::state::Country;
-use crate::state::tax::{AggregateVatRecord, TaxRouting, TaxType, route_tax_collection_to_country};
 use rustc_hash::FxHashMap;
 
 /// Hot-path hash map alias for clearing internals.
@@ -88,17 +88,34 @@ pub fn resolve_market_prices(
     for (good, order) in &market_orders.orders {
         let net = order.buy - order.sell;
         let global_base = global_market.base_price(*good, 100.0);
-        let immutable_base = immutable_base_prices.get(good).copied().unwrap_or(global_base);
+        let immutable_base = immutable_base_prices
+            .get(good)
+            .copied()
+            .unwrap_or(global_base);
 
         if net > 0.0 {
             local_prices.insert(
                 *good,
-                resolve_deficit(*good, net, global_base, immutable_base, country, global_market),
+                resolve_deficit(
+                    *good,
+                    net,
+                    global_base,
+                    immutable_base,
+                    country,
+                    global_market,
+                ),
             );
         } else if net < 0.0 {
             local_prices.insert(
                 *good,
-                resolve_surplus(*good, -net, global_base, immutable_base, country, global_market),
+                resolve_surplus(
+                    *good,
+                    -net,
+                    global_base,
+                    immutable_base,
+                    country,
+                    global_market,
+                ),
             );
         } else {
             local_prices.insert(*good, global_base);
@@ -143,13 +160,30 @@ pub fn resolve_market_prices_with_vat(
     for (good, order) in &market_orders.orders {
         let net = order.buy - order.sell;
         let global_base = global_market.base_price(*good, 100.0);
-        let immutable_base = immutable_base_prices.get(good).copied().unwrap_or(global_base);
+        let immutable_base = immutable_base_prices
+            .get(good)
+            .copied()
+            .unwrap_or(global_base);
 
         // Resolve gross price (what buyer pays)
         let gross_price = if net > 0.0 {
-            resolve_deficit(*good, net, global_base, immutable_base, country, global_market)
+            resolve_deficit(
+                *good,
+                net,
+                global_base,
+                immutable_base,
+                country,
+                global_market,
+            )
         } else if net < 0.0 {
-            resolve_surplus(*good, -net, global_base, immutable_base, country, global_market)
+            resolve_surplus(
+                *good,
+                -net,
+                global_base,
+                immutable_base,
+                country,
+                global_market,
+            )
         } else {
             global_base
         };
@@ -225,11 +259,16 @@ pub fn resolve_market_prices_with_vat(
 ///
 /// # Returns
 /// VAT rate (0.0 - 1.0), defaults to 0.0 if not found
-fn get_vat_rate_for_commodity(commodity: Commodity, tax_rates: &crate::state::tax::TaxRates) -> f64 {
+fn get_vat_rate_for_commodity(
+    commodity: Commodity,
+    tax_rates: &crate::state::tax::TaxRates,
+) -> f64 {
     // Map commodity to VAT category (simplified - in production would use commodity registry)
     // Using actual commodities from the enum
     let category = match commodity {
-        Commodity::Bricks | Commodity::Cement | Commodity::Steel | Commodity::Aluminum => "industry",
+        Commodity::Bricks | Commodity::Cement | Commodity::Steel | Commodity::Aluminum => {
+            "industry"
+        }
         Commodity::Agd | Commodity::Cars => "services",
         _ => "services", // Default to services category
     };
@@ -260,11 +299,7 @@ fn resolve_deficit(
     // Stabilization Sprint: If no net_surplus entry exists for this commodity,
     // there is NO global surplus available — the commodity cannot be imported.
     // Default to 0.0 (not deficit) so the price correctly hits the shortage cap.
-    let global_surplus = global_market
-        .net_surplus
-        .get(&good)
-        .copied()
-        .unwrap_or(0.0);
+    let global_surplus = global_market.net_surplus.get(&good).copied().unwrap_or(0.0);
 
     // Emergency Stabilization: The shortage cap is anchored to the immutable
     // base price (set once at world generation), NOT the dynamic VWAP-smoothed
@@ -331,7 +366,7 @@ pub fn extract_from_warehouses(
         target_region,
         current_turn,
         &mut transactions,
-        false,  // is_cross_region = false (no transport cost)
+        false, // is_cross_region = false (no transport cost)
         country,
     );
 
@@ -339,10 +374,11 @@ pub fn extract_from_warehouses(
     // Sequential extraction to avoid borrow checker conflicts
     if remaining_deficit > 0.0 {
         // Filter neighboring warehouses (different region)
-        let neighboring_warehouses: Vec<&mut crate::society::housing::CommercialBuilding> = warehouses
-            .iter_mut()
-            .filter(|w| w.micro_region_id != target_region)
-            .collect();
+        let neighboring_warehouses: Vec<&mut crate::society::housing::CommercialBuilding> =
+            warehouses
+                .iter_mut()
+                .filter(|w| w.micro_region_id != target_region)
+                .collect();
 
         remaining_deficit = extract_with_fefo(
             good,
@@ -351,7 +387,7 @@ pub fn extract_from_warehouses(
             target_region,
             current_turn,
             &mut transactions,
-            true,  // is_cross_region = true (incurs transport costs)
+            true, // is_cross_region = true (incurs transport costs)
             country,
         );
     }
@@ -388,20 +424,20 @@ fn extract_with_fefo(
         } else {
             0.0
         };
-        
+
         if let Some(batches) = warehouse.current_inventory.get_mut(&format!("{:?}", good)) {
             // Sort by age (oldest first)
             batches.sort_by_key(|b| b.storage_turn);
-            
+
             for batch in batches.iter_mut() {
                 if remaining <= 0.0 {
                     break;
                 }
-                
+
                 let extract_amount = batch.quantity.min(remaining);
                 batch.quantity -= extract_amount;
                 remaining -= extract_amount;
-                
+
                 // Record financial transaction with transport cost
                 transactions.push(FinancialTransaction {
                     batch_owner: batch.owner_id.clone(),
@@ -411,18 +447,18 @@ fn extract_with_fefo(
                     transport_cost,
                     commodity: good,
                 });
-                
+
                 // Remove empty batch
                 if batch.quantity <= 0.0 {
                     // Will be cleaned up in post-processing
                 }
             }
-            
+
             // Clean up empty batches
             batches.retain(|b| b.quantity > 0.0);
         }
     }
-    
+
     deficit - remaining
 }
 
@@ -488,9 +524,9 @@ fn resolve_surplus(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::economy::market::{MarketOrders, MarketOrder};
-    use crate::state::{TaxRates, AggregateVatRecord};
+    use crate::economy::market::{MarketOrder, MarketOrders};
     use crate::state::tax::VatBracket;
+    use crate::state::{AggregateVatRecord, TaxRates};
 
     #[test]
     fn test_vat_net_gross_math() {
@@ -501,8 +537,16 @@ mod tests {
         let net_price = gross_price / (1.0 + vat_rate);
         let vat_collected = gross_price - net_price;
 
-        assert!((net_price - 100.0_f64).abs() < 1e-9, "Expected 100.0, got {}", net_price);
-        assert!((vat_collected - 20.0_f64).abs() < 1e-9, "Expected 20.0, got {}", vat_collected);
+        assert!(
+            (net_price - 100.0_f64).abs() < 1e-9,
+            "Expected 100.0, got {}",
+            net_price
+        );
+        assert!(
+            (vat_collected - 20.0_f64).abs() < 1e-9,
+            "Expected 20.0, got {}",
+            vat_collected
+        );
     }
 
     #[test]
@@ -519,9 +563,13 @@ mod tests {
         let total_vat = vat_per_unit * cleared_quantity;
         let gross_spend = gross_price * cleared_quantity;
 
-        assert!((net_revenue + total_vat - gross_spend).abs() < 1e-9,
+        assert!(
+            (net_revenue + total_vat - gross_spend).abs() < 1e-9,
             "Money mass not preserved: Net Revenue ({}) + VAT ({}) != Gross Spend ({})",
-            net_revenue, total_vat, gross_spend);
+            net_revenue,
+            total_vat,
+            gross_spend
+        );
     }
 
     #[test]
@@ -531,7 +579,10 @@ mod tests {
         let vat_rate: f64 = 0.0;
         let net_price = gross_price / (1.0 + vat_rate);
 
-        assert!((net_price - gross_price).abs() < 1e-9, "Zero VAT should not change price");
+        assert!(
+            (net_price - gross_price).abs() < 1e-9,
+            "Zero VAT should not change price"
+        );
     }
 
     #[test]
@@ -542,8 +593,16 @@ mod tests {
         let net_price = gross_price / (1.0 + vat_rate);
         let vat_collected = gross_price - net_price;
 
-        assert!((net_price - 100.0_f64).abs() < 1e-9, "Expected 100.0, got {}", net_price);
-        assert!((vat_collected - 50.0_f64).abs() < 1e-9, "Expected 50.0, got {}", vat_collected);
+        assert!(
+            (net_price - 100.0_f64).abs() < 1e-9,
+            "Expected 100.0, got {}",
+            net_price
+        );
+        assert!(
+            (vat_collected - 50.0_f64).abs() < 1e-9,
+            "Expected 50.0, got {}",
+            vat_collected
+        );
     }
 
     #[test]
@@ -601,7 +660,10 @@ mod tests {
         );
 
         // Verify VAT records were created
-        assert!(!result.vat_records.is_empty(), "VAT records should be created");
+        assert!(
+            !result.vat_records.is_empty(),
+            "VAT records should be created"
+        );
 
         // Verify money mass preservation for each record
         for record in &result.vat_records {
@@ -609,29 +671,45 @@ mod tests {
             let net_revenue = net_price * record.cleared_quantity;
             let gross_spend = record.gross_price * record.cleared_quantity;
 
-            assert!((net_revenue + record.total_vat_collected - gross_spend).abs() < 1e-9,
-                "Money mass not preserved for commodity {}", record.commodity);
+            assert!(
+                (net_revenue + record.total_vat_collected - gross_spend).abs() < 1e-9,
+                "Money mass not preserved for commodity {}",
+                record.commodity
+            );
         }
 
         // Verify seller revenue is recorded
-        assert!(result.seller_revenue.contains_key(&Commodity::Bricks),
-            "Seller revenue should be recorded for Cegly");
+        assert!(
+            result.seller_revenue.contains_key(&Commodity::Bricks),
+            "Seller revenue should be recorded for Cegly"
+        );
 
         // Verify VAT was actually routed to treasury (closed-loop economy)
-        let total_vat_collected: f64 = result.vat_records.iter().map(|r| r.total_vat_collected).sum();
+        let total_vat_collected: f64 = result
+            .vat_records
+            .iter()
+            .map(|r| r.total_vat_collected)
+            .sum();
         let budget_increase = country.budget.liquid_reserves - initial_budget;
 
-        assert!((budget_increase - total_vat_collected).abs() < 1e-9,
+        assert!(
+            (budget_increase - total_vat_collected).abs() < 1e-9,
             "VAT not routed to treasury: Budget increase ({}) != Total VAT ({})",
-            budget_increase, total_vat_collected);
+            budget_increase,
+            total_vat_collected
+        );
 
         // Verify closed-loop economy: Seller revenue + VAT = Gross spend
         let seller_revenue = result.seller_revenue.get(&Commodity::Bricks).unwrap();
         let gross_spend = result.local_prices.get(&Commodity::Bricks).unwrap() * 800.0; // cleared quantity
 
-        assert!((seller_revenue + total_vat_collected - gross_spend).abs() < 1e-9,
+        assert!(
+            (seller_revenue + total_vat_collected - gross_spend).abs() < 1e-9,
             "Closed-loop economy violated: Seller Revenue ({}) + VAT ({}) != Gross Spend ({})",
-            seller_revenue, total_vat_collected, gross_spend);
+            seller_revenue,
+            total_vat_collected,
+            gross_spend
+        );
     }
 
     #[test]
@@ -646,7 +724,13 @@ mod tests {
             region_id: "region_1".to_string(),
         };
 
-        assert!(!record.commodity.contains("placeholder"), "Commodity should not contain placeholder");
-        assert!(!record.region_id.contains("placeholder"), "Region ID should not contain placeholder");
+        assert!(
+            !record.commodity.contains("placeholder"),
+            "Commodity should not contain placeholder"
+        );
+        assert!(
+            !record.region_id.contains("placeholder"),
+            "Region ID should not contain placeholder"
+        );
     }
 }

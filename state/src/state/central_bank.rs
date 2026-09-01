@@ -30,7 +30,6 @@ pub enum CentralBankIndependence {
     Dependent,
 }
 
-
 // ============================================================================
 // MACROECONOMIC MANDATES
 // ============================================================================
@@ -48,7 +47,6 @@ pub enum MonetaryMandate {
     #[default]
     Mixed,
 }
-
 
 // ============================================================================
 // MONETARY POLICY COUNCIL (RPP) INTEREST RATES
@@ -195,11 +193,17 @@ pub struct CentralBank {
 }
 
 /// Phase 36: Default target inflation rate (2%).
-fn default_target_inflation() -> f64 { 0.02 }
+fn default_target_inflation() -> f64 {
+    0.02
+}
 /// Phase 36: Default potential GDP growth rate (2%).
-fn default_potential_growth() -> f64 { 0.02 }
+fn default_potential_growth() -> f64 {
+    0.02
+}
 /// Phase 36: Default neutral real interest rate (2%).
-fn default_neutral_rate() -> f64 { 0.02 }
+fn default_neutral_rate() -> f64 {
+    0.02
+}
 
 /// Phase 36: Manual Default implementation for CentralBank to ensure the
 /// derived defaults match the serde defaults. Without this, the derived
@@ -263,7 +267,13 @@ impl CentralBank {
     ///
     /// # Returns
     /// M3 = M0 + demand_deposits + time_deposits + other_liquid_assets
-    pub fn calculate_m3(&self, m0: f64, demand_deposits: f64, time_deposits: f64, other_liquid_assets: f64) -> f64 {
+    pub fn calculate_m3(
+        &self,
+        m0: f64,
+        demand_deposits: f64,
+        time_deposits: f64,
+        other_liquid_assets: f64,
+    ) -> f64 {
         m0 + demand_deposits + time_deposits + other_liquid_assets
     }
 
@@ -304,7 +314,12 @@ impl CentralBank {
     /// * Mixed mandate: standard Taylor weights (1.5× inflation, 0.5× growth)
     /// * Floor at 0%, cap at 20%
     /// * Smoothing: 30% weight on previous rate to avoid excessive volatility
-    pub fn update_reference_rate(&mut self, current_inflation: f64, gdp_growth: f64, current_turn: u32) {
+    pub fn update_reference_rate(
+        &mut self,
+        current_inflation: f64,
+        gdp_growth: f64,
+        current_turn: u32,
+    ) {
         let target_inflation = self.target_inflation;
         let potential_growth = self.potential_growth;
         let neutral_rate = self.neutral_rate;
@@ -314,14 +329,13 @@ impl CentralBank {
 
         // Taylor Rule with mandate-specific weights
         let (inflation_weight, growth_weight) = match self.mandate {
-            MonetaryMandate::Inflationary => (2.0, 0.5),  // Aggressive on inflation
-            MonetaryMandate::Market => (0.5, 1.5),        // Growth-oriented
-            MonetaryMandate::Mixed => (1.5, 0.5),         // Standard Taylor
+            MonetaryMandate::Inflationary => (2.0, 0.5), // Aggressive on inflation
+            MonetaryMandate::Market => (0.5, 1.5),       // Growth-oriented
+            MonetaryMandate::Mixed => (1.5, 0.5),        // Standard Taylor
         };
 
-        let taylor_rate = neutral_rate
-            + inflation_weight * inflation_gap
-            + growth_weight * growth_gap;
+        let taylor_rate =
+            neutral_rate + inflation_weight * inflation_gap + growth_weight * growth_gap;
 
         // Smoothing: 70% new Taylor rate, 30% previous rate
         let prev_rate = self.interest_rates.reference_rate;
@@ -369,11 +383,11 @@ impl CentralBank {
         let reference = self.interest_rates.reference_rate;
         self.interest_rates.lombard_rate = (reference + 0.015).min(0.25); // +150 bps, cap at 25%
         self.interest_rates.rediscount_rate = (reference + 0.005).min(0.25); // +50 bps, cap at 25%
-        // Phase 40: Allow negative discount and deposit rates (NIRP).
+                                                                             // Phase 40: Allow negative discount and deposit rates (NIRP).
         self.interest_rates.discount_rate = (reference - 0.0075).max(-0.025); // -75 bps, floor -2.5%
         self.interest_rates.deposit_rate = (reference - 0.015).max(-0.03); // -150 bps, floor -3%
-        // The reference rate is the CB's target for the interbank rate (XIBOR).
-        // OMO operations will steer XIBOR towards this target physically.
+                                                                           // The reference rate is the CB's target for the interbank rate (XIBOR).
+                                                                           // OMO operations will steer XIBOR towards this target physically.
         self.omo_target_rate = reference;
     }
 
@@ -473,29 +487,35 @@ impl CentralBank {
     }
 
     /// Phase E.1: Calculate gold coverage ratio (gold value / M0).
-    /// 
+    ///
     /// # Arguments
     /// * `m0` - Monetary base (cash in circulation + bank reserves)
     /// * `gold_price_in_ieu` - Current gold price in IEU
     /// * `currency_rate` - Domestic currency exchange rate vs IEU
-    /// 
+    ///
     /// # Returns
     /// Gold coverage ratio (how much of M0 is backed by gold)
-    /// 
+    ///
     /// # Rules
     /// - Higher ratio = stronger gold backing
     /// - Used for gold standard assessment
-    pub fn calculate_gold_coverage(&self, m0: f64, gold_price_in_ieu: f64, currency_rate: f64) -> f64 {
+    pub fn calculate_gold_coverage(
+        &self,
+        m0: f64,
+        gold_price_in_ieu: f64,
+        currency_rate: f64,
+    ) -> f64 {
         if m0 > 0.0 && currency_rate > 0.0 {
-            let gold_value_in_currency = self.physical_gold_reserves * gold_price_in_ieu / currency_rate;
+            let gold_value_in_currency =
+                self.physical_gold_reserves * gold_price_in_ieu / currency_rate;
             gold_value_in_currency / m0
         } else {
             0.0
         }
     }
-    
+
     /// Phase E.1: Buy gold from the global market (interacts with GlobalGoldExchange via execute_cb_trade).
-    /// 
+    ///
     /// # Arguments
     /// * `gold_amount` - Amount of gold to buy
     /// * `gold_exchange` - Global Gold Exchange (for trade execution)
@@ -503,10 +523,10 @@ impl CentralBank {
     /// * `vaults` - Global vault registry (for physical gold storage)
     /// * `payment_currency` - Currency used for payment (e.g., "USD")
     /// * `cb_id` - Central Bank entity ID (for vault access)
-    /// 
+    ///
     /// # Returns
     /// Result with success or error (insufficient fx reserves, trade execution failure)
-    /// 
+    ///
     /// # Rules
     /// - CB cannot materialize gold - must buy from GlobalGoldExchange
     /// - Calls gold_exchange.execute_cb_trade() (bypasses brokerage_accounts requirement)
@@ -533,7 +553,7 @@ impl CentralBank {
             expiry_turn: 1,
             extra: serde_json::Map::new(),
         };
-        
+
         // Execute trade via GlobalGoldExchange::execute_cb_trade (no brokerage_accounts)
         let _trade = gold_exchange.execute_cb_trade(
             gold_order,
@@ -550,7 +570,7 @@ impl CentralBank {
     }
 
     /// Phase E.1: Sell gold to the global market (interacts with GlobalGoldExchange via execute_cb_trade).
-    /// 
+    ///
     /// # Arguments
     /// * `gold_amount` - Amount of gold to sell
     /// * `gold_exchange` - Global Gold Exchange (for trade execution)
@@ -558,10 +578,10 @@ impl CentralBank {
     /// * `vaults` - Global vault registry (for physical gold storage)
     /// * `target_currency` - Currency to receive (e.g., "USD")
     /// * `cb_id` - Central Bank entity ID (for vault access)
-    /// 
+    ///
     /// # Returns
     /// Result with success or error (insufficient gold reserves, trade execution failure)
-    /// 
+    ///
     /// # Rules
     /// - CB cannot materialize fiat - must sell to GlobalGoldExchange
     /// - Calls gold_exchange.execute_cb_trade() (bypasses brokerage_accounts requirement)
@@ -588,7 +608,7 @@ impl CentralBank {
             expiry_turn: 1,
             extra: serde_json::Map::new(),
         };
-        
+
         // Execute trade via GlobalGoldExchange::execute_cb_trade (no brokerage_accounts)
         let _trade = gold_exchange.execute_cb_trade(
             gold_order,
@@ -617,7 +637,11 @@ impl CentralBank {
     /// # Rules
     /// * Federal/Central Independent: Requires 2/3 parliamentary supermajority OR head of state decree
     /// * Dependent: Can change at any time (government control)
-    pub fn can_change_mandate(&self, parliamentary_support: f64, head_of_state_decree: bool) -> bool {
+    pub fn can_change_mandate(
+        &self,
+        parliamentary_support: f64,
+        head_of_state_decree: bool,
+    ) -> bool {
         match self.independence_model {
             CentralBankIndependence::Federal | CentralBankIndependence::CentralIndependent => {
                 parliamentary_support >= 2.0 / 3.0 || head_of_state_decree
@@ -640,12 +664,18 @@ impl CentralBank {
     ///
     /// # Rules
     /// * Dependent banks must always have Mixed mandate (enforced)
-    pub fn change_mandate(&mut self, new_mandate: MonetaryMandate, parliamentary_support: f64, head_of_state_decree: bool) -> bool {
+    pub fn change_mandate(
+        &mut self,
+        new_mandate: MonetaryMandate,
+        parliamentary_support: f64,
+        head_of_state_decree: bool,
+    ) -> bool {
         // Dependent banks cannot have pure Inflationary or Market mandate
         if self.independence_model == CentralBankIndependence::Dependent
-            && new_mandate != MonetaryMandate::Mixed {
-                return false;
-            }
+            && new_mandate != MonetaryMandate::Mixed
+        {
+            return false;
+        }
 
         if self.can_change_mandate(parliamentary_support, head_of_state_decree) {
             self.mandate = new_mandate;
@@ -691,7 +721,10 @@ mod tests {
         let cb = CentralBank::default();
         assert_eq!(cb.id, "");
         assert_eq!(cb.name, "");
-        assert_eq!(cb.independence_model, CentralBankIndependence::CentralIndependent);
+        assert_eq!(
+            cb.independence_model,
+            CentralBankIndependence::CentralIndependent
+        );
         assert_eq!(cb.mandate, MonetaryMandate::Mixed);
         assert_eq!(cb.governor_id, "");
         assert_eq!(cb.governor_appointment_turn, 0);

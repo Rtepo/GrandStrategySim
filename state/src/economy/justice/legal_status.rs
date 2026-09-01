@@ -167,7 +167,8 @@ pub fn process_shadow_economy_turn(
 
             // Ensure shadow wage is set (default to 50% of market wage)
             if shadow.shadow_wage_per_fte <= 0.0 {
-                shadow.shadow_wage_per_fte = company.offered_wage_per_fte * DEFAULT_SHADOW_WAGE_FRACTION;
+                shadow.shadow_wage_per_fte =
+                    company.offered_wage_per_fte * DEFAULT_SHADOW_WAGE_FRACTION;
             }
 
             let shadow_wages = shadow.hidden_fte * shadow.shadow_wage_per_fte;
@@ -191,7 +192,10 @@ pub fn process_shadow_economy_turn(
     // Shadow workers are credited to the rural landless_laborer class
     // of the company's region (the most likely demographic for off-the-books workers).
     for (payer_idx, shadow_wages, company_region_id) in pending_payments {
-        let region_idx = country.regions.iter().position(|r| r.id == company_region_id);
+        let region_idx = country
+            .regions
+            .iter()
+            .position(|r| r.id == company_region_id);
         if let Some(ri) = region_idx {
             let _ = crate::economy::transfer_settler::settle_wage_payment(
                 companies,
@@ -199,7 +203,7 @@ pub fn process_shadow_economy_turn(
                 shadow_wages,
                 country,
                 ri,
-                true, // rural
+                true,        // rural
                 "bezrolnik", // landless_laborer class key
             );
         } else {
@@ -241,7 +245,9 @@ pub fn trigger_shadow_employment(
     rng: &mut impl rand::Rng,
 ) {
     let pit_rate = country.tax_rates.income_tax.rate;
-    let inspectorate_capacity = country.politics.inspectorate_state
+    let inspectorate_capacity = country
+        .politics
+        .inspectorate_state
         .as_ref()
         .map(|ist| ist.labor_inspection_capacity)
         .unwrap_or(0.0);
@@ -264,12 +270,17 @@ pub fn trigger_shadow_employment(
         }
         // Phase 34: Raise unmet demand threshold from 50% to 80%.
         // Only trigger shadow employment when labor demand is severely unmet.
-        let unmet_demand = (company.target_fte_demand as f64 - company.fulfilled_fte as f64).max(0.0);
+        let unmet_demand =
+            (company.target_fte_demand as f64 - company.fulfilled_fte as f64).max(0.0);
         if unmet_demand < company.target_fte_demand as f64 * 0.8 {
             continue;
         }
         // Skip if no cash to pay shadow wages
-        let available = company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(company.available_cash);
+        let available = company
+            .brokerage_account
+            .as_ref()
+            .map(|ba| ba.cash)
+            .unwrap_or(company.available_cash);
         if available <= 0.0 {
             continue;
         }
@@ -347,10 +358,7 @@ pub struct AmnestyTurnResult {
 /// * Legalization fee is debited from class savings, credited to Treasury.
 /// * `ShadowEmployment.hidden_fte` is reduced proportionally on employing companies.
 /// * If `legalization_fee == 0.0`, all targeted workers are legalized (free amnesty).
-pub fn process_amnesty_turn(
-    country: &mut Country,
-    companies: &mut [Company],
-) -> AmnestyTurnResult {
+pub fn process_amnesty_turn(country: &mut Country, companies: &mut [Company]) -> AmnestyTurnResult {
     let mut result = AmnestyTurnResult::default();
 
     let amnesty_law = match &country.politics.amnesty_law {
@@ -364,10 +372,19 @@ pub fn process_amnesty_turn(
 
     for region in &mut country.regions {
         // Process rural classes
-        let rural_ids: Vec<String> = region.class_demographics.rural_classes.keys().cloned().collect();
+        let rural_ids: Vec<String> = region
+            .class_demographics
+            .rural_classes
+            .keys()
+            .cloned()
+            .collect();
         for class_id in rural_ids {
             let legalized = legalize_class(
-                region.class_demographics.rural_classes.get_mut(&class_id).unwrap(),
+                region
+                    .class_demographics
+                    .rural_classes
+                    .get_mut(&class_id)
+                    .unwrap(),
                 legalization_rate,
                 legalization_fee,
                 target_status,
@@ -380,10 +397,19 @@ pub fn process_amnesty_turn(
         }
 
         // Process urban classes
-        let urban_ids: Vec<String> = region.class_demographics.urban_classes.keys().cloned().collect();
+        let urban_ids: Vec<String> = region
+            .class_demographics
+            .urban_classes
+            .keys()
+            .cloned()
+            .collect();
         for class_id in urban_ids {
             let legalized = legalize_class(
-                region.class_demographics.urban_classes.get_mut(&class_id).unwrap(),
+                region
+                    .class_demographics
+                    .urban_classes
+                    .get_mut(&class_id)
+                    .unwrap(),
                 legalization_rate,
                 legalization_fee,
                 target_status,
@@ -398,9 +424,13 @@ pub fn process_amnesty_turn(
 
     // Reduce shadow employment proportionally on companies
     if result.legalized_count > 0 {
-        let total_illegal_pop: i64 = country.regions.iter()
+        let total_illegal_pop: i64 = country
+            .regions
+            .iter()
             .flat_map(|r| {
-                r.class_demographics.rural_classes.values()
+                r.class_demographics
+                    .rural_classes
+                    .values()
                     .chain(r.class_demographics.urban_classes.values())
             })
             .map(|d| d.illegal_population)
@@ -569,8 +599,15 @@ mod tests {
         // Phase 28: Company cash debited via TransferSettler (may differ slightly
         // if the test country has no matching region/class for the worker).
         // The key assertion is that shadow wages and PIT evaded are correct.
-        let remaining_cash = companies[0].brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
-        assert!(remaining_cash <= 100_000.0, "company cash should be debited");
+        let remaining_cash = companies[0]
+            .brokerage_account
+            .as_ref()
+            .map(|ba| ba.cash)
+            .unwrap_or(0.0);
+        assert!(
+            remaining_cash <= 100_000.0,
+            "company cash should be debited"
+        );
     }
 
     #[test]
@@ -629,13 +666,14 @@ mod tests {
         class.population = 200;
         class.savings = 10_000.0;
         class.illegal_population = 50;
-        region.class_demographics.rural_classes.insert("workers".to_string(), class);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("workers".to_string(), class);
         country.regions.push(region);
 
         // Deport 50 people: per_capita = 10000/200 = 50, wealth = 50 * 50 = 2500
-        let wealth = process_deportation_wealth_extraction(
-            &mut country, 50, "R1", "workers", true,
-        );
+        let wealth = process_deportation_wealth_extraction(&mut country, 50, "R1", "workers", true);
 
         assert_eq!(wealth, 2500.0);
         let region = &country.regions[0];

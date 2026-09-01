@@ -49,7 +49,10 @@ impl SanctionType {
 
     /// Returns true if this sanction type includes financial isolation.
     pub fn includes_financial_isolation(&self) -> bool {
-        matches!(self, SanctionType::FinancialIsolation | SanctionType::FullEmbargo)
+        matches!(
+            self,
+            SanctionType::FinancialIsolation | SanctionType::FullEmbargo
+        )
     }
 }
 
@@ -160,7 +163,8 @@ impl SanctionRegistry {
 
     /// Returns all active sanctions against a country.
     pub fn active_sanctions_against(&self, country: &str, current_turn: u32) -> Vec<&Sanction> {
-        self.sanctions.iter()
+        self.sanctions
+            .iter()
             .filter(|s| s.target_country == country && s.is_active_at(current_turn))
             .collect()
     }
@@ -188,7 +192,9 @@ impl SanctionRegistry {
 
     /// Returns true if a country is under any active sanction.
     pub fn is_sanctioned(&self, country: &str, current_turn: u32) -> bool {
-        !self.active_sanctions_against(country, current_turn).is_empty()
+        !self
+            .active_sanctions_against(country, current_turn)
+            .is_empty()
     }
 
     /// Enacts a new sanction.
@@ -216,7 +222,8 @@ impl SanctionRegistry {
 
     /// Returns all active sanctions (for DTO/snapshot).
     pub fn active_sanctions(&self, current_turn: u32) -> Vec<&Sanction> {
-        self.sanctions.iter()
+        self.sanctions
+            .iter()
             .filter(|s| s.is_active_at(current_turn))
             .collect()
     }
@@ -286,21 +293,27 @@ mod tests {
             "Badland".to_string(),
             "World Forum".to_string(),
             SanctionType::TradeEmbargo,
-            1, 100, "Test".to_string(),
+            1,
+            100,
+            "Test".to_string(),
         ));
         registry.enact_sanction(Sanction::new(
             "S2".to_string(),
             "Badland".to_string(),
             "Pacific Pact".to_string(),
             SanctionType::AssetFreeze,
-            1, 100, "Test".to_string(),
+            1,
+            100,
+            "Test".to_string(),
         ));
         registry.enact_sanction(Sanction::new(
             "S3".to_string(),
             "Otherland".to_string(),
             "World Forum".to_string(),
             SanctionType::FullEmbargo,
-            1, 100, "Test".to_string(),
+            1,
+            100,
+            "Test".to_string(),
         ));
 
         let badland_sanctions = registry.active_sanctions_against("Badland", 50);
@@ -322,7 +335,9 @@ mod tests {
             "Badland".to_string(),
             "World Forum".to_string(),
             SanctionType::TradeEmbargo,
-            1, 10, "Test".to_string(),
+            1,
+            10,
+            "Test".to_string(),
         ));
 
         // Active at turn 10
@@ -341,7 +356,9 @@ mod tests {
             "Badland".to_string(),
             "World Forum".to_string(),
             SanctionType::FullEmbargo,
-            1, 100, "Test".to_string(),
+            1,
+            100,
+            "Test".to_string(),
         ));
 
         assert!(registry.is_sanctioned("Badland", 50));

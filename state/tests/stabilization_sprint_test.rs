@@ -16,13 +16,13 @@
 
 #[cfg(test)]
 mod tests {
+    use rustc_hash::FxHashMap;
+    use sim_engine::economy::market::clearing::resolve_market_prices;
+    use sim_engine::economy::market::market::{GlobalMarket, MarketOrders};
+    use sim_engine::entities::{AgriculturalProfile, CropBatch, CropState};
     use sim_engine::registries::enums::Commodity;
     use sim_engine::registries::Registries;
-    use sim_engine::economy::market::market::{GlobalMarket, MarketOrders};
-    use sim_engine::economy::market::clearing::resolve_market_prices;
     use sim_engine::state::Country;
-    use sim_engine::entities::{AgriculturalProfile, CropBatch, CropState};
-    use rustc_hash::FxHashMap;
 
     /// Test 1: Clearing engine — deficit with no global surplus should NOT
     /// pin at 102.5% of base price. It should rise toward PRICE_CAP (5.0x).
@@ -39,7 +39,12 @@ mod tests {
 
         let country = Country::default();
 
-        let prices = resolve_market_prices(&market_orders, &country, &global_market, &FxHashMap::default());
+        let prices = resolve_market_prices(
+            &market_orders,
+            &country,
+            &global_market,
+            &FxHashMap::default(),
+        );
         let steel_price = prices.get(&Commodity::Steel).copied().unwrap_or(0.0);
 
         // The old bug would return ~102.5 (100 * 1.025 tariff).
@@ -66,7 +71,12 @@ mod tests {
 
         let country = Country::default();
 
-        let prices = resolve_market_prices(&market_orders, &country, &global_market, &FxHashMap::default());
+        let prices = resolve_market_prices(
+            &market_orders,
+            &country,
+            &global_market,
+            &FxHashMap::default(),
+        );
         let steel_price = prices.get(&Commodity::Steel).copied().unwrap_or(0.0);
 
         // The old bug would return ~97.5 (100 * 0.975 export tax).
@@ -82,30 +92,69 @@ mod tests {
     /// for Water and B2B-excluded waste streams.
     #[test]
     fn test_is_local_utility_covers_water_and_waste() {
-        assert!(Commodity::Water.is_local_utility(), "Water should be a local utility");
-        assert!(Commodity::MixedWaste.is_local_utility(), "MixedWaste should be a local utility");
-        assert!(Commodity::BioWaste.is_local_utility(), "BioWaste should be a local utility");
-        assert!(Commodity::BulkyWaste.is_local_utility(), "BulkyWaste should be a local utility");
-        assert!(Commodity::ConstructionWaste.is_local_utility(), "ConstructionWaste should be a local utility");
-        assert!(Commodity::HazardousWaste.is_local_utility(), "HazardousWaste should be a local utility");
+        assert!(
+            Commodity::Water.is_local_utility(),
+            "Water should be a local utility"
+        );
+        assert!(
+            Commodity::MixedWaste.is_local_utility(),
+            "MixedWaste should be a local utility"
+        );
+        assert!(
+            Commodity::BioWaste.is_local_utility(),
+            "BioWaste should be a local utility"
+        );
+        assert!(
+            Commodity::BulkyWaste.is_local_utility(),
+            "BulkyWaste should be a local utility"
+        );
+        assert!(
+            Commodity::ConstructionWaste.is_local_utility(),
+            "ConstructionWaste should be a local utility"
+        );
+        assert!(
+            Commodity::HazardousWaste.is_local_utility(),
+            "HazardousWaste should be a local utility"
+        );
     }
 
     /// Test 4: Grid commodity isolation — Energy and Heat still excluded.
     #[test]
     fn test_is_local_utility_still_covers_energy_and_heat() {
-        assert!(Commodity::Energy.is_local_utility(), "Energy should be a local utility");
-        assert!(Commodity::Heat.is_local_utility(), "Heat should be a local utility");
+        assert!(
+            Commodity::Energy.is_local_utility(),
+            "Energy should be a local utility"
+        );
+        assert!(
+            Commodity::Heat.is_local_utility(),
+            "Heat should be a local utility"
+        );
     }
 
     /// Test 5: Grid commodity isolation — tradeable commodities are NOT
     /// marked as local utilities.
     #[test]
     fn test_is_local_utility_excludes_tradeable_goods() {
-        assert!(!Commodity::Steel.is_local_utility(), "Steel should NOT be a local utility");
-        assert!(!Commodity::Cereal.is_local_utility(), "Cereal should NOT be a local utility");
-        assert!(!Commodity::Food.is_local_utility(), "Food should NOT be a local utility");
-        assert!(!Commodity::MetalWaste.is_local_utility(), "MetalWaste (B2B-tradeable) should NOT be a local utility");
-        assert!(!Commodity::GlassWaste.is_local_utility(), "GlassWaste (B2B-tradeable) should NOT be a local utility");
+        assert!(
+            !Commodity::Steel.is_local_utility(),
+            "Steel should NOT be a local utility"
+        );
+        assert!(
+            !Commodity::Cereal.is_local_utility(),
+            "Cereal should NOT be a local utility"
+        );
+        assert!(
+            !Commodity::Food.is_local_utility(),
+            "Food should NOT be a local utility"
+        );
+        assert!(
+            !Commodity::MetalWaste.is_local_utility(),
+            "MetalWaste (B2B-tradeable) should NOT be a local utility"
+        );
+        assert!(
+            !Commodity::GlassWaste.is_local_utility(),
+            "GlassWaste (B2B-tradeable) should NOT be a local utility"
+        );
     }
 
     /// Test 6: Crop registry — loaded into Registries (non-empty).
@@ -127,10 +176,13 @@ mod tests {
             // or known Polish words from the old data
             let name = &crop.name;
             assert!(
-                !name.contains("Pszenica") && !name.contains("Kukurydza")
-                && !name.contains("Ziemniaki") && !name.contains("Lucerna"),
+                !name.contains("Pszenica")
+                    && !name.contains("Kukurydza")
+                    && !name.contains("Ziemniaki")
+                    && !name.contains("Lucerna"),
                 "Crop '{}' name '{}' still contains Polish text (Rule 12 violation)",
-                id, name
+                id,
+                name
             );
         }
     }
@@ -139,13 +191,34 @@ mod tests {
     #[test]
     fn test_crop_registry_has_expected_crops() {
         let registries = Registries::native_only();
-        assert!(registries.crops.get("wheat").is_some(), "Wheat crop should be defined");
-        assert!(registries.crops.get("corn").is_some(), "Corn crop should be defined");
-        assert!(registries.crops.get("potatoes").is_some(), "Potatoes crop should be defined");
-        assert!(registries.crops.get("alfalfa").is_some(), "Alfalfa crop should be defined");
-        assert!(registries.crops.get("cattle").is_some(), "Cattle crop should be defined");
-        assert!(registries.crops.get("orchard").is_some(), "Orchard crop should be defined");
-        assert!(registries.crops.get("tobacco").is_some(), "Tobacco crop should be defined");
+        assert!(
+            registries.crops.get("wheat").is_some(),
+            "Wheat crop should be defined"
+        );
+        assert!(
+            registries.crops.get("corn").is_some(),
+            "Corn crop should be defined"
+        );
+        assert!(
+            registries.crops.get("potatoes").is_some(),
+            "Potatoes crop should be defined"
+        );
+        assert!(
+            registries.crops.get("alfalfa").is_some(),
+            "Alfalfa crop should be defined"
+        );
+        assert!(
+            registries.crops.get("cattle").is_some(),
+            "Cattle crop should be defined"
+        );
+        assert!(
+            registries.crops.get("orchard").is_some(),
+            "Orchard crop should be defined"
+        );
+        assert!(
+            registries.crops.get("tobacco").is_some(),
+            "Tobacco crop should be defined"
+        );
     }
 
     /// Test 9: AgriculturalProfile — has owned_parcel_ids field.
@@ -170,36 +243,68 @@ mod tests {
             accumulated_yield: 0.0,
             rot_accumulator: 0.0,
         };
-        assert_eq!(batch.state, CropState::Idle, "New crop batch should start in Idle state");
-        assert_eq!(batch.active_hectares, 0.0, "Idle batch should have 0 active hectares");
+        assert_eq!(
+            batch.state,
+            CropState::Idle,
+            "New crop batch should start in Idle state"
+        );
+        assert_eq!(
+            batch.active_hectares, 0.0,
+            "Idle batch should have 0 active hectares"
+        );
     }
 
     /// Test 11: Crop definitions — wheat has correct yield and schedule.
     #[test]
     fn test_wheat_crop_definition() {
         let registries = Registries::native_only();
-        let wheat = registries.crops.get("wheat").expect("Wheat should be defined");
+        let wheat = registries
+            .crops
+            .get("wheat")
+            .expect("Wheat should be defined");
         assert_eq!(wheat.name, "Wheat", "Wheat name should be English");
         // Emergency Stabilization: Shifted for September-start calendar.
         // Sowing: March-April (turns 13-15), Harvest: September-October (turns 1-3).
-        assert_eq!(wheat.sowing_schedule.start_turn, 13, "Wheat sowing starts at turn 13 (March, September-start calendar)");
-        assert_eq!(wheat.sowing_schedule.end_turn, 15, "Wheat sowing ends at turn 15");
-        assert_eq!(wheat.harvest_schedule.start_turn, 1, "Wheat harvest starts at turn 1 (September, autumn harvest)");
-        assert_eq!(wheat.harvest_schedule.end_turn, 3, "Wheat harvest ends at turn 3");
+        assert_eq!(
+            wheat.sowing_schedule.start_turn, 13,
+            "Wheat sowing starts at turn 13 (March, September-start calendar)"
+        );
+        assert_eq!(
+            wheat.sowing_schedule.end_turn, 15,
+            "Wheat sowing ends at turn 15"
+        );
+        assert_eq!(
+            wheat.harvest_schedule.start_turn, 1,
+            "Wheat harvest starts at turn 1 (September, autumn harvest)"
+        );
+        assert_eq!(
+            wheat.harvest_schedule.end_turn, 3,
+            "Wheat harvest ends at turn 3"
+        );
         // Yield: 4.5 tons Cereal per hectare
         let cereal_yield = wheat.yields.get(&Commodity::Cereal).copied().unwrap_or(0.0);
-        assert_eq!(cereal_yield, 4.5, "Wheat should yield 4.5 tons Cereal per hectare");
+        assert_eq!(
+            cereal_yield, 4.5,
+            "Wheat should yield 4.5 tons Cereal per hectare"
+        );
     }
 
     /// Test 12: Cattle crop — has correct yield (Meat + Livestock).
     #[test]
     fn test_cattle_crop_definition() {
         let registries = Registries::native_only();
-        let cattle = registries.crops.get("cattle").expect("Cattle should be defined");
+        let cattle = registries
+            .crops
+            .get("cattle")
+            .expect("Cattle should be defined");
         assert_eq!(cattle.name, "Cattle", "Cattle name should be English");
         let meat_yield = cattle.yields.get(&Commodity::Meat).copied().unwrap_or(0.0);
         assert!(meat_yield > 0.0, "Cattle should yield Meat");
-        let livestock_yield = cattle.yields.get(&Commodity::Livestock).copied().unwrap_or(0.0);
+        let livestock_yield = cattle
+            .yields
+            .get(&Commodity::Livestock)
+            .copied()
+            .unwrap_or(0.0);
         assert!(livestock_yield > 0.0, "Cattle should yield Livestock");
     }
 }

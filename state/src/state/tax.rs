@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::collections::{HashMap, BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use crate::state::special_economic_zones::calculate_corporate_tax_with_sse;
 
@@ -593,19 +593,19 @@ pub fn evaluate_capital_flight(
 ) -> CapitalFlightAttempt {
     // Calculate haven tax (flat rate on assets)
     let haven_tax = domestic_liquid_assets * target_haven.tax_rate;
-    
+
     // Calculate tax savings from moving to haven (actual domestic tax vs haven tax)
     let tax_savings = (domestic_tax_owed - haven_tax).max(0.0);
-    
+
     // Calculate exit tax cost (charged by domestic state, not haven)
     let exit_tax_cost = domestic_liquid_assets * domestic_exit_tax_rate;
-    
+
     // Calculate net benefit
     let net_benefit = tax_savings - exit_tax_cost;
-    
+
     // Should flee if net benefit is positive
     let should_flee = net_benefit > 0.0;
-    
+
     CapitalFlightAttempt {
         entity_id,
         entity_type,
@@ -643,10 +643,10 @@ pub fn execute_capital_flight(
     if !attempt.should_flee {
         return 0.0;
     }
-    
+
     // Calculate offshore amount (domestic assets minus exit tax)
     let offshore_amount = attempt.domestic_liquid_assets - attempt.exit_tax_cost;
-    
+
     // Route exit tax to state treasury
     let exit_routing = TaxRouting {
         microregion_share: 0.0,
@@ -655,7 +655,7 @@ pub fn execute_capital_flight(
         national_exception: true,
         extra: Default::default(),
     };
-    
+
     route_tax_collection_to_country(
         attempt.exit_tax_cost,
         &exit_routing,
@@ -664,10 +664,10 @@ pub fn execute_capital_flight(
         format!("EXIT_TAX_{}", attempt.entity_id),
         TaxType::ExitTax,
     );
-    
+
     // Deposit remaining capital to offshore ledger (money mass preservation)
     global_market.offshore_capital += offshore_amount;
-    
+
     offshore_amount
 }
 
@@ -860,10 +860,7 @@ pub fn calculate_progressive_cit(
     }
 
     // Calculate total CAPEX deduction amount
-    let total_capex_deduction: f64 = capex_deductions
-        .iter()
-        .map(|d| d.deduction_amount)
-        .sum();
+    let total_capex_deduction: f64 = capex_deductions.iter().map(|d| d.deduction_amount).sum();
 
     // Apply CAPEX deduction to profit (cannot go below zero)
     let taxable_profit = (profit - total_capex_deduction).max(0.0);
@@ -1173,7 +1170,10 @@ pub fn evaluate_fdi_trigger(
 /// * Checks if sovereign_entity_id exists in shareholders
 /// * Requires share >= 1.0 (100% ownership) for exemption
 /// * Does NOT use deprecated state_share or external_share fields
-pub fn is_company_tax_exempt(company: &crate::entities::Company, sovereign_entity_id: &str) -> bool {
+pub fn is_company_tax_exempt(
+    company: &crate::entities::Company,
+    sovereign_entity_id: &str,
+) -> bool {
     // Check shareholders map for sovereign ownership
     if let Some(&share_count) = company.shareholders.get(sovereign_entity_id) {
         // ShareholderRegister stores share counts (u64), not percentages
@@ -1366,19 +1366,19 @@ pub fn process_tax_collection_turn(
         };
 
         // Apply evasion
-        let cit_evasion = calculate_tax_evasion(
-            cit_after_sez,
-            tax_office_workers,
-            total_companies,
-            0.1,
-        );
+        let cit_evasion =
+            calculate_tax_evasion(cit_after_sez, tax_office_workers, total_companies, 0.1);
         let cit_collected = cit_after_sez * (1.0 - cit_evasion.evasion_rate);
         result.taxes_evaded += cit_after_sez - cit_collected;
 
         // Phase 42: Record liability for the caller to physically debit.
         // Clamp to available cash + brokerage cash (liquid sources only).
         let company_liquid = company.available_cash
-            + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
+            + company
+                .brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash)
+                .unwrap_or(0.0);
         let actual_cit = cit_collected.min(company_liquid);
         result.cit_collected += actual_cit;
         result.taxes_evaded += cit_collected - actual_cit;
@@ -1424,23 +1424,27 @@ pub fn process_tax_collection_turn(
                 }
                 prev_threshold = bracket.threshold;
             }
-            let wealth_evasion = calculate_tax_evasion(
-                wealth_tax_owed,
-                tax_office_workers,
-                total_companies,
-                0.1,
-            );
+            let wealth_evasion =
+                calculate_tax_evasion(wealth_tax_owed, tax_office_workers, total_companies, 0.1);
             let wealth_collected = wealth_tax_owed * (1.0 - wealth_evasion.evasion_rate);
             // Phase 42: Only collect from liquid cash (available_cash + brokerage cash)
             let company_liquid = company.available_cash
-                + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
+                + company
+                    .brokerage_account
+                    .as_ref()
+                    .map(|ba| ba.cash)
+                    .unwrap_or(0.0);
             let actually_collected = wealth_collected.min(company_liquid);
             result.taxes_evaded += wealth_collected - actually_collected;
             result.wealth_tax_collected += actually_collected;
 
             // Phase 42: Record liability for the caller to physically debit.
             // Merge with existing CIT liability if present, otherwise push new.
-            if let Some(existing) = result.liabilities.iter_mut().find(|l| l.company_id == company.id) {
+            if let Some(existing) = result
+                .liabilities
+                .iter_mut()
+                .find(|l| l.company_id == company.id)
+            {
                 existing.wealth_tax_owed = wealth_collected;
                 existing.wealth_tax_actual = actually_collected;
             } else {
@@ -1513,15 +1517,21 @@ pub fn process_tax_collection_turn(
     // The caller in turn.rs iterates the liabilities, physically debits
     // companies, and routes only the ACTUAL collected amounts to the treasury.
     // VAT and customs were already physically settled during trade clearing.
-    let total_collected = result.actual_pit_collected + result.cit_collected + result.vat_collected
-        + result.wealth_tax_collected + result.exit_tax_collected
-        + result.customs_revenue + result.state_property_revenue;
+    let total_collected = result.actual_pit_collected
+        + result.cit_collected
+        + result.vat_collected
+        + result.wealth_tax_collected
+        + result.exit_tax_collected
+        + result.customs_revenue
+        + result.state_property_revenue;
     // Note: total_collected is for reporting only. The caller does the routing.
     result.total_revenue = total_collected;
 
     // ── Record Tax History ──────────────────────────────────────────
-    country.budget.tax_history.push_back(
-        crate::state::treasury::TaxHistoryEntry {
+    country
+        .budget
+        .tax_history
+        .push_back(crate::state::treasury::TaxHistoryEntry {
             turn: current_turn,
             pit_collected: result.pit_collected,
             cit_collected: result.cit_collected,
@@ -1530,8 +1540,7 @@ pub fn process_tax_collection_turn(
             capital_gains_collected: result.capital_gains_tax_collected,
             capital_flight: result.capital_flight_amount,
             ..Default::default()
-        }
-    );
+        });
 
     // total_revenue was already set above.
     result
@@ -1541,8 +1550,8 @@ pub fn process_tax_collection_turn(
 mod tests {
     use super::*;
     use crate::entities::Company;
-    use crate::registries::enums::Sector;
     use crate::politics::state_structure::{StateStructure, StateStructureConfig};
+    use crate::registries::enums::Sector;
 
     #[test]
     fn test_tax_routing_from_unitary() {
@@ -1664,7 +1673,11 @@ mod tests {
         };
 
         let tax = calculate_progressive_pit(75000.0, &progressive_tax);
-        assert!((tax - 16500.0).abs() < 1e-9, "Expected 16500.0, got {}", tax);
+        assert!(
+            (tax - 16500.0).abs() < 1e-9,
+            "Expected 16500.0, got {}",
+            tax
+        );
     }
 
     #[test]
@@ -1694,13 +1707,11 @@ mod tests {
     #[test]
     fn test_marginal_pit_zero_income() {
         let progressive_tax = ProgressiveIncomeTax {
-            brackets: vec![
-                TaxBracket {
-                    threshold: 10000.0,
-                    rate: 0.10,
-                    extra: Map::new(),
-                },
-            ],
+            brackets: vec![TaxBracket {
+                threshold: 10000.0,
+                rate: 0.10,
+                extra: Map::new(),
+            }],
             target_class: None,
             extra: Map::new(),
         };
@@ -1759,7 +1770,11 @@ mod tests {
             "HeavyIndustry",
             &capex_deductions,
         );
-        assert!((tax - 15000.0).abs() < 1e-9, "Expected 15000.0, got {}", tax);
+        assert!(
+            (tax - 15000.0).abs() < 1e-9,
+            "Expected 15000.0, got {}",
+            tax
+        );
     }
 
     #[test]
@@ -1788,13 +1803,8 @@ mod tests {
             extra: Map::new(),
         };
 
-        let tax = calculate_progressive_cit(
-            80000.0,
-            75000.0,
-            &progressive_tax,
-            "HeavyIndustry",
-            &[],
-        );
+        let tax =
+            calculate_progressive_cit(80000.0, 75000.0, &progressive_tax, "HeavyIndustry", &[]);
         assert!((tax - 7500.0).abs() < 1e-9, "Expected 7500.0, got {}", tax);
     }
 
@@ -1802,13 +1812,11 @@ mod tests {
     fn test_marginal_cit_capex_exceeds_profit() {
         // Test: CAPEX deduction larger than profit should result in zero tax
         let progressive_tax = ProgressiveCorporateTax {
-            brackets: vec![
-                TaxBracket {
-                    threshold: 50000.0,
-                    rate: 0.15,
-                    extra: Map::new(),
-                },
-            ],
+            brackets: vec![TaxBracket {
+                threshold: 50000.0,
+                rate: 0.15,
+                extra: Map::new(),
+            }],
             sector_modifiers: HashMap::new(),
             extra: Map::new(),
         };
@@ -1968,8 +1976,13 @@ mod tests {
             "region_1".to_string(),
         );
 
-        let total_distributed = collection.microregion_share + collection.region_share + collection.central_share;
-        assert!((total_distributed - 1000.0).abs() < 1e-9, "Total distributed: {}", total_distributed);
+        let total_distributed =
+            collection.microregion_share + collection.region_share + collection.central_share;
+        assert!(
+            (total_distributed - 1000.0).abs() < 1e-9,
+            "Total distributed: {}",
+            total_distributed
+        );
     }
 
     // ============================================================================
@@ -2268,6 +2281,7 @@ mod tests {
             demand_volume: rustc_hash::FxHashMap::default(),
             net_trade: rustc_hash::FxHashMap::default(),
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
+            foreign_patent_fee_ledger: 0.0,
         };
 
         let attempt = CapitalFlightAttempt {
@@ -2284,12 +2298,8 @@ mod tests {
         let initial_budget = country.budget.liquid_reserves;
         let initial_offshore = global_market.offshore_capital;
 
-        let offshore_amount = execute_capital_flight(
-            &attempt,
-            &mut country,
-            &mut global_market,
-            "region_1",
-        );
+        let offshore_amount =
+            execute_capital_flight(&attempt, &mut country, &mut global_market, "region_1");
 
         // Exit tax routed to state
         assert!((country.budget.liquid_reserves - initial_budget - 100000.0).abs() < 1e-9);
@@ -2319,6 +2329,7 @@ mod tests {
             demand_volume: rustc_hash::FxHashMap::default(),
             net_trade: rustc_hash::FxHashMap::default(),
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
+            foreign_patent_fee_ledger: 0.0,
         };
 
         let attempt = CapitalFlightAttempt {
@@ -2332,12 +2343,8 @@ mod tests {
             should_flee: false,
         };
 
-        let offshore_amount = execute_capital_flight(
-            &attempt,
-            &mut country,
-            &mut global_market,
-            "region_1",
-        );
+        let offshore_amount =
+            execute_capital_flight(&attempt, &mut country, &mut global_market, "region_1");
 
         // No movement
         assert!((country.budget.liquid_reserves - 0.0).abs() < 1e-9);
@@ -2461,6 +2468,7 @@ mod tests {
             demand_volume: rustc_hash::FxHashMap::default(),
             net_trade: rustc_hash::FxHashMap::default(),
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
+            foreign_patent_fee_ledger: 0.0,
         };
 
         let fdi_trigger = FdiTrigger {
@@ -2500,6 +2508,7 @@ mod tests {
             demand_volume: rustc_hash::FxHashMap::default(),
             net_trade: rustc_hash::FxHashMap::default(),
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
+            foreign_patent_fee_ledger: 0.0,
         };
 
         let fdi_trigger = FdiTrigger {

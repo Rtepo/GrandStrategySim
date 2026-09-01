@@ -3,8 +3,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-use crate::economy::order_book::{Bid, OrderBook};
 use crate::economy::market::GlobalMarket;
+use crate::economy::order_book::{Bid, OrderBook};
 use crate::entities::legal_form::LatifundiumData;
 use crate::registries::enums::Commodity;
 use crate::society::geography::Region;
@@ -28,19 +28,15 @@ pub enum CulturalBuildingType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CulturalTemplate {
     /// Type of building
-
     pub building_type: CulturalBuildingType,
 
     /// Base capacity per turn
-
     pub base_capacity: f64,
 
     /// Can own land (Monasteries only)
-
     pub can_own_land: bool,
 
     /// Funding model
-
     pub funding_model: CulturalFunding,
 }
 
@@ -237,12 +233,7 @@ pub fn collect_cultural_donations(
                 };
 
                 if let Some(ri) = region_idx {
-                    collect_class_donations(
-                        &mut regions[ri],
-                        building,
-                        rates,
-                        solidarity,
-                    );
+                    collect_class_donations(&mut regions[ri], building, rates, solidarity);
                 }
             }
             CulturalBuildingType::Monastery => {
@@ -262,9 +253,8 @@ pub fn collect_cultural_donations(
 
                 // Endowment income from direct latifundium
                 if let Some(ref lat) = building.owned_latifundium {
-                    let latifundium_income = lat.serf_population as f64
-                        * lat.serf_labor_cost_multiplier
-                        * average_wage;
+                    let latifundium_income =
+                        lat.serf_population as f64 * lat.serf_labor_cost_multiplier * average_wage;
                     if latifundium_income > 0.0 {
                         if let Some(ri) = region_idx {
                             debit_serf_savings(&mut regions[ri], latifundium_income);
@@ -287,12 +277,7 @@ pub fn collect_cultural_donations(
                     config.secular_solidarity_multiplier
                 };
                 if let Some(ri) = region_idx {
-                    collect_class_donations(
-                        &mut regions[ri],
-                        building,
-                        &rates,
-                        solidarity,
-                    );
+                    collect_class_donations(&mut regions[ri], building, &rates, solidarity);
                 }
             }
             CulturalBuildingType::CulturalHouse | CulturalBuildingType::Cemetery => {
@@ -345,11 +330,7 @@ fn collect_class_donations(
 
 /// Debit serf class savings for latifundium surplus extraction.
 fn debit_serf_savings(region: &mut Region, amount: f64) {
-    if let Some(demographics) = region
-        .class_demographics
-        .rural_classes
-        .get_mut("serf")
-    {
+    if let Some(demographics) = region.class_demographics.rural_classes.get_mut("serf") {
         let actual = amount.min(demographics.savings.max(0.0));
         demographics.savings -= actual;
     }
@@ -377,9 +358,7 @@ pub fn distribute_cash_relief(
 
         // Collect eligible classes sorted by savings_per_capita ascending (poorest first)
         let mut eligible: Vec<(String, f64, i64)> = Vec::new();
-        for (class_name, demographics) in
-            &regions[region_idx].class_demographics.rural_classes
-        {
+        for (class_name, demographics) in &regions[region_idx].class_demographics.rural_classes {
             if demographics.population > 0 {
                 eligible.push((
                     class_name.clone(),
@@ -441,7 +420,11 @@ pub fn submit_relief_b2b_orders(
         let per_commodity_budget = b2b_pool / n_commodities as f64;
 
         for commodity in &config.relief_commodities {
-            let base_price = global_market.base_prices.get(commodity).copied().unwrap_or(100.0);
+            let base_price = global_market
+                .base_prices
+                .get(commodity)
+                .copied()
+                .unwrap_or(100.0);
             let limit_price = base_price * config.relief_bid_price_fraction;
             if limit_price <= 0.0 {
                 continue;
@@ -455,18 +438,14 @@ pub fn submit_relief_b2b_orders(
             let encumbrance = quantity * limit_price;
             building.available_cash -= encumbrance;
 
-            order_book
-                .bids
-                .entry(*commodity)
-                .or_default()
-                .push(Bid {
-                    buyer_id: building.id.clone(),
-                    commodity: *commodity,
-                    quantity,
-                    limit_price,
-                    blueprint_id: None,
-                    min_quality: None,
-                });
+            order_book.bids.entry(*commodity).or_default().push(Bid {
+                buyer_id: building.id.clone(),
+                commodity: *commodity,
+                quantity,
+                limit_price,
+                blueprint_id: None,
+                min_quality: None,
+            });
         }
     }
 }
@@ -478,7 +457,10 @@ pub fn refund_unfilled_cultural_bids(
 ) {
     for bids in order_book.bids.values() {
         for bid in bids {
-            if let Some(building) = cultural_institutions.iter_mut().find(|b| b.id == bid.buyer_id) {
+            if let Some(building) = cultural_institutions
+                .iter_mut()
+                .find(|b| b.id == bid.buyer_id)
+            {
                 let refund = bid.quantity * bid.limit_price;
                 building.available_cash += refund;
             }
@@ -494,7 +476,10 @@ pub fn deliver_relief_goods(
     regions: &mut [Region],
 ) {
     for trade in &order_book.trades {
-        if let Some(building) = cultural_institutions.iter().find(|b| b.id == trade.buyer_id) {
+        if let Some(building) = cultural_institutions
+            .iter()
+            .find(|b| b.id == trade.buyer_id)
+        {
             if let Some(region) = regions.iter_mut().find(|r| r.id == building.region_id) {
                 // Goods delivered to region — increase available supply for B2C
                 // The specific supply mechanism depends on the commodity type

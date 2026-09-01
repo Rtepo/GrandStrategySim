@@ -3,8 +3,8 @@
 //! This module provides a deterministic price fallback chain to avoid magic numbers:
 //! VWAP (previous turn) → Last trade price → Global base price from market.json.
 
-use crate::registries::enums::Commodity;
 use crate::economy::order_book::Trade;
+use crate::registries::enums::Commodity;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
@@ -83,12 +83,9 @@ pub fn update_vwap(history: &mut MarketHistory, trades: &[Trade]) {
     let mut value_per_commodity: HashMap<Commodity, f64> = HashMap::default();
 
     for trade in trades {
-        *volume_per_commodity
-            .entry(trade.commodity)
-            .or_insert(0.0) += trade.quantity;
-        *value_per_commodity
-            .entry(trade.commodity)
-            .or_insert(0.0) += trade.quantity * trade.execution_price;
+        *volume_per_commodity.entry(trade.commodity).or_insert(0.0) += trade.quantity;
+        *value_per_commodity.entry(trade.commodity).or_insert(0.0) +=
+            trade.quantity * trade.execution_price;
     }
 
     for (commodity, volume) in volume_per_commodity {
@@ -120,21 +117,14 @@ pub fn update_vwap(history: &mut MarketHistory, trades: &[Trade]) {
 /// # Arguments
 /// * `history` - Mutable reference to market history.
 /// * `retail_prices` - Slice of (commodity, quantity_sold, price_per_unit) tuples.
-pub fn update_retail_vwap(
-    history: &mut MarketHistory,
-    retail_prices: &[(Commodity, f64, f64)],
-) {
+pub fn update_retail_vwap(history: &mut MarketHistory, retail_prices: &[(Commodity, f64, f64)]) {
     let mut volume_per_commodity: HashMap<Commodity, f64> = HashMap::default();
     let mut value_per_commodity: HashMap<Commodity, f64> = HashMap::default();
 
     for (commodity, qty, price) in retail_prices {
         if *qty > 0.0 && *price > 0.0 {
-            *volume_per_commodity
-                .entry(*commodity)
-                .or_insert(0.0) += qty;
-            *value_per_commodity
-                .entry(*commodity)
-                .or_insert(0.0) += qty * price;
+            *volume_per_commodity.entry(*commodity).or_insert(0.0) += qty;
+            *value_per_commodity.entry(*commodity).or_insert(0.0) += qty * price;
         }
     }
 

@@ -12,13 +12,13 @@ use rand::Rng;
 pub struct CulturalNamingPatterns {
     /// Common prefixes (e.g., "National", "United", "People's")
     pub prefixes: Vec<&'static str>,
-    
+
     /// Party nouns (e.g., "Party", "Front", "Union", "League")
     pub nouns: Vec<&'static str>,
-    
+
     /// Ideological themes (e.g., "of Labor", "of Freedom", "Agrarian")
     pub themes: Vec<&'static str>,
-    
+
     /// Cultural-specific modifiers
     pub cultural_modifiers: Vec<&'static str>,
 }
@@ -28,39 +28,235 @@ pub struct CulturalNamingPatterns {
 pub fn get_cultural_patterns(cultural_group: &str) -> CulturalNamingPatterns {
     match cultural_group {
         "slavic" => CulturalNamingPatterns {
-            prefixes: vec!["National", "United", "People's", "Patriotic", "Democratic", "Christian", "Conservative", "Liberal", "Progressive", "Social"],
-            nouns: vec!["Party", "Front", "Union", "Movement", "League", "Coalition", "Alliance", "Bloc", "Initiative", "Platform"],
-            themes: vec!["of Labor", "of Freedom", "of Farmers", "of Rebirth", "of Solidarity", "of Justice", "of Truth", "of the Future", "of Family", "of Reform"],
+            prefixes: vec![
+                "National",
+                "United",
+                "People's",
+                "Patriotic",
+                "Democratic",
+                "Christian",
+                "Conservative",
+                "Liberal",
+                "Progressive",
+                "Social",
+            ],
+            nouns: vec![
+                "Party",
+                "Front",
+                "Union",
+                "Movement",
+                "League",
+                "Coalition",
+                "Alliance",
+                "Bloc",
+                "Initiative",
+                "Platform",
+            ],
+            themes: vec![
+                "of Labor",
+                "of Freedom",
+                "of Farmers",
+                "of Rebirth",
+                "of Solidarity",
+                "of Justice",
+                "of Truth",
+                "of the Future",
+                "of Family",
+                "of Reform",
+            ],
             cultural_modifiers: vec!["Slavic", "National", "Traditional", "Modern", "People's"],
         },
         "germanic" => CulturalNamingPatterns {
-            prefixes: vec!["National", "United", "People's", "Christian", "Democratic", "Conservative", "Liberal", "Progressive", "Social", "Free"],
-            nouns: vec!["Party", "Union", "League", "Alliance", "Movement", "Coalition", "Front", "Bloc", "Initiative", "Platform"],
-            themes: vec!["Labor", "Freedom", "Progress", "Conservative", "Liberal", "Justice", "Future", "Reform", "Family", "Heritage"],
+            prefixes: vec![
+                "National",
+                "United",
+                "People's",
+                "Christian",
+                "Democratic",
+                "Conservative",
+                "Liberal",
+                "Progressive",
+                "Social",
+                "Free",
+            ],
+            nouns: vec![
+                "Party",
+                "Union",
+                "League",
+                "Alliance",
+                "Movement",
+                "Coalition",
+                "Front",
+                "Bloc",
+                "Initiative",
+                "Platform",
+            ],
+            themes: vec![
+                "Labor",
+                "Freedom",
+                "Progress",
+                "Conservative",
+                "Liberal",
+                "Justice",
+                "Future",
+                "Reform",
+                "Family",
+                "Heritage",
+            ],
             cultural_modifiers: vec!["Germanic", "Nordic", "Federal", "Northern", "Civic"],
         },
         "latin" => CulturalNamingPatterns {
-            prefixes: vec!["Nationale", "Unité", "Populaire", "Républicain", "Démocratique", "Chrétien", "Conservateur", "Libéral", "Progressiste", "Social"],
-            nouns: vec!["Parti", "Front", "Union", "Ligue", "Mouvement", "Coalition", "Alliance", "Bloc", "Initiative", "Plateforme"],
-            themes: vec!["Travail", "Liberté", "Paysan", "Renaissance", "Social", "Justice", "Avenir", "Réforme", "Famille", "Héritage"],
-            cultural_modifiers: vec!["Latin", "Méditerranéen", "Républicain", "Civique", "Populaire"],
+            prefixes: vec![
+                "Nationale",
+                "Unité",
+                "Populaire",
+                "Républicain",
+                "Démocratique",
+                "Chrétien",
+                "Conservateur",
+                "Libéral",
+                "Progressiste",
+                "Social",
+            ],
+            nouns: vec![
+                "Parti",
+                "Front",
+                "Union",
+                "Ligue",
+                "Mouvement",
+                "Coalition",
+                "Alliance",
+                "Bloc",
+                "Initiative",
+                "Plateforme",
+            ],
+            themes: vec![
+                "Travail",
+                "Liberté",
+                "Paysan",
+                "Renaissance",
+                "Social",
+                "Justice",
+                "Avenir",
+                "Réforme",
+                "Famille",
+                "Héritage",
+            ],
+            cultural_modifiers: vec![
+                "Latin",
+                "Méditerranéen",
+                "Républicain",
+                "Civique",
+                "Populaire",
+            ],
         },
         "middle_eastern" => CulturalNamingPatterns {
-            prefixes: vec!["Al-Watani", "Al-Wahda", "Al-Sha'bi", "Al-Islami", "Al-Dimuqrati", "Al-Ahrar", "Al-Tagaddi", "Al-Ijtima'i", "Al-Watani Al-Jadid", "Al-Mustaqbal"],
-            nouns: vec!["Hizb", "Jabha", "Ittihad", "Harakat", "Tahaluf", "Kutla", "Mubadara", "Minbar", "Rabitat", "Usbat"],
-            themes: vec!["Al-Ammal", "Al-Hurriya", "Al-Fallahin", "Al-Tahrir", "Al-Adala", "Al-Mustaqbal", "Al-Islah", "Al-Usra", "Al-Turath", "Al-Wahda"],
+            prefixes: vec![
+                "Al-Watani",
+                "Al-Wahda",
+                "Al-Sha'bi",
+                "Al-Islami",
+                "Al-Dimuqrati",
+                "Al-Ahrar",
+                "Al-Tagaddi",
+                "Al-Ijtima'i",
+                "Al-Watani Al-Jadid",
+                "Al-Mustaqbal",
+            ],
+            nouns: vec![
+                "Hizb", "Jabha", "Ittihad", "Harakat", "Tahaluf", "Kutla", "Mubadara", "Minbar",
+                "Rabitat", "Usbat",
+            ],
+            themes: vec![
+                "Al-Ammal",
+                "Al-Hurriya",
+                "Al-Fallahin",
+                "Al-Tahrir",
+                "Al-Adala",
+                "Al-Mustaqbal",
+                "Al-Islah",
+                "Al-Usra",
+                "Al-Turath",
+                "Al-Wahda",
+            ],
             cultural_modifiers: vec!["Islamic", "Arab", "National", "Progressive", "Civic"],
         },
         "balkan" => CulturalNamingPatterns {
-            prefixes: vec!["Narodna", "Jedinstvena", "Demokratska", "Konzervativna", "Liberalna", "Socijalna", "Hrišćanska", "Progressivna", "Patriotska", "Narodna Nova"],
-            nouns: vec!["Stranka", "Front", "Savez", "Pokret", "League", "Koalicija", "Alijansa", "Bloc", "Inicijativa", "Platform"],
-            themes: vec!["Rada", "Sloboda", "Seljaka", "Obnova", "Solidarnost", "Pravde", "Budućnosti", "Reforme", "Porodice", "Nasleđa"],
+            prefixes: vec![
+                "Narodna",
+                "Jedinstvena",
+                "Demokratska",
+                "Konzervativna",
+                "Liberalna",
+                "Socijalna",
+                "Hrišćanska",
+                "Progressivna",
+                "Patriotska",
+                "Narodna Nova",
+            ],
+            nouns: vec![
+                "Stranka",
+                "Front",
+                "Savez",
+                "Pokret",
+                "League",
+                "Koalicija",
+                "Alijansa",
+                "Bloc",
+                "Inicijativa",
+                "Platform",
+            ],
+            themes: vec![
+                "Rada",
+                "Sloboda",
+                "Seljaka",
+                "Obnova",
+                "Solidarnost",
+                "Pravde",
+                "Budućnosti",
+                "Reforme",
+                "Porodice",
+                "Nasleđa",
+            ],
             cultural_modifiers: vec!["Balkanski", "Narodni", "Slovenski", "Novi", "Gradjanski"],
         },
         _ => CulturalNamingPatterns {
-            prefixes: vec!["National", "United", "People's", "Democratic", "Conservative", "Liberal", "Progressive", "Social", "Christian", "Free"],
-            nouns: vec!["Party", "Union", "League", "Alliance", "Movement", "Coalition", "Front", "Bloc", "Initiative", "Platform"],
-            themes: vec!["Labor", "Freedom", "Progress", "Justice", "Future", "Reform", "Family", "Heritage", "Solidarity", "Unity"],
+            prefixes: vec![
+                "National",
+                "United",
+                "People's",
+                "Democratic",
+                "Conservative",
+                "Liberal",
+                "Progressive",
+                "Social",
+                "Christian",
+                "Free",
+            ],
+            nouns: vec![
+                "Party",
+                "Union",
+                "League",
+                "Alliance",
+                "Movement",
+                "Coalition",
+                "Front",
+                "Bloc",
+                "Initiative",
+                "Platform",
+            ],
+            themes: vec![
+                "Labor",
+                "Freedom",
+                "Progress",
+                "Justice",
+                "Future",
+                "Reform",
+                "Family",
+                "Heritage",
+                "Solidarity",
+                "Unity",
+            ],
             cultural_modifiers: vec!["National", "Democratic", "Civic", "Popular", "Modern"],
         },
     }
@@ -81,9 +277,7 @@ fn is_radical(ideology: Ideology) -> bool {
 fn is_centrist(ideology: Ideology) -> bool {
     matches!(
         ideology,
-        Ideology::SocialLiberalism
-            | Ideology::ChristianDemocracy
-            | Ideology::ClassicalLiberalism
+        Ideology::SocialLiberalism | Ideology::ChristianDemocracy | Ideology::ClassicalLiberalism
     )
 }
 
@@ -91,7 +285,7 @@ fn is_centrist(ideology: Ideology) -> bool {
 fn select_weighted(items: &[&'static str], ideology: Ideology, rng: &mut impl Rng) -> &'static str {
     let radical = is_radical(ideology);
     let centrist = is_centrist(ideology);
-    
+
     // Simple selection - in full implementation, this would use weighted probabilities
     let index = if radical {
         rng.gen_range(0..items.len())
@@ -100,7 +294,7 @@ fn select_weighted(items: &[&'static str], ideology: Ideology, rng: &mut impl Rn
     } else {
         rng.gen_range(0..items.len())
     };
-    
+
     items.get(index).copied().unwrap_or(items[0])
 }
 
@@ -206,19 +400,25 @@ fn country_adjective(country_name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_generate_party_name_not_empty() {
         let mut rng = rand::thread_rng();
-        let name = generate_party_name("TestCountry", "slavic", Ideology::SocialDemocracy, &mut rng);
+        let name =
+            generate_party_name("TestCountry", "slavic", Ideology::SocialDemocracy, &mut rng);
         assert!(!name.is_empty());
     }
-    
+
     #[test]
     fn test_fallback_mechanism() {
         let mut rng = rand::thread_rng();
         // Test with unknown cultural group
-        let name = generate_party_name("TestCountry", "UnknownGroup", Ideology::SocialLiberalism, &mut rng);
+        let name = generate_party_name(
+            "TestCountry",
+            "UnknownGroup",
+            Ideology::SocialLiberalism,
+            &mut rng,
+        );
         assert!(!name.is_empty());
     }
 }

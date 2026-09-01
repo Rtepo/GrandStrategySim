@@ -9,23 +9,21 @@ pub struct EspionageOperation {
     /// Operation ID
     #[serde(default)]
     pub id: String,
-    
+
     /// Target councilor
     #[serde(default)]
     pub target_councilor_id: String,
-    
+
     /// Budget allocated to operation
     #[serde(default)]
     pub budget: f64,
-    
+
     /// Operation type
-
     pub operation_type: EspionageType,
-    
-    /// Turn when operation completes
 
+    /// Turn when operation completes
     pub completion_turn: u32,
-    
+
     /// Success probability (0-1)
     #[serde(default)]
     pub success_probability: f64,
@@ -50,15 +48,15 @@ pub struct EspionageState {
     /// Active operations by ID
     #[serde(default)]
     pub active_operations: HashMap<String, EspionageOperation>,
-    
+
     /// Total espionage budget allocated this turn
     #[serde(default)]
     pub espionage_budget: f64,
-    
+
     /// Number of successful operations
     #[serde(default)]
     pub successful_operations: u32,
-    
+
     /// Number of failed operations
     #[serde(default)]
     pub failed_operations: u32,
@@ -66,7 +64,7 @@ pub struct EspionageState {
 
 impl EspionageState {
     /// Create a new espionage operation
-    /// 
+    ///
     /// # Arguments
     /// * `id` - Unique operation ID
     /// * `target_councilor_id` - ID of target councilor
@@ -74,10 +72,10 @@ impl EspionageState {
     /// * `operation_type` - Type of operation
     /// * `current_turn` - Current game turn
     /// * `target_corruption_level` - Corruption level of target (0-1)
-    /// 
+    ///
     /// # Returns
     /// New EspionageOperation with calculated success probability and completion turn
-    /// 
+    ///
     /// # Rules
     /// * Surveillance costs 10-50 budget, takes 1-2 turns
     /// * Success probability = budget/100 + target's corruption_level
@@ -105,9 +103,9 @@ impl EspionageState {
                 (current_turn, 0.8) // High success if material exists
             }
         };
-        
+
         let success_probability = (base_success + target_corruption_level).min(1.0);
-        
+
         EspionageOperation {
             id,
             target_councilor_id,
@@ -117,16 +115,16 @@ impl EspionageState {
             success_probability,
         }
     }
-    
+
     /// Process espionage operations for the current turn
-    /// 
+    ///
     /// # Arguments
     /// * `current_turn` - Current game turn
     /// * `councilors` - Mutable reference to councilors (to update traits if successful)
-    /// 
+    ///
     /// # Returns
     /// Vector of operation result messages
-    /// 
+    ///
     /// # Rules
     /// * Operations complete when completion_turn == current_turn
     /// * Success determined by success_probability vs random roll
@@ -139,13 +137,13 @@ impl EspionageState {
     ) -> Vec<String> {
         let mut messages = Vec::new();
         let mut completed_operations = Vec::new();
-        
+
         for (id, operation) in &self.active_operations {
             if operation.completion_turn == current_turn {
                 completed_operations.push(id.clone());
-                
+
                 let success = rand::random::<f64>() < operation.success_probability;
-                
+
                 if success {
                     self.successful_operations += 1;
                     messages.extend(self.handle_successful_operation(operation, councilors));
@@ -158,15 +156,15 @@ impl EspionageState {
                 }
             }
         }
-        
+
         // Remove completed operations
         for id in completed_operations {
             self.active_operations.remove(&id);
         }
-        
+
         messages
     }
-    
+
     /// Handle a successful espionage operation
     fn handle_successful_operation(
         &self,
@@ -174,14 +172,19 @@ impl EspionageState {
         councilors: &mut HashMap<String, crate::politics::local_council::Councilor>,
     ) -> Vec<String> {
         let mut messages = Vec::new();
-        
+
         if let Some(councilor) = councilors.get_mut(&operation.target_councilor_id) {
             match operation.operation_type {
                 EspionageType::Surveillance => {
                     // Reveal Corrupt trait if present
-                    if councilor.hidden_trait == crate::politics::local_council::CouncilorTrait::Corrupt {
+                    if councilor.hidden_trait
+                        == crate::politics::local_council::CouncilorTrait::Corrupt
+                    {
                         councilor.trait_revealed = true;
-                        councilor.blackmail_material = Some(format!("Compromising material from operation {}", operation.id));
+                        councilor.blackmail_material = Some(format!(
+                            "Compromising material from operation {}",
+                            operation.id
+                        ));
                         messages.push(format!(
                             "[ESPIONAGE] Councilor {} corruption exposed (compromising material)",
                             councilor.name
@@ -214,12 +217,13 @@ impl EspionageState {
                 }
             }
         }
-        
+
         messages
     }
-    
+
     /// Add an operation to the active operations
     pub fn add_operation(&mut self, operation: EspionageOperation) {
-        self.active_operations.insert(operation.id.clone(), operation);
+        self.active_operations
+            .insert(operation.id.clone(), operation);
     }
 }

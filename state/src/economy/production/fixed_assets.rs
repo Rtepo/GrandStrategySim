@@ -64,6 +64,177 @@ pub struct FixedAssetCohort {
     pub acquired_turn: u32,
 }
 
+/// Phase 95: A cohort of blueprint-eligible consumer durables or fixed-asset
+/// outputs in a building's inventory.
+///
+/// Unlike `FixedAssetCohort` (which represents installed machinery), an
+/// `InventoryCohort` represents finished goods sitting in inventory waiting
+/// to be sold. Each cohort tracks its blueprint provenance, quality, and
+/// durability so that buyers receive goods with known characteristics.
+///
+/// # Rules
+/// * One cohort = a batch of identical goods sharing `blueprint_id` +
+///   `quality` + `durability` + `produced_turn`.
+/// * Cohorts are consumed FIFO (oldest first) or by quality priority
+///   (lowest quality first) when inventory is sold.
+/// * The number of cohorts per commodity is bounded by compaction
+///   (see `compact_inventory_cohorts`).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct InventoryCohort {
+    /// Blueprint id this cohort was produced under.
+    /// Empty string for legacy (non-blueprint) production.
+    pub blueprint_id: String,
+    /// Commodity of the goods (IndustrialMachinery, Cars, Trucks, ...).
+    pub commodity: Commodity,
+    /// Quantity of goods in this cohort.
+    pub quantity: f64,
+    /// Blueprint quality (0.0..~2.0). 0.0 for legacy non-blueprint goods.
+    pub quality: f64,
+    /// Durability (expected lifespan in turns). 0.0 for legacy goods.
+    pub durability: f64,
+    /// Turn the cohort was produced.
+    pub produced_turn: u32,
+}
+
+impl InventoryCohort {
+    /// Create a new inventory cohort from production output.
+    pub fn new(
+        blueprint_id: String,
+        commodity: Commodity,
+        quantity: f64,
+        quality: f64,
+        durability: f64,
+        produced_turn: u32,
+    ) -> Self {
+        Self {
+            blueprint_id,
+            commodity,
+            quantity,
+            quality,
+            durability,
+            produced_turn,
+        }
+    }
+
+    /// Returns true if this cohort is compatible with another for merging
+    /// (same blueprint, quality, durability, and commodity).
+    pub fn is_mergeable_with(&self, other: &InventoryCohort) -> bool {
+        self.commodity == other.commodity
+            && self.blueprint_id == other.blueprint_id
+            && (self.quality - other.quality).abs() < 0.01
+            && (self.durability - other.durability).abs() < 0.01
+    }
+}
+
+/// Phase 95: Compact inventory cohorts to respect `max_fixed_cohorts_per_building`.
+///
+/// # Rules
+/// * If `len ≤ cap`, no-op.
+/// * Prefer merging cohorts with the same `blueprint_id` + `quality` + `durability`
+///   (sum `quantity`, keep the earliest `produced_turn` for FIFO rotation).
+/// * If still over the cap, merge the two cohorts with the closest `quality`
+///   (quantity-weighted average) until under the cap.
+/// * Depleted cohorts (quantity ≤ 0) are always removed first.
+/// * Guarantees RAM predictability — see `compact_cohorts` for the same pattern.
+pub fn compact_inventory_cohorts(
+    cohorts: &mut Vec<InventoryCohort>,
+    config: &GenerativeGoodsConfig,
+) {
+    // Remove depleted cohorts.
+    cohorts.retain(|c| c.quantity > 0.0);
+
+    let cap = config.max_fixed_cohorts_per_building;
+    if cohorts.len() <= cap {
+        return;
+    }
+
+    // Pass 1: merge mergeable cohorts (same blueprint, quality, durability, commodity).
+    merge_mergeable_inventory(cohorts);
+    if cohorts.len() <= cap {
+        return;
+    }
+
+    // Pass 2: merge closest-quality cohorts until under cap.
+    while cohorts.len() > cap {
+        merge_closest_quality_inventory(cohorts);
+    }
+}
+
+/// Merge all inventory cohorts that are `is_mergeable_with` each other (in place).
+fn merge_mergeable_inventory(cohorts: &mut Vec<InventoryCohort>) {
+    if cohorts.len() <= 1 {
+        return;
+    }
+    // Sort by (commodity, blueprint_id, quality, durability) so mergeable cohorts are adjacent.
+    cohorts.sort_by(|a, b| {
+        a.commodity
+            .cmp(&b.commodity)
+            .then_with(|| a.blueprint_id.cmp(&b.blueprint_id))
+            .then_with(|| {
+                a.quality
+                    .partial_cmp(&b.quality)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .then_with(|| {
+                a.durability
+                    .partial_cmp(&b.durability)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+    });
+    let mut merged: Vec<InventoryCohort> = Vec::with_capacity(cohorts.len());
+    for cohort in cohorts.drain(..) {
+        if let Some(last) = merged.last_mut() {
+            if last.is_mergeable_with(&cohort) {
+                last.quantity += cohort.quantity;
+                // Keep the earliest produced_turn for FIFO rotation.
+                last.produced_turn = last.produced_turn.min(cohort.produced_turn);
+                continue;
+            }
+        }
+        merged.push(cohort);
+    }
+    *cohorts = merged;
+}
+
+/// Merge the two inventory cohorts with the closest quality (in place).
+fn merge_closest_quality_inventory(cohorts: &mut Vec<InventoryCohort>) {
+    if cohorts.len() <= 1 {
+        return;
+    }
+    let mut best_i = 0;
+    let mut best_j = 1;
+    let mut best_diff = f64::MAX;
+    for i in 0..cohorts.len() {
+        for j in (i + 1)..cohorts.len() {
+            if cohorts[i].commodity != cohorts[j].commodity {
+                continue;
+            }
+            let diff = (cohorts[i].quality - cohorts[j].quality).abs();
+            if diff < best_diff {
+                best_diff = diff;
+                best_i = i;
+                best_j = j;
+            }
+        }
+    }
+    // Merge j into i: quantity-weighted average quality and durability.
+    let (q_i, q_j) = (cohorts[best_i].quantity, cohorts[best_j].quantity);
+    let total = q_i + q_j;
+    if total <= 0.0 {
+        cohorts.remove(best_j);
+        return;
+    }
+    cohorts[best_i].quality =
+        (cohorts[best_i].quality * q_i + cohorts[best_j].quality * q_j) / total;
+    cohorts[best_i].durability =
+        (cohorts[best_i].durability * q_i + cohorts[best_j].durability * q_j) / total;
+    cohorts[best_i].quantity = total;
+    cohorts[best_i].produced_turn = cohorts[best_i]
+        .produced_turn
+        .min(cohorts[best_j].produced_turn);
+    cohorts.remove(best_j);
+}
+
 impl FixedAssetCohort {
     /// Create a freshly installed cohort (condition = 1.0).
     pub fn new(
@@ -120,13 +291,17 @@ pub fn obsolescence_factor(base_tech_year: u32, frontier_year: u32, k: f64) -> f
 
 /// Compute the machinery capacity factor for a building's installed cohorts.
 ///
-/// `machinery_factor = 1.0 + Σ_cohort(count × quality × condition × obsolescence × machine_unit_capacity)`
+/// `machinery_factor = 1.0 + Σ_cohort(count × quality × condition × obsolescence × machine_unit_capacity(commodity))`
 ///
 /// # Rules
 /// * The `1.0` baseline = manual mode for buildings with empty `fixed_assets`
 ///   → identical to pre-Phase-19 behavior (no save breakage, no GDP cliff).
 /// * Scrapped cohorts (condition ≤ 0 or count ≤ 0) contribute 0.
 /// * `frontier_year` is the per-sector domestic tech frontier (caller computes).
+/// * Phase 95: `machine_unit_capacity` is now per-commodity (see
+///   `machine_unit_capacity_for_commodity`) instead of a flat constant.
+///   Heavy machinery (IndustrialMachinery) contributes more capacity per unit
+///   than light vehicles (Cars), reflecting physical scaling (Rule 15).
 pub fn machinery_factor(
     cohorts: &[FixedAssetCohort],
     frontier_year: u32,
@@ -137,10 +312,54 @@ pub fn machinery_factor(
         if cohort.is_scrapped() {
             continue;
         }
-        let obs = obsolescence_factor(cohort.base_tech_year, frontier_year, config.obsolescence_aggressiveness);
-        factor += cohort.count * cohort.quality * cohort.condition * obs * config.machine_unit_capacity;
+        let obs = obsolescence_factor(
+            cohort.base_tech_year,
+            frontier_year,
+            config.obsolescence_aggressiveness,
+        );
+        let unit_cap = machine_unit_capacity_for_commodity(cohort.commodity, config);
+        factor += cohort.count * cohort.quality * cohort.condition * obs * unit_cap;
     }
     factor
+}
+
+/// Phase 95: Compute the per-commodity machine unit capacity.
+///
+/// Different commodity types contribute different amounts of production
+/// capacity per installed unit. This replaces the flat `machine_unit_capacity`
+/// constant with a physically-justified, commodity-specific mapping.
+///
+/// # Rules
+/// * `IndustrialMachinery` → base capacity (1.0× multiplier) — large machines
+///   that directly drive production lines.
+/// * `ConstructionMachinery` → 0.8× — specialized for construction, less
+///   general-purpose capacity.
+/// * `AgriculturalMachinery` → 1.2× — tractors/harvesters cover large areas,
+///   high capacity per unit.
+/// * `Trucks` → 0.5× — transport vehicles, indirect production contribution.
+/// * `Cars` → 0.1× — passenger vehicles, minimal production capacity.
+/// * `Trains` → 0.7× — heavy transport, moderate production contribution.
+/// * `DraftAnimals` → 0.3× — animal power, limited but non-zero.
+/// * `OfficeMachinery` → 0.2× — typewriters/calculators, small productivity boost.
+/// * `CoolingTower` → 0.6× — process cooling, moderate industrial contribution.
+/// * Default → `config.machine_unit_capacity` (backward-compatible fallback).
+pub fn machine_unit_capacity_for_commodity(
+    commodity: Commodity,
+    config: &GenerativeGoodsConfig,
+) -> f64 {
+    let multiplier = match commodity {
+        Commodity::IndustrialMachinery => 1.0,
+        Commodity::ConstructionMachinery => 0.8,
+        Commodity::AgriculturalMachinery => 1.2,
+        Commodity::Trucks => 0.5,
+        Commodity::Cars => 0.1,
+        Commodity::Trains => 0.7,
+        Commodity::DraftAnimals => 0.3,
+        Commodity::OfficeMachinery => 0.2,
+        Commodity::CoolingTower => 0.6,
+        _ => 1.0, // Unknown fixed assets use the base multiplier
+    };
+    config.machine_unit_capacity * multiplier
 }
 
 /// Degrade all cohorts in place by one turn.
@@ -191,7 +410,10 @@ pub fn remove_scrapped(cohorts: &mut Vec<FixedAssetCohort>) {
 /// `needed = Σ_cohort count × (1.0 - condition) × maintenance_per_condition_point`
 ///
 /// This is the derived demand a factory submits as a Buy Bid on the B2B market.
-pub fn maintenance_services_needed(cohorts: &[FixedAssetCohort], config: &GenerativeGoodsConfig) -> f64 {
+pub fn maintenance_services_needed(
+    cohorts: &[FixedAssetCohort],
+    config: &GenerativeGoodsConfig,
+) -> f64 {
     cohorts
         .iter()
         .filter(|c| !c.is_scrapped())
@@ -234,7 +456,8 @@ pub fn restore_cohort_condition(
         }
         let share = deficit / total_deficit;
         let allocated = services_available * share;
-        let max_restorable = cohort.count * config.max_restore_per_turn * config.maintenance_per_condition_point;
+        let max_restorable =
+            cohort.count * config.max_restore_per_turn * config.maintenance_per_condition_point;
         let used = allocated.min(max_restorable);
         if used > 0.0 && config.maintenance_per_condition_point > 0.0 {
             let condition_gain = used / (cohort.count * config.maintenance_per_condition_point);
@@ -250,7 +473,11 @@ pub fn restore_cohort_condition(
 /// # Rules
 /// * Appends the cohort, then runs `compact_cohorts` to respect the cap.
 /// * Use this instead of `push` so the cap is always enforced.
-pub fn install_fixed_asset(cohorts: &mut Vec<FixedAssetCohort>, cohort: FixedAssetCohort, config: &GenerativeGoodsConfig) {
+pub fn install_fixed_asset(
+    cohorts: &mut Vec<FixedAssetCohort>,
+    cohort: FixedAssetCohort,
+    config: &GenerativeGoodsConfig,
+) {
     cohorts.push(cohort);
     compact_cohorts(cohorts, config);
 }
@@ -296,8 +523,11 @@ fn merge_same_blueprint(cohorts: &mut Vec<FixedAssetCohort>) {
             {
                 let total_count = last.count + cohort.count;
                 if total_count > 0.0 {
-                    last.condition = (last.condition * last.count + cohort.condition * cohort.count) / total_count;
-                    last.quality = (last.quality * last.count + cohort.quality * cohort.count) / total_count;
+                    last.condition = (last.condition * last.count
+                        + cohort.condition * cohort.count)
+                        / total_count;
+                    last.quality =
+                        (last.quality * last.count + cohort.quality * cohort.count) / total_count;
                     last.count = total_count;
                 }
                 continue;
@@ -327,13 +557,19 @@ fn merge_closest_condition(cohorts: &mut Vec<FixedAssetCohort>) {
         }
     }
     // Merge j into i, remove j.
-    let (lo, hi) = if best_i < best_j { (best_i, best_j) } else { (best_j, best_i) };
+    let (lo, hi) = if best_i < best_j {
+        (best_i, best_j)
+    } else {
+        (best_j, best_i)
+    };
     let to_merge = cohorts.remove(hi);
     let target = &mut cohorts[lo];
     let total_count = target.count + to_merge.count;
     if total_count > 0.0 {
-        target.condition = (target.condition * target.count + to_merge.condition * to_merge.count) / total_count;
-        target.quality = (target.quality * target.count + to_merge.quality * to_merge.count) / total_count;
+        target.condition =
+            (target.condition * target.count + to_merge.condition * to_merge.count) / total_count;
+        target.quality =
+            (target.quality * target.count + to_merge.quality * to_merge.count) / total_count;
         target.count = total_count;
     }
 }
@@ -437,7 +673,8 @@ pub fn feed_draft_animals(
         let water_allocated = water_needed * share * scale;
 
         if config.maintenance_per_condition_point > 0.0 {
-            let condition_gain = fodder_allocated / (cohort.count * config.maintenance_per_condition_point);
+            let condition_gain =
+                fodder_allocated / (cohort.count * config.maintenance_per_condition_point);
             cohort.condition = (cohort.condition + condition_gain).min(1.0);
         }
         fodder_consumed += fodder_allocated;
@@ -457,7 +694,13 @@ mod tests {
         GenerativeGoodsConfig::default()
     }
 
-    fn cohort(condition: f64, count: f64, quality: f64, durability: f64, tech_year: u32) -> FixedAssetCohort {
+    fn cohort(
+        condition: f64,
+        count: f64,
+        quality: f64,
+        durability: f64,
+        tech_year: u32,
+    ) -> FixedAssetCohort {
         FixedAssetCohort {
             blueprint_id: "bp_test".to_string(),
             commodity: Commodity::IndustrialMachinery,
@@ -517,7 +760,10 @@ mod tests {
         // 1000-year-old tech → obsolescence 0.0 → contributes nothing.
         let cohorts = vec![cohort(1.0, 100.0, 1.0, 200.0, 1000)];
         let factor = machinery_factor(&cohorts, 2000, &c);
-        assert!((factor - 1.0).abs() < 1e-9, "obsolete cohort must not add capacity");
+        assert!(
+            (factor - 1.0).abs() < 1e-9,
+            "obsolete cohort must not add capacity"
+        );
     }
 
     #[test]
@@ -613,7 +859,11 @@ mod tests {
             },
         ];
         compact_cohorts(&mut cohorts, &c);
-        assert_eq!(cohorts.len(), 2, "two same-blueprint cohorts must merge, leaving 2");
+        assert_eq!(
+            cohorts.len(),
+            2,
+            "two same-blueprint cohorts must merge, leaving 2"
+        );
         // The merged cohort should have count 100.
         let merged = cohorts.iter().find(|co| co.count > 50.0).unwrap();
         assert!((merged.count - 100.0).abs() < 1e-9);
@@ -716,7 +966,7 @@ mod tests {
     fn draft_animal_maintenance_needed_counts_only_draft_animals() {
         let c = cfg();
         let cohorts = vec![
-            draft_cohort(0.5, 10.0),  // deficit = 10 * 0.5 = 5
+            draft_cohort(0.5, 10.0),             // deficit = 10 * 0.5 = 5
             cohort(0.5, 10.0, 1.0, 200.0, 2000), // IndustrialMachinery — ignored
         ];
         let needed = draft_animal_maintenance_needed(&cohorts, &c);
@@ -749,7 +999,10 @@ mod tests {
         let (fc, wc) = feed_draft_animals(&mut cohorts, 0.0, 100.0, &c);
         assert_eq!(fc, 0.0);
         assert_eq!(wc, 0.0);
-        assert!((cohorts[0].condition - 0.3).abs() < 1e-9, "condition unchanged without fodder");
+        assert!(
+            (cohorts[0].condition - 0.3).abs() < 1e-9,
+            "condition unchanged without fodder"
+        );
     }
 
     #[test]

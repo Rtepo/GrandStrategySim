@@ -24,31 +24,31 @@ pub struct ForexOrder {
     /// Order ID.
     #[serde(default)]
     pub id: String,
-    
+
     /// Entity placing the order (HedgeFund, Bank, Country).
     #[serde(default)]
     pub entity_id: String,
-    
+
     /// Input currency code (e.g., "PLN").
     #[serde(default)]
     pub input_currency: String,
-    
+
     /// Output currency code (e.g., "USD").
     #[serde(default)]
     pub output_currency: String,
-    
+
     /// Amount in input currency.
     #[serde(default)]
     pub input_amount: f64,
-    
+
     /// Limit price (optional, None = market order).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit_price: Option<f64>,
-    
+
     /// Turn when order expires.
     #[serde(default)]
     pub expiry_turn: u32,
-    
+
     /// Any additional order fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -60,27 +60,27 @@ pub struct ForexLiquidityPool {
     /// Currency pair (e.g., "PLN-USD").
     #[serde(default)]
     pub currency_pair: String,
-    
+
     /// Reserve of source currency.
     #[serde(default)]
     pub source_reserve: f64,
-    
+
     /// Reserve of target currency.
     #[serde(default)]
     pub target_reserve: f64,
-    
+
     /// Liquidity providers: Maps entity_id -> share of pool.
     #[serde(default)]
     pub providers: BTreeMap<String, f64>,
-    
+
     /// Pool fee (percentage of trade value).
     #[serde(default)]
     pub pool_fee: f64,
-    
+
     /// Current spot price (target / source).
     #[serde(default)]
     pub spot_price: f64,
-    
+
     /// Any additional pool fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -88,7 +88,7 @@ pub struct ForexLiquidityPool {
 
 impl ForexLiquidityPool {
     /// Calculate spot price from reserves (x * y = k invariant).
-    /// 
+    ///
     /// # Returns
     /// Current spot price (target_reserve / source_reserve)
     pub fn calculate_spot_price(&self) -> f64 {
@@ -98,16 +98,16 @@ impl ForexLiquidityPool {
             f64::INFINITY
         }
     }
-    
+
     /// Execute a swap through the AMM pool (Uniswap V2 style, fee stays in pool).
-    /// 
+    ///
     /// # Arguments
     /// * `input_amount` - Amount of input currency to swap
     /// * `is_input_source` - true if input is source currency, false if input is target currency
-    /// 
+    ///
     /// # Returns
     /// Output amount in output currency after slippage
-    /// 
+    ///
     /// # Rules
     /// - AMM invariant: source_reserve * target_reserve = k (constant)
     /// - Slippage increases with order size relative to pool depth
@@ -122,30 +122,30 @@ impl ForexLiquidityPool {
         if input_amount <= 0.0 {
             return 0.0;
         }
-        
+
         let k = self.source_reserve * self.target_reserve;
-        
+
         if is_input_source {
             // Input is source: calculate output using virtual reserve (post-fee)
             let virtual_source = self.source_reserve + (input_amount * (1.0 - self.pool_fee));
             let new_target_reserve = k / virtual_source;
             let output_amount = self.target_reserve - new_target_reserve;
-            
+
             // Physical reserve updates: add FULL input_amount to source (fee stays in pool)
             self.source_reserve += input_amount;
             self.target_reserve = new_target_reserve;
-            
+
             output_amount
         } else {
             // Input is target: calculate output using virtual reserve (post-fee)
             let virtual_target = self.target_reserve + (input_amount * (1.0 - self.pool_fee));
             let new_source_reserve = k / virtual_target;
             let output_amount = self.source_reserve - new_source_reserve;
-            
+
             // Physical reserve updates: add FULL input_amount to target (fee stays in pool)
             self.target_reserve += input_amount;
             self.source_reserve = new_source_reserve;
-            
+
             output_amount
         }
     }
@@ -157,35 +157,35 @@ pub struct ForexTrade {
     /// Trade ID.
     #[serde(default)]
     pub id: String,
-    
+
     /// Buyer entity ID.
     #[serde(default)]
     pub buyer_id: String,
-    
+
     /// Seller entity ID (or "AMM_POOL").
     #[serde(default)]
     pub seller_id: String,
-    
+
     /// Source currency code.
     #[serde(default)]
     pub from_currency: String,
-    
+
     /// Target currency code.
     #[serde(default)]
     pub to_currency: String,
-    
+
     /// Amount traded.
     #[serde(default)]
     pub amount: f64,
-    
+
     /// Execution price.
     #[serde(default)]
     pub price: f64,
-    
+
     /// Turn when trade occurred.
     #[serde(default)]
     pub turn: u32,
-    
+
     /// Any additional trade fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -197,19 +197,19 @@ pub struct ForexMarket {
     /// AMM liquidity pools: Maps currency_pair -> pool.
     #[serde(default)]
     pub liquidity_pools: BTreeMap<String, ForexLiquidityPool>,
-    
+
     /// Order book: Maps currency_pair -> Vec<ForexOrder>.
     #[serde(default)]
     pub order_book: BTreeMap<String, Vec<ForexOrder>>,
-    
+
     /// Trade history for audit.
     #[serde(default)]
     pub trade_history: VecDeque<ForexTrade>,
-    
+
     /// Locked countries (sovereign default - cannot trade).
     #[serde(default)]
     pub locked_countries: Vec<String>,
-    
+
     /// Any additional market fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -217,18 +217,18 @@ pub struct ForexMarket {
 
 impl ForexMarket {
     /// Check if a country is locked out of the Forex market.
-    /// 
+    ///
     /// # Arguments
     /// * `country_id` - Country identifier
-    /// 
+    ///
     /// # Returns
     /// true if country is locked out (sovereign default)
     pub fn is_country_locked(&self, country_id: &str) -> bool {
         self.locked_countries.contains(&country_id.to_string())
     }
-    
+
     /// Lock a country from the Forex market (sovereign default).
-    /// 
+    ///
     /// # Arguments
     /// * `country_id` - Country identifier
     pub fn lock_country(&mut self, country_id: &str) {
@@ -236,27 +236,27 @@ impl ForexMarket {
             self.locked_countries.push(country_id.to_string());
         }
     }
-    
+
     /// Unlock a country from the Forex market (default resolved).
-    /// 
+    ///
     /// # Arguments
     /// * `country_id` - Country identifier
     pub fn unlock_country(&mut self, country_id: &str) {
         self.locked_countries.retain(|id| id != country_id);
     }
-    
+
     /// Execute a Forex trade (checks lockout status, enforces double-entry, multi-currency wallets).
-    /// 
+    ///
     /// # Arguments
     /// * `order` - Forex order to execute (input/output routing)
     /// * `country_id` - Country of the entity placing the order
     /// * `domestic_currency` - Domestic currency code for the entity's country
     /// * `currencies` - Global currency registry (for IEU rates)
     /// * `brokerage_accounts` - Global brokerage accounts (for debit/credit)
-    /// 
+    ///
     /// # Returns
     /// Result with executed trade or error (lockout, insufficient liquidity, insufficient funds)
-    /// 
+    ///
     /// # Rules
     /// - Reject if country is locked out (sovereign default)
     /// - Execute via AMM pool (checks both A-B and B-A pool formats)
@@ -275,38 +275,50 @@ impl ForexMarket {
     ) -> Result<ForexTrade, String> {
         // Check lockout status
         if self.is_country_locked(country_id) {
-            return Err(format!("Country {} is locked out of Forex market (sovereign default)", country_id));
+            return Err(format!(
+                "Country {} is locked out of Forex market (sovereign default)",
+                country_id
+            ));
         }
-        
+
         // Get buyer's brokerage account
-        let buyer_account = brokerage_accounts.get_mut(&order.entity_id)
+        let buyer_account = brokerage_accounts
+            .get_mut(&order.entity_id)
             .ok_or("Entity has no brokerage account")?;
-        
+
         // Check buyer has sufficient input currency (using multi-currency wallet)
-        let buyer_balance = buyer_account.get_currency_balance(&order.input_currency, domestic_currency);
+        let buyer_balance =
+            buyer_account.get_currency_balance(&order.input_currency, domestic_currency);
         if buyer_balance < order.input_amount {
-            return Err(format!("Insufficient {} balance: have {}, need {}", order.input_currency, buyer_balance, order.input_amount));
+            return Err(format!(
+                "Insufficient {} balance: have {}, need {}",
+                order.input_currency, buyer_balance, order.input_amount
+            ));
         }
-        
+
         // Find liquidity pool (check both A-B and B-A formats)
         let currency_pair_ab = format!("{}-{}", order.input_currency, order.output_currency);
         let currency_pair_ba = format!("{}-{}", order.output_currency, order.input_currency);
-        
-        let (pool, is_input_source) = if let Some(pool) = self.liquidity_pools.get_mut(&currency_pair_ab) {
-            (pool, true) // input is source
-        } else if let Some(pool) = self.liquidity_pools.get_mut(&currency_pair_ba) {
-            (pool, false) // input is target
-        } else {
-            return Err(format!("No liquidity pool for currency pair {} or {}", currency_pair_ab, currency_pair_ba));
-        };
-        
+
+        let (pool, is_input_source) =
+            if let Some(pool) = self.liquidity_pools.get_mut(&currency_pair_ab) {
+                (pool, true) // input is source
+            } else if let Some(pool) = self.liquidity_pools.get_mut(&currency_pair_ba) {
+                (pool, false) // input is target
+            } else {
+                return Err(format!(
+                    "No liquidity pool for currency pair {} or {}",
+                    currency_pair_ab, currency_pair_ba
+                ));
+            };
+
         // Execute swap
         let output_amount = pool.execute_swap(order.input_amount, is_input_source);
-        
+
         // Double-entry: debit input_currency, credit output_currency (simple routing)
         buyer_account.debit_currency(&order.input_currency, order.input_amount, domestic_currency);
         buyer_account.credit_currency(&order.output_currency, output_amount, domestic_currency);
-        
+
         let trade = ForexTrade {
             id: format!("FOREX-{}", uuid::Uuid::new_v4()),
             buyer_id: order.entity_id.clone(),
@@ -318,21 +330,21 @@ impl ForexMarket {
             turn: current_turn,
             extra: Map::new(),
         };
-        
+
         self.trade_history.push_back(trade.clone());
         Ok(trade)
     }
-    
+
     /// Execute a direct AMM swap (bypassing brokerage_accounts for raw amount conversion).
-    /// 
+    ///
     /// # Arguments
     /// * `input_currency` - Input currency code
     /// * `output_currency` - Output currency code
     /// * `input_amount` - Amount to swap
-    /// 
+    ///
     /// # Returns
     /// Result with output amount or error (no liquidity pool, insufficient liquidity)
-    /// 
+    ///
     /// # Rules
     /// - Used by Syndic to convert seized fx_balances without BorrowChecker panic
     /// - Direct AMM pool interaction, no brokerage account debit/credit
@@ -346,22 +358,26 @@ impl ForexMarket {
         if input_amount <= 0.0 {
             return Err("Input amount must be positive".to_string());
         }
-        
+
         // Find liquidity pool (check both A-B and B-A formats)
         let currency_pair_ab = format!("{}-{}", input_currency, output_currency);
         let currency_pair_ba = format!("{}-{}", output_currency, input_currency);
-        
-        let (pool, is_input_source) = if let Some(pool) = self.liquidity_pools.get_mut(&currency_pair_ab) {
-            (pool, true) // input is source
-        } else if let Some(pool) = self.liquidity_pools.get_mut(&currency_pair_ba) {
-            (pool, false) // input is target
-        } else {
-            return Err(format!("No liquidity pool for currency pair {} or {}", currency_pair_ab, currency_pair_ba));
-        };
-        
+
+        let (pool, is_input_source) =
+            if let Some(pool) = self.liquidity_pools.get_mut(&currency_pair_ab) {
+                (pool, true) // input is source
+            } else if let Some(pool) = self.liquidity_pools.get_mut(&currency_pair_ba) {
+                (pool, false) // input is target
+            } else {
+                return Err(format!(
+                    "No liquidity pool for currency pair {} or {}",
+                    currency_pair_ab, currency_pair_ba
+                ));
+            };
+
         // Execute swap
         let output_amount = pool.execute_swap(input_amount, is_input_source);
-        
+
         Ok(output_amount)
     }
 }
@@ -445,7 +461,10 @@ pub fn settle_trade_deficits(
 
         // Determine the foreign currency to settle in
         // Use the first fx_reserve key that isn't the domestic currency
-        let foreign_currency = country.central_bank.fx_reserves.keys()
+        let foreign_currency = country
+            .central_bank
+            .fx_reserves
+            .keys()
             .find(|k| *k != &domestic_currency)
             .cloned()
             .unwrap_or_else(|| "IEU".to_string());
@@ -453,13 +472,19 @@ pub fn settle_trade_deficits(
         let deficit_amount = -deficit;
 
         // Step 1: Try Forex reserves
-        let available_fx = *country.central_bank.fx_reserves
+        let available_fx = *country
+            .central_bank
+            .fx_reserves
             .get(&foreign_currency)
             .unwrap_or(&0.0);
 
         if available_fx >= deficit_amount {
             // Settle entirely via Forex
-            *country.central_bank.fx_reserves.get_mut(&foreign_currency).unwrap() -= deficit_amount;
+            *country
+                .central_bank
+                .fx_reserves
+                .get_mut(&foreign_currency)
+                .unwrap() -= deficit_amount;
             result.forex_settled = deficit_amount;
             results.push(result);
             continue;
@@ -468,7 +493,11 @@ pub fn settle_trade_deficits(
         // Partial Forex settlement
         let mut settled = available_fx;
         if available_fx > 0.0 {
-            *country.central_bank.fx_reserves.get_mut(&foreign_currency).unwrap() -= available_fx;
+            *country
+                .central_bank
+                .fx_reserves
+                .get_mut(&foreign_currency)
+                .unwrap() -= available_fx;
         }
         let remaining = deficit_amount - available_fx;
 
@@ -477,7 +506,9 @@ pub fn settle_trade_deficits(
         let gold_price = state.gold_exchange.gold_price_in_ieu;
 
         // Calculate how much gold we need to sell
-        let currency_rate = state.currencies.get(&foreign_currency)
+        let currency_rate = state
+            .currencies
+            .get(&foreign_currency)
             .map(|c| c.exchange_rate)
             .unwrap_or(1.0);
         let gold_needed = remaining / (gold_price * currency_rate);

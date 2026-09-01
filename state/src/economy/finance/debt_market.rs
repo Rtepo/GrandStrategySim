@@ -8,8 +8,8 @@
 //! with arrears capitalization, credit rating crashes, and primary market
 //! lockout.
 
-use crate::state::Country;
 use crate::state::macro_data::{annual_to_per_turn_rate, TURNS_PER_YEAR};
+use crate::state::Country;
 use serde::{Deserialize, Serialize};
 
 // ============================================================================
@@ -62,24 +62,48 @@ impl CreditRating {
     /// Returns the ordinal index (0 = Aaa, 17 = C).
     pub fn ordinal(self) -> usize {
         match self {
-            CreditRating::Aaa => 0, CreditRating::Aa1 => 1, CreditRating::Aa2 => 2,
-            CreditRating::Aa3 => 3, CreditRating::A1 => 4, CreditRating::A2 => 5,
-            CreditRating::A3 => 6, CreditRating::Baa1 => 7, CreditRating::Baa2 => 8,
-            CreditRating::Baa3 => 9, CreditRating::Ba1 => 10, CreditRating::Ba2 => 11,
-            CreditRating::Ba3 => 12, CreditRating::Caa1 => 13, CreditRating::Caa2 => 14,
-            CreditRating::Caa3 => 15, CreditRating::Ca => 16, CreditRating::C => 17,
+            CreditRating::Aaa => 0,
+            CreditRating::Aa1 => 1,
+            CreditRating::Aa2 => 2,
+            CreditRating::Aa3 => 3,
+            CreditRating::A1 => 4,
+            CreditRating::A2 => 5,
+            CreditRating::A3 => 6,
+            CreditRating::Baa1 => 7,
+            CreditRating::Baa2 => 8,
+            CreditRating::Baa3 => 9,
+            CreditRating::Ba1 => 10,
+            CreditRating::Ba2 => 11,
+            CreditRating::Ba3 => 12,
+            CreditRating::Caa1 => 13,
+            CreditRating::Caa2 => 14,
+            CreditRating::Caa3 => 15,
+            CreditRating::Ca => 16,
+            CreditRating::C => 17,
         }
     }
 
     /// Returns the rating at the given ordinal, clamped to valid range.
     pub fn from_ordinal(n: usize) -> Self {
         let all = [
-            CreditRating::Aaa, CreditRating::Aa1, CreditRating::Aa2, CreditRating::Aa3,
-            CreditRating::A1, CreditRating::A2, CreditRating::A3,
-            CreditRating::Baa1, CreditRating::Baa2, CreditRating::Baa3,
-            CreditRating::Ba1, CreditRating::Ba2, CreditRating::Ba3,
-            CreditRating::Caa1, CreditRating::Caa2, CreditRating::Caa3,
-            CreditRating::Ca, CreditRating::C,
+            CreditRating::Aaa,
+            CreditRating::Aa1,
+            CreditRating::Aa2,
+            CreditRating::Aa3,
+            CreditRating::A1,
+            CreditRating::A2,
+            CreditRating::A3,
+            CreditRating::Baa1,
+            CreditRating::Baa2,
+            CreditRating::Baa3,
+            CreditRating::Ba1,
+            CreditRating::Ba2,
+            CreditRating::Ba3,
+            CreditRating::Caa1,
+            CreditRating::Caa2,
+            CreditRating::Caa3,
+            CreditRating::Ca,
+            CreditRating::C,
         ];
         all[n.min(all.len() - 1)]
     }
@@ -327,7 +351,11 @@ impl DebtMarket {
             .filter(|s| !s.is_matured)
             .flat_map(|s| s.holders.iter().map(|h| h.quantity))
             .sum();
-        let retail: f64 = self.retail_bonds.iter().map(|b| b.face_value + b.arrears).sum();
+        let retail: f64 = self
+            .retail_bonds
+            .iter()
+            .map(|b| b.face_value + b.arrears)
+            .sum();
         self.total_outstanding_debt = wholesale + retail;
 
         // Weighted average interest rate
@@ -339,7 +367,11 @@ impl DebtMarket {
                 .filter(|s| !s.is_matured)
                 .flat_map(|s| s.holders.iter().map(|h| h.quantity * s.coupon_rate))
                 .sum::<f64>()
-                + self.retail_bonds.iter().map(|b| b.face_value * b.interest_rate).sum::<f64>();
+                + self
+                    .retail_bonds
+                    .iter()
+                    .map(|b| b.face_value * b.interest_rate)
+                    .sum::<f64>();
             self.weighted_avg_interest_rate = w_sum / total;
         }
     }
@@ -365,11 +397,7 @@ impl DebtMarket {
 ///   This price discount means DSPWs earn a higher yield (inverse price-yield relationship).
 /// * Cash flows: `bank.brokerage_account.cash → treasury.liquid_reserves`.
 /// * Securities credited to `bank.balance_sheet.securities`.
-pub fn issue_treasury_securities(
-    country: &mut Country,
-    amount_needed: f64,
-    current_turn: u32,
-) {
+pub fn issue_treasury_securities(country: &mut Country, amount_needed: f64, current_turn: u32) {
     if country.debt_market.is_locked_out_of_primary || amount_needed <= 0.0 {
         return;
     }
@@ -393,7 +421,9 @@ pub fn issue_treasury_securities(
     // Low global reputation increases sovereign borrowing costs — bad-faith
     // actors (treaty violators) pay a risk premium reflecting lower sovereign trust.
     let reputation_config = crate::international::reputation::ReputationConfig::default();
-    let reputation_penalty = country.global_reputation.debt_interest_penalty(&reputation_config);
+    let reputation_penalty = country
+        .global_reputation
+        .debt_interest_penalty(&reputation_config);
 
     let sovereign_yield = cb_reference_rate + credit_spread + reputation_penalty;
 
@@ -413,13 +443,14 @@ pub fn issue_treasury_securities(
         1.0 / (1.0 + market_yield * 0.1)
     };
 
-    let issue_price = if country.debt_market.dspw_enabled && !country.debt_market.primary_dealers.is_empty() {
-        // DSPW: mandatory price discount (0.5% below market clearing price)
-        // This means DSPWs pay less, earning a higher yield
-        base_price * 0.995
-    } else {
-        base_price
-    };
+    let issue_price =
+        if country.debt_market.dspw_enabled && !country.debt_market.primary_dealers.is_empty() {
+            // DSPW: mandatory price discount (0.5% below market clearing price)
+            // This means DSPWs pay less, earning a higher yield
+            base_price * 0.995
+        } else {
+            base_price
+        };
 
     // Phase 38: DSPW Reversed Transaction Flow.
     // When DSPW is enabled and primary dealers exist, securities are created
@@ -427,8 +458,8 @@ pub fn issue_treasury_securities(
     // yet. The DSPW banks will pull-purchase from this inventory during
     // process_banking_turn (which has access to the companies slice).
     // When DSPW is NOT enabled, fall back to the citizen-savings pathway.
-    let has_dspw = country.debt_market.dspw_enabled
-        && !country.debt_market.primary_dealers.is_empty();
+    let has_dspw =
+        country.debt_market.dspw_enabled && !country.debt_market.primary_dealers.is_empty();
 
     let security_id = format!(
         "{}-{}-{:04}",
@@ -441,30 +472,33 @@ pub fn issue_treasury_securities(
         // Create auction inventory — no cash changes hands yet.
         // The dspw_auction_settlement step in turn.rs will handle the purchase.
         let actual_amount = amount_needed;
-        country.debt_market.outstanding_securities.push(TreasurySecurity {
-            id: security_id,
-            security_type: if is_short_term {
-                TreasurySecurityType::TreasuryBill
-            } else {
-                TreasurySecurityType::TreasuryBond
-            },
-            face_value: actual_amount,
-            issue_price,
-            issue_turn: current_turn,
-            maturity_turns,
-            turns_remaining: maturity_turns,
-            coupon_rate,
-            coupon_frequency: if is_short_term {
-                CouponFrequency::CapitalizedAtMaturity
-            } else {
-                CouponFrequency::Annual
-            },
-            is_inflation_indexed: false,
-            holders: Vec::new(), // Empty — awaiting DSPW purchase
-            last_coupon_turn: current_turn,
-            is_matured: false,
-            is_auction_inventory: true,
-        });
+        country
+            .debt_market
+            .outstanding_securities
+            .push(TreasurySecurity {
+                id: security_id,
+                security_type: if is_short_term {
+                    TreasurySecurityType::TreasuryBill
+                } else {
+                    TreasurySecurityType::TreasuryBond
+                },
+                face_value: actual_amount,
+                issue_price,
+                issue_turn: current_turn,
+                maturity_turns,
+                turns_remaining: maturity_turns,
+                coupon_rate,
+                coupon_frequency: if is_short_term {
+                    CouponFrequency::CapitalizedAtMaturity
+                } else {
+                    CouponFrequency::Annual
+                },
+                is_inflation_indexed: false,
+                holders: Vec::new(), // Empty — awaiting DSPW purchase
+                last_coupon_turn: current_turn,
+                is_matured: false,
+                is_auction_inventory: true,
+            });
         country.debt_market.recalculate();
         return;
     }
@@ -501,30 +535,33 @@ pub fn issue_treasury_securities(
         // Phase 31: Double-entry — deduct from citizen savings, credit treasury.
         country.budget.citizen_savings -= total_raised;
         country.budget.liquid_reserves += total_raised;
-        country.debt_market.outstanding_securities.push(TreasurySecurity {
-            id: security_id,
-            security_type: if is_short_term {
-                TreasurySecurityType::TreasuryBill
-            } else {
-                TreasurySecurityType::TreasuryBond
-            },
-            face_value: actual_amount,
-            issue_price,
-            issue_turn: current_turn,
-            maturity_turns,
-            turns_remaining: maturity_turns,
-            coupon_rate,
-            coupon_frequency: if is_short_term {
-                CouponFrequency::CapitalizedAtMaturity
-            } else {
-                CouponFrequency::Annual
-            },
-            is_inflation_indexed: false,
-            holders,
-            last_coupon_turn: current_turn,
-            is_matured: false,
-            is_auction_inventory: false,
-        });
+        country
+            .debt_market
+            .outstanding_securities
+            .push(TreasurySecurity {
+                id: security_id,
+                security_type: if is_short_term {
+                    TreasurySecurityType::TreasuryBill
+                } else {
+                    TreasurySecurityType::TreasuryBond
+                },
+                face_value: actual_amount,
+                issue_price,
+                issue_turn: current_turn,
+                maturity_turns,
+                turns_remaining: maturity_turns,
+                coupon_rate,
+                coupon_frequency: if is_short_term {
+                    CouponFrequency::CapitalizedAtMaturity
+                } else {
+                    CouponFrequency::Annual
+                },
+                is_inflation_indexed: false,
+                holders,
+                last_coupon_turn: current_turn,
+                is_matured: false,
+                is_auction_inventory: false,
+            });
         country.debt_market.recalculate();
     }
 }
@@ -546,10 +583,7 @@ pub fn issue_treasury_securities(
 /// * No iteration over individual citizens — operates at aggregate demographic class level.
 /// * **Causality**: Cash raised here funds the NEXT turn's budget (Turn X+1),
 ///   not the current turn's spending.
-pub fn clear_savings_bonds_b2c(
-    country: &mut Country,
-    current_turn: u32,
-) {
+pub fn clear_savings_bonds_b2c(country: &mut Country, current_turn: u32) {
     // Set retail rate: 1-2% above wholesale yield to incentivize participation
     let wholesale_yield = country.debt_market.weighted_avg_interest_rate.max(0.03);
     let retail_rate = wholesale_yield + 0.015;
@@ -565,7 +599,9 @@ pub fn clear_savings_bonds_b2c(
         .regions
         .iter()
         .flat_map(|r| {
-            r.class_demographics.rural_classes.values()
+            r.class_demographics
+                .rural_classes
+                .values()
                 .chain(r.class_demographics.urban_classes.values())
         })
         .map(|cd| cd.savings)
@@ -586,7 +622,10 @@ pub fn clear_savings_bonds_b2c(
     // Deduct from citizen savings pro-rata across regions and classes
     let mut total_absorbed = 0.0;
     for region in &mut country.regions {
-        for (class_name, cd) in region.class_demographics.rural_classes.iter_mut()
+        for (class_name, cd) in region
+            .class_demographics
+            .rural_classes
+            .iter_mut()
             .chain(region.class_demographics.urban_classes.iter_mut())
         {
             if cd.savings <= 0.0 {
@@ -603,7 +642,11 @@ pub fn clear_savings_bonds_b2c(
             // Create savings bond record
             let holder_key = format!("{}:{}", region.id, class_name);
             country.debt_market.retail_bonds.push(SavingsBond {
-                id: format!("SB-{}-{:04}", current_turn, country.debt_market.retail_bonds.len() + 1),
+                id: format!(
+                    "SB-{}-{:04}",
+                    current_turn,
+                    country.debt_market.retail_bonds.len() + 1
+                ),
                 face_value: purchase,
                 interest_rate: retail_rate,
                 issue_turn: current_turn,
@@ -656,7 +699,12 @@ pub fn process_debt_service(
 
     // Process wholesale securities
     let mut matured_indices = Vec::new();
-    for (sec_idx, security) in country.debt_market.outstanding_securities.iter_mut().enumerate() {
+    for (sec_idx, security) in country
+        .debt_market
+        .outstanding_securities
+        .iter_mut()
+        .enumerate()
+    {
         if security.is_matured {
             continue;
         }
@@ -669,7 +717,9 @@ pub fn process_debt_service(
         // Coupon payment check (Phase 74: fix frequency — Annual = every 24 turns)
         let coupon_due = match security.coupon_frequency {
             CouponFrequency::EveryTurn => true,
-            CouponFrequency::Annual => (current_turn - security.last_coupon_turn) >= TURNS_PER_YEAR as u32,
+            CouponFrequency::Annual => {
+                (current_turn - security.last_coupon_turn) >= TURNS_PER_YEAR as u32
+            }
             CouponFrequency::CapitalizedAtMaturity => security.turns_remaining == 0,
         };
 
@@ -697,7 +747,8 @@ pub fn process_debt_service(
                     CouponFrequency::CapitalizedAtMaturity => {
                         // Compound over the full maturity period
                         let maturity_years = security.maturity_turns as f64 / TURNS_PER_YEAR as f64;
-                        adjusted_principal * ((1.0 + security.coupon_rate).powf(maturity_years) - 1.0)
+                        adjusted_principal
+                            * ((1.0 + security.coupon_rate).powf(maturity_years) - 1.0)
                     }
                 };
 
@@ -725,7 +776,9 @@ pub fn process_debt_service(
         }
 
         // Interest payment (annual — Phase 74: fix to every 24 turns, not 4)
-        if (current_turn - bond.issue_turn).is_multiple_of(TURNS_PER_YEAR as u32) && bond.turns_remaining > 0 {
+        if (current_turn - bond.issue_turn).is_multiple_of(TURNS_PER_YEAR as u32)
+            && bond.turns_remaining > 0
+        {
             let adjusted_principal = if bond.is_inflation_indexed {
                 let new_principal = bond.face_value * (1.0 + inflation_rate);
                 bond.face_value = new_principal;
@@ -769,7 +822,8 @@ pub fn process_debt_service(
         country.debt_market.default_history.push(DefaultEvent {
             turn: current_turn,
             unpaid_amount: unpaid,
-            security_ids_affected: country.debt_market
+            security_ids_affected: country
+                .debt_market
                 .outstanding_securities
                 .iter()
                 .filter(|s| !s.is_matured)
@@ -806,7 +860,9 @@ pub fn process_debt_service(
         country.budget.liquid_reserves -= total_due;
 
         // Credit rating recovery: +1 notch per turn of full payment
-        if country.debt_market.credit_rating.ordinal() > 0 && country.debt_market.total_arrears == 0.0 {
+        if country.debt_market.credit_rating.ordinal() > 0
+            && country.debt_market.total_arrears == 0.0
+        {
             country.debt_market.credit_rating = country.debt_market.credit_rating.upgrade(1);
         }
     }
@@ -834,9 +890,13 @@ pub fn process_debt_service(
                 for region in &mut country.regions {
                     if region.id == region_id {
                         // Try rural classes first, then urban
-                        if let Some(class) = region.class_demographics.rural_classes.get_mut(class_name) {
+                        if let Some(class) =
+                            region.class_demographics.rural_classes.get_mut(class_name)
+                        {
                             class.savings += actual_credit;
-                        } else if let Some(class) = region.class_demographics.urban_classes.get_mut(class_name) {
+                        } else if let Some(class) =
+                            region.class_demographics.urban_classes.get_mut(class_name)
+                        {
                             class.savings += actual_credit;
                         }
                         break;
@@ -870,10 +930,16 @@ pub fn process_debt_service(
     for idx in matured_indices.iter().rev() {
         country.debt_market.outstanding_securities[*idx].is_matured = true;
     }
-    country.debt_market.outstanding_securities.retain(|s| !s.is_matured);
+    country
+        .debt_market
+        .outstanding_securities
+        .retain(|s| !s.is_matured);
 
     // Remove matured retail bonds
-    country.debt_market.retail_bonds.retain(|b| b.turns_remaining > 0);
+    country
+        .debt_market
+        .retail_bonds
+        .retain(|b| b.turns_remaining > 0);
 
     country.debt_market.recalculate();
 }
@@ -927,20 +993,21 @@ pub fn clear_arrears(country: &mut Country) {
 /// * Execute trades: buyer cash → seller cash, update holder records.
 /// * Calculate market yield from clearing prices.
 /// * Update `debt_market.secondary_market.last_yield`.
-pub fn clear_secondary_debt_market(
-    debt_market: &mut DebtMarket,
-    _current_turn: u32,
-) {
+pub fn clear_secondary_debt_market(debt_market: &mut DebtMarket, _current_turn: u32) {
     let sm = &mut debt_market.secondary_market;
 
     // Sort buy orders descending by price
     sm.buy_orders.sort_by(|a, b| {
-        b.price.partial_cmp(&a.price).unwrap_or(std::cmp::Ordering::Equal)
+        b.price
+            .partial_cmp(&a.price)
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
 
     // Sort sell orders ascending by price
     sm.sell_orders.sort_by(|a, b| {
-        a.price.partial_cmp(&b.price).unwrap_or(std::cmp::Ordering::Equal)
+        a.price
+            .partial_cmp(&b.price)
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
 
     let mut clearing_price = 0.0_f64;

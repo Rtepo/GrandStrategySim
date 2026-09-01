@@ -6,11 +6,11 @@
 
 #![allow(missing_docs)]
 
+use crate::energy::types::*;
 use crate::entities::Building;
 use crate::registries::enums::Sector;
 use crate::society::geography::Region;
 use crate::society::housing::CommercialBuilding;
-use crate::energy::types::*;
 
 use std::collections::HashMap;
 
@@ -81,9 +81,17 @@ pub fn apply_load_shedding(
     // Determine sector cut order based on priority.
     let (first_cut, second_cut, third_cut) = match priority {
         GridPriority::Peacetime => (
-            vec![Sector::LocalServices, Sector::Hospitality, Sector::MediaAndEntertainment],
+            vec![
+                Sector::LocalServices,
+                Sector::Hospitality,
+                Sector::MediaAndEntertainment,
+            ],
             vec![Sector::HeavyIndustry, Sector::LightIndustry],
-            vec![Sector::ArmamentsIndustry, Sector::MedicalServices, Sector::EducationalServices],
+            vec![
+                Sector::ArmamentsIndustry,
+                Sector::MedicalServices,
+                Sector::EducationalServices,
+            ],
         ),
         GridPriority::Wartime => (
             vec![Sector::LocalServices, Sector::Hospitality],
@@ -96,7 +104,11 @@ pub fn apply_load_shedding(
             vec![Sector::MedicalServices, Sector::EducationalServices],
         ),
         GridPriority::Industrial => (
-            vec![Sector::LocalServices, Sector::Hospitality, Sector::MediaAndEntertainment],
+            vec![
+                Sector::LocalServices,
+                Sector::Hospitality,
+                Sector::MediaAndEntertainment,
+            ],
             vec![Sector::MedicalServices, Sector::EducationalServices],
             vec![Sector::HeavyIndustry, Sector::LightIndustry],
         ),

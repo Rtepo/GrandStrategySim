@@ -167,8 +167,14 @@ mod tests {
 
     #[test]
     fn test_registry_keys() {
-        assert_eq!(HeatingPlantType::WoodBoiler.registry_key(), "wood_boiler_plant");
-        assert_eq!(HeatingPlantType::CoalHeatPlant.registry_key(), "coal_heat_plant");
+        assert_eq!(
+            HeatingPlantType::WoodBoiler.registry_key(),
+            "wood_boiler_plant"
+        );
+        assert_eq!(
+            HeatingPlantType::CoalHeatPlant.registry_key(),
+            "coal_heat_plant"
+        );
         assert_eq!(
             HeatingPlantType::GeothermalHeatPlant.registry_key(),
             "geothermal_heat_plant"

@@ -1,33 +1,28 @@
+use crate::entities::Company;
+use crate::politics::system::Party;
+use crate::registries::enums::Sector;
+use crate::society::geography::Region;
+use crate::state::treasury::Treasury;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::registries::enums::Sector;
-use crate::entities::Company;
-use crate::society::geography::Region;
-use crate::politics::system::Party;
-use crate::state::treasury::Treasury;
 
 /// Election campaign state machine.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum ElectionState {
     #[default]
-
     Idle,
-    
 
     PreCampaign {
         turns_until_start: u32,
         registration_deadline: u32,
     },
-    
 
     ActiveCampaign {
         turns_remaining: u32,
         current_turn: u32,
     },
-    
 
     ElectionDay,
-    
 
     PostElectionResolution {
         turn: u32,
@@ -40,23 +35,23 @@ pub struct ElectoralCommission {
     /// Legal spending limit per party (scaled to GDP)
     #[serde(default)]
     pub spending_limit: f64,
-    
+
     /// Current audit status
     #[serde(default)]
     pub audit_status: AuditStatus,
-    
+
     /// Parties currently under investigation
     #[serde(default)]
     pub parties_under_investigation: Vec<String>,
-    
+
     /// Fines imposed this campaign cycle
     #[serde(default)]
     pub fines_imposed: HashMap<String, f64>,
-    
+
     /// Outstanding debts owed by parties (receivable assets for state)
     #[serde(default)]
     pub outstanding_party_debts: HashMap<String, PartyDebt>,
-    
+
     /// Commission budget (for enforcement)
     #[serde(default)]
     pub commission_budget: f64,
@@ -67,15 +62,15 @@ pub struct PartyDebt {
     /// Total debt owed to Electoral Commission
     #[serde(default)]
     pub amount: f64,
-    
+
     /// Turn when debt was incurred
     #[serde(default)]
     pub incurrence_turn: u32,
-    
+
     /// Demographic classes liable for debt (member liability)
     #[serde(default)]
     pub liable_classes: Vec<String>,
-    
+
     /// Whether asset liquidation has been triggered
     #[serde(default)]
     pub asset_liquidation_triggered: bool,
@@ -84,15 +79,12 @@ pub struct PartyDebt {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum AuditStatus {
     #[default]
-
     None,
-    
 
     InProgress {
         target_party: String,
         turns_remaining: u32,
     },
-    
 
     Complete {
         target_party: String,
@@ -100,19 +92,15 @@ pub enum AuditStatus {
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum AuditFindings {
-
     #[default]
     Clean,
-    
 
     Overspending {
         amount: f64,
         penalty_multiplier: f64,
     },
-    
 
     IllegalFinancing {
         black_money_detected: f64,
@@ -120,19 +108,14 @@ pub enum AuditFindings {
     },
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum CorruptionSeverity {
     #[default]
-
     Low,
-    
 
     Medium,
-    
 
     High,
-    
 
     Catastrophic,
 }
@@ -140,14 +123,12 @@ pub enum CorruptionSeverity {
 /// Campaign action options that parties can execute.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum CampaignAction {
-
     NationalAdCampaign {
         cost: f64,
         support_boost: f64,
         mobilization_boost: f64,
         duration_turns: u32,
     },
-    
 
     RegionalRally {
         target_region: String,
@@ -155,21 +136,18 @@ pub enum CampaignAction {
         support_boost: f64,
         mobilization_boost: f64,
     },
-    
 
     TelevisionCampaign {
         cost: f64,
         support_boost: f64,
         reach_factor: f64,
     },
-    
 
     DigitalCampaign {
         cost: f64,
         support_boost: f64,
         youth_targeting: bool,
     },
-    
 
     CorporateDonors {
         cost: f64,
@@ -191,18 +169,13 @@ impl Default for CampaignAction {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct CampaignExecution {
-
     pub party_id: String,
-    
 
     pub action: CampaignAction,
-    
 
     pub execution_turn: u32,
-    
 
     pub is_black_money: bool,
-    
 
     pub transaction_recorded: bool,
 }
@@ -212,35 +185,30 @@ pub struct BlackMoneyPool {
     /// Illicit funds not recorded in official treasury
     #[serde(default)]
     pub illicit_funds: f64,
-    
+
     /// Source of black money (for scandal context)
     #[serde(default)]
     pub source: BlackMoneySource,
-    
+
     /// Risk factor for discovery (0-1)
     #[serde(default)]
     pub discovery_risk: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum BlackMoneySource {
-
     #[default]
     None,
-    
 
     CorporateLobbying {
         company_id: String,
         amount: f64,
     },
-    
 
     OrganizedCrime {
         syndicate_id: String,
         amount: f64,
     },
-    
 
     MoneyLaundering {
         shell_company_id: String,
@@ -248,15 +216,11 @@ pub enum BlackMoneySource {
     },
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum CampaignError {
-
     InsufficientFunds,
-    
 
     CompanyNotFound,
-    
 
     TransactionError,
 }
@@ -265,10 +229,10 @@ pub enum CampaignError {
 pub fn calculate_spending_limit(gdp: f64, population: f64) -> f64 {
     // Base limit: 0.5% of GDP per party
     let base_limit = gdp * 0.005;
-    
+
     // Adjustment for population density (larger countries get proportionally less per capita)
     let population_factor = (population / 1_000_000.0).sqrt();
-    
+
     base_limit / population_factor
 }
 
@@ -282,16 +246,16 @@ pub fn resolve_scandal(
 ) -> Vec<String> {
     let mut messages = Vec::new();
     let party_cash = party.liquid_funds();
-    
+
     match severity {
         CorruptionSeverity::Low => {
             let fine = party_cash * 0.5;
             let collected = fine.min(party_cash);
-            
+
             party.brokerage_account.as_mut().unwrap().cash -= collected;
             treasury.liquid_reserves += collected;
             commission.fines_imposed.insert(party.id.clone(), fine);
-            
+
             if collected < fine {
                 let unpaid = fine - collected;
                 commission.outstanding_party_debts.insert(
@@ -301,24 +265,30 @@ pub fn resolve_scandal(
                         incurrence_turn: current_turn,
                         liable_classes: party.base.clone(),
                         asset_liquidation_triggered: false,
-                    }
+                    },
                 );
-                messages.push(format!("[SCANDAL] Party {} penalized. Collected: {:.2}, Unpaid: {:.2} (party debt)", party.id, collected, unpaid));
+                messages.push(format!(
+                    "[SCANDAL] Party {} penalized. Collected: {:.2}, Unpaid: {:.2} (party debt)",
+                    party.id, collected, unpaid
+                ));
             } else {
-                messages.push(format!("[SKANDAL] Partia {} ukarana za nielegalne finansowanie. Kara: {:.2}", party.id, fine));
+                messages.push(format!(
+                    "[SCANDAL] Party {} penalized for illegal financing. Fine: {:.2}",
+                    party.id, fine
+                ));
             }
-            
+
             party.support *= 0.9;
         }
-        
+
         CorruptionSeverity::Medium => {
             let fine = party_cash * 0.8;
             let collected = fine.min(party_cash);
-            
+
             party.brokerage_account.as_mut().unwrap().cash -= collected;
             treasury.liquid_reserves += collected;
             commission.fines_imposed.insert(party.id.clone(), fine);
-            
+
             if collected < fine {
                 let unpaid = fine - collected;
                 commission.outstanding_party_debts.insert(
@@ -328,25 +298,31 @@ pub fn resolve_scandal(
                         incurrence_turn: current_turn,
                         liable_classes: party.base.clone(),
                         asset_liquidation_triggered: false,
-                    }
+                    },
                 );
-                messages.push(format!("[SCANDAL] Party {} doomed. Collected: {:.2}, Unpaid: {:.2} (party debt)", party.id, collected, unpaid));
+                messages.push(format!(
+                    "[SCANDAL] Party {} doomed. Collected: {:.2}, Unpaid: {:.2} (party debt)",
+                    party.id, collected, unpaid
+                ));
             } else {
-                messages.push(format!("[SCANDAL] Party {} engulfed in corruption scandal. Fine: {:.2}", party.id, fine));
+                messages.push(format!(
+                    "[SCANDAL] Party {} engulfed in corruption scandal. Fine: {:.2}",
+                    party.id, fine
+                ));
             }
-            
+
             party.support *= 0.75;
             party.organization.cohesion *= 0.8;
         }
-        
+
         CorruptionSeverity::High => {
             let fine = party_cash * 1.5;
             let collected = fine.min(party_cash);
-            
+
             party.brokerage_account.as_mut().unwrap().cash -= collected;
             treasury.liquid_reserves += collected;
             commission.fines_imposed.insert(party.id.clone(), fine);
-            
+
             if collected < fine {
                 let unpaid = fine - collected;
                 commission.outstanding_party_debts.insert(
@@ -356,30 +332,35 @@ pub fn resolve_scandal(
                         incurrence_turn: current_turn,
                         liable_classes: party.base.clone(),
                         asset_liquidation_triggered: false,
-                    }
+                    },
                 );
                 messages.push(format!("[SCANDAL] Party {} severely penalized. Collected: {:.2}, Unpaid: {:.2} (party debt)", party.id, collected, unpaid));
             } else {
-                messages.push(format!("[SCANDAL] Party {} severely penalized for systemic corruption. Fine: {:.2}", party.id, fine));
+                messages.push(format!(
+                    "[SCANDAL] Party {} severely penalized for systemic corruption. Fine: {:.2}",
+                    party.id, fine
+                ));
             }
-            
+
             party.support *= 0.5;
             party.organization.cohesion *= 0.5;
         }
-        
+
         CorruptionSeverity::Catastrophic => {
             let collected = party_cash;
-            
+
             party.brokerage_account.as_mut().unwrap().cash = 0.0;
             treasury.liquid_reserves += collected;
-            commission.fines_imposed.insert(party.id.clone(), party_cash);
-            
+            commission
+                .fines_imposed
+                .insert(party.id.clone(), party_cash);
+
             party.support = 0.0;
             party.organization.cohesion = 0.0;
             messages.push(format!("[CATASTROPHE] Party {} dissolved for rampant corruption. Confiscated: {:.2}. Leader arrested.", party.id, collected));
         }
     }
-    
+
     messages
 }
 
@@ -395,15 +376,15 @@ pub fn garnish_party_subventions(
             let garnished = annual_subvention.min(debt.amount);
             debt.amount -= garnished;
             treasury.liquid_reserves += garnished;
-            
+
             if debt.amount <= 0.01 {
                 commission.outstanding_party_debts.remove(&party.id);
             }
-            
+
             return garnished;
         }
     }
-    
+
     0.0
 }
 
@@ -417,26 +398,34 @@ pub fn process_party_debt_liquidation(
     annual_subvention_threshold: f64,
 ) -> Vec<String> {
     let mut messages = Vec::new();
-    
+
     if let Some(debt) = commission.outstanding_party_debts.get_mut(&party.id) {
         if debt.amount > annual_subvention_threshold && !debt.asset_liquidation_triggered {
             debt.asset_liquidation_triggered = true;
-            
+
             let asset_value = party.liquid_funds() * 0.2;
             party.brokerage_account.as_mut().unwrap().cash -= asset_value;
-            
+
             treasury.liquid_reserves += asset_value;
             debt.amount -= asset_value;
-            
-            messages.push(format!("[LIQUIDATION] Party {} assets liquidated. Value: {:.2}", party.id, asset_value));
-            
+
+            messages.push(format!(
+                "[LIQUIDATION] Party {} assets liquidated. Value: {:.2}",
+                party.id, asset_value
+            ));
+
             if debt.amount > 0.0 {
                 let remaining_debt = debt.amount;
-                let total_liable_population = debt.liable_classes.iter()
+                let total_liable_population = debt
+                    .liable_classes
+                    .iter()
                     .flat_map(|class_name| {
-                        regions.iter()
+                        regions
+                            .iter()
                             .flat_map(|r| {
-                                r.class_demographics.rural_classes.get(class_name)
+                                r.class_demographics
+                                    .rural_classes
+                                    .get(class_name)
                                     .into_iter()
                                     .chain(r.class_demographics.urban_classes.get(class_name))
                             })
@@ -444,20 +433,28 @@ pub fn process_party_debt_liquidation(
                     })
                     .sum::<f64>()
                     .max(1.0);
-                
+
                 let mut total_extracted = 0.0;
-                
+
                 for class_name in &debt.liable_classes {
                     for region in regions.iter_mut() {
-                        if let Some(class_data) = region.class_demographics.rural_classes.get_mut(class_name) {
-                            let class_share = (class_data.population as f64 / total_liable_population) * remaining_debt;
+                        if let Some(class_data) =
+                            region.class_demographics.rural_classes.get_mut(class_name)
+                        {
+                            let class_share = (class_data.population as f64
+                                / total_liable_population)
+                                * remaining_debt;
                             let extracted = class_share.min(class_data.savings);
                             class_data.savings -= extracted;
                             treasury.liquid_reserves += extracted;
                             total_extracted += extracted;
                         }
-                        if let Some(class_data) = region.class_demographics.urban_classes.get_mut(class_name) {
-                            let class_share = (class_data.population as f64 / total_liable_population) * remaining_debt;
+                        if let Some(class_data) =
+                            region.class_demographics.urban_classes.get_mut(class_name)
+                        {
+                            let class_share = (class_data.population as f64
+                                / total_liable_population)
+                                * remaining_debt;
                             let extracted = class_share.min(class_data.savings);
                             class_data.savings -= extracted;
                             treasury.liquid_reserves += extracted;
@@ -465,20 +462,26 @@ pub fn process_party_debt_liquidation(
                         }
                     }
                 }
-                
+
                 let uncollectible = remaining_debt - total_extracted;
-                
+
                 if uncollectible > 0.01 {
-                    messages.push(format!("[LOSS] Uncollectible party {} debt written off as loss: {:.2}", party.id, uncollectible));
+                    messages.push(format!(
+                        "[LOSS] Uncollectible party {} debt written off as loss: {:.2}",
+                        party.id, uncollectible
+                    ));
                 }
-                
-                messages.push(format!("[ACCOUNTABILITY] Party {} members paid: {:.2}, Loss: {:.2}", party.id, total_extracted, uncollectible));
+
+                messages.push(format!(
+                    "[ACCOUNTABILITY] Party {} members paid: {:.2}, Loss: {:.2}",
+                    party.id, total_extracted, uncollectible
+                ));
                 debt.amount = 0.0;
                 commission.outstanding_party_debts.remove(&party.id);
             }
         }
     }
-    
+
     messages
 }
 
@@ -490,12 +493,13 @@ pub fn execute_national_ad_campaign(
     cost: f64,
 ) -> Result<(), CampaignError> {
     party.brokerage_account.as_mut().unwrap().cash -= cost;
-    
+
     let media_share = cost * 0.7;
-    let media_count = companies.iter()
+    let media_count = companies
+        .iter()
         .filter(|c| c.sector == Sector::MediaAndEntertainment)
         .count();
-    
+
     if media_count > 0 {
         let per_company = media_share / media_count as f64;
         for company in companies.iter_mut() {
@@ -506,10 +510,11 @@ pub fn execute_national_ad_campaign(
             }
         }
     } else {
-        let local_services_count = companies.iter()
+        let local_services_count = companies
+            .iter()
             .filter(|c| c.sector == Sector::LocalServices)
             .count();
-        
+
         if local_services_count > 0 {
             let per_company = media_share / local_services_count as f64;
             for company in companies.iter_mut() {
@@ -520,15 +525,18 @@ pub fn execute_national_ad_campaign(
                 }
             }
         } else {
-            let total_population = regions.iter()
+            let total_population = regions
+                .iter()
                 .flat_map(|r| {
-                    r.class_demographics.rural_classes.values()
+                    r.class_demographics
+                        .rural_classes
+                        .values()
                         .chain(r.class_demographics.urban_classes.values())
                 })
                 .map(|c| c.population as f64)
                 .sum::<f64>()
                 .max(1.0);
-            
+
             for region in regions.iter_mut() {
                 for class_data in region.class_demographics.rural_classes.values_mut() {
                     let per_capita = media_share / total_population;
@@ -541,12 +549,13 @@ pub fn execute_national_ad_campaign(
             }
         }
     }
-    
+
     let local_services_share = cost * 0.2;
-    let local_services_count = companies.iter()
+    let local_services_count = companies
+        .iter()
         .filter(|c| c.sector == Sector::LocalServices)
         .count();
-    
+
     if local_services_count > 0 {
         let per_company = local_services_share / local_services_count as f64;
         for company in companies.iter_mut() {
@@ -557,15 +566,18 @@ pub fn execute_national_ad_campaign(
             }
         }
     } else {
-        let total_population = regions.iter()
+        let total_population = regions
+            .iter()
             .flat_map(|r| {
-                r.class_demographics.rural_classes.values()
+                r.class_demographics
+                    .rural_classes
+                    .values()
                     .chain(r.class_demographics.urban_classes.values())
             })
             .map(|c| c.population as f64)
             .sum::<f64>()
             .max(1.0);
-        
+
         for region in regions.iter_mut() {
             for class_data in region.class_demographics.rural_classes.values_mut() {
                 let per_capita = local_services_share / total_population;
@@ -577,7 +589,7 @@ pub fn execute_national_ad_campaign(
             }
         }
     }
-    
+
     let agency_share = cost * 0.1;
     if local_services_count > 0 {
         let per_company = agency_share / local_services_count as f64;
@@ -589,15 +601,18 @@ pub fn execute_national_ad_campaign(
             }
         }
     } else {
-        let total_population = regions.iter()
+        let total_population = regions
+            .iter()
             .flat_map(|r| {
-                r.class_demographics.rural_classes.values()
+                r.class_demographics
+                    .rural_classes
+                    .values()
                     .chain(r.class_demographics.urban_classes.values())
             })
             .map(|c| c.population as f64)
             .sum::<f64>()
             .max(1.0);
-        
+
         for region in regions.iter_mut() {
             for class_data in region.class_demographics.rural_classes.values_mut() {
                 let per_capita = agency_share / total_population;
@@ -609,7 +624,7 @@ pub fn execute_national_ad_campaign(
             }
         }
     }
-    
+
     Ok(())
 }
 
@@ -621,12 +636,13 @@ pub fn execute_regional_rally(
     cost: f64,
 ) -> Result<(), CampaignError> {
     party.brokerage_account.as_mut().unwrap().cash -= cost;
-    
+
     let local_share = cost * 0.5;
-    let regional_local_count = companies.iter()
+    let regional_local_count = companies
+        .iter()
         .filter(|c| c.region_id == region.id && c.sector == Sector::LocalServices)
         .count();
-    
+
     if regional_local_count > 0 {
         let per_company = local_share / regional_local_count as f64;
         for company in companies.iter_mut() {
@@ -638,12 +654,15 @@ pub fn execute_regional_rally(
         }
     } else {
         let fallback_to_demographics = local_share;
-        let total_population = region.class_demographics.rural_classes.values()
+        let total_population = region
+            .class_demographics
+            .rural_classes
+            .values()
             .chain(region.class_demographics.urban_classes.values())
             .map(|c| c.population as f64)
             .sum::<f64>()
             .max(1.0);
-        
+
         for class_data in region.class_demographics.rural_classes.values_mut() {
             let per_capita = fallback_to_demographics / total_population;
             class_data.savings += per_capita * class_data.population as f64;
@@ -653,14 +672,17 @@ pub fn execute_regional_rally(
             class_data.savings += per_capita * class_data.population as f64;
         }
     }
-    
+
     let class_share = cost * 0.3;
-    let total_population = region.class_demographics.rural_classes.values()
+    let total_population = region
+        .class_demographics
+        .rural_classes
+        .values()
         .chain(region.class_demographics.urban_classes.values())
         .map(|c| c.population as f64)
         .sum::<f64>()
         .max(1.0);
-    
+
     for class_data in region.class_demographics.rural_classes.values_mut() {
         let per_capita = class_share / total_population;
         class_data.savings += per_capita * class_data.population as f64;
@@ -669,12 +691,13 @@ pub fn execute_regional_rally(
         let per_capita = class_share / total_population;
         class_data.savings += per_capita * class_data.population as f64;
     }
-    
+
     let construction_share = cost * 0.2;
-    let regional_construction_count = companies.iter()
+    let regional_construction_count = companies
+        .iter()
         .filter(|c| c.region_id == region.id && c.sector == Sector::Construction)
         .count();
-    
+
     if regional_construction_count > 0 {
         let per_company = construction_share / regional_construction_count as f64;
         for company in companies.iter_mut() {
@@ -695,7 +718,7 @@ pub fn execute_regional_rally(
             class_data.savings += per_capita * class_data.population as f64;
         }
     }
-    
+
     Ok(())
 }
 
@@ -707,12 +730,13 @@ pub fn execute_television_campaign(
     cost: f64,
 ) -> Result<(), CampaignError> {
     party.brokerage_account.as_mut().unwrap().cash -= cost;
-    
+
     let broadcasting_share = cost * 0.7;
-    let media_count = companies.iter()
+    let media_count = companies
+        .iter()
         .filter(|c| c.sector == Sector::MediaAndEntertainment)
         .count();
-    
+
     if media_count > 0 {
         let per_company = broadcasting_share / media_count as f64;
         for company in companies.iter_mut() {
@@ -723,10 +747,11 @@ pub fn execute_television_campaign(
             }
         }
     } else {
-        let export_count = companies.iter()
+        let export_count = companies
+            .iter()
             .filter(|c| c.sector == Sector::ExportServices)
             .count();
-        
+
         if export_count > 0 {
             let per_company = broadcasting_share / export_count as f64;
             for company in companies.iter_mut() {
@@ -737,15 +762,18 @@ pub fn execute_television_campaign(
                 }
             }
         } else {
-            let total_population = regions.iter()
+            let total_population = regions
+                .iter()
                 .flat_map(|r| {
-                    r.class_demographics.rural_classes.values()
+                    r.class_demographics
+                        .rural_classes
+                        .values()
                         .chain(r.class_demographics.urban_classes.values())
                 })
                 .map(|c| c.population as f64)
                 .sum::<f64>()
                 .max(1.0);
-            
+
             for region in regions.iter_mut() {
                 for class_data in region.class_demographics.rural_classes.values_mut() {
                     let per_capita = broadcasting_share / total_population;
@@ -758,7 +786,7 @@ pub fn execute_television_campaign(
             }
         }
     }
-    
+
     let production_share = cost * 0.2;
     if media_count > 0 {
         let per_company = production_share / media_count as f64;
@@ -770,15 +798,18 @@ pub fn execute_television_campaign(
             }
         }
     } else {
-        let total_population = regions.iter()
+        let total_population = regions
+            .iter()
             .flat_map(|r| {
-                r.class_demographics.rural_classes.values()
+                r.class_demographics
+                    .rural_classes
+                    .values()
                     .chain(r.class_demographics.urban_classes.values())
             })
             .map(|c| c.population as f64)
             .sum::<f64>()
             .max(1.0);
-        
+
         for region in regions.iter_mut() {
             for class_data in region.class_demographics.rural_classes.values_mut() {
                 let per_capita = production_share / total_population;
@@ -790,17 +821,20 @@ pub fn execute_television_campaign(
             }
         }
     }
-    
+
     let talent_share = cost * 0.1;
-    let total_population = regions.iter()
+    let total_population = regions
+        .iter()
         .flat_map(|r| {
-            r.class_demographics.rural_classes.values()
+            r.class_demographics
+                .rural_classes
+                .values()
                 .chain(r.class_demographics.urban_classes.values())
         })
         .map(|c| c.population as f64)
         .sum::<f64>()
         .max(1.0);
-    
+
     for region in regions.iter_mut() {
         for class_data in region.class_demographics.rural_classes.values_mut() {
             let per_capita = talent_share / total_population;
@@ -811,7 +845,7 @@ pub fn execute_television_campaign(
             class_data.savings += per_capita * class_data.population as f64;
         }
     }
-    
+
     Ok(())
 }
 
@@ -823,12 +857,13 @@ pub fn execute_digital_campaign(
     cost: f64,
 ) -> Result<(), CampaignError> {
     party.brokerage_account.as_mut().unwrap().cash -= cost;
-    
+
     let tech_share = cost * 0.6;
-    let media_count = companies.iter()
+    let media_count = companies
+        .iter()
         .filter(|c| c.sector == Sector::MediaAndEntertainment)
         .count();
-    
+
     if media_count > 0 {
         let per_company = tech_share / media_count as f64;
         for company in companies.iter_mut() {
@@ -839,10 +874,11 @@ pub fn execute_digital_campaign(
             }
         }
     } else {
-        let export_count = companies.iter()
+        let export_count = companies
+            .iter()
             .filter(|c| c.sector == Sector::ExportServices)
             .count();
-        
+
         if export_count > 0 {
             let per_company = tech_share / export_count as f64;
             for company in companies.iter_mut() {
@@ -853,15 +889,18 @@ pub fn execute_digital_campaign(
                 }
             }
         } else {
-            let total_population = regions.iter()
+            let total_population = regions
+                .iter()
                 .flat_map(|r| {
-                    r.class_demographics.rural_classes.values()
+                    r.class_demographics
+                        .rural_classes
+                        .values()
                         .chain(r.class_demographics.urban_classes.values())
                 })
                 .map(|c| c.population as f64)
                 .sum::<f64>()
                 .max(1.0);
-            
+
             for region in regions.iter_mut() {
                 for class_data in region.class_demographics.rural_classes.values_mut() {
                     let per_capita = tech_share / total_population;
@@ -874,7 +913,7 @@ pub fn execute_digital_campaign(
             }
         }
     }
-    
+
     let social_share = cost * 0.3;
     if media_count > 0 {
         let per_company = social_share / media_count as f64;
@@ -886,15 +925,18 @@ pub fn execute_digital_campaign(
             }
         }
     } else {
-        let total_population = regions.iter()
+        let total_population = regions
+            .iter()
             .flat_map(|r| {
-                r.class_demographics.rural_classes.values()
+                r.class_demographics
+                    .rural_classes
+                    .values()
                     .chain(r.class_demographics.urban_classes.values())
             })
             .map(|c| c.population as f64)
             .sum::<f64>()
             .max(1.0);
-        
+
         for region in regions.iter_mut() {
             for class_data in region.class_demographics.rural_classes.values_mut() {
                 let per_capita = social_share / total_population;
@@ -906,12 +948,13 @@ pub fn execute_digital_campaign(
             }
         }
     }
-    
+
     let marketing_share = cost * 0.1;
-    let local_count = companies.iter()
+    let local_count = companies
+        .iter()
         .filter(|c| c.sector == Sector::LocalServices)
         .count();
-    
+
     if local_count > 0 {
         let per_company = marketing_share / local_count as f64;
         for company in companies.iter_mut() {
@@ -922,15 +965,18 @@ pub fn execute_digital_campaign(
             }
         }
     } else {
-        let total_population = regions.iter()
+        let total_population = regions
+            .iter()
             .flat_map(|r| {
-                r.class_demographics.rural_classes.values()
+                r.class_demographics
+                    .rural_classes
+                    .values()
                     .chain(r.class_demographics.urban_classes.values())
             })
             .map(|c| c.population as f64)
             .sum::<f64>()
             .max(1.0);
-        
+
         for region in regions.iter_mut() {
             for class_data in region.class_demographics.rural_classes.values_mut() {
                 let per_capita = marketing_share / total_population;
@@ -942,7 +988,7 @@ pub fn execute_digital_campaign(
             }
         }
     }
-    
+
     Ok(())
 }
 
@@ -953,20 +999,23 @@ pub fn generate_corporate_lobbying_black_money(
     company_id: &str,
     amount: f64,
 ) -> Result<(), CampaignError> {
-    let company = companies.iter_mut()
+    let company = companies
+        .iter_mut()
         .find(|c| c.id == company_id)
         .ok_or(CampaignError::CompanyNotFound)?;
-    
-    let company_cash = company.brokerage_account.as_ref()
+
+    let company_cash = company
+        .brokerage_account
+        .as_ref()
         .map(|a| a.cash)
         .unwrap_or(0.0);
-    
+
     if company_cash < amount {
         return Err(CampaignError::InsufficientFunds);
     }
-    
+
     company.brokerage_account.as_mut().unwrap().cash -= amount;
-    
+
     if party.black_money_pool.is_none() {
         party.black_money_pool = Some(BlackMoneyPool {
             illicit_funds: 0.0,
@@ -974,16 +1023,16 @@ pub fn generate_corporate_lobbying_black_money(
             discovery_risk: 0.0,
         });
     }
-    
+
     let pool = party.black_money_pool.as_mut().unwrap();
     pool.illicit_funds += amount;
     pool.source = BlackMoneySource::CorporateLobbying {
         company_id: company_id.to_string(),
         amount,
     };
-    
+
     pool.discovery_risk = (amount / company_cash).min(0.8);
-    
+
     Ok(())
 }
 
@@ -994,19 +1043,22 @@ pub fn generate_organized_crime_black_money(
     syndicate_id: &str,
     amount: f64,
 ) -> Result<(), CampaignError> {
-    let total_savings = region.class_demographics.rural_classes.values()
+    let total_savings = region
+        .class_demographics
+        .rural_classes
+        .values()
         .map(|c| c.savings)
         .sum::<f64>();
-    
+
     if total_savings < amount {
         return Err(CampaignError::InsufficientFunds);
     }
-    
+
     let deduction_ratio = amount / total_savings;
     for class_data in region.class_demographics.rural_classes.values_mut() {
-        class_data.savings *= 1.0 - deduction_ratio ;
+        class_data.savings *= 1.0 - deduction_ratio;
     }
-    
+
     if party.black_money_pool.is_none() {
         party.black_money_pool = Some(BlackMoneyPool {
             illicit_funds: 0.0,
@@ -1014,16 +1066,16 @@ pub fn generate_organized_crime_black_money(
             discovery_risk: 0.0,
         });
     }
-    
+
     let pool = party.black_money_pool.as_mut().unwrap();
     pool.illicit_funds += amount;
     pool.source = BlackMoneySource::OrganizedCrime {
         syndicate_id: syndicate_id.to_string(),
         amount,
     };
-    
+
     pool.discovery_risk = 0.6;
-    
+
     Ok(())
 }
 
@@ -1034,20 +1086,23 @@ pub fn generate_money_laundering_black_money(
     shell_company_id: &str,
     amount: f64,
 ) -> Result<(), CampaignError> {
-    let company = companies.iter_mut()
+    let company = companies
+        .iter_mut()
         .find(|c| c.id == shell_company_id)
         .ok_or(CampaignError::CompanyNotFound)?;
-    
-    let company_cash = company.brokerage_account.as_ref()
+
+    let company_cash = company
+        .brokerage_account
+        .as_ref()
         .map(|a| a.cash)
         .unwrap_or(0.0);
-    
+
     if company_cash < amount {
         return Err(CampaignError::InsufficientFunds);
     }
-    
+
     company.brokerage_account.as_mut().unwrap().cash -= amount;
-    
+
     if party.black_money_pool.is_none() {
         party.black_money_pool = Some(BlackMoneyPool {
             illicit_funds: 0.0,
@@ -1055,16 +1110,16 @@ pub fn generate_money_laundering_black_money(
             discovery_risk: 0.0,
         });
     }
-    
+
     let pool = party.black_money_pool.as_mut().unwrap();
     pool.illicit_funds += amount;
     pool.source = BlackMoneySource::MoneyLaundering {
         shell_company_id: shell_company_id.to_string(),
         amount,
     };
-    
+
     pool.discovery_risk = 0.4;
-    
+
     Ok(())
 }
 
@@ -1098,7 +1153,10 @@ pub fn process_election_cycle(
                 messages.push("[ELECTION] Pre-campaign period begins".to_string());
             }
         }
-        ElectionState::PreCampaign { turns_until_start, registration_deadline } => {
+        ElectionState::PreCampaign {
+            turns_until_start,
+            registration_deadline,
+        } => {
             let mut turns = *turns_until_start;
             if turns <= 1 {
                 country.politics.election_state = ElectionState::ActiveCampaign {
@@ -1114,7 +1172,10 @@ pub fn process_election_cycle(
                 };
             }
         }
-        ElectionState::ActiveCampaign { turns_remaining, current_turn: _ } => {
+        ElectionState::ActiveCampaign {
+            turns_remaining,
+            current_turn: _,
+        } => {
             let mut remaining = *turns_remaining;
             if remaining <= 1 {
                 country.politics.election_state = ElectionState::ElectionDay;
@@ -1129,7 +1190,8 @@ pub fn process_election_cycle(
         }
         ElectionState::ElectionDay => {
             // Calculate seats from party support
-            let party_list: Vec<(String, f64)> = parties.iter()
+            let party_list: Vec<(String, f64)> = parties
+                .iter()
                 .map(|(id, p)| (id.clone(), p.support))
                 .collect();
 
@@ -1140,16 +1202,23 @@ pub fn process_election_cycle(
                     country.politics.election_threshold,
                     460,
                 );
-                messages.push(format!("[ELECTION] Seats allocated: {} parties", seats.len()));
+                messages.push(format!(
+                    "[ELECTION] Seats allocated: {} parties",
+                    seats.len()
+                ));
 
                 // Form coalition (simplified: largest party rules)
-                if let Some((winner_id, _)) = party_list.iter().max_by(|a, b| a.1.partial_cmp(&b.1).unwrap()) {
+                if let Some((winner_id, _)) = party_list
+                    .iter()
+                    .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+                {
                     country.politics.ruling_party = winner_id.clone();
                     messages.push(format!("[ELECTION] Ruling party: {}", winner_id));
                 }
             }
 
-            country.politics.election_state = ElectionState::PostElectionResolution { turn: current_turn };
+            country.politics.election_state =
+                ElectionState::PostElectionResolution { turn: current_turn };
         }
         ElectionState::PostElectionResolution { turn: _ } => {
             country.politics.election_state = ElectionState::Idle;
@@ -1185,12 +1254,19 @@ pub fn process_campaign_spending(
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
-    if !matches!(country.politics.election_state, ElectionState::ActiveCampaign { .. }) {
+    if !matches!(
+        country.politics.election_state,
+        ElectionState::ActiveCampaign { .. }
+    ) {
         return messages;
     }
 
     for (party_id, party) in parties.iter_mut() {
-        let party_cash = party.brokerage_account.as_ref().map(|a| a.cash).unwrap_or(0.0);
+        let party_cash = party
+            .brokerage_account
+            .as_ref()
+            .map(|a| a.cash)
+            .unwrap_or(0.0);
         if party_cash < 1000.0 {
             continue;
         }
@@ -1199,7 +1275,10 @@ pub fn process_campaign_spending(
         if let Err(e) = execute_national_ad_campaign(party, companies, regions, spend_amount) {
             messages.push(format!("[CAMPAIGN] {} campaign error: {:?}", party_id, e));
         } else {
-            messages.push(format!("[CAMPAIGN] {} spent {:.0} on ads", party_id, spend_amount));
+            messages.push(format!(
+                "[CAMPAIGN] {} spent {:.0} on ads",
+                party_id, spend_amount
+            ));
         }
     }
 

@@ -43,7 +43,9 @@ impl StrategicResolution {
     /// # Returns
     /// * `true` if the company is in `Sector::Energy` and bankrupt (negative available_cash).
     pub fn should_trigger(company: &Company) -> bool {
-        company.sector == Sector::Energy && company.available_cash < 0.0 && !company.is_in_receivership
+        company.sector == Sector::Energy
+            && company.available_cash < 0.0
+            && !company.is_in_receivership
     }
 
     /// Process one turn of Strategic Resolution for a company in receivership.

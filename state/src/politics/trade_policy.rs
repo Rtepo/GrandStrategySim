@@ -27,27 +27,40 @@ pub fn set_tariffs_from_doctrine(country: &mut Country) {
 
     // Classify commodities into categories for tariff setting
     let manufactured_goods = [
-        Commodity::Steel, Commodity::IndustrialMachinery,
-        Commodity::Clothing, Commodity::LuxuryClothing,
-        Commodity::Furniture, Commodity::LuxuryFurniture,
-        Commodity::Glass, Commodity::Paper,
-        Commodity::ConstructionMachinery, Commodity::AgriculturalMachinery,
-        Commodity::Trucks, Commodity::MilitaryTrucks,
-        Commodity::Ammunition, Commodity::TowedArtillery,
-        Commodity::MedicalEquipment, Commodity::OfficeMachinery,
+        Commodity::Steel,
+        Commodity::IndustrialMachinery,
+        Commodity::Clothing,
+        Commodity::LuxuryClothing,
+        Commodity::Furniture,
+        Commodity::LuxuryFurniture,
+        Commodity::Glass,
+        Commodity::Paper,
+        Commodity::ConstructionMachinery,
+        Commodity::AgriculturalMachinery,
+        Commodity::Trucks,
+        Commodity::MilitaryTrucks,
+        Commodity::Ammunition,
+        Commodity::TowedArtillery,
+        Commodity::MedicalEquipment,
+        Commodity::OfficeMachinery,
     ];
     let raw_materials = [
-        Commodity::BrownCoal, Commodity::HardCoal, Commodity::Iron,
-        Commodity::Copper, Commodity::Cement, Commodity::Asphalt,
-        Commodity::Bitumen, Commodity::Gravel,
+        Commodity::BrownCoal,
+        Commodity::HardCoal,
+        Commodity::Iron,
+        Commodity::Copper,
+        Commodity::Cement,
+        Commodity::Asphalt,
+        Commodity::Bitumen,
+        Commodity::Gravel,
     ];
     let strategic_imports = [
-        Commodity::Uranium, Commodity::Gold, Commodity::Silver,
+        Commodity::Uranium,
+        Commodity::Gold,
+        Commodity::Silver,
         Commodity::Energy,
     ];
-    let agricultural_goods = [
-        Commodity::Cereal, Commodity::Meat,
-    ];
+    let agricultural_goods = [Commodity::Cereal, Commodity::Meat];
 
     match doctrine.as_str() {
         "Protectionism" => {
@@ -135,11 +148,7 @@ pub fn set_tariffs_from_doctrine(country: &mut Country) {
 /// * This is a government AI decision, not a random event.
 pub fn adjust_tariffs_for_conditions(country: &mut Country) {
     let gdp = country.budget.gdp.max(1.0);
-    let trade_deficit = country
-        .macro_indicators
-        .gdp_breakdown
-        .net_exports
-        .abs();
+    let trade_deficit = country.macro_indicators.gdp_breakdown.net_exports.abs();
 
     // If trade deficit > 5% of GDP, raise import tariffs
     if trade_deficit > gdp * 0.05 {
@@ -157,13 +166,25 @@ pub fn adjust_tariffs_for_conditions(country: &mut Country) {
 
     for sector in &key_sectors {
         if let Some(share) = country.budget.sectors.get(sector) {
-            let pmi = share.extra.get("pmi").and_then(|v| v.as_f64()).unwrap_or(50.0);
+            let pmi = share
+                .extra
+                .get("pmi")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(50.0);
             if pmi < 30.0 {
                 // Industry collapsing — raise protective tariffs on competing imports
                 for c in sector.primary_commodities() {
-                    let current = country.trade_policy.import_tariffs.get(&c).copied().unwrap_or(0.0);
+                    let current = country
+                        .trade_policy
+                        .import_tariffs
+                        .get(&c)
+                        .copied()
+                        .unwrap_or(0.0);
                     if current < 0.30 {
-                        country.trade_policy.import_tariffs.insert(c, (current + 0.10).min(0.30));
+                        country
+                            .trade_policy
+                            .import_tariffs
+                            .insert(c, (current + 0.10).min(0.30));
                     }
                 }
             }
@@ -186,8 +207,16 @@ mod tests {
         let mut country = make_country_with_doctrine("Protectionism");
         set_tariffs_from_doctrine(&mut country);
 
-        let steel_tariff = country.trade_policy.import_tariffs.get(&Commodity::Steel).copied().unwrap_or(0.0);
-        assert!(steel_tariff > 0.0, "Protectionism should set non-zero tariffs on Steel");
+        let steel_tariff = country
+            .trade_policy
+            .import_tariffs
+            .get(&Commodity::Steel)
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            steel_tariff > 0.0,
+            "Protectionism should set non-zero tariffs on Steel"
+        );
         assert!(steel_tariff >= 0.15, "Steel tariff should be at least 15%");
     }
 
@@ -196,8 +225,16 @@ mod tests {
         let mut country = make_country_with_doctrine("Free Trade");
         set_tariffs_from_doctrine(&mut country);
 
-        let steel_tariff = country.trade_policy.import_tariffs.get(&Commodity::Steel).copied().unwrap_or(0.0);
-        assert!(steel_tariff <= 0.05, "Free trade should set low tariffs (<= 5%)");
+        let steel_tariff = country
+            .trade_policy
+            .import_tariffs
+            .get(&Commodity::Steel)
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            steel_tariff <= 0.05,
+            "Free trade should set low tariffs (<= 5%)"
+        );
     }
 
     #[test]
@@ -205,11 +242,24 @@ mod tests {
         let mut country = make_country_with_doctrine("Autarky");
         set_tariffs_from_doctrine(&mut country);
 
-        let steel_tariff = country.trade_policy.import_tariffs.get(&Commodity::Steel).copied().unwrap_or(0.0);
-        assert!(steel_tariff >= 0.30, "Autarky should set high tariffs (>= 30%)");
+        let steel_tariff = country
+            .trade_policy
+            .import_tariffs
+            .get(&Commodity::Steel)
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            steel_tariff >= 0.30,
+            "Autarky should set high tariffs (>= 30%)"
+        );
 
         // Autarky should also have export taxes
-        let steel_export = country.trade_policy.export_taxes.get(&Commodity::Steel).copied().unwrap_or(0.0);
+        let steel_export = country
+            .trade_policy
+            .export_taxes
+            .get(&Commodity::Steel)
+            .copied()
+            .unwrap_or(0.0);
         assert!(steel_export > 0.0, "Autarky should set export taxes");
     }
 
@@ -218,8 +268,16 @@ mod tests {
         let mut country = make_country_with_doctrine("Protectionism");
         set_tariffs_from_doctrine(&mut country);
 
-        let uranium_tariff = country.trade_policy.import_tariffs.get(&Commodity::Uranium).copied().unwrap_or(0.0);
-        assert_eq!(uranium_tariff, 0.0, "Strategic imports should have 0% tariff under Protectionism");
+        let uranium_tariff = country
+            .trade_policy
+            .import_tariffs
+            .get(&Commodity::Uranium)
+            .copied()
+            .unwrap_or(0.0);
+        assert_eq!(
+            uranium_tariff, 0.0,
+            "Strategic imports should have 0% tariff under Protectionism"
+        );
     }
 
     #[test]
@@ -227,7 +285,10 @@ mod tests {
         let mut country = make_country_with_doctrine("Unknown");
         let original_policy = country.trade_policy.clone();
         set_tariffs_from_doctrine(&mut country);
-        assert_eq!(country.trade_policy, original_policy, "Unknown doctrine should not change tariffs");
+        assert_eq!(
+            country.trade_policy, original_policy,
+            "Unknown doctrine should not change tariffs"
+        );
     }
 
     #[test]
@@ -235,8 +296,21 @@ mod tests {
         let mut country = make_country_with_doctrine("Protectionism");
         set_tariffs_from_doctrine(&mut country);
 
-        let steel_tariff = country.trade_policy.import_tariffs.get(&Commodity::Steel).copied().unwrap_or(0.0);
-        let coal_tariff = country.trade_policy.import_tariffs.get(&Commodity::BrownCoal).copied().unwrap_or(0.0);
-        assert!(steel_tariff > coal_tariff, "Manufactured goods should have higher tariffs than raw materials");
+        let steel_tariff = country
+            .trade_policy
+            .import_tariffs
+            .get(&Commodity::Steel)
+            .copied()
+            .unwrap_or(0.0);
+        let coal_tariff = country
+            .trade_policy
+            .import_tariffs
+            .get(&Commodity::BrownCoal)
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            steel_tariff > coal_tariff,
+            "Manufactured goods should have higher tariffs than raw materials"
+        );
     }
 }

@@ -4,22 +4,19 @@
 //! propaganda campaigns (treasury → media sector double-entry), and proxy wars
 //! with REAL physical commodity transfers (no magic spawning).
 
+use sim_engine::military::fronts::Casualties;
 use sim_engine::military::morale::{
-    MoraleConfig,
-    apply_casualty_morale_impact, recover_morale,
-    strike_production_factor, calculate_desertions, initialize_morale,
+    apply_casualty_morale_impact, calculate_desertions, initialize_morale, recover_morale,
+    strike_production_factor, MoraleConfig,
 };
 use sim_engine::military::propaganda::{
-    PropagandaTarget, PropagandaConfig,
-    execute_propaganda, apply_propaganda_boost,
+    apply_propaganda_boost, execute_propaganda, PropagandaConfig, PropagandaTarget,
 };
 use sim_engine::military::proxy_wars::{
-    ProxyWarAction, ProxyWarConfig,
-    fund_separatists, arm_rebels,
+    arm_rebels, fund_separatists, ProxyWarAction, ProxyWarConfig,
 };
-use sim_engine::military::fronts::Casualties;
-use sim_engine::society::geography::ClassDemographics;
 use sim_engine::registries::enums::Commodity;
+use sim_engine::society::geography::ClassDemographics;
 use std::collections::{BTreeMap, HashMap};
 
 // ============================================================================
@@ -71,7 +68,10 @@ fn test_phase72_casualties_reduce_war_morale() {
     let initial_morale = demo.war_morale;
     apply_casualty_morale_impact(&mut demo, &casualties, &config);
 
-    assert!(demo.war_morale < initial_morale, "Casualties must reduce war morale");
+    assert!(
+        demo.war_morale < initial_morale,
+        "Casualties must reduce war morale"
+    );
 }
 
 #[test]
@@ -83,7 +83,10 @@ fn test_phase72_casualties_reduce_mental_health() {
     let initial_mental = demo.mental_health;
     apply_casualty_morale_impact(&mut demo, &casualties, &config);
 
-    assert!(demo.mental_health < initial_mental, "Casualties must reduce mental health");
+    assert!(
+        demo.mental_health < initial_mental,
+        "Casualties must reduce mental health"
+    );
 }
 
 #[test]
@@ -95,7 +98,10 @@ fn test_phase72_zero_casualties_no_morale_impact() {
     let initial_morale = demo.war_morale;
     apply_casualty_morale_impact(&mut demo, &casualties, &config);
 
-    assert_eq!(demo.war_morale, initial_morale, "Zero casualties must not change morale");
+    assert_eq!(
+        demo.war_morale, initial_morale,
+        "Zero casualties must not change morale"
+    );
 }
 
 #[test]
@@ -106,7 +112,10 @@ fn test_phase72_strikes_activate_below_threshold() {
     let config = MoraleConfig::default();
 
     let result = apply_casualty_morale_impact(&mut demo, &casualties, &config);
-    assert!(result.strikes_active, "Strikes must activate below threshold");
+    assert!(
+        result.strikes_active,
+        "Strikes must activate below threshold"
+    );
 }
 
 #[test]
@@ -117,7 +126,10 @@ fn test_phase72_desertions_activate_below_threshold() {
     let config = MoraleConfig::default();
 
     let result = apply_casualty_morale_impact(&mut demo, &casualties, &config);
-    assert!(result.desertions_active, "Desertions must activate below threshold");
+    assert!(
+        result.desertions_active,
+        "Desertions must activate below threshold"
+    );
 }
 
 #[test]
@@ -140,8 +152,10 @@ fn test_phase72_morale_recovery_capped_at_baseline() {
 
     recover_morale(&mut demo, &config);
 
-    assert!(demo.war_morale <= config.baseline_war_morale,
-        "Morale recovery must be capped at baseline");
+    assert!(
+        demo.war_morale <= config.baseline_war_morale,
+        "Morale recovery must be capped at baseline"
+    );
 }
 
 #[test]
@@ -195,8 +209,10 @@ fn test_phase72_mental_health_drops_less_than_war_morale() {
     let war_drop = initial_war - demo.war_morale;
     let mental_drop = initial_mental - demo.mental_health;
 
-    assert!(mental_drop < war_drop,
-        "Mental health drop must be less than war morale drop");
+    assert!(
+        mental_drop < war_drop,
+        "Mental health drop must be less than war morale drop"
+    );
 }
 
 // ============================================================================
@@ -210,8 +226,13 @@ fn test_phase72_propaganda_debits_treasury() {
     let config = PropagandaConfig::default();
 
     let result = execute_propaganda(
-        &mut treasury, &mut media, 1000.0,
-        PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+        &mut treasury,
+        &mut media,
+        1000.0,
+        PropagandaTarget::Both,
+        &config,
+        1,
+        "CAMP-1".to_string(),
     );
 
     assert!(result.executed);
@@ -227,15 +248,25 @@ fn test_phase72_propaganda_credits_media_sector() {
 
     let initial_media_total: f64 = media.values().map(|(lc, _)| *lc).sum();
     let result = execute_propaganda(
-        &mut treasury, &mut media, 1000.0,
-        PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+        &mut treasury,
+        &mut media,
+        1000.0,
+        PropagandaTarget::Both,
+        &config,
+        1,
+        "CAMP-1".to_string(),
     );
     let final_media_total: f64 = media.values().map(|(lc, _)| *lc).sum();
 
     assert!(result.executed);
-    assert!(final_media_total > initial_media_total, "Media sector must be credited");
-    assert!((result.media_credited - (final_media_total - initial_media_total)).abs() < 0.01,
-        "Media credit must match actual increase");
+    assert!(
+        final_media_total > initial_media_total,
+        "Media sector must be credited"
+    );
+    assert!(
+        (result.media_credited - (final_media_total - initial_media_total)).abs() < 0.01,
+        "Media credit must match actual increase"
+    );
 }
 
 #[test]
@@ -248,8 +279,13 @@ fn test_phase72_propaganda_double_entry() {
     let initial_media_total: f64 = media.values().map(|(lc, _)| *lc).sum();
 
     let result = execute_propaganda(
-        &mut treasury, &mut media, 1000.0,
-        PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+        &mut treasury,
+        &mut media,
+        1000.0,
+        PropagandaTarget::Both,
+        &config,
+        1,
+        "CAMP-1".to_string(),
     );
 
     let final_media_total: f64 = media.values().map(|(lc, _)| *lc).sum();
@@ -259,9 +295,12 @@ fn test_phase72_propaganda_double_entry() {
     let media_increase = final_media_total - initial_media_total;
 
     assert!(result.executed);
-    assert!((treasury_decrease - media_increase).abs() < 0.01,
+    assert!(
+        (treasury_decrease - media_increase).abs() < 0.01,
         "Double-entry: treasury decrease ({}) must equal media increase ({})",
-        treasury_decrease, media_increase);
+        treasury_decrease,
+        media_increase
+    );
 }
 
 #[test]
@@ -271,17 +310,25 @@ fn test_phase72_propaganda_pro_rata_distribution() {
     let config = PropagandaConfig::default();
 
     let _ = execute_propaganda(
-        &mut treasury, &mut media, 1000.0,
-        PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+        &mut treasury,
+        &mut media,
+        1000.0,
+        PropagandaTarget::Both,
+        &config,
+        1,
+        "CAMP-1".to_string(),
     );
 
     // MEDIA-2 has 20.0 capacity out of 35.0 total → should get ~571.43
     let media2 = media.get("MEDIA-2").unwrap();
     let media2_gain = media2.0 - 2000.0;
     let expected = 1000.0 * (20.0 / 35.0);
-    assert!((media2_gain - expected).abs() < 1.0,
+    assert!(
+        (media2_gain - expected).abs() < 1.0,
         "MEDIA-2 should receive pro-rata share: expected {:.2}, got {:.2}",
-        expected, media2_gain);
+        expected,
+        media2_gain
+    );
 }
 
 #[test]
@@ -291,8 +338,13 @@ fn test_phase72_propaganda_insufficient_funds() {
     let config = PropagandaConfig::default();
 
     let result = execute_propaganda(
-        &mut treasury, &mut media, 1000.0,
-        PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+        &mut treasury,
+        &mut media,
+        1000.0,
+        PropagandaTarget::Both,
+        &config,
+        1,
+        "CAMP-1".to_string(),
     );
 
     assert!(!result.executed, "Must fail with insufficient funds");
@@ -306,12 +358,20 @@ fn test_phase72_propaganda_no_media_companies() {
     let config = PropagandaConfig::default();
 
     let result = execute_propaganda(
-        &mut treasury, &mut media, 1000.0,
-        PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+        &mut treasury,
+        &mut media,
+        1000.0,
+        PropagandaTarget::Both,
+        &config,
+        1,
+        "CAMP-1".to_string(),
     );
 
     assert!(!result.executed, "Must fail with no media companies");
-    assert_eq!(treasury, 10_000.0, "Treasury must not be debited with no media");
+    assert_eq!(
+        treasury, 10_000.0,
+        "Treasury must not be debited with no media"
+    );
 }
 
 #[test]
@@ -321,12 +381,23 @@ fn test_phase72_propaganda_war_morale_target() {
     let config = PropagandaConfig::default();
 
     let result = execute_propaganda(
-        &mut treasury, &mut media, 1000.0,
-        PropagandaTarget::WarMorale, &config, 1, "CAMP-1".to_string(),
+        &mut treasury,
+        &mut media,
+        1000.0,
+        PropagandaTarget::WarMorale,
+        &config,
+        1,
+        "CAMP-1".to_string(),
     );
 
-    assert!(result.morale_boost > 0.0, "WarMorale target must boost morale");
-    assert_eq!(result.mental_health_boost, 0.0, "WarMorale target must not boost mental health");
+    assert!(
+        result.morale_boost > 0.0,
+        "WarMorale target must boost morale"
+    );
+    assert_eq!(
+        result.mental_health_boost, 0.0,
+        "WarMorale target must not boost mental health"
+    );
 }
 
 #[test]
@@ -401,8 +472,10 @@ fn test_phase72_fund_separatists_double_entry() {
     let result = fund_separatists(&mut treasury, &mut rebellion_funds, false, &config, &action);
 
     // Rule 1: Double-entry — treasury debit must equal rebellion credit
-    assert_eq!(result.treasury_debited, result.rebellion_credited,
-        "Double-entry: treasury debit must equal rebellion credit");
+    assert_eq!(
+        result.treasury_debited, result.rebellion_credited,
+        "Double-entry: treasury debit must equal rebellion credit"
+    );
 }
 
 #[test]
@@ -435,11 +508,25 @@ fn test_phase72_fund_separatists_autonomous_republic_multiplier() {
         amount: 1000.0,
     };
 
-    let result_normal = fund_separatists(&mut treasury.clone(), &mut rebellion_funds.clone(), false, &config, &action);
-    let result_autonomous = fund_separatists(&mut treasury.clone(), &mut rebellion_funds.clone(), true, &config, &action);
+    let result_normal = fund_separatists(
+        &mut treasury.clone(),
+        &mut rebellion_funds.clone(),
+        false,
+        &config,
+        &action,
+    );
+    let result_autonomous = fund_separatists(
+        &mut treasury.clone(),
+        &mut rebellion_funds.clone(),
+        true,
+        &config,
+        &action,
+    );
 
-    assert!(result_autonomous.unrest_increase > result_normal.unrest_increase,
-        "Autonomous republic must have higher unrest multiplier");
+    assert!(
+        result_autonomous.unrest_increase > result_normal.unrest_increase,
+        "Autonomous republic must have higher unrest multiplier"
+    );
 }
 
 #[test]
@@ -458,9 +545,18 @@ fn test_phase72_arm_rebels_transfers_physical_rifles() {
     let final_rifles = *stockpile.get(&Commodity::Rifles).unwrap();
 
     assert!(result.executed);
-    assert!(final_rifles < initial_rifles, "Rifles must be removed from sponsor stockpile");
-    assert!(result.commodities_transferred.get(&Commodity::Rifles).unwrap() > &0.0,
-        "Transferred rifles must be recorded");
+    assert!(
+        final_rifles < initial_rifles,
+        "Rifles must be removed from sponsor stockpile"
+    );
+    assert!(
+        result
+            .commodities_transferred
+            .get(&Commodity::Rifles)
+            .unwrap()
+            > &0.0,
+        "Transferred rifles must be recorded"
+    );
 }
 
 #[test]
@@ -479,7 +575,10 @@ fn test_phase72_arm_rebels_transfers_physical_ammo() {
     let final_ammo = *stockpile.get(&Commodity::Ammunition).unwrap();
 
     assert!(result.executed);
-    assert!(final_ammo < initial_ammo, "Ammunition must be removed from sponsor stockpile");
+    assert!(
+        final_ammo < initial_ammo,
+        "Ammunition must be removed from sponsor stockpile"
+    );
 }
 
 #[test]
@@ -495,8 +594,15 @@ fn test_phase72_arm_rebels_no_magic_spawning() {
 
     let result = arm_rebels(&mut stockpile, &config, &action);
 
-    assert!(!result.executed, "Must abort when no rifles available — no magic spawning");
-    assert_eq!(result.commodities_transferred.len(), 0, "No commodities transferred on failure");
+    assert!(
+        !result.executed,
+        "Must abort when no rifles available — no magic spawning"
+    );
+    assert_eq!(
+        result.commodities_transferred.len(),
+        0,
+        "No commodities transferred on failure"
+    );
 }
 
 #[test]
@@ -537,13 +643,25 @@ fn test_phase72_arm_rebels_physical_conservation() {
     // Physical conservation: stockpile decrease must equal transferred amount
     let rifles_decrease = initial_rifles - final_rifles;
     let ammo_decrease = initial_ammo - final_ammo;
-    let rifles_transferred = result.commodities_transferred.get(&Commodity::Rifles).copied().unwrap_or(0.0);
-    let ammo_transferred = result.commodities_transferred.get(&Commodity::Ammunition).copied().unwrap_or(0.0);
+    let rifles_transferred = result
+        .commodities_transferred
+        .get(&Commodity::Rifles)
+        .copied()
+        .unwrap_or(0.0);
+    let ammo_transferred = result
+        .commodities_transferred
+        .get(&Commodity::Ammunition)
+        .copied()
+        .unwrap_or(0.0);
 
-    assert!((rifles_decrease - rifles_transferred).abs() < 0.01,
-        "Physical conservation: rifles decrease must equal transferred");
-    assert!((ammo_decrease - ammo_transferred).abs() < 0.01,
-        "Physical conservation: ammo decrease must equal transferred");
+    assert!(
+        (rifles_decrease - rifles_transferred).abs() < 0.01,
+        "Physical conservation: rifles decrease must equal transferred"
+    );
+    assert!(
+        (ammo_decrease - ammo_transferred).abs() < 0.01,
+        "Physical conservation: ammo decrease must equal transferred"
+    );
 }
 
 #[test]

@@ -11,8 +11,10 @@ use serde::{Deserialize, Serialize};
 /// universities and the State, and default royalty ratios.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct InnovationConfig {
-    /// Base market price per Innovation Point (B2B purchase from private universities).
-    /// Default 100.0.
+    /// Base market price per Innovation Point for State-to-university B2B purchases.
+    /// Default 100.0. Note: Corporate R&D purchases (Phase 95) use a dynamic
+    /// price computed as `average_wage * 0.5` at call site, NOT this config value.
+    /// This field is retained for the State treasury purchase path only.
     #[serde(default = "default_innovation_point_price")]
     pub innovation_point_price: f64,
 

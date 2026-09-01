@@ -5,8 +5,8 @@
 
 use crate::entities::{Building, Company, CropBatch, CropState};
 use crate::registries::crops::{CropDefinition, LandType};
-use crate::registries::Registries;
 use crate::registries::enums::Commodity;
+use crate::registries::Registries;
 use crate::society::geography::Region;
 use crate::society::housing::CommercialBuilding;
 use crate::state::climate::ClimateConfig;
@@ -83,12 +83,7 @@ pub fn transition_agricultural_states(
                 );
             }
             LandType::Plantation => {
-                transition_plantation_crop(
-                    batch,
-                    crop_def,
-                    current_turn,
-                    is_in_receivership,
-                );
+                transition_plantation_crop(batch, crop_def, current_turn, is_in_receivership);
             }
         }
     }
@@ -340,7 +335,10 @@ pub fn calculate_agricultural_fte_demand(
     let is_treasury_funded = if company.is_in_receivership {
         // Check if any batch is in active state
         let has_active = agri_profile.batches.iter().any(|b| {
-            matches!(b.state, CropState::Sowing | CropState::Growing | CropState::Harvesting)
+            matches!(
+                b.state,
+                CropState::Sowing | CropState::Growing | CropState::Harvesting
+            )
         });
 
         if !has_active {
@@ -394,7 +392,8 @@ pub fn calculate_agricultural_fte_demand(
         let next_state = predict_next_crop_state(batch, crop_def, next_turn);
         let next_labor_fte = match next_state {
             CropState::Sowing => {
-                crop_def.labor_demand.sowing_fte_per_hectare * batch.active_hectares.max(batch.planned_hectares)
+                crop_def.labor_demand.sowing_fte_per_hectare
+                    * batch.active_hectares.max(batch.planned_hectares)
             }
             CropState::Growing => {
                 crop_def.labor_demand.growing_fte_per_hectare * batch.active_hectares
@@ -509,7 +508,8 @@ pub fn calculate_harvest_yield_and_rot(
             // For each (commodity, tons_per_hectare) in crop_def.yields:
             for (commodity, tons_per_hectare) in &crop_def.yields {
                 // Standard per-turn yield calculation (climate-modulated).
-                let base_commodity_yield = batch.active_hectares * tons_per_hectare * modifiers.agriculture_multiplier;
+                let base_commodity_yield =
+                    batch.active_hectares * tons_per_hectare * modifiers.agriculture_multiplier;
                 let turn_commodity_yield = base_commodity_yield / harvest_duration_turns;
                 let final_yield = turn_commodity_yield * (1.0 - batch.rot_accumulator);
 
@@ -524,13 +524,15 @@ pub fn calculate_harvest_yield_and_rot(
                 // commodities (by their yield share) and across harvest turns.
                 // It is decremented each turn so it is consumed over the
                 // harvest window and does not create infinite food.
-                let guaranteed_yield = if total_yield_per_hectare > 0.0 && batch.accumulated_yield > 0.0 {
-                    let commodity_share = tons_per_hectare / total_yield_per_hectare;
-                    let per_turn_accumulated = batch.accumulated_yield * commodity_share / harvest_duration_turns;
-                    per_turn_accumulated * (1.0 - batch.rot_accumulator)
-                } else {
-                    0.0
-                };
+                let guaranteed_yield =
+                    if total_yield_per_hectare > 0.0 && batch.accumulated_yield > 0.0 {
+                        let commodity_share = tons_per_hectare / total_yield_per_hectare;
+                        let per_turn_accumulated =
+                            batch.accumulated_yield * commodity_share / harvest_duration_turns;
+                        per_turn_accumulated * (1.0 - batch.rot_accumulator)
+                    } else {
+                        0.0
+                    };
 
                 // The actual yield is the maximum of the standard calculation
                 // and the pre-accumulated guarantee. This ensures pre-seeded
@@ -542,8 +544,14 @@ pub fn calculate_harvest_yield_and_rot(
                 // Find company's owned warehouse buildings and deposit using encapsulated methods
                 let mut remaining_yield = actual_yield;
                 for building_id in &company.building_ids {
-                    if let Some(building) = commercial_buildings.iter_mut().find(|b| &b.id == building_id) {
-                        if matches!(building.building_type, crate::society::housing::CommercialBuildingType::Warehouse) {
+                    if let Some(building) = commercial_buildings
+                        .iter_mut()
+                        .find(|b| &b.id == building_id)
+                    {
+                        if matches!(
+                            building.building_type,
+                            crate::society::housing::CommercialBuildingType::Warehouse
+                        ) {
                             let excess = building.deposit_inventory(
                                 commodity_key.clone(),
                                 remaining_yield,
@@ -552,7 +560,7 @@ pub fn calculate_harvest_yield_and_rot(
                             );
                             remaining_yield = excess;
                             if remaining_yield == 0.0 {
-                                break;  // All yield stored
+                                break; // All yield stored
                             }
                         }
                     }
@@ -608,30 +616,34 @@ pub fn submit_harvest_asks(
     market_prices: &BTreeMap<Commodity, f64>,
 ) -> Vec<(Commodity, f64, f64)> {
     let mut sell_orders = Vec::new();
-    
+
     if company.sector != crate::registries::enums::Sector::Agriculture {
         return sell_orders;
     }
-    
+
     // Iterate over company-owned warehouses
     for building_id in &company.building_ids {
         if let Some(building) = commercial_buildings.iter().find(|b| &b.id == building_id) {
-            if !matches!(building.building_type, crate::society::housing::CommercialBuildingType::Warehouse) {
+            if !matches!(
+                building.building_type,
+                crate::society::housing::CommercialBuildingType::Warehouse
+            ) {
                 continue;
             }
-            
+
             // Iterate over all inventory batches for this building
             for (commodity_key, batches) in &building.current_inventory {
                 // Calculate total quantity for this commodity owned by this company
-                let total_owned: f64 = batches.iter()
+                let total_owned: f64 = batches
+                    .iter()
                     .filter(|b| b.owner_id == company.id)
                     .map(|b| b.quantity)
                     .sum();
-                
+
                 if total_owned <= 0.0 {
                     continue;
                 }
-                
+
                 // Parse commodity key to Commodity enum
                 let commodity = match commodity_key.as_str() {
                     "Cereal" => Commodity::Cereal,
@@ -641,23 +653,26 @@ pub fn submit_harvest_asks(
                     "Seeds" => Commodity::Seeds,
                     _ => continue,
                 };
-                
+
                 // Get market price or skip if no reference price available
                 let market_price = match market_prices.get(&commodity) {
                     Some(p) if *p > 0.0 => *p,
                     _ => continue, // No market price — skip this commodity
                 };
-                
+
                 // Calculate ask price with margin (lower margin for perishables)
-                let is_perishable = matches!(commodity, Commodity::Vegetable | Commodity::Fruit | Commodity::Meat);
+                let is_perishable = matches!(
+                    commodity,
+                    Commodity::Vegetable | Commodity::Fruit | Commodity::Meat
+                );
                 let margin = if is_perishable { 0.05 } else { 0.10 };
                 let ask_price = market_price * (1.0 + margin);
-                
+
                 sell_orders.push((commodity, total_owned, ask_price));
             }
         }
     }
-    
+
     sell_orders
 }
 
@@ -682,7 +697,10 @@ pub fn process_agricultural_despawn(
     if is_in_receivership {
         // Transfer physical inventory in warehouses to State ownership
         for building_id in &company.building_ids {
-            if let Some(building) = commercial_buildings.iter_mut().find(|b| &b.id == building_id) {
+            if let Some(building) = commercial_buildings
+                .iter_mut()
+                .find(|b| &b.id == building_id)
+            {
                 // Reassign all inventory batches owned by this company to STATE
                 for batches in building.current_inventory.values_mut() {
                     for batch in batches.iter_mut() {
@@ -696,14 +714,18 @@ pub fn process_agricultural_despawn(
 
         // Asset Transfer: Reassign all company buildings to State before despawn
         for building_id in &company.building_ids {
-            if let Some(building) = commercial_buildings.iter_mut().find(|b| &b.id == building_id) {
+            if let Some(building) = commercial_buildings
+                .iter_mut()
+                .find(|b| &b.id == building_id)
+            {
                 building.owner_id = STATE_OWNER_ID.to_string();
             }
         }
 
         // Land Reclamation: Calculate hectares to reclaim from AgriculturalProfile
         if let Some(agri_profile) = &company.agricultural_profile {
-            let total_hectares_f64 = agri_profile.arable_land_hectares + agri_profile.plantation_hectares;
+            let total_hectares_f64 =
+                agri_profile.arable_land_hectares + agri_profile.plantation_hectares;
             let total_hectares = total_hectares_f64.round() as i64;
             reclamation_data.total_hectares_reclaimed = total_hectares;
         }
@@ -729,10 +751,7 @@ pub fn process_agricultural_despawn(
 /// * Clamps corporation_hectares to never go negative.
 /// * Carries unabsorbed remainder to the next soil class.
 /// * Failsafe: any final remainder is added to the first soil class.
-pub fn reclaim_agricultural_land(
-    region: &mut Region,
-    mut reclamation_data: LandReclamationData,
-) {
+pub fn reclaim_agricultural_land(region: &mut Region, mut reclamation_data: LandReclamationData) {
     if reclamation_data.total_hectares_reclaimed <= 0 {
         return;
     }
@@ -828,8 +847,10 @@ pub fn reclaim_agricultural_land(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entities::{Building, Company, CropBatch, CropState, AgriculturalProfile};
-    use crate::registries::crops::{CropDefinition, CropCategory, LandType, TurnRange, LaborDemandProfile};
+    use crate::entities::{AgriculturalProfile, Building, Company, CropBatch, CropState};
+    use crate::registries::crops::{
+        CropCategory, CropDefinition, LaborDemandProfile, LandType, TurnRange,
+    };
     use crate::registries::enums::{Commodity, Sector};
     use crate::registries::Registries;
     use crate::society::geography::ClimateProfile;
@@ -848,8 +869,14 @@ mod tests {
             category: CropCategory::Cereal,
             land_type: LandType::Arable,
             compatible_climates: vec![ClimateProfile::Temperate],
-            sowing_schedule: TurnRange { start_turn: 5, end_turn: 7 },
-            harvest_schedule: TurnRange { start_turn: 17, end_turn: 19 },
+            sowing_schedule: TurnRange {
+                start_turn: 5,
+                end_turn: 7,
+            },
+            harvest_schedule: TurnRange {
+                start_turn: 17,
+                end_turn: 19,
+            },
             labor_demand: LaborDemandProfile {
                 sowing_fte_per_hectare: 0.12,
                 growing_fte_per_hectare: 0.04,
@@ -923,10 +950,17 @@ mod tests {
         let (mut company, building) = test_farm_company(5.0); // 5 tons of seeds
         let mut buildings = vec![building];
         let registries = test_registries();
-        let calendar = Calendar { global_turn: 6, ..Default::default() };
+        let calendar = Calendar {
+            global_turn: 6,
+            ..Default::default()
+        };
 
         let _initial_treasury = 0.0; // We don't pass treasury anymore
-        let initial_seeds = buildings[0].inventory.get(&Commodity::Seeds).copied().unwrap_or(0.0);
+        let initial_seeds = buildings[0]
+            .inventory
+            .get(&Commodity::Seeds)
+            .copied()
+            .unwrap_or(0.0);
 
         transition_agricultural_states(&mut company, &calendar, registries, &mut buildings);
 
@@ -936,8 +970,15 @@ mod tests {
         assert!(batch.active_hectares > 0.0);
 
         // Verify seeds were withdrawn from building inventory
-        let remaining_seeds = buildings[0].inventory.get(&Commodity::Seeds).copied().unwrap_or(0.0);
-        assert!(remaining_seeds < initial_seeds, "Seeds should have been withdrawn");
+        let remaining_seeds = buildings[0]
+            .inventory
+            .get(&Commodity::Seeds)
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            remaining_seeds < initial_seeds,
+            "Seeds should have been withdrawn"
+        );
 
         // Verify no money was created (liquid_capital should still be 0)
         assert_eq!(company.liquid_capital, 0.0);
@@ -949,7 +990,10 @@ mod tests {
         let (mut company, building) = test_farm_company(1.0);
         let mut buildings = vec![building];
         let registries = test_registries();
-        let calendar = Calendar { global_turn: 6, ..Default::default() };
+        let calendar = Calendar {
+            global_turn: 6,
+            ..Default::default()
+        };
 
         transition_agricultural_states(&mut company, &calendar, registries, &mut buildings);
 
@@ -964,7 +1008,10 @@ mod tests {
         let (mut company, building) = test_farm_company(0.0);
         let mut buildings = vec![building];
         let registries = test_registries();
-        let calendar = Calendar { global_turn: 6, ..Default::default() };
+        let calendar = Calendar {
+            global_turn: 6,
+            ..Default::default()
+        };
 
         transition_agricultural_states(&mut company, &calendar, registries, &mut buildings);
 

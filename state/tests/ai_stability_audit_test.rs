@@ -34,14 +34,23 @@ mod tests {
         cal.advance();
         assert_eq!(cal.global_turn, 1, "Turn 1: global_turn should be 1");
         assert_eq!(cal.current_month, 9, "Turn 1 should still be September");
-        assert!(!cal.half_month, "Turn 1 should be early half (turn_in_year=0, even)");
+        assert!(
+            !cal.half_month,
+            "Turn 1 should be early half (turn_in_year=0, even)"
+        );
         assert_eq!(cal.get_season(), Season::Autumn, "Turn 1 should be Autumn");
 
         // Advance to Turn 2: September, late half (turn_in_year=1)
         cal.advance();
         assert_eq!(cal.global_turn, 2, "Turn 2: global_turn should be 2");
-        assert_eq!(cal.current_month, 9, "Turn 2 should still be September (late half)");
-        assert!(cal.half_month, "Turn 2 should be late half (turn_in_year=1, odd)");
+        assert_eq!(
+            cal.current_month, 9,
+            "Turn 2 should still be September (late half)"
+        );
+        assert!(
+            cal.half_month,
+            "Turn 2 should be late half (turn_in_year=1, odd)"
+        );
 
         // Advance to Turn 3: October, early half (turn_in_year=2)
         cal.advance();
@@ -106,8 +115,8 @@ mod tests {
 
             // Simulate the advance() formula
             let advance_turn_in_year = (turn - 1) % 24; // global_turn was turn-1 before advance
-            // advance() does: global_turn += 1, then turn_in_year = (global_turn - 1) % 24
-            // So after advance with global_turn becoming `turn`:
+                                                        // advance() does: global_turn += 1, then turn_in_year = (global_turn - 1) % 24
+                                                        // So after advance with global_turn becoming `turn`:
             let advance_month = (advance_turn_in_year / 2 + start_month.saturating_sub(1)) % 12 + 1;
             let advance_half = advance_turn_in_year % 2 == 1;
 
@@ -123,7 +132,12 @@ mod tests {
             );
 
             // Verify month is always 1-12
-            assert!(sync_month >= 1 && sync_month <= 12, "Turn {}: month {} out of range", turn, sync_month);
+            assert!(
+                sync_month >= 1 && sync_month <= 12,
+                "Turn {}: month {} out of range",
+                turn,
+                sync_month
+            );
         }
     }
 
@@ -156,7 +170,9 @@ mod tests {
         use sim_engine::energy::types::PowerPlantType;
 
         let types = available_plant_types(1900, false, true, false, false, false, false);
-        let biomass = types.iter().find(|(t, _)| *t == PowerPlantType::BiomassFired);
+        let biomass = types
+            .iter()
+            .find(|(t, _)| *t == PowerPlantType::BiomassFired);
         assert!(biomass.is_some(), "Biomass should still be available");
         let (_, weight) = biomass.unwrap();
         assert!(
@@ -173,7 +189,9 @@ mod tests {
         use sim_engine::energy::types::PowerPlantType;
 
         let types = available_plant_types(1900, false, true, true, false, false, false);
-        let biomass = types.iter().find(|(t, _)| *t == PowerPlantType::BiomassFired);
+        let biomass = types
+            .iter()
+            .find(|(t, _)| *t == PowerPlantType::BiomassFired);
         assert!(biomass.is_some(), "Biomass should be available with forest");
         let (_, weight) = biomass.unwrap();
         assert!(
@@ -195,7 +213,9 @@ mod tests {
             "CoalFired should be available with coal deposit"
         );
         assert!(
-            types.iter().any(|(t, _)| *t == PowerPlantType::LigniteFired),
+            types
+                .iter()
+                .any(|(t, _)| *t == PowerPlantType::LigniteFired),
             "LigniteFired should be available with coal deposit"
         );
     }
@@ -216,8 +236,8 @@ mod tests {
     /// Pillar 4A: moving_avg_net_profit should average the last N entries.
     #[test]
     fn test_moving_avg_last_n_entries() {
-        use sim_engine::entities::Company;
         use serde_json::{Map, Value};
+        use sim_engine::entities::Company;
 
         let mut company = Company::default();
         // Add 5 records with profits: 100, 200, 300, 400, 500
@@ -239,8 +259,8 @@ mod tests {
     /// should average all available entries.
     #[test]
     fn test_moving_avg_window_larger_than_history() {
-        use sim_engine::entities::Company;
         use serde_json::{Map, Value};
+        use sim_engine::entities::Company;
 
         let mut company = Company::default();
         for profit in [100.0, 200.0] {
@@ -269,7 +289,11 @@ mod tests {
         let mut ledger = ActionLedger::default();
         ledger.record_action("Expand", 1, 1000.0);
 
-        assert_eq!(ledger.weight_for("Expand"), 0.0, "Initial weight should be 0");
+        assert_eq!(
+            ledger.weight_for("Expand"),
+            0.0,
+            "Initial weight should be 0"
+        );
         assert!(
             ledger.action_records.contains_key("Expand"),
             "Action should be recorded"
@@ -342,8 +366,10 @@ mod tests {
     #[test]
     fn test_counter_cyclical_transfers_to_unemployed() {
         use sim_engine::politics::crisis_management::counter_cyclical_response;
+        use sim_engine::society::geography::{
+            ClassDemographics, Region, RegionalClassDemographics,
+        };
         use sim_engine::state::Country;
-        use sim_engine::society::geography::{Region, RegionalClassDemographics, ClassDemographics};
 
         let mut country = Country::default();
         country.budget.gdp = 1_000_000.0;
@@ -403,7 +429,10 @@ mod tests {
         let msgs = counter_cyclical_response(&mut country, 5);
 
         // No fiscal stimulus messages (monetary easing may still occur if ratio > 0.05)
-        let fiscal_msgs: Vec<_> = msgs.iter().filter(|m| m.contains("Fiscal stimulus")).collect();
+        let fiscal_msgs: Vec<_> = msgs
+            .iter()
+            .filter(|m| m.contains("Fiscal stimulus"))
+            .collect();
         assert!(
             fiscal_msgs.is_empty(),
             "No fiscal stimulus when unemployment is stable"
@@ -430,7 +459,10 @@ mod tests {
         let treasury_before = country.budget.liquid_reserves;
         let msgs = counter_cyclical_response(&mut country, 5);
 
-        let fiscal_msgs: Vec<_> = msgs.iter().filter(|m| m.contains("Fiscal stimulus")).collect();
+        let fiscal_msgs: Vec<_> = msgs
+            .iter()
+            .filter(|m| m.contains("Fiscal stimulus"))
+            .collect();
         assert!(
             fiscal_msgs.is_empty(),
             "No fiscal stimulus when unemployment is below 8%"
@@ -445,8 +477,10 @@ mod tests {
     #[test]
     fn test_counter_cyclical_targets_unemployed_only() {
         use sim_engine::politics::crisis_management::counter_cyclical_response;
+        use sim_engine::society::geography::{
+            ClassDemographics, Region, RegionalClassDemographics,
+        };
         use sim_engine::state::Country;
-        use sim_engine::society::geography::{Region, RegionalClassDemographics, ClassDemographics};
 
         let mut country = Country::default();
         country.budget.gdp = 1_000_000.0;

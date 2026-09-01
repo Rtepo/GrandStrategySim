@@ -37,40 +37,29 @@ pub enum ConservationPolicyType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ConservationPolicy {
     /// Unique policy ID
-
     pub id: String,
     /// Policy name
-
     pub name: String,
     /// Country implementing the policy
-
     pub country: String,
     /// Policy type
-
     pub policy_type: ConservationPolicyType,
     /// Region where policy applies
-
     pub region_id: String,
     /// Zoning rules enforced
     #[serde(default)]
     pub zoning_rules: Vec<ZoningRule>,
     /// Tourism boost multiplier
-
     pub tourism_boost: f64,
     /// Capitalist discontent generated
-
     pub capitalist_discontent: f64,
     /// Enforcement level 0-1
-
     pub enforcement_level: f64,
     /// Maintenance cost per turn
-
     pub maintenance_cost: f64,
     /// Valid from turn
-
     pub valid_from: u32,
     /// Valid until turn
-
     pub valid_until: u32,
 }
 
@@ -94,7 +83,11 @@ impl ConservationPolicy {
     ///
     /// # Returns
     /// true if change is allowed
-    pub fn is_land_change_allowed(&self, _source_category: LandCategory, target_category: LandCategory) -> bool {
+    pub fn is_land_change_allowed(
+        &self,
+        _source_category: LandCategory,
+        target_category: LandCategory,
+    ) -> bool {
         for rule in &self.zoning_rules {
             match rule {
                 ZoningRule::NoIndustrialExpansion => {
@@ -103,7 +96,9 @@ impl ConservationPolicy {
                     }
                 }
                 ZoningRule::NoConstruction => {
-                    if target_category == LandCategory::Urbanized || target_category == LandCategory::Industrial {
+                    if target_category == LandCategory::Urbanized
+                        || target_category == LandCategory::Industrial
+                    {
                         return false;
                     }
                 }
@@ -133,40 +128,29 @@ impl ConservationPolicy {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct NationalPark {
     /// Unique park ID
-
     pub id: String,
     /// Park name
-
     pub name: String,
     /// Country managing the park
-
     pub country: String,
     /// Region where park is located
-
     pub region_id: String,
     /// Total area in hectares
-
     pub total_area: f64,
     /// Protected area in hectares
-
     pub protected_area: f64,
     /// Zoning rules (strict: no industrial expansion)
     #[serde(default)]
     pub zoning_rules: Vec<ZoningRule>,
     /// Tourism revenue multiplier
-
     pub tourism_revenue_multiplier: f64,
     /// Capitalist discontent per turn
-
     pub capitalist_discontent_per_turn: f64,
     /// Ecological health 0-1
-
     pub ecological_health: f64,
     /// Visitor capacity
-
     pub visitor_capacity: f64,
     /// Management cost per turn
-
     pub management_cost: f64,
 }
 
@@ -195,40 +179,29 @@ impl NationalPark {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LandscapePark {
     /// Unique park ID
-
     pub id: String,
     /// Park name
-
     pub name: String,
     /// Country managing the park
-
     pub country: String,
     /// Region where park is located
-
     pub region_id: String,
     /// Total area in hectares
-
     pub total_area: f64,
     /// Protected area in hectares
-
     pub protected_area: f64,
     /// Zoning rules (moderate: limited industrial expansion)
     #[serde(default)]
     pub zoning_rules: Vec<ZoningRule>,
     /// Tourism revenue multiplier
-
     pub tourism_revenue_multiplier: f64,
     /// Capitalist discontent per turn
-
     pub capitalist_discontent_per_turn: f64,
     /// Ecological health 0-1
-
     pub ecological_health: f64,
     /// Visitor capacity
-
     pub visitor_capacity: f64,
     /// Management cost per turn
-
     pub management_cost: f64,
 }
 
@@ -247,7 +220,8 @@ impl LandscapePark {
         self.ecological_health = (self.ecological_health + 0.005).min(1.0);
 
         let tourism_revenue = self.tourism_revenue_boost();
-        let capitalist_discontent = self.capitalist_discontent_per_turn * self.ecological_health * 0.7;
+        let capitalist_discontent =
+            self.capitalist_discontent_per_turn * self.ecological_health * 0.7;
 
         (tourism_revenue, capitalist_discontent)
     }
@@ -279,7 +253,10 @@ pub fn create_national_park(
         region_id,
         total_area,
         protected_area: total_area * 0.9, // 90% protected
-        zoning_rules: vec![ZoningRule::NoIndustrialExpansion, ZoningRule::NoConstruction],
+        zoning_rules: vec![
+            ZoningRule::NoIndustrialExpansion,
+            ZoningRule::NoConstruction,
+        ],
         tourism_revenue_multiplier: 2.0,
         capitalist_discontent_per_turn: 0.05,
         ecological_health: 1.0,
@@ -314,7 +291,10 @@ pub fn create_landscape_park(
         region_id,
         total_area,
         protected_area: total_area * 0.6, // 60% protected
-        zoning_rules: vec![ZoningRule::LimitedIndustrialExpansion, ZoningRule::SustainableDevelopment],
+        zoning_rules: vec![
+            ZoningRule::LimitedIndustrialExpansion,
+            ZoningRule::SustainableDevelopment,
+        ],
         tourism_revenue_multiplier: 1.5,
         capitalist_discontent_per_turn: 0.02,
         ecological_health: 1.0,
@@ -355,7 +335,10 @@ pub fn process_conservation_turn(
         // Tourism revenue: debit citizen savings → credit treasury
         if tourism_revenue > 0.0 {
             if let Some(region) = regions.iter_mut().find(|r| r.id == park.region_id) {
-                let total_pop: i64 = region.class_demographics.rural_classes.values()
+                let total_pop: i64 = region
+                    .class_demographics
+                    .rural_classes
+                    .values()
                     .chain(region.class_demographics.urban_classes.values())
                     .map(|c| c.population)
                     .sum();
@@ -403,7 +386,10 @@ pub fn process_conservation_turn(
         // Tourism revenue: debit citizen savings → credit treasury
         if tourism_revenue > 0.0 {
             if let Some(region) = regions.iter_mut().find(|r| r.id == park.region_id) {
-                let total_pop: i64 = region.class_demographics.rural_classes.values()
+                let total_pop: i64 = region
+                    .class_demographics
+                    .rural_classes
+                    .values()
                     .chain(region.class_demographics.urban_classes.values())
                     .map(|c| c.population)
                     .sum();
@@ -441,7 +427,9 @@ pub fn process_conservation_turn(
     }
 
     // Expire old conservation policies
-    country.conservation_policies.retain(|p| p.is_valid(current_turn));
+    country
+        .conservation_policies
+        .retain(|p| p.is_valid(current_turn));
 
     messages
 }

@@ -8,9 +8,9 @@
 
 use crate::entities::Company;
 use crate::state::banking::Bank;
-use crate::state::Country;
 use crate::state::forex::ForexMarket;
 use crate::state::BankruptcyPolicy;
+use crate::state::Country;
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
 use std::collections::{BTreeMap, HashMap};
@@ -25,20 +25,20 @@ pub struct BankruptcyAuctionPool {
     /// Assets in auction pool: (asset_id, (asking_price, book_value, owner_id, creditor_claims, turns_in_pool))
     #[serde(default)]
     pub assets: BTreeMap<String, (f64, f64, String, HashMap<String, f64>, u32)>,
-    
+
     /// Cash collected from asset purchases (to be distributed to creditors)
     #[serde(default)]
     pub cash_collected: f64,
-    
+
     /// Creditor distribution: (bank_id, amount_to_distribute)
     #[serde(default)]
     pub creditor_distribution: HashMap<String, f64>,
-    
+
     /// Privatization queue: (asset_id, (owner_id, book_value))
     /// Assets nationalized by JST/State awaiting privatization
     #[serde(default)]
     pub privatization_queue: BTreeMap<String, (String, f64)>,
-    
+
     /// Any additional auction pool fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -72,7 +72,7 @@ impl BankruptcyAuctionPool {
             (asking_price, book_value, owner_id, creditor_claims, 0),
         );
     }
-    
+
     /// Purchase asset from auction pool.
     ///
     /// # Arguments
@@ -87,7 +87,7 @@ impl BankruptcyAuctionPool {
     /// * Asset removed from pool
     /// * Cash queued for distribution to creditor_claims
     pub fn purchase_asset(&mut self, asset_id: &str, _buyer_id: &str, price: f64) -> bool {
-        if let Some((asking_price, _book_value, _owner_id, creditor_claims, _turns)) = 
+        if let Some((asking_price, _book_value, _owner_id, creditor_claims, _turns)) =
             self.assets.remove(asset_id)
         {
             if price >= asking_price {
@@ -105,13 +105,19 @@ impl BankruptcyAuctionPool {
                 // Put back if price insufficient
                 self.assets.insert(
                     asset_id.to_string(),
-                    (asking_price, _book_value, _owner_id, creditor_claims, _turns),
+                    (
+                        asking_price,
+                        _book_value,
+                        _owner_id,
+                        creditor_claims,
+                        _turns,
+                    ),
                 );
             }
         }
         false
     }
-    
+
     /// Increment turn counters for all assets in pool.
     ///
     /// # Rules
@@ -131,19 +137,19 @@ pub struct RestructuringPlan {
     /// Company ID being restructured.
     #[serde(default)]
     pub company_id: String,
-    
+
     /// Proposed haircut percentage (0.0 - 1.0).
     #[serde(default)]
     pub debt_haircut: f64,
-    
+
     /// Extended repayment period in turns.
     #[serde(default)]
     pub extended_period: u32,
-    
+
     /// Whether the plan has been approved by creditors.
     #[serde(default)]
     pub approved: bool,
-    
+
     /// Any additional restructuring plan fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -175,17 +181,17 @@ impl RestructuringPlan {
                     .and_then(|v| v.as_f64())
                     .is_some_and(|ocf| ocf > 0.0)
             });
-        
+
         if !positive_ocf {
             return false;
         }
-        
+
         // Check regulatory capital compliance (simplified for legacy Bank structure)
         let haircut_loss = self.debt_haircut * bank.issued_loans;
         let capital_after_loss = bank.own_capital - haircut_loss;
         // KNF minimum: Own Capital >= 6% of Issued Loans
         let minimum_capital = 0.06 * bank.issued_loans;
-        
+
         capital_after_loss >= minimum_capital
     }
 }
@@ -197,11 +203,11 @@ pub struct Syndic {
     /// Domestic currency code.
     #[serde(default)]
     pub domestic_currency: String,
-    
+
     /// Creditor distributions: (creditor_id, amount_distributed)
     #[serde(default)]
     pub creditor_distributions: HashMap<String, f64>,
-    
+
     /// Any additional syndic fields.
     #[serde(flatten, default)]
     pub extra: Map<String, serde_json::Value>,
@@ -216,7 +222,7 @@ impl Syndic {
             extra: Map::new(),
         }
     }
-    
+
     /// Execute full liquidation for bankrupt company.
     ///
     /// # Arguments
@@ -245,7 +251,7 @@ impl Syndic {
         // STEP 1: Seize and convert fx_balances to domestic fiat using direct AMM swap
         if let Some(brokerage) = &mut company.brokerage_account {
             let seized_fx = std::mem::take(&mut brokerage.fx_balances);
-            
+
             for (currency_code, amount) in seized_fx {
                 if amount > 0.0 && currency_code != self.domestic_currency {
                     // Direct AMM swap to avoid BorrowChecker panic (no brokerage_accounts map)
@@ -259,7 +265,10 @@ impl Syndic {
                             brokerage.cash += domestic_received;
                             eprintln!(
                                 "Syndic converted {} {} to {} {} (rate: {})",
-                                amount, currency_code, domestic_received, self.domestic_currency,
+                                amount,
+                                currency_code,
+                                domestic_received,
+                                self.domestic_currency,
                                 domestic_received / amount
                             );
                         }
@@ -270,7 +279,7 @@ impl Syndic {
                 }
             }
         }
-        
+
         // STEP 2: Build creditor_claims for each asset (bank_id -> unpaid loan_balance)
         // Note: Legacy Bank structure doesn't have balance_sheet with loan details
         // We'll use a simplified approach - distribute proportionally based on bank size
@@ -280,7 +289,7 @@ impl Syndic {
             // In full implementation, would need to track per-company loan exposure
             creditor_claims.insert(bank.id.clone(), bank.issued_loans / banks.len() as f64);
         }
-        
+
         // STEP 3: Route physical assets to BankruptcyAuctionPool with creditor_claims
         for building_id in &company.building_ids {
             let book_value = company.fixed_capital / company.building_ids.len() as f64;
@@ -292,9 +301,13 @@ impl Syndic {
                 policy,
             );
         }
-        
+
         // STEP 4: Waterfall distribution of seized domestic cash
-        let mut total_seized_cash = company.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
+        let mut total_seized_cash = company
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0);
 
         // STEP 4a: Reclaim frozen cash from justice system (Phase 14)
         // When a company goes bankrupt, the Syndic reclaims any cash frozen
@@ -315,10 +328,12 @@ impl Syndic {
 
         if total_seized_cash > 0.0 {
             let mut remaining_cash = total_seized_cash;
-            
+
             // Waterfall Step 1: Pay actual unpaid tax liabilities from financial history
-            let tax_owed = company.financial_history
-                .iter().next_back()
+            let tax_owed = company
+                .financial_history
+                .iter()
+                .next_back()
                 .and_then(|record| record.get("taxes").and_then(|v| v.as_f64()))
                 .unwrap_or(0.0);
             let tax_payment = tax_owed.min(remaining_cash);
@@ -327,7 +342,7 @@ impl Syndic {
                 remaining_cash -= tax_payment;
                 eprintln!("Syndic paid {} in taxes for {}", tax_payment, company.id);
             }
-            
+
             // Waterfall Step 2: Pay bank loans proportionally based on actual per-bank loan exposure
             if remaining_cash > 0.0 {
                 let total_issued: f64 = banks.iter().map(|b| b.issued_loans).sum();
@@ -340,25 +355,35 @@ impl Syndic {
                             bank.issued_loans = (bank.issued_loans - bank_payment).max(0.0);
                             bank.total_deposits = (bank.total_deposits - bank_payment).max(0.0);
 
-                            *self.creditor_distributions.entry(bank.id.clone()).or_insert(0.0) +=
-                                bank_payment;
+                            *self
+                                .creditor_distributions
+                                .entry(bank.id.clone())
+                                .or_insert(0.0) += bank_payment;
 
-                            eprintln!("Syndic paid {} to bank {} for {}", bank_payment, bank.id, company.id);
+                            eprintln!(
+                                "Syndic paid {} to bank {} for {}",
+                                bank_payment, bank.id, company.id
+                            );
                         }
                     }
                     remaining_cash = 0.0;
                 }
             }
-            
+
             // Waterfall Step 3: Residual to shareholders (route to treasury as residual claimant)
             if remaining_cash > 0.0 {
-                *self.creditor_distributions.entry("shareholders".to_string()).or_insert(0.0) +=
-                    remaining_cash;
+                *self
+                    .creditor_distributions
+                    .entry("shareholders".to_string())
+                    .or_insert(0.0) += remaining_cash;
                 country.budget.liquid_reserves += remaining_cash;
-                eprintln!("Syndic routed {} residual to treasury for shareholders of {}", remaining_cash, company.id);
+                eprintln!(
+                    "Syndic routed {} residual to treasury for shareholders of {}",
+                    remaining_cash, company.id
+                );
             }
         }
-        
+
         // Clear company brokerage account
         if let Some(brokerage) = &mut company.brokerage_account {
             brokerage.cash = 0.0;
@@ -445,9 +470,15 @@ mod tests {
         let policy = BankruptcyPolicy::with_defaults();
         let mut claims = HashMap::new();
         claims.insert("bank1".to_string(), 1000.0);
-        
-        pool.add_asset("asset1".to_string(), 10000.0, "owner1".to_string(), claims, &policy);
-        
+
+        pool.add_asset(
+            "asset1".to_string(),
+            10000.0,
+            "owner1".to_string(),
+            claims,
+            &policy,
+        );
+
         assert!(pool.assets.contains_key("asset1"));
         let (price, book, owner, _claims, turns) = pool.assets.get("asset1").unwrap();
         assert_eq!(*price, 5000.0); // 10000 * 0.5
@@ -462,9 +493,15 @@ mod tests {
         let policy = BankruptcyPolicy::with_defaults();
         let mut claims = HashMap::new();
         claims.insert("bank1".to_string(), 1000.0);
-        
-        pool.add_asset("asset1".to_string(), 10000.0, "owner1".to_string(), claims.clone(), &policy);
-        
+
+        pool.add_asset(
+            "asset1".to_string(),
+            10000.0,
+            "owner1".to_string(),
+            claims.clone(),
+            &policy,
+        );
+
         let success = pool.purchase_asset("asset1", "buyer1", 6000.0);
         assert!(success);
         assert!(!pool.assets.contains_key("asset1"));
@@ -509,13 +546,11 @@ mod tests {
                 ..Default::default()
             },
         ];
-        let mut buildings = vec![
-            {
-                let mut b = Building::default();
-                b.structural_defect = 1.5;
-                b
-            },
-        ];
+        let mut buildings = vec![{
+            let mut b = Building::default();
+            b.structural_defect = 1.5;
+            b
+        }];
         normalize_phase22_fields(&mut companies, &mut buildings);
         assert_eq!(companies[0].reputation_score, 100.0);
         assert_eq!(companies[1].reputation_score, 0.0);
@@ -528,9 +563,15 @@ mod tests {
         let policy = BankruptcyPolicy::with_defaults();
         let mut claims = HashMap::new();
         claims.insert("bank1".to_string(), 1000.0);
-        
-        pool.add_asset("asset1".to_string(), 10000.0, "owner1".to_string(), claims, &policy);
-        
+
+        pool.add_asset(
+            "asset1".to_string(),
+            10000.0,
+            "owner1".to_string(),
+            claims,
+            &policy,
+        );
+
         pool.increment_turns();
         let (_, _, _, _, turns) = pool.assets.get("asset1").unwrap();
         assert_eq!(*turns, 1);

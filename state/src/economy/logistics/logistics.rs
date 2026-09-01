@@ -20,9 +20,7 @@
 //!   delivery, never stockpiled.
 
 use crate::economy::order_book::Trade;
-use crate::economy::transfer_settler::{
-    settle_company_to_company, TransferError,
-};
+use crate::economy::transfer_settler::{settle_company_to_company, TransferError};
 use crate::economy::transport_networks::{NetworkLevel, TransportNetworkOverlay};
 use crate::entities::{Building, Company};
 use crate::international::DiplomaticRelation;
@@ -32,7 +30,60 @@ use crate::state::Country;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Phase 30: A single edge segment in a reconstructed freight route path.
+/// Agent 4 — Phase 5: Transport mode classification for freight producers.
+/// Used to gate which producers can serve which routes (Rule 18 & 19):
+/// a land-only wagon cannot carry goods across an ocean leg.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TransportMode {
+    /// Land-based: pack caravans, wagons, trucks, rail.
+    Land,
+    /// Water-based: ships, barges (requires Coastline/SeaLane edges).
+    Water,
+    /// Air-based: air cargo (requires airports at both endpoints).
+    Air,
+    /// Unknown mode — fallback for non-transport buildings.
+    Unknown,
+}
+
+/// Agent 4 — Phase 5: Classify a building's transport mode from its active
+/// production method name. Returns `Unknown` for non-transport buildings.
+fn classify_transport_mode(building: &Building) -> TransportMode {
+    let method_name = building.active_method.active_methods.production.as_str();
+    if method_name.contains("Air Cargo") {
+        TransportMode::Air
+    } else if method_name.contains("Ship")
+        || method_name.contains("Barge")
+        || method_name.contains("Maritime")
+    {
+        TransportMode::Water
+    } else if method_name.contains("Pack Caravans")
+        || method_name.contains("Horse-Drawn")
+        || method_name.contains("Freight Train")
+        || method_name.contains("Container Trucking")
+        || method_name.contains("Wagon")
+        || method_name.contains("Truck")
+    {
+        TransportMode::Land
+    } else {
+        TransportMode::Unknown
+    }
+}
+
+/// Agent 4 — Phase 5: Determine the dominant transport mode required by a
+/// route based on its edge types. If any segment is SeaLane/Coastline, the
+/// route requires Water mode. Otherwise, it's Land mode.
+fn route_transport_mode(route: &FreightRoute) -> TransportMode {
+    let has_water = route
+        .path_segments
+        .iter()
+        .any(|seg| matches!(seg.edge_type, EdgeType::SeaLane | EdgeType::Coastline));
+    if has_water {
+        TransportMode::Water
+    } else {
+        TransportMode::Land
+    }
+}
+
 ///
 /// Used for territorial-water blockade checks and maritime transit tariff
 /// calculation. Each segment records the from/to node IDs and the edge type.
@@ -136,6 +187,39 @@ impl Default for FreightLogisticsConfig {
     }
 }
 
+impl FreightLogisticsConfig {
+    /// Agent 4 — Phase 6: Scale currency-denominated rate constants by
+    /// `average_wage` for inflation-proofing (Rule 2).
+    ///
+    /// The physical rates (friction coefficients, fuel consumption per km,
+    /// capacity per ton-km) are dimensionless or physical and do NOT scale.
+    /// Only the currency-denominated rates (base_freight_rate,
+    /// maritime_transit_rate, overflight_rate_per_km) are scaled.
+    ///
+    /// The scaling factor is `average_wage / 1000.0` (normalized so that at
+    /// average_wage = 1000, the rates match their defaults). This ensures
+    /// the rates remain stable under inflation or deflation.
+    pub fn scaled_for_economy(&self, average_wage: f64) -> Self {
+        let scale = (average_wage.max(1.0) / 1000.0).max(0.01);
+        Self {
+            base_freight_rate: self.base_freight_rate * scale,
+            maritime_transit_rate: self.maritime_transit_rate * scale,
+            overflight_rate_per_km: self.overflight_rate_per_km * scale,
+            // Physical/dimensionless rates — unchanged.
+            capacity_per_ton_km: self.capacity_per_ton_km,
+            land_border_friction: self.land_border_friction,
+            river_friction: self.river_friction,
+            waterborne_friction: self.waterborne_friction,
+            mountain_penalty: self.mountain_penalty,
+            max_deferred_turns: self.max_deferred_turns,
+            ship_fuel_rate: self.ship_fuel_rate,
+            barge_fuel_rate: self.barge_fuel_rate,
+            airspace_proximity_threshold: self.airspace_proximity_threshold,
+            congestion_decay_rate: self.congestion_decay_rate,
+        }
+    }
+}
+
 /// A trade that could not secure freight capacity this turn.
 ///
 /// Stored on the country and retried next turn. Trades deferred beyond
@@ -178,15 +262,18 @@ fn edge_friction(
 ) -> f64 {
     let friction = match edge.edge_type {
         EdgeType::LandBorder => {
-            let network_friction = overlay.friction_multiplier(&from_region.id, to_region_id, &edge.edge_type);
+            let network_friction =
+                overlay.friction_multiplier(&from_region.id, to_region_id, &edge.edge_type);
             config.land_border_friction * network_friction
         }
         EdgeType::River => {
             if edge.is_navigable {
-                let network_friction = overlay.friction_multiplier(&from_region.id, to_region_id, &edge.edge_type);
+                let network_friction =
+                    overlay.friction_multiplier(&from_region.id, to_region_id, &edge.edge_type);
                 config.river_friction * network_friction
             } else {
-                let network_friction = overlay.friction_multiplier(&from_region.id, to_region_id, &edge.edge_type);
+                let network_friction =
+                    overlay.friction_multiplier(&from_region.id, to_region_id, &edge.edge_type);
                 config.land_border_friction * network_friction
             }
         }
@@ -194,8 +281,8 @@ fn edge_friction(
     };
 
     // Mountain penalty on land edges.
-    let is_mountainous = from_region.climate_profile
-        == crate::society::geography::ClimateProfile::Mountainous;
+    let is_mountainous =
+        from_region.climate_profile == crate::society::geography::ClimateProfile::Mountainous;
     if is_mountainous && matches!(edge.edge_type, EdgeType::LandBorder) {
         friction * config.mountain_penalty
     } else {
@@ -258,7 +345,14 @@ fn edge_weight(
     fuel_prices: &rustc_hash::FxHashMap<Commodity, f64>,
 ) -> f64 {
     let friction = edge_friction(from_region, to_region_id, edge, overlay, config);
-    let fuel_cost = edge_fuel_cost_per_km(from_region, to_region_id, edge, overlay, config, fuel_prices);
+    let fuel_cost = edge_fuel_cost_per_km(
+        from_region,
+        to_region_id,
+        edge,
+        overlay,
+        config,
+        fuel_prices,
+    );
     // Toll cost (Phase 30 — future: per-link tolls, 0.0 for now).
     let toll_cost = 0.0;
     friction + fuel_cost + toll_cost
@@ -387,10 +481,11 @@ pub fn compute_freight_route(
                         continue;
                     }
                 }
-                EdgeType::River if edge.is_navigable
-                    && !from_region.geographic_traits.has_navigable_river => {
-                        continue;
-                    }
+                EdgeType::River
+                    if edge.is_navigable && !from_region.geographic_traits.has_navigable_river =>
+                {
+                    continue;
+                }
                 _ => {}
             }
 
@@ -419,19 +514,25 @@ pub fn compute_freight_route(
 
             // Phase 31: Track friction and fuel cost separately for dimensional correctness.
             let edge_friction_val = edge_friction(from_region, neighbor, edge, overlay, config);
-            let edge_fuel_val = edge_fuel_cost_per_km(from_region, neighbor, edge, overlay, config, fuel_prices);
+            let edge_fuel_val =
+                edge_fuel_cost_per_km(from_region, neighbor, edge, overlay, config, fuel_prices);
             let edge_friction_cost = edge.distance * edge_friction_val;
             let edge_fuel_cost = edge.distance * edge_fuel_val;
-            let new_friction_cost =
-                path_friction_cost.get(&current_node).copied().unwrap_or(0.0) + edge_friction_cost;
+            let new_friction_cost = path_friction_cost
+                .get(&current_node)
+                .copied()
+                .unwrap_or(0.0)
+                + edge_friction_cost;
             let new_fuel_cost =
                 path_fuel_cost.get(&current_node).copied().unwrap_or(0.0) + edge_fuel_cost;
 
             let existing = dist.get(neighbor).copied().unwrap_or(f64::MAX);
             if new_cost < existing {
                 // Build new path segments by appending this edge.
-                let mut new_segments =
-                    path_segments.get(&current_node).cloned().unwrap_or_default();
+                let mut new_segments = path_segments
+                    .get(&current_node)
+                    .cloned()
+                    .unwrap_or_default();
                 new_segments.push(RouteSegment {
                     from_node: current_node.clone(),
                     to_node: neighbor.clone(),
@@ -466,9 +567,18 @@ pub fn compute_freight_route(
 
     let _total_cost = total_cost.unwrap();
     let total_distance = path_distance.get(seller_region_id).copied().unwrap_or(0.0);
-    let uses_water = path_uses_water.get(seller_region_id).copied().unwrap_or(false);
-    let segments = path_segments.get(seller_region_id).cloned().unwrap_or_default();
-    let total_friction_cost = path_friction_cost.get(seller_region_id).copied().unwrap_or(0.0);
+    let uses_water = path_uses_water
+        .get(seller_region_id)
+        .copied()
+        .unwrap_or(false);
+    let segments = path_segments
+        .get(seller_region_id)
+        .cloned()
+        .unwrap_or_default();
+    let total_friction_cost = path_friction_cost
+        .get(seller_region_id)
+        .copied()
+        .unwrap_or(0.0);
     let total_fuel_cost = path_fuel_cost.get(seller_region_id).copied().unwrap_or(0.0);
 
     // Phase 31: Separate friction (dimensionless) from fuel cost (currency/km).
@@ -595,7 +705,11 @@ pub fn freight_cost(route: &FreightRoute, quantity: f64, base_rate: f64) -> f64 
 /// Freight capacity required = quantity × distance_km × capacity_per_ton_km.
 ///
 /// Returns 0.0 for local (same-region) routes.
-pub fn freight_capacity_required(route: &FreightRoute, quantity: f64, capacity_per_ton_km: f64) -> f64 {
+pub fn freight_capacity_required(
+    route: &FreightRoute,
+    quantity: f64,
+    capacity_per_ton_km: f64,
+) -> f64 {
     if route.is_local() || route.impassable {
         return 0.0;
     }
@@ -656,13 +770,34 @@ pub fn procure_freight_and_split_trades(
 
     // Pre-compute building inventory of FreightCapacity by owner company.
     let mut freight_capacity_by_company: HashMap<String, f64> = HashMap::new();
+    // Agent 4 — Phase 5: Pre-compute transport mode by company for
+    // mode-to-geography gating (Rule 18 & 19).
+    let mut transport_mode_by_company: HashMap<String, TransportMode> = HashMap::new();
     for b in buildings.iter() {
         if b.owner_id.is_empty() {
             continue;
         }
-        let cap = b.inventory.get(&Commodity::FreightCapacity).copied().unwrap_or(0.0);
+        let cap = b
+            .inventory
+            .get(&Commodity::FreightCapacity)
+            .copied()
+            .unwrap_or(0.0);
         if cap > 0.0 {
-            *freight_capacity_by_company.entry(b.owner_id.clone()).or_insert(0.0) += cap;
+            *freight_capacity_by_company
+                .entry(b.owner_id.clone())
+                .or_insert(0.0) += cap;
+            // Classify the transport mode from the building's active method.
+            let mode = classify_transport_mode(b);
+            // If a company has multiple buildings with different modes, keep
+            // the first non-Unknown mode found.
+            transport_mode_by_company
+                .entry(b.owner_id.clone())
+                .and_modify(|existing| {
+                    if *existing == TransportMode::Unknown && mode != TransportMode::Unknown {
+                        *existing = mode;
+                    }
+                })
+                .or_insert(mode);
         }
     }
 
@@ -687,8 +822,14 @@ pub fn procure_freight_and_split_trades(
         }
 
         // Phase 30: Determine buyer and seller countries for diplomacy checks.
-        let buyer_country = company_country.get(&trade.buyer_id).cloned().unwrap_or_default();
-        let seller_country = company_country.get(&trade.seller_id).cloned().unwrap_or_default();
+        let buyer_country = company_country
+            .get(&trade.buyer_id)
+            .cloned()
+            .unwrap_or_default();
+        let seller_country = company_country
+            .get(&trade.seller_id)
+            .cloned()
+            .unwrap_or_default();
 
         // Compute the freight route (Phase 30: with fuel prices and diplomacy).
         let route = compute_freight_route(
@@ -704,7 +845,12 @@ pub fn procure_freight_and_split_trades(
         );
 
         if route.impassable {
-            refund_buyer_encumbrance(companies, &trade.buyer_id, trade.quantity, trade.bid_limit_price);
+            refund_buyer_encumbrance(
+                companies,
+                &trade.buyer_id,
+                trade.quantity,
+                trade.bid_limit_price,
+            );
             deferred.push(DeferredTrade {
                 trade: trade.clone(),
                 deferred_turns: 1,
@@ -714,11 +860,8 @@ pub fn procure_freight_and_split_trades(
         }
 
         // Compute freight capacity required and cost.
-        let capacity_needed = freight_capacity_required(
-            &route,
-            trade.quantity,
-            config.capacity_per_ton_km,
-        );
+        let capacity_needed =
+            freight_capacity_required(&route, trade.quantity, config.capacity_per_ton_km);
         let cost = freight_cost(&route, trade.quantity, config.base_freight_rate);
 
         // Phase 30: Calculate maritime transit tariffs for territorial waters.
@@ -733,14 +876,20 @@ pub fn procure_freight_and_split_trades(
             }
         }
 
-        // Find a freight producer with available capacity.
+        // Agent 4 — Phase 5: Determine the route's transport mode for
+        // mode-to-geography gating (Rule 18 & 19).
+        let route_mode = route_transport_mode(&route);
+
+        // Find a freight producer with available capacity and matching mode.
         let buyer_idx = companies.iter().position(|c| c.id == trade.buyer_id);
         let producer_idx = find_freight_producer(
             &freight_capacity_by_company,
+            &transport_mode_by_company,
             companies,
             &buyer_region_id,
             &seller_region_id,
             capacity_needed,
+            route_mode,
         );
 
         let procurement = match producer_idx {
@@ -759,12 +908,7 @@ pub fn procure_freight_and_split_trades(
                 match settle_result {
                     Ok(_) => {
                         // Phase 30: Settle maritime transit fees to territorial owners.
-                        settle_maritime_transit_fees(
-                            companies,
-                            buyer_idx,
-                            &transit_fees,
-                            country,
-                        );
+                        settle_maritime_transit_fees(companies, buyer_idx, &transit_fees, country);
                         FreightProcurementResult {
                             secured: true,
                             freight_producer_idx: Some(producer_idx),
@@ -786,14 +930,12 @@ pub fn procure_freight_and_split_trades(
                     },
                 }
             }
-            None => {
-                FreightProcurementResult {
-                    secured: false,
-                    freight_producer_idx: None,
-                    capacity_consumed: 0.0,
-                    failure_reason: Some(DeferredReason::NoFreightCapacity),
-                }
-            }
+            None => FreightProcurementResult {
+                secured: false,
+                freight_producer_idx: None,
+                capacity_consumed: 0.0,
+                failure_reason: Some(DeferredReason::NoFreightCapacity),
+            },
         };
 
         if procurement.secured {
@@ -803,11 +945,18 @@ pub fn procure_freight_and_split_trades(
             }
             secured.push(trade.clone());
         } else {
-            refund_buyer_encumbrance(companies, &trade.buyer_id, trade.quantity, trade.bid_limit_price);
+            refund_buyer_encumbrance(
+                companies,
+                &trade.buyer_id,
+                trade.quantity,
+                trade.bid_limit_price,
+            );
             deferred.push(DeferredTrade {
                 trade: trade.clone(),
                 deferred_turns: 1,
-                reason: procurement.failure_reason.unwrap_or(DeferredReason::NoFreightCapacity),
+                reason: procurement
+                    .failure_reason
+                    .unwrap_or(DeferredReason::NoFreightCapacity),
             });
         }
     }
@@ -860,6 +1009,17 @@ fn calculate_maritime_transit_fees(
 }
 
 /// Phase 30: Settle maritime transit fees — debit buyer, credit owner Treasury.
+///
+/// Agent 4 — Fiat Leak Fix:
+/// * **Domestic owner:** Uses `settle_transfer_to_treasury` for proper
+///   double-entry (buyer debited with bank sync, domestic treasury credited).
+/// * **Foreign owner:** Uses `settle_transfer_to_treasury` (buyer debited,
+///   domestic treasury credited as agent), then records the fee as a
+///   `pending_foreign_transit_fees` payable. A sequential post-parallel
+///   phase will debit the domestic treasury and credit the foreign country.
+/// * **debit_cash direction:** Fixed from `+=` (was increasing encumbrance)
+///   to `-=` (releases encumbrance for the fee amount).
+/// * No fiat is created or destroyed — every debit has a matching credit.
 fn settle_maritime_transit_fees(
     companies: &mut [Company],
     buyer_idx: Option<usize>,
@@ -867,15 +1027,31 @@ fn settle_maritime_transit_fees(
     country: &mut Country,
 ) {
     for (owner_name, amount) in &fees.by_owner {
-        // Debit the buyer company.
+        if *amount <= 0.0 {
+            continue;
+        }
+        // Debit the buyer via TransferSettler for proper double-entry.
+        // The fee is credited to the domestic treasury (as agent for foreign
+        // owners, or as revenue for domestic owners).
         if let Some(idx) = buyer_idx {
-            companies[idx].available_cash -= amount;
-            companies[idx].debit_cash += amount;
+            let _ = crate::economy::transfer_settler::settle_transfer_to_treasury(
+                companies, idx, *amount, country,
+            );
+            // Agent 4: Fix debit_cash direction — RELEASE encumbrance (was +=).
+            if let Some(buyer) = companies.get_mut(idx) {
+                buyer.debit_cash = (buyer.debit_cash - amount).max(0.0);
+            }
         }
-        // Credit the owner country's treasury (if it's the current country).
-        if &country.name == owner_name {
-            country.budget.liquid_reserves += amount;
+        // For foreign owners, record the fee as a payable.
+        // The domestic treasury holds it in trust until the sequential phase
+        // credits the foreign country's treasury.
+        if owner_name != &country.name {
+            country
+                .pending_foreign_transit_fees
+                .push((owner_name.clone(), *amount));
         }
+        // For domestic owners, the treasury credit is already done by
+        // settle_transfer_to_treasury above — no additional action needed.
     }
 }
 
@@ -903,24 +1079,46 @@ fn refund_buyer_encumbrance(
 
 /// Find a transport company with available FreightCapacity.
 ///
+/// Agent 4 — Phase 5: Mode-to-geography gating (Rule 18 & 19).
+/// Only producers whose `TransportMode` matches the route's mode are eligible.
+/// A land-only wagon cannot serve a maritime route; a ship cannot serve a
+/// land-only route. `Unknown` mode producers (legacy or non-transport) are
+/// treated as compatible with any route (backward compatibility).
+///
 /// Preference order:
 /// 1. Companies in the buyer's region (pick-up at destination).
 /// 2. Companies in the seller's region (pick-up at source).
 /// 3. Any company with capacity.
 fn find_freight_producer(
     freight_capacity_by_company: &HashMap<String, f64>,
+    transport_mode_by_company: &HashMap<String, TransportMode>,
     companies: &[Company],
     buyer_region: &str,
     seller_region: &str,
     capacity_needed: f64,
+    route_mode: TransportMode,
 ) -> Option<usize> {
-    // Helper: find a company by region with enough capacity.
+    // Helper: check if a company's mode is compatible with the route mode.
+    let mode_compatible = |company_id: &str| -> bool {
+        match transport_mode_by_company.get(company_id) {
+            Some(mode) => *mode == TransportMode::Unknown || *mode == route_mode,
+            None => true, // No mode info → allow (backward compat)
+        }
+    };
+
+    // Helper: find a company by region with enough capacity and matching mode.
     let find_in_region = |region: &str| -> Option<usize> {
         for (i, c) in companies.iter().enumerate() {
             if c.region_id != region {
                 continue;
             }
-            let cap = freight_capacity_by_company.get(&c.id).copied().unwrap_or(0.0);
+            if !mode_compatible(&c.id) {
+                continue;
+            }
+            let cap = freight_capacity_by_company
+                .get(&c.id)
+                .copied()
+                .unwrap_or(0.0);
             if cap >= capacity_needed {
                 return Some(i);
             }
@@ -936,9 +1134,15 @@ fn find_freight_producer(
     if let Some(idx) = find_in_region(seller_region) {
         return Some(idx);
     }
-    // 3. Any region.
+    // 3. Any region (with mode gating).
     for (i, c) in companies.iter().enumerate() {
-        let cap = freight_capacity_by_company.get(&c.id).copied().unwrap_or(0.0);
+        if !mode_compatible(&c.id) {
+            continue;
+        }
+        let cap = freight_capacity_by_company
+            .get(&c.id)
+            .copied()
+            .unwrap_or(0.0);
         if cap >= capacity_needed {
             return Some(i);
         }
@@ -960,7 +1164,11 @@ fn decrement_freight_capacity(buildings: &mut [Building], producer_id: &str, amo
         if remaining <= 0.0 {
             break;
         }
-        let available = b.inventory.get(&Commodity::FreightCapacity).copied().unwrap_or(0.0);
+        let available = b
+            .inventory
+            .get(&Commodity::FreightCapacity)
+            .copied()
+            .unwrap_or(0.0);
         if available <= 0.0 {
             continue;
         }
@@ -1004,9 +1212,7 @@ pub fn increment_deferral_counters(deferred: &mut Vec<DeferredTrade>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::{
-        ClimateProfile, Edge, EdgeType, NodeType, Region,
-    };
+    use crate::society::geography::{ClimateProfile, Edge, EdgeType, NodeType, Region};
     use std::collections::BTreeMap;
 
     fn make_region(id: &str, edges: Vec<Edge>) -> Region {
@@ -1081,7 +1287,17 @@ mod tests {
     fn same_region_route_is_local() {
         let config = FreightLogisticsConfig::default();
         let overlay = TransportNetworkOverlay::default();
-        let route = compute_freight_route("r1", "r1", &[], &overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "test", "test");
+        let route = compute_freight_route(
+            "r1",
+            "r1",
+            &[],
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &empty_diplomacy(),
+            "test",
+            "test",
+        );
         assert!(route.is_local());
         assert_eq!(route.distance_km, 0.0);
         assert!(!route.impassable);
@@ -1095,7 +1311,17 @@ mod tests {
             make_region("r1", vec![edge("r2", EdgeType::LandBorder, 100.0, false)]),
             make_region("r2", vec![edge("r1", EdgeType::LandBorder, 100.0, false)]),
         ];
-        let route = compute_freight_route("r1", "r2", &regions, &overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "test", "test");
+        let route = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &empty_diplomacy(),
+            "test",
+            "test",
+        );
         assert!(!route.impassable);
         assert!((route.distance_km - 100.0).abs() < 1e-9);
         assert!(!route.uses_waterborne);
@@ -1105,11 +1331,18 @@ mod tests {
     fn no_path_is_impassable() {
         let config = FreightLogisticsConfig::default();
         let overlay = TransportNetworkOverlay::default();
-        let regions = vec![
-            make_region("r1", vec![]),
-            make_region("r2", vec![]),
-        ];
-        let route = compute_freight_route("r1", "r2", &regions, &overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "test", "test");
+        let regions = vec![make_region("r1", vec![]), make_region("r2", vec![])];
+        let route = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &empty_diplomacy(),
+            "test",
+            "test",
+        );
         assert!(route.impassable);
     }
 
@@ -1123,7 +1356,17 @@ mod tests {
         ];
         // Phase 23D: Assign coastline traits so maritime routing is allowed.
         assign_geographic_traits_from_edges(&mut regions);
-        let route = compute_freight_route("r1", "r2", &regions, &overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "test", "test");
+        let route = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &empty_diplomacy(),
+            "test",
+            "test",
+        );
         assert!(!route.impassable);
         assert!(route.uses_waterborne);
         assert!((route.distance_km - 200.0).abs() < 1e-9);
@@ -1231,7 +1474,12 @@ mod tests {
     fn network_overlay_reduces_friction() {
         let config = FreightLogisticsConfig::default();
         let mut overlay = TransportNetworkOverlay::default();
-        overlay.install_link("r1", "r2", crate::economy::transport_networks::NetworkLevel::Highway, 1);
+        overlay.install_link(
+            "r1",
+            "r2",
+            crate::economy::transport_networks::NetworkLevel::Highway,
+            1,
+        );
 
         let regions = vec![
             make_region("r1", vec![edge("r2", EdgeType::LandBorder, 100.0, false)]),
@@ -1240,9 +1488,29 @@ mod tests {
 
         let route_no_overlay = {
             let empty_overlay = TransportNetworkOverlay::default();
-            compute_freight_route("r1", "r2", &regions, &empty_overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "test", "test")
+            compute_freight_route(
+                "r1",
+                "r2",
+                &regions,
+                &empty_overlay,
+                &config,
+                &empty_fuel_prices(),
+                &empty_diplomacy(),
+                "test",
+                "test",
+            )
         };
-        let route_with_overlay = compute_freight_route("r1", "r2", &regions, &overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "test", "test");
+        let route_with_overlay = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &empty_diplomacy(),
+            "test",
+            "test",
+        );
 
         // With Highway overlay, friction should be lower.
         assert!(route_with_overlay.friction_multiplier < route_no_overlay.friction_multiplier);
@@ -1261,6 +1529,7 @@ mod tests {
                     bid_limit_price: 5.0,
                     blueprint_id: None,
                     quality: None,
+                    durability: None,
                 },
                 deferred_turns: 3,
                 reason: DeferredReason::NoFreightCapacity,
@@ -1275,6 +1544,7 @@ mod tests {
                     bid_limit_price: 5.0,
                     blueprint_id: None,
                     quality: None,
+                    durability: None,
                 },
                 deferred_turns: 1,
                 reason: DeferredReason::NoFreightCapacity,
@@ -1324,8 +1594,21 @@ mod tests {
             make_region("r2", vec![edge("r1", EdgeType::Coastline, 200.0, true)]),
         ];
         // Don't assign traits — both regions lack has_coastline.
-        let route = compute_freight_route("r1", "r2", &regions, &overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "test", "test");
-        assert!(route.impassable, "maritime route should be impassable without coastline trait");
+        let route = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &empty_diplomacy(),
+            "test",
+            "test",
+        );
+        assert!(
+            route.impassable,
+            "maritime route should be impassable without coastline trait"
+        );
     }
 
     #[test]
@@ -1338,8 +1621,21 @@ mod tests {
         ];
         // Assign traits — both regions get has_coastline.
         assign_geographic_traits_from_edges(&mut regions);
-        let route = compute_freight_route("r1", "r2", &regions, &overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "test", "test");
-        assert!(!route.impassable, "maritime route should be passable with coastline trait");
+        let route = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &empty_diplomacy(),
+            "test",
+            "test",
+        );
+        assert!(
+            !route.impassable,
+            "maritime route should be passable with coastline trait"
+        );
         assert!(route.uses_waterborne);
     }
 
@@ -1362,23 +1658,35 @@ mod tests {
         let overlay = TransportNetworkOverlay::default();
         // r1 (coast) → sea1 → sea2 → r2 (coast)
         let mut regions = vec![
-            make_region("r1", vec![
-                edge("sea1", EdgeType::Coastline, 50.0, true),
-            ]),
-            make_sea_region("sea1", vec![
-                edge("r1", EdgeType::Coastline, 50.0, true),
-                edge("sea2", EdgeType::SeaLane, 200.0, true),
-            ]),
-            make_sea_region("sea2", vec![
-                edge("sea1", EdgeType::SeaLane, 200.0, true),
-                edge("r2", EdgeType::Coastline, 50.0, true),
-            ]),
-            make_region("r2", vec![
-                edge("sea2", EdgeType::Coastline, 50.0, true),
-            ]),
+            make_region("r1", vec![edge("sea1", EdgeType::Coastline, 50.0, true)]),
+            make_sea_region(
+                "sea1",
+                vec![
+                    edge("r1", EdgeType::Coastline, 50.0, true),
+                    edge("sea2", EdgeType::SeaLane, 200.0, true),
+                ],
+            ),
+            make_sea_region(
+                "sea2",
+                vec![
+                    edge("sea1", EdgeType::SeaLane, 200.0, true),
+                    edge("r2", EdgeType::Coastline, 50.0, true),
+                ],
+            ),
+            make_region("r2", vec![edge("sea2", EdgeType::Coastline, 50.0, true)]),
         ];
         assign_geographic_traits_from_edges(&mut regions);
-        let route = compute_freight_route("r1", "r2", &regions, &overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "test", "test");
+        let route = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &empty_diplomacy(),
+            "test",
+            "test",
+        );
         assert!(!route.impassable, "multi-hop sea route should be passable");
         assert!(route.uses_waterborne);
         // Total distance: 50 + 200 + 50 = 300
@@ -1396,20 +1704,39 @@ mod tests {
         let mut fuel_prices = rustc_hash::FxHashMap::default();
         fuel_prices.insert(Commodity::Fuels, 10.0); // High fuel price
         let regions = vec![
-            make_region("r1", vec![
-                edge("r2", EdgeType::LandBorder, 100.0, false),
-                edge("r3", EdgeType::LandBorder, 50.0, false),
-            ]),
-            make_region("r2", vec![
-                edge("r1", EdgeType::LandBorder, 100.0, false),
-                edge("r3", EdgeType::LandBorder, 50.0, false),
-            ]),
-            make_region("r3", vec![
-                edge("r1", EdgeType::LandBorder, 50.0, false),
-                edge("r2", EdgeType::LandBorder, 50.0, false),
-            ]),
+            make_region(
+                "r1",
+                vec![
+                    edge("r2", EdgeType::LandBorder, 100.0, false),
+                    edge("r3", EdgeType::LandBorder, 50.0, false),
+                ],
+            ),
+            make_region(
+                "r2",
+                vec![
+                    edge("r1", EdgeType::LandBorder, 100.0, false),
+                    edge("r3", EdgeType::LandBorder, 50.0, false),
+                ],
+            ),
+            make_region(
+                "r3",
+                vec![
+                    edge("r1", EdgeType::LandBorder, 50.0, false),
+                    edge("r2", EdgeType::LandBorder, 50.0, false),
+                ],
+            ),
         ];
-        let route = compute_freight_route("r1", "r2", &regions, &overlay, &config, &fuel_prices, &empty_diplomacy(), "test", "test");
+        let route = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &fuel_prices,
+            &empty_diplomacy(),
+            "test",
+            "test",
+        );
         assert!(!route.impassable);
         // The shorter route (r1→r3→r2 = 100km) should be chosen over direct (100km)
         // but with lower fuel cost since fuel scales with distance×consumption.
@@ -1425,40 +1752,45 @@ mod tests {
         // r1 → sea1(owned by "Enemy") → r2
         // Enemy has embargo against buyer country.
         let mut regions = vec![
-            make_region("r1", vec![
-                Edge {
+            make_region(
+                "r1",
+                vec![Edge {
                     target_node: "sea1".to_string(),
                     edge_type: EdgeType::Coastline,
                     distance: 50.0,
                     is_navigable: true,
                     territorial_owner: Some("Enemy".to_string()),
-                },
-            ]),
-            make_sea_region("sea1", vec![
-                Edge {
-                    target_node: "r1".to_string(),
-                    edge_type: EdgeType::Coastline,
-                    distance: 50.0,
-                    is_navigable: true,
-                    territorial_owner: Some("Enemy".to_string()),
-                },
-                Edge {
-                    target_node: "r2".to_string(),
-                    edge_type: EdgeType::Coastline,
-                    distance: 50.0,
-                    is_navigable: true,
-                    territorial_owner: Some("Enemy".to_string()),
-                },
-            ]),
-            make_region("r2", vec![
-                Edge {
+                }],
+            ),
+            make_sea_region(
+                "sea1",
+                vec![
+                    Edge {
+                        target_node: "r1".to_string(),
+                        edge_type: EdgeType::Coastline,
+                        distance: 50.0,
+                        is_navigable: true,
+                        territorial_owner: Some("Enemy".to_string()),
+                    },
+                    Edge {
+                        target_node: "r2".to_string(),
+                        edge_type: EdgeType::Coastline,
+                        distance: 50.0,
+                        is_navigable: true,
+                        territorial_owner: Some("Enemy".to_string()),
+                    },
+                ],
+            ),
+            make_region(
+                "r2",
+                vec![Edge {
                     target_node: "sea1".to_string(),
                     edge_type: EdgeType::Coastline,
                     distance: 50.0,
                     is_navigable: true,
                     territorial_owner: Some("Enemy".to_string()),
-                },
-            ]),
+                }],
+            ),
         ];
         assign_geographic_traits_from_edges(&mut regions);
 
@@ -1475,8 +1807,21 @@ mod tests {
         );
         diplomacy.insert("Enemy".to_string(), enemy_relations);
 
-        let route = compute_freight_route("r1", "r2", &regions, &overlay, &config, &empty_fuel_prices(), &diplomacy, "Lechia", "Lechia");
-        assert!(route.impassable, "route through blockaded territorial waters should be impassable");
+        let route = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &diplomacy,
+            "Lechia",
+            "Lechia",
+        );
+        assert!(
+            route.impassable,
+            "route through blockaded territorial waters should be impassable"
+        );
     }
 
     #[test]
@@ -1484,46 +1829,64 @@ mod tests {
         let config = FreightLogisticsConfig::default();
         let overlay = TransportNetworkOverlay::default();
         let mut regions = vec![
-            make_region("r1", vec![
-                Edge {
+            make_region(
+                "r1",
+                vec![Edge {
                     target_node: "sea1".to_string(),
                     edge_type: EdgeType::Coastline,
                     distance: 50.0,
                     is_navigable: true,
                     territorial_owner: Some("Neutral".to_string()),
-                },
-            ]),
-            make_sea_region("sea1", vec![
-                Edge {
-                    target_node: "r1".to_string(),
-                    edge_type: EdgeType::Coastline,
-                    distance: 50.0,
-                    is_navigable: true,
-                    territorial_owner: Some("Neutral".to_string()),
-                },
-                Edge {
-                    target_node: "r2".to_string(),
-                    edge_type: EdgeType::Coastline,
-                    distance: 50.0,
-                    is_navigable: true,
-                    territorial_owner: Some("Neutral".to_string()),
-                },
-            ]),
-            make_region("r2", vec![
-                Edge {
+                }],
+            ),
+            make_sea_region(
+                "sea1",
+                vec![
+                    Edge {
+                        target_node: "r1".to_string(),
+                        edge_type: EdgeType::Coastline,
+                        distance: 50.0,
+                        is_navigable: true,
+                        territorial_owner: Some("Neutral".to_string()),
+                    },
+                    Edge {
+                        target_node: "r2".to_string(),
+                        edge_type: EdgeType::Coastline,
+                        distance: 50.0,
+                        is_navigable: true,
+                        territorial_owner: Some("Neutral".to_string()),
+                    },
+                ],
+            ),
+            make_region(
+                "r2",
+                vec![Edge {
                     target_node: "sea1".to_string(),
                     edge_type: EdgeType::Coastline,
                     distance: 50.0,
                     is_navigable: true,
                     territorial_owner: Some("Neutral".to_string()),
-                },
-            ]),
+                }],
+            ),
         ];
         assign_geographic_traits_from_edges(&mut regions);
 
         // No embargo — route should be passable.
-        let route = compute_freight_route("r1", "r2", &regions, &overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "Lechia", "Lechia");
-        assert!(!route.impassable, "route through non-blockaded territorial waters should be passable");
+        let route = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &empty_diplomacy(),
+            "Lechia",
+            "Lechia",
+        );
+        assert!(
+            !route.impassable,
+            "route through non-blockaded territorial waters should be passable"
+        );
         assert!(route.uses_waterborne);
     }
 
@@ -1535,7 +1898,17 @@ mod tests {
             make_region("r1", vec![edge("r2", EdgeType::LandBorder, 100.0, false)]),
             make_region("r2", vec![edge("r1", EdgeType::LandBorder, 100.0, false)]),
         ];
-        let route = compute_freight_route("r1", "r2", &regions, &overlay, &config, &empty_fuel_prices(), &empty_diplomacy(), "test", "test");
+        let route = compute_freight_route(
+            "r1",
+            "r2",
+            &regions,
+            &overlay,
+            &config,
+            &empty_fuel_prices(),
+            &empty_diplomacy(),
+            "test",
+            "test",
+        );
         assert!(!route.impassable);
         assert_eq!(route.path_segments.len(), 1);
         assert_eq!(route.path_segments[0].from_node, "r1");

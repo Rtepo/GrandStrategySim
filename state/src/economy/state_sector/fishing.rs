@@ -11,22 +11,16 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FishStock {
     /// Unique fish stock ID
-
     pub id: String,
     /// Water body/region ID
-
     pub region_id: String,
     /// Total biomass in tons
-
     pub total_biomass: f64,
     /// Health 0-1 (affects regeneration)
-
     pub health: f64,
     /// Regeneration rate per turn (percentage of biomass)
-
     pub regeneration_rate: f64,
     /// Maximum sustainable biomass
-
     pub max_biomass: f64,
     /// Species distribution (species -> percentage)
     #[serde(default)]
@@ -75,28 +69,20 @@ impl FishStock {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FishingQuota {
     /// Unique quota ID
-
     pub id: String,
     /// Region ID
-
     pub region_id: String,
     /// Country issuing the quota
-
     pub issuing_country: String,
     /// Maximum catch per turn (tons)
-
     pub max_catch: f64,
     /// Current catch this turn
-
     pub current_catch: f64,
     /// Quota type
-
     pub quota_type: FishingQuotaType,
     /// Valid from turn
-
     pub valid_from: u32,
     /// Valid until turn
-
     pub valid_until: u32,
 }
 
@@ -153,22 +139,16 @@ impl FishingQuota {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FishingPolicy {
     /// Country implementing the policy
-
     pub country: String,
     /// Policy type
-
     pub policy_type: FishingPolicyType,
     /// Restriction level 0-1 (0 = no restriction, 1 = total ban)
-
     pub restriction_level: f64,
     /// Minimum fish stock health required
-
     pub min_stock_health: f64,
     /// Penalty for overfishing (percentage of catch value)
-
     pub overfishing_penalty: f64,
     /// Subsidy for sustainable fishing (percentage of costs)
-
     pub sustainable_fishing_subsidy: f64,
 }
 
@@ -197,7 +177,9 @@ impl FishingPolicy {
     pub fn allowable_catch(&self, sustainable_catch: f64) -> f64 {
         match self.policy_type {
             FishingPolicyType::Unregulated => sustainable_catch * 2.0, // Allow overfishing
-            FishingPolicyType::StateControlled => sustainable_catch * (1.0 - self.restriction_level * 0.5),
+            FishingPolicyType::StateControlled => {
+                sustainable_catch * (1.0 - self.restriction_level * 0.5)
+            }
             FishingPolicyType::Sustainable => sustainable_catch * 0.9,
             FishingPolicyType::Conservation => sustainable_catch * 0.5,
         }
@@ -219,31 +201,24 @@ impl FishingPolicy {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FishingTreaty {
     /// Unique treaty ID
-
     pub id: String,
     /// Treaty name
-
     pub name: String,
     /// Signatory countries
     #[serde(default)]
     pub signatories: Vec<String>,
     /// Region/water body covered
-
     pub covered_region: String,
     /// Total allowable catch for all signatories
-
     pub total_allowable_catch: f64,
     /// Country quotas (country -> tons)
     #[serde(default)]
     pub country_quotas: BTreeMap<String, f64>,
     /// Enforcement level 0-1
-
     pub enforcement_level: f64,
     /// Valid from turn
-
     pub valid_from: u32,
     /// Valid until turn
-
     pub valid_until: u32,
 }
 
@@ -286,34 +261,24 @@ impl FishingTreaty {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FishFarm {
     /// Unique fish farm ID
-
     pub id: String,
     /// Region where farm is located
-
     pub region_id: String,
     /// Owner (company or state)
-
     pub owner: String,
     /// Farm type
-
     pub farm_type: FishFarmType,
     /// Production capacity (tons per turn)
-
     pub production_capacity: f64,
     /// Current production
-
     pub current_production: f64,
     /// Operating cost per turn
-
     pub operating_cost: f64,
     /// Feed cost per ton
-
     pub feed_cost: f64,
     /// Water quality 0-1
-
     pub water_quality: f64,
     /// Disease risk 0-1
-
     pub disease_risk: f64,
 }
 
@@ -479,9 +444,9 @@ pub fn process_fishing_turn(
         stock.process_regeneration();
 
         // Find applicable policy for this stock's region
-        let policy = fishing_policies.iter().find(|p| {
-            p.min_stock_health <= stock.health
-        });
+        let policy = fishing_policies
+            .iter()
+            .find(|p| p.min_stock_health <= stock.health);
 
         let catch_amount = if let Some(p) = policy {
             if p.is_fishing_allowed(stock.health) {
@@ -514,7 +479,8 @@ pub fn process_fishing_turn(
             .copied()
             .unwrap_or(100.0);
 
-        order_book.asks
+        order_book
+            .asks
             .entry(Commodity::Fish)
             .or_default()
             .push(Ask {

@@ -19,15 +19,14 @@
 //! 16. Snapshot DTOs
 //! 17. Conservation (water mass, no creation/destruction)
 
+use sim_engine::energy::municipal_heating_ai::HeatingInvestmentPlan;
 use sim_engine::energy::municipal_infrastructure_ai::{
     is_crisis_condition, run_sanitation_investment_ai, run_unified_municipal_ai,
     run_water_investment_ai, ElectricalInvestmentPlan, InfrastructureDomain,
-    SanitationInvestmentPlan, WaterInvestmentPlan,
-    CRISIS_BIOHAZARD_THRESHOLD, CRISIS_DEHYDRATION_MORTALITY_THRESHOLD,
-    CRISIS_SMOG_THRESHOLD, CRISIS_SURFACE_WATER_QUALITY_THRESHOLD,
-    CRISIS_WINTER_MORTALITY_THRESHOLD,
+    SanitationInvestmentPlan, WaterInvestmentPlan, CRISIS_BIOHAZARD_THRESHOLD,
+    CRISIS_DEHYDRATION_MORTALITY_THRESHOLD, CRISIS_SMOG_THRESHOLD,
+    CRISIS_SURFACE_WATER_QUALITY_THRESHOLD, CRISIS_WINTER_MORTALITY_THRESHOLD,
 };
-use sim_engine::energy::municipal_heating_ai::HeatingInvestmentPlan;
 use sim_engine::environment::smog::{
     biohazard_mortality_multiplier, compute_biohazard_for_region, BuildingWaterReceipt,
     LocalPollutionState, SAFE_WATER_QUALITY_THRESHOLD,
@@ -36,18 +35,18 @@ use sim_engine::registries::enums::Commodity;
 use sim_engine::registries::production_methods_data::default_production_methods;
 use sim_engine::registries::tech_tree_data::default_tech_tree;
 use sim_engine::utilities::consumption_bom::{
-    is_centralized_sanitation_method, is_centralized_water_method,
-    sanitation_biohazard_factor, standalone_sanitation_leaks_to_groundwater,
-    standalone_water_source_quality, standalone_water_uses_groundwater,
+    is_centralized_sanitation_method, is_centralized_water_method, sanitation_biohazard_factor,
+    standalone_sanitation_leaks_to_groundwater, standalone_water_source_quality,
+    standalone_water_uses_groundwater,
 };
 use sim_engine::utilities::hydro_grid::{
     collect_sewage, compute_dehydration_mortality, compute_regulated_sewage_price,
     compute_regulated_water_price, distribute_water, forecast_treatment_energy,
     process_wastewater_treatment, process_water_treatment, SewerNetworkState, WaterNetworkState,
-    WaterReserveState, BLACKWATER_QUALITY, DEHYDRATION_SEVERITY,
-    GROUNDWATER_OUTFLOW_RATE, INDUSTRIAL_WATER_QUALITY_THRESHOLD, NATURAL_GROUNDWATER_QUALITY,
-    NATURAL_OUTFLOW_RATE, NATURAL_SURFACE_WATER_QUALITY, PATHOGEN_SEVERITY_FACTOR,
-    PUMP_ENERGY_PER_LITER, SAFE_WATER_QUALITY_THRESHOLD as HYDRO_SAFE_THRESHOLD,
+    WaterReserveState, BLACKWATER_QUALITY, DEHYDRATION_SEVERITY, GROUNDWATER_OUTFLOW_RATE,
+    INDUSTRIAL_WATER_QUALITY_THRESHOLD, NATURAL_GROUNDWATER_QUALITY, NATURAL_OUTFLOW_RATE,
+    NATURAL_SURFACE_WATER_QUALITY, PATHOGEN_SEVERITY_FACTOR, PUMP_ENERGY_PER_LITER,
+    SAFE_WATER_QUALITY_THRESHOLD as HYDRO_SAFE_THRESHOLD,
 };
 use sim_engine::utilities::hydro_types::{WastewaterPlantType, WaterPlantType};
 
@@ -571,15 +570,20 @@ fn test_distribute_water_pro_rata() {
         current_quality: 0.95,
         ..Default::default()
     };
-    let demands = vec![
-        ("building_1".into(), 300.0),
-        ("building_2".into(), 700.0),
-    ];
+    let demands = vec![("building_1".into(), 300.0), ("building_2".into(), 700.0)];
     let result = distribute_water(&network, 1, &demands);
     assert_eq!(result.building_receipts.len(), 2);
     // Pro-rata: building_1 gets 30%, building_2 gets 70%
-    let b1 = result.building_receipts.iter().find(|(id, _, _)| id == "building_1").unwrap();
-    let b2 = result.building_receipts.iter().find(|(id, _, _)| id == "building_2").unwrap();
+    let b1 = result
+        .building_receipts
+        .iter()
+        .find(|(id, _, _)| id == "building_1")
+        .unwrap();
+    let b2 = result
+        .building_receipts
+        .iter()
+        .find(|(id, _, _)| id == "building_2")
+        .unwrap();
     assert!(b1.1 < b2.1); // building_2 gets more
 }
 
@@ -756,7 +760,9 @@ fn test_is_centralized_sanitation_method() {
     assert!(!is_centralized_sanitation_method("Open Defecation"));
     assert!(!is_centralized_sanitation_method("Septic Tank"));
     assert!(is_centralized_sanitation_method("Municipal Sewer (Basic)"));
-    assert!(is_centralized_sanitation_method("Advanced Sewer + Tertiary"));
+    assert!(is_centralized_sanitation_method(
+        "Advanced Sewer + Tertiary"
+    ));
 }
 
 #[test]
@@ -768,16 +774,25 @@ fn test_sanitation_biohazard_factors() {
     assert_eq!(sanitation_biohazard_factor("Septic Tank"), 1.0);
     assert_eq!(sanitation_biohazard_factor("Improved Septic"), 0.5);
     assert_eq!(sanitation_biohazard_factor("Municipal Sewer (Basic)"), 0.2);
-    assert_eq!(sanitation_biohazard_factor("Advanced Sewer + Tertiary"), 0.005);
+    assert_eq!(
+        sanitation_biohazard_factor("Advanced Sewer + Tertiary"),
+        0.005
+    );
 }
 
 #[test]
 fn test_standalone_water_source_quality() {
     assert_eq!(standalone_water_source_quality("Local Well"), Some(0.9));
     assert_eq!(standalone_water_source_quality("Hand Pump Well"), Some(0.9));
-    assert_eq!(standalone_water_source_quality("Rainwater Catchment"), Some(0.6));
+    assert_eq!(
+        standalone_water_source_quality("Rainwater Catchment"),
+        Some(0.6)
+    );
     assert_eq!(standalone_water_source_quality("None"), None);
-    assert_eq!(standalone_water_source_quality("Municipal Mains (Basic)"), None);
+    assert_eq!(
+        standalone_water_source_quality("Municipal Mains (Basic)"),
+        None
+    );
 }
 
 #[test]
@@ -791,8 +806,12 @@ fn test_standalone_water_uses_groundwater() {
 fn test_standalone_sanitation_leaks_to_groundwater() {
     assert!(standalone_sanitation_leaks_to_groundwater("Cesspool"));
     assert!(standalone_sanitation_leaks_to_groundwater("Septic Tank"));
-    assert!(!standalone_sanitation_leaks_to_groundwater("Open Defecation"));
-    assert!(!standalone_sanitation_leaks_to_groundwater("Municipal Sewer (Basic)"));
+    assert!(!standalone_sanitation_leaks_to_groundwater(
+        "Open Defecation"
+    ));
+    assert!(!standalone_sanitation_leaks_to_groundwater(
+        "Municipal Sewer (Basic)"
+    ));
 }
 
 // ============================================================================
@@ -802,15 +821,15 @@ fn test_standalone_sanitation_leaks_to_groundwater() {
 #[test]
 fn test_regulated_water_price_with_sales() {
     let price = compute_regulated_water_price(
-        100.0, // chemicals
-        200.0, // energy
-        300.0, // labor
-        50.0,  // maintenance
+        100.0,   // chemicals
+        200.0,   // energy
+        300.0,   // labor
+        50.0,    // maintenance
         10000.0, // asset value
-        160.0, // amortization turns
-        1000.0, // smoothed sales
-        1.10,  // margin
-        10.0,  // avg wage
+        160.0,   // amortization turns
+        1000.0,  // smoothed sales
+        1.10,    // margin
+        10.0,    // avg wage
     );
     // total_cost = 100+200+300+50 + 10000/160 = 712.5
     // price = 712.5 / 1000 * 1.10 = 0.78375
@@ -820,18 +839,15 @@ fn test_regulated_water_price_with_sales() {
 
 #[test]
 fn test_regulated_water_price_fallback() {
-    let price = compute_regulated_water_price(
-        0.0, 0.0, 0.0, 0.0, 0.0, 160.0, 0.0, 1.10, 10.0,
-    );
+    let price = compute_regulated_water_price(0.0, 0.0, 0.0, 0.0, 0.0, 160.0, 0.0, 1.10, 10.0);
     // No sales → fallback to wage * 0.5
     assert_eq!(price, 5.0);
 }
 
 #[test]
 fn test_regulated_sewage_price() {
-    let price = compute_regulated_sewage_price(
-        50.0, 100.0, 200.0, 30.0, 8000.0, 160.0, 800.0, 1.10, 10.0,
-    );
+    let price =
+        compute_regulated_sewage_price(50.0, 100.0, 200.0, 30.0, 8000.0, 160.0, 800.0, 1.10, 10.0);
     assert!(price > 0.0);
 }
 
@@ -867,7 +883,17 @@ fn test_water_investment_no_deficit() {
     };
     let reserves = WaterReserveState::default();
     let plan = run_water_investment_ai(
-        &network, &reserves, 100, 5000.0, 4000.0, &[], 10.0, 10000.0, 0.0, 1.0, true,
+        &network,
+        &reserves,
+        100,
+        5000.0,
+        4000.0,
+        &[],
+        10.0,
+        10000.0,
+        0.0,
+        1.0,
+        true,
     );
     assert_eq!(plan.expand_pipes_km, 0.0);
     assert!(!plan.is_crisis);
@@ -884,7 +910,17 @@ fn test_water_investment_quality_crisis() {
     };
     let reserves = WaterReserveState::default();
     let plan = run_water_investment_ai(
-        &network, &reserves, 100, 5000.0, 4000.0, &[], 10.0, 10000.0, 10.0, 1.0, true,
+        &network,
+        &reserves,
+        100,
+        5000.0,
+        4000.0,
+        &[],
+        10.0,
+        10000.0,
+        10.0,
+        1.0,
+        true,
     );
     assert!(plan.is_crisis);
 }
@@ -902,7 +938,18 @@ fn test_sanitation_investment_surface_water_crisis() {
         ..Default::default()
     };
     let plan = run_sanitation_investment_ai(
-        &sewer, &reserves, 100, 1000.0, 500.0, 10.0, &[], 10.0, 10000.0, 5.0, 1000.0, true,
+        &sewer,
+        &reserves,
+        100,
+        1000.0,
+        500.0,
+        10.0,
+        &[],
+        10.0,
+        10000.0,
+        5.0,
+        1000.0,
+        true,
     );
     assert!(plan.is_crisis);
 }
@@ -918,7 +965,14 @@ fn test_unified_ai_prioritizes_crisis() {
         ..Default::default()
     };
     let sanitation = SanitationInvestmentPlan::default();
-    let plan = run_unified_municipal_ai(thermal, electrical, water, sanitation, sim_engine::energy::municipal_infrastructure_ai::WasteInvestmentPlan::default(), 100000.0);
+    let plan = run_unified_municipal_ai(
+        thermal,
+        electrical,
+        water,
+        sanitation,
+        sim_engine::energy::municipal_infrastructure_ai::WasteInvestmentPlan::default(),
+        100000.0,
+    );
     assert_eq!(plan.prioritized_domain, InfrastructureDomain::Water);
 }
 
@@ -929,7 +983,14 @@ fn test_unified_ai_prioritizes_crisis() {
 #[test]
 fn test_sanit_tech_nodes_exist() {
     let tree = default_tech_tree();
-    let nodes = ["sanit_001", "sanit_002", "sanit_003", "sanit_004", "sanit_005", "sanit_006"];
+    let nodes = [
+        "sanit_001",
+        "sanit_002",
+        "sanit_003",
+        "sanit_004",
+        "sanit_005",
+        "sanit_006",
+    ];
     for node in &nodes {
         assert!(tree.contains_key(*node), "Missing tech node: {}", node);
     }
@@ -956,7 +1017,9 @@ fn test_sanit_006_advanced_water() {
     let tree = default_tech_tree();
     let node = tree.get("sanit_006").unwrap();
     assert_eq!(node.year, 2000);
-    assert!(node.unlocks_methods.contains_key("advanced_wastewater_plant"));
+    assert!(node
+        .unlocks_methods
+        .contains_key("advanced_wastewater_plant"));
 }
 
 #[test]

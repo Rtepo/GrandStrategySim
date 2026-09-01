@@ -157,7 +157,9 @@ pub fn execute_propaganda(
     // Check if there are media companies to receive the spending
     let total_media_capacity: f64 = media_companies.values().map(|(_, cap)| *cap).sum();
     if total_media_capacity <= 0.0 {
-        result.messages.push("[PROPAGANDA] No media companies with capacity — campaign aborted".to_string());
+        result
+            .messages
+            .push("[PROPAGANDA] No media companies with capacity — campaign aborted".to_string());
         return result;
     }
 
@@ -224,7 +226,10 @@ pub fn execute_propaganda(
 /// * `baseline_war_morale` - Cap for war morale.
 /// * `baseline_mental_health` - Cap for mental health.
 pub fn apply_propaganda_boost(
-    rural_classes: &mut std::collections::BTreeMap<String, crate::society::geography::ClassDemographics>,
+    rural_classes: &mut std::collections::BTreeMap<
+        String,
+        crate::society::geography::ClassDemographics,
+    >,
     morale_boost: f64,
     mental_health_boost: f64,
     baseline_war_morale: f64,
@@ -232,10 +237,12 @@ pub fn apply_propaganda_boost(
 ) {
     for demographics in rural_classes.values_mut() {
         if morale_boost > 0.0 {
-            demographics.war_morale = (demographics.war_morale + morale_boost).min(baseline_war_morale);
+            demographics.war_morale =
+                (demographics.war_morale + morale_boost).min(baseline_war_morale);
         }
         if mental_health_boost > 0.0 {
-            demographics.mental_health = (demographics.mental_health + mental_health_boost).min(baseline_mental_health);
+            demographics.mental_health =
+                (demographics.mental_health + mental_health_boost).min(baseline_mental_health);
         }
     }
 }
@@ -265,8 +272,13 @@ mod tests {
         let config = PropagandaConfig::default();
 
         let result = execute_propaganda(
-            &mut treasury, &mut media, 1000.0,
-            PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+            &mut treasury,
+            &mut media,
+            1000.0,
+            PropagandaTarget::Both,
+            &config,
+            1,
+            "CAMP-1".to_string(),
         );
 
         assert!(result.executed);
@@ -282,8 +294,13 @@ mod tests {
         let config = PropagandaConfig::default();
 
         let result = execute_propaganda(
-            &mut treasury, &mut media, 1000.0,
-            PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+            &mut treasury,
+            &mut media,
+            1000.0,
+            PropagandaTarget::Both,
+            &config,
+            1,
+            "CAMP-1".to_string(),
         );
 
         assert!(!result.executed);
@@ -297,12 +314,20 @@ mod tests {
         let config = PropagandaConfig::default();
 
         let result = execute_propaganda(
-            &mut treasury, &mut media, 1000.0,
-            PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+            &mut treasury,
+            &mut media,
+            1000.0,
+            PropagandaTarget::Both,
+            &config,
+            1,
+            "CAMP-1".to_string(),
         );
 
         assert!(!result.executed);
-        assert_eq!(treasury, 10_000.0, "Treasury must not be debited with no media");
+        assert_eq!(
+            treasury, 10_000.0,
+            "Treasury must not be debited with no media"
+        );
     }
 
     #[test]
@@ -315,8 +340,13 @@ mod tests {
         let initial_media_total: f64 = media.values().map(|(lc, _)| *lc).sum();
 
         let _result = execute_propaganda(
-            &mut treasury, &mut media, 1000.0,
-            PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+            &mut treasury,
+            &mut media,
+            1000.0,
+            PropagandaTarget::Both,
+            &config,
+            1,
+            "CAMP-1".to_string(),
         );
 
         let final_media_total: f64 = media.values().map(|(lc, _)| *lc).sum();
@@ -325,9 +355,12 @@ mod tests {
         let treasury_decrease = initial_treasury - treasury;
         let media_increase = final_media_total - initial_media_total;
 
-        assert!((treasury_decrease - media_increase).abs() < 0.01,
+        assert!(
+            (treasury_decrease - media_increase).abs() < 0.01,
             "Double-entry: treasury decrease ({}) must equal media increase ({})",
-            treasury_decrease, media_increase);
+            treasury_decrease,
+            media_increase
+        );
     }
 
     #[test]
@@ -337,17 +370,25 @@ mod tests {
         let config = PropagandaConfig::default();
 
         let _ = execute_propaganda(
-            &mut treasury, &mut media, 1000.0,
-            PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+            &mut treasury,
+            &mut media,
+            1000.0,
+            PropagandaTarget::Both,
+            &config,
+            1,
+            "CAMP-1".to_string(),
         );
 
         // MEDIA-2 has 20.0 capacity out of 35.0 total → should get ~571.43
         let media2 = media.get("MEDIA-2").unwrap();
         let media2_gain = media2.0 - 2000.0;
         let expected = 1000.0 * (20.0 / 35.0);
-        assert!((media2_gain - expected).abs() < 1.0,
+        assert!(
+            (media2_gain - expected).abs() < 1.0,
             "MEDIA-2 should receive pro-rata share: expected {:.2}, got {:.2}",
-            expected, media2_gain);
+            expected,
+            media2_gain
+        );
     }
 
     #[test]
@@ -357,12 +398,20 @@ mod tests {
         let config = PropagandaConfig::default();
 
         let result = execute_propaganda(
-            &mut treasury, &mut media, 1000.0,
-            PropagandaTarget::WarMorale, &config, 1, "CAMP-1".to_string(),
+            &mut treasury,
+            &mut media,
+            1000.0,
+            PropagandaTarget::WarMorale,
+            &config,
+            1,
+            "CAMP-1".to_string(),
         );
 
         assert!(result.morale_boost > 0.0);
-        assert_eq!(result.mental_health_boost, 0.0, "WarMorale target must not boost mental health");
+        assert_eq!(
+            result.mental_health_boost, 0.0,
+            "WarMorale target must not boost mental health"
+        );
     }
 
     #[test]
@@ -372,11 +421,19 @@ mod tests {
         let config = PropagandaConfig::default();
 
         let result = execute_propaganda(
-            &mut treasury, &mut media, 1000.0,
-            PropagandaTarget::GeneralHappiness, &config, 1, "CAMP-1".to_string(),
+            &mut treasury,
+            &mut media,
+            1000.0,
+            PropagandaTarget::GeneralHappiness,
+            &config,
+            1,
+            "CAMP-1".to_string(),
         );
 
-        assert_eq!(result.morale_boost, 0.0, "GeneralHappiness target must not boost war morale");
+        assert_eq!(
+            result.morale_boost, 0.0,
+            "GeneralHappiness target must not boost war morale"
+        );
         assert!(result.mental_health_boost > 0.0);
     }
 
@@ -387,8 +444,13 @@ mod tests {
         let config = PropagandaConfig::default();
 
         let result = execute_propaganda(
-            &mut treasury, &mut media, 1000.0,
-            PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+            &mut treasury,
+            &mut media,
+            1000.0,
+            PropagandaTarget::Both,
+            &config,
+            1,
+            "CAMP-1".to_string(),
         );
 
         assert!(result.morale_boost > 0.0);
@@ -402,13 +464,20 @@ mod tests {
         let config = PropagandaConfig::default();
 
         let result = execute_propaganda(
-            &mut treasury, &mut media, 1_000_000.0,
-            PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
+            &mut treasury,
+            &mut media,
+            1_000_000.0,
+            PropagandaTarget::Both,
+            &config,
+            1,
+            "CAMP-1".to_string(),
         );
 
         // Morale boost must be capped
-        assert!(result.morale_boost <= config.max_morale_boost,
-            "Morale boost must be capped at max_morale_boost");
+        assert!(
+            result.morale_boost <= config.max_morale_boost,
+            "Morale boost must be capped at max_morale_boost"
+        );
     }
 
     #[test]
@@ -438,6 +507,9 @@ mod tests {
 
         let d = classes.get("FreePeasant").unwrap();
         assert_eq!(d.war_morale, 70.0, "War morale must be capped at baseline");
-        assert_eq!(d.mental_health, 70.0, "Mental health must be capped at baseline");
+        assert_eq!(
+            d.mental_health, 70.0,
+            "Mental health must be capped at baseline"
+        );
     }
 }

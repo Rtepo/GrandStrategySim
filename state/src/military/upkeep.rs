@@ -1,15 +1,15 @@
 //! Military upkeep processing for conventional units
 
-use std::collections::HashSet;
 use rustc_hash::FxHashMap;
+use std::collections::HashSet;
 
 type HashMap<K, V> = FxHashMap<K, V>;
 
-use crate::registries::enums::Commodity;
-use crate::military::units::MilitaryUnit;
-use crate::military::config::MilitaryCombatConfig;
 use crate::economy::market::MarketOrder;
 use crate::economy::order_book::{Bid, Trade};
+use crate::military::config::MilitaryCombatConfig;
+use crate::military::units::MilitaryUnit;
+use crate::registries::enums::Commodity;
 
 /// Process military unit upkeep for a country.
 ///
@@ -65,7 +65,8 @@ pub fn process_military_upkeep(
             unit.stats.supply = 100.0;
         } else {
             unit.stats.supply = (unit.stats.supply * 0.5).max(0.0);
-            unit.stats.organization = (unit.stats.organization - config.organization_loss_unsupplied).max(0.0);
+            unit.stats.organization =
+                (unit.stats.organization - config.organization_loss_unsupplied).max(0.0);
             messages.push(format!(
                 "[ZAOPATRZENIE] Jednostka {} ma niedobory zaopatrzenia — supply spada do {}",
                 unit.id, unit.stats.supply
@@ -230,12 +231,14 @@ pub fn deliver_military_supplies_and_equipment(
     }
 
     // Determine which commodities are equipment (in any unit's equipment_reserves)
-    let equipment_commodities: HashSet<Commodity> = units.iter()
+    let equipment_commodities: HashSet<Commodity> = units
+        .iter()
         .flat_map(|u| u.equipment_reserves.iter().map(|r| r.commodity))
         .collect();
 
     // Distribute equipment to units proportionally by manpower
-    let total_manpower: i64 = units.iter()
+    let total_manpower: i64 = units
+        .iter()
         .filter(|u| !u.is_peasant_battalion())
         .map(|u| u.manpower)
         .sum();

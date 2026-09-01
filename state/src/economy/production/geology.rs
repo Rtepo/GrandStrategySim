@@ -157,13 +157,13 @@ impl MiningConcessionRegistry {
 /// deep deposits.
 pub fn max_depth_for_method_year(year: u32) -> f64 {
     match year {
-        y if y < 1885 => 200.0,   // Manual Mining
-        y if y < 1890 => 400.0,   // Pneumatic Drilling
-        y if y < 1895 => 600.0,   // Electric Mine Pumps
-        y if y < 1900 => 800.0,   // Longwall Mining
-        y if y < 1950 => 1000.0,  // Open-Pit / Froth Flotation era
-        y if y < 1970 => 1200.0,  // Mechanized Longwall
-        _ => 2000.0,              // CNC Mining and beyond
+        y if y < 1885 => 200.0,  // Manual Mining
+        y if y < 1890 => 400.0,  // Pneumatic Drilling
+        y if y < 1895 => 600.0,  // Electric Mine Pumps
+        y if y < 1900 => 800.0,  // Longwall Mining
+        y if y < 1950 => 1000.0, // Open-Pit / Froth Flotation era
+        y if y < 1970 => 1200.0, // Mechanized Longwall
+        _ => 2000.0,             // CNC Mining and beyond
     }
 }
 
@@ -180,7 +180,11 @@ pub fn can_access_depth(method_year: u32, deposit_depth: f64) -> bool {
 /// At 50% depletion, quality is ~87.5% of base.
 /// At 90% depletion, quality is ~59.5% of base.
 /// At 100% depletion, quality is 50% of base (but current_reserves = 0 means no extraction).
-pub fn compute_current_quality(base_quality: f64, current_reserves: f64, estimated_reserves: f64) -> f64 {
+pub fn compute_current_quality(
+    base_quality: f64,
+    current_reserves: f64,
+    estimated_reserves: f64,
+) -> f64 {
     if estimated_reserves <= 0.0 {
         return base_quality;
     }
@@ -230,11 +234,17 @@ pub fn find_deposit_for_commodity(
 ) -> Option<String> {
     let target_key = commodity.to_string();
     for formation in &country.geological_formations {
-        if !formation.overlapping_regions.contains(&region_id.to_string()) {
+        if !formation
+            .overlapping_regions
+            .contains(&region_id.to_string())
+        {
             continue;
         }
         for (key, deposit) in &formation.resource_deposits {
-            if deposit.commodity == commodity && deposit.discovered && deposit.current_reserves > 0.0 {
+            if deposit.commodity == commodity
+                && deposit.discovered
+                && deposit.current_reserves > 0.0
+            {
                 return Some(format!("{}/{}", formation.id, key));
             }
         }
@@ -255,11 +265,7 @@ pub fn find_deposit_for_commodity(
 /// # Returns
 /// The actual amount that could be extracted (may be less than requested if
 /// `current_reserves` is insufficient). Returns 0.0 if the deposit is not found.
-pub fn deplete_deposit(
-    country: &mut Country,
-    deposit_id: &str,
-    amount: f64,
-) -> f64 {
+pub fn deplete_deposit(country: &mut Country, deposit_id: &str, amount: f64) -> f64 {
     if amount <= 0.0 {
         return 0.0;
     }
@@ -295,10 +301,7 @@ pub fn deplete_deposit(
 ///
 /// Returns 0.0 if the deposit is not found, not discovered, or exhausted.
 /// Otherwise returns `deposit.current_quality` (0.0–1.0).
-pub fn deposit_quality_multiplier(
-    country: &Country,
-    deposit_id: &str,
-) -> f64 {
+pub fn deposit_quality_multiplier(country: &Country, deposit_id: &str) -> f64 {
     match find_deposit_index(country, deposit_id) {
         Some((_, _, deposit)) => {
             if !deposit.discovered || deposit.current_reserves <= 0.0 {
@@ -315,11 +318,7 @@ pub fn deposit_quality_multiplier(
 ///
 /// Returns `false` if the deposit is not found or if the method year cannot
 /// reach the deposit's depth.
-pub fn deposit_is_accessible(
-    country: &Country,
-    deposit_id: &str,
-    method_year: u32,
-) -> bool {
+pub fn deposit_is_accessible(country: &Country, deposit_id: &str, method_year: u32) -> bool {
     match find_deposit_index(country, deposit_id) {
         Some((_, _, deposit)) => can_access_depth(method_year, deposit.depth),
         None => false,
@@ -399,10 +398,8 @@ pub fn apply_depletion_batch(
     requests: &[DepletionRequest],
 ) -> rustc_hash::FxHashMap<(String, usize), f64> {
     // Group requests by vein_id, preserving original index for caller reconciliation.
-    let mut by_vein: rustc_hash::FxHashMap<
-        String,
-        Vec<(usize, f64)>,
-    > = rustc_hash::FxHashMap::default();
+    let mut by_vein: rustc_hash::FxHashMap<String, Vec<(usize, f64)>> =
+        rustc_hash::FxHashMap::default();
 
     for (idx, req) in requests.iter().enumerate() {
         if req.requested_amount <= 0.0 {
@@ -414,8 +411,7 @@ pub fn apply_depletion_batch(
             .push((idx, req.requested_amount));
     }
 
-    let mut results: rustc_hash::FxHashMap<(String, usize), f64> =
-        rustc_hash::FxHashMap::default();
+    let mut results: rustc_hash::FxHashMap<(String, usize), f64> = rustc_hash::FxHashMap::default();
 
     for (vein_id, reqs) in &by_vein {
         let vein = match planet.vein_by_id_mut(vein_id) {
@@ -487,11 +483,10 @@ pub fn resolve_geological_surveys(
 
     for survey in &completed {
         // Find undiscovered veins of the target commodity in the target region.
-        let hidden_vein_indices = planet
-            .undiscovered_vein_indices_for_region_and_commodity(
-                &survey.region_id,
-                survey.target_commodity,
-            );
+        let hidden_vein_indices = planet.undiscovered_vein_indices_for_region_and_commodity(
+            &survey.region_id,
+            survey.target_commodity,
+        );
 
         if hidden_vein_indices.is_empty() {
             // No hidden vein of this commodity in this region — survey fails.
@@ -522,7 +517,8 @@ pub fn resolve_geological_surveys(
             // proxy improves odds (capped at +0.2).
             let investment_bonus = (survey.survey_cost / 1_000_000.0).clamp(0.0, 0.2);
 
-            let discovery_probability = (base_probability + tech_bonus + investment_bonus).clamp(0.0, 0.95);
+            let discovery_probability =
+                (base_probability + tech_bonus + investment_bonus).clamp(0.0, 0.95);
 
             // Deterministic RNG from survey + vein for reproducibility.
             use std::collections::hash_map::DefaultHasher;
@@ -604,16 +600,19 @@ mod tests {
             formation_type: crate::society::geography::FormationType::SedimentaryBasin,
             resource_deposits: {
                 let mut m = BTreeMap::new();
-                m.insert("hard_coal".to_string(), ResourceDeposit {
-                    commodity: Commodity::HardCoal,
-                    estimated_reserves: 1_000_000.0,
-                    current_reserves: 1_000_000.0,
-                    extraction_cost: 50.0,
-                    quality: 0.9,
-                    current_quality: 0.9,
-                    depth: 100.0,
-                    discovered: true,
-                });
+                m.insert(
+                    "hard_coal".to_string(),
+                    ResourceDeposit {
+                        commodity: Commodity::HardCoal,
+                        estimated_reserves: 1_000_000.0,
+                        current_reserves: 1_000_000.0,
+                        extraction_cost: 50.0,
+                        quality: 0.9,
+                        current_quality: 0.9,
+                        depth: 100.0,
+                        discovered: true,
+                    },
+                );
                 m
             },
             overlapping_regions: vec!["R1".to_string()],
@@ -648,26 +647,32 @@ mod tests {
             formation_type: crate::society::geography::FormationType::MountainRange,
             resource_deposits: {
                 let mut m = BTreeMap::new();
-                m.insert("iron".to_string(), ResourceDeposit {
-                    commodity: Commodity::Iron,
-                    estimated_reserves: 500_000.0,
-                    current_reserves: 500_000.0,
-                    extraction_cost: 30.0,
-                    quality: 0.8,
-                    current_quality: 0.8,
-                    depth: 150.0,
-                    discovered: true,
-                });
-                m.insert("gold".to_string(), ResourceDeposit {
-                    commodity: Commodity::Gold,
-                    estimated_reserves: 100_000.0,
-                    current_reserves: 100_000.0,
-                    extraction_cost: 80.0,
-                    quality: 0.7,
-                    current_quality: 0.7,
-                    depth: 800.0,
-                    discovered: false, // hidden
-                });
+                m.insert(
+                    "iron".to_string(),
+                    ResourceDeposit {
+                        commodity: Commodity::Iron,
+                        estimated_reserves: 500_000.0,
+                        current_reserves: 500_000.0,
+                        extraction_cost: 30.0,
+                        quality: 0.8,
+                        current_quality: 0.8,
+                        depth: 150.0,
+                        discovered: true,
+                    },
+                );
+                m.insert(
+                    "gold".to_string(),
+                    ResourceDeposit {
+                        commodity: Commodity::Gold,
+                        estimated_reserves: 100_000.0,
+                        current_reserves: 100_000.0,
+                        extraction_cost: 80.0,
+                        quality: 0.7,
+                        current_quality: 0.7,
+                        depth: 800.0,
+                        discovered: false, // hidden
+                    },
+                );
                 m
             },
             overlapping_regions: vec!["R1".to_string()],

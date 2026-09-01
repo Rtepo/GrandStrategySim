@@ -1,5 +1,7 @@
 use crate::state::{AppState, EngineState};
-use sim_engine::engine::{generate_world, GenerateOptions, StartYear, run_turn_in_memory, InMemoryTurnContext};
+use sim_engine::engine::{
+    generate_world, run_turn_in_memory, GenerateOptions, InMemoryTurnContext, StartYear,
+};
 use sim_engine::io::save_manager::load_game_state;
 use sim_engine::ui::snapshot::{GameStatus, TurnResult};
 use std::panic::AssertUnwindSafe;
@@ -76,19 +78,22 @@ pub async fn advance_turn(state: tauri::State<'_, AppState>) -> Result<TurnResul
 
     let result = tokio::task::spawn_blocking(move || {
         let mut engine_guard = engine_arc.blocking_write();
-        let engine_state = engine_guard
-            .as_mut()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
         run_turn_in_memory(
             &mut engine_state.game_state,
             &registries,
             &mut engine_state.turn_context,
-        ).map_err(|e| format!("Turn failed: {e:?}"))?;
+        )
+        .map_err(|e| format!("Turn failed: {e:?}"))?;
 
         let turn = engine_state.game_state.calendar.global_turn;
         let year = engine_state.game_state.calendar.current_year;
-        Ok::<TurnResult, String>(TurnResult { turn, year, status: "ok".to_string() })
+        Ok::<TurnResult, String>(TurnResult {
+            turn,
+            year,
+            status: "ok".to_string(),
+        })
     })
     .await
     .map_err(|e| format!("Task join error: {e}"))?;
@@ -102,10 +107,7 @@ pub async fn advance_turn(state: tauri::State<'_, AppState>) -> Result<TurnResul
 }
 
 #[tauri::command]
-pub async fn save_game(
-    state: tauri::State<'_, AppState>,
-    save_name: String,
-) -> Result<(), String> {
+pub async fn save_game(state: tauri::State<'_, AppState>, save_name: String) -> Result<(), String> {
     let engine_arc = state.engine.clone();
     let data_dir = state.data_dir.clone();
 
@@ -113,9 +115,7 @@ pub async fn save_game(
 
     tokio::task::spawn_blocking(move || {
         let engine_guard = engine_arc.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         std::fs::create_dir_all(&save_dir)
             .map_err(|e| format!("Failed to create save dir: {e}"))?;
@@ -125,7 +125,14 @@ pub async fn save_game(
 
         let global_orders = sim_engine::economy::market::MarketOrders::default();
         let trade_result = sim_engine::international::TradeBalanceResult::default();
-        engine_state.turn_context.save_to_disk(&save_dir, &engine_state.game_state, &global_orders, &trade_result)
+        engine_state
+            .turn_context
+            .save_to_disk(
+                &save_dir,
+                &engine_state.game_state,
+                &global_orders,
+                &trade_result,
+            )
             .map_err(|e| format!("Failed to save context: {e}"))?;
 
         Ok::<(), String>(())
@@ -135,19 +142,14 @@ pub async fn save_game(
 }
 
 #[tauri::command]
-pub async fn load_game(
-    state: tauri::State<'_, AppState>,
-    save_name: String,
-) -> Result<(), String> {
+pub async fn load_game(state: tauri::State<'_, AppState>, save_name: String) -> Result<(), String> {
     let data_dir = state.data_dir.clone();
     let save_dir = data_dir.join("saves").join(&save_name);
 
-    let mut game_state = tokio::task::spawn_blocking(move || {
-        load_game_state(&save_dir)
-    })
-    .await
-    .map_err(|e| format!("Task join error: {e}"))?
-    .map_err(|e| format!("Failed to load state: {e}"))?;
+    let mut game_state = tokio::task::spawn_blocking(move || load_game_state(&save_dir))
+        .await
+        .map_err(|e| format!("Task join error: {e}"))?
+        .map_err(|e| format!("Failed to load state: {e}"))?;
 
     let turn_context = InMemoryTurnContext::load_from_disk(&state.data_dir, &mut game_state)
         .map_err(|e| format!("Context load failed: {e}"))?;
@@ -169,8 +171,8 @@ pub async fn list_saves(state: tauri::State<'_, AppState>) -> Result<Vec<String>
     }
 
     let mut saves = Vec::new();
-    let entries = std::fs::read_dir(&saves_dir)
-        .map_err(|e| format!("Failed to read saves dir: {e}"))?;
+    let entries =
+        std::fs::read_dir(&saves_dir).map_err(|e| format!("Failed to read saves dir: {e}"))?;
 
     for entry in entries.flatten() {
         if entry.path().is_dir() {
@@ -185,20 +187,14 @@ pub async fn list_saves(state: tauri::State<'_, AppState>) -> Result<Vec<String>
 }
 
 #[tauri::command]
-pub async fn get_game_status(
-    state: tauri::State<'_, AppState>,
-) -> Result<GameStatus, String> {
+pub async fn get_game_status(state: tauri::State<'_, AppState>) -> Result<GameStatus, String> {
     let engine_guard = state.engine.read().await;
     let processing = *state.processing.read().await;
 
     match engine_guard.as_ref() {
         Some(engine_state) => {
-            let countries: Vec<String> = engine_state
-                .game_state
-                .countries
-                .keys()
-                .cloned()
-                .collect();
+            let countries: Vec<String> =
+                engine_state.game_state.countries.keys().cloned().collect();
 
             let calendar = &engine_state.game_state.calendar;
             let season = match calendar.get_season() {

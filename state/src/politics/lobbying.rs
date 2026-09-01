@@ -6,17 +6,17 @@
 
 #![allow(missing_docs)]
 
-use crate::registries::enums::Sector;
-use crate::securities::BrokerageAccount;
+use crate::entities::Company;
 use crate::politics::campaign::BlackMoneySource;
 use crate::politics::legislation::Bill;
 use crate::politics::local_council::Councilor;
 use crate::politics::system::Party;
-use crate::entities::Company;
+use crate::registries::enums::Sector;
+use crate::securities::BrokerageAccount;
 use crate::society::geography::Region;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::collections::{HashMap, BTreeMap};
+use std::collections::{BTreeMap, HashMap};
 
 /// Institutional lobbying group (Chamber of Commerce, Industry Association, etc.)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -24,51 +24,51 @@ pub struct LobbyingGroup {
     /// Unique identifier (e.g., "[LOB-IND-001]")
     #[serde(default)]
     pub id: String,
-    
+
     /// Group name (e.g., "Polish Chamber of Commerce")
     #[serde(default)]
     pub name: String,
-    
+
     /// Group type (sectoral, regional, ideological)
     #[serde(default)]
     pub group_type: LobbyingGroupType,
-    
+
     /// Brokerage account for pooled capital
     #[serde(default)]
     pub brokerage_account: Option<BrokerageAccount>,
-    
+
     /// Member companies (by company_id)
     #[serde(default)]
     pub member_companies: Vec<String>,
-    
+
     /// Membership dues structure (percentage of company liquid capital)
     #[serde(default)]
     pub membership_dues_rate: f64,
-    
+
     /// Target sectors for influence (empty = all sectors)
     #[serde(default)]
     pub target_sectors: Vec<Sector>,
-    
+
     /// Target regions for influence (empty = national)
     #[serde(default)]
     pub target_regions: Vec<String>,
-    
+
     /// Political alignment (ideology vector)
     #[serde(default)]
     pub political_alignment: HashMap<String, f64>,
-    
+
     /// Influence power (derived from pooled capital + member count)
     #[serde(default)]
     pub influence_power: f64,
-    
+
     /// Active lobbying operations
     #[serde(default)]
     pub active_lobbies: Vec<LobbyingOperation>,
-    
+
     /// Turn when group was founded
     #[serde(default)]
     pub founding_turn: u32,
-    
+
     /// Any additional fields
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -77,17 +77,13 @@ pub struct LobbyingGroup {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum LobbyingGroupType {
     #[default]
+    Sectoral, // Industry association (e.g., Mining Association)
 
-    Sectoral,  // Industry association (e.g., Mining Association)
-    
+    Regional, // Regional chamber of commerce
 
-    Regional,  // Regional chamber of commerce
-    
+    Ideological, // Think tank / advocacy group
 
-    Ideological,  // Think tank / advocacy group
-    
-
-    Professional,  // Professional association (e.g., Medical Association)
+    Professional, // Professional association (e.g., Medical Association)
 }
 
 /// Lobbying operation targeting legislation or individuals
@@ -96,43 +92,43 @@ pub struct LobbyingOperation {
     /// Operation ID
     #[serde(default)]
     pub id: String,
-    
+
     /// Initiating lobbying group
     #[serde(default)]
     pub lobbying_group_id: String,
-    
+
     /// Target type (Bill, Councilor, Party)
     #[serde(default)]
     pub target_type: LobbyingTarget,
-    
+
     /// Target identifier (bill_id, councilor_id, or party_id)
     #[serde(default)]
     pub target_id: String,
-    
+
     /// Operation type (legal lobbying, illicit bribery)
     #[serde(default)]
     pub operation_type: LobbyingOperationType,
-    
+
     /// Amount spent
     #[serde(default)]
     pub amount: f64,
-    
+
     /// Expected influence modifier (-0.5 to +0.5)
     #[serde(default)]
     pub influence_modifier: f64,
-    
+
     /// Turn when operation was initiated
     #[serde(default)]
     pub initiation_turn: u32,
-    
+
     /// Operation status
     #[serde(default)]
     pub status: LobbyingStatus,
-    
+
     /// Discovery risk (0-1, for illicit operations)
     #[serde(default)]
     pub discovery_risk: f64,
-    
+
     /// Any additional fields
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -141,43 +137,33 @@ pub struct LobbyingOperation {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum LobbyingTarget {
     #[default]
+    Bill, // Target a specific Bill in parliament
 
-    Bill,  // Target a specific Bill in parliament
-    
+    Councilor, // Target a specific LocalCouncil councilor
 
-    Councilor,  // Target a specific LocalCouncil councilor
-    
-
-    Party,  // Target a specific Party (campaign contribution)
+    Party, // Target a specific Party (campaign contribution)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum LobbyingOperationType {
     #[default]
+    LegalLobbying, // Legal campaign contribution / advocacy
 
-    LegalLobbying,  // Legal campaign contribution / advocacy
-    
+    Bribery, // Illicit direct payment to individual
 
-    Bribery,  // Illicit direct payment to individual
-    
-
-    BlackMoneyFinancing,  // Illicit party funding (triggers Phase 3 mechanics)
+    BlackMoneyFinancing, // Illicit party funding (triggers Phase 3 mechanics)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum LobbyingStatus {
     #[default]
-
     InProgress,
-    
 
     Success,
-    
 
     Failed,
-    
 
-    Discovered,  // Illicit operation exposed
+    Discovered, // Illicit operation exposed
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -190,19 +176,19 @@ pub enum LobbyingError {
 pub fn collect_membership_dues(
     company: &mut Company,
     lobbying_group: &mut LobbyingGroup,
-    dues_rate: f64,  // e.g., 0.01 = 1% of liquid capital
+    dues_rate: f64, // e.g., 0.01 = 1% of liquid capital
 ) -> Result<(), LobbyingError> {
     let company_cash = company.available_cash;
-    
+
     if company_cash <= 0.0 {
         return Err(LobbyingError::InsufficientFunds);
     }
-    
+
     let dues_amount = company_cash * dues_rate;
-    
+
     // Deduct from company operational cash (NOT brokerage account — that's for securities)
     company.available_cash -= dues_amount;
-    
+
     // Ensure lobbying group has brokerage account
     if lobbying_group.brokerage_account.is_none() {
         lobbying_group.brokerage_account = Some(BrokerageAccount {
@@ -216,23 +202,25 @@ pub fn collect_membership_dues(
             extra: HashMap::new(),
         });
     }
-    
+
     // Credit to lobbying group
     lobbying_group.brokerage_account.as_mut().unwrap().cash += dues_amount;
-    
+
     // Update influence power
     lobbying_group.influence_power = calculate_influence_power(lobbying_group);
-    
+
     Ok(())
 }
 
 fn calculate_influence_power(group: &LobbyingGroup) -> f64 {
-    let pooled_capital = group.brokerage_account.as_ref()
+    let pooled_capital = group
+        .brokerage_account
+        .as_ref()
         .map(|a| a.cash)
         .unwrap_or(0.0);
-    
+
     let member_count = group.member_companies.len() as f64;
-    
+
     // Influence = sqrt(pooled_capital) * log(member_count + 1)
     pooled_capital.sqrt() * (member_count + 1.0).log10()
 }
@@ -245,17 +233,19 @@ pub fn execute_legal_lobbying(
     amount: f64,
     influence_modifier: f64,
 ) -> Result<(), LobbyingError> {
-    let group_cash = lobbying_group.brokerage_account.as_ref()
+    let group_cash = lobbying_group
+        .brokerage_account
+        .as_ref()
         .map(|a| a.cash)
         .unwrap_or(0.0);
-    
+
     if group_cash < amount {
         return Err(LobbyingError::InsufficientFunds);
     }
-    
+
     // Deduct from lobbying group
     lobbying_group.brokerage_account.as_mut().unwrap().cash -= amount;
-    
+
     // Credit to party (campaign war chest)
     if party.brokerage_account.is_none() {
         party.brokerage_account = Some(BrokerageAccount {
@@ -269,13 +259,13 @@ pub fn execute_legal_lobbying(
             extra: HashMap::new(),
         });
     }
-    
+
     party.brokerage_account.as_mut().unwrap().cash += amount;
     party.annual_donations += amount;
-    
+
     // Apply influence modifier to bill
     bill.committee_modifier += influence_modifier;
-    
+
     // Record operation
     lobbying_group.active_lobbies.push(LobbyingOperation {
         id: format!("[LOB-OPR-{}]", lobbying_group.active_lobbies.len()),
@@ -285,12 +275,12 @@ pub fn execute_legal_lobbying(
         operation_type: LobbyingOperationType::LegalLobbying,
         amount,
         influence_modifier,
-        initiation_turn: 0,  // Set by caller
+        initiation_turn: 0, // Set by caller
         status: LobbyingStatus::Success,
         discovery_risk: 0.0,
         extra: Map::new(),
     });
-    
+
     Ok(())
 }
 
@@ -303,21 +293,25 @@ pub fn execute_councilor_bribery(
     influence_modifier: f64,
     discovery_risk: f64,
 ) -> Result<(), LobbyingError> {
-    let group_cash = lobbying_group.brokerage_account.as_ref()
+    let group_cash = lobbying_group
+        .brokerage_account
+        .as_ref()
         .map(|a| a.cash)
         .unwrap_or(0.0);
-    
+
     if group_cash < amount {
         return Err(LobbyingError::InsufficientFunds);
     }
-    
+
     // Deduct from lobbying group
     lobbying_group.brokerage_account.as_mut().unwrap().cash -= amount;
-    
+
     // Credit to wealthiest demographic class in councilor's home region (prevents black hole)
     // Dynamically select class with highest savings_per_capita (or total savings if population is 0)
     // CRITICAL: Chain both rural_classes and urban_classes to seal Urban Loophole
-    let target_class_key = home_region.class_demographics.rural_classes
+    let target_class_key = home_region
+        .class_demographics
+        .rural_classes
         .iter()
         .chain(home_region.class_demographics.urban_classes.iter())
         .max_by(|a, b| {
@@ -331,21 +325,31 @@ pub fn execute_councilor_bribery(
             } else {
                 b.1.savings
             };
-            a_savings_per_capita.partial_cmp(&b_savings_per_capita).unwrap_or(std::cmp::Ordering::Equal)
+            a_savings_per_capita
+                .partial_cmp(&b_savings_per_capita)
+                .unwrap_or(std::cmp::Ordering::Equal)
         })
         .map(|(key, _)| key.clone())
         .unwrap_or_default();
-    
+
     // Try rural_classes first, then urban_classes
-    if let Some(class_demographics) = home_region.class_demographics.rural_classes.get_mut(&target_class_key) {
+    if let Some(class_demographics) = home_region
+        .class_demographics
+        .rural_classes
+        .get_mut(&target_class_key)
+    {
         class_demographics.savings += amount;
-    } else if let Some(class_demographics) = home_region.class_demographics.urban_classes.get_mut(&target_class_key) {
+    } else if let Some(class_demographics) = home_region
+        .class_demographics
+        .urban_classes
+        .get_mut(&target_class_key)
+    {
         class_demographics.savings += amount;
     }
-    
+
     // Increase councilor corruption risk (tracked separately, not as savings)
     // Note: Councilor.corruption_risk must be added to Councilor struct for tracking
-    
+
     // Record operation
     lobbying_group.active_lobbies.push(LobbyingOperation {
         id: format!("[LOB-OPR-{}]", lobbying_group.active_lobbies.len()),
@@ -360,7 +364,7 @@ pub fn execute_councilor_bribery(
         discovery_risk,
         extra: Map::new(),
     });
-    
+
     Ok(())
 }
 
@@ -371,17 +375,19 @@ pub fn execute_black_money_financing(
     amount: f64,
     discovery_risk: f64,
 ) -> Result<(), LobbyingError> {
-    let group_cash = lobbying_group.brokerage_account.as_ref()
+    let group_cash = lobbying_group
+        .brokerage_account
+        .as_ref()
         .map(|a| a.cash)
         .unwrap_or(0.0);
-    
+
     if group_cash < amount {
         return Err(LobbyingError::InsufficientFunds);
     }
-    
+
     // Deduct from lobbying group
     lobbying_group.brokerage_account.as_mut().unwrap().cash -= amount;
-    
+
     // Credit to party black money pool (Phase 3 mechanics)
     if party.black_money_pool.is_none() {
         party.black_money_pool = Some(crate::politics::campaign::BlackMoneyPool {
@@ -390,7 +396,7 @@ pub fn execute_black_money_financing(
             discovery_risk: 0.0,
         });
     }
-    
+
     let pool = party.black_money_pool.as_mut().unwrap();
     pool.illicit_funds += amount;
     pool.source = BlackMoneySource::CorporateLobbying {
@@ -398,7 +404,7 @@ pub fn execute_black_money_financing(
         amount,
     };
     pool.discovery_risk = discovery_risk;
-    
+
     // Record operation
     lobbying_group.active_lobbies.push(LobbyingOperation {
         id: format!("[LOB-OPR-{}]", lobbying_group.active_lobbies.len()),
@@ -407,13 +413,13 @@ pub fn execute_black_money_financing(
         target_id: party.id.clone(),
         operation_type: LobbyingOperationType::BlackMoneyFinancing,
         amount,
-        influence_modifier: 0.5,  // High influence for black money
+        influence_modifier: 0.5, // High influence for black money
         initiation_turn: 0,
         status: LobbyingStatus::InProgress,
         discovery_risk,
         extra: Map::new(),
     });
-    
+
     Ok(())
 }
 
@@ -456,7 +462,11 @@ pub fn process_lobbying_turn(
 
     // 2. Execute legal lobbying on active bills
     for group in &mut country.politics.lobbying_groups {
-        let group_cash = group.brokerage_account.as_ref().map(|a| a.cash).unwrap_or(0.0);
+        let group_cash = group
+            .brokerage_account
+            .as_ref()
+            .map(|a| a.cash)
+            .unwrap_or(0.0);
         if group_cash < 100.0 {
             continue;
         }
@@ -465,7 +475,10 @@ pub fn process_lobbying_turn(
         let influence = lobby_amount / 1000.0;
 
         // Find a bill to lobby on
-        if let Some(bill) = bills.iter_mut().find(|b| b.stage == crate::politics::legislation::LegislativeStage::Committee) {
+        if let Some(bill) = bills
+            .iter_mut()
+            .find(|b| b.stage == crate::politics::legislation::LegislativeStage::Committee)
+        {
             // Find the target party (ruling party or bill initiator's party)
             let target_party_id = if !country.politics.ruling_party.is_empty() {
                 country.politics.ruling_party.clone()
@@ -475,7 +488,9 @@ pub fn process_lobbying_turn(
 
             if !target_party_id.is_empty() {
                 if let Some(party) = parties.get_mut(&target_party_id) {
-                    if let Err(_e) = execute_legal_lobbying(group, party, bill, lobby_amount, influence) {
+                    if let Err(_e) =
+                        execute_legal_lobbying(group, party, bill, lobby_amount, influence)
+                    {
                         // Insufficient funds or other error — skip
                     } else {
                         messages.push(format!(

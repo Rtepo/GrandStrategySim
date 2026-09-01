@@ -156,7 +156,9 @@ pub fn apply_casualty_morale_to_classes(
 
     for (class_name, demographics) in rural_classes.iter_mut() {
         // Get casualties for this class from the demographic breakdown
-        let class_casualties = casualties.demographic_breakdown.iter()
+        let class_casualties = casualties
+            .demographic_breakdown
+            .iter()
             .filter_map(|(rc, &count)| {
                 // Match RuralClass to class name (simplified matching)
                 let name = match rc {
@@ -177,11 +179,14 @@ pub fn apply_casualty_morale_to_classes(
             let class_casualties_struct = Casualties {
                 dead: (class_casualties as f64 * 0.5) as i64,
                 wounded: (class_casualties as f64 * 0.35) as i64,
-                deserters: class_casualties - (class_casualties as f64 * 0.5) as i64 - (class_casualties as f64 * 0.35) as i64,
+                deserters: class_casualties
+                    - (class_casualties as f64 * 0.5) as i64
+                    - (class_casualties as f64 * 0.35) as i64,
                 demographic_breakdown: HashMap::new(),
             };
 
-            let result = apply_casualty_morale_impact(demographics, &class_casualties_struct, config);
+            let result =
+                apply_casualty_morale_impact(demographics, &class_casualties_struct, config);
             combined.total_morale_drop += result.total_morale_drop;
             combined.total_mental_health_drop += result.total_mental_health_drop;
             combined.strikes_active |= result.strikes_active;
@@ -205,12 +210,9 @@ pub fn apply_casualty_morale_to_classes(
 /// # Arguments
 /// * `demographics` - Mutable demographics.
 /// * `config` - Morale configuration.
-pub fn recover_morale(
-    demographics: &mut ClassDemographics,
-    config: &MoraleConfig,
-) {
-    demographics.war_morale = (demographics.war_morale + config.morale_recovery_rate)
-        .min(config.baseline_war_morale);
+pub fn recover_morale(demographics: &mut ClassDemographics, config: &MoraleConfig) {
+    demographics.war_morale =
+        (demographics.war_morale + config.morale_recovery_rate).min(config.baseline_war_morale);
     demographics.mental_health = (demographics.mental_health + config.morale_recovery_rate * 0.5)
         .min(config.baseline_mental_health);
 }
@@ -306,7 +308,10 @@ mod tests {
         let initial_morale = demo.war_morale;
         let result = apply_casualty_morale_impact(&mut demo, &casualties, &config);
 
-        assert!(demo.war_morale < initial_morale, "War morale must drop after casualties");
+        assert!(
+            demo.war_morale < initial_morale,
+            "War morale must drop after casualties"
+        );
         assert!(result.total_morale_drop > 0.0);
     }
 
@@ -332,7 +337,10 @@ mod tests {
 
         let result = apply_casualty_morale_impact(&mut demo, &casualties, &config);
 
-        assert!(result.strikes_active, "Strikes must activate below threshold");
+        assert!(
+            result.strikes_active,
+            "Strikes must activate below threshold"
+        );
     }
 
     #[test]
@@ -344,7 +352,10 @@ mod tests {
 
         let result = apply_casualty_morale_impact(&mut demo, &casualties, &config);
 
-        assert!(result.desertions_active, "Desertions must activate below threshold");
+        assert!(
+            result.desertions_active,
+            "Desertions must activate below threshold"
+        );
     }
 
     #[test]
@@ -368,8 +379,10 @@ mod tests {
 
         recover_morale(&mut demo, &config);
 
-        assert!(demo.war_morale <= config.baseline_war_morale,
-            "War morale must not exceed baseline");
+        assert!(
+            demo.war_morale <= config.baseline_war_morale,
+            "War morale must not exceed baseline"
+        );
     }
 
     #[test]
@@ -434,7 +447,10 @@ mod tests {
 
         // LandlessLaborer should have unchanged morale (no casualties)
         let laborer = classes.get("LandlessLaborer").unwrap();
-        assert_eq!(laborer.war_morale, 70.0, "LandlessLaborer morale must not change");
+        assert_eq!(
+            laborer.war_morale, 70.0,
+            "LandlessLaborer morale must not change"
+        );
     }
 
     #[test]
@@ -450,7 +466,9 @@ mod tests {
         let war_drop = initial_war - demo.war_morale;
         let mental_drop = initial_mental - demo.mental_health;
 
-        assert!(mental_drop < war_drop,
-            "Mental health drop must be less than war morale drop");
+        assert!(
+            mental_drop < war_drop,
+            "Mental health drop must be less than war morale drop"
+        );
     }
 }

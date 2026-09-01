@@ -122,7 +122,9 @@ impl CompanyLifecycle {
             for bank in companies.iter_mut() {
                 if let Some(ref mut bs) = bank.balance_sheet {
                     for loan in &mut bs.loans_issued {
-                        if loan.borrower_id == company_id && loan.status != crate::state::banking::LoanStatus::Repaid {
+                        if loan.borrower_id == company_id
+                            && loan.status != crate::state::banking::LoanStatus::Repaid
+                        {
                             loan.status = crate::state::banking::LoanStatus::Default;
                         }
                     }
@@ -166,7 +168,10 @@ impl CompanyLifecycle {
             }
 
             // 4. Remove any exchange listings for this company
-            country.stock_exchange.liquidity_pools.remove(&format!("EQUITY:{}", company_id));
+            country
+                .stock_exchange
+                .liquidity_pools
+                .remove(&format!("EQUITY:{}", company_id));
 
             // 5. Add recovered cash to auction pool
             country.bankruptcy_auction_pool.cash_collected += company_liquid_capital.max(0.0);
@@ -245,7 +250,8 @@ impl CompanyLifecycle {
             // scaled by average wage (inflation-indexed). Skip spawning if capital
             // is insufficient for the chosen sector.
             let avg_wage = country.macro_indicators.average_wage.max(1.0);
-            let min_capital = crate::corporate::capital_intensity::minimum_capital_for_sector(&sector, avg_wage);
+            let min_capital =
+                crate::corporate::capital_intensity::minimum_capital_for_sector(&sector, avg_wage);
             if capital_per_company < min_capital {
                 continue; // Insufficient capital for this sector's entry barrier
             }
@@ -314,7 +320,12 @@ mod tests {
         let mut country = Country::mock_for_tests();
         country.name = "Test".to_string();
 
-        CompanyLifecycle::liquidate_bankrupt_companies(&mut companies, &mut buildings, &mut country, 2024);
+        CompanyLifecycle::liquidate_bankrupt_companies(
+            &mut companies,
+            &mut buildings,
+            &mut country,
+            2024,
+        );
 
         assert!(companies.is_empty());
         // Phase 86.5A: Building is now fully removed, not left as a zombie.

@@ -4,14 +4,14 @@
 //! bank audits, financial penalties, and brokerage account freezing.
 
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet, HashMap};
 use serde_json::Value;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use crate::securities::brokerage::BrokerageAccount;
 use crate::entities::Company;
-use crate::state::treasury::Treasury;
+use crate::securities::brokerage::BrokerageAccount;
 use crate::state::banking::BankBalanceSheet;
 use crate::state::central_bank::CentralBank;
+use crate::state::treasury::Treasury;
 
 /// Komisja Nadzoru Finansowego - Financial Supervision Authority.
 /// Sovereign watchdog for banking and securities markets.
@@ -19,29 +19,23 @@ use crate::state::central_bank::CentralBank;
 
 pub struct KNF {
     /// Circuit breaker threshold (percentage index move).
-
     pub circuit_breaker_threshold: f64,
-    
+
     /// Current market volatility index (0-100).
-
     pub volatility_index: f64,
-    
+
     /// Minimum Tier 1 capital ratio for banks (e.g., 8%).
-
     pub min_tier_1_ratio: f64,
-    
+
     /// Banks currently under dividend restriction.
-
     pub dividend_restricted_banks: BTreeSet<String>,
-    
+
     /// Trading halt status per company.
-
     pub trading_halts: BTreeMap<String, TradingHalt>,
-    
-    /// Audit findings and enforcement actions.
 
+    /// Audit findings and enforcement actions.
     pub audit_findings: Vec<AuditFinding>,
-    
+
     /// Any additional KNF fields.
     #[serde(flatten, default)]
     pub extra: HashMap<String, Value>,
@@ -52,19 +46,15 @@ pub struct KNF {
 
 pub struct TradingHalt {
     /// Company ID.
-
     pub company_id: String,
-    
+
     /// Reason for halt.
-
     pub reason: HaltReason,
-    
+
     /// Turn when halt was triggered.
-
     pub halt_turn: u32,
-    
-    /// Expected duration in turns.
 
+    /// Expected duration in turns.
     pub duration_turns: u32,
 }
 
@@ -73,13 +63,10 @@ pub struct TradingHalt {
 
 pub enum HaltReason {
     /// Market volatility exceeded threshold.
-
     HighVolatility,
     /// Company failed to disclose required information.
-
     ImproperDisclosure,
     /// Suspected fraudulent activity.
-
     FraudSuspected,
 }
 
@@ -88,19 +75,15 @@ pub enum HaltReason {
 
 pub struct AuditFinding {
     /// Bank ID.
-
     pub bank_id: String,
-    
+
     /// Type of violation.
-
     pub violation_type: ViolationType,
-    
+
     /// Severity (1-10).
-
     pub severity: u8,
-    
-    /// Turn of finding.
 
+    /// Turn of finding.
     pub turn: u32,
 }
 
@@ -109,25 +92,18 @@ pub struct AuditFinding {
 
 pub enum ViolationType {
     /// Bank's Tier 1 capital ratio fell below minimum requirement.
-
     LowTier1Capital,
     /// Bank's leverage ratio exceeded regulatory limits.
-
     ExcessiveLeverage,
     /// Bank failed to maintain proper loan loss reserves.
-
     ImproperReserving,
     /// Market manipulation detected in trading activities.
-
     MarketManipulation,
     /// Phase 57: Accounting fraud — profit diversion by corrupt CEO/manager.
-
     AccountingFraud,
     /// Phase 57: Fund leverage exceeded regulatory limits.
-
     FundLeverageExceeded,
     /// Phase 57: Insider trading — fund manager trading on companies where they're CEO or board member.
-
     InsiderTrading,
 }
 
@@ -136,13 +112,10 @@ pub enum ViolationType {
 
 pub enum FreezeReason {
     /// Market manipulation detected.
-
     MarketManipulation,
     /// Severe audit violation.
-
     AuditViolation,
     /// Suspected fraudulent activity.
-
     FraudSuspected,
 }
 
@@ -157,7 +130,7 @@ impl KNF {
             false
         }
     }
-    
+
     /// Audit bank and potentially restrict dividends with financial penalties.
     pub fn audit_bank(
         &mut self,
@@ -175,13 +148,13 @@ impl KNF {
         } else {
             0.0
         };
-        
+
         if tier_1_ratio < self.min_tier_1_ratio {
             self.dividend_restricted_banks.insert(bank.id.clone());
-            
+
             let severity = ((self.min_tier_1_ratio - tier_1_ratio) * 100.0) as u8;
             let fine = severity as f64 * total_assets * penalty_multiplier;
-            
+
             let available_reserves = balance_sheet.reserves_at_central_bank;
             let actual_fine_collected = if fine <= available_reserves {
                 // Sufficient reserves: debit directly
@@ -195,7 +168,9 @@ impl KNF {
                 if central_bank.interest_rates.reference_rate > 0.0 {
                     balance_sheet.reserves_at_central_bank = 0.0;
                     balance_sheet.tier_1_capital = (balance_sheet.tier_1_capital - fine).max(0.0);
-                    balance_sheet.interbank_loans_taken.insert(central_bank.id.clone(), shortfall);
+                    balance_sheet
+                        .interbank_loans_taken
+                        .insert(central_bank.id.clone(), shortfall);
                     fine
                 } else {
                     // Lombard failed: trigger resolution, extract only available
@@ -205,10 +180,10 @@ impl KNF {
                     available_reserves
                 }
             };
-            
+
             // Credit only what was actually extracted (closed-loop)
             treasury.liquid_reserves += actual_fine_collected;
-            
+
             self.audit_findings.push(AuditFinding {
                 bank_id: bank.id.clone(),
                 violation_type: ViolationType::LowTier1Capital,
@@ -217,7 +192,7 @@ impl KNF {
             });
         }
     }
-    
+
     /// Freeze a brokerage account for market manipulation or severe violations.
     pub fn freeze_brokerage_account(
         &mut self,
@@ -236,10 +211,13 @@ impl KNF {
             });
             Ok(())
         } else {
-            Err(format!("Entity {} has no brokerage account to freeze", entity_id))
+            Err(format!(
+                "Entity {} has no brokerage account to freeze",
+                entity_id
+            ))
         }
     }
-    
+
     /// Unfreeze a brokerage account.
     pub fn unfreeze_brokerage_account(
         &mut self,
@@ -250,15 +228,18 @@ impl KNF {
             brokerage.is_frozen = false;
             Ok(())
         } else {
-            Err(format!("Entity {} has no brokerage account to unfreeze", entity_id))
+            Err(format!(
+                "Entity {} has no brokerage account to unfreeze",
+                entity_id
+            ))
         }
     }
-    
+
     /// Check if bank can pay dividends.
     pub fn can_pay_dividends(&self, bank_id: &str) -> bool {
         !self.dividend_restricted_banks.contains(bank_id)
     }
-    
+
     /// Trigger market-wide trading halt.
     fn trigger_market_halt(&mut self) {
         // Halt all trading for X turns
@@ -301,9 +282,8 @@ pub fn process_knf_compliance(
     knf.circuit_breaker_threshold = config.circuit_breaker_threshold;
 
     // Expire old trading halts
-    knf.trading_halts.retain(|_, halt| {
-        current_turn < halt.halt_turn + halt.duration_turns
-    });
+    knf.trading_halts
+        .retain(|_, halt| current_turn < halt.halt_turn + halt.duration_turns);
 
     // Audit banks
     for bank in companies.iter_mut() {
@@ -337,10 +317,9 @@ pub fn process_knf_compliance(
                 let shortfall = fine - available_reserves;
                 balance_sheet.reserves_at_central_bank = 0.0;
                 balance_sheet.tier_1_capital = (balance_sheet.tier_1_capital - fine).max(0.0);
-                balance_sheet.interbank_loans_taken.insert(
-                    central_bank.id.clone(),
-                    shortfall,
-                );
+                balance_sheet
+                    .interbank_loans_taken
+                    .insert(central_bank.id.clone(), shortfall);
                 fine
             };
 
@@ -495,7 +474,10 @@ pub fn check_insider_trading(
             }
             // Check if the VIP is a board member.
             if let crate::entities::LegalForm::JointStockCompany(ref jsd) = c.legal_form {
-                return jsd.board_members.iter().any(|m| m.vip_id == fund_manager_vip_id);
+                return jsd
+                    .board_members
+                    .iter()
+                    .any(|m| m.vip_id == fund_manager_vip_id);
             }
             false
         })

@@ -8,8 +8,8 @@
 //! BOMs are era-aware: pre-1925 uses Bricks/Timber/Planks, post-1950 uses
 //! Cement/Steel/Prefabricates, with a transitional blend in between.
 
-use crate::registries::enums::{Commodity, Sector};
 use crate::economy::transport_networks::NetworkLevel;
+use crate::registries::enums::{Commodity, Sector};
 use std::collections::BTreeMap;
 
 /// Phase 45: Returns the construction BOM for a sector, era-aware.
@@ -73,7 +73,10 @@ pub fn get_construction_bom(sector: Sector, start_year: u32) -> BTreeMap<Commodi
 /// version above.
 ///
 /// **DEPRECATED**: New code should call `get_construction_bom(Sector, u32)` directly.
-pub fn get_construction_bom_for_kind(building_kind: &str, start_year: u32) -> BTreeMap<Commodity, f64> {
+pub fn get_construction_bom_for_kind(
+    building_kind: &str,
+    start_year: u32,
+) -> BTreeMap<Commodity, f64> {
     let sector = sector_from_building_kind(building_kind);
     get_construction_bom(sector, start_year)
 }
@@ -82,23 +85,35 @@ pub fn get_construction_bom_for_kind(building_kind: &str, start_year: u32) -> BT
 /// Used only by the legacy compatibility wrapper.
 fn sector_from_building_kind(kind: &str) -> Sector {
     let k = kind.to_lowercase();
-    if k.contains("steelworks") || k.contains("steel") || k.contains("foundry")
-        || k.contains("heavy") || k.contains("heavy")
+    if k.contains("steelworks")
+        || k.contains("steel")
+        || k.contains("foundry")
+        || k.contains("heavy")
+        || k.contains("heavy")
     {
         Sector::HeavyIndustry
-    } else if k.contains("mine") || k.contains("mine") || k.contains("coal")
-        || k.contains("ore") || k.contains("bauxite")
+    } else if k.contains("mine")
+        || k.contains("mine")
+        || k.contains("coal")
+        || k.contains("ore")
+        || k.contains("bauxite")
     {
         Sector::Mining
-    } else if k.contains("agricultural") || k.contains("farm") || k.contains("estate")
-        || k.contains("farmstead") || k.contains("farm")
+    } else if k.contains("agricultural")
+        || k.contains("farm")
+        || k.contains("estate")
+        || k.contains("farmstead")
+        || k.contains("farm")
     {
         Sector::Agriculture
-    } else if k.contains("warehouse") || k.contains("warehouse") || k.contains("storage")
-    {
+    } else if k.contains("warehouse") || k.contains("warehouse") || k.contains("storage") {
         Sector::TransportLogistics
-    } else if k.contains("shop") || k.contains("office") || k.contains("trade")
-        || k.contains("commercial") || k.contains("commercial") || k.contains("office")
+    } else if k.contains("shop")
+        || k.contains("office")
+        || k.contains("trade")
+        || k.contains("commercial")
+        || k.contains("commercial")
+        || k.contains("office")
     {
         Sector::PublicServices
     } else if k.contains("cement") {
@@ -360,8 +375,16 @@ mod tests {
         let bom = get_construction_bom(Sector::HeavyIndustry, 1900);
         let bricks = bom.get(&Commodity::Bricks).copied().unwrap_or(0.0);
         let prefabs = bom.get(&Commodity::Prefabricates).copied().unwrap_or(0.0);
-        assert!(bricks > 300.0, "1900 heavy factory should use lots of bricks, got {}", bricks);
-        assert!(prefabs < 1.0, "1900 heavy factory should not use prefabricates, got {}", prefabs);
+        assert!(
+            bricks > 300.0,
+            "1900 heavy factory should use lots of bricks, got {}",
+            bricks
+        );
+        assert!(
+            prefabs < 1.0,
+            "1900 heavy factory should not use prefabricates, got {}",
+            prefabs
+        );
     }
 
     #[test]
@@ -369,8 +392,16 @@ mod tests {
         let bom = get_construction_bom(Sector::HeavyIndustry, 1975);
         let prefabs = bom.get(&Commodity::Prefabricates).copied().unwrap_or(0.0);
         let cement = bom.get(&Commodity::Cement).copied().unwrap_or(0.0);
-        assert!(prefabs > 100.0, "1975 heavy factory should use prefabricates, got {}", prefabs);
-        assert!(cement > 500.0, "1975 heavy factory should use lots of cement, got {}", cement);
+        assert!(
+            prefabs > 100.0,
+            "1975 heavy factory should use prefabricates, got {}",
+            prefabs
+        );
+        assert!(
+            cement > 500.0,
+            "1975 heavy factory should use lots of cement, got {}",
+            cement
+        );
     }
 
     #[test]
@@ -379,10 +410,21 @@ mod tests {
         // 1935 is in the transition period (1925 < 1935 < 1950)
         // era_factor = (1935 - 1925) / 25 = 0.4
         let bricks = bom_1935.get(&Commodity::Bricks).copied().unwrap_or(0.0);
-        let prefabs = bom_1935.get(&Commodity::Prefabricates).copied().unwrap_or(0.0);
+        let prefabs = bom_1935
+            .get(&Commodity::Prefabricates)
+            .copied()
+            .unwrap_or(0.0);
         // Both should be present in transition
-        assert!(bricks > 100.0, "1935 should still use some bricks, got {}", bricks);
-        assert!(prefabs > 0.0, "1935 should start using prefabricates, got {}", prefabs);
+        assert!(
+            bricks > 100.0,
+            "1935 should still use some bricks, got {}",
+            bricks
+        );
+        assert!(
+            prefabs > 0.0,
+            "1935 should start using prefabricates, got {}",
+            prefabs
+        );
     }
 
     #[test]
@@ -391,7 +433,10 @@ mod tests {
         let light = get_construction_bom(Sector::LightIndustry, 1975);
         let heavy_steel = heavy.get(&Commodity::Steel).copied().unwrap_or(0.0);
         let light_steel = light.get(&Commodity::Steel).copied().unwrap_or(0.0);
-        assert!(heavy_steel > light_steel, "heavy industry should need more steel than light");
+        assert!(
+            heavy_steel > light_steel,
+            "heavy industry should need more steel than light"
+        );
     }
 
     #[test]
@@ -400,7 +445,15 @@ mod tests {
         let bom_1975 = get_construction_bom(Sector::LightIndustry, 1975);
         let planks_1900 = bom_1900.get(&Commodity::Planks).copied().unwrap_or(0.0);
         let planks_1975 = bom_1975.get(&Commodity::Planks).copied().unwrap_or(0.0);
-        assert!(planks_1900 > 50.0, "1900 should use planks, got {}", planks_1900);
-        assert!(planks_1975 < 1.0, "1975 should not use planks, got {}", planks_1975);
+        assert!(
+            planks_1900 > 50.0,
+            "1900 should use planks, got {}",
+            planks_1900
+        );
+        assert!(
+            planks_1975 < 1.0,
+            "1975 should not use planks, got {}",
+            planks_1975
+        );
     }
 }

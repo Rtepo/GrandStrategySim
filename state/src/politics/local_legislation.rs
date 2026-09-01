@@ -8,7 +8,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::politics::local_government::{RegionalGovernance, AdministrativeStatus};
+use crate::politics::local_government::{AdministrativeStatus, RegionalGovernance};
 
 // ============================================================================
 // UNFUNDED MANDATE
@@ -269,7 +269,10 @@ pub fn execute_mandate_payment(
     let region_idx = match region_idx {
         Some(idx) => idx,
         None => {
-            result.messages.push(format!("[MANDATE] Region {} not found — aborted.", region_id));
+            result.messages.push(format!(
+                "[MANDATE] Region {} not found — aborted.",
+                region_id
+            ));
             result.refused = true;
             result.final_reserves = 0.0;
             result.final_debt = 0.0;
@@ -286,33 +289,39 @@ pub fn execute_mandate_payment(
 
     // ── COMMISSARY BOND LOCK ──
     // If commissary and decision is IssueBonds, reject it defensively.
-    if is_commissary
-        && matches!(decision, MandateFundingDecision::IssueBonds { .. }) {
+    if is_commissary && matches!(decision, MandateFundingDecision::IssueBonds { .. }) {
+        result.messages.push(
+            "[MANDATE] BOND LOCK: Commissary region cannot issue bonds. Checking Treasury funding."
+                .to_string(),
+        );
+        // Treasury must cover the gap, or mandate is refused.
+        if !treasury_can_afford {
             result.messages.push(
-                "[MANDATE] BOND LOCK: Commissary region cannot issue bonds. Checking Treasury funding.".to_string()
+                "[MANDATE] BOND LOCK: Treasury cannot afford funding. Mandate REFUSED.".to_string(),
             );
-            // Treasury must cover the gap, or mandate is refused.
-            if !treasury_can_afford {
-                result.messages.push(
-                    "[MANDATE] BOND LOCK: Treasury cannot afford funding. Mandate REFUSED.".to_string()
-                );
-                result.refused = true;
-                result.final_reserves = country.regions[region_idx]
-                    .governance.as_ref().map(|g| g.budget.liquid_reserves).unwrap_or(0.0);
-                result.final_debt = country.regions[region_idx]
-                    .governance.as_ref().map(|g| g.debt.total_debt).unwrap_or(0.0);
-                return result;
-            }
-            // Treasury covers the gap — no bonds, no JST debt increase.
-            // Credit JST reserves from Treasury, then debit for payment.
-            if let Some(ref mut gov) = country.regions[region_idx].governance {
-                gov.budget.liquid_reserves += funding_gap;
-                result.messages.push(format!(
-                    "[MANDATE] Treasury credited JST reserves by {:.2} (bond lock fallback).",
-                    funding_gap
-                ));
-            }
+            result.refused = true;
+            result.final_reserves = country.regions[region_idx]
+                .governance
+                .as_ref()
+                .map(|g| g.budget.liquid_reserves)
+                .unwrap_or(0.0);
+            result.final_debt = country.regions[region_idx]
+                .governance
+                .as_ref()
+                .map(|g| g.debt.total_debt)
+                .unwrap_or(0.0);
+            return result;
         }
+        // Treasury covers the gap — no bonds, no JST debt increase.
+        // Credit JST reserves from Treasury, then debit for payment.
+        if let Some(ref mut gov) = country.regions[region_idx].governance {
+            gov.budget.liquid_reserves += funding_gap;
+            result.messages.push(format!(
+                "[MANDATE] Treasury credited JST reserves by {:.2} (bond lock fallback).",
+                funding_gap
+            ));
+        }
+    }
 
     // Apply the decision to prepare cash.
     let mut bonds_to_issue = 0.0_f64;
@@ -340,17 +349,21 @@ pub fn execute_mandate_payment(
                 ));
             }
         }
-        MandateFundingDecision::IssueBonds { principal, interest_rate } => {
+        MandateFundingDecision::IssueBonds {
+            principal,
+            interest_rate,
+        } => {
             if is_commissary {
                 // Defensive: should never reach here due to earlier check.
                 result.messages.push(
-                    "[MANDATE] DEFENSIVE: Bond issuance blocked for commissary region.".to_string()
+                    "[MANDATE] DEFENSIVE: Bond issuance blocked for commissary region.".to_string(),
                 );
             } else {
                 bonds_to_issue = *principal;
                 result.messages.push(format!(
                     "[MANDATE] Issuing bonds: principal={:.2}, rate={:.2}%.",
-                    principal, interest_rate * 100.0
+                    principal,
+                    interest_rate * 100.0
                 ));
             }
         }
@@ -367,21 +380,37 @@ pub fn execute_mandate_payment(
             }
         }
         MandateFundingDecision::Refused => {
-            result.messages.push("[MANDATE] Council refused to fund mandate.".to_string());
+            result
+                .messages
+                .push("[MANDATE] Council refused to fund mandate.".to_string());
             result.refused = true;
             result.final_reserves = country.regions[region_idx]
-                .governance.as_ref().map(|g| g.budget.liquid_reserves).unwrap_or(0.0);
+                .governance
+                .as_ref()
+                .map(|g| g.budget.liquid_reserves)
+                .unwrap_or(0.0);
             result.final_debt = country.regions[region_idx]
-                .governance.as_ref().map(|g| g.debt.total_debt).unwrap_or(0.0);
+                .governance
+                .as_ref()
+                .map(|g| g.debt.total_debt)
+                .unwrap_or(0.0);
             return result;
         }
         MandateFundingDecision::Pending => {
-            result.messages.push("[MANDATE] Council has not yet voted — mandate pending.".to_string());
+            result
+                .messages
+                .push("[MANDATE] Council has not yet voted — mandate pending.".to_string());
             result.refused = true;
             result.final_reserves = country.regions[region_idx]
-                .governance.as_ref().map(|g| g.budget.liquid_reserves).unwrap_or(0.0);
+                .governance
+                .as_ref()
+                .map(|g| g.budget.liquid_reserves)
+                .unwrap_or(0.0);
             result.final_debt = country.regions[region_idx]
-                .governance.as_ref().map(|g| g.debt.total_debt).unwrap_or(0.0);
+                .governance
+                .as_ref()
+                .map(|g| g.debt.total_debt)
+                .unwrap_or(0.0);
             return result;
         }
     }
@@ -423,7 +452,8 @@ pub fn execute_mandate_payment(
             if is_commissary {
                 // Commissary: cannot issue more bonds. Refuse.
                 result.messages.push(
-                    "[MANDATE] Commissary region cannot cover shortfall — mandate SUSPENDED.".to_string()
+                    "[MANDATE] Commissary region cannot cover shortfall — mandate SUSPENDED."
+                        .to_string(),
                 );
                 result.refused = true;
             } else {
@@ -460,7 +490,7 @@ pub fn execute_mandate_payment(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::politics::local_council::{LocalCouncil, FactionDistribution};
+    use crate::politics::local_council::{FactionDistribution, LocalCouncil};
     use crate::politics::local_government::{RegionalBudget, RegionalDebt};
 
     fn make_test_gov(admin_status: AdministrativeStatus) -> RegionalGovernance {
@@ -596,13 +626,23 @@ mod tests {
         };
         let decision = MandateFundingDecision::CutExpenditures { cut_amount: 0.0 };
 
-        let result = execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
+        let result =
+            execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
 
-        assert!(!result.refused, "Should not be refused with sufficient reserves");
+        assert!(
+            !result.refused,
+            "Should not be refused with sufficient reserves"
+        );
         assert_eq!(result.jst_debit, 200.0, "Should debit 200.0 from JST");
-        assert_eq!(result.central_credit, 200.0, "Should credit 200.0 to central");
+        assert_eq!(
+            result.central_credit, 200.0,
+            "Should credit 200.0 to central"
+        );
         assert_eq!(result.bonds_issued, 0.0, "No bonds should be issued");
-        assert_eq!(result.final_reserves, 800.0, "Reserves should be 1000 - 200 = 800");
+        assert_eq!(
+            result.final_reserves, 800.0,
+            "Reserves should be 1000 - 200 = 800"
+        );
     }
 
     #[test]
@@ -620,20 +660,28 @@ mod tests {
             interest_rate: 0.05,
         };
 
-        let result = execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
+        let result =
+            execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
 
         assert!(!result.refused, "Normal region should not be refused");
         assert_eq!(result.bonds_issued, 300.0, "Should issue 300.0 in bonds");
         assert_eq!(result.jst_debit, 300.0, "Should debit 300.0 for payment");
         // Reserves: 50 (initial) + 300 (bond proceeds) - 300 (payment) = 50.
-        assert_eq!(result.final_reserves, 50.0, "Reserves should be 50 after bond-funded payment");
+        assert_eq!(
+            result.final_reserves, 50.0,
+            "Reserves should be 50 after bond-funded payment"
+        );
         // Debt: 100 (initial) + 300 (bonds) = 400.
-        assert_eq!(result.final_debt, 400.0, "Debt should increase by bond amount");
+        assert_eq!(
+            result.final_debt, 400.0,
+            "Debt should increase by bond amount"
+        );
     }
 
     #[test]
     fn test_mandate_payment_commissary_treasury_funded() {
-        let mut country = make_country_with_region(AdministrativeStatus::CommissaryAdministration, 50.0);
+        let mut country =
+            make_country_with_region(AdministrativeStatus::CommissaryAdministration, 50.0);
         let mandate = UnfundedMandate {
             description: "Federal mandate".to_string(),
             required_spending_per_region: 300.0,
@@ -647,20 +695,34 @@ mod tests {
             interest_rate: 0.05,
         };
 
-        let result = execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
+        let result =
+            execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
 
-        assert!(!result.refused, "Treasury-funded commissary mandate should not be refused");
-        assert_eq!(result.bonds_issued, 0.0, "No bonds should be issued in commissary region");
+        assert!(
+            !result.refused,
+            "Treasury-funded commissary mandate should not be refused"
+        );
+        assert_eq!(
+            result.bonds_issued, 0.0,
+            "No bonds should be issued in commissary region"
+        );
         // Treasury credits JST reserves, then JST pays.
         // Reserves: 50 (initial) + 300 (Treasury) - 300 (payment) = 50.
-        assert_eq!(result.final_reserves, 50.0, "Reserves should be 50 after Treasury-funded payment");
+        assert_eq!(
+            result.final_reserves, 50.0,
+            "Reserves should be 50 after Treasury-funded payment"
+        );
         // Debt should NOT increase (no bonds).
-        assert_eq!(result.final_debt, 100.0, "Commissary debt should not increase");
+        assert_eq!(
+            result.final_debt, 100.0,
+            "Commissary debt should not increase"
+        );
     }
 
     #[test]
     fn test_mandate_payment_commissary_treasury_cannot_afford() {
-        let mut country = make_country_with_region(AdministrativeStatus::CommissaryAdministration, 50.0);
+        let mut country =
+            make_country_with_region(AdministrativeStatus::CommissaryAdministration, 50.0);
         let mandate = UnfundedMandate {
             description: "Unfunded federal mandate".to_string(),
             required_spending_per_region: 300.0,
@@ -673,11 +735,18 @@ mod tests {
             interest_rate: 0.05,
         };
 
-        let result = execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, false);
+        let result =
+            execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, false);
 
-        assert!(result.refused, "Commissary mandate should be refused when Treasury cannot afford");
+        assert!(
+            result.refused,
+            "Commissary mandate should be refused when Treasury cannot afford"
+        );
         assert_eq!(result.bonds_issued, 0.0, "No bonds should be issued");
-        assert_eq!(result.final_debt, 100.0, "Debt should not increase in refusal path");
+        assert_eq!(
+            result.final_debt, 100.0,
+            "Debt should not increase in refusal path"
+        );
     }
 
     #[test]
@@ -692,15 +761,22 @@ mod tests {
         };
         let decision = MandateFundingDecision::RaisePropertyTax { new_rate: 0.10 };
 
-        let result = execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
+        let result =
+            execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
 
         // Tax hike does NOT create immediate cash. Reserves are only 100.
         // Payment of 200 exceeds reserves → partial payment.
-        assert_eq!(result.jst_debit, 100.0, "Should only pay what reserves allow (100)");
+        assert_eq!(
+            result.jst_debit, 100.0,
+            "Should only pay what reserves allow (100)"
+        );
         assert_eq!(result.final_reserves, 0.0, "Reserves should be exhausted");
         // Property tax rate should be updated for future revenue.
         let gov = country.regions[0].governance.as_ref().unwrap();
-        assert_eq!(gov.budget.property_tax, 0.10, "Property tax should be raised for future turns");
+        assert_eq!(
+            gov.budget.property_tax, 0.10,
+            "Property tax should be raised for future turns"
+        );
     }
 
     #[test]
@@ -715,14 +791,21 @@ mod tests {
         };
         let decision = MandateFundingDecision::CutExpenditures { cut_amount: 200.0 };
 
-        let result = execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
+        let result =
+            execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
 
         // Cut 200 from expenditures → reserves = 100 + 200 = 300.
         // Pay 300 → reserves = 0.
         assert!(!result.refused);
-        assert_eq!(result.expenditures_cut, 200.0, "Should cut 200.0 in expenditures");
+        assert_eq!(
+            result.expenditures_cut, 200.0,
+            "Should cut 200.0 in expenditures"
+        );
         assert_eq!(result.jst_debit, 300.0, "Should debit 300.0 for payment");
-        assert_eq!(result.final_reserves, 0.0, "Reserves should be 0 after full payment");
+        assert_eq!(
+            result.final_reserves, 0.0,
+            "Reserves should be 0 after full payment"
+        );
     }
 
     #[test]
@@ -737,11 +820,18 @@ mod tests {
         };
         let decision = MandateFundingDecision::Refused;
 
-        let result = execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
+        let result =
+            execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
 
-        assert!(result.refused, "Refused decision should result in refused execution");
+        assert!(
+            result.refused,
+            "Refused decision should result in refused execution"
+        );
         assert_eq!(result.jst_debit, 0.0, "No payment should be made");
-        assert_eq!(result.final_reserves, 1000.0, "Reserves should be unchanged");
+        assert_eq!(
+            result.final_reserves, 1000.0,
+            "Reserves should be unchanged"
+        );
     }
 
     #[test]
@@ -750,9 +840,13 @@ mod tests {
         let mandate = UnfundedMandate::default();
         let decision = MandateFundingDecision::Pending;
 
-        let result = execute_mandate_payment(&mut country, "NONEXISTENT", &mandate, &decision, true);
+        let result =
+            execute_mandate_payment(&mut country, "NONEXISTENT", &mandate, &decision, true);
 
-        assert!(result.refused, "Nonexistent region should result in refused");
+        assert!(
+            result.refused,
+            "Nonexistent region should result in refused"
+        );
     }
 
     #[test]
@@ -767,12 +861,19 @@ mod tests {
         };
         let decision = MandateFundingDecision::CutExpenditures { cut_amount: 0.0 };
 
-        let result = execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
+        let result =
+            execute_mandate_payment(&mut country, "TEST-REGION", &mandate, &decision, true);
 
         // Should pay only what's available (50), not go negative.
         assert_eq!(result.jst_debit, 50.0, "Should only pay available reserves");
-        assert_eq!(result.final_reserves, 0.0, "Reserves should be 0, not negative");
+        assert_eq!(
+            result.final_reserves, 0.0,
+            "Reserves should be 0, not negative"
+        );
         let gov = country.regions[0].governance.as_ref().unwrap();
-        assert!(gov.budget.liquid_reserves >= 0.0, "Reserves must never be negative");
+        assert!(
+            gov.budget.liquid_reserves >= 0.0,
+            "Reserves must never be negative"
+        );
     }
 }

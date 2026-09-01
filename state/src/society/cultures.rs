@@ -127,11 +127,20 @@ pub fn generate_demonym(nation: &str) -> String {
 fn pick_religion(group: &str, rng: &mut impl Rng) -> &'static str {
     match group {
         "middle_eastern" => {
-            let choices = [("islam", 75), ("undeclared", 10), ("folk_beliefs", 10), ("shamanism", 5)];
+            let choices = [
+                ("islam", 75),
+                ("undeclared", 10),
+                ("folk_beliefs", 10),
+                ("shamanism", 5),
+            ];
             weighted_choice(&choices, rng)
         }
         "latin" => {
-            let choices = [("catholicism", 65), ("undeclared", 25), ("elite_religion", 10)];
+            let choices = [
+                ("catholicism", 65),
+                ("undeclared", 25),
+                ("elite_religion", 10),
+            ];
             weighted_choice(&choices, rng)
         }
         "slavic" => {
@@ -262,7 +271,11 @@ pub fn generate_cultural_background(_country_name: &str) -> CulturalBackground {
         rest_religion -= share;
     }
 
-    let mut other_religions: Vec<_> = RELIGIONS.iter().map(|(n, _, _)| *n).filter(|n| *n != religion).collect();
+    let mut other_religions: Vec<_> = RELIGIONS
+        .iter()
+        .map(|(n, _, _)| *n)
+        .filter(|n| *n != religion)
+        .collect();
     other_religions.shuffle(&mut rng);
     for other in other_religions.iter().take(rng.gen_range(1..=2)) {
         if rest_religion <= 0.01 {
@@ -285,7 +298,11 @@ pub fn generate_cultural_background(_country_name: &str) -> CulturalBackground {
         religious_composition: religious,
         birth_rate: fertility,
         mortality,
-        age_groups: AgeGroups { children, working, elderly },
+        age_groups: AgeGroups {
+            children,
+            working,
+            elderly,
+        },
         activity_rate,
     }
 }
@@ -336,17 +353,32 @@ mod tests {
     fn test_cultural_background_has_demonym() {
         let bg = generate_cultural_background("TestCountry");
         assert!(!bg.demonym.is_empty(), "Demonym must not be empty");
-        assert_ne!(bg.demonym, bg.nation, "Demonym must differ from nation name");
+        assert_ne!(
+            bg.demonym, bg.nation,
+            "Demonym must differ from nation name"
+        );
     }
 
     #[test]
     fn test_cultural_background_english_religion_keys() {
         let bg = generate_cultural_background("TestCountry");
         // Religion should be an English engine key, not a Polish display name
-        let known_keys = ["islam", "catholicism", "orthodoxy", "protestantism",
-                          "undeclared", "folk_beliefs", "shamanism", "pagan_cults", "elite_religion"];
-        assert!(known_keys.contains(&bg.religion.as_str()),
-            "Religion '{}' should be an English engine key", bg.religion);
+        let known_keys = [
+            "islam",
+            "catholicism",
+            "orthodoxy",
+            "protestantism",
+            "undeclared",
+            "folk_beliefs",
+            "shamanism",
+            "pagan_cults",
+            "elite_religion",
+        ];
+        assert!(
+            known_keys.contains(&bg.religion.as_str()),
+            "Religion '{}' should be an English engine key",
+            bg.religion
+        );
     }
 
     #[test]
@@ -354,12 +386,28 @@ mod tests {
         let bg = generate_cultural_background("TestCountry");
         // Check that no Polish labels remain
         for key in bg.ethnic_composition.keys() {
-            assert!(!key.contains("minority"), "Ethnic label '{}' must not be Polish", key);
+            assert!(
+                !key.contains("minority"),
+                "Ethnic label '{}' must not be Polish",
+                key
+            );
         }
         for key in bg.religious_composition.keys() {
-            assert!(!key.contains("Niezadeklarowani"), "Religious label '{}' must not be Polish", key);
-            assert!(!key.contains("Autonomiczny"), "Religious label '{}' must not be Polish", key);
-            assert!(!key.contains("Lokalny"), "Religious label '{}' must not be Polish", key);
+            assert!(
+                !key.contains("Niezadeklarowani"),
+                "Religious label '{}' must not be Polish",
+                key
+            );
+            assert!(
+                !key.contains("Autonomiczny"),
+                "Religious label '{}' must not be Polish",
+                key
+            );
+            assert!(
+                !key.contains("Lokalny"),
+                "Religious label '{}' must not be Polish",
+                key
+            );
         }
     }
 }

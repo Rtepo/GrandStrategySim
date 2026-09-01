@@ -839,7 +839,8 @@ pub fn distribute_water(
 
     // Compute effective water after transmission losses
     let loss_fraction = network.transmission_loss(active_water_plants);
-    let effective_water = network.throughput_liters * (1.0 - loss_fraction) * network.pipe_condition;
+    let effective_water =
+        network.throughput_liters * (1.0 - loss_fraction) * network.pipe_condition;
     let transmission_loss = network.throughput_liters - effective_water;
     result.transmission_loss = transmission_loss;
 
@@ -1217,7 +1218,7 @@ mod tests {
             ..Default::default()
         };
         wn.degrade(2.0); // cold climate
-        // 0.001 * (1 + 2.0) = 0.003
+                         // 0.001 * (1 + 2.0) = 0.003
         assert!((wn.pipe_condition - 0.997).abs() < 1e-9);
     }
 
@@ -1296,15 +1297,15 @@ mod tests {
     #[test]
     fn test_regulated_water_price_normal() {
         let price = compute_regulated_water_price(
-            100.0,  // chemicals_opex
-            200.0,  // energy_opex
-            300.0,  // labor_opex
-            50.0,   // maintenance_opex
+            100.0,   // chemicals_opex
+            200.0,   // energy_opex
+            300.0,   // labor_opex
+            50.0,    // maintenance_opex
             50000.0, // total_asset_value
-            160.0,  // amortization_turns
-            1000.0, // smoothed_water_sales_liters
-            1.10,   // cost_plus_margin
-            10.0,   // average_wage
+            160.0,   // amortization_turns
+            1000.0,  // smoothed_water_sales_liters
+            1.10,    // cost_plus_margin
+            10.0,    // average_wage
         );
         // amortized_capex = 50000 / 160 = 312.5
         // total_cost = 100 + 200 + 300 + 50 + 312.5 = 962.5

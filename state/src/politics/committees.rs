@@ -15,7 +15,6 @@ pub struct Committee {
     pub name: String,
 
     /// Committee type
-
     pub committee_type: CommitteeType,
 
     /// Members by party
@@ -57,17 +56,17 @@ pub enum CommitteeType {
 
 impl Committee {
     /// Create a new committee
-    /// 
+    ///
     /// # Arguments
     /// * `id` - Unique committee identifier
     /// * `name` - Committee name
     /// * `committee_type` - Type of committee
     /// * `parliament` - Current parliamentary seat distribution
     /// * `ruling_coalition` - Parties in ruling coalition
-    /// 
+    ///
     /// # Returns
     /// New Committee with composition mirroring parliament
-    /// 
+    ///
     /// # Rules
     /// * Committee composition mirrors parliament proportions exactly
     /// * Ruling coalition always secures the Chairmanship
@@ -83,10 +82,10 @@ impl Committee {
         let total_seats: u32 = parliament.values().sum();
         let committee_size = (total_seats as f64 * 0.15) as u32; // 15% of parliament
         let committee_size = committee_size.max(5).min(20); // 5-20 members
-        
+
         let mut members = HashMap::new();
         let mut allocated = 0;
-        
+
         for (party, seats) in parliament {
             let proportion = *seats as f64 / total_seats as f64;
             let committee_seats = (proportion * committee_size as f64) as u32;
@@ -95,23 +94,24 @@ impl Committee {
                 allocated += committee_seats;
             }
         }
-        
+
         // Distribute remaining seats to largest party
         if allocated < committee_size {
             if let Some((largest_party, _)) = parliament.iter().max_by_key(|(_, s)| *s) {
                 *members.get_mut(largest_party).unwrap_or(&mut 0) += committee_size - allocated;
             }
         }
-        
+
         // Ruling coalition always secures the Chairmanship
         let chair = ruling_coalition
             .first()
             .unwrap_or(&"Independents".to_string())
             .clone();
-        
+
         // Calculate partisan bias based on committee type
-        let partisan_bias = Self::calculate_partisan_bias(&committee_type, parliament, ruling_coalition);
-        
+        let partisan_bias =
+            Self::calculate_partisan_bias(&committee_type, parliament, ruling_coalition);
+
         Committee {
             id,
             name,
@@ -123,17 +123,17 @@ impl Committee {
             bills_under_review: Vec::new(),
         }
     }
-    
+
     /// Calculate partisan bias for a committee type
-    /// 
+    ///
     /// # Arguments
     /// * `committee_type` - Type of committee
     /// * `parliament` - Current parliamentary seat distribution
     /// * `ruling_coalition` - Parties in ruling coalition
-    /// 
+    ///
     /// # Returns
     /// Partisan bias (-1.0 to 1.0)
-    /// 
+    ///
     /// # Rules
     /// * Defense committee favors military interest groups (pro-government bias)
     /// * Budget committee favors fiscal conservatives (variable bias)
@@ -144,12 +144,13 @@ impl Committee {
         ruling_coalition: &[String],
     ) -> f64 {
         let total_seats: u32 = parliament.values().sum();
-        let coalition_seats: u32 = ruling_coalition.iter()
+        let coalition_seats: u32 = ruling_coalition
+            .iter()
             .filter_map(|p| parliament.get(p))
             .sum();
-        
+
         let coalition_share = coalition_seats as f64 / total_seats as f64;
-        
+
         match committee_type {
             CommitteeType::Defense => {
                 // Defense committee favors government (military interest groups)
@@ -181,12 +182,12 @@ impl Committee {
             }
         }
     }
-    
+
     /// Assign a bill to this committee for review
-    /// 
+    ///
     /// # Arguments
     /// * `bill_id` - ID of bill to assign
-    /// 
+    ///
     /// # Rules
     /// * Bill must match committee type or be general legislation
     pub fn assign_bill(&mut self, bill_id: String) {
@@ -194,17 +195,17 @@ impl Committee {
             self.bills_under_review.push(bill_id);
         }
     }
-    
+
     /// Calculate committee recommendation modifier for a bill
-    /// 
+    ///
     /// # Arguments
     /// * `bill_ideology` - Ideological vector of the bill
     /// * `initiator_party` - Party that initiated the bill
     /// * `is_ruling_party` - Whether initiator is in ruling coalition
-    /// 
+    ///
     /// # Returns
     /// Recommendation modifier (-0.3 to +0.3)
-    /// 
+    ///
     /// # Rules
     /// * Recommendation modifier = partisan_bias * 0.3
     /// * Pro-government bias helps ruling party bills
@@ -216,7 +217,7 @@ impl Committee {
         is_ruling_party: bool,
     ) -> f64 {
         let base_modifier = self.partisan_bias * 0.3;
-        
+
         // If initiator is ruling party, pro-government bias helps
         if is_ruling_party {
             base_modifier.abs().min(0.3)
@@ -225,15 +226,15 @@ impl Committee {
             -base_modifier.abs().max(-0.3)
         }
     }
-    
+
     /// Calculate committee delay for a bill
-    /// 
+    ///
     /// # Arguments
     /// * `bill_complexity` - Complexity score of the bill (0-10)
-    /// 
+    ///
     /// # Returns
     /// Number of turns for committee review (1-3)
-    /// 
+    ///
     /// # Rules
     /// * 1 turn for minor bills (complexity 0-3)
     /// * 2 turns for moderate bills (complexity 4-7)
@@ -246,9 +247,9 @@ impl Committee {
             _ => 2,
         }
     }
-    
+
     /// Remove a bill from committee review
-    /// 
+    ///
     /// # Arguments
     /// * `bill_id` - ID of bill to remove
     pub fn remove_bill(&mut self, bill_id: &str) {
@@ -262,7 +263,7 @@ pub struct CommitteeSystem {
     /// Active committees by ID
     #[serde(default)]
     pub committees: HashMap<String, Committee>,
-    
+
     /// Committee assignments for bill types
     #[serde(default)]
     pub bill_type_assignments: HashMap<String, String>,
@@ -270,7 +271,7 @@ pub struct CommitteeSystem {
 
 impl CommitteeSystem {
     /// Create a new committee system
-    /// 
+    ///
     /// # Returns
     /// New CommitteeSystem with standard committees
     pub fn new() -> Self {
@@ -278,22 +279,40 @@ impl CommitteeSystem {
             committees: HashMap::new(),
             bill_type_assignments: HashMap::new(),
         };
-        
+
         // Set up standard bill type assignments
-        system.bill_type_assignments.insert("budget".to_string(), "budget_committee".to_string());
-        system.bill_type_assignments.insert("health".to_string(), "health_committee".to_string());
-        system.bill_type_assignments.insert("education".to_string(), "education_committee".to_string());
-        system.bill_type_assignments.insert("defense".to_string(), "defense_committee".to_string());
-        system.bill_type_assignments.insert("foreign".to_string(), "foreign_affairs_committee".to_string());
-        system.bill_type_assignments.insert("justice".to_string(), "justice_committee".to_string());
-        system.bill_type_assignments.insert("infrastructure".to_string(), "infrastructure_committee".to_string());
-        system.bill_type_assignments.insert("social".to_string(), "social_affairs_committee".to_string());
-        
+        system
+            .bill_type_assignments
+            .insert("budget".to_string(), "budget_committee".to_string());
+        system
+            .bill_type_assignments
+            .insert("health".to_string(), "health_committee".to_string());
+        system
+            .bill_type_assignments
+            .insert("education".to_string(), "education_committee".to_string());
+        system
+            .bill_type_assignments
+            .insert("defense".to_string(), "defense_committee".to_string());
+        system.bill_type_assignments.insert(
+            "foreign".to_string(),
+            "foreign_affairs_committee".to_string(),
+        );
+        system
+            .bill_type_assignments
+            .insert("justice".to_string(), "justice_committee".to_string());
+        system.bill_type_assignments.insert(
+            "infrastructure".to_string(),
+            "infrastructure_committee".to_string(),
+        );
+        system
+            .bill_type_assignments
+            .insert("social".to_string(), "social_affairs_committee".to_string());
+
         system
     }
-    
+
     /// Initialize all standard committees
-    /// 
+    ///
     /// # Arguments
     /// * `parliament` - Current parliamentary seat distribution
     /// * `ruling_coalition` - Parties in ruling coalition
@@ -303,52 +322,70 @@ impl CommitteeSystem {
         ruling_coalition: &[String],
     ) {
         self.committees = HashMap::new();
-        
+
         let committee_types = vec![
             (CommitteeType::Budget, "Budget Committee".to_string()),
             (CommitteeType::Health, "Health Committee".to_string()),
             (CommitteeType::Education, "Education Committee".to_string()),
             (CommitteeType::Defense, "Defense Committee".to_string()),
-            (CommitteeType::ForeignAffairs, "Foreign Affairs Committee".to_string()),
+            (
+                CommitteeType::ForeignAffairs,
+                "Foreign Affairs Committee".to_string(),
+            ),
             (CommitteeType::Justice, "Justice Committee".to_string()),
-            (CommitteeType::Infrastructure, "Infrastructure Committee".to_string()),
-            (CommitteeType::SocialAffairs, "Social Affairs Committee".to_string()),
+            (
+                CommitteeType::Infrastructure,
+                "Infrastructure Committee".to_string(),
+            ),
+            (
+                CommitteeType::SocialAffairs,
+                "Social Affairs Committee".to_string(),
+            ),
         ];
-        
+
         for (committee_type, name) in committee_types {
-            let id = format!("{}_committee", format!("{:?}", committee_type).to_lowercase());
-            let committee = Committee::new(id.clone(), name, committee_type, parliament, ruling_coalition);
+            let id = format!(
+                "{}_committee",
+                format!("{:?}", committee_type).to_lowercase()
+            );
+            let committee = Committee::new(
+                id.clone(),
+                name,
+                committee_type,
+                parliament,
+                ruling_coalition,
+            );
             self.committees.insert(id, committee);
         }
     }
-    
+
     /// Get appropriate committee for a bill type
-    /// 
+    ///
     /// # Arguments
     /// * `bill_type` - Type of bill (budget, health, etc.)
-    /// 
+    ///
     /// # Returns
     /// Committee ID if found, None otherwise
     pub fn get_committee_for_bill(&self, bill_type: &str) -> Option<&String> {
         self.bill_type_assignments.get(bill_type)
     }
-    
+
     /// Get committee by ID
-    /// 
+    ///
     /// # Arguments
     /// * `committee_id` - ID of committee
-    /// 
+    ///
     /// # Returns
     /// Committee reference if found, None otherwise
     pub fn get_committee(&self, committee_id: &str) -> Option<&Committee> {
         self.committees.get(committee_id)
     }
-    
+
     /// Get mutable committee by ID
-    /// 
+    ///
     /// # Arguments
     /// * `committee_id` - ID of committee
-    /// 
+    ///
     /// # Returns
     /// Mutable committee reference if found, None otherwise
     pub fn get_committee_mut(&mut self, committee_id: &str) -> Option<&mut Committee> {
@@ -370,9 +407,15 @@ pub enum ChairAction {
     /// Pass the bill through unchanged.
     Pass,
     /// Dilute a provision (reduce tax change, lower subsidy amount).
-    Dilute { clause_index: usize, dilution_factor: f64 },
+    Dilute {
+        clause_index: usize,
+        dilution_factor: f64,
+    },
     /// Poison a bill by adding an unpopular rider.
-    PoisonRider { rider: BillProvision, description: String },
+    PoisonRider {
+        rider: BillProvision,
+        description: String,
+    },
     /// Strip a provision entirely.
     Strip { clause_index: usize },
     /// Block the bill in committee (delays indefinitely).
@@ -423,8 +466,7 @@ pub fn determine_chair_action(
         alignment -= 0.15;
     }
     if has("Corrupt") {
-        let concession_targeted = bill.concessions.iter()
-            .any(|c| c.target == chair.faction);
+        let concession_targeted = bill.concessions.iter().any(|c| c.target == chair.faction);
         if concession_targeted {
             alignment += 0.25;
         }
@@ -434,7 +476,10 @@ pub fn determine_chair_action(
     }
     if has("Populist") {
         let has_elite_provision = bill.core_clauses.iter().any(|c| {
-            c.provision.as_ref().map(|p| p.favors_elites()).unwrap_or(false)
+            c.provision
+                .as_ref()
+                .map(|p| p.favors_elites())
+                .unwrap_or(false)
         });
         if has_elite_provision {
             alignment -= 0.20;
@@ -448,9 +493,10 @@ pub fn determine_chair_action(
     }
     if has("Paranoid") {
         // Check if bill reduces internal security (FreeSpeechLaw with Full level).
-        let reduces_security = bill.core_clauses.iter().any(|c| {
-            matches!(c.provision, Some(BillProvision::FreeSpeechLaw(_)))
-        });
+        let reduces_security = bill
+            .core_clauses
+            .iter()
+            .any(|c| matches!(c.provision, Some(BillProvision::FreeSpeechLaw(_))));
         if reduces_security {
             alignment -= 0.25;
         }
@@ -465,13 +511,19 @@ pub fn determine_chair_action(
 
     // Step 6: resolve into action via fixed thresholds.
     let action = if alignment >= 0.85 {
-        if is_ruling_party_bill { ChairAction::FastTrack }
-        else { ChairAction::Pass }
+        if is_ruling_party_bill {
+            ChairAction::FastTrack
+        } else {
+            ChairAction::Pass
+        }
     } else if alignment >= 0.60 {
         ChairAction::Pass
     } else if alignment >= 0.40 {
         let idx = most_distant_clause(&bill.core_clauses, chair_party_ideology);
-        ChairAction::Dilute { clause_index: idx, dilution_factor: 0.5 }
+        ChairAction::Dilute {
+            clause_index: idx,
+            dilution_factor: 0.5,
+        }
     } else if alignment >= 0.20 {
         let idx = most_distant_clause(&bill.core_clauses, chair_party_ideology);
         ChairAction::Strip { clause_index: idx }
@@ -486,19 +538,21 @@ pub fn determine_chair_action(
     };
 
     // Step 7: Ambitious override.
-    if has("Ambitious") && alignment < 0.50 && is_ruling_party_bill
-        && !matches!(action, ChairAction::PoisonRider { .. } | ChairAction::Block) {
-            let rider = build_unpopular_rider(&chair.faction);
-            return ChairAction::PoisonRider {
-                rider,
-                description: "Ambitious chair poisons government bill".to_string(),
-            };
-        }
+    if has("Ambitious")
+        && alignment < 0.50
+        && is_ruling_party_bill
+        && !matches!(action, ChairAction::PoisonRider { .. } | ChairAction::Block)
+    {
+        let rider = build_unpopular_rider(&chair.faction);
+        return ChairAction::PoisonRider {
+            rider,
+            description: "Ambitious chair poisons government bill".to_string(),
+        };
+    }
 
     // Step 8: Corrupt override.
     if has("Corrupt") && alignment < 0.50 {
-        let concession_targeted = bill.concessions.iter()
-            .any(|c| c.target == chair.faction);
+        let concession_targeted = bill.concessions.iter().any(|c| c.target == chair.faction);
         if !concession_targeted && matches!(action, ChairAction::Block) {
             let idx = most_distant_clause(&bill.core_clauses, chair_party_ideology);
             return ChairAction::Strip { clause_index: idx };
@@ -510,7 +564,9 @@ pub fn determine_chair_action(
 
 /// Find the clause index with the highest ideological distance from the chair.
 fn most_distant_clause(clauses: &[Clause], ideology: &IdeologyCompass) -> usize {
-    clauses.iter().enumerate()
+    clauses
+        .iter()
+        .enumerate()
         .max_by(|(_, a), (_, b)| {
             let da = (a.ideological_vector.economy - ideology.economy).abs()
                 + (a.ideological_vector.liberty - ideology.liberty).abs()
@@ -567,7 +623,11 @@ mod phase48_tests {
             initiator: "RulingParty".to_string(),
             core_clauses: vec![Clause {
                 description: "Test clause".to_string(),
-                ideological_vector: IdeologyCompass { economy, liberty, tradition },
+                ideological_vector: IdeologyCompass {
+                    economy,
+                    liberty,
+                    tradition,
+                },
                 budget_impact: 100.0,
                 provision: None,
                 sunset_turn: None,
@@ -595,7 +655,11 @@ mod phase48_tests {
     }
 
     fn centrist_ideology() -> IdeologyCompass {
-        IdeologyCompass { economy: 0.0, liberty: 0.0, tradition: 0.0 }
+        IdeologyCompass {
+            economy: 0.0,
+            liberty: 0.0,
+            tradition: 0.0,
+        }
     }
 
     #[test]
@@ -603,8 +667,12 @@ mod phase48_tests {
         let chair = make_test_chair(vec!["Loyal".to_string()], "Royal Court".to_string());
         let bill = make_test_bill(0.0, 0.0, 0.0); // Perfect alignment.
         let committee = Committee::default();
-        let action = determine_chair_action(&chair, &bill, &committee, true, 0.8, &centrist_ideology());
-        assert!(matches!(action, ChairAction::FastTrack), "Loyal chair + aligned ruling bill should FastTrack");
+        let action =
+            determine_chair_action(&chair, &bill, &committee, true, 0.8, &centrist_ideology());
+        assert!(
+            matches!(action, ChairAction::FastTrack),
+            "Loyal chair + aligned ruling bill should FastTrack"
+        );
     }
 
     #[test]
@@ -612,8 +680,12 @@ mod phase48_tests {
         let chair = make_test_chair(vec![], "Royal Court".to_string());
         let bill = make_test_bill(0.0, 0.0, 0.0);
         let committee = Committee::default();
-        let action = determine_chair_action(&chair, &bill, &committee, false, 0.5, &centrist_ideology());
-        assert!(matches!(action, ChairAction::Pass), "Aligned opposition bill should Pass");
+        let action =
+            determine_chair_action(&chair, &bill, &committee, false, 0.5, &centrist_ideology());
+        assert!(
+            matches!(action, ChairAction::Pass),
+            "Aligned opposition bill should Pass"
+        );
     }
 
     #[test]
@@ -622,8 +694,12 @@ mod phase48_tests {
         // Bill is far from chair's ideology.
         let bill = make_test_bill(1.0, 1.0, 1.0);
         let committee = Committee::default();
-        let action = determine_chair_action(&chair, &bill, &committee, false, 0.5, &centrist_ideology());
-        assert!(matches!(action, ChairAction::Block), "Very low alignment should Block");
+        let action =
+            determine_chair_action(&chair, &bill, &committee, false, 0.5, &centrist_ideology());
+        assert!(
+            matches!(action, ChairAction::Block),
+            "Very low alignment should Block"
+        );
     }
 
     #[test]
@@ -632,9 +708,13 @@ mod phase48_tests {
         // Bill is moderately misaligned (alignment = 1.0 - 1.2/2.0 = 0.4).
         let bill = make_test_bill(0.6, 0.6, 0.0);
         let committee = Committee::default();
-        let action = determine_chair_action(&chair, &bill, &committee, true, 0.5, &centrist_ideology());
+        let action =
+            determine_chair_action(&chair, &bill, &committee, true, 0.5, &centrist_ideology());
         // Ambitious chair should poison the government bill (alignment 0.4 < 0.50).
-        assert!(matches!(action, ChairAction::PoisonRider { .. }), "Ambitious chair should poison government bill");
+        assert!(
+            matches!(action, ChairAction::PoisonRider { .. }),
+            "Ambitious chair should poison government bill"
+        );
     }
 
     #[test]
@@ -643,9 +723,13 @@ mod phase48_tests {
         // Bill is far from chair, no concessions targeting chair's faction.
         let bill = make_test_bill(1.0, 1.0, 1.0);
         let committee = Committee::default();
-        let action = determine_chair_action(&chair, &bill, &committee, false, 0.5, &centrist_ideology());
+        let action =
+            determine_chair_action(&chair, &bill, &committee, false, 0.5, &centrist_ideology());
         // Corrupt chair without concessions should Strip instead of Block.
-        assert!(matches!(action, ChairAction::Strip { .. }), "Corrupt chair should Strip instead of Block");
+        assert!(
+            matches!(action, ChairAction::Strip { .. }),
+            "Corrupt chair should Strip instead of Block"
+        );
     }
 
     #[test]
@@ -658,20 +742,34 @@ mod phase48_tests {
             amount_per_unit: 5.0,
         });
         let committee = Committee::default();
-        let action = determine_chair_action(&chair, &bill, &committee, false, 0.5, &centrist_ideology());
+        let action =
+            determine_chair_action(&chair, &bill, &committee, false, 0.5, &centrist_ideology());
         // Populist should penalize elite provisions, lowering alignment.
         // With 0.0 ideology + Populist -0.20, alignment ~0.8 - 0.2 = 0.6 → Pass.
         // But let's verify it's not FastTrack (which requires >= 0.85).
-        assert!(matches!(action, ChairAction::Pass), "Populist should not fast-track elite bill");
+        assert!(
+            matches!(action, ChairAction::Pass),
+            "Populist should not fast-track elite bill"
+        );
     }
 
     #[test]
     fn test_build_unpopular_rider_capitalists() {
         let rider = build_unpopular_rider("Capitalists");
         match rider {
-            BillProvision::TaxRateChange { income_tax, corporate_tax, .. } => {
-                assert!(income_tax.is_some(), "Capitalist rider should raise income tax");
-                assert!(corporate_tax.is_some(), "Capitalist rider should raise corporate tax");
+            BillProvision::TaxRateChange {
+                income_tax,
+                corporate_tax,
+                ..
+            } => {
+                assert!(
+                    income_tax.is_some(),
+                    "Capitalist rider should raise income tax"
+                );
+                assert!(
+                    corporate_tax.is_some(),
+                    "Capitalist rider should raise corporate tax"
+                );
             }
             _ => panic!("Should be TaxRateChange for capitalists"),
         }
@@ -692,7 +790,9 @@ mod phase48_tests {
     fn test_build_unpopular_rider_default() {
         let rider = build_unpopular_rider("UnknownFaction");
         match rider {
-            BillProvision::TaxRateChange { income_tax, vat, .. } => {
+            BillProvision::TaxRateChange {
+                income_tax, vat, ..
+            } => {
                 assert!(income_tax.is_some());
                 assert!(vat.is_some());
             }
@@ -702,16 +802,28 @@ mod phase48_tests {
 
     #[test]
     fn test_most_distant_clause() {
-        let ideology = IdeologyCompass { economy: 0.0, liberty: 0.0, tradition: 0.0 };
+        let ideology = IdeologyCompass {
+            economy: 0.0,
+            liberty: 0.0,
+            tradition: 0.0,
+        };
         let clauses = vec![
             Clause {
                 description: "Close".to_string(),
-                ideological_vector: IdeologyCompass { economy: 0.1, liberty: 0.0, tradition: 0.0 },
+                ideological_vector: IdeologyCompass {
+                    economy: 0.1,
+                    liberty: 0.0,
+                    tradition: 0.0,
+                },
                 ..Default::default()
             },
             Clause {
                 description: "Far".to_string(),
-                ideological_vector: IdeologyCompass { economy: 0.9, liberty: 0.9, tradition: 0.0 },
+                ideological_vector: IdeologyCompass {
+                    economy: 0.9,
+                    liberty: 0.9,
+                    tradition: 0.0,
+                },
                 ..Default::default()
             },
         ];
@@ -722,6 +834,9 @@ mod phase48_tests {
     #[test]
     fn test_committee_has_chair_vip_id_field() {
         let committee = Committee::default();
-        assert!(committee.chair_vip_id.is_none(), "Default chair_vip_id should be None");
+        assert!(
+            committee.chair_vip_id.is_none(),
+            "Default chair_vip_id should be None"
+        );
     }
 }

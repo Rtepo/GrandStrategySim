@@ -86,8 +86,14 @@ mod tests {
             "FTE conservation violated: {} > 100",
             total_allocated
         );
-        assert!(result.cottage_fte >= 0.0, "Cottage FTE must be non-negative");
-        assert!(result.labor_pool_fte >= 0.0, "Labor pool must be non-negative");
+        assert!(
+            result.cottage_fte >= 0.0,
+            "Cottage FTE must be non-negative"
+        );
+        assert!(
+            result.labor_pool_fte >= 0.0,
+            "Labor pool must be non-negative"
+        );
     }
 
     #[test]
@@ -157,8 +163,17 @@ mod tests {
         // Get the clothing recipe to verify mass conservation
         let _recipe = CottageRecipe::for_output(Commodity::Clothing).unwrap();
 
-        let clothing_output = demo.cottage_output.get(&Commodity::Clothing).copied().unwrap_or(0.0);
-        let raw_consumed = 200.0 - demo.cottage_raw_inventory.get(&Commodity::TextileWaste).copied().unwrap_or(0.0);
+        let clothing_output = demo
+            .cottage_output
+            .get(&Commodity::Clothing)
+            .copied()
+            .unwrap_or(0.0);
+        let raw_consumed = 200.0
+            - demo
+                .cottage_raw_inventory
+                .get(&Commodity::TextileWaste)
+                .copied()
+                .unwrap_or(0.0);
 
         // Find textile waste generated
         let textile_waste = waste
@@ -264,7 +279,13 @@ mod tests {
             ("class_c".to_string(), 10.0, 1000.0), // 10% of FTE, 1000 savings
         ];
 
-        let guild = create_guild(&domain, Sector::LightIndustry, &contributing, avg_wage, &config);
+        let guild = create_guild(
+            &domain,
+            Sector::LightIndustry,
+            &contributing,
+            avg_wage,
+            &config,
+        );
 
         // Seed capital = 50 * 100 = 5000
         let expected_seed = config.min_seed_capital_wage_multiple * avg_wage;
@@ -292,7 +313,8 @@ mod tests {
 
         // Provide raw inventory
         if let LegalForm::Guild(ref mut data) = company.legal_form {
-            data.guild_raw_inventory.insert(Commodity::TextileWaste, 200.0);
+            data.guild_raw_inventory
+                .insert(Commodity::TextileWaste, 200.0);
         }
 
         // Execute production with 50 FTE
@@ -301,13 +323,17 @@ mod tests {
             50.0,
             Commodity::TextileWaste,
             Commodity::Clothing,
-            2.0,  // input_per_unit
-            0.5,  // fte_per_unit
+            2.0, // input_per_unit
+            0.5, // fte_per_unit
             Commodity::TextileWaste,
-            1.0,  // waste_per_unit
+            1.0, // waste_per_unit
         );
 
-        let clothing_output = result.output.get(&Commodity::Clothing).copied().unwrap_or(0.0);
+        let clothing_output = result
+            .output
+            .get(&Commodity::Clothing)
+            .copied()
+            .unwrap_or(0.0);
 
         // With 200 raw and 2.0 input_per_unit: max_from_raw = 100
         // With 50 FTE and 0.5 fte_per_unit: max_from_fte = 100

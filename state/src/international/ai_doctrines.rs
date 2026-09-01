@@ -5,10 +5,10 @@
 //! The evaluation is kept lightweight to avoid blocking the parallel
 //! processing loop.
 
-use serde::{Deserialize, Serialize};
-use crate::state::GameState;
-use crate::state::diplomatic_actions::DiplomaticAction;
 use crate::politics::vip_registry::DiplomaticPostType;
+use crate::state::diplomatic_actions::DiplomaticAction;
+use crate::state::GameState;
+use serde::{Deserialize, Serialize};
 
 /// A geopolitical doctrine that guides an AI nation's diplomatic behavior.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
@@ -23,8 +23,10 @@ pub enum GeopoliticalDoctrine {
     /// Nation actively seeks alliances and treaties.
     AllianceSeeker,
     /// Nation is focused on a specific resource dependency.
-    ResourceDependency { /// The commodity the nation desperately needs.
-        commodity: String },
+    ResourceDependency {
+        /// The commodity the nation desperately needs.
+        commodity: String,
+    },
 }
 
 impl GeopoliticalDoctrine {
@@ -93,9 +95,12 @@ pub fn evaluate_doctrine(
     let avg_military: f64 = if state.countries.is_empty() {
         0.0
     } else {
-        state.countries.values()
+        state
+            .countries
+            .values()
             .map(|c| c.order_of_battle.unit_count() as f64)
-            .sum::<f64>() / state.countries.len() as f64
+            .sum::<f64>()
+            / state.countries.len() as f64
     };
 
     // Expansionist: military significantly above average
@@ -107,8 +112,11 @@ pub fn evaluate_doctrine(
     }
 
     // Resource dependency: large trade deficit relative to GDP
-    let trade_balance = country.budget.extra
-        .get("bilans_handlowy")
+    // Agent 4 — Phase 6: Renamed from Polish "bilans_handlowy" to English (Rule 12).
+    let trade_balance = country
+        .budget
+        .extra
+        .get("trade_balance")
         .and_then(|v| v.as_f64())
         .unwrap_or(0.0);
     let gdp = country.budget.gdp.max(1.0);
@@ -117,7 +125,9 @@ pub fn evaluate_doctrine(
         // Determine which commodity is most deficit
         // For simplicity, use the largest net surplus commodity as the "needed" one
         // In a full implementation, we'd analyze per-commodity deficits
-        let commodity = country.budget.extra
+        let commodity = country
+            .budget
+            .extra
             .get("largest_import_commodity")
             .and_then(|v| v.as_str())
             .unwrap_or("Energy")
@@ -129,7 +139,9 @@ pub fn evaluate_doctrine(
     // Relations are stored in the diplomacy matrix, not directly accessible here.
     // We approximate using the country's reputation.
     // Use reputation as a proxy if available
-    let reputation_score = country.budget.extra
+    let reputation_score = country
+        .budget
+        .extra
         .get("global_reputation")
         .and_then(|v| v.as_f64())
         .unwrap_or(0.0);
@@ -201,10 +213,16 @@ pub fn execute_doctrine(
                 if let Some(partner) = best_partner {
                     // Queue an ambassador assignment as a precursor to treaty
                     if let Some(registry) = &country.politics.vip_registry {
-                        let available_diplomat = registry.vips.values()
-                            .find(|v| v.diplomatic_post.is_none()
-                                && !v.is_dead
-                                && v.roles.contains(&crate::politics::vip_registry::VipRoleExtended::Ambassador))
+                        let available_diplomat = registry
+                            .vips
+                            .values()
+                            .find(|v| {
+                                v.diplomatic_post.is_none()
+                                    && !v.is_dead
+                                    && v.roles.contains(
+                                        &crate::politics::vip_registry::VipRoleExtended::Ambassador,
+                                    )
+                            })
                             .map(|v| v.id.clone());
                         if let Some(vip_id) = available_diplomat {
                             actions.push(DiplomaticAction::AssignDiplomat {
@@ -263,7 +281,7 @@ pub fn execute_doctrine(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{GameState, Country};
+    use crate::state::{Country, GameState};
 
     #[test]
     fn test_doctrine_default_balanced() {
@@ -280,7 +298,11 @@ mod tests {
         strong.name = "Strongland".to_string();
         // Add many military units to the OOB
         use crate::military::oob::{Army, Division, Regiment};
-        let mut reg = Regiment::new("REG-test-001".to_string(), "Test Regiment".to_string(), "home".to_string());
+        let mut reg = Regiment::new(
+            "REG-test-001".to_string(),
+            "Test Regiment".to_string(),
+            "home".to_string(),
+        );
         for i in 0..20 {
             reg.add_unit(crate::military::MilitaryUnit::new(
                 format!("unit-{}", i),
@@ -290,9 +312,17 @@ mod tests {
                 "home".to_string(),
             ));
         }
-        let mut div = Division::new("DIV-test-001".to_string(), "Test Division".to_string(), "home".to_string());
+        let mut div = Division::new(
+            "DIV-test-001".to_string(),
+            "Test Division".to_string(),
+            "home".to_string(),
+        );
         div.add_regiment(reg);
-        let mut army = Army::new("ARMY-test-001".to_string(), "Test Army".to_string(), "home".to_string());
+        let mut army = Army::new(
+            "ARMY-test-001".to_string(),
+            "Test Army".to_string(),
+            "home".to_string(),
+        );
         army.add_division(div);
         strong.order_of_battle.add_army(army);
         let mut weak = Country::mock_for_tests();
@@ -343,8 +373,18 @@ mod tests {
         let state = GameState::default();
         let config = DoctrineConfig::default();
         let mut rng = rand::thread_rng();
-        let actions = execute_doctrine(&state, "Test", &GeopoliticalDoctrine::Balanced, &config, 1, &mut rng);
-        assert!(actions.is_empty(), "Balanced doctrine should produce no actions");
+        let actions = execute_doctrine(
+            &state,
+            "Test",
+            &GeopoliticalDoctrine::Balanced,
+            &config,
+            1,
+            &mut rng,
+        );
+        assert!(
+            actions.is_empty(),
+            "Balanced doctrine should produce no actions"
+        );
     }
 
     #[test]
@@ -353,15 +393,30 @@ mod tests {
         let mut strong = Country::mock_for_tests();
         strong.name = "Strongland".to_string();
         state.countries.insert("Strongland".to_string(), strong);
-        state.countries.insert("Weakland".to_string(), Country::mock_for_tests());
+        state
+            .countries
+            .insert("Weakland".to_string(), Country::mock_for_tests());
 
         let config = DoctrineConfig {
             expansionist_provocation_chance: 1.0, // Always provoke
             ..DoctrineConfig::default()
         };
         let mut rng = rand::thread_rng();
-        let actions = execute_doctrine(&state, "Strongland", &GeopoliticalDoctrine::Expansionist, &config, 1, &mut rng);
-        assert!(!actions.is_empty(), "Expansionist should generate provocation");
-        assert!(matches!(actions[0], DiplomaticAction::BorderProvocation { .. }));
+        let actions = execute_doctrine(
+            &state,
+            "Strongland",
+            &GeopoliticalDoctrine::Expansionist,
+            &config,
+            1,
+            &mut rng,
+        );
+        assert!(
+            !actions.is_empty(),
+            "Expansionist should generate provocation"
+        );
+        assert!(matches!(
+            actions[0],
+            DiplomaticAction::BorderProvocation { .. }
+        ));
     }
 }

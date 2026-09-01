@@ -5,10 +5,10 @@
 //! - Labor market clearing produces integer FTE
 //! - Snapshot reports integer employment
 
-use sim_engine::engine::{generate_world, GenerateOptions, GeneratedWorld, StartYear};
 use sim_engine::engine::turn_context::InMemoryTurnContext;
+use sim_engine::engine::{generate_world, GenerateOptions, GeneratedWorld, StartYear};
+use sim_engine::entities::legal_form::{FamilyBusinessData, LegalForm};
 use sim_engine::entities::Company;
-use sim_engine::entities::legal_form::{LegalForm, FamilyBusinessData};
 use sim_engine::registries::enums::Sector;
 use sim_engine::registries::Registries;
 use tempfile::TempDir;
@@ -21,7 +21,8 @@ fn gen_world_with_ctx() -> (GeneratedWorld, InMemoryTurnContext) {
         country_count: 4,
         start_year: StartYear::Y1900,
     };
-    let mut world = generate_world(data_dir, options, &registries).expect("world generation failed");
+    let mut world =
+        generate_world(data_dir, options, &registries).expect("world generation failed");
     let ctx = InMemoryTurnContext::load_from_disk(data_dir, &mut world.state)
         .expect("failed to load turn context from generated world");
     (world, ctx)

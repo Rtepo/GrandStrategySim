@@ -21,8 +21,8 @@
 //! - `units_by_type(UnitType)` — units of a specific type
 //! - `total_manpower()` — sum of all unit manpower
 
-use serde::{Deserialize, Serialize};
 use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
 
 type HashMap<K, V> = FxHashMap<K, V>;
 
@@ -75,12 +75,18 @@ impl Regiment {
     }
 
     /// Units at a specific location.
-    pub fn units_at_location<'a>(&'a self, region_id: &'a str) -> impl Iterator<Item = &'a MilitaryUnit> {
+    pub fn units_at_location<'a>(
+        &'a self,
+        region_id: &'a str,
+    ) -> impl Iterator<Item = &'a MilitaryUnit> {
         self.units.iter().filter(move |u| u.location == region_id)
     }
 
     /// Units of a specific type.
-    pub fn units_by_type<'a>(&'a self, unit_type: UnitType) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
+    pub fn units_by_type<'a>(
+        &'a self,
+        unit_type: UnitType,
+    ) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
         self.units.iter().filter(move |u| u.unit_type == unit_type)
     }
 
@@ -142,13 +148,23 @@ impl Division {
     }
 
     /// Units at a specific location.
-    pub fn units_at_location<'a>(&'a self, region_id: &'a str) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
-        self.regiments.iter().flat_map(move |r| r.units_at_location(region_id))
+    pub fn units_at_location<'a>(
+        &'a self,
+        region_id: &'a str,
+    ) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
+        self.regiments
+            .iter()
+            .flat_map(move |r| r.units_at_location(region_id))
     }
 
     /// Units of a specific type.
-    pub fn units_by_type<'a>(&'a self, unit_type: UnitType) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
-        self.regiments.iter().flat_map(move |r| r.units_by_type(unit_type))
+    pub fn units_by_type<'a>(
+        &'a self,
+        unit_type: UnitType,
+    ) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
+        self.regiments
+            .iter()
+            .flat_map(move |r| r.units_by_type(unit_type))
     }
 
     /// Add a regiment to this division.
@@ -209,13 +225,23 @@ impl Army {
     }
 
     /// Units at a specific location.
-    pub fn units_at_location<'a>(&'a self, region_id: &'a str) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
-        self.divisions.iter().flat_map(move |d| d.units_at_location(region_id))
+    pub fn units_at_location<'a>(
+        &'a self,
+        region_id: &'a str,
+    ) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
+        self.divisions
+            .iter()
+            .flat_map(move |d| d.units_at_location(region_id))
     }
 
     /// Units of a specific type.
-    pub fn units_by_type<'a>(&'a self, unit_type: UnitType) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
-        self.divisions.iter().flat_map(move |d| d.units_by_type(unit_type))
+    pub fn units_by_type<'a>(
+        &'a self,
+        unit_type: UnitType,
+    ) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
+        self.divisions
+            .iter()
+            .flat_map(move |d| d.units_by_type(unit_type))
     }
 
     /// Add a division to this army.
@@ -294,8 +320,13 @@ impl OrderOfBattle {
     }
 
     /// Units at a specific location (region ID).
-    pub fn units_at_location<'a>(&'a self, region_id: &'a str) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
-        self.armies.iter().flat_map(move |a| a.units_at_location(region_id))
+    pub fn units_at_location<'a>(
+        &'a self,
+        region_id: &'a str,
+    ) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
+        self.armies
+            .iter()
+            .flat_map(move |a| a.units_at_location(region_id))
     }
 
     /// Collect units at a location into a Vec.
@@ -304,8 +335,13 @@ impl OrderOfBattle {
     }
 
     /// Units of a specific type.
-    pub fn units_by_type<'a>(&'a self, unit_type: UnitType) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
-        self.armies.iter().flat_map(move |a| a.units_by_type(unit_type))
+    pub fn units_by_type<'a>(
+        &'a self,
+        unit_type: UnitType,
+    ) -> impl Iterator<Item = &'a MilitaryUnit> + 'a {
+        self.armies
+            .iter()
+            .flat_map(move |a| a.units_by_type(unit_type))
     }
 
     /// Collect units by type into a Vec.
@@ -419,7 +455,8 @@ pub fn generate_oob(config: &OobGenerationConfig) -> OrderOfBattle {
     let mut oob = OrderOfBattle::new();
 
     for army_idx in 0..config.army_count {
-        let home_region = config.home_regions
+        let home_region = config
+            .home_regions
             .get(army_idx % config.home_regions.len())
             .cloned()
             .unwrap_or_default();
@@ -429,19 +466,35 @@ pub fn generate_oob(config: &OobGenerationConfig) -> OrderOfBattle {
         let mut army = Army::new(army_id, army_name, home_region.clone());
 
         for div_idx in 0..config.divisions_per_army {
-            let div_id = format!("DIV-{}-{:03}-{:03}", config.country_name, army_idx + 1, div_idx + 1);
+            let div_id = format!(
+                "DIV-{}-{:03}-{:03}",
+                config.country_name,
+                army_idx + 1,
+                div_idx + 1
+            );
             let div_name = format!("{} Division", ordinal(div_idx + 1));
             let mut division = Division::new(div_id, div_name, home_region.clone());
 
             for reg_idx in 0..config.regiments_per_division {
-                let reg_id = format!("REG-{}-{:03}-{:03}-{:03}",
-                    config.country_name, army_idx + 1, div_idx + 1, reg_idx + 1);
+                let reg_id = format!(
+                    "REG-{}-{:03}-{:03}-{:03}",
+                    config.country_name,
+                    army_idx + 1,
+                    div_idx + 1,
+                    reg_idx + 1
+                );
                 let reg_name = format!("{} Regiment", ordinal(reg_idx + 1));
                 let mut regiment = Regiment::new(reg_id, reg_name, home_region.clone());
 
                 for unit_idx in 0..config.units_per_regiment {
-                    let unit_id = format!("UNIT-{}-{:03}-{:03}-{:03}-{:03}",
-                        config.country_name, army_idx + 1, div_idx + 1, reg_idx + 1, unit_idx + 1);
+                    let unit_id = format!(
+                        "UNIT-{}-{:03}-{:03}-{:03}-{:03}",
+                        config.country_name,
+                        army_idx + 1,
+                        div_idx + 1,
+                        reg_idx + 1,
+                        unit_idx + 1
+                    );
 
                     // Distribute unit types: first unit is infantry, second is artillery,
                     // third is tanks (if available), rest are infantry.
@@ -588,12 +641,13 @@ pub fn generate_asymmetric_oob(
 
     // Phase 76: Add ±10% RNG variation to structure counts so countries with
     // similar GDP/population don't have identical OOB.
-    let divisions_per_army = (((divisions_per_army as f64)
-        * (1.0 + rng.gen_range(-0.1..0.1))).round() as usize).max(1);
-    let regiments_per_division = (((regiments_per_division as f64)
-        * (1.0 + rng.gen_range(-0.1..0.1))).round() as usize).max(2);
-    let units_per_regiment = (((units_per_regiment as f64)
-        * (1.0 + rng.gen_range(-0.1..0.1))).round() as usize).max(2);
+    let divisions_per_army =
+        (((divisions_per_army as f64) * (1.0 + rng.gen_range(-0.1..0.1))).round() as usize).max(1);
+    let regiments_per_division =
+        (((regiments_per_division as f64) * (1.0 + rng.gen_range(-0.1..0.1))).round() as usize)
+            .max(2);
+    let units_per_regiment =
+        (((units_per_regiment as f64) * (1.0 + rng.gen_range(-0.1..0.1))).round() as usize).max(2);
 
     // Recompute total_units after variation
     let total_units = army_count * divisions_per_army * regiments_per_division * units_per_regiment;
@@ -803,8 +857,8 @@ mod tests {
         let oob = generate_asymmetric_oob(
             "RichCountry",
             5_000_000_000.0, // High total GDP
-            5000.0,           // High GDP per capita
-            4000.0,           // High average wage
+            5000.0,          // High GDP per capita
+            4000.0,          // High average wage
             1_000_000,
             vec!["r1".to_string(), "r2".to_string(), "r3".to_string()],
             &mut rng,
@@ -821,8 +875,8 @@ mod tests {
         let oob = generate_asymmetric_oob(
             "PoorCountry",
             30_000_000.0, // Low total GDP
-            300.0,         // Low GDP per capita
-            240.0,         // Low average wage (gdp_pc * 800)
+            300.0,        // Low GDP per capita
+            240.0,        // Low average wage (gdp_pc * 800)
             100_000,
             vec!["r1".to_string()],
             &mut rng,

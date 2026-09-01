@@ -26,10 +26,8 @@ pub enum UnionScale {
     #[default]
     Company,
     /// Sector-wide union.
-
     Sector,
     /// Regional federation of unions.
-
     Regional,
     /// National federation of unions.
     #[serde(rename = "national")]
@@ -136,8 +134,10 @@ mod tests {
     /// Verifies that `DiskEntityStore<Union>` can save and reload a union.
     #[test]
     fn union_disk_round_trip() {
-        let tmp_dir = env::temp_dir()
-            .join(format!("sim_engine_union_round_trip_{}", std::process::id()));
+        let tmp_dir = env::temp_dir().join(format!(
+            "sim_engine_union_round_trip_{}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&tmp_dir);
 
         let mut union = Union::default();
@@ -151,10 +151,12 @@ mod tests {
         union.strike_fund = 50_000.0;
 
         let store = DiskEntityStore::<Union>::new(&tmp_dir);
-        store.save_sector("Anatolia", "unions", None, &[union.clone()])
+        store
+            .save_sector("Anatolia", "unions", None, &[union.clone()])
             .expect("save union sector");
 
-        let loaded = store.load_sector("Anatolia", "unions", None)
+        let loaded = store
+            .load_sector("Anatolia", "unions", None)
             .expect("load union sector");
         assert_eq!(loaded.len(), 1);
         assert_eq!(loaded[0], union);

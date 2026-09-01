@@ -4,19 +4,19 @@
 //! liquidity pools for trading securities, along with trade execution logic.
 
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, VecDeque, HashMap};
 use serde_json::Value;
+use std::collections::{BTreeMap, HashMap, VecDeque};
 
-use crate::securities::brokerage::BrokerageAccount;
-use crate::entities::{Company, Building};
+use crate::entities::{Building, Company};
 use crate::registries::enums::Commodity;
-use crate::state::treasury::Treasury;
+use crate::securities::brokerage::BrokerageAccount;
 use crate::securities::covered_bonds::CoveredBond;
 use crate::securities::mbs::TranchePriority;
+use crate::state::treasury::Treasury;
 
 /// Type of tradable instrument on the stock exchange.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(tag = "typ_instrumentu", rename_all = "snake_case")]
+#[serde(tag = "instrument_type", rename_all = "snake_case")]
 pub enum InstrumentType {
     /// Equity shares of a listed company.
     Equity,
@@ -48,23 +48,18 @@ pub enum InstrumentType {
 
 pub struct StockExchange {
     /// Order book: Maps instrument_id -> (bids, asks).
-
     pub order_book: BTreeMap<String, OrderBook>,
-    
+
     /// AMM liquidity pools: Maps instrument_id -> LiquidityPool.
-
     pub liquidity_pools: BTreeMap<String, LiquidityPool>,
-    
+
     /// Trade history for audit and price discovery.
-
     pub trade_history: VecDeque<Trade>,
-    
+
     /// Market-wide circuit breaker status.
-
     pub circuit_breaker: CircuitBreaker,
-    
-    /// Trading fee (percentage of transaction value).
 
+    /// Trading fee (percentage of transaction value).
     pub transaction_fee: f64,
 
     /// Phase 56: Market index tracking (main index + sector indices).
@@ -86,72 +81,54 @@ pub struct StockExchange {
 pub struct OrderBook {
     /// Bids: Maps price -> list of buy orders.
     /// Using ordered list of (price, orders) tuples since f64 doesn't implement Ord for BTreeMap.
-
     pub bids: Vec<(f64, Vec<Order>)>,
-    
+
     /// Asks: Maps price -> list of sell orders.
-
     pub asks: Vec<(f64, Vec<Order>)>,
-    
+
     /// Best bid price (highest buy).
-
     pub best_bid: f64,
-    
-    /// Best ask price (lowest sell).
 
+    /// Best ask price (lowest sell).
     pub best_ask: f64,
 }
 
 /// Individual order in the order book.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(tag = "typ", rename_all = "snake_case")]
+#[serde(tag = "order_type", rename_all = "snake_case")]
 pub enum Order {
     /// Buy limit order.
     Buy {
         /// Unique order identifier.
-
         order_id: String,
         /// Investor placing the order.
-
         investor_id: String,
         /// Instrument being traded (e.g., "EQUITY:COMP-001", "MBS:MBS-001:senior").
-
         instrument_id: String,
         /// Type of instrument being bought.
-
         instrument_type: InstrumentType,
         /// Number of units to buy.
-
         quantity: u64,
         /// Maximum price willing to pay.
-
         limit_price: f64,
         /// Turn when order expires.
-
         expiry_turn: u32,
     },
     /// Sell limit order.
     Sell {
         /// Unique order identifier.
-
         order_id: String,
         /// Investor placing the order.
-
         investor_id: String,
         /// Instrument being traded.
-
         instrument_id: String,
         /// Type of instrument being sold.
-
         instrument_type: InstrumentType,
         /// Number of units to sell.
-
         quantity: u64,
         /// Minimum price willing to accept.
-
         limit_price: f64,
         /// Turn when order expires.
-
         expiry_turn: u32,
     },
 }
@@ -258,25 +235,21 @@ impl Order {
 
 pub struct LiquidityPool {
     /// Total shares in the pool.
-
     pub shares: u64,
-    
+
     /// Total cash in the pool.
-
     pub cash: f64,
-    
+
     /// Liquidity providers: Maps provider_id -> share of pool.
-
     pub providers: BTreeMap<String, f64>,
-    
-    /// Pool fee (percentage of trade value).
 
+    /// Pool fee (percentage of trade value).
     pub pool_fee: f64,
-    
+
     /// Phase D.5: Treasury bonds held in pool (for QE secondary market purchases).
     #[serde(default)]
     pub treasury_bonds: Vec<CoveredBond>,
-    
+
     /// Total market value of pool assets.
     #[serde(default)]
     pub total_value: f64,
@@ -287,31 +260,24 @@ pub struct LiquidityPool {
 
 pub struct Trade {
     /// Trade ID.
-
     pub id: String,
-    
+
     /// Instrument ID (e.g., "EQUITY:COMP-001", "MBS:MBS-001:senior").
-
     pub instrument_id: String,
-    
+
     /// Buyer ID.
-
     pub buyer_id: String,
-    
+
     /// Seller ID.
-
     pub seller_id: String,
-    
+
     /// Quantity traded.
-
     pub quantity: u64,
-    
+
     /// Execution price.
-
     pub price: f64,
-    
-    /// Turn of execution.
 
+    /// Turn of execution.
     pub turn: u32,
 }
 
@@ -320,15 +286,12 @@ pub struct Trade {
 
 pub struct CircuitBreaker {
     /// Is trading currently halted?
-
     pub is_halted: bool,
 
     /// Turn when halt was triggered.
-
     pub halt_turn: u32,
 
     /// Expected duration in turns.
-
     pub duration_turns: u32,
 }
 
@@ -507,11 +470,8 @@ impl MarketIndex {
                 .collect();
             let window = returns.iter().rev().take(24).collect::<Vec<_>>();
             let mean: f64 = window.iter().map(|r| **r).sum::<f64>() / window.len() as f64;
-            let variance: f64 = window
-                .iter()
-                .map(|r| (**r - mean).powi(2))
-                .sum::<f64>()
-                / window.len() as f64;
+            let variance: f64 =
+                window.iter().map(|r| (**r - mean).powi(2)).sum::<f64>() / window.len() as f64;
             self.volatility = variance.sqrt();
         }
 
@@ -533,17 +493,14 @@ impl MarketIndex {
                 .map(|c| c.share_price * c.shares_count as f64)
                 .sum();
 
-            let prev_sector_cap = self
-                .sector_indices
-                .get(sector_name)
-                .and_then(|prev_val| {
-                    // Reconstruct previous sector cap from previous index value
-                    if *prev_val > 0.0 && self.total_market_cap > 0.0 {
-                        Some(*prev_val)
-                    } else {
-                        None
-                    }
-                });
+            let prev_sector_cap = self.sector_indices.get(sector_name).and_then(|prev_val| {
+                // Reconstruct previous sector cap from previous index value
+                if *prev_val > 0.0 && self.total_market_cap > 0.0 {
+                    Some(*prev_val)
+                } else {
+                    None
+                }
+            });
 
             let sector_index = if let Some(prev) = prev_sector_cap {
                 if prev > 0.0 && sector_market_cap > 0.0 {
@@ -557,7 +514,8 @@ impl MarketIndex {
                 0.0
             };
 
-            self.sector_indices.insert(sector_name.clone(), sector_index);
+            self.sector_indices
+                .insert(sector_name.clone(), sector_index);
             let hist = self
                 .sector_index_history
                 .entry(sector_name.clone())
@@ -587,16 +545,10 @@ impl MarketIndex {
 ///
 /// # Returns
 /// `true` if the company can trade futures for this commodity.
-pub fn can_trade_futures(
-    company: &Company,
-    commodity_id: &str,
-    buildings: &[Building],
-) -> bool {
+pub fn can_trade_futures(company: &Company, commodity_id: &str, buildings: &[Building]) -> bool {
     // Financial firms (funds, banks) have unrestricted access.
-    let is_financial = matches!(
-        company.sector,
-        crate::registries::enums::Sector::Banking
-    ) || company.fund_type.is_some();
+    let is_financial = matches!(company.sector, crate::registries::enums::Sector::Banking)
+        || company.fund_type.is_some();
 
     if is_financial {
         return true;
@@ -607,15 +559,13 @@ pub fn can_trade_futures(
     let target_commodity = parse_commodity(commodity_id);
 
     match target_commodity {
-        Some(target) => {
-            buildings
-                .iter()
-                .filter(|b| b.owner_id == company.id)
-                .any(|b| {
-                    b.active_method.inputs.contains_key(&target)
-                        || b.active_method.outputs.contains_key(&target)
-                })
-        }
+        Some(target) => buildings
+            .iter()
+            .filter(|b| b.owner_id == company.id)
+            .any(|b| {
+                b.active_method.inputs.contains_key(&target)
+                    || b.active_method.outputs.contains_key(&target)
+            }),
         None => false,
     }
 }
@@ -791,10 +741,14 @@ impl StockExchange {
             // Find best matching price level
             let best_idx = if is_buy {
                 // Buy: find lowest ask <= limit_price
-                book.asks.iter().position(|(price, _)| *price <= limit_price)
+                book.asks
+                    .iter()
+                    .position(|(price, _)| *price <= limit_price)
             } else {
                 // Sell: find highest bid >= limit_price
-                book.bids.iter().rposition(|(price, _)| *price >= limit_price)
+                book.bids
+                    .iter()
+                    .rposition(|(price, _)| *price >= limit_price)
             };
 
             let best_idx = match best_idx {
@@ -887,7 +841,8 @@ impl StockExchange {
                     book.bids[pos].1.push(order);
                 } else {
                     book.bids.push((order_price, vec![order]));
-                    book.bids.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                    book.bids
+                        .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
                 }
                 book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
             } else {
@@ -895,7 +850,8 @@ impl StockExchange {
                     book.asks[pos].1.push(order);
                 } else {
                     book.asks.push((order_price, vec![order]));
-                    book.asks.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                    book.asks
+                        .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
                 }
                 book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
             }
@@ -974,23 +930,31 @@ impl StockExchange {
         Some(Trade {
             id: format!("AMM-{}", self.trade_history.len()),
             instrument_id: instrument_id.to_string(),
-            buyer_id: if is_buy { investor_id.to_string() } else { "POOL".to_string() },
-            seller_id: if is_buy { "POOL".to_string() } else { investor_id.to_string() },
+            buyer_id: if is_buy {
+                investor_id.to_string()
+            } else {
+                "POOL".to_string()
+            },
+            seller_id: if is_buy {
+                "POOL".to_string()
+            } else {
+                investor_id.to_string()
+            },
             quantity,
             price: exec_price,
             turn: 0,
         })
     }
-    
+
     /// Execute IPO with closed-loop capital transfer and proper dilution.
-    /// 
+    ///
     /// # Arguments
     /// * `company` - The company going public
     /// * `shares_to_float` - Number of new shares to issue
     /// * `reserve_price` - Price per share
     /// * `buyers` - Vector of (buyer_id, share_allocation) tuples
     /// * `brokerage_accounts` - Map of entity_id -> brokerage account
-    /// 
+    ///
     /// # Rules
     /// * Verify buyers have sufficient cash
     /// * Atomically transfer cash from buyers to issuer
@@ -1007,7 +971,7 @@ impl StockExchange {
         brokerage_accounts: &mut BTreeMap<String, &mut BrokerageAccount>,
     ) -> Result<(), String> {
         let total_proceeds = shares_to_float as f64 * reserve_price;
-        
+
         // Verify buyers have sufficient cash
         for (buyer_id, allocation) in buyers.iter() {
             let cost = *allocation as f64 * reserve_price;
@@ -1017,16 +981,21 @@ impl StockExchange {
                 }
             }
         }
-        
+
         // Atomically transfer cash from buyers to issuer
         for (buyer_id, allocation) in buyers.iter() {
             let cost = *allocation as f64 * reserve_price;
             if let Some(brokerage) = brokerage_accounts.get_mut(buyer_id) {
                 brokerage.cash -= cost;
-                brokerage.add_lot(&format!("EQUITY:{}", company.id), *allocation, reserve_price, 0);
+                brokerage.add_lot(
+                    &format!("EQUITY:{}", company.id),
+                    *allocation,
+                    reserve_price,
+                    0,
+                );
             }
         }
-        
+
         // Phase 56: Credit proceeds to issuing company's brokerage account (not liquid_capital).
         // This is consistent with the closed-loop capital model where company cash
         // lives in the brokerage account, not the direct liquid_capital field.
@@ -1036,11 +1005,11 @@ impl StockExchange {
             // Fallback: if no brokerage account, credit to liquid_capital.
             company.liquid_capital += total_proceeds;
         }
-        
+
         // Calculate new total share count BEFORE updating shares_count
         let old_shares_count = company.shares_count;
         let new_shares_count = old_shares_count + shares_to_float;
-        
+
         // CRITICAL: Dilute existing owners based on new total
         let mut diluted_owners: BTreeMap<String, f64> = BTreeMap::new();
         for (owner_id, old_percentage) in company.owners.iter() {
@@ -1048,27 +1017,27 @@ impl StockExchange {
             let new_percentage = old_share_count / new_shares_count as f64;
             diluted_owners.insert(owner_id.clone(), new_percentage);
         }
-        
+
         // Update share count
         company.shares_count = new_shares_count;
-        
+
         // Add new buyers with their calculated percentages
         for (buyer_id, allocation) in buyers.iter() {
             let share_percentage = *allocation as f64 / new_shares_count as f64;
             // Use entry API to safely add to existing percentage (handles existing investors)
             *diluted_owners.entry(buyer_id.clone()).or_insert(0.0) += share_percentage;
         }
-        
+
         // Replace owners map with diluted version
         company.owners = diluted_owners;
-        
+
         // Update free_float (shares not in owners map)
         let owned_percentage: f64 = company.owners.values().sum();
         company.free_float = (1.0 - owned_percentage).max(0.0);
-        
+
         Ok(())
     }
-    
+
     /// Route dividends to actual shareholders with 100% closed-loop accounting.
     pub fn route_dividends(
         &mut self,
@@ -1080,37 +1049,41 @@ impl StockExchange {
         treasury_id: &str,
     ) -> Result<(), String> {
         // Look up company (borrow checker safe)
-        let company = companies.get(company_id)
+        let company = companies
+            .get(company_id)
             .ok_or_else(|| format!("Company {} not found", company_id))?;
-        
+
         // Verify company has sufficient cash
         if company.liquid_capital < total_dividend {
             return Err("Insufficient cash for dividend".to_string());
         }
-        
+
         // Calculate dividend per share
         let dividend_per_share = total_dividend / company.shares_count as f64;
-        
+
         // Calculate dividend distribution plan (immutable phase)
         let mut distribution_plan: Vec<(String, f64)> = Vec::new();
-        
+
         // Route to known owners from owners map
         for (owner_id, share_percentage) in company.owners.iter() {
             let owner_share_count = (company.shares_count as f64 * share_percentage) as u64;
             let dividend_amount = owner_share_count as f64 * dividend_per_share;
             distribution_plan.push((owner_id.clone(), dividend_amount));
         }
-        
+
         // Route free_float shares to LiquidityPool (if exists)
         if company.free_float > 0.0 {
             let free_float_shares = (company.shares_count as f64 * company.free_float) as u64;
             let free_float_dividend = free_float_shares as f64 * dividend_per_share;
-            
-            if let Some(pool) = self.liquidity_pools.get_mut(&format!("EQUITY:{}", company_id)) {
+
+            if let Some(pool) = self
+                .liquidity_pools
+                .get_mut(&format!("EQUITY:{}", company_id))
+            {
                 pool.cash += free_float_dividend; // Reward liquidity providers
             }
         }
-        
+
         // Execute distribution (mutable phase - borrow checker safe)
         for (owner_id, dividend_amount) in distribution_plan {
             if let Some(brokerage) = brokerage_accounts.get_mut(&owner_id) {
@@ -1120,10 +1093,13 @@ impl StockExchange {
             } else if owner_id == treasury_id {
                 treasury.liquid_reserves += dividend_amount;
             } else {
-                return Err(format!("Owner {} has no valid account for dividend routing", owner_id));
+                return Err(format!(
+                    "Owner {} has no valid account for dividend routing",
+                    owner_id
+                ));
             }
         }
-        
+
         Ok(())
     }
 
@@ -1283,7 +1259,9 @@ impl StockExchange {
                             book.bids[pos].1.push(bid_order);
                         } else {
                             book.bids.push((price, vec![bid_order]));
-                            book.bids.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                            book.bids.sort_by(|a, b| {
+                                a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
+                            });
                         }
                     }
                 }
@@ -1294,7 +1272,9 @@ impl StockExchange {
                             book.asks[pos].1.push(ask_order);
                         } else {
                             book.asks.push((price, vec![ask_order]));
-                            book.asks.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                            book.asks.sort_by(|a, b| {
+                                a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
+                            });
                         }
                     }
                 }
@@ -1339,7 +1319,11 @@ impl StockExchange {
         treasury.liquid_reserves += fee * 2.0;
 
         // Phase 55: Compute per-share price for lot tracking.
-        let price_per_share = if quantity > 0 { cost / quantity as f64 } else { 0.0 };
+        let price_per_share = if quantity > 0 {
+            cost / quantity as f64
+        } else {
+            0.0
+        };
 
         // Update buyer and seller based on instrument type
         if instrument_id.starts_with("EQUITY:") {

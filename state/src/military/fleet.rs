@@ -259,7 +259,10 @@ fn route_matches(fleet_route: &[String], target_route: &[String]) -> bool {
     if fleet_route.len() != target_route.len() {
         return false;
     }
-    fleet_route.iter().zip(target_route.iter()).all(|(a, b)| a == b)
+    fleet_route
+        .iter()
+        .zip(target_route.iter())
+        .all(|(a, b)| a == b)
 }
 
 /// Create a new fleet.
@@ -271,11 +274,7 @@ fn route_matches(fleet_route: &[String], target_route: &[String]) -> bool {
 ///
 /// # Returns
 /// New Fleet instance
-pub fn create_fleet(
-    name: String,
-    owner_country: String,
-    home_port: String,
-) -> Fleet {
+pub fn create_fleet(name: String, owner_country: String, home_port: String) -> Fleet {
     static FLEET_COUNTER: AtomicU64 = AtomicU64::new(1);
     let unique_id: u64 = FLEET_COUNTER.fetch_add(1, Ordering::SeqCst);
     Fleet {

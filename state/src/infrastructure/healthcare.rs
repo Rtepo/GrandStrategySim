@@ -21,22 +21,17 @@ pub enum HealthcareBuildingType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HealthcareTemplate {
     /// Type of building
-
     pub building_type: HealthcareBuildingType,
 
     /// Base capacity per turn
-
     pub base_capacity: f64,
 
     /// Cost per capacity unit
-
     pub cost_per_capacity: f64,
 
     /// Required qualification for workers
-
     pub required_qualification: LaborTier,
 
     /// Impact on lifespan (+0.5 years per Hospital bed/year)
-
     pub lifespan_impact: f64,
 }

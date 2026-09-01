@@ -82,7 +82,9 @@ pub enum BenefitType {
 
 impl Default for BenefitType {
     fn default() -> Self {
-        BenefitType::CashTransfer { per_capita_amount: 0.0 }
+        BenefitType::CashTransfer {
+            per_capita_amount: 0.0,
+        }
     }
 }
 
@@ -211,7 +213,9 @@ fn check_eligibility(
 pub fn evaluate_program(program: &SocialProgram, country: &Country) -> ProgramEvaluation {
     let benefit_amount = match &program.benefit {
         BenefitType::CashTransfer { per_capita_amount } => *per_capita_amount,
-        BenefitType::TargetedIntervention { per_capita_amount, .. } => *per_capita_amount,
+        BenefitType::TargetedIntervention {
+            per_capita_amount, ..
+        } => *per_capita_amount,
     };
 
     let mut eligible_classes = Vec::new();
@@ -317,9 +321,9 @@ pub fn construct_social_programs(
         Ideology::SocialLiberalism => (false, true, 1.0),
         Ideology::ChristianDemocracy => (false, false, 0.8),
         Ideology::Agrarianism => (false, true, 0.7),
-        Ideology::ClassicalLiberalism
-        | Ideology::Neoliberalism
-        | Ideology::AnarchoCapitalism => (false, false, 0.5),
+        Ideology::ClassicalLiberalism | Ideology::Neoliberalism | Ideology::AnarchoCapitalism => {
+            (false, false, 0.5)
+        }
         Ideology::SocialConservatism
         | Ideology::Neoconservatism
         | Ideology::NationalConservatism => (false, false, 0.6),
@@ -542,9 +546,7 @@ pub fn execute_social_programs(
 
         let actual_payout = match funding {
             FundingResponse::FullyFunded => evaluation.total_cost,
-            FundingResponse::Haircut { payout_ratio } => {
-                evaluation.total_cost * payout_ratio
-            }
+            FundingResponse::Haircut { payout_ratio } => evaluation.total_cost * payout_ratio,
             FundingResponse::DebtIssuance { .. } => {
                 // Phase 35: DebtIssuance is no longer produced by
                 // resolve_funding_dilemma. This arm is unreachable but kept
@@ -596,10 +598,12 @@ pub fn execute_social_programs(
         }
 
         ministry.spent_cash += actual_payout;
-        ministry.spending_actions.push(MinistrySpendingAction::DirectTransfer {
-            target: format!("SocialProgram:{}", program.name),
-            amount: actual_payout,
-        });
+        ministry
+            .spending_actions
+            .push(MinistrySpendingAction::DirectTransfer {
+                target: format!("SocialProgram:{}", program.name),
+                amount: actual_payout,
+            });
     }
 }
 
@@ -632,25 +636,14 @@ fn credit_class_savings(country: &mut Country, region_id: &str, class_key: &str,
 /// 1. Uses existing persisted programs if available.
 /// 2. If no programs exist (first run), constructs them via Ministry AI.
 /// 3. Evaluates and executes all active programs.
-pub fn execute_social_welfare(
-    country: &mut Country,
-    companies: &mut [Company],
-    current_turn: u32,
-) {
+pub fn execute_social_welfare(country: &mut Country, companies: &mut [Company], current_turn: u32) {
     // Find the Social Welfare ministry.
-    let (idx, _) = match country
-        .politics
-        .ministry_config
-        .as_ref()
-        .and_then(|c| {
-            c.ministries
-                .iter()
-                .enumerate()
-                .find(|(_, m)| {
-                    m.competencies
-                        .contains(&crate::politics::ministries::GovernmentCompetency::SocialWelfare)
-                })
-        }) {
+    let (idx, _) = match country.politics.ministry_config.as_ref().and_then(|c| {
+        c.ministries.iter().enumerate().find(|(_, m)| {
+            m.competencies
+                .contains(&crate::politics::ministries::GovernmentCompetency::SocialWelfare)
+        })
+    }) {
         Some(x) => x,
         None => return,
     };
@@ -661,7 +654,10 @@ pub fn execute_social_welfare(
 
     if needs_construction {
         // Clone ministry for construction (avoid borrow conflict).
-        let ministry_clone = country.politics.ministry_config.as_ref()
+        let ministry_clone = country
+            .politics
+            .ministry_config
+            .as_ref()
             .map(|c| c.ministries[idx].clone())
             .unwrap();
         let new_programs = construct_social_programs(&ministry_clone, country, current_turn);
@@ -670,8 +666,13 @@ pub fn execute_social_welfare(
 
     // Execute programs. Clone ministry out to avoid double mutable borrow of country.
     let programs = country.social_programs.clone();
-    let mut ministry_opt = country.politics.ministry_config.as_mut()
-        .and_then(|c| if idx < c.ministries.len() { Some(c.ministries[idx].clone()) } else { None });
+    let mut ministry_opt = country.politics.ministry_config.as_mut().and_then(|c| {
+        if idx < c.ministries.len() {
+            Some(c.ministries[idx].clone())
+        } else {
+            None
+        }
+    });
     if let Some(ref mut ministry) = ministry_opt {
         execute_social_programs(country, &programs, companies, ministry, current_turn);
     }
@@ -728,9 +729,7 @@ mod tests {
     fn test_marginal_taper_partial() {
         let target = TargetCondition::MeansTested {
             per_capita_threshold: 100.0,
-            taper: TaperMode::MarginalTaper {
-                taper_range: 50.0,
-            },
+            taper: TaperMode::MarginalTaper { taper_range: 50.0 },
         };
         let class = ClassDemographics {
             population: 100,
@@ -747,9 +746,7 @@ mod tests {
     fn test_marginal_taper_below_threshold() {
         let target = TargetCondition::MeansTested {
             per_capita_threshold: 100.0,
-            taper: TaperMode::MarginalTaper {
-                taper_range: 50.0,
-            },
+            taper: TaperMode::MarginalTaper { taper_range: 50.0 },
         };
         let class = ClassDemographics {
             population: 100,
@@ -765,9 +762,7 @@ mod tests {
     fn test_marginal_taper_above_range() {
         let target = TargetCondition::MeansTested {
             per_capita_threshold: 100.0,
-            taper: TaperMode::MarginalTaper {
-                taper_range: 50.0,
-            },
+            taper: TaperMode::MarginalTaper { taper_range: 50.0 },
         };
         let class = ClassDemographics {
             population: 100,
@@ -780,25 +775,14 @@ mod tests {
 
     #[test]
     fn test_funding_fully_funded() {
-        let response = resolve_funding_dilemma(
-            100.0,
-            150.0,
-            Ideology::SocialLiberalism,
-            30.0,
-            0.2,
-        );
+        let response = resolve_funding_dilemma(100.0, 150.0, Ideology::SocialLiberalism, 30.0, 0.2);
         assert_eq!(response, FundingResponse::FullyFunded);
     }
 
     #[test]
     fn test_funding_haircut_conservative() {
-        let response = resolve_funding_dilemma(
-            100.0,
-            60.0,
-            Ideology::SocialConservatism,
-            30.0,
-            0.2,
-        );
+        let response =
+            resolve_funding_dilemma(100.0, 60.0, Ideology::SocialConservatism, 30.0, 0.2);
         assert_eq!(response, FundingResponse::Haircut { payout_ratio: 0.6 });
     }
 
@@ -806,26 +790,14 @@ mod tests {
     fn test_funding_haircut_socialist() {
         // Phase 35: DebtIssuance removed — socialist governments now get a
         // Haircut (pro-rated payout) instead of issuing debt beyond allocation.
-        let response = resolve_funding_dilemma(
-            100.0,
-            60.0,
-            Ideology::SocialDemocracy,
-            30.0,
-            0.2,
-        );
+        let response = resolve_funding_dilemma(100.0, 60.0, Ideology::SocialDemocracy, 30.0, 0.2);
         assert_eq!(response, FundingResponse::Haircut { payout_ratio: 0.6 });
     }
 
     #[test]
     fn test_funding_haircut_high_unrest() {
         // Phase 35: DebtIssuance removed — high unrest now gets a Haircut.
-        let response = resolve_funding_dilemma(
-            100.0,
-            60.0,
-            Ideology::SocialLiberalism,
-            70.0,
-            0.2,
-        );
+        let response = resolve_funding_dilemma(100.0, 60.0, Ideology::SocialLiberalism, 70.0, 0.2);
         assert_eq!(response, FundingResponse::Haircut { payout_ratio: 0.6 });
     }
 

@@ -81,18 +81,15 @@ pub fn load_named_map<T: DeserializeOwned>(path: &Path) -> Result<HashMap<String
 /// * No migration or fallback logic is applied — the save must match the
 ///   current English-only schema.
 pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
-    let budgets: HashMap<String, Treasury> =
-        load_named_map(&data_dir.join("budgets.json"))?;
-    let macro_map: HashMap<String, MacroData> =
-        load_named_map(&data_dir.join("macro.json"))?;
-    let mut taxes: HashMap<String, TaxRates> =
-        load_named_map(&data_dir.join("tax_rates.json"))?;
+    let budgets: HashMap<String, Treasury> = load_named_map(&data_dir.join("budgets.json"))?;
+    let macro_map: HashMap<String, MacroData> = load_named_map(&data_dir.join("macro.json"))?;
+    let mut taxes: HashMap<String, TaxRates> = load_named_map(&data_dir.join("tax_rates.json"))?;
     let politics_map: HashMap<String, Politics> =
         load_named_map(&data_dir.join("politics.json")).unwrap_or_default();
 
     let mut state = GameState::new();
-    state.currencies = load_named_map::<Currency>(&data_dir.join("currencies.json"))
-        .unwrap_or_default();
+    state.currencies =
+        load_named_map::<Currency>(&data_dir.join("currencies.json")).unwrap_or_default();
 
     for (name, budget) in budgets {
         let macro_indicators = macro_map
@@ -102,10 +99,7 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
         let tax_rates = taxes
             .remove(&name)
             .ok_or_else(|| SaveError::MissingCountry(name.clone()))?;
-        let politics = politics_map
-            .get(&name)
-            .cloned()
-            .unwrap_or_default();
+        let politics = politics_map.get(&name).cloned().unwrap_or_default();
 
         state.countries.insert(
             name.clone(),
@@ -224,6 +218,9 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
                 labor_config: crate::economy::labor::labor_config::LaborConfig::default(),
                 geography_config: crate::society::geography_config::GeographyConfig::default(),
                 municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
+                state_customs_warehouse: rustc_hash::FxHashMap::default(),
+                last_smuggling_result: None,
+                pending_foreign_transit_fees: Vec::new(),
             },
         );
     }
@@ -232,7 +229,10 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
     let geology_path = data_dir.join("geology.json");
     if geology_path.exists() {
         if let Ok(geology_text) = fs::read_to_string(&geology_path) {
-            if let Ok(geology_map) = serde_json::from_str::<HashMap<String, Vec<crate::society::geography::GeologicalFormation>>>(&geology_text) {
+            if let Ok(geology_map) = serde_json::from_str::<
+                HashMap<String, Vec<crate::society::geography::GeologicalFormation>>,
+            >(&geology_text)
+            {
                 for (name, formations) in geology_map {
                     if let Some(country) = state.countries.get_mut(&name) {
                         country.geological_formations = formations;
@@ -246,7 +246,13 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
     let transport_path = data_dir.join("transport_networks.json");
     if transport_path.exists() {
         if let Ok(transport_text) = fs::read_to_string(&transport_path) {
-            if let Ok(transport_map) = serde_json::from_str::<HashMap<String, crate::economy::logistics::transport_networks::TransportNetworkOverlay>>(&transport_text) {
+            if let Ok(transport_map) = serde_json::from_str::<
+                HashMap<
+                    String,
+                    crate::economy::logistics::transport_networks::TransportNetworkOverlay,
+                >,
+            >(&transport_text)
+            {
                 for (name, networks) in transport_map {
                     if let Some(country) = state.countries.get_mut(&name) {
                         country.transport_networks = networks;
@@ -261,13 +267,25 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
     if storage_path.exists() {
         if let Ok(storage_text) = fs::read_to_string(&storage_path) {
             if let Ok(storage_value) = serde_json::from_str::<Value>(&storage_text) {
-                let turn = storage_value.get("current_turn").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
-                let year = storage_value.get("year").and_then(|v| v.as_u64()).unwrap_or(1900) as u32;
+                let turn = storage_value
+                    .get("current_turn")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0) as u32;
+                let year = storage_value
+                    .get("year")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(1900) as u32;
                 state.calendar.global_turn = turn;
                 state.calendar.current_year = year;
-                state.calendar.current_month = if turn > 0 { ((turn - 1) % 24) / 2 + 1 } else { 1 };
+                state.calendar.current_month = if turn > 0 {
+                    ((turn - 1) % 24) / 2 + 1
+                } else {
+                    1
+                };
                 state.calendar.half_month = turn > 0 && (turn - 1) % 2 == 1;
-                state.extra.insert("current_turn".to_string(), Value::from(turn));
+                state
+                    .extra
+                    .insert("current_turn".to_string(), Value::from(turn));
                 state.extra.insert("year".to_string(), Value::from(year));
             }
         }
@@ -292,7 +310,10 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
 ///
 /// # Returns
 /// `Ok(())` on success, or a [`SaveError`] on I/O or JSON failure.
-pub fn save_named_map<T: Serialize>(path: &Path, map: &HashMap<String, T>) -> Result<(), SaveError> {
+pub fn save_named_map<T: Serialize>(
+    path: &Path,
+    map: &HashMap<String, T>,
+) -> Result<(), SaveError> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -319,8 +340,12 @@ pub fn save_game_state(data_dir: &Path, state: &GameState) -> Result<(), SaveErr
     let mut macro_map: HashMap<String, MacroData> = HashMap::new();
     let mut tax_rates: HashMap<String, TaxRates> = HashMap::new();
     let mut politics_map: HashMap<String, Politics> = HashMap::new();
-    let mut geology: HashMap<String, Vec<crate::society::geography::GeologicalFormation>> = HashMap::new();
-    let mut transport: HashMap<String, crate::economy::logistics::transport_networks::TransportNetworkOverlay> = HashMap::new();
+    let mut geology: HashMap<String, Vec<crate::society::geography::GeologicalFormation>> =
+        HashMap::new();
+    let mut transport: HashMap<
+        String,
+        crate::economy::logistics::transport_networks::TransportNetworkOverlay,
+    > = HashMap::new();
     for (name, country) in &state.countries {
         budgets.insert(name.clone(), country.budget.clone());
         macro_map.insert(name.clone(), country.macro_indicators.clone());

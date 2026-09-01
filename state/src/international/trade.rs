@@ -159,22 +159,28 @@ pub fn balance_global_trade(
     for name in sorted_names {
         let country = &state.countries[name];
         let mut comp = country_competitiveness(country, &state.currencies);
-        let (import_banned, export_banned, mut dipl_bonus) =
-            diplomatic_modifiers(name, diplomacy);
+        let (import_banned, export_banned, mut dipl_bonus) = diplomatic_modifiers(name, diplomacy);
 
         // Phase 67: CustomsUnion treaty clause — merge market demand/supply.
         // Countries sharing an active CustomsUnion treaty get a significant
         // competitiveness boost, simulating merged market access.
-        let customs_union_partners = treaty_registry.treaties.iter()
+        let customs_union_partners = treaty_registry
+            .treaties
+            .iter()
             .filter(|t| t.is_active() && t.has_participants(name, name)) // placeholder
             .count();
         let _ = customs_union_partners; // Count is via has_active_clause_between below
 
         // Count active CustomsUnion treaties this country participates in
-        let cu_treaty_count = treaty_registry.treaties.iter()
-            .filter(|t| t.is_active()
-                && t.participants.contains(&name.to_string())
-                && t.clauses.contains(&crate::international::treaties::TreatyClause::CustomsUnion))
+        let cu_treaty_count = treaty_registry
+            .treaties
+            .iter()
+            .filter(|t| {
+                t.is_active()
+                    && t.participants.contains(&name.to_string())
+                    && t.clauses
+                        .contains(&crate::international::treaties::TreatyClause::CustomsUnion)
+            })
             .count();
         if cu_treaty_count > 0 {
             // CustomsUnion provides a deep market merge: +0.15 per treaty
@@ -183,10 +189,15 @@ pub fn balance_global_trade(
         }
 
         // Phase 67: TradePreference treaty clause — tariff reduction.
-        let tp_treaty_count = treaty_registry.treaties.iter()
-            .filter(|t| t.is_active()
-                && t.participants.contains(&name.to_string())
-                && t.clauses.contains(&crate::international::treaties::TreatyClause::TradePreference))
+        let tp_treaty_count = treaty_registry
+            .treaties
+            .iter()
+            .filter(|t| {
+                t.is_active()
+                    && t.participants.contains(&name.to_string())
+                    && t.clauses
+                        .contains(&crate::international::treaties::TreatyClause::TradePreference)
+            })
             .count();
         if tp_treaty_count > 0 {
             dipl_bonus += 0.05 * tp_treaty_count as f64;
@@ -345,16 +356,34 @@ pub fn balance_global_trade(
     // physically via settle_trade_deficits (forex/gold/sovereign default).
 
     // --- Phase 2: Apply ----------------------------------------------------
+    // Agent 4 — Phase 2: Demoted to pure indicator/accounting layer.
+    // Previously, this phase credited liquid_reserves += trade_balance,
+    // which created fiat on top of the physical B2B settlement (Rule 1
+    // violation — double-counting). The actual financial settlement is
+    // handled by settle_trade_deficits (Forex/Gold/sovereign default) and
+    // the physical B2B trades (settle_trades_with_tariffs). This phase now
+    // only records diagnostic indicators and applies currency shocks.
     for delta in &deltas {
         let country = state
             .countries
             .get_mut(&delta.country_name)
             .expect("country disappeared between phases");
 
-        country.budget.liquid_reserves += delta.trade_balance;
-        country.budget.extra.insert("exports".to_string(), json_f64(delta.exports));
-        country.budget.extra.insert("imports".to_string(), json_f64(delta.imports));
-        country.budget.extra.insert("bilans_handlowy".to_string(), json_f64(delta.trade_balance));
+        // Agent 4: NO liquid_reserves mutation — pure indicator layer.
+        // country.budget.liquid_reserves += delta.trade_balance; // REMOVED (fiat creation)
+        country
+            .budget
+            .extra
+            .insert("exports".to_string(), json_f64(delta.exports));
+        country
+            .budget
+            .extra
+            .insert("imports".to_string(), json_f64(delta.imports));
+        // Agent 4 — Phase 6: Renamed from Polish "bilans_handlowy" to English (Rule 12).
+        country
+            .budget
+            .extra
+            .insert("trade_balance".to_string(), json_f64(delta.trade_balance));
 
         if let Some(currency) = state.currencies.get_mut(&delta.currency_code) {
             let gdp = country.budget.gdp;
@@ -473,7 +502,5 @@ fn sorted_order_sum(market_orders: &MarketOrders, field: impl Fn(&MarketOrder) -
 }
 
 fn json_f64(v: f64) -> Value {
-    Value::Number(
-        serde_json::Number::from_f64(v).unwrap_or_else(|| serde_json::Number::from(0)),
-    )
+    Value::Number(serde_json::Number::from_f64(v).unwrap_or_else(|| serde_json::Number::from(0)))
 }

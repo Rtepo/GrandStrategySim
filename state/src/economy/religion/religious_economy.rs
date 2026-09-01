@@ -102,7 +102,8 @@ pub fn process_see_remittance(
         see_ledger.global_charity_pool += result.secular_remittance;
     } else {
         let remittance_rate = config.state_religion_remittance_rate;
-        let total_donations: f64 = country.cultural_institutions
+        let total_donations: f64 = country
+            .cultural_institutions
             .iter()
             .map(|b| b.donations_collected_this_turn)
             .sum();
@@ -177,7 +178,8 @@ pub fn process_church_fund(
                 continue;
             }
 
-            let maintenance_cost = maintenance_per_building * building.capacity.max(1.0).min(100.0) / 100.0;
+            let maintenance_cost =
+                maintenance_per_building * building.capacity.max(1.0).min(100.0) / 100.0;
             let affordable = country.budget.liquid_reserves.min(maintenance_cost);
             if affordable > 0.0 {
                 country.budget.liquid_reserves -= affordable;
@@ -252,7 +254,8 @@ pub fn process_see_reinvestment(
 
         if let Some(_poorest) = poorest_country {
             // Collect Religion-sector company IDs first to avoid borrow conflict.
-            let religion_company_ids: Vec<String> = all_companies.iter()
+            let religion_company_ids: Vec<String> = all_companies
+                .iter()
                 .filter(|c| c.sector == crate::registries::enums::Sector::Religion)
                 .take(3)
                 .map(|c| c.id.clone())
@@ -400,12 +403,21 @@ mod tests {
 
         let result = process_see_remittance(&mut country, &law, &mut ledger, &config);
 
-        assert!((result.secular_remittance - 80.0).abs() < 0.01,
-            "secular remittance should be 80, got {}", result.secular_remittance);
-        assert!((country.cultural_institutions[0].available_cash - 950.0).abs() < 0.01,
-            "building 0 cash should be 950, got {}", country.cultural_institutions[0].available_cash);
-        assert!((country.cultural_institutions[1].available_cash - 1970.0).abs() < 0.01,
-            "building 1 cash should be 1970, got {}", country.cultural_institutions[1].available_cash);
+        assert!(
+            (result.secular_remittance - 80.0).abs() < 0.01,
+            "secular remittance should be 80, got {}",
+            result.secular_remittance
+        );
+        assert!(
+            (country.cultural_institutions[0].available_cash - 950.0).abs() < 0.01,
+            "building 0 cash should be 950, got {}",
+            country.cultural_institutions[0].available_cash
+        );
+        assert!(
+            (country.cultural_institutions[1].available_cash - 1970.0).abs() < 0.01,
+            "building 1 cash should be 1970, got {}",
+            country.cultural_institutions[1].available_cash
+        );
         assert!((ledger.total_remittances - 80.0).abs() < 0.01);
     }
 
@@ -428,19 +440,23 @@ mod tests {
 
         let result = process_see_remittance(&mut country, &law, &mut ledger, &config);
 
-        assert!((result.state_religion_remittance - 80.0).abs() < 0.01,
-            "state religion remittance should be 80, got {}", result.state_religion_remittance);
-        assert!((country.budget.liquid_reserves - 99920.0).abs() < 0.01,
-            "treasury should be 99920, got {}", country.budget.liquid_reserves);
+        assert!(
+            (result.state_religion_remittance - 80.0).abs() < 0.01,
+            "state religion remittance should be 80, got {}",
+            result.state_religion_remittance
+        );
+        assert!(
+            (country.budget.liquid_reserves - 99920.0).abs() < 0.01,
+            "treasury should be 99920, got {}",
+            country.budget.liquid_reserves
+        );
     }
 
     #[test]
     fn test_church_fund_credits_company_via_transfer_settler() {
         let mut country = Country::mock_for_tests();
         country.budget.liquid_reserves = 100000.0;
-        country.cultural_institutions = vec![
-            make_test_building(0.0, 0.0, Some("religious_co_1")),
-        ];
+        country.cultural_institutions = vec![make_test_building(0.0, 0.0, Some("religious_co_1"))];
 
         let mut company = Company::default();
         company.id = "religious_co_1".to_string();
@@ -460,17 +476,23 @@ mod tests {
         assert!(result.total_paid > 0.0, "church fund should pay something");
         assert_eq!(result.buildings_funded, 1);
         let comp = &companies[0];
-        let cash = comp.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(comp.available_cash);
-        assert!(cash > 0.0, "company should have been credited, got {}", cash);
+        let cash = comp
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(comp.available_cash);
+        assert!(
+            cash > 0.0,
+            "company should have been credited, got {}",
+            cash
+        );
     }
 
     #[test]
     fn test_church_fund_no_payment_when_separated() {
         let mut country = Country::mock_for_tests();
         country.budget.liquid_reserves = 100000.0;
-        country.cultural_institutions = vec![
-            make_test_building(0.0, 0.0, Some("co_1")),
-        ];
+        country.cultural_institutions = vec![make_test_building(0.0, 0.0, Some("co_1"))];
         let mut companies = vec![];
         let law = ReligiousLaw {
             separation_of_church_and_state: true,
@@ -479,7 +501,10 @@ mod tests {
 
         let result = process_church_fund(&mut country, &mut companies, &law);
 
-        assert!((result.total_paid).abs() < 0.001, "no church fund when separated");
+        assert!(
+            (result.total_paid).abs() < 0.001,
+            "no church fund when separated"
+        );
     }
 
     #[test]
@@ -496,10 +521,22 @@ mod tests {
         let see_company_ids: Vec<String> = vec![];
 
         let config = ApostolicSeeConfig::default();
-        let result = process_see_reinvestment(&mut ledger, &mut companies, &gdp_map, &see_company_ids, &config);
+        let result = process_see_reinvestment(
+            &mut ledger,
+            &mut companies,
+            &gdp_map,
+            &see_company_ids,
+            &config,
+        );
 
-        assert!(result.charity_distributed > 0.0, "charity should be distributed");
-        assert!(ledger.global_charity_pool < 20000.0, "pool should be reduced");
+        assert!(
+            result.charity_distributed > 0.0,
+            "charity should be distributed"
+        );
+        assert!(
+            ledger.global_charity_pool < 20000.0,
+            "pool should be reduced"
+        );
     }
 
     #[test]
@@ -517,10 +554,22 @@ mod tests {
 
         let value = process_monastery_production(&mut [building], &mut companies);
 
-        assert!(value > 0.0, "production should generate value, got {}", value);
+        assert!(
+            value > 0.0,
+            "production should generate value, got {}",
+            value
+        );
         let comp = &companies[0];
-        let cash = comp.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(comp.available_cash);
-        assert!(cash > 0.0, "owning company should be credited, got {}", cash);
+        let cash = comp
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(comp.available_cash);
+        assert!(
+            cash > 0.0,
+            "owning company should be credited, got {}",
+            cash
+        );
     }
 
     #[test]

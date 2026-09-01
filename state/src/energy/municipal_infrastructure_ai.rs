@@ -316,15 +316,16 @@ pub fn run_water_investment_ai(
 
     // Step 4: Cost-benefit gate
     let expected_deaths_prevented = estimated_deaths_from_water_quality * 0.4;
-    plan.expected_mortality_reduction_value =
-        expected_deaths_prevented * mortality_cost_per_death;
+    plan.expected_mortality_reduction_value = expected_deaths_prevented * mortality_cost_per_death;
 
     plan.passes_cost_benefit_gate = financing_available
         && plan.estimated_capex > 0.0
         && (plan.expected_mortality_reduction_value > plan.estimated_capex || plan.is_crisis);
 
     if plan.is_crisis && plan.estimated_capex > 0.0 && financing_available {
-        rationales.push("Crisis override: water quality/dehydration crisis, bypassing ROI gate".to_string());
+        rationales.push(
+            "Crisis override: water quality/dehydration crisis, bypassing ROI gate".to_string(),
+        );
     } else if !financing_available {
         rationales.push("Cost-benefit gate: financing not available".to_string());
     } else if plan.estimated_capex == 0.0 {
@@ -367,7 +368,8 @@ pub fn run_sanitation_investment_ai(
 
     // Crisis check: biohazard epidemic or surface water collapse
     let biohazard_crisis = biohazard_level > CRISIS_BIOHAZARD_THRESHOLD;
-    let surface_water_crisis = water_reserves.surface_water_quality < CRISIS_SURFACE_WATER_QUALITY_THRESHOLD;
+    let surface_water_crisis =
+        water_reserves.surface_water_quality < CRISIS_SURFACE_WATER_QUALITY_THRESHOLD;
     plan.is_crisis = biohazard_crisis || surface_water_crisis;
 
     // Step 1: Sewer capacity check
@@ -427,7 +429,9 @@ pub fn run_sanitation_investment_ai(
         && (plan.expected_mortality_reduction_value > plan.estimated_capex || plan.is_crisis);
 
     if plan.is_crisis && plan.estimated_capex > 0.0 && financing_available {
-        rationales.push("Crisis override: biohazard/surface water crisis, bypassing ROI gate".to_string());
+        rationales.push(
+            "Crisis override: biohazard/surface water crisis, bypassing ROI gate".to_string(),
+        );
     } else if !financing_available {
         rationales.push("Cost-benefit gate: financing not available".to_string());
     } else if plan.estimated_capex == 0.0 {
@@ -485,21 +489,27 @@ fn select_best_water_plant(available: &[WaterPlantCostData]) -> Option<WaterPlan
             // Quality per OPEX — higher is better
             let a_score = a.output_water_quality / a.opex_per_liter.max(0.001);
             let b_score = b.output_water_quality / b.opex_per_liter.max(0.001);
-            a_score.partial_cmp(&b_score).unwrap_or(std::cmp::Ordering::Equal)
+            a_score
+                .partial_cmp(&b_score)
+                .unwrap_or(std::cmp::Ordering::Equal)
         })
         .map(|p| p.plant_type)
 }
 
 /// Select the best wastewater treatment plant type: highest discharge_quality
 /// per OPEX among unlocked types.
-fn select_best_wastewater_plant(available: &[WastewaterPlantCostData]) -> Option<WastewaterPlantType> {
+fn select_best_wastewater_plant(
+    available: &[WastewaterPlantCostData],
+) -> Option<WastewaterPlantType> {
     available
         .iter()
         .filter(|p| p.tech_unlocked)
         .max_by(|a, b| {
             let a_score = a.discharge_quality / a.opex_per_liter.max(0.001);
             let b_score = b.discharge_quality / b.opex_per_liter.max(0.001);
-            a_score.partial_cmp(&b_score).unwrap_or(std::cmp::Ordering::Equal)
+            a_score
+                .partial_cmp(&b_score)
+                .unwrap_or(std::cmp::Ordering::Equal)
         })
         .map(|p| p.plant_type)
 }
@@ -585,19 +595,21 @@ pub fn run_unified_municipal_ai(
                 plan.prioritized_domain = *domain;
             }
         } else if *capex > 0.0 {
-            rationales.push(format!("{:?} (crisis): insufficient budget ({:.0} < {:.0})", domain, budget_remaining, *capex));
+            rationales.push(format!(
+                "{:?} (crisis): insufficient budget ({:.0} < {:.0})",
+                domain, budget_remaining, *capex
+            ));
         }
     }
 
     // Second: sort non-crisis domains by ROI (mortality_value / capex)
-    let mut non_crisis: Vec<_> = domains
-        .iter()
-        .filter(|(_, _, c, _)| !*c)
-        .collect();
+    let mut non_crisis: Vec<_> = domains.iter().filter(|(_, _, c, _)| !*c).collect();
     non_crisis.sort_by(|a, b| {
         let a_roi = if a.1 > 0.0 { a.3 / a.1 } else { 0.0 };
         let b_roi = if b.1 > 0.0 { b.3 / b.1 } else { 0.0 };
-        b_roi.partial_cmp(&a_roi).unwrap_or(std::cmp::Ordering::Equal)
+        b_roi
+            .partial_cmp(&a_roi)
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
 
     for (domain, capex, _, _) in non_crisis {
@@ -605,18 +617,24 @@ pub fn run_unified_municipal_ai(
             budget_remaining -= *capex;
             plan.total_capex += *capex;
             funded.push(format!("{:?}", domain));
-            if plan.prioritized_domain == InfrastructureDomain::Thermal && plan.total_capex == *capex {
+            if plan.prioritized_domain == InfrastructureDomain::Thermal
+                && plan.total_capex == *capex
+            {
                 plan.prioritized_domain = *domain;
             }
         }
     }
 
     if funded.is_empty() {
-        rationales.push("No domains funded (insufficient budget or no investment needed)".to_string());
+        rationales
+            .push("No domains funded (insufficient budget or no investment needed)".to_string());
     } else {
         rationales.push(format!("Funded: {}", funded.join(", ")));
     }
-    rationales.push(format!("Total CAPEX: {:.0} / Budget: {:.0}", plan.total_capex, available_budget));
+    rationales.push(format!(
+        "Total CAPEX: {:.0} / Budget: {:.0}",
+        plan.total_capex, available_budget
+    ));
 
     plan.rationale = rationales.join("; ");
     plan
@@ -695,8 +713,17 @@ mod tests {
         };
         let reserves = WaterReserveState::default();
         let plan = run_water_investment_ai(
-            &network, &reserves, 100, 5000.0, 4000.0,
-            &test_water_plant_costs(), 10.0, 10000.0, 0.0, 1.0, true,
+            &network,
+            &reserves,
+            100,
+            5000.0,
+            4000.0,
+            &test_water_plant_costs(),
+            10.0,
+            10000.0,
+            0.0,
+            1.0,
+            true,
         );
         assert_eq!(plan.expand_pipes_km, 0.0);
         assert_eq!(plan.build_treatment_plant, None);
@@ -714,8 +741,17 @@ mod tests {
         };
         let reserves = WaterReserveState::default();
         let plan = run_water_investment_ai(
-            &network, &reserves, 100, 5000.0, 4000.0,
-            &test_water_plant_costs(), 10.0, 10000.0, 10.0, 1.0, true,
+            &network,
+            &reserves,
+            100,
+            5000.0,
+            4000.0,
+            &test_water_plant_costs(),
+            10.0,
+            10000.0,
+            10.0,
+            1.0,
+            true,
         );
         assert!(plan.build_treatment_plant.is_some());
         assert!(plan.is_crisis);
@@ -734,8 +770,18 @@ mod tests {
             ..Default::default()
         };
         let plan = run_sanitation_investment_ai(
-            &sewer, &reserves, 100, 1000.0, 500.0, 10.0,
-            &test_wastewater_plant_costs(), 10.0, 10000.0, 5.0, 1000.0, true,
+            &sewer,
+            &reserves,
+            100,
+            1000.0,
+            500.0,
+            10.0,
+            &test_wastewater_plant_costs(),
+            10.0,
+            10000.0,
+            5.0,
+            1000.0,
+            true,
         );
         assert!(plan.build_wastewater_plant.is_some());
         assert!(plan.is_crisis);
@@ -754,7 +800,14 @@ mod tests {
         };
         let sanitation = SanitationInvestmentPlan::default();
 
-        let plan = run_unified_municipal_ai(thermal, electrical, water, sanitation, WasteInvestmentPlan::default(), 100000.0);
+        let plan = run_unified_municipal_ai(
+            thermal,
+            electrical,
+            water,
+            sanitation,
+            WasteInvestmentPlan::default(),
+            100000.0,
+        );
         assert_eq!(plan.prioritized_domain, InfrastructureDomain::Water);
         assert!(plan.total_capex > 0.0);
     }

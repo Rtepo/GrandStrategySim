@@ -23,7 +23,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::military::units::{MilitaryUnit, UnitType, EquipmentReserve};
+use crate::military::units::{EquipmentReserve, MilitaryUnit, UnitType};
 use crate::registries::enums::Commodity;
 
 // ============================================================================
@@ -51,7 +51,7 @@ pub struct ModernizationConfig {
 impl Default for ModernizationConfig {
     fn default() -> Self {
         Self {
-            scrap_recovery_rate: 0.4, // 40% physical material recovery
+            scrap_recovery_rate: 0.4,             // 40% physical material recovery
             replacement_condition_threshold: 0.5, // Replace equipment below 50% condition
         }
     }
@@ -106,8 +106,8 @@ pub fn available_upgrades(unit_type: UnitType, year: u32) -> Vec<EquipmentUpgrad
                     new_commodity: Commodity::MediumTanks,
                     quantity_ratio: 0.8, // 1 MediumTank replaces 1.25 LightTanks
                     scrap_yields: vec![
-                        (Commodity::Steel, 15.0),     // Steel from armor plate
-                        (Commodity::Aluminum, 5.0),   // Aluminum from components
+                        (Commodity::Steel, 15.0),   // Steel from armor plate
+                        (Commodity::Aluminum, 5.0), // Aluminum from components
                     ],
                 });
             }
@@ -117,10 +117,7 @@ pub fn available_upgrades(unit_type: UnitType, year: u32) -> Vec<EquipmentUpgrad
                     old_commodity: Commodity::MediumTanks,
                     new_commodity: Commodity::HeavyTanks,
                     quantity_ratio: 0.6, // 1 HeavyTank replaces ~1.67 MediumTanks
-                    scrap_yields: vec![
-                        (Commodity::Steel, 20.0),
-                        (Commodity::Aluminum, 8.0),
-                    ],
+                    scrap_yields: vec![(Commodity::Steel, 20.0), (Commodity::Aluminum, 8.0)],
                 });
             }
             upgrades
@@ -135,9 +132,7 @@ pub fn available_upgrades(unit_type: UnitType, year: u32) -> Vec<EquipmentUpgrad
                     old_commodity: Commodity::TowedArtillery,
                     new_commodity: Commodity::SupportEquipment,
                     quantity_ratio: 1.0,
-                    scrap_yields: vec![
-                        (Commodity::Steel, 12.0),
-                    ],
+                    scrap_yields: vec![(Commodity::Steel, 12.0)],
                 });
             }
             upgrades
@@ -165,10 +160,7 @@ pub fn available_upgrades(unit_type: UnitType, year: u32) -> Vec<EquipmentUpgrad
                     old_commodity: Commodity::Fighters,
                     new_commodity: Commodity::Helicopters,
                     quantity_ratio: 0.7,
-                    scrap_yields: vec![
-                        (Commodity::Steel, 8.0),
-                        (Commodity::Aluminum, 12.0),
-                    ],
+                    scrap_yields: vec![(Commodity::Steel, 8.0), (Commodity::Aluminum, 12.0)],
                 });
             }
             upgrades
@@ -243,7 +235,9 @@ pub fn modernize_unit(
 
     for upgrade in upgrades {
         // Collect old equipment data BEFORE removal
-        let old_reserves: Vec<(f64, f64)> = unit.equipment_reserves.iter()
+        let old_reserves: Vec<(f64, f64)> = unit
+            .equipment_reserves
+            .iter()
             .filter(|r| r.commodity == upgrade.old_commodity)
             .map(|r| (r.toe_quantity, r.current_quantity))
             .collect();
@@ -259,7 +253,10 @@ pub fn modernize_unit(
         for (scrap_commodity, base_yield) in &upgrade.scrap_yields {
             let recovered = total_old_current * base_yield * config.scrap_recovery_rate;
             if recovered > 0.0 {
-                *result.scrap_recovered.entry(*scrap_commodity).or_insert(0.0) += recovered;
+                *result
+                    .scrap_recovered
+                    .entry(*scrap_commodity)
+                    .or_insert(0.0) += recovered;
             }
         }
 
@@ -270,11 +267,15 @@ pub fn modernize_unit(
         // Generate procurement demand for the gap between current and target
         let procurement_needed = (new_toe - new_current).max(0.0);
         if procurement_needed > 0.0 {
-            *result.procurement_demand.entry(upgrade.new_commodity).or_insert(0.0) += procurement_needed;
+            *result
+                .procurement_demand
+                .entry(upgrade.new_commodity)
+                .or_insert(0.0) += procurement_needed;
         }
 
         // Remove old equipment reserves
-        unit.equipment_reserves.retain(|r| r.commodity != upgrade.old_commodity);
+        unit.equipment_reserves
+            .retain(|r| r.commodity != upgrade.old_commodity);
 
         // Add new equipment reserve with the upgraded commodity
         if new_toe > 0.0 {
@@ -352,14 +353,23 @@ mod tests {
         let config = ModernizationConfig::default();
 
         // Verify unit has LightTanks before modernization
-        assert!(unit.equipment_reserves.iter().any(|r| r.commodity == Commodity::LightTanks));
+        assert!(unit
+            .equipment_reserves
+            .iter()
+            .any(|r| r.commodity == Commodity::LightTanks));
 
         let result = modernize_unit(&mut unit, 1935, &config); // 1935: MediumTanks available
 
         assert!(result.upgraded);
         // LightTanks should be gone, replaced by MediumTanks
-        assert!(!unit.equipment_reserves.iter().any(|r| r.commodity == Commodity::LightTanks));
-        assert!(unit.equipment_reserves.iter().any(|r| r.commodity == Commodity::MediumTanks));
+        assert!(!unit
+            .equipment_reserves
+            .iter()
+            .any(|r| r.commodity == Commodity::LightTanks));
+        assert!(unit
+            .equipment_reserves
+            .iter()
+            .any(|r| r.commodity == Commodity::MediumTanks));
     }
 
     #[test]
@@ -370,11 +380,18 @@ mod tests {
         let result = modernize_unit(&mut unit, 1935, &config);
 
         // Scrap must return physical commodities (Steel, Aluminum)
-        assert!(!result.scrap_recovered.is_empty(), "Scrap must return physical commodities");
-        assert!(result.scrap_recovered.contains_key(&Commodity::Steel),
-            "Scrap must return Steel (physical commodity, not cash)");
-        assert!(result.scrap_recovered.contains_key(&Commodity::Aluminum),
-            "Scrap must return Aluminum (physical commodity, not cash)");
+        assert!(
+            !result.scrap_recovered.is_empty(),
+            "Scrap must return physical commodities"
+        );
+        assert!(
+            result.scrap_recovered.contains_key(&Commodity::Steel),
+            "Scrap must return Steel (physical commodity, not cash)"
+        );
+        assert!(
+            result.scrap_recovered.contains_key(&Commodity::Aluminum),
+            "Scrap must return Aluminum (physical commodity, not cash)"
+        );
 
         // Verify no fiat cash is in the scrap (scrap_recovered is Commodity-keyed)
         // This is structurally guaranteed — scrap_recovered is HashMap<Commodity, f64>
@@ -391,7 +408,11 @@ mod tests {
         let result = modernize_unit(&mut unit, 1935, &config);
 
         // With 50% recovery rate, scrap should be half of the base yield
-        let steel_recovered = result.scrap_recovered.get(&Commodity::Steel).copied().unwrap_or(0.0);
+        let steel_recovered = result
+            .scrap_recovered
+            .get(&Commodity::Steel)
+            .copied()
+            .unwrap_or(0.0);
         assert!(steel_recovered > 0.0, "Steel must be recovered");
         // The exact amount depends on the LightTank quantity, but it should be
         // proportional to the 50% recovery rate.
@@ -405,10 +426,16 @@ mod tests {
         let result = modernize_unit(&mut unit, 1935, &config);
 
         // Modernization must generate B2B procurement demand for new equipment
-        assert!(!result.procurement_demand.is_empty(),
-            "Modernization must generate procurement demand for new equipment");
-        assert!(result.procurement_demand.contains_key(&Commodity::MediumTanks),
-            "Procurement demand must include MediumTanks");
+        assert!(
+            !result.procurement_demand.is_empty(),
+            "Modernization must generate procurement demand for new equipment"
+        );
+        assert!(
+            result
+                .procurement_demand
+                .contains_key(&Commodity::MediumTanks),
+            "Procurement demand must include MediumTanks"
+        );
     }
 
     #[test]
@@ -419,9 +446,16 @@ mod tests {
         // 1930: MediumTanks not yet available (needs 1935)
         let result = modernize_unit(&mut unit, 1930, &config);
 
-        assert!(!result.upgraded, "No upgrade should happen before the era gate");
-        assert!(unit.equipment_reserves.iter().any(|r| r.commodity == Commodity::LightTanks),
-            "LightTanks should still be present");
+        assert!(
+            !result.upgraded,
+            "No upgrade should happen before the era gate"
+        );
+        assert!(
+            unit.equipment_reserves
+                .iter()
+                .any(|r| r.commodity == Commodity::LightTanks),
+            "LightTanks should still be present"
+        );
     }
 
     #[test]
@@ -443,7 +477,10 @@ mod tests {
         let config = ModernizationConfig::default();
 
         // Verify unit has Rifles before modernization
-        assert!(unit.equipment_reserves.iter().any(|r| r.commodity == Commodity::Rifles));
+        assert!(unit
+            .equipment_reserves
+            .iter()
+            .any(|r| r.commodity == Commodity::Rifles));
 
         let result = modernize_unit(&mut unit, 1935, &config);
 
@@ -451,21 +488,31 @@ mod tests {
         // Note: Rifles are NOT removed — the upgrade adds SupportEquipment
         // The upgrade replaces some rifle capacity with support equipment
         if result.upgraded {
-            assert!(result.procurement_demand.contains_key(&Commodity::SupportEquipment),
-                "Infantry modernization must generate demand for SupportEquipment");
+            assert!(
+                result
+                    .procurement_demand
+                    .contains_key(&Commodity::SupportEquipment),
+                "Infantry modernization must generate demand for SupportEquipment"
+            );
         }
     }
 
     #[test]
     fn test_available_upgrades_empty_for_peasant_battalion() {
         let upgrades = available_upgrades(UnitType::PeasantBattalion, 1940);
-        assert!(upgrades.is_empty(), "Peasant battalions should have no upgrades");
+        assert!(
+            upgrades.is_empty(),
+            "Peasant battalions should have no upgrades"
+        );
     }
 
     #[test]
     fn test_available_upgrades_empty_for_naval() {
         let upgrades = available_upgrades(UnitType::Naval, 1940);
-        assert!(upgrades.is_empty(), "Naval units should have no upgrades (handled by fleet system)");
+        assert!(
+            upgrades.is_empty(),
+            "Naval units should have no upgrades (handled by fleet system)"
+        );
     }
 
     #[test]
@@ -492,7 +539,9 @@ mod tests {
         let config = ModernizationConfig::default();
 
         let _old_equipment_count = unit.equipment_reserves.len();
-        let _old_light_tank_qty: f64 = unit.equipment_reserves.iter()
+        let _old_light_tank_qty: f64 = unit
+            .equipment_reserves
+            .iter()
             .filter(|r| r.commodity == Commodity::LightTanks)
             .map(|r| r.current_quantity)
             .sum();
@@ -500,12 +549,20 @@ mod tests {
         let result = modernize_unit(&mut unit, 1935, &config);
 
         // Old equipment (LightTanks) must be removed from the unit
-        assert!(!unit.equipment_reserves.iter().any(|r| r.commodity == Commodity::LightTanks),
-            "Old equipment must be removed from unit (double-entry: debit unit equipment)");
+        assert!(
+            !unit
+                .equipment_reserves
+                .iter()
+                .any(|r| r.commodity == Commodity::LightTanks),
+            "Old equipment must be removed from unit (double-entry: debit unit equipment)"
+        );
 
         // Physical commodities must be recovered
         let total_scrap: f64 = result.scrap_recovered.values().sum();
-        assert!(total_scrap > 0.0, "Physical commodities must be recovered (double-entry: credit stockpile)");
+        assert!(
+            total_scrap > 0.0,
+            "Physical commodities must be recovered (double-entry: credit stockpile)"
+        );
 
         // The flow is: unit loses equipment → stockpile gains physical commodities
         // No cash is involved anywhere.

@@ -25,12 +25,10 @@ pub enum NeedTier {
 pub struct ConsumptionBasket {
     /// Per capita, per turn consumption by need tier
     /// Maps NeedTier → (Commodity → units per capita per turn)
-
     pub tiers: BTreeMap<NeedTier, BTreeMap<Commodity, f64>>,
-    
+
     /// Max fraction of spending power committed to each tier
     /// Maps NeedTier → budget share (0.0-1.0), must sum to 1.0
-
     pub tier_budget_share: BTreeMap<NeedTier, f64>,
 }
 
@@ -52,18 +50,15 @@ pub struct Substitution {
 pub struct SubsistenceConfig {
     /// Max fraction of a deficit that can be covered by substitution
     /// e.g., 0.5 means at most 50% of protein need can be covered by grain surplus
-
     pub substitution_cap: f64,
-    
+
     /// VWAP wage offset for FreePeasant/LandlessLaborer (class-dependent)
     /// Serfs receive in-kind INSTEAD of wages (no cash offset)
     /// Aristocracy receives no in-kind at all
-
     pub vwap_wage_offset: bool,
-    
+
     /// Nutritional penalty for substituted consumption
     /// Reduces quality-of-life when subsistence is met via substitution
-
     pub nutritional_penalty: f64,
 }
 
@@ -97,17 +92,14 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
             ConsumptionBasket {
                 tiers: {
                     let mut tiers = BTreeMap::new();
-                    tiers.insert(
-                        NeedTier::Subsistence,
-                        {
-                            let mut subsistence = BTreeMap::new();
-                            subsistence.insert(Commodity::Cereal, 0.15); // kg per turn
-                            subsistence.insert(Commodity::Vegetable, 0.10);
-                            subsistence.insert(Commodity::Meat, 0.03);
-                            subsistence.insert(Commodity::HealthCapacity, 0.02); // Phase 7: Health service need
-                            subsistence
-                        },
-                    );
+                    tiers.insert(NeedTier::Subsistence, {
+                        let mut subsistence = BTreeMap::new();
+                        subsistence.insert(Commodity::Cereal, 0.15); // kg per turn
+                        subsistence.insert(Commodity::Vegetable, 0.10);
+                        subsistence.insert(Commodity::Meat, 0.03);
+                        subsistence.insert(Commodity::HealthCapacity, 0.02); // Phase 7: Health service need
+                        subsistence
+                    });
                     tiers.insert(NeedTier::Standard, BTreeMap::new()); // Minimal standard needs
                     tiers.insert(NeedTier::Luxury, BTreeMap::new()); // No luxury
                     tiers
@@ -127,29 +119,23 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
             ConsumptionBasket {
                 tiers: {
                     let mut tiers = BTreeMap::new();
-                    tiers.insert(
-                        NeedTier::Subsistence,
-                        {
-                            let mut subsistence = BTreeMap::new();
-                            subsistence.insert(Commodity::Cereal, 0.18);
-                            subsistence.insert(Commodity::Vegetable, 0.12);
-                            subsistence.insert(Commodity::Meat, 0.07); // Phase 76: merged Protein (0.08) + Meat (0.02), reduced for density
-                            subsistence.insert(Commodity::Fruit, 0.02); // Phase 74: modest fruit consumption
-                            subsistence.insert(Commodity::HealthCapacity, 0.03); // Phase 7: Health service need
-                            subsistence.insert(Commodity::EducationSlots, 0.01); // Phase 7: Education service need
-                            subsistence
-                        },
-                    );
-                    tiers.insert(
-                        NeedTier::Standard,
-                        {
-                            let mut standard = BTreeMap::new();
-                            standard.insert(Commodity::Clothing, 0.02);
-                            standard.insert(Commodity::Furniture, 0.01); // Using Furniture for household goods
-                            standard.insert(Commodity::Radio, 0.003); // Phase 20: basic consumer electronics
-                            standard
-                        },
-                    );
+                    tiers.insert(NeedTier::Subsistence, {
+                        let mut subsistence = BTreeMap::new();
+                        subsistence.insert(Commodity::Cereal, 0.18);
+                        subsistence.insert(Commodity::Vegetable, 0.12);
+                        subsistence.insert(Commodity::Meat, 0.07); // Phase 76: merged Protein (0.08) + Meat (0.02), reduced for density
+                        subsistence.insert(Commodity::Fruit, 0.02); // Phase 74: modest fruit consumption
+                        subsistence.insert(Commodity::HealthCapacity, 0.03); // Phase 7: Health service need
+                        subsistence.insert(Commodity::EducationSlots, 0.01); // Phase 7: Education service need
+                        subsistence
+                    });
+                    tiers.insert(NeedTier::Standard, {
+                        let mut standard = BTreeMap::new();
+                        standard.insert(Commodity::Clothing, 0.02);
+                        standard.insert(Commodity::Furniture, 0.01); // Using Furniture for household goods
+                        standard.insert(Commodity::Radio, 0.003); // Phase 20: basic consumer electronics
+                        standard
+                    });
                     tiers.insert(NeedTier::Luxury, BTreeMap::new());
                     tiers
                 },
@@ -168,27 +154,21 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
             ConsumptionBasket {
                 tiers: {
                     let mut tiers = BTreeMap::new();
-                    tiers.insert(
-                        NeedTier::Subsistence,
-                        {
-                            let mut subsistence = BTreeMap::new();
-                            subsistence.insert(Commodity::Cereal, 0.16);
-                            subsistence.insert(Commodity::Vegetable, 0.11);
-                            subsistence.insert(Commodity::Meat, 0.05); // Phase 76: merged Protein (0.06) + Meat (0.01)
-                            subsistence.insert(Commodity::HealthCapacity, 0.025); // Phase 7: Health service need
-                            subsistence.insert(Commodity::EducationSlots, 0.008); // Phase 7: Education service need
-                            subsistence
-                        },
-                    );
-                    tiers.insert(
-                        NeedTier::Standard,
-                        {
-                            let mut standard = BTreeMap::new();
-                            standard.insert(Commodity::Clothing, 0.015);
-                            standard.insert(Commodity::Furniture, 0.008); // Using Furniture for household goods
-                            standard
-                        },
-                    );
+                    tiers.insert(NeedTier::Subsistence, {
+                        let mut subsistence = BTreeMap::new();
+                        subsistence.insert(Commodity::Cereal, 0.16);
+                        subsistence.insert(Commodity::Vegetable, 0.11);
+                        subsistence.insert(Commodity::Meat, 0.05); // Phase 76: merged Protein (0.06) + Meat (0.01)
+                        subsistence.insert(Commodity::HealthCapacity, 0.025); // Phase 7: Health service need
+                        subsistence.insert(Commodity::EducationSlots, 0.008); // Phase 7: Education service need
+                        subsistence
+                    });
+                    tiers.insert(NeedTier::Standard, {
+                        let mut standard = BTreeMap::new();
+                        standard.insert(Commodity::Clothing, 0.015);
+                        standard.insert(Commodity::Furniture, 0.008); // Using Furniture for household goods
+                        standard
+                    });
                     tiers.insert(NeedTier::Luxury, BTreeMap::new());
                     tiers
                 },
@@ -207,44 +187,35 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
             ConsumptionBasket {
                 tiers: {
                     let mut tiers = BTreeMap::new();
-                    tiers.insert(
-                        NeedTier::Subsistence,
-                        {
-                            let mut subsistence = BTreeMap::new();
-                            subsistence.insert(Commodity::Cereal, 0.25);
-                            subsistence.insert(Commodity::Vegetable, 0.20);
-                            subsistence.insert(Commodity::Luxury, 0.05);
-                            subsistence.insert(Commodity::HealthCapacity, 0.05); // Phase 7: Health service need
-                            subsistence.insert(Commodity::EducationSlots, 0.02); // Phase 7: Education service need
-                            subsistence.insert(Commodity::Meat, 0.17); // Phase 76: merged Protein (0.15) + Meat (0.08), reduced for density
-                            subsistence.insert(Commodity::Fruit, 0.05); // Phase 20: Fruit
-                            subsistence
-                        },
-                    );
-                    tiers.insert(
-                        NeedTier::Standard,
-                        {
-                            let mut standard = BTreeMap::new();
-                            standard.insert(Commodity::Clothing, 0.05);
-                            standard.insert(Commodity::Furniture, 0.03); // Using Furniture for household goods
-                            standard.insert(Commodity::OfficeMachinery, 0.01); // Using OfficeMachinery for electronics
-                            standard.insert(Commodity::Televisions, 0.005); // Phase 20: Televisions
-                            standard.insert(Commodity::Agd, 0.008); // Phase 20: Agd
-                            standard.insert(Commodity::Fuels, 0.03); // Phase 30: Motor fuel for car owners
-                            standard
-                        },
-                    );
-                    tiers.insert(
-                        NeedTier::Luxury,
-                        {
-                            let mut luxury = BTreeMap::new();
-                            luxury.insert(Commodity::Luxury, 0.10);
-                            luxury.insert(Commodity::LuxuryFurniture, 0.02); // Phase 20: LuxuryFurniture
-                            luxury.insert(Commodity::LuxuryClothing, 0.03); // Phase 20: LuxuryClothing
-                            luxury.insert(Commodity::Cars, 0.005); // Phase 20: Cars
-                            luxury
-                        },
-                    );
+                    tiers.insert(NeedTier::Subsistence, {
+                        let mut subsistence = BTreeMap::new();
+                        subsistence.insert(Commodity::Cereal, 0.25);
+                        subsistence.insert(Commodity::Vegetable, 0.20);
+                        subsistence.insert(Commodity::Luxury, 0.05);
+                        subsistence.insert(Commodity::HealthCapacity, 0.05); // Phase 7: Health service need
+                        subsistence.insert(Commodity::EducationSlots, 0.02); // Phase 7: Education service need
+                        subsistence.insert(Commodity::Meat, 0.17); // Phase 76: merged Protein (0.15) + Meat (0.08), reduced for density
+                        subsistence.insert(Commodity::Fruit, 0.05); // Phase 20: Fruit
+                        subsistence
+                    });
+                    tiers.insert(NeedTier::Standard, {
+                        let mut standard = BTreeMap::new();
+                        standard.insert(Commodity::Clothing, 0.05);
+                        standard.insert(Commodity::Furniture, 0.03); // Using Furniture for household goods
+                        standard.insert(Commodity::OfficeMachinery, 0.01); // Using OfficeMachinery for electronics
+                        standard.insert(Commodity::Televisions, 0.005); // Phase 20: Televisions
+                        standard.insert(Commodity::Agd, 0.008); // Phase 20: Agd
+                        standard.insert(Commodity::Fuels, 0.03); // Phase 30: Motor fuel for car owners
+                        standard
+                    });
+                    tiers.insert(NeedTier::Luxury, {
+                        let mut luxury = BTreeMap::new();
+                        luxury.insert(Commodity::Luxury, 0.10);
+                        luxury.insert(Commodity::LuxuryFurniture, 0.02); // Phase 20: LuxuryFurniture
+                        luxury.insert(Commodity::LuxuryClothing, 0.03); // Phase 20: LuxuryClothing
+                        luxury.insert(Commodity::Cars, 0.005); // Phase 20: Cars
+                        luxury
+                    });
                     tiers
                 },
                 tier_budget_share: {
@@ -263,30 +234,24 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
             ConsumptionBasket {
                 tiers: {
                     let mut tiers = BTreeMap::new();
-                    tiers.insert(
-                        NeedTier::Subsistence,
-                        {
-                            let mut subsistence = BTreeMap::new();
-                            subsistence.insert(Commodity::Cereal, 0.20);
-                            subsistence.insert(Commodity::Vegetable, 0.15);
-                            subsistence.insert(Commodity::HealthCapacity, 0.04); // Phase 7: Health service need
-                            subsistence.insert(Commodity::EducationSlots, 0.015); // Phase 7: Education service need
-                            subsistence.insert(Commodity::Meat, 0.09); // Phase 76: merged Protein (0.10) + Meat (0.03), reduced for density
-                            subsistence
-                        },
-                    );
-                    tiers.insert(
-                        NeedTier::Standard,
-                        {
-                            let mut standard = BTreeMap::new();
-                            standard.insert(Commodity::Clothing, 0.03);
-                            standard.insert(Commodity::Furniture, 0.02); // Using Furniture for household goods
-                            standard.insert(Commodity::Radio, 0.005); // Phase 20: Radio
-                            standard.insert(Commodity::Televisions, 0.003); // Phase 20: Televisions
-                            standard.insert(Commodity::Agd, 0.005); // Phase 20: Agd
-                            standard
-                        },
-                    );
+                    tiers.insert(NeedTier::Subsistence, {
+                        let mut subsistence = BTreeMap::new();
+                        subsistence.insert(Commodity::Cereal, 0.20);
+                        subsistence.insert(Commodity::Vegetable, 0.15);
+                        subsistence.insert(Commodity::HealthCapacity, 0.04); // Phase 7: Health service need
+                        subsistence.insert(Commodity::EducationSlots, 0.015); // Phase 7: Education service need
+                        subsistence.insert(Commodity::Meat, 0.09); // Phase 76: merged Protein (0.10) + Meat (0.03), reduced for density
+                        subsistence
+                    });
+                    tiers.insert(NeedTier::Standard, {
+                        let mut standard = BTreeMap::new();
+                        standard.insert(Commodity::Clothing, 0.03);
+                        standard.insert(Commodity::Furniture, 0.02); // Using Furniture for household goods
+                        standard.insert(Commodity::Radio, 0.005); // Phase 20: Radio
+                        standard.insert(Commodity::Televisions, 0.003); // Phase 20: Televisions
+                        standard.insert(Commodity::Agd, 0.005); // Phase 20: Agd
+                        standard
+                    });
                     tiers.insert(NeedTier::Luxury, BTreeMap::new());
                     tiers
                 },
@@ -306,43 +271,34 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
             ConsumptionBasket {
                 tiers: {
                     let mut tiers = BTreeMap::new();
-                    tiers.insert(
-                        NeedTier::Subsistence,
-                        {
-                            let mut subsistence = BTreeMap::new();
-                            subsistence.insert(Commodity::Cereal, 0.22);
-                            subsistence.insert(Commodity::Vegetable, 0.18);
-                            subsistence.insert(Commodity::HealthCapacity, 0.04);
-                            subsistence.insert(Commodity::EducationSlots, 0.02);
-                            subsistence.insert(Commodity::Meat, 0.15); // Phase 76: merged Protein (0.12) + Meat (0.06), reduced for density
-                            subsistence.insert(Commodity::Fruit, 0.04);
-                            subsistence
-                        },
-                    );
-                    tiers.insert(
-                        NeedTier::Standard,
-                        {
-                            let mut standard = BTreeMap::new();
-                            standard.insert(Commodity::Clothing, 0.04);
-                            standard.insert(Commodity::Furniture, 0.03);
-                            standard.insert(Commodity::Radio, 0.005);
-                            standard.insert(Commodity::Televisions, 0.008);
-                            standard.insert(Commodity::Agd, 0.01);
-                            standard.insert(Commodity::Cars, 0.003);
-                            standard.insert(Commodity::Fuels, 0.02); // Phase 30: Motor fuel for car owners
-                            standard
-                        },
-                    );
-                    tiers.insert(
-                        NeedTier::Luxury,
-                        {
-                            let mut luxury = BTreeMap::new();
-                            luxury.insert(Commodity::Luxury, 0.05);
-                            luxury.insert(Commodity::LuxuryFurniture, 0.01);
-                            luxury.insert(Commodity::LuxuryClothing, 0.015);
-                            luxury
-                        },
-                    );
+                    tiers.insert(NeedTier::Subsistence, {
+                        let mut subsistence = BTreeMap::new();
+                        subsistence.insert(Commodity::Cereal, 0.22);
+                        subsistence.insert(Commodity::Vegetable, 0.18);
+                        subsistence.insert(Commodity::HealthCapacity, 0.04);
+                        subsistence.insert(Commodity::EducationSlots, 0.02);
+                        subsistence.insert(Commodity::Meat, 0.15); // Phase 76: merged Protein (0.12) + Meat (0.06), reduced for density
+                        subsistence.insert(Commodity::Fruit, 0.04);
+                        subsistence
+                    });
+                    tiers.insert(NeedTier::Standard, {
+                        let mut standard = BTreeMap::new();
+                        standard.insert(Commodity::Clothing, 0.04);
+                        standard.insert(Commodity::Furniture, 0.03);
+                        standard.insert(Commodity::Radio, 0.005);
+                        standard.insert(Commodity::Televisions, 0.008);
+                        standard.insert(Commodity::Agd, 0.01);
+                        standard.insert(Commodity::Cars, 0.003);
+                        standard.insert(Commodity::Fuels, 0.02); // Phase 30: Motor fuel for car owners
+                        standard
+                    });
+                    tiers.insert(NeedTier::Luxury, {
+                        let mut luxury = BTreeMap::new();
+                        luxury.insert(Commodity::Luxury, 0.05);
+                        luxury.insert(Commodity::LuxuryFurniture, 0.01);
+                        luxury.insert(Commodity::LuxuryClothing, 0.015);
+                        luxury
+                    });
                     tiers
                 },
                 tier_budget_share: {
@@ -360,42 +316,33 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
             ConsumptionBasket {
                 tiers: {
                     let mut tiers = BTreeMap::new();
-                    tiers.insert(
-                        NeedTier::Subsistence,
-                        {
-                            let mut subsistence = BTreeMap::new();
-                            subsistence.insert(Commodity::Cereal, 0.21);
-                            subsistence.insert(Commodity::Vegetable, 0.16);
-                            subsistence.insert(Commodity::HealthCapacity, 0.04);
-                            subsistence.insert(Commodity::EducationSlots, 0.018);
-                            subsistence.insert(Commodity::Meat, 0.12); // Phase 76: merged Protein (0.11) + Meat (0.04), reduced for density
-                            subsistence.insert(Commodity::Fruit, 0.03);
-                            subsistence
-                        },
-                    );
-                    tiers.insert(
-                        NeedTier::Standard,
-                        {
-                            let mut standard = BTreeMap::new();
-                            standard.insert(Commodity::Clothing, 0.035);
-                            standard.insert(Commodity::Furniture, 0.025);
-                            standard.insert(Commodity::Radio, 0.004);
-                            standard.insert(Commodity::Televisions, 0.005);
-                            standard.insert(Commodity::Agd, 0.008);
-                            standard.insert(Commodity::Cars, 0.002);
-                            standard.insert(Commodity::Fuels, 0.015); // Phase 30: Motor fuel for car owners
-                            standard
-                        },
-                    );
-                    tiers.insert(
-                        NeedTier::Luxury,
-                        {
-                            let mut luxury = BTreeMap::new();
-                            luxury.insert(Commodity::Luxury, 0.02);
-                            luxury.insert(Commodity::LuxuryClothing, 0.005);
-                            luxury
-                        },
-                    );
+                    tiers.insert(NeedTier::Subsistence, {
+                        let mut subsistence = BTreeMap::new();
+                        subsistence.insert(Commodity::Cereal, 0.21);
+                        subsistence.insert(Commodity::Vegetable, 0.16);
+                        subsistence.insert(Commodity::HealthCapacity, 0.04);
+                        subsistence.insert(Commodity::EducationSlots, 0.018);
+                        subsistence.insert(Commodity::Meat, 0.12); // Phase 76: merged Protein (0.11) + Meat (0.04), reduced for density
+                        subsistence.insert(Commodity::Fruit, 0.03);
+                        subsistence
+                    });
+                    tiers.insert(NeedTier::Standard, {
+                        let mut standard = BTreeMap::new();
+                        standard.insert(Commodity::Clothing, 0.035);
+                        standard.insert(Commodity::Furniture, 0.025);
+                        standard.insert(Commodity::Radio, 0.004);
+                        standard.insert(Commodity::Televisions, 0.005);
+                        standard.insert(Commodity::Agd, 0.008);
+                        standard.insert(Commodity::Cars, 0.002);
+                        standard.insert(Commodity::Fuels, 0.015); // Phase 30: Motor fuel for car owners
+                        standard
+                    });
+                    tiers.insert(NeedTier::Luxury, {
+                        let mut luxury = BTreeMap::new();
+                        luxury.insert(Commodity::Luxury, 0.02);
+                        luxury.insert(Commodity::LuxuryClothing, 0.005);
+                        luxury
+                    });
                     tiers
                 },
                 tier_budget_share: {
@@ -498,7 +445,7 @@ pub fn price_substitution_matrix() -> &'static BTreeMap<Commodity, Vec<PriceSubs
                 PriceSubstitution {
                     primary: Commodity::Meat,
                     substitute: Commodity::Cereal,
-                    equivalence_ratio: 0.4,  // 2.5 kg cereal ≈ 1 kg meat
+                    equivalence_ratio: 0.4, // 2.5 kg cereal ≈ 1 kg meat
                     elasticity_coefficient: 0.8,
                     max_substitution: 0.6,
                 },

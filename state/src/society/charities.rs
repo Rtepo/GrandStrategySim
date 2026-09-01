@@ -10,8 +10,8 @@
 
 #![allow(missing_docs)]
 
-use crate::entities::Company;
 use crate::entities::legal_form::LegalForm;
+use crate::entities::Company;
 use crate::registries::enums::Sector;
 use crate::state::Country;
 
@@ -55,11 +55,7 @@ fn devotion_factor(cultural_group: &str) -> f64 {
 /// * Religious charities collect from classes matching their religion.
 /// * Donation rate: 1% of wealthy savings (NGO), 0.5% of co-religionist savings (Religion).
 /// * Factors scaled by cultural solidarity/devotion.
-pub fn process_charity_fundraising(
-    companies: &mut [Company],
-    country: &mut Country,
-    _turn: u32,
-) {
+pub fn process_charity_fundraising(companies: &mut [Company], country: &mut Country, _turn: u32) {
     let avg_wage = country.macro_indicators.average_wage.max(1.0);
     let cultural_group = &country.macro_indicators.cultural_group;
 
@@ -139,16 +135,16 @@ pub fn process_charity_fundraising(
                     }
                 } else if is_religion
                     && !charity_religion.is_empty()
-                        && !demographics.religion.is_empty()
-                        && demographics.religion == charity_religion
-                        && demographics.savings > 0.0
-                    {
-                        let factor = devotion_factor(cultural_group);
-                        let donation = demographics.savings * 0.005 * factor;
-                        let donation = (donation * staffing_ratio).min(demographics.savings);
-                        demographics.savings -= donation;
-                        total_collected += donation;
-                    }
+                    && !demographics.religion.is_empty()
+                    && demographics.religion == charity_religion
+                    && demographics.savings > 0.0
+                {
+                    let factor = devotion_factor(cultural_group);
+                    let donation = demographics.savings * 0.005 * factor;
+                    let donation = (donation * staffing_ratio).min(demographics.savings);
+                    demographics.savings -= donation;
+                    total_collected += donation;
+                }
             }
         }
 
@@ -185,11 +181,7 @@ pub fn process_charity_fundraising(
 /// * Threshold: classes with `savings_per_capita < average_wage` are eligible.
 /// * Operational costs (rent, utilities, wages) are already deducted by the
 ///   standard company processing pipeline — all available_cash is distributable.
-pub fn process_charity_distribution(
-    companies: &mut [Company],
-    country: &mut Country,
-    _turn: u32,
-) {
+pub fn process_charity_distribution(companies: &mut [Company], country: &mut Country, _turn: u32) {
     let avg_wage = country.macro_indicators.average_wage.max(1.0);
 
     for company in companies.iter_mut() {
@@ -242,9 +234,9 @@ pub fn process_charity_distribution(
                     && (charity_religion.is_empty()
                         || demographics.religion.is_empty()
                         || demographics.religion != charity_religion)
-                    {
-                        continue;
-                    }
+                {
+                    continue;
+                }
                 eligible.push((r_idx, true, class_key.clone(), demographics.population));
                 total_eligible_pop += demographics.population;
             }
@@ -260,9 +252,9 @@ pub fn process_charity_distribution(
                     && (charity_religion.is_empty()
                         || demographics.religion.is_empty()
                         || demographics.religion != charity_religion)
-                    {
-                        continue;
-                    }
+                {
+                    continue;
+                }
                 eligible.push((r_idx, false, class_key.clone(), demographics.population));
                 total_eligible_pop += demographics.population;
             }
@@ -308,9 +300,7 @@ mod tests {
     use crate::entities::legal_form::NonProfitData;
     use crate::entities::Company;
     use crate::registries::enums::Sector;
-    use crate::society::geography::{
-        ClassDemographics, Region,
-    };
+    use crate::society::geography::{ClassDemographics, Region};
     use crate::state::Country;
 
     fn make_charity(sector: Sector, religion: &str, cash: f64) -> Company {
@@ -381,7 +371,11 @@ mod tests {
         process_charity_fundraising(&mut companies, &mut country, 1);
 
         // Should have collected 1% of 50000 * solidarity(1.0) = 500.
-        let ba_cash = companies[0].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
+        let ba_cash = companies[0]
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0);
         assert!(ba_cash > 400.0 && ba_cash < 600.0);
     }
 
@@ -394,7 +388,11 @@ mod tests {
 
         // Should collect 0.5% from Catholicism classes (aristocracy: 50000, free_peasant: 2000).
         // Total = 0.005 * (50000 + 2000) * devotion(1.0) = 260.
-        let ba_cash = companies[0].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
+        let ba_cash = companies[0]
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0);
         assert!(ba_cash > 200.0 && ba_cash < 300.0);
     }
 
@@ -406,7 +404,11 @@ mod tests {
         process_charity_fundraising(&mut companies, &mut country, 1);
 
         // Should only collect from landless_laborer (Islam): 0.005 * 1000 * 1.0 = 5.
-        let ba_cash = companies[0].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
+        let ba_cash = companies[0]
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0);
         assert!(ba_cash > 3.0 && ba_cash < 8.0);
     }
 
@@ -422,7 +424,11 @@ mod tests {
         // Wait — aristocracy has 500 per capita > 100, so excluded.
         // free_peasant: 10 < 100, landless_laborer: 10 < 100. Both eligible.
         // Total eligible pop = 300. Per capita relief = 1000/300 ≈ 3.33.
-        let ba_cash = companies[0].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
+        let ba_cash = companies[0]
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0);
         assert!(ba_cash < 1.0); // All distributed
     }
 

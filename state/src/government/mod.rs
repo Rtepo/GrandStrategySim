@@ -5,17 +5,11 @@
 //! corporate and VAT revenues, then clearing state OPEX (state-building
 //! maintenance, the Black Ops budget, and debt servicing).
 
-pub mod treasury_ops;
 pub mod kio;
+pub mod treasury_ops;
 
 pub use treasury_ops::{
-    settle_rot_fees,
-    settle_periodic_storage_fees,
-    check_emergency_conditions,
-    apply_rationing_consequences,
-    accumulate_storage_fees,
-    process_storage_transactions,
-    calculate_black_ops_budget,
-    process_black_ops_funding,
-    process_state_reserve_maintenance,
+    accumulate_storage_fees, apply_rationing_consequences, calculate_black_ops_budget,
+    check_emergency_conditions, process_black_ops_funding, process_state_reserve_maintenance,
+    process_storage_transactions, settle_periodic_storage_fees, settle_rot_fees,
 };

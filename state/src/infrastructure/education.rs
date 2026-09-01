@@ -31,22 +31,17 @@ pub enum EducationBuildingType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct EducationTemplate {
     /// Type of institution
-
     pub institution_type: EducationBuildingType,
 
     /// Base capacity per turn
-
     pub base_capacity: f64,
 
     /// Cost per capacity unit
-
     pub cost_per_capacity: f64,
 
     /// Required qualification for staff
-
     pub staff_qualification: LaborTier,
 
     /// Probability of class advancement
-
     pub class_mobility_impact: f64,
 }

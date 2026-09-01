@@ -31,10 +31,10 @@ impl IntelLevel {
     /// Returns the estimation error margin (as a fraction of true value) for this tier.
     pub fn error_margin(self) -> f64 {
         match self {
-            IntelLevel::Unknown => 1.0,   // 100% error — no data
-            IntelLevel::BroadRange => 0.50, // ±50%
+            IntelLevel::Unknown => 1.0,      // 100% error — no data
+            IntelLevel::BroadRange => 0.50,  // ±50%
             IntelLevel::NarrowRange => 0.15, // ±15%
-            IntelLevel::Exact => 0.0,       // No error
+            IntelLevel::Exact => 0.0,        // No error
         }
     }
 
@@ -100,32 +100,53 @@ pub enum PlayerRole {
 impl PlayerRole {
     /// Returns true if this role can see exact own-country military data.
     pub fn can_see_own_military(self) -> bool {
-        matches!(self, PlayerRole::HeadOfState | PlayerRole::MinisterOfDefense | PlayerRole::Admin)
+        matches!(
+            self,
+            PlayerRole::HeadOfState | PlayerRole::MinisterOfDefense | PlayerRole::Admin
+        )
     }
 
     /// Returns true if this role can see exact own-country financial data.
     pub fn can_see_own_finances(self) -> bool {
-        matches!(self, PlayerRole::HeadOfState | PlayerRole::MinisterOfFinance | PlayerRole::Admin)
+        matches!(
+            self,
+            PlayerRole::HeadOfState | PlayerRole::MinisterOfFinance | PlayerRole::Admin
+        )
     }
 
     /// Returns true if this role can see foreign country succession/dynasty details.
     pub fn can_see_foreign_dynasty(self) -> bool {
-        matches!(self, PlayerRole::HeadOfState | PlayerRole::IntelligenceDirector | PlayerRole::Admin)
+        matches!(
+            self,
+            PlayerRole::HeadOfState | PlayerRole::IntelligenceDirector | PlayerRole::Admin
+        )
     }
 
     /// Returns true if this role can see KNF fraud investigation details.
     pub fn can_see_knf_investigations(self) -> bool {
-        matches!(self, PlayerRole::HeadOfState | PlayerRole::MinisterOfFinance | PlayerRole::Admin)
+        matches!(
+            self,
+            PlayerRole::HeadOfState | PlayerRole::MinisterOfFinance | PlayerRole::Admin
+        )
     }
 
     /// Returns true if this role can see enemy military morale/POW details.
     pub fn can_see_enemy_morale(self) -> bool {
-        matches!(self, PlayerRole::HeadOfState | PlayerRole::MinisterOfDefense | PlayerRole::IntelligenceDirector | PlayerRole::Admin)
+        matches!(
+            self,
+            PlayerRole::HeadOfState
+                | PlayerRole::MinisterOfDefense
+                | PlayerRole::IntelligenceDirector
+                | PlayerRole::Admin
+        )
     }
 
     /// Returns true if this role can see rebellion risk in other countries.
     pub fn can_see_foreign_rebellion_risk(self) -> bool {
-        matches!(self, PlayerRole::HeadOfState | PlayerRole::IntelligenceDirector | PlayerRole::Admin)
+        matches!(
+            self,
+            PlayerRole::HeadOfState | PlayerRole::IntelligenceDirector | PlayerRole::Admin
+        )
     }
 }
 
@@ -149,11 +170,7 @@ impl PlayerRole {
 /// # Returns
 /// A numeric estimate that the frontend can safely consume as a `number`.
 /// Returns `0.0` when `IntelLevel::Unknown` (not `null`).
-pub fn obfuscate_numeric(
-    true_value: f64,
-    intel_level: IntelLevel,
-    rng: &mut impl Rng,
-) -> f64 {
+pub fn obfuscate_numeric(true_value: f64, intel_level: IntelLevel, rng: &mut impl Rng) -> f64 {
     if !true_value.is_finite() {
         return 0.0;
     }
@@ -456,20 +473,24 @@ pub fn process_intel_turn(
     let level = compute_intel_level(state, observer, target, fog_config);
 
     // Get or create the intelligence entry
-    let observer_intel = intelligence
-        .entry(observer.to_string())
-        .or_default();
+    let observer_intel = intelligence.entry(observer.to_string()).or_default();
     let intel = observer_intel
         .entry(target.to_string())
         .or_insert_with(ForeignIntelligence::unknown);
 
     // Only update if the level changed or it's time for a refresh
-    let should_update = intel.intel_level != level
-        || (current_turn - intel.last_intel_turn) >= 5;
+    let should_update = intel.intel_level != level || (current_turn - intel.last_intel_turn) >= 5;
 
     if should_update {
         let mut rng = rand::thread_rng();
-        intel.update_from_true_values(true_gdp, true_military, true_treasury, level, current_turn, &mut rng);
+        intel.update_from_true_values(
+            true_gdp,
+            true_military,
+            true_treasury,
+            level,
+            current_turn,
+            &mut rng,
+        );
     }
 }
 
@@ -480,7 +501,10 @@ mod tests {
     #[test]
     fn test_intel_level_progression() {
         assert_eq!(IntelLevel::Unknown.upgrade(), Some(IntelLevel::BroadRange));
-        assert_eq!(IntelLevel::BroadRange.upgrade(), Some(IntelLevel::NarrowRange));
+        assert_eq!(
+            IntelLevel::BroadRange.upgrade(),
+            Some(IntelLevel::NarrowRange)
+        );
         assert_eq!(IntelLevel::NarrowRange.upgrade(), Some(IntelLevel::Exact));
         assert_eq!(IntelLevel::Exact.upgrade(), None);
     }
@@ -521,13 +545,24 @@ mod tests {
     fn test_foreign_intelligence_update_broad_range() {
         let mut intel = ForeignIntelligence::unknown();
         let mut rng = rand::thread_rng();
-        intel.update_from_true_values(1_000_000.0, 500, 50_000.0, IntelLevel::BroadRange, 10, &mut rng);
+        intel.update_from_true_values(
+            1_000_000.0,
+            500,
+            50_000.0,
+            IntelLevel::BroadRange,
+            10,
+            &mut rng,
+        );
 
         assert_eq!(intel.intel_level, IntelLevel::BroadRange);
         assert!(intel.estimated_gdp.is_some());
         let (low, high) = intel.estimated_gdp.unwrap();
         // BroadRange = ±50%, so range should be roughly 500k-1.5M
-        assert!(low > 0.0 && low < 1_000_000.0, "low={} should be below true", low);
+        assert!(
+            low > 0.0 && low < 1_000_000.0,
+            "low={} should be below true",
+            low
+        );
         assert!(high > 1_000_000.0, "high={} should be above true", high);
         assert!(intel.government_known);
     }
@@ -550,10 +585,24 @@ mod tests {
         let mut intel = ForeignIntelligence::unknown();
         let mut rng = rand::thread_rng();
         // First set to BroadRange
-        intel.update_from_true_values(1_000_000.0, 500, 50_000.0, IntelLevel::BroadRange, 10, &mut rng);
+        intel.update_from_true_values(
+            1_000_000.0,
+            500,
+            50_000.0,
+            IntelLevel::BroadRange,
+            10,
+            &mut rng,
+        );
         assert!(intel.estimated_gdp.is_some());
         // Then downgrade to Unknown
-        intel.update_from_true_values(1_000_000.0, 500, 50_000.0, IntelLevel::Unknown, 11, &mut rng);
+        intel.update_from_true_values(
+            1_000_000.0,
+            500,
+            50_000.0,
+            IntelLevel::Unknown,
+            11,
+            &mut rng,
+        );
         assert!(intel.estimated_gdp.is_none());
         assert!(intel.estimated_military.is_none());
         assert!(intel.estimated_treasury.is_none());

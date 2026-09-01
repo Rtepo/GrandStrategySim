@@ -9,23 +9,29 @@
 
 mod corporate;
 
-use crate::international::generate_diplomacy;
-use crate::io::save_manager::{save_game_state, save_named_map};
 use crate::engine::generator::corporate::generate_corporate_entities;
 use crate::engine::generator::corporate::generate_investment_funds;
+use crate::entities::{Company, LegalForm};
+use crate::international::generate_diplomacy;
+use crate::io::save_manager::{save_game_state, save_named_map};
 use crate::politics::Politics;
+use crate::registries::enums::Sector as EntitySector;
 use crate::registries::enums::{Commodity, Sector, WealthBracket};
 use crate::registries::Registries;
-use crate::society::cultures::{generate_cultural_background, CulturalBackground};
-use crate::society::geography::{generate_megaregions, generate_regional_topology, Megaregion, Region};
 use crate::society::cadastre::generate_cadastre;
-use crate::state::{Country, Currency, CurrencyPolicy, GameState, MacroData, TaxRates, Treasury};
+use crate::society::cultures::{generate_cultural_background, CulturalBackground};
+use crate::society::geography::{
+    generate_megaregions, generate_regional_topology, Megaregion, Region,
+};
 use crate::state::banking::{BankBalanceSheet, BankType as BankingBankType};
-use crate::entities::{Company, LegalForm};
-use crate::registries::enums::Sector as EntitySector;
-use crate::state::macro_data::{AgeGroups, Demographics, Education, EnergyMix, Gender, LaborMarket, UnemploymentStructure};
+use crate::state::macro_data::{
+    AgeGroups, Demographics, Education, EnergyMix, Gender, LaborMarket, UnemploymentStructure,
+};
 use crate::state::tax::{IncomeTax, PublicDebt, VatBracket};
-use crate::state::treasury::{BudgetAllocations, ProductionMethodChoice, ScienceState, SectorShare, StockMarket};
+use crate::state::treasury::{
+    BudgetAllocations, ProductionMethodChoice, ScienceState, SectorShare, StockMarket,
+};
+use crate::state::{Country, Currency, CurrencyPolicy, GameState, MacroData, TaxRates, Treasury};
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde_json::{Map, Value};
@@ -34,8 +40,22 @@ use std::error::Error;
 use std::path::Path;
 
 const COUNTRY_NAMES: &[&str] = &[
-    "Sarmatia", "Illyria", "Helvetia", "Nordia", "Bactria", "Persia", "Lechia", "Eldoria",
-    "Venedia", "Occitania", "Gallia", "Dacia", "Krasnovia", "Anatolia", "Iberia", "Anglia",
+    "Sarmatia",
+    "Illyria",
+    "Helvetia",
+    "Nordia",
+    "Bactria",
+    "Persia",
+    "Lechia",
+    "Eldoria",
+    "Venedia",
+    "Occitania",
+    "Gallia",
+    "Dacia",
+    "Krasnovia",
+    "Anatolia",
+    "Iberia",
+    "Anglia",
 ];
 
 const WEALTH_WEIGHTS: &[i32] = &[15, 25, 35, 25];
@@ -72,12 +92,35 @@ impl StartYear {
     /// Technology-count limit based on wealth bracket for this year.
     pub fn tech_limit(self, wealth: WealthBracket) -> usize {
         let map = match self {
-            StartYear::Y1900 => [(WealthBracket::VeryHigh, 17), (WealthBracket::High, 10), (WealthBracket::Medium, 4), (WealthBracket::Low, 0)],
-            StartYear::Y1925 => [(WealthBracket::VeryHigh, 31), (WealthBracket::High, 24), (WealthBracket::Medium, 10), (WealthBracket::Low, 3)],
-            StartYear::Y1950 => [(WealthBracket::VeryHigh, 45), (WealthBracket::High, 38), (WealthBracket::Medium, 22), (WealthBracket::Low, 8)],
-            StartYear::Y1975 => [(WealthBracket::VeryHigh, 64), (WealthBracket::High, 55), (WealthBracket::Medium, 38), (WealthBracket::Low, 20)],
+            StartYear::Y1900 => [
+                (WealthBracket::VeryHigh, 17),
+                (WealthBracket::High, 10),
+                (WealthBracket::Medium, 4),
+                (WealthBracket::Low, 0),
+            ],
+            StartYear::Y1925 => [
+                (WealthBracket::VeryHigh, 31),
+                (WealthBracket::High, 24),
+                (WealthBracket::Medium, 10),
+                (WealthBracket::Low, 3),
+            ],
+            StartYear::Y1950 => [
+                (WealthBracket::VeryHigh, 45),
+                (WealthBracket::High, 38),
+                (WealthBracket::Medium, 22),
+                (WealthBracket::Low, 8),
+            ],
+            StartYear::Y1975 => [
+                (WealthBracket::VeryHigh, 64),
+                (WealthBracket::High, 55),
+                (WealthBracket::Medium, 38),
+                (WealthBracket::Low, 20),
+            ],
         };
-        map.iter().find(|(w, _)| *w == wealth).map(|(_, n)| *n).unwrap_or(0)
+        map.iter()
+            .find(|(w, _)| *w == wealth)
+            .map(|(_, n)| *n)
+            .unwrap_or(0)
     }
 }
 
@@ -154,7 +197,8 @@ pub fn generate_world(
     let selected: Vec<String> = available.into_iter().take(count).collect();
 
     for name in &selected {
-        let (mut country, currency, mut country_regions, bank_companies) = generate_country(name, options.start_year, &mut rng);
+        let (mut country, currency, mut country_regions, bank_companies) =
+            generate_country(name, options.start_year, &mut rng);
         let region_ids: Vec<String> = country_regions.keys().cloned().collect();
         let mut megaregion_list = generate_megaregions(name, &region_ids);
 
@@ -208,7 +252,9 @@ pub fn generate_world(
         .filter(|r| r.population > 0)
         .map(|r| (r.id.clone(), r.coord_y, r.coord_x))
         .collect();
-    state.planet.ensure_base_industrial_veins_per_region(&populated_region_coords, &mut rng);
+    state
+        .planet
+        .ensure_base_industrial_veins_per_region(&populated_region_coords, &mut rng);
 
     // Phase 89: Auto-discover base industrial veins in populated regions.
     // Base industrial commodities (iron, coal, copper, stone, etc.) are
@@ -219,7 +265,9 @@ pub fn generate_world(
         .filter(|r| r.population > 0)
         .map(|r| r.id.clone())
         .collect();
-    state.planet.discover_base_industrial_veins(&populated_region_ids);
+    state
+        .planet
+        .discover_base_industrial_veins(&populated_region_ids);
 
     // Phase 88: Reseed region resources from the Planet's geological vein
     // system. This replaces the deprecated reseed_resources_from_formations
@@ -227,25 +275,37 @@ pub fn generate_world(
     // ran, so we reseed now with the authoritative vein data.
     // CRITICAL: Resource keys are vein IDs (not commodity strings) so that
     // building.deposit_id matches the resource key for the mine counter.
-    crate::society::geography::reseed_resources_from_planet(
-        &mut regions,
-        &state.planet,
-    );
+    crate::society::geography::reseed_resources_from_planet(&mut regions, &state.planet);
 
     let diplomacy = generate_diplomacy(&selected);
 
     // Phase 68: Spawn the World Forum — neutral, all countries as members, Unanimity voting.
-    let world_forum = crate::international::organizations::InternationalOrganization::new_world_forum(
-        &selected,
-        0,
-    );
-    state.international_organizations.organizations.push(world_forum);
+    let world_forum =
+        crate::international::organizations::InternationalOrganization::new_world_forum(
+            &selected, 0,
+        );
+    state
+        .international_organizations
+        .organizations
+        .push(world_forum);
 
-    state.extra.insert("current_turn".to_string(), Value::from(0));
-    state.extra.insert("year".to_string(), Value::from(options.start_year as u32));
+    state
+        .extra
+        .insert("current_turn".to_string(), Value::from(0));
+    state
+        .extra
+        .insert("year".to_string(), Value::from(options.start_year as u32));
 
     for country in state.countries.values_mut() {
-        generate_corporate_entities(data_dir, country, &mut regions, &state.planet, _registries, options.start_year as u32, &mut rng)?;
+        generate_corporate_entities(
+            data_dir,
+            country,
+            &mut regions,
+            &state.planet,
+            _registries,
+            options.start_year as u32,
+            &mut rng,
+        )?;
     }
 
     // Bugfix Sprint (5B): Initialize power grids AFTER corporate entities are
@@ -253,11 +313,25 @@ pub fn generate_world(
     // housing/commercial electricity demand (Rule 15 — no magic numbers).
     use crate::io::entity_store::EntityStore;
     for country in state.countries.values_mut() {
-        let housing_store = crate::io::entity_store::DiskEntityStore::<crate::society::housing::HousingBuilding>::new(data_dir);
-        let commercial_store = crate::io::entity_store::DiskEntityStore::<crate::society::housing::CommercialBuilding>::new(data_dir);
-        let housing_buildings = housing_store.load_sector(&country.name, "housing", None).unwrap_or_default();
-        let commercial_buildings = commercial_store.load_sector(&country.name, "commercial", None).unwrap_or_default();
-        crate::energy::grid::init_power_grid(country, &housing_buildings, &commercial_buildings, options.start_year as u32, &mut rng);
+        let housing_store = crate::io::entity_store::DiskEntityStore::<
+            crate::society::housing::HousingBuilding,
+        >::new(data_dir);
+        let commercial_store = crate::io::entity_store::DiskEntityStore::<
+            crate::society::housing::CommercialBuilding,
+        >::new(data_dir);
+        let housing_buildings = housing_store
+            .load_sector(&country.name, "housing", None)
+            .unwrap_or_default();
+        let commercial_buildings = commercial_store
+            .load_sector(&country.name, "commercial", None)
+            .unwrap_or_default();
+        crate::energy::grid::init_power_grid(
+            country,
+            &housing_buildings,
+            &commercial_buildings,
+            options.start_year as u32,
+            &mut rng,
+        );
     }
 
     // Phase 85: Generate factional domains AFTER cadastre and corporate entities
@@ -279,7 +353,13 @@ pub fn generate_world(
         } else {
             country.macro_indicators.cultural_group.clone()
         };
-        generate_investment_funds(data_dir, country, &cultural_group, options.start_year as u32, &mut rng);
+        generate_investment_funds(
+            data_dir,
+            country,
+            &cultural_group,
+            options.start_year as u32,
+            &mut rng,
+        );
     }
 
     save_game_state(data_dir, &state)?;
@@ -294,14 +374,20 @@ pub fn generate_world(
         prices.insert(commodity.into(), 100.0);
     }
     let market = serde_json::json!({ "prices": prices, "orders": {} });
-    std::fs::write(data_dir.join("market.json"), serde_json::to_string_pretty(&market)?)?;
+    std::fs::write(
+        data_dir.join("market.json"),
+        serde_json::to_string_pretty(&market)?,
+    )?;
 
     // Phase 80: Populate state.market_history.global_base_prices with
     // commodity-specific prices from estimated_base_price(). The flat 100.0
     // used previously caused B2B spread deadlock for manufactured goods
     // (unit_cost >> 105.0 buy bid → spread never crosses → no trades).
     for commodity in Commodity::all() {
-        state.market_history.global_base_prices.insert(commodity, corporate::estimated_base_price(commodity));
+        state
+            .market_history
+            .global_base_prices
+            .insert(commodity, corporate::estimated_base_price(commodity));
     }
 
     Ok(GeneratedWorld {
@@ -334,7 +420,16 @@ fn generate_country(
     let demographics = build_demographics(&cultural, population, gdp_pc);
     let tech_limit = start_year.tech_limit(wealth);
 
-    let (mut treasury, average_wage, energy_mix) = build_treasury(name, gdp_total, population, gdp_pc, &demographics, tech_limit, start_year, rng);
+    let (mut treasury, average_wage, energy_mix) = build_treasury(
+        name,
+        gdp_total,
+        population,
+        gdp_pc,
+        &demographics,
+        tech_limit,
+        start_year,
+        rng,
+    );
     let macro_data = build_macro_data(
         name,
         &cultural,
@@ -391,7 +486,13 @@ fn generate_country(
         bank_resolution: crate::state::BankResolution::default(),
         bank_tax: crate::state::BankTax::default(),
         stock_exchange: crate::securities::StockExchange::default(),
-        dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(),
+        dividend_queue: Vec::new(),
+        ipo_queue: Vec::new(),
+        bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(),
+        demolition_queue: Vec::new(),
+        halt_queue: Vec::new(),
+        furlough_wage_queue: Vec::new(),
+        recruitment_cost_queue: Vec::new(),
         knf: crate::securities::KNF::default(),
         capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
         sovereign_default_turns_remaining: 0,
@@ -401,7 +502,8 @@ fn generate_country(
         cultural_institutions: Vec::new(),
         maritime_infrastructure: crate::infrastructure::maritime::MaritimeInfrastructure::default(),
         cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(),
-        building_condition_config: crate::infrastructure::building_condition::BuildingConditionConfig::default(),
+        building_condition_config:
+            crate::infrastructure::building_condition::BuildingConditionConfig::default(),
         maritime_config: crate::infrastructure::maritime::MaritimeConfig::default(),
         securities_config: crate::securities::SecuritiesMarketConfig::default(),
         central_counterparty: crate::securities::CentralCounterparty::default(),
@@ -414,7 +516,8 @@ fn generate_country(
         b2b_order_config: crate::economy::b2b_config::B2bOrderConfig::default(),
         fishing_config: crate::economy::fishing_config::FishingConfig::default(),
         service_pricing_config: crate::economy::service_config::ServicePricingConfig::default(),
-        infrastructure_config: crate::economy::infrastructure_config::InfrastructureConfig::default(),
+        infrastructure_config: crate::economy::infrastructure_config::InfrastructureConfig::default(
+        ),
         innovation_config: crate::economy::innovation_config::InnovationConfig::default(),
         corporate_tech_config: crate::economy::corporate_config::CorporateTechConfig::default(),
         fish_stocks: Vec::new(),
@@ -432,11 +535,15 @@ fn generate_country(
         weather_state: crate::economy::weather::WeatherState::default(),
         maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
         state_forest_state: crate::economy::state_forests::ForestDistrictState::default(),
-        religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
-        generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
+        religious_authority_state:
+            crate::society::religious_authority::ReligiousAuthorityState::default(),
+        generative_goods_config:
+            crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
         geological_formations: Vec::new(),
-        mining_concessions: crate::economy::production::geology::MiningConcessionRegistry::default(),
-        geological_survey_ledger: crate::economy::production::geology::GeologicalSurveyLedger::default(),
+        mining_concessions: crate::economy::production::geology::MiningConcessionRegistry::default(
+        ),
+        geological_survey_ledger:
+            crate::economy::production::geology::GeologicalSurveyLedger::default(),
         phase22_tenders: Vec::new(),
         phase22_lawsuits: Vec::new(),
         phase22_kio_appeals: Vec::new(),
@@ -463,10 +570,15 @@ fn generate_country(
         power_grid_state: crate::energy::PowerGridState::default(),
         ppa_registry: crate::energy::types::PpaRegistry::default(),
         turn_config: crate::engine::turn_config::TurnConfig::default(),
-        market_clearing_config: crate::economy::market::clearing_config::MarketClearingConfig::default(),
+        market_clearing_config:
+            crate::economy::market::clearing_config::MarketClearingConfig::default(),
         labor_config: crate::economy::labor::labor_config::LaborConfig::default(),
         geography_config: crate::society::geography_config::GeographyConfig::default(),
-        municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
+        municipal_infrastructure_plan:
+            crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
+        state_customs_warehouse: rustc_hash::FxHashMap::default(),
+        last_smuggling_result: None,
+        pending_foreign_transit_fees: Vec::new(),
     };
     country.macro_indicators.currency = currency.prefix.clone();
 
@@ -474,11 +586,12 @@ fn generate_country(
     let state_structure = assign_state_structure(&country.politics.government_form, rng);
     country.politics.state_structure = state_structure;
 
-    let mut companies = Vec::new();  // Empty companies for bootstrap
-    // Add bank companies
+    let mut companies = Vec::new(); // Empty companies for bootstrap
+                                    // Add bank companies
     let bank_companies = build_bank_companies(name, &country.budget, &country.central_bank);
     // Phase 37: Populate debt_market with DSPW primary dealers and enable DSPW.
-    let dspw_dealers: Vec<String> = bank_companies.iter()
+    let dspw_dealers: Vec<String> = bank_companies
+        .iter()
         .filter(|b| b.is_dspw)
         .map(|b| b.id.clone())
         .collect();
@@ -489,7 +602,8 @@ fn generate_country(
     companies.extend(bank_companies);
     crate::politics::bootstrap_politics(&mut country, &mut companies, start_year as u32, rng);
 
-    let mut country_regions = generate_regional_topology(name, population as i64, gdp_total, start_year.as_year());
+    let mut country_regions =
+        generate_regional_topology(name, population as i64, gdp_total, start_year.as_year());
 
     // Phase 21A: Generate geological formations with finite, depletable deposits.
     let region_ids: Vec<String> = country_regions.keys().cloned().collect();
@@ -542,17 +656,16 @@ fn generate_country(
     }
 
     // Phase 70: Generate the Order of Battle natively (no flat list, no shim).
-    country.order_of_battle = spawn_standing_oob(
-        &country,
-        &country_regions,
-        start_year.as_year(),
-        rng,
-    );
+    country.order_of_battle =
+        spawn_standing_oob(&country, &country_regions, start_year.as_year(), rng);
 
     // Phase 74: Seed initial military stockpile with 3 turns of upkeep worth
     // of Ammunition and Rifles so armies don't immediately starve on Turn 1.
     // The stockpile is proportional to the total manpower under arms.
-    let total_manpower: f64 = country.order_of_battle.armies.iter()
+    let total_manpower: f64 = country
+        .order_of_battle
+        .armies
+        .iter()
         .flat_map(|a| a.divisions.iter())
         .map(|d| d.total_manpower() as f64)
         .sum();
@@ -561,14 +674,12 @@ fn generate_country(
         let ammo_seed = (total_manpower / 1000.0 * 15.0 * 3.0).max(500.0);
         // Rifles: ~1 rifle per 3 soldiers (not everyone needs a rifle) × 3 turns reserve
         let rifle_seed = (total_manpower / 3.0 * 3.0).max(200.0);
-        country.military_stockpile.insert(
-            crate::registries::enums::Commodity::Ammunition,
-            ammo_seed,
-        );
-        country.military_stockpile.insert(
-            crate::registries::enums::Commodity::Rifles,
-            rifle_seed,
-        );
+        country
+            .military_stockpile
+            .insert(crate::registries::enums::Commodity::Ammunition, ammo_seed);
+        country
+            .military_stockpile
+            .insert(crate::registries::enums::Commodity::Rifles, rifle_seed);
     }
 
     // Phase 77: List JSC companies on the stock exchange during world generation.
@@ -600,16 +711,12 @@ pub fn list_jsc_companies_on_exchange(
     rng: &mut impl rand::Rng,
 ) {
     use crate::entities::LegalForm;
-    use crate::securities::exchange::{
-        InstrumentType, LiquidityPool, Order,
-    };
+    use crate::securities::exchange::{InstrumentType, LiquidityPool, Order};
 
     for company in companies.iter_mut() {
         // Only list JointStockCompany firms
         let (shares_issued, free_float_pct) = match company.legal_form {
-            LegalForm::JointStockCompany(ref jsd) => {
-                (jsd.shares_issued, jsd.free_float)
-            }
+            LegalForm::JointStockCompany(ref jsd) => (jsd.shares_issued, jsd.free_float),
             _ => continue,
         };
         if shares_issued == 0 {
@@ -675,21 +782,27 @@ pub fn list_jsc_companies_on_exchange(
         // Debit wealthy-class savings (proportionally from Aristocracy and Bourgeoisie)
         if ipo_cash > 0.0 {
             if let Some(region) = country_regions.get(&company_region) {
-                let aristo_savings = region.class_demographics.rural_classes
+                let aristo_savings = region
+                    .class_demographics
+                    .rural_classes
                     .get("Aristocracy")
                     .map(|d| d.savings * 0.05)
                     .unwrap_or(0.0);
-                let bourg_savings = region.class_demographics.urban_classes
+                let bourg_savings = region
+                    .class_demographics
+                    .urban_classes
                     .get("Bourgeoisie")
                     .map(|d| d.savings * 0.05)
                     .unwrap_or(0.0);
                 let total_wealthy = aristo_savings + bourg_savings;
                 if total_wealthy > 0.0 {
-                    let aristo_share = (ipo_cash * aristo_savings / total_wealthy).min(aristo_savings);
+                    let aristo_share =
+                        (ipo_cash * aristo_savings / total_wealthy).min(aristo_savings);
                     let bourg_share = (ipo_cash * bourg_savings / total_wealthy).min(bourg_savings);
                     // Debit from country-level citizen_savings as a proxy
                     // (region-level savings are aggregated into citizen_savings)
-                    country.budget.citizen_savings = (country.budget.citizen_savings - aristo_share - bourg_share).max(0.0);
+                    country.budget.citizen_savings =
+                        (country.budget.citizen_savings - aristo_share - bourg_share).max(0.0);
                 }
             }
         }
@@ -717,7 +830,10 @@ pub fn list_jsc_companies_on_exchange(
                 treasury_bonds: Vec::new(),
                 total_value: ipo_cash,
             };
-            country.stock_exchange.liquidity_pools.insert(instrument_id.clone(), pool);
+            country
+                .stock_exchange
+                .liquidity_pools
+                .insert(instrument_id.clone(), pool);
         }
 
         // Place unsold shares as limit ask orders in the order book
@@ -732,15 +848,22 @@ pub fn list_jsc_companies_on_exchange(
                 expiry_turn: u32::MAX, // No expiry — sits until bought
             };
             // Insert into order book
-            let ob = country.stock_exchange.order_book
+            let ob = country
+                .stock_exchange
+                .order_book
                 .entry(instrument_id.clone())
                 .or_default();
             // Add to asks at listing price
-            if let Some(pos) = ob.asks.iter().position(|(p, _)| (*p - listing_price).abs() < 0.001) {
+            if let Some(pos) = ob
+                .asks
+                .iter()
+                .position(|(p, _)| (*p - listing_price).abs() < 0.001)
+            {
                 ob.asks[pos].1.push(order);
             } else {
                 ob.asks.push((listing_price, vec![order]));
-                ob.asks.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                ob.asks
+                    .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
             }
             if ob.best_ask <= 0.0 || listing_price < ob.best_ask {
                 ob.best_ask = listing_price;
@@ -773,8 +896,8 @@ fn spawn_standing_oob(
     start_year: u32,
     rng: &mut impl Rng,
 ) -> crate::military::oob::OrderOfBattle {
-    use crate::military::oob::{generate_asymmetric_oob, OrderOfBattle, Army, Division, Regiment};
-    use crate::military::units::{MilitaryUnit, UnitType, EquipmentReserve};
+    use crate::military::oob::{generate_asymmetric_oob, Army, Division, OrderOfBattle, Regiment};
+    use crate::military::units::{EquipmentReserve, MilitaryUnit, UnitType};
 
     let total_pop: i64 = regions.values().map(|r| r.population).sum();
     let total_gdp: f64 = regions.values().map(|r| r.gdp).sum();
@@ -807,7 +930,8 @@ fn spawn_standing_oob(
 
     // Helper: scale ToE by manpower and seed at 90% strength
     let make_toe = |unit_type: &UnitType, manpower: i64| -> Vec<EquipmentReserve> {
-        unit_type.table_of_equipment(start_year)
+        unit_type
+            .table_of_equipment(start_year)
             .into_iter()
             .map(|mut r| {
                 let scale = manpower as f64 / 1000.0;
@@ -820,9 +944,11 @@ fn spawn_standing_oob(
 
     // Helper: draw manpower proportionally from rural classes
     let draw_manpower = |regions: &HashMap<String, crate::society::geography::Region>,
-                         needed: i64| -> rustc_hash::FxHashMap<crate::society::geography::RuralClass, i64> {
+                         needed: i64|
+     -> rustc_hash::FxHashMap<crate::society::geography::RuralClass, i64> {
         let mut origin = rustc_hash::FxHashMap::default();
-        let total_rural: i64 = regions.values()
+        let total_rural: i64 = regions
+            .values()
             .flat_map(|r| r.class_demographics.rural_classes.values())
             .map(|d| d.population)
             .sum();
@@ -833,7 +959,9 @@ fn spawn_standing_oob(
             for (class_key, demo) in &region.class_demographics.rural_classes {
                 let rural_class = match class_key.as_str() {
                     "FreePeasant" => Some(crate::society::geography::RuralClass::FreePeasant),
-                    "LandlessLaborer" => Some(crate::society::geography::RuralClass::LandlessLaborer),
+                    "LandlessLaborer" => {
+                        Some(crate::society::geography::RuralClass::LandlessLaborer)
+                    }
                     "Serf" => Some(crate::society::geography::RuralClass::Serf),
                     "Aristocracy" => Some(crate::society::geography::RuralClass::Aristocracy),
                     _ => None,
@@ -940,7 +1068,8 @@ fn spawn_standing_oob(
         // Naval Fleet (if coastal, year >= 1880, and country can afford navy)
         if has_coast && start_year >= 1880 && gdp_per_capita > 800.0 {
             let naval_manpower = (army_size / 20).max(50);
-            let coastal_region = regions.values()
+            let coastal_region = regions
+                .values()
                 .find(|r| r.geographic_traits.has_coastline)
                 .map(|r| r.id.clone())
                 .unwrap_or_else(|| home_regions[0].clone());
@@ -1039,7 +1168,11 @@ fn weighted_wealth(rng: &mut impl Rng) -> WealthBracket {
     WealthBracket::Low
 }
 
-fn build_demographics(cultural: &CulturalBackground, _population: u64, gdp_pc: f64) -> Demographics {
+fn build_demographics(
+    cultural: &CulturalBackground,
+    _population: u64,
+    gdp_pc: f64,
+) -> Demographics {
     let illiteracy_rate = (0.4 - (gdp_pc * 0.15)).max(0.01);
     let secondary_edu_total = (gdp_pc * 0.15).min(0.45);
     let higher_edu_total = (gdp_pc * 0.08).min(0.35);
@@ -1135,7 +1268,11 @@ fn build_treasury(
         StartYear::Y1975 => ((0.02..0.08), 1.3, 1.5),
     };
 
-    let mining_share = if is_petrostate { rng.gen_range(0.15..0.4) } else { rng.gen_range(0.01..0.05) };
+    let mining_share = if is_petrostate {
+        rng.gen_range(0.15..0.4)
+    } else {
+        rng.gen_range(0.01..0.05)
+    };
     let agriculture_share = if gdp_pc < 1.5 {
         rng.gen_range(agri_range.start..agri_range.end)
     } else {
@@ -1144,13 +1281,26 @@ fn build_treasury(
     let heavy_industry_share = rng.gen_range(0.05..0.25) * industry_mult;
     let light_industry_share = rng.gen_range(0.1..0.3) * industry_mult;
     let local_services_share = rng.gen_range(0.2..0.4) * services_mult;
-    let export_services_share = if gdp_pc > 2.0 { rng.gen_range(0.05..0.3) * services_mult } else { rng.gen_range(0.01..0.05) };
+    let export_services_share = if gdp_pc > 2.0 {
+        rng.gen_range(0.05..0.3) * services_mult
+    } else {
+        rng.gen_range(0.01..0.05)
+    };
     let construction_share = rng.gen_range(0.05..0.15);
     let energy_share = rng.gen_range(0.05..0.12);
     let healthcare_services_share = rng.gen_range(0.04..0.10) * services_mult;
     let education_services_share = rng.gen_range(0.03..0.08) * services_mult;
 
-    let sum = mining_share + agriculture_share + heavy_industry_share + light_industry_share + local_services_share + export_services_share + construction_share + energy_share + healthcare_services_share + education_services_share;
+    let sum = mining_share
+        + agriculture_share
+        + heavy_industry_share
+        + light_industry_share
+        + local_services_share
+        + export_services_share
+        + construction_share
+        + energy_share
+        + healthcare_services_share
+        + education_services_share;
 
     let coal_mix_raw = rng.gen_range(0.3..0.8);
     let gas_mix_raw = rng.gen_range(0.1..0.6);
@@ -1168,26 +1318,84 @@ fn build_treasury(
     let average_wage = gdp_pc * 800.0;
 
     let mut sectors = HashMap::new();
-    sectors.insert(Sector::Mining, sector_share(mining_share / sum, 0.5, tech_limit));
-    sectors.insert(Sector::Agriculture, sector_share(agriculture_share / sum, 0.2, tech_limit));
-    sectors.insert(Sector::HeavyIndustry, sector_share(heavy_industry_share / sum, 0.6, tech_limit));
-    sectors.insert(Sector::LightIndustry, sector_share(light_industry_share / sum, 0.4, tech_limit));
-    sectors.insert(Sector::LocalServices, sector_share(local_services_share / sum, 0.3, tech_limit));
-    sectors.insert(Sector::ExportServices, sector_share(export_services_share / sum, 0.7, tech_limit));
-    sectors.insert(Sector::Construction, sector_share(construction_share / sum, 0.8, tech_limit));
-    sectors.insert(Sector::Energy, sector_share(energy_share / sum, 0.3, tech_limit));
-    sectors.insert(Sector::PublicServices, sector_share((healthcare_services_share + education_services_share) / sum, 0.2, tech_limit));
+    sectors.insert(
+        Sector::Mining,
+        sector_share(mining_share / sum, 0.5, tech_limit),
+    );
+    sectors.insert(
+        Sector::Agriculture,
+        sector_share(agriculture_share / sum, 0.2, tech_limit),
+    );
+    sectors.insert(
+        Sector::HeavyIndustry,
+        sector_share(heavy_industry_share / sum, 0.6, tech_limit),
+    );
+    sectors.insert(
+        Sector::LightIndustry,
+        sector_share(light_industry_share / sum, 0.4, tech_limit),
+    );
+    sectors.insert(
+        Sector::LocalServices,
+        sector_share(local_services_share / sum, 0.3, tech_limit),
+    );
+    sectors.insert(
+        Sector::ExportServices,
+        sector_share(export_services_share / sum, 0.7, tech_limit),
+    );
+    sectors.insert(
+        Sector::Construction,
+        sector_share(construction_share / sum, 0.8, tech_limit),
+    );
+    sectors.insert(
+        Sector::Energy,
+        sector_share(energy_share / sum, 0.3, tech_limit),
+    );
+    sectors.insert(
+        Sector::PublicServices,
+        sector_share(
+            (healthcare_services_share + education_services_share) / sum,
+            0.2,
+            tech_limit,
+        ),
+    );
 
     let mut allocations = HashMap::new();
-    allocations.insert("Industry".to_string(), Value::from(rng.gen_range(0.02..0.15)));
-    allocations.insert("Education and Propaganda".to_string(), Value::from(rng.gen_range(0.02..0.1)));
-    allocations.insert("Healthcare".to_string(), Value::from(rng.gen_range(0.05..0.15)));
-    allocations.insert("Infrastructure and Transport".to_string(), Value::from(rng.gen_range(0.05..0.2)));
-    allocations.insert("Social Programs".to_string(), Value::from(rng.gen_range(0.05..0.25)));
-    allocations.insert("Agriculture and Rural Development".to_string(), Value::from(rng.gen_range(0.02..0.1)));
-    allocations.insert("Armed Forces".to_string(), Value::from(rng.gen_range(0.02..0.15)));
-    allocations.insert("Justice".to_string(), Value::from(rng.gen_range(0.01..0.05)));
-    allocations.insert("Public Administration".to_string(), Value::from(rng.gen_range(0.01..0.05)));
+    allocations.insert(
+        "Industry".to_string(),
+        Value::from(rng.gen_range(0.02..0.15)),
+    );
+    allocations.insert(
+        "Education and Propaganda".to_string(),
+        Value::from(rng.gen_range(0.02..0.1)),
+    );
+    allocations.insert(
+        "Healthcare".to_string(),
+        Value::from(rng.gen_range(0.05..0.15)),
+    );
+    allocations.insert(
+        "Infrastructure and Transport".to_string(),
+        Value::from(rng.gen_range(0.05..0.2)),
+    );
+    allocations.insert(
+        "Social Programs".to_string(),
+        Value::from(rng.gen_range(0.05..0.25)),
+    );
+    allocations.insert(
+        "Agriculture and Rural Development".to_string(),
+        Value::from(rng.gen_range(0.02..0.1)),
+    );
+    allocations.insert(
+        "Armed Forces".to_string(),
+        Value::from(rng.gen_range(0.02..0.15)),
+    );
+    allocations.insert(
+        "Justice".to_string(),
+        Value::from(rng.gen_range(0.01..0.05)),
+    );
+    allocations.insert(
+        "Public Administration".to_string(),
+        Value::from(rng.gen_range(0.01..0.05)),
+    );
 
     let total_alloc: f64 = allocations.values().filter_map(|v| v.as_f64()).sum();
     if total_alloc > 0.0 {
@@ -1202,11 +1410,17 @@ fn build_treasury(
 
     let budget = BudgetAllocations {
         industry: allocations["Industry"].as_f64().unwrap_or(0.0),
-        education_propaganda: allocations["Education and Propaganda"].as_f64().unwrap_or(0.0),
+        education_propaganda: allocations["Education and Propaganda"]
+            .as_f64()
+            .unwrap_or(0.0),
         healthcare: allocations["Healthcare"].as_f64().unwrap_or(0.0),
-        infrastructure_transport: allocations["Infrastructure and Transport"].as_f64().unwrap_or(0.0),
+        infrastructure_transport: allocations["Infrastructure and Transport"]
+            .as_f64()
+            .unwrap_or(0.0),
         social_programs: allocations["Social Programs"].as_f64().unwrap_or(0.0),
-        agriculture_rural: allocations["Agriculture and Rural Development"].as_f64().unwrap_or(0.0),
+        agriculture_rural: allocations["Agriculture and Rural Development"]
+            .as_f64()
+            .unwrap_or(0.0),
         armed_forces: allocations["Armed Forces"].as_f64().unwrap_or(0.0),
         justice: allocations["Justice"].as_f64().unwrap_or(0.0),
         public_administration: allocations["Public Administration"].as_f64().unwrap_or(0.0),
@@ -1400,7 +1614,9 @@ fn build_macro_data(
         for (sector, share) in treasury.sectors.iter_mut() {
             let weight = share.gdp_share * labor_intensity_ratio(*sector, start_year);
             let share_emp = (employed_total * (weight / total_weighted)) as i64;
-            share.extra.insert("employment".to_string(), Value::from(share_emp));
+            share
+                .extra
+                .insert("employment".to_string(), Value::from(share_emp));
             share.extra.insert("pmi".to_string(), Value::from(50.0));
         }
     }
@@ -1417,7 +1633,11 @@ fn build_macro_data(
             extra: Map::new(),
         },
         underemployment: 0.0,
-        subsistence_peasants: if gdp_pc < 1.5 { population_f64(demographics) * rng.gen_range(0.05..0.40) } else { population_f64(demographics) * 0.01 },
+        subsistence_peasants: if gdp_pc < 1.5 {
+            population_f64(demographics) * rng.gen_range(0.05..0.40)
+        } else {
+            population_f64(demographics) * 0.01
+        },
         ..LaborMarket::default()
     };
 
@@ -1461,9 +1681,15 @@ fn build_macro_data(
             hospital_coverage: rng.gen_range(20.0..60.0) * (gdp_pc / 2.0),
         },
         education_statistics: crate::state::macro_data::EducationStatistics {
-            infrastructure_base: rng.gen_range(20.0..70.0) * (gdp_pc / 2.0),
-            literacy_rate: 0.0,
-            higher_education_rate: 0.0,
+            // Phase C.4: Derive from actual demographics, not magic envelopes.
+            // literacy_rate = 1 - none (share with any formal education).
+            // higher_education_rate = sum of higher specializations.
+            literacy_rate: (1.0 - demographics.education.none).clamp(0.0, 1.0),
+            higher_education_rate: demographics.education.higher_share().clamp(0.0, 1.0),
+            // infrastructure_base: derived from education capacity (physical),
+            // not a random magic number. Use the education share as a proxy
+            // for institutional development (Rule 2: no magic constants).
+            infrastructure_base: ((1.0 - demographics.education.none) * 100.0).clamp(0.0, 100.0),
         },
         gdp_breakdown: crate::state::macro_data::GdpBreakdown::default(),
         inflation_indices: crate::state::macro_data::InflationIndices::default(),
@@ -1495,8 +1721,7 @@ fn assign_state_structure(
         | GovernmentForm::OnePartyState
         | GovernmentForm::MilitaryDictatorship
         | GovernmentForm::Theocracy => StateStructure::Totalitarian,
-        GovernmentForm::ConstitutionalMonarchy
-        | GovernmentForm::DirectorialDemocracy => {
+        GovernmentForm::ConstitutionalMonarchy | GovernmentForm::DirectorialDemocracy => {
             // Federations are more likely for these forms
             if rng.gen::<f64>() < 0.6 {
                 StateStructure::Federation
@@ -1557,25 +1782,21 @@ fn build_tax_rates(gdp_total: f64, rng: &mut impl Rng) -> TaxRates {
         excise_taxes: std::collections::BTreeMap::new(),
         wealth_tax: crate::state::tax::WealthTax {
             // Phase 39: Baseline wealth tax — 1% on assets > 5M
-            brackets: vec![
-                crate::state::tax::TaxBracket {
-                    threshold: 5_000_000.0,
-                    rate: 0.01,
-                    extra: Map::new(),
-                },
-            ],
+            brackets: vec![crate::state::tax::TaxBracket {
+                threshold: 5_000_000.0,
+                rate: 0.01,
+                extra: Map::new(),
+            }],
             asset_types: vec!["liquid_capital".to_string(), "real_estate".to_string()],
             extra: Map::new(),
         },
         capital_gains_tax: crate::state::tax::CapitalGainsTax {
             // Phase 39: Baseline capital gains tax — 19% (Belka tax)
-            brackets: vec![
-                crate::state::tax::TaxBracket {
-                    threshold: 0.0,
-                    rate: 0.19,
-                    extra: Map::new(),
-                },
-            ],
+            brackets: vec![crate::state::tax::TaxBracket {
+                threshold: 0.0,
+                rate: 0.19,
+                extra: Map::new(),
+            }],
             holding_period_modifier: 1.0,
             extra: Map::new(),
         },
@@ -1610,13 +1831,13 @@ fn build_central_bank(name: &str, treasury: &Treasury) -> crate::state::CentralB
     let mut rng = rand::thread_rng();
     let prefix = name[..3.min(name.len())].to_uppercase();
     let fx_reserve_value = treasury.gdp * rng.gen_range(0.05..0.20);
-    
+
     // Initialize FX reserves with some foreign currencies
     let mut fx_reserves = std::collections::HashMap::new();
     fx_reserves.insert("USD".to_string(), fx_reserve_value * 0.5);
     fx_reserves.insert("EUR".to_string(), fx_reserve_value * 0.3);
     fx_reserves.insert("GBP".to_string(), fx_reserve_value * 0.2);
-    
+
     // Phase 38: Initialize interest rates anchored to the neutral rate (2%)
     // rather than a random 1-10% range. This ensures the first turn's sovereign
     // bonds are issued at ~2.5% (neutral + credit spread), not a random 4.5%+.
@@ -1625,7 +1846,7 @@ fn build_central_bank(name: &str, treasury: &Treasury) -> crate::state::CentralB
     let reference_rate: f64 = neutral_rate + rng.gen_range(-0.005..0.005); // 1.5% - 2.5%
     let lombard_rate = reference_rate + 0.015; // +150 bps
     let deposit_rate = (reference_rate - 0.015).max(0.0_f64); // -150 bps, floor at 0
-    
+
     crate::state::CentralBank {
         id: format!("BC-{}", prefix),
         name: format!("Central Bank of {}", name),
@@ -1661,9 +1882,9 @@ fn build_central_bank(name: &str, treasury: &Treasury) -> crate::state::CentralB
         lombard_facility_interest_received: 0.0,
         last_message: String::new(),
         // Phase 36: Configurable Taylor Rule targets
-        target_inflation: 0.02,    // 2% inflation target
-        potential_growth: 0.02,    // 2% potential GDP growth
-        neutral_rate: 0.02,        // 2% neutral real rate
+        target_inflation: 0.02, // 2% inflation target
+        potential_growth: 0.02, // 2% potential GDP growth
+        neutral_rate: 0.02,     // 2% neutral real rate
         extra: Map::new(),
     }
 }
@@ -1684,7 +1905,9 @@ fn build_bank_companies(
     // Cap at 8 to avoid excessive fragmentation in huge economies.
     let avg_wage = (treasury.gdp / treasury.population.max(1) as f64).max(1000.0);
     let gdp_per_bank_threshold = avg_wage * 500_000.0;
-    let num_banks = ((treasury.gdp / gdp_per_bank_threshold).round() as usize).max(1).min(8);
+    let num_banks = ((treasury.gdp / gdp_per_bank_threshold).round() as usize)
+        .max(1)
+        .min(8);
     let num_dspw = num_banks.div_ceil(2).min(3); // Half of banks, max 3
 
     let mut banks = Vec::new();
@@ -1726,18 +1949,39 @@ fn build_bank_companies(
         } else {
             // Phase 51: Use cultural surnames for regional bank names.
             let bank_surnames = [
-                "Kowalski", "Müller", "Rossi", "Andersen", "Dubois", "Petrović",
-                "Schmidt", "Garcia", "Hussein", "Novak", "Fischer", "Marković",
-                "Weber", "López", "Khalil", "Sokolov", "Becker", "Fernández",
+                "Kowalski",
+                "Müller",
+                "Rossi",
+                "Andersen",
+                "Dubois",
+                "Petrović",
+                "Schmidt",
+                "Garcia",
+                "Hussein",
+                "Novak",
+                "Fischer",
+                "Marković",
+                "Weber",
+                "López",
+                "Khalil",
+                "Sokolov",
+                "Becker",
+                "Fernández",
             ];
             let surname = bank_surnames.choose(&mut rng).copied().unwrap_or("Smith");
             format!("{surname} Bank of {name}")
         };
 
         // Smaller balance sheets for regional banks
-        let size_factor = if is_first { 1.0 } else { 0.3 + rng.gen::<f64>() * 0.4 };
+        let size_factor = if is_first {
+            1.0
+        } else {
+            0.3 + rng.gen::<f64>() * 0.4
+        };
         let total_deposits = match bank_type {
-            BankingBankType::Commercial | BankingBankType::Universal | BankingBankType::Cooperative => {
+            BankingBankType::Commercial
+            | BankingBankType::Universal
+            | BankingBankType::Cooperative => {
                 treasury.citizen_savings * 0.5 * size_factor / num_banks as f64
             }
             _ => 0.0,
@@ -1769,7 +2013,8 @@ fn build_bank_companies(
         let avg_wage = treasury.gdp / (treasury.population as f64).max(1.0) * 800.0;
         let workforce = treasury.population as f64 * 0.65; // ~65% activity rate
         let estimated_total_loan_exposure = workforce * avg_wage * 4.0 * 0.5;
-        let estimated_loan_exposure = estimated_total_loan_exposure * size_factor / num_banks as f64;
+        let estimated_loan_exposure =
+            estimated_total_loan_exposure * size_factor / num_banks as f64;
         let estimated_total_assets = total_deposits + reserves + estimated_loan_exposure;
         let tier_1_from_ratio = estimated_total_assets * TARGET_TIER_1_RATIO;
         let tier_1_from_gdp = treasury.gdp * 0.05 * size_factor / num_banks as f64;
@@ -1801,9 +2046,15 @@ fn build_bank_companies(
         let deposits_per_clerk = base_wage * 500.0;
         let pop = treasury.population.max(1) as u32;
         let bank_fte = if is_first {
-            ((total_deposits / deposits_per_clerk).round() as u32).max(pop / 20_000).max(500).min(5000)
+            ((total_deposits / deposits_per_clerk).round() as u32)
+                .max(pop / 20_000)
+                .max(500)
+                .min(5000)
         } else {
-            ((total_deposits / deposits_per_clerk).round() as u32).max(pop / 100_000).max(50).min(2000)
+            ((total_deposits / deposits_per_clerk).round() as u32)
+                .max(pop / 100_000)
+                .max(50)
+                .min(2000)
         };
         let bank_wage = base_wage * 1.2; // Banks pay above-average wages
         let operating_cash = tier_1_capital * 0.1; // 10% of tier_1 for payroll

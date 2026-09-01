@@ -6,70 +6,23 @@
 
 use serde::{Deserialize, Serialize};
 
-/// Capacity type for infrastructure buildings
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash, Ord, PartialOrd)]
-#[serde(rename_all = "snake_case")]
-pub enum CapacityType {
-    /// Acute care beds
-    HospitalBeds,
-    /// Outpatient visits per turn
-    ClinicVisits,
-    /// Rehabilitation capacity
-    RehabSlots,
-    /// Preventative care stays
-    SanatoriumStays,
-    /// 24/7 care home capacity (Social Care Home)
-    DPSCapacity,
-    /// Daycare capacity (Dom Dziennego Pobytu)
-    DDPCapacity,
-    /// Childcare seats (0-3 years)
-    NurserySeats,
-    /// Primary school seats
-    PrimarySeats,
-    /// Middle school seats
-    MiddleSeats,
-    /// High school seats
-    HighSchoolSeats,
-    /// University enrollment slots
-    UniversitySlots,
-    /// Monastic housing
-    MonasteryCells,
-    /// Worship capacity
-    TempleCapacity,
-    /// Cultural events per turn
-    CulturalEventCapacity,
-    /// Surface water supply (liters per turn) - drawn from rivers/lakes, vulnerable to sewage pollution
-    SurfaceWaterSupply,
-    /// Groundwater supply (liters per turn) - drawn via underground pumps, immune to surface sewage but higher cost
-    GroundwaterSupply,
-    /// Sewage treatment capacity (liters per turn)
-    SewageTreatment,
-    /// District heating capacity (GJ per turn)
-    DistrictHeating,
-    /// Electricity supply (kWh per turn)
-    ElectricitySupply,
-    /// Landfill capacity (tons per turn) - modular waste management
-    LandfillCapacity,
-    /// Phase 82: Thermal grid pipe network capacity (km of pipe).
-    /// Distinct from DistrictHeating (which is GJ heat supply).
-    /// Determines how many buildings can connect to district heating.
-    ThermalGridCapacity,
-}
+// Phase A.2.1: `CapacityType` definition moved to `registries::enums` to break
+// a circular dependency (`ProductionMethod` needs `CapacityType` for its typed
+// `seat_type` field). Re-exported here so all existing
+// `crate::infrastructure::CapacityType` references compile unchanged.
+pub use crate::registries::enums::CapacityType;
 
 /// Per-turn capacity generation by an infrastructure building
 /// This replaces commodity output for infrastructure companies
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CapacityOutput {
     /// Type of capacity generated
-
     pub capacity_type: CapacityType,
 
     /// Base capacity per turn
-
     pub base_capacity: f64,
 
     /// Capacity per worker (efficiency multiplier)
-
     pub capacity_per_worker: f64,
 
     /// Current utilization (0.0-1.0)
@@ -77,36 +30,115 @@ pub struct CapacityOutput {
     pub utilization: f64,
 }
 
-pub mod healthcare;
-pub mod care;
-pub mod education;
-pub mod cultural;
-pub mod effects;
-pub mod pricing;
-pub mod maritime;
 pub mod building_condition;
+pub mod care;
+pub mod cultural;
+pub mod education;
+pub mod effects;
+pub mod healthcare;
 pub mod heritage;
+pub mod maritime;
+pub mod pricing;
 
-pub use maritime::{
-    Shipyard, Port, Dock, ShipType, ShipConstructionProject,
-    MaritimeConfig, MaritimeInfrastructure,
-    submit_shipyard_construction_orders, advance_shipyard_projects,
-    refund_unfilled_shipyard_bids, total_port_throughput,
-    process_ports_turn, process_shipyard_maintenance,
-};
+/// Phase A.1: Sync `region.capacity_pool` from live education/healthcare buildings.
+///
+/// For each building whose `active_method.seat_type` is `Some(...) ` and whose
+/// `active_method.outputs` contains a service-capacity commodity (EducationSlots,
+/// HealthCapacity), accumulate physical seats into the region's `capacity_pool`.
+///
+/// This replaces the previous approach where `capacity_pool` was only populated
+/// by clergy domains (`factional_domains.rs`) or left empty. Now the pool
+/// reflects real institutional capacity from buildings.
+///
+/// # Rules
+/// * Physical seats = `worker_capacity * capacity_per_worker_factor` where the
+///   factor is the method's output coefficient (Rule 15: physical scaling).
+/// * The entry is additive across buildings (Rule 20: natural cap = sum).
+/// * No negative values (Rule 20: clamping).
+/// * Called before `apply_infrastructure_effects` so utilization is computed
+///   from real capacity (Rule 16: temporal causality).
+pub fn sync_education_capacity_pool(
+    buildings: &[crate::entities::Building],
+    regions: &mut [crate::society::geography::Region],
+) {
+    use crate::registries::enums::{Commodity, Sector};
+
+    // Build a map from region_id → index for O(1) region lookup.
+    // Collect into an owned map to avoid holding an immutable borrow of `regions`.
+    let region_idx: std::collections::HashMap<String, usize> = regions
+        .iter()
+        .enumerate()
+        .map(|(i, r)| (r.id.clone(), i))
+        .collect();
+
+    for building in buildings {
+        // Only process education and healthcare sector buildings.
+        if building.sector != Sector::EducationalServices
+            && building.sector != Sector::MedicalServices
+        {
+            continue;
+        }
+
+        // Read the typed seat_type field (A.2.2) — no string heuristics.
+        let seat_type = match building.active_method.seat_type {
+            Some(st) => st,
+            None => continue,
+        };
+
+        // Check if the method outputs a service-capacity commodity.
+        let has_capacity_output = building
+            .active_method
+            .outputs
+            .keys()
+            .any(|c| *c == Commodity::EducationSlots || *c == Commodity::HealthCapacity);
+
+        if !has_capacity_output {
+            continue;
+        }
+
+        // Get the region for this building.
+        let idx = match region_idx.get(&building.region_id) {
+            Some(i) => *i,
+            None => continue,
+        };
+
+        // Compute physical seats: worker_capacity * output coefficient.
+        // The output coefficient is the per-1000-worker output quantity from
+        // the method. We scale by actual worker_capacity / 1000.0 (Rule 15).
+        let capacity_factor = building
+            .active_method
+            .outputs
+            .values()
+            .copied()
+            .find(|v| *v > 0.0)
+            .unwrap_or(1.0);
+
+        let seats = building.worker_capacity as f64 * capacity_factor / 1000.0;
+        let seats = seats.max(0.0); // Rule 20: clamp non-negative
+
+        // Accumulate into the region's capacity_pool.
+        let region = &mut regions[idx];
+        *region.capacity_pool.entry(seat_type).or_insert(0.0) += seats;
+    }
+}
+
 pub use building_condition::{
-    calculate_renovation_bom, calculate_maintenance_bom, calculate_opex_multiplier,
-    calculate_degradation_rate, RenovationError, RenovationResult,
-    BuildingConditionConfig,
+    calculate_degradation_rate, calculate_maintenance_bom, calculate_opex_multiplier,
+    calculate_renovation_bom, BuildingConditionConfig, RenovationError, RenovationResult,
 };
 pub use cultural::{
-    CulturalBuilding, CulturalReliefConfig, VoluntaryDonationRates,
-    EndowmentDonationRates, CulturalBuildingType, CulturalFunding, CulturalTemplate,
-    collect_cultural_donations, distribute_cash_relief, submit_relief_b2b_orders,
-    refund_unfilled_cultural_bids, deliver_relief_goods,
+    collect_cultural_donations, deliver_relief_goods, distribute_cash_relief,
+    refund_unfilled_cultural_bids, submit_relief_b2b_orders, CulturalBuilding,
+    CulturalBuildingType, CulturalFunding, CulturalReliefConfig, CulturalTemplate,
+    EndowmentDonationRates, VoluntaryDonationRates,
 };
 pub use heritage::{
-    HeritageBuilding, HeritageError, check_heritage_eligibility, apply_heritage_effects,
-    can_demolish, can_upgrade_technology, apply_heritage_subsidy, Market,
-    process_heritage_effects,
+    apply_heritage_effects, apply_heritage_subsidy, can_demolish, can_upgrade_technology,
+    check_heritage_eligibility, process_heritage_effects, HeritageBuilding, HeritageError, Market,
+};
+pub use maritime::{
+    advance_shipyard_projects, process_ports_turn, process_shipyard_maintenance,
+    refund_unfilled_shipyard_bids, submit_shipyard_construction_orders, total_port_throughput,
+    Dock, MaritimeConfig, MaritimeInfrastructure, Port, ShipConstructionProject, ShipType,
+    Shipyard,
 };

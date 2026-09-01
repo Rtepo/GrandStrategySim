@@ -5,10 +5,10 @@ use std::hash::{Hash, Hasher};
 
 use serde::{Deserialize, Serialize};
 
-use super::legislation::{Bill, LegislativeStage};
 use super::committees::{Committee, CommitteeSystem};
 use super::ideology::IdeologyCompass;
-use super::local_council::{Councilor, calculate_vote_probability};
+use super::legislation::{Bill, LegislativeStage};
+use super::local_council::{calculate_vote_probability, Councilor};
 
 /// Deterministic pseudo-random roll based on a seed string and probability.
 ///
@@ -31,16 +31,16 @@ pub fn deterministic_roll(seed: &str, probability: f64) -> bool {
 }
 
 /// Process bill through committee stage
-/// 
+///
 /// # Arguments
 /// * `bill` - Bill to process
 /// * `committee` - Committee reviewing the bill
 /// * `current_turn` - Current game turn
 /// * `initiator_is_ruling` - Whether bill initiator is in ruling coalition
-/// 
+///
 /// # Returns
 /// (updated_bill, committee_with_assigned_bill)
-/// 
+///
 /// # Rules
 /// * Committee delays: 1 turn for minor bills, 2 for moderate, 3 for massive reforms
 /// * Committee recommendation modifier affects floor vote
@@ -52,35 +52,32 @@ pub fn process_committee_stage(
 ) -> (Bill, bool) {
     bill.stage = LegislativeStage::Committee;
     bill.committee = Some(committee.id.clone());
-    
+
     let complexity = bill.calculate_complexity();
     let delay = committee.calculate_delay(complexity);
     bill.committee_completion_turn = Some(current_turn + delay);
-    
+
     // Calculate committee recommendation modifier
     let bill_ideology = bill.calculate_ideological_impact();
-    bill.committee_modifier = committee.calculate_recommendation(
-        &bill_ideology,
-        &bill.initiator,
-        initiator_is_ruling,
-    );
-    
+    bill.committee_modifier =
+        committee.calculate_recommendation(&bill_ideology, &bill.initiator, initiator_is_ruling);
+
     committee.assign_bill(bill.id.clone());
-    
+
     (bill, true)
 }
 
 /// Process floor vote for a bill
-/// 
+///
 /// # Arguments
 /// * `bill` - Bill to vote on
 /// * `councilors` - Councilors voting on the bill
 /// * `parties` - Parties in the parliament (for discipline and wealth)
 /// * `current_turn` - Current game turn
-/// 
+///
 /// # Returns
 /// (updated_bill, passed, messages)
-/// 
+///
 /// # Rules
 /// * Each councilor votes based on traits + concessions + ideological alignment
 /// * Committee modifier affects vote probability
@@ -93,29 +90,31 @@ pub fn process_floor_vote(
     current_turn: u32,
 ) -> (Bill, bool, Vec<String>) {
     let mut messages = Vec::new();
-    
+
     bill.stage = LegislativeStage::FloorVote;
-    
+
     let bill_ideology = bill.calculate_ideological_impact();
     let mut votes_for = 0;
     let mut votes_against = 0;
     let mut total_votes = 0;
-    
+
     for councilor in councilors {
         // Calculate ideological alignment (simplified as distance from bill ideology)
         let ideological_alignment = calculate_ideological_alignment(councilor, &bill_ideology);
-        
+
         // Check if concession was offered to this councilor's faction
-        let concession_offered = bill.concessions.iter()
+        let concession_offered = bill
+            .concessions
+            .iter()
             .any(|c| c.target == councilor.faction.to_string() || c.target == councilor.id);
-        
+
         // Get party discipline and wealth for this councilor's party
         let (party_discipline, party_wealth) = if let Some(party) = parties.get(&councilor.party) {
             (party.organization.discipline, party.liquid_funds())
         } else {
-            (0.5, 0.0)  // Default values if party not found
+            (0.5, 0.0) // Default values if party not found
         };
-        
+
         // Calculate vote probability with party discipline and wealth
         let vote_prob = calculate_vote_probability(
             councilor,
@@ -126,10 +125,10 @@ pub fn process_floor_vote(
             party_discipline,
             party_wealth,
         );
-        
+
         // Apply committee modifier
         let adjusted_prob = (vote_prob + bill.committee_modifier).clamp(0.0, 1.0);
-        
+
         // Deterministic roll (seeded by bill ID + councilor ID + turn)
         let roll_seed = format!("{}:{}:{}", bill.id, councilor.id, current_turn);
         if deterministic_roll(&roll_seed, adjusted_prob) {
@@ -139,15 +138,15 @@ pub fn process_floor_vote(
         }
         total_votes += 1;
     }
-    
+
     let majority_threshold = total_votes / 2 + 1;
     let passed = votes_for >= majority_threshold;
-    
+
     messages.push(format!(
         "[VOTE] Bill {}: {} for, {} against (required: {})",
         bill.title, votes_for, votes_against, majority_threshold
     ));
-    
+
     if passed {
         bill.advance_stage(current_turn);
         messages.push(format!("[BILL] Bill {} passed the vote", bill.title));
@@ -155,16 +154,16 @@ pub fn process_floor_vote(
         bill.reject();
         messages.push(format!("[BILL] Bill {} was rejected", bill.title));
     }
-    
+
     (bill, passed, messages)
 }
 
 /// Calculate ideological alignment between councilor and bill
-/// 
+///
 /// # Arguments
 /// * `councilor` - Councilor to check alignment for
 /// * `bill_ideology` - Ideological vector of the bill
-/// 
+///
 /// # Returns
 /// Alignment score (0-1, higher = more aligned)
 fn calculate_ideological_alignment(councilor: &Councilor, bill_ideology: &IdeologyCompass) -> f64 {
@@ -177,7 +176,10 @@ fn calculate_ideological_alignment(councilor: &Councilor, bill_ideology: &Ideolo
         }
         super::local_council::Faction::Moderates => {
             // Moderates favor balance
-            1.0 - (bill_ideology.economy.abs() + bill_ideology.liberty.abs() + bill_ideology.tradition.abs()) / 3.0
+            1.0 - (bill_ideology.economy.abs()
+                + bill_ideology.liberty.abs()
+                + bill_ideology.tradition.abs())
+                / 3.0
         }
         super::local_council::Faction::Optimates => {
             // Optimates favor tradition
@@ -187,15 +189,15 @@ fn calculate_ideological_alignment(councilor: &Councilor, bill_ideology: &Ideolo
 }
 
 /// Process bicameral review (if applicable)
-/// 
+///
 /// # Arguments
 /// * `bill` - Bill to review
 /// * `upper_house_composition` - Upper house seat distribution
 /// * `current_turn` - Current game turn
-/// 
+///
 /// # Returns
 /// (updated_bill, passed, messages)
-/// 
+///
 /// # Rules
 /// * If country has unicameral parliament, automatically passes this stage
 /// * If bicameral, requires upper house approval
@@ -205,48 +207,57 @@ pub fn process_bicameral_review(
     current_turn: u32,
 ) -> (Bill, bool, Vec<String>) {
     let mut messages = Vec::new();
-    
+
     if upper_house_composition.is_empty() {
         // Unicameral - skip to executive
         bill.advance_stage(current_turn);
         return (bill, true, messages);
     }
-    
+
     bill.stage = LegislativeStage::BicameralPending;
-    
+
     // Simplified upper house vote based on party composition
     let total_seats: u32 = upper_house_composition.values().sum();
-    let initiator_seats = upper_house_composition.get(&bill.initiator).copied().unwrap_or(0);
-    
+    let initiator_seats = upper_house_composition
+        .get(&bill.initiator)
+        .copied()
+        .unwrap_or(0);
+
     let majority_threshold = total_seats / 2 + 1;
     let passed = initiator_seats >= majority_threshold;
-    
+
     messages.push(format!(
         "[UPPER CHAMBER] Bill {}: {} seats (required: {})",
         bill.title, initiator_seats, majority_threshold
     ));
-    
+
     if passed {
         bill.advance_stage(current_turn);
-        messages.push(format!("[BILL] Bill {} passed the upper chamber", bill.title));
+        messages.push(format!(
+            "[BILL] Bill {} passed the upper chamber",
+            bill.title
+        ));
     } else {
         bill.reject();
-        messages.push(format!("[BILL] Bill {} was rejected by the upper chamber", bill.title));
+        messages.push(format!(
+            "[BILL] Bill {} was rejected by the upper chamber",
+            bill.title
+        ));
     }
-    
+
     (bill, passed, messages)
 }
 
 /// Process executive review (if applicable)
-/// 
+///
 /// # Arguments
 /// * `bill` - Bill to review
 /// * `has_veto_power` - Whether executive has veto power
 /// * `current_turn` - Current game turn
-/// 
+///
 /// # Returns
 /// (updated_bill, enacted, messages)
-/// 
+///
 /// # Rules
 /// * If no veto power, automatically enacts
 /// * If veto power, executive may veto (simplified: 20% chance of veto)
@@ -256,31 +267,37 @@ pub fn process_executive_review(
     current_turn: u32,
 ) -> (Bill, bool, Vec<String>) {
     let mut messages = Vec::new();
-    
+
     if !has_veto_power {
         bill.advance_stage(current_turn);
         return (bill, true, messages);
     }
-    
+
     bill.stage = LegislativeStage::Executive;
-    
+
     // Deterministic: 20% chance of veto (seeded by bill ID + turn)
     let veto_seed = format!("veto:{}:{}", bill.id, current_turn);
     let vetoed = deterministic_roll(&veto_seed, 0.2);
-    
+
     if vetoed {
         bill.reject();
-        messages.push(format!("[VETO] Bill {} was vetoed by the head of state", bill.title));
+        messages.push(format!(
+            "[VETO] Bill {} was vetoed by the head of state",
+            bill.title
+        ));
     } else {
         bill.advance_stage(current_turn);
-        messages.push(format!("[BILL] Bill {} was signed by the head of state", bill.title));
+        messages.push(format!(
+            "[BILL] Bill {} was signed by the head of state",
+            bill.title
+        ));
     }
-    
+
     (bill, !vetoed, messages)
 }
 
 /// Process complete bill lifecycle from introduction to enactment/rejection
-/// 
+///
 /// # Arguments
 /// * `bill` - Bill to process
 /// * `committee_system` - Committee system for committee stage
@@ -293,7 +310,9 @@ pub fn process_executive_review(
 ///
 /// # Returns
 /// (final_bill, enacted, all_messages)
-#[deprecated(note = "Phase 86: Use process_legislation_turn() for per-turn bill advancement. This instant lifecycle bypasses the per-turn pipeline.")]
+#[deprecated(
+    note = "Phase 86: Use process_legislation_turn() for per-turn bill advancement. This instant lifecycle bypasses the per-turn pipeline."
+)]
 pub fn process_bill_lifecycle(
     bill: Bill,
     committee_system: &mut CommitteeSystem,
@@ -306,47 +325,52 @@ pub fn process_bill_lifecycle(
 ) -> (Bill, bool, Vec<String>) {
     let mut all_messages = Vec::new();
     let mut current_bill = bill;
-    
+
     // Stage 1: Committee Review
     let committee_id = committee_system.get_committee_for_bill("general").cloned();
     if let Some(committee_id) = committee_id {
         if let Some(committee) = committee_system.get_committee_mut(&committee_id) {
-            let (processed_bill, _) = process_committee_stage(current_bill, committee, current_turn, initiator_is_ruling);
+            let (processed_bill, _) =
+                process_committee_stage(current_bill, committee, current_turn, initiator_is_ruling);
             current_bill = processed_bill;
             all_messages.push(format!(
                 "[COMMITTEE] Bill {} sent to committee {} (review time: {} turns)",
                 current_bill.title,
                 committee.name,
-                current_bill.committee_completion_turn.unwrap_or(current_turn) - current_turn
+                current_bill
+                    .committee_completion_turn
+                    .unwrap_or(current_turn)
+                    - current_turn
             ));
         }
     }
-    
+
     // Stage 2: Floor Vote
-    let (floor_bill, passed_floor, floor_messages) = process_floor_vote(current_bill, councilors, parties, current_turn);
+    let (floor_bill, passed_floor, floor_messages) =
+        process_floor_vote(current_bill, councilors, parties, current_turn);
     all_messages.extend(floor_messages);
     current_bill = floor_bill;
-    
+
     if !passed_floor {
         return (current_bill, false, all_messages);
     }
-    
+
     // Stage 3: Bicameral Review (if applicable)
-    let (bicameral_bill, passed_bicameral, bicameral_messages) = 
+    let (bicameral_bill, passed_bicameral, bicameral_messages) =
         process_bicameral_review(current_bill, upper_house_composition, current_turn);
     all_messages.extend(bicameral_messages);
     current_bill = bicameral_bill;
-    
+
     if !passed_bicameral {
         return (current_bill, false, all_messages);
     }
-    
+
     // Stage 4: Executive Review
-    let (executive_bill, enacted, executive_messages) = 
+    let (executive_bill, enacted, executive_messages) =
         process_executive_review(current_bill, has_veto_power, current_turn);
     all_messages.extend(executive_messages);
     current_bill = executive_bill;
-    
+
     (current_bill, enacted, all_messages)
 }
 
@@ -384,7 +408,10 @@ pub fn process_legislation_turn(
         .unwrap_or(false);
 
     if parliament_suspended {
-        messages.push("[LEGISLATION] Parliament suspended (State of Emergency) — no bills processed.".to_string());
+        messages.push(
+            "[LEGISLATION] Parliament suspended (State of Emergency) — no bills processed."
+                .to_string(),
+        );
         return messages;
     }
 
@@ -445,7 +472,10 @@ pub fn process_legislation_turn(
                     let committee_delay = if bill.is_fast_track() { 1 } else { 3 };
                     bill.committee_completion_turn = Some(current_turn + committee_delay);
                     let committee_name = bill.committee.clone().unwrap_or_default();
-                    messages.push(format!("[LEGISLATION] Bill '{}' → Committee ({}).", bill_title, committee_name));
+                    messages.push(format!(
+                        "[LEGISLATION] Bill '{}' → Committee ({}).",
+                        bill_title, committee_name
+                    ));
                     sess.active_bills.insert(bill_id.clone(), bill);
                 }
 
@@ -455,7 +485,13 @@ pub fn process_legislation_turn(
                     if current_turn >= completion {
                         // Process committee stage.
                         let recommendation = if let Some(ref cs) = committee_system {
-                            process_committee_stage_phase32(&mut bill, cs, &lower_seats, &coalition, &ruling_party)
+                            process_committee_stage_phase32(
+                                &mut bill,
+                                cs,
+                                &lower_seats,
+                                &coalition,
+                                &ruling_party,
+                            )
                         } else {
                             0.0
                         };
@@ -474,20 +510,19 @@ pub fn process_legislation_turn(
                 LegislativeStage::FloorVote => {
                     // Phase 86: Get health capacity and social unrest for attendance.
                     // social_unrest is 0–100 on macro_indicators; normalize to 0.0–1.0.
-                    let social_unrest = (country.macro_indicators.social_unrest / 100.0).clamp(0.0, 1.0);
+                    let social_unrest =
+                        (country.macro_indicators.social_unrest / 100.0).clamp(0.0, 1.0);
                     // Health capacity ratio: derived from healthcare law universality.
                     // Default to 0.5 (moderate) if no healthcare law is set.
                     let health_capacity_ratio = country
                         .politics
                         .healthcare_law
                         .as_ref()
-                        .map(|law| {
-                            match law.universality {
-                                crate::politics::laws::UniversalityLevel::Universal => 1.0,
-                                crate::politics::laws::UniversalityLevel::MeansTested => 0.7,
-                                crate::politics::laws::UniversalityLevel::Categorical => 0.6,
-                                crate::politics::laws::UniversalityLevel::Limited => 0.3,
-                            }
+                        .map(|law| match law.universality {
+                            crate::politics::laws::UniversalityLevel::Universal => 1.0,
+                            crate::politics::laws::UniversalityLevel::MeansTested => 0.7,
+                            crate::politics::laws::UniversalityLevel::Categorical => 0.6,
+                            crate::politics::laws::UniversalityLevel::Limited => 0.3,
                         })
                         .unwrap_or(0.5);
 
@@ -578,31 +613,31 @@ pub fn process_legislation_turn(
                 LegislativeStage::BicameralPending => {
                     // Upper house vote.
                     // Phase 86: Pass attendance parameters to upper house vote.
-                    let social_unrest_norm = (country.macro_indicators.social_unrest / 100.0).clamp(0.0, 1.0);
+                    let social_unrest_norm =
+                        (country.macro_indicators.social_unrest / 100.0).clamp(0.0, 1.0);
                     let health_cap = country
                         .politics
                         .healthcare_law
                         .as_ref()
-                        .map(|law| {
-                            match law.universality {
-                                crate::politics::laws::UniversalityLevel::Universal => 1.0,
-                                crate::politics::laws::UniversalityLevel::MeansTested => 0.7,
-                                crate::politics::laws::UniversalityLevel::Categorical => 0.6,
-                                crate::politics::laws::UniversalityLevel::Limited => 0.3,
-                            }
+                        .map(|law| match law.universality {
+                            crate::politics::laws::UniversalityLevel::Universal => 1.0,
+                            crate::politics::laws::UniversalityLevel::MeansTested => 0.7,
+                            crate::politics::laws::UniversalityLevel::Categorical => 0.6,
+                            crate::politics::laws::UniversalityLevel::Limited => 0.3,
                         })
                         .unwrap_or(0.5);
-                    let (votes_for, votes_against, _abstentions, upper_quorum_met) = calculate_upper_house_vote(
-                        &bill,
-                        &upper_house_composition,
-                        &coalition,
-                        &ruling_party,
-                        parties,
-                        &bill_title,
-                        current_turn,
-                        health_cap,
-                        social_unrest_norm,
-                    );
+                    let (votes_for, votes_against, _abstentions, upper_quorum_met) =
+                        calculate_upper_house_vote(
+                            &bill,
+                            &upper_house_composition,
+                            &coalition,
+                            &ruling_party,
+                            parties,
+                            &bill_title,
+                            current_turn,
+                            health_cap,
+                            social_unrest_norm,
+                        );
 
                     let total_upper: u32 = upper_house_composition.values().sum();
 
@@ -621,7 +656,11 @@ pub fn process_legislation_turn(
                         match bill.weight {
                             super::legislative_weight::LegislativeWeight::Ordinary => {
                                 let present = votes_for + votes_against;
-                                if present == 0 { false } else { votes_for * 2 > present }
+                                if present == 0 {
+                                    false
+                                } else {
+                                    votes_for * 2 > present
+                                }
                             }
                             super::legislative_weight::LegislativeWeight::Organic => {
                                 votes_for * 2 > total_upper
@@ -652,11 +691,8 @@ pub fn process_legislation_turn(
 
                 LegislativeStage::Executive => {
                     // Executive review (President/Monarch signs or vetoes).
-                    let sign_probability = calculate_executive_sign_probability(
-                        &bill,
-                        &country.politics,
-                        parties,
-                    );
+                    let sign_probability =
+                        calculate_executive_sign_probability(&bill, &country.politics, parties);
 
                     let seed = format!("exec_review_{}_{}", bill_id, current_turn);
                     let signed = deterministic_roll(&seed, sign_probability);
@@ -708,7 +744,9 @@ trait FastTrackBill {
 impl FastTrackBill for Bill {
     fn is_fast_track(&self) -> bool {
         let title_lower = self.title.to_lowercase();
-        title_lower.contains("crisis") || title_lower.contains("emergency") || title_lower.contains("fast-track")
+        title_lower.contains("crisis")
+            || title_lower.contains("emergency")
+            || title_lower.contains("fast-track")
     }
 }
 
@@ -783,7 +821,11 @@ fn calculate_floor_vote(
 
     // Phase 86: Use present seats (from attendance) instead of total seats.
     for (party_name, &_total_seats) in lower_seats {
-        let present_seats = attendance.present_by_party.get(party_name).copied().unwrap_or(0);
+        let present_seats = attendance
+            .present_by_party
+            .get(party_name)
+            .copied()
+            .unwrap_or(0);
         if present_seats == 0 {
             continue; // No MPs from this party are present
         }
@@ -971,7 +1013,9 @@ pub fn attempt_pork_barrel(
             // Try fewer seats.
             let affordable_by_treasury = (remaining_treasury / cost_per_seat) as u32;
             let affordable_by_pc = (remaining_pc / pc_cost_per_seat) as u32;
-            let affordable = affordable_by_treasury.min(affordable_by_pc).min(target_seats);
+            let affordable = affordable_by_treasury
+                .min(affordable_by_pc)
+                .min(target_seats);
             if affordable == 0 {
                 continue;
             }

@@ -3,12 +3,12 @@
 //! Validates that the production method registry forms a complete commodity
 //! graph with no dead nodes, and that the Protein→Meat merge is complete.
 
+use sim_engine::construction::bom::get_construction_bom;
 use sim_engine::data::consumption_registry::consumption_registry;
 use sim_engine::registries::enums::Commodity;
+use sim_engine::registries::enums::Sector;
 use sim_engine::registries::production_methods::BuildingMethods;
 use sim_engine::registries::production_methods_data::default_production_methods;
-use sim_engine::construction::bom::get_construction_bom;
-use sim_engine::registries::enums::Sector;
 use std::collections::{BTreeSet, HashMap};
 
 /// Collect all commodities produced by any production method.
@@ -44,7 +44,10 @@ fn all_consumed_commodities(methods: &HashMap<String, BuildingMethods>) -> BTree
 fn protein_commodity_removed() {
     // Try to parse "protein" — it should fail
     let result: Result<Commodity, _> = serde_json::from_str("\"protein\"");
-    assert!(result.is_err(), "Commodity::Protein should be removed from the enum");
+    assert!(
+        result.is_err(),
+        "Commodity::Protein should be removed from the enum"
+    );
 }
 
 /// Test 2: Meat is produced by at least one method (including the merged Pulse & Legume Farming).
@@ -151,13 +154,28 @@ fn no_orphan_inputs_phase76() {
     // Commodities consumed only by construction BOMs (not production methods)
     let mut bom_consumed: BTreeSet<Commodity> = BTreeSet::new();
     for &sector in &[
-        Sector::HeavyIndustry, Sector::LightIndustry, Sector::Mining,
-        Sector::Agriculture, Sector::Construction, Sector::Energy,
-        Sector::TransportLogistics, Sector::PublicServices, Sector::PublicAdministration,
-        Sector::Banking, Sector::ArmamentsIndustry, Sector::MaintenanceWorkshops,
-        Sector::LocalServices, Sector::ExportServices, Sector::MedicalServices,
-        Sector::EducationalServices, Sector::MediaAndEntertainment, Sector::WasteManagement,
-        Sector::Hospitality, Sector::NGO, Sector::Religion, Sector::Government,
+        Sector::HeavyIndustry,
+        Sector::LightIndustry,
+        Sector::Mining,
+        Sector::Agriculture,
+        Sector::Construction,
+        Sector::Energy,
+        Sector::TransportLogistics,
+        Sector::PublicServices,
+        Sector::PublicAdministration,
+        Sector::Banking,
+        Sector::ArmamentsIndustry,
+        Sector::MaintenanceWorkshops,
+        Sector::LocalServices,
+        Sector::ExportServices,
+        Sector::MedicalServices,
+        Sector::EducationalServices,
+        Sector::MediaAndEntertainment,
+        Sector::WasteManagement,
+        Sector::Hospitality,
+        Sector::NGO,
+        Sector::Religion,
+        Sector::Government,
     ] {
         let bom = get_construction_bom(sector, 1925);
         for &c in bom.keys() {
@@ -182,7 +200,10 @@ fn no_orphan_inputs_phase76() {
         Commodity::EducationSlots,
         Commodity::BulkyWaste,
         Commodity::ConstructionWaste,
-    ].iter().copied().collect();
+    ]
+    .iter()
+    .copied()
+    .collect();
 
     let orphans: Vec<_> = orphans
         .iter()

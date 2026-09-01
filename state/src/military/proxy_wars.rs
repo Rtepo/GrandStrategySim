@@ -143,10 +143,15 @@ pub fn fund_separatists(
 
     let (amount, sponsor, target, region) = match action {
         ProxyWarAction::FundSeparatists {
-            sponsor_country, target_country, target_region, amount,
+            sponsor_country,
+            target_country,
+            target_region,
+            amount,
         } => (*amount, sponsor_country, target_country, target_region),
         _ => {
-            result.messages.push("[PROXY] Invalid action type for fund_separatists".to_string());
+            result
+                .messages
+                .push("[PROXY] Invalid action type for fund_separatists".to_string());
             return result;
         }
     };
@@ -178,8 +183,16 @@ pub fn fund_separatists(
     result.executed = true;
     result.messages.push(format!(
         "[PROXY] {} funds separatists in {} (region {}) with {:.2}: unrest +{:.4}{}",
-        sponsor, target, region, amount, unrest,
-        if is_autonomous_republic { " (autonomous republic)" } else { "" }
+        sponsor,
+        target,
+        region,
+        amount,
+        unrest,
+        if is_autonomous_republic {
+            " (autonomous republic)"
+        } else {
+            ""
+        }
     ));
 
     result
@@ -218,16 +231,29 @@ pub fn arm_rebels(
 
     let (rifles_qty, ammo_qty, sponsor, target) = match action {
         ProxyWarAction::ArmRebels {
-            sponsor_country, target_country, rifles_quantity, ammunition_quantity,
-        } => (*rifles_quantity, *ammunition_quantity, sponsor_country, target_country),
+            sponsor_country,
+            target_country,
+            rifles_quantity,
+            ammunition_quantity,
+        } => (
+            *rifles_quantity,
+            *ammunition_quantity,
+            sponsor_country,
+            target_country,
+        ),
         _ => {
-            result.messages.push("[PROXY] Invalid action type for arm_rebels".to_string());
+            result
+                .messages
+                .push("[PROXY] Invalid action type for arm_rebels".to_string());
             return result;
         }
     };
 
     // Check if sponsor has sufficient rifles
-    let available_rifles = sponsor_stockpile.get(&Commodity::Rifles).copied().unwrap_or(0.0);
+    let available_rifles = sponsor_stockpile
+        .get(&Commodity::Rifles)
+        .copied()
+        .unwrap_or(0.0);
     if available_rifles < rifles_qty {
         result.messages.push(format!(
             "[PROXY] {} lacks rifles: have {:.0}, need {:.0}",
@@ -241,7 +267,10 @@ pub fn arm_rebels(
     let rifles_to_transfer = available_rifles.min(rifles_qty);
 
     // Check if sponsor has sufficient ammunition
-    let available_ammo = sponsor_stockpile.get(&Commodity::Ammunition).copied().unwrap_or(0.0);
+    let available_ammo = sponsor_stockpile
+        .get(&Commodity::Ammunition)
+        .copied()
+        .unwrap_or(0.0);
     if available_ammo < ammo_qty {
         result.messages.push(format!(
             "[PROXY] {} lacks ammunition: have {:.0}, need {:.0}",
@@ -255,11 +284,17 @@ pub fn arm_rebels(
 
     // Debit physical commodities from sponsor stockpile (Rule 1 — no spawning)
     *sponsor_stockpile.entry(Commodity::Rifles).or_insert(0.0) -= rifles_to_transfer;
-    *sponsor_stockpile.entry(Commodity::Ammunition).or_insert(0.0) -= ammo_to_transfer;
+    *sponsor_stockpile
+        .entry(Commodity::Ammunition)
+        .or_insert(0.0) -= ammo_to_transfer;
 
     // Record transferred commodities
-    result.commodities_transferred.insert(Commodity::Rifles, rifles_to_transfer);
-    result.commodities_transferred.insert(Commodity::Ammunition, ammo_to_transfer);
+    result
+        .commodities_transferred
+        .insert(Commodity::Rifles, rifles_to_transfer);
+    result
+        .commodities_transferred
+        .insert(Commodity::Ammunition, ammo_to_transfer);
 
     // Calculate how many rebels can be armed
     let rebels_from_rifles = (rifles_to_transfer / config.manpower_per_rifle) as i64;
@@ -275,7 +310,12 @@ pub fn arm_rebels(
     result.executed = true;
     result.messages.push(format!(
         "[PROXY] {} arms rebels in {}: {:.0} rifles, {:.0} ammo → {} armed rebels, {} battalions",
-        sponsor, target, rifles_to_transfer, ammo_to_transfer, armed_rebels, result.rebel_units_spawned
+        sponsor,
+        target,
+        rifles_to_transfer,
+        ammo_to_transfer,
+        armed_rebels,
+        result.rebel_units_spawned
     ));
 
     result
@@ -347,11 +387,25 @@ mod tests {
             amount: 1000.0,
         };
 
-        let result_normal = fund_separatists(&mut treasury.clone(), &mut rebellion_funds.clone(), false, &config, &action);
-        let result_autonomous = fund_separatists(&mut treasury.clone(), &mut rebellion_funds.clone(), true, &config, &action);
+        let result_normal = fund_separatists(
+            &mut treasury.clone(),
+            &mut rebellion_funds.clone(),
+            false,
+            &config,
+            &action,
+        );
+        let result_autonomous = fund_separatists(
+            &mut treasury.clone(),
+            &mut rebellion_funds.clone(),
+            true,
+            &config,
+            &action,
+        );
 
-        assert!(result_autonomous.unrest_increase > result_normal.unrest_increase,
-            "Autonomous republic must have higher unrest multiplier");
+        assert!(
+            result_autonomous.unrest_increase > result_normal.unrest_increase,
+            "Autonomous republic must have higher unrest multiplier"
+        );
     }
 
     #[test]
@@ -387,13 +441,29 @@ mod tests {
 
         assert!(result.executed);
         // Rifles must be removed from stockpile (no magic spawning)
-        assert!(stockpile.get(&Commodity::Rifles).unwrap() < &5000.0,
-            "Rifles must be debited from sponsor stockpile");
-        assert!(stockpile.get(&Commodity::Ammunition).unwrap() < &100_000.0,
-            "Ammunition must be debited from sponsor stockpile");
+        assert!(
+            stockpile.get(&Commodity::Rifles).unwrap() < &5000.0,
+            "Rifles must be debited from sponsor stockpile"
+        );
+        assert!(
+            stockpile.get(&Commodity::Ammunition).unwrap() < &100_000.0,
+            "Ammunition must be debited from sponsor stockpile"
+        );
         // Transferred commodities must be recorded
-        assert!(result.commodities_transferred.get(&Commodity::Rifles).unwrap() > &0.0);
-        assert!(result.commodities_transferred.get(&Commodity::Ammunition).unwrap() > &0.0);
+        assert!(
+            result
+                .commodities_transferred
+                .get(&Commodity::Rifles)
+                .unwrap()
+                > &0.0
+        );
+        assert!(
+            result
+                .commodities_transferred
+                .get(&Commodity::Ammunition)
+                .unwrap()
+                > &0.0
+        );
     }
 
     #[test]
@@ -411,8 +481,14 @@ mod tests {
 
         // Should partially execute with available rifles
         assert!(result.executed);
-        let transferred_rifles = result.commodities_transferred.get(&Commodity::Rifles).unwrap();
-        assert!(*transferred_rifles <= 100.0, "Cannot transfer more rifles than available");
+        let transferred_rifles = result
+            .commodities_transferred
+            .get(&Commodity::Rifles)
+            .unwrap();
+        assert!(
+            *transferred_rifles <= 100.0,
+            "Cannot transfer more rifles than available"
+        );
     }
 
     #[test]
@@ -492,11 +568,23 @@ mod tests {
         // Physical conservation: stockpile decrease must equal transferred amount
         let rifles_decrease = initial_rifles - final_rifles;
         let ammo_decrease = initial_ammo - final_ammo;
-        let rifles_transferred = result.commodities_transferred.get(&Commodity::Rifles).copied().unwrap_or(0.0);
-        let ammo_transferred = result.commodities_transferred.get(&Commodity::Ammunition).copied().unwrap_or(0.0);
-        assert!((rifles_decrease - rifles_transferred).abs() < 0.01,
-            "Physical conservation: rifles decrease must equal transferred");
-        assert!((ammo_decrease - ammo_transferred).abs() < 0.01,
-            "Physical conservation: ammo decrease must equal transferred");
+        let rifles_transferred = result
+            .commodities_transferred
+            .get(&Commodity::Rifles)
+            .copied()
+            .unwrap_or(0.0);
+        let ammo_transferred = result
+            .commodities_transferred
+            .get(&Commodity::Ammunition)
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            (rifles_decrease - rifles_transferred).abs() < 0.01,
+            "Physical conservation: rifles decrease must equal transferred"
+        );
+        assert!(
+            (ammo_decrease - ammo_transferred).abs() < 0.01,
+            "Physical conservation: ammo decrease must equal transferred"
+        );
     }
 }

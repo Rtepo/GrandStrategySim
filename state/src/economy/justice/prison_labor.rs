@@ -16,7 +16,10 @@
 //! Phase 14.5 additions: cohort-based sentence tracking, rehabilitation on
 //! release, prison security level calculation, and escape mechanics.
 
-use crate::economy::sentencing::{CrimeCategory, SentenceOutcome, determine_crime_category, generate_sentence, process_death_penalties};
+use crate::economy::sentencing::{
+    determine_crime_category, generate_sentence, process_death_penalties, CrimeCategory,
+    SentenceOutcome,
+};
 use crate::entities::{Building, Company};
 use crate::politics::laws::PrisonType;
 use crate::politics::system::{JusticeSystemState, PrisonSecurityLevel, PrisonerCohort};
@@ -118,7 +121,9 @@ fn process_cohort_releases(country: &mut Country, justice_state: &mut JusticeSys
     let mut expired: Vec<PrisonerCohort> = Vec::new();
     let mut remaining: Vec<PrisonerCohort> = Vec::new();
     for cohort in justice_state.prisoner_cohorts.drain(..) {
-        if cohort.sentence_remaining == 0 && cohort.sentence_outcome != SentenceOutcome::LifeImprisonment {
+        if cohort.sentence_remaining == 0
+            && cohort.sentence_outcome != SentenceOutcome::LifeImprisonment
+        {
             expired.push(cohort);
         } else {
             remaining.push(cohort);
@@ -133,7 +138,10 @@ fn process_cohort_releases(country: &mut Country, justice_state: &mut JusticeSys
         // Phase 18B: Community service cohorts were never removed from demographics.
         // They stayed in the labor pool with garnished wages. On release, just
         // stop the garnishment (cohort is removed from justice_state). No population/FTE restoration needed.
-        if matches!(cohort.sentence_outcome, SentenceOutcome::CommunityService(_)) {
+        if matches!(
+            cohort.sentence_outcome,
+            SentenceOutcome::CommunityService(_)
+        ) {
             continue;
         }
 
@@ -143,9 +151,15 @@ fn process_cohort_releases(country: &mut Country, justice_state: &mut JusticeSys
                 continue;
             }
             let class_opt = if cohort.origin_is_urban {
-                region.class_demographics.urban_classes.get_mut(&cohort.origin_class_id)
+                region
+                    .class_demographics
+                    .urban_classes
+                    .get_mut(&cohort.origin_class_id)
             } else {
-                region.class_demographics.rural_classes.get_mut(&cohort.origin_class_id)
+                region
+                    .class_demographics
+                    .rural_classes
+                    .get_mut(&cohort.origin_class_id)
             };
             if let Some(class) = class_opt {
                 // Restore population
@@ -174,16 +188,20 @@ fn process_cohort_releases(country: &mut Country, justice_state: &mut JusticeSys
                         // Mild skill degradation
                         class.labor_participation = (class.labor_participation - 0.02).max(0.0);
                         // Radicalization
-                        class.political_sentiment.radicals = (class.political_sentiment.radicals + 0.03).min(1.0);
-                        class.political_sentiment.loyalists = (class.political_sentiment.loyalists - 0.03).max(0.0);
+                        class.political_sentiment.radicals =
+                            (class.political_sentiment.radicals + 0.03).min(1.0);
+                        class.political_sentiment.loyalists =
+                            (class.political_sentiment.loyalists - 0.03).max(0.0);
                         class.political_sentiment.normalize();
                     }
                     PrisonType::IsolationCamp => {
                         // Severe skill degradation
                         class.labor_participation = (class.labor_participation - 0.05).max(0.0);
                         // Strong radicalization
-                        class.political_sentiment.radicals = (class.political_sentiment.radicals + 0.05).min(1.0);
-                        class.political_sentiment.loyalists = (class.political_sentiment.loyalists - 0.05).max(0.0);
+                        class.political_sentiment.radicals =
+                            (class.political_sentiment.radicals + 0.05).min(1.0);
+                        class.political_sentiment.loyalists =
+                            (class.political_sentiment.loyalists - 0.05).max(0.0);
                         class.political_sentiment.normalize();
                         // Health degraded
                         class.health_status = degrade_health(cohort.intake_health);
@@ -272,7 +290,9 @@ fn process_prison_escapes(
                     .regions
                     .iter()
                     .flat_map(|r| {
-                        r.class_demographics.rural_classes.values()
+                        r.class_demographics
+                            .rural_classes
+                            .values()
                             .chain(r.class_demographics.urban_classes.values())
                     })
                     .map(|c| c.population as f64)
@@ -319,7 +339,9 @@ fn generate_new_cohorts(
         .regions
         .iter()
         .flat_map(|r| {
-            r.class_demographics.rural_classes.values()
+            r.class_demographics
+                .rural_classes
+                .values()
                 .chain(r.class_demographics.urban_classes.values())
         })
         .map(|c| c.population)
@@ -330,9 +352,8 @@ fn generate_new_cohorts(
     }
 
     let coverage_gap = 1.0 - coverage;
-    let new_arrests = ((total_pop as f64 * coverage_gap * 0.001) as i64).min(
-        (total_prisoners - justice_state.active_prisoners).max(0),
-    );
+    let new_arrests = ((total_pop as f64 * coverage_gap * 0.001) as i64)
+        .min((total_prisoners - justice_state.active_prisoners).max(0));
 
     if new_arrests <= 0 {
         return;
@@ -347,27 +368,36 @@ fn generate_new_cohorts(
         for (class_id, class) in &region.class_demographics.rural_classes {
             let radicals = (class.population as f64 * class.political_sentiment.radicals) as i64;
             if radicals > 0 {
-                let arrests = (new_arrests * radicals / total_pop.max(1)).max(1).min(class.population);
+                let arrests = (new_arrests * radicals / total_pop.max(1))
+                    .max(1)
+                    .min(class.population);
                 if arrests > 0 {
-                    let (crime_category, sentence_outcome, sentence_turns) = if let Some(ref law) = sentencing_law {
-                        let radical_fraction = class.political_sentiment.radicals;
-                        let category = determine_crime_category(coverage_gap, radical_fraction);
-                        let is_minority_religion = !class.religion.is_empty() && class.religion != dominant_religion;
-                        let (outcome, turns) = generate_sentence(
-                            category,
-                            law,
-                            class.legal_status,
-                            is_minority_religion,
-                            0.5, // deterministic mid-range sentence
-                        );
-                        (category, outcome, turns)
-                    } else {
-                        let sentence = default_sentence_length(prison_type);
-                        (CrimeCategory::Misdemeanor, SentenceOutcome::Imprisonment(sentence), sentence)
-                    };
+                    let (crime_category, sentence_outcome, sentence_turns) =
+                        if let Some(ref law) = sentencing_law {
+                            let radical_fraction = class.political_sentiment.radicals;
+                            let category = determine_crime_category(coverage_gap, radical_fraction);
+                            let is_minority_religion =
+                                !class.religion.is_empty() && class.religion != dominant_religion;
+                            let (outcome, turns) = generate_sentence(
+                                category,
+                                law,
+                                class.legal_status,
+                                is_minority_religion,
+                                0.5, // deterministic mid-range sentence
+                            );
+                            (category, outcome, turns)
+                        } else {
+                            let sentence = default_sentence_length(prison_type);
+                            (
+                                CrimeCategory::Misdemeanor,
+                                SentenceOutcome::Imprisonment(sentence),
+                                sentence,
+                            )
+                        };
 
                     // For community service, don't remove from demographics
-                    let is_community_service = matches!(sentence_outcome, SentenceOutcome::CommunityService(_));
+                    let is_community_service =
+                        matches!(sentence_outcome, SentenceOutcome::CommunityService(_));
 
                     justice_state.prisoner_cohorts.push(PrisonerCohort {
                         origin_class_id: class_id.clone(),
@@ -392,26 +422,35 @@ fn generate_new_cohorts(
         for (class_id, class) in &region.class_demographics.urban_classes {
             let radicals = (class.population as f64 * class.political_sentiment.radicals) as i64;
             if radicals > 0 {
-                let arrests = (new_arrests * radicals / total_pop.max(1)).max(1).min(class.population);
+                let arrests = (new_arrests * radicals / total_pop.max(1))
+                    .max(1)
+                    .min(class.population);
                 if arrests > 0 {
-                    let (crime_category, sentence_outcome, sentence_turns) = if let Some(ref law) = sentencing_law {
-                        let radical_fraction = class.political_sentiment.radicals;
-                        let category = determine_crime_category(coverage_gap, radical_fraction);
-                        let is_minority_religion = !class.religion.is_empty() && class.religion != dominant_religion;
-                        let (outcome, turns) = generate_sentence(
-                            category,
-                            law,
-                            class.legal_status,
-                            is_minority_religion,
-                            0.5,
-                        );
-                        (category, outcome, turns)
-                    } else {
-                        let sentence = default_sentence_length(prison_type);
-                        (CrimeCategory::Misdemeanor, SentenceOutcome::Imprisonment(sentence), sentence)
-                    };
+                    let (crime_category, sentence_outcome, sentence_turns) =
+                        if let Some(ref law) = sentencing_law {
+                            let radical_fraction = class.political_sentiment.radicals;
+                            let category = determine_crime_category(coverage_gap, radical_fraction);
+                            let is_minority_religion =
+                                !class.religion.is_empty() && class.religion != dominant_religion;
+                            let (outcome, turns) = generate_sentence(
+                                category,
+                                law,
+                                class.legal_status,
+                                is_minority_religion,
+                                0.5,
+                            );
+                            (category, outcome, turns)
+                        } else {
+                            let sentence = default_sentence_length(prison_type);
+                            (
+                                CrimeCategory::Misdemeanor,
+                                SentenceOutcome::Imprisonment(sentence),
+                                sentence,
+                            )
+                        };
 
-                    let is_community_service = matches!(sentence_outcome, SentenceOutcome::CommunityService(_));
+                    let is_community_service =
+                        matches!(sentence_outcome, SentenceOutcome::CommunityService(_));
 
                     justice_state.prisoner_cohorts.push(PrisonerCohort {
                         origin_class_id: class_id.clone(),
@@ -491,7 +530,12 @@ pub fn process_prison_labor_turn(
     result.released_count = released;
 
     // Phase 14.5: Generate new cohorts from crime demand overflow
-    generate_new_cohorts(country, &mut justice_state, total_prisoners, law.prison_type);
+    generate_new_cohorts(
+        country,
+        &mut justice_state,
+        total_prisoners,
+        law.prison_type,
+    );
 
     justice_state.active_prisoners = total_prisoners;
 
@@ -541,8 +585,10 @@ pub fn process_prison_labor_turn(
                 }
 
                 // Reduce company's labor demand by injected FTEs
-                companies[idx].target_fte_demand =
-                    ((companies[idx].target_fte_demand as f64) - injected_fte).max(0.0).round() as u32;
+                companies[idx].target_fte_demand = ((companies[idx].target_fte_demand as f64)
+                    - injected_fte)
+                    .max(0.0)
+                    .round() as u32;
 
                 // Company pays transfer fee to Treasury
                 let fee = injected_fte * law.private_transfer_fee;
@@ -566,7 +612,8 @@ pub fn process_prison_labor_turn(
 
             if capacity <= 0 || target.is_empty() {
                 // Still process escapes even if no isolation capacity
-                let escaped = process_prison_escapes(country, buildings, &mut justice_state, law.prison_type);
+                let escaped =
+                    process_prison_escapes(country, buildings, &mut justice_state, law.prison_type);
                 result.escaped_count = escaped;
                 country.politics.justice_state = Some(justice_state);
                 return result;

@@ -9,23 +9,23 @@ pub struct LeaderTrait {
     /// Trait ID (e.g., "charismatic", "corrupt", "economist")
     #[serde(default)]
     pub id: String,
-    
+
     /// Trait display name
     #[serde(default)]
     pub name: String,
-    
+
     /// Trait description
     #[serde(default)]
     pub description: String,
-    
+
     /// Rarity weight (higher = rarer)
     #[serde(default)]
     pub rarity_weight: f64,
-    
+
     /// Data-driven modifiers (JSON-configurable)
     #[serde(default)]
     pub modifiers: Vec<TraitModifier>,
-    
+
     /// Any additional fields
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -37,19 +37,19 @@ pub struct TraitModifier {
     /// Target system (e.g., "campaign", "scandal", "economy", "legislation")
     #[serde(default)]
     pub target_system: String,
-    
+
     /// Specific parameter to modify (e.g., "cost_multiplier", "discovery_risk")
     #[serde(default)]
     pub parameter: String,
-    
+
     /// Modifier type (additive, multiplicative, override)
     #[serde(default)]
     pub modifier_type: ModifierType,
-    
+
     /// Modifier value
     #[serde(default)]
     pub value: f64,
-    
+
     /// Condition for modifier application (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub condition: Option<String>,
@@ -59,14 +59,11 @@ pub struct TraitModifier {
 #[serde(rename_all = "snake_case")]
 pub enum ModifierType {
     #[default]
+    Additive, // value is added to base
 
-    Additive,  // value is added to base
-    
+    Multiplicative, // value multiplies base
 
-    Multiplicative,  // value multiplies base
-    
-
-    Override,  // value replaces base
+    Override, // value replaces base
 }
 
 /// Registry of all available leader traits (loaded from JSON)
@@ -75,7 +72,7 @@ pub struct TraitRegistry {
     /// All traits by ID
     #[serde(default)]
     pub traits: HashMap<String, LeaderTrait>,
-    
+
     /// Any additional fields
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -86,23 +83,23 @@ impl TraitRegistry {
     pub fn get(&self, id: &str) -> Option<&LeaderTrait> {
         self.traits.get(id)
     }
-    
+
     /// Get random trait weighted by rarity
     pub fn get_random_weighted(&self, rng: &mut impl rand::Rng) -> Option<&LeaderTrait> {
         if self.traits.is_empty() {
             return None;
         }
-        
+
         let total_weight: f64 = self.traits.values().map(|t| t.rarity_weight).sum();
         let mut random_weight = rng.gen::<f64>() * total_weight;
-        
+
         for trait_data in self.traits.values() {
             random_weight -= trait_data.rarity_weight;
             if random_weight <= 0.0 {
                 return Some(trait_data);
             }
         }
-        
+
         self.traits.values().next()
     }
 }
@@ -116,7 +113,7 @@ pub fn apply_leader_modifiers(
     trait_registry: &TraitRegistry,
 ) -> f64 {
     let mut modified_value = base_value;
-    
+
     // Iterate through leader's traits
     for trait_id in &leader.traits {
         if let Some(trait_data) = trait_registry.get(trait_id) {
@@ -139,7 +136,7 @@ pub fn apply_leader_modifiers(
             }
         }
     }
-    
+
     modified_value
 }
 
@@ -175,20 +172,25 @@ pub fn process_leader_traits_turn(
     // Apply tax collection efficiency modifier
     let base_tax_efficiency = 1.0;
     let modified_tax_efficiency = apply_leader_modifiers(
-        leader, base_tax_efficiency, "tax", "collection_efficiency", registry,
+        leader,
+        base_tax_efficiency,
+        "tax",
+        "collection_efficiency",
+        registry,
     );
     if (modified_tax_efficiency - base_tax_efficiency).abs() > 0.001 {
         messages.push(format!(
             "[TRAITS] {} modified tax collection efficiency: {:.0}% → {:.0}%",
-            leader.name, base_tax_efficiency * 100.0, modified_tax_efficiency * 100.0
+            leader.name,
+            base_tax_efficiency * 100.0,
+            modified_tax_efficiency * 100.0
         ));
     }
 
     // Apply infrastructure investment modifier (using education_cost_per_worker as proxy)
     let base_infra = country.infrastructure_config.education_cost_per_worker;
-    let modified_infra = apply_leader_modifiers(
-        leader, base_infra, "infrastructure", "investment", registry,
-    );
+    let modified_infra =
+        apply_leader_modifiers(leader, base_infra, "infrastructure", "investment", registry);
     if (modified_infra - base_infra).abs() > 0.001 {
         country.infrastructure_config.education_cost_per_worker = modified_infra.max(1.0);
         messages.push(format!(

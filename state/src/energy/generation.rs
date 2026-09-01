@@ -181,7 +181,11 @@ pub fn available_plant_types(
     // forest/livestock availability (organic feedstock). Without local
     // feedstock, biomass weight is reduced to 0.1 (representing imported fuel).
     // This prevents every region from defaulting to BiomassFired plants.
-    let biomass_weight = if has_forest || has_livestock { 0.3 } else { 0.1 };
+    let biomass_weight = if has_forest || has_livestock {
+        0.3
+    } else {
+        0.1
+    };
     types.push((PowerPlantType::BiomassFired, biomass_weight));
 
     // Coal/Lignite: available from 1880, requires deposit.

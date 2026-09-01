@@ -4,45 +4,37 @@
 //! bonds backed by mortgage assets, with proper asset classification.
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use serde_json::Value;
+use std::collections::HashMap;
 
 /// List Zastawny - Covered Bond issued by banks backed by mortgage/investment assets.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 
 pub struct CoveredBond {
     /// Bond ID.
-
     pub id: String,
-    
+
     /// Issuing bank ID.
-
     pub issuer_id: String,
-    
+
     /// Current holder ID (investor).
-
     pub holder_id: String,
-    
+
     /// Principal amount.
-
     pub principal: f64,
-    
+
     /// Coupon rate (annual interest).
-
     pub coupon_rate: f64,
-    
+
     /// Maturity turn.
-
     pub maturity_turn: u32,
-    
+
     /// Backing asset pool (mortgage/investment IDs).
-
     pub backing_pool: Vec<String>,
-    
-    /// Coverage ratio (backing assets / principal).
 
+    /// Coverage ratio (backing assets / principal).
     pub coverage_ratio: f64,
-    
+
     /// Any additional bond fields.
     #[serde(flatten, default)]
     pub extra: HashMap<String, Value>,
@@ -62,7 +54,7 @@ pub trait CoveredBondExtension {
         maturity_turn: u32,
         backing_mortgages: Vec<String>,
     ) -> Result<CoveredBond, String>;
-    
+
     /// Calculate mortgage pool value for coverage ratio.
     fn calculate_mortgage_pool_value(&self, backing_mortgages: &[String]) -> f64;
 }
@@ -81,12 +73,16 @@ impl CoveredBondExtension for BankBalanceSheet {
         if backing_value < principal {
             return Err("Insufficient backing assets".to_string());
         }
-        
+
         let bond = CoveredBond {
-            id: format!("CB-{}-{}", bank_id, std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_secs()),
+            id: format!(
+                "CB-{}-{}",
+                bank_id,
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs()
+            ),
             issuer_id: bank_id.to_string(),
             holder_id: String::new(),
             principal,
@@ -96,15 +92,16 @@ impl CoveredBondExtension for BankBalanceSheet {
             coverage_ratio: backing_value / principal,
             extra: HashMap::new(),
         };
-        
+
         self.reserves_at_central_bank += principal; // Receive cash (correct asset class)
         self.issued_bonds += principal; // Record liability (double-entry compliance)
         Ok(bond)
     }
-    
+
     fn calculate_mortgage_pool_value(&self, backing_mortgages: &[String]) -> f64 {
         // Sum outstanding_balance of all pledged loans matching the backing pool IDs
-        self.loans_issued.iter()
+        self.loans_issued
+            .iter()
             .filter(|l| backing_mortgages.contains(&l.id) && l.pledged_to_covered_bond.is_none())
             .map(|l| l.outstanding_balance)
             .sum()
@@ -144,11 +141,18 @@ pub fn create_covered_bond(
     maturity_turn: u32,
     current_turn: u32,
 ) -> Result<String, String> {
-    let balance_sheet = bank.balance_sheet.as_mut().ok_or("Bank has no balance sheet")?;
+    let balance_sheet = bank
+        .balance_sheet
+        .as_mut()
+        .ok_or("Bank has no balance sheet")?;
 
     // Find eligible loans to pledge (non-securitized, non-pledged, outstanding > 0)
-    let eligible: Vec<(String, f64)> = balance_sheet.loans_issued.iter()
-        .filter(|l| !l.securitized && l.pledged_to_covered_bond.is_none() && l.outstanding_balance > 0.0)
+    let eligible: Vec<(String, f64)> = balance_sheet
+        .loans_issued
+        .iter()
+        .filter(|l| {
+            !l.securitized && l.pledged_to_covered_bond.is_none() && l.outstanding_balance > 0.0
+        })
         .map(|l| (l.id.clone(), l.outstanding_balance))
         .collect();
 
@@ -176,7 +180,11 @@ pub fn create_covered_bond(
 
     // Mark loans as pledged to this covered bond
     for loan_id in &pledged {
-        if let Some(loan) = balance_sheet.loans_issued.iter_mut().find(|l| &l.id == loan_id) {
+        if let Some(loan) = balance_sheet
+            .loans_issued
+            .iter_mut()
+            .find(|l| &l.id == loan_id)
+        {
             loan.pledged_to_covered_bond = Some(bond_id.clone());
         }
     }
@@ -212,7 +220,8 @@ pub fn create_covered_bond(
         book.asks[pos].1.push(ask_order);
     } else {
         book.asks.push((principal, vec![ask_order]));
-        book.asks.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+        book.asks
+            .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
     }
     book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
 

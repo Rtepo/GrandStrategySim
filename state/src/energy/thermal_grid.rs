@@ -125,7 +125,9 @@ impl ThermalGridState {
 /// Compute the average delivery distance for a region's thermal grid.
 /// Convenience function that takes a Region reference.
 pub fn average_delivery_distance(region: &Region, active_heating_plants: usize) -> f64 {
-    region.thermal_grid.average_delivery_distance_km(active_heating_plants)
+    region
+        .thermal_grid
+        .average_delivery_distance_km(active_heating_plants)
 }
 
 /// Compute transmission loss fraction for a region's thermal grid.
@@ -288,11 +290,11 @@ mod tests {
             loss_per_km: 0.02,
         };
         grid.degrade(0.0); // No winter severity
-        // degradation = 0.002 * 1.0 = 0.002
+                           // degradation = 0.002 * 1.0 = 0.002
         assert!((grid.pipe_condition - 0.998).abs() < 1e-9);
 
         grid.degrade(2.0); // Harsh winter
-        // degradation = 0.002 * 3.0 = 0.006
+                           // degradation = 0.002 * 3.0 = 0.006
         assert!((grid.pipe_condition - 0.992).abs() < 1e-9);
     }
 
@@ -316,9 +318,8 @@ mod tests {
 
     #[test]
     fn test_regulated_heat_price_no_sales_fallback() {
-        let price = compute_regulated_heat_price(
-            1000.0, 200.0, 300.0, 50000.0, 160.0, 0.0, 1.10, 10.0,
-        );
+        let price =
+            compute_regulated_heat_price(1000.0, 200.0, 300.0, 50000.0, 160.0, 0.0, 1.10, 10.0);
         // Fallback: average_wage * 0.5 = 5.0
         assert!((price - 5.0).abs() < 1e-9);
     }

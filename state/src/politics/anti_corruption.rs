@@ -101,7 +101,10 @@ pub fn evaluate_anti_corruption_response(country: &Country) -> BudgetReallocatio
         .iter()
         .filter(|m| {
             m.competencies.iter().any(|c| {
-                matches!(c, GovernmentCompetency::Justice | GovernmentCompetency::InternalSecurity)
+                matches!(
+                    c,
+                    GovernmentCompetency::Justice | GovernmentCompetency::InternalSecurity
+                )
             })
         })
         .collect();
@@ -116,7 +119,10 @@ pub fn evaluate_anti_corruption_response(country: &Country) -> BudgetReallocatio
         .iter()
         .filter(|m| {
             !m.competencies.iter().any(|c| {
-                matches!(c, GovernmentCompetency::Justice | GovernmentCompetency::InternalSecurity)
+                matches!(
+                    c,
+                    GovernmentCompetency::Justice | GovernmentCompetency::InternalSecurity
+                )
             })
         })
         .map(|m| m.allocated_cash)
@@ -132,10 +138,12 @@ pub fn evaluate_anti_corruption_response(country: &Country) -> BudgetReallocatio
 
     // Distribute the shift: reduce non-security ministries proportionally
     for m in &ministry_config.ministries {
-        let is_security = m
-            .competencies
-            .iter()
-            .any(|c| matches!(c, GovernmentCompetency::Justice | GovernmentCompetency::InternalSecurity));
+        let is_security = m.competencies.iter().any(|c| {
+            matches!(
+                c,
+                GovernmentCompetency::Justice | GovernmentCompetency::InternalSecurity
+            )
+        });
         if !is_security && m.allocated_cash > 0.0 {
             let reduction = m.allocated_cash * shift_fraction;
             result.deltas.insert(m.id.clone(), -reduction);
@@ -146,7 +154,9 @@ pub fn evaluate_anti_corruption_response(country: &Country) -> BudgetReallocatio
     let per_security_increase = total_shift / security_ministries.len() as f64;
     for m in &security_ministries {
         let current = result.deltas.get(&m.id).copied().unwrap_or(0.0);
-        result.deltas.insert(m.id.clone(), current + per_security_increase);
+        result
+            .deltas
+            .insert(m.id.clone(), current + per_security_increase);
     }
 
     result
@@ -213,7 +223,7 @@ pub fn run_anti_corruption_feedback(country: &mut Country) -> f64 {
 /// * Only one inspectorate tender per turn (cooldown).
 /// * Requires sufficient allocated cash (minimum 50,000).
 /// * Uses real construction tender mechanism.
-/// * Building types: "sanepid Station", "Building Inspectorate", "Environmental Inspectorate".
+/// * Building types: "Sanitary Inspectorate", "Building Inspectorate", "Environmental Inspectorate".
 pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u32) -> usize {
     let corruption_index = country
         .politics
@@ -227,10 +237,10 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
     }
 
     // Cooldown: check if there's already a pending inspectorate tender
-    let has_pending = country.phase22_tenders.iter().any(|t| {
-        t.target_building_type.contains("Inspectorate")
-            || t.target_building_type.contains("sanepid")
-    });
+    let has_pending = country
+        .phase22_tenders
+        .iter()
+        .any(|t| t.target_building_type.contains("Inspectorate"));
     if has_pending {
         return 0;
     }
@@ -246,7 +256,10 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
         .iter()
         .filter(|m| {
             m.competencies.iter().any(|c| {
-                matches!(c, GovernmentCompetency::Justice | GovernmentCompetency::InternalSecurity)
+                matches!(
+                    c,
+                    GovernmentCompetency::Justice | GovernmentCompetency::InternalSecurity
+                )
             })
         })
         .collect();
@@ -256,13 +269,13 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
     }
 
     // Find the security ministry with the most available cash
-    let best_ministry = security_ministries
-        .iter()
-        .max_by(|a, b| {
-            let a_surplus = a.allocated_cash - a.spent_cash;
-            let b_surplus = b.allocated_cash - b.spent_cash;
-            a_surplus.partial_cmp(&b_surplus).unwrap_or(std::cmp::Ordering::Equal)
-        });
+    let best_ministry = security_ministries.iter().max_by(|a, b| {
+        let a_surplus = a.allocated_cash - a.spent_cash;
+        let b_surplus = b.allocated_cash - b.spent_cash;
+        a_surplus
+            .partial_cmp(&b_surplus)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     let ministry = match best_ministry {
         Some(m) => *m,
@@ -277,7 +290,7 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
     // Pick inspectorate building type based on what's most needed
     // (simplified: rotate through the three types)
     let building_types = [
-        "sanepid Station",
+        "Sanitary Inspectorate",
         "Building Inspectorate",
         "Environmental Inspectorate",
     ];
@@ -316,10 +329,10 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::economy::legal_status::ShadowEconomyState;
     use crate::politics::laws::InspectorateState;
     use crate::politics::ministries::{Ministry, MinistryConfig};
     use crate::politics::system::Politics;
-    use crate::economy::legal_status::ShadowEconomyState;
 
     fn make_country_with_corruption(corruption: f64) -> Country {
         let mut country = Country::default();
@@ -405,7 +418,10 @@ mod tests {
 
         let mc = country.politics.ministry_config.as_ref().unwrap();
         let sec_ministry = mc.ministries.iter().find(|m| m.id == "MIN-SEC").unwrap();
-        assert!(sec_ministry.allocated_cash > 100_000.0, "Security allocation should increase");
+        assert!(
+            sec_ministry.allocated_cash > 100_000.0,
+            "Security allocation should increase"
+        );
     }
 
     #[test]
@@ -418,7 +434,10 @@ mod tests {
 
         let mc = country.politics.ministry_config.as_ref().unwrap();
         let edu_ministry = mc.ministries.iter().find(|m| m.id == "MIN-EDU").unwrap();
-        assert!(edu_ministry.allocated_cash < 200_000.0, "Other allocation should decrease");
+        assert!(
+            edu_ministry.allocated_cash < 200_000.0,
+            "Other allocation should decrease"
+        );
     }
 
     #[test]
@@ -451,8 +470,7 @@ mod tests {
         assert_eq!(count, 1);
         assert_eq!(country.phase22_tenders.len(), 1);
         let tender = &country.phase22_tenders[0];
-        assert!(tender.target_building_type.contains("Inspectorate")
-            || tender.target_building_type.contains("sanepid"));
+        assert!(tender.target_building_type.contains("Inspectorate"));
     }
 
     #[test]

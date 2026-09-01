@@ -130,7 +130,8 @@ pub fn build_commute_map(
             }
 
             let commute_cost = edge.distance * config.capacity_per_km * config.commute_frequency;
-            let ticket_price = config.base_ticket_price * config.commute_frequency
+            let ticket_price = config.base_ticket_price
+                * config.commute_frequency
                 * (1.0 - config.public_subsidy_fraction);
 
             options.push(CommuteOption {
@@ -152,10 +153,7 @@ pub fn build_commute_map(
 /// * A class can commute if its per-capita savings >= ticket_price.
 /// * Subsidized tickets (public transport) are cheaper, enabling lower-class
 ///   commuting. Privatized transport with 0% subsidy may exclude them.
-pub fn can_afford_commute(
-    class_savings_per_capita: f64,
-    ticket_price: f64,
-) -> bool {
+pub fn can_afford_commute(class_savings_per_capita: f64, ticket_price: f64) -> bool {
     class_savings_per_capita >= ticket_price
 }
 
@@ -179,7 +177,7 @@ pub fn compute_commute_demand_for_target(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::{Edge, Region, NodeType, ClimateProfile};
+    use crate::society::geography::{ClimateProfile, Edge, NodeType, Region};
     use std::collections::BTreeMap;
     use std::collections::HashMap;
 
@@ -252,8 +250,12 @@ mod tests {
         let map = build_commute_map(&regions, &overlay, &config);
         // Should have r1→r2 and r2→r1.
         assert_eq!(map.len(), 2);
-        assert!(map.iter().any(|c| c.home_region_id == "r1" && c.target_region_id == "r2"));
-        assert!(map.iter().any(|c| c.home_region_id == "r2" && c.target_region_id == "r1"));
+        assert!(map
+            .iter()
+            .any(|c| c.home_region_id == "r1" && c.target_region_id == "r2"));
+        assert!(map
+            .iter()
+            .any(|c| c.home_region_id == "r2" && c.target_region_id == "r1"));
     }
 
     #[test]
@@ -265,7 +267,10 @@ mod tests {
             make_region("r2", vec![edge("r1", EdgeType::Coastline, 200.0)]),
         ];
         let map = build_commute_map(&regions, &overlay, &config);
-        assert!(map.is_empty(), "sea edges should not create commute options");
+        assert!(
+            map.is_empty(),
+            "sea edges should not create commute options"
+        );
     }
 
     #[test]
@@ -288,7 +293,10 @@ mod tests {
         let ticket2 = map2[0].ticket_price;
         // Full price: 5.0 * 2.0 * 1.0 = 10.0
         assert!((ticket2 - 10.0).abs() < 1e-9);
-        assert!(ticket2 > ticket, "privatized tickets should be more expensive");
+        assert!(
+            ticket2 > ticket,
+            "privatized tickets should be more expensive"
+        );
     }
 
     #[test]

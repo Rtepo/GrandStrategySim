@@ -1,15 +1,15 @@
 #![allow(missing_docs)]
 
-use rand::Rng;
-use rand::seq::SliceRandom;
-use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
-use std::collections::{BTreeMap, HashMap, HashSet};
-use crate::state::treasury::Treasury;
-use crate::registries::enums::Commodity;
 use crate::politics::local_government::{
     initialize_regional_governance, AdministrativeStatus, RegionalHeadType,
 };
+use crate::registries::enums::Commodity;
+use crate::state::treasury::Treasury;
+use rand::seq::SliceRandom;
+use rand::Rng;
+use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 /// Node type for graph-based geography system.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
@@ -43,29 +43,21 @@ pub enum EdgeType {
 #[serde(rename_all = "snake_case")]
 pub enum ClimateProfile {
     #[default]
+    Temperate, // Four distinct seasons, moderate extremes
 
-    Temperate,  // Four distinct seasons, moderate extremes
+    Mountainous, // Harsh winters, mild summers, high energy demand
 
+    Coastal, // Mild winters, tourism boost in summer
 
-    Mountainous,  // Harsh winters, mild summers, high energy demand
+    Continental, // Extreme temperature swings, harsh winters
 
+    Tropical, // Hot year-round, monsoon season
 
-    Coastal,  // Mild winters, tourism boost in summer
+    Desert, // Extreme heat, cold nights, water scarcity
 
+    Arctic, // Permafrost, extreme cold, limited activity
 
-    Continental,  // Extreme temperature swings, harsh winters
-
-
-    Tropical,  // Hot year-round, monsoon season
-
-
-    Desert,  // Extreme heat, cold nights, water scarcity
-
-
-    Arctic,  // Permafrost, extreme cold, limited activity
-
-
-    SubTropical,  // Hot summers, mild winters (Mediterranean/subtropical)
+    SubTropical, // Hot summers, mild winters (Mediterranean/subtropical)
 }
 
 /// Phase 47/87+: Pick a varied climate profile for non-capital regions.
@@ -96,7 +88,6 @@ fn pick_climate_profile(rng: &mut impl rand::Rng) -> ClimateProfile {
 /// Required to prevent key collisions in labor ledgers (Phase 6.2)
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum DemographyType {
-
     Rural,
 
     Urban,
@@ -106,16 +97,12 @@ pub enum DemographyType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Edge {
     /// Target node ID
-
     pub target_node: String,
     /// Type of edge connection
-
     pub edge_type: EdgeType,
     /// Distance for pathfinding cost (kilometers)
-
     pub distance: f64,
     /// Whether ships can traverse this edge
-
     pub is_navigable: bool,
     /// Phase 30: Territorial owner of this edge (for SeaLane edges).
     /// None = international waters. Some("country") = territorial waters
@@ -145,19 +132,15 @@ pub enum FormationType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ResourceDeposit {
     /// Tradeable commodity this deposit yields (native enum, no string mapping).
-
     pub commodity: Commodity,
     /// Estimated total reserves (tons/barrels) — original quantity at discovery.
-
     pub estimated_reserves: f64,
     /// Current remaining reserves (depletes as the deposit is mined).
     #[serde(default)]
     pub current_reserves: f64,
     /// Extraction cost per unit.
-
     pub extraction_cost: f64,
     /// Base quality 0-1, affects processing efficiency.
-
     pub quality: f64,
     /// Effective quality 0-1 (decays as the deposit is depleted).
     #[serde(default)]
@@ -174,22 +157,16 @@ pub struct ResourceDeposit {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GeologicalFormation {
     /// Unique formation ID
-
     pub id: String,
     /// Formation name (e.g., "Carpathian Mountains")
-
     pub name: String,
     /// Type of geological formation
-
     pub formation_type: FormationType,
     /// Resource deposits in this formation
-
     pub resource_deposits: BTreeMap<String, ResourceDeposit>,
     /// Region IDs intersecting this formation
-
     pub overlapping_regions: Vec<String>,
     /// Total area in square kilometers
-
     pub total_area: f64,
 }
 
@@ -197,7 +174,6 @@ pub struct GeologicalFormation {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum Climate {
     #[default]
-
     Fertile,
 
     Desert,
@@ -265,28 +241,82 @@ impl Climate {
         let mut limits = base_mine_template();
         match self {
             Climate::Mountainous => {
-                limits.insert("coal_mine".to_string(), (base_mines as f64 * rng.gen_range(1.0..3.0)) as i64);
-                limits.insert("iron_mine".to_string(), (base_mines as f64 * rng.gen_range(1.5..3.5)) as i64);
-                limits.insert("bauxite_mine".to_string(), (base_mines as f64 * rng.gen_range(0.5..2.0)) as i64);
-                limits.insert("nonferrous_metal_mines".to_string(), (base_mines as f64 * rng.gen_range(1.0..2.5)) as i64);
-                limits.insert("oil_wells".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
-                limits.insert("natural_gas_wells".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
+                limits.insert(
+                    "coal_mine".to_string(),
+                    (base_mines as f64 * rng.gen_range(1.0..3.0)) as i64,
+                );
+                limits.insert(
+                    "iron_mine".to_string(),
+                    (base_mines as f64 * rng.gen_range(1.5..3.5)) as i64,
+                );
+                limits.insert(
+                    "bauxite_mine".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.5..2.0)) as i64,
+                );
+                limits.insert(
+                    "nonferrous_metal_mines".to_string(),
+                    (base_mines as f64 * rng.gen_range(1.0..2.5)) as i64,
+                );
+                limits.insert(
+                    "oil_wells".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64,
+                );
+                limits.insert(
+                    "natural_gas_wells".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64,
+                );
             }
             Climate::Desert => {
-                limits.insert("coal_mine".to_string(), (base_mines as f64 * rng.gen_range(0.0..1.0)) as i64);
-                limits.insert("iron_mine".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
-                limits.insert("bauxite_mine".to_string(), (base_mines as f64 * rng.gen_range(0.0..1.0)) as i64);
-                limits.insert("nonferrous_metal_mines".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
-                limits.insert("oil_wells".to_string(), (base_mines as f64 * rng.gen_range(2.0..5.0)) as i64);
-                limits.insert("natural_gas_wells".to_string(), (base_mines as f64 * rng.gen_range(1.5..4.0)) as i64);
+                limits.insert(
+                    "coal_mine".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.0..1.0)) as i64,
+                );
+                limits.insert(
+                    "iron_mine".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64,
+                );
+                limits.insert(
+                    "bauxite_mine".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.0..1.0)) as i64,
+                );
+                limits.insert(
+                    "nonferrous_metal_mines".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64,
+                );
+                limits.insert(
+                    "oil_wells".to_string(),
+                    (base_mines as f64 * rng.gen_range(2.0..5.0)) as i64,
+                );
+                limits.insert(
+                    "natural_gas_wells".to_string(),
+                    (base_mines as f64 * rng.gen_range(1.5..4.0)) as i64,
+                );
             }
             Climate::Fertile => {
-                limits.insert("coal_mine".to_string(), (base_mines as f64 * rng.gen_range(1.0..2.0)) as i64);
-                limits.insert("iron_mine".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
-                limits.insert("bauxite_mine".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
-                limits.insert("nonferrous_metal_mines".to_string(), (base_mines as f64 * rng.gen_range(0.2..1.0)) as i64);
-                limits.insert("oil_wells".to_string(), (base_mines as f64 * rng.gen_range(0.2..1.0)) as i64);
-                limits.insert("natural_gas_wells".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
+                limits.insert(
+                    "coal_mine".to_string(),
+                    (base_mines as f64 * rng.gen_range(1.0..2.0)) as i64,
+                );
+                limits.insert(
+                    "iron_mine".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64,
+                );
+                limits.insert(
+                    "bauxite_mine".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64,
+                );
+                limits.insert(
+                    "nonferrous_metal_mines".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.2..1.0)) as i64,
+                );
+                limits.insert(
+                    "oil_wells".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.2..1.0)) as i64,
+                );
+                limits.insert(
+                    "natural_gas_wells".to_string(),
+                    (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64,
+                );
             }
             Climate::Balanced => {
                 for key in limits.keys().cloned().collect::<Vec<_>>() {
@@ -331,19 +361,14 @@ pub enum LandSubType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct SoilClassData {
     /// Soil class identifier in English (e.g., "Class_I" through "Class_VI")
-
     pub soil_class: String,
     /// Area in hectares
-
     pub area_hectares: f64,
     /// Ownership distribution (reuses existing ClassLandDistribution)
-
     pub ownership: ClassLandDistribution,
     /// Fertility index 0-1, crop yield multiplier
-
     pub fertility_index: f64,
     /// Erosion risk 0-1, degradation probability
-
     pub erosion_risk: f64,
 }
 
@@ -351,7 +376,6 @@ pub struct SoilClassData {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LandCategoryData {
     /// Area in hectares
-
     pub area_hectares: f64,
     /// Soil profile (subordinate soil system)
     #[serde(default)]
@@ -360,10 +384,8 @@ pub struct LandCategoryData {
     #[serde(default)]
     pub ownership_distribution: ClassLandDistribution,
     /// Ecological health 0-1, affected by pollution
-
     pub ecological_health: f64,
     /// Development potential 0-1, ease of transformation
-
     pub development_potential: f64,
     /// Sub-type for specific categories
     #[serde(default)]
@@ -405,7 +427,6 @@ pub enum LandCategory {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LandUseInventory {
     /// Total area in hectares
-
     pub total_area: f64,
     /// Land categories with their data
     #[serde(default)]
@@ -424,7 +445,7 @@ impl LandCategoryData {
         // Natural decay
         let natural_decay = self.water_pollution * self.pollution_decay_rate;
         self.water_pollution = (self.water_pollution - natural_decay).max(0.0);
-        
+
         // Accumulate sewage if inflow exceeds decay capacity
         let decay_capacity = self.water_pollution * self.pollution_decay_rate * 10.0;
         if sewage_inflow > decay_capacity {
@@ -435,7 +456,7 @@ impl LandCategoryData {
             0.0
         }
     }
-    
+
     /// Calculate pollution health impact
     ///
     /// # Returns
@@ -480,23 +501,23 @@ pub struct ClassLandDistribution {
     /// Hectares owned by Aristocracy (latifundia estates)
     #[serde(default)]
     pub aristocracy_hectares: i64,
-    
+
     /// Hectares owned by Free Peasants (smallholdings)
     #[serde(default)]
     pub free_peasant_hectares: i64,
-    
+
     /// Hectares owned by State (crown lands)
     #[serde(default)]
     pub state_hectares: i64,
-    
+
     /// Hectares owned by Corporations (agricultural firms)
     #[serde(default)]
     pub corporation_hectares: i64,
-    
+
     /// Hectares owned by Communities/Cooperatives
     #[serde(default)]
     pub community_hectares: i64,
-    
+
     /// Hectares owned by Municipalities (JST)
     #[serde(default)]
     pub municipal_hectares: i64,
@@ -505,15 +526,22 @@ pub struct ClassLandDistribution {
 impl ClassLandDistribution {
     /// Total hectares in this soil class
     pub fn total(&self) -> i64 {
-        self.aristocracy_hectares + self.free_peasant_hectares 
-            + self.state_hectares + self.corporation_hectares 
-            + self.community_hectares + self.municipal_hectares
+        self.aristocracy_hectares
+            + self.free_peasant_hectares
+            + self.state_hectares
+            + self.corporation_hectares
+            + self.community_hectares
+            + self.municipal_hectares
     }
-    
+
     /// Aristocracy ownership share (0-1)
     pub fn aristocracy_share(&self) -> f64 {
         let total = self.total();
-        if total == 0 { 0.0 } else { self.aristocracy_hectares as f64 / total as f64 }
+        if total == 0 {
+            0.0
+        } else {
+            self.aristocracy_hectares as f64 / total as f64
+        }
     }
 }
 
@@ -533,19 +561,19 @@ pub struct Region {
     pub population: i64,
     pub gdp: f64,
     pub gdp_pc: f64,
-    
+
     pub climate: Climate,
-    
+
     pub soil_profile: BTreeMap<String, f64>,
-    
+
     pub arable_land_max: i64,
-    
+
     pub arable_land_used: i64,
-    
+
     pub extraction_limits: BTreeMap<String, i64>,
-    
+
     pub extraction_used: BTreeMap<String, i64>,
-    
+
     pub resources: Map<String, Value>,
     pub is_capital: bool,
     /// NEW: Graph node type (LandRegion, SeaNode, OceanNode)
@@ -558,11 +586,11 @@ pub struct Region {
     // Regional class-based land distribution
     #[serde(default)]
     pub land_distribution: BTreeMap<String, ClassLandDistribution>,
-    
+
     // NEW: Class demographics
     #[serde(default)]
     pub class_demographics: RegionalClassDemographics,
-    
+
     // NEW: Regional governance (JST)
     #[serde(default)]
     pub governance: Option<crate::politics::local_government::RegionalGovernance>,
@@ -582,7 +610,7 @@ pub struct Region {
     // NEW: Land use inventory (Phase 5.3)
     #[serde(default)]
     pub land_use_inventory: LandUseInventory,
-    
+
     // Phase 6.1: Climate profile for seasonal modifiers
     #[serde(default)]
     pub climate_profile: ClimateProfile,
@@ -792,19 +820,19 @@ pub struct PoliticalSentiment {
     /// Percentage of population that is Loyalist (pro-regime, 0-1)
     #[serde(default)]
     pub loyalists: f64,
-    
+
     /// Percentage of population that is Undecided (swing voters, 0-1)
     #[serde(default)]
     pub undecided: f64,
-    
+
     /// Percentage of population that is Radical (anti-regime, 0-1)
     #[serde(default)]
     pub radicals: f64,
-    
+
     /// Sentiment volatility (0-1, higher = faster shifts)
     #[serde(default)]
     pub volatility: f64,
-    
+
     /// Turn when sentiment was last recalculated
     #[serde(default)]
     pub last_update_turn: u32,
@@ -828,15 +856,15 @@ pub struct HistoricalQualityOfLife {
     /// Savings per capita at this turn in previous year
     #[serde(default)]
     pub savings_per_capita_yoy: f64,
-    
+
     /// Real wage at this turn in previous year
     #[serde(default)]
     pub real_wage_yoy: f64,
-    
+
     /// Inflation rate at this turn in previous year
     #[serde(default)]
     pub inflation_yoy: f64,
-    
+
     /// Turn when this snapshot was taken (for validation)
     #[serde(default)]
     pub snapshot_turn: u32,
@@ -905,7 +933,7 @@ pub struct ClassDemographics {
     /// Trade union affiliation (if any)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub union_affiliation: Option<String>,
-    
+
     /// Phase 6.1: Historical QoL snapshots for YoY comparison (indexed by turn 1-24)
     #[serde(default)]
     pub historical_qol: [HistoricalQualityOfLife; 24],
@@ -1028,16 +1056,16 @@ pub enum EconomicStatus {
 
 impl ClassDemographics {
     /// Calculate YoY-adjusted sentiment drivers
-    /// 
+    ///
     /// # Arguments
     /// * `calendar` - Current calendar state
     /// * `current_savings_per_capita` - Current savings per capita (NOT total savings)
     /// * `current_real_wage` - Current real wage
     /// * `current_inflation` - Current inflation rate
-    /// 
+    ///
     /// # Returns
     /// SentimentDrivers with YoY-adjusted values, or Turn-over-Turn values if first year
-    /// 
+    ///
     /// # Rules
     /// * If snapshot_turn == 0 (first year), use Turn-over-Turn comparison against previous_turn_qol
     /// * This prevents "First-Year Paralysis" - society must react to immediate shocks
@@ -1052,23 +1080,25 @@ impl ClassDemographics {
     ) -> crate::politics::chaos_config::SentimentDrivers {
         let turn_index = ((calendar.global_turn - 1) % 24) as usize;
         let historical = &self.historical_qol[turn_index];
-        
+
         // FIRST-YEAR FALLBACK: If no YoY data exists, use Turn-over-Turn comparison
         // This prevents "First-Year Paralysis" - society must react to immediate shocks
         if historical.snapshot_turn == 0 {
             // Compare against previous turn (Turn-over-Turn / Month-over-Month)
             let real_wage_growth = if self.previous_turn_qol.real_wage_yoy > 0.0 {
-                (current_real_wage - self.previous_turn_qol.real_wage_yoy) / self.previous_turn_qol.real_wage_yoy
+                (current_real_wage - self.previous_turn_qol.real_wage_yoy)
+                    / self.previous_turn_qol.real_wage_yoy
             } else {
                 0.0
             };
-            
+
             let savings_depletion_rate = if self.previous_turn_qol.savings_per_capita_yoy > 0.0 {
-                (self.previous_turn_qol.savings_per_capita_yoy - current_savings_per_capita) / self.previous_turn_qol.savings_per_capita_yoy
+                (self.previous_turn_qol.savings_per_capita_yoy - current_savings_per_capita)
+                    / self.previous_turn_qol.savings_per_capita_yoy
             } else {
                 0.0
             };
-            
+
             // Phase 6.2: Exploitation Penalty (Overwork + Poverty)
             let fte_ratio = if self.population > 0 {
                 self.allocated_fte / self.population as f64
@@ -1077,20 +1107,24 @@ impl ClassDemographics {
             };
             let is_overworked = fte_ratio > 1.2;
             let is_in_poverty = real_wage_growth < 0.0 || savings_depletion_rate > 0.1;
-            let exploitation_penalty = if is_overworked && is_in_poverty { 5.0 } else { 1.0 };
+            let exploitation_penalty = if is_overworked && is_in_poverty {
+                5.0
+            } else {
+                1.0
+            };
 
             return crate::politics::chaos_config::SentimentDrivers {
                 real_wage_growth,
                 inflation_rate: current_inflation, // Use current inflation directly
-                unemployment_rate: 0.0, // Calculated separately
+                unemployment_rate: 0.0,            // Calculated separately
                 savings_depletion_rate,
-                sse_success_rate: 0.0, // Calculated separately
+                sse_success_rate: 0.0,       // Calculated separately
                 campaign_effectiveness: 0.0, // Calculated separately
-                government_approval: 0.0, // Calculated separately
+                government_approval: 0.0,    // Calculated separately
                 exploitation_penalty,
             };
         }
-        
+
         // YoY comparisons (current vs same turn last year)
         // EXPLICIT ZERO-GUARD: Prevent divide-by-zero panic
         let real_wage_growth = if historical.real_wage_yoy > 0.0 {
@@ -1098,15 +1132,16 @@ impl ClassDemographics {
         } else {
             0.0
         };
-        
+
         // UNIT CONSISTENCY: current_savings_per_capita (not total) compared to historical per capita
         // EXPLICIT ZERO-GUARD: Prevent divide-by-zero panic
         let savings_depletion_rate = if historical.savings_per_capita_yoy > 0.0 {
-            (historical.savings_per_capita_yoy - current_savings_per_capita) / historical.savings_per_capita_yoy
+            (historical.savings_per_capita_yoy - current_savings_per_capita)
+                / historical.savings_per_capita_yoy
         } else {
             0.0
         };
-        
+
         // Inflation is already a rate, but we compare YoY trend
         let inflation_trend = current_inflation - historical.inflation_yoy;
 
@@ -1118,28 +1153,32 @@ impl ClassDemographics {
         };
         let is_overworked = fte_ratio > 1.2;
         let is_in_poverty = real_wage_growth < 0.0 || savings_depletion_rate > 0.1;
-        let exploitation_penalty = if is_overworked && is_in_poverty { 5.0 } else { 1.0 };
+        let exploitation_penalty = if is_overworked && is_in_poverty {
+            5.0
+        } else {
+            1.0
+        };
 
         crate::politics::chaos_config::SentimentDrivers {
             real_wage_growth,
             inflation_rate: inflation_trend,
             unemployment_rate: 0.0, // Calculated separately
             savings_depletion_rate,
-            sse_success_rate: 0.0, // Calculated separately
+            sse_success_rate: 0.0,       // Calculated separately
             campaign_effectiveness: 0.0, // Calculated separately
-            government_approval: 0.0, // Calculated separately
+            government_approval: 0.0,    // Calculated separately
             exploitation_penalty,
         }
     }
-    
+
     /// Update historical snapshot at current turn and previous_turn_qol
-    /// 
+    ///
     /// # Arguments
     /// * `calendar` - Current calendar state
     /// * `current_savings_per_capita` - Current savings per capita (NOT total savings)
     /// * `current_real_wage` - Current real wage
     /// * `current_inflation` - Current inflation rate
-    /// 
+    ///
     /// # Rules
     /// * Updates both the ring buffer (historical_qol) and short-term memory (previous_turn_qol)
     /// * Unit consistency: current_savings_per_capita stored as per_capita in both structures
@@ -1151,7 +1190,7 @@ impl ClassDemographics {
         current_inflation: f64,
     ) {
         let turn_index = ((calendar.global_turn - 1) % 24) as usize;
-        
+
         // Update ring buffer for YoY comparison
         self.historical_qol[turn_index] = HistoricalQualityOfLife {
             savings_per_capita_yoy: current_savings_per_capita,
@@ -1159,7 +1198,7 @@ impl ClassDemographics {
             inflation_yoy: current_inflation,
             snapshot_turn: calendar.global_turn,
         };
-        
+
         // Update short-term memory for Turn-over-Turn fallback
         self.previous_turn_qol = HistoricalQualityOfLife {
             savings_per_capita_yoy: current_savings_per_capita,
@@ -1176,7 +1215,7 @@ pub struct RegionalClassDemographics {
     /// Demographics by rural class
     #[serde(default)]
     pub rural_classes: BTreeMap<String, ClassDemographics>,
-    
+
     /// Demographics by urban class
     #[serde(default)]
     pub urban_classes: BTreeMap<String, ClassDemographics>,
@@ -1242,19 +1281,19 @@ pub struct MicroRegionBudget {
     /// Liquid reserves
     #[serde(default)]
     pub liquid_reserves: f64,
-    
+
     /// Property tax revenue
     #[serde(default)]
     pub property_tax: f64,
-    
+
     /// Local service fees
     #[serde(default)]
     pub local_fees: f64,
-    
+
     /// Transfer from parent Region
     #[serde(default)]
     pub regional_transfer: f64,
-    
+
     /// Allocation for social housing
     #[serde(default)]
     pub social_housing_allocation: f64,
@@ -1366,22 +1405,25 @@ impl RegionalClassDemographics {
         let key = serde_json::to_string(&class).unwrap_or_default();
         self.rural_classes.get(&key)
     }
-    
+
     /// Get mutable demographics for a specific class
     pub fn get_class_mut(&mut self, class: RuralClass) -> Option<&mut ClassDemographics> {
         let key = serde_json::to_string(&class).unwrap_or_default();
         self.rural_classes.get_mut(&key)
     }
-    
+
     /// Initialize class demographics if missing
     pub fn ensure_class(&mut self, class: RuralClass) -> &mut ClassDemographics {
         let key = serde_json::to_string(&class).unwrap_or_default();
         self.rural_classes.entry(key).or_default()
     }
-    
+
     /// Dynamically aggregate serf population from all Latifundia in the region
     /// Serf population is NOT stored statically - LatifundiumData is the source of truth
-    pub fn aggregate_serf_population(&mut self, latifundia: &[&crate::entities::legal_form::LatifundiumData]) {
+    pub fn aggregate_serf_population(
+        &mut self,
+        latifundia: &[&crate::entities::legal_form::LatifundiumData],
+    ) {
         let total_serfs: u32 = latifundia.iter().map(|l| l.serf_population).sum();
         let serf_demographics = self.ensure_class(RuralClass::Serf);
         serf_demographics.population = total_serfs as i64;
@@ -1389,7 +1431,7 @@ impl RegionalClassDemographics {
 }
 
 /// Update class demographics based on economic conditions
-/// 
+///
 /// # Arguments
 /// * `class_demographics` - Mutable reference to class demographics
 /// * `class` - The rural class being updated
@@ -1409,7 +1451,7 @@ pub fn update_class_demographics(
             // Economic status depends on remaining labor time for subsistence farming
             let subsistence_labor_time = 1.0 - serf_labor_demand; // 1.0 = full time available
             class_demographics.subsistence_labor_time = subsistence_labor_time;
-            
+
             // If labor demand is too high, serfs cannot farm their plots -> starvation
             class_demographics.economic_status = if subsistence_labor_time < 0.3 {
                 EconomicStatus::Destitute // High revolt risk
@@ -1420,29 +1462,30 @@ pub fn update_class_demographics(
             } else {
                 EconomicStatus::Prosperous
             };
-            
+
             // Serfs have no cash savings (subsistence economy)
             class_demographics.savings = 0.0;
             class_demographics.savings_per_capita = 0.0;
         }
         _ => {
             // Cash-owning classes interact with market prices
-            let subsistence_cost = class_demographics.population as f64 
-                * market_prices.subsistence_basket 
+            let subsistence_cost = class_demographics.population as f64
+                * market_prices.subsistence_basket
                 * class_demographics.subsistence_rate;
-            
+
             let disposable_income = income - subsistence_cost;
-            
+
             if disposable_income > 0.0 {
                 class_demographics.savings += disposable_income;
             } else {
                 class_demographics.savings += disposable_income;
             }
-            
+
             if class_demographics.population > 0 {
-                class_demographics.savings_per_capita = class_demographics.savings / class_demographics.population as f64;
+                class_demographics.savings_per_capita =
+                    class_demographics.savings / class_demographics.population as f64;
             }
-            
+
             class_demographics.economic_status = match class_demographics.savings_per_capita {
                 x if x >= 1000.0 => EconomicStatus::Prosperous,
                 x if x >= 500.0 => EconomicStatus::Stable,
@@ -1470,14 +1513,32 @@ pub struct Megaregion {
     pub regional_budget: Map<String, Value>,
     pub population: i64,
     pub gdp: f64,
-    
+
     // Megaregion governance
     #[serde(default)]
     pub governance: Option<crate::politics::local_government::MegaregionGovernance>,
 }
 
 fn seed_geological_deposits(resources: &mut Map<String, Value>, gdp: f64, _rng: &mut impl Rng) {
-    let goods = ["coal", "lignite", "oil", "natural_gas", "peat", "uranium", "iron", "copper", "zinc", "bauxite", "gold", "silver", "diamonds", "stone", "sand", "salt", "limestone"];
+    let goods = [
+        "coal",
+        "lignite",
+        "oil",
+        "natural_gas",
+        "peat",
+        "uranium",
+        "iron",
+        "copper",
+        "zinc",
+        "bauxite",
+        "gold",
+        "silver",
+        "diamonds",
+        "stone",
+        "sand",
+        "salt",
+        "limestone",
+    ];
     for good in goods {
         let multiplier = geological_multiplier(good);
         resources.insert(
@@ -1554,12 +1615,18 @@ pub fn reseed_resources_from_formations(
 
         // Preserve freshwater and forest data (these are not geological).
         // Phase 87+: Fixed Polish keys to English (Directive 12).
-        if let Some(water) = region.resources.get("freshwater")
-            .or_else(|| region.resources.get("woda_slodka")) {
+        if let Some(water) = region
+            .resources
+            .get("freshwater")
+            .or_else(|| region.resources.get("woda_slodka"))
+        {
             new_resources.insert("freshwater".to_string(), water.clone());
         }
-        if let Some(forest) = region.resources.get("forests")
-            .or_else(|| region.resources.get("lasy")) {
+        if let Some(forest) = region
+            .resources
+            .get("forests")
+            .or_else(|| region.resources.get("lasy"))
+        {
             new_resources.insert("forests".to_string(), forest.clone());
         }
 
@@ -1696,12 +1763,20 @@ fn generate_region_name(country: &str, is_capital: bool, rng: &mut impl Rng) -> 
     }
 
     let prefixes = [
-        "Northern", "Southern", "Eastern", "Western", "Central",
-        "Upper", "Lower", "Greater", "Old", "New",
+        "Northern", "Southern", "Eastern", "Western", "Central", "Upper", "Lower", "Greater",
+        "Old", "New",
     ];
     let suffixes = [
-        "Valley", "Highlands", "Coast", "Plains", "Ridge",
-        "Basin", "Delta", "Frontier", "Heartland", "Marches",
+        "Valley",
+        "Highlands",
+        "Coast",
+        "Plains",
+        "Ridge",
+        "Basin",
+        "Delta",
+        "Frontier",
+        "Heartland",
+        "Marches",
     ];
 
     let prefix = prefixes.choose(rng).unwrap();
@@ -1711,7 +1786,12 @@ fn generate_region_name(country: &str, is_capital: bool, rng: &mut impl Rng) -> 
 
 /// Generates the regional topology for a country.
 /// Phase 44: Now accepts `start_year` for era-aware demographics.
-pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, start_year: u32) -> HashMap<String, Region> {
+pub fn generate_regional_topology(
+    country: &str,
+    population: i64,
+    gdp: f64,
+    start_year: u32,
+) -> HashMap<String, Region> {
     let mut rng = rand::thread_rng();
     let gdp_pc = gdp / population as f64;
     let count = region_count(population, gdp_pc);
@@ -1744,8 +1824,14 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
         let mine_limits = climate.mine_limits(base_mines, &mut rng);
         let mut resources = Map::new();
         // Phase 87+: Fixed Polish keys to English (Directive 12).
-        resources.insert("forests".to_string(), serde_json::json!({"exploitation": rng.gen_range(0.1..0.3)}));
-        resources.insert("freshwater".to_string(), serde_json::json!({"availability": rng.gen_range(0.5..1.0)}));
+        resources.insert(
+            "forests".to_string(),
+            serde_json::json!({"exploitation": rng.gen_range(0.1..0.3)}),
+        );
+        resources.insert(
+            "freshwater".to_string(),
+            serde_json::json!({"availability": rng.gen_range(0.5..1.0)}),
+        );
         seed_geological_deposits(&mut resources, region_gdp, &mut rng);
 
         // Phase 47: Assign development_level per region.
@@ -1755,8 +1841,8 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
             rng.gen_range(0.85..0.95)
         } else {
             // Larger population regions tend to be more developed.
-            let pop_factor = (region_pop as f64 / (population as f64 / count as f64))
-                .clamp(0.3, 2.0);
+            let pop_factor =
+                (region_pop as f64 / (population as f64 / count as f64)).clamp(0.3, 2.0);
             let base = rng.gen_range(0.15..0.55);
             (base * pop_factor).clamp(0.1, 0.75)
         };
@@ -1765,7 +1851,11 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
         // Developed regions produce more per capita than underdeveloped ones.
         let dev_multiplier = 0.3 + development_level * 1.4; // Range: ~0.44 to ~1.63
         let scaled_gdp = region_gdp * dev_multiplier;
-        let scaled_gdp_pc = if region_pop > 0 { scaled_gdp / region_pop as f64 } else { gdp_pc };
+        let scaled_gdp_pc = if region_pop > 0 {
+            scaled_gdp / region_pop as f64
+        } else {
+            gdp_pc
+        };
 
         // Phase 51: Initialize governance for ALL regions.
         // No region is left without governance — low development means poverty, not anarchy.
@@ -1781,7 +1871,14 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
         gov.budget.property_tax = scaled_gdp * 0.005;
         gov.budget.local_expenditures = scaled_gdp * 0.015;
         gov.budget.budget_balance = scaled_gdp * 0.005;
-        gov.debt.credit_rating = if development_level > 0.5 { "AA" } else if development_level > 0.3 { "A" } else { "BBB" }.to_string();
+        gov.debt.credit_rating = if development_level > 0.5 {
+            "AA"
+        } else if development_level > 0.3 {
+            "A"
+        } else {
+            "BBB"
+        }
+        .to_string();
         // Initialize council seats proportional to population.
         gov.council.total_seats = ((region_pop / 50_000) as u32).max(5);
         // Faction distribution: developed regions lean Moderate, underdeveloped lean Populares.
@@ -1789,11 +1886,15 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
         if development_level > 0.5 {
             gov.council.faction_distribution.moderates_count = (total_seats as f64 * 0.45) as u32;
             gov.council.faction_distribution.populares_count = (total_seats as f64 * 0.30) as u32;
-            gov.council.faction_distribution.optimates_count = total_seats - gov.council.faction_distribution.moderates_count - gov.council.faction_distribution.populares_count;
+            gov.council.faction_distribution.optimates_count = total_seats
+                - gov.council.faction_distribution.moderates_count
+                - gov.council.faction_distribution.populares_count;
         } else {
             gov.council.faction_distribution.populares_count = (total_seats as f64 * 0.50) as u32;
             gov.council.faction_distribution.moderates_count = (total_seats as f64 * 0.30) as u32;
-            gov.council.faction_distribution.optimates_count = total_seats - gov.council.faction_distribution.populares_count - gov.council.faction_distribution.moderates_count;
+            gov.council.faction_distribution.optimates_count = total_seats
+                - gov.council.faction_distribution.populares_count
+                - gov.council.faction_distribution.moderates_count;
         }
         let governance = Some(gov);
 
@@ -1824,7 +1925,11 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
             node_type: NodeType::LandRegion,
             edges: Vec::new(),
             land_distribution: BTreeMap::new(),
-            class_demographics: generate_class_demographics(region_pop, start_year, development_level),
+            class_demographics: generate_class_demographics(
+                region_pop,
+                start_year,
+                development_level,
+            ),
             governance,
             capacity_pool: BTreeMap::new(),
             capacity_utilization: BTreeMap::new(),
@@ -1855,7 +1960,10 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
     let structured_edges = build_structured_edges(&regions);
     for region in &mut regions {
         region.node_type = NodeType::LandRegion;
-        region.edges = structured_edges.get(&region.id).cloned().unwrap_or_default();
+        region.edges = structured_edges
+            .get(&region.id)
+            .cloned()
+            .unwrap_or_default();
         // Initialize land use inventory
         initialize_default_land_inventory(region);
     }
@@ -1933,7 +2041,11 @@ fn seed_initial_durables(demo: &mut ClassDemographics, ownership_fraction: f64, 
 
 /// participation rates. This is the critical fix for the 100% unemployment bug —
 /// without class demographics, the labor market clearing has no workers to hire.
-fn generate_class_demographics(region_pop: i64, start_year: u32, development_level: f64) -> RegionalClassDemographics {
+fn generate_class_demographics(
+    region_pop: i64,
+    start_year: u32,
+    development_level: f64,
+) -> RegionalClassDemographics {
     let mut rural_classes = BTreeMap::new();
     let mut urban_classes = BTreeMap::new();
 
@@ -1973,12 +2085,15 @@ fn generate_class_demographics(region_pop: i64, start_year: u32, development_lev
     let aristocracy_pop = rural_pop - serf_pop - free_peasant_pop - landless_pop;
 
     if serf_pop > 0 {
-        rural_classes.insert("Serf".to_string(), ClassDemographics {
-            population: serf_pop,
-            labor_participation: 0.65,
-            savings: 0.0, // Serfs don't have cash savings
-            ..Default::default()
-        });
+        rural_classes.insert(
+            "Serf".to_string(),
+            ClassDemographics {
+                population: serf_pop,
+                labor_participation: 0.65,
+                savings: 0.0, // Serfs don't have cash savings
+                ..Default::default()
+            },
+        );
     }
 
     rural_classes.insert("FreePeasant".to_string(), {
@@ -1987,7 +2102,11 @@ fn generate_class_demographics(region_pop: i64, start_year: u32, development_lev
             population: free_peasant_pop,
             labor_participation: 0.55,
             savings,
-            savings_per_capita: if free_peasant_pop > 0 { savings / free_peasant_pop as f64 } else { 0.0 },
+            savings_per_capita: if free_peasant_pop > 0 {
+                savings / free_peasant_pop as f64
+            } else {
+                0.0
+            },
             ..Default::default()
         }
     });
@@ -1997,7 +2116,11 @@ fn generate_class_demographics(region_pop: i64, start_year: u32, development_lev
             population: landless_pop,
             labor_participation: 0.60,
             savings,
-            savings_per_capita: if landless_pop > 0 { savings / landless_pop as f64 } else { 0.0 },
+            savings_per_capita: if landless_pop > 0 {
+                savings / landless_pop as f64
+            } else {
+                0.0
+            },
             ..Default::default()
         }
     });
@@ -2007,7 +2130,11 @@ fn generate_class_demographics(region_pop: i64, start_year: u32, development_lev
             population: aristocracy_pop,
             labor_participation: 0.30,
             savings,
-            savings_per_capita: if aristocracy_pop > 0 { savings / aristocracy_pop as f64 } else { 0.0 },
+            savings_per_capita: if aristocracy_pop > 0 {
+                savings / aristocracy_pop as f64
+            } else {
+                0.0
+            },
             ..Default::default()
         };
         // Phase 47: Seed initial household durables for wealthy classes.
@@ -2027,7 +2154,11 @@ fn generate_class_demographics(region_pop: i64, start_year: u32, development_lev
             population: worker_pop,
             labor_participation: 0.60,
             savings,
-            savings_per_capita: if worker_pop > 0 { savings / worker_pop as f64 } else { 0.0 },
+            savings_per_capita: if worker_pop > 0 {
+                savings / worker_pop as f64
+            } else {
+                0.0
+            },
             ..Default::default()
         }
     });
@@ -2037,7 +2168,11 @@ fn generate_class_demographics(region_pop: i64, start_year: u32, development_lev
             population: middle_pop,
             labor_participation: 0.55,
             savings,
-            savings_per_capita: if middle_pop > 0 { savings / middle_pop as f64 } else { 0.0 },
+            savings_per_capita: if middle_pop > 0 {
+                savings / middle_pop as f64
+            } else {
+                0.0
+            },
             ..Default::default()
         };
         // Phase 47: Seed initial household durables for wealthy classes.
@@ -2340,22 +2475,33 @@ fn generate_formation_resources(
 
     let possible: &[Commodity] = match formation_type {
         FormationType::MountainRange => &[
-            Commodity::HardCoal, Commodity::Iron, Commodity::Copper,
-            Commodity::Zinc, Commodity::Gold, Commodity::Silver,
+            Commodity::HardCoal,
+            Commodity::Iron,
+            Commodity::Copper,
+            Commodity::Zinc,
+            Commodity::Gold,
+            Commodity::Silver,
         ],
         FormationType::SedimentaryBasin => &[
-            Commodity::HardCoal, Commodity::Oil, Commodity::NaturalGas,
-            Commodity::BrownCoal, Commodity::Peat,
+            Commodity::HardCoal,
+            Commodity::Oil,
+            Commodity::NaturalGas,
+            Commodity::BrownCoal,
+            Commodity::Peat,
         ],
-        FormationType::RiftValley => &[
-            Commodity::Oil, Commodity::NaturalGas, Commodity::Uranium,
-        ],
+        FormationType::RiftValley => &[Commodity::Oil, Commodity::NaturalGas, Commodity::Uranium],
         FormationType::VolcanicArc => &[
-            Commodity::Sulfur, Commodity::Copper, Commodity::Tin,
-            Commodity::Lead, Commodity::Zinc,
+            Commodity::Sulfur,
+            Commodity::Copper,
+            Commodity::Tin,
+            Commodity::Lead,
+            Commodity::Zinc,
         ],
         FormationType::ContinentalShelf => &[
-            Commodity::Oil, Commodity::NaturalGas, Commodity::Sand, Commodity::Gravel,
+            Commodity::Oil,
+            Commodity::NaturalGas,
+            Commodity::Sand,
+            Commodity::Gravel,
         ],
     };
 
@@ -2434,8 +2580,10 @@ pub fn get_region_resources_from_formations(
                 existing.current_reserves += deposit.current_reserves;
                 // Average the quality and cost
                 existing.quality = (existing.quality + deposit.quality) / 2.0;
-                existing.current_quality = (existing.current_quality + deposit.current_quality) / 2.0;
-                existing.extraction_cost = (existing.extraction_cost + deposit.extraction_cost) / 2.0;
+                existing.current_quality =
+                    (existing.current_quality + deposit.current_quality) / 2.0;
+                existing.extraction_cost =
+                    (existing.extraction_cost + deposit.extraction_cost) / 2.0;
                 // Keep the shallower depth and discovered status
                 existing.depth = existing.depth.min(deposit.depth);
                 existing.discovered = existing.discovered || deposit.discovered;
@@ -2463,7 +2611,9 @@ pub fn migrate_soil_profile_to_land_inventory(region: &mut Region) {
     }
 
     // Ensure Agricultural category exists
-    let agricultural = region.land_use_inventory.ensure_category(LandCategory::Agricultural);
+    let agricultural = region
+        .land_use_inventory
+        .ensure_category(LandCategory::Agricultural);
 
     // Migrate soil profile from old soil_profile to new structure
     for (soil_class, percentage) in &region.soil_profile {
@@ -2497,7 +2647,9 @@ pub fn migrate_soil_profile_to_land_inventory(region: &mut Region) {
                 },
             };
 
-            agricultural.soil_profile.insert(soil_class.clone(), soil_data);
+            agricultural
+                .soil_profile
+                .insert(soil_class.clone(), soil_data);
         }
     }
 
@@ -2517,7 +2669,16 @@ pub fn initialize_default_land_inventory(region: &mut Region) {
     region.land_use_inventory.total_area = total_area;
 
     // Default distribution based on climate
-    let (urbanized, industrial, forests, grasslands, agricultural, wetlands, water_bodies, wastelands) = match region.climate {
+    let (
+        urbanized,
+        industrial,
+        forests,
+        grasslands,
+        agricultural,
+        wetlands,
+        water_bodies,
+        wastelands,
+    ) = match region.climate {
         Climate::Fertile => (0.15, 0.10, 0.20, 0.15, 0.30, 0.05, 0.03, 0.02),
         Climate::Desert => (0.05, 0.05, 0.05, 0.10, 0.05, 0.00, 0.02, 0.68),
         Climate::Mountainous => (0.05, 0.05, 0.30, 0.20, 0.10, 0.05, 0.05, 0.20),
@@ -2578,31 +2739,22 @@ pub enum TransformationType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LandTransformationProject {
     /// Unique project ID
-
     pub id: String,
     /// Type of transformation
-
     pub project_type: TransformationType,
     /// Source land category
-
     pub source_category: LandCategory,
     /// Target land category
-
     pub target_category: LandCategory,
     /// Region where project is located
-
     pub region_id: String,
     /// Area to transform in hectares
-
     pub area_to_transform: f64,
     /// Total cost
-
     pub cost: f64,
     /// Duration in turns
-
     pub duration_turns: u32,
     /// Progress 0-1
-
     pub progress: f64,
     /// Required infrastructure building types
     #[serde(default)]
@@ -2649,7 +2801,11 @@ impl LandTransformationProject {
 
             // If target is Agricultural, assign soil class
             if self.target_category == LandCategory::Agricultural {
-                let soil_class = self.assigned_soil_class.as_ref().unwrap_or(&"Class_III".to_string()).clone();
+                let soil_class = self
+                    .assigned_soil_class
+                    .as_ref()
+                    .unwrap_or(&"Class_III".to_string())
+                    .clone();
 
                 // Create or update soil class data
                 let soil_data = SoilClassData {
@@ -2793,7 +2949,10 @@ pub fn create_urbanization_project(
         cost: total_cost,
         duration_turns: duration_turns.max(1),
         progress: 0.0,
-        required_infrastructure: vec!["Sieci Miejskie".to_string(), "Transport Publiczny".to_string()],
+        required_infrastructure: vec![
+            "Sieci Miejskie".to_string(),
+            "Transport Publiczny".to_string(),
+        ],
         assigned_soil_class: None,
     }
 }
@@ -2846,17 +3005,22 @@ pub fn generate_megaregions(country: &str, region_ids: &[String]) -> Vec<Megareg
 /// Combines a geographic prefix (e.g., "Northern", "Central") with a
 /// descriptor (e.g., "Commonwealth", "Confederation", "Union") and the
 /// country name. For small countries (≤4 regions), uses simpler names.
-fn generate_megaregion_name(country: &str, region_count: usize, rng: &mut rand::rngs::ThreadRng) -> String {
+fn generate_megaregion_name(
+    country: &str,
+    region_count: usize,
+    rng: &mut rand::rngs::ThreadRng,
+) -> String {
     let geographic_prefixes = [
-        "Northern", "Southern", "Eastern", "Western", "Central",
-        "Upper", "Lower", "Greater",
+        "Northern", "Southern", "Eastern", "Western", "Central", "Upper", "Lower", "Greater",
     ];
     let descriptors_large = [
-        "Commonwealth", "Confederation", "Union", "Republic", "Federation",
+        "Commonwealth",
+        "Confederation",
+        "Union",
+        "Republic",
+        "Federation",
     ];
-    let descriptors_small = [
-        "Province", "Territory", "District", "Region",
-    ];
+    let descriptors_small = ["Province", "Territory", "District", "Region"];
 
     let prefix = geographic_prefixes.choose(rng).unwrap();
     let descriptor = if region_count > 4 {
@@ -2954,7 +3118,8 @@ pub fn find_shortest_path(
                 let neighbor = &edge.target_node;
                 let new_dist = current_dist + edge.distance;
 
-                if !distances.contains_key(neighbor) || new_dist < *distances.get(neighbor).unwrap() {
+                if !distances.contains_key(neighbor) || new_dist < *distances.get(neighbor).unwrap()
+                {
                     distances.insert(neighbor.clone(), new_dist);
                     previous.insert(neighbor.clone(), current_node.clone());
                     unvisited.push((new_dist, neighbor.clone()));
@@ -3215,20 +3380,26 @@ mod phase30_tests {
     #[test]
     fn migrate_coordinates_assigns_nonzero_to_zero_regions() {
         let mut regions = vec![
-            make_test_region("r1", vec![Edge {
-                target_node: "r2".to_string(),
-                edge_type: EdgeType::LandBorder,
-                distance: 100.0,
-                is_navigable: false,
-                territorial_owner: None,
-            }]),
-            make_test_region("r2", vec![Edge {
-                target_node: "r1".to_string(),
-                edge_type: EdgeType::LandBorder,
-                distance: 100.0,
-                is_navigable: false,
-                territorial_owner: None,
-            }]),
+            make_test_region(
+                "r1",
+                vec![Edge {
+                    target_node: "r2".to_string(),
+                    edge_type: EdgeType::LandBorder,
+                    distance: 100.0,
+                    is_navigable: false,
+                    territorial_owner: None,
+                }],
+            ),
+            make_test_region(
+                "r2",
+                vec![Edge {
+                    target_node: "r1".to_string(),
+                    edge_type: EdgeType::LandBorder,
+                    distance: 100.0,
+                    is_navigable: false,
+                    territorial_owner: None,
+                }],
+            ),
         ];
         migrate_region_coordinates(&mut regions);
         // Both regions should have non-zero coordinates after migration.
@@ -3238,9 +3409,7 @@ mod phase30_tests {
 
     #[test]
     fn migrate_coordinates_preserves_existing_coordinates() {
-        let mut regions = vec![
-            make_test_region("r1", vec![]),
-        ];
+        let mut regions = vec![make_test_region("r1", vec![])];
         regions[0].coord_x = 500.0;
         regions[0].coord_y = 300.0;
         migrate_region_coordinates(&mut regions);
@@ -3307,11 +3476,24 @@ mod phase30_tests {
         seed_initial_durables(&mut demo, 0.5, 1925);
 
         // Should have Furniture, Clothing, and possibly Radio (1925 >= 1920)
-        let commodities: Vec<_> = demo.household_durables.iter().map(|c| c.commodity).collect();
-        assert!(commodities.contains(&Commodity::Furniture), "Should seed Furniture");
-        assert!(commodities.contains(&Commodity::Clothing), "Should seed Clothing");
+        let commodities: Vec<_> = demo
+            .household_durables
+            .iter()
+            .map(|c| c.commodity)
+            .collect();
+        assert!(
+            commodities.contains(&Commodity::Furniture),
+            "Should seed Furniture"
+        );
+        assert!(
+            commodities.contains(&Commodity::Clothing),
+            "Should seed Clothing"
+        );
         // Radio available from 1920
-        assert!(commodities.contains(&Commodity::Radio), "Should seed Radio for 1925");
+        assert!(
+            commodities.contains(&Commodity::Radio),
+            "Should seed Radio for 1925"
+        );
     }
 
     #[test]
@@ -3324,8 +3506,18 @@ mod phase30_tests {
         };
         seed_initial_durables(&mut demo, 0.5, 1900);
 
-        let commodities: Vec<_> = demo.household_durables.iter().map(|c| c.commodity).collect();
-        assert!(!commodities.contains(&Commodity::Radio), "Should NOT seed Radio before 1920");
-        assert!(!commodities.contains(&Commodity::Cars), "Should NOT seed Cars before 1910");
+        let commodities: Vec<_> = demo
+            .household_durables
+            .iter()
+            .map(|c| c.commodity)
+            .collect();
+        assert!(
+            !commodities.contains(&Commodity::Radio),
+            "Should NOT seed Radio before 1920"
+        );
+        assert!(
+            !commodities.contains(&Commodity::Cars),
+            "Should NOT seed Cars before 1910"
+        );
     }
 }

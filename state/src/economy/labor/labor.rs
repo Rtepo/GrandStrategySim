@@ -19,7 +19,10 @@ fn f64_from_value(value: Option<&Value>, default: f64) -> f64 {
 
 /// Extracts a string from a JSON value, falling back to `default`.
 fn string_from_value(value: Option<&Value>, default: &str) -> String {
-    value.and_then(|v| v.as_str()).unwrap_or(default).to_string()
+    value
+        .and_then(|v| v.as_str())
+        .unwrap_or(default)
+        .to_string()
 }
 
 /// Extracts a bool from a JSON value, falling back to `default`.
@@ -103,15 +106,25 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
     let healthcare_quality = macro_indicators.health_statistics.service_quality;
     let work_deaths = 0.0; // Tracked via mortality_rate
 
-    let life_expectancy = (60.0 + medical_infrastructure_base * 0.20 + (healthcare_quality / 100.0) * 15.0).min(95.0);
-    let healthy_life_expectancy = (50.0 + medical_infrastructure_base * 0.15 + (healthcare_quality / 100.0) * 10.0).min(85.0);
+    let life_expectancy =
+        (60.0 + medical_infrastructure_base * 0.20 + (healthcare_quality / 100.0) * 15.0).min(95.0);
+    let healthy_life_expectancy =
+        (50.0 + medical_infrastructure_base * 0.15 + (healthcare_quality / 100.0) * 10.0).min(85.0);
 
     macro_indicators.health_statistics.average_lifespan = life_expectancy;
     macro_indicators.health_statistics.mortality_rate = work_deaths;
 
     // Policy and crime read.
-    let policy = macro_indicators.extra.get("policy").cloned().unwrap_or_else(|| Value::Object(Map::new()));
-    let crime_rate = macro_indicators.extra.get("crime_rate").cloned().unwrap_or_else(|| Value::Object(Map::new()));
+    let policy = macro_indicators
+        .extra
+        .get("policy")
+        .cloned()
+        .unwrap_or_else(|| Value::Object(Map::new()));
+    let crime_rate = macro_indicators
+        .extra
+        .get("crime_rate")
+        .cloned()
+        .unwrap_or_else(|| Value::Object(Map::new()));
 
     let emancipation_law = string_from_value(policy.get("emancipation_law"), "Traditionalism");
     let civil_law = string_from_value(policy.get("civil_law"), "5-Year Assimilation");
@@ -131,7 +144,11 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         let birth_rate_index = (demographics.birth_rate / 100.0) * fertility_multiplier_val;
         let base_death_rate = demographics.death_rate / 100.0;
         let criminal_deaths = (crimes / 100.0) * 0.002;
-        let reduced_death_rate = (base_death_rate - medical_infrastructure_base * 0.00005 - (healthcare_quality / 100.0) * 0.003 + criminal_deaths).max(0.003);
+        let reduced_death_rate = (base_death_rate
+            - medical_infrastructure_base * 0.00005
+            - (healthcare_quality / 100.0) * 0.003
+            + criminal_deaths)
+            .max(0.003);
 
         // Phase 8: Apply winter mortality multiplier (computed from regions before closure)
         let winter_death_rate = reduced_death_rate * winter_mortality;
@@ -147,7 +164,8 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         // Using the annual rate directly per turn caused 24× drift.
         let per_turn_birth_rate = annual_to_per_turn_rate(birth_rate_index);
         let per_turn_death_rate = annual_to_per_turn_rate(winter_death_rate);
-        let per_turn_migration_rate = annual_to_per_turn_rate(migration_rate.abs()) * migration_rate.signum();
+        let per_turn_migration_rate =
+            annual_to_per_turn_rate(migration_rate.abs()) * migration_rate.signum();
 
         let births = population * per_turn_birth_rate;
         let natural_deaths = population * per_turn_death_rate;
@@ -161,8 +179,10 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         demographics.population_size = new_population as f64;
 
         // Gender update.
-        let male_population = (population * demographics.gender.male) - (work_deaths * 0.90) + (births * 0.505);
-        let female_population = (population * demographics.gender.female) - (work_deaths * 0.10) + (births * 0.495);
+        let male_population =
+            (population * demographics.gender.male) - (work_deaths * 0.90) + (births * 0.505);
+        let female_population =
+            (population * demographics.gender.female) - (work_deaths * 0.10) + (births * 0.495);
         let new_total_population = (male_population + female_population).max(1.0);
         demographics.gender.male = male_population / new_total_population;
         demographics.gender.female = female_population / new_total_population;
@@ -225,7 +245,9 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         } else {
             15
         };
-        demographics.immigrant_cohorts.retain(|k| k.count > 10.0 && k.seniority <= max_seniority);
+        demographics
+            .immigrant_cohorts
+            .retain(|k| k.count > 10.0 && k.seniority <= max_seniority);
         demographics.unassimilated_immigrants = active_immigrants;
         demographics.effective_immigrant_remittances = immigrant_remittances;
 
@@ -239,8 +261,10 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         let inborn_working_disabled = children_entering_adulthood_count * 0.0010;
         let inborn_unable_to_work = children_entering_adulthood_count * 0.0005;
 
-        labor_market.active_disabled = (labor_market.active_disabled * (1.0 - reduced_death_rate)) + inborn_working_disabled;
-        labor_market.unable_to_work = (labor_market.unable_to_work * (1.0 - reduced_death_rate)) + inborn_unable_to_work;
+        labor_market.active_disabled =
+            (labor_market.active_disabled * (1.0 - reduced_death_rate)) + inborn_working_disabled;
+        labor_market.unable_to_work =
+            (labor_market.unable_to_work * (1.0 - reduced_death_rate)) + inborn_unable_to_work;
 
         let productive_period_years = (healthy_life_expectancy - 16.0).max(20.0);
         let adults_aging_to_elderly = adults / productive_period_years;
@@ -250,7 +274,12 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
 
         let new_children_share = (children - children_aging_out + birth_rate_index).max(0.01);
         let work_deaths_fraction = work_deaths / population.max(1.0);
-        let new_adults_share = (adults + children_aging_out - adults_aging_to_elderly - remaining_deaths - work_deaths_fraction + migration_rate).max(0.01);
+        let new_adults_share = (adults + children_aging_out
+            - adults_aging_to_elderly
+            - remaining_deaths
+            - work_deaths_fraction
+            + migration_rate)
+            .max(0.01);
         let new_elderly_share = (elderly + adults_aging_to_elderly - elderly_deaths).max(0.01);
 
         let total_share = new_children_share + new_adults_share + new_elderly_share;
@@ -268,13 +297,17 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         // Labor supply and wages.
         let labor_force = (population * labor_market.labor_force_participation / 100.0).max(1.0);
         let higher_edu_share = demographics.education.higher_share();
+        let secondary_edu_share = demographics.education.secondary_share();
         let basic_edu_share = demographics.education.basic;
         let illiterate_share = demographics.education.none;
 
-        // Python workforce.py uses higher_edu_share for experts, basic_edu_share for the
-        // skilled tier, and brak (no education) for the unskilled tier.
+        // Phase B.2: Secondary education now feeds into the skilled labor tier.
+        // Previously, secondary-educated workers were silently dropped from the
+        // labor-tier calculation (F8). Now both `basic` and `secondary` map to
+        // skilled labor, while `higher` maps to expert and `none` to unskilled.
+        // The three shares should sum to 1.0 (Rule 20: conservation).
         let expert_share = higher_edu_share;
-        let skilled_share = basic_edu_share;
+        let skilled_share = basic_edu_share + secondary_edu_share;
         let unskilled_share = illiterate_share;
 
         let (mod_eksperci, mod_sredni, mod_szeregowi) = emancipation_modifiers(&emancipation_law);
@@ -341,12 +374,14 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         labor_market.skilled_tier.supply = skilled_available;
         labor_market.skilled_tier.wage = skilled_wage;
         labor_market.skilled_tier.employed = skilled_available * employment_factor;
-        labor_market.skilled_tier.unemployed = skilled_available - labor_market.skilled_tier.employed;
+        labor_market.skilled_tier.unemployed =
+            skilled_available - labor_market.skilled_tier.employed;
 
         labor_market.unskilled_tier.supply = unskilled_available;
         labor_market.unskilled_tier.wage = unskilled_wage;
         labor_market.unskilled_tier.employed = unskilled_available * employment_factor;
-        labor_market.unskilled_tier.unemployed = unskilled_available - labor_market.unskilled_tier.employed;
+        labor_market.unskilled_tier.unemployed =
+            unskilled_available - labor_market.unskilled_tier.employed;
 
         let total_employed = labor_market.expert_tier.employed
             + labor_market.skilled_tier.employed
@@ -362,7 +397,8 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             actual_unemployment_rate = (actual_unemployment_rate - 2.0).max(0.0);
         }
         let actual_unemployment_rate = actual_unemployment_rate.max(frictional_unemployment_floor);
-        let actual_excess_unemployment = (actual_unemployment_rate - frictional_unemployment_floor).max(0.0);
+        let actual_excess_unemployment =
+            (actual_unemployment_rate - frictional_unemployment_floor).max(0.0);
 
         labor_market.unemployed = actual_unemployed;
         labor_market.unemployment_rate = actual_unemployment_rate;
@@ -406,9 +442,13 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
 
     if pop_delta != 0 {
         // Compute total class population across all regions for proportional distribution
-        let total_class_pop: i64 = country.regions.iter()
+        let total_class_pop: i64 = country
+            .regions
+            .iter()
             .flat_map(|r| {
-                r.class_demographics.rural_classes.values()
+                r.class_demographics
+                    .rural_classes
+                    .values()
                     .chain(r.class_demographics.urban_classes.values())
             })
             .map(|d| d.population)
@@ -419,7 +459,10 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             let mut distributed: i64 = 0;
             for region in country.regions.iter_mut() {
                 // Compute this region's total class population for share calculation
-                let region_class_pop: i64 = region.class_demographics.rural_classes.values()
+                let region_class_pop: i64 = region
+                    .class_demographics
+                    .rural_classes
+                    .values()
                     .chain(region.class_demographics.urban_classes.values())
                     .map(|d| d.population)
                     .sum();
@@ -438,15 +481,30 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
                 }
 
                 // Distribute to rural classes proportionally by population
-                let rural_pop: i64 = region.class_demographics.rural_classes.values().map(|d| d.population).sum();
-                let urban_pop: i64 = region.class_demographics.urban_classes.values().map(|d| d.population).sum();
+                let rural_pop: i64 = region
+                    .class_demographics
+                    .rural_classes
+                    .values()
+                    .map(|d| d.population)
+                    .sum();
+                let urban_pop: i64 = region
+                    .class_demographics
+                    .urban_classes
+                    .values()
+                    .map(|d| d.population)
+                    .sum();
                 let total_pop = rural_pop + urban_pop;
                 if total_pop == 0 {
                     // Equal distribution if no population data
                     let per_class = region_delta / all_classes_count as i64;
                     let remainder = region_delta - per_class * all_classes_count as i64;
                     let mut applied = 0i64;
-                    for (i, demo) in region.class_demographics.rural_classes.values_mut().enumerate() {
+                    for (i, demo) in region
+                        .class_demographics
+                        .rural_classes
+                        .values_mut()
+                        .enumerate()
+                    {
                         let extra = if i == 0 { remainder } else { 0 };
                         demo.population = (demo.population + per_class + extra).max(0);
                         applied += per_class + extra;
@@ -458,21 +516,30 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
                     // Any residue goes to first rural class
                     let residue = region_delta - applied;
                     if residue != 0 {
-                        if let Some(first) = region.class_demographics.rural_classes.values_mut().next() {
+                        if let Some(first) =
+                            region.class_demographics.rural_classes.values_mut().next()
+                        {
                             first.population = (first.population + residue).max(0);
                         }
                     }
                 } else {
                     // Proportional distribution by population share
-                    let rural_delta = (region_delta as f64 * rural_pop as f64 / total_pop as f64).round() as i64;
+                    let rural_delta =
+                        (region_delta as f64 * rural_pop as f64 / total_pop as f64).round() as i64;
                     let urban_delta = region_delta - rural_delta;
 
                     // Distribute rural_delta across rural classes
                     if rural_pop > 0 && !region.class_demographics.rural_classes.is_empty() {
                         let mut rural_distributed: i64 = 0;
-                        let rural_classes: Vec<String> = region.class_demographics.rural_classes.keys().cloned().collect();
+                        let rural_classes: Vec<String> = region
+                            .class_demographics
+                            .rural_classes
+                            .keys()
+                            .cloned()
+                            .collect();
                         for key in rural_classes.iter() {
-                            if let Some(demo) = region.class_demographics.rural_classes.get_mut(key) {
+                            if let Some(demo) = region.class_demographics.rural_classes.get_mut(key)
+                            {
                                 let share = demo.population as f64 / rural_pop as f64;
                                 let delta = (rural_delta as f64 * share).round() as i64;
                                 demo.population = (demo.population + delta).max(0);
@@ -483,7 +550,9 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
                         let residue = rural_delta - rural_distributed;
                         if residue != 0 {
                             if let Some(key) = rural_classes.last() {
-                                if let Some(demo) = region.class_demographics.rural_classes.get_mut(key) {
+                                if let Some(demo) =
+                                    region.class_demographics.rural_classes.get_mut(key)
+                                {
                                     demo.population = (demo.population + residue).max(0);
                                 }
                             }
@@ -493,9 +562,15 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
                     // Distribute urban_delta across urban classes
                     if urban_pop > 0 && !region.class_demographics.urban_classes.is_empty() {
                         let mut urban_distributed: i64 = 0;
-                        let urban_classes: Vec<String> = region.class_demographics.urban_classes.keys().cloned().collect();
+                        let urban_classes: Vec<String> = region
+                            .class_demographics
+                            .urban_classes
+                            .keys()
+                            .cloned()
+                            .collect();
                         for key in urban_classes.iter() {
-                            if let Some(demo) = region.class_demographics.urban_classes.get_mut(key) {
+                            if let Some(demo) = region.class_demographics.urban_classes.get_mut(key)
+                            {
                                 let share = demo.population as f64 / urban_pop as f64;
                                 let delta = (urban_delta as f64 * share).round() as i64;
                                 demo.population = (demo.population + delta).max(0);
@@ -506,7 +581,9 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
                         let residue = urban_delta - urban_distributed;
                         if residue != 0 {
                             if let Some(key) = urban_classes.last() {
-                                if let Some(demo) = region.class_demographics.urban_classes.get_mut(key) {
+                                if let Some(demo) =
+                                    region.class_demographics.urban_classes.get_mut(key)
+                                {
                                     demo.population = (demo.population + residue).max(0);
                                 }
                             }
@@ -518,9 +595,19 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             let residue = pop_delta - distributed;
             if residue != 0 {
                 if let Some(last_region) = country.regions.last_mut() {
-                    if let Some(last_demo) = last_region.class_demographics.rural_classes.values_mut().next() {
+                    if let Some(last_demo) = last_region
+                        .class_demographics
+                        .rural_classes
+                        .values_mut()
+                        .next()
+                    {
                         last_demo.population = (last_demo.population + residue).max(0);
-                    } else if let Some(last_demo) = last_region.class_demographics.urban_classes.values_mut().next() {
+                    } else if let Some(last_demo) = last_region
+                        .class_demographics
+                        .urban_classes
+                        .values_mut()
+                        .next()
+                    {
                         last_demo.population = (last_demo.population + residue).max(0);
                     }
                 }
@@ -533,11 +620,23 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
     // budget.population = sum(region.population)
     // This runs unconditionally every turn to guarantee the invariant.
     for region in &mut country.regions {
-        let rural_sum: i64 = region.class_demographics.rural_classes.values().map(|d| d.population).sum();
-        let urban_sum: i64 = region.class_demographics.urban_classes.values().map(|d| d.population).sum();
+        let rural_sum: i64 = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .map(|d| d.population)
+            .sum();
+        let urban_sum: i64 = region
+            .class_demographics
+            .urban_classes
+            .values()
+            .map(|d| d.population)
+            .sum();
         region.population = rural_sum + urban_sum;
     }
-    let total_pop: u64 = country.regions.iter()
+    let total_pop: u64 = country
+        .regions
+        .iter()
         .map(|r| r.population)
         .filter(|p| *p > 0)
         .sum::<i64>() as u64;
@@ -585,9 +684,13 @@ fn aggregate_citizen_savings(country: &mut crate::state::Country) {
     // The previous version only summed rural_classes, ignoring urban_classes
     // (Workers, Bourgeoisie), which caused citizen_savings to be severely
     // understated and PIT collection (capped by citizen_savings) to collect ~0.
-    let total: f64 = country.regions.iter()
+    let total: f64 = country
+        .regions
+        .iter()
         .flat_map(|r| {
-            r.class_demographics.rural_classes.values()
+            r.class_demographics
+                .rural_classes
+                .values()
                 .chain(r.class_demographics.urban_classes.values())
         })
         .map(|d| d.savings)
@@ -610,11 +713,23 @@ fn aggregate_citizen_savings(country: &mut crate::state::Country) {
 /// * `country` - Mutable country state to reconcile
 pub fn reconcile_population_bottom_up(country: &mut crate::state::Country) {
     for region in &mut country.regions {
-        let rural_sum: i64 = region.class_demographics.rural_classes.values().map(|d| d.population).sum();
-        let urban_sum: i64 = region.class_demographics.urban_classes.values().map(|d| d.population).sum();
+        let rural_sum: i64 = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .map(|d| d.population)
+            .sum();
+        let urban_sum: i64 = region
+            .class_demographics
+            .urban_classes
+            .values()
+            .map(|d| d.population)
+            .sum();
         region.population = rural_sum + urban_sum;
     }
-    let total_pop: u64 = country.regions.iter()
+    let total_pop: u64 = country
+        .regions
+        .iter()
         .map(|r| r.population)
         .filter(|p| *p > 0)
         .sum::<i64>() as u64;
@@ -637,9 +752,13 @@ pub fn distribute_population_delta_and_reconcile(country: &mut crate::state::Cou
         return;
     }
 
-    let total_class_pop: i64 = country.regions.iter()
+    let total_class_pop: i64 = country
+        .regions
+        .iter()
         .flat_map(|r| {
-            r.class_demographics.rural_classes.values()
+            r.class_demographics
+                .rural_classes
+                .values()
                 .chain(r.class_demographics.urban_classes.values())
         })
         .map(|d| d.population)
@@ -664,7 +783,10 @@ pub fn distribute_population_delta_and_reconcile(country: &mut crate::state::Cou
     let total_class_pop_f = total_class_pop as f64;
     let mut distributed: i64 = 0;
     for region in &mut country.regions {
-        let region_class_pop: i64 = region.class_demographics.rural_classes.values()
+        let region_class_pop: i64 = region
+            .class_demographics
+            .rural_classes
+            .values()
             .chain(region.class_demographics.urban_classes.values())
             .map(|d| d.population)
             .sum();
@@ -676,9 +798,18 @@ pub fn distribute_population_delta_and_reconcile(country: &mut crate::state::Cou
         distributed += region_delta;
 
         // Distribute region_delta proportionally across all classes by population
-        let all_classes: Vec<(bool, String)> = region.class_demographics.rural_classes.keys()
+        let all_classes: Vec<(bool, String)> = region
+            .class_demographics
+            .rural_classes
+            .keys()
             .map(|k| (true, k.clone()))
-            .chain(region.class_demographics.urban_classes.keys().map(|k| (false, k.clone())))
+            .chain(
+                region
+                    .class_demographics
+                    .urban_classes
+                    .keys()
+                    .map(|k| (false, k.clone())),
+            )
             .collect();
         let total_pop: i64 = region_class_pop;
         let mut region_distributed: i64 = 0;

@@ -137,37 +137,99 @@ pub struct LaborConfig {
     pub cyclical_share: f64,
 }
 
-fn default_base_life_expectancy() -> f64 { 60.0 }
-fn default_max_life_expectancy() -> f64 { 95.0 }
-fn default_base_healthy_life_expectancy() -> f64 { 50.0 }
-fn default_max_healthy_life_expectancy() -> f64 { 85.0 }
-fn default_healthcare_life_expectancy_bonus() -> f64 { 15.0 }
-fn default_healthcare_healthy_life_bonus() -> f64 { 10.0 }
-fn default_medical_infra_life_bonus() -> f64 { 0.20 }
-fn default_medical_infra_healthy_life_bonus() -> f64 { 0.15 }
-fn default_criminal_death_rate() -> f64 { 0.002 }
-fn default_min_death_rate() -> f64 { 0.003 }
-fn default_medical_infra_death_reduction() -> f64 { 0.00005 }
-fn default_healthcare_death_reduction() -> f64 { 0.003 }
-fn default_fear_emigration_safety_threshold() -> f64 { 40.0 }
-fn default_fear_emigration_rate() -> f64 { 0.015 }
-fn default_frictional_unemployment_with_agency() -> f64 { 1.5 }
-fn default_frictional_unemployment_without_agency() -> f64 { 3.0 }
-fn default_job_agency_unemployment_reduction() -> f64 { 2.0 }
-fn default_wage_pressure_coefficient() -> f64 { 0.002 }
-fn default_expert_premium_base() -> f64 { 3.0 }
-fn default_expert_premium_brain_drain_mult() -> f64 { 5.0 }
-fn default_skilled_premium_base() -> f64 { 1.5 }
-fn default_skilled_premium_brain_drain_mult() -> f64 { 2.0 }
-fn default_innate_active_disabled_rate() -> f64 { 0.0010 }
-fn default_innate_unable_to_work_rate() -> f64 { 0.0005 }
-fn default_min_productive_period() -> f64 { 20.0 }
-fn default_adulthood_age() -> f64 { 16.0 }
-fn default_male_birth_fraction() -> f64 { 0.505 }
-fn default_male_work_death_share() -> f64 { 0.90 }
-fn default_cyclical_poverty_weight() -> f64 { 0.2 }
-fn default_structural_poverty_weight() -> f64 { 0.3 }
-fn default_cyclical_share() -> f64 { 0.6 }
+fn default_base_life_expectancy() -> f64 {
+    60.0
+}
+fn default_max_life_expectancy() -> f64 {
+    95.0
+}
+fn default_base_healthy_life_expectancy() -> f64 {
+    50.0
+}
+fn default_max_healthy_life_expectancy() -> f64 {
+    85.0
+}
+fn default_healthcare_life_expectancy_bonus() -> f64 {
+    15.0
+}
+fn default_healthcare_healthy_life_bonus() -> f64 {
+    10.0
+}
+fn default_medical_infra_life_bonus() -> f64 {
+    0.20
+}
+fn default_medical_infra_healthy_life_bonus() -> f64 {
+    0.15
+}
+fn default_criminal_death_rate() -> f64 {
+    0.002
+}
+fn default_min_death_rate() -> f64 {
+    0.003
+}
+fn default_medical_infra_death_reduction() -> f64 {
+    0.00005
+}
+fn default_healthcare_death_reduction() -> f64 {
+    0.003
+}
+fn default_fear_emigration_safety_threshold() -> f64 {
+    40.0
+}
+fn default_fear_emigration_rate() -> f64 {
+    0.015
+}
+fn default_frictional_unemployment_with_agency() -> f64 {
+    1.5
+}
+fn default_frictional_unemployment_without_agency() -> f64 {
+    3.0
+}
+fn default_job_agency_unemployment_reduction() -> f64 {
+    2.0
+}
+fn default_wage_pressure_coefficient() -> f64 {
+    0.002
+}
+fn default_expert_premium_base() -> f64 {
+    3.0
+}
+fn default_expert_premium_brain_drain_mult() -> f64 {
+    5.0
+}
+fn default_skilled_premium_base() -> f64 {
+    1.5
+}
+fn default_skilled_premium_brain_drain_mult() -> f64 {
+    2.0
+}
+fn default_innate_active_disabled_rate() -> f64 {
+    0.0010
+}
+fn default_innate_unable_to_work_rate() -> f64 {
+    0.0005
+}
+fn default_min_productive_period() -> f64 {
+    20.0
+}
+fn default_adulthood_age() -> f64 {
+    16.0
+}
+fn default_male_birth_fraction() -> f64 {
+    0.505
+}
+fn default_male_work_death_share() -> f64 {
+    0.90
+}
+fn default_cyclical_poverty_weight() -> f64 {
+    0.2
+}
+fn default_structural_poverty_weight() -> f64 {
+    0.3
+}
+fn default_cyclical_share() -> f64 {
+    0.6
+}
 
 impl Default for LaborConfig {
     fn default() -> Self {
@@ -187,7 +249,8 @@ impl Default for LaborConfig {
             fear_emigration_safety_threshold: default_fear_emigration_safety_threshold(),
             fear_emigration_rate: default_fear_emigration_rate(),
             frictional_unemployment_with_agency: default_frictional_unemployment_with_agency(),
-            frictional_unemployment_without_agency: default_frictional_unemployment_without_agency(),
+            frictional_unemployment_without_agency: default_frictional_unemployment_without_agency(
+            ),
             job_agency_unemployment_reduction: default_job_agency_unemployment_reduction(),
             wage_pressure_coefficient: default_wage_pressure_coefficient(),
             expert_premium_base: default_expert_premium_base(),

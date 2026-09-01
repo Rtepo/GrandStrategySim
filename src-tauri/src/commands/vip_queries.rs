@@ -1,9 +1,9 @@
 use crate::state::AppState;
-use sim_engine::ui::snapshot::{
-    build_country_snapshot, VipPageResponse, VipDossier, ViewQuery, PageQuery, VipFilter,
-    RoleOption,
-};
 use sim_engine::politics::vip_registry::VipRoleExtended;
+use sim_engine::ui::snapshot::{
+    build_country_snapshot, PageQuery, RoleOption, ViewQuery, VipDossier, VipFilter,
+    VipPageResponse,
+};
 
 #[tauri::command]
 pub async fn get_paginated_vips(
@@ -18,9 +18,7 @@ pub async fn get_paginated_vips(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -89,9 +87,7 @@ pub async fn get_vip_dossier(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state

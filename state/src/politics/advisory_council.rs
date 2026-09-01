@@ -157,8 +157,7 @@ impl AdvisoryCouncil {
 
     /// Check if coup risk is active (loyalty below threshold and not in cooldown).
     pub fn coup_risk_active(&self, current_turn: u32) -> bool {
-        self.aggregate_loyalty < self.coup_risk_threshold
-            && !self.in_coup_cooldown(current_turn)
+        self.aggregate_loyalty < self.coup_risk_threshold && !self.in_coup_cooldown(current_turn)
     }
 
     /// Get members with loyalty below the revolt threshold (0.2).
@@ -213,7 +212,8 @@ impl AdvisoryCouncil {
 
         // Veto probability: low aggregate loyalty → higher veto chance.
         if self.aggregate_loyalty < 0.5 {
-            modifier.veto_probability_modifier = ((0.5 - self.aggregate_loyalty) * 0.4).clamp(0.0, 0.2);
+            modifier.veto_probability_modifier =
+                ((0.5 - self.aggregate_loyalty) * 0.4).clamp(0.0, 0.2);
         }
 
         // Per-faction effects on social unrest and autonomy.
@@ -497,7 +497,10 @@ mod tests {
             ..Default::default()
         });
         council.recalculate_loyalty();
-        assert!((council.aggregate_loyalty - 0.6).abs() < 1e-6, "Weighted average should be 0.6");
+        assert!(
+            (council.aggregate_loyalty - 0.6).abs() < 1e-6,
+            "Weighted average should be 0.6"
+        );
     }
 
     #[test]
@@ -519,8 +522,14 @@ mod tests {
         let mut council = AdvisoryCouncil::new(CouncilType::MilitaryJunta);
         council.aggregate_loyalty = 0.1; // Very low
         council.coup_cooldown_until_turn = 30;
-        assert!(!council.coup_risk_active(10), "Cooldown should block coup risk");
-        assert!(council.coup_risk_active(35), "After cooldown, coup risk active");
+        assert!(
+            !council.coup_risk_active(10),
+            "Cooldown should block coup risk"
+        );
+        assert!(
+            council.coup_risk_active(35),
+            "After cooldown, coup risk active"
+        );
     }
 
     #[test]
@@ -574,8 +583,14 @@ mod tests {
 
         // VIP-001 (supporter) should not lose loyalty.
         // VIP-002 (opponent) should lose 0.10 loyalty.
-        assert!((council.members[0].loyalty - 0.8).abs() < 1e-6, "Supporter keeps loyalty");
-        assert!((council.members[1].loyalty - 0.5).abs() < 1e-6, "Opponent loses 0.10 loyalty");
+        assert!(
+            (council.members[0].loyalty - 0.8).abs() < 1e-6,
+            "Supporter keeps loyalty"
+        );
+        assert!(
+            (council.members[1].loyalty - 0.5).abs() < 1e-6,
+            "Opponent loses 0.10 loyalty"
+        );
     }
 
     #[test]

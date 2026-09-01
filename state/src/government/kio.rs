@@ -167,7 +167,15 @@ pub fn process_kio_appeals(
                 KioGrounds::FraudHistory => 0.7,
                 KioGrounds::BriberyRecord => 0.8,
             };
-            if process_kio_appeal(appeal, justice_coverage, evidence_strength, companies, country, current_turn, rng) {
+            if process_kio_appeal(
+                appeal,
+                justice_coverage,
+                evidence_strength,
+                companies,
+                country,
+                current_turn,
+                rng,
+            ) {
                 resolved += 1;
             }
         }

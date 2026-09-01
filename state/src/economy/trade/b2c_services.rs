@@ -72,7 +72,11 @@ fn calculate_education_need_for_class(class: &ClassDemographics) -> f64 {
         HealthStatus::Critical | HealthStatus::Poor => 1.3,
         _ => 1.0,
     };
-    let poverty_bonus = if class.savings_per_capita < 50.0 { 1.5 } else { 1.0 };
+    let poverty_bonus = if class.savings_per_capita < 50.0 {
+        1.5
+    } else {
+        1.0
+    };
     base * health_bonus * poverty_bonus
 }
 
@@ -86,7 +90,11 @@ fn calculate_health_need_for_class(class: &ClassDemographics) -> f64 {
         HealthStatus::Good => 0.8,
         HealthStatus::Excellent => 0.5,
     };
-    let poverty_mult = if class.savings_per_capita < 50.0 { 1.5 } else { 1.0 };
+    let poverty_mult = if class.savings_per_capita < 50.0 {
+        1.5
+    } else {
+        1.0
+    };
     base * health_mult * poverty_mult
 }
 
@@ -141,10 +149,19 @@ pub fn clear_education_slots_b2c(
     let mut region_consumption: BTreeMap<String, f64> = BTreeMap::new();
     for txn in &txns {
         if txn.units_consumed > 0.0 {
-            *region_consumption.entry(txn.region_id.clone()).or_insert(0.0) += txn.units_consumed;
+            *region_consumption
+                .entry(txn.region_id.clone())
+                .or_insert(0.0) += txn.units_consumed;
         }
     }
-    apply_service_transactions(txns, buildings, companies, country, building_inventories, commodity);
+    apply_service_transactions(
+        txns,
+        buildings,
+        companies,
+        country,
+        building_inventories,
+        commodity,
+    );
     region_consumption
 }
 
@@ -183,7 +200,14 @@ pub fn clear_health_capacity_b2c(
         config,
         commodity,
     );
-    apply_service_transactions(txns, buildings, companies, country, building_inventories, commodity);
+    apply_service_transactions(
+        txns,
+        buildings,
+        companies,
+        country,
+        building_inventories,
+        commodity,
+    );
 }
 
 /// Compute service transactions (read-only phase).
@@ -200,6 +224,8 @@ fn compute_service_transactions(
     commodity: Commodity,
 ) -> Vec<PendingServiceTxn> {
     let mut txns = Vec::new();
+    // Phase C.2: Get average_wage for dynamic cost-plus pricing (Rule 2).
+    let average_wage = country.macro_indicators.average_wage.max(1.0);
 
     for building in buildings.iter() {
         let available = building_inventories
@@ -213,20 +239,29 @@ fn compute_service_transactions(
 
         let region_id = &building.region_id;
         let service_need = service_needs.get(region_id).copied().unwrap_or(0.0);
-        let price_per_unit = calculate_service_price(building, config);
+        let price_per_unit = calculate_service_price(building, config, average_wage);
         if price_per_unit <= 0.0 {
             continue;
         }
 
-        let is_public = building.owner_id.starts_with("STATE_") || building.owner_id.starts_with("LOCAL_");
+        let is_public =
+            building.owner_id.starts_with("STATE_") || building.owner_id.starts_with("LOCAL_");
 
         let total_citizen_savings = country
             .regions
             .iter()
             .find(|r| &r.id == region_id)
             .map(|r| {
-                r.class_demographics.rural_classes.values().map(|d| d.savings).sum::<f64>()
-                    + r.class_demographics.urban_classes.values().map(|d| d.savings).sum::<f64>()
+                r.class_demographics
+                    .rural_classes
+                    .values()
+                    .map(|d| d.savings)
+                    .sum::<f64>()
+                    + r.class_demographics
+                        .urban_classes
+                        .values()
+                        .map(|d| d.savings)
+                        .sum::<f64>()
             })
             .unwrap_or(0.0);
 
@@ -334,14 +369,21 @@ fn apply_service_transactions(
 /// Price per unit of service
 ///
 /// # Rules
-/// * Based on worker capacity and sector-specific cost multipliers
-/// * Education: 50 currency units per slot
-/// * Healthcare: 75 currency units per capacity unit
-fn calculate_service_price(building: &Building, config: &ServicePricingConfig) -> f64 {
+/// Phase C.2: Cost-Plus pricing with CAPEX amortization (Rule 21).
+/// All prices scale with `average_wage` (Rule 2: no magic nominal constants).
+fn calculate_service_price(
+    building: &Building,
+    config: &ServicePricingConfig,
+    average_wage: f64,
+) -> f64 {
     match building.sector {
-        crate::registries::enums::Sector::EducationalServices => config.education_price_per_slot,
-        crate::registries::enums::Sector::MedicalServices => config.health_price_per_capacity,
-        _ => config.default_service_price,
+        crate::registries::enums::Sector::EducationalServices => {
+            config.education_price_per_slot(average_wage)
+        }
+        crate::registries::enums::Sector::MedicalServices => {
+            config.health_price_per_capacity(average_wage)
+        }
+        _ => config.default_service_price(average_wage),
     }
 }
 
@@ -398,6 +440,8 @@ pub fn clear_passenger_transport_b2c(
 ) -> BTreeMap<String, f64> {
     let commodity = Commodity::PassengerTransport;
     let mut coverage: BTreeMap<String, f64> = BTreeMap::new();
+    // Phase C.2: Dynamic cost-plus pricing (Rule 2/21).
+    let average_wage = country.macro_indicators.average_wage.max(1.0);
 
     // Group transport buildings by region and compute supply.
     let mut supply_by_region: BTreeMap<String, f64> = BTreeMap::new();
@@ -407,12 +451,16 @@ pub fn clear_passenger_transport_b2c(
         }
         let available = building.inventory.get(&commodity).copied().unwrap_or(0.0);
         if available > 0.0 {
-            *supply_by_region.entry(building.region_id.clone()).or_insert(0.0) += available;
+            *supply_by_region
+                .entry(building.region_id.clone())
+                .or_insert(0.0) += available;
         }
     }
 
     // Collect region IDs and demands first (to avoid borrow conflicts).
-    let region_demands: Vec<(String, f64, f64)> = country.regions.iter()
+    let region_demands: Vec<(String, f64, f64)> = country
+        .regions
+        .iter()
         .map(|r| {
             let demand = service_needs.get(&r.id).copied().unwrap_or(0.0);
             let supply = supply_by_region.get(&r.id).copied().unwrap_or(0.0);
@@ -456,18 +504,19 @@ pub fn clear_passenger_transport_b2c(
                 building.inventory.remove(&commodity);
             }
 
-            let is_public = building.owner_id.starts_with("STATE_") || building.owner_id.starts_with("LOCAL_");
+            let is_public =
+                building.owner_id.starts_with("STATE_") || building.owner_id.starts_with("LOCAL_");
             let price_per_unit = if is_public {
-                config.default_service_price * 0.2 // 80% subsidized
+                config.default_service_price(average_wage) * 0.2 // 80% subsidized
             } else {
-                config.default_service_price
+                config.default_service_price(average_wage)
             };
 
             let revenue = to_consume * price_per_unit;
 
             if is_public {
                 // Public: Treasury pays the subsidy portion.
-                let subsidy = to_consume * config.default_service_price * 0.8;
+                let subsidy = to_consume * config.default_service_price(average_wage) * 0.8;
                 let citizen_payment = revenue;
                 if country.budget.liquid_reserves >= subsidy {
                     country.budget.liquid_reserves -= subsidy;
@@ -500,12 +549,14 @@ pub fn clear_passenger_transport_b2c(
 mod tests {
     use super::*;
     use crate::registries::enums::Sector;
+    use crate::society::geography::{ClassDemographics, Region};
     use crate::state::Country;
-    use crate::society::geography::{Region, ClassDemographics};
 
     fn make_test_country(region_id: &str, citizen_savings: f64, gov_reserves: f64) -> Country {
         let mut country = Country::mock_for_tests();
         country.budget.liquid_reserves = gov_reserves;
+        // Phase C.2: Set average_wage for dynamic cost-plus pricing (Rule 2).
+        country.macro_indicators.average_wage = 1000.0;
         country.regions.clear();
         let mut region = Region::default();
         region.id = region_id.to_string();
@@ -513,7 +564,10 @@ mod tests {
         demo.savings = citizen_savings;
         demo.savings_per_capita = citizen_savings;
         demo.population = 100;
-        region.class_demographics.rural_classes.insert("peasants".to_string(), demo);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("peasants".to_string(), demo);
         country.regions.push(region);
         country
     }
@@ -525,14 +579,14 @@ mod tests {
         building.owner_id = "LOCAL_CITY".to_string();
         building.sector = Sector::EducationalServices;
         building.region_id = "REGION_001".to_string();
-        
+
         let mut country = make_test_country("REGION_001", 1000.0, 10000.0);
         let service_needs = BTreeMap::from([("REGION_001".to_string(), 50.0)]);
         let mut building_inventories = BTreeMap::from([(
             "SCHOOL_001".to_string(),
             BTreeMap::from([(Commodity::EducationSlots, 100.0)]),
         )]);
-        
+
         let mut buildings = vec![building];
         let mut companies: Vec<Company> = Vec::new();
         clear_education_slots_b2c(
@@ -544,15 +598,22 @@ mod tests {
             &ServicePricingConfig::default(),
         );
 
-        // Subsidy: 100 * 50 = 5000, consumed = min(100, 50) = 50
-        assert_eq!(country.budget.liquid_reserves, 5000.0); // 10000 - 5000
-        assert_eq!(buildings[0].reserve, 5000.0);
+        // Phase C.2: Dynamic price = (1000*0.05 + 1000*0.5/24) * 1.10 = 77.916...
+        let edu_price = ServicePricingConfig::default().education_price_per_slot(1000.0);
+        // B2C clearing: treasury subsidizes full supply (100 units),
+        // but only 50 units are consumed from inventory (demand = 50).
+        let expected_subsidy = 100.0 * edu_price;
+        assert_eq!(country.budget.liquid_reserves, 10000.0 - expected_subsidy);
+        assert_eq!(buildings[0].reserve, expected_subsidy);
         // Citizen savings unchanged (subsidized)
         let region = &country.regions[0];
         let demo = &region.class_demographics.rural_classes["peasants"];
         assert_eq!(demo.savings, 1000.0);
         assert_eq!(
-            building_inventories["SCHOOL_001"].get(&Commodity::EducationSlots).copied().unwrap_or(0.0),
+            building_inventories["SCHOOL_001"]
+                .get(&Commodity::EducationSlots)
+                .copied()
+                .unwrap_or(0.0),
             50.0
         ); // 100 - 50 consumed
     }
@@ -564,14 +625,14 @@ mod tests {
         building.owner_id = "LOCAL_CITY".to_string();
         building.sector = Sector::EducationalServices;
         building.region_id = "REGION_001".to_string();
-        
+
         let mut country = make_test_country("REGION_001", 1000.0, 100.0); // Insufficient gov
         let service_needs = BTreeMap::from([("REGION_001".to_string(), 50.0)]);
         let mut building_inventories = BTreeMap::from([(
             "SCHOOL_002".to_string(),
             BTreeMap::from([(Commodity::EducationSlots, 100.0)]),
         )]);
-        
+
         let mut buildings = vec![building];
         let mut companies: Vec<Company> = Vec::new();
         clear_education_slots_b2c(
@@ -583,17 +644,23 @@ mod tests {
             &ServicePricingConfig::default(),
         );
 
-        // Subsidy fails, citizens pay full price
-        // Affordable: 1000 / 50 = 20 slots
+        // Phase C.2: Subsidy fails, citizens pay full dynamic price.
+        let edu_price = ServicePricingConfig::default().education_price_per_slot(1000.0);
+        // Affordable: 1000 / edu_price slots
+        let affordable = (1000.0 / edu_price).floor();
+        let citizen_payment = affordable * edu_price;
         assert_eq!(country.budget.liquid_reserves, 100.0); // Unchanged (insolvency)
         let region = &country.regions[0];
         let demo = &region.class_demographics.rural_classes["peasants"];
-        assert_eq!(demo.savings, 0.0); // 1000 - (20 * 50)
-        assert_eq!(buildings[0].reserve, 1000.0); // 20 * 50
+        assert!((demo.savings - (1000.0 - citizen_payment)).abs() < 0.01);
+        assert!((buildings[0].reserve - citizen_payment).abs() < 0.01);
         assert_eq!(
-            building_inventories["SCHOOL_002"].get(&Commodity::EducationSlots).copied().unwrap_or(0.0),
-            80.0
-        ); // 100 - 20 consumed
+            building_inventories["SCHOOL_002"]
+                .get(&Commodity::EducationSlots)
+                .copied()
+                .unwrap_or(0.0),
+            100.0 - affordable
+        );
     }
 
     #[test]
@@ -622,17 +689,22 @@ mod tests {
             &ServicePricingConfig::default(),
         );
 
-        // No subsidy, citizens pay full price
-        // Affordable: 1000 / 50 = 20 slots
+        // Phase C.2: No subsidy, citizens pay full dynamic price.
+        let edu_price = ServicePricingConfig::default().education_price_per_slot(1000.0);
+        let affordable = (1000.0 / edu_price).floor();
+        let citizen_payment = affordable * edu_price;
         let region = &country.regions[0];
         let demo = &region.class_demographics.rural_classes["peasants"];
-        assert_eq!(demo.savings, 0.0); // 1000 - (20 * 50)
+        assert!((demo.savings - (1000.0 - citizen_payment)).abs() < 0.01);
         // Private building: revenue goes to company (not building.reserve)
         assert_eq!(buildings[0].reserve, 0.0);
         assert_eq!(
-            building_inventories["SCHOOL_003"].get(&Commodity::EducationSlots).copied().unwrap_or(0.0),
-            80.0
-        ); // 100 - 20 consumed
+            building_inventories["SCHOOL_003"]
+                .get(&Commodity::EducationSlots)
+                .copied()
+                .unwrap_or(0.0),
+            100.0 - affordable
+        );
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -669,11 +741,15 @@ mod tests {
         // Demand 50, supply 100 → consumed 50, coverage 1.0
         assert_eq!(coverage.get("R1").copied().unwrap_or(0.0), 1.0);
         // Inventory consumed
-        let remaining = buildings[0].inventory.get(&Commodity::PassengerTransport).copied().unwrap_or(0.0);
+        let remaining = buildings[0]
+            .inventory
+            .get(&Commodity::PassengerTransport)
+            .copied()
+            .unwrap_or(0.0);
         assert_eq!(remaining, 50.0);
         // Public: Treasury pays 80% subsidy
-        // subsidy = 50 * default_service_price * 0.8
-        let expected_subsidy = 50.0 * config.default_service_price * 0.8;
+        // subsidy = 50 * default_service_price(avg_wage) * 0.8
+        let expected_subsidy = 50.0 * config.default_service_price(1000.0) * 0.8;
         assert_eq!(country.budget.liquid_reserves, 10000.0 - expected_subsidy);
     }
 
@@ -700,8 +776,8 @@ mod tests {
         // Citizens pay full price
         let region = &country.regions[0];
         let demo = &region.class_demographics.rural_classes["peasants"];
-        // citizen_payment = 50 * default_service_price
-        let expected_payment = 50.0 * config.default_service_price;
+        // citizen_payment = 50 * default_service_price(avg_wage)
+        let expected_payment = 50.0 * config.default_service_price(1000.0);
         assert_eq!(demo.savings, 5000.0 - expected_payment);
     }
 
@@ -747,7 +823,11 @@ mod tests {
         // Demand 100, supply 20 → consumed 20, coverage 0.2
         assert!((coverage.get("R1").copied().unwrap_or(0.0) - 0.2).abs() < 1e-9);
         // All supply consumed
-        let remaining = buildings[0].inventory.get(&Commodity::PassengerTransport).copied().unwrap_or(0.0);
+        let remaining = buildings[0]
+            .inventory
+            .get(&Commodity::PassengerTransport)
+            .copied()
+            .unwrap_or(0.0);
         assert_eq!(remaining, 0.0);
     }
 }

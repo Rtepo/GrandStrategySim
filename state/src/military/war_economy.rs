@@ -8,12 +8,12 @@
 //! - War bonds: issued via the existing `DebtMarket` infrastructure with
 //!   double-entry cash flow from subscribers to treasury.
 
-use crate::entities::{Building, ActiveProductionMethod};
-use crate::registries::enums::{Commodity, Sector};
-use crate::society::geography::{RuralClass, Region};
+use crate::entities::{ActiveProductionMethod, Building};
 use crate::military::units::{MilitaryUnit, UnitType};
-use serde::{Deserialize, Serialize};
+use crate::registries::enums::{Commodity, Sector};
+use crate::society::geography::{Region, RuralClass};
 use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
 
 type HashMap<K, V> = FxHashMap<K, V>;
 
@@ -206,11 +206,11 @@ impl Default for WarEconomyConfig {
             selective_labor_penalty: 0.03,
             universal_labor_penalty: 0.08,
             total_mobilization_labor_penalty: 0.15,
-            min_conscription_age_turns: 64,    // 16 years (4 turns/year)
-            max_conscription_age_turns: 160,   // 40 years
+            min_conscription_age_turns: 64,  // 16 years (4 turns/year)
+            max_conscription_age_turns: 160, // 40 years
             draft_exemption_rate: 0.15,
             war_bond_coupon_premium: 0.02,
-            war_bond_maturity_turns: 20,       // 5 years
+            war_bond_maturity_turns: 20, // 5 years
             max_war_bond_gdp_fraction: 0.25,
             war_bond_deficit_threshold: 0.20,
             max_concurrent_decrees: 5,
@@ -484,7 +484,8 @@ pub fn execute_conscription(
     let unit_id = format!("CONSCRIPT-{}-{}", country_name, current_turn);
 
     // Set home_region to the region that provided the most recruits
-    let home_region = regional_breakdown.iter()
+    let home_region = regional_breakdown
+        .iter()
         .max_by_key(|(_, &v)| v)
         .map(|(r, _)| r.clone())
         .unwrap_or_default();
@@ -506,7 +507,9 @@ pub fn execute_conscription(
     result.recruits_drafted = total_recruits;
     result.manpower_origin = manpower_origin;
     result.regional_breakdown = regional_breakdown;
-    result.labor_penalty_applied = war_economy.conscription_level.labor_participation_penalty(config);
+    result.labor_penalty_applied = war_economy
+        .conscription_level
+        .labor_participation_penalty(config);
 
     // Apply labor participation penalty to all demographic classes
     let penalty = result.labor_penalty_applied;
@@ -548,7 +551,8 @@ pub fn demobilize_unit(
             if region.id == unit.home_region {
                 for (rural_class, &count) in &survivors {
                     let class_key = rural_class_to_string(rural_class);
-                    if let Some(demo) = region.class_demographics.rural_classes.get_mut(&class_key) {
+                    if let Some(demo) = region.class_demographics.rural_classes.get_mut(&class_key)
+                    {
                         demo.population += count;
                     }
                 }
@@ -595,8 +599,7 @@ pub fn issue_war_bonds(
     _average_wage: f64,
 ) -> f64 {
     use crate::economy::finance::debt_market::{
-        TreasurySecurity, TreasurySecurityType, SecurityHolder, SecurityHolderType,
-        CouponFrequency,
+        CouponFrequency, SecurityHolder, SecurityHolderType, TreasurySecurity, TreasurySecurityType,
     };
 
     if amount_needed <= 0.0 {
@@ -1052,7 +1055,9 @@ fn parse_rural_class(key: &str) -> Option<RuralClass> {
         "aristocracy" => Some(RuralClass::Aristocracy),
         "freepeasant" | "free_peasant" | "free peasant" => Some(RuralClass::FreePeasant),
         "serf" | "serfs" => Some(RuralClass::Serf),
-        "landlesslaborer" | "landless_laborer" | "landless laborer" => Some(RuralClass::LandlessLaborer),
+        "landlesslaborer" | "landless_laborer" | "landless laborer" => {
+            Some(RuralClass::LandlessLaborer)
+        }
         _ => None,
     }
 }
@@ -1082,18 +1087,27 @@ mod tests {
         let config = WarEconomyConfig::default();
         assert_eq!(ConscriptionLevel::Peacetime.draft_fraction(&config), 0.0);
         assert!(ConscriptionLevel::Selective.draft_fraction(&config) > 0.0);
-        assert!(ConscriptionLevel::UniversalDraft.draft_fraction(&config)
-            > ConscriptionLevel::Selective.draft_fraction(&config));
-        assert!(ConscriptionLevel::TotalMobilization.draft_fraction(&config)
-            > ConscriptionLevel::UniversalDraft.draft_fraction(&config));
+        assert!(
+            ConscriptionLevel::UniversalDraft.draft_fraction(&config)
+                > ConscriptionLevel::Selective.draft_fraction(&config)
+        );
+        assert!(
+            ConscriptionLevel::TotalMobilization.draft_fraction(&config)
+                > ConscriptionLevel::UniversalDraft.draft_fraction(&config)
+        );
     }
 
     #[test]
     fn test_conscription_level_labor_penalty() {
         let config = WarEconomyConfig::default();
-        assert_eq!(ConscriptionLevel::Peacetime.labor_participation_penalty(&config), 0.0);
-        assert!(ConscriptionLevel::TotalMobilization.labor_participation_penalty(&config)
-            > ConscriptionLevel::Selective.labor_participation_penalty(&config));
+        assert_eq!(
+            ConscriptionLevel::Peacetime.labor_participation_penalty(&config),
+            0.0
+        );
+        assert!(
+            ConscriptionLevel::TotalMobilization.labor_participation_penalty(&config)
+                > ConscriptionLevel::Selective.labor_participation_penalty(&config)
+        );
     }
 
     #[test]
@@ -1142,9 +1156,7 @@ mod tests {
             active_method: ActiveProductionMethod {
                 year: 1930,
                 efficiency: 1.0,
-                outputs: std::collections::BTreeMap::from([
-                    (Commodity::Steel, 100.0),
-                ]),
+                outputs: std::collections::BTreeMap::from([(Commodity::Steel, 100.0)]),
                 ..Default::default()
             },
             ..Default::default()
@@ -1157,9 +1169,7 @@ mod tests {
                 (Commodity::Steel, 50.0),
                 (Commodity::Aluminum, 20.0),
             ]),
-            outputs: std::collections::BTreeMap::from([
-                (Commodity::MediumTanks, 10.0),
-            ]),
+            outputs: std::collections::BTreeMap::from([(Commodity::MediumTanks, 10.0)]),
             ..Default::default()
         };
 
@@ -1178,7 +1188,10 @@ mod tests {
         assert_eq!(d.affected_building_ids.len(), 1);
         assert_eq!(d.affected_building_ids[0], "b1");
         // Building's active method should now be the military method
-        assert!(buildings[0].active_method.outputs.contains_key(&Commodity::MediumTanks));
+        assert!(buildings[0]
+            .active_method
+            .outputs
+            .contains_key(&Commodity::MediumTanks));
         // Efficiency should be reduced by retooling penalty
         assert!(buildings[0].active_method.efficiency < 0.9);
     }
@@ -1211,9 +1224,7 @@ mod tests {
         let original_method = ActiveProductionMethod {
             year: 1930,
             efficiency: 1.0,
-            outputs: std::collections::BTreeMap::from([
-                (Commodity::Steel, 100.0),
-            ]),
+            outputs: std::collections::BTreeMap::from([(Commodity::Steel, 100.0)]),
             ..Default::default()
         };
 
@@ -1228,9 +1239,7 @@ mod tests {
         let military_method = ActiveProductionMethod {
             year: 1935,
             efficiency: 0.9,
-            outputs: std::collections::BTreeMap::from([
-                (Commodity::MediumTanks, 10.0),
-            ]),
+            outputs: std::collections::BTreeMap::from([(Commodity::MediumTanks, 10.0)]),
             ..Default::default()
         };
 
@@ -1242,17 +1251,27 @@ mod tests {
             10,
             Some(20),
             0.15,
-        ).unwrap();
+        )
+        .unwrap();
 
         // Verify method was swapped
-        assert!(buildings[0].active_method.outputs.contains_key(&Commodity::MediumTanks));
+        assert!(buildings[0]
+            .active_method
+            .outputs
+            .contains_key(&Commodity::MediumTanks));
 
         // Lift the decree
         lift_production_decree(&mut buildings, &decree);
 
         // Verify original method was restored
-        assert!(buildings[0].active_method.outputs.contains_key(&Commodity::Steel));
-        assert!(!buildings[0].active_method.outputs.contains_key(&Commodity::MediumTanks));
+        assert!(buildings[0]
+            .active_method
+            .outputs
+            .contains_key(&Commodity::Steel));
+        assert!(!buildings[0]
+            .active_method
+            .outputs
+            .contains_key(&Commodity::MediumTanks));
     }
 
     #[test]
@@ -1283,7 +1302,8 @@ mod tests {
             10,
             Some(20),
             0.15,
-        ).unwrap();
+        )
+        .unwrap();
 
         let mut war_economy = WarEconomyState {
             active_decrees: vec![decree],
@@ -1293,12 +1313,18 @@ mod tests {
         // Not expired at turn 15
         process_expired_decrees(&mut buildings, &mut war_economy, 15);
         assert_eq!(war_economy.active_decrees.len(), 1);
-        assert!(buildings[0].active_method.outputs.contains_key(&Commodity::MediumTanks));
+        assert!(buildings[0]
+            .active_method
+            .outputs
+            .contains_key(&Commodity::MediumTanks));
 
         // Expired at turn 20
         process_expired_decrees(&mut buildings, &mut war_economy, 20);
         assert_eq!(war_economy.active_decrees.len(), 0);
-        assert!(buildings[0].active_method.outputs.contains_key(&Commodity::Steel));
+        assert!(buildings[0]
+            .active_method
+            .outputs
+            .contains_key(&Commodity::Steel));
     }
 
     // ── Phase 69.2: Military Conversion Method Tests ──
@@ -1306,49 +1332,77 @@ mod tests {
     #[test]
     fn test_military_conversion_methods_exist() {
         let methods = military_conversion_methods();
-        assert!(!methods.is_empty(), "Military conversion methods must not be empty (Rule 6)");
+        assert!(
+            !methods.is_empty(),
+            "Military conversion methods must not be empty (Rule 6)"
+        );
     }
 
     #[test]
     fn test_heavy_industry_has_tank_conversion() {
         let conversions = conversions_for_sector(Sector::HeavyIndustry);
-        assert!(conversions.iter().any(|c| c.method_id == "light_tank_conversion"),
-            "Heavy industry must have light tank conversion");
+        assert!(
+            conversions
+                .iter()
+                .any(|c| c.method_id == "light_tank_conversion"),
+            "Heavy industry must have light tank conversion"
+        );
     }
 
     #[test]
     fn test_heavy_industry_has_ammunition_conversion() {
         let conversions = conversions_for_sector(Sector::HeavyIndustry);
-        assert!(conversions.iter().any(|c| c.method_id == "ammunition_surge_production"),
-            "Heavy industry must have ammunition surge conversion");
+        assert!(
+            conversions
+                .iter()
+                .any(|c| c.method_id == "ammunition_surge_production"),
+            "Heavy industry must have ammunition surge conversion"
+        );
     }
 
     #[test]
     fn test_light_industry_has_uniform_conversion() {
         let conversions = conversions_for_sector(Sector::LightIndustry);
-        assert!(conversions.iter().any(|c| c.method_id == "military_uniform_conversion"),
-            "Light industry must have military uniform conversion");
+        assert!(
+            conversions
+                .iter()
+                .any(|c| c.method_id == "military_uniform_conversion"),
+            "Light industry must have military uniform conversion"
+        );
     }
 
     #[test]
     fn test_tank_conversion_has_distinct_inputs() {
         let conversion = find_military_conversion("light_tank_conversion").unwrap();
         // Tank conversion must demand aluminum — not used in civilian steel production
-        assert!(conversion.method.inputs.contains_key(&Commodity::Aluminum),
-            "Light tank conversion must demand aluminum (distinct from civilian steel inputs)");
+        assert!(
+            conversion.method.inputs.contains_key(&Commodity::Aluminum),
+            "Light tank conversion must demand aluminum (distinct from civilian steel inputs)"
+        );
         // Must output LightTanks
-        assert!(conversion.method.outputs.contains_key(&Commodity::LightTanks));
+        assert!(conversion
+            .method
+            .outputs
+            .contains_key(&Commodity::LightTanks));
     }
 
     #[test]
     fn test_ammunition_conversion_has_chemical_inputs() {
         let conversion = find_military_conversion("ammunition_surge_production").unwrap();
         // Ammunition requires massive chemical inputs (explosives) — distinct from civilian
-        assert!(conversion.method.inputs.contains_key(&Commodity::Chemicals),
-            "Ammunition surge must demand chemicals (explosives) — distinct from civilian inputs");
+        assert!(
+            conversion.method.inputs.contains_key(&Commodity::Chemicals),
+            "Ammunition surge must demand chemicals (explosives) — distinct from civilian inputs"
+        );
         let chemical_input = conversion.method.inputs.get(&Commodity::Chemicals).unwrap();
-        assert!(*chemical_input >= 20.0, "Chemical input for ammunition must be substantial");
-        assert!(conversion.method.outputs.contains_key(&Commodity::Ammunition));
+        assert!(
+            *chemical_input >= 20.0,
+            "Chemical input for ammunition must be substantial"
+        );
+        assert!(conversion
+            .method
+            .outputs
+            .contains_key(&Commodity::Ammunition));
     }
 
     #[test]
@@ -1358,8 +1412,10 @@ mod tests {
         // — distinct from civilian clothing which only needs fibers
         assert!(conversion.method.inputs.contains_key(&Commodity::IndustrialFiber),
             "Military uniform conversion must demand industrial fiber (webbing) — distinct from civilian clothing");
-        assert!(conversion.method.inputs.contains_key(&Commodity::Steel),
-            "Military uniform conversion must demand steel (buttons/buckles)");
+        assert!(
+            conversion.method.inputs.contains_key(&Commodity::Steel),
+            "Military uniform conversion must demand steel (buttons/buckles)"
+        );
         assert!(conversion.method.outputs.contains_key(&Commodity::Clothing));
     }
 
@@ -1400,10 +1456,22 @@ mod tests {
 
         assert!(decree.is_some());
         // Building now produces LightTanks, not Steel
-        assert!(buildings[0].active_method.outputs.contains_key(&Commodity::LightTanks));
-        assert!(!buildings[0].active_method.outputs.contains_key(&Commodity::Steel));
+        assert!(buildings[0]
+            .active_method
+            .outputs
+            .contains_key(&Commodity::LightTanks));
+        assert!(!buildings[0]
+            .active_method
+            .outputs
+            .contains_key(&Commodity::Steel));
         // Building now demands Aluminum, not Iron
-        assert!(buildings[0].active_method.inputs.contains_key(&Commodity::Aluminum));
-        assert!(!buildings[0].active_method.inputs.contains_key(&Commodity::Iron));
+        assert!(buildings[0]
+            .active_method
+            .inputs
+            .contains_key(&Commodity::Aluminum));
+        assert!(!buildings[0]
+            .active_method
+            .inputs
+            .contains_key(&Commodity::Iron));
     }
 }

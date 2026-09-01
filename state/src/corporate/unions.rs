@@ -47,7 +47,9 @@ pub fn process_unions(
         if union.on_strike {
             pay_strike_benefits(union, companies, country);
             // Check if strike should end (fund exhausted or no more striking companies)
-            let any_striking = companies.iter().any(|c| c.is_striking && c.union_id.as_ref() == Some(&union.id));
+            let any_striking = companies
+                .iter()
+                .any(|c| c.is_striking && c.union_id.as_ref() == Some(&union.id));
             if !any_striking {
                 union.on_strike = false;
             }
@@ -55,7 +57,12 @@ pub fn process_unions(
             // Phase 41: Trigger new strikes if militancy is high AND there are layoffs.
             // Only trigger if we haven't hit the simultaneous strike cap.
             if union.militancy > 0.7 && current_strike_count < max_simultaneous_strikes {
-                let new_strikes = trigger_strikes(union, companies, country, max_simultaneous_strikes - current_strike_count);
+                let new_strikes = trigger_strikes(
+                    union,
+                    companies,
+                    country,
+                    max_simultaneous_strikes - current_strike_count,
+                );
                 current_strike_count += new_strikes;
                 if new_strikes > 0 {
                     union.on_strike = true;
@@ -125,7 +132,10 @@ fn update_union_militancy(union: &mut Union, country: &Country) {
             let welfare: f64 = config
                 .ministries
                 .iter()
-                .filter(|m| m.competencies.contains(&GovernmentCompetency::SocialWelfare))
+                .filter(|m| {
+                    m.competencies
+                        .contains(&GovernmentCompetency::SocialWelfare)
+                })
                 .map(|m| m.allocated_cash)
                 .sum();
             (welfare / total) * 20.0
@@ -229,7 +239,11 @@ fn pay_strike_benefits(union: &mut Union, companies: &mut [Company], country: &m
             // Phase 41: We need to credit the savings of the workers' class.
             // For simplicity, credit to the urban working class in the company's region.
             // The actual class is tracked by the labor market; we use a reasonable default.
-            striking_company_regions.push((company.region_id.clone(), "Worker".to_string(), striking_fte as f64));
+            striking_company_regions.push((
+                company.region_id.clone(),
+                "Worker".to_string(),
+                striking_fte as f64,
+            ));
         }
     }
 
@@ -286,9 +300,13 @@ fn credit_strike_pay_to_savings(
                 // Try urban classes first, then rural.
                 if let Some(uc) = region.class_demographics.urban_classes.get_mut(class_key) {
                     uc.savings += amount;
-                } else if let Some(first_urban) = region.class_demographics.urban_classes.values_mut().next() {
+                } else if let Some(first_urban) =
+                    region.class_demographics.urban_classes.values_mut().next()
+                {
                     first_urban.savings += amount;
-                } else if let Some(first_rural) = region.class_demographics.rural_classes.values_mut().next() {
+                } else if let Some(first_rural) =
+                    region.class_demographics.rural_classes.values_mut().next()
+                {
                     first_rural.savings += amount;
                 }
                 break;

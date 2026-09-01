@@ -1,5 +1,8 @@
 use crate::state::AppState;
-use sim_engine::ui::snapshot::{CitiesSnapshot, FactionalDomainsSnapshot, GuildsSnapshot, MunicipalAiSnapshot, OrganizationsSnapshot, OrganizationDetail};
+use sim_engine::ui::snapshot::{
+    CitiesSnapshot, FactionalDomainsSnapshot, GuildsSnapshot, MunicipalAiSnapshot,
+    OrganizationDetail, OrganizationsSnapshot,
+};
 
 /// Phase 85: Get the factional domains snapshot for the FactionalDomainsPage.
 /// Role-gated (Rule 11): foreign observers see only public data.
@@ -10,9 +13,7 @@ pub async fn get_factional_domains_snapshot(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let game = &engine_state.game_state;
 
@@ -23,10 +24,8 @@ pub async fn get_factional_domains_snapshot(
         if let Some(country) = player_country {
             // For now, treat the player as having full access (is_classified = false).
             // TODO: Determine classification based on observer role.
-            let snapshot = sim_engine::ui::snapshot::build_factional_domains_snapshot(
-                country,
-                false,
-            );
+            let snapshot =
+                sim_engine::ui::snapshot::build_factional_domains_snapshot(country, false);
             Ok(snapshot)
         } else {
             Err("No country found".to_string())
@@ -45,9 +44,7 @@ pub async fn get_guilds_snapshot(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let game = &engine_state.game_state;
 
@@ -60,10 +57,7 @@ pub async fn get_guilds_snapshot(
         }
 
         // For now, treat the player as having full access (is_classified = false).
-        let snapshot = sim_engine::ui::snapshot::build_guilds_snapshot(
-            &all_companies,
-            false,
-        );
+        let snapshot = sim_engine::ui::snapshot::build_guilds_snapshot(&all_companies, false);
         Ok(snapshot)
     })
     .await
@@ -79,19 +73,14 @@ pub async fn get_cities_snapshot(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let game = &engine_state.game_state;
 
         let player_country = game.countries.values().next();
 
         if let Some(country) = player_country {
-            let snapshot = sim_engine::ui::snapshot::build_cities_snapshot(
-                country,
-                false,
-            );
+            let snapshot = sim_engine::ui::snapshot::build_cities_snapshot(country, false);
             Ok(snapshot)
         } else {
             Err("No country found".to_string())
@@ -110,9 +99,7 @@ pub async fn get_municipal_ai_snapshot(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let game = &engine_state.game_state;
         let player_country = game.countries.values().next();
@@ -137,9 +124,7 @@ pub async fn get_organizations_snapshot(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let game = &engine_state.game_state;
 
@@ -180,9 +165,7 @@ pub async fn get_organization_detail(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let game = &engine_state.game_state;
 
@@ -207,7 +190,8 @@ pub async fn get_organization_detail(
             &category,
             &id,
             false,
-        ).ok_or("Organization not found")?;
+        )
+        .ok_or("Organization not found")?;
         Ok(detail)
     })
     .await

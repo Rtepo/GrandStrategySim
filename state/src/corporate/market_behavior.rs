@@ -293,10 +293,7 @@ mod tests {
 
     #[test]
     fn test_multiple_traits_accumulate() {
-        let mods = evaluate_market_behavior(&[
-            "Ambitious".to_string(),
-            "Corrupt".to_string(),
-        ]);
+        let mods = evaluate_market_behavior(&["Ambitious".to_string(), "Corrupt".to_string()]);
         // Ambitious: expansion *= 1.5, Corrupt: no expansion change
         assert!((mods.expansion_multiplier - 1.5).abs() < 1e-6);
         // Corrupt: fraud_probability = 0.15

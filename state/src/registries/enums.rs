@@ -1,4 +1,4 @@
-﻿//! Categorical enums that replace stringly-typed dictionary keys.
+//! Categorical enums that replace stringly-typed dictionary keys.
 //!
 //! These enums give Rust code exhaustive, compiler-checked `match` handling.
 
@@ -35,13 +35,10 @@ impl RegimeType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ConscriptionLaw {
     /// Mandatory training only (`"mandatory_training"`).
-
     MandatoryTraining,
     /// Full active service (`"full_service"`).
-
     FullService,
     /// No mandatory service (`"none"`).
-
     None_,
 }
 
@@ -49,13 +46,10 @@ pub enum ConscriptionLaw {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum WomenInArmy {
     /// Reserve duty only (`"reserve_only"`).
-
     ReserveOnly,
     /// Full access to all roles (`"full_access"`).
-
     FullAccess,
     /// Barred from service (`"banned"`).
-
     Banned,
 }
 
@@ -63,13 +57,10 @@ pub enum WomenInArmy {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DraftScope {
     /// Voluntary enlistment only (`"voluntary"`).
-
     Voluntary,
     /// Selective draft (`"selective"`).
-
     Selective,
     /// Universal conscription (`"universal_draft"`).
-
     UniversalDraft,
 }
 
@@ -105,7 +96,6 @@ pub enum WealthBracket {
     /// `"low"`.
     Low,
 }
-
 
 /// Macroeconomic sector (`sektor_pkb` and keys of `sektory`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
@@ -202,36 +192,41 @@ impl Sector {
     pub fn primary_commodities(&self) -> Vec<Commodity> {
         match self {
             Sector::Mining => vec![
-                Commodity::BrownCoal, Commodity::HardCoal, Commodity::Iron,
-                Commodity::Copper, Commodity::Gold, Commodity::Silver,
+                Commodity::BrownCoal,
+                Commodity::HardCoal,
+                Commodity::Iron,
+                Commodity::Copper,
+                Commodity::Gold,
+                Commodity::Silver,
                 Commodity::Uranium,
             ],
-            Sector::Agriculture => vec![
-                Commodity::Cereal, Commodity::Meat,
-            ],
+            Sector::Agriculture => vec![Commodity::Cereal, Commodity::Meat],
             Sector::HeavyIndustry => vec![
-                Commodity::Steel, Commodity::IndustrialMachinery,
+                Commodity::Steel,
+                Commodity::IndustrialMachinery,
                 Commodity::Cement,
             ],
             Sector::LightIndustry => vec![
-                Commodity::Clothing, Commodity::LuxuryClothing,
-                Commodity::Furniture, Commodity::Paper,
+                Commodity::Clothing,
+                Commodity::LuxuryClothing,
+                Commodity::Furniture,
+                Commodity::Paper,
                 Commodity::Glass,
             ],
             Sector::ArmamentsIndustry => vec![
-                Commodity::Ammunition, Commodity::TowedArtillery,
-                Commodity::Trucks, Commodity::Steel,
+                Commodity::Ammunition,
+                Commodity::TowedArtillery,
+                Commodity::Trucks,
+                Commodity::Steel,
             ],
             Sector::Construction => vec![
-                Commodity::ConstructionMachinery, Commodity::Cement,
-                Commodity::Steel, Commodity::Asphalt,
+                Commodity::ConstructionMachinery,
+                Commodity::Cement,
+                Commodity::Steel,
+                Commodity::Asphalt,
             ],
-            Sector::Energy => vec![
-                Commodity::Energy, Commodity::BrownCoal, Commodity::HardCoal,
-            ],
-            Sector::TransportLogistics => vec![
-                Commodity::FreightCapacity, Commodity::Trucks,
-            ],
+            Sector::Energy => vec![Commodity::Energy, Commodity::BrownCoal, Commodity::HardCoal],
+            Sector::TransportLogistics => vec![Commodity::FreightCapacity, Commodity::Trucks],
             Sector::LocalServices => vec![],
             Sector::ExportServices => vec![Commodity::FreightCapacity],
             Sector::PublicServices => vec![Commodity::OfficeMachinery],
@@ -245,8 +240,10 @@ impl Sector {
                 // Trash streams (MixedWaste, BioWaste, ConstructionWaste,
                 // BulkyWaste, HazardousWaste) are B2B-EXCLUDED and flow
                 // through WasteGridState logistical transfers only.
-                Commodity::MetalWaste, Commodity::GlassWaste,
-                Commodity::PlasticWaste, Commodity::ElectronicWaste,
+                Commodity::MetalWaste,
+                Commodity::GlassWaste,
+                Commodity::PlasticWaste,
+                Commodity::ElectronicWaste,
                 Commodity::TextileWaste,
             ],
             Sector::Hospitality => vec![],
@@ -454,10 +451,8 @@ pub enum Commodity {
     /// "limestone".
     Limestone,
     /// "cereal" - Grain crops (wheat, corn, rice, barley) - Phase 6.3.5
-    
     Cereal,
     /// "vegetable" - Root and leaf vegetables (potatoes, carrots, tomatoes) - Phase 6.3.5
-
     Vegetable,
     /// "fodder" - Animal feed crops (alfalfa, clover, beet pulp) - Phase 6.3.5
     Fodder,
@@ -608,8 +603,7 @@ pub enum Commodity {
 
 impl std::fmt::Display for Commodity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = serde_json::to_string(self)
-            .unwrap_or_else(|_| format!("\"{:?}\"", self));
+        let s = serde_json::to_string(self).unwrap_or_else(|_| format!("\"{:?}\"", self));
         let trimmed = s.trim_matches('"');
         f.write_str(trimmed)
     }
@@ -642,23 +636,59 @@ impl Commodity {
         use Commodity::*;
         match self {
             // Agricultural products â€” food, crops, livestock
-            Meat | Fruit | Cereal | Vegetable | Fodder | IndustrialFiber
-            | Luxury | Livestock | Fish | Food | Seeds => "agriculture",
+            Meat | Fruit | Cereal | Vegetable | Fodder | IndustrialFiber | Luxury | Livestock
+            | Fish | Food | Seeds => "agriculture",
 
             // Services â€” intangible, labor-based
-            Software | AdministrativeServices | BankingServices | ConstructionServices
-            | MaintenanceServices | LocalServicesCommodity | PassengerTransport
-            | RenovationServices | Information | FreightCapacity | InnovationPoints
-            | HealthCapacity | EducationSlots | JusticeCapacity | SecurityCapacity
-            | IntelligenceCapacity | FireProtectionCapacity | ShelterCapacity
-            | BorderEnforcementCapacity | CustomsCapacity | SanitaryInspectionCapacity
-            | BuildingInspectionCapacity | EnvironmentalInspectionCapacity
-            | LaborInspectionCapacity | AssimilationCapacity => "services",
+            Software
+            | AdministrativeServices
+            | BankingServices
+            | ConstructionServices
+            | MaintenanceServices
+            | LocalServicesCommodity
+            | PassengerTransport
+            | RenovationServices
+            | Information
+            | FreightCapacity
+            | InnovationPoints
+            | HealthCapacity
+            | EducationSlots
+            | JusticeCapacity
+            | SecurityCapacity
+            | IntelligenceCapacity
+            | FireProtectionCapacity
+            | ShelterCapacity
+            | BorderEnforcementCapacity
+            | CustomsCapacity
+            | SanitaryInspectionCapacity
+            | BuildingInspectionCapacity
+            | EnvironmentalInspectionCapacity
+            | LaborInspectionCapacity
+            | AssimilationCapacity => "services",
 
             // Industrial goods â€” everything else (mining, manufacturing, energy, military)
             // This is the default/safest category for treasury revenue.
             _ => "industry",
         }
+    }
+
+    /// Phase 94: Returns `true` if this commodity is intangible (zero physical mass).
+    ///
+    /// Intangible commodities (services, capacity slots, innovation points)
+    /// do not consume `FreightCapacity` for cross-region transport and are
+    /// excluded from physical mass conservation assertions in the diagnostic
+    /// harness.
+    ///
+    /// # Rules
+    /// * Intangible commodities are exactly those classified as `"services"`
+    ///   by `vat_category()` — software, administrative/banking/construction/
+    ///   maintenance/local/insurance/renovation services, passenger transport,
+    ///   information, freight capacity, innovation points, and all capacity-
+    ///   slot commodities (health, education, justice, security, etc.).
+    /// * Physical commodities (agriculture, mining, manufacturing, energy,
+    ///   military goods) return `false`.
+    pub fn is_intangible(&self) -> bool {
+        self.vat_category() == "services"
     }
 
     /// Phase 19B: Returns `true` if this commodity is a durable fixed-asset
@@ -772,7 +802,7 @@ impl Commodity {
             Commodity::Furniture => 240.0,       // 10 years
             Commodity::LuxuryFurniture => 300.0, // ~12.5 years
             Commodity::Cars => 120.0,            // 5 years
-            _ => f64::MAX, // Non-durables â€” effectively infinite (not used)
+            _ => f64::MAX,                       // Non-durables â€” effectively infinite (not used)
         }
     }
 
@@ -1153,20 +1183,72 @@ impl From<Commodity> for String {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum FuelType {
     /// `"wegiel"`.
-
     Coal,
     /// `"gaz_ziemny"`.
-
     NaturalGas,
     /// `"uran"`.
-
     Uranium,
     /// `"crops"`.
-
     AgriculturalProduce,
     /// `"none"` â€” no fuel (renewables).
-
     None_,
+}
+
+/// Capacity type for infrastructure buildings.
+///
+/// Phase A.2.1: Moved here from `infrastructure/mod.rs` to break a circular
+/// dependency — `ProductionMethod` (in `registries`) needs to reference
+/// `CapacityType` for its typed `seat_type` field, and `infrastructure` already
+/// imports from `registries::enums`. The definition lives here; `infrastructure`
+/// re-exports it via `pub use crate::registries::enums::CapacityType;` so all
+/// existing `crate::infrastructure::CapacityType` references compile unchanged.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash, Ord, PartialOrd)]
+#[serde(rename_all = "snake_case")]
+pub enum CapacityType {
+    /// Acute care beds
+    HospitalBeds,
+    /// Outpatient visits per turn
+    ClinicVisits,
+    /// Rehabilitation capacity
+    RehabSlots,
+    /// Preventative care stays
+    SanatoriumStays,
+    /// 24/7 care home capacity (Social Care Home)
+    DPSCapacity,
+    /// Daycare capacity (Dom Dziennego Pobytu)
+    DDPCapacity,
+    /// Childcare seats (0-3 years)
+    NurserySeats,
+    /// Primary school seats
+    PrimarySeats,
+    /// Middle school seats
+    MiddleSeats,
+    /// High school seats
+    HighSchoolSeats,
+    /// University enrollment slots
+    UniversitySlots,
+    /// Monastic housing
+    MonasteryCells,
+    /// Worship capacity
+    TempleCapacity,
+    /// Cultural events per turn
+    CulturalEventCapacity,
+    /// Surface water supply (liters per turn) - drawn from rivers/lakes, vulnerable to sewage pollution
+    SurfaceWaterSupply,
+    /// Groundwater supply (liters per turn) - drawn via underground pumps, immune to surface sewage but higher cost
+    GroundwaterSupply,
+    /// Sewage treatment capacity (liters per turn)
+    SewageTreatment,
+    /// District heating capacity (GJ per turn)
+    DistrictHeating,
+    /// Electricity supply (kWh per turn)
+    ElectricitySupply,
+    /// Landfill capacity (tons per turn) - modular waste management
+    LandfillCapacity,
+    /// Phase 82: Thermal grid pipe network capacity (km of pipe).
+    /// Distinct from DistrictHeating (which is GJ heat supply).
+    /// Determines how many buildings can connect to district heating.
+    ThermalGridCapacity,
 }
 
 #[cfg(test)]

@@ -13,9 +13,9 @@
 //! - No phantom money creation — fines are clamped to available cash.
 //! - Violations increase `JusticeSystemState.justice_demand` (each violation = 1 case).
 
-use crate::entities::{Building, Company};
 use crate::economy::legal_status::LegalStatus;
 use crate::economy::transfer_settler::settle_transfer_to_treasury;
+use crate::entities::{Building, Company};
 use crate::registries::enums::{Commodity, Sector};
 use crate::state::Country;
 
@@ -115,9 +115,12 @@ pub fn process_inspectorates_turn(
     let mut result = InspectorateTurnResult::default();
 
     // 1. Sum inspection capacities from building outputs
-    result.sanepid_capacity = sum_inspection_capacity(buildings, Commodity::SanitaryInspectionCapacity);
-    result.building_inspection_capacity = sum_inspection_capacity(buildings, Commodity::BuildingInspectionCapacity);
-    result.environmental_inspection_capacity = sum_inspection_capacity(buildings, Commodity::EnvironmentalInspectionCapacity);
+    result.sanepid_capacity =
+        sum_inspection_capacity(buildings, Commodity::SanitaryInspectionCapacity);
+    result.building_inspection_capacity =
+        sum_inspection_capacity(buildings, Commodity::BuildingInspectionCapacity);
+    result.environmental_inspection_capacity =
+        sum_inspection_capacity(buildings, Commodity::EnvironmentalInspectionCapacity);
 
     // Phase 29: Also sum dedicated labor inspection capacity from PIP buildings.
     // This was previously hardcoded to 0.0, making dedicated labor inspectorates
@@ -132,10 +135,7 @@ pub fn process_inspectorates_turn(
         .map(|(i, _)| i)
         .collect();
 
-    let building_targets: usize = buildings
-        .iter()
-        .filter(|b| b.condition < 0.3)
-        .count();
+    let building_targets: usize = buildings.iter().filter(|b| b.condition < 0.3).count();
 
     let environmental_targets: Vec<usize> = companies
         .iter()
@@ -190,14 +190,19 @@ pub fn process_inspectorates_turn(
             let severity = (0.5 - worst_condition) / 0.5;
             let fine = 5_000.0 + severity * 15_000.0;
 
-            let available = companies[idx].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(companies[idx].available_cash);
+            let available = companies[idx]
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash)
+                .unwrap_or(companies[idx].available_cash);
             let actual_fine = fine.min(available);
             if actual_fine > 0.01
-                && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
-                    total_fines += actual_fine;
-                    violations += 1;
-                    justice_demand_added += 1.0;
-                }
+                && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok()
+            {
+                total_fines += actual_fine;
+                violations += 1;
+                justice_demand_added += 1.0;
+            }
         }
     }
 
@@ -213,14 +218,19 @@ pub fn process_inspectorates_turn(
             // Find the owning company and fine it
             if !b.owner_id.is_empty() {
                 if let Some(idx) = companies.iter().position(|c| c.id == b.owner_id) {
-                    let available = companies[idx].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(companies[idx].available_cash);
+                    let available = companies[idx]
+                        .brokerage_account
+                        .as_ref()
+                        .map(|b| b.cash)
+                        .unwrap_or(companies[idx].available_cash);
                     let actual_fine = fine.min(available);
                     if actual_fine > 0.01
-                        && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
-                            total_fines += actual_fine;
-                            violations += 1;
-                            justice_demand_added += 1.0;
-                        }
+                        && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok()
+                    {
+                        total_fines += actual_fine;
+                        violations += 1;
+                        justice_demand_added += 1.0;
+                    }
                 }
             }
         }
@@ -235,14 +245,19 @@ pub fn process_inspectorates_turn(
             }
             // Fine scales with pollution proxy
             let fine = (pollution * 100.0).min(50_000.0);
-            let available = companies[idx].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(companies[idx].available_cash);
+            let available = companies[idx]
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash)
+                .unwrap_or(companies[idx].available_cash);
             let actual_fine = fine.min(available);
             if actual_fine > 0.01
-                && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
-                    total_fines += actual_fine;
-                    violations += 1;
-                    justice_demand_added += 1.0;
-                }
+                && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok()
+            {
+                total_fines += actual_fine;
+                violations += 1;
+                justice_demand_added += 1.0;
+            }
         }
     }
 
@@ -254,13 +269,23 @@ pub fn process_inspectorates_turn(
     // Inspectorates with SanitaryInspectionCapacity or BuildingInspectionCapacity
     // can raid companies for shadow employment (off-the-books undocumented workers).
     // Phase 29: Also include dedicated PIP (LaborInspectionCapacity) buildings.
-    let labor_inspection_capacity = result.sanepid_capacity + result.building_inspection_capacity + pip_capacity;
+    let labor_inspection_capacity =
+        result.sanepid_capacity + result.building_inspection_capacity + pip_capacity;
     let labor_intensive_companies: Vec<usize> = companies
         .iter()
         .enumerate()
         .filter(|(_, c)| {
-            matches!(c.sector, Sector::Agriculture | Sector::LightIndustry | Sector::Construction | Sector::Hospitality)
-                && c.shadow_employment.as_ref().map(|s| s.hidden_fte > 0.0).unwrap_or(false)
+            matches!(
+                c.sector,
+                Sector::Agriculture
+                    | Sector::LightIndustry
+                    | Sector::Construction
+                    | Sector::Hospitality
+            ) && c
+                .shadow_employment
+                .as_ref()
+                .map(|s| s.hidden_fte > 0.0)
+                .unwrap_or(false)
         })
         .map(|(i, _)| i)
         .collect();
@@ -270,17 +295,25 @@ pub fn process_inspectorates_turn(
     let mut deported_total = 0_i64;
 
     if !labor_intensive_companies.is_empty() && labor_inspection_capacity > 0.0 {
-        let detection_probability = (labor_inspection_capacity / labor_intensive_companies.len() as f64).min(1.0);
+        let detection_probability =
+            (labor_inspection_capacity / labor_intensive_companies.len() as f64).min(1.0);
 
         for &idx in &labor_intensive_companies {
             // Extract shadow employment data before mutable borrows
-            let (hidden_fte, pit_evaded, shadow_wage_per_fte, turns_since_inspection) = match companies[idx].shadow_employment.as_ref() {
-                Some(s) => (s.hidden_fte, s.pit_evaded, s.shadow_wage_per_fte, s.turns_since_inspection),
-                None => continue,
-            };
+            let (hidden_fte, pit_evaded, shadow_wage_per_fte, turns_since_inspection) =
+                match companies[idx].shadow_employment.as_ref() {
+                    Some(s) => (
+                        s.hidden_fte,
+                        s.pit_evaded,
+                        s.shadow_wage_per_fte,
+                        s.turns_since_inspection,
+                    ),
+                    None => continue,
+                };
 
             // Detection probability increases with turns since last inspection
-            let effective_prob = (detection_probability + turns_since_inspection as f64 * 0.05).min(1.0);
+            let effective_prob =
+                (detection_probability + turns_since_inspection as f64 * 0.05).min(1.0);
             // Use a simple threshold: if effective_prob > 0.5, detected
             if effective_prob <= 0.5 {
                 continue;
@@ -292,15 +325,23 @@ pub fn process_inspectorates_turn(
             let shadow_wage_penalty = shadow_wage_per_fte * hidden_fte * 0.5;
             let fine = (3.0 * pit_evaded + shadow_wage_penalty).max(1000.0);
 
-            let available = companies[idx].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(companies[idx].available_cash);
+            let available = companies[idx]
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash)
+                .unwrap_or(companies[idx].available_cash);
             let actual_fine = fine.min(available);
             if actual_fine > 0.01
-                && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
-                    shadow_fines += actual_fine;
-                }
+                && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok()
+            {
+                shadow_fines += actual_fine;
+            }
 
             // Deportation: if DeportationPolicy is not None, deport the illegal workers
-            let deportation_policy = country.politics.migration_law.as_ref()
+            let deportation_policy = country
+                .politics
+                .migration_law
+                .as_ref()
                 .map(|ml| ml.deportation_policy.clone())
                 .unwrap_or_default();
 
@@ -312,11 +353,17 @@ pub fn process_inspectorates_turn(
                     // Try to find a class with Illegal status in this region
                     if let Some(region) = country.regions.iter_mut().find(|r| r.id == region_id) {
                         // Find the first rural or urban class with Illegal status
-                        let class_key = region.class_demographics.rural_classes.iter()
+                        let class_key = region
+                            .class_demographics
+                            .rural_classes
+                            .iter()
                             .find(|(_, d)| d.legal_status == LegalStatus::Illegal)
                             .map(|(k, _)| (k.clone(), true))
                             .or_else(|| {
-                                region.class_demographics.urban_classes.iter()
+                                region
+                                    .class_demographics
+                                    .urban_classes
+                                    .iter()
                                     .find(|(_, d)| d.legal_status == LegalStatus::Illegal)
                                     .map(|(k, _)| (k.clone(), false))
                             });
@@ -332,7 +379,8 @@ pub fn process_inspectorates_turn(
                                     let per_capita = class.savings / class.population as f64;
                                     let deported_wealth = per_capita * deported_count as f64;
                                     class.savings -= deported_wealth;
-                                    class.illegal_population = (class.illegal_population - deported_count).max(0);
+                                    class.illegal_population =
+                                        (class.illegal_population - deported_count).max(0);
                                     class.population -= deported_count;
                                     deported_total += deported_count;
                                 }
@@ -429,7 +477,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sanepid_fines_food_company_low_condition() {
+    fn test_sanitary_inspectorate_fines_food_company_low_condition() {
         let mut country = Country::mock_for_tests();
         country.budget.liquid_reserves = 0.0;
         let mut companies = vec![Company {
@@ -440,21 +488,29 @@ mod tests {
         }];
         let buildings = vec![
             make_building("Factory", 0.2, Some("C1".to_string())),
-            make_building("sanepid", 1.0, None),
+            make_building("sanitary_inspectorate", 1.0, None),
         ];
-        // Give sanepid building some inspection capacity output
+        // Give sanitary inspectorate building some inspection capacity output
         let mut buildings = buildings;
         {
-            let sanepid = &mut buildings[1];
-            sanepid.last_production.insert(Commodity::SanitaryInspectionCapacity, 10.0);
+            let sanitary_building = &mut buildings[1];
+            sanitary_building
+                .last_production
+                .insert(Commodity::SanitaryInspectionCapacity, 10.0);
         }
 
         let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
 
         assert!(result.violations_detected > 0, "should detect violations");
         assert!(result.fines_collected > 0.0, "should collect fines");
-        assert!((country.budget.liquid_reserves - result.fines_collected).abs() < 0.01, "treasury should match fines");
-        assert!(companies[0].available_cash < 100_000.0, "company should lose cash");
+        assert!(
+            (country.budget.liquid_reserves - result.fines_collected).abs() < 0.01,
+            "treasury should match fines"
+        );
+        assert!(
+            companies[0].available_cash < 100_000.0,
+            "company should lose cash"
+        );
     }
 
     #[test]
@@ -469,13 +525,18 @@ mod tests {
         }];
         let mut buildings = vec![
             make_building("Factory", 0.1, Some("C1".to_string())),
-            make_building("Inspektorat", 1.0, None),
+            make_building("Building Inspectorate", 1.0, None),
         ];
-        buildings[1].last_production.insert(Commodity::BuildingInspectionCapacity, 10.0);
+        buildings[1]
+            .last_production
+            .insert(Commodity::BuildingInspectionCapacity, 10.0);
 
         let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
 
-        assert!(result.violations_detected > 0, "should detect building violations");
+        assert!(
+            result.violations_detected > 0,
+            "should detect building violations"
+        );
         assert!(result.fines_collected > 0.0);
         assert!((country.budget.liquid_reserves - result.fines_collected).abs() < 0.01);
     }
@@ -495,12 +556,19 @@ mod tests {
             make_building("environmental_inspectorate", 1.0, None),
         ];
         // High production output = high pollution proxy
-        buildings[0].last_production.insert(Commodity::HardCoal, 500.0);
-        buildings[1].last_production.insert(Commodity::EnvironmentalInspectionCapacity, 10.0);
+        buildings[0]
+            .last_production
+            .insert(Commodity::HardCoal, 500.0);
+        buildings[1]
+            .last_production
+            .insert(Commodity::EnvironmentalInspectionCapacity, 10.0);
 
         let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
 
-        assert!(result.violations_detected > 0, "should detect environmental violations");
+        assert!(
+            result.violations_detected > 0,
+            "should detect environmental violations"
+        );
         assert!(result.fines_collected > 0.0);
         assert!((country.budget.liquid_reserves - result.fines_collected).abs() < 0.01);
     }
@@ -517,14 +585,22 @@ mod tests {
         }];
         let mut buildings = vec![
             make_building("Factory", 0.1, Some("C1".to_string())),
-            make_building("sanepid", 1.0, None),
+            make_building("sanitary_inspectorate", 1.0, None),
         ];
-        buildings[1].last_production.insert(Commodity::SanitaryInspectionCapacity, 10.0);
+        buildings[1]
+            .last_production
+            .insert(Commodity::SanitaryInspectionCapacity, 10.0);
 
         let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
 
-        assert!(result.fines_collected <= 100.0, "fine should be clamped to available cash");
-        assert!((companies[0].available_cash - 0.0).abs() < 0.01, "company should be drained");
+        assert!(
+            result.fines_collected <= 100.0,
+            "fine should be clamped to available cash"
+        );
+        assert!(
+            (companies[0].available_cash - 0.0).abs() < 0.01,
+            "company should be drained"
+        );
     }
 
     #[test]
@@ -542,15 +618,23 @@ mod tests {
         }];
         let mut buildings = vec![
             make_building("Factory", 0.2, Some("C1".to_string())),
-            make_building("sanepid", 1.0, None),
+            make_building("sanitary_inspectorate", 1.0, None),
         ];
-        buildings[1].last_production.insert(Commodity::SanitaryInspectionCapacity, 10.0);
+        buildings[1]
+            .last_production
+            .insert(Commodity::SanitaryInspectionCapacity, 10.0);
 
         let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
 
-        assert!(result.justice_demand_added > 0.0, "justice demand should increase");
+        assert!(
+            result.justice_demand_added > 0.0,
+            "justice demand should increase"
+        );
         let js = country.politics.justice_state.as_ref().unwrap();
-        assert!(js.justice_demand > 10.0, "justice demand in state should have increased");
+        assert!(
+            js.justice_demand > 10.0,
+            "justice demand in state should have increased"
+        );
     }
 
     #[test]
@@ -558,13 +642,19 @@ mod tests {
         let mut country = Country::mock_for_tests();
         let mut companies = vec![Company::default()];
         let mut buildings = vec![
-            make_building("sanepid", 1.0, None),
-            make_building("Inspektorat Nadzoru", 1.0, None),
+            make_building("sanitary_inspectorate", 1.0, None),
+            make_building("Construction Supervision", 1.0, None),
             make_building("environmental_inspectorate", 1.0, None),
         ];
-        buildings[0].last_production.insert(Commodity::SanitaryInspectionCapacity, 15.0);
-        buildings[1].last_production.insert(Commodity::BuildingInspectionCapacity, 8.0);
-        buildings[2].last_production.insert(Commodity::EnvironmentalInspectionCapacity, 12.0);
+        buildings[0]
+            .last_production
+            .insert(Commodity::SanitaryInspectionCapacity, 15.0);
+        buildings[1]
+            .last_production
+            .insert(Commodity::BuildingInspectionCapacity, 8.0);
+        buildings[2]
+            .last_production
+            .insert(Commodity::EnvironmentalInspectionCapacity, 12.0);
 
         let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
 

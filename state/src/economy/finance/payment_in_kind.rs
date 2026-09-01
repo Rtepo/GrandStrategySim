@@ -3,7 +3,9 @@
 //! Implements the deduction of harvest commodities to satisfy subsistence needs
 //! of agricultural workers before crops are sent to warehouses or sold on B2B markets.
 
-use crate::data::{consumption_registry, substitution_matrix, subsistence_config, ConsumptionBasket, NeedTier};
+use crate::data::{
+    consumption_registry, subsistence_config, substitution_matrix, ConsumptionBasket, NeedTier,
+};
 use crate::economy::labor_market::LaborAllocationMatrix;
 use crate::registries::enums::Commodity;
 use crate::society::geography::{DemographyType, Region};
@@ -14,11 +16,9 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct InKindLedger {
     /// Company ID → (Commodity → units deducted as in-kind payment)
-
     pub deductions: BTreeMap<String, BTreeMap<Commodity, f64>>,
 
     /// Company ID → cash wage offset (for FreePeasant/LandlessLaborer)
-
     pub cash_offsets: BTreeMap<String, f64>,
 
     /// Phase 44: Per-class deductions for B2C demand netting.
@@ -31,12 +31,10 @@ pub struct InKindLedger {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct NutritionalDeficit {
     /// (region_id, demography_type, class_id) → (Commodity → deficit units)
-
     pub deficits: BTreeMap<(String, DemographyType, String), BTreeMap<Commodity, f64>>,
-    
+
     /// (region_id, demography_type, class_id) → quality penalty (0-1)
     /// Applied when subsistence is met via substitution
-
     pub quality_penalties: BTreeMap<(String, DemographyType, String), f64>,
 }
 
@@ -66,7 +64,7 @@ pub fn apply_payment_in_kind(
 ) -> (InKindLedger, NutritionalDeficit) {
     let mut in_kind_ledger = InKindLedger::default();
     let mut nutritional_deficit = NutritionalDeficit::default();
-    
+
     let config = subsistence_config();
     let consumption = consumption_registry();
     let substitution = substitution_matrix();
@@ -80,7 +78,7 @@ pub fn apply_payment_in_kind(
             .filter(|((cid, _, _), _)| cid == company_id)
             .map(|((_, dt, cid), fte)| ((*dt, cid.clone()), *fte))
             .collect();
-        
+
         let company_wages: BTreeMap<(DemographyType, String), f64> = labor_allocation
             .wages
             .iter()
@@ -94,7 +92,7 @@ pub fn apply_payment_in_kind(
 
         // Calculate total subsistence need for all workers
         let mut total_subsistence_need: BTreeMap<Commodity, f64> = BTreeMap::new();
-        
+
         for ((_demography_type, class_id), fte) in &company_fte {
             if let Some(basket) = consumption.get(class_id) {
                 if let Some(subsistence_tier) = basket.tiers.get(&NeedTier::Subsistence) {
@@ -111,8 +109,11 @@ pub fn apply_payment_in_kind(
         let mut cash_offset = 0.0;
 
         for ((demography_type, class_id), fte) in &company_fte {
-            let class_wages = company_wages.get(&(*demography_type, class_id.clone())).copied().unwrap_or(0.0);
-            
+            let class_wages = company_wages
+                .get(&(*demography_type, class_id.clone()))
+                .copied()
+                .unwrap_or(0.0);
+
             // Serfs: in-kind INSTEAD of wages (no cash offset)
             if class_id == "Serf" {
                 // Full in-kind, no cash
@@ -131,7 +132,7 @@ pub fn apply_payment_in_kind(
                     // Calculate in-kind value and offset cash wages
                     let in_kind_value = calculate_in_kind_value(class_id, *fte, consumption);
                     cash_offset += in_kind_value.min(class_wages);
-                    
+
                     // Deduct from harvest
                     if let Some(basket) = consumption.get(class_id) {
                         if let Some(subsistence_tier) = basket.tiers.get(&NeedTier::Subsistence) {
@@ -165,7 +166,7 @@ pub fn apply_payment_in_kind(
         for (commodity, deficit) in &total_subsistence_need {
             let already_covered = actual_deductions.get(commodity).copied().unwrap_or(0.0);
             let remaining_deficit = deficit - already_covered;
-            
+
             if remaining_deficit > 0.0 {
                 // Look for substitution candidates
                 if let Some(candidates) = substitution.get(commodity) {
@@ -173,16 +174,20 @@ pub fn apply_payment_in_kind(
                         if let Some(&surplus) = harvest.get(&sub.donor) {
                             let substitution_cap = config.substitution_cap * remaining_deficit;
                             let donor_needed = substitution_cap * sub.ratio;
-                            
+
                             if donor_needed <= surplus {
                                 // Apply substitution
                                 let donor_used = donor_needed;
                                 *harvest.get_mut(&sub.donor).unwrap() -= donor_used;
                                 *actual_deductions.entry(sub.donor).or_insert(0.0) += donor_used;
-                                
+
                                 // Track quality penalty
-                                let key = (region.id.clone(), DemographyType::Rural, "Serf".to_string());
-                                *nutritional_deficit.quality_penalties.entry(key).or_insert(0.0) += config.nutritional_penalty;
+                                let key =
+                                    (region.id.clone(), DemographyType::Rural, "Serf".to_string());
+                                *nutritional_deficit
+                                    .quality_penalties
+                                    .entry(key)
+                                    .or_insert(0.0) += config.nutritional_penalty;
                             }
                         }
                     }
@@ -192,13 +197,18 @@ pub fn apply_payment_in_kind(
 
         // Record in-kind ledger
         if !actual_deductions.is_empty() {
-            in_kind_ledger.deductions.insert(company_id.clone(), actual_deductions.clone());
+            in_kind_ledger
+                .deductions
+                .insert(company_id.clone(), actual_deductions.clone());
             if cash_offset > 0.0 {
-                in_kind_ledger.cash_offsets.insert(company_id.clone(), cash_offset);
+                in_kind_ledger
+                    .cash_offsets
+                    .insert(company_id.clone(), cash_offset);
             }
             // Phase 44: Track per-class deductions for B2C demand netting.
             for ((demography_type, class_id), fte) in &company_fte {
-                if class_id == "Serf" || class_id == "FreePeasant" || class_id == "LandlessLaborer" {
+                if class_id == "Serf" || class_id == "FreePeasant" || class_id == "LandlessLaborer"
+                {
                     let key = (region.id.clone(), *demography_type, class_id.clone());
                     let class_entry = in_kind_ledger.deductions_by_class.entry(key).or_default();
                     for (&commodity, &qty) in &actual_deductions {
@@ -222,8 +232,12 @@ pub fn apply_payment_in_kind(
                 for (commodity, per_capita) in subsistence_tier {
                     let need = per_capita * *fte;
                     let key = (region.id.clone(), *demography_type, class_id.clone());
-                    *nutritional_deficit.deficits.entry(key).or_insert_with(BTreeMap::new)
-                        .entry(*commodity).or_insert(0.0) += need;
+                    *nutritional_deficit
+                        .deficits
+                        .entry(key)
+                        .or_insert_with(BTreeMap::new)
+                        .entry(*commodity)
+                        .or_insert(0.0) += need;
                 }
             }
         }

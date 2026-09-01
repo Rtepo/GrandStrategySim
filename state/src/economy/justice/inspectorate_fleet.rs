@@ -105,7 +105,13 @@ mod tests {
     use crate::registries::enums::Commodity;
     use crate::registries::tech_tree::TechId;
 
-    fn make_building_with_vehicles(id: &str, region: &str, cars: f64, condition: f64, staff: u32) -> Building {
+    fn make_building_with_vehicles(
+        id: &str,
+        region: &str,
+        cars: f64,
+        condition: f64,
+        staff: u32,
+    ) -> Building {
         let mut b = Building::default();
         b.id = id.to_string();
         b.region_id = region.to_string();
@@ -155,20 +161,32 @@ mod tests {
     #[test]
     fn test_within_range_same_region() {
         let ranges = vec![("insp1".to_string(), "r1".to_string(), 50.0)];
-        assert!(is_within_inspection_range(&ranges, "r1", simple_region_distance));
+        assert!(is_within_inspection_range(
+            &ranges,
+            "r1",
+            simple_region_distance
+        ));
     }
 
     #[test]
     fn test_out_of_range_different_region() {
         let ranges = vec![("insp1".to_string(), "r1".to_string(), 50.0)];
         // Different region → distance 100 > range 50
-        assert!(!is_within_inspection_range(&ranges, "r2", simple_region_distance));
+        assert!(!is_within_inspection_range(
+            &ranges,
+            "r2",
+            simple_region_distance
+        ));
     }
 
     #[test]
     fn test_in_range_different_region_sufficient_range() {
         let ranges = vec![("insp1".to_string(), "r1".to_string(), 150.0)];
         // Different region → distance 100 < range 150
-        assert!(is_within_inspection_range(&ranges, "r2", simple_region_distance));
+        assert!(is_within_inspection_range(
+            &ranges,
+            "r2",
+            simple_region_distance
+        ));
     }
 }

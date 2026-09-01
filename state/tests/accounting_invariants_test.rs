@@ -3,8 +3,8 @@
 //! These tests verify that the accounting fixes from Phase 24A prevent money
 //! creation/destruction at each step of the economic cycle.
 
-use sim_engine::economy::order_book::{OrderBook, Bid};
 use sim_engine::economy::b2b_orders::refund_unfilled_bids;
+use sim_engine::economy::order_book::{Bid, OrderBook};
 use sim_engine::entities::Company;
 use sim_engine::registries::enums::Commodity;
 use sim_engine::securities::BrokerageAccount;
@@ -36,7 +36,13 @@ fn test_bid_refund_releases_debit_cash() {
     }];
 
     // Refund unfilled bids
-    refund_unfilled_bids(&order_book, &mut companies);
+    // Phase 94: Build company_id → idx map for the O(1) lookup variant.
+    let company_id_to_idx: rustc_hash::FxHashMap<String, usize> = companies
+        .iter()
+        .enumerate()
+        .map(|(i, c)| (c.id.clone(), i))
+        .collect();
+    refund_unfilled_bids(&order_book, &mut companies, &company_id_to_idx);
 
     // Verify debit_cash was released (not liquid_capital credited)
     assert!(
@@ -109,12 +115,21 @@ fn test_corporate_interest_routing_structure() {
         id: "corp_1".to_string(),
         liabilities: 500_000.0,
         liquid_capital: 1_000_000.0,
-        outstanding_loan_bank_id: Some("bank_1".to_string()),
+        outstanding_loans: vec![sim_engine::state::banking::LoanRef {
+            loan_id: "loan_1".to_string(),
+            bank_id: "bank_1".to_string(),
+            principal: 500_000.0,
+            outstanding_balance: 500_000.0,
+            interest_rate: 0.05,
+            term_turns: 24,
+            ..Default::default()
+        }],
         ..Default::default()
     };
 
-    // Verify the company has the loan bank ID set
-    assert_eq!(company.outstanding_loan_bank_id, Some("bank_1".to_string()));
+    // Verify the company has the loan set
+    assert_eq!(company.outstanding_loans.len(), 1);
+    assert_eq!(company.outstanding_loans[0].bank_id, "bank_1");
     assert!(company.liabilities > 0.0);
 }
 

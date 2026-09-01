@@ -12,43 +12,32 @@ use serde_json::{Map, Value};
 #[serde(rename_all = "snake_case")]
 pub enum MassMovementType {
     #[default]
+    IndustrialStrike, // Workers stop production
 
-    IndustrialStrike,  // Workers stop production
-    
+    Riot, // Violent unrest, property damage
 
-    Riot,  // Violent unrest, property damage
-    
+    PeacefulProtest, // Non-violent demonstration
 
-    PeacefulProtest,  // Non-violent demonstration
-    
+    Occupation, // Physical occupation of facilities
 
-    Occupation,  // Physical occupation of facilities
-    
-
-    Boycott,  // Consumer boycott of specific goods
+    Boycott, // Consumer boycott of specific goods
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum MassMovementStatus {
     #[default]
+    Forming, // Gathering support
 
-    Forming,  // Gathering support
-    
+    Active, // Currently disrupting
 
-    Active,  // Currently disrupting
-    
+    Negotiating, // In talks with government
 
-    Negotiating,  // In talks with government
-    
+    ResolvedSuccess, // Demands met
 
-    ResolvedSuccess,  // Demands met
-    
+    ResolvedFailure, // Suppressed/abandoned
 
-    ResolvedFailure,  // Suppressed/abandoned
-    
-
-    Dispersed,  // Broken up by force
+    Dispersed, // Broken up by force
 }
 
 /// A mass movement event in a region
@@ -57,59 +46,59 @@ pub struct MassMovement {
     /// Movement ID
     #[serde(default)]
     pub id: String,
-    
+
     /// Region where movement is active
     #[serde(default)]
     pub region_id: String,
-    
+
     /// Movement type
     #[serde(default)]
     pub movement_type: MassMovementType,
-    
+
     /// Demographic class primarily involved
     #[serde(default)]
     pub initiating_class: String,
-    
+
     /// Turn when movement started
     #[serde(default)]
     pub start_turn: u32,
-    
+
     /// Expected duration in turns (0 = indefinite)
     #[serde(default)]
     pub expected_duration: u32,
-    
+
     /// Current intensity (0-1, affects disruption magnitude)
     #[serde(default)]
     pub intensity: f64,
-    
+
     /// Participating population count
     #[serde(default)]
     pub participant_count: i64,
-    
+
     /// Whether movement is union-backed (triggers strike fund mechanics)
     #[serde(default)]
     pub union_backed: bool,
-    
+
     /// Trade union ID providing funding (if union_backed)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub union_id: Option<String>,
-    
+
     /// Strike fund allocation per participant (if union_backed)
     #[serde(default)]
     pub strike_fund_per_participant: f64,
-    
+
     /// Target companies affected by this movement
     #[serde(default)]
     pub target_companies: Vec<String>,
-    
+
     /// Movement status
     #[serde(default)]
     pub status: MassMovementStatus,
-    
+
     /// Demands (list of concessions requested)
     #[serde(default)]
     pub demands: Vec<String>,
-    
+
     /// Any additional fields
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -118,35 +107,28 @@ pub struct MassMovement {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum SuppressionError {
+    InsufficientFunds, // Treasury cannot afford suppression cost
 
-    InsufficientFunds,  // Treasury cannot afford suppression cost
-    
-
-    MovementAlreadyResolved,  // Cannot suppress inactive movement
+    MovementAlreadyResolved, // Cannot suppress inactive movement
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum SuppressionResult {
     #[default]
+    Success, // Movement dispersed, casualties occurred
 
-    Success,  // Movement dispersed, casualties occurred
-    
+    Failure, // Insufficient security power, movement continues
 
-    Failure,  // Insufficient security power, movement continues
-    
-
-    Backlash,  // Suppression triggered massive radicalization
+    Backlash, // Suppression triggered massive radicalization
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum MovementError {
+    UnionMismatch, // Union ID mismatch
 
-    UnionMismatch,  // Union ID mismatch
-    
-
-    InsufficientStrikeFund,  // Union cannot afford strike payments
+    InsufficientStrikeFund, // Union cannot afford strike payments
 }
 
 /// Check if a mass movement should spawn in a region
@@ -157,7 +139,8 @@ pub fn check_mass_movement_spawn(
     current_turn: u32,
 ) -> Option<MassMovement> {
     // Aggregate radical population across all classes
-    let total_radicals: i64 = class_demographics.rural_classes
+    let total_radicals: i64 = class_demographics
+        .rural_classes
         .iter()
         .chain(class_demographics.urban_classes.iter())
         .map(|(_, class)| {
@@ -165,31 +148,36 @@ pub fn check_mass_movement_spawn(
             (class.population as f64 * radical_fraction) as i64
         })
         .sum();
-    
-    let total_population: i64 = class_demographics.rural_classes
+
+    let total_population: i64 = class_demographics
+        .rural_classes
         .iter()
         .chain(class_demographics.urban_classes.iter())
         .map(|(_, class)| class.population)
         .sum();
-    
+
     // Threshold: radicals must exceed configured percentage of regional population
     let radical_threshold = (total_population as f64 * config.radical_threshold) as i64;
-    
+
     // CRITICAL: Also check for zero radicals to prevent unwrap() panic on empty regions
     if total_radicals < radical_threshold || total_radicals == 0 {
         return None;
     }
-    
+
     // Identify the class with highest radical concentration
     // Safe to unwrap because we've guaranteed total_radicals > 0
-    let (initiating_class_key, initiating_class) = class_demographics.rural_classes
+    let (initiating_class_key, initiating_class) = class_demographics
+        .rural_classes
         .iter()
         .chain(class_demographics.urban_classes.iter())
         .max_by(|a, b| {
-            a.1.political_sentiment.radicals.partial_cmp(&b.1.political_sentiment.radicals).unwrap()
+            a.1.political_sentiment
+                .radicals
+                .partial_cmp(&b.1.political_sentiment.radicals)
+                .unwrap()
         })
         .unwrap();
-    
+
     // Determine movement type based on class economic status
     let movement_type = match initiating_class.economic_status {
         EconomicStatus::Prosperous => MassMovementType::PeacefulProtest,
@@ -197,11 +185,11 @@ pub fn check_mass_movement_spawn(
         EconomicStatus::Struggling => MassMovementType::IndustrialStrike,
         EconomicStatus::Destitute => MassMovementType::Riot,
     };
-    
+
     // Check if class has union backing using formal union_affiliation field
     let union_backed = initiating_class.union_affiliation.is_some();
     let union_id = initiating_class.union_affiliation.clone();
-    
+
     Some(MassMovement {
         id: format!("[MOV-{}-{}]", region_id, current_turn),
         region_id: region_id.to_string(),
@@ -209,14 +197,17 @@ pub fn check_mass_movement_spawn(
         initiating_class: initiating_class_key.clone(),
         start_turn: current_turn,
         expected_duration: 5, // Default 5 turns
-        intensity: 0.5, // Start at 50% intensity
+        intensity: 0.5,       // Start at 50% intensity
         participant_count: total_radicals,
         union_backed,
         union_id,
         strike_fund_per_participant: if union_backed { 100.0 } else { 0.0 },
         target_companies: Vec::new(), // Populated by caller
         status: MassMovementStatus::Forming,
-        demands: vec!["Higher wages".to_string(), "Better working conditions".to_string()],
+        demands: vec![
+            "Higher wages".to_string(),
+            "Better working conditions".to_string(),
+        ],
         extra: Map::new(),
     })
 }
@@ -228,31 +219,38 @@ pub fn apply_mass_movement_disruption(
     config: &ChaosConfig,
 ) -> Vec<String> {
     let mut messages = Vec::new();
-    
+
     // Only active movements cause disruption
     if movement.status != MassMovementStatus::Active {
         return messages;
     }
-    
+
     // Filter companies in the movement's region
     for company in companies.iter_mut() {
         if company.region_id != movement.region_id {
             continue;
         }
-        
+
         // Calculate disruption based on movement type and intensity using config multipliers
         let disruption_factor = match movement.movement_type {
-            MassMovementType::IndustrialStrike => movement.intensity * config.strike_disruption_multiplier,
+            MassMovementType::IndustrialStrike => {
+                movement.intensity * config.strike_disruption_multiplier
+            }
             MassMovementType::Riot => movement.intensity * config.riot_disruption_multiplier,
-            MassMovementType::Occupation => movement.intensity * config.occupation_disruption_multiplier,
+            MassMovementType::Occupation => {
+                movement.intensity * config.occupation_disruption_multiplier
+            }
             MassMovementType::Boycott => movement.intensity * config.boycott_disruption_multiplier,
-            MassMovementType::PeacefulProtest => movement.intensity * config.protest_disruption_multiplier,
+            MassMovementType::PeacefulProtest => {
+                movement.intensity * config.protest_disruption_multiplier
+            }
         };
-        
+
         // CRITICAL: Set transient modifier (NOT permanent mutation)
         // This modifier is reset to 0.0 at start of each turn
-        company.temporary_disruption_modifier = disruption_factor.max(company.temporary_disruption_modifier);
-        
+        company.temporary_disruption_modifier =
+            disruption_factor.max(company.temporary_disruption_modifier);
+
         // Record company as target
         if !movement.target_companies.contains(&company.id) {
             messages.push(format!(
@@ -263,7 +261,7 @@ pub fn apply_mass_movement_disruption(
             ));
         }
     }
-    
+
     messages
 }
 
@@ -281,18 +279,19 @@ pub fn suppress_mass_movement(
     if movement.status != MassMovementStatus::Active {
         return Err(SuppressionError::MovementAlreadyResolved);
     }
-    
+
     // === STEP 1: CALCULATE SUPPRESSION COST (Double-Entry: Treasury ↓) ===
-    let suppression_cost = movement.participant_count as f64 * config.suppression_cost_per_participant;
-    
+    let suppression_cost =
+        movement.participant_count as f64 * config.suppression_cost_per_participant;
+
     // Check Treasury has sufficient liquid reserves
     if treasury.liquid_reserves < suppression_cost {
         return Err(SuppressionError::InsufficientFunds);
     }
-    
+
     // DEDUCT from Treasury liquid_reserves (double-entry: debit)
     treasury.liquid_reserves -= suppression_cost;
-    
+
     // === STEP 2: CALCULATE SECURITY POWER vs MOVEMENT STRENGTH ===
     // Phase 14.5: If military_buildings provided (martial law), physically
     // deduct Ammunition and Fuels from each base's inventory.
@@ -300,27 +299,35 @@ pub fn suppress_mass_movement(
     // Zero bullets = zero suppression power from that base.
     let security_power = if let Some(buildings) = military_buildings {
         let mut total_military_power = 0.0_f64;
-        
+
         for building in buildings.iter_mut() {
             if building.name != "military_base" {
                 continue;
             }
-            
+
             // Base military power from troop count (current_employment)
             let base_power = building.current_employment as f64 * 10.0;
-            
+
             // Required supplies: 2 Ammunition + 1 Fuels per 10 troops
             let troop_scale = building.current_employment as f64 / 10.0;
             let ammo_required = 2.0 * troop_scale;
             let fuel_required = 1.0 * troop_scale;
-            
+
             // Physically deduct from inventory (strict clamping)
-            let ammo_available = building.inventory.get(&Commodity::Ammunition).copied().unwrap_or(0.0);
-            let fuel_available = building.inventory.get(&Commodity::Fuels).copied().unwrap_or(0.0);
-            
+            let ammo_available = building
+                .inventory
+                .get(&Commodity::Ammunition)
+                .copied()
+                .unwrap_or(0.0);
+            let fuel_available = building
+                .inventory
+                .get(&Commodity::Fuels)
+                .copied()
+                .unwrap_or(0.0);
+
             let ammo_consumed = ammo_required.min(ammo_available);
             let fuel_consumed = fuel_required.min(fuel_available);
-            
+
             // PHYSICALLY DEDUCT from inventory
             if ammo_consumed > 0.0 {
                 *building.inventory.get_mut(&Commodity::Ammunition).unwrap() -= ammo_consumed;
@@ -328,140 +335,159 @@ pub fn suppress_mass_movement(
             if fuel_consumed > 0.0 {
                 *building.inventory.get_mut(&Commodity::Fuels).unwrap() -= fuel_consumed;
             }
-            
+
             // Supply ratio: how much of required supplies were actually available
-            let ammo_ratio = if ammo_required > 0.0 { ammo_consumed / ammo_required } else { 0.0 };
-            let fuel_ratio = if fuel_required > 0.0 { fuel_consumed / fuel_required } else { 0.0 };
+            let ammo_ratio = if ammo_required > 0.0 {
+                ammo_consumed / ammo_required
+            } else {
+                0.0
+            };
+            let fuel_ratio = if fuel_required > 0.0 {
+                fuel_consumed / fuel_required
+            } else {
+                0.0
+            };
             let supply_ratio = (ammo_ratio + fuel_ratio) / 2.0;
-            
+
             // Military power collapses proportionally when supplies insufficient
             total_military_power += base_power * supply_ratio;
         }
-        
+
         total_military_power
     } else {
         // No military deployment — use simplified security power
         1000.0 * config.security_power_multiplier
     };
-    
+
     // Calculate movement strength (participant count)
     let movement_strength = movement.participant_count as f64;
-    
+
     // === STEP 3: DETERMINE SUCCESS CHANCE ===
     let success_chance = security_power / (security_power + movement_strength);
-    
+
     // CRITICAL: True RNG probability roll (not hard threshold)
     let rng_success = rng.gen::<f64>() < success_chance;
-    
+
     if !rng_success {
         // Suppression failed - movement continues
         return Ok(SuppressionResult::Failure);
     }
-    
+
     // === STEP 4: SUPPRESSION SUCCESS - APPLY CONSEQUENCES ===
-    
+
     // CRITICAL: Calculate total_undecided_before BEFORE any mutations (time-travel bug fix)
-    let total_undecided_before: f64 = class_demographics.rural_classes
+    let total_undecided_before: f64 = class_demographics
+        .rural_classes
         .iter()
         .chain(class_demographics.urban_classes.iter())
         .map(|(_, c)| c.political_sentiment.undecided)
         .sum();
-    
+
     // 4a. CASUALTIES: Distribute proportionally across ALL classes based on radical share
     let total_casualties = (movement.participant_count as f64 * config.casualty_rate) as i64;
-    
+
     // Apply proportional casualties to rural classes
     for class_demographics in class_demographics.rural_classes.values_mut() {
         // Calculate this class's share of the radical population
-        let class_radicals = class_demographics.population as f64 * class_demographics.political_sentiment.radicals;
+        let class_radicals =
+            class_demographics.population as f64 * class_demographics.political_sentiment.radicals;
         let class_share = if movement.participant_count > 0 {
             class_radicals / movement.participant_count as f64
         } else {
             0.0
         };
-        
+
         // Calculate proportional casualties for this class
         let class_casualties = (total_casualties as f64 * class_share) as i64;
-        
+
         if class_casualties > 0 {
             // Calculate confiscated wealth (dead participants' savings)
-            let confiscated_wealth = class_casualties as f64 * class_demographics.savings_per_capita;
-            
+            let confiscated_wealth =
+                class_casualties as f64 * class_demographics.savings_per_capita;
+
             // DEDUCT from class savings (double-entry: debit)
             class_demographics.savings = (class_demographics.savings - confiscated_wealth).max(0.0);
-            
+
             // CREDIT to Treasury (double-entry: credit - state confiscates rebel assets)
             treasury.liquid_reserves += confiscated_wealth;
-            
+
             // Deduct population
-            class_demographics.population = (class_demographics.population - class_casualties).max(0);
-            
+            class_demographics.population =
+                (class_demographics.population - class_casualties).max(0);
+
             // Recalculate savings_per_capita
             if class_demographics.population > 0 {
-                class_demographics.savings_per_capita = class_demographics.savings / class_demographics.population as f64;
+                class_demographics.savings_per_capita =
+                    class_demographics.savings / class_demographics.population as f64;
             }
         }
     }
-    
+
     // Apply proportional casualties to urban classes
     for class_demographics in class_demographics.urban_classes.values_mut() {
         // Calculate this class's share of the radical population
-        let class_radicals = class_demographics.population as f64 * class_demographics.political_sentiment.radicals;
+        let class_radicals =
+            class_demographics.population as f64 * class_demographics.political_sentiment.radicals;
         let class_share = if movement.participant_count > 0 {
             class_radicals / movement.participant_count as f64
         } else {
             0.0
         };
-        
+
         // Calculate proportional casualties for this class
         let class_casualties = (total_casualties as f64 * class_share) as i64;
-        
+
         if class_casualties > 0 {
             // Calculate confiscated wealth (dead participants' savings)
-            let confiscated_wealth = class_casualties as f64 * class_demographics.savings_per_capita;
-            
+            let confiscated_wealth =
+                class_casualties as f64 * class_demographics.savings_per_capita;
+
             // DEDUCT from class savings (double-entry: debit)
             class_demographics.savings = (class_demographics.savings - confiscated_wealth).max(0.0);
-            
+
             // CREDIT to Treasury (double-entry: credit - state confiscates rebel assets)
             treasury.liquid_reserves += confiscated_wealth;
-            
+
             // Deduct population
-            class_demographics.population = (class_demographics.population - class_casualties).max(0);
-            
+            class_demographics.population =
+                (class_demographics.population - class_casualties).max(0);
+
             // Recalculate savings_per_capita
             if class_demographics.population > 0 {
-                class_demographics.savings_per_capita = class_demographics.savings / class_demographics.population as f64;
+                class_demographics.savings_per_capita =
+                    class_demographics.savings / class_demographics.population as f64;
             }
         }
     }
-    
+
     // 4b. BACKLASH: Shift undecided to radicals in ALL classes in region
     let backlash_shift = config.backlash_magnitude;
-    
+
     for class_demographics in class_demographics.rural_classes.values_mut() {
-        let shift_amount = (class_demographics.political_sentiment.undecided * backlash_shift).min(class_demographics.political_sentiment.undecided);
+        let shift_amount = (class_demographics.political_sentiment.undecided * backlash_shift)
+            .min(class_demographics.political_sentiment.undecided);
         class_demographics.political_sentiment.undecided -= shift_amount;
         class_demographics.political_sentiment.radicals += shift_amount;
         class_demographics.political_sentiment.normalize();
     }
-    
+
     for class_demographics in class_demographics.urban_classes.values_mut() {
-        let shift_amount = (class_demographics.political_sentiment.undecided * backlash_shift).min(class_demographics.political_sentiment.undecided);
+        let shift_amount = (class_demographics.political_sentiment.undecided * backlash_shift)
+            .min(class_demographics.political_sentiment.undecided);
         class_demographics.political_sentiment.undecided -= shift_amount;
         class_demographics.political_sentiment.radicals += shift_amount;
         class_demographics.political_sentiment.normalize();
     }
-    
+
     // === STEP 5: RESOLVE MOVEMENT ===
     movement.status = MassMovementStatus::Dispersed;
-    
+
     // Check if backlash was severe (more than 30% of undecided radicalized)
     // Uses total_undecided_before calculated at start of Step 4
     if total_undecided_before > 0.0 && backlash_shift > 0.3 {
         return Ok(SuppressionResult::Backlash);
     }
-    
+
     Ok(SuppressionResult::Success)
 }
 
@@ -489,34 +515,36 @@ pub fn process_union_strike_fund(
     if !movement.union_backed {
         return Ok(()); // No union backing, no fund flow
     }
-    
+
     if union.id != movement.union_id.as_deref().unwrap_or("") {
         return Err(MovementError::UnionMismatch);
     }
-    
+
     // Calculate total strike fund requirement
-    let total_fund_requirement = movement.participant_count as f64 * movement.strike_fund_per_participant;
-    
+    let total_fund_requirement =
+        movement.participant_count as f64 * movement.strike_fund_per_participant;
+
     // Check union has sufficient strike fund
     if union.strike_fund < total_fund_requirement {
         return Err(MovementError::InsufficientStrikeFund);
     }
-    
+
     // DEDUCT from union strike fund (double-entry: debit)
     union.strike_fund -= total_fund_requirement;
-    
+
     // CREDIT to class demographics savings (double-entry: credit)
     // This sustains striking workers while they're not earning wages
     class_demographics.savings += total_fund_requirement;
-    
+
     // Update class savings_per_capita
     if class_demographics.population > 0 {
-        class_demographics.savings_per_capita = class_demographics.savings / class_demographics.population as f64;
+        class_demographics.savings_per_capita =
+            class_demographics.savings / class_demographics.population as f64;
     }
-    
+
     // NO Treasury involvement - this is a private transfer between union and workers
     // Strict double-entry: Union strike_fund ↓, Class savings ↑ (net zero in private sector)
-    
+
     Ok(())
 }
 
@@ -551,12 +579,9 @@ pub fn process_mass_movements_turn(
 
     // 1. Spawn check for each region
     for region in regions.iter_mut() {
-        if let Some(mut movement) = check_mass_movement_spawn(
-            &region.id,
-            &region.class_demographics,
-            config,
-            current_turn,
-        ) {
+        if let Some(mut movement) =
+            check_mass_movement_spawn(&region.id, &region.class_demographics, config, current_turn)
+        {
             movement.status = MassMovementStatus::Active;
             movement.start_turn = current_turn;
 
@@ -599,11 +624,15 @@ pub fn process_mass_movements_turn(
                     if let Some(region) = regions.iter_mut().find(|r| r.id == movement.region_id) {
                         // Try to process strike fund — find the initiating class
                         let class_key = movement.initiating_class.clone();
-                        if let Some(class_demo) = region.class_demographics.rural_classes.get_mut(&class_key) {
+                        if let Some(class_demo) =
+                            region.class_demographics.rural_classes.get_mut(&class_key)
+                        {
                             if let Err(e) = process_union_strike_fund(movement, union, class_demo) {
                                 messages.push(format!("[MOVEMENT] Strike fund error: {:?}", e));
                             }
-                        } else if let Some(class_demo) = region.class_demographics.urban_classes.get_mut(&class_key) {
+                        } else if let Some(class_demo) =
+                            region.class_demographics.urban_classes.get_mut(&class_key)
+                        {
                             if let Err(e) = process_union_strike_fund(movement, union, class_demo) {
                                 messages.push(format!("[MOVEMENT] Strike fund error: {:?}", e));
                             }
@@ -627,8 +656,7 @@ pub fn process_mass_movements_turn(
         movement.status = MassMovementStatus::ResolvedFailure;
         messages.push(format!(
             "[MOVEMENT] {:?} in region {} resolved (demands not met)",
-            movement.movement_type,
-            movement.region_id
+            movement.movement_type, movement.region_id
         ));
     }
 

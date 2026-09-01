@@ -388,11 +388,7 @@ fn default_health() -> f64 {
 impl Vip {
     /// Check if this VIP can exercise power (not dead, not incapacitated).
     pub fn can_exercise_power(&self) -> bool {
-        !self.is_dead
-            && matches!(
-                self.incapacity,
-                IncapacityStatus::Healthy
-            )
+        !self.is_dead && matches!(self.incapacity, IncapacityStatus::Healthy)
     }
 
     /// Check if this VIP is incapacitated (sick or coma, but not dead).
@@ -562,9 +558,7 @@ impl VipRegistry {
 
     /// Get a VIP by name.
     pub fn get_by_name(&self, name: &str) -> Option<&Vip> {
-        self.name_index
-            .get(name)
-            .and_then(|id| self.vips.get(id))
+        self.name_index.get(name).and_then(|id| self.vips.get(id))
     }
 
     /// Get all VIPs holding a specific role.
@@ -612,10 +606,7 @@ impl VipRegistry {
             incapacitated.acting_replacement_id = Some(acting_id.to_string());
             Ok(())
         } else {
-            Err(format!(
-                "Incapacitated VIP {} not found",
-                incapacitated_id
-            ))
+            Err(format!("Incapacitated VIP {} not found", incapacitated_id))
         }
     }
 
@@ -661,10 +652,12 @@ impl VipRegistry {
                 continue;
             }
             // Phase 62.5: Degrade both physical and mental health with age.
-            vip.health.physical_health = age_health_degradation(vip.age, vip.health.physical_health);
+            vip.health.physical_health =
+                age_health_degradation(vip.age, vip.health.physical_health);
             vip.health.mental_health = age_health_degradation(vip.age, vip.health.mental_health);
             // Check for illness-induced incapacity at very low aggregate health.
-            if vip.health.aggregate() < 0.15 && matches!(vip.incapacity, IncapacityStatus::Healthy) {
+            if vip.health.aggregate() < 0.15 && matches!(vip.incapacity, IncapacityStatus::Healthy)
+            {
                 vip.incapacity = IncapacityStatus::Sick;
             }
         }
@@ -752,8 +745,8 @@ impl VipRegistry {
         let mut prunable: Vec<Vip> = Vec::new();
 
         for vip in self.deceased.drain(..) {
-            let is_protected = dynasty_vip_ids.contains(&vip.id)
-                || historical_vip_ids.contains(&vip.id);
+            let is_protected =
+                dynasty_vip_ids.contains(&vip.id) || historical_vip_ids.contains(&vip.id);
             if is_protected {
                 protected.push(vip);
             } else {
@@ -762,9 +755,7 @@ impl VipRegistry {
         }
 
         // Sort prunable by death_turn descending (keep most recent deaths).
-        prunable.sort_by(|a, b| {
-            b.death_turn.unwrap_or(0).cmp(&a.death_turn.unwrap_or(0))
-        });
+        prunable.sort_by(|a, b| b.death_turn.unwrap_or(0).cmp(&a.death_turn.unwrap_or(0)));
 
         // Keep only the most recent `max_archive_size` prunable entries.
         prunable.truncate(max_archive_size);
@@ -785,11 +776,11 @@ impl VipRegistry {
 /// Older VIPs degrade faster. Health is clamped to [0.0, 1.0].
 pub fn age_health_degradation(age: u32, current_health: f64) -> f64 {
     let base_decline = match age {
-        0..=40 => 0.0,     // No natural decline
-        41..=60 => 0.005,  // 0.5% per year
-        61..=75 => 0.01,   // 1% per year
-        76..=90 => 0.02,   // 2% per year
-        _ => 0.04,         // 4% per year (very old)
+        0..=40 => 0.0,    // No natural decline
+        41..=60 => 0.005, // 0.5% per year
+        61..=75 => 0.01,  // 1% per year
+        76..=90 => 0.02,  // 2% per year
+        _ => 0.04,        // 4% per year (very old)
     };
     (current_health - base_decline).max(0.0)
 }
@@ -800,11 +791,11 @@ pub fn age_health_degradation(age: u32, current_health: f64) -> f64 {
 /// Older age and lower health both increase death probability.
 pub fn death_probability(age: u32, health: f64) -> f64 {
     let age_factor = match age {
-        0..=50 => 0.001,   // 0.1% per year
-        51..=65 => 0.005,  // 0.5%
-        66..=80 => 0.02,   // 2%
-        81..=95 => 0.05,   // 5%
-        _ => 0.15,         // 15% (extreme old age)
+        0..=50 => 0.001,  // 0.1% per year
+        51..=65 => 0.005, // 0.5%
+        66..=80 => 0.02,  // 2%
+        81..=95 => 0.05,  // 5%
+        _ => 0.15,        // 15% (extreme old age)
     };
     let health_factor = (1.0 - health).max(0.0);
     (age_factor + health_factor * 0.05).min(1.0)
@@ -852,7 +843,10 @@ pub fn assign_core_traits(rng: &mut impl rand::Rng) -> (Vec<String>, String) {
     }
 
     // Main trait is the first assigned trait (or "Diplomatic" as fallback).
-    let main_trait = assigned.first().cloned().unwrap_or_else(|| "Diplomatic".to_string());
+    let main_trait = assigned
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "Diplomatic".to_string());
     (assigned, main_trait)
 }
 
@@ -870,7 +864,10 @@ mod tests {
             full_name: name.to_string(),
             gender: "M".to_string(),
             age,
-            health: VipHealth { physical_health: 1.0, mental_health: 1.0 },
+            health: VipHealth {
+                physical_health: 1.0,
+                mental_health: 1.0,
+            },
             incapacity: IncapacityStatus::Healthy,
             traits: vec!["Loyal".to_string()],
             main_trait: "Loyal".to_string(),
@@ -982,7 +979,10 @@ mod tests {
     #[test]
     fn test_death_probability_young_healthy() {
         let prob = death_probability(30, 1.0);
-        assert!(prob < 0.01, "Young healthy VIP should have very low death prob");
+        assert!(
+            prob < 0.01,
+            "Young healthy VIP should have very low death prob"
+        );
     }
 
     #[test]
@@ -994,7 +994,10 @@ mod tests {
     #[test]
     fn test_death_probability_extreme_old_age() {
         let prob = death_probability(100, 1.0);
-        assert!(prob >= 0.15, "100-year-old should have at least 15% death prob");
+        assert!(
+            prob >= 0.15,
+            "100-year-old should have at least 15% death prob"
+        );
     }
 
     #[test]
@@ -1041,7 +1044,10 @@ mod tests {
 
         // Pending death should be in the queue.
         assert_eq!(registry.pending_unnatural_deaths.len(), 1);
-        assert_eq!(registry.pending_unnatural_deaths[0].cause, DeathCause::Assassination);
+        assert_eq!(
+            registry.pending_unnatural_deaths[0].cause,
+            DeathCause::Assassination
+        );
     }
 
     #[test]
@@ -1097,7 +1103,10 @@ mod tests {
         let mut rng = rand::thread_rng();
         let mut registry = VipRegistry::new();
         let mut vip = make_test_vip("Old Leader", 95);
-        vip.health = VipHealth { physical_health: 0.1, mental_health: 0.1 }; // Very unhealthy
+        vip.health = VipHealth {
+            physical_health: 0.1,
+            mental_health: 0.1,
+        }; // Very unhealthy
         let id = registry.register_new(vip);
 
         // Run death check multiple times — with age 95 and health 0.1,
@@ -1111,12 +1120,18 @@ mod tests {
             }
             // Re-age to keep probability high
             if let Some(v) = registry.get_mut(&id) {
-                v.health = VipHealth { physical_health: 0.1, mental_health: 0.1 };
+                v.health = VipHealth {
+                    physical_health: 0.1,
+                    mental_health: 0.1,
+                };
             }
         }
         assert!(died, "A 95-year-old with 0.1 health should eventually die");
         assert!(registry.deceased_count() > 0);
-        assert!(registry.get(&id).is_none(), "Dead VIP should be removed from living");
+        assert!(
+            registry.get(&id).is_none(),
+            "Dead VIP should be removed from living"
+        );
     }
 
     #[test]
@@ -1178,7 +1193,10 @@ mod tests {
     fn test_degrade_health_all_applies_to_living_only() {
         let mut registry = VipRegistry::new();
         let mut vip1 = make_test_vip("Old Man", 70);
-        vip1.health = VipHealth { physical_health: 1.0, mental_health: 1.0 };
+        vip1.health = VipHealth {
+            physical_health: 1.0,
+            mental_health: 1.0,
+        };
         let id1 = registry.register_new(vip1);
         let mut vip2 = make_test_vip("Dead Man", 70);
         vip2.mark_dead(5, DeathCause::OldAge);
@@ -1187,22 +1205,36 @@ mod tests {
         registry.degrade_health_all();
 
         let v1 = registry.get(&id1).unwrap();
-        assert!((v1.health.aggregate() - 0.99).abs() < 1e-6, "Living 70yo should degrade");
+        assert!(
+            (v1.health.aggregate() - 0.99).abs() < 1e-6,
+            "Living 70yo should degrade"
+        );
         let v2 = registry.get(&id2).unwrap();
-        assert_eq!(v2.health.aggregate(), 1.0, "Dead VIP health should not change (was 1.0 at creation)");
+        assert_eq!(
+            v2.health.aggregate(),
+            1.0,
+            "Dead VIP health should not change (was 1.0 at creation)"
+        );
     }
 
     #[test]
     fn test_low_health_triggers_sick_incapacity() {
         let mut registry = VipRegistry::new();
         let mut vip = make_test_vip("Sick Leader", 75);
-        vip.health = VipHealth { physical_health: 0.10, mental_health: 0.10 };
+        vip.health = VipHealth {
+            physical_health: 0.10,
+            mental_health: 0.10,
+        };
         let id = registry.register_new(vip);
 
         registry.degrade_health_all();
 
         let v = registry.get(&id).unwrap();
-        assert_eq!(v.incapacity, IncapacityStatus::Sick, "Health < 0.15 should trigger Sick");
+        assert_eq!(
+            v.incapacity,
+            IncapacityStatus::Sick,
+            "Health < 0.15 should trigger Sick"
+        );
     }
 
     // ========================================================================
@@ -1250,7 +1282,8 @@ mod tests {
         let mut used_names = std::collections::HashSet::new();
 
         for _ in 0..30 {
-            let vip = crate::politics::names::generate_unique_vip("slavic", &mut rng, &mut used_names);
+            let vip =
+                crate::politics::names::generate_unique_vip("slavic", &mut rng, &mut used_names);
             assert!(
                 used_names.contains(&vip.full_name),
                 "Generated name should be in the used set"
@@ -1266,19 +1299,37 @@ mod tests {
         // name_pool_for_culture. The function should accept lowercase
         // English keys and return a non-empty pool.
         let slavic = crate::politics::names::name_pool_for_culture("slavic");
-        assert!(!slavic.first_names_male.is_empty(), "Slavic pool should not be empty");
-        assert!(!slavic.surnames.is_empty(), "Slavic surnames should not be empty");
+        assert!(
+            !slavic.first_names_male.is_empty(),
+            "Slavic pool should not be empty"
+        );
+        assert!(
+            !slavic.surnames.is_empty(),
+            "Slavic surnames should not be empty"
+        );
 
         let germanic = crate::politics::names::name_pool_for_culture("germanic");
-        assert!(!germanic.first_names_male.is_empty(), "Germanic pool should not be empty");
+        assert!(
+            !germanic.first_names_male.is_empty(),
+            "Germanic pool should not be empty"
+        );
 
         let latin = crate::politics::names::name_pool_for_culture("latin");
-        assert!(!latin.first_names_male.is_empty(), "Latin pool should not be empty");
+        assert!(
+            !latin.first_names_male.is_empty(),
+            "Latin pool should not be empty"
+        );
 
         let middle_eastern = crate::politics::names::name_pool_for_culture("middle_eastern");
-        assert!(!middle_eastern.first_names_male.is_empty(), "Middle Eastern pool should not be empty");
+        assert!(
+            !middle_eastern.first_names_male.is_empty(),
+            "Middle Eastern pool should not be empty"
+        );
 
         let balkan = crate::politics::names::name_pool_for_culture("balkan");
-        assert!(!balkan.first_names_male.is_empty(), "Balkan pool should not be empty");
+        assert!(
+            !balkan.first_names_male.is_empty(),
+            "Balkan pool should not be empty"
+        );
     }
 }

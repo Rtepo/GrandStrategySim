@@ -44,15 +44,14 @@ pub struct HousingSlots {
     /// Total capacity (number of households)
     #[serde(default)]
     pub total_capacity: u32,
-    
+
     /// Currently occupied slots
     #[serde(default)]
     pub occupied_slots: u32,
-    
-    /// Target class for these slots
 
+    /// Target class for these slots
     pub target_class: Option<RuralClass>,
-    
+
     /// Rent per slot (if applicable)
     #[serde(default)]
     pub rent_per_slot: f64,
@@ -146,43 +145,41 @@ pub struct HousingBuilding {
     /// Unique building ID
     #[serde(default)]
     pub id: String,
-    
-    /// Housing type
 
+    /// Housing type
     pub housing_type: HousingType,
-    
+
     /// Micro-region where building is located
     #[serde(default)]
     pub micro_region_id: String,
-    
+
     /// Owner (LegalForm ID or individual)
     #[serde(default)]
     pub owner: String,
-    
+
     /// Primary housing slots (for designated class)
     #[serde(default)]
     pub primary_slots: HousingSlots,
-    
-    /// Sublet slots (for landless laborers - huts only)
 
+    /// Sublet slots (for landless laborers - huts only)
     pub sublet_slots: Option<HousingSlots>,
-    
+
     /// Living standard 0-1 (affects health/satisfaction)
     #[serde(default)]
     pub living_standard: f64,
-    
+
     /// Construction cost
     #[serde(default)]
     pub construction_cost: f64,
-    
+
     /// Maintenance cost per turn
     #[serde(default)]
     pub maintenance_cost: f64,
-    
+
     /// Current condition 0-1
     #[serde(default)]
     pub condition: f64,
-    
+
     /// Utility connections
     #[serde(default)]
     pub utility_connections: UtilityConnections,
@@ -290,29 +287,25 @@ pub enum StorageType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct InventoryBatch {
     /// Quantity of goods in this batch
-
     pub quantity: f64,
-    
+
     /// Turn number when this batch was stored
-
     pub storage_turn: u32,
-    
-    /// Original owner company ID (producer retains ownership)
 
+    /// Original owner company ID (producer retains ownership)
     pub owner_id: String,
-    
+
     /// Accumulated storage fees owed to LogisticsCompany
     #[serde(default)]
     pub accumulated_fees: f64,
-    
-    /// Warehouse ID where this batch is stored
 
+    /// Warehouse ID where this batch is stored
     pub warehouse_id: String,
-    
+
     /// Fire-sale discount (0.0-1.0) for aging batches
     #[serde(default)]
     pub fire_sale_discount: f64,
-    
+
     /// Phase 6.5: Acquisition cost per unit (for retail pricing)
     #[serde(default)]
     pub acquisition_cost_per_unit: f64,
@@ -364,43 +357,43 @@ pub struct RetailProfile {
     /// Store profile types (e.g., Grocery, Butcher, Bakery)
     #[serde(default)]
     pub profiles: std::collections::BTreeSet<StoreProfile>,
-    
+
     /// Base attractiveness from building template
     #[serde(default)]
     pub base_attractiveness: f64,
-    
+
     /// Installed upgrades
     #[serde(default)]
     pub upgrades: std::collections::BTreeSet<RetailUpgrade>,
-    
+
     /// Effective attractiveness (recomputed each turn in R2)
     #[serde(default)]
     pub effective_attractiveness: f64,
-    
+
     /// Markup ratio set by R3 pricing
     #[serde(default)]
     pub markup_ratio: f64,
-    
+
     /// Landlord building ID if tenant of ShoppingCenter
     #[serde(skip_serializing_if = "Option::is_none")]
     pub landlord_building_id: Option<String>,
-    
+
     /// Leased square meters
     #[serde(default)]
     pub leased_sqm: f64,
-    
+
     /// Units sold last turn per commodity
     #[serde(default)]
     pub units_sold_last_turn: std::collections::BTreeMap<Commodity, f64>,
-    
+
     /// Unmet demand last turn per commodity
     #[serde(default)]
     pub unmet_demand_last_turn: std::collections::BTreeMap<Commodity, f64>,
-    
+
     /// Phase 6.5: Market share last turn per commodity (for consumer inertia)
     #[serde(default)]
     pub market_share_last_turn: std::collections::BTreeMap<Commodity, f64>,
-    
+
     /// Phase 6.5: First active turn (for newcomer grace period)
     #[serde(default)]
     pub first_active_turn: u32,
@@ -412,11 +405,11 @@ pub struct ShoppingCenterProfile {
     /// Tenant building IDs (stores in this mall)
     #[serde(default)]
     pub tenant_building_ids: Vec<String>,
-    
+
     /// Diversity bonus (0-1) for having varied store types
     #[serde(default)]
     pub diversity_bonus: f64,
-    
+
     /// Anchor tenant (major store driving traffic)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub anchor_tenant: Option<String>,
@@ -428,19 +421,19 @@ pub struct WholesaleProfile {
     /// Served micro-region IDs
     #[serde(default)]
     pub served_micro_regions: std::collections::BTreeSet<String>,
-    
+
     /// Consolidation capacity tons per turn
     #[serde(default)]
     pub consolidation_capacity_tons: f64,
-    
+
     /// Committed tons this turn
     #[serde(default)]
     pub committed_tons_this_turn: f64,
-    
+
     /// Phase 6.5: Units sold to retailers last turn per commodity
     #[serde(default)]
     pub units_sold_to_retailers_last_turn: std::collections::BTreeMap<Commodity, f64>,
-    
+
     /// Phase 6.5: Consecutive turns commodity has sat above stock target
     #[serde(default)]
     pub stale_turns: std::collections::BTreeMap<Commodity, u32>,
@@ -450,23 +443,18 @@ pub struct WholesaleProfile {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct RetailLease {
     /// Tenant company ID
-
     pub tenant_id: String,
-    
+
     /// Leased square meters
-
     pub leased_sqm: f64,
-    
+
     /// Rent per sq meter
-
     pub rent_per_sqm: f64,
-    
+
     /// Lease start turn
-
     pub start_turn: u32,
-    
-    /// Lease duration in turns
 
+    /// Lease duration in turns
     pub duration_turns: u32,
 }
 
@@ -478,7 +466,6 @@ pub struct CommercialBuilding {
     pub id: String,
 
     /// Building type
-
     pub building_type: CommercialBuildingType,
 
     /// Micro-region location
@@ -613,7 +600,7 @@ impl HousingSlots {
             self.occupied_slots as f64 / self.total_capacity as f64
         }
     }
-    
+
     /// Available slots
     pub fn available_slots(&self) -> u32 {
         self.total_capacity.saturating_sub(self.occupied_slots)
@@ -624,17 +611,25 @@ impl HousingBuilding {
     /// Calculate total housing capacity (primary + sublet)
     pub fn total_capacity(&self) -> u32 {
         let primary = self.primary_slots.total_capacity;
-        let sublet = self.sublet_slots.as_ref().map(|s| s.total_capacity).unwrap_or(0);
+        let sublet = self
+            .sublet_slots
+            .as_ref()
+            .map(|s| s.total_capacity)
+            .unwrap_or(0);
         primary + sublet
     }
-    
+
     /// Calculate total occupied slots
     pub fn total_occupied(&self) -> u32 {
         let primary = self.primary_slots.occupied_slots;
-        let sublet = self.sublet_slots.as_ref().map(|s| s.occupied_slots).unwrap_or(0);
+        let sublet = self
+            .sublet_slots
+            .as_ref()
+            .map(|s| s.occupied_slots)
+            .unwrap_or(0);
         primary + sublet
     }
-    
+
     /// Check if building is overcrowded
     pub fn is_overcrowded(&self) -> bool {
         self.total_occupied() > self.total_capacity()
@@ -655,14 +650,14 @@ impl CommercialBuilding {
         if self.storage_capacity == 0.0 {
             return 0.0;
         }
-        
+
         // Base fee from utility capacity (proxy for OPEX)
-        let utility_capacity = self.utility_connections.electricity_capacity 
-            + self.utility_connections.district_heating_capacity 
+        let utility_capacity = self.utility_connections.electricity_capacity
+            + self.utility_connections.district_heating_capacity
             + self.utility_connections.surface_water_capacity;
-        
+
         let base_fee = utility_capacity / self.storage_capacity;
-        
+
         // Storage type multiplier
         let type_multiplier = match self.storage_type {
             StorageType::GeneralWarehouse => 1.0,
@@ -670,14 +665,14 @@ impl CommercialBuilding {
             StorageType::LiquidTanks => 1.5,
             StorageType::Hazardous => 3.0,
         };
-        
+
         // Utilization-based pricing: higher utilization = higher fee
         // Fee scales from 0.5x at 0% utilization to 2.0x at 100% utilization
         let utilization_multiplier = 0.5 + (self.utilization_rate * 1.5);
-        
+
         base_fee * type_multiplier * utilization_multiplier
     }
-    
+
     /// Update utilization rate based on current inventory (Phase 5.5).
     pub fn update_utilization_rate(&mut self) {
         if self.storage_capacity == 0.0 {
@@ -685,7 +680,8 @@ impl CommercialBuilding {
             return;
         }
 
-        let total_stored: f64 = self.current_inventory
+        let total_stored: f64 = self
+            .current_inventory
             .values()
             .flat_map(|batches| batches.iter().map(|b| b.quantity))
             .sum();
@@ -719,7 +715,8 @@ impl CommercialBuilding {
         }
 
         // Calculate current stored quantity
-        let current_stored: f64 = self.current_inventory
+        let current_stored: f64 = self
+            .current_inventory
             .values()
             .flat_map(|batches| batches.iter().map(|b| b.quantity))
             .sum();
@@ -816,7 +813,7 @@ impl CommercialBuilding {
 
         total_withdrawn
     }
-    
+
     /// Apply perishability to stored goods with batch-based FEFO logic (Phase 5.5).
     ///
     /// # Arguments
@@ -897,11 +894,12 @@ impl CommercialBuilding {
         }
 
         // Remove commodities with no remaining batches
-        self.current_inventory.retain(|_, batches| !batches.is_empty());
+        self.current_inventory
+            .retain(|_, batches| !batches.is_empty());
 
         (total_decayed, destroyed_batches)
     }
-    
+
     /// Evaluate fire-sale eligibility for an aging batch (Phase 5.5).
     ///
     /// # Arguments
@@ -930,41 +928,41 @@ impl CommercialBuilding {
     ) -> Option<f64> {
         // Try to parse commodity string to Commodity enum
         let commodity_enum = crate::registries::enums::Commodity::try_from(commodity).ok()?;
-        
+
         // Look up perishability profile
-        let profile = crate::data::perishability_registry::perishability_registry()
-            .get(&commodity_enum)?;
-        
+        let profile =
+            crate::data::perishability_registry::perishability_registry().get(&commodity_enum)?;
+
         let age = current_turn.saturating_sub(batch.storage_turn);
         let max_turns = if storage_type == StorageType::ColdStorage {
             profile.max_turns_cold
         } else {
             profile.max_turns_general
         };
-        
+
         // Non-perishable goods (u32::MAX) don't need fire-sales
         if max_turns == u32::MAX {
             return None;
         }
-        
+
         let remaining_turns = max_turns.saturating_sub(age);
-        
+
         // Only offer fire-sale on last turn before expiration
         if remaining_turns == 1 {
-            let min_price = production_cost * 0.9;  // 10% loss tolerance
-            
+            let min_price = production_cost * 0.9; // 10% loss tolerance
+
             if market_price > min_price {
                 // Calculate discount to ensure quick sale
-                let discount = 0.3;  // 30% discount for fire-sale
+                let discount = 0.3; // 30% discount for fire-sale
                 Some(discount)
             } else {
-                None  // Market already at floor - no fire-sale
+                None // Market already at floor - no fire-sale
             }
         } else {
-            None  // Not urgent enough
+            None // Not urgent enough
         }
     }
-    
+
     /// Route decayed goods to Stage 6 Landfill system (Phase 5).
     ///
     /// # Arguments
@@ -984,7 +982,7 @@ impl CommercialBuilding {
         if decayed_amount <= 0.0 {
             return;
         }
-        
+
         if let Some(landfill) = landfill {
             if landfill.has_capacity() {
                 // Route to landfill for processing
@@ -992,20 +990,26 @@ impl CommercialBuilding {
                 return;
             }
         }
-        
+
         // No landfill or landfill full - convert to pollution directly
         // Store pollution in the region's resources (resources) field as a fallback
         if let Some(region) = region {
             // This is a placeholder - actual pollution tracking would be in a dedicated field
             // For now, we store it in the resources map under "pollution" (pollution)
             let pollution_key = "pollution".to_string();
-            let current_pollution = region.resources.get(&pollution_key)
+            let current_pollution = region
+                .resources
+                .get(&pollution_key)
                 .and_then(|v| v.as_f64())
                 .unwrap_or(0.0);
             let new_pollution = (current_pollution + decayed_amount * 0.1).min(100.0);
-            region.resources.insert(pollution_key, serde_json::Value::Number(
-                serde_json::Number::from_f64(new_pollution).unwrap_or(serde_json::Number::from(0))
-            ));
+            region.resources.insert(
+                pollution_key,
+                serde_json::Value::Number(
+                    serde_json::Number::from_f64(new_pollution)
+                        .unwrap_or(serde_json::Number::from(0)),
+                ),
+            );
         }
     }
 }

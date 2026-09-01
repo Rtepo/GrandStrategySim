@@ -294,7 +294,9 @@ pub struct PpaRegistry {
 }
 
 /// Load shedding tier, escalating from minor cuts to total blackout.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, Default)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, Default,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum LoadShedTier {
     /// Full supply — no shedding.
@@ -367,7 +369,9 @@ pub enum CoolingType {
 }
 
 /// Overproduction tier for handling energy surplus (overfrequency).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, Default)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, Default,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum OverproductionTier {
     /// No remaining surplus after exports + storage.

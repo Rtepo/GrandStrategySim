@@ -40,18 +40,12 @@ pub struct MarketOrders {
 impl MarketOrders {
     /// Adds a buy order for a commodity.
     pub fn add_buy(&mut self, good: Commodity, amount: f64) {
-        self.orders
-            .entry(good)
-            .or_default()
-            .add_buy(amount);
+        self.orders.entry(good).or_default().add_buy(amount);
     }
 
     /// Adds a sell order for a commodity.
     pub fn add_sell(&mut self, good: Commodity, amount: f64) {
-        self.orders
-            .entry(good)
-            .or_default()
-            .add_sell(amount);
+        self.orders.entry(good).or_default().add_sell(amount);
     }
 
     /// Returns the order for a commodity, or zero if absent.
@@ -103,6 +97,12 @@ pub struct GlobalMarket {
     /// Kept separate from `demand_volume` (which holds B2B + B2C total) so that
     /// the turn-start clear can reset both without erasing B2C mid-turn.
     pub b2c_demand_volume: HashMap<Commodity, f64>,
+    /// Phase 95: Cumulative FX outflow for foreign research fees (Rule 1).
+    /// When a company cannot find domestic Innovation Points, it pays a
+    /// "Foreign Patent Fee" that leaves the domestic economy as an FX outflow.
+    /// The fee is credited here to preserve money mass — capital doesn't
+    /// disappear, it moves offshore.
+    pub foreign_patent_fee_ledger: f64,
 }
 
 impl GlobalMarket {

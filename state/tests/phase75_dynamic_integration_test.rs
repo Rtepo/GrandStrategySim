@@ -15,10 +15,12 @@
 //! * The calendar advances exactly 24 turns and the year increments.
 //! * Save/Load round-trip works with the English-only schema.
 
-use sim_engine::engine::{generate_world, run_turn_in_memory, GenerateOptions, GeneratedWorld, StartYear};
 use sim_engine::engine::turn_context::InMemoryTurnContext;
-use sim_engine::registries::Registries;
+use sim_engine::engine::{
+    generate_world, run_turn_in_memory, GenerateOptions, GeneratedWorld, StartYear,
+};
 use sim_engine::registries::enums::Commodity;
+use sim_engine::registries::Registries;
 use tempfile::TempDir;
 
 /// Run a full 24-turn simulation and verify behavioral invariants.
@@ -39,8 +41,10 @@ fn test_24_turn_dynamic_integration() {
         start_year: StartYear::Y1900,
     };
 
-    let GeneratedWorld { state: mut initial_state, .. } = generate_world(data_dir, options, &registries)
-        .expect("world generation failed");
+    let GeneratedWorld {
+        state: mut initial_state,
+        ..
+    } = generate_world(data_dir, options, &registries).expect("world generation failed");
 
     // Load the in-memory turn context from the generated save files.
     let mut ctx = InMemoryTurnContext::load_from_disk(data_dir, &mut initial_state)
@@ -54,19 +58,24 @@ fn test_24_turn_dynamic_integration() {
     for turn_num in 0..24u32 {
         let result = run_turn_in_memory(&mut state, &registries, &mut ctx);
         if let Err(e) = &result {
-            panic!("Turn {} (global {}) failed: {:?}", turn_num, state.calendar.global_turn, e);
+            panic!(
+                "Turn {} (global {}) failed: {:?}",
+                turn_num, state.calendar.global_turn, e
+            );
         }
     }
 
     // --- Assertion 1: Calendar advanced exactly 24 turns ---
     assert_eq!(
-        state.calendar.global_turn, initial_turn + 24,
+        state.calendar.global_turn,
+        initial_turn + 24,
         "Calendar should advance exactly 24 turns"
     );
 
     // --- Assertion 2: Year incremented (24 turns = 1 year) ---
     assert_eq!(
-        state.calendar.current_year, initial_year + 1,
+        state.calendar.current_year,
+        initial_year + 1,
         "Year should increment after 24 turns (24 turns/year)"
     );
 
@@ -236,9 +245,18 @@ fn test_24_turn_dynamic_integration() {
         .expect("save_game_state failed after 24 turns");
 
     // Verify the save files exist
-    assert!(data_dir.join("budgets.json").exists(), "budgets.json should exist after save");
-    assert!(data_dir.join("macro.json").exists(), "macro.json should exist after save");
-    assert!(data_dir.join("tax_rates.json").exists(), "tax_rates.json should exist after save");
+    assert!(
+        data_dir.join("budgets.json").exists(),
+        "budgets.json should exist after save"
+    );
+    assert!(
+        data_dir.join("macro.json").exists(),
+        "macro.json should exist after save"
+    );
+    assert!(
+        data_dir.join("tax_rates.json").exists(),
+        "tax_rates.json should exist after save"
+    );
 
     // Reload state: first load_game_state to populate countries, then load_from_disk for context
     let mut reloaded_state = sim_engine::io::save_manager::load_game_state(data_dir)
@@ -255,8 +273,7 @@ fn test_24_turn_dynamic_integration() {
 
     // Verify the reloaded calendar matches
     assert_eq!(
-        reloaded_state.calendar.global_turn,
-        state.calendar.global_turn,
+        reloaded_state.calendar.global_turn, state.calendar.global_turn,
         "Reloaded calendar should match saved calendar"
     );
 

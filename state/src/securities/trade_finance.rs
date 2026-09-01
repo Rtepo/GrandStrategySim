@@ -4,8 +4,8 @@
 //! WorkingCapitalLoan for short-term financing backed by trade documents.
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use serde_json::Value;
+use std::collections::HashMap;
 
 use crate::registries::enums::Commodity;
 
@@ -15,49 +15,38 @@ use crate::registries::enums::Commodity;
 
 pub struct BillOfLading {
     /// Unique bill ID.
-
     pub id: String,
-    
+
     /// Physical shipment ID this bill represents.
-
     pub shipment_id: String,
-    
+
     /// Owner of the bill (current holder).
-
     pub owner_id: String,
-    
+
     /// Commodity type being shipped.
-
     pub commodity: Commodity,
-    
+
     /// Quantity of commodity.
-
     pub quantity: f64,
-    
+
     /// Declared value of cargo.
-
     pub declared_value: f64,
-    
+
     /// Port of origin.
-
     pub port_of_origin: String,
-    
+
     /// Port of destination.
-
     pub port_of_destination: String,
-    
+
     /// Expected arrival turn.
-
     pub expected_arrival_turn: u32,
-    
+
     /// Current status.
-
     pub status: BillStatus,
-    
-    /// Collateral value (for loan purposes).
 
+    /// Collateral value (for loan purposes).
     pub collateral_value: f64,
-    
+
     /// Any additional bill fields.
     #[serde(flatten, default)]
     pub extra: HashMap<String, Value>,
@@ -84,7 +73,6 @@ impl Default for BillOfLading {
 
 /// Status of a Bill of Lading document.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-
 #[derive(Default)]
 pub enum BillStatus {
     /// Cargo is currently in transit.
@@ -92,13 +80,10 @@ pub enum BillStatus {
     #[default]
     InTransit,
     /// Cargo has been delivered to destination.
-
     Delivered,
     /// Bill is currently pledged as collateral for a loan.
-
     PledgedAsCollateral,
     /// Bill has expired (past maturity).
-
     Expired,
 }
 
@@ -107,33 +92,26 @@ pub enum BillStatus {
 
 pub struct WorkingCapitalLoan {
     /// Loan ID.
-
     pub id: String,
-    
+
     /// Borrower ID.
-
     pub borrower_id: String,
-    
+
     /// Lender ID (bank).
-
     pub lender_id: String,
-    
+
     /// Principal amount.
-
     pub principal: f64,
-    
+
     /// Interest rate.
-
     pub interest_rate: f64,
-    
+
     /// Collateral Bill of Lading ID.
-
     pub collateral_bill_id: String,
-    
-    /// Maturity turn (must be before cargo arrival).
 
+    /// Maturity turn (must be before cargo arrival).
     pub maturity_turn: u32,
-    
+
     /// Any additional loan fields.
     #[serde(flatten, default)]
     pub extra: HashMap<String, Value>,
@@ -179,14 +157,15 @@ impl BillOfLading {
             extra: HashMap::new(),
         }
     }
-    
+
     /// Check if bill is valid collateral (in transit, not delivered).
     pub fn is_valid_collateral(&self, current_turn: u32) -> bool {
-        matches!(self.status, BillStatus::InTransit | BillStatus::PledgedAsCollateral)
-            && current_turn < self.expected_arrival_turn
+        matches!(
+            self.status,
+            BillStatus::InTransit | BillStatus::PledgedAsCollateral
+        ) && current_turn < self.expected_arrival_turn
     }
 }
-
 
 /// Process bills of lading for the current turn.
 ///
@@ -224,7 +203,9 @@ pub fn process_bills_of_lading(
         }
 
         // Expire old pledged bills past maturity
-        if bill.status == BillStatus::PledgedAsCollateral && current_turn >= bill.expected_arrival_turn + 10 {
+        if bill.status == BillStatus::PledgedAsCollateral
+            && current_turn >= bill.expected_arrival_turn + 10
+        {
             bill.status = BillStatus::Expired;
         }
     }
@@ -297,7 +278,7 @@ mod tests {
             destination_port: "Rotterdam".to_string(),
             expected_arrival_turn: 100,
         };
-        
+
         let bol = BillOfLading::from_shipment(&shipment, 0.8);
         assert_eq!(bol.id, "BOL-SHIP-001");
         assert_eq!(bol.collateral_value, 40000.0);
@@ -316,13 +297,13 @@ mod tests {
             destination_port: "Hamburg".to_string(),
             expected_arrival_turn: 100,
         };
-        
+
         let mut bol = BillOfLading::from_shipment(&shipment, 0.8);
         assert!(bol.is_valid_collateral(50));
-        
+
         bol.status = BillStatus::Delivered;
         assert!(!bol.is_valid_collateral(50));
-        
+
         bol.status = BillStatus::InTransit;
         assert!(!bol.is_valid_collateral(150));
     }

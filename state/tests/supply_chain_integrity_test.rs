@@ -126,8 +126,10 @@ fn every_sector_has_nonempty_output_method() {
             continue;
         }
         // Phase 84: Skip landfill registries (disposal-only, no outputs).
-        if sector_key == "uncontrolled_landfill" || sector_key == "controlled_landfill"
-            || sector_key == "modern_landfill" {
+        if sector_key == "uncontrolled_landfill"
+            || sector_key == "controlled_landfill"
+            || sector_key == "modern_landfill"
+        {
             continue;
         }
         // Phase 81 Wave 2: Skip consumption-method registries (no Production methods).
@@ -230,10 +232,7 @@ fn new_commodities_exist() {
         all.contains(&Commodity::RareEarthElements),
         "RareEarthElements missing"
     );
-    assert!(
-        all.contains(&Commodity::RefinedFuel),
-        "RefinedFuel missing"
-    );
+    assert!(all.contains(&Commodity::RefinedFuel), "RefinedFuel missing");
     assert!(
         all.contains(&Commodity::Semiconductors),
         "Semiconductors missing"
@@ -244,7 +243,10 @@ fn new_commodities_exist() {
 #[test]
 fn consumption_registry_has_new_classes() {
     let registry = consumption_registry();
-    assert!(registry.contains_key("Bourgeoisie"), "Bourgeoisie basket missing");
+    assert!(
+        registry.contains_key("Bourgeoisie"),
+        "Bourgeoisie basket missing"
+    );
     assert!(
         registry.contains_key("PettyBourgeoisie"),
         "PettyBourgeoisie basket missing"
@@ -339,8 +341,12 @@ fn assimilation_capacity_from_integration_centers_not_schools() {
     let methods = default_production_methods();
 
     // Must be produced by public_services
-    let public_services = methods.get("public_services").expect("public_services sector missing");
-    let ps_produces_assimilation = public_services.production.values()
+    let public_services = methods
+        .get("public_services")
+        .expect("public_services sector missing");
+    let ps_produces_assimilation = public_services
+        .production
+        .values()
         .any(|pm| pm.outputs.contains_key(&Commodity::AssimilationCapacity));
     assert!(
         ps_produces_assimilation,
@@ -348,8 +354,12 @@ fn assimilation_capacity_from_integration_centers_not_schools() {
     );
 
     // Must NOT be produced by educational_services
-    let education = methods.get("educational_services").expect("educational_services sector missing");
-    let edu_produces_assimilation = education.production.values()
+    let education = methods
+        .get("educational_services")
+        .expect("educational_services sector missing");
+    let edu_produces_assimilation = education
+        .production
+        .values()
         .any(|pm| pm.outputs.contains_key(&Commodity::AssimilationCapacity));
     assert!(
         !edu_produces_assimilation,
@@ -363,7 +373,11 @@ fn all_commodities_are_valid() {
     // All commodity variants are now considered valid schema members.
     // The is_active() filter was removed as part of the backward-compatibility purge.
     let all = Commodity::all();
-    assert_eq!(all.len(), 142, "Commodity::all() must return exactly 142 variants");
+    assert_eq!(
+        all.len(),
+        142,
+        "Commodity::all() must return exactly 142 variants"
+    );
 }
 
 /// Test 16: Phase 20 Final Audit — every sector has at least 3 Automation
@@ -375,30 +389,62 @@ fn all_commodities_are_valid() {
 fn every_sector_has_automation_progression() {
     let methods = default_production_methods();
     let plant_type_registries: &[&str] = &[
-        "coal_fired_plant", "lignite_fired_plant", "oil_gas_plant", "nuclear_plant",
-        "solar_plant", "wind_farm", "hydro_plant", "pumped_storage", "battery_storage",
-        "geothermal_plant", "biomass_plant", "biogas_plant",
-        "energy_automation", "energy_organization",
+        "coal_fired_plant",
+        "lignite_fired_plant",
+        "oil_gas_plant",
+        "nuclear_plant",
+        "solar_plant",
+        "wind_farm",
+        "hydro_plant",
+        "pumped_storage",
+        "battery_storage",
+        "geothermal_plant",
+        "biomass_plant",
+        "biogas_plant",
+        "energy_automation",
+        "energy_organization",
         // Phase 82: Heating plant registries use shared heating_automation/organization.
-        "wood_boiler_plant", "coal_heat_plant", "lignite_heat_plant",
-        "coke_oven_gas_heat_plant", "oil_heat_plant", "natural_gas_heat_plant",
+        "wood_boiler_plant",
+        "coal_heat_plant",
+        "lignite_heat_plant",
+        "coke_oven_gas_heat_plant",
+        "oil_heat_plant",
+        "natural_gas_heat_plant",
         "geothermal_heat_plant",
-        "heating_automation", "heating_organization",
+        "heating_automation",
+        "heating_organization",
         // Phase 83: Water/sewage plant registries use shared automation/organization.
-        "slow_sand_filter_plant", "rapid_sand_filter_plant", "chlorination_plant",
-        "modern_treatment_plant", "advanced_treatment_plant", "desalination_plant",
-        "water_automation", "water_organization",
-        "primary_settling_plant", "activated_sludge_plant", "secondary_treatment_plant",
-        "tertiary_treatment_plant", "advanced_wastewater_plant",
-        "sewage_automation", "sewage_organization",
+        "slow_sand_filter_plant",
+        "rapid_sand_filter_plant",
+        "chlorination_plant",
+        "modern_treatment_plant",
+        "advanced_treatment_plant",
+        "desalination_plant",
+        "water_automation",
+        "water_organization",
+        "primary_settling_plant",
+        "activated_sludge_plant",
+        "secondary_treatment_plant",
+        "tertiary_treatment_plant",
+        "advanced_wastewater_plant",
+        "sewage_automation",
+        "sewage_organization",
         // Phase 84: Waste plant registries use shared waste_automation/organization.
-        "uncontrolled_landfill", "controlled_landfill", "modern_landfill",
-        "waste_separation_plant", "advanced_sorting_facility",
-        "metal_recycling", "glass_recycling", "plastic_recycling",
-        "electronic_recycling", "textile_recycling",
-        "waste_to_energy_plant", "advanced_wte_chp",
+        "uncontrolled_landfill",
+        "controlled_landfill",
+        "modern_landfill",
+        "waste_separation_plant",
+        "advanced_sorting_facility",
+        "metal_recycling",
+        "glass_recycling",
+        "plastic_recycling",
+        "electronic_recycling",
+        "textile_recycling",
+        "waste_to_energy_plant",
+        "advanced_wte_chp",
         "civic_amenity_site",
-        "waste_automation", "waste_organization",
+        "waste_automation",
+        "waste_organization",
     ];
 
     for (sector_key, building_methods) in &methods {
@@ -413,7 +459,9 @@ fn every_sector_has_automation_progression() {
         if sector_key.ends_with("_emission_control") {
             continue;
         }
-        let mut auto_years: Vec<u32> = building_methods.automation.values()
+        let mut auto_years: Vec<u32> = building_methods
+            .automation
+            .values()
             .map(|pm| pm.year)
             .collect();
         auto_years.sort();
@@ -446,30 +494,62 @@ fn every_sector_has_automation_progression() {
 fn every_sector_has_organization_progression() {
     let methods = default_production_methods();
     let plant_type_registries: &[&str] = &[
-        "coal_fired_plant", "lignite_fired_plant", "oil_gas_plant", "nuclear_plant",
-        "solar_plant", "wind_farm", "hydro_plant", "pumped_storage", "battery_storage",
-        "geothermal_plant", "biomass_plant", "biogas_plant",
-        "energy_automation", "energy_organization",
+        "coal_fired_plant",
+        "lignite_fired_plant",
+        "oil_gas_plant",
+        "nuclear_plant",
+        "solar_plant",
+        "wind_farm",
+        "hydro_plant",
+        "pumped_storage",
+        "battery_storage",
+        "geothermal_plant",
+        "biomass_plant",
+        "biogas_plant",
+        "energy_automation",
+        "energy_organization",
         // Phase 82: Heating plant registries use shared heating_automation/organization.
-        "wood_boiler_plant", "coal_heat_plant", "lignite_heat_plant",
-        "coke_oven_gas_heat_plant", "oil_heat_plant", "natural_gas_heat_plant",
+        "wood_boiler_plant",
+        "coal_heat_plant",
+        "lignite_heat_plant",
+        "coke_oven_gas_heat_plant",
+        "oil_heat_plant",
+        "natural_gas_heat_plant",
         "geothermal_heat_plant",
-        "heating_automation", "heating_organization",
+        "heating_automation",
+        "heating_organization",
         // Phase 83: Water/sewage plant registries use shared automation/organization.
-        "slow_sand_filter_plant", "rapid_sand_filter_plant", "chlorination_plant",
-        "modern_treatment_plant", "advanced_treatment_plant", "desalination_plant",
-        "water_automation", "water_organization",
-        "primary_settling_plant", "activated_sludge_plant", "secondary_treatment_plant",
-        "tertiary_treatment_plant", "advanced_wastewater_plant",
-        "sewage_automation", "sewage_organization",
+        "slow_sand_filter_plant",
+        "rapid_sand_filter_plant",
+        "chlorination_plant",
+        "modern_treatment_plant",
+        "advanced_treatment_plant",
+        "desalination_plant",
+        "water_automation",
+        "water_organization",
+        "primary_settling_plant",
+        "activated_sludge_plant",
+        "secondary_treatment_plant",
+        "tertiary_treatment_plant",
+        "advanced_wastewater_plant",
+        "sewage_automation",
+        "sewage_organization",
         // Phase 84: Waste plant registries use shared waste_automation/organization.
-        "uncontrolled_landfill", "controlled_landfill", "modern_landfill",
-        "waste_separation_plant", "advanced_sorting_facility",
-        "metal_recycling", "glass_recycling", "plastic_recycling",
-        "electronic_recycling", "textile_recycling",
-        "waste_to_energy_plant", "advanced_wte_chp",
+        "uncontrolled_landfill",
+        "controlled_landfill",
+        "modern_landfill",
+        "waste_separation_plant",
+        "advanced_sorting_facility",
+        "metal_recycling",
+        "glass_recycling",
+        "plastic_recycling",
+        "electronic_recycling",
+        "textile_recycling",
+        "waste_to_energy_plant",
+        "advanced_wte_chp",
         "civic_amenity_site",
-        "waste_automation", "waste_organization",
+        "waste_automation",
+        "waste_organization",
     ];
 
     for (sector_key, building_methods) in &methods {
@@ -484,7 +564,9 @@ fn every_sector_has_organization_progression() {
         if sector_key.ends_with("_emission_control") {
             continue;
         }
-        let mut org_years: Vec<u32> = building_methods.organization.values()
+        let mut org_years: Vec<u32> = building_methods
+            .organization
+            .values()
             .map(|pm| pm.year)
             .collect();
         org_years.sort();

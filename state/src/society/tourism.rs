@@ -34,34 +34,24 @@ pub enum WonderType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct NaturalWonder {
     /// Unique wonder ID
-
     pub id: String,
     /// Wonder name
-
     pub name: String,
     /// Type of wonder
-
     pub wonder_type: WonderType,
     /// Region where wonder is located
-
     pub region_id: String,
     /// Health 0-1 (degrades from pollution)
-
     pub health: f64,
     /// Recreation value 0-1 (tourism attractiveness)
-
     pub recreation_value: f64,
     /// Visitor capacity per turn
-
     pub visitor_capacity: f64,
     /// Current visitors
-
     pub current_visitors: f64,
     /// Pollution sensitivity 0-1 (how quickly health degrades)
-
     pub pollution_sensitivity: f64,
     /// Restoration cost per turn
-
     pub restoration_cost: f64,
 }
 
@@ -109,31 +99,23 @@ impl NaturalWonder {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TourismDestination {
     /// Unique destination ID
-
     pub id: String,
     /// Region ID
-
     pub region_id: String,
     /// Destination name
-
     pub name: String,
     /// Natural wonders in this destination
     #[serde(default)]
     pub natural_wonders: Vec<String>,
     /// Forest areas (hectares)
-
     pub forest_area: f64,
     /// Infrastructure quality 0-1
-
     pub infrastructure_quality: f64,
     /// Accommodation capacity
-
     pub accommodation_capacity: f64,
     /// Visitor satisfaction 0-1
-
     pub visitor_satisfaction: f64,
     /// Marketing budget
-
     pub marketing_budget: f64,
 }
 
@@ -173,22 +155,17 @@ impl TourismDestination {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TourismIndustry {
     /// Country operating the tourism industry
-
     pub country: String,
     /// Tourism destinations
     #[serde(default)]
     pub destinations: BTreeMap<String, TourismDestination>,
     /// Total recreation consumed
-
     pub recreation_consumed: f64,
     /// Revenue generated
-
     pub revenue: f64,
     /// Citizen satisfaction boost
-
     pub citizen_satisfaction_boost: f64,
     /// Employment in tourism sector
-
     pub employment: u32,
 }
 
@@ -430,8 +407,10 @@ pub fn process_tourism_turn(
             if let Some(holy_site) = &region.holy_site {
                 let has_active_temple = country.cultural_institutions.iter().any(|b| {
                     b.region_id == region.id
-                        && (b.building_type == crate::infrastructure::cultural::CulturalBuildingType::Temple
-                            || b.building_type == crate::infrastructure::cultural::CulturalBuildingType::Monastery)
+                        && (b.building_type
+                            == crate::infrastructure::cultural::CulturalBuildingType::Temple
+                            || b.building_type
+                                == crate::infrastructure::cultural::CulturalBuildingType::Monastery)
                         && b.condition > 0.3
                 });
                 if has_active_temple {
@@ -447,7 +426,9 @@ pub fn process_tourism_turn(
         }
 
         let total_attractiveness =
-            (wonder_rec + forest_rec + conservation_boost + pilgrimage_boost) * seasonal_modifier * dest.visitor_satisfaction;
+            (wonder_rec + forest_rec + conservation_boost + pilgrimage_boost)
+                * seasonal_modifier
+                * dest.visitor_satisfaction;
 
         // Phase C: Physical capacity check (No Phantom Resorts).
         let mut accommodation_capacity = 0.0_f64;
@@ -464,7 +445,9 @@ pub fn process_tourism_turn(
             let in_region = country.regions.iter().any(|r| {
                 r.id == dest.region_id
                     && (b.micro_region_id.starts_with(&r.id)
-                        || r.micro_regions.values().any(|mr| mr.id == b.micro_region_id))
+                        || r.micro_regions
+                            .values()
+                            .any(|mr| mr.id == b.micro_region_id))
             });
 
             if !in_region {
@@ -494,7 +477,8 @@ pub fn process_tourism_turn(
         let theoretical_domestic_spend = domestic_demand * average_wage * tourism_spend_fraction;
 
         let foreign_demand = effective_capacity * 0.4;
-        let foreign_spend = foreign_demand * average_wage * tourism_spend_fraction * forex_multiplier;
+        let foreign_spend =
+            foreign_demand * average_wage * tourism_spend_fraction * forex_multiplier;
 
         // Identify hospitality companies that own buildings in this region.
         let hospitality_companies: Vec<&crate::entities::Company> = companies
@@ -506,7 +490,9 @@ pub fn process_tourism_turn(
                         && country.regions.iter().any(|r| {
                             r.id == dest.region_id
                                 && (b.micro_region_id.starts_with(&r.id)
-                                    || r.micro_regions.values().any(|mr| mr.id == b.micro_region_id))
+                                    || r.micro_regions
+                                        .values()
+                                        .any(|mr| mr.id == b.micro_region_id))
                         })
                 })
             })

@@ -36,19 +36,19 @@ pub fn execute_state_research(
                 treasury.science.researching = None;
                 return;
             }
-            
+
             // Check prerequisites
             if !prerequisites_met(tech_node, &treasury.science.discovered) {
                 // Prerequisites not met, cancel research
                 treasury.science.researching = None;
                 return;
             }
-            
+
             // Consume Innovation Points
             let points_to_consume = tech_node.cost as f64;
             if treasury.science.innovation_points >= points_to_consume {
                 treasury.science.innovation_points -= points_to_consume;
-                
+
                 // Discover the technology
                 treasury.science.discovered.push(current_tech_id.clone());
                 treasury.science.researching = None;
@@ -77,12 +77,12 @@ fn select_fundamental_tech(treasury: &mut Treasury, tech_tree: &HashMap<TechId, 
         if tech_node.tech_type != TechType::Fundamental {
             continue;
         }
-        
+
         // Skip already discovered
         if treasury.science.discovered.contains(tech_id) {
             continue;
         }
-        
+
         // Check prerequisites
         if prerequisites_met(tech_node, &treasury.science.discovered) {
             treasury.science.researching = Some(tech_id.clone());
@@ -129,7 +129,7 @@ mod tests {
                 royalty_vwap_ratio: 0.05,
             },
         );
-        
+
         let mut treasury = Treasury {
             science: crate::state::treasury::ScienceState {
                 innovation_points: 150.0,
@@ -141,10 +141,13 @@ mod tests {
             liquid_reserves: 10000.0,
             ..Default::default()
         };
-        
+
         execute_state_research(&mut treasury, &tech_tree, 1);
-        
-        assert!(treasury.science.discovered.contains(&"tech_001".to_string()));
+
+        assert!(treasury
+            .science
+            .discovered
+            .contains(&"tech_001".to_string()));
         assert_eq!(treasury.science.innovation_points, 50.0); // 150 - 100
         assert!(treasury.science.researching.is_none());
     }
@@ -167,7 +170,7 @@ mod tests {
                 royalty_vwap_ratio: 0.05,
             },
         );
-        
+
         let mut treasury = Treasury {
             science: crate::state::treasury::ScienceState {
                 innovation_points: 50.0, // Insufficient
@@ -179,10 +182,13 @@ mod tests {
             liquid_reserves: 10000.0,
             ..Default::default()
         };
-        
+
         execute_state_research(&mut treasury, &tech_tree, 1);
-        
-        assert!(!treasury.science.discovered.contains(&"tech_001".to_string()));
+
+        assert!(!treasury
+            .science
+            .discovered
+            .contains(&"tech_001".to_string()));
         assert_eq!(treasury.science.innovation_points, 50.0); // Unchanged
         assert_eq!(treasury.science.researching, Some("tech_001".to_string())); // Still researching
     }
@@ -205,7 +211,7 @@ mod tests {
                 royalty_vwap_ratio: 0.05,
             },
         );
-        
+
         let mut treasury = Treasury {
             science: crate::state::treasury::ScienceState {
                 innovation_points: 150.0,
@@ -217,10 +223,13 @@ mod tests {
             liquid_reserves: 10000.0,
             ..Default::default()
         };
-        
+
         execute_state_research(&mut treasury, &tech_tree, 1);
-        
-        assert!(!treasury.science.discovered.contains(&"tech_002".to_string()));
+
+        assert!(!treasury
+            .science
+            .discovered
+            .contains(&"tech_002".to_string()));
         assert!(treasury.science.researching.is_none()); // Cancelled
     }
 }

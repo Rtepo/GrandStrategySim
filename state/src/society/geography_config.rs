@@ -72,19 +72,45 @@ pub struct GeographyConfig {
     pub baseline_mental_health: f64,
 }
 
-fn default_free_peasant_savings_seed() -> f64 { 100.0 }
-fn default_middle_class_savings_seed() -> f64 { 1000.0 }
-fn default_rock_base_price() -> f64 { 100.0 }
-fn default_resource_fallback_price() -> f64 { 100.0 }
-fn default_geological_reserve_multiplier() -> f64 { 1.0 }
-fn default_geological_reserve_scale() -> f64 { 1000.0 }
-fn default_prosperous_gdp_threshold() -> f64 { 1000.0 }
-fn default_struggling_gdp_threshold() -> f64 { 100.0 }
-fn default_land_border_distance() -> f64 { 100.0 }
-fn default_min_extraction_cost() -> f64 { 10.0 }
-fn default_max_extraction_cost() -> f64 { 100.0 }
-fn default_hectares_per_turn() -> f64 { 1000.0 }
-fn default_baseline_mental_health() -> f64 { 70.0 }
+fn default_free_peasant_savings_seed() -> f64 {
+    100.0
+}
+fn default_middle_class_savings_seed() -> f64 {
+    1000.0
+}
+fn default_rock_base_price() -> f64 {
+    100.0
+}
+fn default_resource_fallback_price() -> f64 {
+    100.0
+}
+fn default_geological_reserve_multiplier() -> f64 {
+    1.0
+}
+fn default_geological_reserve_scale() -> f64 {
+    1000.0
+}
+fn default_prosperous_gdp_threshold() -> f64 {
+    1000.0
+}
+fn default_struggling_gdp_threshold() -> f64 {
+    100.0
+}
+fn default_land_border_distance() -> f64 {
+    100.0
+}
+fn default_min_extraction_cost() -> f64 {
+    10.0
+}
+fn default_max_extraction_cost() -> f64 {
+    100.0
+}
+fn default_hectares_per_turn() -> f64 {
+    1000.0
+}
+fn default_baseline_mental_health() -> f64 {
+    70.0
+}
 
 impl Default for GeographyConfig {
     fn default() -> Self {

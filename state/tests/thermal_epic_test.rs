@@ -17,12 +17,10 @@ use sim_engine::energy::heating_types::{ChpRetrofitMetadata, HeatingPlantType};
 use sim_engine::energy::municipal_heating_ai::{
     run_municipal_heating_ai, HeatSalesHistory, PlantTypeCostData,
 };
-use sim_engine::energy::thermal_grid::{
-    compute_regulated_heat_price, ThermalGridState,
-};
+use sim_engine::energy::thermal_grid::{compute_regulated_heat_price, ThermalGridState};
 use sim_engine::environment::smog::{
-    compute_smog_for_region, smog_mortality_multiplier,
-    smog_year_round_mortality, LocalPollutionState,
+    compute_smog_for_region, smog_mortality_multiplier, smog_year_round_mortality,
+    LocalPollutionState,
 };
 use sim_engine::registries::production_methods_data::default_production_methods;
 use sim_engine::utilities::consumption_bom::is_district_heating_method;
@@ -119,7 +117,7 @@ fn test_pipe_degradation_winter_accelerated() {
         loss_per_km: 0.02,
     };
     grid.degrade(2.0); // Harsh winter
-    // 0.002 * (1 + 2.0) = 0.006
+                       // 0.002 * (1 + 2.0) = 0.006
     assert!((grid.pipe_condition - 0.994).abs() < 1e-9);
 }
 
@@ -312,7 +310,10 @@ fn test_district_heating_methods_consume_heat_commodity() {
     let registry = default_production_methods();
     let housing = registry.get("housing_consumption").unwrap();
     let radiators = &housing.heating["Unmetered Radiators"];
-    assert!(radiators.inputs.iter().any(|(c, _)| *c == sim_engine::registries::enums::Commodity::Heat));
+    assert!(radiators
+        .inputs
+        .iter()
+        .any(|(c, _)| *c == sim_engine::registries::enums::Commodity::Heat));
 }
 
 #[test]
@@ -320,7 +321,10 @@ fn test_standalone_methods_consume_physical_fuel() {
     let registry = default_production_methods();
     let housing = registry.get("housing_consumption").unwrap();
     let coal_stove = &housing.heating["Coal Stove"];
-    assert!(coal_stove.inputs.iter().any(|(c, _)| *c == sim_engine::registries::enums::Commodity::HardCoal));
+    assert!(coal_stove
+        .inputs
+        .iter()
+        .any(|(c, _)| *c == sim_engine::registries::enums::Commodity::HardCoal));
 }
 
 #[test]
@@ -339,7 +343,9 @@ fn test_old_district_heating_method_removed() {
     // Verify it consumes Heat (not a physical fuel like coal).
     let dh = &housing.heating["District Heating"];
     assert!(
-        dh.inputs.iter().any(|(c, _)| *c == sim_engine::registries::enums::Commodity::Heat),
+        dh.inputs
+            .iter()
+            .any(|(c, _)| *c == sim_engine::registries::enums::Commodity::Heat),
         "District Heating base method must consume Commodity::Heat"
     );
 }
@@ -361,13 +367,21 @@ fn test_heavy_industry_emission_control_has_8_methods() {
     let registry = default_production_methods();
     let controls = registry.get("heavy_industry_emission_control").unwrap();
     assert!(controls.emission_control.contains_key("None"));
-    assert!(controls.emission_control.contains_key("Basic Settling Chamber"));
+    assert!(controls
+        .emission_control
+        .contains_key("Basic Settling Chamber"));
     assert!(controls.emission_control.contains_key("Cyclone Separator"));
     assert!(controls.emission_control.contains_key("Wet Scrubber"));
     assert!(controls.emission_control.contains_key("Baghouse Filter"));
-    assert!(controls.emission_control.contains_key("Flue-Gas Desulfurization"));
-    assert!(controls.emission_control.contains_key("Electrostatic Precipitator"));
-    assert!(controls.emission_control.contains_key("Selective Catalytic Reduction"));
+    assert!(controls
+        .emission_control
+        .contains_key("Flue-Gas Desulfurization"));
+    assert!(controls
+        .emission_control
+        .contains_key("Electrostatic Precipitator"));
+    assert!(controls
+        .emission_control
+        .contains_key("Selective Catalytic Reduction"));
 }
 
 #[test]
@@ -395,7 +409,10 @@ fn test_emission_controls_have_recurring_opex() {
     let registry = default_production_methods();
     let controls = registry.get("heavy_industry_emission_control").unwrap();
     let wet_scrubber = &controls.emission_control["Wet Scrubber"];
-    assert!(!wet_scrubber.inputs.is_empty(), "Wet scrubber should have recurring OPEX inputs");
+    assert!(
+        !wet_scrubber.inputs.is_empty(),
+        "Wet scrubber should have recurring OPEX inputs"
+    );
 }
 
 // ============================================================================
@@ -407,7 +424,10 @@ fn test_cement_production_has_high_emission_factor() {
     let registry = default_production_methods();
     let heavy = registry.get("heavy_industry").unwrap();
     let cement = &heavy.production["Cement Production"];
-    assert!(cement.emission_factor >= 10.0, "Cement should have very high emission factor");
+    assert!(
+        cement.emission_factor >= 10.0,
+        "Cement should have very high emission factor"
+    );
 }
 
 #[test]
@@ -415,7 +435,10 @@ fn test_coke_production_has_high_emission_factor() {
     let registry = default_production_methods();
     let heavy = registry.get("heavy_industry").unwrap();
     let coke = &heavy.production["Coke Production"];
-    assert!(coke.emission_factor >= 9.0, "Coke production should have high emission factor");
+    assert!(
+        coke.emission_factor >= 9.0,
+        "Coke production should have high emission factor"
+    );
 }
 
 #[test]
@@ -618,9 +641,7 @@ fn test_municipal_ai_no_investment_when_sufficient() {
         pipe_condition: 1.0,
         loss_per_km: 0.02,
     };
-    let plan = run_municipal_heating_ai(
-        &grid, 100, 500.0, 400.0, &[], 10.0, 10000.0, 0.0, true,
-    );
+    let plan = run_municipal_heating_ai(&grid, 100, 500.0, 400.0, &[], 10.0, 10000.0, 0.0, true);
     assert_eq!(plan.pipe_expansion_km, 0.0);
     assert_eq!(plan.new_plant_type, None);
 }
@@ -632,9 +653,7 @@ fn test_municipal_ai_pipe_expansion_when_capacity_insufficient() {
         pipe_condition: 1.0,
         loss_per_km: 0.02,
     };
-    let plan = run_municipal_heating_ai(
-        &grid, 500, 100.0, 100.0, &[], 10.0, 10000.0, 0.0, true,
-    );
+    let plan = run_municipal_heating_ai(&grid, 500, 100.0, 100.0, &[], 10.0, 10000.0, 0.0, true);
     assert_eq!(plan.pipe_expansion_km, 5.0);
 }
 
@@ -663,9 +682,8 @@ fn test_municipal_ai_selects_lowest_opex_plant() {
             geologically_eligible: true,
         },
     ];
-    let plan = run_municipal_heating_ai(
-        &grid, 100, 100.0, 500.0, &costs, 10.0, 100000.0, 10.0, true,
-    );
+    let plan =
+        run_municipal_heating_ai(&grid, 100, 100.0, 500.0, &costs, 10.0, 100000.0, 10.0, true);
     assert_eq!(plan.new_plant_type, Some(HeatingPlantType::CoalHeatPlant));
 }
 
@@ -694,10 +712,12 @@ fn test_municipal_ai_excludes_geologically_ineligible() {
             geologically_eligible: true,
         },
     ];
-    let plan = run_municipal_heating_ai(
-        &grid, 100, 100.0, 500.0, &costs, 10.0, 100000.0, 10.0, true,
+    let plan =
+        run_municipal_heating_ai(&grid, 100, 100.0, 500.0, &costs, 10.0, 100000.0, 10.0, true);
+    assert_ne!(
+        plan.new_plant_type,
+        Some(HeatingPlantType::GeothermalHeatPlant)
     );
-    assert_ne!(plan.new_plant_type, Some(HeatingPlantType::GeothermalHeatPlant));
 }
 
 #[test]
@@ -707,9 +727,7 @@ fn test_municipal_ai_cost_benefit_gate_rejects_low_value() {
         pipe_condition: 1.0,
         loss_per_km: 0.02,
     };
-    let plan = run_municipal_heating_ai(
-        &grid, 500, 100.0, 500.0, &[], 10.0, 100.0, 1.0, true,
-    );
+    let plan = run_municipal_heating_ai(&grid, 500, 100.0, 500.0, &[], 10.0, 100.0, 1.0, true);
     assert!(!plan.passes_cost_benefit_gate);
 }
 
@@ -720,9 +738,8 @@ fn test_municipal_ai_rejects_without_financing() {
         pipe_condition: 1.0,
         loss_per_km: 0.02,
     };
-    let plan = run_municipal_heating_ai(
-        &grid, 500, 100.0, 500.0, &[], 10.0, 1000000.0, 100.0, false,
-    );
+    let plan =
+        run_municipal_heating_ai(&grid, 500, 100.0, 500.0, &[], 10.0, 1000000.0, 100.0, false);
     assert!(!plan.passes_cost_benefit_gate);
 }
 
@@ -733,9 +750,7 @@ fn test_municipal_ai_produces_rationale() {
         pipe_condition: 1.0,
         loss_per_km: 0.02,
     };
-    let plan = run_municipal_heating_ai(
-        &grid, 500, 100.0, 500.0, &[], 10.0, 100000.0, 10.0, true,
-    );
+    let plan = run_municipal_heating_ai(&grid, 500, 100.0, 500.0, &[], 10.0, 100000.0, 10.0, true);
     assert!(!plan.rationale.is_empty());
 }
 
@@ -745,41 +760,33 @@ fn test_municipal_ai_produces_rationale() {
 
 #[test]
 fn test_regulated_price_includes_amortized_capex() {
-    let price_with_capex = compute_regulated_heat_price(
-        1000.0, 200.0, 300.0, 50000.0, 160.0, 50.0, 1.10, 10.0,
-    );
-    let price_no_capex = compute_regulated_heat_price(
-        1000.0, 200.0, 300.0, 0.0, 160.0, 50.0, 1.10, 10.0,
-    );
+    let price_with_capex =
+        compute_regulated_heat_price(1000.0, 200.0, 300.0, 50000.0, 160.0, 50.0, 1.10, 10.0);
+    let price_no_capex =
+        compute_regulated_heat_price(1000.0, 200.0, 300.0, 0.0, 160.0, 50.0, 1.10, 10.0);
     assert!(price_with_capex > price_no_capex);
 }
 
 #[test]
 fn test_regulated_price_uses_smoothed_sales() {
-    let price_high_sales = compute_regulated_heat_price(
-        1000.0, 200.0, 300.0, 50000.0, 160.0, 100.0, 1.10, 10.0,
-    );
-    let price_low_sales = compute_regulated_heat_price(
-        1000.0, 200.0, 300.0, 50000.0, 160.0, 10.0, 1.10, 10.0,
-    );
+    let price_high_sales =
+        compute_regulated_heat_price(1000.0, 200.0, 300.0, 50000.0, 160.0, 100.0, 1.10, 10.0);
+    let price_low_sales =
+        compute_regulated_heat_price(1000.0, 200.0, 300.0, 50000.0, 160.0, 10.0, 1.10, 10.0);
     // Lower sales = higher price per unit (cost recovery)
     assert!(price_low_sales > price_high_sales);
 }
 
 #[test]
 fn test_regulated_price_fallback_when_no_sales() {
-    let price = compute_regulated_heat_price(
-        1000.0, 200.0, 300.0, 50000.0, 160.0, 0.0, 1.10, 10.0,
-    );
+    let price = compute_regulated_heat_price(1000.0, 200.0, 300.0, 50000.0, 160.0, 0.0, 1.10, 10.0);
     // Fallback: average_wage * 0.5
     assert!((price - 5.0).abs() < 1e-9);
 }
 
 #[test]
 fn test_regulated_price_margin_applied() {
-    let price = compute_regulated_heat_price(
-        1000.0, 0.0, 0.0, 0.0, 160.0, 100.0, 1.10, 10.0,
-    );
+    let price = compute_regulated_heat_price(1000.0, 0.0, 0.0, 0.0, 160.0, 100.0, 1.10, 10.0);
     // (1000 + 0 + 0 + 0) / 100 * 1.10 = 11.0
     assert!((price - 11.0).abs() < 0.01);
 }
@@ -824,7 +831,14 @@ fn test_heat_sales_history_empty_average_is_zero() {
 #[test]
 fn test_thermo_020_through_025_exist() {
     let tech_tree = sim_engine::registries::tech_tree_data::default_tech_tree();
-    let ids = ["thermo_020", "thermo_021", "thermo_022", "thermo_023", "thermo_024", "thermo_025"];
+    let ids = [
+        "thermo_020",
+        "thermo_021",
+        "thermo_022",
+        "thermo_023",
+        "thermo_024",
+        "thermo_025",
+    ];
     for id in &ids {
         assert!(
             tech_tree.contains_key(*id),

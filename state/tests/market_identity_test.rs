@@ -9,8 +9,8 @@
 #[cfg(test)]
 mod tests {
     use sim_engine::economy::market::market::{GlobalMarket, MarketOrder, MarketOrders};
-    use sim_engine::registries::enums::Commodity;
     use sim_engine::international::{CommodityTradeEntry, TradeDelta};
+    use sim_engine::registries::enums::Commodity;
 
     /// The UI net_surplus identity must hold: supply - demand + net_trade = net_surplus.
     #[test]
@@ -35,7 +35,11 @@ mod tests {
         orders.add_sell(Commodity::Steel, 500.0);
         orders.add_buy(Commodity::Steel, 300.0);
 
-        let backend_net_surplus: f64 = orders.orders.get(&Commodity::Steel).map(|o| o.sell - o.buy).unwrap_or(0.0);
+        let backend_net_surplus: f64 = orders
+            .orders
+            .get(&Commodity::Steel)
+            .map(|o| o.sell - o.buy)
+            .unwrap_or(0.0);
         assert_eq!(backend_net_surplus, 200.0); // sell - buy, NOT supply - demand + net_trade
     }
 
@@ -80,13 +84,11 @@ mod tests {
             trade_balance: 200.0,
             tariff_revenue: 0.0,
             currency_code: "TST".to_string(),
-            commodity_entries: vec![
-                CommodityTradeEntry {
-                    commodity: Commodity::Steel,
-                    import_volume: 500.0,
-                    export_volume: 300.0,
-                },
-            ],
+            commodity_entries: vec![CommodityTradeEntry {
+                commodity: Commodity::Steel,
+                import_volume: 500.0,
+                export_volume: 300.0,
+            }],
         };
         assert_eq!(delta.commodity_entries.len(), 1);
         assert_eq!(delta.commodity_entries[0].commodity, Commodity::Steel);
@@ -95,7 +97,10 @@ mod tests {
     /// MarketOrder buy/sell semantics are preserved.
     #[test]
     fn test_market_order_semantics() {
-        let order = MarketOrder { buy: 100.0, sell: 200.0 };
+        let order = MarketOrder {
+            buy: 100.0,
+            sell: 200.0,
+        };
         assert_eq!(order.sell - order.buy, 100.0); // surplus
     }
 

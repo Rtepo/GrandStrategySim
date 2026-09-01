@@ -27,19 +27,15 @@ pub enum TechType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TechNode {
     /// Display name (`"name"`), e.g. `"Electric Welding"`.
-
     pub name: String,
 
     /// Historical year the technology becomes available.
-
     pub year: u32,
 
     /// Research cost in innovation points.
-
     pub cost: u32,
 
     /// Human-readable description (`"opis"`).
-
     pub description: String,
 
     /// Production methods unlocked, keyed by sector then method-slot

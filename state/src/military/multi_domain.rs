@@ -149,12 +149,14 @@ pub fn resolve_multi_domain_battle(
 
     // ── Phase 1: Air Domain ──
     // Split units by domain (using indices to avoid borrow conflicts)
-    let attacker_air_indices: Vec<usize> = attacker_units.iter()
+    let attacker_air_indices: Vec<usize> = attacker_units
+        .iter()
         .enumerate()
         .filter(|(_, u)| CombatDomain::for_unit_type(u.unit_type) == CombatDomain::Air)
         .map(|(i, _)| i)
         .collect();
-    let defender_air_indices: Vec<usize> = defender_units.iter()
+    let defender_air_indices: Vec<usize> = defender_units
+        .iter()
         .enumerate()
         .filter(|(_, u)| CombatDomain::for_unit_type(u.unit_type) == CombatDomain::Air)
         .map(|(i, _)| i)
@@ -163,10 +165,12 @@ pub fn resolve_multi_domain_battle(
     let mut air_battle = None;
     if !attacker_air_indices.is_empty() || !defender_air_indices.is_empty() {
         // Extract air units for air combat
-        let mut attacker_air: Vec<MilitaryUnit> = attacker_air_indices.iter()
+        let mut attacker_air: Vec<MilitaryUnit> = attacker_air_indices
+            .iter()
             .map(|&i| attacker_units[i].clone())
             .collect();
-        let mut defender_air: Vec<MilitaryUnit> = defender_air_indices.iter()
+        let mut defender_air: Vec<MilitaryUnit> = defender_air_indices
+            .iter()
             .map(|&i| defender_units[i].clone())
             .collect();
 
@@ -210,11 +214,17 @@ pub fn resolve_multi_domain_battle(
                 ));
             }
             BattleResult::Stalemate => {
-                messages.push(format!("[AIR] Air contest over {} ends in stalemate", location));
+                messages.push(format!(
+                    "[AIR] Air contest over {} ends in stalemate",
+                    location
+                ));
             }
             BattleResult::Retreat { .. } => {
                 // Air retreat — one side withdrew. No air superiority awarded.
-                messages.push(format!("[AIR] Air forces retreat from contest over {}", location));
+                messages.push(format!(
+                    "[AIR] Air forces retreat from contest over {}",
+                    location
+                ));
             }
         }
 
@@ -222,12 +232,14 @@ pub fn resolve_multi_domain_battle(
     }
 
     // ── Phase 2: Naval Domain ──
-    let attacker_naval_indices: Vec<usize> = attacker_units.iter()
+    let attacker_naval_indices: Vec<usize> = attacker_units
+        .iter()
         .enumerate()
         .filter(|(_, u)| CombatDomain::for_unit_type(u.unit_type) == CombatDomain::Naval)
         .map(|(i, _)| i)
         .collect();
-    let defender_naval_indices: Vec<usize> = defender_units.iter()
+    let defender_naval_indices: Vec<usize> = defender_units
+        .iter()
         .enumerate()
         .filter(|(_, u)| CombatDomain::for_unit_type(u.unit_type) == CombatDomain::Naval)
         .map(|(i, _)| i)
@@ -235,10 +247,12 @@ pub fn resolve_multi_domain_battle(
 
     let mut naval_battle = None;
     if is_coastal && (!attacker_naval_indices.is_empty() || !defender_naval_indices.is_empty()) {
-        let mut attacker_naval: Vec<MilitaryUnit> = attacker_naval_indices.iter()
+        let mut attacker_naval: Vec<MilitaryUnit> = attacker_naval_indices
+            .iter()
             .map(|&i| attacker_units[i].clone())
             .collect();
-        let mut defender_naval: Vec<MilitaryUnit> = defender_naval_indices.iter()
+        let mut defender_naval: Vec<MilitaryUnit> = defender_naval_indices
+            .iter()
             .map(|&i| defender_units[i].clone())
             .collect();
 
@@ -282,11 +296,17 @@ pub fn resolve_multi_domain_battle(
                 ));
             }
             BattleResult::Stalemate => {
-                messages.push(format!("[NAVAL] Naval contest near {} ends in stalemate", location));
+                messages.push(format!(
+                    "[NAVAL] Naval contest near {} ends in stalemate",
+                    location
+                ));
             }
             BattleResult::Retreat { .. } => {
                 // Naval retreat — one side withdrew. No naval control awarded.
-                messages.push(format!("[NAVAL] Naval forces retreat from contest near {}", location));
+                messages.push(format!(
+                    "[NAVAL] Naval forces retreat from contest near {}",
+                    location
+                ));
             }
         }
 
@@ -294,12 +314,14 @@ pub fn resolve_multi_domain_battle(
     }
 
     // ── Phase 3: Land Domain (with modifiers) ──
-    let attacker_land_indices: Vec<usize> = attacker_units.iter()
+    let attacker_land_indices: Vec<usize> = attacker_units
+        .iter()
         .enumerate()
         .filter(|(_, u)| CombatDomain::for_unit_type(u.unit_type) == CombatDomain::Land)
         .map(|(i, _)| i)
         .collect();
-    let defender_land_indices: Vec<usize> = defender_units.iter()
+    let defender_land_indices: Vec<usize> = defender_units
+        .iter()
         .enumerate()
         .filter(|(_, u)| CombatDomain::for_unit_type(u.unit_type) == CombatDomain::Land)
         .map(|(i, _)| i)
@@ -320,10 +342,12 @@ pub fn resolve_multi_domain_battle(
     }
 
     // Extract land units for land combat
-    let mut attacker_land: Vec<MilitaryUnit> = attacker_land_indices.iter()
+    let mut attacker_land: Vec<MilitaryUnit> = attacker_land_indices
+        .iter()
         .map(|&i| attacker_units[i].clone())
         .collect();
-    let mut defender_land: Vec<MilitaryUnit> = defender_land_indices.iter()
+    let mut defender_land: Vec<MilitaryUnit> = defender_land_indices
+        .iter()
         .map(|&i| defender_units[i].clone())
         .collect();
 
@@ -351,7 +375,8 @@ pub fn resolve_multi_domain_battle(
 
         messages.push(format!(
             "[LAND] Battle in {}: {:?} — attacker power x{:.2}, defender power x{:.2}",
-            location, land_battle.result,
+            location,
+            land_battle.result,
             modifiers.attacker_land_power_multiplier,
             modifiers.defender_land_power_multiplier
         ));
@@ -452,12 +477,30 @@ mod tests {
 
     #[test]
     fn test_domain_classification() {
-        assert_eq!(CombatDomain::for_unit_type(UnitType::AirForce), CombatDomain::Air);
-        assert_eq!(CombatDomain::for_unit_type(UnitType::Naval), CombatDomain::Naval);
-        assert_eq!(CombatDomain::for_unit_type(UnitType::Infantry), CombatDomain::Land);
-        assert_eq!(CombatDomain::for_unit_type(UnitType::Tanks), CombatDomain::Land);
-        assert_eq!(CombatDomain::for_unit_type(UnitType::Artillery), CombatDomain::Land);
-        assert_eq!(CombatDomain::for_unit_type(UnitType::PeasantBattalion), CombatDomain::Land);
+        assert_eq!(
+            CombatDomain::for_unit_type(UnitType::AirForce),
+            CombatDomain::Air
+        );
+        assert_eq!(
+            CombatDomain::for_unit_type(UnitType::Naval),
+            CombatDomain::Naval
+        );
+        assert_eq!(
+            CombatDomain::for_unit_type(UnitType::Infantry),
+            CombatDomain::Land
+        );
+        assert_eq!(
+            CombatDomain::for_unit_type(UnitType::Tanks),
+            CombatDomain::Land
+        );
+        assert_eq!(
+            CombatDomain::for_unit_type(UnitType::Artillery),
+            CombatDomain::Land
+        );
+        assert_eq!(
+            CombatDomain::for_unit_type(UnitType::PeasantBattalion),
+            CombatDomain::Land
+        );
     }
 
     #[test]
@@ -522,7 +565,10 @@ mod tests {
         );
 
         // Air battle should have occurred
-        assert!(result.air_battle.is_some(), "Air battle must occur when air units present");
+        assert!(
+            result.air_battle.is_some(),
+            "Air battle must occur when air units present"
+        );
         // Naval battle should NOT have occurred (not coastal)
         assert!(result.naval_battle.is_none());
     }
@@ -553,7 +599,10 @@ mod tests {
             false, // NOT coastal
         );
 
-        assert!(result.naval_battle.is_none(), "Naval battle must not occur if not coastal");
+        assert!(
+            result.naval_battle.is_none(),
+            "Naval battle must not occur if not coastal"
+        );
 
         // Coastal battle — naval units should engage
         let mut attacker2 = vec![
@@ -578,7 +627,10 @@ mod tests {
             true, // Coastal
         );
 
-        assert!(result2.naval_battle.is_some(), "Naval battle must occur if coastal and naval units present");
+        assert!(
+            result2.naval_battle.is_some(),
+            "Naval battle must occur if coastal and naval units present"
+        );
     }
 
     #[test]
@@ -588,9 +640,7 @@ mod tests {
             make_unit("att-air", UnitType::AirForce, 1000),
             make_unit("att-inf", UnitType::Infantry, 1000),
         ];
-        let mut defender = vec![
-            make_unit("def-inf", UnitType::Infantry, 1000),
-        ];
+        let mut defender = vec![make_unit("def-inf", UnitType::Infantry, 1000)];
         let config = MilitaryCombatConfig::default();
 
         let result = resolve_multi_domain_battle(
@@ -607,12 +657,16 @@ mod tests {
         );
 
         // Attacker should have air superiority (no defender air units)
-        assert!(result.modifiers.attacker_air_superiority || result.modifiers.defender_air_superiority,
-            "Air superiority must be determined when one side has air units");
+        assert!(
+            result.modifiers.attacker_air_superiority || result.modifiers.defender_air_superiority,
+            "Air superiority must be determined when one side has air units"
+        );
         // If attacker won air battle, their land multiplier should be boosted
         if result.modifiers.attacker_air_superiority {
-            assert!(result.modifiers.attacker_land_power_multiplier > 1.0,
-                "Air superiority must boost land combat power");
+            assert!(
+                result.modifiers.attacker_land_power_multiplier > 1.0,
+                "Air superiority must boost land combat power"
+            );
         }
     }
 
@@ -690,6 +744,9 @@ mod tests {
         );
 
         // Messages should be generated for each phase
-        assert!(!result.messages.is_empty(), "Combat messages must be generated");
+        assert!(
+            !result.messages.is_empty(),
+            "Combat messages must be generated"
+        );
     }
 }

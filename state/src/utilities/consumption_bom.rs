@@ -139,17 +139,25 @@ pub fn compute_housing_consumption_bom(
     let mut bom = ConsumptionBom::default();
 
     // Lighting
-    if let Some(method) = resolve_consumption_method(methods, MethodSlot::Lighting, &building.active_lighting) {
+    if let Some(method) =
+        resolve_consumption_method(methods, MethodSlot::Lighting, &building.active_lighting)
+    {
         add_method_inputs(&mut bom, method, scale);
     }
 
     // Heating
-    if let Some(method) = resolve_consumption_method(methods, MethodSlot::Heating, &building.active_heating) {
+    if let Some(method) =
+        resolve_consumption_method(methods, MethodSlot::Heating, &building.active_heating)
+    {
         add_method_inputs(&mut bom, method, scale);
     }
 
     // Power generation (microgeneration)
-    if let Some(method) = resolve_consumption_method(methods, MethodSlot::PowerGeneration, &building.active_power_generation) {
+    if let Some(method) = resolve_consumption_method(
+        methods,
+        MethodSlot::PowerGeneration,
+        &building.active_power_generation,
+    ) {
         add_method_outputs(&mut bom, method, scale);
     }
 
@@ -164,15 +172,23 @@ pub fn compute_commercial_consumption_bom(
     let scale = commercial_scale_factor(building);
     let mut bom = ConsumptionBom::default();
 
-    if let Some(method) = resolve_consumption_method(methods, MethodSlot::Lighting, &building.active_lighting) {
+    if let Some(method) =
+        resolve_consumption_method(methods, MethodSlot::Lighting, &building.active_lighting)
+    {
         add_method_inputs(&mut bom, method, scale);
     }
 
-    if let Some(method) = resolve_consumption_method(methods, MethodSlot::Heating, &building.active_heating) {
+    if let Some(method) =
+        resolve_consumption_method(methods, MethodSlot::Heating, &building.active_heating)
+    {
         add_method_inputs(&mut bom, method, scale);
     }
 
-    if let Some(method) = resolve_consumption_method(methods, MethodSlot::PowerGeneration, &building.active_power_generation) {
+    if let Some(method) = resolve_consumption_method(
+        methods,
+        MethodSlot::PowerGeneration,
+        &building.active_power_generation,
+    ) {
         add_method_outputs(&mut bom, method, scale);
     }
 
@@ -190,15 +206,20 @@ pub fn compute_industrial_consumption_bom(
     // Industrial buildings use ProductionMethodChoice for consumption methods
     let active = &building.active_method.active_methods;
 
-    if let Some(method) = resolve_consumption_method(methods, MethodSlot::Lighting, &active.lighting) {
+    if let Some(method) =
+        resolve_consumption_method(methods, MethodSlot::Lighting, &active.lighting)
+    {
         add_method_inputs(&mut bom, method, scale);
     }
 
-    if let Some(method) = resolve_consumption_method(methods, MethodSlot::Heating, &active.heating) {
+    if let Some(method) = resolve_consumption_method(methods, MethodSlot::Heating, &active.heating)
+    {
         add_method_inputs(&mut bom, method, scale);
     }
 
-    if let Some(method) = resolve_consumption_method(methods, MethodSlot::Ventilation, &active.ventilation) {
+    if let Some(method) =
+        resolve_consumption_method(methods, MethodSlot::Ventilation, &active.ventilation)
+    {
         add_method_inputs(&mut bom, method, scale);
     }
 
@@ -221,7 +242,9 @@ fn add_method_inputs(bom: &mut ConsumptionBom, method: &ProductionMethod, scale:
                 *bom.grid_utility_demand.entry(commodity).or_insert(0.0) += quantity;
             }
             _ => {
-                *bom.physical_commodity_demand.entry(commodity).or_insert(0.0) += quantity;
+                *bom.physical_commodity_demand
+                    .entry(commodity)
+                    .or_insert(0.0) += quantity;
             }
         }
     }
@@ -269,10 +292,7 @@ pub fn can_adopt_district_heating(region: &crate::society::geography::Region) ->
 ///
 /// # Returns
 /// A BTreeMap of Commodity → total CAPEX quantity needed.
-pub fn compute_capex_bom(
-    target_method: &ProductionMethod,
-    scale: f64,
-) -> BTreeMap<Commodity, f64> {
+pub fn compute_capex_bom(target_method: &ProductionMethod, scale: f64) -> BTreeMap<Commodity, f64> {
     target_method
         .capex
         .iter()
@@ -341,9 +361,9 @@ pub fn sanitation_biohazard_factor(method_name: &str) -> f64 {
 pub fn standalone_water_source_quality(method_name: &str) -> Option<f64> {
     match method_name {
         "Local Well" | "Hand Pump Well" | "Shallow Tube Well" => Some(0.9), // Groundwater
-        "Rainwater Catchment" => Some(0.6), // Surface water
-        "None" => None,                    // No water at all
-        _ => None,                         // Centralized or unknown — quality from grid
+        "Rainwater Catchment" => Some(0.6),                                 // Surface water
+        "None" => None,                                                     // No water at all
+        _ => None, // Centralized or unknown — quality from grid
     }
 }
 

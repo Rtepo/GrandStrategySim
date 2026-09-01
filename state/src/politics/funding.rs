@@ -21,22 +21,18 @@ pub enum FundingModel {
     /// e.g., co-payment (co-payment)
     Mixed {
         /// State subsidy percentage (0.0-1.0)
-
         state_subsidy_rate: f64,
 
         /// Citizen co-payment percentage (0.0-1.0)
-
         citizen_co_payment_rate: f64,
     },
 
     /// Insurance-based (private or public insurance)
     Insurance {
         /// Mandatory insurance contribution rate
-
         insurance_premium_rate: f64,
 
         /// Coverage percentage
-
         coverage_rate: f64,
     },
 }
@@ -48,7 +44,6 @@ pub enum BudgetSource {
     Central,
     Regional,
     Mixed {
-
         central_share: f64,
 
         regional_share: f64,
@@ -70,23 +65,18 @@ pub enum LoanProvider {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct StudentLoanConfig {
     /// Loan provider (commercial or state-subsidized)
-
     pub loan_provider: LoanProvider,
 
     /// Maximum loan amount per student
-
     pub max_loan_amount: f64,
 
     /// Interest rate (market rate for CommercialBank, subsidized for StateSubsidized)
-
     pub interest_rate: f64,
 
     /// Repayment period in years
-
     pub repayment_period_years: u32,
 
     /// Income threshold for repayment start
-
     pub income_threshold: f64,
 
     /// Political pressure threshold for state to offer subsidized loans
@@ -99,15 +89,12 @@ pub struct StudentLoanConfig {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ServiceFundingConfig {
     /// Primary funding model
-
     pub funding_model: FundingModel,
 
     /// Budget source (Central, Regional, or Mixed)
-
     pub budget_source: BudgetSource,
 
     /// Per-capita funding amount (for Public/Mixed models)
-
     pub per_capita_funding: f64,
 
     /// Student loan configuration (for Higher Education)

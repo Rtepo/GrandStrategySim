@@ -90,13 +90,13 @@ impl NetworkLevel {
     /// this distinction when looking up the fuel price.
     pub fn fuel_consumption_per_km(&self) -> f64 {
         match self {
-            NetworkLevel::None => 0.08,       // unimproved: trucks on dirt
-            NetworkLevel::DirtRoad => 0.06,   // slight improvement
-            NetworkLevel::PavedRoad => 0.04,  // smooth surface
-            NetworkLevel::RailNetwork => 0.02, // rail is very efficient
+            NetworkLevel::None => 0.08,             // unimproved: trucks on dirt
+            NetworkLevel::DirtRoad => 0.06,         // slight improvement
+            NetworkLevel::PavedRoad => 0.04,        // smooth surface
+            NetworkLevel::RailNetwork => 0.02,      // rail is very efficient
             NetworkLevel::ElectrifiedRail => 0.015, // electric, lowest fuel
-            NetworkLevel::Highway => 0.035,   // fast but fuel-hungry
-            NetworkLevel::Canal => 0.01,      // barge: most fuel-efficient
+            NetworkLevel::Highway => 0.035,         // fast but fuel-hungry
+            NetworkLevel::Canal => 0.01,            // barge: most fuel-efficient
         }
     }
 
@@ -220,11 +220,10 @@ impl TransportNetworkOverlay {
     /// * If no link exists, returns 1.0 (baseline).
     pub fn friction_multiplier(&self, a: &str, b: &str, edge_type: &EdgeType) -> f64 {
         match edge_type {
-            EdgeType::LandBorder | EdgeType::River => {
-                self.get_link(a, b)
-                    .map(|link| link.effective_friction())
-                    .unwrap_or(1.0)
-            }
+            EdgeType::LandBorder | EdgeType::River => self
+                .get_link(a, b)
+                .map(|link| link.effective_friction())
+                .unwrap_or(1.0),
             // Waterborne edges are not affected by land network overlays.
             EdgeType::Coastline | EdgeType::SeaLane => 1.0,
         }
@@ -317,7 +316,10 @@ mod tests {
     #[test]
     fn rail_reduces_friction() {
         assert!(NetworkLevel::RailNetwork.land_friction_multiplier() < 1.0);
-        assert!(NetworkLevel::RailNetwork.land_friction_multiplier() < NetworkLevel::DirtRoad.land_friction_multiplier());
+        assert!(
+            NetworkLevel::RailNetwork.land_friction_multiplier()
+                < NetworkLevel::DirtRoad.land_friction_multiplier()
+        );
     }
 
     #[test]
@@ -428,20 +430,29 @@ mod tests {
     #[test]
     fn fuel_consumption_varies_by_mode() {
         // Rail is more fuel-efficient than dirt roads
-        assert!(NetworkLevel::RailNetwork.fuel_consumption_per_km()
-            < NetworkLevel::DirtRoad.fuel_consumption_per_km());
+        assert!(
+            NetworkLevel::RailNetwork.fuel_consumption_per_km()
+                < NetworkLevel::DirtRoad.fuel_consumption_per_km()
+        );
         // Highway is more efficient than None (unimproved)
-        assert!(NetworkLevel::Highway.fuel_consumption_per_km()
-            < NetworkLevel::None.fuel_consumption_per_km());
+        assert!(
+            NetworkLevel::Highway.fuel_consumption_per_km()
+                < NetworkLevel::None.fuel_consumption_per_km()
+        );
         // Canal (barge) is the most fuel-efficient
-        assert!(NetworkLevel::Canal.fuel_consumption_per_km()
-            < NetworkLevel::RailNetwork.fuel_consumption_per_km());
+        assert!(
+            NetworkLevel::Canal.fuel_consumption_per_km()
+                < NetworkLevel::RailNetwork.fuel_consumption_per_km()
+        );
     }
 
     #[test]
     fn electrified_rail_uses_energy_not_fuels() {
         use crate::registries::enums::Commodity;
-        assert_eq!(NetworkLevel::ElectrifiedRail.fuel_commodity(), Commodity::Energy);
+        assert_eq!(
+            NetworkLevel::ElectrifiedRail.fuel_commodity(),
+            Commodity::Energy
+        );
         assert_eq!(NetworkLevel::Highway.fuel_commodity(), Commodity::Fuels);
         assert_eq!(NetworkLevel::RailNetwork.fuel_commodity(), Commodity::Fuels);
     }

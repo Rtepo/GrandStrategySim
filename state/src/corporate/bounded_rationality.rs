@@ -35,7 +35,10 @@ pub enum InformationQuality {
 /// # Rules
 /// * Uses dynamic thresholds based on average_wage, not hardcoded floats
 /// * This ensures information quality tiers scale with inflation and economic development
-pub fn determine_information_quality(company_capital: f64, average_wage: f64) -> InformationQuality {
+pub fn determine_information_quality(
+    company_capital: f64,
+    average_wage: f64,
+) -> InformationQuality {
     if company_capital < average_wage * 10.0 {
         InformationQuality::Blind
     } else if company_capital < average_wage * 100.0 {
@@ -69,12 +72,12 @@ pub fn try_upgrade_to_predictive(
     average_wage: f64,
 ) -> bool {
     let predictive_threshold = average_wage * 10_000.0;
-    
+
     // Normalize required research units against inflation using wage index
     // Real size = company_capital / (average_wage * 1000.0) represents employee-equivalent scale
     let real_company_size = company_capital / (average_wage * 1000.0);
     let required_research_units = 1.0 + real_company_size;
-    
+
     market_research_units >= required_research_units && company_capital >= predictive_threshold
 }
 

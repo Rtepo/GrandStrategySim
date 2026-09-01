@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Generates the full bilateral diplomacy matrix for a set of countries.
-pub fn generate_diplomacy(countries: &[String]) -> HashMap<String, HashMap<String, DiplomaticRelation>> {
+pub fn generate_diplomacy(
+    countries: &[String],
+) -> HashMap<String, HashMap<String, DiplomaticRelation>> {
     let mut rng = rand::thread_rng();
     let mut diplomacy: HashMap<String, HashMap<String, DiplomaticRelation>> = HashMap::new();
 
@@ -86,18 +88,27 @@ impl DiplomaticPostCap {
 }
 
 /// Phase 66: Count diplomats of a given type posted from `home` to `host`.
-pub fn count_diplomats(state: &GameState, home: &str, host: &str, post_type: &DiplomaticPostType) -> usize {
+pub fn count_diplomats(
+    state: &GameState,
+    home: &str,
+    host: &str,
+    post_type: &DiplomaticPostType,
+) -> usize {
     let Some(country) = state.countries.get(home) else {
         return 0;
     };
     let Some(registry) = &country.politics.vip_registry else {
         return 0;
     };
-    registry.vips.values().filter(|vip| {
-        vip.diplomatic_post.as_ref().is_some_and(|post| {
-            post.host_country == host && &post.post_type == post_type
+    registry
+        .vips
+        .values()
+        .filter(|vip| {
+            vip.diplomatic_post
+                .as_ref()
+                .is_some_and(|post| post.host_country == host && &post.post_type == post_type)
         })
-    }).count()
+        .count()
 }
 
 /// Phase 66: Compute diplomatic modifiers from VIP traits for a posted diplomat.
@@ -166,10 +177,11 @@ pub fn process_diplomacy_turn(
             .collect();
 
         // Read c1's trade balance from budget.extra
+        // Agent 4 — Phase 6: Renamed from Polish "bilans_handlowy" to English (Rule 12).
         let c1_trade_balance = c1
             .budget
             .extra
-            .get("bilans_handlowy")
+            .get("trade_balance")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0);
 
@@ -233,7 +245,9 @@ pub fn process_diplomacy_turn(
             }
 
             // 4. Cultural affinity
-            if !c1_cultural_group.is_empty() && c1_cultural_group == &c2.macro_indicators.cultural_group {
+            if !c1_cultural_group.is_empty()
+                && c1_cultural_group == &c2.macro_indicators.cultural_group
+            {
                 delta += 1;
             }
 
@@ -246,7 +260,8 @@ pub fn process_diplomacy_turn(
             let has_ambassador = c1_vip_registry.is_some_and(|reg| {
                 reg.vips.values().any(|vip| {
                     vip.diplomatic_post.as_ref().is_some_and(|post| {
-                        post.host_country == *c2_name && post.post_type == DiplomaticPostType::Ambassador
+                        post.host_country == *c2_name
+                            && post.post_type == DiplomaticPostType::Ambassador
                     })
                 })
             });
@@ -255,7 +270,8 @@ pub fn process_diplomacy_turn(
                 if let Some(reg) = c1_vip_registry {
                     for vip in reg.vips.values() {
                         if vip.diplomatic_post.as_ref().is_some_and(|p| {
-                            p.host_country == *c2_name && p.post_type == DiplomaticPostType::Ambassador
+                            p.host_country == *c2_name
+                                && p.post_type == DiplomaticPostType::Ambassador
                         }) {
                             let (rel_bonus, _) = compute_diplomat_modifiers(&vip.traits);
                             delta += 1 + rel_bonus as i64;
@@ -290,29 +306,38 @@ pub fn process_diplomacy_turn(
 
             // 7. Phase 66: Spy activity — intel generation and discovery risk
             let spy_vips: Vec<_> = c1_vip_registry.map_or(Vec::new(), |reg| {
-                reg.vips.values().filter(|vip| {
-                    vip.diplomatic_post.as_ref().is_some_and(|post| {
-                        post.host_country == *c2_name && post.post_type == DiplomaticPostType::Spy
+                reg.vips
+                    .values()
+                    .filter(|vip| {
+                        vip.diplomatic_post.as_ref().is_some_and(|post| {
+                            post.host_country == *c2_name
+                                && post.post_type == DiplomaticPostType::Spy
+                        })
                     })
-                }).collect()
+                    .collect()
             });
 
             for spy in &spy_vips {
                 let (_, discovery_mod) = compute_diplomat_modifiers(&spy.traits);
 
                 // Host country counter-intelligence: justice coverage reduces spy success
-                let host_justice = c2.budget.extra
+                let host_justice = c2
+                    .budget
+                    .extra
                     .get("justice_coverage")
                     .and_then(|v| v.as_f64())
-                    .unwrap_or(50.0) / 100.0;
+                    .unwrap_or(50.0)
+                    / 100.0;
 
                 // Discovery risk = base_risk * trait_modifier * host_justice_coverage
-                let discovery_risk = diplomatic_config.spy_discovery_risk * discovery_mod * host_justice;
+                let discovery_risk =
+                    diplomatic_config.spy_discovery_risk * discovery_mod * host_justice;
                 if rng.gen::<f64>() < discovery_risk {
                     // Spy caught! Trigger expulsion and relation freeze
                     expel_actions.push((c1_name.clone(), c2_name.clone()));
                     rel.frozen_turns = diplomatic_config.spy_caught_freeze_turns as i64;
-                    rel.relations = (rel.relations - diplomatic_config.spy_caught_relation_penalty).clamp(-100, 100);
+                    rel.relations = (rel.relations - diplomatic_config.spy_caught_relation_penalty)
+                        .clamp(-100, 100);
                 } else {
                     // Spy succeeds — upgrade intel level
                     let new_level = crate::international::fog_of_war::IntelLevel::NarrowRange;
@@ -372,7 +397,14 @@ mod tests {
         let mut intel_updates = Vec::new();
         let mut expel_actions = Vec::new();
 
-        process_diplomacy_turn(&state, &mut diplomacy, &config, 1, &mut intel_updates, &mut expel_actions);
+        process_diplomacy_turn(
+            &state,
+            &mut diplomacy,
+            &config,
+            1,
+            &mut intel_updates,
+            &mut expel_actions,
+        );
 
         // Should not crash, relations should be in valid range
         let rel = &diplomacy["TestA"]["TestB"];

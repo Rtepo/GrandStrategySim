@@ -8,9 +8,9 @@
 //! STAGE D PHASE 2: Enhanced banking structures for fractional reserve banking,
 //! interbank markets, and credit scoring.
 
-use crate::state::CentralBank;
 use crate::securities::mbs::MortgageBackedSecurity;
 use crate::state::macro_data::annual_to_per_turn_rate;
+use crate::state::CentralBank;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -19,16 +19,16 @@ use std::collections::HashMap;
 pub trait Borrower {
     /// Unique entity identifier
     fn id(&self) -> &str;
-    
+
     /// Liquid capital available for working capital loans
     fn liquid_capital(&self) -> f64;
-    
+
     /// Fixed capital for collateral assessment (investment/consolidation loans)
     fn fixed_capital(&self) -> f64;
-    
+
     /// Total outstanding liabilities for liquidity ratio calculation
     fn liabilities(&self) -> f64;
-    
+
     /// Computed liquid capital (may differ from stored liquid_capital)
     fn computed_liquid_capital(&self) -> f64;
 }
@@ -68,7 +68,6 @@ pub enum BankType {
     Cooperative,
 }
 
-
 /// Classification of loan purpose for credit risk assessment.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -85,7 +84,6 @@ pub enum LoanType {
     /// Medium risk, depends on borrower's debt service capacity.
     Consolidation,
 }
-
 
 /// Loan payment status.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -105,7 +103,6 @@ pub enum LoanStatus {
     Merged,
 }
 
-
 /// Interest rate type for loans - determines duration risk exposure.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -119,7 +116,6 @@ pub enum InterestType {
     #[default]
     Variable,
 }
-
 
 /// Individual loan record for tracking credit creation.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -187,72 +183,69 @@ pub struct BankBalanceSheet {
     // ========================================================================
     // ASSETS (What the bank owns)
     // ========================================================================
-    
     /// Physical cash held at Central Bank to meet reserve requirements.
     /// This is actual reserves, not a percentage.
     #[serde(default)]
     pub reserves_at_central_bank: f64,
-    
+
     /// Credit created and lent to public/companies.
     /// Each loan entry represents money created by the bank.
     #[serde(default)]
     pub loans_issued: Vec<Loan>,
-    
+
     /// Liquidity lent to other banks in the interbank market.
     /// Maps borrower_bank_id -> amount lent.
     #[serde(default)]
     pub interbank_loans_given: HashMap<String, f64>,
-    
+
     /// Government bonds and other liquid securities held.
     #[serde(default)]
     pub securities: f64,
-    
+
     /// Phase D.5: Senior MBS holdings (for QE purchases).
     #[serde(default)]
     pub mbs_holdings: Vec<MortgageBackedSecurity>,
-    
+
     /// Physical buildings and infrastructure owned by the bank.
     #[serde(default)]
     pub real_estate: f64,
-    
+
     // ========================================================================
     // LIABILITIES (What the bank owes)
     // ========================================================================
-    
     /// Money deposited by citizens/companies (demand + time deposits).
     /// This is money the bank owes to depositors.
     #[serde(default)]
     pub deposits: f64,
-    
+
     /// Emergency liquidity borrowed from Central Bank via Lombard facility.
     /// Expensive rate, used as last resort.
     #[serde(default)]
     pub cb_lombard_loans: f64,
-    
+
     /// Reserves physically parked at CB deposit facility earning deposit_rate interest.
     /// These are separated from operational reserves_at_central_bank.
     #[serde(default)]
     pub cb_deposit_facility_balance: f64,
-    
+
     /// Liquidity borrowed from other banks in the interbank market.
     /// Maps lender_bank_id -> amount borrowed.
     #[serde(default)]
     pub interbank_loans_taken: HashMap<String, f64>,
-    
+
     /// Bonds and other debt instruments issued by the bank.
     #[serde(default)]
     pub issued_bonds: f64,
-    
+
     // ========================================================================
     // EQUITY (The bank's own capital)
     // ========================================================================
-    
     /// Tier 1 Capital (Common Equity + Retained Earnings).
     /// This is the bank's own money / shareholder capital.
     /// Regulatory requirement: Tier 1 Capital >= 6% of Risk-Weighted Assets.
     #[serde(default)]
     pub tier_1_capital: f64,
-    
+
     /// Any additional balance sheet fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -266,12 +259,16 @@ impl BankBalanceSheet {
     pub fn total_assets(&self) -> f64 {
         self.reserves_at_central_bank
             + self.cb_deposit_facility_balance
-            + self.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>()
+            + self
+                .loans_issued
+                .iter()
+                .map(|l| l.outstanding_balance)
+                .sum::<f64>()
             + self.interbank_loans_given.values().sum::<f64>()
             + self.securities
             + self.real_estate
     }
-    
+
     /// Calculates total liabilities.
     ///
     /// # Returns
@@ -282,7 +279,7 @@ impl BankBalanceSheet {
             + self.interbank_loans_taken.values().sum::<f64>()
             + self.issued_bonds
     }
-    
+
     /// Calculates total equity.
     ///
     /// # Returns
@@ -290,7 +287,7 @@ impl BankBalanceSheet {
     pub fn total_equity(&self) -> f64 {
         self.tier_1_capital
     }
-    
+
     /// Validates double-entry accounting: Assets = Liabilities + Equity.
     ///
     /// # Returns
@@ -300,7 +297,7 @@ impl BankBalanceSheet {
         let liabilities_plus_equity = self.total_liabilities() + self.total_equity();
         (assets - liabilities_plus_equity).abs() < 1e-6
     }
-    
+
     /// Calculates reserve ratio against Central Bank requirement.
     ///
     /// # Arguments
@@ -315,7 +312,7 @@ impl BankBalanceSheet {
             1.0 // No deposits = 100% reserve ratio (trivially compliant)
         }
     }
-    
+
     /// Checks if bank meets reserve requirements.
     ///
     /// # Arguments
@@ -327,7 +324,7 @@ impl BankBalanceSheet {
         let required_reserves = self.deposits * cb_reserve_ratio;
         self.reserves_at_central_bank >= required_reserves
     }
-    
+
     /// Calculates reserve deficit (shortfall) or surplus.
     ///
     /// # Arguments
@@ -348,29 +345,29 @@ pub struct InterbankMarket {
     /// All commercial loan rates peg to XIBOR + Bank Margin.
     #[serde(default)]
     pub xibor: f64,
-    
+
     /// Total liquidity available in the market (sum of all bank surplus reserves).
     #[serde(default)]
     pub available_liquidity: f64,
-    
+
     /// Total liquidity demanded (sum of all bank reserve deficits).
     #[serde(default)]
     pub demanded_liquidity: f64,
-    
+
     /// Last clearing turn.
     #[serde(default)]
     pub last_clearing_turn: u32,
-    
+
     /// Market stress indicator (0.0 = normal, 1.0 = crisis).
     /// High stress = wider spreads, higher XIBOR.
     #[serde(default)]
     pub stress_indicator: f64,
-    
+
     /// Maximum stress premium in basis points (e.g., 0.02 for +200 bps).
     /// Applied to XIBOR during market stress.
     #[serde(default = "default_stress_premium")]
     pub max_stress_premium: f64,
-    
+
     /// Any additional interbank market fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -402,15 +399,19 @@ impl InterbankMarket {
         let cb_reserve_ratio = central_bank.reserve_requirement_ratio;
         let cb_deposit_rate = central_bank.interest_rates.deposit_rate;
         let cb_lombard_rate = central_bank.interest_rates.lombard_rate;
-        
+
         // Separate banks into surplus and deficit
         let mut surplus_banks: Vec<(String, f64)> = Vec::new();
         let mut deficit_banks: Vec<(String, f64)> = Vec::new();
-        
+
         for bank in banks.iter() {
-            if let (Some(BankType::Commercial | BankType::Universal | BankType::Cooperative), Some(bs)) = (&bank.bank_type, &bank.balance_sheet) {
+            if let (
+                Some(BankType::Commercial | BankType::Universal | BankType::Cooperative),
+                Some(bs),
+            ) = (&bank.bank_type, &bank.balance_sheet)
+            {
                 let position = bs.reserve_position(cb_reserve_ratio);
-                
+
                 if position > 0.0 {
                     surplus_banks.push((bank.id.clone(), position));
                 } else if position < 0.0 {
@@ -418,14 +419,14 @@ impl InterbankMarket {
                 }
             }
         }
-        
+
         // Calculate totals
         let total_surplus: f64 = surplus_banks.iter().map(|(_, amount)| *amount).sum();
         let total_deficit: f64 = deficit_banks.iter().map(|(_, amount)| *amount).sum();
-        
+
         self.available_liquidity = total_surplus;
         self.demanded_liquidity = total_deficit;
-        
+
         // Calculate XIBOR based on supply/demand balance
         // If surplus >= deficit: XIBOR near CB deposit rate
         // If deficit > surplus: XIBOR rises toward CB lombard rate
@@ -434,50 +435,64 @@ impl InterbankMarket {
         } else {
             1.0
         };
-        
+
         // Base XIBOR calculation
-        let base_xibor = cb_deposit_rate + (cb_lombard_rate - cb_deposit_rate) * (1.0 - supply_demand_ratio);
-        
+        let base_xibor =
+            cb_deposit_rate + (cb_lombard_rate - cb_deposit_rate) * (1.0 - supply_demand_ratio);
+
         // Apply stress indicator (widens spreads during crisis)
         let stressed_xibor = base_xibor + (self.stress_indicator * self.max_stress_premium);
-        
+
         // Bound XIBOR between CB rates
         self.xibor = stressed_xibor.max(cb_deposit_rate).min(cb_lombard_rate);
         self.last_clearing_turn = current_turn;
-        
+
         // Execute transfers using proportional distribution
         let transfer_amount = total_surplus.min(total_deficit);
-        
+
         // Update bank balance sheets with proportional allocation
         for bank in banks.iter_mut() {
             if let (Some(_), Some(ref mut bs)) = (&bank.bank_type, &mut bank.balance_sheet) {
                 let position = bs.reserve_position(cb_reserve_ratio);
-                
+
                 if position > 0.0 {
                     // This bank lends liquidity proportionally to its surplus
                     let lend_amount = (position * (transfer_amount / total_surplus)).min(position);
                     bs.reserves_at_central_bank -= lend_amount;
                     // In full implementation: Track specific borrower-bank relationships
                     // For now, simplified proportional distribution
-                    let per_borrower_amount = if deficit_banks.is_empty() { 0.0 } else { lend_amount / deficit_banks.len() as f64 };
+                    let per_borrower_amount = if deficit_banks.is_empty() {
+                        0.0
+                    } else {
+                        lend_amount / deficit_banks.len() as f64
+                    };
                     for (borrower_id, _) in &deficit_banks {
-                        *bs.interbank_loans_given.entry(borrower_id.clone()).or_insert(0.0) += per_borrower_amount;
+                        *bs.interbank_loans_given
+                            .entry(borrower_id.clone())
+                            .or_insert(0.0) += per_borrower_amount;
                     }
                 } else if position < 0.0 {
                     // This bank borrows liquidity proportionally to its deficit
-                    let borrow_amount = (-position * (transfer_amount / total_deficit)).min(-position);
+                    let borrow_amount =
+                        (-position * (transfer_amount / total_deficit)).min(-position);
                     bs.reserves_at_central_bank += borrow_amount;
                     // In full implementation: Track specific lender-bank relationships
                     // For now, simplified proportional distribution
-                    let per_lender_amount = if surplus_banks.is_empty() { 0.0 } else { borrow_amount / surplus_banks.len() as f64 };
+                    let per_lender_amount = if surplus_banks.is_empty() {
+                        0.0
+                    } else {
+                        borrow_amount / surplus_banks.len() as f64
+                    };
                     for (lender_id, _) in &surplus_banks {
-                        *bs.interbank_loans_taken.entry(lender_id.clone()).or_insert(0.0) += per_lender_amount;
+                        *bs.interbank_loans_taken
+                            .entry(lender_id.clone())
+                            .or_insert(0.0) += per_lender_amount;
                     }
                 }
             }
         }
     }
-    
+
     /// Updates market stress indicator based on systemic conditions.
     ///
     /// # Arguments
@@ -489,18 +504,25 @@ impl InterbankMarket {
     /// * Bank failures increase stress
     /// * High XIBOR volatility increases stress
     /// * Stress decays slowly over time if no new shocks
-    pub fn update_stress_indicator(&mut self, bank_failures_this_turn: u32, total_banks: usize, xibor_volatility: f64) {
+    pub fn update_stress_indicator(
+        &mut self,
+        bank_failures_this_turn: u32,
+        total_banks: usize,
+        xibor_volatility: f64,
+    ) {
         let failure_rate = if total_banks > 0 {
             bank_failures_this_turn as f64 / total_banks as f64
         } else {
             0.0
         };
-        
+
         // Stress increases with failures and volatility
         let stress_increase = (failure_rate * 5.0) + (xibor_volatility * 10.0);
-        
+
         // Stress decays by 10% per turn naturally
-        self.stress_indicator = (self.stress_indicator * 0.9 + stress_increase).max(0.0).min(1.0);
+        self.stress_indicator = (self.stress_indicator * 0.9 + stress_increase)
+            .max(0.0)
+            .min(1.0);
     }
 }
 
@@ -562,7 +584,9 @@ pub fn calculate_credit_score(
     // inactive borrowers. If a company has no liquid capital at all (neither
     // stored nor computed), it has no cash flow to service debt. This stops
     // the M3 ventilator from injecting credit into a dead economy.
-    let total_liquid = borrower.liquid_capital().max(borrower.computed_liquid_capital());
+    let total_liquid = borrower
+        .liquid_capital()
+        .max(borrower.computed_liquid_capital());
     if total_liquid <= 0.0 && borrower.liabilities() <= 0.0 {
         // No cash and no existing liabilities = never traded, never hired.
         // Reject unless there's fixed capital to collateralize (startup case).
@@ -572,7 +596,10 @@ pub fn calculate_credit_score(
                 max_loan_amount: 0.0,
                 risk_premium_bps: 500.0,
                 approved: false,
-                rejection_reason: Some("Economically inactive borrower: no liquid capital, no fixed capital".to_string()),
+                rejection_reason: Some(
+                    "Economically inactive borrower: no liquid capital, no fixed capital"
+                        .to_string(),
+                ),
                 required_equity_swap: None,
             };
         }
@@ -585,11 +612,11 @@ pub fn calculate_credit_score(
 
     // LTV Assessment
     let ltv_ratio = match loan_type {
-        LoanType::WorkingCapital => 0.8,  // 80% LTV for working capital
-        LoanType::Investment => 0.6,      // 60% LTV for investment (stricter)
-        LoanType::Consolidation => 0.7,   // 70% LTV for consolidation (may be overridden)
+        LoanType::WorkingCapital => 0.8, // 80% LTV for working capital
+        LoanType::Investment => 0.6,     // 60% LTV for investment (stricter)
+        LoanType::Consolidation => 0.7,  // 70% LTV for consolidation (may be overridden)
     };
-    
+
     // Collateral base depends on loan type
     // WorkingCapital: Use liquid capital (service sector friendly)
     // Investment/Consolidation: Use fixed capital (requires hard assets)
@@ -598,9 +625,9 @@ pub fn calculate_credit_score(
         LoanType::Investment => borrower.fixed_capital(),
         LoanType::Consolidation => borrower.fixed_capital(),
     };
-    
+
     let max_loan_amount = collateral_value * ltv_ratio;
-    
+
     if requested_principal > max_loan_amount {
         approved = false;
         rejection_reason = Some(format!(
@@ -616,11 +643,11 @@ pub fn calculate_credit_score(
             required_equity_swap,
         };
     }
-    
+
     // LTV Score (closer to max = lower score)
     let ltv_utilization = requested_principal / max_loan_amount;
     score += (1.0 - ltv_utilization) * 0.2;
-    
+
     // Cashflow History Assessment
     // For consolidation loans, project bilateral balance sheet (assets and liabilities)
     let liquidity_ratio = if loan_type == LoanType::Consolidation {
@@ -632,8 +659,10 @@ pub fn calculate_credit_score(
             .sum();
 
         // Bilateral projection: both assets and liabilities change
-        let projected_liquid_assets = borrower.computed_liquid_capital() + requested_principal - existing_loan_outstanding;
-        let projected_liabilities = borrower.liabilities() + requested_principal - existing_loan_outstanding;
+        let projected_liquid_assets =
+            borrower.computed_liquid_capital() + requested_principal - existing_loan_outstanding;
+        let projected_liabilities =
+            borrower.liabilities() + requested_principal - existing_loan_outstanding;
 
         if projected_liabilities > 0.0 {
             projected_liquid_assets / projected_liabilities
@@ -645,7 +674,7 @@ pub fn calculate_credit_score(
     } else {
         2.0
     };
-    
+
     if liquidity_ratio < 1.0 {
         score -= 0.3;
         risk_premium_bps += 100.0;
@@ -653,7 +682,7 @@ pub fn calculate_credit_score(
         score += 0.1;
         risk_premium_bps -= 25.0;
     }
-    
+
     // Investment Prospect (Investment loans only)
     if loan_type == LoanType::Investment {
         let _hurdle_rate = central_bank.interest_rates.reference_rate + 0.05;
@@ -663,7 +692,7 @@ pub fn calculate_credit_score(
         } else {
             0.0
         };
-        
+
         if capital_strength >= 1.5 {
             score += 0.1;
             risk_premium_bps -= 50.0;
@@ -672,12 +701,14 @@ pub fn calculate_credit_score(
             risk_premium_bps += 50.0;
         }
     }
-    
+
     // Consolidation Loan: Debt-to-Equity Swap Logic
     if loan_type == LoanType::Consolidation {
         // Check if borrower is already an existing debtor of this bank
-        let is_existing_debtor = existing_loans.iter().any(|loan| loan.borrower_id == borrower.id());
-        
+        let is_existing_debtor = existing_loans
+            .iter()
+            .any(|loan| loan.borrower_id == borrower.id());
+
         if is_existing_debtor {
             // Existing debtor: Bank tries to save them
             // Requires positive operating cash flow before debt service
@@ -689,7 +720,9 @@ pub fn calculate_credit_score(
             } else {
                 // Not viable - reject
                 approved = false;
-                rejection_reason = Some("Existing debtor with insufficient cash flow for restructuring".to_string());
+                rejection_reason = Some(
+                    "Existing debtor with insufficient cash flow for restructuring".to_string(),
+                );
             }
         } else {
             // New debtor: Bank demands massive equity swap for consolidation
@@ -700,21 +733,24 @@ pub fn calculate_credit_score(
                 score -= 0.2; // Penalty for risky new consolidation
             } else {
                 approved = false;
-                rejection_reason = Some("New consolidation borrower requires LTV < 50% for majority equity swap".to_string());
+                rejection_reason = Some(
+                    "New consolidation borrower requires LTV < 50% for majority equity swap"
+                        .to_string(),
+                );
             }
         }
     }
-    
+
     // Clamp score and premium
     score = score.max(0.0).min(1.0);
     risk_premium_bps = risk_premium_bps.max(0.0_f64).min(500.0_f64);
-    
+
     // Final approval threshold
     if score < 0.3 {
         approved = false;
         rejection_reason = Some(format!("Credit score too low: {:.2}", score));
     }
-    
+
     CreditScore {
         score,
         max_loan_amount,
@@ -803,25 +839,28 @@ pub fn issue_loan(
         bank_id,
         &balance_sheet.loans_issued,
     );
-    
+
     if !credit_score.approved {
         return Err(format!(
             "Credit check failed: {}",
-            credit_score.rejection_reason.unwrap_or("Unknown reason".to_string())
+            credit_score
+                .rejection_reason
+                .unwrap_or("Unknown reason".to_string())
         ));
     }
-    
+
     // Step 2: Calculate loan interest rate (XIBOR + Bank Margin + Risk Premium)
     let risk_premium = credit_score.risk_premium_bps / 10000.0; // Convert bps to decimal
     let interest_rate = xibor + bank_margin + risk_premium;
-    
+
     // Step 3: Simulate balance sheet expansion to check reserve requirement.
     // Phase 77: Subtract Lombard loans from effective reserves — borrowed
     // reserves from the CB Lombard facility cannot support further credit
     // creation. Only the bank's OWN reserves count toward lending capacity.
     let new_deposits = balance_sheet.deposits + principal;
     let required_reserves = new_deposits * central_bank.reserve_requirement_ratio;
-    let effective_reserves = balance_sheet.reserves_at_central_bank - balance_sheet.cb_lombard_loans;
+    let effective_reserves =
+        balance_sheet.reserves_at_central_bank - balance_sheet.cb_lombard_loans;
 
     if effective_reserves < required_reserves {
         return Err(format!(
@@ -830,13 +869,17 @@ pub fn issue_loan(
             balance_sheet.reserves_at_central_bank, balance_sheet.cb_lombard_loans
         ));
     }
-    
+
     // Step 4: Create loan record
     // Use timestamp-based ID instead of uuid to avoid dependency issues
-    let loan_id = format!("LOAN-{}-{}", bank_id, std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_nanos());
+    let loan_id = format!(
+        "LOAN-{}-{}",
+        bank_id,
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    );
     let loan = Loan {
         id: loan_id.clone(),
         borrower_id: borrower_id.to_string(),
@@ -857,17 +900,17 @@ pub fn issue_loan(
         pledged_to_covered_bond: None,
         extra: Map::new(),
     };
-    
+
     // Step 5: FRACTIONAL RESERVE CREDIT CREATION (Double-Entry)
     // Asset side: New loan created
     balance_sheet.loans_issued.push(loan.clone());
-    
+
     // Liability side: New deposit created (this is the money creation)
     balance_sheet.deposits += principal;
-    
+
     // IMPORTANT: reserves_at_central_bank DOES NOT change during loan creation
     // Reserves only change during clearing when borrower wires money to another bank
-    
+
     // Step 6: Return result for external borrower mutation
     Ok(LoanResult {
         loan,
@@ -1093,37 +1136,37 @@ pub struct BfgFund {
     /// Total reserves in the BFG pool (funded by bank premiums).
     #[serde(default)]
     pub reserves: f64,
-    
+
     /// Premium rate (percentage of total deposits charged each turn).
     /// Typical range: 0.05% to 0.20% (5-20 bps).
     #[serde(default = "default_bfg_premium")]
     pub premium_rate: f64,
-    
+
     /// Insurance limit multiplier (multiple of average national wage).
     /// Calculated dynamically: max_insured = average_wage * this_multiplier.
     #[serde(default = "default_insurance_multiplier")]
     pub insurance_limit_multiplier: f64,
-    
+
     /// Total payouts made (historical record).
     #[serde(default)]
     pub total_payouts: f64,
-    
+
     /// Number of bank failures covered.
     #[serde(default)]
     pub failures_covered: u32,
-    
+
     /// Last premium collection turn.
     #[serde(default)]
     pub last_premium_turn: u32,
-    
+
     /// Emergency liquidity loan from Central Bank (when reserves depleted).
     #[serde(default)]
     pub cb_emergency_loan: f64,
-    
+
     /// State subsidy received (non-refundable from Treasury).
     #[serde(default)]
     pub state_subsidy: f64,
-    
+
     /// Any additional BFG fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -1148,7 +1191,7 @@ impl BfgFund {
     pub fn calculate_max_insured_amount(&self, average_wage: f64) -> f64 {
         average_wage * self.insurance_limit_multiplier
     }
-    
+
     /// Collects mandatory premiums from all Commercial and Universal banks.
     ///
     /// # Arguments
@@ -1172,21 +1215,23 @@ impl BfgFund {
                 if let Some(ref bt) = bank.bank_type {
                     if bt == &BankType::Commercial || bt == &BankType::Universal {
                         let premium = bs.deposits * self.premium_rate;
-                        
+
                         // Double-entry: Bank pays premium from reserves only (asset transfer)
                         // tier_1_capital is NOT touched — premium is a reserve transfer,
                         // not a capital reduction. Previous code debited both asset and
                         // equity, destroying money mass by `premium` each turn (Black Hole 1.9).
-                        bs.reserves_at_central_bank -= premium;  // Asset decreases
-                        if bs.reserves_at_central_bank < 0.0 { bs.reserves_at_central_bank = 0.0; } // Phase 43: clamp
-                        self.reserves += premium;                 // BFG receives
+                        bs.reserves_at_central_bank -= premium; // Asset decreases
+                        if bs.reserves_at_central_bank < 0.0 {
+                            bs.reserves_at_central_bank = 0.0;
+                        } // Phase 43: clamp
+                        self.reserves += premium; // BFG receives
                     }
                 }
             }
         }
         self.last_premium_turn = current_turn;
     }
-    
+
     /// Receives emergency liquidity from Central Bank (short-term loan).
     ///
     /// # Arguments
@@ -1197,11 +1242,7 @@ impl BfgFund {
     /// * CB expands M0 to bail out the safety net (lender of last resort)
     /// * Loan is short-term, low-interest (below market rate)
     /// * Must be repaid from future premium collections
-    pub fn receive_cb_liquidity_line(
-        &mut self,
-        central_bank: &mut CentralBank,
-        amount: f64,
-    ) {
+    pub fn receive_cb_liquidity_line(&mut self, central_bank: &mut CentralBank, amount: f64) {
         if amount <= 0.0 {
             return;
         }
@@ -1210,7 +1251,7 @@ impl BfgFund {
         self.reserves += amount;
         central_bank.liquidity_injected += amount;
     }
-    
+
     /// Receives state subsidy from Treasury (non-refundable).
     ///
     /// # Arguments
@@ -1221,27 +1262,19 @@ impl BfgFund {
     /// * Direct cash injection from government budget
     /// * Non-refundable (not a loan)
     /// * Used to replenish BFG reserves during systemic crises
-    pub fn receive_state_subsidy(
-        &mut self,
-        treasury: &mut crate::state::Treasury,
-        amount: f64,
-    ) {
+    pub fn receive_state_subsidy(&mut self, treasury: &mut crate::state::Treasury, amount: f64) {
         // Treasury transfers liquid reserves to BFG
         treasury.liquid_reserves -= amount;
         self.state_subsidy += amount;
         self.reserves += amount;
     }
-    
+
     /// Repays Central Bank emergency loan from premium collections.
     ///
     /// # Arguments
     /// * `central_bank` - Reference to Central Bank
     /// * `amount` - Repayment amount
-    pub fn repay_cb_liquidity_line(
-        &mut self,
-        central_bank: &mut CentralBank,
-        amount: f64,
-    ) {
+    pub fn repay_cb_liquidity_line(&mut self, central_bank: &mut CentralBank, amount: f64) {
         let repayment = amount.min(self.cb_emergency_loan);
         if repayment <= 0.0 {
             return;
@@ -1259,37 +1292,37 @@ pub struct SobkScheme {
     /// Total liquidity pool (funded by voluntary member contributions).
     #[serde(default)]
     pub pool: f64,
-    
+
     /// Preferential rate spread over XIBOR (below CB Lombard).
     /// Typical: 50 bps (vs Lombard: 150-200 bps).
     #[serde(default = "default_sobk_spread")]
     pub preferential_spread: f64,
-    
+
     /// Maximum loan percentage of pool per member per turn.
     /// Prevents single member from draining the entire pool.
     #[serde(default = "default_max_loan_percent")]
     pub max_loan_percent_of_pool: f64,
-    
+
     /// Member bank IDs and their contribution history.
     #[serde(default)]
     pub members: Vec<String>,
-    
+
     /// Outstanding SOBK loans (member_id -> amount).
     #[serde(default)]
     pub outstanding_loans: HashMap<String, f64>,
-    
+
     /// Last turn when pool was rebalanced.
     #[serde(default)]
     pub last_rebalance_turn: u32,
-    
+
     /// Emergency liquidity loan from Central Bank (when pool depleted).
     #[serde(default)]
     pub cb_emergency_loan: f64,
-    
+
     /// State subsidy received (non-refundable from Treasury).
     #[serde(default)]
     pub state_subsidy: f64,
-    
+
     /// Any additional SOBK fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -1313,26 +1346,23 @@ impl SobkScheme {
     /// * Bank: reserves_at_central_bank decreases (contribution)
     /// * SOBK: pool increases (contribution received)
     /// * Money mass preserved: Reserves move from bank to SOBK ledger
-    pub fn accept_contribution(
-        &mut self,
-        bank: &mut crate::entities::Company,
-    ) {
+    pub fn accept_contribution(&mut self, bank: &mut crate::entities::Company) {
         if let Some(bs) = &mut bank.balance_sheet {
             // Banks contribute excess reserves (above requirement)
             let excess = bs.reserve_position(0.10); // Using 10% reserve ratio
             if excess > 0.0 {
                 let contribution = excess * 0.5; // Contribute 50% of excess
-                
+
                 bs.reserves_at_central_bank -= contribution;
                 self.pool += contribution;
-                
+
                 if !self.members.contains(&bank.id) {
                     self.members.push(bank.id.clone());
                 }
             }
         }
     }
-    
+
     /// Provides emergency loan to member bank (called from InterbankMarket).
     ///
     /// # Arguments
@@ -1358,29 +1388,32 @@ impl SobkScheme {
         if !self.members.contains(&bank_id.to_string()) {
             return 0.0;
         }
-        
+
         // Dynamic max loan based on pool percentage (not hardcoded)
         let max_allowed = self.pool * self.max_loan_percent_of_pool;
-        
+
         // Check if bank has outstanding loans
         let current_outstanding = self.outstanding_loans.get(bank_id).copied().unwrap_or(0.0);
         if current_outstanding >= max_allowed {
             return 0.0;
         }
-        
+
         // Cap loan amount
         let available = self.pool;
         let remaining_allowance = max_allowed - current_outstanding;
         let loan_amount = amount.min(available).min(remaining_allowance);
-        
+
         if loan_amount > 0.0 {
             self.pool -= loan_amount;
-            *self.outstanding_loans.entry(bank_id.to_string()).or_insert(0.0) += loan_amount;
+            *self
+                .outstanding_loans
+                .entry(bank_id.to_string())
+                .or_insert(0.0) += loan_amount;
         }
-        
+
         loan_amount
     }
-    
+
     /// Receives emergency liquidity from Central Bank (short-term loan).
     ///
     /// # Arguments
@@ -1391,11 +1424,7 @@ impl SobkScheme {
     /// * CB expands M0 to bail out the safety net (lender of last resort)
     /// * Loan is short-term, low-interest (below market rate)
     /// * Must be repaid from future member contributions
-    pub fn receive_cb_liquidity_line(
-        &mut self,
-        central_bank: &mut CentralBank,
-        amount: f64,
-    ) {
+    pub fn receive_cb_liquidity_line(&mut self, central_bank: &mut CentralBank, amount: f64) {
         if amount <= 0.0 {
             return;
         }
@@ -1404,7 +1433,7 @@ impl SobkScheme {
         self.pool += amount;
         central_bank.liquidity_injected += amount;
     }
-    
+
     /// Receives state subsidy from Treasury (non-refundable).
     ///
     /// # Arguments
@@ -1415,32 +1444,24 @@ impl SobkScheme {
     /// * Direct cash injection from government budget
     /// * Non-refundable (not a loan)
     /// * Used to replenish SOBK pool during systemic crises
-    pub fn receive_state_subsidy(
-        &mut self,
-        treasury: &mut crate::state::Treasury,
-        amount: f64,
-    ) {
+    pub fn receive_state_subsidy(&mut self, treasury: &mut crate::state::Treasury, amount: f64) {
         // Treasury transfers liquid reserves to SOBK
         treasury.liquid_reserves -= amount;
         self.state_subsidy += amount;
         self.pool += amount;
     }
-    
+
     /// Repays SOBK emergency loan.
     ///
     /// # Arguments
     /// * `bank_id` - The member bank repaying
     /// * `amount` - Repayment amount
-    pub fn repay_loan(
-        &mut self,
-        bank_id: &str,
-        amount: f64,
-    ) {
+    pub fn repay_loan(&mut self, bank_id: &str, amount: f64) {
         if let Some(outstanding) = self.outstanding_loans.get_mut(bank_id) {
             let repayment = amount.min(*outstanding);
             *outstanding -= repayment;
             self.pool += repayment;
-            
+
             if *outstanding < 1e-9 {
                 self.outstanding_loans.remove(bank_id);
             }
@@ -1601,48 +1622,55 @@ impl BankResolution {
         central_bank: &mut CentralBank,
     ) {
         // Find and extract the failed bank from the vector
-        let failed_bank_index = all_banks.iter().position(|b| b.id == failed_bank_id)
+        let failed_bank_index = all_banks
+            .iter()
+            .position(|b| b.id == failed_bank_id)
             .expect("Failed bank must exist");
-        
+
         let failed_bank = all_banks.swap_remove(failed_bank_index);
-        
-        let bs = failed_bank.balance_sheet.as_mut().expect("Bank must have balance sheet");
-        
+
+        let bs = failed_bank
+            .balance_sheet
+            .as_mut()
+            .expect("Bank must have balance sheet");
+
         // Step 1: Calculate insured vs uninsured deposits
         let _max_insured = bfg_fund.calculate_max_insured_amount(average_wage);
         let total_deposits = bs.deposits;
-        
+
         // Assume average depositor has 50% of deposits uninsured (simplified)
         let insured_deposits = total_deposits * 0.5;
         let uninsured_deposits = total_deposits - insured_deposits;
-        
+
         // Step 2: Wipe out existing shareholders (Equity → 0)
         let equity_wiped = failed_bank.company_capital;
         failed_bank.owners.clear();
         failed_bank.state_share = 0.0;
         failed_bank.company_capital = 0.0;
         bs.tier_1_capital = 0.0; // Equity wiped
-        
+
         // Step 3: Good Bank / Bad Bank Split
         // Bridge Bank (Good Bank) keeps assets and insured liabilities
         let _bridge_bank_assets = bs.loans_issued.clone();
         let _bridge_bank_real_estate = bs.real_estate;
         let bridge_bank_insured_deposits = insured_deposits;
-        
+
         // BFG (Bad Bank) absorbs toxic liabilities
         // Use HashMap for specific creditor tracking
         let mut toxic_interbank_total = 0.0;
         let failed_bank_key = failed_bank_id.to_string();
         for (lender_id, amount) in bs.interbank_loans_taken.iter() {
             toxic_interbank_total += amount;
-            
+
             // Repay specific lending bank
             for bank in all_banks.iter_mut() {
                 if bank.id == *lender_id {
                     if let Some(other_bs) = &mut bank.balance_sheet {
                         other_bs.reserves_at_central_bank += amount;
                         // Decrement the interbank loan amount
-                        if let Some(loan_amount) = other_bs.interbank_loans_given.get_mut(&failed_bank_key) {
+                        if let Some(loan_amount) =
+                            other_bs.interbank_loans_given.get_mut(&failed_bank_key)
+                        {
                             *loan_amount -= amount;
                         }
                     }
@@ -1650,36 +1678,37 @@ impl BankResolution {
                 }
             }
         }
-        
+
         // Clean up zero or negative interbank loans after all repayments
         for bank in all_banks.iter_mut() {
             if let Some(other_bs) = &mut bank.balance_sheet {
                 other_bs.interbank_loans_given.retain(|_, v| *v > 0.0);
             }
         }
-        
+
         // Clean up the specific failed bank entry from all lenders
         for bank in all_banks.iter_mut() {
             if let Some(other_bs) = &mut bank.balance_sheet {
                 other_bs.interbank_loans_given.remove(&failed_bank_key);
             }
         }
-        
+
         let toxic_lombard = bs.cb_lombard_loans;
         let toxic_uninsured = uninsured_deposits;
         let total_toxic = toxic_interbank_total + toxic_lombard + toxic_uninsured;
-        
+
         // Step 4: Clean Bridge Bank balance sheet
         bs.deposits = bridge_bank_insured_deposits;
         bs.interbank_loans_taken.clear(); // Toxic debt removed (HashMap)
         bs.cb_lombard_loans = 0.0; // Toxic debt removed
-        
+
         // Step 5: Route creditor payments (Money Mass Preservation)
         // 5a: Interbank loans already repaid to specific lenders above
 
         // 5b: Repay CB Lombard loans to Central Bank
         // CB liquidity_injected decreases — M0 contracts as Lombard loan is extinguished
-        central_bank.liquidity_injected = (central_bank.liquidity_injected - toxic_lombard).max(0.0);
+        central_bank.liquidity_injected =
+            (central_bank.liquidity_injected - toxic_lombard).max(0.0);
 
         // 5c: Uninsured deposits are written off (depositors take haircut)
         // The deposits were already extinguished at line 1460 (bs.deposits = insured_deposits).
@@ -1698,23 +1727,24 @@ impl BankResolution {
         // Floor at 0.0 to prevent BFG from going negative (Black Hole 1.11)
         bfg_fund.reserves = (bfg_fund.reserves - total_bfg_payout).max(0.0);
         bfg_fund.total_payouts += total_bfg_payout;
-        
+
         // Step 7: BFG becomes 100% owner of Bridge Bank
         failed_bank.owners.insert("BFG".to_string(), 1.0);
         failed_bank.state_share = 1.0;
-        
+
         // Step 8: Mark as bridge bank with takeover timestamp
-        self.bridge_banks.insert(failed_bank.id.clone(), current_turn);
-        
+        self.bridge_banks
+            .insert(failed_bank.id.clone(), current_turn);
+
         // Step 9: Update statistics
         self.banks_resolved += 1;
         self.equity_wiped_out += equity_wiped;
         self.toxic_liabilities_absorbed += total_toxic;
-        
+
         // Step 10: Return the bridge bank to the vector
         all_banks.push(failed_bank);
     }
-    
+
     /// Checks if a bridge bank is ready for privatization.
     ///
     /// # Arguments
@@ -1735,15 +1765,15 @@ impl BankResolution {
                 return false; // Minimum 12 turns before privatization
             }
         }
-        
+
         // Check if Tier 1 Capital has stabilized (positive and growing)
         if let Some(bs) = &bridge_bank.balance_sheet {
             return bs.tier_1_capital > 0.0 && bs.is_balanced();
         }
-        
+
         false
     }
-    
+
     /// Privatizes a bridge bank by auctioning shares to private investors.
     ///
     /// # Arguments
@@ -1767,26 +1797,26 @@ impl BankResolution {
         // Remove BFG ownership
         bridge_bank.owners.remove("BFG");
         bridge_bank.state_share = 0.0;
-        
+
         // Transfer to new owners
         for (owner_id, share) in new_owners {
             bridge_bank.owners.insert(owner_id, share);
         }
-        
+
         // Inject new equity capital
         bridge_bank.company_capital = auction_price;
         if let Some(bs) = &mut bridge_bank.balance_sheet {
             bs.tier_1_capital = auction_price;
         }
-        
+
         // Transfer auction revenue to BFG
         bfg_fund.reserves += auction_price;
         self.privatization_revenue += auction_price;
-        
+
         // Remove from bridge bank registry
         self.bridge_banks.remove(&bridge_bank.id);
     }
-    
+
     /// Liquidates a bridge bank that cannot be privatized.
     ///
     /// # Arguments
@@ -1805,14 +1835,17 @@ impl BankResolution {
         _asset_buyers: HashMap<String, f64>,
         bfg_fund: &mut BfgFund,
     ) {
-        let bs = bridge_bank.balance_sheet.as_ref().expect("Bank must have balance sheet");
-        
+        let bs = bridge_bank
+            .balance_sheet
+            .as_ref()
+            .expect("Bank must have balance sheet");
+
         // Calculate total asset value (simplified)
         let total_assets = bs.total_assets();
-        
+
         // Calculate remaining liabilities
         let total_liabilities = bs.total_liabilities();
-        
+
         // If assets > liabilities, surplus goes to BFG
         // If assets < liabilities, BFG absorbs shortfall
         let shortfall = total_liabilities - total_assets;
@@ -1820,7 +1853,7 @@ impl BankResolution {
             bfg_fund.reserves -= shortfall;
             bfg_fund.total_payouts += shortfall;
         }
-        
+
         // Remove from bridge bank registry
         self.bridge_banks.remove(&bridge_bank.id);
 
@@ -1848,16 +1881,19 @@ impl BankResolution {
         for (borrower_id, face_value) in loans {
             let recovery_value = face_value * recovery_rate.clamp(0.0, 1.0);
             let asset_id = format!("{}:loan:{}", bank_id, borrower_id);
-            self.distressed_assets.insert(asset_id, DistressedAsset {
-                face_value: *face_value,
-                recovery_value,
-                asset_type: "loan".to_string(),
-                counterparty_id: borrower_id.clone(),
-                source_bank_id: bank_id.to_string(),
-                seized_turn,
-                recovered_amount: 0.0,
-                is_resolved: recovery_value <= 0.0,
-            });
+            self.distressed_assets.insert(
+                asset_id,
+                DistressedAsset {
+                    face_value: *face_value,
+                    recovery_value,
+                    asset_type: "loan".to_string(),
+                    counterparty_id: borrower_id.clone(),
+                    source_bank_id: bank_id.to_string(),
+                    seized_turn,
+                    recovered_amount: 0.0,
+                    is_resolved: recovery_value <= 0.0,
+                },
+            );
         }
     }
 
@@ -1874,16 +1910,19 @@ impl BankResolution {
         for (issuer_id, face_value) in bonds {
             let recovery_value = face_value * market_value_rate.clamp(0.0, 1.0);
             let asset_id = format!("{}:bond:{}", bank_id, issuer_id);
-            self.distressed_assets.insert(asset_id, DistressedAsset {
-                face_value: *face_value,
-                recovery_value,
-                asset_type: "bond".to_string(),
-                counterparty_id: issuer_id.clone(),
-                source_bank_id: bank_id.to_string(),
-                seized_turn,
-                recovered_amount: 0.0,
-                is_resolved: recovery_value <= 0.0,
-            });
+            self.distressed_assets.insert(
+                asset_id,
+                DistressedAsset {
+                    face_value: *face_value,
+                    recovery_value,
+                    asset_type: "bond".to_string(),
+                    counterparty_id: issuer_id.clone(),
+                    source_bank_id: bank_id.to_string(),
+                    seized_turn,
+                    recovered_amount: 0.0,
+                    is_resolved: recovery_value <= 0.0,
+                },
+            );
         }
     }
 
@@ -1891,11 +1930,7 @@ impl BankResolution {
     ///
     /// Returns the amount recovered. This amount may be added to liquid
     /// reserves (it is now actual cash, not a contingent asset).
-    pub fn record_distressed_recovery(
-        &mut self,
-        asset_id: &str,
-        amount: f64,
-    ) -> f64 {
+    pub fn record_distressed_recovery(&mut self, asset_id: &str, amount: f64) -> f64 {
         if let Some(asset) = self.distressed_assets.get_mut(asset_id) {
             asset.record_recovery(amount)
         } else {
@@ -1927,10 +1962,7 @@ impl BankResolution {
     ///
     /// A bank can only be removed from the simulation after its balance sheet
     /// is fully settled (assets = liabilities = 0).
-    pub fn verify_zero_balance(
-        &self,
-        bridge_bank: &crate::entities::Company,
-    ) -> bool {
+    pub fn verify_zero_balance(&self, bridge_bank: &crate::entities::Company) -> bool {
         if let Some(bs) = &bridge_bank.balance_sheet {
             let total_assets = bs.total_assets();
             let total_liabilities = bs.total_liabilities();
@@ -1945,11 +1977,7 @@ impl BankResolution {
     ///
     /// After `max_bridge_duration_turns`, the bridge bank must be liquidated
     /// or reprivatized — it cannot operate indefinitely.
-    pub fn check_bridge_sunset(
-        &self,
-        bank_id: &str,
-        current_turn: u32,
-    ) -> bool {
+    pub fn check_bridge_sunset(&self, bank_id: &str, current_turn: u32) -> bool {
         if let Some(&takeover_turn) = self.bridge_banks.get(bank_id) {
             current_turn - takeover_turn >= self.max_bridge_duration_turns
         } else {
@@ -1966,39 +1994,39 @@ pub struct BankTax {
     /// When 0, the tax is inactive.
     #[serde(default)]
     pub active_turns_remaining: u32,
-    
+
     /// Tax rate applied to total bank assets (e.g., 0.01 for 1%).
     #[serde(default)]
     pub tax_rate: f64,
-    
+
     /// Revenue split percentage to Treasury (e.g., 0.50 for 50%).
     #[serde(default = "default_treasury_split")]
     pub treasury_split_percent: f64,
-    
+
     /// Revenue split percentage to BFG (e.g., 0.25 for 25%).
     #[serde(default = "default_bfg_split")]
     pub bfg_split_percent: f64,
-    
+
     /// Revenue split percentage to SOBK (e.g., 0.25 for 25%).
     #[serde(default = "default_sobk_split")]
     pub sobk_split_percent: f64,
-    
+
     /// Total tax collected (historical).
     #[serde(default)]
     pub total_collected: f64,
-    
+
     /// Treasury revenue received (historical).
     #[serde(default)]
     pub treasury_revenue: f64,
-    
+
     /// BFG revenue received (historical).
     #[serde(default)]
     pub bfg_revenue: f64,
-    
+
     /// SOBK revenue received (historical).
     #[serde(default)]
     pub sobk_revenue: f64,
-    
+
     /// Any additional bank tax fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -2026,7 +2054,7 @@ impl BankTax {
         self.active_turns_remaining = duration_turns;
         self.tax_rate = tax_rate;
     }
-    
+
     /// Collects bank tax from all Commercial and Universal banks.
     ///
     /// # Arguments
@@ -2066,10 +2094,10 @@ impl BankTax {
         if self.active_turns_remaining == 0 {
             return; // Tax not active
         }
-        
+
         let mut total_tax_collected = 0.0;
         let mut banks_to_resolve: Vec<String> = Vec::new();
-        
+
         for bank in banks.iter_mut() {
             if let Some(bs) = &mut bank.balance_sheet {
                 // Only Commercial and Universal banks pay bank tax
@@ -2077,26 +2105,28 @@ impl BankTax {
                     if bt == &BankType::Commercial || bt == &BankType::Universal {
                         let total_assets = bs.total_assets();
                         let tax_amount = total_assets * self.tax_rate;
-                        
+
                         // Check illiquidity before paying tax
                         let available_reserves = bs.reserves_at_central_bank;
-                        
+
                         if tax_amount > available_reserves {
                             // Bank cannot cover tax - attempt emergency liquidity
                             let shortfall = tax_amount - available_reserves;
-                            
+
                             // Try CB Lombard facility (last resort)
                             let lombard_available = central_bank.interest_rates.lombard_rate > 0.0;
-                            
+
                             if lombard_available {
                                 // Take Lombard loan to cover tax
                                 bs.cb_lombard_loans += shortfall;
                                 bs.reserves_at_central_bank += shortfall;
                                 central_bank.liquidity_injected += shortfall;
-                                
+
                                 // Now pay tax
                                 bs.reserves_at_central_bank -= tax_amount;
-                                if bs.reserves_at_central_bank < 0.0 { bs.reserves_at_central_bank = 0.0; } // Phase 43: clamp
+                                if bs.reserves_at_central_bank < 0.0 {
+                                    bs.reserves_at_central_bank = 0.0;
+                                } // Phase 43: clamp
                                 bs.tier_1_capital -= tax_amount;
                                 total_tax_collected += tax_amount;
                             } else {
@@ -2106,16 +2136,18 @@ impl BankTax {
                             }
                         } else {
                             // Bank has sufficient reserves - pay tax normally
-                            bs.reserves_at_central_bank -= tax_amount;  // Asset decreases
-                            if bs.reserves_at_central_bank < 0.0 { bs.reserves_at_central_bank = 0.0; } // Phase 43: clamp
-                            bs.tier_1_capital -= tax_amount;            // Equity decreases
+                            bs.reserves_at_central_bank -= tax_amount; // Asset decreases
+                            if bs.reserves_at_central_bank < 0.0 {
+                                bs.reserves_at_central_bank = 0.0;
+                            } // Phase 43: clamp
+                            bs.tier_1_capital -= tax_amount; // Equity decreases
                             total_tax_collected += tax_amount;
                         }
                     }
                 }
             }
         }
-        
+
         // Handle banks that defaulted due to tax illiquidity
         // This happens AFTER the main loop to avoid borrow checker violation
         for bank_id in banks_to_resolve {
@@ -2129,23 +2161,23 @@ impl BankTax {
                 central_bank,
             );
         }
-        
+
         // Revenue split routing
         let treasury_share = total_tax_collected * self.treasury_split_percent;
         let bfg_share = total_tax_collected * self.bfg_split_percent;
         let sobk_share = total_tax_collected * self.sobk_split_percent;
-        
+
         // Distribute revenue
         treasury.liquid_reserves += treasury_share;
         bfg_fund.reserves += bfg_share;
         sobk_scheme.pool += sobk_share;
-        
+
         // Update statistics
         self.total_collected += total_tax_collected;
         self.treasury_revenue += treasury_share;
         self.bfg_revenue += bfg_share;
         self.sobk_revenue += sobk_share;
-        
+
         // Decrement active turns
         self.active_turns_remaining = self.active_turns_remaining.saturating_sub(1);
     }
@@ -2220,8 +2252,8 @@ pub fn process_banking_turn(
 
     // Step 1: CB Rate Update (Phase 36: Taylor Rule with real GDP growth)
     let inflation = country.macro_indicators.inflation / 100.0; // Convert percent to decimal
-    // Phase 36: Compute real GDP growth from telemetry history instead of
-    // hardcoding 0.02. This was the root cause of the frozen 0% CB rate.
+                                                                // Phase 36: Compute real GDP growth from telemetry history instead of
+                                                                // hardcoding 0.02. This was the root cause of the frozen 0% CB rate.
     let gdp_growth = {
         let hist = &country.macro_indicators.telemetry_history;
         if hist.samples.len() >= 2 {
@@ -2238,11 +2270,9 @@ pub fn process_banking_turn(
     };
     // Phase 36: target_inflation is now read from self.target_inflation inside
     // update_reference_rate. The signature no longer takes target_inflation.
-    country.central_bank.update_reference_rate(
-        inflation,
-        gdp_growth,
-        current_turn,
-    );
+    country
+        .central_bank
+        .update_reference_rate(inflation, gdp_growth, current_turn);
 
     // Step 2: Pre-clearing OMO — CB adjusts aggregate reserves to steer XIBOR toward target.
     // Calculate total bank reserves and total securities (government bonds) held by banks.
@@ -2299,11 +2329,9 @@ pub fn process_banking_turn(
         .iter_mut()
         .filter(|c| c.bank_type.is_some() && c.balance_sheet.is_some())
         .collect();
-    country.interbank_market.clear_market(
-        &mut bank_refs,
-        &cb_clone,
-        current_turn,
-    );
+    country
+        .interbank_market
+        .clear_market(&mut bank_refs, &cb_clone, current_turn);
     result.xibor = country.interbank_market.xibor;
 
     // Step 4: Deposit Facility — banks with surplus reserves park them at CB and earn deposit rate.
@@ -2318,7 +2346,8 @@ pub fn process_banking_turn(
                 bs.reserves_at_central_bank -= position;
             }
             // Accrue interest on existing deposit facility balance
-            let interest = country.central_bank
+            let interest = country
+                .central_bank
                 .accrue_deposit_facility_interest(bs.cb_deposit_facility_balance);
             bs.reserves_at_central_bank += interest;
             result.deposit_facility_interest_paid += interest;
@@ -2338,10 +2367,13 @@ pub fn process_banking_turn(
                 bs.reserves_at_central_bank += needed;
             }
             // Accrue interest on existing Lombard loans (paid by bank to CB)
-            let interest = country.central_bank
+            let interest = country
+                .central_bank
                 .accrue_lombard_facility_interest(bs.cb_lombard_loans);
             bs.reserves_at_central_bank -= interest;
-            if bs.reserves_at_central_bank < 0.0 { bs.reserves_at_central_bank = 0.0; } // Phase 43: clamp
+            if bs.reserves_at_central_bank < 0.0 {
+                bs.reserves_at_central_bank = 0.0;
+            } // Phase 43: clamp
             result.lombard_facility_interest_received += interest;
             result.total_lombard_loans += bs.cb_lombard_loans;
         }
@@ -2477,13 +2509,21 @@ pub fn process_banking_turn(
 
             // Reduce the matching LoanRef and recompute total liabilities.
             if let Some(borrower) = companies.get_mut(borrower_idx) {
-                if let Some(loan_ref) = borrower.outstanding_loans.iter_mut().find(|l| l.loan_id == loan_id) {
+                if let Some(loan_ref) = borrower
+                    .outstanding_loans
+                    .iter_mut()
+                    .find(|l| l.loan_id == loan_id)
+                {
                     loan_ref.outstanding_balance = (loan_ref.outstanding_balance - amount).max(0.0);
                     if loan_ref.outstanding_balance <= 0.01 {
                         loan_ref.status = LoanStatus::Repaid;
                     }
                 }
-                borrower.liabilities = borrower.outstanding_loans.iter().map(|l| l.outstanding_balance).sum();
+                borrower.liabilities = borrower
+                    .outstanding_loans
+                    .iter()
+                    .map(|l| l.outstanding_balance)
+                    .sum();
             }
         } else {
             // CASE C: Borrower vanished — mark loan as Default (cleaned in bankruptcy)
@@ -2555,9 +2595,17 @@ pub fn process_banking_turn(
                 continue;
             }
             // Check total asset under management cap
-            let current_assets = companies[bi].balance_sheet.as_ref().map(|bs| {
-                bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>() + bs.securities
-            }).unwrap_or(0.0);
+            let current_assets = companies[bi]
+                .balance_sheet
+                .as_ref()
+                .map(|bs| {
+                    bs.loans_issued
+                        .iter()
+                        .map(|l| l.outstanding_balance)
+                        .sum::<f64>()
+                        + bs.securities
+                })
+                .unwrap_or(0.0);
             if current_assets + principal > capacity.max_asset_under_management {
                 continue;
             }
@@ -2586,7 +2634,11 @@ pub fn process_banking_turn(
                     term_turns: lr.loan.term_turns,
                     status: lr.loan.status.clone(),
                 });
-                companies[borrower_idx].liabilities = companies[borrower_idx].outstanding_loans.iter().map(|l| l.outstanding_balance).sum();
+                companies[borrower_idx].liabilities = companies[borrower_idx]
+                    .outstanding_loans
+                    .iter()
+                    .map(|l| l.outstanding_balance)
+                    .sum();
                 companies[borrower_idx].available_cash += lr.principal_amount;
                 if let Some(ref mut ba) = companies[borrower_idx].brokerage_account {
                     ba.cash += lr.principal_amount;
@@ -2605,13 +2657,20 @@ pub fn process_banking_turn(
         .iter_mut()
         .filter(|c| c.bank_type.is_some() && c.balance_sheet.is_some())
         .collect();
-    country.bfg_fund.collect_premiums(&mut bank_refs_2, current_turn);
+    country
+        .bfg_fund
+        .collect_premiums(&mut bank_refs_2, current_turn);
 
     // BFG repays CB emergency loan from premium collections (Black Hole 1.10 fix)
     // Each turn, BFG uses available reserves to repay outstanding CB emergency debt.
     if country.bfg_fund.cb_emergency_loan > 0.0 && country.bfg_fund.reserves > 0.0 {
-        let repayment = country.bfg_fund.reserves.min(country.bfg_fund.cb_emergency_loan);
-        country.bfg_fund.repay_cb_liquidity_line(&mut country.central_bank, repayment);
+        let repayment = country
+            .bfg_fund
+            .reserves
+            .min(country.bfg_fund.cb_emergency_loan);
+        country
+            .bfg_fund
+            .repay_cb_liquidity_line(&mut country.central_bank, repayment);
     }
 
     // Step 9: Bank Tax (if active)
@@ -2662,10 +2721,7 @@ pub fn process_banking_turn(
     }
 
     // Update stress indicator
-    let total_banks = companies
-        .iter()
-        .filter(|c| c.bank_type.is_some())
-        .count();
+    let total_banks = companies.iter().filter(|c| c.bank_type.is_some()).count();
     country.interbank_market.update_stress_indicator(
         result.bank_failures,
         total_banks,
@@ -2699,7 +2755,9 @@ pub fn process_banking_turn(
         let bank_wage = (avg_wage_for_reserve * 1.2).max(1.0);
         let current_fte = (companies[bank_idx].prev_fulfilled_fte as f64).max(2.0);
         let payroll_reserve = current_fte * bank_wage;
-        let bank_cash = companies[bank_idx].brokerage_account.as_ref()
+        let bank_cash = companies[bank_idx]
+            .brokerage_account
+            .as_ref()
             .map(|ba| ba.cash)
             .unwrap_or(companies[bank_idx].available_cash);
         // Available for lending = equity-based credit, minus payroll reserve.
@@ -2739,7 +2797,11 @@ pub fn process_banking_turn(
             if !bank_region.is_empty() && companies[borrower_idx].region_id != bank_region {
                 continue;
             }
-            let borrower_cash = companies[borrower_idx].brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
+            let borrower_cash = companies[borrower_idx]
+                .brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash)
+                .unwrap_or(0.0);
             if borrower_cash > 50000.0 {
                 continue;
             }
@@ -2805,9 +2867,15 @@ pub fn process_banking_turn(
             let region = country.regions.iter_mut().find(|r| r.id == loan.region_id);
             if let Some(region) = region {
                 let class = if loan.is_rural {
-                    region.class_demographics.rural_classes.get_mut(&loan.class_key)
+                    region
+                        .class_demographics
+                        .rural_classes
+                        .get_mut(&loan.class_key)
                 } else {
-                    region.class_demographics.urban_classes.get_mut(&loan.class_key)
+                    region
+                        .class_demographics
+                        .urban_classes
+                        .get_mut(&loan.class_key)
                 };
                 if let Some(class) = class {
                     let total_payment = principal_pay + interest_pay;
@@ -2843,15 +2911,23 @@ pub fn process_banking_turn(
         result.total_loan_repayments += repayment_principal + repayment_interest;
 
         // Remove fully repaid loans
-        bank.consumer_loans.retain(|l| l.outstanding_principal > 1.0);
+        bank.consumer_loans
+            .retain(|l| l.outstanding_principal > 1.0);
 
         // Issue new consumer loans to classes with low savings
         // Phase 40: Reserve payroll cash before consumer lending.
-        let bs_cap = bank.balance_sheet.as_ref().map(|bs| bs.total_assets() - bs.total_liabilities()).unwrap_or(0.0).max(0.0);
+        let bs_cap = bank
+            .balance_sheet
+            .as_ref()
+            .map(|bs| bs.total_assets() - bs.total_liabilities())
+            .unwrap_or(0.0)
+            .max(0.0);
         let bank_wage_cons = (avg_wage_for_reserve * 1.2).max(1.0);
         let current_fte_cons = (bank.prev_fulfilled_fte as f64).max(2.0);
         let payroll_reserve_cons = current_fte_cons * bank_wage_cons;
-        let bank_cash_cons = bank.brokerage_account.as_ref()
+        let bank_cash_cons = bank
+            .brokerage_account
+            .as_ref()
             .map(|ba| ba.cash)
             .unwrap_or(bank.available_cash);
         let cash_avail_for_cons = (bank_cash_cons - payroll_reserve_cons).max(0.0);
@@ -2865,21 +2941,36 @@ pub fn process_banking_turn(
                 continue;
             }
             // Issue to rural classes
-            let rural_keys: Vec<String> = region.class_demographics.rural_classes.keys().cloned().collect();
+            let rural_keys: Vec<String> = region
+                .class_demographics
+                .rural_classes
+                .keys()
+                .cloned()
+                .collect();
             for key in &rural_keys {
                 if issued_total >= max_consumer_credit {
                     break;
                 }
-                let class = region.class_demographics.rural_classes.get_mut(key).unwrap();
+                let class = region
+                    .class_demographics
+                    .rural_classes
+                    .get_mut(key)
+                    .unwrap();
                 if class.population <= 0 || class.debt > 0.0 {
                     continue; // Already has debt
                 }
-                let per_capita_savings = if class.population > 0 { class.savings / class.population as f64 } else { 0.0 };
+                let per_capita_savings = if class.population > 0 {
+                    class.savings / class.population as f64
+                } else {
+                    0.0
+                };
                 let avg_wage = country.macro_indicators.average_wage;
                 if per_capita_savings > avg_wage * 0.5 {
                     continue; // Not poor enough to need a loan
                 }
-                let loan_amount = (avg_wage * class.population as f64 * 0.1).min(max_consumer_credit - issued_total).min(100000.0);
+                let loan_amount = (avg_wage * class.population as f64 * 0.1)
+                    .min(max_consumer_credit - issued_total)
+                    .min(100000.0);
                 if loan_amount < 100.0 {
                     continue;
                 }
@@ -2901,21 +2992,36 @@ pub fn process_banking_turn(
                 break;
             }
             // Issue to urban classes
-            let urban_keys: Vec<String> = region.class_demographics.urban_classes.keys().cloned().collect();
+            let urban_keys: Vec<String> = region
+                .class_demographics
+                .urban_classes
+                .keys()
+                .cloned()
+                .collect();
             for key in &urban_keys {
                 if issued_total >= max_consumer_credit {
                     break;
                 }
-                let class = region.class_demographics.urban_classes.get_mut(key).unwrap();
+                let class = region
+                    .class_demographics
+                    .urban_classes
+                    .get_mut(key)
+                    .unwrap();
                 if class.population <= 0 || class.debt > 0.0 {
                     continue;
                 }
-                let per_capita_savings = if class.population > 0 { class.savings / class.population as f64 } else { 0.0 };
+                let per_capita_savings = if class.population > 0 {
+                    class.savings / class.population as f64
+                } else {
+                    0.0
+                };
                 let avg_wage = country.macro_indicators.average_wage;
                 if per_capita_savings > avg_wage * 0.5 {
                     continue;
                 }
-                let loan_amount = (avg_wage * class.population as f64 * 0.1).min(max_consumer_credit - issued_total).min(100000.0);
+                let loan_amount = (avg_wage * class.population as f64 * 0.1)
+                    .min(max_consumer_credit - issued_total)
+                    .min(100000.0);
                 if loan_amount < 100.0 {
                     continue;
                 }
@@ -2944,7 +3050,7 @@ pub fn process_banking_turn(
     if cpi_inflation < 0.0 {
         let gdp = country.budget.gdp.max(1.0);
         let qe_cap = gdp * 0.05; // 5% of GDP per turn
-        // Find DSPW banks with securities to sell
+                                 // Find DSPW banks with securities to sell
         let mut total_qe = 0.0;
         for bank in companies.iter_mut() {
             if bank.bank_type.is_none() || !bank.is_dspw {
@@ -2991,20 +3097,32 @@ pub fn process_banking_turn(
             continue;
         }
         let bs = bank.balance_sheet.as_ref();
-        let total_loans: f64 = bs.map(|b| b.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>()).unwrap_or(0.0);
-        let consumer_loans_total: f64 = bank.consumer_loans.iter().map(|l| l.outstanding_principal).sum::<f64>();
+        let total_loans: f64 = bs
+            .map(|b| {
+                b.loans_issued
+                    .iter()
+                    .map(|l| l.outstanding_balance)
+                    .sum::<f64>()
+            })
+            .unwrap_or(0.0);
+        let consumer_loans_total: f64 = bank
+            .consumer_loans
+            .iter()
+            .map(|l| l.outstanding_principal)
+            .sum::<f64>();
         let current_portfolio = total_loans + consumer_loans_total;
         // Phase 38: Smooth portfolio using a moving average stored in extra.
         // This prevents FTE demand from spiking when a batch of loans is issued
         // and crashing when they're repaid.
         let prev_portfolio = bank.temporary_disruption_modifier; // reuse as scratch
         let smoothed_portfolio = if prev_portfolio > 0.0 {
-            prev_portfolio * (1.0 - BANK_PORTFOLIO_SMOOTHING) + current_portfolio * BANK_PORTFOLIO_SMOOTHING
+            prev_portfolio * (1.0 - BANK_PORTFOLIO_SMOOTHING)
+                + current_portfolio * BANK_PORTFOLIO_SMOOTHING
         } else {
             current_portfolio
         };
         bank.temporary_disruption_modifier = smoothed_portfolio; // store for next turn
-        // 1 FTE per 100,000 currency units of loans (tellers, loan officers, etc.)
+                                                                 // 1 FTE per 100,000 currency units of loans (tellers, loan officers, etc.)
         let fte_demand = (smoothed_portfolio / 100_000.0).ceil();
         // Phase 38: Cap FTE growth at 10% per turn relative to prev_fulfilled_fte.
         // Banks start small and scale conservatively. Min 2 FTE for basic operations.
@@ -3018,20 +3136,24 @@ pub fn process_banking_turn(
         } else {
             // Slowly adjust toward 120% of market average, max 2% per turn.
             let bank_target = (avg_wage * 1.2).max(50.0);
-            let adjustment = (bank_target - bank.target_wage).clamp(
-                -bank.target_wage * 0.02,
-                bank.target_wage * 0.02,
-            );
+            let adjustment = (bank_target - bank.target_wage)
+                .clamp(-bank.target_wage * 0.02, bank.target_wage * 0.02);
             bank.target_wage = (bank.target_wage + adjustment).max(50.0);
         }
         let bank_wage = bank.target_wage;
         bank.offered_wage_per_fte = bank_wage;
         // Phase 38: Compute max affordable FTE from available cash (15% for payroll)
-        let bank_cash = bank.brokerage_account.as_ref()
+        let bank_cash = bank
+            .brokerage_account
+            .as_ref()
             .map(|ba| ba.cash)
             .unwrap_or(bank.available_cash);
         let payroll_budget = bank_cash * BANK_PAYROLL_FRACTION;
-        let max_affordable = if bank_wage > 0.0 { payroll_budget / bank_wage } else { 0.0 };
+        let max_affordable = if bank_wage > 0.0 {
+            payroll_budget / bank_wage
+        } else {
+            0.0
+        };
         bank.target_fte_demand = growth_capped_demand.min(max_affordable).max(2.0).round() as u32; // Min 2 FTE
         bank.physical_fte_demand = bank.target_fte_demand;
     }
@@ -3103,9 +3225,12 @@ pub fn dspw_auction_settlement(
         let buyer_idx = companies.iter().position(|c| {
             c.is_dspw
                 && primary_dealer_ids.contains(&c.id)
-                && c.balance_sheet.as_ref().map(|bs| {
-                    bs.reserves_at_central_bank * max_bank_reserve_fraction >= purchase_price
-                }).unwrap_or(false)
+                && c.balance_sheet
+                    .as_ref()
+                    .map(|bs| {
+                        bs.reserves_at_central_bank * max_bank_reserve_fraction >= purchase_price
+                    })
+                    .unwrap_or(false)
         });
 
         if let Some(bank_idx) = buyer_idx {
@@ -3114,8 +3239,10 @@ pub fn dspw_auction_settlement(
             if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
                 // Debit bank reserves.
                 bs.reserves_at_central_bank -= purchase_price;
-                if bs.reserves_at_central_bank < 0.0 { bs.reserves_at_central_bank = 0.0; } // Phase 43: clamp
-                // Credit bank securities holdings.
+                if bs.reserves_at_central_bank < 0.0 {
+                    bs.reserves_at_central_bank = 0.0;
+                } // Phase 43: clamp
+                  // Credit bank securities holdings.
                 bs.securities += purchase_price;
             }
 
@@ -3197,7 +3324,8 @@ mod tests {
             pledged_to_covered_bond: None,
             extra: Map::new(),
         });
-        bs.interbank_loans_given.insert("BANK-2".to_string(), 20_000.0);
+        bs.interbank_loans_given
+            .insert("BANK-2".to_string(), 20_000.0);
         bs.securities = 30_000.0;
         bs.real_estate = 200_000.0;
 
@@ -3210,7 +3338,8 @@ mod tests {
         let mut bs = BankBalanceSheet::default();
         bs.deposits = 500_000.0;
         bs.cb_lombard_loans = 10_000.0;
-        bs.interbank_loans_taken.insert("BANK-2".to_string(), 20_000.0);
+        bs.interbank_loans_taken
+            .insert("BANK-2".to_string(), 20_000.0);
         bs.issued_bonds = 100_000.0;
 
         let liabilities = bs.total_liabilities();
@@ -3265,7 +3394,9 @@ mod tests {
             "COMP-1".to_string(),
             "Test Company".to_string(),
             Sector::LightIndustry,
-            crate::entities::LegalForm::JointStockCompany(crate::entities::JointStockData::default()),
+            crate::entities::LegalForm::JointStockCompany(
+                crate::entities::JointStockData::default(),
+            ),
             100_000.0, // fixed_capital
             50_000.0,  // liquid_capital
             100,
@@ -3294,7 +3425,9 @@ mod tests {
             "COMP-1".to_string(),
             "Test Company".to_string(),
             Sector::LightIndustry,
-            crate::entities::LegalForm::JointStockCompany(crate::entities::JointStockData::default()),
+            crate::entities::LegalForm::JointStockCompany(
+                crate::entities::JointStockData::default(),
+            ),
             200_000.0, // fixed_capital
             150_000.0, // liquid_capital
             100,
@@ -3322,7 +3455,9 @@ mod tests {
             "COMP-1".to_string(),
             "Test Company".to_string(),
             Sector::LightIndustry,
-            crate::entities::LegalForm::JointStockCompany(crate::entities::JointStockData::default()),
+            crate::entities::LegalForm::JointStockCompany(
+                crate::entities::JointStockData::default(),
+            ),
             200_000.0, // fixed_capital
             300_000.0, // liquid_capital (high liquidity ratio)
             100,
@@ -3371,7 +3506,9 @@ mod tests {
             "COMP-1".to_string(),
             "Test Company".to_string(),
             Sector::LightIndustry,
-            crate::entities::LegalForm::JointStockCompany(crate::entities::JointStockData::default()),
+            crate::entities::LegalForm::JointStockCompany(
+                crate::entities::JointStockData::default(),
+            ),
             200_000.0, // fixed_capital
             150_000.0, // liquid_capital
             100,
@@ -3409,7 +3546,9 @@ mod tests {
             "COMP-1".to_string(),
             "Test Company".to_string(),
             Sector::LightIndustry,
-            crate::entities::LegalForm::JointStockCompany(crate::entities::JointStockData::default()),
+            crate::entities::LegalForm::JointStockCompany(
+                crate::entities::JointStockData::default(),
+            ),
             200_000.0,
             150_000.0,
             100,
@@ -3458,7 +3597,9 @@ mod tests {
             "COMP-1".to_string(),
             "Test Company".to_string(),
             Sector::LightIndustry,
-            crate::entities::LegalForm::JointStockCompany(crate::entities::JointStockData::default()),
+            crate::entities::LegalForm::JointStockCompany(
+                crate::entities::JointStockData::default(),
+            ),
             200_000.0,
             150_000.0,
             100,
@@ -3483,7 +3624,9 @@ mod tests {
         );
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Reserve requirement violation"));
+        assert!(result
+            .unwrap_err()
+            .contains("Reserve requirement violation"));
     }
 
     // ========================================================================
@@ -3496,7 +3639,9 @@ mod tests {
             "BANK-1".to_string(),
             "Bank 1".to_string(),
             Sector::Banking,
-            crate::entities::LegalForm::JointStockCompany(crate::entities::JointStockData::default()),
+            crate::entities::LegalForm::JointStockCompany(
+                crate::entities::JointStockData::default(),
+            ),
             0.0,
             0.0,
             0,
@@ -3513,7 +3658,9 @@ mod tests {
             "BANK-2".to_string(),
             "Bank 2".to_string(),
             Sector::Banking,
-            crate::entities::LegalForm::JointStockCompany(crate::entities::JointStockData::default()),
+            crate::entities::LegalForm::JointStockCompany(
+                crate::entities::JointStockData::default(),
+            ),
             0.0,
             0.0,
             0,

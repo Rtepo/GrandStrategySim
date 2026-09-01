@@ -13,9 +13,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::society::cadastre::{
-        Cadastre, ParcelChunk, ParcelOwnerType, ZoningDesignation,
-    };
+    use crate::society::cadastre::{Cadastre, ParcelChunk, ParcelOwnerType, ZoningDesignation};
     use crate::society::geography::{
         CityRegionMetadata, FactionDomainType, LocalLaws, MicroRegion, MicroRegionBudget, Region,
     };
@@ -57,8 +55,7 @@ mod tests {
     #[test]
     fn test_housing_has_heating_methods() {
         // Verify the registry contains the "District Heating" entry.
-        let registry =
-            crate::registries::production_methods_data::default_production_methods();
+        let registry = crate::registries::production_methods_data::default_production_methods();
         let housing = registry
             .get("housing_consumption")
             .expect("housing_consumption registry must exist");
@@ -128,14 +125,7 @@ mod tests {
         // guild_count = 3 >= 2
         // development = 0.6 > 0.5
         let result = check_emancipation_triggers(
-            &domain,
-            &region,
-            30_000.0,
-            100_000.0,
-            10.0,
-            3,
-            1000.0,
-            &config,
+            &domain, &region, 30_000.0, 100_000.0, 10.0, 3, 1000.0, &config,
         );
         assert!(result, "All triggers met → should emancipate");
     }
@@ -148,14 +138,7 @@ mod tests {
 
         // 100 people / 10 hectares = 10 people/km² << 500 threshold
         let result = check_emancipation_triggers(
-            &domain,
-            &region,
-            30_000.0,
-            100_000.0,
-            10.0,
-            3,
-            1000.0,
-            &config,
+            &domain, &region, 30_000.0, 100_000.0, 10.0, 3, 1000.0, &config,
         );
         assert!(!result, "Low density → should NOT emancipate");
     }
@@ -168,14 +151,7 @@ mod tests {
 
         // domain_gdp = 10_000 < 25_000 (25% of 100_000)
         let result = check_emancipation_triggers(
-            &domain,
-            &region,
-            10_000.0,
-            100_000.0,
-            10.0,
-            3,
-            1000.0,
-            &config,
+            &domain, &region, 10_000.0, 100_000.0, 10.0, 3, 1000.0, &config,
         );
         assert!(!result, "Low GDP share → should NOT emancipate");
     }
@@ -188,14 +164,7 @@ mod tests {
 
         // liquid_reserves = 100_000 < 500 × 1000 = 500_000
         let result = check_emancipation_triggers(
-            &domain,
-            &region,
-            30_000.0,
-            100_000.0,
-            10.0,
-            3,
-            1000.0,
-            &config,
+            &domain, &region, 30_000.0, 100_000.0, 10.0, 3, 1000.0, &config,
         );
         assert!(!result, "Low capital → should NOT emancipate");
     }
@@ -208,14 +177,7 @@ mod tests {
 
         // guild_count = 1 < 2
         let result = check_emancipation_triggers(
-            &domain,
-            &region,
-            30_000.0,
-            100_000.0,
-            10.0,
-            1,
-            1000.0,
-            &config,
+            &domain, &region, 30_000.0, 100_000.0, 10.0, 1, 1000.0, &config,
         );
         assert!(!result, "Low guild count → should NOT emancipate");
     }
@@ -228,14 +190,7 @@ mod tests {
 
         // development = 0.3 < 0.5
         let result = check_emancipation_triggers(
-            &domain,
-            &region,
-            30_000.0,
-            100_000.0,
-            10.0,
-            3,
-            1000.0,
-            &config,
+            &domain, &region, 30_000.0, 100_000.0, 10.0, 3, 1000.0, &config,
         );
         assert!(!result, "Low development → should NOT emancipate");
     }
@@ -248,14 +203,7 @@ mod tests {
         let config = EmancipationConfig::default();
 
         let result = check_emancipation_triggers(
-            &domain,
-            &region,
-            30_000.0,
-            100_000.0,
-            10.0,
-            3,
-            1000.0,
-            &config,
+            &domain, &region, 30_000.0, 100_000.0, 10.0, 3, 1000.0, &config,
         );
         assert!(!result, "Non-GuildBurgher domain → should NOT emancipate");
     }
@@ -391,11 +339,7 @@ mod tests {
 
         assert!(result.is_some());
         let city_id = result.unwrap().new_city_region_id.unwrap();
-        let city = country
-            .regions
-            .iter()
-            .find(|r| r.id == city_id)
-            .unwrap();
+        let city = country.regions.iter().find(|r| r.id == city_id).unwrap();
 
         // Domain budget → city treasury (exact transfer).
         assert_eq!(
@@ -425,7 +369,11 @@ mod tests {
         let config = EmancipationConfig::default();
         let cost = evaluate_annexation_cost(&parcel, 1000.0, false, &config);
         // 10 ha × 1000 × (1 + 0.5) × 2.0 = 30_000
-        assert!((cost - 30_000.0).abs() < 0.01, "Basic cost = 30_000, got {}", cost);
+        assert!(
+            (cost - 30_000.0).abs() < 0.01,
+            "Basic cost = 30_000, got {}",
+            cost
+        );
     }
 
     #[test]
@@ -514,8 +462,7 @@ mod tests {
         );
         // Company available_cash NOT credited (single ledger — Correction 1).
         assert_eq!(
-            companies[0].available_cash,
-            initial_company_cash,
+            companies[0].available_cash, initial_company_cash,
             "Company available_cash must NOT be credited (single ledger rule)"
         );
     }
@@ -658,8 +605,7 @@ mod tests {
         assert!(city.is_city(), "Ghost town must still be a city");
         assert_eq!(city.population, 0, "Ghost town has zero population");
         assert_eq!(
-            city.treasury.liquid_reserves,
-            0.0,
+            city.treasury.liquid_reserves, 0.0,
             "Ghost town has empty treasury"
         );
     }
@@ -690,7 +636,10 @@ mod tests {
             snapshot.cities[0].treasury_reserves, 0.0,
             "Foreign observer must see 0 treasury (Rule 11)"
         );
-        assert_eq!(snapshot.cities[0].population, 50_000, "Population is public");
+        assert_eq!(
+            snapshot.cities[0].population, 50_000,
+            "Population is public"
+        );
     }
 
     #[test]

@@ -15,9 +15,13 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GenerativeGoodsConfig {
     // ── Blueprint design (19A) ──────────────────────────────────────────────
-    /// R&D budget a company must spend to design one `ProductBlueprint`.
-    #[serde(default = "default_blueprint_design_cost")]
-    pub blueprint_design_cost: f64,
+    /// Phase 95: Multiplier for dynamic blueprint design cost computation.
+    /// The actual cost is `average_wage * sector_capital_intensity_multiplier * this_multiplier`.
+    /// Default 100.0 (so a HeavyIndustry blueprint costs 100× `average_wage × 4.0`).
+    /// This replaces the old static `blueprint_design_cost: 50000.0` which was
+    /// not inflation-proof (Rule 2).
+    #[serde(default = "default_blueprint_design_cost_multiplier")]
+    pub blueprint_design_cost_multiplier: f64,
     /// Maximum number of blueprints a single company may hold.
     #[serde(default = "default_max_blueprints_per_company")]
     pub max_blueprints_per_company: usize,
@@ -98,8 +102,8 @@ pub struct GenerativeGoodsConfig {
     pub extra: Map<String, Value>,
 }
 
-fn default_blueprint_design_cost() -> f64 {
-    50000.0
+fn default_blueprint_design_cost_multiplier() -> f64 {
+    100.0
 }
 fn default_max_blueprints_per_company() -> usize {
     8
@@ -155,10 +159,26 @@ fn default_quality_weights() -> HashMap<WealthBracket, f64> {
     m
 }
 
+/// Phase 95: Compute the dynamic blueprint design cost.
+///
+/// `cost = average_wage * sector_capital_intensity_multiplier(sector) * config.blueprint_design_cost_multiplier`
+///
+/// This is inflation-proof (scales with `average_wage`) and sector-sensitive
+/// (HeavyIndustry blueprints cost more than LightIndustry blueprints).
+pub fn compute_blueprint_design_cost(
+    sector: crate::registries::enums::Sector,
+    average_wage: f64,
+    config: &GenerativeGoodsConfig,
+) -> f64 {
+    let intensity =
+        crate::corporate::capital_intensity::sector_capital_intensity_multiplier(sector);
+    average_wage * intensity * config.blueprint_design_cost_multiplier
+}
+
 impl Default for GenerativeGoodsConfig {
     fn default() -> Self {
         Self {
-            blueprint_design_cost: default_blueprint_design_cost(),
+            blueprint_design_cost_multiplier: default_blueprint_design_cost_multiplier(),
             max_blueprints_per_company: default_max_blueprints_per_company(),
             default_blueprint_royalty_ratio: default_blueprint_royalty_ratio(),
             blueprint_patent_turns: default_blueprint_patent_turns(),
@@ -188,7 +208,7 @@ mod tests {
     #[test]
     fn defaults_are_sane() {
         let c = GenerativeGoodsConfig::default();
-        assert!(c.blueprint_design_cost > 0.0);
+        assert!(c.blueprint_design_cost_multiplier > 0.0);
         assert!(c.max_fixed_cohorts_per_building >= 4);
         assert!(c.obsolescence_aggressiveness > 0.0);
         assert!(c.maintenance_per_condition_point > 0.0);

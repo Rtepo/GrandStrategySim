@@ -8,9 +8,7 @@
 use crate::economy::b2b_config::B2bOrderConfig;
 use crate::economy::market_history::{get_reference_price, MarketHistory};
 use crate::economy::order_book::{Bid, OrderBook};
-use crate::economy::transfer_settler::{
-    settle_company_to_company, settle_treasury_to_company,
-};
+use crate::economy::transfer_settler::{settle_company_to_company, settle_treasury_to_company};
 use crate::entities::{Building, Company};
 use crate::registries::enums::Commodity;
 use crate::state::Country;
@@ -67,7 +65,9 @@ pub fn submit_construction_b2b_orders(
         // Phase 36: For State-backed projects, accumulate pending tranche value
         // so the contractor can bid against guaranteed escrow.
         if project.investor_id.starts_with("STATE:") {
-            let pending: f64 = project.tranches.iter()
+            let pending: f64 = project
+                .tranches
+                .iter()
                 .filter(|t| !t.released)
                 .map(|t| t.amount)
                 .sum();
@@ -87,10 +87,11 @@ pub fn submit_construction_b2b_orders(
             if remaining_needed <= 0.0 {
                 continue;
             }
-            buyer_requests
-                .entry(buyer_id.clone())
-                .or_default()
-                .push((building.id.clone(), commodity, remaining_needed));
+            buyer_requests.entry(buyer_id.clone()).or_default().push((
+                building.id.clone(),
+                commodity,
+                remaining_needed,
+            ));
         }
     }
 
@@ -101,7 +102,10 @@ pub fn submit_construction_b2b_orders(
         // Phase 36: Include 50% of pending tranche value in bidding capacity
         // for State-backed projects. This prevents construction deadlock when
         // contractors have no current cash but have guaranteed Treasury escrow.
-        let pending = pending_tranche_value.get(&company.id).copied().unwrap_or(0.0);
+        let pending = pending_tranche_value
+            .get(&company.id)
+            .copied()
+            .unwrap_or(0.0);
         let effective_liquid = liquid + pending * 0.5;
         let max_encumber = effective_liquid * config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
@@ -145,17 +149,14 @@ pub fn submit_construction_b2b_orders(
             total_encumbered += encumbrance;
 
             // Submit bid with company.id as buyer_id
-            order_book.bids
-                .entry(*commodity)
-                .or_default()
-                .push(Bid {
-                    buyer_id: company.id.clone(),
-                    commodity: *commodity,
-                    quantity: bid_qty,
-                    limit_price,
-                    blueprint_id: None,
-                    min_quality: None,
-                });
+            order_book.bids.entry(*commodity).or_default().push(Bid {
+                buyer_id: company.id.clone(),
+                commodity: *commodity,
+                quantity: bid_qty,
+                limit_price,
+                blueprint_id: None,
+                min_quality: None,
+            });
         }
     }
 
@@ -251,7 +252,9 @@ pub fn advance_construction_projects(
 
             // Phase 23B: Transport network projects install a NetworkLink
             // instead of adding building capacity.
-            if project_type == crate::construction::projects::ConstructionProjectType::TransportNetwork {
+            if project_type
+                == crate::construction::projects::ConstructionProjectType::TransportNetwork
+            {
                 if let (Some((region_a, region_b)), Some(level)) =
                     (&project.network_link_target, project.network_target_level)
                 {

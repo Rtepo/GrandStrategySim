@@ -12,39 +12,39 @@ pub struct Bill {
     /// Bill ID
     #[serde(default)]
     pub id: String,
-    
+
     /// Bill title
     #[serde(default)]
     pub title: String,
-    
+
     /// Initiator party
     #[serde(default)]
     pub initiator: String,
-    
+
     /// Core clauses (cannot be removed)
     #[serde(default)]
     pub core_clauses: Vec<Clause>,
-    
+
     /// Concessions (can be added/removed during debate)
     #[serde(default)]
     pub concessions: Vec<Concession>,
-    
+
     /// Current legislative stage
     #[serde(default)]
     pub stage: LegislativeStage,
-    
+
     /// Committee assignment
     #[serde(skip_serializing_if = "Option::is_none")]
     pub committee: Option<String>,
-    
+
     /// Committee recommendation modifier (-0.3 to +0.3)
     #[serde(default)]
     pub committee_modifier: f64,
-    
+
     /// Turn when bill was introduced
     #[serde(default)]
     pub introduction_turn: u32,
-    
+
     /// Turn when bill should complete committee review
     #[serde(skip_serializing_if = "Option::is_none")]
     pub committee_completion_turn: Option<u32>,
@@ -63,7 +63,6 @@ pub struct Clause {
     pub description: String,
 
     /// Ideological impact vector (economy, liberty, tradition)
-
     pub ideological_vector: IdeologyCompass,
 
     /// Budget impact
@@ -114,15 +113,15 @@ pub struct Concession {
     /// Target councilor/faction
     #[serde(default)]
     pub target: String,
-    
+
     /// Concession description
     #[serde(default)]
     pub description: String,
-    
+
     /// Vote probability bonus
     #[serde(default)]
     pub vote_bonus: f64,
-    
+
     /// Budget cost
     #[serde(default)]
     pub cost: f64,
@@ -150,17 +149,16 @@ pub enum LegislativeStage {
     Rejected,
 }
 
-
 impl Bill {
     /// Create a new bill with core clauses
-    /// 
+    ///
     /// # Arguments
     /// * `id` - Unique bill identifier
     /// * `title` - Bill title
     /// * `initiator` - Party initiating the bill
     /// * `core_clauses` - Core clauses that cannot be removed
     /// * `current_turn` - Current game turn
-    /// 
+    ///
     /// # Returns
     /// New Bill in Introduced stage
     pub fn new(
@@ -190,22 +188,25 @@ impl Bill {
             weight,
         }
     }
-    
+
     /// Add a concession to the bill
-    /// 
+    ///
     /// # Arguments
     /// * `concession` - Concession to add
-    /// 
+    ///
     /// # Rules
     /// * Concessions can only be added during Committee or FloorVote stages
     pub fn add_concession(&mut self, concession: Concession) {
-        if matches!(self.stage, LegislativeStage::Committee | LegislativeStage::FloorVote) {
+        if matches!(
+            self.stage,
+            LegislativeStage::Committee | LegislativeStage::FloorVote
+        ) {
             self.concessions.push(concession);
         }
     }
-    
+
     /// Calculate total ideological impact of the bill
-    /// 
+    ///
     /// # Returns
     /// Combined ideological vector from all clauses
     pub fn calculate_ideological_impact(&self) -> IdeologyCompass {
@@ -214,13 +215,13 @@ impl Bill {
             liberty: 0.0,
             tradition: 0.0,
         };
-        
+
         for clause in &self.core_clauses {
             total.economy += clause.ideological_vector.economy;
             total.liberty += clause.ideological_vector.liberty;
             total.tradition += clause.ideological_vector.tradition;
         }
-        
+
         // Normalize by number of clauses
         let count = self.core_clauses.len() as f64;
         if count > 0.0 {
@@ -228,12 +229,12 @@ impl Bill {
             total.liberty /= count;
             total.tradition /= count;
         }
-        
+
         total
     }
-    
+
     /// Calculate total budget impact of the bill
-    /// 
+    ///
     /// # Returns
     /// Sum of core clause budget impacts plus concession costs
     pub fn calculate_budget_impact(&self) -> f64 {
@@ -241,31 +242,31 @@ impl Bill {
         let concession_cost: f64 = self.concessions.iter().map(|c| c.cost).sum();
         core_impact + concession_cost
     }
-    
+
     /// Calculate bill complexity for committee delay determination
-    /// 
+    ///
     /// # Returns
     /// Complexity score (0-10), higher = more complex = longer committee review
     pub fn calculate_complexity(&self) -> u32 {
         let clause_count = self.core_clauses.len() as u32;
         let budget_magnitude = (self.calculate_budget_impact().abs() / 10.0) as u32;
-        
+
         // Base complexity from clause count, plus budget impact
         let mut complexity = clause_count.min(5) + budget_magnitude.min(3);
-        
+
         // Major reforms (like Land Reform) get +3 complexity
         if self.title.contains("Reforma") || self.title.contains("Land") {
             complexity += 3;
         }
-        
+
         complexity.min(10)
     }
-    
+
     /// Advance bill to next stage
-    /// 
+    ///
     /// # Arguments
     /// * `current_turn` - Current game turn
-    /// 
+    ///
     /// # Returns
     /// True if advancement successful, false if bill cannot advance
     pub fn advance_stage(&mut self, _current_turn: u32) -> bool {
@@ -295,7 +296,7 @@ impl Bill {
             }
         }
     }
-    
+
     /// Reject the bill
     pub fn reject(&mut self) {
         self.stage = LegislativeStage::Rejected;
@@ -308,15 +309,15 @@ pub struct LegislativeSession {
     /// Active bills by ID
     #[serde(default)]
     pub active_bills: HashMap<String, Bill>,
-    
+
     /// Enacted laws (bill IDs)
     #[serde(default)]
     pub enacted_laws: Vec<String>,
-    
+
     /// Rejected bills (bill IDs)
     #[serde(default)]
     pub rejected_bills: Vec<String>,
-    
+
     /// Current session year
     #[serde(default)]
     pub session_year: u32,
@@ -324,10 +325,10 @@ pub struct LegislativeSession {
 
 impl LegislativeSession {
     /// Create a new legislative session
-    /// 
+    ///
     /// # Arguments
     /// * `year` - Session year
-    /// 
+    ///
     /// # Returns
     /// New LegislativeSession
     pub fn new(year: u32) -> Self {
@@ -338,12 +339,12 @@ impl LegislativeSession {
             session_year: year,
         }
     }
-    
+
     /// Introduce a new bill
-    /// 
+    ///
     /// # Arguments
     /// * `bill` - Bill to introduce
-    /// 
+    ///
     /// # Rules
     /// * Bill must be in Introduced stage
     pub fn introduce_bill(&mut self, bill: Bill) {
@@ -351,18 +352,18 @@ impl LegislativeSession {
             self.active_bills.insert(bill.id.clone(), bill);
         }
     }
-    
+
     /// Process bills for the current turn
-    /// 
+    ///
     /// # Arguments
     /// * `current_turn` - Current game turn
-    /// 
+    ///
     /// # Returns
     /// Vector of status messages
     pub fn process_turn(&mut self, current_turn: u32) -> Vec<String> {
         let mut messages = Vec::new();
         let mut bills_to_remove = Vec::new();
-        
+
         for (id, bill) in &mut self.active_bills {
             match bill.stage {
                 LegislativeStage::Committee => {
@@ -377,25 +378,19 @@ impl LegislativeSession {
                     }
                 }
                 LegislativeStage::Enacted => {
-                    messages.push(format!(
-                        "[BILL] Bill {} was passed",
-                        bill.title
-                    ));
+                    messages.push(format!("[BILL] Bill {} was passed", bill.title));
                     self.enacted_laws.push(id.clone());
                     bills_to_remove.push(id.clone());
                 }
                 LegislativeStage::Rejected => {
-                    messages.push(format!(
-                        "[BILL] Bill {} was rejected",
-                        bill.title
-                    ));
+                    messages.push(format!("[BILL] Bill {} was rejected", bill.title));
                     self.rejected_bills.push(id.clone());
                     bills_to_remove.push(id.clone());
                 }
                 _ => {}
             }
         }
-        
+
         // Remove completed bills
         for id in bills_to_remove {
             self.active_bills.remove(&id);
@@ -436,10 +431,7 @@ pub enum BillProvision {
         amount_per_unit: f64,
     },
     /// Deregulation of a sector.
-    Deregulation {
-        sector: String,
-        scope: String,
-    },
+    Deregulation { sector: String, scope: String },
     /// Healthcare law change.
     HealthcareLaw(crate::politics::laws::HealthcareLaw),
     /// Education law change.
@@ -447,9 +439,7 @@ pub enum BillProvision {
     /// Justice law change.
     JusticeLaw(crate::politics::laws::JusticeLaw),
     /// Infrastructure mandate.
-    InfrastructureMandate {
-        allocation_pct: f64,
-    },
+    InfrastructureMandate { allocation_pct: f64 },
     /// Free speech law change.
     FreeSpeechLaw(crate::politics::free_speech::FreeSpeechLaw),
     /// Transport law change.
@@ -574,10 +564,7 @@ pub struct SunsetProvision {
 ///
 /// # Returns
 /// Vector of diagnostic messages.
-pub fn enact_bill(
-    country: &mut crate::state::Country,
-    bill: &Bill,
-) -> Vec<String> {
+pub fn enact_bill(country: &mut crate::state::Country, bill: &Bill) -> Vec<String> {
     let mut messages = Vec::new();
 
     for clause in &bill.core_clauses {
@@ -762,17 +749,20 @@ mod phase48_tests {
     #[test]
     fn test_sunset_expiration_removes_provision() {
         let mut country = crate::state::Country::default();
-        country.politics.active_sunset_provisions.push(SunsetProvision {
-            bill_id: "BILL-001".to_string(),
-            clause_description: "Temporary tax cut".to_string(),
-            provision: BillProvision::TaxRateChange {
-                income_tax: Some(0.15),
-                vat: None,
-                corporate_tax: None,
-            },
-            expiry_turn: 10,
-            enacted_turn: 0,
-        });
+        country
+            .politics
+            .active_sunset_provisions
+            .push(SunsetProvision {
+                bill_id: "BILL-001".to_string(),
+                clause_description: "Temporary tax cut".to_string(),
+                provision: BillProvision::TaxRateChange {
+                    income_tax: Some(0.15),
+                    vat: None,
+                    corporate_tax: None,
+                },
+                expiry_turn: 10,
+                enacted_turn: 0,
+            });
 
         // Before expiration: 1 provision.
         assert_eq!(country.politics.active_sunset_provisions.len(), 1);
@@ -783,22 +773,28 @@ mod phase48_tests {
         assert!(country.politics.active_sunset_provisions.is_empty());
 
         // Political capital should have dropped (tax cut expiration).
-        assert!(country.politics.political_capital < 0.0 + 1e-6 || country.politics.political_capital == 0.0);
+        assert!(
+            country.politics.political_capital < 0.0 + 1e-6
+                || country.politics.political_capital == 0.0
+        );
     }
 
     #[test]
     fn test_sunset_not_yet_expired_retained() {
         let mut country = crate::state::Country::default();
-        country.politics.active_sunset_provisions.push(SunsetProvision {
-            bill_id: "BILL-002".to_string(),
-            clause_description: "Temporary subsidy".to_string(),
-            provision: BillProvision::Subsidy {
-                target: "HeavyIndustry".to_string(),
-                amount_per_unit: 5.0,
-            },
-            expiry_turn: 20,
-            enacted_turn: 0,
-        });
+        country
+            .politics
+            .active_sunset_provisions
+            .push(SunsetProvision {
+                bill_id: "BILL-002".to_string(),
+                clause_description: "Temporary subsidy".to_string(),
+                provision: BillProvision::Subsidy {
+                    target: "HeavyIndustry".to_string(),
+                    amount_per_unit: 5.0,
+                },
+                expiry_turn: 20,
+                enacted_turn: 0,
+            });
 
         // Process at turn 10 → not yet expired.
         let msgs = process_sunset_expirations(&mut country, 10);

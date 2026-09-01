@@ -163,7 +163,8 @@ pub fn process_religious_authority_turn(
     };
 
     // Check for Holy Sites with active temples.
-    let mut holy_site_religions: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut holy_site_religions: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
     for region in &country.regions {
         if let Some(holy_site) = &region.holy_site {
             let has_active_temple = cultural_buildings.iter().any(|b| {
@@ -214,8 +215,8 @@ pub fn process_religious_authority_turn(
             .collect();
 
         if !religion_buildings.is_empty() {
-            let avg_condition: f64 =
-                religion_buildings.iter().map(|b| b.condition).sum::<f64>() / religion_buildings.len() as f64;
+            let avg_condition: f64 = religion_buildings.iter().map(|b| b.condition).sum::<f64>()
+                / religion_buildings.len() as f64;
             authority += avg_condition * config.building_condition_weight;
 
             // Degradation penalty.
@@ -269,7 +270,7 @@ pub fn process_religious_authority_turn(
 mod tests {
     use super::*;
     use crate::society::geography::{ClassDemographics, Region};
-    use crate::state::{Country, macro_data::MacroData};
+    use crate::state::{macro_data::MacroData, Country};
 
     fn make_region(id: &str, religion: &str, pop: i64) -> Region {
         let mut region = Region::default();
@@ -277,7 +278,10 @@ mod tests {
         let mut class = ClassDemographics::default();
         class.population = pop;
         class.religion = religion.to_string();
-        region.class_demographics.rural_classes.insert("peasants".into(), class);
+        region
+            .class_demographics
+            .rural_classes
+            .insert("peasants".into(), class);
         region
     }
 
@@ -313,7 +317,11 @@ mod tests {
         let result = process_religious_authority_turn(&country, &buildings, &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         // Baseline = 0.3, no charity + followers < 1000 → no penalty
-        assert!((authority - 0.3).abs() < 0.01, "baseline authority should be 0.3, got {}", authority);
+        assert!(
+            (authority - 0.3).abs() < 0.01,
+            "baseline authority should be 0.3, got {}",
+            authority
+        );
     }
 
     #[test]
@@ -326,7 +334,11 @@ mod tests {
         let result = process_religious_authority_turn(&country, &buildings, &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         // Baseline 0.3 - no_charity_penalty 0.1 = 0.2
-        assert!((authority - 0.2).abs() < 0.01, "no charity with 2000 followers → 0.2, got {}", authority);
+        assert!(
+            (authority - 0.2).abs() < 0.01,
+            "no charity with 2000 followers → 0.2, got {}",
+            authority
+        );
     }
 
     #[test]
@@ -344,7 +356,11 @@ mod tests {
         let result = process_religious_authority_turn(&country, &buildings, &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         // Baseline 0.3 + state_religion_boost 0.3 = 0.6
-        assert!((authority - 0.6).abs() < 0.01, "state religion → 0.6, got {}", authority);
+        assert!(
+            (authority - 0.6).abs() < 0.01,
+            "state religion → 0.6, got {}",
+            authority
+        );
     }
 
     #[test]
@@ -363,7 +379,11 @@ mod tests {
         let result = process_religious_authority_turn(&country, &[building], &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         // Baseline 0.3 + condition 1.0 * 0.2 = 0.5
-        assert!((authority - 0.5).abs() < 0.01, "perfect building → 0.5, got {}", authority);
+        assert!(
+            (authority - 0.5).abs() < 0.01,
+            "perfect building → 0.5, got {}",
+            authority
+        );
     }
 
     #[test]
@@ -382,7 +402,11 @@ mod tests {
         let result = process_religious_authority_turn(&country, &[building], &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         // Baseline 0.3 + 0.1*0.2=0.02 - degradation 0.1 = 0.22
-        assert!((authority - 0.22).abs() < 0.01, "degraded building → 0.22, got {}", authority);
+        assert!(
+            (authority - 0.22).abs() < 0.01,
+            "degraded building → 0.22, got {}",
+            authority
+        );
     }
 
     #[test]
@@ -412,6 +436,10 @@ mod tests {
         let companies = sufficient_clergy("Catholicism", 500);
         let result = process_religious_authority_turn(&country, &[building], &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
-        assert!(authority <= 1.0, "authority should be clamped to 1.0, got {}", authority);
+        assert!(
+            authority <= 1.0,
+            "authority should be clamped to 1.0, got {}",
+            authority
+        );
     }
 }

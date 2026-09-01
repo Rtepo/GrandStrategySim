@@ -3,7 +3,7 @@
 //! This module implements physical asset lifecycle mechanics including
 //! condition degradation, maintenance costs, and market-based renovation.
 
-use crate::corporate::capital_intensity::{CapitalIntensity, sector_capital_intensity};
+use crate::corporate::capital_intensity::{sector_capital_intensity, CapitalIntensity};
 use crate::registries::enums::{Commodity, Sector};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -70,9 +70,9 @@ pub struct RenovationResult {
 /// * This prevents unit confusion where inflation would artificially inflate physical requirements
 pub fn calculate_renovation_bom(sector: &Sector) -> BTreeMap<Commodity, f64> {
     let mut bom = BTreeMap::new();
-    
+
     let intensity = sector_capital_intensity(sector);
-    
+
     // Static physical requirements based on CapitalIntensity
     match intensity {
         CapitalIntensity::Micro => {
@@ -110,7 +110,7 @@ pub fn calculate_renovation_bom(sector: &Sector) -> BTreeMap<Commodity, f64> {
             bom.insert(Commodity::Bricks, 150.0);
         }
     }
-    
+
     bom
 }
 
@@ -127,9 +127,9 @@ pub fn calculate_renovation_bom(sector: &Sector) -> BTreeMap<Commodity, f64> {
 /// * Maintenance is 90% services, 10% materials (ongoing upkeep)
 pub fn calculate_maintenance_bom(sector: &Sector) -> BTreeMap<Commodity, f64> {
     let mut bom = BTreeMap::new();
-    
+
     let intensity = sector_capital_intensity(sector);
-    
+
     // Maintenance is 90% services, 10% materials (ongoing upkeep)
     // Static physical requirements based on CapitalIntensity
     match intensity {
@@ -163,7 +163,7 @@ pub fn calculate_maintenance_bom(sector: &Sector) -> BTreeMap<Commodity, f64> {
             bom.insert(Commodity::Cement, 20.0);
         }
     }
-    
+
     bom
 }
 
@@ -198,11 +198,15 @@ pub fn calculate_opex_multiplier(condition: f64, config: &BuildingConditionConfi
 /// # Rules
 /// * Newer buildings degrade slower
 /// * Buildings in poor condition degrade faster (accelerated decay)
-pub fn calculate_degradation_rate(years_since_build: u32, condition: f64, config: &BuildingConditionConfig) -> f64 {
+pub fn calculate_degradation_rate(
+    years_since_build: u32,
+    condition: f64,
+    config: &BuildingConditionConfig,
+) -> f64 {
     let base_rate = config.base_degradation_rate;
     let age_factor = (years_since_build as f64 / config.max_age_years).min(1.0);
     let condition_factor = (1.0 - condition) * config.condition_decay_multiplier;
-    
+
     base_rate * (1.0 + age_factor + condition_factor)
 }
 
@@ -242,27 +246,27 @@ mod tests {
     fn test_calculate_opex_multiplier_half_condition() {
         let config = BuildingConditionConfig::default();
         let multiplier = calculate_opex_multiplier(0.5, &config);
-        assert_eq!(multiplier, 1.5);  // 1.0 + (1.0 - 0.5) * 1.0 = 1.5
+        assert_eq!(multiplier, 1.5); // 1.0 + (1.0 - 0.5) * 1.0 = 1.5
     }
 
     #[test]
     fn test_calculate_opex_multiplier_zero_condition() {
         let config = BuildingConditionConfig::default();
         let multiplier = calculate_opex_multiplier(0.0, &config);
-        assert_eq!(multiplier, 2.0);  // 1.0 + (1.0 - 0.0) * 1.0 = 2.0
+        assert_eq!(multiplier, 2.0); // 1.0 + (1.0 - 0.0) * 1.0 = 2.0
     }
 
     #[test]
     fn test_calculate_degradation_rate_new_building() {
         let config = BuildingConditionConfig::default();
         let rate = calculate_degradation_rate(0, 1.0, &config);
-        assert!(rate < 0.02);  // Should be close to base rate
+        assert!(rate < 0.02); // Should be close to base rate
     }
 
     #[test]
     fn test_calculate_degradation_rate_old_building() {
         let config = BuildingConditionConfig::default();
         let rate = calculate_degradation_rate(50, 0.5, &config);
-        assert!(rate > 0.01);  // Should be higher due to age and condition
+        assert!(rate > 0.01); // Should be higher due to age and condition
     }
 }

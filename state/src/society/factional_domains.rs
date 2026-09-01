@@ -84,7 +84,14 @@ pub fn generate_factional_domains(
 ) {
     // Pre-collect parcel ownership data from cadastre to avoid borrow conflicts
     // during the region iteration (Rule 9 — Rust-native architecture).
-    let parcel_ownership: HashMap<ParcelId, (ParcelOwnerType, String, crate::society::cadastre::ZoningDesignation)> = country
+    let parcel_ownership: HashMap<
+        ParcelId,
+        (
+            ParcelOwnerType,
+            String,
+            crate::society::cadastre::ZoningDesignation,
+        ),
+    > = country
         .cadastre
         .iter()
         .map(|(id, p)| (id, (p.owner_type, p.owner_id.clone(), p.zoning)))
@@ -116,7 +123,11 @@ pub fn generate_factional_domains(
             let domain_id = format!("{}-Domain{}", region.id, d + 1);
             let domain_name = format!(
                 "{} District {}",
-                if region.display_name.is_empty() { &region.id } else { &region.display_name },
+                if region.display_name.is_empty() {
+                    &region.id
+                } else {
+                    &region.display_name
+                },
                 d + 1
             );
 
@@ -189,7 +200,9 @@ pub fn generate_factional_domains(
             }
 
             // Store domain budget reference
-            region.microregion_budgets.insert(domain_id.clone(), MicroRegionBudget::default());
+            region
+                .microregion_budgets
+                .insert(domain_id.clone(), MicroRegionBudget::default());
 
             region.micro_regions.insert(domain_id, domain);
         }
@@ -206,7 +219,14 @@ pub fn generate_factional_domains(
 /// Determine faction type for a domain based on pre-collected parcel ownership.
 fn determine_faction_type_from_ownership(
     parcel_ids: &[ParcelId],
-    ownership: &HashMap<ParcelId, (ParcelOwnerType, String, crate::society::cadastre::ZoningDesignation)>,
+    ownership: &HashMap<
+        ParcelId,
+        (
+            ParcelOwnerType,
+            String,
+            crate::society::cadastre::ZoningDesignation,
+        ),
+    >,
     region: &Region,
     rng: &mut impl Rng,
 ) -> FactionDomainType {
@@ -229,7 +249,10 @@ fn determine_faction_type_from_ownership(
                 ParcelOwnerType::Corporate | ParcelOwnerType::ForeignFund => private_count += 1,
                 _ => {}
             }
-            if matches!(zoning, crate::society::cadastre::ZoningDesignation::Industrial) {
+            if matches!(
+                zoning,
+                crate::society::cadastre::ZoningDesignation::Industrial
+            ) {
                 industrial_count += 1;
             }
         }
@@ -370,10 +393,16 @@ pub fn apply_domain_modifiers(country: &mut Country) {
         // (These reduce state budget demand — handled by existing education/health modules)
         // Use existing CapacityType variants: PrimarySeats for education, HospitalBeds for health.
         if total_education_slots > 0 {
-            *region.capacity_pool.entry(crate::infrastructure::CapacityType::PrimarySeats).or_insert(0.0) += total_education_slots as f64;
+            *region
+                .capacity_pool
+                .entry(crate::infrastructure::CapacityType::PrimarySeats)
+                .or_insert(0.0) += total_education_slots as f64;
         }
         if total_health_capacity > 0.0 {
-            *region.capacity_pool.entry(crate::infrastructure::CapacityType::HospitalBeds).or_insert(0.0) += total_health_capacity;
+            *region
+                .capacity_pool
+                .entry(crate::infrastructure::CapacityType::HospitalBeds)
+                .or_insert(0.0) += total_health_capacity;
         }
     }
 }
@@ -388,7 +417,10 @@ pub fn get_domain_for_parcel<'a>(
     region: &'a Region,
     parcel: &ParcelChunk,
 ) -> Option<&'a MicroRegion> {
-    parcel.micro_region_id.as_ref().and_then(|id| get_domain(region, id))
+    parcel
+        .micro_region_id
+        .as_ref()
+        .and_then(|id| get_domain(region, id))
 }
 
 /// Collect all domains for a country, keyed by region_id then domain_id.

@@ -1,10 +1,10 @@
 use crate::state::AppState;
-use sim_engine::ui::snapshot::{
-    build_country_snapshot, CompanyPageResponse, CompanyDetail, ViewQuery, PageQuery, CompanyFilter,
-    RegionOption,
-};
-use sim_engine::registries::enums::Sector;
 use serde::Serialize;
+use sim_engine::registries::enums::Sector;
+use sim_engine::ui::snapshot::{
+    build_country_snapshot, CompanyDetail, CompanyFilter, CompanyPageResponse, PageQuery,
+    RegionOption, ViewQuery,
+};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SectorOption {
@@ -15,42 +15,64 @@ pub struct SectorOption {
 #[tauri::command]
 pub async fn get_available_sectors() -> Result<Vec<SectorOption>, String> {
     let sectors = vec![
-        Sector::Mining, Sector::Agriculture, Sector::HeavyIndustry, Sector::LightIndustry,
-        Sector::ArmamentsIndustry, Sector::LocalServices, Sector::ExportServices,
-        Sector::Construction, Sector::Energy, Sector::PublicServices,
-        Sector::MedicalServices, Sector::EducationalServices, Sector::TransportLogistics,
-        Sector::PublicAdministration, Sector::Banking, Sector::MediaAndEntertainment,
-        Sector::WasteManagement, Sector::Hospitality, Sector::NGO, Sector::Religion,
-        Sector::MaintenanceWorkshops, Sector::Government,
+        Sector::Mining,
+        Sector::Agriculture,
+        Sector::HeavyIndustry,
+        Sector::LightIndustry,
+        Sector::ArmamentsIndustry,
+        Sector::LocalServices,
+        Sector::ExportServices,
+        Sector::Construction,
+        Sector::Energy,
+        Sector::PublicServices,
+        Sector::MedicalServices,
+        Sector::EducationalServices,
+        Sector::TransportLogistics,
+        Sector::PublicAdministration,
+        Sector::Banking,
+        Sector::MediaAndEntertainment,
+        Sector::WasteManagement,
+        Sector::Hospitality,
+        Sector::NGO,
+        Sector::Religion,
+        Sector::MaintenanceWorkshops,
+        Sector::Government,
     ];
-    let result = sectors.iter().map(|s| {
-        let value = serde_json::to_string(s).unwrap_or_default().trim_matches('"').to_string();
-        let label = match s {
-            Sector::Mining => "Mining",
-            Sector::Agriculture => "Agriculture",
-            Sector::HeavyIndustry => "Heavy Industry",
-            Sector::LightIndustry => "Light Industry",
-            Sector::ArmamentsIndustry => "Armaments Industry",
-            Sector::LocalServices => "Local Services",
-            Sector::ExportServices => "Export Services",
-            Sector::Construction => "Construction",
-            Sector::Energy => "Energy",
-            Sector::PublicServices => "Public Services",
-            Sector::MedicalServices => "Medical Services",
-            Sector::EducationalServices => "Educational Services",
-            Sector::TransportLogistics => "Transport & Logistics",
-            Sector::PublicAdministration => "Public Administration",
-            Sector::Banking => "Banking",
-            Sector::MediaAndEntertainment => "Media & Entertainment",
-            Sector::WasteManagement => "Waste Management",
-            Sector::Hospitality => "Hospitality",
-            Sector::NGO => "NGO",
-            Sector::Religion => "Religion",
-            Sector::MaintenanceWorkshops => "Maintenance Workshops",
-            Sector::Government => "Government",
-        }.to_string();
-        SectorOption { value, label }
-    }).collect();
+    let result = sectors
+        .iter()
+        .map(|s| {
+            let value = serde_json::to_string(s)
+                .unwrap_or_default()
+                .trim_matches('"')
+                .to_string();
+            let label = match s {
+                Sector::Mining => "Mining",
+                Sector::Agriculture => "Agriculture",
+                Sector::HeavyIndustry => "Heavy Industry",
+                Sector::LightIndustry => "Light Industry",
+                Sector::ArmamentsIndustry => "Armaments Industry",
+                Sector::LocalServices => "Local Services",
+                Sector::ExportServices => "Export Services",
+                Sector::Construction => "Construction",
+                Sector::Energy => "Energy",
+                Sector::PublicServices => "Public Services",
+                Sector::MedicalServices => "Medical Services",
+                Sector::EducationalServices => "Educational Services",
+                Sector::TransportLogistics => "Transport & Logistics",
+                Sector::PublicAdministration => "Public Administration",
+                Sector::Banking => "Banking",
+                Sector::MediaAndEntertainment => "Media & Entertainment",
+                Sector::WasteManagement => "Waste Management",
+                Sector::Hospitality => "Hospitality",
+                Sector::NGO => "NGO",
+                Sector::Religion => "Religion",
+                Sector::MaintenanceWorkshops => "Maintenance Workshops",
+                Sector::Government => "Government",
+            }
+            .to_string();
+            SectorOption { value, label }
+        })
+        .collect();
     Ok(result)
 }
 
@@ -64,9 +86,7 @@ pub async fn get_available_regions(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -79,7 +99,11 @@ pub async fn get_available_regions(
             .iter()
             .map(|r| RegionOption {
                 value: r.id.clone(),
-                label: if r.display_name.is_empty() { r.id.clone() } else { r.display_name.clone() },
+                label: if r.display_name.is_empty() {
+                    r.id.clone()
+                } else {
+                    r.display_name.clone()
+                },
             })
             .collect();
         Ok(result)
@@ -101,9 +125,7 @@ pub async fn get_paginated_companies(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -155,9 +177,7 @@ pub async fn get_company_detail(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state

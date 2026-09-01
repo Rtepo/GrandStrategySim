@@ -279,7 +279,8 @@ impl WasteGridState {
     /// Capacity = route_km * condition * TONS_PER_KM_PER_TURN.
     pub fn recompute_capacity(&mut self) {
         const TONS_PER_KM_PER_TURN: f64 = 5.0;
-        self.collection_capacity = self.collection_route_km * self.route_condition * TONS_PER_KM_PER_TURN;
+        self.collection_capacity =
+            self.collection_route_km * self.route_condition * TONS_PER_KM_PER_TURN;
     }
 
     /// Add uncollected waste for a specific category.
@@ -360,7 +361,12 @@ pub struct LandfillState {
 
 impl LandfillState {
     /// Create a new landfill state with the given capacity and tier parameters.
-    pub fn new(total_capacity: f64, liner_integrity: f64, leachate_capture: f64, gas_capture: f64) -> Self {
+    pub fn new(
+        total_capacity: f64,
+        liner_integrity: f64,
+        leachate_capture: f64,
+        gas_capture: f64,
+    ) -> Self {
         Self {
             total_capacity,
             stored_waste: HashMap::new(),
@@ -629,9 +635,7 @@ fn verify_mass_balance(yields: &[(Commodity, f64)]) -> bool {
 pub fn is_centralized_waste_method(method_name: &str) -> bool {
     matches!(
         method_name,
-        "Unsegregated Collection"
-            | "Source-Separated Curbside"
-            | "Smart Sorted Collection"
+        "Unsegregated Collection" | "Source-Separated Curbside" | "Smart Sorted Collection"
     )
 }
 
@@ -677,7 +681,10 @@ pub fn waste_separation_efficiency(method_name: &str) -> f64 {
 /// Returns true if a standalone waste disposal method recovers BioWaste as
 /// Fertilizers (composting). Used for the fertilizer economic sink.
 pub fn waste_disposal_composts(method_name: &str) -> bool {
-    matches!(method_name, "Basic Homesteading" | "Advanced Rural Scavenging")
+    matches!(
+        method_name,
+        "Basic Homesteading" | "Advanced Rural Scavenging"
+    )
 }
 
 /// Returns true if a standalone waste disposal method recovers MetalWaste and
@@ -800,10 +807,7 @@ fn default_waste_margin() -> f64 {
 /// BioWaste, sorted fractions). Uses cost-plus pricing:
 /// fee = (opex + amortized_capex) / smoothed_volume * margin
 /// Fallback: average_wage * 0.3 (waste collection ~30% of monthly wage per household).
-pub fn compute_regulated_curbside_fee(
-    history: &WasteSalesHistory,
-    average_wage: f64,
-) -> f64 {
+pub fn compute_regulated_curbside_fee(history: &WasteSalesHistory, average_wage: f64) -> f64 {
     if history.smoothed_curbside_volume > 0.01 {
         let total_cost = history.curbside_opex + history.curbside_amortized_capex;
         let fee_per_ton = total_cost / history.smoothed_curbside_volume * history.margin;
@@ -820,10 +824,7 @@ pub fn compute_regulated_curbside_fee(
 /// CRITICAL FIX 4: Gate fee covers heavy intermittent waste (ConstructionWaste,
 /// BulkyWaste, HazardousWaste) dropped off at Civic Amenity Sites.
 /// Uses cost-plus pricing with a higher fallback (heavy waste is expensive to process).
-pub fn compute_regulated_gate_fee(
-    history: &WasteSalesHistory,
-    average_wage: f64,
-) -> f64 {
+pub fn compute_regulated_gate_fee(history: &WasteSalesHistory, average_wage: f64) -> f64 {
     if history.smoothed_gate_volume > 0.01 {
         let total_cost = history.gate_opex + history.gate_amortized_capex;
         // Gate fee includes disposal cost for hazardous waste specialized handling
@@ -915,7 +916,10 @@ pub fn process_waste_epic_turn(
         // Buildings with standalone waste disposal methods dispose of their
         // own waste. The dumping vector is selected based on region geography.
         let forest_area_fraction = {
-            if let Some(forest_data) = region.land_use_inventory.get_category(crate::society::geography::LandCategory::Forests) {
+            if let Some(forest_data) = region
+                .land_use_inventory
+                .get_category(crate::society::geography::LandCategory::Forests)
+            {
                 if region.land_use_inventory.total_area > 0.0 {
                     forest_data.area_hectares / region.land_use_inventory.total_area
                 } else {
@@ -955,7 +959,10 @@ pub fn process_waste_epic_turn(
 
         // Forest dumping → forestry ecological health degradation
         if dumping_vector.degrades_forestry() {
-            if let Some(forest_data) = region.land_use_inventory.get_category_mut(crate::society::geography::LandCategory::Forests) {
+            if let Some(forest_data) = region
+                .land_use_inventory
+                .get_category_mut(crate::society::geography::LandCategory::Forests)
+            {
                 forest_data.ecological_health =
                     (forest_data.ecological_health - standalone_waste * 0.0005).max(0.0);
             }
@@ -966,7 +973,9 @@ pub fn process_waste_epic_turn(
         // (representing waste picked up by collection routes). It will be
         // routed to separation plants or landfills.
         if centralized_waste > 0.0 {
-            region.waste_grid.add_uncollected(Commodity::MixedWaste, centralized_waste);
+            region
+                .waste_grid
+                .add_uncollected(Commodity::MixedWaste, centralized_waste);
         }
 
         // ── W.4–W.6: Process through separation, recycling, WtE ──
@@ -988,20 +997,35 @@ pub fn process_waste_epic_turn(
             }
             // Check building active method to determine plant type
             let method_name = building.active_method.active_methods.production.as_str();
-            if method_name.contains("Sorting") || method_name.contains("Manual Sorting") || method_name.contains("Optical") {
+            if method_name.contains("Sorting")
+                || method_name.contains("Manual Sorting")
+                || method_name.contains("Optical")
+            {
                 separation_capacity += building.worker_capacity as f64 * 0.1;
-            } else if method_name.contains("Smelting") || method_name.contains("Shredder")
-                || method_name.contains("Crushing") || method_name.contains("Baling")
-                || method_name.contains("Dismantling") || method_name.contains("Textile") {
+            } else if method_name.contains("Smelting")
+                || method_name.contains("Shredder")
+                || method_name.contains("Crushing")
+                || method_name.contains("Baling")
+                || method_name.contains("Dismantling")
+                || method_name.contains("Textile")
+            {
                 recycling_capacity += building.worker_capacity as f64 * 0.1;
-            } else if method_name.contains("Incinerator") || method_name.contains("Combustion")
-                || method_name.contains("Fluidized") || method_name.contains("CHP") {
+            } else if method_name.contains("Incinerator")
+                || method_name.contains("Combustion")
+                || method_name.contains("Fluidized")
+                || method_name.contains("CHP")
+            {
                 wte_capacity += building.worker_capacity as f64 * 0.1;
             }
         }
 
         // W.4: Separation — convert MixedWaste to sorted fractions
-        let uncollected_mixed = region.waste_grid.uncollected_waste.get(&Commodity::MixedWaste).copied().unwrap_or(0.0);
+        let uncollected_mixed = region
+            .waste_grid
+            .uncollected_waste
+            .get(&Commodity::MixedWaste)
+            .copied()
+            .unwrap_or(0.0);
         let separated_amount = uncollected_mixed.min(separation_capacity);
         if separated_amount > 0.0 {
             let yields = separation_yields();
@@ -1012,16 +1036,28 @@ pub fn process_waste_epic_turn(
                 }
             }
             // Remove the separated MixedWaste
-            *region.waste_grid.uncollected_waste.entry(Commodity::MixedWaste).or_insert(0.0) -= separated_amount;
+            *region
+                .waste_grid
+                .uncollected_waste
+                .entry(Commodity::MixedWaste)
+                .or_insert(0.0) -= separated_amount;
         }
 
         // W.5: Recycling — convert sorted fractions to virgin commodities + residual
         let recyclable_commodities = [
-            Commodity::MetalWaste, Commodity::GlassWaste, Commodity::PlasticWaste,
-            Commodity::ElectronicWaste, Commodity::TextileWaste,
+            Commodity::MetalWaste,
+            Commodity::GlassWaste,
+            Commodity::PlasticWaste,
+            Commodity::ElectronicWaste,
+            Commodity::TextileWaste,
         ];
         for commodity in &recyclable_commodities {
-            let available = region.waste_grid.uncollected_waste.get(commodity).copied().unwrap_or(0.0);
+            let available = region
+                .waste_grid
+                .uncollected_waste
+                .get(commodity)
+                .copied()
+                .unwrap_or(0.0);
             if available <= 0.0 || recycling_capacity <= 0.0 {
                 continue;
             }
@@ -1030,7 +1066,9 @@ pub fn process_waste_epic_turn(
             for (output_commodity, fraction) in &yields {
                 let qty = process_amount * fraction;
                 if qty > 0.0 {
-                    if *output_commodity == Commodity::MixedWaste || *output_commodity == Commodity::HazardousWaste {
+                    if *output_commodity == Commodity::MixedWaste
+                        || *output_commodity == Commodity::HazardousWaste
+                    {
                         // Residual goes back to uncollected
                         region.waste_grid.add_uncollected(*output_commodity, qty);
                     } else {
@@ -1039,16 +1077,31 @@ pub fn process_waste_epic_turn(
                     }
                 }
             }
-            *region.waste_grid.uncollected_waste.entry(*commodity).or_insert(0.0) -= process_amount;
+            *region
+                .waste_grid
+                .uncollected_waste
+                .entry(*commodity)
+                .or_insert(0.0) -= process_amount;
         }
 
         // W.6: WtE — incinerate residual MixedWaste → Energy + ash
-        let residual_mixed = region.waste_grid.uncollected_waste.get(&Commodity::MixedWaste).copied().unwrap_or(0.0);
+        let residual_mixed = region
+            .waste_grid
+            .uncollected_waste
+            .get(&Commodity::MixedWaste)
+            .copied()
+            .unwrap_or(0.0);
         let incinerated = residual_mixed.min(wte_capacity);
         let ash_generated = incinerated * WTE_ASH_FRACTION_BASIC;
         if incinerated > 0.0 {
-            *region.waste_grid.uncollected_waste.entry(Commodity::MixedWaste).or_insert(0.0) -= incinerated;
-            region.waste_grid.add_uncollected(Commodity::HazardousWaste, ash_generated);
+            *region
+                .waste_grid
+                .uncollected_waste
+                .entry(Commodity::MixedWaste)
+                .or_insert(0.0) -= incinerated;
+            region
+                .waste_grid
+                .add_uncollected(Commodity::HazardousWaste, ash_generated);
             // Energy output goes to grid (in full implementation)
         }
 
@@ -1058,14 +1111,16 @@ pub fn process_waste_epic_turn(
         let mut total_landfilled: f64 = 0.0;
 
         if !landfill_buildings.is_empty() {
-            let waste_per_landfill = region.waste_grid.total_uncollected() / landfill_buildings.len() as f64;
+            let waste_per_landfill =
+                region.waste_grid.total_uncollected() / landfill_buildings.len() as f64;
             for &idx in &landfill_buildings {
                 let building = &mut buildings[idx];
                 if let Some(landfill) = building.landfill_state.as_mut() {
                     // Build waste input from uncollected (pro-rata)
                     let mut waste_input: HashMap<Commodity, f64> = HashMap::new();
                     for (commodity, qty) in &region.waste_grid.uncollected_waste {
-                        let portion = (*qty / region.waste_grid.total_uncollected().max(0.001)) * waste_per_landfill;
+                        let portion = (*qty / region.waste_grid.total_uncollected().max(0.001))
+                            * waste_per_landfill;
                         if portion > 0.0 {
                             waste_input.insert(*commodity, portion);
                         }
@@ -1113,8 +1168,9 @@ pub fn process_waste_epic_turn(
 
         // Leachate degrades groundwater quality
         if total_leachate > 0.0 {
-            region.water_reserves.groundwater_quality =
-                (region.water_reserves.groundwater_quality - total_leachate * LEACHATE_CONTAMINATION_FACTOR).max(0.0);
+            region.water_reserves.groundwater_quality = (region.water_reserves.groundwater_quality
+                - total_leachate * LEACHATE_CONTAMINATION_FACTOR)
+                .max(0.0);
         }
 
         // ── W.9: Distribute waste pollution to cadastre parcels ──
@@ -1133,7 +1189,8 @@ pub fn process_waste_epic_turn(
                     total_utilization += landfill.utilization();
                 }
             }
-            region.waste_grid.landfill_utilization = total_utilization / landfill_buildings.len() as f64;
+            region.waste_grid.landfill_utilization =
+                total_utilization / landfill_buildings.len() as f64;
         }
 
         // Degrade waste grid route condition
@@ -1153,37 +1210,55 @@ mod tests {
     #[test]
     fn test_mass_balance_metal_recycling() {
         let yields = recycling_yields(Commodity::MetalWaste);
-        assert!(verify_mass_balance(&yields), "MetalWaste yields must sum to 1.0");
+        assert!(
+            verify_mass_balance(&yields),
+            "MetalWaste yields must sum to 1.0"
+        );
     }
 
     #[test]
     fn test_mass_balance_glass_recycling() {
         let yields = recycling_yields(Commodity::GlassWaste);
-        assert!(verify_mass_balance(&yields), "GlassWaste yields must sum to 1.0");
+        assert!(
+            verify_mass_balance(&yields),
+            "GlassWaste yields must sum to 1.0"
+        );
     }
 
     #[test]
     fn test_mass_balance_plastic_recycling() {
         let yields = recycling_yields(Commodity::PlasticWaste);
-        assert!(verify_mass_balance(&yields), "PlasticWaste yields must sum to 1.0");
+        assert!(
+            verify_mass_balance(&yields),
+            "PlasticWaste yields must sum to 1.0"
+        );
     }
 
     #[test]
     fn test_mass_balance_electronic_recycling() {
         let yields = recycling_yields(Commodity::ElectronicWaste);
-        assert!(verify_mass_balance(&yields), "ElectronicWaste yields must sum to 1.0");
+        assert!(
+            verify_mass_balance(&yields),
+            "ElectronicWaste yields must sum to 1.0"
+        );
     }
 
     #[test]
     fn test_mass_balance_textile_recycling() {
         let yields = recycling_yields(Commodity::TextileWaste);
-        assert!(verify_mass_balance(&yields), "TextileWaste yields must sum to 1.0");
+        assert!(
+            verify_mass_balance(&yields),
+            "TextileWaste yields must sum to 1.0"
+        );
     }
 
     #[test]
     fn test_mass_balance_separation() {
         let yields = separation_yields();
-        assert!(verify_mass_balance(&yields), "Separation yields must sum to 1.0");
+        assert!(
+            verify_mass_balance(&yields),
+            "Separation yields must sum to 1.0"
+        );
     }
 
     #[test]

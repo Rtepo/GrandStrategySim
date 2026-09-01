@@ -45,7 +45,12 @@ pub fn compute_chp_heat_output(
     let remaining_demand = (unmet_heat_demand - heat_from_chp).max(0.0);
 
     let auxiliary_heat = if was_curtailed && remaining_demand > 0.0 {
-        chp.auxiliary_heat(fuel_available, fuel_cv, thermal_efficiency, remaining_demand)
+        chp.auxiliary_heat(
+            fuel_available,
+            fuel_cv,
+            thermal_efficiency,
+            remaining_demand,
+        )
     } else {
         0.0
     };
@@ -57,10 +62,7 @@ pub fn compute_chp_heat_output(
 ///
 /// CHP extraction reduces electrical output by `electrical_efficiency_penalty`
 /// because steam is extracted before full turbine expansion.
-pub fn effective_electrical_output(
-    nameplate_mw: f64,
-    chp: &ChpRetrofitMetadata,
-) -> f64 {
+pub fn effective_electrical_output(nameplate_mw: f64, chp: &ChpRetrofitMetadata) -> f64 {
     if !chp.is_active {
         return nameplate_mw;
     }

@@ -4,17 +4,12 @@
 //! visible to the observer dashboard.
 
 use crate::state::AppState;
-use sim_engine::society::cadastre::{
-    self, ZoningDesignation, ParcelOwnerType,
-};
+use sim_engine::society::cadastre::{self, ParcelOwnerType, ZoningDesignation};
 use sim_engine::society::real_estate_market::generate_ministry_land_report;
 use sim_engine::ui::snapshot::{
-    CadastreSummaryRow, CadastreSummaryResponse,
-    CadastreZoningEntry, CadastreOwnerEntry,
-    ZoningPlanRow, ZoningPlansResponse,
-    CourtBacklogRow, CourtBacklogResponse,
-    ArbitrationCaseRow, ArbitrationCasesResponse,
-    MinistryLandReportDTO, MinistryRegionalSummaryDTO,
+    ArbitrationCaseRow, ArbitrationCasesResponse, CadastreOwnerEntry, CadastreSummaryResponse,
+    CadastreSummaryRow, CadastreZoningEntry, CourtBacklogResponse, CourtBacklogRow,
+    MinistryLandReportDTO, MinistryRegionalSummaryDTO, ZoningPlanRow, ZoningPlansResponse,
 };
 
 /// Get cadastre summary per region (public data — visible to all players).
@@ -26,9 +21,7 @@ pub async fn get_cadastre_summary(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -42,10 +35,12 @@ pub async fn get_cadastre_summary(
                 continue;
             }
 
-            let region_parcels: Vec<&sim_engine::society::cadastre::ParcelChunk> =
-                country_ref.cadastre.parcels.values()
-                    .filter(|p| p.region_id == region.id)
-                    .collect();
+            let region_parcels: Vec<&sim_engine::society::cadastre::ParcelChunk> = country_ref
+                .cadastre
+                .parcels
+                .values()
+                .filter(|p| p.region_id == region.id)
+                .collect();
 
             if region_parcels.is_empty() {
                 rows.push(CadastreSummaryRow {
@@ -58,9 +53,15 @@ pub async fn get_cadastre_summary(
 
             let total_hectares: f64 = region_parcels.iter().map(|p| p.size_hectares).sum();
             let total_value: f64 = region_parcels.iter().map(|p| p.current_value).sum();
-            let avg_certainty: f64 = region_parcels.iter().map(|p| p.legal_certainty).sum::<f64>()
+            let avg_certainty: f64 = region_parcels
+                .iter()
+                .map(|p| p.legal_certainty)
+                .sum::<f64>()
                 / region_parcels.len() as f64;
-            let avg_infra: f64 = region_parcels.iter().map(|p| p.infrastructure_access).sum::<f64>()
+            let avg_infra: f64 = region_parcels
+                .iter()
+                .map(|p| p.infrastructure_access)
+                .sum::<f64>()
                 / region_parcels.len() as f64;
 
             // Zoning distribution
@@ -73,7 +74,11 @@ pub async fn get_cadastre_summary(
                 .iter()
                 .map(|(z, h)| CadastreZoningEntry {
                     designation: format!("{:?}", z),
-                    percentage: if total_hectares > 0.0 { h / total_hectares } else { 0.0 },
+                    percentage: if total_hectares > 0.0 {
+                        h / total_hectares
+                    } else {
+                        0.0
+                    },
                 })
                 .collect();
 
@@ -87,7 +92,11 @@ pub async fn get_cadastre_summary(
                 .iter()
                 .map(|(t, h)| CadastreOwnerEntry {
                     owner_type: format!("{:?}", t),
-                    percentage: if total_hectares > 0.0 { h / total_hectares } else { 0.0 },
+                    percentage: if total_hectares > 0.0 {
+                        h / total_hectares
+                    } else {
+                        0.0
+                    },
                 })
                 .collect();
 
@@ -96,7 +105,11 @@ pub async fn get_cadastre_summary(
                 .filter(|p| p.owner_type == ParcelOwnerType::ForeignFund)
                 .map(|p| p.size_hectares)
                 .sum();
-            let foreign_pct = if total_hectares > 0.0 { foreign_land / total_hectares } else { 0.0 };
+            let foreign_pct = if total_hectares > 0.0 {
+                foreign_land / total_hectares
+            } else {
+                0.0
+            };
 
             let border_conflicts = country_ref.border_conflicts.count_for_region(&region.id) as u32;
 
@@ -129,9 +142,7 @@ pub async fn get_zoning_plans(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -185,9 +196,7 @@ pub async fn get_court_backlog(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -218,7 +227,9 @@ pub async fn get_court_backlog(
             }
 
             let border_conflicts = country_ref.border_conflicts.count_for_region(&region.id) as u32;
-            let court_load = country_ref.border_conflicts.court_load_for_region(&region.id);
+            let court_load = country_ref
+                .border_conflicts
+                .court_load_for_region(&region.id);
             let arbitration_cases = country_ref.arbitration_court.pending_count() as u32;
 
             // A region is in crisis if court is backlogged/paralyzed AND there are
@@ -255,9 +266,7 @@ pub async fn get_arbitration_cases(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -313,9 +322,7 @@ pub async fn get_ministry_land_report(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state

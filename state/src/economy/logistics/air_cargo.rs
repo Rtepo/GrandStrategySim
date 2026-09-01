@@ -157,7 +157,9 @@ pub fn compute_air_route(
 
         let fee = chord * overflight_rate_per_km;
         if fee > 0.0 {
-            *fees_by_country.entry(region.owner_country.clone()).or_insert(0.0) += fee;
+            *fees_by_country
+                .entry(region.owner_country.clone())
+                .or_insert(0.0) += fee;
         }
     }
 
@@ -183,18 +185,10 @@ pub fn compute_air_route(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::{
-        ClimateProfile, GeographicTraits, NodeType, Region,
-    };
+    use crate::society::geography::{ClimateProfile, GeographicTraits, NodeType, Region};
     use std::collections::BTreeMap;
 
-    fn make_region_with_coords(
-        id: &str,
-        owner: &str,
-        x: f64,
-        y: f64,
-        has_airport: bool,
-    ) -> Region {
+    fn make_region_with_coords(id: &str, owner: &str, x: f64, y: f64, has_airport: bool) -> Region {
         Region {
             id: id.to_string(),
             display_name: id.to_string(),
@@ -342,8 +336,18 @@ mod tests {
         assert!(route.valid);
         assert_eq!(route.overflight_fees.len(), 2);
         // Both countries should have the same fee (same perpendicular distance).
-        let fee_a = route.overflight_fees.iter().find(|(c, _)| c == "CountryA").unwrap().1;
-        let fee_b = route.overflight_fees.iter().find(|(c, _)| c == "CountryB").unwrap().1;
+        let fee_a = route
+            .overflight_fees
+            .iter()
+            .find(|(c, _)| c == "CountryA")
+            .unwrap()
+            .1;
+        let fee_b = route
+            .overflight_fees
+            .iter()
+            .find(|(c, _)| c == "CountryB")
+            .unwrap()
+            .1;
         assert!((fee_a - fee_b).abs() < 1e-6);
         assert!(fee_a > 0.0);
     }

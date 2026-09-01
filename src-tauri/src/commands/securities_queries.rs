@@ -1,8 +1,8 @@
 use crate::state::AppState;
 use sim_engine::ui::snapshot::{
-    StockExchangeResponse, MarketIndexSnapshot, SectorIndexSnapshot, ListedCompanyRow,
-    TradeRow, CommoditySpotRow, ListedCompanyPageResponse, ListedCompanyDetail,
-    FundRow, FundDetail, KnfFindingRow, CapitalGainsTaxRow, CapitalGainsTaxSummary,
+    CapitalGainsTaxRow, CapitalGainsTaxSummary, CommoditySpotRow, FundDetail, FundRow,
+    KnfFindingRow, ListedCompanyDetail, ListedCompanyPageResponse, ListedCompanyRow,
+    MarketIndexSnapshot, SectorIndexSnapshot, StockExchangeResponse, TradeRow,
 };
 
 /// Phase 56: Get the full stock exchange snapshot for a country.
@@ -14,9 +14,7 @@ pub async fn get_stock_exchange(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -93,9 +91,9 @@ pub async fn get_stock_exchange(
                     .ceo_vip_id
                     .as_ref()
                     .and_then(|id| {
-                        registry.and_then(|r| r.get(id)).map(|vip| {
-                            (Some(vip.full_name.clone()), Some(id.clone()))
-                        })
+                        registry
+                            .and_then(|r| r.get(id))
+                            .map(|vip| (Some(vip.full_name.clone()), Some(id.clone())))
                     })
                     .unwrap_or((None, None));
 
@@ -183,9 +181,7 @@ pub async fn get_listed_companies(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -229,9 +225,9 @@ pub async fn get_listed_companies(
                     .ceo_vip_id
                     .as_ref()
                     .and_then(|id| {
-                        registry.and_then(|r| r.get(id)).map(|vip| {
-                            (Some(vip.full_name.clone()), Some(id.clone()))
-                        })
+                        registry
+                            .and_then(|r| r.get(id))
+                            .map(|vip| (Some(vip.full_name.clone()), Some(id.clone())))
                     })
                     .unwrap_or((None, None));
 
@@ -278,9 +274,7 @@ pub async fn get_company_market_detail(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -362,9 +356,7 @@ pub async fn get_funds(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -386,44 +378,56 @@ pub async fn get_funds(
             .filter(|c| c.fund_type.is_some() && c.fund_ledger.is_some())
             .map(|c| {
                 let ledger = c.fund_ledger.as_ref().unwrap();
-                let (manager_name, manager_vip_id, manager_trait) = if let Some(ref mid) = ledger.fund_manager_vip_id {
-                    if let Some(registry) = registry {
-                        if let Some(vip) = registry.get(mid) {
-                            (vip.full_name.clone(), mid.clone(), vip.main_trait.clone())
+                let (manager_name, manager_vip_id, manager_trait) =
+                    if let Some(ref mid) = ledger.fund_manager_vip_id {
+                        if let Some(registry) = registry {
+                            if let Some(vip) = registry.get(mid) {
+                                (vip.full_name.clone(), mid.clone(), vip.main_trait.clone())
+                            } else {
+                                ("Unknown".to_string(), mid.clone(), "".to_string())
+                            }
                         } else {
                             ("Unknown".to_string(), mid.clone(), "".to_string())
                         }
                     } else {
-                        ("Unknown".to_string(), mid.clone(), "".to_string())
-                    }
-                } else {
-                    ("Unknown".to_string(), "".to_string(), "".to_string())
-                };
+                        ("Unknown".to_string(), "".to_string(), "".to_string())
+                    };
 
                 // Compute top holdings from portfolio.
                 let top_holdings: Vec<(String, f64)> = if let Some(ref acct) = c.brokerage_account {
-                    let mut holdings: Vec<(String, f64)> = acct.portfolio.iter()
+                    let mut holdings: Vec<(String, f64)> = acct
+                        .portfolio
+                        .iter()
                         .map(|(inst, lots)| {
                             let qty: u64 = lots.iter().map(|l| l.quantity).sum();
                             (inst.clone(), qty as f64)
                         })
                         .filter(|(_, qty)| *qty > 0.0)
                         .collect();
-                    holdings.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+                    holdings
+                        .sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
                     holdings.into_iter().take(10).collect()
                 } else {
                     Vec::new()
                 };
 
                 let total_aum = if let Some(ref acct) = c.brokerage_account {
-                    acct.cash + top_holdings.iter().map(|(_, w)| *w * c.share_price).sum::<f64>()
+                    acct.cash
+                        + top_holdings
+                            .iter()
+                            .map(|(_, w)| *w * c.share_price)
+                            .sum::<f64>()
                 } else {
                     0.0
                 };
 
                 let fund_type_str = match c.fund_type {
-                    Some(sim_engine::securities::FundType::OpenEndInvestmentFund) => "Open-End Investment Fund",
-                    Some(sim_engine::securities::FundType::ClosedEndInvestmentFund) => "Closed-End Investment Fund",
+                    Some(sim_engine::securities::FundType::OpenEndInvestmentFund) => {
+                        "Open-End Investment Fund"
+                    }
+                    Some(sim_engine::securities::FundType::ClosedEndInvestmentFund) => {
+                        "Closed-End Investment Fund"
+                    }
                     Some(sim_engine::securities::FundType::HedgeFund) => "Hedge Fund",
                     Some(sim_engine::securities::FundType::ExchangeTradedFund) => "ETF",
                     Some(sim_engine::securities::FundType::MutualFund) => "Mutual Fund",
@@ -462,9 +466,7 @@ pub async fn get_fund_detail(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -491,34 +493,39 @@ pub async fn get_fund_detail(
         }
 
         let ledger = fund.fund_ledger.as_ref().unwrap();
-        let (manager_name, manager_vip_id, manager_trait) = if let Some(ref mid) = ledger.fund_manager_vip_id {
-            if let Some(registry) = registry {
-                if let Some(vip) = registry.get(mid) {
-                    (vip.full_name.clone(), mid.clone(), vip.main_trait.clone())
+        let (manager_name, manager_vip_id, manager_trait) =
+            if let Some(ref mid) = ledger.fund_manager_vip_id {
+                if let Some(registry) = registry {
+                    if let Some(vip) = registry.get(mid) {
+                        (vip.full_name.clone(), mid.clone(), vip.main_trait.clone())
+                    } else {
+                        ("Unknown".to_string(), mid.clone(), "".to_string())
+                    }
                 } else {
                     ("Unknown".to_string(), mid.clone(), "".to_string())
                 }
             } else {
-                ("Unknown".to_string(), mid.clone(), "".to_string())
-            }
-        } else {
-            ("Unknown".to_string(), "".to_string(), "".to_string())
-        };
+                ("Unknown".to_string(), "".to_string(), "".to_string())
+            };
 
-        let portfolio_holdings: Vec<(String, u64, f64)> = if let Some(ref acct) = fund.brokerage_account {
-            acct.portfolio.iter()
-                .map(|(inst, lots)| {
-                    let qty: u64 = lots.iter().map(|l| l.quantity).sum();
-                    let avg_cost = lots.iter().map(|l| l.cost_basis).sum::<f64>() / (qty as f64).max(1.0);
-                    (inst.clone(), qty, avg_cost)
-                })
-                .filter(|(_, qty, _)| *qty > 0)
-                .collect()
-        } else {
-            Vec::new()
-        };
+        let portfolio_holdings: Vec<(String, u64, f64)> =
+            if let Some(ref acct) = fund.brokerage_account {
+                acct.portfolio
+                    .iter()
+                    .map(|(inst, lots)| {
+                        let qty: u64 = lots.iter().map(|l| l.quantity).sum();
+                        let avg_cost =
+                            lots.iter().map(|l| l.cost_basis).sum::<f64>() / (qty as f64).max(1.0);
+                        (inst.clone(), qty, avg_cost)
+                    })
+                    .filter(|(_, qty, _)| *qty > 0)
+                    .collect()
+            } else {
+                Vec::new()
+            };
 
-        let top_holdings: Vec<(String, f64)> = portfolio_holdings.iter()
+        let top_holdings: Vec<(String, f64)> = portfolio_holdings
+            .iter()
             .map(|(inst, qty, _)| (inst.clone(), *qty as f64))
             .take(10)
             .collect();
@@ -560,9 +567,7 @@ pub async fn get_knf_findings(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -578,37 +583,47 @@ pub async fn get_knf_findings(
             .map(|e| e.companies.as_slice())
             .unwrap_or(&[]);
 
-        let findings: Vec<KnfFindingRow> = knf.audit_findings.iter()
+        let findings: Vec<KnfFindingRow> = knf
+            .audit_findings
+            .iter()
             .rev()
             .take(100) // Last 100 findings
             .map(|f| {
-                let entity_name = entities.iter()
+                let entity_name = entities
+                    .iter()
                     .find(|c| c.id == f.bank_id)
                     .map(|c| c.name.clone())
                     .unwrap_or_else(|| f.bank_id.clone());
 
                 let (violation_type, description) = match f.violation_type {
-                    sim_engine::securities::knf::ViolationType::LowTier1Capital => {
-                        ("Low Tier 1 Capital", "Bank's Tier 1 capital ratio fell below minimum requirement")
-                    }
-                    sim_engine::securities::knf::ViolationType::ExcessiveLeverage => {
-                        ("Excessive Leverage", "Bank's leverage ratio exceeded regulatory limits")
-                    }
-                    sim_engine::securities::knf::ViolationType::ImproperReserving => {
-                        ("Improper Reserving", "Bank failed to maintain proper loan loss reserves")
-                    }
-                    sim_engine::securities::knf::ViolationType::MarketManipulation => {
-                        ("Market Manipulation", "Market manipulation detected in trading activities")
-                    }
-                    sim_engine::securities::knf::ViolationType::AccountingFraud => {
-                        ("Accounting Fraud", "Profit diversion by corrupt CEO/manager detected")
-                    }
-                    sim_engine::securities::knf::ViolationType::FundLeverageExceeded => {
-                        ("Fund Leverage Exceeded", "Fund leverage exceeded regulatory limits")
-                    }
-                    sim_engine::securities::knf::ViolationType::InsiderTrading => {
-                        ("Insider Trading", "Fund manager traded on companies where they're CEO or board member")
-                    }
+                    sim_engine::securities::knf::ViolationType::LowTier1Capital => (
+                        "Low Tier 1 Capital",
+                        "Bank's Tier 1 capital ratio fell below minimum requirement",
+                    ),
+                    sim_engine::securities::knf::ViolationType::ExcessiveLeverage => (
+                        "Excessive Leverage",
+                        "Bank's leverage ratio exceeded regulatory limits",
+                    ),
+                    sim_engine::securities::knf::ViolationType::ImproperReserving => (
+                        "Improper Reserving",
+                        "Bank failed to maintain proper loan loss reserves",
+                    ),
+                    sim_engine::securities::knf::ViolationType::MarketManipulation => (
+                        "Market Manipulation",
+                        "Market manipulation detected in trading activities",
+                    ),
+                    sim_engine::securities::knf::ViolationType::AccountingFraud => (
+                        "Accounting Fraud",
+                        "Profit diversion by corrupt CEO/manager detected",
+                    ),
+                    sim_engine::securities::knf::ViolationType::FundLeverageExceeded => (
+                        "Fund Leverage Exceeded",
+                        "Fund leverage exceeded regulatory limits",
+                    ),
+                    sim_engine::securities::knf::ViolationType::InsiderTrading => (
+                        "Insider Trading",
+                        "Fund manager traded on companies where they're CEO or board member",
+                    ),
                 };
 
                 KnfFindingRow {
@@ -638,9 +653,7 @@ pub async fn get_capital_gains_summary(
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
-        let engine_state = engine_guard
-            .as_ref()
-            .ok_or("No game loaded")?;
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
         let country_ref = engine_state
             .game_state
@@ -650,7 +663,9 @@ pub async fn get_capital_gains_summary(
 
         let cgt = &country_ref.capital_gains_tax;
 
-        let rows: Vec<CapitalGainsTaxRow> = cgt.accruals.iter()
+        let rows: Vec<CapitalGainsTaxRow> = cgt
+            .accruals
+            .iter()
             .map(|(entity_id, accrual)| {
                 let tax_owed = if accrual.realized_gains > accrual.realized_losses {
                     (accrual.realized_gains - accrual.realized_losses) * cgt.securities_cgt_rate

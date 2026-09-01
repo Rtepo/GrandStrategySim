@@ -4,8 +4,8 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-use crate::economy::order_book::{Bid, OrderBook};
 use crate::economy::market::GlobalMarket;
+use crate::economy::order_book::{Bid, OrderBook};
 use crate::registries::enums::Commodity;
 
 /// Maritime configuration (no magic numbers).
@@ -98,25 +98,18 @@ pub enum ShipType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ShipConstructionProject {
     /// Unique project ID
-
     pub id: String,
     /// Type of ship being built
-
     pub ship_type: ShipType,
     /// Progress 0-1
-
     pub progress: f64,
     /// Total cost
-
     pub total_cost: f64,
     /// Cost spent so far
-
     pub cost_spent: f64,
     /// Duration in turns
-
     pub duration_turns: u32,
     /// Turns completed
-
     pub turns_completed: u32,
 }
 
@@ -141,22 +134,17 @@ impl ShipConstructionProject {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Shipyard {
     /// Unique shipyard ID
-
     pub id: String,
     /// Region where shipyard is located
-
     pub region_id: String,
     /// Maximum concurrent construction projects
-
     pub max_concurrent_projects: u32,
     /// Active construction projects
     #[serde(default)]
     pub construction_projects: Vec<ShipConstructionProject>,
     /// Construction capacity per turn
-
     pub construction_capacity: f64,
     /// Maintenance cost per turn
-
     pub maintenance_cost: f64,
 }
 
@@ -224,25 +212,18 @@ impl Shipyard {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Port {
     /// Unique port ID
-
     pub id: String,
     /// Region where port is located
-
     pub region_id: String,
     /// Cargo throughput capacity (tons per turn)
-
     pub cargo_throughput: f64,
     /// Loading speed (tons per ship per turn)
-
     pub loading_speed: f64,
     /// Number of berths
-
     pub berth_count: u32,
     /// Utilization 0-1
-
     pub utilization: f64,
     /// Maintenance cost per turn
-
     pub maintenance_cost: f64,
 }
 
@@ -268,13 +249,10 @@ impl Port {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Dock {
     /// Unique dock ID
-
     pub id: String,
     /// Region where dock is located
-
     pub region_id: String,
     /// Maximum ship capacity
-
     pub max_capacity: u32,
     /// Ships currently docked (ship IDs)
     #[serde(default)]
@@ -283,10 +261,8 @@ pub struct Dock {
     #[serde(default)]
     pub ships_under_repair: BTreeMap<String, f64>, // ship_id -> repair_progress
     /// Repair capacity per turn
-
     pub repair_capacity: f64,
     /// Maintenance cost per turn
-
     pub maintenance_cost: f64,
 }
 
@@ -396,7 +372,11 @@ pub fn submit_shipyard_construction_orders(
             if let Some(bom) = config.shipyard_construction_bom.get(&project.ship_type) {
                 for (commodity, total_qty) in bom {
                     let per_turn_qty = total_qty / project.duration_turns as f64;
-                    let base_price = global_market.base_prices.get(commodity).copied().unwrap_or(100.0);
+                    let base_price = global_market
+                        .base_prices
+                        .get(commodity)
+                        .copied()
+                        .unwrap_or(100.0);
                     let limit_price = base_price * config.construction_bid_price_fraction;
                     if limit_price <= 0.0 || per_turn_qty <= 0.0 {
                         continue;
@@ -408,18 +388,14 @@ pub fn submit_shipyard_construction_orders(
                     let encumbrance = affordable * limit_price;
                     maritime.available_cash -= encumbrance;
 
-                    order_book
-                        .bids
-                        .entry(*commodity)
-                        .or_default()
-                        .push(Bid {
-                            buyer_id: format!("shipyard_{}", shipyard.id),
-                            commodity: *commodity,
-                            quantity: affordable,
-                            limit_price,
-                            blueprint_id: None,
-                            min_quality: None,
-                        });
+                    order_book.bids.entry(*commodity).or_default().push(Bid {
+                        buyer_id: format!("shipyard_{}", shipyard.id),
+                        commodity: *commodity,
+                        quantity: affordable,
+                        limit_price,
+                        blueprint_id: None,
+                        min_quality: None,
+                    });
                 }
             }
         }
@@ -427,10 +403,7 @@ pub fn submit_shipyard_construction_orders(
 }
 
 /// Post-clearing: Advance shipyard construction projects by one turn.
-pub fn advance_shipyard_projects(
-    maritime: &mut MaritimeInfrastructure,
-    order_book: &OrderBook,
-) {
+pub fn advance_shipyard_projects(maritime: &mut MaritimeInfrastructure, order_book: &OrderBook) {
     let mut filled: BTreeMap<String, BTreeMap<Commodity, f64>> = BTreeMap::new();
     for trade in &order_book.trades {
         if trade.buyer_id.starts_with("shipyard_") {
@@ -445,8 +418,8 @@ pub fn advance_shipyard_projects(
     }
 
     for shipyard in &mut maritime.shipyards {
-        let cost_per_project = shipyard.construction_capacity
-            / shipyard.construction_projects.len().max(1) as f64;
+        let cost_per_project =
+            shipyard.construction_capacity / shipyard.construction_projects.len().max(1) as f64;
 
         shipyard.construction_projects.retain_mut(|project| {
             project.cost_spent += cost_per_project;
@@ -474,14 +447,15 @@ pub fn refund_unfilled_shipyard_bids(
 
 /// Calculate total effective port throughput for a country.
 pub fn total_port_throughput(maritime: &MaritimeInfrastructure) -> f64 {
-    maritime.ports.iter().map(|p| p.effective_throughput()).sum()
+    maritime
+        .ports
+        .iter()
+        .map(|p| p.effective_throughput())
+        .sum()
 }
 
 /// Process port operations for one turn using config-driven rates.
-pub fn process_ports_turn(
-    maritime: &mut MaritimeInfrastructure,
-    config: &MaritimeConfig,
-) {
+pub fn process_ports_turn(maritime: &mut MaritimeInfrastructure, config: &MaritimeConfig) {
     for port in &mut maritime.ports {
         if port.utilization > 0.9 {
             port.utilization *= config.port_decay_rate;

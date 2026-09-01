@@ -218,13 +218,19 @@ pub fn apply_defense_modifier(base_defense: f64, tactics: &MilitaryTacticModifie
 ///
 /// # Returns
 /// Modified organization.
-pub fn apply_organization_modifier(base_organization: f64, tactics: &MilitaryTacticModifiers) -> f64 {
+pub fn apply_organization_modifier(
+    base_organization: f64,
+    tactics: &MilitaryTacticModifiers,
+) -> f64 {
     base_organization * tactics.organization_multiplier
 }
 
 /// Converts `MilitaryTacticModifiers` to a `CommanderRetraitProfile` for
 /// use with the retreat evaluation system.
-pub fn to_retreat_profile(tactics: &MilitaryTacticModifiers, commander_name: &str) -> crate::military::retreat::CommanderRetraitProfile {
+pub fn to_retreat_profile(
+    tactics: &MilitaryTacticModifiers,
+    commander_name: &str,
+) -> crate::military::retreat::CommanderRetraitProfile {
     crate::military::retreat::CommanderRetraitProfile {
         will_retreat: tactics.will_retreat,
         commander_name: commander_name.to_string(),
@@ -255,7 +261,10 @@ mod tests {
 
         assert!((mods.aggression_multiplier - 1.5).abs() < 0.001);
         assert!(!mods.will_retreat, "Aggressive commanders do not retreat");
-        assert!(mods.casualty_tolerance >= 0.5, "Aggressive commanders tolerate more casualties");
+        assert!(
+            mods.casualty_tolerance >= 0.5,
+            "Aggressive commanders tolerate more casualties"
+        );
     }
 
     #[test]
@@ -300,8 +309,14 @@ mod tests {
         let mods = evaluate_military_tactics(&traits);
 
         assert!(!mods.will_retreat, "Reckless commanders do not retreat");
-        assert!(mods.aggression_multiplier > 1.5, "Reckless commanders are very aggressive");
-        assert!(mods.supply_burn_rate > 1.0, "Reckless commanders burn more supplies");
+        assert!(
+            mods.aggression_multiplier > 1.5,
+            "Reckless commanders are very aggressive"
+        );
+        assert!(
+            mods.supply_burn_rate > 1.0,
+            "Reckless commanders burn more supplies"
+        );
     }
 
     #[test]
@@ -310,8 +325,14 @@ mod tests {
         let mods = evaluate_military_tactics(&traits);
 
         assert!(mods.will_retreat, "Methodical commanders will retreat");
-        assert!(mods.defensive_bias > 1.0, "Methodical commanders have defensive bias");
-        assert!(mods.supply_burn_rate < 1.0, "Methodical commanders burn less supplies");
+        assert!(
+            mods.defensive_bias > 1.0,
+            "Methodical commanders have defensive bias"
+        );
+        assert!(
+            mods.supply_burn_rate < 1.0,
+            "Methodical commanders burn less supplies"
+        );
     }
 
     #[test]

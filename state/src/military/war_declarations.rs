@@ -239,7 +239,10 @@ pub fn declare_war(
     // Check if already at war
     let aggressor_wars = at_war_with.get(aggressor).cloned().unwrap_or_default();
     if aggressor_wars.contains(&defender.to_string()) {
-        messages.push(format!("[WAR] {} is already at war with {}", aggressor, defender));
+        messages.push(format!(
+            "[WAR] {} is already at war with {}",
+            aggressor, defender
+        ));
         return WarDeclarationResult {
             declared: false,
             war_state: None,
@@ -248,16 +251,17 @@ pub fn declare_war(
     }
 
     // Add to aggressor's war list
-    at_war_with.entry(aggressor.to_string()).or_default().push(defender.to_string());
+    at_war_with
+        .entry(aggressor.to_string())
+        .or_default()
+        .push(defender.to_string());
     // Add to defender's war list
-    at_war_with.entry(defender.to_string()).or_default().push(aggressor.to_string());
+    at_war_with
+        .entry(defender.to_string())
+        .or_default()
+        .push(aggressor.to_string());
 
-    let war_state = WarState::new(
-        aggressor.to_string(),
-        defender.to_string(),
-        turn,
-        reason,
-    );
+    let war_state = WarState::new(aggressor.to_string(), defender.to_string(), turn, reason);
 
     messages.push(format!(
         "[WAR] {} declares war on {} (reason: {:?})",
@@ -294,7 +298,8 @@ pub fn check_tension_escalations(
     let mut results = Vec::new();
 
     // Find tensions that exceed the threshold
-    let escalated: Vec<(String, String)> = tensions.iter()
+    let escalated: Vec<(String, String)> = tensions
+        .iter()
         .filter(|(_, t)| t.exceeds_threshold(config.war_tension_threshold))
         .filter_map(|(key, _)| {
             // Parse the key "country_a|country_b"
@@ -309,7 +314,8 @@ pub fn check_tension_escalations(
 
     for (country_a, country_b) in escalated {
         // Check if already at war
-        let already_at_war = at_war_with.get(&country_a)
+        let already_at_war = at_war_with
+            .get(&country_a)
             .map(|wars| wars.contains(&country_b))
             .unwrap_or(false);
 
@@ -433,19 +439,33 @@ pub fn settle_peace(
             regions_transferred = regions.clone();
             messages.push(format!(
                 "[PEACE] {} cedes {} regions to {}",
-                defender, regions.len(), aggressor
+                defender,
+                regions.len(),
+                aggressor
             ));
         }
-        PeaceTerms::Reparations { amount, pow_repatriation } => {
+        PeaceTerms::Reparations {
+            amount,
+            pow_repatriation,
+        } => {
             financial_transfer = Some(*amount);
             pows_repatriated = *pow_repatriation;
             messages.push(format!(
                 "[PEACE] {} pays {} reparations to {}{}",
-                defender, amount, aggressor,
-                if *pow_repatriation { " (with POW repatriation)" } else { "" }
+                defender,
+                amount,
+                aggressor,
+                if *pow_repatriation {
+                    " (with POW repatriation)"
+                } else {
+                    ""
+                }
             ));
         }
-        PeaceTerms::UnconditionalSurrender { regions, reparations } => {
+        PeaceTerms::UnconditionalSurrender {
+            regions,
+            reparations,
+        } => {
             regions_transferred = regions.clone();
             financial_transfer = Some(*reparations);
             pows_repatriated = true;
@@ -494,8 +514,14 @@ mod tests {
 
         assert!(result.declared);
         assert!(result.war_state.is_some());
-        assert!(at_war_with.get("Aggressor").unwrap().contains(&"Defender".to_string()));
-        assert!(at_war_with.get("Defender").unwrap().contains(&"Aggressor".to_string()));
+        assert!(at_war_with
+            .get("Aggressor")
+            .unwrap()
+            .contains(&"Defender".to_string()));
+        assert!(at_war_with
+            .get("Defender")
+            .unwrap()
+            .contains(&"Aggressor".to_string()));
     }
 
     #[test]
@@ -559,7 +585,10 @@ mod tests {
 
         assert_eq!(results.len(), 1);
         assert!(results[0].declared);
-        assert!(at_war_with.get("CountryA").unwrap().contains(&"CountryB".to_string()));
+        assert!(at_war_with
+            .get("CountryA")
+            .unwrap()
+            .contains(&"CountryB".to_string()));
     }
 
     #[test]
@@ -644,8 +673,12 @@ mod tests {
         at_war_with.insert("B".to_string(), vec!["A".to_string()]);
 
         let result = settle_peace(
-            "A", "B",
-            &PeaceTerms::Reparations { amount: 1000.0, pow_repatriation: true },
+            "A",
+            "B",
+            &PeaceTerms::Reparations {
+                amount: 1000.0,
+                pow_repatriation: true,
+            },
             &mut at_war_with,
         );
 
@@ -661,8 +694,11 @@ mod tests {
         at_war_with.insert("B".to_string(), vec!["A".to_string()]);
 
         let result = settle_peace(
-            "A", "B",
-            &PeaceTerms::TerritorialCession { regions: vec!["region1".to_string(), "region2".to_string()] },
+            "A",
+            "B",
+            &PeaceTerms::TerritorialCession {
+                regions: vec!["region1".to_string(), "region2".to_string()],
+            },
             &mut at_war_with,
         );
 
@@ -677,7 +713,8 @@ mod tests {
         at_war_with.insert("B".to_string(), vec!["A".to_string()]);
 
         let result = settle_peace(
-            "A", "B",
+            "A",
+            "B",
             &PeaceTerms::UnconditionalSurrender {
                 regions: vec!["r1".to_string()],
                 reparations: 5000.0,

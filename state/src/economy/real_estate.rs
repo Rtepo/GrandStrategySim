@@ -7,8 +7,8 @@
 //! for strict double-entry accounting (tenant's owner is debited,
 //! shopping center's owner is credited).
 
-use crate::society::housing::{CommercialBuilding, RetailLease, StoreProfile};
 use crate::entities::Company;
+use crate::society::housing::{CommercialBuilding, RetailLease, StoreProfile};
 use crate::state::Country;
 use std::collections::BTreeSet;
 
@@ -79,11 +79,7 @@ pub fn accrue_retail_rents(
             (Some(p_idx), Some(r_idx)) => {
                 // Use TransferSettler for strict double-entry accounting
                 let result = crate::economy::transfer_settler::settle_company_to_company(
-                    companies,
-                    p_idx,
-                    r_idx,
-                    *rent_due,
-                    country,
+                    companies, p_idx, r_idx, *rent_due, country,
                 );
                 if result.is_ok() {
                     total_rent += rent_due;
@@ -122,18 +118,18 @@ pub fn sign_retail_leases(
     current_turn: u32,
 ) -> Vec<RetailLease> {
     let mut new_leases = Vec::new();
-    
+
     if let Some(profile) = &mut shopping_center.shopping_center_profile {
         let base_rent_per_sqm = shopping_center.rent_per_sqm;
         let lease_duration = 12; // Default 12 turns
-        
+
         for store in available_stores {
             if let Some(store_profile) = &mut store.retail_profile {
                 // Only sign leases for stores without landlords
                 if store_profile.landlord_building_id.is_none() {
                     let leased_sqm = store.retail_capacity;
                     let rent_per_sqm = base_rent_per_sqm;
-                    
+
                     let lease = RetailLease {
                         tenant_id: store.id.clone(),
                         leased_sqm,
@@ -141,20 +137,20 @@ pub fn sign_retail_leases(
                         start_turn: current_turn,
                         duration_turns: lease_duration,
                     };
-                    
+
                     // Update store profile
                     store_profile.landlord_building_id = Some(shopping_center.id.clone());
                     store_profile.leased_sqm = leased_sqm;
-                    
+
                     // Update shopping center profile
                     profile.tenant_building_ids.push(store.id.clone());
-                    
+
                     new_leases.push(lease);
                 }
             }
         }
     }
-    
+
     new_leases
 }
 

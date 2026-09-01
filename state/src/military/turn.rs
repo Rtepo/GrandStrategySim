@@ -5,16 +5,18 @@ use rustc_hash::FxHashMap;
 type HashMap<K, V> = FxHashMap<K, V>;
 
 use crate::infrastructure::CapacityType;
-use crate::military::combat::{resolve_battle, process_wounded, process_dead, process_deserters};
+use crate::military::combat::{process_dead, process_deserters, process_wounded, resolve_battle};
 use crate::military::config::MilitaryCombatConfig;
-use crate::military::fronts::{Front, Battle, BattleResult, Casualties};
-use crate::military::morale::{MoraleConfig, apply_casualty_morale_impact};
-use crate::military::pows::{PowCamp, PowCaptureConfig, capture_pows_from_casualties};
-use crate::military::retreat::{CommanderRetraitProfile, RetreatEvaluation, evaluate_retreat, process_retreat};
-use crate::military::units::MilitaryUnit;
+use crate::military::fronts::{Battle, BattleResult, Casualties, Front};
+use crate::military::morale::{apply_casualty_morale_impact, MoraleConfig};
 use crate::military::oob::OrderOfBattle;
+use crate::military::pows::{capture_pows_from_casualties, PowCamp, PowCaptureConfig};
+use crate::military::retreat::{
+    evaluate_retreat, process_retreat, CommanderRetraitProfile, RetreatEvaluation,
+};
+use crate::military::units::MilitaryUnit;
 use crate::registries::enums::Commodity;
-use crate::society::geography::{Region, Climate, RuralClass};
+use crate::society::geography::{Climate, Region, RuralClass};
 
 /// Process military turn for a country.
 ///
@@ -58,11 +60,8 @@ pub fn process_military_turn(
     crate::military::degrade_military_equipment(&mut units);
 
     // MIL-1: Process unit upkeep (burn stockpiles, pay wages)
-    let (_wage_cost, upkeep_messages) = crate::military::process_military_upkeep(
-        &mut units,
-        liquid_reserves,
-        config,
-    );
+    let (_wage_cost, upkeep_messages) =
+        crate::military::process_military_upkeep(&mut units, liquid_reserves, config);
     all_messages.extend(upkeep_messages);
 
     // MIL-2: Supply delivery from B2B trades (Phase 45: includes equipment delivery)
@@ -98,8 +97,14 @@ pub fn process_military_turn(
     for front in fronts.iter_mut() {
         if front.is_active(turn, 5) {
             let battle_messages = resolve_front_battles(
-                front, &mut units, regions, turn, country_name, config,
-                morale_config, pow_camp,
+                front,
+                &mut units,
+                regions,
+                turn,
+                country_name,
+                config,
+                morale_config,
+                pow_camp,
             );
             all_messages.extend(battle_messages);
         }
@@ -140,9 +145,8 @@ pub fn process_military_turn(
 /// This is the safe writeback path after flatten-process-writeback.
 /// Each unit in the OOB is found by ID and replaced with the processed version.
 fn writeback_units_to_oob(oob: &mut OrderOfBattle, units: &[MilitaryUnit]) {
-    let unit_map: HashMap<String, &MilitaryUnit> = units.iter()
-        .map(|u| (u.id.clone(), u))
-        .collect();
+    let unit_map: HashMap<String, &MilitaryUnit> =
+        units.iter().map(|u| (u.id.clone(), u)).collect();
 
     for army in &mut oob.armies {
         for division in &mut army.divisions {
@@ -166,10 +170,7 @@ fn writeback_units_to_oob(oob: &mut OrderOfBattle, units: &[MilitaryUnit]) {
 ///
 /// # Returns
 /// Vec of log messages
-fn disband_broken_units(
-    units: &mut Vec<MilitaryUnit>,
-    regions: &mut Vec<Region>,
-) -> Vec<String> {
+fn disband_broken_units(units: &mut Vec<MilitaryUnit>, regions: &mut Vec<Region>) -> Vec<String> {
     let mut messages = Vec::new();
 
     let mut survivors_to_return: Vec<(String, HashMap<RuralClass, i64>)> = Vec::new();
@@ -193,7 +194,9 @@ fn disband_broken_units(
                     .unwrap_or_default()
                     .trim_matches('"')
                     .to_string();
-                if let Some(class_demographics) = region.class_demographics.rural_classes.get_mut(&class_key) {
+                if let Some(class_demographics) =
+                    region.class_demographics.rural_classes.get_mut(&class_key)
+                {
                     class_demographics.population += count;
                 }
             }
@@ -308,7 +311,8 @@ fn resolve_front_battles(
 
     // Find the battle region for terrain
     let battle_region_id = front.regions.first().cloned().unwrap_or_default();
-    let terrain = regions.iter()
+    let terrain = regions
+        .iter()
         .find(|r| r.id == battle_region_id)
         .map(|r| derive_terrain(r))
         .unwrap_or("plains");
@@ -335,23 +339,27 @@ fn resolve_front_battles(
 
     // Clone attacker and defender units for battle resolution
     // (resolve_battle / process_retreat need mutable slices to burn supplies / strip equipment)
-    let mut attacker_units: Vec<MilitaryUnit> = attacker_indices.iter()
-        .map(|&i| units[i].clone())
-        .collect();
-    let mut defender_units: Vec<MilitaryUnit> = defender_indices.iter()
-        .map(|&i| units[i].clone())
-        .collect();
+    let mut attacker_units: Vec<MilitaryUnit> =
+        attacker_indices.iter().map(|&i| units[i].clone()).collect();
+    let mut defender_units: Vec<MilitaryUnit> =
+        defender_indices.iter().map(|&i| units[i].clone()).collect();
 
-    let attacker_country = front.involved_countries.first().cloned().unwrap_or_default();
+    let attacker_country = front
+        .involved_countries
+        .first()
+        .cloned()
+        .unwrap_or_default();
     let defender_country = front.involved_countries.get(1).cloned().unwrap_or_default();
     let battle_id = format!("BATTLE-{}-{}", turn, front.id);
 
     // ── MIL-3a: Evaluate retreat BEFORE combat ──
     // Calculate combat power as sum of (manpower * organization) for each side.
-    let attacker_power: f64 = attacker_units.iter()
+    let attacker_power: f64 = attacker_units
+        .iter()
         .map(|u| u.manpower as f64 * u.stats.organization)
         .sum();
-    let defender_power: f64 = defender_units.iter()
+    let defender_power: f64 = defender_units
+        .iter()
         .map(|u| u.manpower as f64 * u.stats.organization)
         .sum();
 
@@ -369,52 +377,67 @@ fn resolve_front_battles(
     );
 
     // ── MIL-3b: Resolve battle or process retreat ──
-    let (attacker_casualties, defender_casualties, battle_result): (Casualties, Casualties, BattleResult) =
-        match retreat_eval {
-            RetreatEvaluation::NoRetreat => {
-                // Normal combat resolution
-                let battle = resolve_battle(
-                    &mut attacker_units,
-                    &mut defender_units,
-                    battle_region_id.clone(),
-                    attacker_country.clone(),
-                    defender_country.clone(),
-                    turn,
-                    battle_id.clone(),
-                    config,
-                    terrain,
-                );
-                (battle.attacker_casualties, battle.defender_casualties, battle.result)
-            }
-            RetreatEvaluation::DefenderRetreats => {
-                // Defender retreats — attacker is the victor
-                let retreat = process_retreat(
-                    &mut defender_units,
-                    &attacker_units,
-                    &defender_country,
-                    &attacker_country,
-                    config,
-                );
-                messages.extend(retreat.messages);
-                // Victor (attacker) casualties = victor_casualties
-                // Retreating (defender) casualties = retreating_casualties
-                (retreat.victor_casualties, retreat.retreating_casualties, retreat.battle_result)
-            }
-            RetreatEvaluation::AttackerRetreats => {
-                // Attacker retreats — defender is the victor
-                let retreat = process_retreat(
-                    &mut attacker_units,
-                    &defender_units,
-                    &attacker_country,
-                    &defender_country,
-                    config,
-                );
-                messages.extend(retreat.messages);
-                // Retreating (attacker) casualties = retreating_casualties
-                // Victor (defender) casualties = victor_casualties
-                (retreat.retreating_casualties, retreat.victor_casualties, retreat.battle_result)
-            }
-        };
+    let (attacker_casualties, defender_casualties, battle_result): (
+        Casualties,
+        Casualties,
+        BattleResult,
+    ) = match retreat_eval {
+        RetreatEvaluation::NoRetreat => {
+            // Normal combat resolution
+            let battle = resolve_battle(
+                &mut attacker_units,
+                &mut defender_units,
+                battle_region_id.clone(),
+                attacker_country.clone(),
+                defender_country.clone(),
+                turn,
+                battle_id.clone(),
+                config,
+                terrain,
+            );
+            (
+                battle.attacker_casualties,
+                battle.defender_casualties,
+                battle.result,
+            )
+        }
+        RetreatEvaluation::DefenderRetreats => {
+            // Defender retreats — attacker is the victor
+            let retreat = process_retreat(
+                &mut defender_units,
+                &attacker_units,
+                &defender_country,
+                &attacker_country,
+                config,
+            );
+            messages.extend(retreat.messages);
+            // Victor (attacker) casualties = victor_casualties
+            // Retreating (defender) casualties = retreating_casualties
+            (
+                retreat.victor_casualties,
+                retreat.retreating_casualties,
+                retreat.battle_result,
+            )
+        }
+        RetreatEvaluation::AttackerRetreats => {
+            // Attacker retreats — defender is the victor
+            let retreat = process_retreat(
+                &mut attacker_units,
+                &defender_units,
+                &attacker_country,
+                &defender_country,
+                config,
+            );
+            messages.extend(retreat.messages);
+            // Retreating (attacker) casualties = retreating_casualties
+            // Victor (defender) casualties = victor_casualties
+            (
+                retreat.retreating_casualties,
+                retreat.victor_casualties,
+                retreat.battle_result,
+            )
+        }
+    };
 
     messages.push(format!(
         "[BATTLE] Battle in {}: {} vs {} — {:?}",
@@ -436,8 +459,16 @@ fn resolve_front_battles(
     // Apply casualties to original units
     let attacker_total_casualties = attacker_casualties.total();
     let defender_total_casualties = defender_casualties.total();
-    let attacker_per_unit = if !attacker_indices.is_empty() { attacker_total_casualties / attacker_indices.len() as i64 } else { 0 };
-    let defender_per_unit = if !defender_indices.is_empty() { defender_total_casualties / defender_indices.len() as i64 } else { 0 };
+    let attacker_per_unit = if !attacker_indices.is_empty() {
+        attacker_total_casualties / attacker_indices.len() as i64
+    } else {
+        0
+    };
+    let defender_per_unit = if !defender_indices.is_empty() {
+        defender_total_casualties / defender_indices.len() as i64
+    } else {
+        0
+    };
 
     for &idx in &attacker_indices {
         let _ = units[idx].apply_casualties(attacker_per_unit);
@@ -447,11 +478,11 @@ fn resolve_front_battles(
     }
 
     // Process casualties with healthcare and demographic routing
-    let region = regions.iter_mut()
-        .find(|r| r.id == battle_region_id);
+    let region = regions.iter_mut().find(|r| r.id == battle_region_id);
 
     if let Some(region) = region {
-        let hospital_capacity = region.capacity_pool
+        let hospital_capacity = region
+            .capacity_pool
             .get(&CapacityType::HospitalBeds)
             .copied()
             .unwrap_or(0.0);
@@ -464,14 +495,18 @@ fn resolve_front_battles(
         messages.extend(wounded_messages);
 
         let region_demographics = &mut region.class_demographics.rural_classes;
-        let dead_messages = process_dead(&attacker_casualties, region_demographics, &battle_region_id);
+        let dead_messages =
+            process_dead(&attacker_casualties, region_demographics, &battle_region_id);
         messages.extend(dead_messages);
-        let dead_messages = process_dead(&defender_casualties, region_demographics, &battle_region_id);
+        let dead_messages =
+            process_dead(&defender_casualties, region_demographics, &battle_region_id);
         messages.extend(dead_messages);
 
-        let deserter_messages = process_deserters(&attacker_casualties, region_demographics, &battle_region_id);
+        let deserter_messages =
+            process_deserters(&attacker_casualties, region_demographics, &battle_region_id);
         messages.extend(deserter_messages);
-        let deserter_messages = process_deserters(&defender_casualties, region_demographics, &battle_region_id);
+        let deserter_messages =
+            process_deserters(&defender_casualties, region_demographics, &battle_region_id);
         messages.extend(deserter_messages);
 
         // ── MIL-3c: Apply casualty morale impact (AFTER casualties, BEFORE disband) ──
@@ -483,13 +518,19 @@ fn resolve_front_battles(
             demographic_breakdown: std::collections::HashMap::new(),
         };
         for demographics in region.class_demographics.rural_classes.values_mut() {
-            let morale_result = apply_casualty_morale_impact(demographics, &combined_casualties, morale_config);
+            let morale_result =
+                apply_casualty_morale_impact(demographics, &combined_casualties, morale_config);
             messages.extend(morale_result.messages);
         }
 
         if untreated_dead > 0 {
-            region.class_demographics.rural_classes.values_mut()
-                .for_each(|d| d.economic_status = crate::society::geography::EconomicStatus::Destitute);
+            region
+                .class_demographics
+                .rural_classes
+                .values_mut()
+                .for_each(|d| {
+                    d.economic_status = crate::society::geography::EconomicStatus::Destitute
+                });
         }
     }
 
@@ -516,7 +557,9 @@ fn resolve_front_battles(
     if !captured_pows.is_empty() {
         messages.push(format!(
             "[POW] {} POWs captured by {} from {}",
-            captured_pows.len(), captor_country, origin_country
+            captured_pows.len(),
+            captor_country,
+            origin_country
         ));
         pow_camp.add_prisoners(captured_pows);
     }
@@ -524,11 +567,11 @@ fn resolve_front_battles(
     // Update war exhaustion
     front.increase_war_exhaustion(
         attacker_country.clone(),
-        (attacker_casualties.total() as f64 / 1000.0) * config.war_exhaustion_per_casualty
+        (attacker_casualties.total() as f64 / 1000.0) * config.war_exhaustion_per_casualty,
     );
     front.increase_war_exhaustion(
         defender_country.clone(),
-        (defender_casualties.total() as f64 / 1000.0) * config.war_exhaustion_per_casualty
+        (defender_casualties.total() as f64 / 1000.0) * config.war_exhaustion_per_casualty,
     );
 
     // Construct and record the battle
@@ -538,8 +581,14 @@ fn resolve_front_battles(
         attacker: attacker_country,
         defender: defender_country,
         turn,
-        attacker_units: attacker_indices.iter().map(|&i| units[i].id.clone()).collect(),
-        defender_units: defender_indices.iter().map(|&i| units[i].id.clone()).collect(),
+        attacker_units: attacker_indices
+            .iter()
+            .map(|&i| units[i].id.clone())
+            .collect(),
+        defender_units: defender_indices
+            .iter()
+            .map(|&i| units[i].id.clone())
+            .collect(),
         attacker_casualties,
         defender_casualties,
         result: battle_result,

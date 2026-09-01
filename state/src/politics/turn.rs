@@ -10,7 +10,7 @@ use super::local_council;
 use super::names;
 use super::rebellions;
 use super::system::{Constitution, GovernmentForm, Judiciary, Leader, Party, Politics, UpperHouse};
-use super::vip_registry::{Vip, VipRegistry, VipRoleExtended, assign_core_traits};
+use super::vip_registry::{assign_core_traits, Vip, VipRegistry, VipRoleExtended};
 use crate::state::Country;
 
 /// Runs one year of political processing for a country.
@@ -36,7 +36,12 @@ use crate::state::Country;
 /// * Coalitions collapse deterministically when the widest ideological gap
 ///   together with social unrest creates a breakdown chance above 0.5.
 /// * Upper house composition is recomputed every turn from the constitution.
-pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::entities::Company>, unions: &mut [crate::entities::Union], year: u32) -> Vec<String> {
+pub fn process_political_year(
+    country: &mut Country,
+    companies: &mut Vec<crate::entities::Company>,
+    unions: &mut [crate::entities::Union],
+    year: u32,
+) -> Vec<String> {
     let mut messages = Vec::new();
 
     // Phase 48: VIP Registry — age all VIPs, degrade health, check natural deaths.
@@ -72,15 +77,17 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
 
         for dead_ceo_id in &dead_ceo_ids {
             // Find the company managed by this CEO.
-            let company_idx = companies.iter().position(|c| {
-                c.ceo_vip_id.as_deref() == Some(dead_ceo_id.as_str())
-            });
+            let company_idx = companies
+                .iter()
+                .position(|c| c.ceo_vip_id.as_deref() == Some(dead_ceo_id.as_str()));
 
             if let Some(idx) = company_idx {
                 let company = &mut companies[idx];
 
                 // Try family business succession first.
-                let heir_id = if let crate::entities::LegalForm::FamilyBusiness(ref fbd) = company.legal_form {
+                let heir_id = if let crate::entities::LegalForm::FamilyBusiness(ref fbd) =
+                    company.legal_form
+                {
                     // Find first living heir of age (≥18).
                     fbd.heir_vip_ids.iter().find_map(|heir_id| {
                         let heir = registry.get(heir_id)?;
@@ -101,7 +108,9 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
                         heir.add_role(crate::politics::vip_registry::VipRoleExtended::Ceo);
                     }
                     company.ceo_vip_id = Some(heir_id.clone());
-                    if let crate::entities::LegalForm::FamilyBusiness(ref mut fbd) = company.legal_form {
+                    if let crate::entities::LegalForm::FamilyBusiness(ref mut fbd) =
+                        company.legal_form
+                    {
                         fbd.successor_generation += 1;
                         fbd.succession_crisis = false;
                     }
@@ -114,7 +123,9 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
                     ));
                 } else {
                     // No living heir — check for board to appoint external CEO.
-                    let has_board = if let crate::entities::LegalForm::JointStockCompany(ref jsd) = company.legal_form {
+                    let has_board = if let crate::entities::LegalForm::JointStockCompany(ref jsd) =
+                        company.legal_form
+                    {
                         !jsd.board_members.is_empty()
                     } else {
                         false
@@ -124,7 +135,9 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
                         // Board appoints an external CEO from the VIP pool.
                         // For now, mark as succession crisis — the board will
                         // recruit externally in a future turn.
-                        if let crate::entities::LegalForm::FamilyBusiness(ref mut fbd) = company.legal_form {
+                        if let crate::entities::LegalForm::FamilyBusiness(ref mut fbd) =
+                            company.legal_form
+                        {
                             fbd.succession_crisis = true;
                         }
                         messages.push(format!(
@@ -134,7 +147,9 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
                     } else {
                         // No board, no heir — mark as succession crisis.
                         // Company will be liquidated or sold via bankruptcy in future turns.
-                        if let crate::entities::LegalForm::FamilyBusiness(ref mut fbd) = company.legal_form {
+                        if let crate::entities::LegalForm::FamilyBusiness(ref mut fbd) =
+                            company.legal_form
+                        {
                             fbd.succession_crisis = true;
                         }
                         messages.push(format!(
@@ -189,32 +204,53 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
     // mapping so that interest groups have nonzero power. Without this, all
     // ideology bids return 0, triggering the "Provisional Technocratic
     // Government" fallback permanently.
-    if country.politics.class_group_mapping.rural_class_mapping.is_empty()
-        && country.politics.class_group_mapping.urban_class_mapping.is_empty()
+    if country
+        .politics
+        .class_group_mapping
+        .rural_class_mapping
+        .is_empty()
+        && country
+            .politics
+            .class_group_mapping
+            .urban_class_mapping
+            .is_empty()
     {
         use interest_groups::{ClassToGroupMapping, RuralClassConfig};
         let mut mapping = ClassToGroupMapping::default();
         mapping.default_group = "Petty Bourgeoisie".to_string();
         mapping.trade_union_group = "Trade Unions".to_string();
         // Rural class mappings
-        mapping.rural_class_mapping.insert("FreePeasant".to_string(), RuralClassConfig {
-            interest_group: "Agrarians".to_string(),
-            land_value_per_capita: 500.0,
-            voting_weight: 1.0,
-        });
-        mapping.rural_class_mapping.insert("LandlessLaborer".to_string(), RuralClassConfig {
-            interest_group: "Trade Unions".to_string(),
-            land_value_per_capita: 0.0,
-            voting_weight: 1.0,
-        });
-        mapping.rural_class_mapping.insert("Aristocracy".to_string(), RuralClassConfig {
-            interest_group: "Aristocracy".to_string(),
-            land_value_per_capita: 5000.0,
-            voting_weight: 1.0,
-        });
+        mapping.rural_class_mapping.insert(
+            "FreePeasant".to_string(),
+            RuralClassConfig {
+                interest_group: "Agrarians".to_string(),
+                land_value_per_capita: 500.0,
+                voting_weight: 1.0,
+            },
+        );
+        mapping.rural_class_mapping.insert(
+            "LandlessLaborer".to_string(),
+            RuralClassConfig {
+                interest_group: "Trade Unions".to_string(),
+                land_value_per_capita: 0.0,
+                voting_weight: 1.0,
+            },
+        );
+        mapping.rural_class_mapping.insert(
+            "Aristocracy".to_string(),
+            RuralClassConfig {
+                interest_group: "Aristocracy".to_string(),
+                land_value_per_capita: 5000.0,
+                voting_weight: 1.0,
+            },
+        );
         // Urban class mappings
-        mapping.urban_class_mapping.insert("Worker".to_string(), "Trade Unions".to_string());
-        mapping.urban_class_mapping.insert("Bourgeoisie".to_string(), "Petty Bourgeoisie".to_string());
+        mapping
+            .urban_class_mapping
+            .insert("Worker".to_string(), "Trade Unions".to_string());
+        mapping
+            .urban_class_mapping
+            .insert("Bourgeoisie".to_string(), "Petty Bourgeoisie".to_string());
         // Education mappings
         let mut no_edu = std::collections::HashMap::new();
         no_edu.insert("Trade Unions".to_string(), 0.7);
@@ -224,22 +260,37 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
         basic_edu.insert("Trade Unions".to_string(), 0.5);
         basic_edu.insert("Petty Bourgeoisie".to_string(), 0.3);
         basic_edu.insert("Agrarians".to_string(), 0.2);
-        mapping.education_mapping.insert("basic".to_string(), basic_edu);
+        mapping
+            .education_mapping
+            .insert("basic".to_string(), basic_edu);
         let mut sec_edu = std::collections::HashMap::new();
         sec_edu.insert("Petty Bourgeoisie".to_string(), 0.4);
         sec_edu.insert("Trade Unions".to_string(), 0.3);
         sec_edu.insert("Artisans".to_string(), 0.3);
-        mapping.education_mapping.insert("secondary".to_string(), sec_edu);
+        mapping
+            .education_mapping
+            .insert("secondary".to_string(), sec_edu);
         let mut higher_edu = std::collections::HashMap::new();
         higher_edu.insert("Specialists".to_string(), 0.4);
         higher_edu.insert("Intelligentsia".to_string(), 0.3);
         higher_edu.insert("Petty Bourgeoisie".to_string(), 0.3);
-        mapping.education_mapping.insert("higher".to_string(), higher_edu);
+        mapping
+            .education_mapping
+            .insert("higher".to_string(), higher_edu);
         // Company form mappings
-        mapping.company_form_mapping.insert("JointStockCompany".to_string(), "Capitalists".to_string());
-        mapping.company_form_mapping.insert("SoleProprietorship".to_string(), "Petty Bourgeoisie".to_string());
-        mapping.company_form_mapping.insert("StateMonopoly".to_string(), "Bureaucrats".to_string());
-        mapping.company_form_mapping.insert("Cooperative".to_string(), "Trade Unions".to_string());
+        mapping
+            .company_form_mapping
+            .insert("JointStockCompany".to_string(), "Capitalists".to_string());
+        mapping.company_form_mapping.insert(
+            "SoleProprietorship".to_string(),
+            "Petty Bourgeoisie".to_string(),
+        );
+        mapping
+            .company_form_mapping
+            .insert("StateMonopoly".to_string(), "Bureaucrats".to_string());
+        mapping
+            .company_form_mapping
+            .insert("Cooperative".to_string(), "Trade Unions".to_string());
 
         country.politics.class_group_mapping = mapping;
     }
@@ -253,7 +304,12 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
     );
 
     // 2. Regenerate active parties from ideology bids.
-    country.politics.active_parties = regenerate_parties(&country.politics, &country.name, year, &country.macro_indicators.cultural_group);
+    country.politics.active_parties = regenerate_parties(
+        &country.politics,
+        &country.name,
+        year,
+        &country.macro_indicators.cultural_group,
+    );
 
     // Phase 36: Election escape hatch — if the provisional government has been
     // in power for more than 4 years, force-generate real parties with non-zero
@@ -278,8 +334,10 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
             (Ideology::Agrarianism, 20.0),
         ];
         for (ideo, support) in &fallback_ideologies {
-            let name = generator::generate_party_name(&country.name, cultural_group, *ideo, &mut rng);
-            let organization = super::system::PartyOrganization::from_ideology_with_variance(*ideo, &mut rng);
+            let name =
+                generator::generate_party_name(&country.name, cultural_group, *ideo, &mut rng);
+            let organization =
+                super::system::PartyOrganization::from_ideology_with_variance(*ideo, &mut rng);
             let vip = super::names::generate_full_vip(cultural_group, &mut rng);
             let leader = super::names::vip_to_leader(vip, ideo.as_str());
             let party = Party {
@@ -287,7 +345,11 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
                 profile: ideo.profile().to_string(),
                 economic_school: ideo.economic_school().to_string(),
                 support: *support,
-                base: ideo.base_weights().iter().map(|(g, _)| g.to_string()).collect(),
+                base: ideo
+                    .base_weights()
+                    .iter()
+                    .map(|(g, _)| g.to_string())
+                    .collect(),
                 id: format!("[PRT-ESC-{}]", ideo.as_str()),
                 brokerage_account: None,
                 loans: Vec::new(),
@@ -298,8 +360,14 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
             country.politics.active_parties.insert(name, party);
         }
         // Remove the provisional government — real parties now compete.
-        country.politics.active_parties.remove("Provisional Technocratic Government");
-        messages.push("[ELECTION ESCAPE] Provisional government replaced by emergency party generation.".to_string());
+        country
+            .politics
+            .active_parties
+            .remove("Provisional Technocratic Government");
+        messages.push(
+            "[ELECTION ESCAPE] Provisional government replaced by emergency party generation."
+                .to_string(),
+        );
     }
 
     // Phase 34: Election safety net — if the country is democratic but has
@@ -328,24 +396,30 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
             }
             // Skip if this ideology is already represented.
             let ideo_str = ideo.as_str().to_string();
-            if country.politics.active_parties.values().any(|p| p.ideology == ideo_str) {
+            if country
+                .politics
+                .active_parties
+                .values()
+                .any(|p| p.ideology == ideo_str)
+            {
                 continue;
             }
-            let name = generator::generate_party_name(
-                &country.name,
-                cultural_group,
-                *ideo,
-                &mut rng,
-            );
+            let name =
+                generator::generate_party_name(&country.name, cultural_group, *ideo, &mut rng);
             let vip = super::names::generate_full_vip(cultural_group, &mut rng);
             let leader = super::names::vip_to_leader(vip, ideo.as_str());
-            let organization = super::system::PartyOrganization::from_ideology_with_variance(*ideo, &mut rng);
+            let organization =
+                super::system::PartyOrganization::from_ideology_with_variance(*ideo, &mut rng);
             let party = Party {
                 ideology: ideo.as_str().to_string(),
                 profile: ideo.profile().to_string(),
                 economic_school: ideo.economic_school().to_string(),
                 support: 10.0, // Modest initial support
-                base: ideo.base_weights().iter().map(|(g, _)| g.to_string()).collect(),
+                base: ideo
+                    .base_weights()
+                    .iter()
+                    .map(|(g, _)| g.to_string())
+                    .collect(),
                 id: format!("[PRT-{}]", idx),
                 leader,
                 organization,
@@ -382,18 +456,16 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
     for party in country.politics.active_parties.values_mut() {
         let party_support = party.support;
         let party_base = party.base.clone();
-        
+
         party.collect_membership_dues(
             party_support,
             &party_base,
             &country.politics.interest_groups,
             companies,
-            &mut country.regions,  // CHANGED: &mut for mutable access to class savings
+            &mut country.regions, // CHANGED: &mut for mutable access to class savings
         );
-        
-        party.accept_donations(
-            companies,
-        );
+
+        party.accept_donations(companies);
     }
 
     let form = country.politics.government_form;
@@ -417,13 +489,20 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
     // re-election loops when the snap election itself fails to produce
     // a valid government.
     if form.is_democratic() && country.politics.years_to_elections > 0 {
-        let has_provisional = country.politics.ruling_party == "Provisional Technocratic Government";
-        let real_parties = country.politics.active_parties.values()
+        let has_provisional =
+            country.politics.ruling_party == "Provisional Technocratic Government";
+        let real_parties = country
+            .politics
+            .active_parties
+            .values()
             .filter(|p| p.support > 0.0 && p.leader.name != "Provisional Technocratic Government")
             .count();
         if has_provisional || real_parties < 2 {
             country.politics.years_to_elections = 0;
-            messages.push("[SNAP ELECTION] Forced election to break provisional government deadlock.".to_string());
+            messages.push(
+                "[SNAP ELECTION] Forced election to break provisional government deadlock."
+                    .to_string(),
+            );
         }
     }
 
@@ -440,11 +519,14 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
         // Hold elections.
         let method = country.politics.election_method.clone();
         let threshold = country.politics.election_threshold;
-        let seats = elections::calculate_seats(&country.politics.active_parties, &method, threshold, 100);
+        let seats =
+            elections::calculate_seats(&country.politics.active_parties, &method, threshold, 100);
         country.politics.parliament = seats;
 
-        let (winner, coalition, minority, coa_id) =
-            elections::build_coalition(&country.politics.parliament, &country.politics.active_parties);
+        let (winner, coalition, minority, coa_id) = elections::build_coalition(
+            &country.politics.parliament,
+            &country.politics.active_parties,
+        );
         country.politics.ruling_party = winner;
         country.politics.coalition = coalition;
         country.politics.minority_government = minority;
@@ -516,16 +598,13 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
     if !country.is_rebellion {
         let trigger = rebellions::RebellionTrigger::default();
         let tax_burden = country.tax_rates.income_tax.rate; // Simplified tax burden
-        let war_exhaustion: f64 = country.military_fronts
+        let war_exhaustion: f64 = country
+            .military_fronts
             .iter()
             .flat_map(|f| f.war_exhaustion.get(&country.name).copied())
             .sum();
-        let (_spawned_rebels, rebellion_messages) = rebellions::process_rebellion_spawning(
-            country,
-            &trigger,
-            tax_burden,
-            war_exhaustion,
-        );
+        let (_spawned_rebels, rebellion_messages) =
+            rebellions::process_rebellion_spawning(country, &trigger, tax_burden, war_exhaustion);
         messages.extend(rebellion_messages);
         // Note: Spawned rebels would be added to GameState in future integration
     }
@@ -571,7 +650,11 @@ fn collect_annual_soe_dividends(
         let dividend = company.annual_profit_accumulator * DIVIDEND_RATE;
         // Debit from liquid cash: available_cash or brokerage_account.cash
         let available = company.available_cash
-            + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
+            + company
+                .brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash)
+                .unwrap_or(0.0);
         let actually_paid = dividend.min(available);
 
         if actually_paid > 0.0 {
@@ -630,7 +713,11 @@ fn collect_patent_fees(
 
         // Debit from liquid cash only
         let available = company.available_cash
-            + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
+            + company
+                .brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash)
+                .unwrap_or(0.0);
         let actually_paid = fee_owed.min(available);
 
         if actually_paid > 0.0 {
@@ -725,11 +812,8 @@ pub fn process_political_turn(
 
     // Phase 11a: Conservation (needs country + regions — use mem::take to avoid double borrow)
     let mut regions = std::mem::take(&mut country.regions);
-    let conservation_msgs = super::conservation::process_conservation_turn(
-        country,
-        &mut regions,
-        current_turn,
-    );
+    let conservation_msgs =
+        super::conservation::process_conservation_turn(country, &mut regions, current_turn);
     messages.extend(conservation_msgs);
 
     // Phase 11b: Mass movements (needs country + companies + regions + unions)
@@ -758,11 +842,8 @@ pub fn process_political_turn(
     country.regions = regions;
 
     // Phase 11c: Election cycle (needs country + parties)
-    let election_msgs = super::campaign::process_election_cycle(
-        country,
-        &mut active_parties,
-        current_turn,
-    );
+    let election_msgs =
+        super::campaign::process_election_cycle(country, &mut active_parties, current_turn);
     messages.extend(election_msgs);
 
     // Phase 32: Initialize/update Parliament struct after elections.
@@ -798,7 +879,9 @@ pub fn process_political_turn(
     // Phase 32: Check for mid-term faction splintering.
     if let Some(ref mut parl) = country.politics.parliament_struct {
         // Use ruling party support as a proxy for approval rating.
-        let approval = country.politics.active_parties
+        let approval = country
+            .politics
+            .active_parties
             .get(&country.politics.ruling_party)
             .map(|p| p.support)
             .unwrap_or(50.0);
@@ -828,17 +911,24 @@ pub fn process_political_turn(
                 if let Some(ref mut parl) = country.politics.parliament_struct {
                     parl.suspended = false;
                 }
-                messages.push("[STATE OF EMERGENCY] Auto-expired — Parliament resumes.".to_string());
+                messages
+                    .push("[STATE OF EMERGENCY] Auto-expired — Parliament resumes.".to_string());
             }
         }
     }
 
     // Phase 32: Regenerate political capital.
-    let ruling_support = country.politics.active_parties
+    let ruling_support = country
+        .politics
+        .active_parties
         .get(&country.politics.ruling_party)
         .map(|p| p.support)
         .unwrap_or(50.0);
-    let coalition_stability = if country.politics.minority_government { 0.5 } else { 1.0 };
+    let coalition_stability = if country.politics.minority_government {
+        0.5
+    } else {
+        1.0
+    };
     country.politics.political_capital = 50.0 + ruling_support * 0.5 * coalition_stability;
 
     // Phase 11e: Lobbying (needs country + companies + parties + bills)
@@ -874,22 +964,28 @@ pub fn process_political_turn(
     messages.extend(dynasty_msgs);
 
     // Phase 11g: Leader traits
-    let trait_msgs = super::traits::process_leader_traits_turn(
-        country,
-        trait_registry,
-    );
+    let trait_msgs = super::traits::process_leader_traits_turn(country, trait_registry);
     messages.extend(trait_msgs);
 
     messages
 }
 
 /// Regenerates party support from ideology bids and the existing party roster.
-fn regenerate_parties(politics: &Politics, country_name: &str, year: u32, cultural_group: &str) -> HashMap<String, Party> {
+fn regenerate_parties(
+    politics: &Politics,
+    country_name: &str,
+    year: u32,
+    cultural_group: &str,
+) -> HashMap<String, Party> {
     let ig_power = &politics.interest_groups;
     let threshold = politics.election_threshold;
     let old_parties = &politics.active_parties;
     let parliament = &politics.parliament;
-    let cultural_group = if cultural_group.is_empty() { "slavic" } else { cultural_group };
+    let cultural_group = if cultural_group.is_empty() {
+        "slavic"
+    } else {
+        cultural_group
+    };
 
     let mut bids: HashMap<Ideology, f64> = HashMap::new();
     for ideo in [
@@ -949,7 +1045,8 @@ fn regenerate_parties(politics: &Politics, country_name: &str, year: u32, cultur
         if bid > threshold && !used_ideologies.contains(&ideo) {
             // Use procedural name generator
             let name = generator::generate_party_name(country_name, cultural_group, ideo, &mut rng);
-            let organization = super::system::PartyOrganization::from_ideology_with_variance(ideo, &mut rng);
+            let organization =
+                super::system::PartyOrganization::from_ideology_with_variance(ideo, &mut rng);
             // Phase 33: Generate a named leader for the new party.
             let vip = super::names::generate_full_vip(cultural_group, &mut rng);
             let leader = super::names::vip_to_leader(vip, ideo.as_str());
@@ -958,9 +1055,13 @@ fn regenerate_parties(politics: &Politics, country_name: &str, year: u32, cultur
                 profile: ideo.profile().to_string(),
                 economic_school: ideo.economic_school().to_string(),
                 support: bid,
-                base: ideo.base_weights().iter().map(|(g, _)| g.to_string()).collect(),
+                base: ideo
+                    .base_weights()
+                    .iter()
+                    .map(|(g, _)| g.to_string())
+                    .collect(),
                 id: format!("[PRT-{}]", new_parties.len()),
-                brokerage_account: None,  // Will be initialized during banking integration
+                brokerage_account: None, // Will be initialized during banking integration
                 loans: Vec::new(),
                 organization: organization.clone(),
                 leader,
@@ -971,7 +1072,8 @@ fn regenerate_parties(politics: &Politics, country_name: &str, year: u32, cultur
             let mut unique_name = name;
             let mut attempts = 0;
             while new_parties.contains_key(&unique_name) && attempts < 20 {
-                unique_name = generator::generate_party_name(country_name, cultural_group, ideo, &mut rng);
+                unique_name =
+                    generator::generate_party_name(country_name, cultural_group, ideo, &mut rng);
                 attempts += 1;
             }
             if new_parties.contains_key(&unique_name) {
@@ -1029,19 +1131,26 @@ pub fn check_snap_election(country: &mut Country, current_turn: u32) -> Vec<Stri
     // (within 4 turns = ~2 months). This prevents infinite loops when
     // election formation fails to produce a valid government.
     const SNAP_ELECTION_COOLDOWN: u32 = 4;
-    if current_turn.saturating_sub(country.politics.last_snap_election_turn) < SNAP_ELECTION_COOLDOWN {
+    if current_turn.saturating_sub(country.politics.last_snap_election_turn)
+        < SNAP_ELECTION_COOLDOWN
+    {
         return messages;
     }
 
     let has_provisional = country.politics.ruling_party == "Provisional Technocratic Government";
-    let real_parties = country.politics.active_parties.values()
+    let real_parties = country
+        .politics
+        .active_parties
+        .values()
         .filter(|p| p.support > 0.0 && p.leader.name != "Provisional Technocratic Government")
         .count();
 
     if (has_provisional || real_parties < 2) && country.politics.years_to_elections > 0 {
         country.politics.years_to_elections = 0;
         country.politics.last_snap_election_turn = current_turn;
-        messages.push("[SNAP ELECTION] Forced election to break provisional government deadlock.".to_string());
+        messages.push(
+            "[SNAP ELECTION] Forced election to break provisional government deadlock.".to_string(),
+        );
     }
 
     messages
@@ -1077,11 +1186,14 @@ pub fn run_election_if_due(country: &mut Country, unrest: f64, current_turn: u32
     // Hold elections.
     let method = country.politics.election_method.clone();
     let threshold = country.politics.election_threshold;
-    let seats = elections::calculate_seats(&country.politics.active_parties, &method, threshold, 100);
+    let seats =
+        elections::calculate_seats(&country.politics.active_parties, &method, threshold, 100);
     country.politics.parliament = seats;
 
-    let (winner, coalition, minority, coa_id) =
-        elections::build_coalition(&country.politics.parliament, &country.politics.active_parties);
+    let (winner, coalition, minority, coa_id) = elections::build_coalition(
+        &country.politics.parliament,
+        &country.politics.active_parties,
+    );
     country.politics.ruling_party = winner;
     country.politics.coalition = coalition;
     country.politics.minority_government = minority;
@@ -1138,10 +1250,7 @@ pub fn run_election_if_due(country: &mut Country, unrest: f64, current_turn: u32
     // This was never called before, so committee_system was always None and
     // the Parliament tab showed no committees.
     let mut cs = super::committees::CommitteeSystem::default();
-    cs.initialize_committees(
-        &country.politics.parliament,
-        &country.politics.coalition,
-    );
+    cs.initialize_committees(&country.politics.parliament, &country.politics.coalition);
     country.politics.committee_system = Some(cs);
 
     // Phase 40: Calculate budget needs for the new government immediately.
@@ -1197,66 +1306,119 @@ pub fn apply_ruling_ideology_policies(country: &mut Country) {
 /// ruling ideology's economic school. Applied every turn to ensure
 /// ideological consistency. Player agency is expressed through elections.
 fn apply_ideology_tax_policy(country: &mut Country, ideology: Ideology) {
-    use crate::state::tax::{TaxBracket, WealthTax, CapitalGainsTax};
+    use crate::state::tax::{CapitalGainsTax, TaxBracket, WealthTax};
     use serde_json::Map;
 
     let (wealth_brackets, cg_brackets): (Vec<TaxBracket>, Vec<TaxBracket>) = match ideology {
         // Socialist/Marxist: heavy wealth tax, high capital gains
         Ideology::OrthodoxMarxism | Ideology::MarxismLeninism | Ideology::Maoism => (
             vec![
-                TaxBracket { threshold: 1_000_000.0, rate: 0.02, extra: Map::new() },
-                TaxBracket { threshold: 10_000_000.0, rate: 0.05, extra: Map::new() },
+                TaxBracket {
+                    threshold: 1_000_000.0,
+                    rate: 0.02,
+                    extra: Map::new(),
+                },
+                TaxBracket {
+                    threshold: 10_000_000.0,
+                    rate: 0.05,
+                    extra: Map::new(),
+                },
             ],
-            vec![TaxBracket { threshold: 0.0, rate: 0.30, extra: Map::new() }],
+            vec![TaxBracket {
+                threshold: 0.0,
+                rate: 0.30,
+                extra: Map::new(),
+            }],
         ),
         // Social Democratic: moderate wealth tax, standard capital gains
         Ideology::SocialDemocracy | Ideology::GreenPolitics => (
             vec![
-                TaxBracket { threshold: 2_000_000.0, rate: 0.01, extra: Map::new() },
-                TaxBracket { threshold: 10_000_000.0, rate: 0.03, extra: Map::new() },
+                TaxBracket {
+                    threshold: 2_000_000.0,
+                    rate: 0.01,
+                    extra: Map::new(),
+                },
+                TaxBracket {
+                    threshold: 10_000_000.0,
+                    rate: 0.03,
+                    extra: Map::new(),
+                },
             ],
-            vec![TaxBracket { threshold: 0.0, rate: 0.19, extra: Map::new() }],
+            vec![TaxBracket {
+                threshold: 0.0,
+                rate: 0.19,
+                extra: Map::new(),
+            }],
         ),
         // Keynesian/Social Liberal: light wealth tax, standard capital gains
         Ideology::SocialLiberalism => (
-            vec![
-                TaxBracket { threshold: 5_000_000.0, rate: 0.005, extra: Map::new() },
-            ],
-            vec![TaxBracket { threshold: 0.0, rate: 0.19, extra: Map::new() }],
+            vec![TaxBracket {
+                threshold: 5_000_000.0,
+                rate: 0.005,
+                extra: Map::new(),
+            }],
+            vec![TaxBracket {
+                threshold: 0.0,
+                rate: 0.19,
+                extra: Map::new(),
+            }],
         ),
         // Centrist/Agrarian: baseline wealth tax, standard capital gains
         Ideology::Agrarianism | Ideology::ChristianDemocracy => (
-            vec![
-                TaxBracket { threshold: 5_000_000.0, rate: 0.01, extra: Map::new() },
-            ],
-            vec![TaxBracket { threshold: 0.0, rate: 0.19, extra: Map::new() }],
+            vec![TaxBracket {
+                threshold: 5_000_000.0,
+                rate: 0.01,
+                extra: Map::new(),
+            }],
+            vec![TaxBracket {
+                threshold: 0.0,
+                rate: 0.19,
+                extra: Map::new(),
+            }],
         ),
         // Classical Liberal: no wealth tax, lower capital gains
         Ideology::ClassicalLiberalism => (
             vec![],
-            vec![TaxBracket { threshold: 0.0, rate: 0.15, extra: Map::new() }],
+            vec![TaxBracket {
+                threshold: 0.0,
+                rate: 0.15,
+                extra: Map::new(),
+            }],
         ),
         // Conservative: no wealth tax, standard capital gains
-        Ideology::SocialConservatism | Ideology::NationalConservatism | Ideology::Neoconservatism => (
+        Ideology::SocialConservatism
+        | Ideology::NationalConservatism
+        | Ideology::Neoconservatism => (
             vec![],
-            vec![TaxBracket { threshold: 0.0, rate: 0.19, extra: Map::new() }],
+            vec![TaxBracket {
+                threshold: 0.0,
+                rate: 0.19,
+                extra: Map::new(),
+            }],
         ),
         // Neoliberal: no wealth tax, low capital gains
         Ideology::Neoliberalism => (
             vec![],
-            vec![TaxBracket { threshold: 0.0, rate: 0.10, extra: Map::new() }],
+            vec![TaxBracket {
+                threshold: 0.0,
+                rate: 0.10,
+                extra: Map::new(),
+            }],
         ),
         // Anarcho-Capitalist: no taxes at all
-        Ideology::AnarchoCapitalism => (
-            vec![],
-            vec![],
-        ),
+        Ideology::AnarchoCapitalism => (vec![], vec![]),
         // Fascism: state-controlled, moderate wealth tax, high capital gains
         Ideology::Fascism => (
-            vec![
-                TaxBracket { threshold: 2_000_000.0, rate: 0.02, extra: Map::new() },
-            ],
-            vec![TaxBracket { threshold: 0.0, rate: 0.25, extra: Map::new() }],
+            vec![TaxBracket {
+                threshold: 2_000_000.0,
+                rate: 0.02,
+                extra: Map::new(),
+            }],
+            vec![TaxBracket {
+                threshold: 0.0,
+                rate: 0.25,
+                extra: Map::new(),
+            }],
         ),
     };
 
@@ -1281,7 +1443,12 @@ fn apply_ideology_tax_policy(country: &mut Country, ideology: Ideology) {
 /// * For non-democratic forms, installs the strongest party as the ruling party
 ///   and applies its ideology's policies.
 /// * Fills `head_of_state` and `dynasty` for monarchies.
-pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::entities::Company>, year: u32, rng: &mut impl Rng) {
+pub fn bootstrap_politics(
+    country: &mut Country,
+    companies: &mut Vec<crate::entities::Company>,
+    year: u32,
+    rng: &mut impl Rng,
+) {
     let forms = [
         GovernmentForm::ParliamentaryDemocracy,
         GovernmentForm::PresidentialRepublic,
@@ -1337,13 +1504,20 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
             // Check if the leader name (without title prefix) collides.
             let leader_name = &party.leader.name;
             // Strip title prefix (e.g., "King John Smith" -> "John Smith")
-            let base_name = leader_name.split_whitespace()
-                .skip_while(|w| w == &"King" || w == &"Queen" || w == &"President" || w == &"Leader")
+            let base_name = leader_name
+                .split_whitespace()
+                .skip_while(|w| {
+                    w == &"King" || w == &"Queen" || w == &"President" || w == &"Leader"
+                })
                 .collect::<Vec<_>>()
                 .join(" ");
             if used_names.contains(&base_name) {
                 // Regenerate with a unique name
-                let new_vip = super::names::generate_key_vip(&cultural_group, &mut rng_dedup, &mut used_names);
+                let new_vip = super::names::generate_key_vip(
+                    &cultural_group,
+                    &mut rng_dedup,
+                    &mut used_names,
+                );
                 party.leader.name = new_vip.full_name;
                 party.leader.gender = new_vip.gender;
             } else {
@@ -1374,7 +1548,10 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
         full_name: hos.name.clone(),
         gender: hos.gender.clone(),
         age: hos.age,
-        health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+        health: crate::politics::vip_registry::VipHealth {
+            physical_health: 1.0,
+            mental_health: 1.0,
+        },
         traits: hos.traits.clone(),
         main_trait: hos.main_trait.clone(),
         ideology: hos.views.clone(),
@@ -1393,41 +1570,55 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
     // initialized, so process_dynasty_turn early-returned and no consorts or
     // heirs were ever generated.
     if is_monarchy(form) {
-        let dynasty_name = country.politics.dynasty.clone().unwrap_or_else(|| "Royal".to_string());
+        let dynasty_name = country
+            .politics
+            .dynasty
+            .clone()
+            .unwrap_or_else(|| "Royal".to_string());
         let monarch_gender = hos.gender.clone();
         let monarch_age = hos.age;
 
         // Create the dynasty with the monarch as the first member.
         let mut royal_dynasty = super::succession::RoyalDynasty::new(dynasty_name.clone());
         royal_dynasty.current_monarch_id = Some(monarch_vip_id.clone());
-        royal_dynasty.members.push(super::succession::RoyalFamilyMember {
-            vip_id: monarch_vip_id.clone(),
-            relation: super::succession::RoyalRelation::Monarch,
-            birth_turn: 0, // Genesis — birth turn not tracked for initial monarch
-            is_legitimate: true,
-            is_heir_apparent: false,
-            succession_order: 0,
-            father_vip_id: None,
-            mother_vip_id: None,
-            spouse_vip_id: None, // Will be set below after consort generation
-            children_vip_ids: Vec::new(),
-            marriage_turn: None,
-            death_turn: None,
-            death_cause: None,
-        });
+        royal_dynasty
+            .members
+            .push(super::succession::RoyalFamilyMember {
+                vip_id: monarch_vip_id.clone(),
+                relation: super::succession::RoyalRelation::Monarch,
+                birth_turn: 0, // Genesis — birth turn not tracked for initial monarch
+                is_legitimate: true,
+                is_heir_apparent: false,
+                succession_order: 0,
+                father_vip_id: None,
+                mother_vip_id: None,
+                spouse_vip_id: None, // Will be set below after consort generation
+                children_vip_ids: Vec::new(),
+                marriage_turn: None,
+                death_turn: None,
+                death_cause: None,
+            });
 
         // Generate a royal consort (spouse for the monarch).
         // Phase 92: Use gender-aware key VIP generation to ensure the consort's
         // name matches their assigned gender (e.g., female consort gets a
         // female first name, not a male name).
         let consort_gender = if monarch_gender == "M" { "F" } else { "M" };
-        let consort_vip_name = super::names::generate_key_vip_with_gender(cultural_group, consort_gender, rng, &mut used_names);
+        let consort_vip_name = super::names::generate_key_vip_with_gender(
+            cultural_group,
+            consort_gender,
+            rng,
+            &mut used_names,
+        );
         let (consort_traits, consort_main_trait) = assign_core_traits(rng);
         let consort_vip_id = registry.register_new(Vip {
             full_name: consort_vip_name.full_name.clone(),
             gender: consort_gender.to_string(),
             age: 18 + rng.gen_range(0..15), // Consort aged 18-32
-            health: crate::politics::vip_registry::VipHealth { physical_health: 0.9, mental_health: 0.9 },
+            health: crate::politics::vip_registry::VipHealth {
+                physical_health: 0.9,
+                mental_health: 0.9,
+            },
             traits: consort_traits,
             main_trait: consort_main_trait,
             ideology: String::new(),
@@ -1441,25 +1632,31 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
         });
 
         // Link consort to monarch in the dynasty.
-        if let Some(monarch_member) = royal_dynasty.members.iter_mut().find(|m| m.vip_id == monarch_vip_id) {
+        if let Some(monarch_member) = royal_dynasty
+            .members
+            .iter_mut()
+            .find(|m| m.vip_id == monarch_vip_id)
+        {
             monarch_member.spouse_vip_id = Some(consort_vip_id.clone());
             monarch_member.marriage_turn = Some(0); // Genesis marriage
         }
-        royal_dynasty.members.push(super::succession::RoyalFamilyMember {
-            vip_id: consort_vip_id.clone(),
-            relation: super::succession::RoyalRelation::Consort,
-            birth_turn: 0,
-            is_legitimate: true,
-            is_heir_apparent: false,
-            succession_order: 999, // Consorts are not in succession line
-            father_vip_id: None,
-            mother_vip_id: None,
-            spouse_vip_id: Some(monarch_vip_id.clone()),
-            children_vip_ids: Vec::new(),
-            marriage_turn: Some(0),
-            death_turn: None,
-            death_cause: None,
-        });
+        royal_dynasty
+            .members
+            .push(super::succession::RoyalFamilyMember {
+                vip_id: consort_vip_id.clone(),
+                relation: super::succession::RoyalRelation::Consort,
+                birth_turn: 0,
+                is_legitimate: true,
+                is_heir_apparent: false,
+                succession_order: 999, // Consorts are not in succession line
+                father_vip_id: None,
+                mother_vip_id: None,
+                spouse_vip_id: Some(monarch_vip_id.clone()),
+                children_vip_ids: Vec::new(),
+                marriage_turn: Some(0),
+                death_turn: None,
+                death_cause: None,
+            });
 
         // Generate 1-2 royal heirs (children of monarch and consort).
         let num_heirs = if monarch_age >= 25 { 2 } else { 1 };
@@ -1468,14 +1665,26 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
             // Phase 92: Select heir gender FIRST, then generate name with that
             // gender to ensure name-gender consistency.
             let heir_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
-            let heir_vip_name = super::names::generate_key_vip_with_gender(cultural_group, heir_gender, rng, &mut used_names);
+            let heir_vip_name = super::names::generate_key_vip_with_gender(
+                cultural_group,
+                heir_gender,
+                rng,
+                &mut used_names,
+            );
             let (heir_traits, heir_main_trait) = assign_core_traits(rng);
-            let heir_age = if monarch_age > 30 { rng.gen_range(5..25) } else { rng.gen_range(1..10) };
+            let heir_age = if monarch_age > 30 {
+                rng.gen_range(5..25)
+            } else {
+                rng.gen_range(1..10)
+            };
             let heir_vip_id = registry.register_new(Vip {
                 full_name: heir_vip_name.full_name.clone(),
                 gender: heir_gender.to_string(),
                 age: heir_age,
-                health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+                health: crate::politics::vip_registry::VipHealth {
+                    physical_health: 1.0,
+                    mental_health: 1.0,
+                },
                 traits: heir_traits,
                 main_trait: heir_main_trait,
                 ideology: String::new(),
@@ -1488,29 +1697,47 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
                 ..Default::default()
             });
             let is_heir_apparent = heir_idx == 0;
-            royal_dynasty.members.push(super::succession::RoyalFamilyMember {
-                vip_id: heir_vip_id.clone(),
-                relation: super::succession::RoyalRelation::Child,
-                birth_turn: 0,
-                is_legitimate: true,
-                is_heir_apparent,
-                succession_order: (heir_idx + 1) as u32,
-                father_vip_id: if monarch_gender == "M" { Some(monarch_vip_id.clone()) } else { None },
-                mother_vip_id: if monarch_gender == "F" { Some(monarch_vip_id.clone()) } else { None },
-                spouse_vip_id: None,
-                children_vip_ids: Vec::new(),
-                marriage_turn: None,
-                death_turn: None,
-                death_cause: None,
-            });
+            royal_dynasty
+                .members
+                .push(super::succession::RoyalFamilyMember {
+                    vip_id: heir_vip_id.clone(),
+                    relation: super::succession::RoyalRelation::Child,
+                    birth_turn: 0,
+                    is_legitimate: true,
+                    is_heir_apparent,
+                    succession_order: (heir_idx + 1) as u32,
+                    father_vip_id: if monarch_gender == "M" {
+                        Some(monarch_vip_id.clone())
+                    } else {
+                        None
+                    },
+                    mother_vip_id: if monarch_gender == "F" {
+                        Some(monarch_vip_id.clone())
+                    } else {
+                        None
+                    },
+                    spouse_vip_id: None,
+                    children_vip_ids: Vec::new(),
+                    marriage_turn: None,
+                    death_turn: None,
+                    death_cause: None,
+                });
             children_ids.push(heir_vip_id);
         }
 
         // Link children to both monarch and consort.
-        if let Some(monarch_member) = royal_dynasty.members.iter_mut().find(|m| m.vip_id == monarch_vip_id) {
+        if let Some(monarch_member) = royal_dynasty
+            .members
+            .iter_mut()
+            .find(|m| m.vip_id == monarch_vip_id)
+        {
             monarch_member.children_vip_ids = children_ids.clone();
         }
-        if let Some(consort_member) = royal_dynasty.members.iter_mut().find(|m| m.vip_id == consort_vip_id) {
+        if let Some(consort_member) = royal_dynasty
+            .members
+            .iter_mut()
+            .find(|m| m.vip_id == consort_vip_id)
+        {
             consort_member.children_vip_ids = children_ids;
         }
 
@@ -1524,14 +1751,22 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
         let mut sibling_ids = Vec::new();
         for _ in 0..num_siblings {
             let sibling_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
-            let sibling_name = super::names::generate_key_vip_with_gender(cultural_group, sibling_gender, rng, &mut used_names);
+            let sibling_name = super::names::generate_key_vip_with_gender(
+                cultural_group,
+                sibling_gender,
+                rng,
+                &mut used_names,
+            );
             let (sib_traits, sib_main_trait) = assign_core_traits(rng);
             let sibling_age = (monarch_age as i32 + rng.gen_range(-5..6)).max(18) as u32;
             let sibling_vip_id = registry.register_new(Vip {
                 full_name: sibling_name.full_name.clone(),
                 gender: sibling_gender.to_string(),
                 age: sibling_age.max(18),
-                health: crate::politics::vip_registry::VipHealth { physical_health: 0.9, mental_health: 0.9 },
+                health: crate::politics::vip_registry::VipHealth {
+                    physical_health: 0.9,
+                    mental_health: 0.9,
+                },
                 traits: sib_traits,
                 main_trait: sib_main_trait,
                 ideology: String::new(),
@@ -1543,21 +1778,23 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
                 faction: "Royal Court".to_string(),
                 ..Default::default()
             });
-            royal_dynasty.members.push(super::succession::RoyalFamilyMember {
-                vip_id: sibling_vip_id.clone(),
-                relation: super::succession::RoyalRelation::Sibling,
-                birth_turn: 0,
-                is_legitimate: true,
-                is_heir_apparent: false,
-                succession_order: next_succession_order,
-                father_vip_id: None, // Siblings share monarch's parents (not tracked)
-                mother_vip_id: None,
-                spouse_vip_id: None,
-                children_vip_ids: Vec::new(),
-                marriage_turn: None,
-                death_turn: None,
-                death_cause: None,
-            });
+            royal_dynasty
+                .members
+                .push(super::succession::RoyalFamilyMember {
+                    vip_id: sibling_vip_id.clone(),
+                    relation: super::succession::RoyalRelation::Sibling,
+                    birth_turn: 0,
+                    is_legitimate: true,
+                    is_heir_apparent: false,
+                    succession_order: next_succession_order,
+                    father_vip_id: None, // Siblings share monarch's parents (not tracked)
+                    mother_vip_id: None,
+                    spouse_vip_id: None,
+                    children_vip_ids: Vec::new(),
+                    marriage_turn: None,
+                    death_turn: None,
+                    death_cause: None,
+                });
             next_succession_order += 1;
             sibling_ids.push(sibling_vip_id);
         }
@@ -1567,14 +1804,22 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
         let mut uncle_aunt_ids = Vec::new();
         for _ in 0..num_uncles_aunts {
             let ua_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
-            let ua_name = super::names::generate_key_vip_with_gender(cultural_group, ua_gender, rng, &mut used_names);
+            let ua_name = super::names::generate_key_vip_with_gender(
+                cultural_group,
+                ua_gender,
+                rng,
+                &mut used_names,
+            );
             let (ua_traits, ua_main_trait) = assign_core_traits(rng);
             let ua_age = monarch_age + 15 + rng.gen_range(0..11); // 15-25 years older
             let ua_vip_id = registry.register_new(Vip {
                 full_name: ua_name.full_name.clone(),
                 gender: ua_gender.to_string(),
                 age: ua_age,
-                health: crate::politics::vip_registry::VipHealth { physical_health: 0.8, mental_health: 0.8 },
+                health: crate::politics::vip_registry::VipHealth {
+                    physical_health: 0.8,
+                    mental_health: 0.8,
+                },
                 traits: ua_traits,
                 main_trait: ua_main_trait,
                 ideology: String::new(),
@@ -1591,21 +1836,23 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
             } else {
                 super::succession::RoyalRelation::Aunt
             };
-            royal_dynasty.members.push(super::succession::RoyalFamilyMember {
-                vip_id: ua_vip_id.clone(),
-                relation,
-                birth_turn: 0,
-                is_legitimate: true,
-                is_heir_apparent: false,
-                succession_order: next_succession_order,
-                father_vip_id: None,
-                mother_vip_id: None,
-                spouse_vip_id: None,
-                children_vip_ids: Vec::new(),
-                marriage_turn: None,
-                death_turn: None,
-                death_cause: None,
-            });
+            royal_dynasty
+                .members
+                .push(super::succession::RoyalFamilyMember {
+                    vip_id: ua_vip_id.clone(),
+                    relation,
+                    birth_turn: 0,
+                    is_legitimate: true,
+                    is_heir_apparent: false,
+                    succession_order: next_succession_order,
+                    father_vip_id: None,
+                    mother_vip_id: None,
+                    spouse_vip_id: None,
+                    children_vip_ids: Vec::new(),
+                    marriage_turn: None,
+                    death_turn: None,
+                    death_cause: None,
+                });
             next_succession_order += 1;
             uncle_aunt_ids.push(ua_vip_id);
         }
@@ -1614,14 +1861,26 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
         let num_cousins = rng.gen_range(0..3); // 0-2 cousins
         for _ in 0..num_cousins {
             let cousin_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
-            let cousin_name = super::names::generate_key_vip_with_gender(cultural_group, cousin_gender, rng, &mut used_names);
+            let cousin_name = super::names::generate_key_vip_with_gender(
+                cultural_group,
+                cousin_gender,
+                rng,
+                &mut used_names,
+            );
             let (c_traits, c_main_trait) = assign_core_traits(rng);
-            let cousin_age = if monarch_age > 10 { monarch_age - 10 + rng.gen_range(0..11) } else { rng.gen_range(1..10) };
+            let cousin_age = if monarch_age > 10 {
+                monarch_age - 10 + rng.gen_range(0..11)
+            } else {
+                rng.gen_range(1..10)
+            };
             let cousin_vip_id = registry.register_new(Vip {
                 full_name: cousin_name.full_name.clone(),
                 gender: cousin_gender.to_string(),
                 age: cousin_age.max(1),
-                health: crate::politics::vip_registry::VipHealth { physical_health: 0.9, mental_health: 0.9 },
+                health: crate::politics::vip_registry::VipHealth {
+                    physical_health: 0.9,
+                    mental_health: 0.9,
+                },
                 traits: c_traits,
                 main_trait: c_main_trait,
                 ideology: String::new(),
@@ -1639,24 +1898,36 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
             } else {
                 Some(uncle_aunt_ids[rng.gen_range(0..uncle_aunt_ids.len())].clone())
             };
-            royal_dynasty.members.push(super::succession::RoyalFamilyMember {
-                vip_id: cousin_vip_id.clone(),
-                relation: super::succession::RoyalRelation::Cousin,
-                birth_turn: 0,
-                is_legitimate: true,
-                is_heir_apparent: false,
-                succession_order: next_succession_order,
-                father_vip_id: if cousin_gender == "M" { parent_id.clone() } else { None },
-                mother_vip_id: if cousin_gender == "F" { parent_id.clone() } else { None },
-                spouse_vip_id: None,
-                children_vip_ids: Vec::new(),
-                marriage_turn: None,
-                death_turn: None,
-                death_cause: None,
-            });
+            royal_dynasty
+                .members
+                .push(super::succession::RoyalFamilyMember {
+                    vip_id: cousin_vip_id.clone(),
+                    relation: super::succession::RoyalRelation::Cousin,
+                    birth_turn: 0,
+                    is_legitimate: true,
+                    is_heir_apparent: false,
+                    succession_order: next_succession_order,
+                    father_vip_id: if cousin_gender == "M" {
+                        parent_id.clone()
+                    } else {
+                        None
+                    },
+                    mother_vip_id: if cousin_gender == "F" {
+                        parent_id.clone()
+                    } else {
+                        None
+                    },
+                    spouse_vip_id: None,
+                    children_vip_ids: Vec::new(),
+                    marriage_turn: None,
+                    death_turn: None,
+                    death_cause: None,
+                });
             // Link cousin to uncle/aunt's children list.
             if let Some(pid) = &parent_id {
-                if let Some(parent_member) = royal_dynasty.members.iter_mut().find(|m| &m.vip_id == pid) {
+                if let Some(parent_member) =
+                    royal_dynasty.members.iter_mut().find(|m| &m.vip_id == pid)
+                {
                     parent_member.children_vip_ids.push(cousin_vip_id);
                 }
             }
@@ -1679,7 +1950,10 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
             full_name: leader.name.clone(),
             gender: leader.gender.clone(),
             age: leader.age,
-            health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+            health: crate::politics::vip_registry::VipHealth {
+                physical_health: 1.0,
+                mental_health: 1.0,
+            },
             traits: leader.traits.clone(),
             main_trait: leader.main_trait.clone(),
             ideology: party.ideology.clone(),
@@ -1705,7 +1979,9 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
             // Phase 53: Assign a real ideology (autocracies lean authoritarian).
             let ideology = {
                 let autocratic_ideologies = [
-                    "National Conservatism", "Neoconservatism", "Social Conservatism",
+                    "National Conservatism",
+                    "Neoconservatism",
+                    "Social Conservatism",
                 ];
                 autocratic_ideologies[rng2.gen_range(0..autocratic_ideologies.len())].to_string()
             };
@@ -1713,7 +1989,10 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
                 full_name: vip_name.full_name,
                 gender: vip_name.gender,
                 age: 40 + rng2.gen_range(0..30),
-                health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+                health: crate::politics::vip_registry::VipHealth {
+                    physical_health: 1.0,
+                    mental_health: 1.0,
+                },
                 traits,
                 main_trait,
                 ideology,
@@ -1750,7 +2029,10 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
                     n.gender
                 },
                 age: 40 + rng3.gen_range(0..30),
-                health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+                health: crate::politics::vip_registry::VipHealth {
+                    physical_health: 1.0,
+                    mental_health: 1.0,
+                },
                 traits,
                 main_trait,
                 ideology,
@@ -1770,12 +2052,11 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
 
     if !form.is_democratic() {
         // For non-democratic forms, install the strongest party as the regime.
-        if let Some((name, _)) = country
-            .politics
-            .active_parties
-            .iter()
-            .max_by(|a, b| a.1.support.partial_cmp(&b.1.support).unwrap_or(std::cmp::Ordering::Equal))
-        {
+        if let Some((name, _)) = country.politics.active_parties.iter().max_by(|a, b| {
+            a.1.support
+                .partial_cmp(&b.1.support)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        }) {
             let ruling = name.clone();
             country.politics.ruling_party = ruling;
             country.politics.coalition = Vec::new();
@@ -1842,7 +2123,10 @@ pub fn assign_regional_heads(
                     full_name: gov.head.name.clone(),
                     gender: gov.head.gender.clone(),
                     age: gov.head.age,
-                    health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+                    health: crate::politics::vip_registry::VipHealth {
+                        physical_health: 1.0,
+                        mental_health: 1.0,
+                    },
                     traits,
                     main_trait,
                     ideology,
@@ -1877,7 +2161,10 @@ pub fn assign_regional_heads(
                     full_name: mg_gov.governor.name.clone(),
                     gender: mg_gov.governor.gender.clone(),
                     age: mg_gov.governor.age,
-                    health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+                    health: crate::politics::vip_registry::VipHealth {
+                        physical_health: 1.0,
+                        mental_health: 1.0,
+                    },
                     traits,
                     main_trait,
                     ideology,
@@ -1902,7 +2189,10 @@ fn is_monarchy(form: GovernmentForm) -> bool {
 }
 
 fn build_constitution(form: GovernmentForm, _rng: &mut impl Rng) -> Constitution {
-    let exists = !matches!(form, GovernmentForm::MilitaryDictatorship | GovernmentForm::AbsoluteMonarchy);
+    let exists = !matches!(
+        form,
+        GovernmentForm::MilitaryDictatorship | GovernmentForm::AbsoluteMonarchy
+    );
     let presidential_veto = matches!(
         form,
         GovernmentForm::PresidentialRepublic
@@ -1927,7 +2217,12 @@ fn build_constitution(form: GovernmentForm, _rng: &mut impl Rng) -> Constitution
     };
     Constitution {
         exists,
-        constitutional_tribunal: if exists { "Constitutional Tribunal" } else { "None" }.to_string(),
+        constitutional_tribunal: if exists {
+            "Constitutional Tribunal"
+        } else {
+            "None"
+        }
+        .to_string(),
         presidential_veto,
         upper_house,
         change_mechanism: change_mechanism.to_string(),
@@ -1937,7 +2232,8 @@ fn build_constitution(form: GovernmentForm, _rng: &mut impl Rng) -> Constitution
             financial_weight: 0.3,
             suffrage_type: crate::politics::interest_groups::SuffrageType::UniversalSuffrage,
         },
-        budget_failure_consequence: crate::politics::budget_lifecycle::BudgetFailureConsequence::default(),
+        budget_failure_consequence:
+            crate::politics::budget_lifecycle::BudgetFailureConsequence::default(),
     }
 }
 
@@ -1971,15 +2267,41 @@ fn build_judiciary(form: GovernmentForm) -> Judiciary {
 
 fn random_dynasty(rng: &mut impl Rng) -> String {
     const DYNASTIES: &[&str] = &[
-        "Habsburg", "Romanow", "Piast", "Jagiellon", "Waz", "Bourbon", "Hohenzollern",
-        "Sask", "Braganza", "Savoja", "Hanower", "Oldenburg", "Bernadotte", "Glücksburg",
-        "Wittelsbach", "Gryfit", "Wettin", "Otton", "Norman", "Kapetyng", "Karoling",
-        "Sachsen-Coburg-Gotha", "Holsztyn-Gottorp", "Bourbon-Parma", "Wittelsbach",
+        "Habsburg",
+        "Romanow",
+        "Piast",
+        "Jagiellon",
+        "Waz",
+        "Bourbon",
+        "Hohenzollern",
+        "Sask",
+        "Braganza",
+        "Savoja",
+        "Hanower",
+        "Oldenburg",
+        "Bernadotte",
+        "Glücksburg",
+        "Wittelsbach",
+        "Gryfit",
+        "Wettin",
+        "Otton",
+        "Norman",
+        "Kapetyng",
+        "Karoling",
+        "Sachsen-Coburg-Gotha",
+        "Holsztyn-Gottorp",
+        "Bourbon-Parma",
+        "Wittelsbach",
     ];
     DYNASTIES[rng.gen_range(0..DYNASTIES.len())].to_string()
 }
 
-fn random_head_of_state(country: &Country, form: GovernmentForm, rng: &mut impl Rng, used_names: &mut std::collections::HashSet<String>) -> Leader {
+fn random_head_of_state(
+    country: &Country,
+    form: GovernmentForm,
+    rng: &mut impl Rng,
+    used_names: &mut std::collections::HashSet<String>,
+) -> Leader {
     // Phase 49/91: Use the country's cultural group for culturally-appropriate names.
     // Phase 91: Use generate_key_vip for uniqueness among key political figures.
     let cultural_group = if country.macro_indicators.cultural_group.is_empty() {
@@ -2031,14 +2353,20 @@ fn random_head_of_state(country: &Country, form: GovernmentForm, rng: &mut impl 
     } else if form.is_democratic() {
         // Democracies get a weighted ideology pick.
         let democratic_ideologies = [
-            "Social Liberalism", "Christian Democracy", "Social Democracy",
-            "Classical Liberalism", "Social Conservatism", "Agrarianism",
+            "Social Liberalism",
+            "Christian Democracy",
+            "Social Democracy",
+            "Classical Liberalism",
+            "Social Conservatism",
+            "Agrarianism",
         ];
         democratic_ideologies[rng.gen_range(0..democratic_ideologies.len())].to_string()
     } else {
         // Autocracies lean nationalist/authoritarian.
         let autocratic_ideologies = [
-            "National Conservatism", "Neoconservatism", "Social Conservatism",
+            "National Conservatism",
+            "Neoconservatism",
+            "Social Conservatism",
         ];
         autocratic_ideologies[rng.gen_range(0..autocratic_ideologies.len())].to_string()
     };
@@ -2076,10 +2404,7 @@ fn random_head_of_state(country: &Country, form: GovernmentForm, rng: &mut impl 
 ///
 /// # Returns
 /// Vector of diagnostic messages.
-pub fn process_advisory_council_turn(
-    country: &mut Country,
-    current_turn: u32,
-) -> Vec<String> {
+pub fn process_advisory_council_turn(country: &mut Country, current_turn: u32) -> Vec<String> {
     let mut messages = Vec::new();
 
     // Only process if an advisory council exists.
@@ -2120,8 +2445,9 @@ pub fn process_advisory_council_turn(
 
     // Apply social_unrest_delta to macro_indicators (clamped to 0–100).
     if modifiers.social_unrest_delta.abs() > 1e-6 {
-        country.macro_indicators.social_unrest =
-            (country.macro_indicators.social_unrest + modifiers.social_unrest_delta).clamp(0.0, 100.0);
+        country.macro_indicators.social_unrest = (country.macro_indicators.social_unrest
+            + modifiers.social_unrest_delta)
+            .clamp(0.0, 100.0);
         messages.push(format!(
             "[COUNCIL] Social unrest adjusted by {:.2} → new total: {:.1}",
             modifiers.social_unrest_delta, country.macro_indicators.social_unrest
@@ -2142,7 +2468,11 @@ pub fn process_advisory_council_turn(
     messages.push(format!(
         "[COUNCIL] Aggregate loyalty: {:.3} (coup risk: {})",
         council.aggregate_loyalty,
-        if council.coup_risk_active(current_turn) { "ACTIVE" } else { "inactive" }
+        if council.coup_risk_active(current_turn) {
+            "ACTIVE"
+        } else {
+            "inactive"
+        }
     ));
 
     // Check for coup trigger.
@@ -2156,7 +2486,9 @@ pub fn process_advisory_council_turn(
         }
         let hash = hasher.finish();
         // Coup success probability increases as loyalty decreases.
-        let coup_success_prob = ((council.coup_risk_threshold - council.aggregate_loyalty) / council.coup_risk_threshold).clamp(0.0, 0.8);
+        let coup_success_prob = ((council.coup_risk_threshold - council.aggregate_loyalty)
+            / council.coup_risk_threshold)
+            .clamp(0.0, 0.8);
         let roll = (hash % 1000) as f64 / 1000.0;
 
         if roll < coup_success_prob {
@@ -2195,10 +2527,7 @@ pub fn process_advisory_council_turn(
 ///
 /// # Returns
 /// Vector of diagnostic messages.
-pub fn process_dynasty_turn(
-    country: &mut Country,
-    current_turn: u32,
-) -> Vec<String> {
+pub fn process_dynasty_turn(country: &mut Country, current_turn: u32) -> Vec<String> {
     let mut messages = Vec::new();
 
     // Only process if a royal dynasty exists.

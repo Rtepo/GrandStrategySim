@@ -14,12 +14,12 @@
 
 #[cfg(test)]
 mod tests {
+    use sim_engine::economy::production::weather::WeatherModifier;
     use sim_engine::energy::grid::transmission_loss;
     use sim_engine::energy::types::{
-        CoolingType, GridLine, GridTier, LoadShedTier, OverproductionTier,
-        PowerPlantMetadata, PowerPlantType,
+        CoolingType, GridLine, GridTier, LoadShedTier, OverproductionTier, PowerPlantMetadata,
+        PowerPlantType,
     };
-    use sim_engine::economy::production::weather::WeatherModifier;
 
     // ── Transmission Loss Tests ──
 
@@ -39,7 +39,11 @@ mod tests {
         };
         let loss = transmission_loss(&line);
         // 200 km * 0.00005 = 0.01 = 1%
-        assert!((loss - 0.01).abs() < 0.001, "Expected ~1% loss, got {}", loss);
+        assert!(
+            (loss - 0.01).abs() < 0.001,
+            "Expected ~1% loss, got {}",
+            loss
+        );
     }
 
     #[test]
@@ -58,7 +62,11 @@ mod tests {
         };
         let loss = transmission_loss(&line);
         // 1000 km * 0.00005 = 0.05 = 5%
-        assert!((loss - 0.05).abs() < 0.001, "Expected ~5% loss, got {}", loss);
+        assert!(
+            (loss - 0.05).abs() < 0.001,
+            "Expected ~5% loss, got {}",
+            loss
+        );
     }
 
     #[test]
@@ -212,15 +220,27 @@ mod tests {
     #[test]
     fn test_power_plant_type_registry_keys() {
         assert_eq!(PowerPlantType::CoalFired.registry_key(), "coal_fired_plant");
-        assert_eq!(PowerPlantType::LigniteFired.registry_key(), "lignite_fired_plant");
+        assert_eq!(
+            PowerPlantType::LigniteFired.registry_key(),
+            "lignite_fired_plant"
+        );
         assert_eq!(PowerPlantType::OilGas.registry_key(), "oil_gas_plant");
         assert_eq!(PowerPlantType::Nuclear.registry_key(), "nuclear_plant");
         assert_eq!(PowerPlantType::Solar.registry_key(), "solar_plant");
         assert_eq!(PowerPlantType::Wind.registry_key(), "wind_farm");
         assert_eq!(PowerPlantType::Hydro.registry_key(), "hydro_plant");
-        assert_eq!(PowerPlantType::PumpedStorage.registry_key(), "pumped_storage");
-        assert_eq!(PowerPlantType::BatteryStorage.registry_key(), "battery_storage");
-        assert_eq!(PowerPlantType::Geothermal.registry_key(), "geothermal_plant");
+        assert_eq!(
+            PowerPlantType::PumpedStorage.registry_key(),
+            "pumped_storage"
+        );
+        assert_eq!(
+            PowerPlantType::BatteryStorage.registry_key(),
+            "battery_storage"
+        );
+        assert_eq!(
+            PowerPlantType::Geothermal.registry_key(),
+            "geothermal_plant"
+        );
         assert_eq!(PowerPlantType::BiomassFired.registry_key(), "biomass_plant");
         assert_eq!(PowerPlantType::BiogasPlant.registry_key(), "biogas_plant");
     }
@@ -341,8 +361,8 @@ mod tests {
 
     #[test]
     fn test_biomass_plant_uses_timber_and_planks() {
-        use sim_engine::registries::production_methods_data::default_production_methods;
         use sim_engine::registries::enums::Commodity;
+        use sim_engine::registries::production_methods_data::default_production_methods;
         let registry = default_production_methods();
         let biomass = registry.get("biomass_plant").unwrap();
         let wood_boiler = biomass.production.get("Wood-Fired Boiler").unwrap();
@@ -352,8 +372,8 @@ mod tests {
 
     #[test]
     fn test_biogas_plant_uses_livestock() {
-        use sim_engine::registries::production_methods_data::default_production_methods;
         use sim_engine::registries::enums::Commodity;
+        use sim_engine::registries::production_methods_data::default_production_methods;
         let registry = default_production_methods();
         let biogas = registry.get("biogas_plant").unwrap();
         let digester = biogas.production.get("Anaerobic Digester").unwrap();
@@ -392,7 +412,10 @@ mod tests {
         let weather_multiplier = 1.5_f64; // favorable weather
         let nameplate = 200.0_f64;
         let supply = (energy_in_inventory * weather_multiplier).min(nameplate);
-        assert_eq!(supply, 200.0, "Weather-boosted supply must still be clamped to nameplate");
+        assert_eq!(
+            supply, 200.0,
+            "Weather-boosted supply must still be clamped to nameplate"
+        );
     }
 
     /// Effective supply = min(supply, grid_capacity) — grid bottleneck.
@@ -403,7 +426,10 @@ mod tests {
         let mv_cap = 300.0_f64;
         let grid_cap = lv_cap.min(mv_cap);
         let effective_supply = supply.min(grid_cap);
-        assert_eq!(effective_supply, 100.0, "Effective supply must be limited by grid capacity");
+        assert_eq!(
+            effective_supply, 100.0,
+            "Effective supply must be limited by grid capacity"
+        );
     }
 
     /// Load-shed tier: when effective_supply < demand, load shedding occurs
@@ -417,7 +443,10 @@ mod tests {
         let grid_cap = lv_cap.min(mv_cap);
         let effective_supply = supply.min(grid_cap);
         // effective_supply (100) < demand (400) → load shedding
-        assert!(effective_supply < demand, "Load shedding should occur when effective supply < demand");
+        assert!(
+            effective_supply < demand,
+            "Load shedding should occur when effective supply < demand"
+        );
     }
 
     /// No load shedding when effective supply exceeds demand.
@@ -429,7 +458,10 @@ mod tests {
         let mv_cap = 800.0_f64;
         let grid_cap = lv_cap.min(mv_cap);
         let effective_supply = supply.min(grid_cap);
-        assert!(effective_supply >= demand, "No load shedding when effective supply >= demand");
+        assert!(
+            effective_supply >= demand,
+            "No load shedding when effective supply >= demand"
+        );
     }
 
     /// Region display name is used, not the region ID (Anomaly 3 fix).
@@ -451,7 +483,10 @@ mod tests {
             overproduction_tier: "Normal".to_string(),
             grid_condition: 0.85,
         };
-        assert_ne!(info.region_name, info.region_id, "Region name must not be the ID");
+        assert_ne!(
+            info.region_name, info.region_id,
+            "Region name must not be the ID"
+        );
         assert_eq!(info.region_name, "Bactria");
     }
 }

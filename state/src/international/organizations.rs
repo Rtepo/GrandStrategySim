@@ -10,8 +10,8 @@
 //! - FinancialIsolation: blocks aid and investment flows
 //! - FullEmbargo: all three combined
 
-use serde::{Deserialize, Serialize};
 use crate::state::Treasury;
+use serde::{Deserialize, Serialize};
 
 /// Integration level of an international organization.
 /// Organizations evolve from loose trade areas to political unions.
@@ -66,19 +66,19 @@ impl IntegrationLevel {
 }
 
 /// Voting mechanism for organization decisions.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum VotingMechanism {
     /// Every member must agree (used by World Forum).
     #[default]
     Unanimity,
     /// Qualified majority — requires threshold fraction of votes.
-    QualifiedMajority { /// Fraction of votes required (0.0 to 1.0).
-        threshold: f64 },
+    QualifiedMajority {
+        /// Fraction of votes required (0.0 to 1.0).
+        threshold: f64,
+    },
     /// Simple majority — more than 50% of votes.
     SimpleMajority,
 }
-
 
 impl VotingMechanism {
     /// Returns a human-readable label.
@@ -123,11 +123,14 @@ impl OrgCouncil {
     /// Creates a council with all members having veto power.
     pub fn from_members(countries: &[String]) -> Self {
         Self {
-            members: countries.iter().map(|c| CouncilMember {
-                country: c.clone(),
-                representative: None,
-                has_veto: true,
-            }).collect(),
+            members: countries
+                .iter()
+                .map(|c| CouncilMember {
+                    country: c.clone(),
+                    representative: None,
+                    has_veto: true,
+                })
+                .collect(),
         }
     }
 
@@ -202,8 +205,10 @@ pub enum MandateType {
     #[default]
     UnfundedMandate,
     /// Funded mandate — organization provides budget allocation.
-    FundedMandate { /// Budget allocation from the organization's treasury.
-        budget_allocation: f64 },
+    FundedMandate {
+        /// Budget allocation from the organization's treasury.
+        budget_allocation: f64,
+    },
 }
 
 impl MandateType {
@@ -362,7 +367,8 @@ impl OrganizationRegistry {
 
     /// Returns all organizations a country belongs to.
     pub fn orgs_for_country(&self, country: &str) -> Vec<&InternationalOrganization> {
-        self.organizations.iter()
+        self.organizations
+            .iter()
             .filter(|o| o.is_member(country))
             .collect()
     }
@@ -374,12 +380,20 @@ impl OrganizationRegistry {
 
     /// Returns a mutable reference to the World Forum (if it exists).
     pub fn world_forum_mut(&mut self) -> Option<&mut InternationalOrganization> {
-        self.organizations.iter_mut().find(|o| o.id == "ORG-WORLDFORUM")
+        self.organizations
+            .iter_mut()
+            .find(|o| o.id == "ORG-WORLDFORUM")
     }
 
     /// Checks if a country is sanctioned by any organization.
-    pub fn is_country_sanctioned(&self, country: &str, sanctions: &[crate::international::sanctions::Sanction]) -> bool {
-        sanctions.iter().any(|s| s.target_country == country && s.is_active())
+    pub fn is_country_sanctioned(
+        &self,
+        country: &str,
+        sanctions: &[crate::international::sanctions::Sanction],
+    ) -> bool {
+        sanctions
+            .iter()
+            .any(|s| s.target_country == country && s.is_active())
     }
 
     /// Processes a turn for all organizations — integration progression, voting evolution.
@@ -391,11 +405,13 @@ impl OrganizationRegistry {
     ) {
         for org in &mut self.organizations {
             // Reallocate parliament seats
-            let member_pops: BTreeMap<String, u64> = populations.iter()
+            let member_pops: BTreeMap<String, u64> = populations
+                .iter()
                 .filter(|(k, _)| org.is_member(k))
                 .map(|(k, v)| (k.clone(), *v))
                 .collect();
-            org.parliament.allocate_seats(&member_pops, config.seats_per_million);
+            org.parliament
+                .allocate_seats(&member_pops, config.seats_per_million);
 
             // Check if integration can advance
             let turns_as_org = current_turn.saturating_sub(org.founded_turn);
@@ -407,20 +423,18 @@ impl OrganizationRegistry {
 
             // Evolve voting mechanism at QMV threshold
             if org.integration_level.ordinal() >= config.qmv_integration_threshold.ordinal()
-                && org.voting_mechanism == VotingMechanism::Unanimity {
-                    org.voting_mechanism = VotingMechanism::QualifiedMajority {
-                        threshold: config.qmv_threshold,
-                    };
-                }
+                && org.voting_mechanism == VotingMechanism::Unanimity
+            {
+                org.voting_mechanism = VotingMechanism::QualifiedMajority {
+                    threshold: config.qmv_threshold,
+                };
+            }
         }
     }
 
     /// Enforces directives — checks compliance and applies fines.
     /// Fines are returned as (country, amount) pairs for sequential double-entry processing.
-    pub fn enforce_directives(
-        &self,
-        current_turn: u32,
-    ) -> Vec<(String, f64, String)> {
+    pub fn enforce_directives(&self, current_turn: u32) -> Vec<(String, f64, String)> {
         let mut fines = Vec::new();
         for org in &self.organizations {
             for directive in &org.directives {
@@ -454,7 +468,10 @@ mod tests {
         assert_eq!(next, IntegrationLevel::CustomsUnion);
 
         let top = IntegrationLevel::PoliticalUnion;
-        assert!(top.advance().is_none(), "Political Union cannot advance further");
+        assert!(
+            top.advance().is_none(),
+            "Political Union cannot advance further"
+        );
     }
 
     #[test]
@@ -530,8 +547,8 @@ mod tests {
         let mut parliament = OrgParliament::default();
         let mut pops = BTreeMap::new();
         pops.insert("A".to_string(), 10_000_000); // 10M → 50 seats at 5/M
-        pops.insert("B".to_string(), 500_000);    // 0.5M → 3 seats (ceil)
-        pops.insert("C".to_string(), 100_000);    // 0.1M → 1 seat (min)
+        pops.insert("B".to_string(), 500_000); // 0.5M → 3 seats (ceil)
+        pops.insert("C".to_string(), 100_000); // 0.1M → 1 seat (min)
 
         parliament.allocate_seats(&pops, 5.0);
         assert!(parliament.seats["A"] >= 50);
@@ -543,10 +560,12 @@ mod tests {
     #[test]
     fn test_org_registry_world_forum() {
         let mut registry = OrganizationRegistry::default();
-        registry.organizations.push(InternationalOrganization::new_world_forum(
-            &["A".to_string(), "B".to_string()],
-            1,
-        ));
+        registry
+            .organizations
+            .push(InternationalOrganization::new_world_forum(
+                &["A".to_string(), "B".to_string()],
+                1,
+            ));
         assert!(registry.world_forum().is_some());
         assert_eq!(registry.world_forum().unwrap().name, "World Forum");
     }
@@ -554,10 +573,12 @@ mod tests {
     #[test]
     fn test_org_registry_orgs_for_country() {
         let mut registry = OrganizationRegistry::default();
-        registry.organizations.push(InternationalOrganization::new_world_forum(
-            &["A".to_string(), "B".to_string()],
-            1,
-        ));
+        registry
+            .organizations
+            .push(InternationalOrganization::new_world_forum(
+                &["A".to_string(), "B".to_string()],
+                1,
+            ));
         registry.organizations.push(InternationalOrganization::new(
             "ORG-000001".to_string(),
             "Pacific Pact".to_string(),
@@ -577,10 +598,12 @@ mod tests {
     #[test]
     fn test_org_process_turn_integration_advancement() {
         let mut registry = OrganizationRegistry::default();
-        registry.organizations.push(InternationalOrganization::new_world_forum(
-            &["A".to_string()],
-            1,
-        ));
+        registry
+            .organizations
+            .push(InternationalOrganization::new_world_forum(
+                &["A".to_string()],
+                1,
+            ));
         let config = OrgConfig {
             min_turns_for_integration: 10,
             ..OrgConfig::default()
@@ -589,11 +612,17 @@ mod tests {
 
         // Before threshold — no advancement
         registry.process_turn(5, &config, &pops);
-        assert_eq!(registry.organizations[0].integration_level, IntegrationLevel::FreeTradeArea);
+        assert_eq!(
+            registry.organizations[0].integration_level,
+            IntegrationLevel::FreeTradeArea
+        );
 
         // After threshold — should advance
         registry.process_turn(51, &config, &pops);
-        assert_ne!(registry.organizations[0].integration_level, IntegrationLevel::FreeTradeArea);
+        assert_ne!(
+            registry.organizations[0].integration_level,
+            IntegrationLevel::FreeTradeArea
+        );
     }
 
     #[test]
@@ -617,7 +646,8 @@ mod tests {
     #[test]
     fn test_enforce_directives_returns_fines() {
         let mut registry = OrganizationRegistry::default();
-        let mut org = InternationalOrganization::new_world_forum(&["A".to_string(), "B".to_string()], 1);
+        let mut org =
+            InternationalOrganization::new_world_forum(&["A".to_string(), "B".to_string()], 1);
         org.directives.push(Directive {
             id: "DIR-001".to_string(),
             title: "Emission Standards".to_string(),
@@ -636,7 +666,9 @@ mod tests {
         // After deadline — fines for all members
         let fines_after = registry.enforce_directives(15);
         assert_eq!(fines_after.len(), 2, "Both members should be fined");
-        assert!(fines_after.iter().all(|(_, amount, _)| *amount == 5_000_000.0));
+        assert!(fines_after
+            .iter()
+            .all(|(_, amount, _)| *amount == 5_000_000.0));
     }
 
     #[test]
@@ -644,7 +676,9 @@ mod tests {
         let directive = Directive {
             id: "DIR-001".to_string(),
             title: "Test".to_string(),
-            mandate_type: MandateType::FundedMandate { budget_allocation: 1_000_000.0 },
+            mandate_type: MandateType::FundedMandate {
+                budget_allocation: 1_000_000.0,
+            },
             compliance_deadline: 10,
             fine_for_noncompliance: 500_000.0,
             target_law: Some("TaxRateChange".to_string()),

@@ -161,7 +161,13 @@ pub fn design_blueprint(
         // Production methods later scale this by employment.
         inputs.insert(commodity, share);
     }
-    let id = blueprint_id(owner_company_id, output_commodity, &base_tech, &inputs, granted_turn);
+    let id = blueprint_id(
+        owner_company_id,
+        output_commodity,
+        &base_tech,
+        &inputs,
+        granted_turn,
+    );
     let expires_turn = granted_turn + config.blueprint_patent_turns;
     Some(ProductBlueprint {
         id,
@@ -182,10 +188,14 @@ pub fn design_blueprint(
 /// Enumerate all candidate choice bundles and return the highest-scoring one.
 ///
 /// Ties on score are broken by preferring fewer substitutions (ideal materials).
-fn search_best_choices(spec: &BlueprintSpec, material_costs: &HashMap<Commodity, f64>) -> Vec<MaterialChoice> {
+fn search_best_choices(
+    spec: &BlueprintSpec,
+    material_costs: &HashMap<Commodity, f64>,
+) -> Vec<MaterialChoice> {
     let mut best: Option<(Vec<MaterialChoice>, f64, usize)> = None;
     enumerate_choices(spec, &mut Vec::new(), 0, material_costs, &mut best);
-    best.map(|(c, _, _)| c).unwrap_or_else(|| vec![MaterialChoice::Ideal; spec.roles.len()])
+    best.map(|(c, _, _)| c)
+        .unwrap_or_else(|| vec![MaterialChoice::Ideal; spec.roles.len()])
 }
 
 /// Recursively enumerate the cartesian product of per-role choices.
@@ -249,7 +259,10 @@ fn blueprint_id(
         .map(|(c, q)| format!("{:?}:{:.4}", c, q))
         .collect::<Vec<_>>()
         .join(",");
-    format!("bp_{}_{:?}_{}_{}_{}", owner, output, base_tech, granted_turn, inputs_str)
+    format!(
+        "bp_{}_{:?}_{}_{}_{}",
+        owner, output, base_tech, granted_turn, inputs_str
+    )
 }
 
 /// Compute the royalty fee for a single licensee-producer this turn.
@@ -261,7 +274,11 @@ fn blueprint_id(
 ///
 /// # Returns
 /// * `fee = actual_output_qty × blueprint.royalty_vwap_ratio × last_turn_vwap`.
-pub fn compute_blueprint_royalty_fee(blueprint: &ProductBlueprint, actual_output_qty: f64, last_turn_vwap: f64) -> f64 {
+pub fn compute_blueprint_royalty_fee(
+    blueprint: &ProductBlueprint,
+    actual_output_qty: f64,
+    last_turn_vwap: f64,
+) -> f64 {
     (actual_output_qty * blueprint.royalty_vwap_ratio * last_turn_vwap).max(0.0)
 }
 
@@ -341,7 +358,10 @@ mod tests {
         assert!(bp.inputs.contains_key(&Commodity::Iron));
         // And quality/durability should be lower than ideal.
         assert!(bp.quality < 1.2, "Iron substitute must lower quality");
-        assert!(bp.durability < 240.0, "Iron substitute must lower durability");
+        assert!(
+            bp.durability < 240.0,
+            "Iron substitute must lower durability"
+        );
     }
 
     #[test]

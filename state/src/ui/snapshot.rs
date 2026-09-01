@@ -7,15 +7,14 @@
 
 use crate::economy::market::market_history::MarketHistory;
 use crate::economy::market::GlobalMarket;
+use crate::entities::legal_form::LegalForm;
+use crate::entities::Company;
 use crate::registries::enums::Commodity;
 use crate::registries::enums::Sector;
-use crate::state::{Country, GameState};
 use crate::state::macro_data::{
-    GdpBreakdown, InflationIndices, MoneySupplySnapshot,
-    TelemetryHistory,
+    GdpBreakdown, InflationIndices, MoneySupplySnapshot, TelemetryHistory,
 };
-use crate::entities::Company;
-use crate::entities::legal_form::LegalForm;
+use crate::state::{Country, GameState};
 use std::collections::BTreeMap;
 
 /// Human-readable display name for a `Sector` enum variant.
@@ -402,6 +401,13 @@ pub struct FinanceSnapshot {
     // Phase 39: Customs and state property revenue
     pub customs_revenue: f64,
     pub state_property_revenue: f64,
+    // Agent 4 — Phase 6: Smuggling diagnostics (Rule 17 — UI visibility).
+    // These are diagnostic-only values (no fiat flows). Role-gating per
+    // Rule 11 is handled by the frontend based on the player's position.
+    pub smuggling_value: f64,
+    pub smuggling_intercepted: f64,
+    pub smuggling_tariff_loss: f64,
+    pub smuggling_recovered_tariffs: f64,
     // Phase 89: Property tax revenue (aggregated from regional governments)
     pub property_tax_revenue: f64,
     // Phase 38: Tax rates for display in the Finance tab
@@ -1033,7 +1039,11 @@ pub fn build_organizations_snapshot(
                 sector: data.guild_sector.clone(),
                 region_id: company.region_id.clone(),
                 member_count: data.member_workshop_ids.len(),
-                funds: if is_classified { None } else { Some(data.welfare_fund) },
+                funds: if is_classified {
+                    None
+                } else {
+                    Some(data.welfare_fund)
+                },
                 activity_summary: format!(
                     "Guild with {} workshops, quality {:.2}",
                     data.member_workshop_ids.len(),
@@ -1052,7 +1062,11 @@ pub fn build_organizations_snapshot(
             sector: format!("{:?}", union.sector),
             region_id: union.region_id.clone(),
             member_count: union.company_ids.len(),
-            funds: if is_classified { None } else { Some(union.budget) },
+            funds: if is_classified {
+                None
+            } else {
+                Some(union.budget)
+            },
             activity_summary: if union.on_strike {
                 "ON STRIKE".to_string()
             } else {
@@ -1070,7 +1084,11 @@ pub fn build_organizations_snapshot(
             sector: movement.initiating_class.clone(),
             region_id: movement.region_id.clone(),
             member_count: movement.participant_count as usize,
-            funds: if is_classified { None } else { Some(movement.strike_fund_per_participant * movement.participant_count as f64) },
+            funds: if is_classified {
+                None
+            } else {
+                Some(movement.strike_fund_per_participant * movement.participant_count as f64)
+            },
             activity_summary: format!(
                 "Intensity {:.2}, {} participants, {:?}",
                 movement.intensity, movement.participant_count, movement.status
@@ -1105,11 +1123,19 @@ pub fn build_organization_detail(
                 category: OrganizationCategory::Guild,
                 region_id: company.region_id.clone(),
                 member_count: data.member_workshop_ids.len(),
-                funds: if is_classified { None } else { Some(data.welfare_fund) },
+                funds: if is_classified {
+                    None
+                } else {
+                    Some(data.welfare_fund)
+                },
                 activity_summary: format!("Craft Guild — {} sector", data.guild_sector),
                 guild_detail: Some(GuildDetailData {
                     sector: data.guild_sector.clone(),
-                    welfare_fund: if is_classified { None } else { Some(data.welfare_fund) },
+                    welfare_fund: if is_classified {
+                        None
+                    } else {
+                        Some(data.welfare_fund)
+                    },
                     welfare_contribution_rate: data.welfare_contribution_rate,
                     dividend_per_member: None,
                     quality_standard: data.quality_standard,
@@ -1117,7 +1143,9 @@ pub fn build_organization_detail(
                     jurisdiction_domain_id: data.jurisdiction_domain_id.clone(),
                     member_workshop_ids: data.member_workshop_ids.clone(),
                     master_class_ids: data.master_class_ids.clone(),
-                    guild_raw_inventory: data.guild_raw_inventory.iter()
+                    guild_raw_inventory: data
+                        .guild_raw_inventory
+                        .iter()
                         .map(|(c, q)| (format!("{:?}", c), *q))
                         .collect(),
                 }),
@@ -1127,7 +1155,10 @@ pub fn build_organization_detail(
         "trade_union" => {
             let union = unions.iter().find(|u| u.id == id)?;
             let leader_name = union.leader_vip_id.as_ref().and_then(|lid| {
-                country.politics.vip_registry.as_ref()
+                country
+                    .politics
+                    .vip_registry
+                    .as_ref()
                     .and_then(|r| r.get(lid))
                     .map(|v| v.full_name.clone())
             });
@@ -1137,13 +1168,25 @@ pub fn build_organization_detail(
                 category: OrganizationCategory::TradeUnion,
                 region_id: union.region_id.clone(),
                 member_count: union.company_ids.len(),
-                funds: if is_classified { None } else { Some(union.budget) },
-                activity_summary: if union.on_strike { "ON STRIKE".to_string() } else { "Active".to_string() },
+                funds: if is_classified {
+                    None
+                } else {
+                    Some(union.budget)
+                },
+                activity_summary: if union.on_strike {
+                    "ON STRIKE".to_string()
+                } else {
+                    "Active".to_string()
+                },
                 union_detail: Some(UnionDetailData {
                     sector: format!("{:?}", union.sector),
                     scale_level: format!("{:?}", union.scale_level),
                     budget: union.budget,
-                    strike_fund: if is_classified { None } else { Some(union.strike_fund) },
+                    strike_fund: if is_classified {
+                        None
+                    } else {
+                        Some(union.strike_fund)
+                    },
                     political_power: union.political_power,
                     militancy: union.militancy,
                     wage_demand: union.wage_demand,
@@ -1158,14 +1201,22 @@ pub fn build_organization_detail(
             })
         }
         "political_movement" => {
-            let movement = country.politics.mass_movements.iter().find(|m| m.id == id)?;
+            let movement = country
+                .politics
+                .mass_movements
+                .iter()
+                .find(|m| m.id == id)?;
             Some(OrganizationDetail {
                 id: movement.id.clone(),
                 name: format!("{:?} in {}", movement.movement_type, movement.region_id),
                 category: OrganizationCategory::PoliticalMovement,
                 region_id: movement.region_id.clone(),
                 member_count: movement.participant_count as usize,
-                funds: if is_classified { None } else { Some(movement.strike_fund_per_participant * movement.participant_count as f64) },
+                funds: if is_classified {
+                    None
+                } else {
+                    Some(movement.strike_fund_per_participant * movement.participant_count as f64)
+                },
                 activity_summary: format!("Status: {:?}", movement.status),
                 movement_detail: Some(MovementDetailData {
                     movement_type: format!("{:?}", movement.movement_type),
@@ -1177,7 +1228,11 @@ pub fn build_organization_detail(
                     union_backed: movement.union_backed,
                     backing_union_id: movement.union_id.clone(),
                     strike_fund_per_participant: movement.strike_fund_per_participant,
-                    target_company_ids: if is_classified { None } else { Some(movement.target_companies.clone()) },
+                    target_company_ids: if is_classified {
+                        None
+                    } else {
+                        Some(movement.target_companies.clone())
+                    },
                     status: format!("{:?}", movement.status),
                     demands: movement.demands.clone(),
                 }),
@@ -1257,7 +1312,10 @@ pub fn build_cities_snapshot(
 pub fn build_diplomacy_snapshot(
     state: &crate::state::GameState,
     country_name: &str,
-    diplomacy: &std::collections::HashMap<String, std::collections::HashMap<String, crate::international::DiplomaticRelation>>,
+    diplomacy: &std::collections::HashMap<
+        String,
+        std::collections::HashMap<String, crate::international::DiplomaticRelation>,
+    >,
 ) -> DiplomacySnapshot {
     let mut relations = Vec::new();
     if let Some(partners) = diplomacy.get(country_name) {
@@ -1279,7 +1337,9 @@ pub fn build_diplomacy_snapshot(
     let mut diplomats = Vec::new();
     if let Some(country) = state.countries.get(country_name) {
         if let Some(registry) = &country.politics.vip_registry {
-            let mut posted_vips: Vec<_> = registry.vips.values()
+            let mut posted_vips: Vec<_> = registry
+                .vips
+                .values()
                 .filter(|v| v.diplomatic_post.is_some())
                 .collect();
             posted_vips.sort_by_key(|v| v.id.clone());
@@ -1321,7 +1381,11 @@ pub fn build_diplomacy_snapshot(
             name: treaty.name.clone(),
             status: treaty.status.as_str().to_string(),
             participants: treaty.participants.clone(),
-            clauses: treaty.clauses.iter().map(|c| c.as_str().to_string()).collect(),
+            clauses: treaty
+                .clauses
+                .iter()
+                .map(|c| c.as_str().to_string())
+                .collect(),
             negotiation_progress: treaty.negotiation_progress,
             diplomatic_capacity_cost: treaty.diplomatic_capacity_cost,
             initiated_turn: treaty.initiated_turn,
@@ -1333,7 +1397,10 @@ pub fn build_diplomacy_snapshot(
 
     // Phase 67: Get reputation and doctrine
     let (reputation, doctrine) = if let Some(country) = state.countries.get(country_name) {
-        (Some(country.global_reputation.score), Some(country.geopolitical_doctrine.as_str().to_string()))
+        (
+            Some(country.global_reputation.score),
+            Some(country.geopolitical_doctrine.as_str().to_string()),
+        )
     } else {
         (None, None)
     };
@@ -1341,8 +1408,14 @@ pub fn build_diplomacy_snapshot(
     // Phase 68: Build organization rows for this country
     let current_turn = state.calendar.global_turn;
     let mut organizations = Vec::new();
-    for org in state.international_organizations.orgs_for_country(country_name) {
-        let org_sanctions: Vec<SanctionRow> = state.active_sanctions.sanctions.iter()
+    for org in state
+        .international_organizations
+        .orgs_for_country(country_name)
+    {
+        let org_sanctions: Vec<SanctionRow> = state
+            .active_sanctions
+            .sanctions
+            .iter()
             .filter(|s| s.sanctioning_org == org.id && s.is_active_at(current_turn))
             .map(|s| SanctionRow {
                 id: s.id.clone(),
@@ -1368,7 +1441,9 @@ pub fn build_diplomacy_snapshot(
     }
 
     // Phase 68: Build sanctions against this country
-    let sanctions_against: Vec<SanctionRow> = state.active_sanctions.active_sanctions_against(country_name, current_turn)
+    let sanctions_against: Vec<SanctionRow> = state
+        .active_sanctions
+        .active_sanctions_against(country_name, current_turn)
         .into_iter()
         .map(|s| SanctionRow {
             id: s.id.clone(),
@@ -1400,10 +1475,17 @@ pub fn build_diplomacy_snapshot(
 pub fn build_foreign_country_rows(
     state: &crate::state::GameState,
     player_country: &str,
-    diplomacy: &std::collections::HashMap<String, std::collections::HashMap<String, crate::international::DiplomaticRelation>>,
+    diplomacy: &std::collections::HashMap<
+        String,
+        std::collections::HashMap<String, crate::international::DiplomaticRelation>,
+    >,
 ) -> Vec<ForeignCountryRow> {
     let mut rows = Vec::new();
-    let mut sorted_names: Vec<&String> = state.countries.keys().filter(|n| *n != player_country).collect();
+    let mut sorted_names: Vec<&String> = state
+        .countries
+        .keys()
+        .filter(|n| *n != player_country)
+        .collect();
     sorted_names.sort();
 
     for name in sorted_names {
@@ -1413,7 +1495,8 @@ pub fn build_foreign_country_rows(
         };
 
         // Get intel level for this country from player's perspective
-        let intel = state.foreign_intelligence
+        let intel = state
+            .foreign_intelligence
             .get(player_country)
             .and_then(|m| m.get(name))
             .cloned()
@@ -1613,7 +1696,10 @@ impl PageQuery {
 
     /// Create a page query with a custom limit.
     pub fn with_limit(offset: usize, limit: usize) -> Self {
-        Self { offset, limit: limit.max(1) }
+        Self {
+            offset,
+            limit: limit.max(1),
+        }
     }
 
     /// Apply this page to a slice: skip `offset`, take `limit`.
@@ -2684,8 +2770,16 @@ pub fn build_country_snapshot(
         .filter(|&&c| !c.is_local_utility())
         .map(|&c| {
             let name = format!("{:?}", c);
-            let vwap = market_history.vwap_per_commodity.get(&c).copied().unwrap_or(0.0);
-            let base_price = market_history.global_base_prices.get(&c).copied().unwrap_or(0.0);
+            let vwap = market_history
+                .vwap_per_commodity
+                .get(&c)
+                .copied()
+                .unwrap_or(0.0);
+            let base_price = market_history
+                .global_base_prices
+                .get(&c)
+                .copied()
+                .unwrap_or(0.0);
             // Phase 43: Raw supply/demand volumes for the Market UI.
             let supply_volume = market.supply_volume.get(&c).copied().unwrap_or(0.0);
             let demand_volume = market.demand_volume.get(&c).copied().unwrap_or(0.0);
@@ -2696,7 +2790,11 @@ pub fn build_country_snapshot(
             // (which is the raw B2B order book surplus used by clearing.rs).
             let net_surplus = supply_volume - demand_volume + net_trade;
             // Phase 33: Compute real ToT % change from stored previous-turn surplus.
-            let prev_surplus = market_history.prev_net_surplus.get(&c).copied().unwrap_or(0.0);
+            let prev_surplus = market_history
+                .prev_net_surplus
+                .get(&c)
+                .copied()
+                .unwrap_or(0.0);
             let tot_balance_change = if prev_surplus.abs() > 0.01 {
                 ((net_surplus - prev_surplus) / prev_surplus.abs()) * 100.0
             } else if net_surplus.abs() > 0.01 {
@@ -2705,8 +2803,21 @@ pub fn build_country_snapshot(
                 0.0
             };
             // Phase 27: Mark commodity as active if any market activity exists.
-            let active = vwap > 0.0 || net_surplus.abs() > 0.01 || supply_volume > 0.01 || demand_volume > 0.01;
-            CommodityRow { name, vwap, base_price, net_surplus, net_trade, tot_balance_change, active, supply_volume, demand_volume }
+            let active = vwap > 0.0
+                || net_surplus.abs() > 0.01
+                || supply_volume > 0.01
+                || demand_volume > 0.01;
+            CommodityRow {
+                name,
+                vwap,
+                base_price,
+                net_surplus,
+                net_trade,
+                tot_balance_change,
+                active,
+                supply_volume,
+                demand_volume,
+            }
         })
         .collect();
 
@@ -2749,7 +2860,11 @@ pub fn build_country_snapshot(
             id: a.id.clone(),
             appellant: a.appellant_id.clone(),
             status: if a.resolution_turn > 0 {
-                if a.upheld { "upheld".to_string() } else { "rejected".to_string() }
+                if a.upheld {
+                    "upheld".to_string()
+                } else {
+                    "rejected".to_string()
+                }
             } else {
                 "pending".to_string()
             },
@@ -2965,7 +3080,11 @@ pub fn build_country_snapshot(
             };
             RegionRow {
                 id: r.id.clone(),
-                display_name: if r.display_name.is_empty() { r.id.clone() } else { r.display_name.clone() },
+                display_name: if r.display_name.is_empty() {
+                    r.id.clone()
+                } else {
+                    r.display_name.clone()
+                },
                 megaregion: megaregion_info.0,
                 megaregion_id: megaregion_info.1,
                 population: r.population,
@@ -2983,8 +3102,8 @@ pub fn build_country_snapshot(
 
     CountrySnapshot {
         name: country.name.clone(),
-        turn: 0,  // filled by caller from GameState calendar
-        year: 0,  // filled by caller
+        turn: 0, // filled by caller from GameState calendar
+        year: 0, // filled by caller
         gdp_breakdown: macro_data.gdp_breakdown.clone(),
         inflation_indices: macro_data.inflation_indices.clone(),
         money_supply: macro_data.money_supply.clone(),
@@ -3035,7 +3154,11 @@ pub fn build_country_snapshot(
 // ============================================================================
 
 /// Build a paginated, filtered page of VIP rows from the VipRegistry.
-fn build_vip_page(country: &Country, companies: &[Company], view: &ViewQuery) -> Vec<VipDossierRow> {
+fn build_vip_page(
+    country: &Country,
+    companies: &[Company],
+    view: &ViewQuery,
+) -> Vec<VipDossierRow> {
     let registry = match &country.politics.vip_registry {
         Some(r) => r,
         None => return Vec::new(),
@@ -3044,7 +3167,11 @@ fn build_vip_page(country: &Country, companies: &[Company], view: &ViewQuery) ->
     // Phase 54: Build a lookup from CEO VIP ID to company name.
     let ceo_to_company: std::collections::HashMap<&str, &str> = companies
         .iter()
-        .filter_map(|c| c.ceo_vip_id.as_ref().map(|id| (id.as_str(), c.name.as_str())))
+        .filter_map(|c| {
+            c.ceo_vip_id
+                .as_ref()
+                .map(|id| (id.as_str(), c.name.as_str()))
+        })
         .collect();
 
     // Collect and filter VIPs from both living and deceased lists.
@@ -3061,18 +3188,18 @@ fn build_vip_page(country: &Country, companies: &[Company], view: &ViewQuery) ->
         // Phase 91: Use canonical_name() (e.g., "PrimeMinister") instead of
         // as_str() (e.g., "Prime Minister") for consistent filtering.
         if !role_filter.is_empty() {
-            let has_role = v.roles.iter().any(|r| r.canonical_name() == role_filter.as_str());
+            let has_role = v
+                .roles
+                .iter()
+                .any(|r| r.canonical_name() == role_filter.as_str());
             if !has_role {
                 return false;
             }
         }
         true
     };
-    let mut all_vips: Vec<&crate::politics::vip_registry::Vip> = registry
-        .vips
-        .values()
-        .filter(filter_fn)
-        .collect();
+    let mut all_vips: Vec<&crate::politics::vip_registry::Vip> =
+        registry.vips.values().filter(filter_fn).collect();
     if view.vip_filter.show_dead {
         all_vips.extend(registry.deceased.iter().filter(filter_fn));
     }
@@ -3089,9 +3216,15 @@ fn build_vip_page(country: &Country, companies: &[Company], view: &ViewQuery) ->
             let roles_str = if v.roles.is_empty() {
                 "Private Citizen".to_string()
             } else {
-                v.roles.iter().map(|r| r.as_str().to_string()).collect::<Vec<_>>().join(", ")
+                v.roles
+                    .iter()
+                    .map(|r| r.as_str().to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ")
             };
-            let company_name = v.roles.contains(&crate::politics::vip_registry::VipRoleExtended::Ceo)
+            let company_name = v
+                .roles
+                .contains(&crate::politics::vip_registry::VipRoleExtended::Ceo)
                 .then(|| ceo_to_company.get(v.id.as_str()).map(|s| s.to_string()))
                 .flatten();
             VipDossierRow {
@@ -3133,7 +3266,10 @@ fn count_vips(country: &Country, view: &ViewQuery) -> usize {
         }
         // Phase 54/91: Role filter — use canonical_name() for consistent filtering.
         if !view.vip_filter.role_filter.is_empty() {
-            let has_role = v.roles.iter().any(|r| r.canonical_name() == view.vip_filter.role_filter.as_str());
+            let has_role = v
+                .roles
+                .iter()
+                .any(|r| r.canonical_name() == view.vip_filter.role_filter.as_str());
             if !has_role {
                 return false;
             }
@@ -3187,10 +3323,7 @@ fn build_vip_dossier(country: &Country, view: &ViewQuery) -> Option<VipDossier> 
 
 /// Build a paginated page of bank rows from companies.
 fn build_bank_page(_country: &Country, companies: &[Company], view: &ViewQuery) -> Vec<BankRow> {
-    let mut banks: Vec<&Company> = companies
-        .iter()
-        .filter(|c| c.bank_type.is_some())
-        .collect();
+    let mut banks: Vec<&Company> = companies.iter().filter(|c| c.bank_type.is_some()).collect();
     banks.sort_by(|a, b| a.name.cmp(&b.name));
 
     banks
@@ -3200,7 +3333,11 @@ fn build_bank_page(_country: &Country, companies: &[Company], view: &ViewQuery) 
         .filter_map(|c| {
             let bs = c.balance_sheet.as_ref()?;
             let loans: f64 = bs.loans_issued.iter().map(|l| l.outstanding_balance).sum();
-            let ldr = if bs.deposits > 0.0 { loans / bs.deposits } else { 0.0 };
+            let ldr = if bs.deposits > 0.0 {
+                loans / bs.deposits
+            } else {
+                0.0
+            };
             Some(BankRow {
                 name: c.name.clone(),
                 bank_type: format!("{:?}", c.bank_type.as_ref()?),
@@ -3221,7 +3358,11 @@ fn count_banks(companies: &[Company]) -> usize {
 }
 
 /// Build a paginated, filtered page of company rows.
-fn build_company_page(country: &Country, companies: &[Company], view: &ViewQuery) -> Vec<CompanyRow> {
+fn build_company_page(
+    country: &Country,
+    companies: &[Company],
+    view: &ViewQuery,
+) -> Vec<CompanyRow> {
     let search_lower = view.company_filter.search.to_lowercase();
     let sector_filter = &view.company_filter.sector_filter;
     let region_filter = &view.company_filter.region_filter;
@@ -3262,11 +3403,21 @@ fn build_company_page(country: &Country, companies: &[Company], view: &ViewQuery
                 .regions
                 .iter()
                 .find(|r| r.id == c.region_id)
-                .map(|r| if r.display_name.is_empty() { r.id.clone() } else { r.display_name.clone() })
+                .map(|r| {
+                    if r.display_name.is_empty() {
+                        r.id.clone()
+                    } else {
+                        r.display_name.clone()
+                    }
+                })
                 .unwrap_or_else(|| c.region_id.clone()),
             fulfilled_fte: c.fulfilled_fte,
             average_wage: c.offered_wage_per_fte,
-            seasonal_state: if c.furloughed_workers_count > 0.0 { "Furloughed".to_string() } else { "Active".to_string() },
+            seasonal_state: if c.furloughed_workers_count > 0.0 {
+                "Furloughed".to_string()
+            } else {
+                "Active".to_string()
+            },
             wage_arrears: c.wage_arrears,
         })
         .collect()
@@ -3311,13 +3462,25 @@ fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialS
         // (pushed at manager.rs:788-799) use "revenue", "operating_costs",
         // "interest", "taxes", and "net_profit" — NOT "income"/"expenses".
         let income = v.get("revenue").and_then(|i| i.as_f64()).unwrap_or(0.0);
-        let operating = v.get("operating_costs").and_then(|e| e.as_f64()).unwrap_or(0.0);
+        let operating = v
+            .get("operating_costs")
+            .and_then(|e| e.as_f64())
+            .unwrap_or(0.0);
         let interest = v.get("interest").and_then(|e| e.as_f64()).unwrap_or(0.0);
         let taxes = v.get("taxes").and_then(|e| e.as_f64()).unwrap_or(0.0);
-        let wage_expense = v.get("wage_expense").and_then(|w| w.as_f64()).unwrap_or(0.0);
-        let wage_arrears = v.get("wage_arrears").and_then(|w| w.as_f64()).unwrap_or(0.0);
+        let wage_expense = v
+            .get("wage_expense")
+            .and_then(|w| w.as_f64())
+            .unwrap_or(0.0);
+        let wage_arrears = v
+            .get("wage_arrears")
+            .and_then(|w| w.as_f64())
+            .unwrap_or(0.0);
         let expenses = operating + interest + taxes;
-        let net_profit = v.get("net_profit").and_then(|n| n.as_f64()).unwrap_or(income - expenses);
+        let net_profit = v
+            .get("net_profit")
+            .and_then(|n| n.as_f64())
+            .unwrap_or(income - expenses);
         CompanyFinancialRecord {
             income,
             expenses,
@@ -3331,10 +3494,18 @@ fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialS
         if records.is_empty() {
             return CompanyFinancialRecord::default();
         }
-        let (income, expenses, wage_expense, wage_arrears) = records.iter().fold((0.0, 0.0, 0.0, 0.0), |(acc_i, acc_e, acc_w, acc_a), v| {
-            let r = parse_record(v);
-            (acc_i + r.income, acc_e + r.expenses, acc_w + r.wage_expense, acc_a + r.wage_arrears)
-        });
+        let (income, expenses, wage_expense, wage_arrears) =
+            records
+                .iter()
+                .fold((0.0, 0.0, 0.0, 0.0), |(acc_i, acc_e, acc_w, acc_a), v| {
+                    let r = parse_record(v);
+                    (
+                        acc_i + r.income,
+                        acc_e + r.expenses,
+                        acc_w + r.wage_expense,
+                        acc_a + r.wage_arrears,
+                    )
+                });
         let n = records.len() as f64;
         CompanyFinancialRecord {
             income: income / n,
@@ -3360,7 +3531,11 @@ fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialS
     }
 }
 
-fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQuery) -> Option<CompanyDetail> {
+fn build_company_detail(
+    country: &Country,
+    companies: &[Company],
+    view: &ViewQuery,
+) -> Option<CompanyDetail> {
     let target_id = view.company_detail_id.as_ref()?;
     let c = companies.iter().find(|c| c.id == *target_id)?;
 
@@ -3368,7 +3543,10 @@ fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQue
     let (ceo_name, ceo_ideology) = if let Some(ref ceo_id) = c.ceo_vip_id {
         if let Some(ref registry) = country.politics.vip_registry {
             if let Some(ceo_vip) = registry.get(ceo_id) {
-                (Some(ceo_vip.full_name.clone()), Some(ceo_vip.ideology.clone()))
+                (
+                    Some(ceo_vip.full_name.clone()),
+                    Some(ceo_vip.ideology.clone()),
+                )
             } else {
                 (None, None)
             }
@@ -3394,7 +3572,13 @@ fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQue
             .regions
             .iter()
             .find(|r| r.id == c.region_id)
-            .map(|r| if r.display_name.is_empty() { r.id.clone() } else { r.display_name.clone() })
+            .map(|r| {
+                if r.display_name.is_empty() {
+                    r.id.clone()
+                } else {
+                    r.display_name.clone()
+                }
+            })
             .unwrap_or_else(|| c.region_id.clone()),
         legal_form: legal_form_display(&c.legal_form),
         ceo_vip_id: c.ceo_vip_id.clone(),
@@ -3404,7 +3588,11 @@ fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQue
         fulfilled_fte: c.fulfilled_fte,
         fte_demand: c.target_fte_demand,
         average_wage: c.offered_wage_per_fte,
-        seasonal_state: if c.furloughed_workers_count > 0.0 { "Furloughed".to_string() } else { "Active".to_string() },
+        seasonal_state: if c.furloughed_workers_count > 0.0 {
+            "Furloughed".to_string()
+        } else {
+            "Active".to_string()
+        },
         furloughed_workers_count: c.furloughed_workers_count,
         wage_arrears: c.wage_arrears,
         building_count: c.building_ids.len(),
@@ -3414,7 +3602,11 @@ fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQue
 }
 
 /// Build region drill-down detail on-demand for the selected region.
-fn build_region_detail(country: &Country, buildings: &[crate::entities::Building], view: &ViewQuery) -> Option<RegionDetail> {
+fn build_region_detail(
+    country: &Country,
+    buildings: &[crate::entities::Building],
+    view: &ViewQuery,
+) -> Option<RegionDetail> {
     let region_id = view.region_drilldown_id.as_ref()?;
     let region = country.regions.iter().find(|r| r.id == *region_id)?;
 
@@ -3434,37 +3626,70 @@ fn build_region_detail(country: &Country, buildings: &[crate::entities::Building
     let total_council_seats: u32 = council_factions.iter().map(|(_, s)| *s).sum();
 
     // Phase 54: Resolve head VIP ID from the registry by matching head name.
-    let head_name_for_lookup = region.governance.as_ref().map(|g| g.head.name.clone()).unwrap_or_default();
+    let head_name_for_lookup = region
+        .governance
+        .as_ref()
+        .map(|g| g.head.name.clone())
+        .unwrap_or_default();
     let head_vip_id = if !head_name_for_lookup.is_empty() {
-        country.politics.vip_registry.as_ref().and_then(|r| {
-            r.get_by_name(&head_name_for_lookup).map(|v| v.id.clone())
-        })
+        country
+            .politics
+            .vip_registry
+            .as_ref()
+            .and_then(|r| r.get_by_name(&head_name_for_lookup).map(|v| v.id.clone()))
     } else {
         None
     };
 
     // Build budget/debt from local governance.
-    let (budget_reserves, budget_tax_revenue, budget_property_tax, budget_expenditures, budget_balance, debt_total, debt_to_revenue_ratio, credit_rating, admin_status, head_name, head_type) =
-        if let Some(ref gov) = region.governance {
-            let rev = gov.budget.tax_revenue + gov.budget.property_tax;
-            let balance = gov.budget.budget_balance;
-            let ratio = if rev > 0.0 { gov.debt.total_debt / rev } else { 0.0 };
-            (
-                gov.budget.liquid_reserves,
-                gov.budget.tax_revenue,
-                gov.budget.property_tax,
-                gov.budget.local_expenditures,
-                balance,
-                gov.debt.total_debt,
-                ratio,
-                gov.debt.credit_rating.clone(),
-                format!("{:?}", gov.admin_status),
-                gov.head.name.clone(),
-                format!("{:?}", gov.head_type),
-            )
+    let (
+        budget_reserves,
+        budget_tax_revenue,
+        budget_property_tax,
+        budget_expenditures,
+        budget_balance,
+        debt_total,
+        debt_to_revenue_ratio,
+        credit_rating,
+        admin_status,
+        head_name,
+        head_type,
+    ) = if let Some(ref gov) = region.governance {
+        let rev = gov.budget.tax_revenue + gov.budget.property_tax;
+        let balance = gov.budget.budget_balance;
+        let ratio = if rev > 0.0 {
+            gov.debt.total_debt / rev
         } else {
-            (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, String::new(), "None".to_string(), String::new(), "None".to_string())
+            0.0
         };
+        (
+            gov.budget.liquid_reserves,
+            gov.budget.tax_revenue,
+            gov.budget.property_tax,
+            gov.budget.local_expenditures,
+            balance,
+            gov.debt.total_debt,
+            ratio,
+            gov.debt.credit_rating.clone(),
+            format!("{:?}", gov.admin_status),
+            gov.head.name.clone(),
+            format!("{:?}", gov.head_type),
+        )
+    } else {
+        (
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            String::new(),
+            "None".to_string(),
+            String::new(),
+            "None".to_string(),
+        )
+    };
 
     // Active mandates (mandates are national, not per-region, so show all).
     let active_mandates = country
@@ -3543,11 +3768,13 @@ fn build_region_detail(country: &Country, buildings: &[crate::entities::Building
             pipe_network_km: region.thermal_grid.pipe_network_km,
             pipe_condition: region.thermal_grid.pipe_condition,
             loss_per_km: region.thermal_grid.loss_per_km,
-            effective_heat_supply_gj: region.capacity_pool
+            effective_heat_supply_gj: region
+                .capacity_pool
                 .get(&crate::infrastructure::CapacityType::DistrictHeating)
                 .copied()
                 .unwrap_or(0.0),
-            max_connectable_buildings: region.thermal_grid
+            max_connectable_buildings: region
+                .thermal_grid
                 .max_connectable_buildings(region.development_level),
             active_heating_plants: 0, // Computed from buildings at query time
             average_delivery_distance_km: region.thermal_grid.average_delivery_distance_km(1),
@@ -3576,7 +3803,9 @@ fn build_region_detail(country: &Country, buildings: &[crate::entities::Building
             current_quality: region.water_network.current_quality,
             throughput_liters: region.water_network.throughput_liters,
             effective_water_delivered: region.water_network.effective_water_delivered(0),
-            max_connectable_buildings: region.water_network.max_connectable_buildings(region.development_level),
+            max_connectable_buildings: region
+                .water_network
+                .max_connectable_buildings(region.development_level),
             active_water_plants: 0, // Computed from buildings at query time
             transmission_loss_fraction: region.water_network.transmission_loss(0),
         }),
@@ -3588,7 +3817,9 @@ fn build_region_detail(country: &Country, buildings: &[crate::entities::Building
             throughput_liters: region.sewer_network.throughput_liters,
             water_delivered_to_treatment: region.sewer_network.water_delivered_to_treatment(0),
             leaked_water_mass: region.sewer_network.leaked_water_mass(0),
-            max_connectable_buildings: region.sewer_network.max_connectable_buildings(region.development_level),
+            max_connectable_buildings: region
+                .sewer_network
+                .max_connectable_buildings(region.development_level),
             active_wastewater_plants: 0, // Computed from buildings at query time
         }),
         // Phase 83: Biohazard snapshot (role-gated by caller).
@@ -3655,21 +3886,23 @@ fn build_geological_deposit_rows(
     for (resource_key, value) in &region.resources {
         if let serde_json::Value::Object(map) = value {
             // Phase 88: Skip non-geological resources (no "commodity" field).
-            let commodity = match map.get("commodity")
-                .and_then(|v| v.as_str()) {
+            let commodity = match map.get("commodity").and_then(|v| v.as_str()) {
                 Some(c) => c.to_string(),
                 None => continue, // freshwater, forests, etc.
             };
-            let reserves = map.get("geological_reserves")
+            let reserves = map
+                .get("geological_reserves")
                 .and_then(|v| v.as_f64())
                 .unwrap_or(0.0);
             if reserves <= 0.0 {
                 continue;
             }
-            let current = map.get("current_reserves")
+            let current = map
+                .get("current_reserves")
                 .and_then(|v| v.as_f64())
                 .unwrap_or(reserves);
-            let extraction_rate = map.get("extraction_rate")
+            let extraction_rate = map
+                .get("extraction_rate")
                 .and_then(|v| v.as_f64())
                 .unwrap_or(0.0);
             let utilization = if reserves > 0.0 {
@@ -3677,7 +3910,8 @@ fn build_geological_deposit_rows(
             } else {
                 0.0
             };
-            let formation_name = map.get("formation_name")
+            let formation_name = map
+                .get("formation_name")
                 .and_then(|v| v.as_str())
                 .unwrap_or("Unknown")
                 .to_string();
@@ -3685,10 +3919,14 @@ fn build_geological_deposit_rows(
             // the resource key (vein ID or composite ID). This is the
             // authoritative count — buildings with deposit_id == resource_key
             // are mines extracting from this vein.
-            let active_mines = buildings.iter()
-                .filter(|b| b.region_id == region.id && b.deposit_id.as_deref() == Some(resource_key))
+            let active_mines = buildings
+                .iter()
+                .filter(|b| {
+                    b.region_id == region.id && b.deposit_id.as_deref() == Some(resource_key)
+                })
                 .count() as u32;
-            let discovered = map.get("discovered")
+            let discovered = map
+                .get("discovered")
                 .and_then(|v| v.as_bool())
                 .unwrap_or(true);
 
@@ -3710,7 +3948,10 @@ fn build_geological_deposit_rows(
 /// Phase 53: Build megaregion drill-down detail on-demand for the selected megaregion.
 fn build_megaregion_detail(country: &Country, view: &ViewQuery) -> Option<MegaregionDetail> {
     let megaregion_id = view.megaregion_drilldown_id.as_ref()?;
-    let megaregion = country.megaregions.iter().find(|m| m.id == *megaregion_id)?;
+    let megaregion = country
+        .megaregions
+        .iter()
+        .find(|m| m.id == *megaregion_id)?;
 
     // Aggregate population and GDP from member regions.
     let member_regions: Vec<&crate::society::geography::Region> = country
@@ -3722,25 +3963,46 @@ fn build_megaregion_detail(country: &Country, view: &ViewQuery) -> Option<Megare
     let total_gdp: f64 = member_regions.iter().map(|r| r.gdp).sum();
 
     // Extract governance fields if available.
-    let (governor_name, governor_appointed, competence_level, budget_reserves, regional_transfers, development_expenditures, coordination_expenditures, budget_balance) =
-        if let Some(ref gov) = megaregion.governance {
-            (
-                gov.governor.name.clone(),
-                gov.governor_appointed,
-                format!("{:?}", gov.competence_level),
-                gov.budget.liquid_reserves,
-                gov.budget.regional_transfers,
-                gov.budget.development_expenditures,
-                gov.budget.coordination_expenditures,
-                gov.budget.budget_balance,
-            )
-        } else {
-            (String::new(), false, "None".to_string(), 0.0, 0.0, 0.0, 0.0, 0.0)
-        };
+    let (
+        governor_name,
+        governor_appointed,
+        competence_level,
+        budget_reserves,
+        regional_transfers,
+        development_expenditures,
+        coordination_expenditures,
+        budget_balance,
+    ) = if let Some(ref gov) = megaregion.governance {
+        (
+            gov.governor.name.clone(),
+            gov.governor_appointed,
+            format!("{:?}", gov.competence_level),
+            gov.budget.liquid_reserves,
+            gov.budget.regional_transfers,
+            gov.budget.development_expenditures,
+            gov.budget.coordination_expenditures,
+            gov.budget.budget_balance,
+        )
+    } else {
+        (
+            String::new(),
+            false,
+            "None".to_string(),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        )
+    };
 
     Some(MegaregionDetail {
         megaregion_id: megaregion.id.clone(),
-        display_name: if megaregion.name.is_empty() { megaregion.id.clone() } else { megaregion.name.clone() },
+        display_name: if megaregion.name.is_empty() {
+            megaregion.id.clone()
+        } else {
+            megaregion.name.clone()
+        },
         country: megaregion.country.clone(),
         member_region_ids: megaregion.regions.clone(),
         member_region_count: megaregion.regions.len(),
@@ -3881,9 +4143,12 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
     // Ministry totals
     let (ministry_total_allocated, ministry_total_spent, ministry_total_cash) =
         if let Some(ref config) = country.politics.ministry_config {
-            config.ministries.iter().fold((0.0, 0.0, 0.0), |(a, s, c), m| {
-                (a + m.allocated_cash, s + m.spent_cash, c + m.ministry_cash)
-            })
+            config
+                .ministries
+                .iter()
+                .fold((0.0, 0.0, 0.0), |(a, s, c), m| {
+                    (a + m.allocated_cash, s + m.spent_cash, c + m.ministry_cash)
+                })
         } else {
             (0.0, 0.0, 0.0)
         };
@@ -3904,9 +4169,17 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
             if let Some(ref bs) = c.balance_sheet {
                 total_bank_reserves += bs.reserves_at_central_bank;
                 total_bank_deposits += bs.deposits;
-                total_bank_loans += bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>();
+                total_bank_loans += bs
+                    .loans_issued
+                    .iter()
+                    .map(|l| l.outstanding_balance)
+                    .sum::<f64>();
             }
-            total_consumer_debt += c.consumer_loans.iter().map(|l| l.outstanding_principal).sum::<f64>();
+            total_consumer_debt += c
+                .consumer_loans
+                .iter()
+                .map(|l| l.outstanding_principal)
+                .sum::<f64>();
             if c.is_dspw {
                 dspw_bank_count += 1;
             }
@@ -3961,18 +4234,25 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
     // total_outstanding_debt = wholesale (outstanding_securities) + retail (retail_bonds).
     // The holder iteration above counts citizen-held wholesale securities;
     // this adds the retail savings bond principal + arrears.
-    let retail_total: f64 = country.debt_market.retail_bonds.iter()
+    let retail_total: f64 = country
+        .debt_market
+        .retail_bonds
+        .iter()
         .map(|b| b.face_value + b.arrears)
         .sum();
     debt_held_by_citizens += retail_total;
 
     // Phase 87+: Debug invariant — holder sum must equal total debt.
-    let holder_sum = debt_held_by_banks + debt_held_by_central_bank
-        + debt_held_by_funds + debt_held_by_citizens + debt_held_by_foreign;
+    let holder_sum = debt_held_by_banks
+        + debt_held_by_central_bank
+        + debt_held_by_funds
+        + debt_held_by_citizens
+        + debt_held_by_foreign;
     debug_assert!(
         (holder_sum - total_public_debt).abs() < 1.0,
         "Debt holder sum {} != total_public_debt {}",
-        holder_sum, total_public_debt
+        holder_sum,
+        total_public_debt
     );
 
     // Shadow economy
@@ -3990,10 +4270,18 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
     let cit_revenue = last_tax.map(|t| t.cit_collected).unwrap_or(0.0);
     let vat_revenue = last_tax.map(|t| t.vat_collected).unwrap_or(0.0);
     let wealth_tax_revenue = last_tax.map(|t| t.wealth_tax_collected).unwrap_or(0.0);
-    let capital_gains_revenue = last_tax.map(|t| t.capital_gains_tax_collected).unwrap_or(0.0);
+    let capital_gains_revenue = last_tax
+        .map(|t| t.capital_gains_tax_collected)
+        .unwrap_or(0.0);
     // Phase 39: Customs and state property revenue
     let customs_revenue = last_tax.map(|t| t.customs_revenue).unwrap_or(0.0);
     let state_property_revenue = last_tax.map(|t| t.state_property_revenue).unwrap_or(0.0);
+    // Agent 4 — Phase 6: Smuggling diagnostics for UI exposure (Rule 17).
+    let smuggling_result = country.last_smuggling_result.as_ref();
+    let smuggling_value = smuggling_result.map(|r| r.smuggling_value).unwrap_or(0.0);
+    let smuggling_intercepted = smuggling_result.map(|r| r.intercepted_value).unwrap_or(0.0);
+    let smuggling_tariff_loss = smuggling_result.map(|r| r.tariff_loss).unwrap_or(0.0);
+    let smuggling_recovered_tariffs = smuggling_result.map(|r| r.recovered_tariffs).unwrap_or(0.0);
     // Phase 89: Property tax revenue aggregated from regional governments.
     let property_tax_revenue = last_tax.map(|t| t.property_tax_collected).unwrap_or(0.0);
 
@@ -4002,27 +4290,40 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
     let cit_rate = country.tax_rates.corporate_tax;
     let vat_rate = {
         // Average of all VAT brackets
-        let brackets: Vec<f64> = country.tax_rates.vat.values()
-            .map(|b| b.rate)
-            .collect();
-        if brackets.is_empty() { 0.0 } else { brackets.iter().sum::<f64>() / brackets.len() as f64 }
+        let brackets: Vec<f64> = country.tax_rates.vat.values().map(|b| b.rate).collect();
+        if brackets.is_empty() {
+            0.0
+        } else {
+            brackets.iter().sum::<f64>() / brackets.len() as f64
+        }
     };
-    let wealth_tax_rate = country.tax_rates.wealth_tax.brackets.last()
+    let wealth_tax_rate = country
+        .tax_rates
+        .wealth_tax
+        .brackets
+        .last()
         .map(|b| b.rate)
         .unwrap_or(0.0);
-    let capital_gains_rate = country.tax_rates.capital_gains_tax.brackets.last()
+    let capital_gains_rate = country
+        .tax_rates
+        .capital_gains_tax
+        .brackets
+        .last()
         .map(|b| b.rate)
         .unwrap_or(0.0);
 
     // Phase 42: FX basket — top 3 foreign currencies by reserve amount.
     let domestic_ccy = &country.macro_indicators.currency;
-    let mut fx_entries: Vec<(String, f64)> = cb.fx_reserves
+    let mut fx_entries: Vec<(String, f64)> = cb
+        .fx_reserves
         .iter()
         .filter(|(k, _)| *k != domestic_ccy)
         .map(|(k, v)| (k.clone(), *v))
         .collect();
     fx_entries.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-    let fx_basket: Vec<FxBasketEntry> = fx_entries.iter().take(3)
+    let fx_basket: Vec<FxBasketEntry> = fx_entries
+        .iter()
+        .take(3)
         .map(|(cur, amt)| FxBasketEntry {
             currency: cur.clone(),
             amount: *amt,
@@ -4043,6 +4344,10 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
         capital_gains_revenue,
         customs_revenue,
         state_property_revenue,
+        smuggling_value,
+        smuggling_intercepted,
+        smuggling_tariff_loss,
+        smuggling_recovered_tariffs,
         property_tax_revenue,
         pit_rate,
         cit_rate,
@@ -4168,7 +4473,9 @@ fn build_government_snapshot(country: &Country) -> GovernmentSnapshot {
                     .unwrap_or_default();
                 MinisterRow {
                     // Phase 34: Strip "Ministry of " prefix for cleaner UI display.
-                    ministry_name: m.name.clone()
+                    ministry_name: m
+                        .name
+                        .clone()
                         .strip_prefix("Ministry of ")
                         .unwrap_or(&m.name)
                         .to_string(),
@@ -4264,11 +4571,7 @@ fn build_parliament_snapshot(country: &Country) -> ParliamentSnapshot {
                 total_seats: c.total_seats,
                 speaker_name: c.presidium.speaker.full_name.clone(),
                 speaker_club: c.presidium.speaker_club.clone(),
-                seat_distribution: c
-                    .seats
-                    .iter()
-                    .map(|(k, v)| (k.clone(), *v))
-                    .collect(),
+                seat_distribution: c.seats.iter().map(|(k, v)| (k.clone(), *v)).collect(),
             })
             .collect();
 
@@ -4398,21 +4701,42 @@ fn aggregate_sectors(companies: &[Company], country: &Country) -> Vec<SectorRow>
     let total_wages: f64 = by_sector.values().map(|(_, _, w)| *w).sum();
 
     // Phase 28: Extract PMI and previous-turn data from country.budget.sectors.
-    let sector_pmi: HashMap<Sector, f64> = country.budget.sectors.iter()
+    let sector_pmi: HashMap<Sector, f64> = country
+        .budget
+        .sectors
+        .iter()
         .filter_map(|(sector, share)| {
-            share.extra.get("pmi").and_then(|v| v.as_f64()).map(|pmi| (*sector, pmi))
+            share
+                .extra
+                .get("pmi")
+                .and_then(|v| v.as_f64())
+                .map(|pmi| (*sector, pmi))
         })
         .collect();
 
     // Phase 28: Read previous-turn employment and wage for ToT computation.
-    let prev_employment: HashMap<Sector, f64> = country.budget.sectors.iter()
+    let prev_employment: HashMap<Sector, f64> = country
+        .budget
+        .sectors
+        .iter()
         .filter_map(|(sector, share)| {
-            share.extra.get("_prev_employment").and_then(|v| v.as_f64()).map(|e| (*sector, e))
+            share
+                .extra
+                .get("_prev_employment")
+                .and_then(|v| v.as_f64())
+                .map(|e| (*sector, e))
         })
         .collect();
-    let prev_avg_wage: HashMap<Sector, f64> = country.budget.sectors.iter()
+    let prev_avg_wage: HashMap<Sector, f64> = country
+        .budget
+        .sectors
+        .iter()
         .filter_map(|(sector, share)| {
-            share.extra.get("_prev_avg_wage").and_then(|v| v.as_f64()).map(|w| (*sector, w))
+            share
+                .extra
+                .get("_prev_avg_wage")
+                .and_then(|v| v.as_f64())
+                .map(|w| (*sector, w))
         })
         .collect();
 
@@ -4430,10 +4754,18 @@ fn aggregate_sectors(companies: &[Company], country: &Country) -> Vec<SectorRow>
 
             // Phase 28: Compute ToT deltas vs previous turn.
             let employment_tot = prev_employment.get(sector).and_then(|prev| {
-                if *prev > 0.0 { Some(((fte_f - *prev) / *prev) * 100.0) } else { None }
+                if *prev > 0.0 {
+                    Some(((fte_f - *prev) / *prev) * 100.0)
+                } else {
+                    None
+                }
             });
             let wage_tot = prev_avg_wage.get(sector).and_then(|prev| {
-                if *prev > 0.0 { Some(((avg_wage - *prev) / *prev) * 100.0) } else { None }
+                if *prev > 0.0 {
+                    Some(((avg_wage - *prev) / *prev) * 100.0)
+                } else {
+                    None
+                }
             });
 
             SectorRow {
@@ -4450,7 +4782,11 @@ fn aggregate_sectors(companies: &[Company], country: &Country) -> Vec<SectorRow>
         .collect();
 
     // Sort by GDP share descending.
-    rows.sort_by(|a, b| b.pct_gdp_share.partial_cmp(&a.pct_gdp_share).unwrap_or(std::cmp::Ordering::Equal));
+    rows.sort_by(|a, b| {
+        b.pct_gdp_share
+            .partial_cmp(&a.pct_gdp_share)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     rows
 }
 
@@ -4483,13 +4819,21 @@ fn compute_deltas(
         m3_tot: history.tot_pct(ms.m3, |s| s.m3),
         m3_yoy: history.yoy_pct(ms.m3, |s| s.m3),
         // Unemployment: absolute delta (percentage points), not percent change.
-        unemployment_tot: history.previous_turn().map(|s| md.labor_market.unemployment_rate - s.unemployment_pct),
-        unemployment_yoy: history.one_year_ago().map(|s| md.labor_market.unemployment_rate - s.unemployment_pct),
+        unemployment_tot: history
+            .previous_turn()
+            .map(|s| md.labor_market.unemployment_rate - s.unemployment_pct),
+        unemployment_yoy: history
+            .one_year_ago()
+            .map(|s| md.labor_market.unemployment_rate - s.unemployment_pct),
         shadow_gdp_tot: history.tot_pct(g.shadow_gdp, |s| s.shadow_gdp),
         shadow_gdp_yoy: history.yoy_pct(g.shadow_gdp, |s| s.shadow_gdp),
         // Corruption: absolute delta (index points).
-        corruption_tot: history.previous_turn().map(|s| corruption_index - s.corruption_index),
-        corruption_yoy: history.one_year_ago().map(|s| corruption_index - s.corruption_index),
+        corruption_tot: history
+            .previous_turn()
+            .map(|s| corruption_index - s.corruption_index),
+        corruption_yoy: history
+            .one_year_ago()
+            .map(|s| corruption_index - s.corruption_index),
         population_tot: history.tot_pct(population, |s| s.population as f64),
         population_yoy: history.yoy_pct(population, |s| s.population as f64),
         wage_tot: history.tot_pct(md.average_wage, |s| s.average_wage),
@@ -4685,15 +5029,28 @@ pub fn build_global_snapshot(
 
     let mut countries = BTreeMap::new();
     for (name, country) in &state.countries {
-        let buildings = buildings_by_country.get(name).map(|v| v.as_slice()).unwrap_or(&[]);
-        let companies = companies_by_country.get(name).map(|v| v.as_slice()).unwrap_or(&[]);
-        let mut snap = build_country_snapshot(country, market_history, market, buildings, companies, view);
+        let buildings = buildings_by_country
+            .get(name)
+            .map(|v| v.as_slice())
+            .unwrap_or(&[]);
+        let companies = companies_by_country
+            .get(name)
+            .map(|v| v.as_slice())
+            .unwrap_or(&[]);
+        let mut snap =
+            build_country_snapshot(country, market_history, market, buildings, companies, view);
         snap.turn = turn;
         snap.year = year;
         countries.insert(name.clone(), snap);
     }
 
-    GlobalSnapshot { turn, year, countries, diplomacy: None, foreign_countries: Vec::new() }
+    GlobalSnapshot {
+        turn,
+        year,
+        countries,
+        diplomacy: None,
+        foreign_countries: Vec::new(),
+    }
 }
 
 // ============================================================================
@@ -4872,7 +5229,9 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         // Active wars/fronts
         for front in &country.military_fronts {
             let battle_count = front.battles.len();
-            let last_battle_result = front.battles.last()
+            let last_battle_result = front
+                .battles
+                .last()
                 .map(|b| format!("{:?}", b.result))
                 .unwrap_or_else(|| "No battles".to_string());
 
@@ -4881,7 +5240,9 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 front_name: front.name.clone(),
                 involved_countries: front.involved_countries.clone(),
                 regions: front.regions.clone(),
-                war_exhaustion: front.war_exhaustion.iter()
+                war_exhaustion: front
+                    .war_exhaustion
+                    .iter()
                     .map(|(k, v)| (k.clone(), *v))
                     .collect(),
                 battle_count,
@@ -4908,15 +5269,19 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         let total_manpower = oob.total_manpower();
         let army_count = oob.armies.len();
         let division_count: usize = oob.armies.iter().map(|a| a.divisions.len()).sum();
-        let regiment_count: usize = oob.armies.iter()
+        let regiment_count: usize = oob
+            .armies
+            .iter()
             .flat_map(|a| a.divisions.iter())
             .map(|d| d.regiments.len())
             .sum();
         let unit_count = oob.unit_count();
 
         // Count units by type
-        let mut units_by_type: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
-        let mut manpower_by_type: std::collections::BTreeMap<String, i64> = std::collections::BTreeMap::new();
+        let mut units_by_type: std::collections::BTreeMap<String, usize> =
+            std::collections::BTreeMap::new();
+        let mut manpower_by_type: std::collections::BTreeMap<String, i64> =
+            std::collections::BTreeMap::new();
         for unit in oob.flatten() {
             let type_name = format!("{:?}", unit.unit_type);
             *units_by_type.entry(type_name.clone()).or_insert(0) += 1;
@@ -4953,11 +5318,15 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         // POW camp stats — Phase 86.5B: Now wired from country.pow_camp.
         let pow_camp = &country.pow_camp;
         let total_prisoners = pow_camp.prisoners.len() as i64;
-        let prisoner_groups = pow_camp.prisoners.iter()
+        let prisoner_groups = pow_camp
+            .prisoners
+            .iter()
             .map(|p| p.origin_country.clone())
             .collect::<std::collections::HashSet<_>>()
             .len();
-        let forced_labor_assigned = pow_camp.prisoners.iter()
+        let forced_labor_assigned = pow_camp
+            .prisoners
+            .iter()
             .filter(|p| p.status == crate::military::pows::PowStatus::ForcedLabor)
             .count() as i64;
         let prisoners_by_origin: Vec<(String, i64)> = {
@@ -4968,7 +5337,12 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             map.into_iter().collect()
         };
         let average_health = if !pow_camp.prisoners.is_empty() {
-            pow_camp.prisoners.iter().map(|p| p.productivity_factor).sum::<f64>() / pow_camp.prisoners.len() as f64
+            pow_camp
+                .prisoners
+                .iter()
+                .map(|p| p.productivity_factor)
+                .sum::<f64>()
+                / pow_camp.prisoners.len() as f64
         } else {
             0.0
         };
@@ -5090,7 +5464,9 @@ pub fn build_municipal_ai_snapshot(country: &Country) -> MunicipalAiSnapshot {
             priority: if is_crisis { 1.0 } else { 0.5 },
             is_crisis,
         });
-        if is_crisis { crisis_count += 1; }
+        if is_crisis {
+            crisis_count += 1;
+        }
     }
 
     // Electrical plan
@@ -5099,10 +5475,16 @@ pub fn build_municipal_ai_snapshot(country: &Country) -> MunicipalAiSnapshot {
             region_id: "national".to_string(),
             domain: "electrical".to_string(),
             planned_amount: plan.electrical_plan.estimated_capex,
-            priority: if plan.electrical_plan.is_crisis { 1.0 } else { 0.5 },
+            priority: if plan.electrical_plan.is_crisis {
+                1.0
+            } else {
+                0.5
+            },
             is_crisis: plan.electrical_plan.is_crisis,
         });
-        if plan.electrical_plan.is_crisis { crisis_count += 1; }
+        if plan.electrical_plan.is_crisis {
+            crisis_count += 1;
+        }
     }
 
     // Water plan
@@ -5114,7 +5496,9 @@ pub fn build_municipal_ai_snapshot(country: &Country) -> MunicipalAiSnapshot {
             priority: if plan.water_plan.is_crisis { 1.0 } else { 0.5 },
             is_crisis: plan.water_plan.is_crisis,
         });
-        if plan.water_plan.is_crisis { crisis_count += 1; }
+        if plan.water_plan.is_crisis {
+            crisis_count += 1;
+        }
     }
 
     // Sanitation plan
@@ -5123,10 +5507,16 @@ pub fn build_municipal_ai_snapshot(country: &Country) -> MunicipalAiSnapshot {
             region_id: "national".to_string(),
             domain: "sanitation".to_string(),
             planned_amount: plan.sanitation_plan.estimated_capex,
-            priority: if plan.sanitation_plan.is_crisis { 1.0 } else { 0.5 },
+            priority: if plan.sanitation_plan.is_crisis {
+                1.0
+            } else {
+                0.5
+            },
             is_crisis: plan.sanitation_plan.is_crisis,
         });
-        if plan.sanitation_plan.is_crisis { crisis_count += 1; }
+        if plan.sanitation_plan.is_crisis {
+            crisis_count += 1;
+        }
     }
 
     // Waste plan
@@ -5138,7 +5528,9 @@ pub fn build_municipal_ai_snapshot(country: &Country) -> MunicipalAiSnapshot {
             priority: if plan.waste_plan.is_crisis { 1.0 } else { 0.5 },
             is_crisis: plan.waste_plan.is_crisis,
         });
-        if plan.waste_plan.is_crisis { crisis_count += 1; }
+        if plan.waste_plan.is_crisis {
+            crisis_count += 1;
+        }
     }
 
     MunicipalAiSnapshot {
@@ -5327,20 +5719,56 @@ pub fn build_energy_grid_snapshot(
     // Build regional info.
     let mut regions: Vec<RegionEnergyInfo> = Vec::new();
     for region in &country.regions {
-        let supply = grid.region_supply_mw.get(&region.id).copied().unwrap_or(0.0);
-        let demand = grid.region_demand_mw.get(&region.id).copied().unwrap_or(0.0);
-        let max_cap = grid.region_max_capacity_mw.get(&region.id).copied().unwrap_or(0.0);
+        let supply = grid
+            .region_supply_mw
+            .get(&region.id)
+            .copied()
+            .unwrap_or(0.0);
+        let demand = grid
+            .region_demand_mw
+            .get(&region.id)
+            .copied()
+            .unwrap_or(0.0);
+        let max_cap = grid
+            .region_max_capacity_mw
+            .get(&region.id)
+            .copied()
+            .unwrap_or(0.0);
         let spot = grid.spot_prices.get(&region.id).copied().unwrap_or(0.0);
-        let shed = grid.load_shed_tiers.get(&region.id).copied().unwrap_or(LoadShedTier::Normal);
-        let overprod = grid.overproduction_tiers.get(&region.id).copied().unwrap_or(OverproductionTier::Normal);
-        let lv_cond = grid.region_lv_condition.get(&region.id).copied().unwrap_or(1.0);
-        let mv_cond = grid.region_mv_condition.get(&region.id).copied().unwrap_or(1.0);
+        let shed = grid
+            .load_shed_tiers
+            .get(&region.id)
+            .copied()
+            .unwrap_or(LoadShedTier::Normal);
+        let overprod = grid
+            .overproduction_tiers
+            .get(&region.id)
+            .copied()
+            .unwrap_or(OverproductionTier::Normal);
+        let lv_cond = grid
+            .region_lv_condition
+            .get(&region.id)
+            .copied()
+            .unwrap_or(1.0);
+        let mv_cond = grid
+            .region_mv_condition
+            .get(&region.id)
+            .copied()
+            .unwrap_or(1.0);
         let grid_cond = lv_cond.min(mv_cond);
 
         // Bugfix Sprint: Compute effective supply (after grid capacity clamping)
         // to expose the grid bottleneck that causes Blackout despite surplus.
-        let lv_cap = grid.region_lv_capacity.get(&region.id).copied().unwrap_or(0.0);
-        let mv_cap = grid.region_mv_capacity.get(&region.id).copied().unwrap_or(0.0);
+        let lv_cap = grid
+            .region_lv_capacity
+            .get(&region.id)
+            .copied()
+            .unwrap_or(0.0);
+        let mv_cap = grid
+            .region_mv_capacity
+            .get(&region.id)
+            .copied()
+            .unwrap_or(0.0);
         let grid_cap = lv_cap.min(mv_cap);
         let effective_supply = supply.min(grid_cap);
 
@@ -5349,7 +5777,11 @@ pub fn build_energy_grid_snapshot(
 
         regions.push(RegionEnergyInfo {
             region_id: region.id.clone(),
-            region_name: if region.display_name.is_empty() { region.id.clone() } else { region.display_name.clone() },
+            region_name: if region.display_name.is_empty() {
+                region.id.clone()
+            } else {
+                region.display_name.clone()
+            },
             supply_mw: supply,
             effective_supply_mw: effective_supply,
             demand_mw: demand,
@@ -5408,17 +5840,39 @@ pub fn build_energy_grid_snapshot(
         let mut sum = 0.0;
         let mut count = 0.0;
         for region in &country.regions {
-            let lv = grid.region_lv_condition.get(&region.id).copied().unwrap_or(1.0);
-            let mv = grid.region_mv_condition.get(&region.id).copied().unwrap_or(1.0);
+            let lv = grid
+                .region_lv_condition
+                .get(&region.id)
+                .copied()
+                .unwrap_or(1.0);
+            let mv = grid
+                .region_mv_condition
+                .get(&region.id)
+                .copied()
+                .unwrap_or(1.0);
             sum += lv.min(mv);
             count += 1.0;
         }
-        if count > 0.0 { sum / count } else { 1.0 }
+        if count > 0.0 {
+            sum / count
+        } else {
+            1.0
+        }
     };
 
     // National tiers (worst case across regions).
-    let national_shed = grid.load_shed_tiers.values().max().cloned().unwrap_or(LoadShedTier::Normal);
-    let national_overprod = grid.overproduction_tiers.values().max().cloned().unwrap_or(OverproductionTier::Normal);
+    let national_shed = grid
+        .load_shed_tiers
+        .values()
+        .max()
+        .cloned()
+        .unwrap_or(LoadShedTier::Normal);
+    let national_overprod = grid
+        .overproduction_tiers
+        .values()
+        .max()
+        .cloned()
+        .unwrap_or(OverproductionTier::Normal);
 
     EnergyGridSnapshot {
         national_supply_mw: national_supply,

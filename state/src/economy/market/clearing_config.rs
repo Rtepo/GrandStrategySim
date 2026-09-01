@@ -43,12 +43,24 @@ pub struct MarketClearingConfig {
     pub coverage_smoothing: f64,
 }
 
-fn default_price_floor() -> f64 { 0.2 }
-fn default_price_cap() -> f64 { 5.0 }
-fn default_fallback_base_price() -> f64 { 100.0 }
-fn default_shortage_cap_multiplier() -> f64 { 2.0 }
-fn default_surplus_floor_multiplier() -> f64 { 0.5 }
-fn default_coverage_smoothing() -> f64 { 1.0 }
+fn default_price_floor() -> f64 {
+    0.2
+}
+fn default_price_cap() -> f64 {
+    5.0
+}
+fn default_fallback_base_price() -> f64 {
+    100.0
+}
+fn default_shortage_cap_multiplier() -> f64 {
+    2.0
+}
+fn default_surplus_floor_multiplier() -> f64 {
+    0.5
+}
+fn default_coverage_smoothing() -> f64 {
+    1.0
+}
 
 impl Default for MarketClearingConfig {
     fn default() -> Self {

@@ -8,11 +8,13 @@ use crate::economy::retail_registry::retail_config;
 use crate::economy::transfer_settler::settle_b2c_purchase;
 use crate::entities::Company;
 use crate::registries::enums::Commodity;
-use crate::society::culture_registry::{registry as culture_registry, CultureDefinition, ReligionDefinition};
+use crate::society::culture_registry::{
+    registry as culture_registry, CultureDefinition, ReligionDefinition,
+};
 use crate::society::geography::{DemographyType, Region, RuralClass};
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
-use serde::{Deserialize, Serialize};
 use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 type HashMap<K, V> = FxHashMap<K, V>;
@@ -21,23 +23,18 @@ type HashMap<K, V> = FxHashMap<K, V>;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct StoreOffer {
     /// Store building ID
-
     pub store_id: String,
 
     /// Commodity offered
-
     pub commodity: Commodity,
 
     /// Quantity available
-
     pub quantity: f64,
 
     /// Price per unit
-
     pub price_per_unit: f64,
 
     /// Effective attractiveness (includes upgrades)
-
     pub effective_attractiveness: f64,
 
     /// Phase 19C: Blueprint quality of this offer (1.0 = baseline, >1.0 = premium).
@@ -57,11 +54,9 @@ fn default_offer_quality() -> f64 {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ConsumerDemand {
     /// (region_id, demography_type, class_id) → (commodity → units demanded)
-
     pub demand: BTreeMap<(String, DemographyType, String), BTreeMap<Commodity, f64>>,
-    
-    /// Total demand per commodity (aggregated across all classes)
 
+    /// Total demand per commodity (aggregated across all classes)
     pub total_demand: BTreeMap<Commodity, f64>,
 }
 
@@ -208,18 +203,23 @@ pub fn compute_cultural_demand_modifier(
 fn commodity_wealth_gate(commodity: Commodity) -> f64 {
     match commodity {
         // Perishables — universal (consumed every turn)
-        Commodity::Cereal | Commodity::Vegetable
-        | Commodity::Meat | Commodity::Fruit | Commodity::HealthCapacity
-        | Commodity::EducationSlots | Commodity::Food | Commodity::Water => 0.0,
+        Commodity::Cereal
+        | Commodity::Vegetable
+        | Commodity::Meat
+        | Commodity::Fruit
+        | Commodity::HealthCapacity
+        | Commodity::EducationSlots
+        | Commodity::Food
+        | Commodity::Water => 0.0,
         // Durables — wealth-gated (purchased only when savings permit)
         // Phase 74: Recalibrated to match generated savings_per_capita values
-        Commodity::Clothing => 20.0,       // Everyone buys clothing
-        Commodity::Furniture => 50.0,      // Basic household necessity
-        Commodity::Radio => 150.0,         // Available to workers
-        Commodity::Agd => 300.0,           // Middle-class purchase
-        Commodity::Televisions => 500.0,   // Middle-class luxury
-        Commodity::Cars => 1500.0,         // Upper-class
-        Commodity::Fuels => 200.0,         // Car fuel tracks car ownership, not savings
+        Commodity::Clothing => 20.0,     // Everyone buys clothing
+        Commodity::Furniture => 50.0,    // Basic household necessity
+        Commodity::Radio => 150.0,       // Available to workers
+        Commodity::Agd => 300.0,         // Middle-class purchase
+        Commodity::Televisions => 500.0, // Middle-class luxury
+        Commodity::Cars => 1500.0,       // Upper-class
+        Commodity::Fuels => 200.0,       // Car fuel tracks car ownership, not savings
         Commodity::Luxury | Commodity::LuxuryFurniture | Commodity::LuxuryClothing => 2000.0, // Aristocracy only
         _ => 0.0,
     }
@@ -306,13 +306,10 @@ fn compute_durable_demand(
 
 /// Phase 47: Degrade household durable cohorts by one turn.
 /// Called after B2C clearing, before telemetry.
-pub fn degrade_household_durables(
-    demographics: &mut crate::society::geography::ClassDemographics,
-) {
+pub fn degrade_household_durables(demographics: &mut crate::society::geography::ClassDemographics) {
     for cohort in &mut demographics.household_durables {
         if cohort.durability > 0.0 && cohort.durability < f64::MAX {
-            cohort.condition =
-                (cohort.condition - 1.0 / cohort.durability).max(0.0);
+            cohort.condition = (cohort.condition - 1.0 / cohort.durability).max(0.0);
         }
     }
     // Remove scrapped cohorts (condition <= 0.0 or count <= 0.0)
@@ -345,20 +342,15 @@ pub fn install_durable_purchase(
     let merged = demographics
         .household_durables
         .iter_mut()
-        .find(|c| {
-            c.commodity == commodity
-                && ((c.quality * 4.0).round() / 4.0) == quality_bucket
-        })
+        .find(|c| c.commodity == commodity && ((c.quality * 4.0).round() / 4.0) == quality_bucket)
         .map(|cohort| {
             // Weighted average condition and quality
             let old_weight = cohort.count;
             let new_weight = per_capita_count;
             let total = old_weight + new_weight;
             if total > 0.0 {
-                cohort.condition =
-                    (cohort.condition * old_weight + 1.0 * new_weight) / total;
-                cohort.quality =
-                    (cohort.quality * old_weight + quality * new_weight) / total;
+                cohort.condition = (cohort.condition * old_weight + 1.0 * new_weight) / total;
+                cohort.quality = (cohort.quality * old_weight + quality * new_weight) / total;
             }
             cohort.count += per_capita_count;
         });
@@ -397,20 +389,37 @@ fn class_housing_possession_rate(
         return 0.0;
     }
     // Count occupied housing slots assigned to this class in this region
-    let housed_slots: u32 = housing_buildings.iter()
+    let housed_slots: u32 = housing_buildings
+        .iter()
         .filter(|b| b.micro_region_id == region_id)
         .filter_map(|b| {
-            let primary = if b.primary_slots.target_class
-                .map(|c| class_id_matches_rural(c, class_id)).unwrap_or(false) {
+            let primary = if b
+                .primary_slots
+                .target_class
+                .map(|c| class_id_matches_rural(c, class_id))
+                .unwrap_or(false)
+            {
                 b.primary_slots.occupied_slots
-            } else { 0 };
-            let sublet = b.sublet_slots.as_ref()
+            } else {
+                0
+            };
+            let sublet = b
+                .sublet_slots
+                .as_ref()
                 .and_then(|s| s.target_class.map(|c| class_id_matches_rural(c, class_id)))
-                .map(|matches| if matches {
-                    b.sublet_slots.as_ref().unwrap().occupied_slots
-                } else { 0 })
+                .map(|matches| {
+                    if matches {
+                        b.sublet_slots.as_ref().unwrap().occupied_slots
+                    } else {
+                        0
+                    }
+                })
                 .unwrap_or(0);
-            if primary + sublet > 0 { Some(primary + sublet) } else { None }
+            if primary + sublet > 0 {
+                Some(primary + sublet)
+            } else {
+                None
+            }
         })
         .sum();
     let housed_people = (housed_slots as f64 * HOUSEHOLD_SIZE) as i64;
@@ -438,9 +447,9 @@ pub fn test_class_housing_possession_rate(
 /// When price exceeds this fraction of wage, substitution kicks in.
 fn affordability_threshold(commodity: Commodity) -> f64 {
     match commodity {
-        Commodity::Meat => 0.05,    // 5% of monthly wage
-        Commodity::Fruit => 0.03,   // 3% of monthly wage
-        Commodity::Cereal => 0.10,  // 10% of monthly wage (staple)
+        Commodity::Meat => 0.05,   // 5% of monthly wage
+        Commodity::Fruit => 0.03,  // 3% of monthly wage
+        Commodity::Cereal => 0.10, // 10% of monthly wage (staple)
         Commodity::Vegetable => 0.05,
         _ => 0.05,
     }
@@ -491,7 +500,12 @@ pub fn build_consumer_demand(
                          demography_type: DemographyType,
                          year: u32| {
         let key = (region.id.clone(), demography_type, class_id.to_string());
-        let housing_rate = class_housing_possession_rate(housing_buildings, &region.id, class_id, demographics.population);
+        let housing_rate = class_housing_possession_rate(
+            housing_buildings,
+            &region.id,
+            class_id,
+            demographics.population,
+        );
 
         if let Some(basket) = consumption.get(class_id) {
             for (tier, tier_commodities) in &basket.tiers {
@@ -500,7 +514,8 @@ pub fn build_consumer_demand(
                     // upgrade + saturation), NOT per-turn consumption.
                     // Perishables use the existing per_capita × era × wealth × pop.
                     let class_demand = if commodity.is_household_durable() {
-                        let mut d = compute_durable_demand(*commodity, demographics, year, *per_capita);
+                        let mut d =
+                            compute_durable_demand(*commodity, demographics, year, *per_capita);
                         // Phase 74: Housing complementarity gating
                         if commodity.requires_housing() {
                             d *= housing_rate;
@@ -517,11 +532,10 @@ pub fn build_consumer_demand(
                             continue;
                         }
                         // Phase 45: Wealth-tier multiplier.
-                        let wealth_mult = wealth_tier_multiplier(
-                            *tier,
-                            demographics.savings_per_capita,
-                        );
-                        let base_demand = per_capita * era_mult * wealth_mult * (demographics.population as f64);
+                        let wealth_mult =
+                            wealth_tier_multiplier(*tier, demographics.savings_per_capita);
+                        let base_demand =
+                            per_capita * era_mult * wealth_mult * (demographics.population as f64);
 
                         // Phase 74: Price-driven substitution
                         let mut final_demand = base_demand;
@@ -533,16 +547,24 @@ pub fn build_consumer_demand(
                                 if price_ratio > 1.0 {
                                     if let Some(subs) = price_subs.get(commodity) {
                                         for sub in subs {
-                                            let substitution_fraction = ((price_ratio - 1.0) * sub.elasticity_coefficient)
+                                            let substitution_fraction = ((price_ratio - 1.0)
+                                                * sub.elasticity_coefficient)
                                                 .clamp(0.0, sub.max_substitution);
                                             let shifted = base_demand * substitution_fraction;
                                             final_demand -= shifted;
                                             // Add shifted demand to substitute, scaled by equivalence ratio
                                             let substitute_demand = shifted * sub.equivalence_ratio;
                                             if substitute_demand > 0.0 {
-                                                *demand.demand.entry(key.clone()).or_default()
-                                                    .entry(sub.substitute).or_insert(0.0) += substitute_demand;
-                                                *demand.total_demand.entry(sub.substitute).or_insert(0.0) += substitute_demand;
+                                                *demand
+                                                    .demand
+                                                    .entry(key.clone())
+                                                    .or_default()
+                                                    .entry(sub.substitute)
+                                                    .or_insert(0.0) += substitute_demand;
+                                                *demand
+                                                    .total_demand
+                                                    .entry(sub.substitute)
+                                                    .or_insert(0.0) += substitute_demand;
                                             }
                                         }
                                     }
@@ -553,8 +575,12 @@ pub fn build_consumer_demand(
                     };
 
                     if class_demand > 0.0 {
-                        *demand.demand.entry(key.clone()).or_default()
-                            .entry(*commodity).or_insert(0.0) += class_demand;
+                        *demand
+                            .demand
+                            .entry(key.clone())
+                            .or_default()
+                            .entry(*commodity)
+                            .or_insert(0.0) += class_demand;
                         *demand.total_demand.entry(*commodity).or_insert(0.0) += class_demand;
                     }
                 }
@@ -564,12 +590,28 @@ pub fn build_consumer_demand(
 
     // Process rural classes
     for (class_id, demographics) in &region.class_demographics.rural_classes {
-        process_class(&mut demand, region, housing_buildings, class_id, demographics, DemographyType::Rural, year);
+        process_class(
+            &mut demand,
+            region,
+            housing_buildings,
+            class_id,
+            demographics,
+            DemographyType::Rural,
+            year,
+        );
     }
 
     // Process urban classes
     for (class_id, demographics) in &region.class_demographics.urban_classes {
-        process_class(&mut demand, region, housing_buildings, class_id, demographics, DemographyType::Urban, year);
+        process_class(
+            &mut demand,
+            region,
+            housing_buildings,
+            class_id,
+            demographics,
+            DemographyType::Urban,
+            year,
+        );
     }
 
     demand
@@ -591,34 +633,67 @@ pub fn build_consumer_demand(
 fn era_consumption_multiplier(commodity: Commodity, year: u32) -> f64 {
     match commodity {
         // Always available — subsistence and basic goods
-        Commodity::Cereal | Commodity::Vegetable
-        | Commodity::Meat | Commodity::Fruit | Commodity::Clothing
-        | Commodity::Furniture | Commodity::Food | Commodity::Water
-        | Commodity::HealthCapacity | Commodity::EducationSlots => 1.0,
+        Commodity::Cereal
+        | Commodity::Vegetable
+        | Commodity::Meat
+        | Commodity::Fruit
+        | Commodity::Clothing
+        | Commodity::Furniture
+        | Commodity::Food
+        | Commodity::Water
+        | Commodity::HealthCapacity
+        | Commodity::EducationSlots => 1.0,
 
         // Radio: available from 1920, peaks 1930-1960
         Commodity::Radio => {
-            if year < 1920 { 0.0 } else if year < 1930 { 0.3 } else { 1.0 }
+            if year < 1920 {
+                0.0
+            } else if year < 1930 {
+                0.3
+            } else {
+                1.0
+            }
         }
 
         // Televisions: available from 1936
         Commodity::Televisions => {
-            if year < 1936 { 0.0 } else if year < 1950 { 0.2 } else { 1.0 }
+            if year < 1936 {
+                0.0
+            } else if year < 1950 {
+                0.2
+            } else {
+                1.0
+            }
         }
 
         // AGD (household appliances): available from 1930
         Commodity::Agd => {
-            if year < 1930 { 0.0 } else if year < 1950 { 0.3 } else { 1.0 }
+            if year < 1930 {
+                0.0
+            } else if year < 1950 {
+                0.3
+            } else {
+                1.0
+            }
         }
 
         // Cars: luxury from 1910, mass consumption from 1950
         Commodity::Cars => {
-            if year < 1910 { 0.0 } else if year < 1950 { 0.1 } else { 0.5 }
+            if year < 1910 {
+                0.0
+            } else if year < 1950 {
+                0.1
+            } else {
+                0.5
+            }
         }
 
         // Luxury goods: always available but more relevant in prosperous eras
         Commodity::Luxury | Commodity::LuxuryFurniture | Commodity::LuxuryClothing
-            if year < 1880 => { 0.5 }
+            if year < 1880 =>
+        {
+            0.5
+        }
 
         // Everything else: always available
         _ => 1.0,
@@ -631,13 +706,18 @@ fn era_consumption_multiplier(commodity: Commodity, year: u32) -> f64 {
 /// * Subsistence tier: always 1.0 (people need to eat regardless of wealth)
 /// * Standard tier: scaled by savings (0.5 at zero savings → 1.5 at high savings)
 /// * Luxury tier: strongly scaled by savings (0.0 at zero savings → 2.0 at high savings)
-fn wealth_tier_multiplier(tier: crate::data::consumption_registry::NeedTier, savings_per_capita: f64) -> f64 {
+fn wealth_tier_multiplier(
+    tier: crate::data::consumption_registry::NeedTier,
+    savings_per_capita: f64,
+) -> f64 {
     use crate::data::consumption_registry::NeedTier;
     match tier {
         NeedTier::Subsistence => 1.0,
         NeedTier::Standard => {
             // Standard goods: 0.5 baseline, up to 1.5 with high savings
-            (0.5 + (savings_per_capita / 1000.0).min(1.0)).min(1.5).max(0.1)
+            (0.5 + (savings_per_capita / 1000.0).min(1.0))
+                .min(1.5)
+                .max(0.1)
         }
         NeedTier::Luxury => {
             // Luxury goods: 0.0 at zero savings, up to 2.0 with high savings
@@ -660,10 +740,7 @@ fn wealth_tier_multiplier(tier: crate::data::consumption_registry::NeedTier, sav
 /// * Effective attractiveness = base + upgrade bonuses
 /// * Price = acquisition_cost * markup_ratio
 /// * Used in R2 phase before B2C clearing
-pub fn generate_store_offers(
-    stores: &[CommercialBuilding],
-    current_turn: u32,
-) -> Vec<StoreOffer> {
+pub fn generate_store_offers(stores: &[CommercialBuilding], current_turn: u32) -> Vec<StoreOffer> {
     let mut offers = Vec::new();
     let _config = retail_config();
 
@@ -679,9 +756,11 @@ pub fn generate_store_offers(
 
                     if total_quantity > 0.0 {
                         // Calculate price with markup
-                        let avg_acquisition_cost: f64 = batches.iter()
+                        let avg_acquisition_cost: f64 = batches
+                            .iter()
                             .map(|b| b.acquisition_cost_per_unit * b.quantity)
-                            .sum::<f64>() / total_quantity;
+                            .sum::<f64>()
+                            / total_quantity;
 
                         // Phase 26: Dynamic pricing based on scarcity/surplus.
                         //
@@ -695,8 +774,16 @@ pub fn generate_store_offers(
                         let base_markup = profile.markup_ratio;
 
                         // Scarcity/surplus adjustment from last turn's data
-                        let last_sold = profile.units_sold_last_turn.get(&commodity).copied().unwrap_or(0.0);
-                        let last_unmet = profile.unmet_demand_last_turn.get(&commodity).copied().unwrap_or(0.0);
+                        let last_sold = profile
+                            .units_sold_last_turn
+                            .get(&commodity)
+                            .copied()
+                            .unwrap_or(0.0);
+                        let last_unmet = profile
+                            .unmet_demand_last_turn
+                            .get(&commodity)
+                            .copied()
+                            .unwrap_or(0.0);
                         let scarcity_factor = if last_unmet > 0.0 && last_sold > 0.0 {
                             // Scarcity: unmet demand relative to fulfilled demand
                             (last_unmet / (last_sold + last_unmet)).min(0.5) * 0.4
@@ -711,7 +798,8 @@ pub fn generate_store_offers(
                         };
 
                         // Inventory aging discount: older batches get discounted
-                        let aging_discount: f64 = batches.iter()
+                        let aging_discount: f64 = batches
+                            .iter()
                             .map(|b| {
                                 let age = current_turn.saturating_sub(b.storage_turn);
                                 if age > 0 {
@@ -721,7 +809,8 @@ pub fn generate_store_offers(
                                     0.0
                                 }
                             })
-                            .sum::<f64>() / total_quantity;
+                            .sum::<f64>()
+                            / total_quantity;
 
                         let dynamic_markup = base_markup * (1.0 + scarcity_factor - aging_discount);
                         let price_per_unit = avg_acquisition_cost * dynamic_markup.max(0.5);
@@ -739,7 +828,7 @@ pub fn generate_store_offers(
             }
         }
     }
-    
+
     offers
 }
 
@@ -803,14 +892,20 @@ pub fn clear_b2c_markets(
         // For non-quality durables, quality is 1.0 and the blend is a no-op.
         let is_quality_durable = commodity.is_quality_durable();
         let quality_weight = if is_quality_durable {
-            gen_config.map(|c| {
-                // Use the average of the four wealth-tier weights as the
-                // aggregate quality preference (demand is not yet split by
-                // wealth tier in the clearing loop — this is a first
-                // approximation that still raises premium-good allocation).
-                let weights: Vec<f64> = c.quality_weights.values().copied().collect();
-                if weights.is_empty() { 1.0 } else { weights.iter().sum::<f64>() / weights.len() as f64 }
-            }).unwrap_or(1.0)
+            gen_config
+                .map(|c| {
+                    // Use the average of the four wealth-tier weights as the
+                    // aggregate quality preference (demand is not yet split by
+                    // wealth tier in the clearing loop — this is a first
+                    // approximation that still raises premium-good allocation).
+                    let weights: Vec<f64> = c.quality_weights.values().copied().collect();
+                    if weights.is_empty() {
+                        1.0
+                    } else {
+                        weights.iter().sum::<f64>() / weights.len() as f64
+                    }
+                })
+                .unwrap_or(1.0)
         } else {
             0.0 // No quality premium for non-durables.
         };
@@ -822,11 +917,16 @@ pub fn clear_b2c_markets(
                 let store = stores.iter().find(|s| s.id == offer.store_id);
                 let inertia_bonus = if let Some(store) = store {
                     if let Some(profile) = &store.retail_profile {
-                        let is_newcomer = current_turn - profile.first_active_turn < config.newcomer_grace_turns;
+                        let is_newcomer =
+                            current_turn - profile.first_active_turn < config.newcomer_grace_turns;
                         if is_newcomer {
                             0.0 // No inertia for newcomers
                         } else {
-                            let previous_share = profile.market_share_last_turn.get(&commodity).copied().unwrap_or(0.0);
+                            let previous_share = profile
+                                .market_share_last_turn
+                                .get(&commodity)
+                                .copied()
+                                .unwrap_or(0.0);
                             previous_share * config.inertia_weight
                         }
                     } else {
@@ -891,7 +991,10 @@ pub fn clear_b2c_markets(
             for store in stores.iter_mut() {
                 if let Some(profile) = &mut store.retail_profile {
                     if profile.units_sold_last_turn.contains_key(&commodity) {
-                        *profile.unmet_demand_last_turn.entry(commodity).or_insert(0.0) = remaining_demand;
+                        *profile
+                            .unmet_demand_last_turn
+                            .entry(commodity)
+                            .or_insert(0.0) = remaining_demand;
                     }
                 }
             }
@@ -906,19 +1009,22 @@ pub fn clear_b2c_markets(
             }
         }
     }
-    
+
     // Update market shares for next turn
     for store in stores {
         if let Some(profile) = &mut store.retail_profile {
             for (commodity, sold) in &profile.units_sold_last_turn {
                 let total_sold = units_sold.get(commodity).copied().unwrap_or(0.0);
                 if total_sold > 0.0 {
-                    *profile.market_share_last_turn.entry(*commodity).or_insert(0.0) = sold / total_sold;
+                    *profile
+                        .market_share_last_turn
+                        .entry(*commodity)
+                        .or_insert(0.0) = sold / total_sold;
                 }
             }
         }
     }
-    
+
     // Build retail_prices vector for CPI
     let retail_prices: Vec<(Commodity, f64, f64)> = retail_price_volume
         .into_iter()
@@ -958,6 +1064,8 @@ pub fn settle_b2c_clearing(
     companies: &mut [Company],
     region: &mut Region,
     vat_rates: &std::collections::HashMap<String, crate::state::tax::VatBracket>,
+    store_id_to_owner: &rustc_hash::FxHashMap<String, String>,
+    company_id_to_idx: &rustc_hash::FxHashMap<String, usize>,
 ) -> (f64, f64) {
     // Build class demand shares: (is_rural, class_key) → total demand across all commodities
     let mut class_shares: Vec<(bool, String, f64)> = Vec::new();
@@ -983,21 +1091,14 @@ pub fn settle_b2c_clearing(
             continue;
         }
 
-        // Find the store building to get owner_id
-        let owner_id = commercial_buildings
-            .iter()
-            .find(|b| b.id == *store_id)
-            .map(|b| b.owner_id.clone());
-
-        let owner_id = match owner_id {
-            Some(ref id) if !id.is_empty() => id.clone(),
+        // Phase 94: O(1) lookups via pre-built index maps.
+        let owner_id = match store_id_to_owner.get(store_id) {
+            Some(id) if !id.is_empty() => id.clone(),
             _ => continue,
         };
 
-        // Find company index by owner_id
-        let company_idx = companies.iter().position(|c| c.id == owner_id);
-        let company_idx = match company_idx {
-            Some(idx) => idx,
+        let company_idx = match company_id_to_idx.get(&owner_id) {
+            Some(&idx) => idx,
             None => continue,
         };
 
@@ -1094,23 +1195,31 @@ pub fn calculate_retail_price(
 ) -> f64 {
     if let Some(profile) = &store.retail_profile {
         let config = retail_config();
-        
+
         // Get average acquisition cost from inventory
-        let avg_acquisition_cost = store.current_inventory
+        let avg_acquisition_cost = store
+            .current_inventory
             .get(&commodity.inventory_key())
             .and_then(|batches| {
                 let total_qty: f64 = batches.iter().map(|b| b.quantity).sum();
                 if total_qty > 0.0 {
-                    Some(batches.iter().map(|b| b.acquisition_cost_per_unit * b.quantity).sum::<f64>() / total_qty)
+                    Some(
+                        batches
+                            .iter()
+                            .map(|b| b.acquisition_cost_per_unit * b.quantity)
+                            .sum::<f64>()
+                            / total_qty,
+                    )
                 } else {
                     None
                 }
             })
             .unwrap_or(1.0);
-        
+
         // Amortize operating cost over expected capacity
-        let capacity_amortized_cost = operating_cost / (config.expected_turnover_rate * config.min_throughput_units);
-        
+        let capacity_amortized_cost =
+            operating_cost / (config.expected_turnover_rate * config.min_throughput_units);
+
         // Apply markup
         (avg_acquisition_cost + capacity_amortized_cost) * profile.markup_ratio
     } else {
@@ -1297,7 +1406,10 @@ mod tests {
     use super::*;
     use crate::society::culture_registry::{CultureDefinition, ReligionDefinition};
 
-    fn make_culture(taboos: Vec<Commodity>, obsessions: Vec<(Commodity, f64)>) -> CultureDefinition {
+    fn make_culture(
+        taboos: Vec<Commodity>,
+        obsessions: Vec<(Commodity, f64)>,
+    ) -> CultureDefinition {
         CultureDefinition {
             key: "test_culture".into(),
             display_name: "TestCulture".into(),
@@ -1311,7 +1423,10 @@ mod tests {
         }
     }
 
-    fn make_religion(taboos: Vec<Commodity>, obsessions: Vec<(Commodity, f64)>) -> ReligionDefinition {
+    fn make_religion(
+        taboos: Vec<Commodity>,
+        obsessions: Vec<(Commodity, f64)>,
+    ) -> ReligionDefinition {
         ReligionDefinition {
             key: "test_religion".into(),
             display_name: "TestReligion".into(),
@@ -1332,8 +1447,10 @@ mod tests {
         let mut demand = BTreeMap::new();
         demand.insert(Commodity::Meat, 100.0);
         modifier.apply(&mut demand);
-        assert!((demand.get(&Commodity::Meat).copied().unwrap_or(-1.0)).abs() < 0.01,
-            "full authority taboo should zero demand");
+        assert!(
+            (demand.get(&Commodity::Meat).copied().unwrap_or(-1.0)).abs() < 0.01,
+            "full authority taboo should zero demand"
+        );
     }
 
     #[test]
@@ -1345,8 +1462,11 @@ mod tests {
         demand.insert(Commodity::Meat, 100.0);
         modifier.apply(&mut demand);
         let val = demand.get(&Commodity::Meat).copied().unwrap_or(-1.0);
-        assert!((val - 80.0).abs() < 0.01,
-            "authority=0.2 taboo should reduce demand by 20%, got {}", val);
+        assert!(
+            (val - 80.0).abs() < 0.01,
+            "authority=0.2 taboo should reduce demand by 20%, got {}",
+            val
+        );
     }
 
     #[test]
@@ -1358,8 +1478,11 @@ mod tests {
         demand.insert(Commodity::Furniture, 100.0);
         modifier.apply(&mut demand);
         let val = demand.get(&Commodity::Furniture).copied().unwrap_or(-1.0);
-        assert!((val - 200.0).abs() < 0.01,
-            "full authority obsession factor 2.0 should double demand, got {}", val);
+        assert!(
+            (val - 200.0).abs() < 0.01,
+            "full authority obsession factor 2.0 should double demand, got {}",
+            val
+        );
     }
 
     #[test]
@@ -1371,8 +1494,11 @@ mod tests {
         demand.insert(Commodity::Furniture, 100.0);
         modifier.apply(&mut demand);
         let val = demand.get(&Commodity::Furniture).copied().unwrap_or(-1.0);
-        assert!((val - 100.0).abs() < 0.01,
-            "zero authority obsession should not change demand, got {}", val);
+        assert!(
+            (val - 100.0).abs() < 0.01,
+            "zero authority obsession should not change demand, got {}",
+            val
+        );
     }
 
     #[test]
@@ -1392,8 +1518,11 @@ mod tests {
         demand.insert(Commodity::Furniture, 100.0);
         modifier.apply(&mut demand);
         let val = demand.get(&Commodity::Furniture).copied().unwrap_or(-1.0);
-        assert!((val - 300.0).abs() < 0.01,
-            "religion obsession factor 3.0 should win over culture 1.5, got {}", val);
+        assert!(
+            (val - 300.0).abs() < 0.01,
+            "religion obsession factor 3.0 should win over culture 1.5, got {}",
+            val
+        );
     }
 
     #[test]
@@ -1405,8 +1534,11 @@ mod tests {
         demand.insert(Commodity::Meat, 100.0);
         modifier.apply(&mut demand);
         let val = demand.get(&Commodity::Meat).copied().unwrap_or(-1.0);
-        assert!((val - 100.0).abs() < 0.01,
-            "no taboos/obsessions -> no change, got {}", val);
+        assert!(
+            (val - 100.0).abs() < 0.01,
+            "no taboos/obsessions -> no change, got {}",
+            val
+        );
     }
 
     // ── Phase 19C: Wealth-segmented B2C quality selection tests ───────────
@@ -1460,8 +1592,15 @@ mod tests {
         // The quality field affects utility: premium utility ≠ cheap utility.
         // premium utility = 1/50 + 1.25×2/50 = 0.07; cheap utility = 1/50 + 1.25×1/50 = 0.045
         // The ascending sort puts cheap (0.045) first → cheap gets all 50 units.
-        let cheap_revenue = result.store_revenue.get("store_cheap").copied().unwrap_or(0.0);
-        assert!(cheap_revenue > 0.0, "with ascending sort, lower-utility offer is allocated first");
+        let cheap_revenue = result
+            .store_revenue
+            .get("store_cheap")
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            cheap_revenue > 0.0,
+            "with ascending sort, lower-utility offer is allocated first"
+        );
     }
 
     #[test]
@@ -1476,7 +1615,7 @@ mod tests {
             StoreOffer {
                 store_id: "store_cheap".to_string(),
                 commodity: Commodity::Furniture,
-                quantity: 30.0, // limited supply
+                quantity: 30.0,       // limited supply
                 price_per_unit: 10.0, // 5× cheaper
                 effective_attractiveness: 1.0,
                 quality: 0.5, // low quality
@@ -1537,8 +1676,12 @@ mod tests {
         // Each should sell ~25 units (deterministic sort by utility tie).
         let a_revenue = result.store_revenue.get("store_a").copied().unwrap_or(0.0);
         let b_revenue = result.store_revenue.get("store_b").copied().unwrap_or(0.0);
-        assert!((a_revenue - b_revenue).abs() < 1e-6 || (a_revenue == 0.0 && b_revenue > 0.0) || (b_revenue == 0.0 && a_revenue > 0.0),
-            "non-quality-durable should ignore quality field");
+        assert!(
+            (a_revenue - b_revenue).abs() < 1e-6
+                || (a_revenue == 0.0 && b_revenue > 0.0)
+                || (b_revenue == 0.0 && a_revenue > 0.0),
+            "non-quality-durable should ignore quality field"
+        );
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -1547,18 +1690,32 @@ mod tests {
 
     #[test]
     fn test_clothing_is_household_durable() {
-        assert!(Commodity::Clothing.is_household_durable(), "Clothing should be a household durable");
-        assert!(Commodity::LuxuryClothing.is_household_durable(), "LuxuryClothing should be a household durable");
+        assert!(
+            Commodity::Clothing.is_household_durable(),
+            "Clothing should be a household durable"
+        );
+        assert!(
+            Commodity::LuxuryClothing.is_household_durable(),
+            "LuxuryClothing should be a household durable"
+        );
     }
 
     #[test]
     fn test_clothing_durability_24_turns() {
-        assert_eq!(Commodity::Clothing.household_durable_turns(), 24.0, "Clothing should have 24-turn durability");
+        assert_eq!(
+            Commodity::Clothing.household_durable_turns(),
+            24.0,
+            "Clothing should have 24-turn durability"
+        );
     }
 
     #[test]
     fn test_luxury_clothing_durability_100_turns() {
-        assert_eq!(Commodity::LuxuryClothing.household_durable_turns(), 100.0, "LuxuryClothing should have 100-turn durability");
+        assert_eq!(
+            Commodity::LuxuryClothing.household_durable_turns(),
+            100.0,
+            "LuxuryClothing should have 100-turn durability"
+        );
     }
 
     #[test]
@@ -1573,8 +1730,14 @@ mod tests {
 
     #[test]
     fn test_perishables_not_household_durable() {
-        assert!(!Commodity::Cereal.is_household_durable(), "Cereal should NOT be a household durable");
-        assert!(!Commodity::Meat.is_household_durable(), "Meat should NOT be a household durable");
+        assert!(
+            !Commodity::Cereal.is_household_durable(),
+            "Cereal should NOT be a household durable"
+        );
+        assert!(
+            !Commodity::Meat.is_household_durable(),
+            "Meat should NOT be a household durable"
+        );
     }
 
     #[test]
@@ -1616,7 +1779,10 @@ mod tests {
         degrade_household_durables(&mut demo);
 
         // After 1 turn: condition = 0.001 - 1/24 = negative → clamped to 0 → scrapped
-        assert!(demo.household_durables.is_empty(), "Worn-out cohort should be scrapped");
+        assert!(
+            demo.household_durables.is_empty(),
+            "Worn-out cohort should be scrapped"
+        );
     }
 
     #[test]
@@ -1631,8 +1797,14 @@ mod tests {
 
         assert_eq!(demo.household_durables.len(), 1, "Should create one cohort");
         assert_eq!(demo.household_durables[0].commodity, Commodity::Furniture);
-        assert_eq!(demo.household_durables[0].condition, 1.0, "New purchase should have full condition");
-        assert!((demo.household_durables[0].count - 0.1).abs() < 1e-6, "Count should be per-capita (10/100)");
+        assert_eq!(
+            demo.household_durables[0].condition, 1.0,
+            "New purchase should have full condition"
+        );
+        assert!(
+            (demo.household_durables[0].count - 0.1).abs() < 1e-6,
+            "Count should be per-capita (10/100)"
+        );
     }
 
     #[test]
@@ -1649,8 +1821,15 @@ mod tests {
         install_durable_purchase(&mut demo, Commodity::Furniture, 20.0, 0.8, 6);
 
         // Should merge into one cohort, not create two
-        assert_eq!(demo.household_durables.len(), 1, "Same quality bucket should merge");
-        assert!((demo.household_durables[0].count - 0.3).abs() < 1e-6, "Count should be 30/100 = 0.3");
+        assert_eq!(
+            demo.household_durables.len(),
+            1,
+            "Same quality bucket should merge"
+        );
+        assert!(
+            (demo.household_durables[0].count - 0.3).abs() < 1e-6,
+            "Count should be 30/100 = 0.3"
+        );
     }
 
     #[test]

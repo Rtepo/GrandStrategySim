@@ -60,9 +60,15 @@ pub fn populate_information_service_needs(country: &Country) -> BTreeMap<String,
 }
 
 /// Calculates information need for a single demographic class.
-fn calculate_information_need_for_class(class: &crate::society::geography::ClassDemographics) -> f64 {
+fn calculate_information_need_for_class(
+    class: &crate::society::geography::ClassDemographics,
+) -> f64 {
     let base = class.population as f64 * 0.05;
-    let poverty_mult = if class.savings_per_capita < 50.0 { 0.7 } else { 1.0 };
+    let poverty_mult = if class.savings_per_capita < 50.0 {
+        0.7
+    } else {
+        1.0
+    };
     base * poverty_mult
 }
 
@@ -104,7 +110,9 @@ pub fn clear_information_b2c(
     propaganda_subsidy_rate: f64,
 ) -> InformationB2cResult {
     let commodity = Commodity::Information;
-    let price_per_unit = config.information_price_per_unit;
+    // Phase C.2: Dynamic cost-plus pricing (Rule 2/21).
+    let average_wage = country.macro_indicators.average_wage.max(1.0);
+    let price_per_unit = config.information_price_per_unit(average_wage);
     let mut txns = Vec::new();
 
     for building in buildings.iter() {
@@ -124,15 +132,24 @@ pub fn clear_information_b2c(
 
         let region_id = &building.region_id;
         let service_need = service_needs.get(region_id).copied().unwrap_or(0.0);
-        let is_state_media = building.owner_id.starts_with("STATE_") || building.owner_id.starts_with("LOCAL_");
+        let is_state_media =
+            building.owner_id.starts_with("STATE_") || building.owner_id.starts_with("LOCAL_");
 
         let total_citizen_savings = country
             .regions
             .iter()
             .find(|r| &r.id == region_id)
             .map(|r| {
-                r.class_demographics.rural_classes.values().map(|d| d.savings).sum::<f64>()
-                    + r.class_demographics.urban_classes.values().map(|d| d.savings).sum::<f64>()
+                r.class_demographics
+                    .rural_classes
+                    .values()
+                    .map(|d| d.savings)
+                    .sum::<f64>()
+                    + r.class_demographics
+                        .urban_classes
+                        .values()
+                        .map(|d| d.savings)
+                        .sum::<f64>()
             })
             .unwrap_or(0.0);
 
@@ -228,7 +245,9 @@ pub fn clear_information_b2c(
 
     for txn in &txns {
         if txn.units_consumed > 0.0 {
-            *region_consumption.entry(txn.region_id.clone()).or_insert(0.0) += txn.units_consumed;
+            *region_consumption
+                .entry(txn.region_id.clone())
+                .or_insert(0.0) += txn.units_consumed;
             total_consumed += txn.units_consumed;
             total_citizen_payments += txn.citizen_payment;
             total_gov_subsidy += txn.government_subsidy;
@@ -293,11 +312,13 @@ pub fn clear_information_b2c(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::{Region, ClassDemographics};
+    use crate::society::geography::{ClassDemographics, Region};
 
     fn make_test_country(region_id: &str, citizen_savings: f64, gov_reserves: f64) -> Country {
         let mut country = Country::mock_for_tests();
         country.budget.liquid_reserves = gov_reserves;
+        // Phase C.2: Set average_wage for dynamic cost-plus pricing (Rule 2).
+        country.macro_indicators.average_wage = 1000.0;
         country.regions.clear();
         let mut region = Region::default();
         region.id = region_id.to_string();
@@ -305,7 +326,10 @@ mod tests {
         demo.savings = citizen_savings;
         demo.savings_per_capita = citizen_savings;
         demo.population = 100;
-        region.class_demographics.urban_classes.insert("workers".to_string(), demo);
+        region
+            .class_demographics
+            .urban_classes
+            .insert("workers".to_string(), demo);
         country.regions.push(region);
         country
     }
@@ -403,9 +427,10 @@ mod tests {
             0.95, // 95% subsidy — near free
         );
 
-        // With 95% subsidy, price = 30 * 0.05 = 1.5 per unit
-        // Affordable = 10 / 1.5 = 6 units
-        // But need is 100, supply is 50, so consumed = 6
+        // Phase C.2: Dynamic price = (1000*0.02 + 1000*0.1/24) * 1.10 = 26.583...
+        // With 95% subsidy: 26.583 * 0.05 = 1.329 per unit
+        // Affordable = 10 / 1.329 = 7 units
+        // consumption_ratio = 7/100 = 0.07 < 0.2
         assert!(result.total_consumed > 0.0);
         assert!(result.government_subsidy > 0.0);
         assert!(result.consumption_ratio < 0.2); // Low consumption due to low savings

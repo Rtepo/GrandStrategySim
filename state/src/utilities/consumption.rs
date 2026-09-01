@@ -88,16 +88,23 @@ pub fn process_utility_consumption(
 
             // Winter mortality
             let housing_quality = housing_quality_for_type(&hb.housing_type);
-            let mortality_multiplier = UtilityDemand::calculate_winter_mortality(heat_deficit, housing_quality);
+            let mortality_multiplier =
+                UtilityDemand::calculate_winter_mortality(heat_deficit, housing_quality);
             let occupied = hb.primary_slots.occupied_slots as f64
-                + hb.sublet_slots.as_ref().map(|s| s.occupied_slots as f64).unwrap_or(0.0);
+                + hb.sublet_slots
+                    .as_ref()
+                    .map(|s| s.occupied_slots as f64)
+                    .unwrap_or(0.0);
             total_mortality_weighted += mortality_multiplier * occupied;
             total_occupied_slots += occupied;
 
             // Billing: electricity + heating + water
             let elec_consumed = elec_supply.min(demand.electricity_demand);
-            let heat_consumed = connections.district_heating_capacity.min(demand.heating_demand);
-            let water_consumed = (connections.surface_water_capacity + connections.groundwater_capacity)
+            let heat_consumed = connections
+                .district_heating_capacity
+                .min(demand.heating_demand);
+            let water_consumed = (connections.surface_water_capacity
+                + connections.groundwater_capacity)
                 .min(demand.surface_water_demand + demand.groundwater_demand);
 
             let bill = elec_consumed * pricing_config.price_per_kwh
@@ -125,12 +132,17 @@ pub fn process_utility_consumption(
 
             // Efficiency penalty for Wave 3
             let penalty = elec_deficit * utility_config.blackout_efficiency_penalty;
-            result.building_efficiency_penalties.insert(cb.id.clone(), penalty);
+            result
+                .building_efficiency_penalties
+                .insert(cb.id.clone(), penalty);
 
             // Billing
             let elec_consumed = elec_supply.min(demand.electricity_demand);
-            let heat_consumed = connections.district_heating_capacity.min(demand.heating_demand);
-            let water_consumed = (connections.surface_water_capacity + connections.groundwater_capacity)
+            let heat_consumed = connections
+                .district_heating_capacity
+                .min(demand.heating_demand);
+            let water_consumed = (connections.surface_water_capacity
+                + connections.groundwater_capacity)
                 .min(demand.surface_water_demand + demand.groundwater_demand);
 
             let bill = elec_consumed * pricing_config.price_per_kwh
@@ -160,7 +172,9 @@ pub fn process_utility_consumption(
             }
         }
 
-        result.billing_collected.insert(region_id.clone(), region_billing);
+        result
+            .billing_collected
+            .insert(region_id.clone(), region_billing);
         result.treasury_subsidies.insert(region_id, region_subsidy);
     }
 

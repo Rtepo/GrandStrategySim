@@ -4,11 +4,11 @@
 //! All cash encumbrance uses the existing `available_cash` / `debit_cash`
 //! pattern. Tranche payments route through `TransferSettler`.
 
+use crate::construction::bom::get_construction_bom;
 use crate::construction::projects::{ConstructionProject, ConstructionProjectType};
 use crate::construction::tenders::{
     default_tranches, Bid, ConstructionTender, TenderInvestorType, TenderStatus,
 };
-use crate::construction::bom::get_construction_bom;
 use crate::entities::Company;
 use crate::registries::enums::Sector;
 use rand::Rng;
@@ -50,8 +50,7 @@ pub fn publish_tender(
     sector: crate::registries::enums::Sector,
     start_year: u32,
 ) -> ConstructionTender {
-    let required_materials =
-        get_construction_bom(sector, start_year);
+    let required_materials = get_construction_bom(sector, start_year);
 
     let tender_id = format!(
         "tender_{}_{}_{}",
@@ -97,34 +96,88 @@ pub fn generate_tender_name(project_type: &ConstructionProjectType, current_turn
     let seq_num = TENDER_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     let year_label = format!("Y{}", current_turn);
     match project_type {
-        ConstructionProjectType::Residential => format!("Housing Estate #{} ({})", seq_num, year_label),
-        ConstructionProjectType::Commercial => format!("Commercial Plaza #{} ({})", seq_num, year_label),
-        ConstructionProjectType::UtilityNetwork => format!("Utility Network #{} ({})", seq_num, year_label),
-        ConstructionProjectType::Infrastructure => format!("Infrastructure Project #{} ({})", seq_num, year_label),
-        ConstructionProjectType::SocialHousing => format!("Social Housing #{} ({})", seq_num, year_label),
-        ConstructionProjectType::Factory => format!("Industrial Park #{} ({})", seq_num, year_label),
-        ConstructionProjectType::TransportNetwork => format!("Transport Network #{} ({})", seq_num, year_label),
-        ConstructionProjectType::Court => format!("Regional Courthouse #{} ({})", seq_num, year_label),
-        ConstructionProjectType::CustomsOffice => format!("Customs Office #{} ({})", seq_num, year_label),
-        ConstructionProjectType::Embassy => format!("Embassy Complex #{} ({})", seq_num, year_label),
-        ConstructionProjectType::ResearchInstitute => format!("Research Institute #{} ({})", seq_num, year_label),
-        ConstructionProjectType::LaborInspectorate => format!("Labor Inspectorate #{} ({})", seq_num, year_label),
-        ConstructionProjectType::PublicWorksSite => format!("Public Works Site #{} ({})", seq_num, year_label),
-        ConstructionProjectType::NationalTheater => format!("National Theater #{} ({})", seq_num, year_label),
-        ConstructionProjectType::NationalLibrary => format!("National Library #{} ({})", seq_num, year_label),
-        ConstructionProjectType::TransportDepot => format!("Transport Depot #{} ({})", seq_num, year_label),
-        ConstructionProjectType::ThermalGridPipe => format!("Thermal Grid Pipe #{} ({})", seq_num, year_label),
-        ConstructionProjectType::ThermalHeatingPlant => format!("Heating Plant #{} ({})", seq_num, year_label),
-        ConstructionProjectType::CHPRetrofit => format!("CHP Retrofit #{} ({})", seq_num, year_label),
-        ConstructionProjectType::WaterMainPipe => format!("Water Main Pipe #{} ({})", seq_num, year_label),
-        ConstructionProjectType::SewerMainPipe => format!("Sewer Main Pipe #{} ({})", seq_num, year_label),
-        ConstructionProjectType::WaterTreatmentPlant => format!("Water Treatment Plant #{} ({})", seq_num, year_label),
-        ConstructionProjectType::WastewaterTreatmentPlant => format!("Wastewater Treatment Plant #{} ({})", seq_num, year_label),
+        ConstructionProjectType::Residential => {
+            format!("Housing Estate #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::Commercial => {
+            format!("Commercial Plaza #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::UtilityNetwork => {
+            format!("Utility Network #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::Infrastructure => {
+            format!("Infrastructure Project #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::SocialHousing => {
+            format!("Social Housing #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::Factory => {
+            format!("Industrial Park #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::TransportNetwork => {
+            format!("Transport Network #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::Court => {
+            format!("Regional Courthouse #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::CustomsOffice => {
+            format!("Customs Office #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::Embassy => {
+            format!("Embassy Complex #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::ResearchInstitute => {
+            format!("Research Institute #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::LaborInspectorate => {
+            format!("Labor Inspectorate #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::PublicWorksSite => {
+            format!("Public Works Site #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::NationalTheater => {
+            format!("National Theater #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::NationalLibrary => {
+            format!("National Library #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::TransportDepot => {
+            format!("Transport Depot #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::ThermalGridPipe => {
+            format!("Thermal Grid Pipe #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::ThermalHeatingPlant => {
+            format!("Heating Plant #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::CHPRetrofit => {
+            format!("CHP Retrofit #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::WaterMainPipe => {
+            format!("Water Main Pipe #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::SewerMainPipe => {
+            format!("Sewer Main Pipe #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::WaterTreatmentPlant => {
+            format!("Water Treatment Plant #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::WastewaterTreatmentPlant => {
+            format!("Wastewater Treatment Plant #{} ({})", seq_num, year_label)
+        }
         ConstructionProjectType::Landfill => format!("Landfill #{} ({})", seq_num, year_label),
-        ConstructionProjectType::WasteSeparationPlant => format!("Waste Separation Plant #{} ({})", seq_num, year_label),
-        ConstructionProjectType::RecyclingFacility => format!("Recycling Facility #{} ({})", seq_num, year_label),
-        ConstructionProjectType::WasteToEnergyPlant => format!("Waste-to-Energy Plant #{} ({})", seq_num, year_label),
-        ConstructionProjectType::CivicAmenitySite => format!("Civic Amenity Site (PSZOK) #{} ({})", seq_num, year_label),
+        ConstructionProjectType::WasteSeparationPlant => {
+            format!("Waste Separation Plant #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::RecyclingFacility => {
+            format!("Recycling Facility #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::WasteToEnergyPlant => {
+            format!("Waste-to-Energy Plant #{} ({})", seq_num, year_label)
+        }
+        ConstructionProjectType::CivicAmenitySite => {
+            format!("Civic Amenity Site (PSZOK) #{} ({})", seq_num, year_label)
+        }
     }
 }
 
@@ -414,7 +467,8 @@ pub fn construction_bid_decision(
 
     // Estimate cost: base on tender's estimated_cost, adjusted for safety level
     let safety_factor = 1.0 - company.safety_level * 0.1; // safer = higher cost
-    let bid_cost = tender.estimated_cost * (0.8 + safety_factor * 0.2) * (0.9 + rng.gen::<f64>() * 0.2);
+    let bid_cost =
+        tender.estimated_cost * (0.8 + safety_factor * 0.2) * (0.9 + rng.gen::<f64>() * 0.2);
 
     // Margin: lower for low-reputation companies (desperate for work)
     let base_margin = 0.15;
@@ -428,8 +482,8 @@ pub fn construction_bid_decision(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entities::Company;
     use crate::entities::legal_form::LegalForm;
+    use crate::entities::Company;
     use crate::registries::enums::Sector;
 
     fn make_construction_company(id: &str) -> Company {

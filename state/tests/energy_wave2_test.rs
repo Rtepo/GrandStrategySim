@@ -16,8 +16,8 @@
 //! - Future-proofed MethodSlot variants (WaterSupply, Sanitation, WasteDisposal).
 
 use sim_engine::construction::upgrade_project::UpgradeProject;
-use sim_engine::energy::types::{PpaRegistry, PpaStatus, PowerPurchaseAgreement, SpotMarketState};
 use sim_engine::energy::ppa::{expire_ppas, plant_ppa_mw};
+use sim_engine::energy::types::{PowerPurchaseAgreement, PpaRegistry, PpaStatus, SpotMarketState};
 use sim_engine::infrastructure::CapacityType;
 use sim_engine::registries::enums::Commodity;
 use sim_engine::registries::production_methods::MethodSlot;
@@ -613,17 +613,20 @@ fn test_ppa_expire() {
     // A PPA with end_turn=5 must move to expired when expire_ppas is called
     // with current_turn=6.
     let mut country = Country::default();
-    country.ppa_registry.active_ppas.push(PowerPurchaseAgreement {
-        id: "ppa_test_1".to_string(),
-        seller_company_id: "seller_1".to_string(),
-        buyer_company_id: "buyer_1".to_string(),
-        plant_building_id: "plant_1".to_string(),
-        fixed_price_per_mwh: 50.0,
-        contracted_mw: 10.0,
-        start_turn: 1,
-        end_turn: 5,
-        status: PpaStatus::Active,
-    });
+    country
+        .ppa_registry
+        .active_ppas
+        .push(PowerPurchaseAgreement {
+            id: "ppa_test_1".to_string(),
+            seller_company_id: "seller_1".to_string(),
+            buyer_company_id: "buyer_1".to_string(),
+            plant_building_id: "plant_1".to_string(),
+            fixed_price_per_mwh: 50.0,
+            contracted_mw: 10.0,
+            start_turn: 1,
+            end_turn: 5,
+            status: PpaStatus::Active,
+        });
 
     expire_ppas(&mut country, 6);
 
@@ -744,7 +747,10 @@ fn test_upgrade_project_progress_zero() {
         (project.compute_progress() - 0.0).abs() < 1e-9,
         "Progress must be 0.0 with no deliveries"
     );
-    assert!(!project.is_complete(), "Must not be complete with no deliveries");
+    assert!(
+        !project.is_complete(),
+        "Must not be complete with no deliveries"
+    );
 }
 
 #[test]
@@ -772,7 +778,10 @@ fn test_upgrade_project_progress_partial() {
         "Progress must be between 0 and 1 with partial delivery, got {}",
         progress
     );
-    assert!(!project.is_complete(), "Must not be complete with partial delivery");
+    assert!(
+        !project.is_complete(),
+        "Must not be complete with partial delivery"
+    );
 }
 
 #[test]
@@ -797,7 +806,10 @@ fn test_upgrade_project_progress_complete() {
         (project.compute_progress() - 1.0).abs() < 1e-9,
         "Progress must be 1.0 with full deliveries"
     );
-    assert!(project.is_complete(), "Must be complete with full deliveries");
+    assert!(
+        project.is_complete(),
+        "Must be complete with full deliveries"
+    );
 }
 
 #[test]
@@ -859,7 +871,10 @@ fn test_upgrade_project_accumulation() {
         "Third accumulation must return 3.0, got {}",
         acc3
     );
-    assert!(project.is_complete(), "Must be complete after 10/10 delivery");
+    assert!(
+        project.is_complete(),
+        "Must be complete after 10/10 delivery"
+    );
 }
 
 // ===========================================================================

@@ -90,7 +90,11 @@ impl GlobalReputation {
     }
 
     /// Returns the effective diplomatic capacity cost for a base cost.
-    pub fn effective_diplomatic_capacity_cost(&self, base_cost: u32, config: &ReputationConfig) -> u32 {
+    pub fn effective_diplomatic_capacity_cost(
+        &self,
+        base_cost: u32,
+        config: &ReputationConfig,
+    ) -> u32 {
         let multiplier = self.diplomatic_capacity_multiplier(config);
         ((base_cost as f64) * multiplier).ceil() as u32
     }
@@ -145,8 +149,15 @@ mod tests {
             description: "Unilateral abrogation".to_string(),
         };
         rep.apply_violation(violation, &config);
-        assert!(rep.score < 0.0, "Reputation should be negative after violation");
-        assert!((rep.score - (-30.0)).abs() < 0.01, "Score should be -30, got {}", rep.score);
+        assert!(
+            rep.score < 0.0,
+            "Reputation should be negative after violation"
+        );
+        assert!(
+            (rep.score - (-30.0)).abs() < 0.01,
+            "Score should be -30, got {}",
+            rep.score
+        );
         assert_eq!(rep.violation_history.len(), 1);
     }
 
@@ -161,7 +172,11 @@ mod tests {
             rep.recover(&config);
         }
         assert!(rep.score > -50.0, "Reputation should recover");
-        assert!((rep.score - (-45.0)).abs() < 0.01, "Score should be -45, got {}", rep.score);
+        assert!(
+            (rep.score - (-45.0)).abs() < 0.01,
+            "Score should be -45, got {}",
+            rep.score
+        );
     }
 
     #[test]
@@ -180,8 +195,15 @@ mod tests {
         rep.score = -100.0; // Worst possible
 
         let multiplier = rep.diplomatic_capacity_multiplier(&config);
-        assert!(multiplier > 1.0, "Low reputation should increase cost multiplier");
-        assert!((multiplier - 3.0).abs() < 0.01, "Worst case multiplier should be 3.0, got {}", multiplier);
+        assert!(
+            multiplier > 1.0,
+            "Low reputation should increase cost multiplier"
+        );
+        assert!(
+            (multiplier - 3.0).abs() < 0.01,
+            "Worst case multiplier should be 3.0, got {}",
+            multiplier
+        );
     }
 
     #[test]
@@ -199,8 +221,15 @@ mod tests {
         rep.score = -100.0;
 
         let penalty = rep.debt_interest_penalty(&config);
-        assert!(penalty > 0.0, "Low reputation should add debt interest penalty");
-        assert!((penalty - 0.05).abs() < 0.001, "Worst case penalty should be 0.05, got {}", penalty);
+        assert!(
+            penalty > 0.0,
+            "Low reputation should add debt interest penalty"
+        );
+        assert!(
+            (penalty - 0.05).abs() < 0.001,
+            "Worst case penalty should be 0.05, got {}",
+            penalty
+        );
     }
 
     #[test]
@@ -218,7 +247,10 @@ mod tests {
         rep.score = -100.0;
 
         let effective = rep.effective_diplomatic_capacity_cost(10, &config);
-        assert!(effective > 10, "Low reputation should increase effective cost");
+        assert!(
+            effective > 10,
+            "Low reputation should increase effective cost"
+        );
         assert_eq!(effective, 30, "10 * 3.0 = 30, got {}", effective);
     }
 
@@ -228,7 +260,10 @@ mod tests {
         let config = ReputationConfig::default();
 
         rep.score = -10.0;
-        assert!(!rep.is_low(&config), "-10 should not be low (threshold is -20)");
+        assert!(
+            !rep.is_low(&config),
+            "-10 should not be low (threshold is -20)"
+        );
 
         rep.score = -30.0;
         assert!(rep.is_low(&config), "-30 should be low (threshold is -20)");
@@ -245,6 +280,10 @@ mod tests {
             description: "Minor breach".to_string(),
         };
         rep.apply_violation(violation, &config);
-        assert!((rep.score - (-15.0)).abs() < 0.01, "0.5 severity should give -15, got {}", rep.score);
+        assert!(
+            (rep.score - (-15.0)).abs() < 0.01,
+            "0.5 severity should give -15, got {}",
+            rep.score
+        );
     }
 }

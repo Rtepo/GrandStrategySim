@@ -13,8 +13,8 @@
 
 use crate::economy::market::market_history::{moving_average_vwap, MarketHistory};
 use crate::energy::generation::compute_marginal_cost;
-use crate::energy::types::{PpaRegistry, PpaStatus, PowerPurchaseAgreement};
 use crate::energy::grid::get_plant_metadata;
+use crate::energy::types::{PowerPurchaseAgreement, PpaRegistry, PpaStatus};
 use crate::entities::Building;
 use crate::registries::enums::Commodity;
 use crate::state::Country;
@@ -77,7 +77,9 @@ pub fn negotiate_ppas(
             let already_contracted: f64 = registry
                 .active_ppas
                 .iter()
-                .filter(|ppa| ppa.plant_building_id == building.id && ppa.status == PpaStatus::Active)
+                .filter(|ppa| {
+                    ppa.plant_building_id == building.id && ppa.status == PpaStatus::Active
+                })
                 .map(|ppa| ppa.contracted_mw)
                 .sum();
             let remaining_ppa_mw = (available_ppa_mw - already_contracted).max(0.0);
@@ -111,15 +113,16 @@ pub fn negotiate_ppas(
                 .copied()
                 .unwrap_or(0.0);
             if energy_input > 0.0 {
-                *industrial_demand.entry(building.owner_id.clone()).or_insert(0.0) +=
-                    energy_input;
+                *industrial_demand
+                    .entry(building.owner_id.clone())
+                    .or_insert(0.0) += energy_input;
             }
         }
     }
 
     // Buyer bid = moving_average_vwap(Energy) or fallback
-    let buyer_bid = moving_average_vwap(market_history, &Commodity::Energy)
-        .unwrap_or(global_base_price);
+    let buyer_bid =
+        moving_average_vwap(market_history, &Commodity::Energy).unwrap_or(global_base_price);
 
     for (buyer_id, demand_mw) in industrial_demand {
         if demand_mw > 0.0 {
@@ -166,7 +169,10 @@ pub fn negotiate_ppas(
             // PPA term: 60 turns (mid-range, rational default)
             let term = 60u32;
             let ppa = PowerPurchaseAgreement {
-                id: format!("ppa_{}_{}_{}_{}", current_turn, seller_id, buyer_id, plant_id),
+                id: format!(
+                    "ppa_{}_{}_{}_{}",
+                    current_turn, seller_id, buyer_id, plant_id
+                ),
                 seller_company_id: seller_id.clone(),
                 buyer_company_id: buyer_id.clone(),
                 plant_building_id: plant_id.clone(),
@@ -258,7 +264,10 @@ pub fn plant_ppa_mw(registry: &PpaRegistry, plant_building_id: &str) -> f64 {
 }
 
 /// Phase 81 Wave 2: Get all active PPAs for a specific buyer.
-pub fn buyer_ppas<'a>(registry: &'a PpaRegistry, buyer_company_id: &str) -> Vec<&'a PowerPurchaseAgreement> {
+pub fn buyer_ppas<'a>(
+    registry: &'a PpaRegistry,
+    buyer_company_id: &str,
+) -> Vec<&'a PowerPurchaseAgreement> {
     registry
         .active_ppas
         .iter()

@@ -12,7 +12,9 @@ use crate::state::Country;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 
-use super::strategy::{CorporateAction, CorporateDecisionCtx, CorporateStrategy, FinanceSource, try_apply_ipo};
+use super::strategy::{
+    try_apply_ipo, CorporateAction, CorporateDecisionCtx, CorporateStrategy, FinanceSource,
+};
 
 /// Emergency Stabilization: Recruitment cost multiplier — 4 weeks of wages
 /// per new worker (2 turns of payroll). Applied to `average_wage` to derive
@@ -72,7 +74,9 @@ pub fn process_companies(
             .cloned()
             .unwrap_or_default()
             .into_iter()
-            .filter(|j| company_building_ids.is_empty() || company_building_ids.contains(&buildings[*j].id))
+            .filter(|j| {
+                company_building_ids.is_empty() || company_building_ids.contains(&buildings[*j].id)
+            })
             .collect();
 
         let total_profit: f64 = owned.iter().map(|j| buildings[*j].last_profit).sum();
@@ -82,7 +86,10 @@ pub fn process_companies(
         let avg_fulfillment_ratio: f64 = if owned.is_empty() {
             1.0
         } else {
-            let sum: f64 = owned.iter().map(|j| buildings[*j].last_fulfillment_ratio).sum();
+            let sum: f64 = owned
+                .iter()
+                .map(|j| buildings[*j].last_fulfillment_ratio)
+                .sum();
             sum / owned.len() as f64
         };
 
@@ -93,7 +100,16 @@ pub fn process_companies(
 
         let (_profitable, interest_paid) = {
             let company = &mut companies[i];
-            process_company(company, total_profit, country, year, market_signal, avg_fulfillment_ratio, current_turn)
+            process_company(
+                company,
+                total_profit,
+                country,
+                year,
+                market_signal,
+                avg_fulfillment_ratio,
+                current_turn,
+                buildings,
+            )
         };
 
         // Phase 39: Accumulate annual profit for SOE dividend calculation.
@@ -149,9 +165,17 @@ pub fn process_companies(
                 if capacity.max_new_loans_per_turn <= 0.0 {
                     continue;
                 }
-                let current_assets = companies[bi].balance_sheet.as_ref().map(|bs| {
-                    bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>() + bs.securities
-                }).unwrap_or(0.0);
+                let current_assets = companies[bi]
+                    .balance_sheet
+                    .as_ref()
+                    .map(|bs| {
+                        bs.loans_issued
+                            .iter()
+                            .map(|l| l.outstanding_balance)
+                            .sum::<f64>()
+                            + bs.securities
+                    })
+                    .unwrap_or(0.0);
                 if current_assets + new_loan_amount > capacity.max_asset_under_management {
                     continue;
                 }
@@ -173,15 +197,17 @@ pub fn process_companies(
                 );
 
                 if let Ok(lr) = loan_result {
-                    companies[i].outstanding_loans.push(crate::state::banking::LoanRef {
-                        loan_id: lr.loan.id.clone(),
-                        bank_id,
-                        principal: lr.loan.principal,
-                        outstanding_balance: lr.loan.outstanding_balance,
-                        interest_rate: lr.loan.interest_rate,
-                        term_turns: lr.loan.term_turns,
-                        status: lr.loan.status.clone(),
-                    });
+                    companies[i]
+                        .outstanding_loans
+                        .push(crate::state::banking::LoanRef {
+                            loan_id: lr.loan.id.clone(),
+                            bank_id,
+                            principal: lr.loan.principal,
+                            outstanding_balance: lr.loan.outstanding_balance,
+                            interest_rate: lr.loan.interest_rate,
+                            term_turns: lr.loan.term_turns,
+                            status: lr.loan.status.clone(),
+                        });
                     // Double-entry: borrower receives principal as cash
                     companies[i].available_cash += lr.principal_amount;
                     if let Some(ref mut ba) = companies[i].brokerage_account {
@@ -206,7 +232,10 @@ pub fn process_companies(
         if let Some(expansion) = companies[i].pending_expansion.take() {
             if !owned.is_empty() {
                 // Find first building without an active project
-                let target_idx = owned.iter().find(|&&j| buildings[j].active_project.is_none()).copied();
+                let target_idx = owned
+                    .iter()
+                    .find(|&&j| buildings[j].active_project.is_none())
+                    .copied();
                 if let Some(j) = target_idx {
                     let building_id = buildings[j].id.clone();
                     let building_name = buildings[j].name.clone();
@@ -228,6 +257,56 @@ pub fn process_companies(
                     );
                     country.phase22_tenders.push(tender);
                 }
+            }
+        }
+
+        // Phase 95: Consume pending_blueprint_design — pay the design fee to
+        // Treasury via settle_transfer_to_treasury (double-entry, bank sync),
+        // then call design_blueprint to create the ProductBlueprint.
+        if let Some(pending) = companies[i].pending_blueprint_design.take() {
+            use crate::economy::trade::blueprints::design_blueprint;
+            use crate::economy::trade::transfer_settler::settle_transfer_to_treasury;
+
+            // Pay the design fee from available_cash to Treasury (NOT rd_budget).
+            let _ = settle_transfer_to_treasury(companies, i, pending.design_cost, country);
+
+            // Build material costs map from market history (simplified: use
+            // average_wage as a proxy for all material costs).
+            let average_wage = country.macro_indicators.average_wage.max(1.0);
+            let mut material_costs: std::collections::HashMap<
+                crate::registries::enums::Commodity,
+                f64,
+            > = std::collections::HashMap::new();
+            material_costs.insert(
+                crate::registries::enums::Commodity::Steel,
+                average_wage * 10.0,
+            );
+            material_costs.insert(
+                crate::registries::enums::Commodity::Aluminum,
+                average_wage * 15.0,
+            );
+            material_costs.insert(
+                crate::registries::enums::Commodity::Plastics,
+                average_wage * 5.0,
+            );
+
+            // Get the generative goods config from the country.
+            let gen_config = &country.generative_goods_config;
+
+            // Determine base_tech_year from the current year.
+            let base_tech_year = 1925 + (current_turn / 24);
+
+            if let Some(blueprint) = design_blueprint(
+                &company_id,
+                pending.output_commodity,
+                pending.base_tech.clone(),
+                base_tech_year,
+                pending.required_slot,
+                &material_costs,
+                gen_config,
+                current_turn,
+            ) {
+                companies[i].blueprints.push(blueprint);
             }
         }
 
@@ -267,7 +346,11 @@ pub fn process_companies(
         if interest <= 0.0 {
             continue;
         }
-        let loan_balance: f64 = company.outstanding_loans.iter().map(|l| l.outstanding_balance).sum();
+        let loan_balance: f64 = company
+            .outstanding_loans
+            .iter()
+            .map(|l| l.outstanding_balance)
+            .sum();
         if loan_balance <= 0.0 {
             continue;
         }
@@ -337,7 +420,12 @@ pub fn process_companies(
                     if let Some(ref mut ba) = buyer.brokerage_account {
                         if ba.cash >= cost {
                             ba.cash -= cost;
-                            ba.add_lot(&format!("EQUITY:{}", company_id), *allocation, *reserve_price, year);
+                            ba.add_lot(
+                                &format!("EQUITY:{}", company_id),
+                                *allocation,
+                                *reserve_price,
+                                year,
+                            );
                             total_collected += cost;
                         }
                     }
@@ -359,7 +447,10 @@ pub fn process_companies(
     let demolition_queue = std::mem::take(&mut country.demolition_queue);
     for (company_id, building_id) in &demolition_queue {
         // Find the building
-        if let Some(idx) = buildings.iter().position(|b| b.id == *building_id && b.owner_id == *company_id) {
+        if let Some(idx) = buildings
+            .iter()
+            .position(|b| b.id == *building_id && b.owner_id == *company_id)
+        {
             let land_hectares = buildings[idx].land_hectares;
             let region_id = buildings[idx].region_id.clone();
             let current_employment = buildings[idx].current_employment;
@@ -369,17 +460,29 @@ pub fn process_companies(
                 for region in &mut country.regions {
                     if region.id == region_id {
                         // Distribute laid-off workers across classes proportionally
-                        let total_fte: f64 = region.class_demographics.rural_classes.values().map(|c| c.allocated_fte).sum::<f64>()
-                            + region.class_demographics.urban_classes.values().map(|c| c.allocated_fte).sum::<f64>();
+                        let total_fte: f64 = region
+                            .class_demographics
+                            .rural_classes
+                            .values()
+                            .map(|c| c.allocated_fte)
+                            .sum::<f64>()
+                            + region
+                                .class_demographics
+                                .urban_classes
+                                .values()
+                                .map(|c| c.allocated_fte)
+                                .sum::<f64>();
                         if total_fte > 0.0 {
                             let layoff_fte = current_employment as f64;
                             for class in region.class_demographics.rural_classes.values_mut() {
                                 let share = class.allocated_fte / total_fte;
-                                class.allocated_fte = (class.allocated_fte - layoff_fte * share).max(0.0);
+                                class.allocated_fte =
+                                    (class.allocated_fte - layoff_fte * share).max(0.0);
                             }
                             for class in region.class_demographics.urban_classes.values_mut() {
                                 let share = class.allocated_fte / total_fte;
-                                class.allocated_fte = (class.allocated_fte - layoff_fte * share).max(0.0);
+                                class.allocated_fte =
+                                    (class.allocated_fte - layoff_fte * share).max(0.0);
                             }
                         }
                         break;
@@ -390,7 +493,8 @@ pub fn process_companies(
             // Fire-sale inventory to auction pool
             let inventory_value: f64 = buildings[idx].inventory.values().sum();
             if inventory_value > 0.0 {
-                country.bankruptcy_auction_pool.cash_collected += inventory_value * 0.5; // 50% fire-sale
+                country.bankruptcy_auction_pool.cash_collected += inventory_value * 0.5;
+                // 50% fire-sale
             }
 
             // Conserve land: return hectares to regional land inventory
@@ -411,7 +515,11 @@ pub fn process_companies(
             // Route building fixed assets to auction pool
             country.bankruptcy_auction_pool.add_asset(
                 format!("demolish_{}", building_id),
-                buildings[idx].fixed_assets.iter().map(|c| c.count).sum::<f64>(),
+                buildings[idx]
+                    .fixed_assets
+                    .iter()
+                    .map(|c| c.count)
+                    .sum::<f64>(),
                 company_id.clone(),
                 std::collections::HashMap::new(),
                 &crate::state::BankruptcyPolicy::with_defaults(),
@@ -428,24 +536,39 @@ pub fn process_companies(
     // Phase 24A.9: Process halt queue — temporarily halt production.
     let halt_queue = std::mem::take(&mut country.halt_queue);
     for (company_id, building_id) in &halt_queue {
-        if let Some(idx) = buildings.iter().position(|b| b.id == *building_id && b.owner_id == *company_id) {
+        if let Some(idx) = buildings
+            .iter()
+            .position(|b| b.id == *building_id && b.owner_id == *company_id)
+        {
             // Halt production: set employment to 0 but preserve capacity
             let current_employment = buildings[idx].current_employment;
             if current_employment > 0 {
                 let region_id = buildings[idx].region_id.clone();
                 for region in &mut country.regions {
                     if region.id == region_id {
-                        let total_fte: f64 = region.class_demographics.rural_classes.values().map(|c| c.allocated_fte).sum::<f64>()
-                            + region.class_demographics.urban_classes.values().map(|c| c.allocated_fte).sum::<f64>();
+                        let total_fte: f64 = region
+                            .class_demographics
+                            .rural_classes
+                            .values()
+                            .map(|c| c.allocated_fte)
+                            .sum::<f64>()
+                            + region
+                                .class_demographics
+                                .urban_classes
+                                .values()
+                                .map(|c| c.allocated_fte)
+                                .sum::<f64>();
                         if total_fte > 0.0 {
                             let layoff_fte = current_employment as f64;
                             for class in region.class_demographics.rural_classes.values_mut() {
                                 let share = class.allocated_fte / total_fte;
-                                class.allocated_fte = (class.allocated_fte - layoff_fte * share).max(0.0);
+                                class.allocated_fte =
+                                    (class.allocated_fte - layoff_fte * share).max(0.0);
                             }
                             for class in region.class_demographics.urban_classes.values_mut() {
                                 let share = class.allocated_fte / total_fte;
-                                class.allocated_fte = (class.allocated_fte - layoff_fte * share).max(0.0);
+                                class.allocated_fte =
+                                    (class.allocated_fte - layoff_fte * share).max(0.0);
                             }
                         }
                         break;
@@ -474,10 +597,9 @@ pub fn process_companies(
                 continue;
             }
             // Check if current method's inputs are available
-            let has_inputs = building.active_method.inputs.iter()
-                .any(|(commodity, _)| {
-                    building.inventory.get(commodity).copied().unwrap_or(0.0) > 0.0
-                });
+            let has_inputs = building.active_method.inputs.iter().any(|(commodity, _)| {
+                building.inventory.get(commodity).copied().unwrap_or(0.0) > 0.0
+            });
             let needs_inputs = !building.active_method.inputs.is_empty();
             if has_inputs || !needs_inputs {
                 continue; // Method is working fine
@@ -487,7 +609,10 @@ pub fn process_companies(
             if current_outputs.is_empty() {
                 continue;
             }
-            let mut best_alt: Option<(&str, &crate::registries::production_methods::ProductionMethod)> = None;
+            let mut best_alt: Option<(
+                &str,
+                &crate::registries::production_methods::ProductionMethod,
+            )> = None;
             for (method_name, building_methods) in &registry {
                 if method_name == &current_method_name {
                     continue;
@@ -496,7 +621,11 @@ pub fn process_companies(
                 for (pm_name, prod_method) in &building_methods.production {
                     let _full_name = format!("{}::{}", method_name, pm_name);
                     // Check if this method produces any of the same outputs
-                    if !prod_method.outputs.keys().any(|k| current_outputs.contains(k)) {
+                    if !prod_method
+                        .outputs
+                        .keys()
+                        .any(|k| current_outputs.contains(k))
+                    {
                         continue;
                     }
                     // Check year availability
@@ -522,6 +651,7 @@ pub fn process_companies(
                     skilled_ratio: prod_method.skilled_ratio,
                     basic_ratio: prod_method.basic_ratio,
                     efficiency: prod_method.efficiency,
+                    seat_type: prod_method.seat_type,
                     active_methods: crate::state::treasury::ProductionMethodChoice {
                         automation: String::new(),
                         production: method_name.to_string(),
@@ -580,8 +710,10 @@ pub fn manage_strategic_reserves(
 
                 // Phase 79: Moving-average VWAP for shock-responsive triggers.
                 let moving_avg = crate::economy::market::market_history::moving_average_vwap(
-                    market_history, &commodity,
-                ).unwrap_or(current_price);
+                    market_history,
+                    &commodity,
+                )
+                .unwrap_or(current_price);
 
                 let buy_threshold = trigger.buy_threshold_ratio * moving_avg;
                 let surplus_triggered = global_surplus > trigger.surplus_threshold;
@@ -594,12 +726,21 @@ pub fn manage_strategic_reserves(
                         country.budget.liquid_reserves -= budget;
 
                         // Update reserves (respect physical max_capacity)
-                        let current = data.commodity_reserves.get(commodity_str).copied().unwrap_or(0.0);
-                        let max_capacity = data.max_capacity.get(commodity_str).copied().unwrap_or(f64::MAX);
+                        let current = data
+                            .commodity_reserves
+                            .get(commodity_str)
+                            .copied()
+                            .unwrap_or(0.0);
+                        let max_capacity = data
+                            .max_capacity
+                            .get(commodity_str)
+                            .copied()
+                            .unwrap_or(f64::MAX);
                         let actual_purchase = purchase_amount.min(max_capacity - current).max(0.0);
 
                         if actual_purchase > 0.0 {
-                            data.commodity_reserves.insert(commodity_str.clone(), current + actual_purchase);
+                            data.commodity_reserves
+                                .insert(commodity_str.clone(), current + actual_purchase);
                             market_orders.add_buy(commodity, actual_purchase);
                         }
                     }
@@ -614,18 +755,26 @@ pub fn manage_strategic_reserves(
                 let global_deficit = (-global_market.surplus(commodity)).max(0.0);
 
                 let moving_avg = crate::economy::market::market_history::moving_average_vwap(
-                    market_history, &commodity,
-                ).unwrap_or(current_price);
+                    market_history,
+                    &commodity,
+                )
+                .unwrap_or(current_price);
 
                 let sell_threshold = trigger.sell_threshold_ratio * moving_avg;
                 let deficit_triggered = global_deficit > trigger.deficit_threshold;
 
                 if current_price > sell_threshold || deficit_triggered {
-                    let available = data.commodity_reserves.get(commodity_str).copied().unwrap_or(0.0);
-                    let release_amount = (available * trigger.release_fraction).min(global_deficit.max(available * 0.1));
+                    let available = data
+                        .commodity_reserves
+                        .get(commodity_str)
+                        .copied()
+                        .unwrap_or(0.0);
+                    let release_amount = (available * trigger.release_fraction)
+                        .min(global_deficit.max(available * 0.1));
 
                     if release_amount > 0.0 {
-                        data.commodity_reserves.insert(commodity_str.clone(), available - release_amount);
+                        data.commodity_reserves
+                            .insert(commodity_str.clone(), available - release_amount);
                         market_orders.add_sell(commodity, release_amount);
                     }
                 }
@@ -663,6 +812,7 @@ pub fn process_company(
     market_signal: &MarketSignal,
     avg_fulfillment_ratio: f64,
     current_turn: u32,
+    buildings: &[Building],
 ) -> (bool, f64) {
     let corporate_tax_rate = country.tax_rates.corporate_tax;
     let xibor = market_signal.interest_rate;
@@ -682,7 +832,10 @@ pub fn process_company(
     company.liquid_capital = (company.liquid_capital - overhead).max(0.0);
 
     // 3. Interest costs (only when there is a track record and profit).
-    let interest = if company.liabilities > 0.0 && company.financial_history.len() >= 2 && total_profit > 0.0 {
+    let interest = if company.liabilities > 0.0
+        && company.financial_history.len() >= 2
+        && total_profit > 0.0
+    {
         let leverage = company.liabilities / company.fixed_capital.max(1.0);
         let risk_margin = (leverage * 0.03).min(0.12);
         let interest_cost = company.liabilities * (xibor + risk_margin);
@@ -710,36 +863,32 @@ pub fn process_company(
     // 5.5. Handle Latifundium labor cost calculation
     if let LegalForm::Latifundium(latifundium) = &company.legal_form {
         let market_wage = country.macro_indicators.labor_market.unemployment_rate;
-        let effective_labor_cost = latifundium.calculate_labor_cost(
-            company.worker_capacity,
-            market_wage,
-        );
-        
+        let effective_labor_cost =
+            latifundium.calculate_labor_cost(company.worker_capacity, market_wage);
+
         // Apply reduced labor cost to company finances
         // (This would normally be applied during production, but we adjust here for consistency)
         let labor_cost_adjustment = effective_labor_cost - (total_profit * 0.5); // Approximate baseline labor cost
         if labor_cost_adjustment < 0.0 {
             company.liquid_capital += -labor_cost_adjustment; // Add savings from cheap serf labor
         }
-        
+
         // Calculate aristocracy profit share
         let aristocracy_profit = latifundium.calculate_aristocracy_profit(
-            net_profit,
-            0.1, // 10% reinvestment rate
+            net_profit, 0.1, // 10% reinvestment rate
         );
-        
+
         // CRITICAL: Route municipal profits to regional budget
         // If a Latifundium has a dynasty_id matching a RegionalGovernance.id,
         // the calculated aristocracy_profit is added directly to that region's
         // RegionalBudget.liquid_reserves as non-tax revenue.
         if let Some(municipality_id) = &latifundium.dynasty_id {
-            if let Some(region) = country.regions.iter_mut()
-                .find(|r| r.governance.as_ref()
-                    .map(|g| &g.id) == Some(municipality_id)) {
-                region.governance.as_mut()
-                    .unwrap()
-                    .budget
-                    .liquid_reserves += aristocracy_profit;
+            if let Some(region) = country
+                .regions
+                .iter_mut()
+                .find(|r| r.governance.as_ref().map(|g| &g.id) == Some(municipality_id))
+            {
+                region.governance.as_mut().unwrap().budget.liquid_reserves += aristocracy_profit;
             }
         }
     }
@@ -787,6 +936,7 @@ pub fn process_company(
             behavior_modifiers,
             avg_fulfillment_ratio,
             current_turn,
+            buildings,
         };
         company.legal_form.decide(&ctx)
     };
@@ -800,16 +950,31 @@ pub fn process_company(
         CorporateAction::Furlough { .. } => Some("Furlough"),
         CorporateAction::Ipo { .. } => Some("Ipo"),
         CorporateAction::GeologicalSurvey { .. } => Some("GeologicalSurvey"),
+        CorporateAction::DesignBlueprint { .. } => Some("DesignBlueprint"),
         _ => None,
     };
     if let Some(action_str) = action_type_str {
-        company.action_ledger.record_action(action_str, current_turn, net_profit);
+        company
+            .action_ledger
+            .record_action(action_str, current_turn, net_profit);
     }
 
     // Evaluate past actions and update penalty weights.
-    company.action_ledger.evaluate_and_update(current_turn, net_profit);
+    company
+        .action_ledger
+        .evaluate_and_update(current_turn, net_profit);
 
-    apply_action(company, action, market_signal, country, year, total_profit, net_profit, current_turn);
+    apply_action(
+        company,
+        action,
+        market_signal,
+        country,
+        year,
+        total_profit,
+        net_profit,
+        current_turn,
+        buildings,
+    );
 
     // 8. Recalculate equity after the action.
     company.company_capital = company.fixed_capital + company.liquid_capital - company.liabilities;
@@ -827,12 +992,21 @@ pub fn process_company(
         [
             ("year".to_string(), Value::from(year)),
             ("revenue".to_string(), Value::from(total_profit + overhead)),
-            ("operating_costs".to_string(), Value::from(overhead + wage_expense)),
+            (
+                "operating_costs".to_string(),
+                Value::from(overhead + wage_expense),
+            ),
             ("wage_expense".to_string(), Value::from(wage_expense)),
-            ("wage_arrears".to_string(), Value::from(company.wage_arrears)),
+            (
+                "wage_arrears".to_string(),
+                Value::from(company.wage_arrears),
+            ),
             ("interest".to_string(), Value::from(interest)),
             ("taxes".to_string(), Value::from(tax)),
-            ("net_profit".to_string(), Value::from(net_profit - wage_expense)),
+            (
+                "net_profit".to_string(),
+                Value::from(net_profit - wage_expense),
+            ),
         ]
         .into_iter()
         .collect(),
@@ -874,9 +1048,14 @@ fn apply_action(
     gross_profit: f64,
     net_profit: f64,
     current_turn: u32,
+    buildings: &[Building],
 ) {
     match action {
-        CorporateAction::Expand { investment, new_workers, finance } => {
+        CorporateAction::Expand {
+            investment,
+            new_workers,
+            finance,
+        } => {
             // Handle financing — capital is committed now but capacity
             // is only added when the ConstructionProject completes.
             match finance {
@@ -888,11 +1067,13 @@ fn apply_action(
                     company.liabilities += loan;
                 }
                 FinanceSource::BondIssue(amount) => {
-                    company.liquid_capital = (company.liquid_capital + amount - investment).max(0.0);
+                    company.liquid_capital =
+                        (company.liquid_capital + amount - investment).max(0.0);
                     company.liabilities += amount;
                 }
                 FinanceSource::IpoProceeds(amount) => {
-                    company.liquid_capital = (company.liquid_capital + amount - investment).max(0.0);
+                    company.liquid_capital =
+                        (company.liquid_capital + amount - investment).max(0.0);
                 }
             }
 
@@ -904,7 +1085,8 @@ fn apply_action(
             if new_workers > 0 {
                 let avg_wage = country.macro_indicators.average_wage.max(1.0);
                 let recruitment_cost = new_workers as f64 * avg_wage * RECRUITMENT_MULTIPLIER;
-                let available = company.brokerage_account
+                let available = company
+                    .brokerage_account
                     .as_ref()
                     .map(|ba| ba.cash.max(0.0))
                     .unwrap_or(company.available_cash.max(0.0));
@@ -917,7 +1099,9 @@ fn apply_action(
                     }
                     // Credit to regional worker class savings (same routing
                     // pattern as severance pay).
-                    country.recruitment_cost_queue.push((company.id.clone(), payable));
+                    country
+                        .recruitment_cost_queue
+                        .push((company.id.clone(), payable));
                 }
             }
 
@@ -929,7 +1113,10 @@ fn apply_action(
                 new_workers,
             });
         }
-        CorporateAction::Restructure { layoffs, capital_write_off } => {
+        CorporateAction::Restructure {
+            layoffs,
+            capital_write_off,
+        } => {
             if layoffs >= company.worker_capacity || capital_write_off >= company.fixed_capital {
                 company.liabilities = (company.liabilities - company.fixed_capital).max(0.0);
                 company.fixed_capital = 0.0;
@@ -974,7 +1161,9 @@ fn apply_action(
                 // Other owners (companies, funds) will be credited in a post-pass
                 // since we can't borrow companies slice here.
                 // For now, track for later settlement.
-                country.dividend_queue.push((owner_id.clone(), dividend_amount));
+                country
+                    .dividend_queue
+                    .push((owner_id.clone(), dividend_amount));
             }
 
             // Route dividends to cultural building shareholders (monasteries with shares)
@@ -987,7 +1176,10 @@ fn apply_action(
                 }
             }
         }
-        CorporateAction::Ipo { shares_to_float, reserve_price } => {
+        CorporateAction::Ipo {
+            shares_to_float,
+            reserve_price,
+        } => {
             // Phase 24A.7: Fix IPO to use real buyer cash, not synthetic proceeds.
             // Previously, `company.liquid_capital += proceeds` created money from
             // nothing — no buyer was ever debited. Now we route through the stock
@@ -1033,29 +1225,44 @@ fn apply_action(
                 behavior_modifiers,
                 avg_fulfillment_ratio: 1.0, // IPO path: not used for furlough decisions
                 current_turn,
+                buildings,
             };
-            if let Some(new_form) = try_apply_ipo(&*company, &company.legal_form, shares_to_float, reserve_price, &ctx) {
+            if let Some(new_form) = try_apply_ipo(
+                &*company,
+                &company.legal_form,
+                shares_to_float,
+                reserve_price,
+                &ctx,
+            ) {
                 let _ = ctx;
                 // Phase 24A.7: Collect real buyers from funds with brokerage accounts.
                 // We queue the IPO for execution in process_companies post-pass
                 // where we have access to the full companies slice.
                 let company_id = company.id.clone();
-                country.ipo_queue.push((company_id, shares_to_float, reserve_price));
+                country
+                    .ipo_queue
+                    .push((company_id, shares_to_float, reserve_price));
                 company.legal_form = new_form;
                 // Don't credit proceeds here — they'll be credited when the IPO
                 // is executed with real buyer cash in the post-pass.
                 company.shares_count += shares_to_float;
-                if let crate::entities::LegalForm::JointStockCompany(ref mut data) = company.legal_form {
+                if let crate::entities::LegalForm::JointStockCompany(ref mut data) =
+                    company.legal_form
+                {
                     data.shares_issued = company.shares_count;
-                    data.free_float = (shares_to_float as f64 / company.shares_count as f64).clamp(0.0, 1.0);
+                    data.free_float =
+                        (shares_to_float as f64 / company.shares_count as f64).clamp(0.0, 1.0);
                 }
             }
         }
-        CorporateAction::SwitchMethod { .. } |
-        CorporateAction::RaiseWages { .. } |
-        CorporateAction::CutWages { .. } |
-        CorporateAction::Idle => {}
-        CorporateAction::Furlough { fte_count, wage_fraction } => {
+        CorporateAction::SwitchMethod { .. }
+        | CorporateAction::RaiseWages { .. }
+        | CorporateAction::CutWages { .. }
+        | CorporateAction::Idle => {}
+        CorporateAction::Furlough {
+            fte_count,
+            wage_fraction,
+        } => {
             // Emergency Stabilization: Move workers from fulfilled_fte to
             // furloughed_workers_count. They are retained by the company and
             // excluded from active labor clearing. Re-instatement is free
@@ -1068,10 +1275,10 @@ fn apply_action(
             // Double-entry: debit company cash, credit furloughed workers via
             // regional class savings (same routing as severance pay).
             if wage_fraction > 0.0 && actual_furlough > 0 {
-                let furlough_wage = actual_furlough as f64
-                    * company.offered_wage_per_fte
-                    * wage_fraction;
-                let available = company.brokerage_account
+                let furlough_wage =
+                    actual_furlough as f64 * company.offered_wage_per_fte * wage_fraction;
+                let available = company
+                    .brokerage_account
                     .as_ref()
                     .map(|ba| ba.cash.max(0.0))
                     .unwrap_or(company.available_cash.max(0.0));
@@ -1084,7 +1291,9 @@ fn apply_action(
                     }
                     // Credit to regional class savings (proportional distribution
                     // handled in labor market post-pass via furlough_wage_queue).
-                    country.furlough_wage_queue.push((company.id.clone(), payable));
+                    country
+                        .furlough_wage_queue
+                        .push((company.id.clone(), payable));
                 }
             }
         }
@@ -1093,14 +1302,20 @@ fn apply_action(
             // fire-sale inventory, route assets to auction pool, conserve land.
             // The actual building removal happens in process_companies post-pass
             // where we have access to buildings and regions.
-            country.demolition_queue.push((company.id.clone(), building_id));
+            country
+                .demolition_queue
+                .push((company.id.clone(), building_id));
         }
         CorporateAction::HaltProduction { building_id } => {
             // Phase 24A.9: Halt production temporarily (no capacity destruction).
             // The actual halting happens in process_companies post-pass.
             country.halt_queue.push((company.id.clone(), building_id));
         }
-        CorporateAction::GeologicalSurvey { region_id, commodity, target_depth } => {
+        CorporateAction::GeologicalSurvey {
+            region_id,
+            commodity,
+            target_depth,
+        } => {
             // Phase 93: Fund a geological survey to discover hidden Rare/UltraRare
             // veins. The survey cost is paid to the State Treasury via double-entry
             // accounting (no cash destroyed — Rule 1).
@@ -1117,7 +1332,9 @@ fn apply_action(
             let average_wage = country.macro_indicators.average_wage.max(1.0);
 
             // Find the region to get area data.
-            let region_area_hectares = country.regions.iter()
+            let region_area_hectares = country
+                .regions
+                .iter()
                 .find(|r| r.id == region_id)
                 .map(|r| r.arable_land_max.max(100) as f64)
                 .unwrap_or(1000.0);
@@ -1136,8 +1353,8 @@ fn apply_action(
                 &crate::registries::enums::Sector::Mining,
                 average_wage,
             );
-            let target_workers = (min_capital / average_wage)
-                / crate::state::macro_data::TURNS_PER_YEAR as f64;
+            let target_workers =
+                (min_capital / average_wage) / crate::state::macro_data::TURNS_PER_YEAR as f64;
             let survey_cost = average_wage
                 * target_workers
                 * (region_area_hectares / 1000.0)
@@ -1145,7 +1362,8 @@ fn apply_action(
                 * (target_depth / 1000.0);
 
             // Check if the company can afford the survey.
-            let available = company.brokerage_account
+            let available = company
+                .brokerage_account
                 .as_ref()
                 .map(|ba| ba.cash.max(0.0))
                 .unwrap_or(company.available_cash.max(0.0));
@@ -1178,6 +1396,49 @@ fn apply_action(
                     turns_remaining,
                 },
             );
+        }
+        CorporateAction::DesignBlueprint {
+            output_commodity,
+            base_tech,
+            required_slot,
+        } => {
+            // Phase 95: Design a new product blueprint (commercial engineering).
+            // The design fee is paid from `available_cash` (NOT `rd_budget`) to
+            // the State Treasury as a patent/certification fee (double-entry).
+            // The `rd_budget` is reserved for Innovation Point purchases (A.1).
+            //
+            // Since `apply_action` only has `&mut Company` (not `&mut [Company]`),
+            // we cannot call `settle_transfer_to_treasury` here. Instead, we
+            // queue a `PendingBlueprintDesign` on the company and process the
+            // transfer in `process_companies` where the full slice is available
+            // (same pattern as `pending_expansion`).
+            let average_wage = country.macro_indicators.average_wage.max(1.0);
+            let design_cost =
+                crate::economy::generative_goods_config::compute_blueprint_design_cost(
+                    company.sector,
+                    average_wage,
+                    &country.generative_goods_config,
+                );
+
+            // Check affordability (available_cash, NOT rd_budget).
+            let available = company
+                .brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash.max(0.0))
+                .unwrap_or(company.available_cash.max(0.0));
+
+            if design_cost > available {
+                // Cannot afford — skip (rational actor).
+                return;
+            }
+
+            // Queue the pending blueprint design for processing in process_companies.
+            company.pending_blueprint_design = Some(crate::entities::PendingBlueprintDesign {
+                output_commodity,
+                base_tech: base_tech.clone(),
+                required_slot,
+                design_cost,
+            });
         }
     }
 }
@@ -1258,7 +1519,10 @@ pub fn process_furlough_reinstatement(companies: &mut [Company], buildings: &[Bu
     // Build owner -> fulfillment ratios map
     let mut by_owner: HashMap<String, Vec<f64>> = HashMap::new();
     for b in buildings {
-        by_owner.entry(b.owner_id.clone()).or_default().push(b.last_fulfillment_ratio);
+        by_owner
+            .entry(b.owner_id.clone())
+            .or_default()
+            .push(b.last_fulfillment_ratio);
     }
 
     for company in companies.iter_mut() {
@@ -1270,10 +1534,14 @@ pub fn process_furlough_reinstatement(companies: &mut [Company], buildings: &[Bu
         }
 
         // Check average fulfillment ratio for this company's buildings
-        let avg_ratio = by_owner.get(&company.id)
+        let avg_ratio = by_owner
+            .get(&company.id)
             .map(|ratios| {
-                if ratios.is_empty() { 1.0 }
-                else { ratios.iter().sum::<f64>() / ratios.len() as f64 }
+                if ratios.is_empty() {
+                    1.0
+                } else {
+                    ratios.iter().sum::<f64>() / ratios.len() as f64
+                }
             })
             .unwrap_or(1.0);
 
@@ -1282,7 +1550,8 @@ pub fn process_furlough_reinstatement(companies: &mut [Company], buildings: &[Bu
         }
 
         // Check if company can cover full payroll for re-instated workers
-        let available = company.brokerage_account
+        let available = company
+            .brokerage_account
             .as_ref()
             .map(|ba| ba.cash.max(0.0))
             .unwrap_or(company.available_cash.max(0.0));
@@ -1379,7 +1648,7 @@ pub fn set_wage_offers(companies: &mut [Company], market_average_wage: f64) {
     // Phase 39: Sticky wage constant — 3% max drop per turn.
     const STICKY_WAGE_MAX_DROP: f64 = 0.03;
     const STICKY_WAGE_MAX_RISE: f64 = 0.05; // Phase 40: Symmetric upward cap
-    // Phase 41: Target wage adjusts max 2% per turn toward market average.
+                                            // Phase 41: Target wage adjusts max 2% per turn toward market average.
     const TARGET_WAGE_MAX_ADJUSTMENT: f64 = 0.02;
     // Phase 41: Hard fallback floor for Turn 1 when market average is 0.
     const TARGET_WAGE_FALLBACK: f64 = 50.0;
@@ -1414,12 +1683,11 @@ pub fn set_wage_offers(companies: &mut [Company], market_average_wage: f64) {
 
         let is_charity = matches!(
             company.sector,
-            crate::registries::enums::Sector::NGO
-                | crate::registries::enums::Sector::Religion
+            crate::registries::enums::Sector::NGO | crate::registries::enums::Sector::Religion
         );
         let effective_cash = if is_charity && !company.donation_history.is_empty() {
-            let avg_donation: f64 =
-                company.donation_history.iter().sum::<f64>() / company.donation_history.len() as f64;
+            let avg_donation: f64 = company.donation_history.iter().sum::<f64>()
+                / company.donation_history.len() as f64;
             let expected_inflow = avg_donation * 6.0;
             brokerage_cash.min(expected_inflow.max(brokerage_cash * 0.5))
         } else {
@@ -1481,8 +1749,8 @@ pub fn set_wage_offers(companies: &mut [Company], market_average_wage: f64) {
         // cutting response to losses.
         let last_wage_bill = (company.fulfilled_fte as f64) * company.prev_offered_wage_per_fte;
         let recent_profit = company.moving_avg_net_profit(3);
-        let revenue_constrained = recent_profit < 0.0
-            || (last_wage_bill > 0.0 && recent_profit < last_wage_bill);
+        let revenue_constrained =
+            recent_profit < 0.0 || (last_wage_bill > 0.0 && recent_profit < last_wage_bill);
         let capped_wage = if revenue_constrained && market_average_wage > 0.0 {
             capped_wage.min(market_average_wage * 0.9)
         } else {
@@ -1680,10 +1948,22 @@ mod tests {
         apply_seasonal_furlough(&mut company, Season::Winter);
 
         // Standby = 100 * 0.20 = 20
-        assert_eq!(company.furloughed_workers_count, 80.0, "Excess FTE should be furloughed");
-        assert_eq!(company.fulfilled_fte, 20, "fulfilled_fte should drop to standby");
-        assert_eq!(company.physical_fte_demand, 20, "physical_fte_demand should be standby");
-        assert_eq!(company.target_fte_demand, 20, "target_fte_demand should be standby");
+        assert_eq!(
+            company.furloughed_workers_count, 80.0,
+            "Excess FTE should be furloughed"
+        );
+        assert_eq!(
+            company.fulfilled_fte, 20,
+            "fulfilled_fte should drop to standby"
+        );
+        assert_eq!(
+            company.physical_fte_demand, 20,
+            "physical_fte_demand should be standby"
+        );
+        assert_eq!(
+            company.target_fte_demand, 20,
+            "target_fte_demand should be standby"
+        );
     }
 
     #[test]
@@ -1699,8 +1979,14 @@ mod tests {
         // Reactivate in Spring
         apply_seasonal_furlough(&mut company, Season::Spring);
 
-        assert_eq!(company.furloughed_workers_count, 0.0, "Furlough count should be zeroed");
-        assert_eq!(company.fulfilled_fte, 100, "fulfilled_fte should be restored");
+        assert_eq!(
+            company.furloughed_workers_count, 0.0,
+            "Furlough count should be zeroed"
+        );
+        assert_eq!(
+            company.fulfilled_fte, 100,
+            "fulfilled_fte should be restored"
+        );
     }
 
     #[test]
@@ -1723,14 +2009,21 @@ mod tests {
 
     #[test]
     fn test_non_seasonal_company_unaffected() {
-        let mut company = company_with_cash_and_fte("FACT1", Sector::LightIndustry, 100_000.0, 100.0);
+        let mut company =
+            company_with_cash_and_fte("FACT1", Sector::LightIndustry, 100_000.0, 100.0);
         company.seasonal_profile = None;
         let original_fte = company.fulfilled_fte;
 
         apply_seasonal_furlough(&mut company, Season::Winter);
 
-        assert_eq!(company.fulfilled_fte, original_fte, "Non-seasonal company should be unaffected");
-        assert_eq!(company.furloughed_workers_count, 0.0, "No furlough for non-seasonal");
+        assert_eq!(
+            company.fulfilled_fte, original_fte,
+            "Non-seasonal company should be unaffected"
+        );
+        assert_eq!(
+            company.furloughed_workers_count, 0.0,
+            "No furlough for non-seasonal"
+        );
     }
 
     #[test]
@@ -1742,12 +2035,21 @@ mod tests {
         apply_seasonal_furlough(&mut company, Season::Summer);
 
         // Standby = 80 * 0.15 = 12
-        assert_eq!(company.furloughed_workers_count, 68.0, "Excess should be furloughed in summer");
-        assert_eq!(company.fulfilled_fte, 12, "fulfilled_fte should be at standby");
+        assert_eq!(
+            company.furloughed_workers_count, 68.0,
+            "Excess should be furloughed in summer"
+        );
+        assert_eq!(
+            company.fulfilled_fte, 12,
+            "fulfilled_fte should be at standby"
+        );
 
         // Reactivate in Autumn
         apply_seasonal_furlough(&mut company, Season::Autumn);
-        assert_eq!(company.fulfilled_fte, 80, "Should be fully restored in autumn");
+        assert_eq!(
+            company.fulfilled_fte, 80,
+            "Should be fully restored in autumn"
+        );
         assert_eq!(company.furloughed_workers_count, 0.0);
     }
 
@@ -1760,7 +2062,10 @@ mod tests {
 
         apply_seasonal_furlough(&mut company, Season::Winter);
 
-        assert_eq!(company.furloughed_workers_count, 0.0, "No excess to furlough");
+        assert_eq!(
+            company.furloughed_workers_count, 0.0,
+            "No excess to furlough"
+        );
         assert_eq!(company.fulfilled_fte, 20, "Should remain at standby");
     }
 }

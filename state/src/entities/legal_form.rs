@@ -127,42 +127,42 @@ pub struct LatifundiumData {
     /// Number of serf households tied to the estate
     #[serde(default)]
     pub serf_households: u32,
-    
+
     /// Estimated serf population (households * avg household size)
     #[serde(default)]
     pub serf_population: u32,
-    
+
     /// Default 0.0 is INTENTIONAL: serfs on a latifundium perform corvée labor
     /// for free — this is not a missing-data hazard but a deliberate economic
     /// model of feudal bondage. A value of 0.0 means the estate pays nothing
     /// for serf labor (the cost is borne by the serf via subsistence farming).
     #[serde(default)]
     pub serf_labor_cost_multiplier: f64,
-    
+
     /// Aristocratic dynasty that owns the estate (or Municipality ID for municipal estates)
     #[serde(default)]
     pub dynasty_id: Option<String>,
-    
+
     /// Region where the estate is located
     #[serde(default)]
     pub region_id: String,
-    
+
     /// Total hectares controlled by the estate
     #[serde(default)]
     pub total_hectares: i64,
-    
+
     /// Soil quality classes controlled (Class_I through Class_VI)
     #[serde(default)]
     pub soil_classes: std::collections::BTreeMap<String, i64>,
-    
+
     /// Risk of peasant revolt (0-1, calculated from oppression + misery)
     #[serde(default)]
     pub revolt_risk: f64,
-    
+
     /// Regional political influence (0-100)
     #[serde(default)]
     pub regional_influence: f64,
-    
+
     /// Required wage laborers (for tasks serfs cannot perform)
     #[serde(default)]
     pub required_wage_laborers: u32,
@@ -177,23 +177,23 @@ pub struct MunicipalCompanyData {
     /// Owning municipality ID
     #[serde(default)]
     pub owner_municipality: String,
-    
+
     /// Service type (water, transport, construction, etc.)
     #[serde(default)]
     pub service_type: MunicipalServiceType,
-    
+
     /// Service coverage (population served)
     #[serde(default)]
     pub service_coverage: f64,
-    
+
     /// Municipal subsidy amount
     #[serde(default)]
     pub municipal_subsidy: f64,
-    
+
     /// Whether service is privatizable
     #[serde(default)]
     pub privatizable: bool,
-    
+
     /// Regulatory oversight level
     #[serde(default)]
     pub regulatory_oversight: f64, // 0-1
@@ -250,31 +250,31 @@ pub struct StateMonopolyData {
     /// Ministry or government body managing the monopoly
     #[serde(default)]
     pub managing_ministry: String,
-    
+
     /// Sector/industry controlled (Forests, Waters, Mining, etc.)
     #[serde(default)]
     pub controlled_sector: String,
-    
+
     /// Land categories managed (e.g., Forests, WaterBodies)
     #[serde(default)]
     pub managed_land_categories: Vec<String>,
-    
+
     /// Direct budget transfer to Central Treasury per turn
     #[serde(default)]
     pub direct_treasury_transfer: f64,
-    
+
     /// Political influence 0-100
     #[serde(default)]
     pub political_influence: f64,
-    
+
     /// Efficiency rating 0-1 (affects profit generation)
     #[serde(default)]
     pub efficiency_rating: f64,
-    
+
     /// Corruption level 0-1 (reduces actual treasury transfer)
     #[serde(default)]
     pub corruption_level: f64,
-    
+
     /// Public support 0-1
     #[serde(default)]
     pub public_support: f64,
@@ -289,19 +289,19 @@ pub struct HousingCommunityData {
     /// Building ID this community manages
     #[serde(default)]
     pub building_id: String,
-    
+
     /// Number of owner-occupiers
     #[serde(default)]
     pub owner_count: u32,
-    
+
     /// Maintenance fund
     #[serde(default)]
     pub maintenance_fund: f64,
-    
+
     /// Common areas (sq meters)
     #[serde(default)]
     pub common_areas: f64,
-    
+
     /// Reserve fund for major repairs
     #[serde(default)]
     pub reserve_fund: f64,
@@ -316,19 +316,19 @@ pub struct HousingCooperativeData {
     /// Buildings managed by this cooperative
     #[serde(default)]
     pub managed_buildings: Vec<String>,
-    
+
     /// Member households
     #[serde(default)]
     pub member_households: u32,
-    
+
     /// Share capital
     #[serde(default)]
     pub share_capital: f64,
-    
+
     /// Utility economies of scale (discount factor 0-1)
     #[serde(default)]
     pub utility_economies: f64,
-    
+
     /// Cooperative board members
     #[serde(default)]
     pub board_members: Vec<String>,
@@ -344,19 +344,19 @@ pub struct StrategicReserveData {
     /// Commodity reserves held by the agency
     #[serde(default)]
     pub commodity_reserves: std::collections::BTreeMap<String, f64>,
-    
+
     /// Purchase triggers for each commodity
     #[serde(default)]
     pub purchase_triggers: std::collections::BTreeMap<String, PurchaseTrigger>,
-    
+
     /// Release triggers for each commodity
     #[serde(default)]
     pub release_triggers: std::collections::BTreeMap<String, ReleaseTrigger>,
-    
+
     /// Budget allocation from state treasury
     #[serde(default)]
     pub budget_allocation: f64,
-    
+
     /// Maximum storage capacity per commodity
     #[serde(default)]
     pub max_capacity: std::collections::BTreeMap<String, f64>,
@@ -412,15 +412,15 @@ pub struct LogisticsCompanyData {
     /// Warehouse IDs owned by this logistics company
     #[serde(default)]
     pub owned_warehouses: Vec<String>,
-    
+
     /// Fleet capacity for transportation
     #[serde(default)]
     pub fleet_capacity: f64,
-    
+
     /// Transportation cost per unit per km
     #[serde(default)]
     pub transport_cost_per_unit_km: f64,
-    
+
     /// Logistics network coverage (regions served)
     #[serde(default)]
     pub network_coverage: Vec<String>,
@@ -428,20 +428,16 @@ pub struct LogisticsCompanyData {
 
 impl LatifundiumData {
     /// Calculate effective labor cost for a Latifundium
-    /// 
+    ///
     /// # Rules
     /// * Compare company's worker_capacity against available serf_population
     /// * If worker_capacity <= serf_population: all labor from serfs (using serf_labor_cost_multiplier)
     /// * If worker_capacity > serf_population: excess labor hired from market at full market_wage
     /// * NO magic numbers - labor split is dynamically calculated from actual population
-    pub fn calculate_labor_cost(
-        &self,
-        worker_capacity: u32,
-        market_wage: f64,
-    ) -> f64 {
+    pub fn calculate_labor_cost(&self, worker_capacity: u32, market_wage: f64) -> f64 {
         let worker_capacity = worker_capacity as f64;
         let serf_population = self.serf_population as f64;
-        
+
         if worker_capacity <= serf_population {
             // All labor provided by serfs (extremely cheap/free labor)
             worker_capacity * self.serf_labor_cost_multiplier * market_wage
@@ -449,16 +445,16 @@ impl LatifundiumData {
             // Serfs cover what they can, remainder hired from market
             let serf_hours = serf_population;
             let wage_hours = worker_capacity - serf_population;
-            
+
             let serf_cost = serf_hours * self.serf_labor_cost_multiplier * market_wage;
             let wage_cost = wage_hours * market_wage;
-            
+
             serf_cost + wage_cost
         }
     }
-    
+
     /// Calculate profit distribution to Aristocracy
-    /// 
+    ///
     /// # Rules
     /// * Profits flow primarily to dynasty
     /// * Small portion may be reinvested in estate
@@ -470,30 +466,32 @@ impl LatifundiumData {
         let reinvested = gross_profit * reinvestment_rate;
         gross_profit - reinvested
     }
-    
+
     /// Calculate the labor demand ratio (0-1) imposed on serfs
-    /// 
+    ///
     /// # Rules
     /// * If worker_capacity <= serf_population: ratio = worker_capacity / serf_population
     /// * If worker_capacity > serf_population: ratio = 1.0 (serfs at max capacity, excess hired)
     pub fn calculate_serf_labor_demand(&self, worker_capacity: u32) -> f64 {
         let worker_capacity = worker_capacity as f64;
         let serf_population = self.serf_population as f64;
-        
+
         if serf_population == 0.0 {
             return 0.0;
         }
-        
+
         (worker_capacity / serf_population).min(1.0)
     }
-    
+
     /// Calculate revolt risk based on serf economic conditions
-    /// 
+    ///
     /// # Rules
     /// * High revolt risk when serfs are Destitute (insufficient subsistence time)
     /// * Moderate risk when Struggling
     /// * Low risk when Stable or Prosperous
-    pub fn calculate_revolt_risk(serf_economic_status: crate::society::geography::EconomicStatus) -> f64 {
+    pub fn calculate_revolt_risk(
+        serf_economic_status: crate::society::geography::EconomicStatus,
+    ) -> f64 {
         match serf_economic_status {
             crate::society::geography::EconomicStatus::Destitute => 0.85, // Very high risk of uprising
             crate::society::geography::EconomicStatus::Struggling => 0.50,
@@ -640,7 +638,7 @@ impl LegalForm {
     pub fn can_go_public(&self) -> bool {
         matches!(self, LegalForm::JointStockCompany(_))
     }
-    
+
     /// Check if municipal company can be privatized
     pub fn can_privatize(&self) -> bool {
         match self {
@@ -648,7 +646,7 @@ impl LegalForm {
             _ => false,
         }
     }
-    
+
     /// Calculate municipal subsidy requirement
     pub fn calculate_subsidy_requirement(&self) -> f64 {
         match self {
@@ -678,7 +676,7 @@ impl LegalForm {
     pub fn is_state_monopoly(&self) -> bool {
         matches!(self, LegalForm::StateMonopoly(_))
     }
-    
+
     /// Calculate utility economies discount for Housing Cooperatives (Phase 6.5)
     ///
     /// # Returns
@@ -690,13 +688,16 @@ impl LegalForm {
             _ => 0.0,
         }
     }
-    
+
     /// Check if this is a housing-related legal form (Phase 6.5)
     ///
     /// # Returns
     /// * true if HousingCommunity or HousingCooperative, false otherwise
     pub fn is_housing_legal_form(&self) -> bool {
-        matches!(self, LegalForm::HousingCommunity(_) | LegalForm::HousingCooperative(_))
+        matches!(
+            self,
+            LegalForm::HousingCommunity(_) | LegalForm::HousingCooperative(_)
+        )
     }
 }
 
@@ -801,7 +802,7 @@ impl LegalFormTransition for LegalForm {
             LegalForm::HousingCooperative(_) => Vec::new(), // Housing cooperatives cannot transition
             LegalForm::StrategicReserveAgency(_) => Vec::new(), // Strategic Reserve Agency cannot transition
             LegalForm::LogisticsCompany(_) => Vec::new(), // Logistics companies cannot transition
-            LegalForm::NonProfit(_) => Vec::new(), // Non-profits cannot transition
+            LegalForm::NonProfit(_) => Vec::new(),        // Non-profits cannot transition
             LegalForm::Guild(_) => Vec::new(), // Phase 85: Guilds transition via guild_system.rs evolution
         }
     }
@@ -812,10 +813,7 @@ impl LegalFormTransition for LegalForm {
         ctx: &TransitionContext,
     ) -> Result<LegalForm, TransitionError> {
         match (self, transition) {
-            (
-                LegalForm::MutualAidCircle(data),
-                LegalTransition::MutualAidCircleToCooperative,
-            ) => {
+            (LegalForm::MutualAidCircle(data), LegalTransition::MutualAidCircleToCooperative) => {
                 if data.member_count < 100 {
                     return Err(TransitionError {
                         reason: "Mutual aid circle too small to become a cooperative".to_string(),
@@ -833,7 +831,8 @@ impl LegalFormTransition for LegalForm {
             ) => {
                 if !family_can_go_public(&data, ctx) {
                     return Err(TransitionError {
-                        reason: "Family business does not meet public offering preconditions".to_string(),
+                        reason: "Family business does not meet public offering preconditions"
+                            .to_string(),
                     });
                 }
                 if data.family_retained_share > 0.95 {
@@ -851,10 +850,7 @@ impl LegalFormTransition for LegalForm {
                 };
                 Ok(LegalForm::JointStockCompany(new))
             }
-            (
-                LegalForm::FamilyBusiness(data),
-                LegalTransition::FamilyBusinessToCooperative,
-            ) => {
+            (LegalForm::FamilyBusiness(data), LegalTransition::FamilyBusinessToCooperative) => {
                 if !family_can_cooperativize(&data, ctx) {
                     return Err(TransitionError {
                         reason: "Family business cannot convert to a cooperative".to_string(),
@@ -866,13 +862,11 @@ impl LegalFormTransition for LegalForm {
                     federation_id: None,
                 }))
             }
-            (
-                LegalForm::Cooperative(data),
-                LegalTransition::CooperativeToJointStockCompany,
-            ) => {
+            (LegalForm::Cooperative(data), LegalTransition::CooperativeToJointStockCompany) => {
                 if !cooperative_can_go_public(&data, ctx) {
                     return Err(TransitionError {
-                        reason: "Cooperative does not meet public offering preconditions".to_string(),
+                        reason: "Cooperative does not meet public offering preconditions"
+                            .to_string(),
                     });
                 }
                 let new = JointStockData {
@@ -926,7 +920,5 @@ fn cooperative_can_go_public(data: &CooperativeData, ctx: &TransitionContext) ->
 }
 
 fn joint_stock_can_form_consortium(data: &JointStockData, ctx: &TransitionContext) -> bool {
-    ctx.company.company_capital >= 50_000_000.0
-        && ctx.sector_pmi > 55.0
-        && data.shares_issued > 0
+    ctx.company.company_capital >= 50_000_000.0 && ctx.sector_pmi > 55.0 && data.shares_issued > 0
 }

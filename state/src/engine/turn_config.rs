@@ -224,34 +224,90 @@ pub struct TurnConfig {
 
 // ── Default value functions ──
 
-fn default_retail_ask_markup() -> f64 { 1.1 }
-fn default_company_ask_quantity_cap() -> f64 { 1000.0 }
-fn default_retail_surplus_threshold() -> f64 { 10.0 }
-fn default_retail_restock_fraction() -> f64 { 0.3 }
-fn default_ohs_casualty_dead_share() -> f64 { 0.3 }
-fn default_ohs_defect_threshold() -> f64 { 0.05 }
-fn default_ohs_ratio_threshold() -> f64 { 0.8 }
-fn default_ohs_defect_fine_wage_multiple() -> f64 { 50_000.0 }
-fn default_ohs_ratio_fine_wage_multiple() -> f64 { 20_000.0 }
-fn default_ohs_min_fine_wage_multiple() -> f64 { 5_000.0 }
-fn default_ohs_reputation_penalty() -> f64 { 5.0 }
-fn default_transport_degradation_rate() -> f64 { 0.01 }
-fn default_transport_repair_cost_wage_multiple() -> f64 { 1000.0 }
-fn default_civil_service_wage_ratio() -> f64 { 0.8 }
-fn default_commuter_inflow_coefficient() -> f64 { 0.05 }
-fn default_mod_procurement_reserve_ratio() -> f64 { 0.3 }
-fn default_political_capital_regen_per_turn() -> f64 { 2.0 }
-fn default_political_capital_cap() -> f64 { 24.0 }
-fn default_base_price_ema_old_weight() -> f64 { 0.7 }
-fn default_base_price_ema_new_weight() -> f64 { 0.3 }
-fn default_parliament_mp_salary_wage_ratio() -> f64 { 0.1 }
-fn default_parliament_mp_salary_multiplier() -> f64 { 3.0 }
-fn default_parliament_staff_salary_ratio() -> f64 { 0.8 }
-fn default_faction_tension_gain_per_event() -> f64 { 0.15 }
-fn default_subsistence_food_kg_per_turn() -> f64 { 7.0 }
-fn default_subsistence_clothing_units_per_turn() -> f64 { 0.1 }
-fn default_subsistence_min_labor_participation() -> f64 { 0.5 }
-fn default_base_price_fallback() -> f64 { 100.0 }
+fn default_retail_ask_markup() -> f64 {
+    1.1
+}
+fn default_company_ask_quantity_cap() -> f64 {
+    1000.0
+}
+fn default_retail_surplus_threshold() -> f64 {
+    10.0
+}
+fn default_retail_restock_fraction() -> f64 {
+    0.3
+}
+fn default_ohs_casualty_dead_share() -> f64 {
+    0.3
+}
+fn default_ohs_defect_threshold() -> f64 {
+    0.05
+}
+fn default_ohs_ratio_threshold() -> f64 {
+    0.8
+}
+fn default_ohs_defect_fine_wage_multiple() -> f64 {
+    50_000.0
+}
+fn default_ohs_ratio_fine_wage_multiple() -> f64 {
+    20_000.0
+}
+fn default_ohs_min_fine_wage_multiple() -> f64 {
+    5_000.0
+}
+fn default_ohs_reputation_penalty() -> f64 {
+    5.0
+}
+fn default_transport_degradation_rate() -> f64 {
+    0.01
+}
+fn default_transport_repair_cost_wage_multiple() -> f64 {
+    1000.0
+}
+fn default_civil_service_wage_ratio() -> f64 {
+    0.8
+}
+fn default_commuter_inflow_coefficient() -> f64 {
+    0.05
+}
+fn default_mod_procurement_reserve_ratio() -> f64 {
+    0.3
+}
+fn default_political_capital_regen_per_turn() -> f64 {
+    2.0
+}
+fn default_political_capital_cap() -> f64 {
+    24.0
+}
+fn default_base_price_ema_old_weight() -> f64 {
+    0.7
+}
+fn default_base_price_ema_new_weight() -> f64 {
+    0.3
+}
+fn default_parliament_mp_salary_wage_ratio() -> f64 {
+    0.1
+}
+fn default_parliament_mp_salary_multiplier() -> f64 {
+    3.0
+}
+fn default_parliament_staff_salary_ratio() -> f64 {
+    0.8
+}
+fn default_faction_tension_gain_per_event() -> f64 {
+    0.15
+}
+fn default_subsistence_food_kg_per_turn() -> f64 {
+    7.0
+}
+fn default_subsistence_clothing_units_per_turn() -> f64 {
+    0.1
+}
+fn default_subsistence_min_labor_participation() -> f64 {
+    0.5
+}
+fn default_base_price_fallback() -> f64 {
+    100.0
+}
 
 impl Default for TurnConfig {
     fn default() -> Self {

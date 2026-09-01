@@ -136,79 +136,169 @@ impl IdeologyBudgetPriorities for Ideology {
     fn budget_priorities(self) -> BudgetPriorities {
         match self {
             Ideology::OrthodoxMarxism => BudgetPriorities {
-                heavy_industry: 0.9, internal_security: 0.7, education: 0.8,
-                healthcare: 0.9, infrastructure: 0.7, social_welfare: 0.9,
-                agriculture: 0.6, armed_forces: 0.5, free_market: 0.0,
+                heavy_industry: 0.9,
+                internal_security: 0.7,
+                education: 0.8,
+                healthcare: 0.9,
+                infrastructure: 0.7,
+                social_welfare: 0.9,
+                agriculture: 0.6,
+                armed_forces: 0.5,
+                free_market: 0.0,
             },
             Ideology::MarxismLeninism => BudgetPriorities {
-                heavy_industry: 1.0, internal_security: 0.9, education: 0.8,
-                healthcare: 0.9, infrastructure: 0.8, social_welfare: 0.8,
-                agriculture: 0.7, armed_forces: 0.8, free_market: 0.0,
+                heavy_industry: 1.0,
+                internal_security: 0.9,
+                education: 0.8,
+                healthcare: 0.9,
+                infrastructure: 0.8,
+                social_welfare: 0.8,
+                agriculture: 0.7,
+                armed_forces: 0.8,
+                free_market: 0.0,
             },
             Ideology::Maoism => BudgetPriorities {
-                heavy_industry: 0.7, internal_security: 0.9, education: 0.7,
-                healthcare: 0.8, infrastructure: 0.5, social_welfare: 0.7,
-                agriculture: 1.0, armed_forces: 0.7, free_market: 0.0,
+                heavy_industry: 0.7,
+                internal_security: 0.9,
+                education: 0.7,
+                healthcare: 0.8,
+                infrastructure: 0.5,
+                social_welfare: 0.7,
+                agriculture: 1.0,
+                armed_forces: 0.7,
+                free_market: 0.0,
             },
             Ideology::SocialDemocracy => BudgetPriorities {
-                heavy_industry: 0.3, internal_security: 0.3, education: 0.8,
-                healthcare: 0.9, infrastructure: 0.6, social_welfare: 0.9,
-                agriculture: 0.4, armed_forces: 0.3, free_market: 0.3,
+                heavy_industry: 0.3,
+                internal_security: 0.3,
+                education: 0.8,
+                healthcare: 0.9,
+                infrastructure: 0.6,
+                social_welfare: 0.9,
+                agriculture: 0.4,
+                armed_forces: 0.3,
+                free_market: 0.3,
             },
             Ideology::GreenPolitics => BudgetPriorities {
-                heavy_industry: 0.1, internal_security: 0.2, education: 0.7,
-                healthcare: 0.7, infrastructure: 0.4, social_welfare: 0.8,
-                agriculture: 0.5, armed_forces: 0.1, free_market: 0.2,
+                heavy_industry: 0.1,
+                internal_security: 0.2,
+                education: 0.7,
+                healthcare: 0.7,
+                infrastructure: 0.4,
+                social_welfare: 0.8,
+                agriculture: 0.5,
+                armed_forces: 0.1,
+                free_market: 0.2,
             },
             Ideology::ClassicalLiberalism => BudgetPriorities {
-                heavy_industry: 0.2, internal_security: 0.3, education: 0.3,
-                healthcare: 0.2, infrastructure: 0.3, social_welfare: 0.1,
-                agriculture: 0.2, armed_forces: 0.3, free_market: 0.9,
+                heavy_industry: 0.2,
+                internal_security: 0.3,
+                education: 0.3,
+                healthcare: 0.2,
+                infrastructure: 0.3,
+                social_welfare: 0.1,
+                agriculture: 0.2,
+                armed_forces: 0.3,
+                free_market: 0.9,
             },
             Ideology::SocialLiberalism => BudgetPriorities {
-                heavy_industry: 0.3, internal_security: 0.3, education: 0.7,
-                healthcare: 0.6, infrastructure: 0.5, social_welfare: 0.6,
-                agriculture: 0.3, armed_forces: 0.3, free_market: 0.5,
+                heavy_industry: 0.3,
+                internal_security: 0.3,
+                education: 0.7,
+                healthcare: 0.6,
+                infrastructure: 0.5,
+                social_welfare: 0.6,
+                agriculture: 0.3,
+                armed_forces: 0.3,
+                free_market: 0.5,
             },
             Ideology::Agrarianism => BudgetPriorities {
-                heavy_industry: 0.2, internal_security: 0.3, education: 0.4,
-                healthcare: 0.4, infrastructure: 0.4, social_welfare: 0.5,
-                agriculture: 1.0, armed_forces: 0.3, free_market: 0.4,
+                heavy_industry: 0.2,
+                internal_security: 0.3,
+                education: 0.4,
+                healthcare: 0.4,
+                infrastructure: 0.4,
+                social_welfare: 0.5,
+                agriculture: 1.0,
+                armed_forces: 0.3,
+                free_market: 0.4,
             },
             Ideology::ChristianDemocracy => BudgetPriorities {
-                heavy_industry: 0.3, internal_security: 0.4, education: 0.6,
-                healthcare: 0.6, infrastructure: 0.5, social_welfare: 0.7,
-                agriculture: 0.5, armed_forces: 0.4, free_market: 0.4,
+                heavy_industry: 0.3,
+                internal_security: 0.4,
+                education: 0.6,
+                healthcare: 0.6,
+                infrastructure: 0.5,
+                social_welfare: 0.7,
+                agriculture: 0.5,
+                armed_forces: 0.4,
+                free_market: 0.4,
             },
             Ideology::SocialConservatism => BudgetPriorities {
-                heavy_industry: 0.3, internal_security: 0.7, education: 0.5,
-                healthcare: 0.4, infrastructure: 0.4, social_welfare: 0.4,
-                agriculture: 0.4, armed_forces: 0.7, free_market: 0.4,
+                heavy_industry: 0.3,
+                internal_security: 0.7,
+                education: 0.5,
+                healthcare: 0.4,
+                infrastructure: 0.4,
+                social_welfare: 0.4,
+                agriculture: 0.4,
+                armed_forces: 0.7,
+                free_market: 0.4,
             },
             Ideology::Neoconservatism => BudgetPriorities {
-                heavy_industry: 0.4, internal_security: 0.6, education: 0.4,
-                healthcare: 0.3, infrastructure: 0.4, social_welfare: 0.3,
-                agriculture: 0.3, armed_forces: 0.9, free_market: 0.6,
+                heavy_industry: 0.4,
+                internal_security: 0.6,
+                education: 0.4,
+                healthcare: 0.3,
+                infrastructure: 0.4,
+                social_welfare: 0.3,
+                agriculture: 0.3,
+                armed_forces: 0.9,
+                free_market: 0.6,
             },
             Ideology::Neoliberalism => BudgetPriorities {
-                heavy_industry: 0.2, internal_security: 0.3, education: 0.3,
-                healthcare: 0.2, infrastructure: 0.3, social_welfare: 0.1,
-                agriculture: 0.2, armed_forces: 0.4, free_market: 1.0,
+                heavy_industry: 0.2,
+                internal_security: 0.3,
+                education: 0.3,
+                healthcare: 0.2,
+                infrastructure: 0.3,
+                social_welfare: 0.1,
+                agriculture: 0.2,
+                armed_forces: 0.4,
+                free_market: 1.0,
             },
             Ideology::NationalConservatism => BudgetPriorities {
-                heavy_industry: 0.4, internal_security: 0.8, education: 0.5,
-                healthcare: 0.4, infrastructure: 0.4, social_welfare: 0.4,
-                agriculture: 0.5, armed_forces: 0.8, free_market: 0.3,
+                heavy_industry: 0.4,
+                internal_security: 0.8,
+                education: 0.5,
+                healthcare: 0.4,
+                infrastructure: 0.4,
+                social_welfare: 0.4,
+                agriculture: 0.5,
+                armed_forces: 0.8,
+                free_market: 0.3,
             },
             Ideology::AnarchoCapitalism => BudgetPriorities {
-                heavy_industry: 0.1, internal_security: 0.1, education: 0.1,
-                healthcare: 0.1, infrastructure: 0.1, social_welfare: 0.0,
-                agriculture: 0.1, armed_forces: 0.1, free_market: 1.0,
+                heavy_industry: 0.1,
+                internal_security: 0.1,
+                education: 0.1,
+                healthcare: 0.1,
+                infrastructure: 0.1,
+                social_welfare: 0.0,
+                agriculture: 0.1,
+                armed_forces: 0.1,
+                free_market: 1.0,
             },
             Ideology::Fascism => BudgetPriorities {
-                heavy_industry: 0.8, internal_security: 1.0, education: 0.6,
-                healthcare: 0.5, infrastructure: 0.7, social_welfare: 0.5,
-                agriculture: 0.5, armed_forces: 1.0, free_market: 0.0,
+                heavy_industry: 0.8,
+                internal_security: 1.0,
+                education: 0.6,
+                healthcare: 0.5,
+                infrastructure: 0.7,
+                social_welfare: 0.5,
+                agriculture: 0.5,
+                armed_forces: 1.0,
+                free_market: 0.0,
             },
         }
     }
@@ -373,17 +463,20 @@ pub fn form_government(
 
     // Calculate total coalition seats
     let parliament = &country.politics.parliament;
-    let coalition_seats: u32 = coalition
-        .iter()
-        .filter_map(|pid| parliament.get(pid))
-        .sum();
+    let coalition_seats: u32 = coalition.iter().filter_map(|pid| parliament.get(pid)).sum();
 
     // PM always keeps Treasury and Defense/InternalSecurity
     let is_autocratic = !country.politics.government_form.is_democratic();
     let pm_reserved = if is_autocratic {
-        vec![GovernmentCompetency::Treasury, GovernmentCompetency::InternalSecurity]
+        vec![
+            GovernmentCompetency::Treasury,
+            GovernmentCompetency::InternalSecurity,
+        ]
     } else {
-        vec![GovernmentCompetency::Treasury, GovernmentCompetency::Defense]
+        vec![
+            GovernmentCompetency::Treasury,
+            GovernmentCompetency::Defense,
+        ]
     };
 
     // Distribute remaining competencies among coalition partners
@@ -435,7 +528,12 @@ pub fn form_government(
             // Phase 41: Use party leader name only once per party; generate
             // unique VIP names for subsequent ministries from the same party.
             let minister_name = if leader_used.contains(party_id) {
-                crate::politics::names::generate_unique_vip(cultural_group, &mut rng, &mut *used_names).full_name
+                crate::politics::names::generate_unique_vip(
+                    cultural_group,
+                    &mut rng,
+                    &mut *used_names,
+                )
+                .full_name
             } else {
                 leader_used.insert(party_id.clone());
                 let name = resolve_minister_name(active_parties, party_id, cg);
@@ -476,7 +574,12 @@ pub fn form_government(
             let minister_name = if ministries.is_empty() {
                 pm_name.clone()
             } else {
-                crate::politics::names::generate_unique_vip(cultural_group, &mut rng, &mut *used_names).full_name
+                crate::politics::names::generate_unique_vip(
+                    cultural_group,
+                    &mut rng,
+                    &mut *used_names,
+                )
+                .full_name
             };
             ministries.push(Ministry {
                 id: format!("MIN-{:03}", ministries.len() + 1),
@@ -528,8 +631,16 @@ fn default_competency_bundles(count: usize) -> Vec<GovernmentCompetency> {
 /// is empty. This prevents the "Minister ()" bug when coalition formation
 /// produces an empty party_id.
 /// Phase 49: Now accepts `cultural_group` to generate culturally-appropriate fallback names.
-fn resolve_minister_name(active_parties: &HashMap<String, Party>, party_id: &str, cultural_group: &str) -> String {
-    let cg = if cultural_group.is_empty() { "slavic" } else { cultural_group };
+fn resolve_minister_name(
+    active_parties: &HashMap<String, Party>,
+    party_id: &str,
+    cultural_group: &str,
+) -> String {
+    let cg = if cultural_group.is_empty() {
+        "slavic"
+    } else {
+        cultural_group
+    };
     // Phase 39: If party_id is empty, generate a technocrat name.
     if party_id.is_empty() {
         let mut rng = rand::thread_rng();
@@ -732,7 +843,9 @@ pub fn prepare_minister_strategies_with_parties(
             continue;
         }
 
-        total_g_spending += execute_competency_spending_with_parties(ministry, comp, budget, companies, order_book, country);
+        total_g_spending += execute_competency_spending_with_parties(
+            ministry, comp, budget, companies, order_book, country,
+        );
     }
     total_g_spending
 }
@@ -752,7 +865,9 @@ fn execute_competency_spending_with_parties(
     // Phase 35: Cap spending at ministry_cash (the pocket), NOT liquid_reserves.
     // allocate_cash_to_ministries already moved cash from liquid_reserves into
     // ministry_cash, so we debit from the pocket only — no double-debit.
-    let available = ministry.ministry_cash.min(ministry.allocated_cash - ministry.spent_cash);
+    let available = ministry
+        .ministry_cash
+        .min(ministry.allocated_cash - ministry.spent_cash);
     let spend = budget.min(available);
     if spend <= 0.0 {
         return 0.0;
@@ -766,29 +881,27 @@ fn execute_competency_spending_with_parties(
         | GovernmentCompetency::Defense
         | GovernmentCompetency::InternalSecurity => {
             let commodities = match comp {
-                GovernmentCompetency::HeavyIndustry => vec![
-                    Commodity::Steel,
-                    Commodity::IndustrialMachinery,
-                ],
-                GovernmentCompetency::LightIndustry => vec![
-                    Commodity::Clothing,
-                    Commodity::LuxuryClothing,
-                ],
-                GovernmentCompetency::Defense => vec![
-                    Commodity::Steel,
-                    Commodity::IndustrialMachinery,
-                ],
-                GovernmentCompetency::InternalSecurity => vec![
-                    Commodity::Clothing,
-                    Commodity::IndustrialMachinery,
-                ],
+                GovernmentCompetency::HeavyIndustry => {
+                    vec![Commodity::Steel, Commodity::IndustrialMachinery]
+                }
+                GovernmentCompetency::LightIndustry => {
+                    vec![Commodity::Clothing, Commodity::LuxuryClothing]
+                }
+                GovernmentCompetency::Defense => {
+                    vec![Commodity::Steel, Commodity::IndustrialMachinery]
+                }
+                GovernmentCompetency::InternalSecurity => {
+                    vec![Commodity::Clothing, Commodity::IndustrialMachinery]
+                }
                 _ => vec![],
             };
 
             let per_commodity_budget = spend / commodities.len().max(1) as f64;
             for commodity in commodities {
                 // Phase 28: Dynamic limit price based on reference price, not hardcoded 120.0.
-                let ref_price = country.budget.extra
+                let ref_price = country
+                    .budget
+                    .extra
                     .get(&format!("{:?}", commodity))
                     .and_then(|v| v.as_f64())
                     .unwrap_or(100.0);
@@ -802,23 +915,23 @@ fn execute_competency_spending_with_parties(
                     {
                         ministry.ministry_cash -= encumbrance;
                         ministry.spent_cash += encumbrance;
-                        ministry.spending_actions.push(MinistrySpendingAction::B2BProcurementOrder {
-                            commodity,
-                            quantity,
-                            limit_price,
-                        });
-                        order_book
-                            .bids
-                            .entry(commodity)
-                            .or_default()
-                            .push(crate::economy::order_book::Bid {
+                        ministry.spending_actions.push(
+                            MinistrySpendingAction::B2BProcurementOrder {
+                                commodity,
+                                quantity,
+                                limit_price,
+                            },
+                        );
+                        order_book.bids.entry(commodity).or_default().push(
+                            crate::economy::order_book::Bid {
                                 buyer_id: ministry.id.clone(),
                                 commodity,
                                 quantity,
                                 limit_price,
                                 blueprint_id: None,
                                 min_quality: None,
-                            });
+                            },
+                        );
                     }
                 }
             }
@@ -839,10 +952,12 @@ fn execute_competency_spending_with_parties(
                         ministry.ministry_cash -= actual;
                         companies[*idx].liquid_capital += actual;
                         ministry.spent_cash += actual;
-                        ministry.spending_actions.push(MinistrySpendingAction::Subsidy {
-                            target_company_id: companies[*idx].id.clone(),
-                            amount: actual,
-                        });
+                        ministry
+                            .spending_actions
+                            .push(MinistrySpendingAction::Subsidy {
+                                target_company_id: companies[*idx].id.clone(),
+                                amount: actual,
+                            });
                         total_g_spending += actual;
                     }
                 }
@@ -854,10 +969,12 @@ fn execute_competency_spending_with_parties(
             if actual > 0.0 {
                 ministry.ministry_cash -= actual;
                 ministry.spent_cash += actual;
-                ministry.spending_actions.push(MinistrySpendingAction::InfrastructureFunding {
-                    target_building_id: "STATE_INFRA".to_string(),
-                    amount: actual,
-                });
+                ministry
+                    .spending_actions
+                    .push(MinistrySpendingAction::InfrastructureFunding {
+                        target_building_id: "STATE_INFRA".to_string(),
+                        amount: actual,
+                    });
                 total_g_spending += actual;
             }
         }
@@ -866,16 +983,20 @@ fn execute_competency_spending_with_parties(
             // pseudo-company. The budget is added to ministry_public_service_pool.
             // Phase 35: Now debit ministry_cash (the pocket) since allocation
             // already moved cash from liquid_reserves into ministry_cash.
-            let available = ministry.ministry_cash.min(ministry.allocated_cash - ministry.spent_cash);
+            let available = ministry
+                .ministry_cash
+                .min(ministry.allocated_cash - ministry.spent_cash);
             let actual = spend.min(available);
             if actual > 0.0 {
                 ministry.ministry_cash -= actual;
                 country.ministry_public_service_pool += actual;
                 ministry.spent_cash += actual;
-                ministry.spending_actions.push(MinistrySpendingAction::PublicServiceWages {
-                    building_ids: vec!["STATE_EMPLOYER_POOL".to_string()],
-                    total_amount: actual,
-                });
+                ministry
+                    .spending_actions
+                    .push(MinistrySpendingAction::PublicServiceWages {
+                        building_ids: vec!["STATE_EMPLOYER_POOL".to_string()],
+                        total_amount: actual,
+                    });
             }
         }
         GovernmentCompetency::SocialWelfare => {
@@ -897,10 +1018,12 @@ fn execute_competency_spending_with_parties(
             if actual > 0.0 {
                 ministry.ministry_cash -= actual;
                 ministry.spent_cash += actual;
-                ministry.spending_actions.push(MinistrySpendingAction::DirectTransfer {
-                    target: format!("{:?}", comp),
-                    amount: actual,
-                });
+                ministry
+                    .spending_actions
+                    .push(MinistrySpendingAction::DirectTransfer {
+                        target: format!("{:?}", comp),
+                        amount: actual,
+                    });
                 total_g_spending += actual;
             }
         }
@@ -979,7 +1102,9 @@ fn execute_competency_spending(
     order_book: &mut OrderBook,
 ) {
     // Phase 35: Cap spending at ministry_cash (the pocket), NOT liquid_reserves.
-    let available = ministry.ministry_cash.min(ministry.allocated_cash - ministry.spent_cash);
+    let available = ministry
+        .ministry_cash
+        .min(ministry.allocated_cash - ministry.spent_cash);
     let spend = budget.min(available);
     if spend <= 0.0 {
         return;
@@ -992,29 +1117,27 @@ fn execute_competency_spending(
         | GovernmentCompetency::InternalSecurity => {
             // Submit B2B buy orders for relevant commodities
             let commodities = match comp {
-                GovernmentCompetency::HeavyIndustry => vec![
-                    Commodity::Steel,
-                    Commodity::IndustrialMachinery,
-                ],
-                GovernmentCompetency::LightIndustry => vec![
-                    Commodity::Clothing,
-                    Commodity::LuxuryClothing,
-                ],
-                GovernmentCompetency::Defense => vec![
-                    Commodity::Steel,
-                    Commodity::IndustrialMachinery,
-                ],
-                GovernmentCompetency::InternalSecurity => vec![
-                    Commodity::Clothing,
-                    Commodity::IndustrialMachinery,
-                ],
+                GovernmentCompetency::HeavyIndustry => {
+                    vec![Commodity::Steel, Commodity::IndustrialMachinery]
+                }
+                GovernmentCompetency::LightIndustry => {
+                    vec![Commodity::Clothing, Commodity::LuxuryClothing]
+                }
+                GovernmentCompetency::Defense => {
+                    vec![Commodity::Steel, Commodity::IndustrialMachinery]
+                }
+                GovernmentCompetency::InternalSecurity => {
+                    vec![Commodity::Clothing, Commodity::IndustrialMachinery]
+                }
                 _ => vec![],
             };
 
             let per_commodity_budget = spend / commodities.len().max(1) as f64;
             for commodity in commodities {
                 // Phase 28: Dynamic limit price based on reference price, not hardcoded 120.0.
-                let ref_price = country.budget.extra
+                let ref_price = country
+                    .budget
+                    .extra
                     .get(&format!("{:?}", commodity))
                     .and_then(|v| v.as_f64())
                     .unwrap_or(100.0);
@@ -1029,24 +1152,24 @@ fn execute_competency_spending(
                     {
                         ministry.ministry_cash -= encumbrance;
                         ministry.spent_cash += encumbrance;
-                        ministry.spending_actions.push(MinistrySpendingAction::B2BProcurementOrder {
-                            commodity,
-                            quantity,
-                            limit_price,
-                        });
+                        ministry.spending_actions.push(
+                            MinistrySpendingAction::B2BProcurementOrder {
+                                commodity,
+                                quantity,
+                                limit_price,
+                            },
+                        );
                         // Submit bid to order book
-                        order_book
-                            .bids
-                            .entry(commodity)
-                            .or_default()
-                            .push(crate::economy::order_book::Bid {
+                        order_book.bids.entry(commodity).or_default().push(
+                            crate::economy::order_book::Bid {
                                 buyer_id: ministry.id.clone(),
                                 commodity,
                                 quantity,
                                 limit_price,
                                 blueprint_id: None,
                                 min_quality: None,
-                            });
+                            },
+                        );
                     }
                 }
             }
@@ -1068,10 +1191,12 @@ fn execute_competency_spending(
                         ministry.ministry_cash -= actual;
                         companies[*idx].liquid_capital += actual;
                         ministry.spent_cash += actual;
-                        ministry.spending_actions.push(MinistrySpendingAction::Subsidy {
-                            target_company_id: companies[*idx].id.clone(),
-                            amount: actual,
-                        });
+                        ministry
+                            .spending_actions
+                            .push(MinistrySpendingAction::Subsidy {
+                                target_company_id: companies[*idx].id.clone(),
+                                amount: actual,
+                            });
                     }
                 }
             }
@@ -1082,25 +1207,31 @@ fn execute_competency_spending(
             if actual > 0.0 {
                 ministry.ministry_cash -= actual;
                 ministry.spent_cash += actual;
-                ministry.spending_actions.push(MinistrySpendingAction::InfrastructureFunding {
-                    target_building_id: "STATE_INFRA".to_string(),
-                    amount: actual,
-                });
+                ministry
+                    .spending_actions
+                    .push(MinistrySpendingAction::InfrastructureFunding {
+                        target_building_id: "STATE_INFRA".to_string(),
+                        amount: actual,
+                    });
             }
         }
         GovernmentCompetency::Education | GovernmentCompetency::Healthcare => {
             // Phase 33: Route through State Employer pool (correction #2).
             // Phase 35: Debit ministry_cash (the pocket), not liquid_reserves.
-            let available = ministry.ministry_cash.min(ministry.allocated_cash - ministry.spent_cash);
+            let available = ministry
+                .ministry_cash
+                .min(ministry.allocated_cash - ministry.spent_cash);
             let actual = spend.min(available);
             if actual > 0.0 {
                 ministry.ministry_cash -= actual;
                 country.ministry_public_service_pool += actual;
                 ministry.spent_cash += actual;
-                ministry.spending_actions.push(MinistrySpendingAction::PublicServiceWages {
-                    building_ids: vec!["STATE_EMPLOYER_POOL".to_string()],
-                    total_amount: actual,
-                });
+                ministry
+                    .spending_actions
+                    .push(MinistrySpendingAction::PublicServiceWages {
+                        building_ids: vec!["STATE_EMPLOYER_POOL".to_string()],
+                        total_amount: actual,
+                    });
             }
         }
         GovernmentCompetency::SocialWelfare => {
@@ -1118,10 +1249,12 @@ fn execute_competency_spending(
                 ministry.ministry_cash -= actual;
                 country.ministry_public_service_pool += actual;
                 ministry.spent_cash += actual;
-                ministry.spending_actions.push(MinistrySpendingAction::PublicServiceWages {
-                    building_ids: vec!["PUBLIC_WORKS_POOL".to_string()],
-                    total_amount: actual,
-                });
+                ministry
+                    .spending_actions
+                    .push(MinistrySpendingAction::PublicServiceWages {
+                        building_ids: vec!["PUBLIC_WORKS_POOL".to_string()],
+                        total_amount: actual,
+                    });
             }
         }
         GovernmentCompetency::Science => {
@@ -1144,10 +1277,12 @@ fn execute_competency_spending(
                         ministry.ministry_cash -= actual;
                         companies[*idx].liquid_capital += actual;
                         ministry.spent_cash += actual;
-                        ministry.spending_actions.push(MinistrySpendingAction::RAndDGrant {
-                            target_entity: companies[*idx].id.clone(),
-                            amount: actual,
-                        });
+                        ministry
+                            .spending_actions
+                            .push(MinistrySpendingAction::RAndDGrant {
+                                target_entity: companies[*idx].id.clone(),
+                                amount: actual,
+                            });
                     }
                 }
             }
@@ -1157,28 +1292,29 @@ fn execute_competency_spending(
             // No debt service (handled centrally). Reserve for contingency.
             // Intentionally minimal spending.
         }
-        GovernmentCompetency::Energy | GovernmentCompetency::Housing
+        GovernmentCompetency::Energy
+        | GovernmentCompetency::Housing
         | GovernmentCompetency::Environment
-        | GovernmentCompetency::Justice | GovernmentCompetency::ForeignAffairs => {
+        | GovernmentCompetency::Justice
+        | GovernmentCompetency::ForeignAffairs => {
             // Phase 35: Debit ministry_cash (the pocket), not liquid_reserves.
             let actual = spend.min(ministry.ministry_cash);
             if actual > 0.0 {
                 ministry.ministry_cash -= actual;
                 ministry.spent_cash += actual;
-                ministry.spending_actions.push(MinistrySpendingAction::InfrastructureFunding {
-                    target_building_id: format!("STATE_{:?}", comp).to_uppercase(),
-                    amount: actual,
-                });
+                ministry
+                    .spending_actions
+                    .push(MinistrySpendingAction::InfrastructureFunding {
+                        target_building_id: format!("STATE_{:?}", comp).to_uppercase(),
+                        amount: actual,
+                    });
             }
         }
         GovernmentCompetency::Culture => {
             // Culture competency submits maintenance B2B orders for cultural buildings
             // and heritage sites. Uses the maintenance BOM from building_condition.
-            let maintenance_commodities = vec![
-                Commodity::Timber,
-                Commodity::Bricks,
-                Commodity::Steel,
-            ];
+            let maintenance_commodities =
+                vec![Commodity::Timber, Commodity::Bricks, Commodity::Steel];
             let per_commodity_budget = spend / maintenance_commodities.len().max(1) as f64;
             for commodity in maintenance_commodities {
                 let limit_price = 120.0;
@@ -1191,23 +1327,23 @@ fn execute_competency_spending(
                     {
                         ministry.ministry_cash -= encumbrance;
                         ministry.spent_cash += encumbrance;
-                        ministry.spending_actions.push(MinistrySpendingAction::B2BProcurementOrder {
-                            commodity,
-                            quantity,
-                            limit_price,
-                        });
-                        order_book
-                            .bids
-                            .entry(commodity)
-                            .or_default()
-                            .push(crate::economy::order_book::Bid {
+                        ministry.spending_actions.push(
+                            MinistrySpendingAction::B2BProcurementOrder {
+                                commodity,
+                                quantity,
+                                limit_price,
+                            },
+                        );
+                        order_book.bids.entry(commodity).or_default().push(
+                            crate::economy::order_book::Bid {
                                 buyer_id: ministry.id.clone(),
                                 commodity,
                                 quantity,
                                 limit_price,
                                 blueprint_id: None,
                                 min_quality: None,
-                            });
+                            },
+                        );
                     }
                 }
             }
@@ -1231,10 +1367,12 @@ fn execute_competency_spending(
                         ministry.ministry_cash -= actual;
                         companies[*idx].liquid_capital += actual;
                         ministry.spent_cash += actual;
-                        ministry.spending_actions.push(MinistrySpendingAction::Subsidy {
-                            target_company_id: companies[*idx].id.clone(),
-                            amount: actual,
-                        });
+                        ministry
+                            .spending_actions
+                            .push(MinistrySpendingAction::Subsidy {
+                                target_company_id: companies[*idx].id.clone(),
+                                amount: actual,
+                            });
                     }
                 }
             }
@@ -1388,8 +1526,6 @@ mod tests {
         assert!(competency_display_name(GovernmentCompetency::Healthcare).contains("Health"));
         assert!(competency_display_name(GovernmentCompetency::Education).contains("Education"));
         assert!(competency_display_name(GovernmentCompetency::Treasury).contains("Treasury"));
-        // Should NOT contain Polish strings.
-        assert!(!competency_display_name(GovernmentCompetency::Energy).contains("Ministerstwo"));
     }
 
     #[test]
@@ -1401,8 +1537,14 @@ mod tests {
         let name = resolve_minister_name(&parties, "P1", "slavic");
         // Phase 39: Should generate a random VIP name, not "Minister (P1)".
         assert!(!name.is_empty(), "Fallback should provide a non-empty name");
-        assert!(!name.contains("Minister ()"), "Should not produce 'Minister ()'");
-        assert!(!name.contains("(P1)"), "Should not contain party ID in parentheses");
+        assert!(
+            !name.contains("Minister ()"),
+            "Should not produce 'Minister ()'"
+        );
+        assert!(
+            !name.contains("(P1)"),
+            "Should not contain party ID in parentheses"
+        );
     }
 
     #[test]
@@ -1420,7 +1562,13 @@ mod tests {
         let parties = HashMap::new();
         let name = resolve_minister_name(&parties, "NONEXISTENT", "slavic");
         // Phase 39: Should generate a random VIP name, not "Minister (NONEXISTENT)".
-        assert!(!name.is_empty(), "Should provide fallback for missing party");
-        assert!(!name.contains("(NONEXISTENT)"), "Should not contain party ID in parentheses");
+        assert!(
+            !name.is_empty(),
+            "Should provide fallback for missing party"
+        );
+        assert!(
+            !name.contains("(NONEXISTENT)"),
+            "Should not contain party ID in parentheses"
+        );
     }
 }

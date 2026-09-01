@@ -122,7 +122,10 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert_eq!(CitizenshipLaw::parse_law("Segregation"), CitizenshipLaw::Segregation);
+        assert_eq!(
+            CitizenshipLaw::parse_law("Segregation"),
+            CitizenshipLaw::Segregation
+        );
         assert_eq!(
             CitizenshipLaw::parse_law("5-Year Assimilation"),
             CitizenshipLaw::CulturalAssimilation

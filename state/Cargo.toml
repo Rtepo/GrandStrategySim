@@ -30,6 +30,13 @@ incremental = true
 [dev-dependencies]
 tempfile = "3.10"
 
+[features]
+default = []
+## Enables the TurnProbe instrumentation in run_turn_in_memory and the
+## CapturingProbe / 6-turn diagnostic harness test. When enabled, the
+## probed entry point `run_turn_in_memory_probed` is exported.
+diagnostic = []
+
 [profile.release]
 opt-level = 3
 lto = true
