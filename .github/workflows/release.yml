@@ -23,6 +23,21 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Verify version sync with tag
+        shell: bash
+        run: |
+          # Strip the leading 'v' from the Git tag to get the expected SemVer.
+          EXPECTED="${GITHUB_REF_NAME#v}"
+          # Read the version from tauri.conf.json (authoritative for the updater).
+          ACTUAL=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "Tag version:   ${EXPECTED}"
+          echo "Config version: ${ACTUAL}"
+          if [ "${EXPECTED}" != "${ACTUAL}" ]; then
+            echo "::error::Version mismatch — tauri.conf.json (${ACTUAL}) does not match tag (${EXPECTED}). Bump the internal version before tagging."
+            exit 1
+          fi
+          echo "Version sync OK."
+
       - name: Install frontend dependencies
         run: npm ci
 
