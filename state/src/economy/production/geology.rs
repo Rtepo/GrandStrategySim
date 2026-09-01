@@ -5,10 +5,150 @@
 //! - Depleting `current_reserves` as resources are extracted.
 //! - Decaying `current_quality` as the deposit is exhausted (economic death spiral).
 //! - Gating deep deposits behind advanced mining technology.
+//!
+//! Phase 93 (Geology Remediation): Added `MiningConcession`, `GeologicalSurveyLedger`,
+//! and `PendingSurvey` types for the concession/licensing system and the fog-of-war
+//! geological discovery loop. The depletion functions are migrated from the legacy
+//! `country.geological_formations` to the authoritative `Planet.veins` system.
 
 use crate::registries::enums::Commodity;
 use crate::society::geography::ResourceDeposit;
+use crate::society::planet::{GeologicalVein, Planet};
 use crate::state::Country;
+use rand::{Rng, SeedableRng};
+use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
+
+/// Phase 93: A government-issued mining concession granting a company the right
+/// to extract from a specific geological vein. Prevents single-company
+/// monopolisation of large deposits.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct MiningConcession {
+    /// The vein ID (or composite_id) this concession grants access to.
+    pub vein_id: String,
+    /// The company holding this concession.
+    pub holder_company_id: String,
+    /// The fee paid for this concession (0.0 for grandfathered genesis concessions).
+    pub fee_paid: f64,
+    /// Whether this concession was grandfathered during world generation
+    /// (historical pre-existing operations that predate the licensing regime).
+    pub grandfathered: bool,
+    /// The turn this concession was issued.
+    pub issued_turn: u32,
+}
+
+/// Phase 93: A pending geological survey initiated by a company to discover
+/// hidden Rare/UltraRare veins. Stored in the decoupled
+/// `GeologicalSurveyLedger` on `Country` to avoid bloating `Company`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PendingSurvey {
+    /// The company funding this survey.
+    pub company_id: String,
+    /// The region being surveyed.
+    pub region_id: String,
+    /// The commodity being searched for.
+    pub target_commodity: Commodity,
+    /// The company-chosen search depth target in meters. If the actual vein's
+    /// depth exceeds this, discovery fails (fog-of-war: company cannot know
+    /// the real depth before discovery).
+    pub target_depth: f64,
+    /// The survey cost paid to the Treasury (sunk cost).
+    pub survey_cost: f64,
+    /// Turns remaining until the survey completes.
+    pub turns_remaining: u32,
+}
+
+/// Phase 93: Decoupled survey ledger stored on `Country`. Maps `company_id`
+/// to a list of active pending surveys. Keeps `Company` struct cache-efficient
+/// (Rule 9) while tracking all active geological surveys.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct GeologicalSurveyLedger {
+    /// Active surveys keyed by company_id.
+    pub surveys: FxHashMap<String, Vec<PendingSurvey>>,
+}
+
+impl GeologicalSurveyLedger {
+    /// Add a new pending survey for a company.
+    pub fn add_survey(&mut self, survey: PendingSurvey) {
+        self.surveys
+            .entry(survey.company_id.clone())
+            .or_default()
+            .push(survey);
+    }
+
+    /// Remove all completed (turns_remaining == 0) surveys for a company,
+    /// returning them for resolution.
+    pub fn drain_completed(&mut self) -> Vec<PendingSurvey> {
+        let mut completed = Vec::new();
+        for surveys in self.surveys.values_mut() {
+            let (done, active): (Vec<_>, Vec<_>) =
+                surveys.drain(..).partition(|s| s.turns_remaining == 0);
+            completed.extend(done);
+            *surveys = active;
+        }
+        // Clean up empty entries.
+        self.surveys.retain(|_, v| !v.is_empty());
+        completed
+    }
+
+    /// Decrement turns_remaining for all active surveys.
+    pub fn tick(&mut self) {
+        for surveys in self.surveys.values_mut() {
+            for survey in surveys.iter_mut() {
+                if survey.turns_remaining > 0 {
+                    survey.turns_remaining -= 1;
+                }
+            }
+        }
+    }
+}
+
+/// Phase 93: Registry of mining concessions stored on `Country`. Maps
+/// `vein_id` to the list of concessions issued for that vein.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct MiningConcessionRegistry {
+    /// Concessions keyed by vein_id.
+    pub concessions: FxHashMap<String, Vec<MiningConcession>>,
+}
+
+impl MiningConcessionRegistry {
+    /// Get all concessions for a specific vein.
+    pub fn concessions_for_vein(&self, vein_id: &str) -> &[MiningConcession] {
+        self.concessions
+            .get(vein_id)
+            .map(|v| v.as_slice())
+            .unwrap_or(&[])
+    }
+
+    /// Count how many concessions a specific company holds for a vein.
+    pub fn company_concession_count(&self, vein_id: &str, company_id: &str) -> usize {
+        self.concessions_for_vein(vein_id)
+            .iter()
+            .filter(|c| c.holder_company_id == company_id)
+            .count()
+    }
+
+    /// Total number of concessions issued for a vein.
+    pub fn total_concessions_for_vein(&self, vein_id: &str) -> usize {
+        self.concessions_for_vein(vein_id).len()
+    }
+
+    /// Add a new concession to the registry.
+    pub fn add_concession(&mut self, concession: MiningConcession) {
+        self.concessions
+            .entry(concession.vein_id.clone())
+            .or_default()
+            .push(concession);
+    }
+
+    /// Remove all concessions held by a company (used on bankruptcy/liquidation).
+    pub fn remove_company_concessions(&mut self, company_id: &str) {
+        for concessions in self.concessions.values_mut() {
+            concessions.retain(|c| c.holder_company_id != company_id);
+        }
+        self.concessions.retain(|_, v| !v.is_empty());
+    }
+}
 
 /// Maximum depth (in meters) that a mining method from a given year can access.
 ///
@@ -183,6 +323,228 @@ pub fn deposit_is_accessible(
     match find_deposit_index(country, deposit_id) {
         Some((_, _, deposit)) => can_access_depth(method_year, deposit.depth),
         None => false,
+    }
+}
+
+// ============================================================================
+// Phase 93: Planet.veins-based geology functions (replacing legacy formations)
+// ============================================================================
+
+/// Phase 93: Find a vein by its deposit_id (which is the vein's `id` or
+/// `composite_id`). Returns a reference to the vein if found.
+pub fn find_vein<'a>(planet: &'a Planet, deposit_id: &str) -> Option<&'a GeologicalVein> {
+    planet.vein_by_id(deposit_id)
+}
+
+/// Phase 93: Get the quality multiplier for a vein, to be applied to mining
+/// output.
+///
+/// Returns 0.0 if the vein is not found, not discovered, or exhausted.
+/// Otherwise returns `vein.quality` (0.0–1.0).
+pub fn vein_quality_multiplier(planet: &Planet, deposit_id: &str) -> f64 {
+    match find_vein(planet, deposit_id) {
+        Some(vein) => {
+            if !vein.discovered || vein.current_reserves <= 0.0 {
+                0.0
+            } else {
+                // Quality decays with depletion, same formula as legacy deposits.
+                compute_current_quality(vein.quality, vein.current_reserves, vein.total_reserves)
+            }
+        }
+        None => 0.0,
+    }
+}
+
+/// Phase 93: Check if a vein is accessible with the given method year
+/// (depth gating).
+///
+/// Returns `false` if the vein is not found or if the method year cannot
+/// reach the vein's depth.
+pub fn vein_is_accessible(planet: &Planet, deposit_id: &str, method_year: u32) -> bool {
+    match find_vein(planet, deposit_id) {
+        Some(vein) => can_access_depth(method_year, vein.depth),
+        None => false,
+    }
+}
+
+/// Phase 93: A single depletion request entry for the batch delta buffer.
+/// Collected during the parallel production pass and applied sequentially
+/// after the parallel pass completes.
+#[derive(Debug, Clone)]
+pub struct DepletionRequest {
+    /// The vein ID (or composite_id) to deplete.
+    pub vein_id: String,
+    /// The requested extraction amount (tons).
+    pub requested_amount: f64,
+}
+
+/// Phase 93: Apply a batch of depletion requests to `Planet.veins` with
+/// **pro-rata clamping** (Rule 5 & 20).
+///
+/// When multiple mines share a single vein and their total requested
+/// extraction exceeds `current_reserves`, the remaining ore is distributed
+/// strictly proportionally based on each mine's requested extraction fraction.
+/// No mine gets full extraction while another gets nothing. The vein is
+/// clamped exactly at `0.0` — never negative.
+///
+/// # Arguments
+/// * `planet` - Mutable planet whose veins will be depleted.
+/// * `requests` - Batch of depletion requests collected during production.
+///
+/// # Returns
+/// A map of `vein_id -> actual_amount_depleted` for each request, so callers
+/// can reconcile the actual extraction against what was requested.
+pub fn apply_depletion_batch(
+    planet: &mut Planet,
+    requests: &[DepletionRequest],
+) -> rustc_hash::FxHashMap<(String, usize), f64> {
+    // Group requests by vein_id, preserving original index for caller reconciliation.
+    let mut by_vein: rustc_hash::FxHashMap<
+        String,
+        Vec<(usize, f64)>,
+    > = rustc_hash::FxHashMap::default();
+
+    for (idx, req) in requests.iter().enumerate() {
+        if req.requested_amount <= 0.0 {
+            continue;
+        }
+        by_vein
+            .entry(req.vein_id.clone())
+            .or_default()
+            .push((idx, req.requested_amount));
+    }
+
+    let mut results: rustc_hash::FxHashMap<(String, usize), f64> =
+        rustc_hash::FxHashMap::default();
+
+    for (vein_id, reqs) in &by_vein {
+        let vein = match planet.vein_by_id_mut(vein_id) {
+            Some(v) => v,
+            None => continue,
+        };
+
+        let total_requested: f64 = reqs.iter().map(|(_, amt)| *amt).sum();
+
+        if total_requested <= 0.0 {
+            continue;
+        }
+
+        if total_requested <= vein.current_reserves {
+            // Enough reserves for all requests — apply directly.
+            for (idx, amt) in reqs {
+                vein.current_reserves -= amt;
+                results.insert((vein_id.clone(), *idx), *amt);
+            }
+        } else {
+            // Pro-rata clamping: distribute remaining reserves proportionally.
+            let share = vein.current_reserves / total_requested;
+            for (idx, amt) in reqs {
+                let actual = amt * share;
+                results.insert((vein_id.clone(), *idx), actual);
+            }
+            // Clamp exactly at 0.0 (Rule 20).
+            vein.current_reserves = 0.0;
+        }
+
+        // Note: vein.quality is the BASE quality and is not modified.
+        // The decayed quality is computed on-the-fly by vein_quality_multiplier
+        // via compute_current_quality(vein.quality, vein.current_reserves, vein.total_reserves).
+    }
+
+    results
+}
+
+/// Phase 93: Resolve completed geological surveys. Called in a turn phase
+/// after `process_companies` and before `CompanyLifecycle::process_lifecycle`.
+///
+/// For each completed survey (turns_remaining == 0):
+/// 1. Look for an undiscovered Rare/UltraRare vein of the target commodity
+///    in the target region.
+/// 2. **Fog-of-war depth gate (Rule 11 & 16)**: If the company's chosen
+///    `target_depth` is shallower than the actual hidden vein's `depth`,
+///    the discovery fails — the scan didn't reach deep enough.
+/// 3. If `target_depth >= vein.depth`, discovery probability is a function
+///    of `rarity_tier`, the company's available method year, and the survey
+///    cost spent.
+/// 4. On success, set `GeologicalVein::discovered = true`.
+/// 5. On failure, the cash remains in the Treasury (sunk cost) and the
+///    company learns nothing about the actual vein.
+///
+/// # Arguments
+/// * `planet` - Mutable planet whose veins may be discovered.
+/// * `ledger` - Mutable survey ledger on Country. Completed surveys are drained.
+/// * `year` - Current in-game year (for method year / technology gating).
+pub fn resolve_geological_surveys(
+    planet: &mut Planet,
+    ledger: &mut GeologicalSurveyLedger,
+    year: u32,
+) {
+    // Tick all active surveys (decrement turns_remaining).
+    ledger.tick();
+
+    // Drain completed surveys for resolution.
+    let completed = ledger.drain_completed();
+
+    for survey in &completed {
+        // Find undiscovered veins of the target commodity in the target region.
+        let hidden_vein_indices = planet
+            .undiscovered_vein_indices_for_region_and_commodity(
+                &survey.region_id,
+                survey.target_commodity,
+            );
+
+        if hidden_vein_indices.is_empty() {
+            // No hidden vein of this commodity in this region — survey fails.
+            continue;
+        }
+
+        // Try to discover each hidden vein (may find multiple, but typically
+        // a survey reveals one vein at most).
+        for vein_idx in hidden_vein_indices {
+            // Fog-of-war depth gate: if the scan didn't go deep enough, fail.
+            if survey.target_depth < planet.veins[vein_idx].depth {
+                // Scan too shallow — this vein is not revealed.
+                continue;
+            }
+
+            // Discovery probability based on rarity tier and survey investment.
+            // Higher rarity = harder to find. Higher survey cost = better odds.
+            let base_probability = match planet.veins[vein_idx].rarity_tier {
+                crate::society::planet::RarityTier::UltraRare => 0.15,
+                crate::society::planet::RarityTier::Rare => 0.30,
+                _ => 0.50,
+            };
+
+            // Technology bonus: more advanced method years improve odds.
+            let tech_bonus = ((year as f64 - 1900.0) / 200.0).clamp(0.0, 0.3);
+
+            // Investment bonus: higher survey cost relative to average_wage
+            // proxy improves odds (capped at +0.2).
+            let investment_bonus = (survey.survey_cost / 1_000_000.0).clamp(0.0, 0.2);
+
+            let discovery_probability = (base_probability + tech_bonus + investment_bonus).clamp(0.0, 0.95);
+
+            // Deterministic RNG from survey + vein for reproducibility.
+            use std::collections::hash_map::DefaultHasher;
+            use std::hash::{Hash, Hasher};
+            let mut hasher = DefaultHasher::new();
+            survey.company_id.hash(&mut hasher);
+            survey.region_id.hash(&mut hasher);
+            survey.target_commodity.hash(&mut hasher);
+            planet.veins[vein_idx].id.hash(&mut hasher);
+            year.hash(&mut hasher);
+            let seed = hasher.finish();
+
+            let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
+            let roll: f64 = rng.gen();
+
+            if roll < discovery_probability {
+                // Discovery! Mark the vein as discovered.
+                planet.veins[vein_idx].discovered = true;
+                // Only discover one vein per survey (break after first success).
+                break;
+            }
+        }
     }
 }
 

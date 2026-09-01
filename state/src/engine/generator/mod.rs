@@ -435,6 +435,8 @@ fn generate_country(
         religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
         generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
         geological_formations: Vec::new(),
+        mining_concessions: crate::economy::production::geology::MiningConcessionRegistry::default(),
+        geological_survey_ledger: crate::economy::production::geology::GeologicalSurveyLedger::default(),
         phase22_tenders: Vec::new(),
         phase22_lawsuits: Vec::new(),
         phase22_kio_appeals: Vec::new(),

@@ -514,6 +514,16 @@ pub struct Country {
     /// Phase 21A: Geological formations with finite, depletable resource deposits.
     #[serde(default)]
     pub geological_formations: Vec<crate::society::geography::GeologicalFormation>,
+    /// Phase 93: Mining concession registry — tracks government-issued
+    /// concessions granting companies the right to extract from specific
+    /// geological veins. Prevents single-company monopolisation.
+    #[serde(default)]
+    pub mining_concessions: crate::economy::production::geology::MiningConcessionRegistry,
+    /// Phase 93: Geological survey ledger — tracks active pending surveys
+    /// funded by companies to discover hidden Rare/UltraRare veins.
+    /// Decoupled from `Company` for cache efficiency (Rule 9).
+    #[serde(default)]
+    pub geological_survey_ledger: crate::economy::production::geology::GeologicalSurveyLedger,
     /// Phase 22A: Active construction tenders awaiting bid submission/award.
     #[serde(default)]
     pub phase22_tenders: Vec<crate::construction::ConstructionTender>,
@@ -709,6 +719,8 @@ impl Country {
             religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
             generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
             geological_formations: Vec::new(),
+            mining_concessions: crate::economy::production::geology::MiningConcessionRegistry::default(),
+            geological_survey_ledger: crate::economy::production::geology::GeologicalSurveyLedger::default(),
             phase22_tenders: Vec::new(),
             phase22_lawsuits: Vec::new(),
             phase22_kio_appeals: Vec::new(),
@@ -1079,6 +1091,8 @@ impl CountryBuilder {
             religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
             generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
             geological_formations: Vec::new(),
+            mining_concessions: crate::economy::production::geology::MiningConcessionRegistry::default(),
+            geological_survey_ledger: crate::economy::production::geology::GeologicalSurveyLedger::default(),
             phase22_tenders: Vec::new(),
             phase22_lawsuits: Vec::new(),
             phase22_kio_appeals: Vec::new(),

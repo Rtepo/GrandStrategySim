@@ -13,7 +13,8 @@
 //! - Regions query the `Planet` for veins intersecting their territory.
 
 use crate::registries::enums::Commodity;
-use rand::Rng;
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
 
 /// Rarity tier for geological veins. Controls global vein count and reserve size.
@@ -311,10 +312,18 @@ impl Planet {
     /// minerals (Iron, Coal, Stone, Sand, Limestone, etc.). Rare and UltraRare
     /// veins remain hidden and are not affected by this method.
     ///
+    /// Phase 93 (Geology Remediation): The old modulo-based hash sizing
+    /// produced cloned reserve values across regions (e.g. Peat always
+    /// spawning at exactly 1.22B). This is replaced by a per-region-commodity
+    /// seeded PRNG (`StdRng::seed_from_u64`) with heavy-tailed distributions
+    /// so deposits fluctuate radically between regions while remaining
+    /// fully deterministic and reproducible.
+    ///
     /// # Arguments
     /// * `populated_regions` - Slice of (region_id, lat, lon) tuples for
     ///   regions with population > 0.
-    /// * `rng` - Random number generator for deterministic generation.
+    /// * `_rng` - Unused (kept for API compatibility); per-vein randomness
+    ///   is seeded deterministically from the region-commodity hash.
     pub fn ensure_base_industrial_veins_per_region<R: Rng>(
         &mut self,
         populated_regions: &[(String, f64, f64)],
@@ -338,6 +347,19 @@ impl Planet {
             let mut hasher = DefaultHasher::new();
             region_id.hash(&mut hasher);
             commodity.hash(&mut hasher);
+            hasher.finish()
+        }
+
+        /// Deterministic hash for (region_id, commodity, salt) → u64.
+        /// Used to seed independent randomness streams for reserves, quality,
+        /// and depth so they are statistically independent.
+        fn region_commodity_salt_hash(region_id: &str, commodity: Commodity, salt: u64) -> u64 {
+            use std::collections::hash_map::DefaultHasher;
+            use std::hash::{Hash, Hasher};
+            let mut hasher = DefaultHasher::new();
+            region_id.hash(&mut hasher);
+            commodity.hash(&mut hasher);
+            salt.hash(&mut hasher);
             hasher.finish()
         }
 
@@ -374,13 +396,33 @@ impl Planet {
                     continue; // This region doesn't have this commodity
                 }
 
-                // Scale reserves/quality/depth by region-specific hash factor.
+                // Phase 93: Seed independent PRNGs for reserves, quality, depth.
+                // Heavy-tailed distributions produce radical variance between
+                // regions while remaining fully deterministic.
                 let (min_reserves, max_reserves) = tier.reserve_range();
-                let reserve_factor = 0.5 + (h % 100) as f64 / 100.0 * 0.5; // 0.5–1.0
-                let reserve_range = max_reserves - min_reserves;
-                let total_reserves = min_reserves + reserve_range * reserve_factor;
-                let quality = 0.3 + (h / 100 % 100) as f64 / 100.0 * 0.7; // 0.3–1.0
-                let depth = 50.0 + (h / 10000 % 100) as f64 / 100.0 * 1950.0; // 50–2000
+
+                // Reserves: heavy-tailed via powf(0.4) — most deposits small,
+                // occasional bonanzas. Full range [min, max] is accessible.
+                let mut reserves_rng =
+                    StdRng::seed_from_u64(region_commodity_salt_hash(region_id, commodity, 1));
+                let reserve_uniform = reserves_rng.gen::<f64>(); // 0.0–1.0
+                let reserve_factor = reserve_uniform.powf(0.4); // heavy-tailed
+                let total_reserves = min_reserves + (max_reserves - min_reserves) * reserve_factor;
+
+                // Quality: independent stream. Range 0.1–1.0 with heavy tail
+                // toward lower quality (most deposits are mediocre).
+                let mut quality_rng =
+                    StdRng::seed_from_u64(region_commodity_salt_hash(region_id, commodity, 2));
+                let quality_uniform = quality_rng.gen::<f64>();
+                let quality = 0.1 + quality_uniform.powf(0.6) * 0.9; // 0.1–1.0
+
+                // Depth: independent stream. Range 20–2500m with heavy tail
+                // toward shallower deposits (most are near-surface).
+                let mut depth_rng =
+                    StdRng::seed_from_u64(region_commodity_salt_hash(region_id, commodity, 3));
+                let depth_uniform = depth_rng.gen::<f64>();
+                let depth = 20.0 + depth_uniform.powf(0.5) * 2480.0; // 20–2500
+
                 let extraction_cost = 1.0 + (depth / 1000.0) + (1.0 - quality) * 0.5;
 
                 let vein_id = format!("VEIN-{:04}", self.veins.len() + 1);
@@ -419,12 +461,25 @@ impl Planet {
                     continue; // This region doesn't have this industrial commodity
                 }
 
+                // Phase 93: Same heavy-tailed variance as ubiquitous.
                 let (min_reserves, max_reserves) = tier.reserve_range();
-                let reserve_factor = 0.5 + (h % 100) as f64 / 100.0 * 0.5;
-                let reserve_range = max_reserves - min_reserves;
-                let total_reserves = min_reserves + reserve_range * reserve_factor;
-                let quality = 0.3 + (h / 100 % 100) as f64 / 100.0 * 0.7;
-                let depth = 50.0 + (h / 10000 % 100) as f64 / 100.0 * 1950.0;
+
+                let mut reserves_rng =
+                    StdRng::seed_from_u64(region_commodity_salt_hash(region_id, commodity, 1));
+                let reserve_uniform = reserves_rng.gen::<f64>();
+                let reserve_factor = reserve_uniform.powf(0.4);
+                let total_reserves = min_reserves + (max_reserves - min_reserves) * reserve_factor;
+
+                let mut quality_rng =
+                    StdRng::seed_from_u64(region_commodity_salt_hash(region_id, commodity, 2));
+                let quality_uniform = quality_rng.gen::<f64>();
+                let quality = 0.1 + quality_uniform.powf(0.6) * 0.9;
+
+                let mut depth_rng =
+                    StdRng::seed_from_u64(region_commodity_salt_hash(region_id, commodity, 3));
+                let depth_uniform = depth_rng.gen::<f64>();
+                let depth = 20.0 + depth_uniform.powf(0.5) * 2480.0;
+
                 let extraction_cost = 1.0 + (depth / 1000.0) + (1.0 - quality) * 0.5;
 
                 let vein_id = format!("VEIN-{:04}", self.veins.len() + 1);
@@ -483,6 +538,44 @@ impl Planet {
             .iter()
             .map(|v| v.current_reserves)
             .sum()
+    }
+
+    /// Phase 93: Get indices of all undiscovered veins of a specific commodity
+    /// overlapping a given region. Used by the geological survey resolution
+    /// phase to find hidden Rare/UltraRare deposits that a survey can reveal.
+    /// Returns indices (not references) so the caller can mutate the planet
+    /// while iterating.
+    pub fn undiscovered_vein_indices_for_region_and_commodity(
+        &self,
+        region_id: &str,
+        commodity: Commodity,
+    ) -> Vec<usize> {
+        self.veins
+            .iter()
+            .enumerate()
+            .filter(|(_, v)| {
+                !v.discovered
+                    && v.commodity == commodity
+                    && v.overlapping_regions.iter().any(|r| r == region_id)
+            })
+            .map(|(idx, _)| idx)
+            .collect()
+    }
+
+    /// Phase 93: Find a vein by its ID (or composite_id).
+    pub fn vein_by_id(&self, vein_id: &str) -> Option<&GeologicalVein> {
+        self.veins.iter().find(|v| {
+            v.id == vein_id
+                || v.composite_id.as_deref() == Some(vein_id)
+        })
+    }
+
+    /// Phase 93: Find a mutable vein by its ID (or composite_id).
+    pub fn vein_by_id_mut(&mut self, vein_id: &str) -> Option<&mut GeologicalVein> {
+        self.veins.iter_mut().find(|v| {
+            v.id == vein_id
+                || v.composite_id.as_deref() == Some(vein_id)
+        })
     }
 }
 

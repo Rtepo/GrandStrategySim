@@ -122,6 +122,19 @@ pub enum CorporateAction {
         /// Set by labor law; 0.0 means no pay during furlough.
         wage_fraction: f64,
     },
+    /// Phase 93: Fund a geological survey to search for hidden Rare/UltraRare
+    /// veins in a region. The company chooses a `target_depth` (the maximum
+    /// depth it is willing to scan). If the actual vein's depth exceeds this,
+    /// discovery fails (fog-of-war: the company cannot know the real depth
+    /// before discovery). The survey cost is paid to the State Treasury.
+    GeologicalSurvey {
+        /// The region to survey.
+        region_id: String,
+        /// The commodity to search for.
+        commodity: crate::registries::enums::Commodity,
+        /// The company-chosen search depth target in meters.
+        target_depth: f64,
+    },
 }
 
 /// Source of expansion financing.
@@ -239,6 +252,16 @@ impl CorporateStrategy for LegalForm {
                 return furlough;
             }
             return self.evaluate_restructure(ctx);
+        }
+
+        // Phase 93: Mining companies may fund geological surveys to discover
+        // hidden Rare/UltraRare veins. Evaluated before expansion because
+        // finding a new deposit is a prerequisite for expansion.
+        if ctx.company.sector == Sector::Mining {
+            let survey = evaluate_geological_survey(ctx);
+            if !matches!(survey, CorporateAction::Idle) {
+                return survey;
+            }
         }
 
         // Prioritize expansion over dividends to match original behavior
@@ -1012,6 +1035,80 @@ fn logistics_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
         investment,
         new_workers,
         finance: FinanceSource::Internal,
+    }
+}
+
+/// Phase 93: Evaluate whether a mining company should fund a geological survey
+/// to discover hidden Rare/UltraRare veins.
+///
+/// A mining company should consider a survey when:
+/// - It has cash above a safety buffer (can afford the sunk cost).
+/// - Its current deposit is depleting (current_reserves / total_reserves < 0.5)
+///   or output quality is falling.
+/// - It is in the Mining sector.
+///
+/// The AI chooses `target_depth` based on its current method year's
+/// `max_depth_for_method_year` (it knows what depth its technology can
+/// realistically exploit).
+///
+/// Returns `CorporateAction::GeologicalSurvey` if a survey is warranted,
+/// or `CorporateAction::Idle` otherwise.
+fn evaluate_geological_survey(ctx: &CorporateDecisionCtx) -> CorporateAction {
+    // Only mining companies survey.
+    if ctx.company.sector != Sector::Mining {
+        return CorporateAction::Idle;
+    }
+
+    // Must have positive cash above a safety buffer.
+    // The safety buffer is 6 months of wages (TURNS_PER_YEAR / 4 turns).
+    let payroll = ctx.company.fulfilled_fte as f64 * ctx.company.offered_wage_per_fte;
+    let safety_buffer = payroll * 6.0;
+    let available = ctx.company.brokerage_account
+        .as_ref()
+        .map(|ba| ba.cash.max(0.0))
+        .unwrap_or(ctx.company.available_cash.max(0.0));
+
+    if available <= safety_buffer * 2.0 {
+        // Not enough cash to risk on a survey.
+        return CorporateAction::Idle;
+    }
+
+    // Determine the company's region.
+    let region_id = ctx.company.region_id.clone();
+
+    // Check if the company has a depleting deposit.
+    // We check the company's buildings' deposit_id and look up the vein
+    // via the country's geological_formations (legacy) since we don't have
+    // Planet access in this context. If the deposit is depleting, survey.
+    //
+    // Since we don't have direct access to the Planet here, we use a simpler
+    // heuristic: if the company's fulfillment ratio is low (indicating
+    // declining production, possibly due to depletion), consider surveying.
+    if ctx.avg_fulfillment_ratio > 0.5 {
+        // Production is still healthy — no urgent need to survey.
+        return CorporateAction::Idle;
+    }
+
+    // Choose target_depth based on the current year's technology.
+    // The company surveys to the depth its technology can exploit.
+    let target_depth = crate::economy::production::geology::max_depth_for_method_year(ctx.year);
+
+    // Choose a commodity to search for: prefer Rare/UltraRare commodities
+    // that the company's region is likely to have. Since we don't have Planet
+    // access, we cycle through Rare/UltraRare commodities deterministically
+    // based on the current turn.
+    let rare_commodities = [
+        crate::registries::enums::Commodity::Uranium,
+        crate::registries::enums::Commodity::Gold,
+        crate::registries::enums::Commodity::Silver,
+        crate::registries::enums::Commodity::Tin,
+    ];
+    let commodity = rare_commodities[ctx.current_turn as usize % rare_commodities.len()];
+
+    CorporateAction::GeologicalSurvey {
+        region_id,
+        commodity,
+        target_depth,
     }
 }
 

@@ -373,7 +373,7 @@ pub fn process_building_cycle(
     result
 }
 
-/// Phase 21A: Process a building's production cycle with geological deposit physics.
+/// Phase 21A/93: Process a building's production cycle with geological deposit physics.
 ///
 /// This wraps `process_building_cycle` with deposit depletion logic for mining
 /// buildings. For non-mining buildings, it delegates directly to the base function.
@@ -384,16 +384,24 @@ pub fn process_building_cycle(
 /// * The deposit's `current_reserves` are depleted by the extracted amount.
 /// * Depth gating: if the active method's year cannot reach the deposit's depth,
 ///   output is reduced to a small "surface scatter" fraction.
-/// * Depletion is applied **synchronously and in-place** on `country.geological_formations`.
-///   This is thread-safe because each rayon task has exclusive `&mut Country` access.
+///
+/// Phase 93: When `planet` is provided, uses the authoritative `Planet.veins`
+/// system for quality/depth lookups and collects depletion requests into the
+/// `depletion_buffer` for pro-rata batch application after the parallel pass.
+/// When `planet` is `None`, falls back to the legacy `country.geological_formations`
+/// system with synchronous in-place depletion (backward compatibility).
 ///
 /// # Arguments
 /// * `building` - Mutable building state.
-/// * `country` - Mutable country (for deposit depletion on `geological_formations`).
+/// * `country` - Mutable country (for legacy deposit depletion).
+/// * `planet` - Optional immutable Planet for vein-based geology (Phase 93).
+/// * `depletion_buffer` - Optional buffer to collect depletion requests (Phase 93).
 /// * All other arguments same as `process_building_cycle`.
 pub fn process_building_cycle_with_geology(
     building: &mut Building,
     country: &mut Country,
+    planet: Option<&crate::society::planet::Planet>,
+    mut depletion_buffer: Option<&mut Vec<crate::economy::production::geology::DepletionRequest>>,
     market_orders: &mut MarketOrders,
     market_prices: &HashMap<Commodity, f64>,
     base_wage: f64,
@@ -425,11 +433,21 @@ pub fn process_building_cycle_with_geology(
     let method = resolve_active_method(building, current_year, registries);
     building.active_method = method.clone();
 
-    // Depth gating: check if the method can access the deposit's depth.
-    let depth_accessible = geology::deposit_is_accessible(country, &deposit_id, method.year);
-
-    // Quality multiplier from the deposit's current quality.
-    let quality_mult = geology::deposit_quality_multiplier(country, &deposit_id);
+    // Phase 93: Use vein-based geology if Planet is available, otherwise legacy.
+    let (depth_accessible, quality_mult) = if let Some(planet) = planet {
+        let depth_ok = crate::economy::production::geology::vein_is_accessible(
+            planet, &deposit_id, method.year,
+        );
+        let quality = crate::economy::production::geology::vein_quality_multiplier(
+            planet, &deposit_id,
+        );
+        (depth_ok, quality)
+    } else {
+        // Legacy fallback: use country.geological_formations.
+        let depth_ok = geology::deposit_is_accessible(country, &deposit_id, method.year);
+        let quality = geology::deposit_quality_multiplier(country, &deposit_id);
+        (depth_ok, quality)
+    };
 
     // If the deposit is inaccessible (depth too great) or exhausted, reduce output drastically.
     let output_multiplier = if !depth_accessible {
@@ -469,9 +487,17 @@ pub fn process_building_cycle_with_geology(
         // Apply deposit quality/depth multiplier to output.
         let amount = amount_per_1k * production_scale * output_multiplier;
 
-        // Deplete the deposit by the extracted amount (synchronous, in-place).
         if amount > 0.0 && depth_accessible {
-            geology::deplete_deposit(country, &deposit_id, amount);
+            if let Some(ref mut buf) = depletion_buffer {
+                // Phase 93: Collect depletion request for batch pro-rata application.
+                buf.push(crate::economy::production::geology::DepletionRequest {
+                    vein_id: deposit_id.clone(),
+                    requested_amount: amount,
+                });
+            } else if planet.is_none() {
+                // Legacy fallback: deplete synchronously in-place.
+                geology::deplete_deposit(country, &deposit_id, amount);
+            }
         }
 
         let price = price_for(output_name, market_prices, base_wage, false);

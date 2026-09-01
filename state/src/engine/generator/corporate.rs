@@ -222,6 +222,23 @@ pub fn generate_corporate_entities(
     // all_companies/all_buildings.
     let mut seed_by_sector: HashMap<String, Vec<Company>> = HashMap::new();
     for (company, building) in seed_entities {
+        // Phase 93: Register grandfathered mining concessions for seed mines.
+        // Genesis concessions are fee-waived to prevent Turn 0 bankruptcy.
+        if company.sector == Sector::Mining {
+            if let Some(ref vein_id) = building.deposit_id {
+                if !vein_id.is_empty() {
+                    country.mining_concessions.add_concession(
+                        crate::economy::production::geology::MiningConcession {
+                            vein_id: vein_id.clone(),
+                            holder_company_id: company.id.clone(),
+                            fee_paid: 0.0,
+                            grandfathered: true,
+                            issued_turn: 0,
+                        },
+                    );
+                }
+            }
+        }
         let sname = sector_json_name(company.sector);
         seed_by_sector.entry(sname).or_default().push(company.clone());
         all_companies.push(company);
@@ -2367,15 +2384,22 @@ fn seed_minimum_viable_supply_chain(
     result
 }
 
-/// Phase 27/88: Spawn geology-based mining companies for a region.
+/// Phase 27/88/93: Spawn geology-based mining companies for a region.
 ///
 /// Phase 88: Now queries the Planet's `GeologicalVein` system instead of the
 /// deprecated `GeologicalFormation` system. For each vein overlapping this
 /// region, finds the best available mining method that outputs the vein's
 /// commodity and spawns a small mining company bound to the vein ID.
 /// If no veins exist for a region, spawns one fallback coal mine.
+///
+/// Phase 93 (Geology Remediation): Replaced the hard-coded `max_mines = 8` and
+/// `min_workers = 150` with a dynamic mine allocation formula that scales based
+/// on `vein.total_reserves`, `region.development_level`, `region.population`,
+/// and the local mining company density. Multiple mines can now share a single
+/// vein (concession system). Genesis concessions are grandfathered (fee waived)
+/// to prevent Turn 0 bankruptcy.
 fn seed_geology_based_mines(
-    _country: &Country,
+    country: &Country,
     region: &Region,
     planet: &Planet,
     start_year: u32,
@@ -2384,13 +2408,19 @@ fn seed_geology_based_mines(
     rng: &mut impl Rng,
 ) -> Vec<(Company, Building)> {
     let mut result = Vec::new();
+    let average_wage = country.macro_indicators.average_wage.max(1.0);
 
-    // Phase 88: Collect ALL veins overlapping this region from the Planet.
-    // Each vein becomes a potential mining company, capped at 5 per region.
-    let region_veins = planet.veins_for_region(&region.id);
+    // Phase 88: Collect ALL discovered veins overlapping this region.
+    // Phase 93: Only discovered veins are eligible for mine seeding
+    // (fog-of-war: hidden Rare/UltraRare veins require geological survey).
+    let region_veins: Vec<&crate::society::planet::GeologicalVein> = planet
+        .veins_for_region(&region.id)
+        .into_iter()
+        .filter(|v| v.discovered)
+        .collect();
 
     if region_veins.is_empty() {
-        // No veins in this region — spawn one fallback coal mine so the
+        // No discovered veins in this region — spawn one fallback coal mine so the
         // sector isn't completely absent. This mine will have low output.
         let (company, mut building) = create_seed_company_with_method_name(
             Sector::Mining,
@@ -2409,29 +2439,87 @@ fn seed_geology_based_mines(
         return result;
     }
 
-    // Phase 43/88/90: Cap at 8 mining companies per region to avoid entity
-    // explosion while covering the diverse base industrial veins guaranteed
-    // by ensure_base_industrial_veins_per_region.
-    let max_mines = 8;
-    for vein in region_veins.iter().take(max_mines) {
-        let method_name = mining_method_name_for_commodity(vein.commodity);
-        let min_workers = 150u32; // Small mines — keep entity count manageable.
+    // Phase 93: Dynamic mine allocation per vein.
+    // The number of mines per vein scales based on:
+    // - vein.total_reserves (larger deposits support more mines)
+    // - region.development_level (more developed regions have more entrepreneurs)
+    // - region.population (more people = more mining workforce)
+    // - mining_company_density (avoid over-saturating with mining firms)
+    //
+    // Genesis concessions are grandfathered (fee_paid = 0.0) to prevent
+    // Turn 0 bankruptcy. Post-genesis concessions pay a dynamic fee.
 
-        let (company, mut building) = create_seed_company_with_method_name(
-            Sector::Mining,
-            region,
-            min_workers,
-            start_year,
-            registries,
-            idgen,
-            rng,
-            method_name,
-        );
-        // Phase 88: Bind to the vein ID (or composite_id if merged).
-        building.deposit_id = Some(
-            vein.composite_id.clone().unwrap_or_else(|| vein.id.clone())
-        );
-        result.push((company, building));
+    let target_workers = target_workers_per_company(
+        Sector::Mining,
+        start_year,
+        region,
+        average_wage,
+    ).max(50.0); // Floor to avoid 0-worker mines
+
+    let min_capital = crate::corporate::capital_intensity::minimum_capital_for_sector(
+        &Sector::Mining,
+        average_wage,
+    );
+    let reserve_per_mine_target = (min_capital / average_wage) * 100.0; // Tons per mine
+
+    // Estimate regional mining workforce (fraction of population in mining).
+    let regional_workforce = (region.population as f64 * 0.02).max(50.0);
+    let max_mines_by_workforce = (regional_workforce / target_workers).max(1.0) as usize;
+
+    // Count existing mining companies in this region (density).
+    // Since we're in genesis, this starts at 0 and grows as we spawn.
+    let mut mining_company_count = 0usize;
+
+    for vein in &region_veins {
+        // Concessions for this vein: how many mines can it support?
+        let concessions_for_vein = ((vein.total_reserves / reserve_per_mine_target).ceil()
+            as usize)
+            .clamp(1, max_mines_by_workforce);
+
+        // Economic mines: scale with development and population, dampened by
+        // existing mining density (anti-monopoly: don't let one region
+        // become nothing but mines).
+        let dev_factor = 0.5 + region.development_level * 0.5; // 0.5–1.0
+        let pop_factor = (region.population as f64 / 1_000_000.0).max(0.1).min(2.0);
+        let density_dampener = 1.0 / (1.0 + mining_company_count as f64 * 0.3);
+
+        let economic_mines = ((concessions_for_vein as f64
+            * dev_factor
+            * pop_factor
+            * density_dampener)
+            .ceil() as usize)
+            .clamp(1, concessions_for_vein);
+
+        let vein_id = vein
+            .composite_id
+            .clone()
+            .unwrap_or_else(|| vein.id.clone());
+        let method_name = mining_method_name_for_commodity(vein.commodity);
+
+        for _ in 0..economic_mines {
+            let min_workers = target_workers.round() as u32;
+            let min_workers = min_workers.max(50); // Physical floor
+
+            let (company, mut building) = create_seed_company_with_method_name(
+                Sector::Mining,
+                region,
+                min_workers,
+                start_year,
+                registries,
+                idgen,
+                rng,
+                method_name,
+            );
+            // Phase 88: Bind to the vein ID (or composite_id if merged).
+            building.deposit_id = Some(vein_id.clone());
+
+            // Phase 93: Record grandfathered concession (fee waived at genesis).
+            // The concession registry is on Country, but we don't have &mut Country
+            // here. Concessions are registered post-spawn in generate_region_companies.
+            // We store the vein_id on the building for later concession registration.
+            result.push((company, building));
+            mining_company_count += 1;
+        }
     }
 
     result

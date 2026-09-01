@@ -799,6 +799,7 @@ pub fn process_company(
         CorporateAction::Restructure { .. } => Some("Restructure"),
         CorporateAction::Furlough { .. } => Some("Furlough"),
         CorporateAction::Ipo { .. } => Some("Ipo"),
+        CorporateAction::GeologicalSurvey { .. } => Some("GeologicalSurvey"),
         _ => None,
     };
     if let Some(action_str) = action_type_str {
@@ -1098,6 +1099,85 @@ fn apply_action(
             // Phase 24A.9: Halt production temporarily (no capacity destruction).
             // The actual halting happens in process_companies post-pass.
             country.halt_queue.push((company.id.clone(), building_id));
+        }
+        CorporateAction::GeologicalSurvey { region_id, commodity, target_depth } => {
+            // Phase 93: Fund a geological survey to discover hidden Rare/UltraRare
+            // veins. The survey cost is paid to the State Treasury via double-entry
+            // accounting (no cash destroyed — Rule 1).
+            //
+            // The cost is computed dynamically from macroeconomic variables:
+            // - average_wage (inflation index)
+            // - target_workers_per_company (mining sector capital intensity)
+            // - region area (proxy: arable_land_max in hectares)
+            // - rarity_multiplier (Rare/UltraRare are harder to find)
+            // - target_depth (deeper scans cost more — company chooses this)
+            //
+            // The survey is added to the Country's GeologicalSurveyLedger and
+            // resolved in a later turn phase (resolve_geological_surveys).
+            let average_wage = country.macro_indicators.average_wage.max(1.0);
+
+            // Find the region to get area data.
+            let region_area_hectares = country.regions.iter()
+                .find(|r| r.id == region_id)
+                .map(|r| r.arable_land_max.max(100) as f64)
+                .unwrap_or(1000.0);
+
+            // Rarity multiplier: Rare = 2.0, UltraRare = 5.0 (harder to find).
+            let rarity_multiplier = match commodity {
+                crate::registries::enums::Commodity::Uranium
+                | crate::registries::enums::Commodity::Gold => 5.0,
+                crate::registries::enums::Commodity::Silver
+                | crate::registries::enums::Commodity::Tin => 2.0,
+                _ => 1.0,
+            };
+
+            // Dynamic survey cost (no magic numbers — Rule 2).
+            let min_capital = crate::corporate::capital_intensity::minimum_capital_for_sector(
+                &crate::registries::enums::Sector::Mining,
+                average_wage,
+            );
+            let target_workers = (min_capital / average_wage)
+                / crate::state::macro_data::TURNS_PER_YEAR as f64;
+            let survey_cost = average_wage
+                * target_workers
+                * (region_area_hectares / 1000.0)
+                * rarity_multiplier
+                * (target_depth / 1000.0);
+
+            // Check if the company can afford the survey.
+            let available = company.brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash.max(0.0))
+                .unwrap_or(company.available_cash.max(0.0));
+
+            if survey_cost > available {
+                // Cannot afford — skip the survey (rational actor: don't start
+                // what you can't pay for).
+                return;
+            }
+
+            // Pay the survey cost to the State Treasury (double-entry: Rule 1).
+            // Debit company cash, credit Treasury liquid_reserves.
+            if let Some(ba) = &mut company.brokerage_account {
+                ba.cash -= survey_cost;
+            } else {
+                company.available_cash -= survey_cost;
+            }
+            country.budget.liquid_reserves += survey_cost;
+
+            // Add the pending survey to the decoupled ledger on Country.
+            // Survey duration: 2–4 turns based on depth (deeper = longer).
+            let turns_remaining = ((target_depth / 500.0).ceil() as u32).clamp(2, 4);
+            country.geological_survey_ledger.add_survey(
+                crate::economy::production::geology::PendingSurvey {
+                    company_id: company.id.clone(),
+                    region_id: region_id.clone(),
+                    target_commodity: commodity,
+                    target_depth,
+                    survey_cost,
+                    turns_remaining,
+                },
+            );
         }
     }
 }

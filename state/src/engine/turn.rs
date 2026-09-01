@@ -164,6 +164,14 @@ struct CountryTask<'a> {
     /// so the State Employer post-clearing debit must be reduced by this amount
     /// to avoid double-debiting.
     ministry_public_service_pool: f64,
+    /// Phase 93: Immutable Planet reference for vein-based geology lookups
+    /// during the parallel production pass. Depletion is collected into
+    /// `depletion_buffer` and applied sequentially after the parallel pass.
+    planet: &'a crate::society::planet::Planet,
+    /// Phase 93: Per-country depletion request buffer. Collected during the
+    /// parallel production pass and applied to `state.planet` sequentially
+    /// with pro-rata clamping after the parallel pass completes.
+    depletion_buffer: Vec<crate::economy::production::geology::DepletionRequest>,
 }
 
 /// Run a turn using in-memory context. NO disk I/O.
@@ -224,6 +232,11 @@ pub fn run_turn_in_memory(
             &turn_config,
         );
 
+        // Phase 93: Borrow Planet immutably before the mutable countries iteration
+        // to satisfy the borrow checker (cannot have &state.planet and &mut state.countries
+        // simultaneously without split borrowing).
+        let planet_ref = &state.planet;
+
         let mut tasks: Vec<CountryTask> = state
             .countries
             .iter_mut()
@@ -265,6 +278,8 @@ pub fn run_turn_in_memory(
                     imputed_consumption: 0.0,
                     state_employer_idx: None,
                     ministry_public_service_pool: 0.0,
+                    planet: planet_ref,
+                    depletion_buffer: Vec::new(),
                 }
             })
             .collect();
@@ -381,6 +396,8 @@ pub fn run_turn_in_memory(
                 process_building_cycle_with_geology(
                     building,
                     task.ctx.country,
+                    Some(task.planet),
+                    Some(&mut task.depletion_buffer),
                     &mut task.orders,
                     &market.base_prices,
                     base_wage,
@@ -5071,6 +5088,15 @@ pub fn run_turn_in_memory(
             );
         });
 
+        // Phase 93: Collect depletion buffers from all tasks before they are
+        // consumed. These will be applied to state.planet after tasks are dropped
+        // (releasing the immutable &state.planet borrow).
+        let mut all_depletion_requests: Vec<crate::economy::production::geology::DepletionRequest> =
+            Vec::new();
+        for task in &mut tasks {
+            all_depletion_requests.append(&mut task.depletion_buffer);
+        }
+
         // Collect entities back from tasks into ctx.entities format.
         for task in tasks {
             let name = task.ctx.country_name.clone();
@@ -5081,6 +5107,32 @@ pub fn run_turn_in_memory(
                 commercial_buildings: task.commercial_buildings,
                 housing_buildings: task.housing_buildings,
             });
+        }
+
+        // Phase 93: Apply batch depletion to state.planet with pro-rata clamping.
+        // This runs after tasks are dropped, releasing the &state.planet borrow.
+        // When multiple mines share a vein and total extraction > current_reserves,
+        // remaining ore is distributed proportionally (Rule 5 & 20).
+        if !all_depletion_requests.is_empty() {
+            crate::economy::production::geology::apply_depletion_batch(
+                &mut state.planet,
+                &all_depletion_requests,
+            );
+        }
+
+        // Phase 93: Resolve completed geological surveys.
+        // Runs after tasks are dropped (releasing &state.planet) so we can
+        // mutate the planet to mark discovered veins. Each country's survey
+        // ledger is processed against the shared planet.
+        //
+        // Split borrow: planet and countries are disjoint fields on GameState.
+        let planet = &mut state.planet;
+        for country in state.countries.values_mut() {
+            crate::economy::production::geology::resolve_geological_surveys(
+                planet,
+                &mut country.geological_survey_ledger,
+                year,
+            );
         }
     }
 
