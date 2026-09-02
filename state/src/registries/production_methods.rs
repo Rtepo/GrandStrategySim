@@ -1396,7 +1396,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
     );
     registry.insert("embassy".to_string(), embassy_methods);
 
-    // ResearchInstitute — Science: produces ResearchOutput
+    // ResearchInstitute — Science: produces ResearchOutput (Phase E.3)
     let mut research_methods = BuildingMethods::default();
     research_methods.insert(
         MethodSlot::Production,
@@ -1413,7 +1413,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::ElectronicComponents, 5.0),
                 (Commodity::AdministrativeServices, 3.0),
             ]),
-            outputs: HashMap::new(), // Service output: ResearchOutput
+            outputs: HashMap::from([(Commodity::ResearchOutput, 10.0)]),
             ..Default::default()
         },
     );
@@ -1894,17 +1894,19 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
 ///
 /// # Returns
 /// A map of `building kind -> { method name -> `[`ProductionMethod`]` }`,
-/// for universities that generate Innovation Points.
+/// for universities that generate domain-specific Innovation Points.
 ///
 /// # Rules
 /// * Universities consume Paper, Chemicals, Electronics as inputs
-/// * Output is Innovation Points (Commodity::InnovationPoints)
+/// * Output is domain-specific Innovation Points (Phase E.9):
+///   - `university` (general): Engineering + Chemistry + Medicine + Agronomy
+///   - `technical_university`: Engineering + Electronics + Computing + Metallurgy
 /// * High Expert labor requirement for research output
 /// * Physical Limits: No inputs = zero innovation points
 pub fn university_production_methods() -> HashMap<String, BuildingMethods> {
     let mut registry: HashMap<String, BuildingMethods> = HashMap::new();
 
-    // -- university (University) --
+    // -- university (University) — general: produces multiple domain points --
     let mut uniwersytet = BuildingMethods::default();
     uniwersytet.insert(
         MethodSlot::Production,
@@ -1917,7 +1919,12 @@ pub fn university_production_methods() -> HashMap<String, BuildingMethods> {
             basic_ratio: 0.20,
             efficiency: 1.0,
             inputs: HashMap::from([(Commodity::Paper, 20.0), (Commodity::Chemicals, 10.0)]),
-            outputs: HashMap::from([(Commodity::InnovationPoints, 5.0)]),
+            outputs: HashMap::from([
+                (Commodity::InnovationEngineering, 2.0),
+                (Commodity::InnovationChemistry, 1.0),
+                (Commodity::InnovationMedicine, 1.0),
+                (Commodity::InnovationAgronomy, 1.0),
+            ]),
             ..Default::default()
         },
     );
@@ -1936,13 +1943,18 @@ pub fn university_production_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Chemicals, 15.0),
                 (Commodity::ElectronicComponents, 5.0),
             ]),
-            outputs: HashMap::from([(Commodity::InnovationPoints, 8.0)]),
+            outputs: HashMap::from([
+                (Commodity::InnovationEngineering, 3.0),
+                (Commodity::InnovationChemistry, 2.0),
+                (Commodity::InnovationMedicine, 2.0),
+                (Commodity::InnovationAgronomy, 1.0),
+            ]),
             ..Default::default()
         },
     );
     registry.insert("university".to_string(), uniwersytet);
 
-    // -- technical_university (Polytechnic) --
+    // -- technical_university (Polytechnic) — engineering/tech focused --
     let mut politechnika = BuildingMethods::default();
     politechnika.insert(
         MethodSlot::Production,
@@ -1955,7 +1967,12 @@ pub fn university_production_methods() -> HashMap<String, BuildingMethods> {
             basic_ratio: 0.20,
             efficiency: 1.0,
             inputs: HashMap::from([(Commodity::Paper, 25.0), (Commodity::Chemicals, 15.0)]),
-            outputs: HashMap::from([(Commodity::InnovationPoints, 6.0)]),
+            outputs: HashMap::from([
+                (Commodity::InnovationEngineering, 3.0),
+                (Commodity::InnovationElectronics, 2.0),
+                (Commodity::InnovationComputing, 2.0),
+                (Commodity::InnovationMetallurgy, 2.0),
+            ]),
             ..Default::default()
         },
     );
@@ -1975,7 +1992,12 @@ pub fn university_production_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::ElectronicComponents, 10.0),
                 (Commodity::Software, 5.0),
             ]),
-            outputs: HashMap::from([(Commodity::InnovationPoints, 10.0)]),
+            outputs: HashMap::from([
+                (Commodity::InnovationEngineering, 4.0),
+                (Commodity::InnovationElectronics, 3.0),
+                (Commodity::InnovationComputing, 3.0),
+                (Commodity::InnovationMetallurgy, 3.0),
+            ]),
             ..Default::default()
         },
     );

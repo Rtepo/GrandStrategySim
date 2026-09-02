@@ -1450,7 +1450,43 @@ fn build_treasury(
         extra: Map::new(),
     };
 
-    let discovered: Vec<String> = (1..=tech_limit).map(|i| format!("tech_{i:03}")).collect();
+    // Initialize discovered technologies from the actual tech tree (Phase E.1).
+    // Previously this generated fake IDs like "tech_001" through "tech_017",
+    // which don't exist in the tree (real IDs are branch-specific like
+    // "thermo_001", "steam_001", "chem_001"). Now we select real tech IDs
+    // whose `year <= start_year` and whose prerequisites are also satisfied.
+    let tech_tree = crate::registries::tech_tree_data::default_tech_tree();
+    let discovered: Vec<String> = {
+        let mut sorted_techs: Vec<(&String, &crate::registries::tech_tree::TechNode)> =
+            tech_tree.iter().collect();
+        sorted_techs.sort_by_key(|(id, node)| (node.year, (*id).clone()));
+        let mut discovered_set: std::collections::HashSet<String> = std::collections::HashSet::new();
+        // Iteratively add techs whose prerequisites are met (earliest year first).
+        // Multiple passes handle chained prerequisites.
+        loop {
+            let mut added_any = false;
+            for (tech_id, node) in &sorted_techs {
+                if discovered_set.contains(*tech_id) {
+                    continue;
+                }
+                if node.year > start_year as u32 {
+                    continue;
+                }
+                let prereqs_met = node
+                    .prerequisites
+                    .iter()
+                    .all(|p| discovered_set.contains(p));
+                if prereqs_met {
+                    discovered_set.insert(tech_id.to_string());
+                    added_any = true;
+                }
+            }
+            if !added_any {
+                break;
+            }
+        }
+        discovered_set.into_iter().collect()
+    };
 
     let treasury = Treasury {
         gdp: gdp_total,
@@ -1475,10 +1511,10 @@ fn build_treasury(
         liquidation_expenses: 0.0,
         logistics_revenue: 0.0,
         science: ScienceState {
-            innovation_points: 0.0,
+            innovation_pool: HashMap::new(),
+            research_output: 0.0,
             researching: None,
             discovered,
-            base_innovativeness: 0.0,
             extra: Map::new(),
         },
         tax_office_ids: Vec::new(),

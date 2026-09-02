@@ -23,6 +23,51 @@ pub enum TechType {
     Commercial,
 }
 
+/// Research domain for specialized innovation points (Phase E.9).
+///
+/// Each technology belongs to exactly one research domain. Universities produce
+/// domain-specific innovation points, and research consumes points from the
+/// matching domain. This enforces physical grounding of scientific progress —
+/// a country with only engineering universities cannot research medicine.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum ResearchDomain {
+    /// Engineering: thermodynamics, mechanical, combustion, aeronautics, railways, etc.
+    #[default]
+    Engineering,
+    /// Metallurgy: metals, steel, materials science, nanotechnology.
+    Metallurgy,
+    /// Chemistry: organic chemistry, synthesis, petrochemicals.
+    Chemistry,
+    /// Electronics: electromagnetism, radio, telecommunications, solid-state.
+    Electronics,
+    /// Computing: computer science, internet, software, automation, e-commerce.
+    Computing,
+    /// Medicine: medicine, biotechnology, genetics.
+    Medicine,
+    /// Physics: nuclear physics, nuclear power, renewable energy.
+    Physics,
+    /// Agronomy: precision agriculture.
+    Agronomy,
+}
+
+impl ResearchDomain {
+    /// Returns the matching `Commodity` variant for this research domain.
+    pub fn innovation_commodity(&self) -> crate::registries::enums::Commodity {
+        use crate::registries::enums::Commodity;
+        match self {
+            ResearchDomain::Engineering => Commodity::InnovationEngineering,
+            ResearchDomain::Metallurgy => Commodity::InnovationMetallurgy,
+            ResearchDomain::Chemistry => Commodity::InnovationChemistry,
+            ResearchDomain::Electronics => Commodity::InnovationElectronics,
+            ResearchDomain::Computing => Commodity::InnovationComputing,
+            ResearchDomain::Medicine => Commodity::InnovationMedicine,
+            ResearchDomain::Physics => Commodity::InnovationPhysics,
+            ResearchDomain::Agronomy => Commodity::InnovationAgronomy,
+        }
+    }
+}
+
 /// A single node in the technology tree.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TechNode {
@@ -55,6 +100,11 @@ pub struct TechNode {
     /// Type of technology: Fundamental or Commercial.
     #[serde(default)]
     pub tech_type: TechType,
+
+    /// Research domain (Phase E.9): determines which specialized innovation
+    /// points commodity is consumed when researching this tech.
+    #[serde(default)]
+    pub research_domain: ResearchDomain,
 
     /// Patent duration in turns (default 240 for 20 years at 1 turn/month).
     #[serde(default = "default_patent_duration")]

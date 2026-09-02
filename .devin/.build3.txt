@@ -1,0 +1,45 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo build --workspace 2>&1 | Out-File C:\Users\netse\Downloads\Sill ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Blocking waiting for file lock on build directory
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+warning: unused import: `ResearchDomain`
+ --> state\src\economy\state_sector\state_research.rs:6:36
+  |
+6 | use crate::registries::tech_tree::{ResearchDomain, TechId, TechNode, TechType};
+  |                                    ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ResearchDomain`
+  --> state\src\economy\corporate_rd.rs:23:36
+   |
+23 | use crate::registries::tech_tree::{ResearchDomain, TechId, TechNode, TechType};
+   |                                    ^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+    --> state\src\registries\enums.rs:892:9
+     |
+ 891 |       pub fn all() -> [Commodity; 142] {
+     |                       ---------------- expected `[Commodity; 142]` because of return type
+ 892 | /         [
+ 893 | |             Commodity::Agd,
+ 894 | |             Commodity::Aluminum,
+ 895 | |             Commodity::Ammunition,
+...    |
+1042 | |             Commodity::CoalGas,
+1043 | |         ]
+     | |_________^ expected an array with a size of 142, found one with a size of 150
+     |
+     = note: expected array `[Commodity; 142]`
+                found array `[Commodity; 150]`
+
+For more information about this error, try `rustc --explain E0308`.
+warning: `sim_engine` (lib) generated 2 warnings
+error: could not compile `sim_engine` (lib) due to 1 previous error; 2 warnings emitted

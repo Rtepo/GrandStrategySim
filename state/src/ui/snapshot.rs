@@ -786,6 +786,59 @@ pub struct GuildsSnapshot {
 }
 
 // ============================================================================
+// R2: Cooperative Sector — federations, patronage, cooperative banks
+// ============================================================================
+
+/// R2: Cooperative federation row for the CooperativeSectorSnapshot.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CooperativeFederationRow {
+    /// Federation ID.
+    pub id: String,
+    /// Number of member cooperatives.
+    pub member_count: usize,
+    /// Shared administrative fund (cash).
+    pub admin_fund: f64,
+    /// Total outstanding joint debt.
+    pub total_debt: f64,
+    /// Whether the federation is active.
+    pub active: bool,
+}
+
+/// R2: Cooperative company row for the CooperativeSectorSnapshot.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CooperativeRow {
+    /// Company ID.
+    pub id: String,
+    /// Company name.
+    pub name: String,
+    /// Number of member-workers.
+    pub member_count: u32,
+    /// Patronage pool (accumulated patronage for distribution).
+    pub patronage_pool: f64,
+    /// Federation ID (if any).
+    pub federation_id: Option<String>,
+    /// Company capital.
+    pub company_capital: f64,
+}
+
+/// R2: Cooperative sector snapshot for the CooperativeSectorPage.
+/// Exposes cooperative companies, federations, and patronage state.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CooperativeSectorSnapshot {
+    /// All cooperative companies.
+    pub cooperatives: Vec<CooperativeRow>,
+    /// All cooperative federations.
+    pub federations: Vec<CooperativeFederationRow>,
+    /// Total patronage distributed this turn (sum of patronage_pool).
+    pub total_patronage: f64,
+    /// Number of cooperative banks.
+    pub cooperative_bank_count: usize,
+}
+
+// ============================================================================
 // Phase 87+: Organizations — consolidated view for Guilds, Unions, Movements
 // ============================================================================
 
@@ -1027,6 +1080,68 @@ pub fn build_guilds_snapshot(
     }
 
     GuildsSnapshot { guilds }
+}
+
+/// R2: Build a cooperative sector snapshot for a country.
+/// Exposes cooperative companies, federations, and patronage state.
+/// Role-gated (Rule 11): strips financial data for foreign observers.
+pub fn build_cooperative_sector_snapshot(
+    companies: &[crate::entities::Company],
+    country: &crate::state::Country,
+    is_classified: bool,
+) -> CooperativeSectorSnapshot {
+    let mut cooperatives = Vec::new();
+    let mut total_patronage = 0.0_f64;
+    let mut cooperative_bank_count = 0usize;
+
+    for company in companies {
+        if let crate::entities::LegalForm::Cooperative(data) = &company.legal_form {
+            cooperatives.push(CooperativeRow {
+                id: company.id.clone(),
+                name: company.name.clone(),
+                member_count: data.member_count,
+                patronage_pool: if is_classified {
+                    0.0
+                } else {
+                    data.patronage_pool
+                },
+                federation_id: data.federation_id.clone(),
+                company_capital: if is_classified {
+                    0.0
+                } else {
+                    company.company_capital
+                },
+            });
+            total_patronage += data.patronage_pool;
+        }
+        // Count cooperative banks
+        if company.bank_type == Some(crate::state::banking::BankType::Cooperative) {
+            cooperative_bank_count += 1;
+        }
+    }
+
+    let federations = country
+        .cooperative_federations
+        .iter()
+        .map(|f| CooperativeFederationRow {
+            id: f.id.clone(),
+            member_count: f.member_ids.len(),
+            admin_fund: if is_classified { 0.0 } else { f.admin_fund },
+            total_debt: if is_classified {
+                0.0
+            } else {
+                f.total_outstanding_debt()
+            },
+            active: f.active,
+        })
+        .collect();
+
+    CooperativeSectorSnapshot {
+        cooperatives,
+        federations,
+        total_patronage: if is_classified { 0.0 } else { total_patronage },
+        cooperative_bank_count,
+    }
 }
 
 /// Phase 87+: Build a consolidated organizations snapshot for a country.

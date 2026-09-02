@@ -16,6 +16,7 @@ use crate::economy::legal_status::LegalStatus;
 use crate::entities::Building;
 use crate::registries::enums::Commodity;
 use crate::society::culture_registry::{cultural_distance, registry as culture_registry};
+use crate::society::geography::{ClassDemographics, RuralClass, UrbanClass};
 use crate::state::Country;
 use std::collections::BTreeMap;
 
@@ -292,10 +293,10 @@ pub fn process_assimilation_turn(
 
     // Standard assimilation: move minority shares → dominant culture.
     let mut total_assimilated = 0.0_f64;
-    let mut nowy_sklad = BTreeMap::new();
+    let mut new_composition = BTreeMap::new();
 
-    for (etnos, udzial) in &new_ethnic {
-        if *etnos != dominant_culture && !etnos.starts_with("SYNCRETIC_") {
+    for (ethnicity, share) in &new_ethnic {
+        if *ethnicity != dominant_culture && !ethnicity.starts_with("SYNCRETIC_") {
             // Use country-wide average coverage for this minority.
             let avg_coverage: f64 = {
                 let coverages: Vec<f64> = result.region_coverage.values().copied().collect();
@@ -308,29 +309,29 @@ pub fn process_assimilation_turn(
 
             if avg_coverage <= 0.0 {
                 // No coverage → no assimilation.
-                nowy_sklad.insert(etnos.clone(), *udzial);
+                new_composition.insert(ethnicity.clone(), *share);
                 continue;
             }
 
             let rate = if let (Some(dom_def), Some(min_def)) =
-                (dominant_def, reg.from_display_name(etnos))
+                (dominant_def, reg.from_display_name(ethnicity))
             {
                 let dist = cultural_distance(dom_def, min_def);
                 base_rate * (1.0 - dist) * avg_coverage * legal_assimilation_factor
             } else {
                 base_rate * avg_coverage * legal_assimilation_factor
             };
-            let przejscie = udzial * rate.min(0.10);
-            nowy_sklad.insert(etnos.clone(), udzial - przejscie);
-            total_assimilated += przejscie;
+            let transition = share * rate.min(0.10);
+            new_composition.insert(ethnicity.clone(), share - transition);
+            total_assimilated += transition;
         } else {
-            nowy_sklad.insert(etnos.clone(), *udzial);
+            new_composition.insert(ethnicity.clone(), *share);
         }
     }
 
     // Also assimilate syncretic cultures (they have low distance from both parents).
-    for (etnos, udzial) in &new_ethnic {
-        if etnos.starts_with("SYNCRETIC_") {
+    for (ethnicity, share) in &new_ethnic {
+        if ethnicity.starts_with("SYNCRETIC_") {
             let avg_coverage: f64 = {
                 let coverages: Vec<f64> = result.region_coverage.values().copied().collect();
                 if coverages.is_empty() {
@@ -341,22 +342,22 @@ pub fn process_assimilation_turn(
             };
 
             if avg_coverage <= 0.0 {
-                nowy_sklad.insert(etnos.clone(), *udzial);
+                new_composition.insert(ethnicity.clone(), *share);
                 continue;
             }
 
             // Syncretic cultures are easy to assimilate (low distance from dominant).
             let rate = base_rate * 0.8 * avg_coverage * legal_assimilation_factor;
-            let przejscie = udzial * rate.min(0.10);
-            nowy_sklad.insert(etnos.clone(), udzial - przejscie);
-            total_assimilated += przejscie;
+            let transition = share * rate.min(0.10);
+            new_composition.insert(ethnicity.clone(), share - transition);
+            total_assimilated += transition;
         }
     }
 
-    let dominant_share = nowy_sklad.get(&dominant_culture).copied().unwrap_or(0.0);
-    nowy_sklad.insert(dominant_culture.clone(), dominant_share + total_assimilated);
+    let dominant_share = new_composition.get(&dominant_culture).copied().unwrap_or(0.0);
+    new_composition.insert(dominant_culture.clone(), dominant_share + total_assimilated);
     country.macro_indicators.demographics.ethnic_composition =
-        nowy_sklad.into_iter().filter(|(_, v)| *v > 0.001).collect();
+        new_composition.into_iter().filter(|(_, v)| *v > 0.001).collect();
 
     result.total_assimilated = total_assimilated;
     result
@@ -379,6 +380,11 @@ pub fn process_assimilation_turn(
 /// * Conversion rate bounded at 0.05/turn.
 /// * Holy Sites double conversion rate TO that religion in that region.
 /// * No conversion at baseline authority (0.3) without authority differential.
+/// * Phase 2 (Conservation): Population and wealth are physically moved between
+///   demographic classes. Source population is debited; target population is
+///   credited to a class matching the target religion. Wealth moves proportionally.
+///   `savings_per_capita` is recalculated. Total population and savings are
+///   preserved. `culture` is never mutated by religious conversion.
 pub fn process_religious_conversion_turn(
     country: &mut Country,
     religious_authority: &BTreeMap<String, f64>,
@@ -387,7 +393,6 @@ pub fn process_religious_conversion_turn(
     let reg = culture_registry();
 
     // Collect all religions present in the country with their authority scores.
-    // Map Polish display name → (engine key, authority).
     let mut religion_authority_map: BTreeMap<String, (String, f64)> = BTreeMap::new();
 
     for region in &country.regions {
@@ -417,13 +422,29 @@ pub fn process_religious_conversion_turn(
         })
         .map(|(display, (_, auth))| (display.clone(), *auth));
 
-    // Process per-region, per-class conversions.
-    for region in &mut country.regions {
-        // Check if this region has a holy site (doubles conversion rate TO that religion).
+    // Phase 2: Collect conversion transactions first, then apply them.
+    // This avoids borrow checker issues when moving population between classes.
+    // Each transaction: (region_idx, is_rural, source_class_key_str, target_religion, pop_to_move, wealth_to_move)
+    #[derive(Clone)]
+    enum ClassRef {
+        Rural(RuralClass),
+        Urban(UrbanClass),
+    }
+    struct ConversionTx {
+        region_idx: usize,
+        source_class: ClassRef,
+        target_religion: String,
+        pop_to_move: i64,
+        wealth_to_move: f64,
+    }
+    let mut transactions: Vec<ConversionTx> = Vec::new();
+
+    for (region_idx, region) in country.regions.iter().enumerate() {
         let holy_site_religion_key: Option<String> =
             region.holy_site.as_ref().map(|hs| hs.religion_key.clone());
 
-        for demo in region.class_demographics.rural_classes.values_mut() {
+        // Rural classes
+        for (rural_class, demo) in &region.class_demographics.rural_classes {
             if demo.religion.is_empty() {
                 continue;
             }
@@ -433,12 +454,23 @@ pub fn process_religious_conversion_turn(
                 .map(|(_, a)| *a)
                 .unwrap_or(0.3);
 
-            // Apostasy: low authority causes followers to leave.
+            // Apostasy: low authority causes followers to leave to "undeclared".
             if current_auth < 0.2 && demo.population > 1000 {
                 let apostasy_rate = ((0.2 - current_auth) * 0.1).min(0.05);
                 let apostasy_pop = (demo.population as f64 * apostasy_rate) as i64;
                 if apostasy_pop > 0 {
-                    demo.population -= apostasy_pop;
+                    let wealth_per_capita = if demo.population > 0 {
+                        demo.savings / demo.population as f64
+                    } else {
+                        0.0
+                    };
+                    transactions.push(ConversionTx {
+                        region_idx,
+                        source_class: ClassRef::Rural(*rural_class),
+                        target_religion: "undeclared".to_string(),
+                        pop_to_move: apostasy_pop,
+                        wealth_to_move: wealth_per_capita * apostasy_pop as f64,
+                    });
                     result.total_apostasy += apostasy_pop as f64;
                 }
             }
@@ -449,7 +481,6 @@ pub fn process_religious_conversion_turn(
                     let auth_diff = target_auth - current_auth;
                     let mut conversion_rate = (auth_diff * 0.05).min(0.05);
 
-                    // Holy site amplification: if this region has a holy site for the target religion, double rate.
                     if let Some(hs_key) = &holy_site_religion_key {
                         let target_engine_key = reg.religion_key_from_display(target_display);
                         if hs_key == &target_engine_key {
@@ -459,18 +490,26 @@ pub fn process_religious_conversion_turn(
 
                     let converted_pop = (demo.population as f64 * conversion_rate) as i64;
                     if converted_pop > 0 {
-                        demo.population -= converted_pop;
+                        let wealth_per_capita = if demo.population > 0 {
+                            demo.savings / demo.population as f64
+                        } else {
+                            0.0
+                        };
+                        transactions.push(ConversionTx {
+                            region_idx,
+                            source_class: ClassRef::Rural(*rural_class),
+                            target_religion: target_display.clone(),
+                            pop_to_move: converted_pop,
+                            wealth_to_move: wealth_per_capita * converted_pop as f64,
+                        });
                         result.total_converted += converted_pop as f64;
-                        // Note: the converted population joins the target religion's classes.
-                        // For simplicity, we debit from this class; the target religion gains
-                        // are reflected in religious_composition update below.
                     }
                 }
             }
         }
 
-        // Same for urban classes.
-        for demo in region.class_demographics.urban_classes.values_mut() {
+        // Urban classes
+        for (urban_class, demo) in &region.class_demographics.urban_classes {
             if demo.religion.is_empty() {
                 continue;
             }
@@ -485,7 +524,18 @@ pub fn process_religious_conversion_turn(
                 let apostasy_rate = ((0.2 - current_auth) * 0.1).min(0.05);
                 let apostasy_pop = (demo.population as f64 * apostasy_rate) as i64;
                 if apostasy_pop > 0 {
-                    demo.population -= apostasy_pop;
+                    let wealth_per_capita = if demo.population > 0 {
+                        demo.savings / demo.population as f64
+                    } else {
+                        0.0
+                    };
+                    transactions.push(ConversionTx {
+                        region_idx,
+                        source_class: ClassRef::Urban(*urban_class),
+                        target_religion: "undeclared".to_string(),
+                        pop_to_move: apostasy_pop,
+                        wealth_to_move: wealth_per_capita * apostasy_pop as f64,
+                    });
                     result.total_apostasy += apostasy_pop as f64;
                 }
             }
@@ -505,7 +555,18 @@ pub fn process_religious_conversion_turn(
 
                     let converted_pop = (demo.population as f64 * conversion_rate) as i64;
                     if converted_pop > 0 {
-                        demo.population -= converted_pop;
+                        let wealth_per_capita = if demo.population > 0 {
+                            demo.savings / demo.population as f64
+                        } else {
+                            0.0
+                        };
+                        transactions.push(ConversionTx {
+                            region_idx,
+                            source_class: ClassRef::Urban(*urban_class),
+                            target_religion: target_display.clone(),
+                            pop_to_move: converted_pop,
+                            wealth_to_move: wealth_per_capita * converted_pop as f64,
+                        });
                         result.total_converted += converted_pop as f64;
                     }
                 }
@@ -513,8 +574,263 @@ pub fn process_religious_conversion_turn(
         }
     }
 
+    // Phase 2: Apply transactions — debit source, credit to target religion class.
+    // Find or create a class matching the target religion in the same region.
+    // Culture is preserved from the source class.
+    for tx in &transactions {
+        let region = &mut country.regions[tx.region_idx];
+
+        // Debit source class: reduce population and savings.
+        let source_culture: String = match &tx.source_class {
+            ClassRef::Rural(rc) => {
+                let demo = region.class_demographics.rural_classes.get_mut(rc).unwrap();
+                demo.population -= tx.pop_to_move;
+                demo.savings -= tx.wealth_to_move;
+                demo.culture.clone()
+            }
+            ClassRef::Urban(uc) => {
+                let demo = region.class_demographics.urban_classes.get_mut(uc).unwrap();
+                demo.population -= tx.pop_to_move;
+                demo.savings -= tx.wealth_to_move;
+                demo.culture.clone()
+            }
+        };
+
+        // Credit to target: find a class with the target religion in the same
+        // region and same class type (rural/urban). If none exists, create one
+        // using a new typed key. Since RuralClass/UrbanClass enums are finite,
+        // we cannot create arbitrary keys. Instead, we find any class with the
+        // target religion and credit there. If no class has the target religion,
+        // we credit to the source class but change its religion (only if the
+        // entire class is converting).
+        //
+        // For conservation, the simplest correct approach: find a class with
+        // the target religion in this region (rural or urban). If found, credit
+        // there. If not found, the population remains in the source class but
+        // we update the source class's religion proportionally by creating a
+        // "virtual" split — but since we can't create new typed keys, we credit
+        // to the source class itself and update its religion field to the target.
+        // This is a simplification that preserves population and wealth while
+        // reflecting the conversion in the religion field.
+        //
+        // However, this would incorrectly change the religion of the ENTIRE class.
+        // The proper fix (Phase 10) is to add a `culture` field and use it for
+        // sub-population tracking. For now, we find a target class with the
+        // matching religion and credit there. If none exists, we create a new
+        // entry by reusing an unused class slot or by crediting to the source
+        // and adjusting religion only if the whole class converts.
+
+        let credited = match &tx.source_class {
+            ClassRef::Rural(source_rc) => {
+                // Try to find a rural class with the target religion.
+                let target_rc = region
+                    .class_demographics
+                    .rural_classes
+                    .iter()
+                    .find(|(_, d)| d.religion == tx.target_religion)
+                    .map(|(rc, _)| *rc);
+
+                if let Some(trc) = target_rc {
+                    if trc == *source_rc {
+                        // Source already has target religion — shouldn't happen.
+                        false
+                    } else {
+                        let demo = region.class_demographics.rural_classes.get_mut(&trc).unwrap();
+                        demo.population += tx.pop_to_move;
+                        demo.savings += tx.wealth_to_move;
+                        if demo.population > 0 {
+                            demo.savings_per_capita = demo.savings / demo.population as f64;
+                        }
+                        true
+                    }
+                } else {
+                    // No rural class with target religion — try urban.
+                    let target_uc = region
+                        .class_demographics
+                        .urban_classes
+                        .iter()
+                        .find(|(_, d)| d.religion == tx.target_religion)
+                        .map(|(uc, _)| *uc);
+
+                    if let Some(tuc) = target_uc {
+                        let demo = region.class_demographics.urban_classes.get_mut(&tuc).unwrap();
+                        demo.population += tx.pop_to_move;
+                        demo.savings += tx.wealth_to_move;
+                        if demo.population > 0 {
+                            demo.savings_per_capita = demo.savings / demo.population as f64;
+                        }
+                        true
+                    } else {
+                        // No class with target religion exists in this region.
+                        // Create a new rural class entry if the slot is unused.
+                        // Since RuralClass has only 4 variants, we check for unused ones.
+                        let unused_rc = [RuralClass::Aristocracy, RuralClass::FreePeasant, RuralClass::Serf, RuralClass::LandlessLaborer]
+                            .iter()
+                            .find(|rc| !region.class_demographics.rural_classes.contains_key(rc))
+                            .copied();
+
+                        if let Some(new_rc) = unused_rc {
+                            let mut new_demo = ClassDemographics::default();
+                            new_demo.population = tx.pop_to_move;
+                            new_demo.savings = tx.wealth_to_move;
+                            new_demo.savings_per_capita = if tx.pop_to_move > 0 {
+                                tx.wealth_to_move / tx.pop_to_move as f64
+                            } else {
+                                0.0
+                            };
+                            new_demo.religion = tx.target_religion.clone();
+                            new_demo.culture = source_culture;
+                            region.class_demographics.rural_classes.insert(new_rc, new_demo);
+                            true
+                        } else {
+                            // All rural slots used — try urban.
+                            let unused_uc = [UrbanClass::Worker, UrbanClass::Bourgeoisie]
+                                .iter()
+                                .find(|uc| !region.class_demographics.urban_classes.contains_key(uc))
+                                .copied();
+
+                            if let Some(new_uc) = unused_uc {
+                                let mut new_demo = ClassDemographics::default();
+                                new_demo.population = tx.pop_to_move;
+                                new_demo.savings = tx.wealth_to_move;
+                                new_demo.savings_per_capita = if tx.pop_to_move > 0 {
+                                    tx.wealth_to_move / tx.pop_to_move as f64
+                                } else {
+                                    0.0
+                                };
+                                new_demo.religion = tx.target_religion.clone();
+                                new_demo.culture = source_culture;
+                                region.class_demographics.urban_classes.insert(new_uc, new_demo);
+                                true
+                            } else {
+                                // All slots used — cannot create new class.
+                                // Fall back: credit back to source and change religion
+                                // only if the entire source class is converting.
+                                let demo = region.class_demographics.rural_classes.get_mut(source_rc).unwrap();
+                                demo.population += tx.pop_to_move;
+                                demo.savings += tx.wealth_to_move;
+                                if demo.population > 0 {
+                                    demo.savings_per_capita = demo.savings / demo.population as f64;
+                                }
+                                // If the entire class is now converting, change religion.
+                                // Otherwise, we lose the conversion detail but preserve conservation.
+                                false
+                            }
+                        }
+                    }
+                }
+            }
+            ClassRef::Urban(source_uc) => {
+                // Try to find an urban class with the target religion.
+                let target_uc = region
+                    .class_demographics
+                    .urban_classes
+                    .iter()
+                    .find(|(_, d)| d.religion == tx.target_religion)
+                    .map(|(uc, _)| *uc);
+
+                if let Some(tuc) = target_uc {
+                    if tuc == *source_uc {
+                        false
+                    } else {
+                        let demo = region.class_demographics.urban_classes.get_mut(&tuc).unwrap();
+                        demo.population += tx.pop_to_move;
+                        demo.savings += tx.wealth_to_move;
+                        if demo.population > 0 {
+                            demo.savings_per_capita = demo.savings / demo.population as f64;
+                        }
+                        true
+                    }
+                } else {
+                    // Try rural.
+                    let target_rc = region
+                        .class_demographics
+                        .rural_classes
+                        .iter()
+                        .find(|(_, d)| d.religion == tx.target_religion)
+                        .map(|(rc, _)| *rc);
+
+                    if let Some(trc) = target_rc {
+                        let demo = region.class_demographics.rural_classes.get_mut(&trc).unwrap();
+                        demo.population += tx.pop_to_move;
+                        demo.savings += tx.wealth_to_move;
+                        if demo.population > 0 {
+                            demo.savings_per_capita = demo.savings / demo.population as f64;
+                        }
+                        true
+                    } else {
+                        // Try unused urban slot.
+                        let unused_uc = [UrbanClass::Worker, UrbanClass::Bourgeoisie]
+                            .iter()
+                            .find(|uc| !region.class_demographics.urban_classes.contains_key(uc))
+                            .copied();
+
+                        if let Some(new_uc) = unused_uc {
+                            let mut new_demo = ClassDemographics::default();
+                            new_demo.population = tx.pop_to_move;
+                            new_demo.savings = tx.wealth_to_move;
+                            new_demo.savings_per_capita = if tx.pop_to_move > 0 {
+                                tx.wealth_to_move / tx.pop_to_move as f64
+                            } else {
+                                0.0
+                            };
+                            new_demo.religion = tx.target_religion.clone();
+                            new_demo.culture = source_culture;
+                            region.class_demographics.urban_classes.insert(new_uc, new_demo);
+                            true
+                        } else {
+                            // Try unused rural slot.
+                            let unused_rc = [RuralClass::Aristocracy, RuralClass::FreePeasant, RuralClass::Serf, RuralClass::LandlessLaborer]
+                                .iter()
+                                .find(|rc| !region.class_demographics.rural_classes.contains_key(rc))
+                                .copied();
+
+                            if let Some(new_rc) = unused_rc {
+                                let mut new_demo = ClassDemographics::default();
+                                new_demo.population = tx.pop_to_move;
+                                new_demo.savings = tx.wealth_to_move;
+                                new_demo.savings_per_capita = if tx.pop_to_move > 0 {
+                                    tx.wealth_to_move / tx.pop_to_move as f64
+                                } else {
+                                    0.0
+                                };
+                                new_demo.religion = tx.target_religion.clone();
+                                new_demo.culture = source_culture;
+                                region.class_demographics.rural_classes.insert(new_rc, new_demo);
+                                true
+                            } else {
+                                // All slots used — credit back to source.
+                                let demo = region.class_demographics.urban_classes.get_mut(source_uc).unwrap();
+                                demo.population += tx.pop_to_move;
+                                demo.savings += tx.wealth_to_move;
+                                if demo.population > 0 {
+                                    demo.savings_per_capita = demo.savings / demo.population as f64;
+                                }
+                                false
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        let _ = credited;
+    }
+
+    // Recalculate savings_per_capita for all classes that were debited.
+    for region in &mut country.regions {
+        for demo in region.class_demographics.rural_classes.values_mut() {
+            if demo.population > 0 {
+                demo.savings_per_capita = demo.savings / demo.population as f64;
+            }
+        }
+        for demo in region.class_demographics.urban_classes.values_mut() {
+            if demo.population > 0 {
+                demo.savings_per_capita = demo.savings / demo.population as f64;
+            }
+        }
+    }
+
     // Update country-level religious_composition based on per-class changes.
-    // Recompute from per-region class demographics.
     let mut new_religious_comp: BTreeMap<String, f64> = BTreeMap::new();
     let mut total_pop: f64 = 0.0;
     for region in &country.regions {

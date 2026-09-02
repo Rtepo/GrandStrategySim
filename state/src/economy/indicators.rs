@@ -314,7 +314,7 @@ mod tests {
                     "agriculture": {"gdp_share": 0.0, "employment": 300},
                     "heavy_industry": {"gdp_share": 0.0, "employment": 700}
                 },
-                "science": {"innovation_points": 0.0, "researching": null, "discovered": [], "base_innovativeness": 0.0},
+                "science": {"innovation_pool": {}, "research_output": 0.0, "researching": null, "discovered": []},
                 "last_balance_log": ""
             }"#,
         )

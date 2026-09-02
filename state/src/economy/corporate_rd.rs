@@ -5,7 +5,8 @@
 //!
 //! # Phase 95: R&D Cash Leak Eradication
 //! Previously, R&D spending destroyed cash with no counterparty. Now, R&D
-//! budgets are spent by purchasing `InnovationPoints` from universities via
+//! budgets are spent by purchasing domain-specific innovation commodities
+//! (e.g. `InnovationPhysics`) from universities via
 //! `settle_transfer` (strict double-entry). If no domestic universities have
 //! points, the company pays a "Foreign Patent Fee" that flows to
 //! `GlobalMarket.offshore_capital` (money preserved offshore — Rule 1).
@@ -144,12 +145,13 @@ pub fn execute_corporate_method_research(
                 continue;
             }
 
-            // Attempt domestic purchase of Innovation Points.
+            // Attempt domestic purchase of domain-specific Innovation Points.
             let points_acquired = purchase_innovation_points_for_company(
                 companies,
                 buildings,
                 building_inventories,
                 payer_idx,
+                tech_node.research_domain,
                 remaining_points,
                 price_per_point,
                 country,

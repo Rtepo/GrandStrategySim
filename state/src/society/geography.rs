@@ -1164,6 +1164,13 @@ pub struct ClassDemographics {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub religion: String,
 
+    /// Phase 10: Culture/ethnicity of this demographic class (e.g., "Illyria", "Weneda").
+    /// Decoupled from religion: assimilation mutates `culture` only,
+    /// religious conversion mutates `religion` only.
+    /// Defaults to country-level dominant culture if empty (migration on load).
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub culture: String,
+
     /// Phase 18A: Legal status of this class (Citizen, Resident, TemporaryWorker, Illegal).
     #[serde(default)]
     pub legal_status: crate::economy::legal_status::LegalStatus,

@@ -25,7 +25,7 @@
 //!
 //! # Intangible Commodity Exemption (Rule 19)
 //!
-//! Intangible commodities (InnovationPoints, Services, capacity slots) have
+//! Intangible commodities (innovation commodities, Services, capacity slots) have
 //! zero physical mass and are exempt from both the mass-walk and the
 //! freight/teleportation check. Classification via `Commodity::is_intangible()`.
 

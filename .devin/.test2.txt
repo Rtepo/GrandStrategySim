@@ -1,0 +1,37 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo test --workspace --all-targets 2>&1 | Out-File C:\Users\netse\D ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Blocking waiting for file lock on build directory
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+   Compiling sim-engine-app v0.95.1 (C:\Users\netse\Downloads\SillyElaborateState\src-tauri)
+error[E0308]: mismatched types
+   --> state\tests\phase74_rebalance_test.rs:439:17
+    |
+439 |         .insert("FreePeasant".to_string(), demos);
+    |          ------ ^^^^^^^^^^^^^^^^^^^^^^^^^ expected `RuralClass`, found `String`
+    |          |
+    |          arguments to this method are incorrect
+    |
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1045:11
+
+error[E0308]: mismatched types
+   --> state\tests\phase74_rebalance_test.rs:482:17
+    |
+482 |         .insert("Worker".to_string(), demos);
+    |          ------ ^^^^^^^^^^^^^^^^^^^^ expected `UrbanClass`, found `String`
+    |          |
+    |          arguments to this method are incorrect
+    |
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1045:11
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `sim_engine` (test "phase74_rebalance_test") due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

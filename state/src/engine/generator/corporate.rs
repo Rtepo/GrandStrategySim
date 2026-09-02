@@ -5034,7 +5034,12 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                 0.40,
                 0.20,
                 BTreeMap::from([(Commodity::Paper, 20.0), (Commodity::Chemicals, 10.0)]),
-                BTreeMap::from([(Commodity::InnovationPoints, 5.0)]),
+                BTreeMap::from([
+                    (Commodity::InnovationEngineering, 2.0),
+                    (Commodity::InnovationChemistry, 1.0),
+                    (Commodity::InnovationMedicine, 1.0),
+                    (Commodity::InnovationAgronomy, 1.0),
+                ]),
                 year,
             ),
         ),

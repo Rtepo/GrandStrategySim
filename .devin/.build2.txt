@@ -1,0 +1,179 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo build --workspace 2>&1 | Out-File C:\Users\netse\Downloads\Sill ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+warning: unused import: `ResearchDomain`
+ --> state\src\economy\state_sector\state_research.rs:6:36
+  |
+6 | use crate::registries::tech_tree::{ResearchDomain, TechId, TechNode, TechType};
+  |                                    ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ResearchDomain`
+  --> state\src\economy\corporate_rd.rs:22:36
+   |
+22 | use crate::registries::tech_tree::{ResearchDomain, TechId, TechNode, TechType};
+   |                                    ^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+  --> state\src\economy\state_sector\state_research.rs:88:45
+   |
+88 |         treasury.science.researching = Some(tech_id.clone());
+   |                                        ---- ^^^^^^^^^^^^^^^ expected `String`, found `&String`
+   |                                        |
+   |                                        arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `&std::string::String` due to the type of the argument passed
+  --> state\src\economy\state_sector\state_research.rs:88:40
+   |
+88 |         treasury.science.researching = Some(tech_id.clone());
+   |                                        ^^^^^---------------^
+   |                                             |
+   |                                             this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\option.rs:605:4
+help: try using a conversion method
+   |
+88 -         treasury.science.researching = Some(tech_id.clone());
+88 +         treasury.science.researching = Some(tech_id.to_string());
+   |
+
+error[E0599]: no variant, associated function, or constant named `InnovationPoints` found for enum `Commodity` in the c
+urrent scope
+    --> state\src\engine\generator\corporate.rs:5037:45
+     |
+5037 |                 BTreeMap::from([(Commodity::InnovationPoints, 5.0)]),
+     |                                             ^^^^^^^^^^^^^^^^ variant, associated function, or constant not found
+ in `Commodity`
+     |
+    ::: state\src\registries\enums.rs:267:1
+     |
+ 267 | pub enum Commodity {
+     | ------------------ variant, associated function, or constant `InnovationPoints` not found for this enum
+     |
+help: there is a variant with a similar name
+     |
+5037 -                 BTreeMap::from([(Commodity::InnovationPoints, 5.0)]),
+5037 +                 BTreeMap::from([(Commodity::InnovationPhysics, 5.0)]),
+     |
+
+error[E0560]: struct `ScienceState` has no field named `innovation_points`
+    --> state\src\engine\generator\mod.rs:1478:13
+     |
+1478 |             innovation_points: 0.0,
+     |             ^^^^^^^^^^^^^^^^^ unknown field
+     |
+help: a field with a similar name exists
+     |
+1478 -             innovation_points: 0.0,
+1478 +             innovation_pool: 0.0,
+     |
+
+error[E0560]: struct `ScienceState` has no field named `base_innovativeness`
+    --> state\src\engine\generator\mod.rs:1481:13
+     |
+1481 |             base_innovativeness: 0.0,
+     |             ^^^^^^^^^^^^^^^^^^^ `ScienceState` does not have this field
+     |
+     = note: available fields are: `innovation_pool`, `research_output`
+
+error[E0308]: mismatched types
+    --> state\src\registries\enums.rs:892:9
+     |
+ 891 |       pub fn all() -> [Commodity; 142] {
+     |                       ---------------- expected `[Commodity; 142]` because of return type
+ 892 | /         [
+ 893 | |             Commodity::Agd,
+ 894 | |             Commodity::Aluminum,
+ 895 | |             Commodity::Ammunition,
+...    |
+1042 | |             Commodity::CoalGas,
+1043 | |         ]
+     | |_________^ expected an array with a size of 142, found one with a size of 150
+     |
+     = note: expected array `[Commodity; 142]`
+                found array `[Commodity; 150]`
+
+error[E0599]: no variant, associated function, or constant named `InnovationPoints` found for enum `Commodity` in the c
+urrent scope
+     --> state\src\registries\production_methods_data.rs:10079:29
+      |
+10079 |                 (Commodity::InnovationPoints, 5.0),
+      |                             ^^^^^^^^^^^^^^^^ variant, associated function, or constant not found in `Commodity`
+      |
+     ::: state\src\registries\enums.rs:267:1
+      |
+  267 | pub enum Commodity {
+      | ------------------ variant, associated function, or constant `InnovationPoints` not found for this enum
+      |
+help: there is a variant with a similar name
+      |
+10079 -                 (Commodity::InnovationPoints, 5.0),
+10079 +                 (Commodity::InnovationPhysics, 5.0),
+      |
+
+error[E0599]: no variant, associated function, or constant named `InnovationPoints` found for enum `Commodity` in the c
+urrent scope
+     --> state\src\registries\production_methods_data.rs:10101:29
+      |
+10101 |                 (Commodity::InnovationPoints, 15.0),
+      |                             ^^^^^^^^^^^^^^^^ variant, associated function, or constant not found in `Commodity`
+      |
+     ::: state\src\registries\enums.rs:267:1
+      |
+  267 | pub enum Commodity {
+      | ------------------ variant, associated function, or constant `InnovationPoints` not found for this enum
+      |
+help: there is a variant with a similar name
+      |
+10101 -                 (Commodity::InnovationPoints, 15.0),
+10101 +                 (Commodity::InnovationPhysics, 15.0),
+      |
+
+error[E0599]: no variant, associated function, or constant named `InnovationPoints` found for enum `Commodity` in the c
+urrent scope
+     --> state\src\registries\production_methods_data.rs:10122:29
+      |
+10122 |                 (Commodity::InnovationPoints, 20.0),
+      |                             ^^^^^^^^^^^^^^^^ variant, associated function, or constant not found in `Commodity`
+      |
+     ::: state\src\registries\enums.rs:267:1
+      |
+  267 | pub enum Commodity {
+      | ------------------ variant, associated function, or constant `InnovationPoints` not found for this enum
+      |
+help: there is a variant with a similar name
+      |
+10122 -                 (Commodity::InnovationPoints, 20.0),
+10122 +                 (Commodity::InnovationPhysics, 20.0),
+      |
+
+error[E0599]: no variant, associated function, or constant named `InnovationPoints` found for enum `Commodity` in the c
+urrent scope
+     --> state\src\registries\production_methods_data.rs:10143:29
+      |
+10143 |                 (Commodity::InnovationPoints, 30.0),
+      |                             ^^^^^^^^^^^^^^^^ variant, associated function, or constant not found in `Commodity`
+      |
+     ::: state\src\registries\enums.rs:267:1
+      |
+  267 | pub enum Commodity {
+      | ------------------ variant, associated function, or constant `InnovationPoints` not found for this enum
+      |
+help: there is a variant with a similar name
+      |
+10143 -                 (Commodity::InnovationPoints, 30.0),
+10143 +                 (Commodity::InnovationPhysics, 30.0),
+      |
+
+Some errors have detailed explanations: E0308, E0560, E0599.
+For more information about an error, try `rustc --explain E0308`.
+warning: `sim_engine` (lib) generated 2 warnings
+error: could not compile `sim_engine` (lib) due to 9 previous errors; 2 warnings emitted

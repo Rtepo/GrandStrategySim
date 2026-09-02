@@ -210,16 +210,22 @@ pub struct SectorShare {
 /// National R&D / science state.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ScienceState {
-    /// Accumulated innovation points.
-    pub innovation_points: f64,
+    /// Per-domain innovation points pool (Phase E.9).
+    ///
+    /// Maps `ResearchDomain` → accumulated innovation points for that domain.
+    /// Universities produce domain-specific points; state research consumes
+    /// points from the matching domain.
+    #[serde(default)]
+    pub innovation_pool: HashMap<crate::registries::tech_tree::ResearchDomain, f64>,
+    /// Applied research output accumulated from research institutes (Phase E.3).
+    #[serde(default)]
+    pub research_output: f64,
     /// Technology currently being researched, if any.
     #[serde(default)]
     pub researching: Option<TechId>,
     /// Technologies already discovered.
     #[serde(default)]
     pub discovered: Vec<TechId>,
-    /// Baseline innovativeness.
-    pub base_innovativeness: f64,
     /// Any additional science fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -227,11 +233,25 @@ pub struct ScienceState {
 
 impl Default for ScienceState {
     fn default() -> Self {
+        use crate::registries::tech_tree::ResearchDomain;
+        let mut innovation_pool = HashMap::new();
+        for domain in [
+            ResearchDomain::Engineering,
+            ResearchDomain::Metallurgy,
+            ResearchDomain::Chemistry,
+            ResearchDomain::Electronics,
+            ResearchDomain::Computing,
+            ResearchDomain::Medicine,
+            ResearchDomain::Physics,
+            ResearchDomain::Agronomy,
+        ] {
+            innovation_pool.insert(domain, 0.0);
+        }
         Self {
-            innovation_points: 0.0,
+            innovation_pool,
+            research_output: 0.0,
             researching: None,
             discovered: Vec::new(),
-            base_innovativeness: 0.0,
             extra: Map::new(),
         }
     }
@@ -376,7 +396,7 @@ mod tests {
             },
             "public_services": { "gdp_share": 0.03, "capacity_utilization": 0.0, "pmi": 50.0, "employment": 1000 }
         },
-        "science": { "innovation_points": 0.0, "researching": null, "discovered": ["tech_001","tech_002"], "base_innovativeness": 0.0 },
+        "science": { "innovation_pool": {}, "research_output": 0.0, "researching": null, "discovered": ["tech_001","tech_002"] },
         "last_balance_log": "",
         "resources": {"coal": 999},
         "warehouses": {"grain": 42.0}

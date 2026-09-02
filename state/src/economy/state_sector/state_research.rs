@@ -44,10 +44,12 @@ pub fn execute_state_research(
                 return;
             }
 
-            // Consume Innovation Points
+            // Consume Innovation Points from the matching domain pool
             let points_to_consume = tech_node.cost as f64;
-            if treasury.science.innovation_points >= points_to_consume {
-                treasury.science.innovation_points -= points_to_consume;
+            let domain = tech_node.research_domain;
+            let available = treasury.science.innovation_pool.get(&domain).copied().unwrap_or(0.0);
+            if available >= points_to_consume {
+                *treasury.science.innovation_pool.entry(domain).or_insert(0.0) -= points_to_consume;
 
                 // Discover the technology
                 treasury.science.discovered.push(current_tech_id.clone());
@@ -72,22 +74,18 @@ pub fn execute_state_research(
 /// * Prerequisites must be met
 /// * Tech must be of type Fundamental
 fn select_fundamental_tech(treasury: &mut Treasury, tech_tree: &HashMap<TechId, TechNode>) {
-    for (tech_id, tech_node) in tech_tree.iter() {
-        // Only research Fundamental techs
-        if tech_node.tech_type != TechType::Fundamental {
-            continue;
-        }
+    // Collect eligible Fundamental techs and sort deterministically by (year, tech_id).
+    // This ensures reproducible selection regardless of HashMap iteration order.
+    let mut candidates: Vec<(&TechId, &TechNode)> = tech_tree
+        .iter()
+        .filter(|(_, node)| node.tech_type == TechType::Fundamental)
+        .filter(|(id, _)| !treasury.science.discovered.contains(*id))
+        .filter(|(_, node)| prerequisites_met(node, &treasury.science.discovered))
+        .collect();
+    candidates.sort_by_key(|(id, node)| (node.year, (*id).clone()));
 
-        // Skip already discovered
-        if treasury.science.discovered.contains(tech_id) {
-            continue;
-        }
-
-        // Check prerequisites
-        if prerequisites_met(tech_node, &treasury.science.discovered) {
-            treasury.science.researching = Some(tech_id.clone());
-            return;
-        }
+    if let Some((tech_id, _)) = candidates.first() {
+        treasury.science.researching = Some((*tech_id).clone());
     }
 }
 
@@ -109,7 +107,7 @@ fn prerequisites_met(tech_node: &TechNode, discovered: &[TechId]) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::registries::tech_tree::TechType;
+    use crate::registries::tech_tree::{ResearchDomain, TechType};
 
     #[test]
     fn research_fundamental_tech() {
@@ -125,6 +123,7 @@ mod tests {
                 unlocks_projects: Vec::new(),
                 prerequisites: Vec::new(),
                 tech_type: TechType::Fundamental,
+                research_domain: ResearchDomain::Engineering,
                 patent_duration_turns: 240,
                 royalty_vwap_ratio: 0.05,
             },
@@ -132,10 +131,10 @@ mod tests {
 
         let mut treasury = Treasury {
             science: crate::state::treasury::ScienceState {
-                innovation_points: 150.0,
+                innovation_pool: HashMap::from([(ResearchDomain::Engineering, 150.0)]),
+                research_output: 0.0,
                 researching: Some("tech_001".to_string()),
                 discovered: Vec::new(),
-                base_innovativeness: 1.0,
                 extra: serde_json::Map::new(),
             },
             liquid_reserves: 10000.0,
@@ -148,7 +147,10 @@ mod tests {
             .science
             .discovered
             .contains(&"tech_001".to_string()));
-        assert_eq!(treasury.science.innovation_points, 50.0); // 150 - 100
+        assert_eq!(
+            treasury.science.innovation_pool[&ResearchDomain::Engineering],
+            50.0
+        ); // 150 - 100
         assert!(treasury.science.researching.is_none());
     }
 
@@ -166,6 +168,7 @@ mod tests {
                 unlocks_projects: Vec::new(),
                 prerequisites: Vec::new(),
                 tech_type: TechType::Fundamental,
+                research_domain: ResearchDomain::Engineering,
                 patent_duration_turns: 240,
                 royalty_vwap_ratio: 0.05,
             },
@@ -173,10 +176,10 @@ mod tests {
 
         let mut treasury = Treasury {
             science: crate::state::treasury::ScienceState {
-                innovation_points: 50.0, // Insufficient
+                innovation_pool: HashMap::from([(ResearchDomain::Engineering, 50.0)]), // Insufficient
+                research_output: 0.0,
                 researching: Some("tech_001".to_string()),
                 discovered: Vec::new(),
-                base_innovativeness: 1.0,
                 extra: serde_json::Map::new(),
             },
             liquid_reserves: 10000.0,
@@ -189,7 +192,10 @@ mod tests {
             .science
             .discovered
             .contains(&"tech_001".to_string()));
-        assert_eq!(treasury.science.innovation_points, 50.0); // Unchanged
+        assert_eq!(
+            treasury.science.innovation_pool[&ResearchDomain::Engineering],
+            50.0
+        ); // Unchanged
         assert_eq!(treasury.science.researching, Some("tech_001".to_string())); // Still researching
     }
 
@@ -207,6 +213,7 @@ mod tests {
                 unlocks_projects: Vec::new(),
                 prerequisites: Vec::new(),
                 tech_type: TechType::Commercial, // Commercial, not Fundamental
+                research_domain: ResearchDomain::Metallurgy,
                 patent_duration_turns: 240,
                 royalty_vwap_ratio: 0.05,
             },
@@ -214,10 +221,10 @@ mod tests {
 
         let mut treasury = Treasury {
             science: crate::state::treasury::ScienceState {
-                innovation_points: 150.0,
+                innovation_pool: HashMap::from([(ResearchDomain::Metallurgy, 150.0)]),
+                research_output: 0.0,
                 researching: Some("tech_002".to_string()),
                 discovered: Vec::new(),
-                base_innovativeness: 1.0,
                 extra: serde_json::Map::new(),
             },
             liquid_reserves: 10000.0,
@@ -231,5 +238,97 @@ mod tests {
             .discovered
             .contains(&"tech_002".to_string()));
         assert!(treasury.science.researching.is_none()); // Cancelled
+    }
+
+    #[test]
+    fn cross_domain_cannot_substitute() {
+        // A country with only Engineering points cannot research a Medicine tech.
+        let mut tech_tree = HashMap::new();
+        tech_tree.insert(
+            "med_001".to_string(),
+            TechNode {
+                name: "Germ Theory".to_string(),
+                year: 1880,
+                cost: 100,
+                description: "Microbial theory of disease".to_string(),
+                unlocks_methods: HashMap::new(),
+                unlocks_projects: Vec::new(),
+                prerequisites: Vec::new(),
+                tech_type: TechType::Fundamental,
+                research_domain: ResearchDomain::Medicine,
+                patent_duration_turns: 240,
+                royalty_vwap_ratio: 0.05,
+            },
+        );
+
+        let mut treasury = Treasury {
+            science: crate::state::treasury::ScienceState {
+                innovation_pool: HashMap::from([(ResearchDomain::Engineering, 500.0)]), // Only Engineering
+                research_output: 0.0,
+                researching: Some("med_001".to_string()),
+                discovered: Vec::new(),
+                extra: serde_json::Map::new(),
+            },
+            liquid_reserves: 10000.0,
+            ..Default::default()
+        };
+
+        execute_state_research(&mut treasury, &tech_tree, 1);
+
+        // Medicine tech NOT discovered despite having plenty of Engineering points.
+        assert!(!treasury
+            .science
+            .discovered
+            .contains(&"med_001".to_string()));
+    }
+
+    #[test]
+    fn select_fundamental_tech_deterministic() {
+        // Multiple eligible techs — selection must be deterministic (by year, then tech_id).
+        let mut tech_tree = HashMap::new();
+        tech_tree.insert(
+            "zzz_001".to_string(),
+            TechNode {
+                name: "Late Tech".to_string(),
+                year: 1900,
+                cost: 100,
+                description: "Should not be selected first".to_string(),
+                unlocks_methods: HashMap::new(),
+                unlocks_projects: Vec::new(),
+                prerequisites: Vec::new(),
+                tech_type: TechType::Fundamental,
+                research_domain: ResearchDomain::Engineering,
+                patent_duration_turns: 240,
+                royalty_vwap_ratio: 0.05,
+            },
+        );
+        tech_tree.insert(
+            "aaa_001".to_string(),
+            TechNode {
+                name: "Early Tech".to_string(),
+                year: 1880,
+                cost: 100,
+                description: "Should be selected first (earlier year)".to_string(),
+                unlocks_methods: HashMap::new(),
+                unlocks_projects: Vec::new(),
+                prerequisites: Vec::new(),
+                tech_type: TechType::Fundamental,
+                research_domain: ResearchDomain::Engineering,
+                patent_duration_turns: 240,
+                royalty_vwap_ratio: 0.05,
+            },
+        );
+
+        let mut treasury = Treasury::default();
+        // Run selection multiple times — must always pick the same tech.
+        for _ in 0..10 {
+            treasury.science.researching = None;
+            execute_state_research(&mut treasury, &tech_tree, 1);
+            assert_eq!(
+                treasury.science.researching,
+                Some("aaa_001".to_string()),
+                "Selection must be deterministic"
+            );
+        }
     }
 }

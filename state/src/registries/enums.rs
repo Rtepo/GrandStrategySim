@@ -494,8 +494,24 @@ pub enum Commodity {
     MarketResearch,
     /// "renovation_services".
     RenovationServices,
-    /// "innovation_points" - University output for state research (Phase 7).
-    InnovationPoints,
+    /// "innovation_engineering" - Engineering research points (Phase E.9).
+    InnovationEngineering,
+    /// "innovation_metallurgy" - Metallurgy & materials research points (Phase E.9).
+    InnovationMetallurgy,
+    /// "innovation_chemistry" - Chemistry research points (Phase E.9).
+    InnovationChemistry,
+    /// "innovation_electronics" - Electronics research points (Phase E.9).
+    InnovationElectronics,
+    /// "innovation_computing" - Computing research points (Phase E.9).
+    InnovationComputing,
+    /// "innovation_medicine" - Medicine & biology research points (Phase E.9).
+    InnovationMedicine,
+    /// "innovation_physics" - Physics & energy research points (Phase E.9).
+    InnovationPhysics,
+    /// "innovation_agronomy" - Agronomy research points (Phase E.9).
+    InnovationAgronomy,
+    /// "research_output" - Applied research output from research institutes (Phase E.3).
+    ResearchOutput,
     /// "health_capacity" - Hospital output for B2C trading (Phase 7).
     HealthCapacity,
     /// "education_slots" - School output for B2C trading (Phase 7).
@@ -650,7 +666,15 @@ impl Commodity {
             | RenovationServices
             | Information
             | FreightCapacity
-            | InnovationPoints
+            | InnovationEngineering
+            | InnovationMetallurgy
+            | InnovationChemistry
+            | InnovationElectronics
+            | InnovationComputing
+            | InnovationMedicine
+            | InnovationPhysics
+            | InnovationAgronomy
+            | ResearchOutput
             | HealthCapacity
             | EducationSlots
             | JusticeCapacity
@@ -864,7 +888,7 @@ impl Commodity {
     }
 
     /// Returns all tradeable commodity variants in canonical (English) JSON order.
-    pub fn all() -> [Commodity; 142] {
+    pub fn all() -> [Commodity; 150] {
         [
             Commodity::Agd,
             Commodity::Aluminum,
@@ -975,7 +999,15 @@ impl Commodity {
             Commodity::Livestock,
             Commodity::MarketResearch,
             Commodity::RenovationServices,
-            Commodity::InnovationPoints,
+            Commodity::InnovationEngineering,
+            Commodity::InnovationMetallurgy,
+            Commodity::InnovationChemistry,
+            Commodity::InnovationElectronics,
+            Commodity::InnovationComputing,
+            Commodity::InnovationMedicine,
+            Commodity::InnovationPhysics,
+            Commodity::InnovationAgronomy,
+            Commodity::ResearchOutput,
             Commodity::HealthCapacity,
             Commodity::EducationSlots,
             Commodity::Pharmaceuticals,
@@ -1131,7 +1163,15 @@ impl TryFrom<&str> for Commodity {
             "livestock" => Ok(Commodity::Livestock),
             "market_research" => Ok(Commodity::MarketResearch),
             "renovation_services" => Ok(Commodity::RenovationServices),
-            "innovation_points" => Ok(Commodity::InnovationPoints),
+            "innovation_engineering" => Ok(Commodity::InnovationEngineering),
+            "innovation_metallurgy" => Ok(Commodity::InnovationMetallurgy),
+            "innovation_chemistry" => Ok(Commodity::InnovationChemistry),
+            "innovation_electronics" => Ok(Commodity::InnovationElectronics),
+            "innovation_computing" => Ok(Commodity::InnovationComputing),
+            "innovation_medicine" => Ok(Commodity::InnovationMedicine),
+            "innovation_physics" => Ok(Commodity::InnovationPhysics),
+            "innovation_agronomy" => Ok(Commodity::InnovationAgronomy),
+            "research_output" => Ok(Commodity::ResearchOutput),
             "health_capacity" => Ok(Commodity::HealthCapacity),
             "education_slots" => Ok(Commodity::EducationSlots),
             "pharmaceuticals" => Ok(Commodity::Pharmaceuticals),
