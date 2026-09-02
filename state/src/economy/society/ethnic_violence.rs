@@ -45,6 +45,28 @@ pub struct PogromConfig {
     /// Phase 18C: Reduction to unrest threshold from hate speech propaganda.
     /// Lowered by active hate speech campaigns (makes pogroms more likely).
     pub propaganda_threshold_reduction: f64,
+    /// Phase 8 (F8): Cultural distance for cultures in the same group.
+    pub same_cultural_group_distance: f64,
+    /// Phase 8 (F8): Cultural distance for cultures in different groups.
+    pub different_cultural_group_distance: f64,
+    /// Phase 8 (F8): Cultural distance for unknown/unregistered cultures.
+    pub unknown_culture_distance: f64,
+    /// Phase 8 (F9): Normalization factor for unrest above threshold.
+    pub unrest_normalization: f64,
+    /// Phase 8 (F9): Security demand per capita for security ratio calculation.
+    pub security_demand_per_capita: f64,
+    /// Phase 8 (F9): Mitigation factor for security capacity (0–1).
+    pub security_mitigation_factor: f64,
+    /// Phase 8 (F9): Weight of unrest in severity calculation.
+    pub unrest_weight: f64,
+    /// Phase 8 (F9): Weight of cultural distance in severity calculation.
+    pub distance_weight: f64,
+    /// Phase 8 (F9): Weight of justice gap in severity calculation.
+    pub justice_gap_weight: f64,
+    /// Phase 8 (F9): Minimum severity to trigger a pogrom.
+    pub min_severity: f64,
+    /// Phase 8 (F9): Justice demand per capita for coverage calculation.
+    pub justice_demand_per_capita: f64,
 }
 
 impl Default for PogromConfig {
@@ -60,6 +82,17 @@ impl Default for PogromConfig {
             emigration_rate: 0.15,
             max_severity: 0.8,
             propaganda_threshold_reduction: 0.0,
+            same_cultural_group_distance: 0.3,
+            different_cultural_group_distance: 0.7,
+            unknown_culture_distance: 0.5,
+            unrest_normalization: 50.0,
+            security_demand_per_capita: 0.005,
+            security_mitigation_factor: 0.5,
+            unrest_weight: 0.4,
+            distance_weight: 0.3,
+            justice_gap_weight: 0.3,
+            min_severity: 0.01,
+            justice_demand_per_capita: 0.01,
         }
     }
 }
@@ -130,7 +163,7 @@ pub fn check_pogrom_triggers(
 
     // Estimate justice demand from population.
     let total_pop: f64 = country.regions.iter().map(|r| r.population as f64).sum();
-    let justice_demand = total_pop * 0.01;
+    let justice_demand = total_pop * config.justice_demand_per_capita;
     let justice_coverage = if justice_demand > 0.0 {
         (total_justice_capacity / justice_demand).clamp(0.0, 1.0)
     } else {
@@ -356,7 +389,7 @@ fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
         let minority_culture_def = reg.from_display_name(&demo.culture);
         let dist = match (dominant_culture_def, minority_culture_def) {
             (Some(d), Some(m)) => crate::society::culture_registry::cultural_distance(d, m),
-            _ => 0.5,
+            _ => config.unknown_culture_distance,
         };
 
         if dist < config.cultural_distance_threshold {
@@ -377,21 +410,24 @@ fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
             continue;
         }
 
-        let unrest_factor = ((social_unrest - config.unrest_threshold) / 50.0).clamp(0.0, 1.0);
+        let unrest_factor =
+            ((social_unrest - config.unrest_threshold) / config.unrest_normalization).clamp(0.0, 1.0);
         let distance_factor = dist;
         let justice_gap = 1.0 - justice_coverage;
 
         let security_ratio = if total_pop > 0.0 {
-            (total_security_capacity / (total_pop * 0.005)).clamp(0.0, 1.0)
+            (total_security_capacity / (total_pop * config.security_demand_per_capita)).clamp(0.0, 1.0)
         } else {
             0.0
         };
-        let security_factor = 1.0 - security_ratio * 0.5;
+        let security_factor = 1.0 - security_ratio * config.security_mitigation_factor;
 
-        let severity = (unrest_factor * 0.4 + distance_factor * 0.3 + justice_gap * 0.3)
+        let severity = (unrest_factor * config.unrest_weight
+            + distance_factor * config.distance_weight
+            + justice_gap * config.justice_gap_weight)
             * security_factor.min(config.max_severity);
 
-        if severity < 0.01 {
+        if severity < config.min_severity {
             continue;
         }
 

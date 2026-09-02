@@ -141,9 +141,14 @@ pub fn integrate_royalty_payments(
         };
 
         // Phase E.5: Use stored royalty ratio on LicensedMethod (not licensee's own patents).
+        // Phase E.10.6: Skip royalties for techs that are stolen (undetected).
         let licensed_royalties: Vec<(TechId, f64)> = company
             .licensed_methods
             .iter()
+            .filter(|lm| {
+                // Skip if this tech is stolen and not yet detected.
+                !crate::economy::ip_theft::is_tech_stolen_undetected(company, &lm.tech_id)
+            })
             .map(|lm| {
                 (lm.tech_id.clone(), lm.royalty_vwap_ratio)
             })
@@ -160,6 +165,10 @@ pub fn integrate_royalty_payments(
 
         // Collect payment instructions
         for licensed_method in &company.licensed_methods {
+            // Phase E.10.6: Skip royalties for stolen (undetected) techs.
+            if crate::economy::ip_theft::is_tech_stolen_undetected(company, &licensed_method.tech_id) {
+                continue;
+            }
             // Phase E.5: Use stored royalty ratio, not licensee's own patents.
             let royalty_ratio = licensed_method.royalty_vwap_ratio;
             let royalty_amount = actual_quantity * royalty_ratio * last_turn_vwap;

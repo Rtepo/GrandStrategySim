@@ -136,6 +136,51 @@ pub struct TerrorismTurnResult {
     pub events: Vec<DisasterEvent>,
 }
 
+/// Phase 8 (F10): Configuration for terrorism triggers and effects (no magic numbers).
+#[derive(Debug, Clone, PartialEq)]
+pub struct TerrorismConfig {
+    /// Radical fraction threshold above which a minority class is considered radicalized.
+    pub radical_trigger_threshold: f64,
+    /// Social unrest threshold above which terrorism can trigger.
+    pub unrest_trigger_threshold: f64,
+    /// Surveillance coverage above which terrorism is blocked.
+    pub surveillance_trigger_threshold: f64,
+    /// Defense ratio: intelligence capacity must exceed radical_pop * this ratio to prevent.
+    pub defense_ratio: f64,
+    /// Normalization factor for severity from unrest above threshold.
+    pub severity_normalization: f64,
+    /// Minimum severity for an attack.
+    pub min_severity: f64,
+    /// Buildings destroyed per unit of severity.
+    pub buildings_per_severity: f64,
+    /// Casualty rate: fraction of minority population killed.
+    pub casualty_rate: f64,
+    /// Inventory destruction rate: fraction of commercial inventory destroyed.
+    pub inventory_destruction_rate: f64,
+    /// Unrest spike per unit of severity.
+    pub unrest_spike: f64,
+    /// Justice demand spike per unit of severity.
+    pub justice_demand_spike: f64,
+}
+
+impl Default for TerrorismConfig {
+    fn default() -> Self {
+        Self {
+            radical_trigger_threshold: 0.6,
+            unrest_trigger_threshold: 70.0,
+            surveillance_trigger_threshold: 0.3,
+            defense_ratio: 0.5,
+            severity_normalization: 30.0,
+            min_severity: 0.1,
+            buildings_per_severity: 5.0,
+            casualty_rate: 0.02,
+            inventory_destruction_rate: 0.5,
+            unrest_spike: 20.0,
+            justice_demand_spike: 50.0,
+        }
+    }
+}
+
 /// Processes propaganda effects for one turn.
 ///
 /// # Arguments
@@ -303,6 +348,16 @@ pub fn check_terrorism_triggers(
     buildings: &mut [Building],
     current_turn: u32,
 ) -> TerrorismTurnResult {
+    check_terrorism_triggers_with_config(country, buildings, current_turn, &TerrorismConfig::default())
+}
+
+/// Phase 8 (F10): Configurable terrorism check.
+pub fn check_terrorism_triggers_with_config(
+    country: &mut Country,
+    buildings: &mut [Building],
+    current_turn: u32,
+    terror_config: &TerrorismConfig,
+) -> TerrorismTurnResult {
     let mut result = TerrorismTurnResult::default();
 
     // Compute intelligence state
@@ -340,7 +395,7 @@ pub fn check_terrorism_triggers(
 
         for (class_id, class) in &region.class_demographics.rural_classes {
             let is_minority = !class.religion.is_empty() && class.religion != dominant_religion;
-            if is_minority && class.political_sentiment.radicals > 0.6 {
+            if is_minority && class.political_sentiment.radicals > terror_config.radical_trigger_threshold {
                 let radical_pop =
                     (class.population as f64 * class.political_sentiment.radicals) as i64;
                 radical_minority_pop += radical_pop;
@@ -352,7 +407,7 @@ pub fn check_terrorism_triggers(
         }
         for (class_id, class) in &region.class_demographics.urban_classes {
             let is_minority = !class.religion.is_empty() && class.religion != dominant_religion;
-            if is_minority && class.political_sentiment.radicals > 0.6 {
+            if is_minority && class.political_sentiment.radicals > terror_config.radical_trigger_threshold {
                 let radical_pop =
                     (class.population as f64 * class.political_sentiment.radicals) as i64;
                 radical_minority_pop += radical_pop;
@@ -367,15 +422,15 @@ pub fn check_terrorism_triggers(
         if radical_minority_pop == 0 {
             continue;
         }
-        if social_unrest < 70.0 {
+        if social_unrest < terror_config.unrest_trigger_threshold {
             continue;
         }
-        if intel_state.surveillance_coverage >= 0.3 {
+        if intel_state.surveillance_coverage >= terror_config.surveillance_trigger_threshold {
             continue;
         }
 
         // Defense roll: intelligence capacity vs radical population
-        let defense_threshold = radical_minority_pop as f64 * 0.5;
+        let defense_threshold = radical_minority_pop as f64 * terror_config.defense_ratio;
         if intel_state.total_capacity > defense_threshold {
             // Attack prevented
             new_intel.attacks_prevented += 1;
@@ -383,8 +438,10 @@ pub fn check_terrorism_triggers(
         }
 
         // Attack succeeds
-        let severity = ((social_unrest - 70.0) / 30.0).min(1.0).max(0.1);
-        let buildings_destroyed = (severity * 5.0) as u32;
+        let severity = ((social_unrest - terror_config.unrest_trigger_threshold) / terror_config.severity_normalization)
+            .min(1.0)
+            .max(terror_config.min_severity);
+        let buildings_destroyed = (severity * terror_config.buildings_per_severity) as u32;
         let region_id = region.id.clone();
         let minority_pop = if let Some(ref cid) = target_class_id {
             let class = if target_is_urban {
@@ -398,7 +455,7 @@ pub fn check_terrorism_triggers(
         } else {
             0
         };
-        let casualties = (minority_pop as f64 * severity * 0.02) as i64;
+        let casualties = (minority_pop as f64 * severity * terror_config.casualty_rate) as i64;
 
         result.attacked = true;
         result.target_region = Some(region_id.clone());
@@ -426,7 +483,7 @@ pub fn check_terrorism_triggers(
         }
 
         // Destroy B2B inventory stockpiles (reduce commercial building inventory by severity * 50%)
-        let inventory_destruction_rate = severity * 0.5;
+        let inventory_destruction_rate = severity * terror_config.inventory_destruction_rate;
         for building in buildings.iter_mut() {
             if building.region_id != region_id {
                 continue;
@@ -470,11 +527,11 @@ pub fn check_terrorism_triggers(
         };
 
         // Unrest spike
-        country.macro_indicators.social_unrest += severity * 20.0;
+        country.macro_indicators.social_unrest += severity * terror_config.unrest_spike;
 
         // Increase justice and security demand
         if let Some(ref mut js) = country.politics.justice_state {
-            js.justice_demand += severity * 50.0;
+            js.justice_demand += severity * terror_config.justice_demand_spike;
         }
 
         // Create disaster event

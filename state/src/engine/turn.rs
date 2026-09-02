@@ -4272,6 +4272,113 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 task.ctx.turn,
                 task.labor_allocation.as_ref(),
             );
+
+            // Phase E.10: Process pending IP theft actions.
+            // Execute private espionage, state-sponsored espionage, or reverse
+            // engineering based on the queued PendingIPTheft from apply_action.
+            let ip_theft_config = task.ctx.country.ip_theft_config.clone();
+            let average_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
+            let tech_tree = task.ctx.registries.tech_tree.clone();
+            let country_name = task.ctx.country.name.clone();
+
+            // Compute state intelligence capacity (for defense and state-sponsored path).
+            let state_intel: f64 = task
+                .ctx
+                .buildings
+                .iter()
+                .filter(|b| b.owner_id.starts_with("STATE_"))
+                .map(|b| {
+                    b.inventory
+                        .get(&Commodity::IntelligenceCapacity)
+                        .copied()
+                        .unwrap_or(0.0)
+                })
+                .sum();
+
+            // Collect pending IP thefts (avoid borrow conflicts).
+            let pending_thefts: Vec<(usize, crate::entities::PendingIPTheft)> = task
+                .companies
+                .iter_mut()
+                .enumerate()
+                .filter_map(|(i, c)| c.pending_ip_theft.take().map(|p| (i, p)))
+                .collect();
+
+            for (thief_idx, pending) in pending_thefts {
+                if let Some(tech_node) = tech_tree.get(&pending.tech_id) {
+                    use crate::entities::IPTheftMethod;
+
+                    match pending.method {
+                        IPTheftMethod::PrivateEspionage => {
+                            let _result = crate::economy::ip_theft::execute_private_espionage(
+                                &mut task.companies[thief_idx],
+                                &pending.target_company_id,
+                                &country_name,
+                                &pending.tech_id,
+                                tech_node,
+                                state_intel,
+                                average_wage,
+                                &ip_theft_config,
+                                task.ctx.turn,
+                                task.ctx.country,
+                            );
+                        }
+                        IPTheftMethod::StateSponsored => {
+                            let _result =
+                                crate::economy::ip_theft::execute_state_sponsored_espionage(
+                                    &mut task.companies[thief_idx],
+                                    &pending.target_company_id,
+                                    &country_name,
+                                    &pending.tech_id,
+                                    tech_node,
+                                    state_intel,
+                                    state_intel, // Victim intel = own state intel for domestic.
+                                    &ip_theft_config,
+                                    task.ctx.turn,
+                                );
+                        }
+                        IPTheftMethod::ReverseEngineering => {
+                            let available_ro: f64 = task
+                                .ctx
+                                .buildings
+                                .iter()
+                                .filter(|b| b.owner_id == task.companies[thief_idx].id)
+                                .map(|b| {
+                                    b.inventory
+                                        .get(&Commodity::ResearchOutput)
+                                        .copied()
+                                        .unwrap_or(0.0)
+                                })
+                                .sum();
+                            let domain_commodity = tech_node.research_domain.innovation_commodity();
+                            let available_ip: f64 = task
+                                .ctx
+                                .buildings
+                                .iter()
+                                .filter(|b| b.owner_id == task.companies[thief_idx].id)
+                                .map(|b| {
+                                    b.inventory
+                                        .get(&domain_commodity)
+                                        .copied()
+                                        .unwrap_or(0.0)
+                                })
+                                .sum();
+                            let _result = crate::economy::ip_theft::execute_reverse_engineering(
+                                &mut task.companies[thief_idx],
+                                &pending.target_company_id,
+                                &country_name,
+                                &pending.tech_id,
+                                tech_node,
+                                available_ro,
+                                available_ip,
+                                average_wage,
+                                &ip_theft_config,
+                                task.ctx.turn,
+                                task.ctx.country,
+                            );
+                        }
+                    }
+                }
+            }
         });
         tasks.par_iter_mut().for_each(|task| {
             // R2.1: Process cooperative federations.
@@ -5693,6 +5800,67 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         }
         for task in &mut tasks {
             task.foreign_patent_fee_outbox = 0.0;
+        }
+
+        // Phase E.10.5: Process IP theft detection (sequential post-parallel).
+        // Roll for detection of each StolenIP, enforce judgments, apply diplomatic penalties.
+        // Build set of countries with active IP enforcement treaties (from GameState).
+        let ip_treaty_partners: std::collections::HashSet<String> = state
+            .treaty_registry
+            .treaties
+            .iter()
+            .filter(|t| {
+                t.status == crate::international::treaties::TreatyStatus::Active
+                    && t.clauses.iter().any(|c| {
+                        *c
+                            == crate::international::treaties::TreatyClause::IntellectualPropertyEnforcement
+                    })
+            })
+            .flat_map(|t| t.participants.iter().cloned())
+            .collect();
+        for task in &mut tasks {
+            let ip_theft_config = task.ctx.country.ip_theft_config.clone();
+            let reputation_config = crate::international::reputation::ReputationConfig::default();
+            let justice_coverage = task
+                .ctx
+                .country
+                .politics
+                .justice_state
+                .as_ref()
+                .map(|js| js.justice_coverage)
+                .unwrap_or(0.0);
+            // Compute victim intelligence capacity from state-owned intelligence_hq buildings.
+            let victim_intel: f64 = task
+                .ctx
+                .buildings
+                .iter()
+                .filter(|b| b.owner_id.starts_with("STATE_"))
+                .map(|b| {
+                    b.inventory
+                        .get(&Commodity::IntelligenceCapacity)
+                        .copied()
+                        .unwrap_or(0.0)
+                })
+                .sum();
+            // Filter treaty partners to exclude this country (domestic theft is
+            // still enforceable; the filter only removes self from partner set).
+            let local_treaty_partners: std::collections::HashSet<String> = ip_treaty_partners
+                .iter()
+                .filter(|name| *name != &task.ctx.country.name)
+                .cloned()
+                .collect();
+            let tech_tree = task.ctx.registries.tech_tree.clone();
+            let _detection_msgs = crate::economy::ip_theft::process_ip_theft_detection(
+                &mut task.companies,
+                task.ctx.country,
+                &tech_tree,
+                &ip_theft_config,
+                &reputation_config,
+                current_turn,
+                &local_treaty_partners,
+                justice_coverage,
+                victim_intel,
+            );
         }
 
         // Phase 28/36: Store current-turn sector employment and wage data for
