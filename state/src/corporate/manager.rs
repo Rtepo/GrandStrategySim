@@ -1051,6 +1051,7 @@ pub fn process_company(
         CorporateAction::Ipo { .. } => Some("Ipo"),
         CorporateAction::GeologicalSurvey { .. } => Some("GeologicalSurvey"),
         CorporateAction::DesignBlueprint { .. } => Some("DesignBlueprint"),
+        CorporateAction::StealIP { .. } => Some("StealIP"),
         _ => None,
     };
     if let Some(action_str) = action_type_str {
@@ -1834,6 +1835,19 @@ fn apply_action(
                 base_tech: base_tech.clone(),
                 required_slot,
                 design_cost,
+            });
+        }
+        CorporateAction::StealIP {
+            tech_id,
+            target_company_id,
+            method,
+        } => {
+            // Phase E.10: Queue the IP theft for processing in the turn loop
+            // (where the full company slice, buildings, and country are available).
+            company.pending_ip_theft = Some(crate::entities::PendingIPTheft {
+                tech_id: tech_id.clone(),
+                target_company_id: target_company_id.clone(),
+                method: method.clone(),
             });
         }
     }

@@ -482,6 +482,9 @@ pub struct Country {
     /// Phase 4: Corporate technology configuration (extended with state patent + R&D cap).
     #[serde(default)]
     pub corporate_tech_config: crate::economy::corporate_config::CorporateTechConfig,
+    /// Phase E.10: IP theft / espionage configuration.
+    #[serde(default)]
+    pub ip_theft_config: crate::economy::ip_theft::IPTheftConfig,
     /// Phase 4: Fish stocks by region.
     #[serde(default)]
     pub fish_stocks: Vec<crate::economy::fishing::FishStock>,
@@ -755,6 +758,7 @@ impl Country {
                 crate::economy::infrastructure_config::InfrastructureConfig::default(),
             innovation_config: crate::economy::innovation_config::InnovationConfig::default(),
             corporate_tech_config: crate::economy::corporate_config::CorporateTechConfig::default(),
+            ip_theft_config: crate::economy::ip_theft::IPTheftConfig::default(),
             fish_stocks: Vec::new(),
             fish_farms: Vec::new(),
             fishing_policies: Vec::new(),
@@ -1151,6 +1155,7 @@ impl CountryBuilder {
                 crate::economy::infrastructure_config::InfrastructureConfig::default(),
             innovation_config: crate::economy::innovation_config::InnovationConfig::default(),
             corporate_tech_config: crate::economy::corporate_config::CorporateTechConfig::default(),
+            ip_theft_config: crate::economy::ip_theft::IPTheftConfig::default(),
             fish_stocks: Vec::new(),
             fish_farms: Vec::new(),
             fishing_policies: Vec::new(),

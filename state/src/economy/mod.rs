@@ -24,6 +24,7 @@ pub mod corporate_rd;
 pub mod cottage_industry;
 pub mod guild_system;
 pub mod indicators;
+pub mod ip_theft;
 #[cfg(test)]
 mod phase85_tests;
 

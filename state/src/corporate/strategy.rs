@@ -163,6 +163,17 @@ pub enum CorporateAction {
         /// for their ownership stake. Zero for transitions without a buyout.
         buyout_amount: f64,
     },
+    /// Phase E.10: Steal a competitor's patented technology via espionage
+    /// or reverse engineering. Only chosen if the company cannot afford
+    /// the license fee.
+    StealIP {
+        /// Technology ID to steal.
+        tech_id: crate::registries::tech_tree::TechId,
+        /// Target company ID (the patent holder).
+        target_company_id: String,
+        /// Method of IP theft.
+        method: crate::entities::IPTheftMethod,
+    },
 }
 
 /// Source of expansion financing.

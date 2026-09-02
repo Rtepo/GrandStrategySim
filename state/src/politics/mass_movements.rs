@@ -144,16 +144,16 @@ pub fn check_mass_movement_spawn(
     // E.6.3: Typed keys — iterate rural and urban separately.
     let total_radicals: i64 = class_demographics
         .rural_classes
-        .iter()
-        .map(|(_, class)| {
+        .values()
+        .map(|class| {
             let radical_fraction = class.political_sentiment.radicals;
             (class.population as f64 * radical_fraction) as i64
         })
         .sum::<i64>()
         + class_demographics
             .urban_classes
-            .iter()
-            .map(|(_, class)| {
+            .values()
+            .map(|class| {
                 let radical_fraction = class.political_sentiment.radicals;
                 (class.population as f64 * radical_fraction) as i64
             })
@@ -161,13 +161,13 @@ pub fn check_mass_movement_spawn(
 
     let total_population: i64 = class_demographics
         .rural_classes
-        .iter()
-        .map(|(_, class)| class.population)
+        .values()
+        .map(|class| class.population)
         .sum::<i64>()
         + class_demographics
             .urban_classes
-            .iter()
-            .map(|(_, class)| class.population)
+            .values()
+            .map(|class| class.population)
             .sum::<i64>();
 
     // Threshold: radicals must exceed configured percentage of regional population
@@ -420,13 +420,13 @@ pub fn suppress_mass_movement(
     // CRITICAL: Calculate total_undecided_before BEFORE any mutations (time-travel bug fix)
     let total_undecided_before: f64 = class_demographics
         .rural_classes
-        .iter()
-        .map(|(_, c)| c.political_sentiment.undecided)
+        .values()
+        .map(|c| c.political_sentiment.undecided)
         .sum::<f64>()
         + class_demographics
             .urban_classes
-            .iter()
-            .map(|(_, c)| c.political_sentiment.undecided)
+            .values()
+            .map(|c| c.political_sentiment.undecided)
             .sum::<f64>();
 
     // 4a. CASUALTIES: Distribute proportionally across ALL classes based on radical share
@@ -652,6 +652,7 @@ pub fn process_mass_movements_turn(
 
     // 2. Process each active movement
     let mut movements_to_resolve: Vec<usize> = Vec::new();
+    let mut movements_to_suppress: Vec<usize> = Vec::new();
 
     for (idx, movement) in country.politics.mass_movements.iter_mut().enumerate() {
         if movement.status != MassMovementStatus::Active {
@@ -697,11 +698,53 @@ pub fn process_mass_movements_turn(
             }
         }
 
+        // Phase 7 (F7): Check if movement should be suppressed.
+        // Movements above the suppression intensity threshold are automatically
+        // targeted for state suppression if the treasury can afford it.
+        if movement.intensity > config.suppression_intensity_threshold {
+            let suppression_cost =
+                movement.participant_count as f64 * config.suppression_cost_per_participant;
+            if country.budget.liquid_reserves >= suppression_cost {
+                movements_to_suppress.push(idx);
+            }
+        }
+
         // Check if movement should be resolved (past expected duration)
         if movement.expected_duration > 0
             && current_turn - movement.start_turn >= movement.expected_duration
         {
             movements_to_resolve.push(idx);
+        }
+    }
+
+    // Phase 7 (F7): Suppress high-intensity movements.
+    for idx in movements_to_suppress {
+        let movement = &mut country.politics.mass_movements[idx];
+        let region = regions.iter_mut().find(|r| r.id == movement.region_id);
+        if let Some(region) = region {
+            let result = suppress_mass_movement(
+                movement,
+                &mut region.class_demographics,
+                &mut country.budget,
+                config,
+                &mut rand::thread_rng(),
+                current_turn,
+                None, // military_buildings: not available here
+            );
+            match result {
+                Ok(suppression) => {
+                    messages.push(format!(
+                        "[MOVEMENT] {:?} in region {} suppressed ({:?})",
+                        movement.movement_type, movement.region_id, suppression
+                    ));
+                }
+                Err(e) => {
+                    messages.push(format!(
+                        "[MOVEMENT] Suppression of {:?} in region {} failed: {:?}",
+                        movement.movement_type, movement.region_id, e
+                    ));
+                }
+            }
         }
     }
 

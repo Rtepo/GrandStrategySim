@@ -40,6 +40,10 @@ pub enum EspionageType {
     Bribery,
     /// Blackmail using existing material
     Blackmail,
+    /// Phase E.10: Industrial espionage — steal a competitor's patented technology.
+    IndustrialEspionage,
+    /// Phase E.10: Reverse-engineer a product to replicate a patented technology.
+    ReverseEngineering,
 }
 
 /// State's active espionage operations
@@ -101,6 +105,12 @@ impl EspionageState {
             EspionageType::Blackmail => {
                 // Immediate, requires existing material
                 (current_turn, 0.8) // High success if material exists
+            }
+            EspionageType::IndustrialEspionage | EspionageType::ReverseEngineering => {
+                // E.10: Corporate IP theft — handled by corporate strategy, not
+                // political espionage. These variants exist on the enum for
+                // unified serialization but are not created here.
+                (current_turn, 0.0)
             }
         };
 
@@ -214,6 +224,9 @@ impl EspionageState {
                             councilor.name
                         ));
                     }
+                }
+                EspionageType::IndustrialEspionage | EspionageType::ReverseEngineering => {
+                    // E.10: Corporate IP theft — not applicable to councilor operations.
                 }
             }
         }

@@ -154,12 +154,14 @@ impl CulturalDemandModifier {
 /// # Arguments
 /// * `region` - The region to compute modifiers for.
 /// * `religious_authority` - Map of religion engine key → authority score.
+/// * `dominant_culture` - The country's dominant culture display name (e.g., "Illyria").
 ///
 /// # Returns
 /// `CulturalDemandModifier` ready to apply to demand maps.
 pub fn compute_cultural_demand_modifier(
     region: &Region,
     religious_authority: &std::collections::BTreeMap<String, f64>,
+    dominant_culture: &str,
 ) -> CulturalDemandModifier {
     let reg = culture_registry();
 
@@ -189,9 +191,12 @@ pub fn compute_cultural_demand_modifier(
         .copied()
         .unwrap_or(0.3);
 
-    // Determine dominant culture from region (use country-level culture as fallback).
-    // For now, use a default culture definition if we can't determine one.
-    let culture_def = reg.from_key("Illyrian").cloned().unwrap_or_default();
+    // Phase 6 (F6): Look up the country's actual dominant culture from
+    // the passed display name, not a hardcoded "Illyrian".
+    let culture_def = reg
+        .from_display_name(dominant_culture)
+        .cloned()
+        .unwrap_or_default();
 
     match religion_def {
         Some(rel) => CulturalDemandModifier::from_definitions(&culture_def, rel, authority),

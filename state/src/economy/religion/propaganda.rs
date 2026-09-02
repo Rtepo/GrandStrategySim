@@ -457,10 +457,17 @@ pub fn check_terrorism_triggers(
             }
         }
 
-        // Economic damage
-        let economic_damage = severity * 1_000_000.0;
-        country.budget.liquid_reserves =
-            (country.budget.liquid_reserves - economic_damage).max(0.0);
+        // Phase 5 (F5): Terrorism destroys physical assets only.
+        // NO synthesized fiat cash destruction — the state repairs via standard
+        // B2B procurement in subsequent turns. The economic_damage field in
+        // DisasterEvent reflects the estimated value of physical destruction
+        // for logging purposes only; it does NOT trigger any financial flow.
+        let economic_damage = {
+            // Estimate: sum of destroyed inventory market value + building
+            // condition degradation cost. Since we don't have market prices
+            // here, use a rough proxy based on building count and severity.
+            destroyed_count as f64 * severity * 10000.0
+        };
 
         // Unrest spike
         country.macro_indicators.social_unrest += severity * 20.0;

@@ -800,6 +800,7 @@ impl std::fmt::Display for RuralClass {
 
 impl RuralClass {
     /// Parse from a PascalCase string (inverse of Display).
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "Aristocracy" => Some(RuralClass::Aristocracy),
@@ -845,6 +846,7 @@ impl std::fmt::Display for UrbanClass {
 
 impl UrbanClass {
     /// Parse from a PascalCase string (inverse of Display).
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "Worker" => Some(UrbanClass::Worker),

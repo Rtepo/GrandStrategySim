@@ -5566,7 +5566,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             trade_innovation_points_b2b(
                 &mut task.ctx.buildings,
                 &mut task.companies,
-                &mut task.ctx.country,
+                task.ctx.country,
                 &mut building_inventories,
                 avg_wage,
                 &innovation_config,

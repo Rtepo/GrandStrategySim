@@ -19,7 +19,7 @@
 //! 3. `bank.balance_sheet.reserves_at_central_bank += amount` (bank asset increases — reserves transfer in)
 
 use crate::entities::Company;
-use crate::society::geography::{Region, RuralClass, UrbanClass};
+use crate::society::geography::{DemographicClass, Region, RuralClass, UrbanClass};
 use crate::state::Country;
 use std::collections::HashMap;
 
@@ -373,12 +373,33 @@ pub fn settle_b2c_purchase(
 
     // Phase 41: Debit citizen savings by the TOTAL amount (base + VAT).
     // The company gets the base amount, the treasury gets the VAT.
+    // E.6.3: Use typed DemographicClass for map lookup.
     let total_debit = amount + vat_amount;
 
-    let actual_total = {
-        if is_rural {
-            RuralClass::from_str(class_key)
-                .and_then(|k| region.class_demographics.rural_classes.get_mut(&k))
+    // Parse the class_key string into a typed DemographicClass for lookup.
+    let demo_class = if is_rural {
+        RuralClass::from_str(class_key).map(DemographicClass::from)
+    } else {
+        UrbanClass::from_str(class_key).map(DemographicClass::from)
+    };
+
+    let actual_total = if let Some(class) = demo_class {
+        if let Some(rural) = class.to_rural() {
+            region
+                .class_demographics
+                .rural_classes
+                .get_mut(&rural)
+                .map(|demo| {
+                    let affordable = total_debit.min(demo.savings);
+                    demo.savings -= affordable;
+                    affordable
+                })
+                .unwrap_or(0.0)
+        } else if let Some(urban) = class.to_urban() {
+            region
+                .class_demographics
+                .urban_classes
+                .get_mut(&urban)
                 .map(|demo| {
                     let affordable = total_debit.min(demo.savings);
                     demo.savings -= affordable;
@@ -386,15 +407,10 @@ pub fn settle_b2c_purchase(
                 })
                 .unwrap_or(0.0)
         } else {
-            UrbanClass::from_str(class_key)
-                .and_then(|k| region.class_demographics.urban_classes.get_mut(&k))
-                .map(|demo| {
-                    let affordable = total_debit.min(demo.savings);
-                    demo.savings -= affordable;
-                    affordable
-                })
-                .unwrap_or(0.0)
+            0.0
         }
+    } else {
+        0.0
     };
 
     if actual_total <= 0.0 {

@@ -428,8 +428,7 @@ pub fn process_party_debt_liquidation(
                                     .into_iter()
                                     .chain(
                                         UrbanClass::from_str(class_name)
-                                            .and_then(|k| r.class_demographics.urban_classes.get(&k))
-                                            .into_iter(),
+                                            .and_then(|k| r.class_demographics.urban_classes.get(&k)),
                                     )
                             })
                             .map(|c| c.population as f64)

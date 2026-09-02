@@ -2078,6 +2078,7 @@ fn generate_region_companies(
             pending_expansion: None,
             pending_ipo_shares: None,
             pending_blueprint_design: None,
+            pending_ip_theft: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
             reputation_score: 50.0,
@@ -2095,6 +2096,8 @@ fn generate_region_companies(
             close_price: 0.0,
             action_ledger: crate::entities::ActionLedger::default(),
             extra: serde_json::Map::new(),
+            stolen_ips: Vec::new(),
+            judgment_debts: Vec::new(),
         };
 
         // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
@@ -3595,6 +3598,7 @@ fn create_seed_company_with_explicit_method(
         pending_expansion: None,
         pending_ipo_shares: None,
         pending_blueprint_design: None,
+        pending_ip_theft: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
         reputation_score: 50.0,
@@ -3612,6 +3616,8 @@ fn create_seed_company_with_explicit_method(
         close_price: 0.0,
         action_ledger: crate::entities::ActionLedger::default(),
         extra: serde_json::Map::new(),
+        stolen_ips: Vec::new(),
+        judgment_debts: Vec::new(),
     };
 
     // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
@@ -4052,6 +4058,7 @@ fn create_seed_company(
         pending_expansion: None,
         pending_ipo_shares: None,
         pending_blueprint_design: None,
+        pending_ip_theft: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
         reputation_score: 50.0,
@@ -4069,6 +4076,8 @@ fn create_seed_company(
         close_price: 0.0,
         action_ledger: crate::entities::ActionLedger::default(),
         extra: serde_json::Map::new(),
+        stolen_ips: Vec::new(),
+        judgment_debts: Vec::new(),
     };
 
     let (building_name, method) = if sector == Sector::HeavyIndustry {
@@ -4901,6 +4910,7 @@ fn create_strategic_reserve_agency(
         pending_expansion: None,
         pending_ipo_shares: None,
         pending_blueprint_design: None,
+        pending_ip_theft: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
         reputation_score: 50.0,
@@ -4918,6 +4928,8 @@ fn create_strategic_reserve_agency(
         close_price: 0.0,
         action_ledger: crate::entities::ActionLedger::default(),
         extra: Map::new(),
+        stolen_ips: Vec::new(),
+        judgment_debts: Vec::new(),
     };
 
     (company, warehouses)
@@ -5234,6 +5246,7 @@ fn generate_retail_stores(
             pending_expansion: None,
             pending_ipo_shares: None,
             pending_blueprint_design: None,
+            pending_ip_theft: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
             reputation_score: 50.0,
@@ -5251,6 +5264,8 @@ fn generate_retail_stores(
             close_price: 0.0,
             action_ledger: crate::entities::ActionLedger::default(),
             extra: serde_json::Map::new(),
+            stolen_ips: Vec::new(),
+            judgment_debts: Vec::new(),
         };
 
         // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
@@ -5609,6 +5624,7 @@ fn generate_tourism_entities(
                 pending_expansion: None,
                 pending_ipo_shares: None,
                 pending_blueprint_design: None,
+                pending_ip_theft: None,
                 blueprints: Vec::new(),
                 licensed_blueprints: Vec::new(),
                 reputation_score: 50.0,
@@ -5629,6 +5645,8 @@ fn generate_tourism_entities(
                 close_price: 0.0,
                 action_ledger: crate::entities::ActionLedger::default(),
                 extra: serde_json::Map::new(),
+                stolen_ips: Vec::new(),
+                judgment_debts: Vec::new(),
             };
             // Phase 42: Genesis Labor Fix
             let hosp_wage = (base_wage * 0.5).max(50.0);
@@ -6341,6 +6359,7 @@ fn create_charity_company(
         pending_expansion: None,
         pending_ipo_shares: None,
         pending_blueprint_design: None,
+        pending_ip_theft: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
         reputation_score: 50.0,
@@ -6358,6 +6377,8 @@ fn create_charity_company(
         close_price: 0.0,
         action_ledger: crate::entities::ActionLedger::default(),
         extra: serde_json::Map::new(),
+        stolen_ips: Vec::new(),
+        judgment_debts: Vec::new(),
     }
 }
 
@@ -6599,6 +6620,7 @@ pub fn generate_investment_funds(
             pending_expansion: None,
             pending_ipo_shares: None,
             pending_blueprint_design: None,
+            pending_ip_theft: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
             reputation_score: 60.0,
@@ -6616,6 +6638,8 @@ pub fn generate_investment_funds(
             close_price: 1.0,
             action_ledger: crate::entities::ActionLedger::default(),
             extra: serde_json::Map::new(),
+            stolen_ips: Vec::new(),
+            judgment_debts: Vec::new(),
         };
 
         fund_companies.push(fund_company);

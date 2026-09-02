@@ -125,6 +125,57 @@ fn default_royalty_vwap_ratio() -> f64 {
     0.05
 }
 
+/// Phase E.10: Method used to steal intellectual property.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum IPTheftMethod {
+    #[default]
+    /// Private internal black-ops espionage (consumes AdminServices + Electronics + cash).
+    PrivateEspionage,
+    /// State-sponsored espionage (consumes state IntelligenceCapacity).
+    StateSponsored,
+    /// Reverse engineering (consumes ResearchOutput or domain Innovation Points).
+    ReverseEngineering,
+}
+
+/// Phase E.10: A stolen patented technology.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct StolenIP {
+    /// Technology ID that was stolen.
+    pub tech_id: TechId,
+    /// Company ID of the victim (patent holder).
+    pub victim_company_id: String,
+    /// Country of the victim company.
+    pub victim_country: String,
+    /// Method used to steal the IP.
+    pub method: IPTheftMethod,
+    /// Turn when the theft occurred.
+    pub stolen_turn: u32,
+    /// Whether the theft has been detected.
+    #[serde(default)]
+    pub detected: bool,
+    /// Turn when detection occurred (if any).
+    #[serde(default)]
+    pub detected_turn: Option<u32>,
+    /// Evasion score at time of theft (decays over time for detection rolls).
+    #[serde(default)]
+    pub initial_evasion: f64,
+}
+
+/// Phase E.10: An unpaid judgment debt from IP theft enforcement.
+/// Recorded as a liability on the thief's balance sheet, with the victim
+/// as an identified unsecured creditor. The normal Syndic lifecycle
+/// detects negative equity and liquidates organically.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct JudgmentDebt {
+    /// Company ID of the creditor (victim patent holder).
+    pub creditor_company_id: String,
+    /// Amount of unpaid damages.
+    pub amount: f64,
+    /// Turn when the judgment was incurred.
+    pub turn_incurred: u32,
+}
+
 // ============================================================================
 // STAGE C: TAX EXEMPTION TRAIT
 // ============================================================================
@@ -216,6 +267,17 @@ impl Default for PendingBlueprintDesign {
             design_cost: 0.0,
         }
     }
+}
+
+/// Phase E.10: Pending IP theft action (queued by apply_action, consumed by turn loop).
+#[derive(Debug, Clone, PartialEq)]
+pub struct PendingIPTheft {
+    /// Technology ID to steal.
+    pub tech_id: crate::registries::tech_tree::TechId,
+    /// Target company ID (the patent holder).
+    pub target_company_id: String,
+    /// Method of IP theft.
+    pub method: IPTheftMethod,
 }
 
 /// A company / corporate entity (`firma`).
@@ -587,6 +649,13 @@ pub struct Company {
     /// Phase 7: Licensed production methods from other companies.
     #[serde(default)]
     pub licensed_methods: Vec<LicensedMethod>,
+    /// Phase E.10: Stolen IPs (technologies acquired via espionage/reverse engineering).
+    #[serde(default)]
+    pub stolen_ips: Vec<StolenIP>,
+    /// Phase E.10: Unpaid judgment debts from IP theft enforcement.
+    /// Recorded as liabilities; the victim is an unsecured creditor.
+    #[serde(default)]
+    pub judgment_debts: Vec<JudgmentDebt>,
     /// Phase 95: Accumulated Innovation Points toward each in-progress tech.
     /// Keyed by TechId. Incremented by points purchased from universities.
     /// Entry removed when patent is granted or company is liquidated.
@@ -613,6 +682,9 @@ pub struct Company {
     /// design fee transfer and call `design_blueprint`.
     #[serde(skip)]
     pub pending_blueprint_design: Option<PendingBlueprintDesign>,
+    /// Phase E.10: Pending IP theft action (queued by apply_action, consumed by turn loop).
+    #[serde(skip)]
+    pub pending_ip_theft: Option<PendingIPTheft>,
     /// Phase 18A: Shadow employment (off-the-books undocumented workers).
     /// None for companies that don't hire illegals or aren't in labor-intensive sectors.
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -826,6 +898,7 @@ extra: HashMap::new(),
             pending_expansion: None,
             pending_ipo_shares: None,
             pending_blueprint_design: None,
+            pending_ip_theft: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
             reputation_score: 50.0,
@@ -843,6 +916,8 @@ extra: HashMap::new(),
             close_price: 0.0,
             action_ledger: ActionLedger::default(),
             extra: Map::new(),
+            stolen_ips: Vec::new(),
+            judgment_debts: Vec::new(),
         }
     }
 

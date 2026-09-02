@@ -30,6 +30,9 @@ pub enum TreatyClause {
         /// The commodity this treaty grants access to.
         commodity: String,
     },
+    /// Phase E.10: Permits cross-border IP judgment enforcement between signatories.
+    /// Allows back-royalties, treble damages, and Syndic liquidation for cross-border theft.
+    IntellectualPropertyEnforcement,
 }
 
 impl TreatyClause {
@@ -42,6 +45,7 @@ impl TreatyClause {
             TreatyClause::MutualDefense => "Mutual Defense",
             TreatyClause::TradePreference => "Trade Preference",
             TreatyClause::ResourceAccess { .. } => "Resource Access",
+            TreatyClause::IntellectualPropertyEnforcement => "Intellectual Property Enforcement",
         }
     }
 
@@ -54,6 +58,7 @@ impl TreatyClause {
             TreatyClause::MutualDefense => 2,
             TreatyClause::TradePreference => 1,
             TreatyClause::ResourceAccess { .. } => 2,
+            TreatyClause::IntellectualPropertyEnforcement => 2,
         }
     }
 }

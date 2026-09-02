@@ -366,7 +366,7 @@ pub fn process_amnesty_turn(country: &mut Country, companies: &mut [Company]) ->
                 region
                     .class_demographics
                     .rural_classes
-                    .get_mut(&class_id)
+                    .get_mut(class_id)
                     .unwrap(),
                 legalization_rate,
                 legalization_fee,
@@ -391,7 +391,7 @@ pub fn process_amnesty_turn(country: &mut Country, companies: &mut [Company]) ->
                 region
                     .class_demographics
                     .urban_classes
-                    .get_mut(&class_id)
+                    .get_mut(class_id)
                     .unwrap(),
                 legalization_rate,
                 legalization_fee,

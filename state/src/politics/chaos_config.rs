@@ -9,6 +9,12 @@ fn default_security_power_multiplier() -> f64 {
     1.0
 }
 
+/// Default suppression intensity threshold (Phase 7).
+/// Movements with intensity above 0.6 trigger automatic state suppression.
+fn default_suppression_intensity_threshold() -> f64 {
+    0.6
+}
+
 /// Sentiment drivers for political radicalization calculation (Phase 5)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct SentimentDrivers {
@@ -89,6 +95,12 @@ pub struct ChaosConfig {
     /// Base cost per participant for state suppression (currency units)
     #[serde(default)]
     pub suppression_cost_per_participant: f64,
+
+    /// Phase 7 (F7): Intensity threshold above which the state automatically
+    /// attempts to suppress a mass movement (0.0–1.0). Movements below this
+    /// threshold are considered too small to warrant state force.
+    #[serde(default = "default_suppression_intensity_threshold")]
+    pub suppression_intensity_threshold: f64,
 
     /// Defaults to 1.0 (neutral effectiveness) to prevent a missing-data hazard
     /// where state suppression becomes impossible with 0.0 security power.

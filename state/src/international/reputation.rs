@@ -113,6 +113,9 @@ pub struct ReputationConfig {
     pub diplomatic_capacity_penalty_multiplier: f64,
     /// Maximum interest rate penalty added to sovereign debt at worst reputation.
     pub debt_interest_penalty_multiplier: f64,
+    /// Phase E.10: Penalty applied to reputation score for cross-border IP theft
+    /// detection (severity 1.0). Scaled by tech cost at call site.
+    pub ip_theft_penalty: f64,
 }
 
 impl Default for ReputationConfig {
@@ -123,6 +126,7 @@ impl Default for ReputationConfig {
             low_reputation_threshold: -20.0,
             diplomatic_capacity_penalty_multiplier: 2.0,
             debt_interest_penalty_multiplier: 0.05, // up to 5% extra interest
+            ip_theft_penalty: 15.0,
         }
     }
 }

@@ -262,6 +262,7 @@ pub fn spawn_rebel_proto_state(
         ),
         innovation_config: crate::economy::innovation_config::InnovationConfig::default(),
         corporate_tech_config: crate::economy::corporate_config::CorporateTechConfig::default(),
+        ip_theft_config: crate::economy::ip_theft::IPTheftConfig::default(),
         fish_stocks: Vec::new(),
         fish_farms: Vec::new(),
         fishing_policies: Vec::new(),
