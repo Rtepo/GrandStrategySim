@@ -1,7 +1,7 @@
 use crate::entities::Company;
 use crate::politics::system::Party;
 use crate::registries::enums::Sector;
-use crate::society::geography::Region;
+use crate::society::geography::{Region, RuralClass, UrbanClass};
 use crate::state::treasury::Treasury;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -423,11 +423,14 @@ pub fn process_party_debt_liquidation(
                         regions
                             .iter()
                             .flat_map(|r| {
-                                r.class_demographics
-                                    .rural_classes
-                                    .get(class_name)
+                                RuralClass::from_str(class_name)
+                                    .and_then(|k| r.class_demographics.rural_classes.get(&k))
                                     .into_iter()
-                                    .chain(r.class_demographics.urban_classes.get(class_name))
+                                    .chain(
+                                        UrbanClass::from_str(class_name)
+                                            .and_then(|k| r.class_demographics.urban_classes.get(&k))
+                                            .into_iter(),
+                                    )
                             })
                             .map(|c| c.population as f64)
                     })
@@ -438,27 +441,31 @@ pub fn process_party_debt_liquidation(
 
                 for class_name in &debt.liable_classes {
                     for region in regions.iter_mut() {
-                        if let Some(class_data) =
-                            region.class_demographics.rural_classes.get_mut(class_name)
-                        {
-                            let class_share = (class_data.population as f64
-                                / total_liable_population)
-                                * remaining_debt;
-                            let extracted = class_share.min(class_data.savings);
-                            class_data.savings -= extracted;
-                            treasury.liquid_reserves += extracted;
-                            total_extracted += extracted;
+                        if let Some(rk) = RuralClass::from_str(class_name) {
+                            if let Some(class_data) =
+                                region.class_demographics.rural_classes.get_mut(&rk)
+                            {
+                                let class_share = (class_data.population as f64
+                                    / total_liable_population)
+                                    * remaining_debt;
+                                let extracted = class_share.min(class_data.savings);
+                                class_data.savings -= extracted;
+                                treasury.liquid_reserves += extracted;
+                                total_extracted += extracted;
+                            }
                         }
-                        if let Some(class_data) =
-                            region.class_demographics.urban_classes.get_mut(class_name)
-                        {
-                            let class_share = (class_data.population as f64
-                                / total_liable_population)
-                                * remaining_debt;
-                            let extracted = class_share.min(class_data.savings);
-                            class_data.savings -= extracted;
-                            treasury.liquid_reserves += extracted;
-                            total_extracted += extracted;
+                        if let Some(uk) = UrbanClass::from_str(class_name) {
+                            if let Some(class_data) =
+                                region.class_demographics.urban_classes.get_mut(&uk)
+                            {
+                                let class_share = (class_data.population as f64
+                                    / total_liable_population)
+                                    * remaining_debt;
+                                let extracted = class_share.min(class_data.savings);
+                                class_data.savings -= extracted;
+                                treasury.liquid_reserves += extracted;
+                                total_extracted += extracted;
+                            }
                         }
                     }
                 }

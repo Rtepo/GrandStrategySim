@@ -13,6 +13,7 @@
 use crate::entities::legal_form::LegalForm;
 use crate::entities::Company;
 use crate::registries::enums::Sector;
+use crate::society::geography::{RuralClass, UrbanClass};
 use crate::state::Country;
 
 /// Solidarity factor by cultural group (proxy for charitable giving propensity).
@@ -237,7 +238,7 @@ pub fn process_charity_distribution(companies: &mut [Company], country: &mut Cou
                 {
                     continue;
                 }
-                eligible.push((r_idx, true, class_key.clone(), demographics.population));
+                eligible.push((r_idx, true, class_key.to_string(), demographics.population));
                 total_eligible_pop += demographics.population;
             }
             for (class_key, demographics) in &region.class_demographics.urban_classes {
@@ -255,7 +256,7 @@ pub fn process_charity_distribution(companies: &mut [Company], country: &mut Cou
                 {
                     continue;
                 }
-                eligible.push((r_idx, false, class_key.clone(), demographics.population));
+                eligible.push((r_idx, false, class_key.to_string(), demographics.population));
                 total_eligible_pop += demographics.population;
             }
         }
@@ -274,14 +275,20 @@ pub fn process_charity_distribution(companies: &mut [Company], country: &mut Cou
                 continue;
             }
             let region = &mut country.regions[*r_idx];
-            let classes = if *is_rural {
-                &mut region.class_demographics.rural_classes
+            if *is_rural {
+                if let Some(rk) = RuralClass::from_str(class_key) {
+                    if let Some(demo) = region.class_demographics.rural_classes.get_mut(&rk) {
+                        demo.savings += amount;
+                        total_distributed += amount;
+                    }
+                }
             } else {
-                &mut region.class_demographics.urban_classes
-            };
-            if let Some(demo) = classes.get_mut(class_key) {
-                demo.savings += amount;
-                total_distributed += amount;
+                if let Some(uk) = UrbanClass::from_str(class_key) {
+                    if let Some(demo) = region.class_demographics.urban_classes.get_mut(&uk) {
+                        demo.savings += amount;
+                        total_distributed += amount;
+                    }
+                }
             }
         }
 
@@ -300,7 +307,7 @@ mod tests {
     use crate::entities::legal_form::NonProfitData;
     use crate::entities::Company;
     use crate::registries::enums::Sector;
-    use crate::society::geography::{ClassDemographics, Region};
+    use crate::society::geography::{ClassDemographics, Region, RuralClass};
     use crate::state::Country;
 
     fn make_charity(sector: Sector, religion: &str, cash: f64) -> Company {
@@ -337,7 +344,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("aristocracy".to_string(), wealthy);
+            .insert(RuralClass::Aristocracy, wealthy);
 
         // Poor class (for distribution).
         let mut poor = ClassDemographics::default();
@@ -347,7 +354,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("free_peasant".to_string(), poor);
+            .insert(RuralClass::FreePeasant, poor);
 
         // Poor class of different religion.
         let mut poor_other = ClassDemographics::default();
@@ -357,7 +364,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("landless_laborer".to_string(), poor_other);
+            .insert(RuralClass::LandlessLaborer, poor_other);
 
         country.regions.push(region);
         country
@@ -447,7 +454,7 @@ mod tests {
         let ll = region
             .class_demographics
             .rural_classes
-            .get("landless_laborer")
+            .get(&RuralClass::LandlessLaborer)
             .unwrap();
         assert!((ll.savings - 1000.0).abs() < 1e-6); // Unchanged
 
@@ -455,7 +462,7 @@ mod tests {
         let fp = region
             .class_demographics
             .rural_classes
-            .get("free_peasant")
+            .get(&RuralClass::FreePeasant)
             .unwrap();
         assert!((fp.savings - 3000.0).abs() < 1e-6); // 2000 + 1000
     }

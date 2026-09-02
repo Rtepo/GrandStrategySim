@@ -1,0 +1,5 @@
+﻿  --> state\src\corporate\federation.rs:23:5
+  --> state\src\economy\trade\retail.rs:14:71
+ --> state\src\politics\elections.rs:6:33
+error[E0609]: no field `par` on type `Vec<CountryTask<'_>>`
+    --> state\src\engine\turn.rs:4256:15

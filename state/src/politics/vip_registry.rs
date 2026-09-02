@@ -755,7 +755,7 @@ impl VipRegistry {
         }
 
         // Sort prunable by death_turn descending (keep most recent deaths).
-        prunable.sort_by(|a, b| b.death_turn.unwrap_or(0).cmp(&a.death_turn.unwrap_or(0)));
+        prunable.sort_by_key(|b| std::cmp::Reverse(b.death_turn.unwrap_or(0)));
 
         // Keep only the most recent `max_archive_size` prunable entries.
         prunable.truncate(max_archive_size);

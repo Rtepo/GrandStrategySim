@@ -18,6 +18,7 @@
 
 use crate::entities::Company;
 use crate::registries::enums::Sector;
+use crate::society::geography::{RuralClass, UrbanClass};
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
 
@@ -354,13 +355,13 @@ pub fn process_amnesty_turn(country: &mut Country, companies: &mut [Company]) ->
 
     for region in &mut country.regions {
         // Process rural classes
-        let rural_ids: Vec<String> = region
+        let rural_ids: Vec<RuralClass> = region
             .class_demographics
             .rural_classes
             .keys()
             .cloned()
             .collect();
-        for class_id in rural_ids {
+        for class_id in &rural_ids {
             let legalized = legalize_class(
                 region
                     .class_demographics
@@ -379,13 +380,13 @@ pub fn process_amnesty_turn(country: &mut Country, companies: &mut [Company]) ->
         }
 
         // Process urban classes
-        let urban_ids: Vec<String> = region
+        let urban_ids: Vec<UrbanClass> = region
             .class_demographics
             .urban_classes
             .keys()
             .cloned()
             .collect();
-        for class_id in urban_ids {
+        for class_id in &urban_ids {
             let legalized = legalize_class(
                 region
                     .class_demographics

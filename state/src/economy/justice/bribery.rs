@@ -199,13 +199,18 @@ pub fn apply_corruption_tax_leakage(
     let per_official = leakage / corrupt_officials.len() as f64;
     for &(region_idx, ref class_key, is_rural) in corrupt_officials {
         if let Some(region) = country.regions.get_mut(region_idx) {
-            let classes = if is_rural {
-                &mut region.class_demographics.rural_classes
+            if is_rural {
+                if let Some(key) = crate::society::geography::RuralClass::from_str(class_key) {
+                    if let Some(demo) = region.class_demographics.rural_classes.get_mut(&key) {
+                        demo.savings += per_official;
+                    }
+                }
             } else {
-                &mut region.class_demographics.urban_classes
-            };
-            if let Some(demo) = classes.get_mut(class_key) {
-                demo.savings += per_official;
+                if let Some(key) = crate::society::geography::UrbanClass::from_str(class_key) {
+                    if let Some(demo) = region.class_demographics.urban_classes.get_mut(&key) {
+                        demo.savings += per_official;
+                    }
+                }
             }
         }
     }

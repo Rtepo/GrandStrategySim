@@ -149,7 +149,11 @@ impl KNF {
             0.0
         };
 
-        if tier_1_ratio < self.min_tier_1_ratio {
+        // Phase 94: Only enforce when min_tier_1_ratio > 0.0. A threshold of
+        // 0.0 means "no regulatory minimum" (the default config), not "must
+        // be non-negative". Also do NOT clamp tier_1_capital to 0.0 — that
+        // breaks A=L+E double-entry.
+        if self.min_tier_1_ratio > 0.0 && tier_1_ratio < self.min_tier_1_ratio {
             self.dividend_restricted_banks.insert(bank.id.clone());
 
             let severity = ((self.min_tier_1_ratio - tier_1_ratio) * 100.0) as u8;
@@ -159,15 +163,14 @@ impl KNF {
             let actual_fine_collected = if fine <= available_reserves {
                 // Sufficient reserves: debit directly
                 balance_sheet.reserves_at_central_bank -= fine;
-                balance_sheet.tier_1_capital = (balance_sheet.tier_1_capital - fine).max(0.0);
+                balance_sheet.tier_1_capital -= fine;
                 fine
             } else {
                 // Insufficient reserves: attempt Lombard borrowing
                 let shortfall = fine - available_reserves;
-                // Placeholder: Simplified Lombard lending logic
                 if central_bank.interest_rates.reference_rate > 0.0 {
                     balance_sheet.reserves_at_central_bank = 0.0;
-                    balance_sheet.tier_1_capital = (balance_sheet.tier_1_capital - fine).max(0.0);
+                    balance_sheet.tier_1_capital -= fine;
                     balance_sheet
                         .interbank_loans_taken
                         .insert(central_bank.id.clone(), shortfall);
@@ -175,7 +178,7 @@ impl KNF {
                 } else {
                     // Lombard failed: trigger resolution, extract only available
                     balance_sheet.reserves_at_central_bank = 0.0;
-                    balance_sheet.tier_1_capital = 0.0;
+                    balance_sheet.tier_1_capital -= available_reserves;
                     // Trigger bank resolution (handled by banking system)
                     available_reserves
                 }
@@ -299,7 +302,13 @@ pub fn process_knf_compliance(
 
         let tier_1_ratio = balance_sheet.tier_1_capital / total_assets;
 
-        if tier_1_ratio < knf.min_tier_1_ratio {
+        // Phase 94: Only enforce when min_tier_1_ratio > 0.0. A threshold of
+        // 0.0 means "no regulatory minimum" (the default config), not "must
+        // be non-negative". Without this guard, every bank with negative
+        // equity (common after Genesis reserve depletion) gets hit with a
+        // fine of 10× total_assets, and the .max(0.0) clamping on
+        // tier_1_capital breaks A=L+E double-entry.
+        if knf.min_tier_1_ratio > 0.0 && tier_1_ratio < knf.min_tier_1_ratio {
             // Restrict dividends
             knf.dividend_restricted_banks.insert(bank.id.clone());
 
@@ -307,16 +316,20 @@ pub fn process_knf_compliance(
             let fine = severity as f64 * total_assets * config.knf_penalty_multiplier;
 
             // Collect fine from bank reserves (closed-loop)
+            // Phase 94: Do NOT clamp tier_1_capital to 0.0 — that breaks
+            // double-entry (equity decreases by less than the fine while
+            // liabilities increase by the full shortfall). Allow negative
+            // tier_1 to represent technical insolvency.
             let available_reserves = balance_sheet.reserves_at_central_bank;
             let actual_fine = if fine <= available_reserves {
                 balance_sheet.reserves_at_central_bank -= fine;
-                balance_sheet.tier_1_capital = (balance_sheet.tier_1_capital - fine).max(0.0);
+                balance_sheet.tier_1_capital -= fine;
                 fine
             } else {
                 // Insufficient reserves: attempt Lombard borrowing
                 let shortfall = fine - available_reserves;
                 balance_sheet.reserves_at_central_bank = 0.0;
-                balance_sheet.tier_1_capital = (balance_sheet.tier_1_capital - fine).max(0.0);
+                balance_sheet.tier_1_capital -= fine;
                 balance_sheet
                     .interbank_loans_taken
                     .insert(central_bank.id.clone(), shortfall);
@@ -347,7 +360,11 @@ pub fn process_knf_compliance(
 
             let available_reserves = balance_sheet.reserves_at_central_bank;
             let actual_fine = fine.min(available_reserves);
+            // Phase 94: Double-entry — fine is an expense: asset (reserves)
+            // decreases AND equity (tier_1) decreases. Without the equity
+            // debit, A < L+E by the fine amount.
             balance_sheet.reserves_at_central_bank -= actual_fine;
+            balance_sheet.tier_1_capital -= actual_fine;
             treasury.liquid_reserves += actual_fine;
 
             let finding = AuditFinding {

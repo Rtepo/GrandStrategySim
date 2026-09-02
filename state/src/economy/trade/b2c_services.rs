@@ -551,7 +551,7 @@ pub fn clear_passenger_transport_b2c(
 mod tests {
     use super::*;
     use crate::registries::enums::Sector;
-    use crate::society::geography::{ClassDemographics, Region};
+    use crate::society::geography::{ClassDemographics, Region, RuralClass};
     use crate::state::Country;
 
     fn make_test_country(region_id: &str, citizen_savings: f64, gov_reserves: f64) -> Country {
@@ -569,7 +569,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("peasants".to_string(), demo);
+            .insert(RuralClass::FreePeasant, demo);
         country.regions.push(region);
         country
     }
@@ -609,7 +609,7 @@ mod tests {
         assert_eq!(buildings[0].reserve, expected_subsidy);
         // Citizen savings unchanged (subsidized)
         let region = &country.regions[0];
-        let demo = &region.class_demographics.rural_classes["peasants"];
+        let demo = &region.class_demographics.rural_classes[&RuralClass::FreePeasant];
         assert_eq!(demo.savings, 1000.0);
         assert_eq!(
             building_inventories["SCHOOL_001"]
@@ -653,7 +653,7 @@ mod tests {
         let citizen_payment = affordable * edu_price;
         assert_eq!(country.budget.liquid_reserves, 100.0); // Unchanged (insolvency)
         let region = &country.regions[0];
-        let demo = &region.class_demographics.rural_classes["peasants"];
+        let demo = &region.class_demographics.rural_classes[&RuralClass::FreePeasant];
         assert!((demo.savings - (1000.0 - citizen_payment)).abs() < 0.01);
         assert!((buildings[0].reserve - citizen_payment).abs() < 0.01);
         assert_eq!(
@@ -696,7 +696,7 @@ mod tests {
         let affordable = (1000.0 / edu_price).floor();
         let citizen_payment = affordable * edu_price;
         let region = &country.regions[0];
-        let demo = &region.class_demographics.rural_classes["peasants"];
+        let demo = &region.class_demographics.rural_classes[&RuralClass::FreePeasant];
         assert!((demo.savings - (1000.0 - citizen_payment)).abs() < 0.01);
         // Private building: revenue goes to company (not building.reserve)
         assert_eq!(buildings[0].reserve, 0.0);
@@ -777,7 +777,7 @@ mod tests {
         assert_eq!(country.budget.liquid_reserves, 10000.0);
         // Citizens pay full price
         let region = &country.regions[0];
-        let demo = &region.class_demographics.rural_classes["peasants"];
+        let demo = &region.class_demographics.rural_classes[&RuralClass::FreePeasant];
         // citizen_payment = 50 * default_service_price(avg_wage)
         let expected_payment = 50.0 * config.default_service_price(1000.0);
         assert_eq!(demo.savings, 5000.0 - expected_payment);

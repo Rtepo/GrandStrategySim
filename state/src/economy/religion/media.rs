@@ -314,7 +314,7 @@ pub fn clear_information_b2c(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::{ClassDemographics, Region};
+    use crate::society::geography::{ClassDemographics, Region, UrbanClass};
 
     fn make_test_country(region_id: &str, citizen_savings: f64, gov_reserves: f64) -> Country {
         let mut country = Country::mock_for_tests();
@@ -331,7 +331,7 @@ mod tests {
         region
             .class_demographics
             .urban_classes
-            .insert("workers".to_string(), demo);
+            .insert(UrbanClass::Worker, demo);
         country.regions.push(region);
         country
     }

@@ -6,7 +6,7 @@
 //! - Union fund management and member recruitment
 
 use crate::entities::{Company, Union};
-use crate::society::geography::Region;
+use crate::society::geography::{Region, UrbanClass};
 use crate::state::Country;
 use std::collections::HashMap;
 
@@ -298,7 +298,7 @@ fn credit_strike_pay_to_savings(
         for region in country.regions.iter_mut() {
             if region.id == *region_id {
                 // Try urban classes first, then rural.
-                if let Some(uc) = region.class_demographics.urban_classes.get_mut(class_key) {
+                if let Some(uc) = UrbanClass::from_str(class_key).and_then(|k| region.class_demographics.urban_classes.get_mut(&k)) {
                     uc.savings += amount;
                 } else if let Some(first_urban) =
                     region.class_demographics.urban_classes.values_mut().next()
@@ -323,7 +323,7 @@ fn credit_worker_class_savings(region: &mut Region, amount: f64) {
     if amount <= 0.0 {
         return;
     }
-    if let Some(worker) = region.class_demographics.urban_classes.get_mut("Worker") {
+    if let Some(worker) = region.class_demographics.urban_classes.get_mut(&UrbanClass::Worker) {
         worker.savings += amount;
     } else if let Some(first_urban) = region.class_demographics.urban_classes.values_mut().next() {
         first_urban.savings += amount;
@@ -684,7 +684,7 @@ mod tests {
                 urban_classes: {
                     let mut m = BTreeMap::new();
                     m.insert(
-                        "Worker".to_string(),
+                        UrbanClass::Worker,
                         ClassDemographics {
                             population: 1000,
                             savings: 0.0,
@@ -712,7 +712,7 @@ mod tests {
         let worker_savings = country.regions[0]
             .class_demographics
             .urban_classes
-            .get("Worker")
+            .get(&UrbanClass::Worker)
             .unwrap()
             .savings;
         assert!(
@@ -785,7 +785,7 @@ mod tests {
                     urban_classes: {
                         let mut m = BTreeMap::new();
                         m.insert(
-                            "Worker".to_string(),
+                            UrbanClass::Worker,
                             ClassDemographics {
                                 population: 500,
                                 savings: 0.0,
@@ -809,7 +809,7 @@ mod tests {
         let r1_savings = country.regions[0]
             .class_demographics
             .urban_classes
-            .get("Worker")
+            .get(&UrbanClass::Worker)
             .unwrap()
             .savings;
         assert!(
@@ -821,7 +821,7 @@ mod tests {
         let r2_savings = country.regions[1]
             .class_demographics
             .urban_classes
-            .get("Worker")
+            .get(&UrbanClass::Worker)
             .unwrap()
             .savings;
         assert!(
@@ -860,7 +860,7 @@ mod tests {
                 urban_classes: {
                     let mut m = BTreeMap::new();
                     m.insert(
-                        "Worker".to_string(),
+                        UrbanClass::Worker,
                         ClassDemographics {
                             population: 500,
                             savings: 0.0,
@@ -886,7 +886,7 @@ mod tests {
         let worker_savings = country.regions[0]
             .class_demographics
             .urban_classes
-            .get("Worker")
+            .get(&UrbanClass::Worker)
             .unwrap()
             .savings;
         assert!(

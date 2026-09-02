@@ -14,6 +14,7 @@ use crate::economy::disasters::{DisasterEvent, DisasterType};
 use crate::entities::Building;
 use crate::politics::system::IntelligenceState;
 use crate::registries::enums::Commodity;
+use crate::society::geography::{RuralClass, UrbanClass};
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
@@ -344,7 +345,7 @@ pub fn check_terrorism_triggers(
                     (class.population as f64 * class.political_sentiment.radicals) as i64;
                 radical_minority_pop += radical_pop;
                 if target_class_id.is_none() {
-                    target_class_id = Some(class_id.clone());
+                    target_class_id = Some(class_id.to_string());
                     target_is_urban = false;
                 }
             }
@@ -356,7 +357,7 @@ pub fn check_terrorism_triggers(
                     (class.population as f64 * class.political_sentiment.radicals) as i64;
                 radical_minority_pop += radical_pop;
                 if target_class_id.is_none() {
-                    target_class_id = Some(class_id.clone());
+                    target_class_id = Some(class_id.to_string());
                     target_is_urban = true;
                 }
             }
@@ -387,9 +388,11 @@ pub fn check_terrorism_triggers(
         let region_id = region.id.clone();
         let minority_pop = if let Some(ref cid) = target_class_id {
             let class = if target_is_urban {
-                region.class_demographics.urban_classes.get(cid)
+                UrbanClass::from_str(cid)
+                    .and_then(|k| region.class_demographics.urban_classes.get(&k))
             } else {
-                region.class_demographics.rural_classes.get(cid)
+                RuralClass::from_str(cid)
+                    .and_then(|k| region.class_demographics.rural_classes.get(&k))
             };
             class.map(|c| c.population).unwrap_or(0)
         } else {
@@ -441,9 +444,11 @@ pub fn check_terrorism_triggers(
             if let Some(ref cid) = target_class_id {
                 let region = &mut country.regions[region_idx];
                 let class = if target_is_urban {
-                    region.class_demographics.urban_classes.get_mut(cid)
+                    UrbanClass::from_str(cid)
+                        .and_then(|k| region.class_demographics.urban_classes.get_mut(&k))
                 } else {
-                    region.class_demographics.rural_classes.get_mut(cid)
+                    RuralClass::from_str(cid)
+                        .and_then(|k| region.class_demographics.rural_classes.get_mut(&k))
                 };
                 if let Some(class) = class {
                     class.population = (class.population - casualties).max(0);
@@ -532,7 +537,9 @@ pub fn compute_propaganda_subsidy_rate(country: &Country) -> f64 {
 mod tests {
     use super::*;
     use crate::politics::free_speech::{FreeSpeechLaw, FreeSpeechLevel};
-    use crate::society::geography::{ClassDemographics, PoliticalSentiment, Region};
+    use crate::society::geography::{
+        ClassDemographics, PoliticalSentiment, Region, UrbanClass,
+    };
 
     #[test]
     fn test_propaganda_ruling_party_boost() {
@@ -560,7 +567,7 @@ mod tests {
         region
             .class_demographics
             .urban_classes
-            .insert("workers".to_string(), class);
+            .insert(UrbanClass::Worker, class);
         country.regions.push(region);
 
         let result = process_propaganda_turn(&mut country, 0.8);
@@ -569,7 +576,7 @@ mod tests {
         // boost = 5.0 * 0.01 * 0.8 = 0.04
         assert!((result.applied_loyalist_boost - 0.04).abs() < 1e-9);
 
-        let class = &country.regions[0].class_demographics.urban_classes["workers"];
+        let class = &country.regions[0].class_demographics.urban_classes[&UrbanClass::Worker];
         assert!(class.political_sentiment.loyalists > 0.3);
         assert!(class.political_sentiment.radicals < 0.5);
     }
@@ -653,7 +660,7 @@ mod tests {
         region
             .class_demographics
             .urban_classes
-            .insert("minority".to_string(), class);
+            .insert(UrbanClass::Worker, class);
         country.regions.push(region);
         country.macro_indicators.religion = "Catholicism".to_string();
 
@@ -690,7 +697,7 @@ mod tests {
         region
             .class_demographics
             .urban_classes
-            .insert("minority".to_string(), class);
+            .insert(UrbanClass::Worker, class);
         country.regions.push(region);
         country.macro_indicators.religion = "Catholicism".to_string();
 
@@ -728,7 +735,7 @@ mod tests {
         region
             .class_demographics
             .urban_classes
-            .insert("minority".to_string(), class);
+            .insert(UrbanClass::Worker, class);
         country.regions.push(region);
         country.macro_indicators.religion = "Catholicism".to_string();
 

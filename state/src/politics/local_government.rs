@@ -274,6 +274,49 @@ pub fn initialize_regional_governance(region_id: &str, country_name: &str) -> Re
     }
 }
 
+/// Phase D.2: Initialize megaregion governance for a megaregion that has none.
+///
+/// Creates a default `MegaregionGovernance` with:
+/// - A unique ID based on the megaregion ID
+/// - A default governor (named later by `assign_regional_heads`)
+/// - Empty budget (funds will flow from regional upward transfers)
+/// - Governor appointment determined by state structure:
+///   - Federation → elected (`governor_appointed = false`)
+///   - AutonomousRepublic → elected
+///   - Unitary → appointed (`governor_appointed = true`)
+///   - Totalitarian → appointed
+/// - Competence level derived from state structure:
+///   - Federation → Full fiscal authority
+///   - AutonomousRepublic → Full
+///   - Unitary → Limited (coordination only)
+///   - Totalitarian → Advisory (no fiscal authority)
+pub fn initialize_megaregion_governance(
+    megaregion_id: &str,
+    country_name: &str,
+    state_structure: crate::politics::state_structure::StateStructure,
+) -> MegaregionGovernance {
+    let (governor_appointed, competence_level) = match state_structure {
+        crate::politics::state_structure::StateStructure::Federation => (false, MegaregionCompetence::Full),
+        crate::politics::state_structure::StateStructure::AutonomousRepublic => {
+            (false, MegaregionCompetence::Full)
+        }
+        crate::politics::state_structure::StateStructure::Unitary => {
+            (true, MegaregionCompetence::Limited)
+        }
+        crate::politics::state_structure::StateStructure::Totalitarian => {
+            (true, MegaregionCompetence::Advisory)
+        }
+    };
+
+    MegaregionGovernance {
+        id: format!("MEG-GOV-{}-{}", country_name, megaregion_id),
+        governor: Leader::default(),
+        budget: MegaregionBudget::default(),
+        governor_appointed,
+        competence_level,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -296,5 +339,53 @@ mod tests {
         assert_eq!(gov.admin_status, AdministrativeStatus::Normal);
         assert_eq!(gov.head_type, RegionalHeadType::Mayor);
         assert_eq!(gov.budget.liquid_reserves, 0.0);
+    }
+
+    #[test]
+    fn test_initialize_megaregion_governance_federation() {
+        let gov = initialize_megaregion_governance(
+            "MEG-TestCountry-01",
+            "TestCountry",
+            crate::politics::state_structure::StateStructure::Federation,
+        );
+        assert_eq!(gov.id, "MEG-GOV-TestCountry-MEG-TestCountry-01");
+        assert!(!gov.governor_appointed); // Federation: elected
+        assert_eq!(gov.competence_level, MegaregionCompetence::Full);
+        assert_eq!(gov.budget.liquid_reserves, 0.0);
+    }
+
+    #[test]
+    fn test_initialize_megaregion_governance_unitary() {
+        let gov = initialize_megaregion_governance(
+            "MEG-TestCountry-01",
+            "TestCountry",
+            crate::politics::state_structure::StateStructure::Unitary,
+        );
+        assert!(gov.governor_appointed); // Unitary: appointed
+        assert_eq!(gov.competence_level, MegaregionCompetence::Limited);
+    }
+
+    #[test]
+    fn test_initialize_megaregion_governance_totalitarian() {
+        let gov = initialize_megaregion_governance(
+            "MEG-TestCountry-01",
+            "TestCountry",
+            crate::politics::state_structure::StateStructure::Totalitarian,
+        );
+        assert!(gov.governor_appointed); // Totalitarian: appointed
+        assert_eq!(gov.competence_level, MegaregionCompetence::Advisory);
+    }
+
+    #[test]
+    fn test_generate_megaregions_has_governance() {
+        use crate::politics::state_structure::StateStructure;
+        let region_ids = vec!["R1".to_string(), "R2".to_string(), "R3".to_string()];
+        let megaregions =
+            crate::society::geography::generate_megaregions("TestLand", &region_ids, StateStructure::Federation);
+        assert_eq!(megaregions.len(), 1);
+        assert!(megaregions[0].governance.is_some());
+        let gov = megaregions[0].governance.as_ref().unwrap();
+        assert!(!gov.governor_appointed); // Federation
+        assert_eq!(gov.competence_level, MegaregionCompetence::Full);
     }
 }

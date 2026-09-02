@@ -11,7 +11,7 @@ use crate::registries::enums::Commodity;
 use crate::society::culture_registry::{
     registry as culture_registry, CultureDefinition, ReligionDefinition,
 };
-use crate::society::geography::{DemographyType, Region, RuralClass};
+use crate::society::geography::{DemographicClass, Region, RuralClass};
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
@@ -51,10 +51,11 @@ fn default_offer_quality() -> f64 {
 }
 
 /// Consumer demand by demographic class (Phase 6.5)
+/// E.6.3: Uses typed `DemographicClass` key.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ConsumerDemand {
-    /// (region_id, demography_type, class_id) → (commodity → units demanded)
-    pub demand: BTreeMap<(String, DemographyType, String), BTreeMap<Commodity, f64>>,
+    /// E.6.3: (region_id, DemographicClass) → (commodity → units demanded)
+    pub demand: BTreeMap<(String, DemographicClass), BTreeMap<Commodity, f64>>,
 
     /// Total demand per commodity (aggregated across all classes)
     pub total_demand: BTreeMap<Commodity, f64>,
@@ -492,22 +493,23 @@ pub fn build_consumer_demand(
     let year = 1925 + (current_turn / 24);
 
     // Helper: compute demand for a single class (rural or urban)
+    // E.6.3: Uses typed DemographicClass for demand keys
     let process_class = |demand: &mut ConsumerDemand,
                          region: &Region,
                          housing_buildings: &[HousingBuilding],
-                         class_id: &str,
+                         class: DemographicClass,
                          demographics: &crate::society::geography::ClassDemographics,
-                         demography_type: DemographyType,
                          year: u32| {
-        let key = (region.id.clone(), demography_type, class_id.to_string());
+        let class_id_str = class.as_str();
+        let key = (region.id.clone(), class);
         let housing_rate = class_housing_possession_rate(
             housing_buildings,
             &region.id,
-            class_id,
+            class_id_str,
             demographics.population,
         );
 
-        if let Some(basket) = consumption.get(class_id) {
+        if let Some(basket) = consumption.get(class_id_str) {
             for (tier, tier_commodities) in &basket.tiers {
                 for (commodity, per_capita) in tier_commodities {
                     // Phase 47: Durables use stock-adjusted demand (replacement +
@@ -588,28 +590,26 @@ pub fn build_consumer_demand(
         }
     };
 
-    // Process rural classes
-    for (class_id, demographics) in &region.class_demographics.rural_classes {
+    // Process rural classes (E.6.3: typed keys)
+    for (rural_class, demographics) in &region.class_demographics.rural_classes {
         process_class(
             &mut demand,
             region,
             housing_buildings,
-            class_id,
+            DemographicClass::from(*rural_class),
             demographics,
-            DemographyType::Rural,
             year,
         );
     }
 
-    // Process urban classes
-    for (class_id, demographics) in &region.class_demographics.urban_classes {
+    // Process urban classes (E.6.3: typed keys)
+    for (urban_class, demographics) in &region.class_demographics.urban_classes {
         process_class(
             &mut demand,
             region,
             housing_buildings,
-            class_id,
+            DemographicClass::from(*urban_class),
             demographics,
-            DemographyType::Urban,
             year,
         );
     }
@@ -1060,21 +1060,22 @@ pub fn clear_b2c_markets(
 pub fn settle_b2c_clearing(
     store_revenue: &BTreeMap<String, f64>,
     consumer_demand: &ConsumerDemand,
-    commercial_buildings: &[CommercialBuilding],
+    _commercial_buildings: &[CommercialBuilding],
     companies: &mut [Company],
     region: &mut Region,
     vat_rates: &std::collections::HashMap<String, crate::state::tax::VatBracket>,
     store_id_to_owner: &rustc_hash::FxHashMap<String, String>,
     company_id_to_idx: &rustc_hash::FxHashMap<String, usize>,
 ) -> (f64, f64) {
-    // Build class demand shares: (is_rural, class_key) → total demand across all commodities
-    let mut class_shares: Vec<(bool, String, f64)> = Vec::new();
+    // Build class demand shares: (is_rural, DemographicClass) → total demand across all commodities
+    // E.6.3: typed DemographicClass key
+    let mut class_shares: Vec<(bool, DemographicClass, f64)> = Vec::new();
     let mut total_class_demand: f64 = 0.0;
-    for ((_, demo_type, class_id), commodity_map) in &consumer_demand.demand {
+    for ((_, class), commodity_map) in &consumer_demand.demand {
         let class_total: f64 = commodity_map.values().sum();
         if class_total > 0.0 {
-            let is_rural = *demo_type == DemographyType::Rural;
-            class_shares.push((is_rural, class_id.clone(), class_total));
+            let is_rural = class.is_rural();
+            class_shares.push((is_rural, *class, class_total));
             total_class_demand += class_total;
         }
     }
@@ -1128,13 +1129,14 @@ pub fn settle_b2c_clearing(
             // Phase 41: Debit citizen savings by the FULL amount (base + VAT share),
             // but credit company only the base. VAT goes to treasury.
             let class_vat = vat_amount * share;
+            let class_key_str = class_key.to_string();
             let result = settle_b2c_purchase(
                 companies,
                 company_idx,
                 class_revenue,
                 region,
                 *is_rural,
-                class_key,
+                &class_key_str,
                 class_vat,
             );
             if let Ok(r) = result {

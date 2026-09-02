@@ -245,7 +245,7 @@ pub fn process_wounded(
 /// * Dead are permanently removed from demographics
 pub fn process_dead(
     casualties: &Casualties,
-    region_demographics: &mut BTreeMap<String, ClassDemographics>,
+    region_demographics: &mut BTreeMap<RuralClass, ClassDemographics>,
     region_name: &str,
 ) -> Vec<String> {
     let mut messages = Vec::new();
@@ -255,14 +255,8 @@ pub fn process_dead(
     }
 
     // Deduct dead from demographic classes
-    // Fix: serde_json::to_string produces quoted JSON like "\"free_peasant\""
-    // We must trim the quotes to match BTreeMap keys.
     for (rural_class, &dead_count) in &casualties.demographic_breakdown {
-        let class_key = serde_json::to_string(rural_class)
-            .unwrap_or_default()
-            .trim_matches('"')
-            .to_string();
-        if let Some(class_demographics) = region_demographics.get_mut(&class_key) {
+        if let Some(class_demographics) = region_demographics.get_mut(rural_class) {
             class_demographics.population = (class_demographics.population - dead_count).max(0);
         }
     }
@@ -290,7 +284,7 @@ pub fn process_dead(
 /// * Desertion spikes social_unrest
 pub fn process_deserters(
     casualties: &Casualties,
-    region_demographics: &mut BTreeMap<String, ClassDemographics>,
+    region_demographics: &mut BTreeMap<RuralClass, ClassDemographics>,
     region_name: &str,
 ) -> Vec<String> {
     let mut messages = Vec::new();
@@ -301,11 +295,7 @@ pub fn process_deserters(
 
     // Deserters return to their original classes — add them back to population
     for (rural_class, &deserter_count) in &casualties.demographic_breakdown {
-        let class_key = serde_json::to_string(rural_class)
-            .unwrap_or_default()
-            .trim_matches('"')
-            .to_string();
-        if let Some(class_demographics) = region_demographics.get_mut(&class_key) {
+        if let Some(class_demographics) = region_demographics.get_mut(rural_class) {
             class_demographics.population += deserter_count;
         }
     }

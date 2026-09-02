@@ -1,0 +1,16 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo check --lib --message-format=short 2>&1 | Out-File C:\Users\net ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Blocking waiting for file lock on build directory
+    Checking sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+state\src\corporate\federation.rs:209:25: error[E0433]: cannot find type `TransferRecipient` in this scope: use of unde
+clared type `TransferRecipient`
+state\src\engine\generator\mod.rs:2111:52: error[E0433]: cannot find type `BankType` in this scope: use of undeclared t
+ype `BankType`
+error: could not compile `sim_engine` (lib) due to 2 previous errors

@@ -1,7 +1,9 @@
 use crate::entities::{Building, Company};
 use crate::politics::chaos_config::ChaosConfig;
 use crate::registries::enums::Commodity;
-use crate::society::geography::{ClassDemographics, EconomicStatus, RegionalClassDemographics};
+use crate::society::geography::{
+    ClassDemographics, EconomicStatus, RegionalClassDemographics, RuralClass, UrbanClass,
+};
 use crate::state::treasury::Treasury;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -139,22 +141,34 @@ pub fn check_mass_movement_spawn(
     current_turn: u32,
 ) -> Option<MassMovement> {
     // Aggregate radical population across all classes
+    // E.6.3: Typed keys — iterate rural and urban separately.
     let total_radicals: i64 = class_demographics
         .rural_classes
         .iter()
-        .chain(class_demographics.urban_classes.iter())
         .map(|(_, class)| {
             let radical_fraction = class.political_sentiment.radicals;
             (class.population as f64 * radical_fraction) as i64
         })
-        .sum();
+        .sum::<i64>()
+        + class_demographics
+            .urban_classes
+            .iter()
+            .map(|(_, class)| {
+                let radical_fraction = class.political_sentiment.radicals;
+                (class.population as f64 * radical_fraction) as i64
+            })
+            .sum::<i64>();
 
     let total_population: i64 = class_demographics
         .rural_classes
         .iter()
-        .chain(class_demographics.urban_classes.iter())
         .map(|(_, class)| class.population)
-        .sum();
+        .sum::<i64>()
+        + class_demographics
+            .urban_classes
+            .iter()
+            .map(|(_, class)| class.population)
+            .sum::<i64>();
 
     // Threshold: radicals must exceed configured percentage of regional population
     let radical_threshold = (total_population as f64 * config.radical_threshold) as i64;
@@ -166,17 +180,40 @@ pub fn check_mass_movement_spawn(
 
     // Identify the class with highest radical concentration
     // Safe to unwrap because we've guaranteed total_radicals > 0
-    let (initiating_class_key, initiating_class) = class_demographics
+    // E.6.3: Typed keys — compare rural and urban best separately.
+    let rural_best = class_demographics
         .rural_classes
         .iter()
-        .chain(class_demographics.urban_classes.iter())
         .max_by(|a, b| {
             a.1.political_sentiment
                 .radicals
                 .partial_cmp(&b.1.political_sentiment.radicals)
                 .unwrap()
-        })
-        .unwrap();
+        });
+    let urban_best = class_demographics
+        .urban_classes
+        .iter()
+        .max_by(|a, b| {
+            a.1.political_sentiment
+                .radicals
+                .partial_cmp(&b.1.political_sentiment.radicals)
+                .unwrap()
+        });
+    let (initiating_class_key, initiating_class): (String, &ClassDemographics) = match (
+        rural_best,
+        urban_best,
+    ) {
+        (Some(r), Some(u)) => {
+            if r.1.political_sentiment.radicals >= u.1.political_sentiment.radicals {
+                (r.0.to_string(), r.1)
+            } else {
+                (u.0.to_string(), u.1)
+            }
+        }
+        (Some(r), None) => (r.0.to_string(), r.1),
+        (None, Some(u)) => (u.0.to_string(), u.1),
+        (None, None) => return None,
+    };
 
     // Determine movement type based on class economic status
     let movement_type = match initiating_class.economic_status {
@@ -384,9 +421,13 @@ pub fn suppress_mass_movement(
     let total_undecided_before: f64 = class_demographics
         .rural_classes
         .iter()
-        .chain(class_demographics.urban_classes.iter())
         .map(|(_, c)| c.political_sentiment.undecided)
-        .sum();
+        .sum::<f64>()
+        + class_demographics
+            .urban_classes
+            .iter()
+            .map(|(_, c)| c.political_sentiment.undecided)
+            .sum::<f64>();
 
     // 4a. CASUALTIES: Distribute proportionally across ALL classes based on radical share
     let total_casualties = (movement.participant_count as f64 * config.casualty_rate) as i64;
@@ -629,17 +670,26 @@ pub fn process_mass_movements_turn(
                     if let Some(region) = regions.iter_mut().find(|r| r.id == movement.region_id) {
                         // Try to process strike fund — find the initiating class
                         let class_key = movement.initiating_class.clone();
-                        if let Some(class_demo) =
-                            region.class_demographics.rural_classes.get_mut(&class_key)
-                        {
-                            if let Err(e) = process_union_strike_fund(movement, union, class_demo) {
-                                messages.push(format!("[MOVEMENT] Strike fund error: {:?}", e));
+                        let mut processed = false;
+                        if let Some(rk) = RuralClass::from_str(&class_key) {
+                            if let Some(class_demo) =
+                                region.class_demographics.rural_classes.get_mut(&rk)
+                            {
+                                if let Err(e) = process_union_strike_fund(movement, union, class_demo) {
+                                    messages.push(format!("[MOVEMENT] Strike fund error: {:?}", e));
+                                }
+                                processed = true;
                             }
-                        } else if let Some(class_demo) =
-                            region.class_demographics.urban_classes.get_mut(&class_key)
-                        {
-                            if let Err(e) = process_union_strike_fund(movement, union, class_demo) {
-                                messages.push(format!("[MOVEMENT] Strike fund error: {:?}", e));
+                        }
+                        if !processed {
+                            if let Some(uk) = UrbanClass::from_str(&class_key) {
+                                if let Some(class_demo) =
+                                    region.class_demographics.urban_classes.get_mut(&uk)
+                                {
+                                    if let Err(e) = process_union_strike_fund(movement, union, class_demo) {
+                                        messages.push(format!("[MOVEMENT] Strike fund error: {:?}", e));
+                                    }
+                                }
                             }
                         }
                     }

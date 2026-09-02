@@ -205,7 +205,7 @@ impl Ideology {
         match self {
             Ideology::OrthodoxMarxism => IdeologyPreferences {
                 religion: "Secularism",
-                citizenship: "5-Year Assimilation",
+                citizenship: "5_year_assimilation",
                 electoral_system: "Hare-Niemeyer",
                 trade_doctrine: "Protectionism",
                 labor_law: "Worker Protection",
@@ -219,7 +219,7 @@ impl Ideology {
             },
             Ideology::MarxismLeninism => IdeologyPreferences {
                 religion: "State Atheism",
-                citizenship: "5-Year Assimilation",
+                citizenship: "5_year_assimilation",
                 electoral_system: "None",
                 trade_doctrine: "Autarky",
                 labor_law: "Worker Protection",
@@ -233,7 +233,7 @@ impl Ideology {
             },
             Ideology::Maoism => IdeologyPreferences {
                 religion: "State Atheism",
-                citizenship: "10-Year Assimilation",
+                citizenship: "10_year_assimilation",
                 electoral_system: "None",
                 trade_doctrine: "Autarky",
                 labor_law: "Worker Protection",
@@ -247,7 +247,7 @@ impl Ideology {
             },
             Ideology::SocialDemocracy => IdeologyPreferences {
                 religion: "Secularism",
-                citizenship: "Ziemia 3 lata",
+                citizenship: "3_year_residency",
                 electoral_system: "Sainte-Laguë",
                 trade_doctrine: "Free Trade",
                 labor_law: "Worker Protection",
@@ -261,7 +261,7 @@ impl Ideology {
             },
             Ideology::GreenPolitics => IdeologyPreferences {
                 religion: "Secularism",
-                citizenship: "Ziemia 3 lata",
+                citizenship: "3_year_residency",
                 electoral_system: "Sainte-Laguë",
                 trade_doctrine: "Free Trade",
                 labor_law: "Worker Protection",
@@ -275,7 +275,7 @@ impl Ideology {
             },
             Ideology::ClassicalLiberalism => IdeologyPreferences {
                 religion: "Tolerancja",
-                citizenship: "Ziemia 5 lat",
+                citizenship: "5_year_residency",
                 electoral_system: "D'Hondt",
                 trade_doctrine: "Free Trade",
                 labor_law: "Flexible",
@@ -289,7 +289,7 @@ impl Ideology {
             },
             Ideology::SocialLiberalism => IdeologyPreferences {
                 religion: "Secularism",
-                citizenship: "Ziemia 5 lat",
+                citizenship: "5_year_residency",
                 electoral_system: "D'Hondt",
                 trade_doctrine: "Free Trade",
                 labor_law: "Flexible",
@@ -303,7 +303,7 @@ impl Ideology {
             },
             Ideology::Agrarianism => IdeologyPreferences {
                 religion: "Tolerancja",
-                citizenship: "Krew",
+                citizenship: "jus_sanguinis",
                 electoral_system: "D'Hondt",
                 trade_doctrine: "Protectionism",
                 labor_law: "Worker Protection",
@@ -317,7 +317,7 @@ impl Ideology {
             },
             Ideology::ChristianDemocracy => IdeologyPreferences {
                 religion: "State",
-                citizenship: "Krew",
+                citizenship: "jus_sanguinis",
                 electoral_system: "D'Hondt",
                 trade_doctrine: "Protectionism",
                 labor_law: "Worker Protection",
@@ -331,7 +331,7 @@ impl Ideology {
             },
             Ideology::SocialConservatism => IdeologyPreferences {
                 religion: "State",
-                citizenship: "Krew",
+                citizenship: "jus_sanguinis",
                 electoral_system: "D'Hondt",
                 trade_doctrine: "Protectionism",
                 labor_law: "Flexible",
@@ -345,7 +345,7 @@ impl Ideology {
             },
             Ideology::Neoconservatism => IdeologyPreferences {
                 religion: "Tolerancja",
-                citizenship: "Ziemia 5 lat",
+                citizenship: "5_year_residency",
                 electoral_system: "D'Hondt",
                 trade_doctrine: "Free Trade",
                 labor_law: "Flexible",
@@ -359,7 +359,7 @@ impl Ideology {
             },
             Ideology::Neoliberalism => IdeologyPreferences {
                 religion: "Secularism",
-                citizenship: "Ziemia 3 lata",
+                citizenship: "3_year_residency",
                 electoral_system: "D'Hondt",
                 trade_doctrine: "Free Trade",
                 labor_law: "Flexible",
@@ -373,7 +373,7 @@ impl Ideology {
             },
             Ideology::NationalConservatism => IdeologyPreferences {
                 religion: "State",
-                citizenship: "Krew",
+                citizenship: "jus_sanguinis",
                 electoral_system: "D'Hondt",
                 trade_doctrine: "Protectionism",
                 labor_law: "Flexible",
@@ -387,7 +387,7 @@ impl Ideology {
             },
             Ideology::AnarchoCapitalism => IdeologyPreferences {
                 religion: "Secularism",
-                citizenship: "None",
+                citizenship: "open_citizenship",
                 electoral_system: "None",
                 trade_doctrine: "Free Trade",
                 labor_law: "Flexible",
@@ -401,7 +401,7 @@ impl Ideology {
             },
             Ideology::Fascism => IdeologyPreferences {
                 religion: "State",
-                citizenship: "Krew",
+                citizenship: "segregation",
                 electoral_system: "None",
                 trade_doctrine: "Autarky",
                 labor_law: "State",

@@ -352,6 +352,8 @@ mod tests {
             ..Default::default()
         });
         country.budget.liquid_reserves = 1_000_000.0;
+        // D.4.4: Set realistic average_wage so dynamic thresholds work
+        country.macro_indicators.average_wage = 1000.0;
         country
     }
 

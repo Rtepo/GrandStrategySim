@@ -9,6 +9,7 @@ pub mod bankruptcy;
 pub mod bounded_rationality;
 pub mod capital_intensity;
 pub mod development;
+pub mod federation;
 pub mod lifecycle;
 pub mod manager;
 pub mod market_behavior;

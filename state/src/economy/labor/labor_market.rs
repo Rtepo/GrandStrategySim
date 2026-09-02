@@ -2,8 +2,9 @@
 
 use crate::economy::legal_status::LegalStatus;
 use crate::entities::Company;
+use crate::politics::citizenship::{CitizenshipLaw, DiscriminationConfig};
 use crate::registries::enums::Sector;
-use crate::society::geography::{DemographyType, Region};
+use crate::society::geography::{DemographicClass, Region};
 use crate::state::Calendar;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
@@ -17,10 +18,11 @@ fn default_remittance_rate() -> f64 {
 /// Loaded via JSON to avoid hardcoded simulation logic
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct LaborConfig {
-    /// Suitability matrix: class_id -> (sector -> multiplier)
+    /// Suitability matrix: class -> (sector -> multiplier)
+    /// E.6.3: Typed key (DemographicClass) replaces raw string class_id.
     /// Multipliers represent class suitability for specific sectors
     /// Missing keys default to 1.0 (neutral suitability)
-    pub suitability_matrix: HashMap<String, HashMap<Sector, f64>>,
+    pub suitability_matrix: HashMap<DemographicClass, HashMap<Sector, f64>>,
 }
 
 /// Labor market bid from a company
@@ -46,12 +48,13 @@ pub struct ClassLaborLedger {
 /// Tracks which company received FTE from which specific demographic class,
 /// enabling agricultural companies to deduct in-kind payments from the correct
 /// worker classes.
+/// E.6.3: Uses `DemographicClass` typed key instead of `(DemographyType, String)`.
 #[derive(Debug, Default)]
 pub struct LaborAllocationMatrix {
-    /// (company_id, demography_type, class_id) -> FTE allocated this turn
-    pub fte: BTreeMap<(String, DemographyType, String), f64>,
+    /// (company_id, demographic_class) -> FTE allocated this turn
+    pub fte: BTreeMap<(String, DemographicClass), f64>,
     /// Same key -> cash wages credited (needed to clamp in-kind wage offset)
-    pub wages: BTreeMap<(String, DemographyType, String), f64>,
+    pub wages: BTreeMap<(String, DemographicClass), f64>,
     /// Fix 1.22: Total PIT withheld at source during wage payment.
     /// The caller must credit this amount to `country.budget.liquid_reserves`.
     pub pit_withheld: f64,
@@ -96,15 +99,15 @@ pub struct RegionalLaborPool {
     pub total_available_fte: f64,
 
     /// Track per-class labor and wage allocations
-    /// CRITICAL FIX: Use tuple key (DemographyType, class_id) to prevent key collisions
-    /// between rural and urban classes with identical class_id strings
-    pub class_ledgers: BTreeMap<(DemographyType, String), ClassLaborLedger>,
+    /// E.6.3: Typed `DemographicClass` key replaces `(DemographyType, String)`.
+    /// The enum variants inherently prevent rural/urban key collisions.
+    pub class_ledgers: BTreeMap<DemographicClass, ClassLaborLedger>,
 }
 
 /// Get suitability multiplier for a class-sector combination (data-driven)
 ///
 /// # Arguments
-/// * `class_id` - Demographic class identifier
+/// * `class` - Demographic class (typed)
 /// * `sector` - GDP sector
 /// * `config` - LaborConfig containing suitability matrix
 ///
@@ -115,10 +118,10 @@ pub struct RegionalLaborPool {
 /// * Looks up multiplier from config.suitability_matrix
 /// * Missing keys default to 1.0 (neutral suitability)
 /// * Multiplier affects labor share during bid distribution, NOT actual FTE count
-fn get_suitability_multiplier(class_id: &str, sector: &Sector, config: &LaborConfig) -> f64 {
+fn get_suitability_multiplier(class: DemographicClass, sector: &Sector, config: &LaborConfig) -> f64 {
     config
         .suitability_matrix
-        .get(class_id)
+        .get(&class)
         .and_then(|sector_map| sector_map.get(sector))
         .copied()
         .unwrap_or(1.0) // Default to neutral if not configured
@@ -152,8 +155,10 @@ pub fn resolve_regional_labor_market(
     _calendar: &Calendar,
     config: &LaborConfig,
     pit_rate: f64,
-    garnishment_rates: &std::collections::BTreeMap<(String, bool, String), f64>,
+    garnishment_rates: &std::collections::BTreeMap<(String, DemographicClass), f64>,
     commuter_inflow_fte: f64,
+    civil_rights_law: &str,
+    discrimination_config: &DiscriminationConfig,
 ) -> LaborAllocationMatrix {
     // Phase 6.5: Initialize labor allocation matrix for payment-in-kind tracking
     let mut allocation_matrix = LaborAllocationMatrix {
@@ -268,36 +273,70 @@ pub fn resolve_regional_labor_market(
     // Phase 2: Clear Market and Update Structures
 
     // 4. Build regional labor pool with per-class ledgers
-    // CRITICAL FIX: Use tuple keys (DemographyType, class_id) to prevent key collisions
+    // E.6.3: Typed `DemographicClass` keys replace `(DemographyType, String)`.
 
-    // Phase 23C: Synthetic class id for commuter FTE injected from adjacent
-    // regions. Kept out of `rural_classes`/`urban_classes` so wages are not
-    // credited to local demographics — the caller remits them to home regions.
-    const COMMUTER_CLASS_ID: &str = "__commuter__";
+    // Phase 23C: Synthetic commuter class — transient FTE injected from
+    // adjacent regions. Kept out of `rural_classes`/`urban_classes` so wages
+    // are not credited to local demographics — the caller remits them to home
+    // regions. E.6.3: Now a typed `DemographicClass::Commuter` variant.
+    let commuter_class = DemographicClass::Commuter;
 
     let mut pool = RegionalLaborPool {
         total_available_fte: 0.0,
         class_ledgers: BTreeMap::new(),
     };
 
-    for (class_id, demographics) in &region.class_demographics.rural_classes {
-        pool.total_available_fte += demographics.available_fte;
+    // Phase 17A: Job access restrictions for non-citizen classes.
+    // If block_expert_jobs or block_skilled_jobs is set, reduce available_fte
+    // proportionally to represent exclusion from certain job tiers.
+    let citizenship_law = CitizenshipLaw::parse_law(civil_rights_law);
+    let job_blocking_factor = if citizenship_law == CitizenshipLaw::Segregation {
+        // Segregation blocks all non-citizens from most jobs.
+        if discrimination_config.block_expert_jobs && discrimination_config.block_skilled_jobs {
+            0.50 // Only unskilled labor available
+        } else if discrimination_config.block_expert_jobs {
+            0.70 // Expert tier blocked
+        } else {
+            1.0 // No blocking
+        }
+    } else if citizenship_law == CitizenshipLaw::CulturalAssimilation {
+        if discrimination_config.block_expert_jobs {
+            0.85 // Partial blocking under assimilation
+        } else {
+            1.0
+        }
+    } else {
+        1.0
+    };
+
+    for (rural_class, demographics) in &region.class_demographics.rural_classes {
+        let effective_fte = if demographics.legal_status != LegalStatus::Citizen {
+            demographics.available_fte * job_blocking_factor
+        } else {
+            demographics.available_fte
+        };
+        pool.total_available_fte += effective_fte;
         pool.class_ledgers.insert(
-            (DemographyType::Rural, class_id.clone()),
+            DemographicClass::from(*rural_class),
             ClassLaborLedger {
-                available_fte: demographics.available_fte,
+                available_fte: effective_fte,
                 allocated_fte: 0.0,
                 earned_wages: 0.0,
             },
         );
     }
 
-    for (class_id, demographics) in &region.class_demographics.urban_classes {
-        pool.total_available_fte += demographics.available_fte;
+    for (urban_class, demographics) in &region.class_demographics.urban_classes {
+        let effective_fte = if demographics.legal_status != LegalStatus::Citizen {
+            demographics.available_fte * job_blocking_factor
+        } else {
+            demographics.available_fte
+        };
+        pool.total_available_fte += effective_fte;
         pool.class_ledgers.insert(
-            (DemographyType::Urban, class_id.clone()),
+            DemographicClass::from(*urban_class),
             ClassLaborLedger {
-                available_fte: demographics.available_fte,
+                available_fte: effective_fte,
                 allocated_fte: 0.0,
                 earned_wages: 0.0,
             },
@@ -324,15 +363,15 @@ pub fn resolve_regional_labor_market(
     }
 
     // Phase 23C: Inject commuter FTE (workers from adjacent regions who can
-    // afford the PassengerTransport ticket). These are tracked under a
-    // synthetic "__commuter__" class id so they participate in the same
+    // afford the PassengerTransport ticket). These are tracked under the
+    // synthetic `DemographicClass::Commuter` so they participate in the same
     // weighted-distribution clearing loop. Their wages are NOT credited to
     // local class savings; they are accumulated in `allocation_matrix.commuter_wages`
     // for the caller to remit to home regions.
     if commuter_inflow_fte > 0.0 {
         pool.total_available_fte += commuter_inflow_fte;
         pool.class_ledgers.insert(
-            (DemographyType::Rural, COMMUTER_CLASS_ID.to_string()),
+            commuter_class,
             ClassLaborLedger {
                 available_fte: commuter_inflow_fte,
                 allocated_fte: 0.0,
@@ -359,8 +398,8 @@ pub fn resolve_regional_labor_market(
             let weighted_total_available: f64 = pool
                 .class_ledgers
                 .iter()
-                .map(|((_, class_id), ledger)| {
-                    let suitability = get_suitability_multiplier(class_id, &bid.sector, config);
+                .map(|(class, ledger)| {
+                    let suitability = get_suitability_multiplier(*class, &bid.sector, config);
                     ledger.available_fte * suitability
                 })
                 .sum();
@@ -372,9 +411,9 @@ pub fn resolve_regional_labor_market(
 
             let mut secured_this_pass = 0.0;
 
-            for ((demography_type, class_id), ledger) in pool.class_ledgers.iter_mut() {
+            for (class, ledger) in pool.class_ledgers.iter_mut() {
                 if ledger.available_fte > 0.0 {
-                    let suitability = get_suitability_multiplier(class_id, &bid.sector, config);
+                    let suitability = get_suitability_multiplier(*class, &bid.sector, config);
                     let weighted_share =
                         (ledger.available_fte * suitability) / weighted_total_available;
                     let theoretical_fte = fte_to_distribute * weighted_share;
@@ -388,7 +427,8 @@ pub fn resolve_regional_labor_market(
                     ledger.available_fte -= actual_fte;
 
                     // Phase 6.5: Track company×class allocation for payment-in-kind
-                    let key = (bid.company_id.clone(), *demography_type, class_id.clone());
+                    // E.6.3: Typed `DemographicClass` key
+                    let key = (bid.company_id.clone(), *class);
                     *allocation_matrix.fte.entry(key.clone()).or_insert(0.0) += actual_fte;
                     *allocation_matrix.wages.entry(key).or_insert(0.0) += class_wage;
 
@@ -626,24 +666,15 @@ pub fn resolve_regional_labor_market(
                 .map(|c| c.allocated_fte)
                 .sum::<f64>();
         if total_class_fte > 0.0 {
-            let distribute = |classes: &mut std::collections::BTreeMap<
-                String,
-                crate::society::geography::ClassDemographics,
-            >,
-                              total: f64| {
-                for demo in classes.values_mut() {
-                    let share = demo.allocated_fte / total;
-                    demo.savings += total_severance_to_workers * share;
-                }
-            };
-            distribute(
-                &mut region.class_demographics.rural_classes,
-                total_class_fte,
-            );
-            distribute(
-                &mut region.class_demographics.urban_classes,
-                total_class_fte,
-            );
+            // E.6.3: Typed map keys — distribute to rural and urban classes
+            for demo in region.class_demographics.rural_classes.values_mut() {
+                let share = demo.allocated_fte / total_class_fte;
+                demo.savings += total_severance_to_workers * share;
+            }
+            for demo in region.class_demographics.urban_classes.values_mut() {
+                let share = demo.allocated_fte / total_class_fte;
+                demo.savings += total_severance_to_workers * share;
+            }
         }
     }
 
@@ -667,21 +698,57 @@ pub fn resolve_regional_labor_market(
         }
     }
 
-    // CRITICAL FIX: Use tuple keys (DemographyType, class_id) to access ledgers
-    for (class_id, demographics) in region.class_demographics.rural_classes.iter_mut() {
-        if let Some(ledger) = pool
-            .class_ledgers
-            .get(&(DemographyType::Rural, class_id.clone()))
-        {
+    // Phase 17A: Apply wage discrimination against non-citizen classes.
+    // Non-citizen workers (legal_status != Citizen under CulturalAssimilation
+    // or Segregation) receive wage * non_citizen_wage_multiplier. The withheld
+    // fraction remains with the employer as labor cost savings — the employer
+    // debits less cash for non-citizen FTE. This is a market outcome, not a
+    // state seizure.
+    let citizenship_law = CitizenshipLaw::parse_law(civil_rights_law);
+    if citizenship_law != CitizenshipLaw::OpenCitizenship {
+        // Build a set of non-citizen DemographicClass keys.
+        let mut non_citizen_classes: Vec<DemographicClass> = Vec::new();
+        for (rural_class, demo) in &region.class_demographics.rural_classes {
+            if demo.legal_status != LegalStatus::Citizen {
+                non_citizen_classes.push(DemographicClass::from(*rural_class));
+            }
+        }
+        for (urban_class, demo) in &region.class_demographics.urban_classes {
+            if demo.legal_status != LegalStatus::Citizen {
+                non_citizen_classes.push(DemographicClass::from(*urban_class));
+            }
+        }
+        // Scale earned_wages for non-citizen classes.
+        for key in &non_citizen_classes {
+            if let Some(ledger) = pool.class_ledgers.get_mut(key) {
+                ledger.earned_wages *= discrimination_config.non_citizen_wage_multiplier;
+            }
+        }
+    }
+
+    // E.6.3: Use typed `DemographicClass` keys to access ledgers
+    for (rural_class, demographics) in region.class_demographics.rural_classes.iter_mut() {
+        let demo_class = DemographicClass::from(*rural_class);
+        if let Some(ledger) = pool.class_ledgers.get(&demo_class) {
             let gross_wage = ledger.earned_wages;
 
             // Phase 18B: Source-level community service garnishment (deducted from gross wage)
-            let garnish_key = (region.id.clone(), false, class_id.clone());
+            let garnish_key = (region.id.clone(), demo_class);
             let garnishment_rate = garnishment_rates.get(&garnish_key).copied().unwrap_or(0.0);
             let garnishment_amount = gross_wage * garnishment_rate;
             let post_garnishment = gross_wage - garnishment_amount;
 
-            let pit_amount = post_garnishment * pit_rate;
+            // R8.6: TaxDeferred PIT deduction — reduce taxable base by
+            // per-capita tax-advantaged contributions. Clamp at zero so
+            // PIT never goes negative (no cash refund for zero-tax citizens).
+            let per_capita_contribution = if demographics.population > 0 {
+                demographics.tax_advantaged_contributions_this_year / demographics.population as f64
+            } else {
+                0.0
+            };
+            let taxable_base = (post_garnishment - per_capita_contribution).max(0.0);
+
+            let pit_amount = taxable_base * pit_rate;
             let net_wage = post_garnishment - pit_amount;
 
             // Phase 18A: Source-level remittance deduction for TemporaryWorkers
@@ -702,20 +769,28 @@ pub fn resolve_regional_labor_market(
         }
     }
 
-    for (class_id, demographics) in region.class_demographics.urban_classes.iter_mut() {
-        if let Some(ledger) = pool
-            .class_ledgers
-            .get(&(DemographyType::Urban, class_id.clone()))
-        {
+    for (urban_class, demographics) in region.class_demographics.urban_classes.iter_mut() {
+        let demo_class = DemographicClass::from(*urban_class);
+        if let Some(ledger) = pool.class_ledgers.get(&demo_class) {
             let gross_wage = ledger.earned_wages;
 
             // Phase 18B: Source-level community service garnishment (deducted from gross wage)
-            let garnish_key = (region.id.clone(), true, class_id.clone());
+            let garnish_key = (region.id.clone(), demo_class);
             let garnishment_rate = garnishment_rates.get(&garnish_key).copied().unwrap_or(0.0);
             let garnishment_amount = gross_wage * garnishment_rate;
             let post_garnishment = gross_wage - garnishment_amount;
 
-            let pit_amount = post_garnishment * pit_rate;
+            // R8.6: TaxDeferred PIT deduction — reduce taxable base by
+            // per-capita tax-advantaged contributions. Clamp at zero so
+            // PIT never goes negative (no cash refund for zero-tax citizens).
+            let per_capita_contribution = if demographics.population > 0 {
+                demographics.tax_advantaged_contributions_this_year / demographics.population as f64
+            } else {
+                0.0
+            };
+            let taxable_base = (post_garnishment - per_capita_contribution).max(0.0);
+
+            let pit_amount = taxable_base * pit_rate;
             let net_wage = post_garnishment - pit_amount;
 
             // Phase 18A: Source-level remittance deduction for TemporaryWorkers
@@ -747,12 +822,9 @@ pub fn resolve_regional_labor_market(
     // Commuters pay PIT in the host region (already included in
     // `total_pit_withheld` via the synthetic class ledger above). Their net
     // wages must be remitted to their home regions by the caller — they are
-    // NOT credited to local `class_demographics` (the synthetic
-    // "__commuter__" key is not present in `rural_classes`/`urban_classes`).
-    if let Some(commuter_ledger) = pool
-        .class_ledgers
-        .get(&(DemographyType::Rural, COMMUTER_CLASS_ID.to_string()))
-    {
+    // NOT credited to local `class_demographics` (the `Commuter` variant
+    // is not present in `rural_classes`/`urban_classes`).
+    if let Some(commuter_ledger) = pool.class_ledgers.get(&commuter_class) {
         let gross = commuter_ledger.earned_wages;
         if gross > 0.0 {
             // PIT on commuter wages (host region keeps it).
@@ -772,7 +844,7 @@ mod tests {
     use super::*;
     use crate::entities::Company;
     use crate::registries::enums::Sector;
-    use crate::society::geography::{ClassDemographics, Region};
+    use crate::society::geography::{ClassDemographics, Region, RuralClass};
     use crate::state::Calendar;
 
     fn make_region_with_labor(id: &str, fte: f64) -> Region {
@@ -785,7 +857,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("peasants".to_string(), demo);
+            .insert(RuralClass::FreePeasant, demo);
         region
     }
 
@@ -823,6 +895,8 @@ mod tests {
             0.0,
             &garnishments,
             5.0, // 5 commuter FTE
+            "open_citizenship",
+            &DiscriminationConfig::default(),
         );
 
         // Company demanded 20 FTE, local pool 10 + commuter 5 = 15 available.
@@ -862,6 +936,8 @@ mod tests {
             0.0,
             &garnishments,
             0.0, // no commuters
+            "open_citizenship",
+            &DiscriminationConfig::default(),
         );
 
         assert_eq!(alloc.commuter_fte, 0.0);

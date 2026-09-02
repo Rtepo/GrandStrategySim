@@ -1,4 +1,4 @@
-//! Phase 94: 6-Turn Diagnostic Harness — probe trait, snapshots, and trace serialization.
+//! Phase 94: 6-Turn Diagnostic Harness â€” probe trait, snapshots, and trace serialization.
 //!
 //! This module provides the `TurnProbe` observer mechanism that allows the
 //! diagnostic harness to capture per-phase state deltas across 6 turns.
@@ -19,7 +19,7 @@
 //! - `market.apostolic_see_ledger.global_charity_pool`
 //!
 //! ALL corporate cash (`available_cash`, `debit_cash`, `credit_cash`,
-//! `brokerage_account.cash`) is EXCLUDED — these are M1 broad-money deposit
+//! `brokerage_account.cash`) is EXCLUDED â€” these are M1 broad-money deposit
 //! claims on bank reserves, not M0 base money. See `transfer_settler.rs:10-19`
 //! which confirms they move in lockstep with bank deposits and reserves.
 //!
@@ -37,6 +37,7 @@ use crate::state::banking::Loan;
 use crate::state::GameState;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+#[allow(unused_imports)]
 use std::path::Path;
 
 // ============================================================================
@@ -51,7 +52,7 @@ use std::path::Path;
 /// # Zero-Cost Abstraction
 /// `NoopProbe` implements this with `#[inline(always)]` empty methods,
 /// so when `run_turn_in_memory<NoopProbe>` is monomorphized, LLVM eliminates
-/// all checkpoint calls entirely — zero production overhead.
+/// all checkpoint calls entirely â€” zero production overhead.
 pub trait TurnProbe: Send {
     /// Called once at the named phase seam.
     /// `phase_index` is the 0-based checkpoint ordinal within the current turn.
@@ -65,7 +66,7 @@ pub trait TurnProbe: Send {
     );
 }
 
-/// Production no-op. `#[inline(always)]` on checkpoint → compiled away
+/// Production no-op. `#[inline(always)]` on checkpoint â†’ compiled away
 /// entirely by LLVM when monomorphized as `run_turn_in_memory<NoopProbe>`.
 #[derive(Default)]
 pub struct NoopProbe;
@@ -355,7 +356,7 @@ impl RegionalMarketSnapshot {
 ///
 /// CRITICAL: Corporate cash (available_cash, debit_cash, credit_cash,
 /// brokerage_account.cash) is NOT included here. Those are M1 broad-money
-/// deposit claims on bank reserves, not M0 base money. See plan §3.1.3.
+/// deposit claims on bank reserves, not M0 base money. See plan Â§3.1.3.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FiatWalk {
     /// Total M0 base money (sum of all components below).
@@ -395,6 +396,20 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     for task in tasks {
         let country = &task.ctx.country;
         treasury_cash += country.budget.liquid_reserves;
+        // Phase 94: Regional and megaregion government budgets are also
+        // fiat at the central bank â€” they are M0 base money. Fiscal
+        // transfers move money between regional and central budgets;
+        // excluding regional budgets from M0 would create false violations.
+        for region in &country.regions {
+            if let Some(ref gov) = region.governance {
+                treasury_cash += gov.budget.liquid_reserves;
+            }
+        }
+        for megaregion in &country.megaregions {
+            if let Some(ref gov) = megaregion.governance {
+                treasury_cash += gov.budget.liquid_reserves;
+            }
+        }
         // Phase 94: Citizen savings (demo.savings) are physical cash in
         // circulation, NOT central bank reserves. The simulation does not
         // model the banking-side of cash withdrawals/deposits (when a company
@@ -415,7 +430,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         cumulative_cb_injection += country.central_bank.liquidity_injected;
 
         // Phase 94: Include deposit insurance fund (BFG) and voluntary scheme (SOBK)
-        // pools — these are bank reserves moved to systemic funds, still M0 base money.
+        // pools â€” these are bank reserves moved to systemic funds, still M0 base money.
         bank_reserves += country.bfg_fund.reserves;
         bank_reserves += country.sobk_scheme.pool;
 
@@ -436,7 +451,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     // Phase 94: M0 includes citizen_cash (physical cash in circulation).
     // B2C purchases are M0-neutral: citizen cash decreases, bank reserves
     // increase. Wage payments require bank reserves to decrease when
-    // physical cash is withdrawn — this is handled in the wage payment code.
+    // physical cash is withdrawn â€” this is handled in the wage payment code.
     let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital + see_charity_pool;
 
     FiatWalk {
@@ -457,7 +472,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
 /// Compute the total physical mass for each commodity in the economy.
 ///
 /// Intangible commodities (services, capacity slots, innovation points) are
-/// EXCLUDED — they have zero physical mass. Classification via
+/// EXCLUDED â€” they have zero physical mass. Classification via
 /// `Commodity::is_intangible()`.
 pub fn walk_global_mass(
     tasks: &[CountryTask<'_>],
@@ -476,7 +491,7 @@ pub fn walk_global_mass(
         }
     }
 
-    // Market net_surplus (global unsold supply — physical commodities only).
+    // Market net_surplus (global unsold supply â€” physical commodities only).
     for (&commodity, &surplus) in &market.net_surplus {
         if !commodity.is_intangible() {
             // Phase 94: Only add non-negative surplus. Negative net_surplus
@@ -498,13 +513,13 @@ pub fn walk_global_mass(
 /// Result of diffing the current checkpoint against its predecessor.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ConservationVerdict {
-    /// Δ global_fiat vs previous checkpoint (M0 base money, NOT broad money).
+    /// Î” global_fiat vs previous checkpoint (M0 base money, NOT broad money).
     pub fiat_delta: f64,
-    /// Δ Σ central_bank.liquidity_injected vs previous checkpoint (sole allowed delta).
+    /// Î” ÎŁ central_bank.liquidity_injected vs previous checkpoint (sole allowed delta).
     pub allowed_cb_injection_delta: f64,
     /// True if |fiat_delta - allowed_cb_injection_delta| <= 1e-6.
     pub fiat_conserved: bool,
-    /// Per-commodity Δ physical mass.
+    /// Per-commodity Î” physical mass.
     pub mass_delta: HashMap<Commodity, f64>,
     /// True if all mass deltas are whitelisted or zero.
     pub mass_conserved: bool,
@@ -588,12 +603,12 @@ impl MassSinkWhitelist {
         let mut sinks = HashSet::new();
         let mut sources = HashSet::new();
 
-        // ── Complete array of ALL physical (non-intangible) commodities ──
+        // â”€â”€ Complete array of ALL physical (non-intangible) commodities â”€â”€
         // Used for bulk-registration of turn_end and b2c_clearing_post phases
         // where any physical commodity may legitimately appear as a source
         // (production finalization, shelf restocking) or sink (maintenance
         // consumption, decay, retail purchase). This comprehensive approach
-        // is required because world generation is non-deterministic — different
+        // is required because world generation is non-deterministic â€” different
         // commodities appear in each run's trace.
         let all_physical: &[Commodity] = &[
             Commodity::Agd,
@@ -724,7 +739,7 @@ impl MassSinkWhitelist {
             Commodity::HazardousWaste,
         ];
 
-        // ── Sinks (mass decreases) ──
+        // â”€â”€ Sinks (mass decreases) â”€â”€
 
         // Geology depletion: iron ore veins mined out of existence.
         sinks.insert((Commodity::Iron, "building_cycle_post".to_string()));
@@ -737,7 +752,7 @@ impl MassSinkWhitelist {
         ));
         // Fuel combustion during freight.
         sinks.insert((Commodity::Fuels, "freight_procurement_post".to_string()));
-        // FreightCapacity is ephemeral — consumed on delivery, never stockpiled.
+        // FreightCapacity is ephemeral â€” consumed on delivery, never stockpiled.
         sinks.insert((
             Commodity::FreightCapacity,
             "freight_procurement_post".to_string(),
@@ -787,7 +802,7 @@ impl MassSinkWhitelist {
             sinks.insert((*c, "b2c_clearing_post".to_string()));
         }
 
-        // ── Sources (mass increases) ──
+        // â”€â”€ Sources (mass increases) â”€â”€
 
         // Production outputs.
         sources.insert((Commodity::Steel, "production_cycle_post".to_string()));
@@ -909,7 +924,7 @@ pub struct PhaseCheckpoint {
     pub turn: u32,
     pub phase_index: u32,
     pub phase_name: String,
-    /// M0 base money decomposition (NOT broad money — see plan §3.1).
+    /// M0 base money decomposition (NOT broad money â€” see plan Â§3.1).
     pub global_fiat: FiatWalk,
     /// Per-commodity physical mass (intangibles excluded).
     pub global_mass: HashMap<Commodity, f64>,
@@ -968,7 +983,7 @@ pub struct TraceSummary {
 /// Active probe that captures state at every checkpoint and computes
 /// conservation verdicts by diffing against the previous checkpoint.
 ///
-/// Feature-gated (`diagnostic`) — only compiled when the feature is enabled.
+/// Feature-gated (`diagnostic`) â€” only compiled when the feature is enabled.
 #[cfg(feature = "diagnostic")]
 pub struct CapturingProbe {
     targets: HarnessTargets,
@@ -1131,7 +1146,7 @@ impl CapturingProbe {
                 }
                 (delta, cb_delta, conserved)
             } else {
-                // First checkpoint — no delta to compute.
+                // First checkpoint â€” no delta to compute.
                 (0.0, 0.0, true)
             };
 
@@ -1175,7 +1190,7 @@ impl CapturingProbe {
 
                 // Whitelist enforcement.
                 if delta < -1e-9 {
-                    // Mass decreased — must be a registered sink.
+                    // Mass decreased â€” must be a registered sink.
                     if !self.whitelist.is_sink(&commodity, phase_name) {
                         mass_conserved = false;
                         violations.push(ConservationViolation {
@@ -1190,7 +1205,7 @@ impl CapturingProbe {
                         });
                     }
                 } else if delta > 1e-9 {
-                    // Mass increased — must be a registered source.
+                    // Mass increased â€” must be a registered source.
                     if !self.whitelist.is_source(&commodity, phase_name) {
                         mass_conserved = false;
                         violations.push(ConservationViolation {
@@ -1236,7 +1251,7 @@ impl CapturingProbe {
             });
         }
 
-        // Freight accounting — placeholder (full implementation requires
+        // Freight accounting â€” placeholder (full implementation requires
         // capturing trade settlement details at the freight_procurement
         // and b2b_settlement checkpoints).
         let freight_accounted = true; // Will be refined with trade data.

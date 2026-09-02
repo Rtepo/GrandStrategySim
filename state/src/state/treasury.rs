@@ -307,6 +307,12 @@ pub struct Treasury {
     /// Phase 6.3.5: Placeholder logistics revenue from transport fees
     #[serde(default)]
     pub logistics_revenue: f64,
+    /// Phase D.9: Dedicated earmarked equalization fund (Janosikowe).
+    /// Rich regions are debited into this fund, poor regions are credited
+    /// from it. The fund must zero out each turn — any unallocated remainder
+    /// is swept to general `liquid_reserves` as an administrative fee.
+    #[serde(default, skip_serializing_if = "is_zero_f64")]
+    pub equalization_fund: f64,
     /// All other runtime-added keys, preserved losslessly.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -336,6 +342,7 @@ impl Default for Treasury {
             outstanding_corporate_debts: HashMap::new(),
             liquidation_expenses: 0.0, // Phase 6.3: Default liquidation expenses
             logistics_revenue: 0.0,    // Phase 6.3.5: Default logistics revenue
+            equalization_fund: 0.0,    // Phase D.9: Default equalization fund
             extra: Map::new(),
         }
     }

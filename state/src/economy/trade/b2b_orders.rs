@@ -66,6 +66,7 @@ pub fn compute_company_inventory_indexed(
 }
 
 /// Calculate the total inventory capacity for a company's buildings.
+#[allow(dead_code)]
 fn compute_company_inventory_capacity(company: &Company, buildings: &[Building]) -> f64 {
     buildings
         .iter()
@@ -90,6 +91,7 @@ fn compute_company_inventory_capacity_indexed(
 ///
 /// # Returns
 /// A value in `[0.0, 1.0+]` representing current inventory / max capacity.
+#[allow(dead_code)]
 fn compute_inventory_utilization(company: &Company, buildings: &[Building]) -> f64 {
     let capacity = compute_company_inventory_capacity(company, buildings);
     if capacity <= 0.0 {

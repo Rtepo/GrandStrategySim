@@ -40,27 +40,73 @@ pub fn process_regional_taxes(country: &mut Country, companies: &mut [Company]) 
         &property_tax_config,
     );
 
-    // Build a map: owner_id -> region_id for regional budget crediting.
-    let owner_region_map: BTreeMap<String, String> = country
-        .cadastre
-        .parcels
-        .values()
-        .filter(|p| {
-            p.owner_type != ParcelOwnerType::State && p.owner_type != ParcelOwnerType::Municipal
-        })
-        .map(|p| (p.owner_id.clone(), p.region_id.clone()))
-        .collect();
+    // Phase D.4: Build a per-(owner_id, region_id) nominal tax map.
+    // This fixes the multi-region owner routing bug where an owner with
+    // parcels in multiple regions had all tax credited to only one region.
+    // We compute the nominal tax per owner per region so that actual collected
+    // amounts can be split proportionally across the regions where the owner
+    // actually holds taxable land.
+    let mut owner_region_nominal_tax: BTreeMap<(String, String), f64> = BTreeMap::new();
+    for parcel in country.cadastre.parcels.values() {
+        if parcel.owner_type == ParcelOwnerType::State
+            || parcel.owner_type == ParcelOwnerType::Municipal
+        {
+            continue;
+        }
+        let parcel_value = cadastre::compute_parcel_value(parcel, &country.cadastre_config);
+        let parcel_tax = parcel_value * property_tax_config.millage_rate;
+        *owner_region_nominal_tax
+            .entry((parcel.owner_id.clone(), parcel.region_id.clone()))
+            .or_insert(0.0) += parcel_tax;
+    }
 
     // Debit from payers and track actual collected per region.
     let mut actual_collected_per_region: BTreeMap<String, f64> = BTreeMap::new();
+    // Phase 94: Track bank debits for batch sync. When a company pays
+    // property tax from its deposit (available_cash), the bank's deposits
+    // and reserves must decrease to maintain double-entry consistency.
+    let mut bank_debits: std::collections::HashMap<String, f64> =
+        std::collections::HashMap::new();
 
     for (owner_id, nominal_tax) in &tax_by_owner {
-        let actual_paid = debit_tax_from_payer(country, companies, owner_id, *nominal_tax);
+        let (actual_paid, bank_id) =
+            debit_tax_from_payer(country, companies, owner_id, *nominal_tax);
         if actual_paid > 0.0 {
-            if let Some(region_id) = owner_region_map.get(owner_id) {
-                *actual_collected_per_region
-                    .entry(region_id.clone())
-                    .or_insert(0.0) += actual_paid;
+            // Phase D.4: Split actual_paid across all regions where this owner
+            // holds taxable land, proportional to the nominal tax owed in each.
+            let owner_region_total: f64 = owner_region_nominal_tax
+                .iter()
+                .filter(|((oid, _), _)| oid == owner_id)
+                .map(|(_, t)| *t)
+                .sum();
+
+            if owner_region_total > 0.0 {
+                for ((oid, region_id), region_nominal) in &owner_region_nominal_tax {
+                    if oid != owner_id {
+                        continue;
+                    }
+                    let region_share = actual_paid * (region_nominal / owner_region_total);
+                    *actual_collected_per_region
+                        .entry(region_id.clone())
+                        .or_insert(0.0) += region_share;
+                }
+            }
+
+            // Phase 94: Accumulate bank debit for batch sync.
+            if let Some(bid) = bank_id {
+                *bank_debits.entry(bid).or_insert(0.0) += actual_paid;
+            }
+        }
+    }
+
+    // Phase 94: Batch bank sync — debit bank deposits and reserves by the
+    // exact amounts debited from company deposits. No clamping (negative
+    // reserves = CB Lombard borrowing).
+    for (bank_id, total_debit) in &bank_debits {
+        if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
+            if let Some(ref mut bs) = bank.balance_sheet {
+                bs.deposits -= total_debit;
+                bs.reserves_at_central_bank -= total_debit;
             }
         }
     }
@@ -96,14 +142,18 @@ pub fn process_regional_taxes(country: &mut Country, companies: &mut [Company]) 
 ///   from `Company.available_cash` by `owner_id`.
 /// * `Private` owners with `DYNASTY_` prefix: debited from Aristocracy class savings.
 /// * `Private` owners with `PEASANT_` prefix: debited from FreePeasant class savings.
+/// Returns (actual_debited, Option<bank_id>) — the bank_id is Some when
+/// the debit came from a company's deposit (available_cash), so the caller
+/// can batch-sync bank reserves. None for citizen savings debits (physical
+/// cash, no bank sync needed).
 fn debit_tax_from_payer(
     country: &mut Country,
     companies: &mut [Company],
     owner_id: &str,
     nominal_tax: f64,
-) -> f64 {
+) -> (f64, Option<String>) {
     if nominal_tax <= 0.0 {
-        return 0.0;
+        return (0.0, None);
     }
 
     // Find the owner's parcel to determine owner_type and region.
@@ -115,7 +165,7 @@ fn debit_tax_from_payer(
         .map(|p| (p.owner_type, p.region_id.clone()))
     {
         Some(x) => x,
-        None => return 0.0, // Owner not found — cannot debit. No fiat creation.
+        None => return (0.0, None), // Owner not found — cannot debit. No fiat creation.
     };
 
     match owner_type {
@@ -126,9 +176,9 @@ fn debit_tax_from_payer(
             if let Some(company) = companies.iter_mut().find(|c| c.id == owner_id) {
                 let debit = nominal_tax.min(company.available_cash.max(0.0));
                 company.available_cash -= debit;
-                debit
+                (debit, company.primary_bank_id.clone())
             } else {
-                0.0 // Company not found — no fiat creation.
+                (0.0, None) // Company not found — no fiat creation.
             }
         }
         ParcelOwnerType::Private => {
@@ -142,7 +192,7 @@ fn debit_tax_from_payer(
 
             let region_idx = country.regions.iter().position(|r| r.id == region_id);
             let Some(idx) = region_idx else {
-                return 0.0;
+                return (0.0, None);
             };
 
             if let Some(demographics) =
@@ -162,13 +212,14 @@ fn debit_tax_from_payer(
                         EconomicStatus::Destitute => EconomicStatus::Destitute,
                     };
                 }
-                debit
+                // Citizen savings are physical cash — no bank sync needed.
+                (debit, None)
             } else {
-                0.0
+                (0.0, None)
             }
         }
         // State and Municipal are tax-exempt — should never reach here.
-        ParcelOwnerType::State | ParcelOwnerType::Municipal => 0.0,
+        ParcelOwnerType::State | ParcelOwnerType::Municipal => (0.0, None),
     }
 }
 
@@ -274,32 +325,109 @@ pub fn check_commissary_administration(country: &mut Country) {
     }
 }
 
-/// Process municipal debt service
+/// Process municipal debt service with strict double-entry bookkeeping.
+///
+/// Phase D.3: Interest payments are debited from JST `liquid_reserves`
+/// (clamped to available — no negative reserves) and credited to bondholders.
+/// Each bond's `holders` Vec specifies who receives the interest payment.
+/// If holders is empty, the bond is in default and the credit is withheld
+/// (no fiat destruction — the debit simply does not occur).
 ///
 /// # Arguments
 /// * `country` - Mutable reference to the country
-pub fn process_municipal_debt_service(country: &mut Country) {
+/// * `companies` - Mutable slice of companies (for corporate bondholder credits)
+pub fn process_municipal_debt_service(country: &mut Country, companies: &mut [Company]) {
+    // Collect pending citizen-class credits to avoid double-borrowing country.regions.
+    let mut pending_citizen_credits: Vec<(String, RuralClass, f64)> = Vec::new();
+
     for region in &mut country.regions {
-        let Some(governance) = region.governance.as_mut() else {
-            continue;
+        let region_id = region.id.clone();
+
+        // Collect bond interest calculations and holder info before mutable borrow.
+        let bond_interests: Vec<(f64, Vec<String>)> = {
+            let Some(governance) = region.governance.as_ref() else {
+                continue;
+            };
+            governance
+                .debt
+                .municipal_bonds
+                .iter()
+                .map(|bond| {
+                    let interest = bond.principal * bond.interest_rate;
+                    (interest, bond.holders.clone())
+                })
+                .collect()
         };
 
-        // Calculate debt service payments
-        let mut total_debt_service = 0.0;
+        let total_nominal_debt_service: f64 = bond_interests.iter().map(|(i, _)| *i).sum();
 
-        for bond in &governance.debt.municipal_bonds {
-            let interest_payment = bond.principal * bond.interest_rate;
-            total_debt_service += interest_payment;
+        // Clamp to available reserves (Rule 20 — no negative reserves).
+        let available = region
+            .governance
+            .as_ref()
+            .map(|g| g.budget.liquid_reserves.max(0.0))
+            .unwrap_or(0.0);
+        let actual_debt_service = total_nominal_debt_service.min(available);
+        let collection_ratio = if total_nominal_debt_service > 0.0 {
+            actual_debt_service / total_nominal_debt_service
+        } else {
+            0.0
+        };
+
+        // Debit JST reserves.
+        if let Some(governance) = region.governance.as_mut() {
+            governance.budget.debt_service = actual_debt_service;
+            governance.budget.liquid_reserves -= actual_debt_service;
+
+            // Update debt-to-revenue ratio.
+            let annual_revenue = governance.budget.tax_revenue;
+            if annual_revenue > 0.0 {
+                governance.debt.debt_to_revenue_ratio =
+                    governance.debt.total_debt / annual_revenue;
+            }
         }
 
-        // Deduct from budget
-        governance.budget.debt_service = total_debt_service;
-        governance.budget.liquid_reserves -= total_debt_service;
+        // Credit bondholders with their pro-rata share of actual interest.
+        for (nominal_interest, holders) in &bond_interests {
+            let actual_interest = nominal_interest * collection_ratio;
+            if actual_interest <= 0.0 || holders.is_empty() {
+                continue;
+            }
+            let per_holder = actual_interest / holders.len() as f64;
+            for holder_id in holders {
+                // Try to credit as a company first.
+                if let Some(company) = companies.iter_mut().find(|c| c.id == *holder_id) {
+                    company.available_cash += per_holder;
+                } else {
+                    // Try to credit as a citizen class savings in this region.
+                    let rural_class = if holder_id.starts_with("DYNASTY_") {
+                        Some(RuralClass::Aristocracy)
+                    } else if holder_id.starts_with("PEASANT_") {
+                        Some(RuralClass::FreePeasant)
+                    } else {
+                        None
+                    };
+                    if let Some(class) = rural_class {
+                        // Defer the credit to after the loop to avoid double borrow.
+                        pending_citizen_credits.push((region_id.clone(), class, per_holder));
+                    }
+                    // If neither company nor citizen class found, the interest
+                    // is withheld — no fiat creation. The bondholder ID may
+                    // reference a foreign entity or VIP not tracked here.
+                }
+            }
+        }
+    }
 
-        // Update debt-to-revenue ratio
-        let annual_revenue = governance.budget.tax_revenue;
-        if annual_revenue > 0.0 {
-            governance.debt.debt_to_revenue_ratio = governance.debt.total_debt / annual_revenue;
+    // Apply deferred citizen-class credits.
+    for (region_id, class, amount) in pending_citizen_credits {
+        if let Some(region) = country.regions.iter_mut().find(|r| r.id == region_id) {
+            if let Some(demo) = region.class_demographics.get_class_mut(class) {
+                demo.savings += amount;
+                if demo.population > 0 {
+                    demo.savings_per_capita = demo.savings / demo.population as f64;
+                }
+            }
         }
     }
 }
@@ -311,6 +439,7 @@ pub fn process_municipal_debt_service(country: &mut Country) {
 /// * `year` - Current simulation year
 pub fn process_local_elections(country: &mut Country, year: u32) {
     for region in &mut country.regions {
+        let region_id = region.id.clone();
         let Some(governance) = region.governance.as_mut() else {
             continue;
         };
@@ -353,6 +482,89 @@ pub fn process_local_elections(country: &mut Country, year: u32) {
                 }
             }
 
+            // Phase D.7: Populate the councilors Vec with individual Councilor
+            // entries based on the faction distribution. Each seat becomes one
+            // councilor with a faction, represented class, and randomized traits.
+            let fd = &governance.council.faction_distribution;
+            let mut new_councilors: Vec<crate::politics::local_council::Councilor> = Vec::new();
+
+            // Generate councilors for each faction.
+            let factions_classes = [
+                (
+                    crate::politics::local_council::Faction::Optimates,
+                    fd.optimates_count,
+                    "Aristocracy",
+                ),
+                (
+                    crate::politics::local_council::Faction::Moderates,
+                    fd.moderates_count,
+                    "Bourgeoisie",
+                ),
+                (
+                    crate::politics::local_council::Faction::Populares,
+                    fd.populares_count,
+                    "FreePeasant",
+                ),
+            ];
+
+            for (faction, count, class_name) in factions_classes {
+                for i in 0..count {
+                    // Corruption risk derived from regional economic conditions:
+                    // poorer regions have higher corruption risk.
+                    let base_corruption: f64 = 0.1;
+                    let economic_distress = if region.population > 0 {
+                        let destitute = region
+                            .class_demographics
+                            .get_class(RuralClass::Serf)
+                            .map(|d| match d.economic_status {
+                                EconomicStatus::Destitute => 0.3,
+                                EconomicStatus::Struggling => 0.15,
+                                _ => 0.0,
+                            })
+                            .unwrap_or(0.0);
+                        destitute
+                    } else {
+                        0.0
+                    };
+                    let corruption_risk = (base_corruption + economic_distress).min(0.8_f64);
+
+                    // Trait assignment: most councilors are Loyalist or Undecided,
+                    // with a small chance of Maverick or Corrupt.
+                    let trait_roll: f64 = rand::random();
+                    let hidden_trait = if trait_roll < 0.5 {
+                        crate::politics::local_council::CouncilorTrait::Loyalist
+                    } else if trait_roll < 0.8 {
+                        crate::politics::local_council::CouncilorTrait::Undecided
+                    } else if trait_roll < 0.95 {
+                        crate::politics::local_council::CouncilorTrait::Maverick
+                    } else {
+                        crate::politics::local_council::CouncilorTrait::Corrupt
+                    };
+
+                    let is_corrupt = hidden_trait
+                        == crate::politics::local_council::CouncilorTrait::Corrupt;
+                    new_councilors.push(crate::politics::local_council::Councilor {
+                        id: format!("COUNCILOR-{}-{}-{}", region_id, faction_id(&faction), i),
+                        name: format!("Councilor {}-{}", faction_id(&faction), i + 1),
+                        represented_class: class_name.to_string(),
+                        faction: faction.clone(),
+                        years_in_office: 0,
+                        political_influence: 30.0 + rand::random::<f64>() * 40.0,
+                        hidden_trait,
+                        trait_revealed: false,
+                        blackmail_material: if is_corrupt {
+                            Some(format!("EVIDENCE-{}-{}", region_id, i))
+                        } else {
+                            None
+                        },
+                        party: format!("{:?}", faction),
+                        corruption_risk,
+                    });
+                }
+            }
+
+            governance.council.councilors = new_councilors;
+
             governance.last_election_year = year;
 
             // Set next election cycle based on configuration
@@ -363,7 +575,20 @@ pub fn process_local_elections(country: &mut Country, year: u32) {
             governance.council.years_to_next_election = term_length;
         } else {
             governance.council.years_to_next_election -= 1;
+            // Increment years in office for existing councilors.
+            for councilor in &mut governance.council.councilors {
+                councilor.years_in_office += 1;
+            }
         }
+    }
+}
+
+/// Helper: get a short string ID for a faction (for councilor naming).
+fn faction_id(faction: &crate::politics::local_council::Faction) -> &'static str {
+    match faction {
+        crate::politics::local_council::Faction::Populares => "POP",
+        crate::politics::local_council::Faction::Moderates => "MOD",
+        crate::politics::local_council::Faction::Optimates => "OPT",
     }
 }
 
@@ -480,8 +705,7 @@ mod tests {
         let mut aristo = ClassDemographics::default();
         aristo.population = 100;
         aristo.savings = 100_000.0;
-        let aristo_key = serde_json::to_string(&RuralClass::Aristocracy).unwrap_or_default();
-        demos.rural_classes.insert(aristo_key, aristo);
+        demos.rural_classes.insert(RuralClass::Aristocracy, aristo);
         region.class_demographics = demos;
 
         country.regions = vec![region];
@@ -601,8 +825,7 @@ mod tests {
         let mut aristo = ClassDemographics::default();
         aristo.population = 100;
         aristo.savings = 10.0; // Very low — tax will be much higher
-        let aristo_key = serde_json::to_string(&RuralClass::Aristocracy).unwrap_or_default();
-        demos.rural_classes.insert(aristo_key, aristo);
+        demos.rural_classes.insert(RuralClass::Aristocracy, aristo);
         region.class_demographics = demos;
 
         country.regions = vec![region];

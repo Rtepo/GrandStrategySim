@@ -27,6 +27,7 @@ use crate::society::cadastre::{
     ArbitrationConfig, ArbitrationCourt, ArbitrationStatus, Cadastre, CadastreConfig,
     LandPriceHistoryRegistry, ParcelChunk, ParcelId, ParcelOwnerType, ZoningDesignation,
 };
+use crate::society::geography::RuralClass;
 
 // ============================================================================
 // COMPENSATION SCHEME
@@ -824,7 +825,7 @@ pub fn process_adverse_possession(
         let landless_pop: i64 = region
             .class_demographics
             .rural_classes
-            .get("LandlessLaborer")
+            .get(&RuralClass::LandlessLaborer)
             .map(|d| d.population)
             .unwrap_or(0);
         let unemployment = if region.population > 0 {
@@ -1155,7 +1156,7 @@ fn credit_owner(
                     if let Some(fp) = region
                         .class_demographics
                         .rural_classes
-                        .get_mut("FreePeasant")
+                        .get_mut(&RuralClass::FreePeasant)
                     {
                         fp.savings += amount;
                     }

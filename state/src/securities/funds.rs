@@ -34,6 +34,30 @@ pub enum FundType {
     MutualFund,
 }
 
+impl FundType {
+    /// R6.4: Returns true if this is a passive/index-tracking fund.
+    /// ETFs are passive — they track an index and charge lower fees.
+    pub fn is_passive(&self) -> bool {
+        matches!(self, FundType::ExchangeTradedFund)
+    }
+
+    /// R6.4: Returns true if this is an actively-managed fund.
+    /// FIO/FIZ, hedge funds, and mutual funds use active stock picking.
+    pub fn is_active(&self) -> bool {
+        !self.is_passive()
+    }
+
+    /// R6.4: Returns the default management fee rate for this fund type.
+    /// Passive funds charge 0.5%, active funds charge 2.0%.
+    pub fn default_management_fee_rate(&self) -> f64 {
+        if self.is_passive() {
+            0.005 // 0.5% for ETFs
+        } else {
+            0.02 // 2.0% for active funds
+        }
+    }
+}
+
 /// Detailed ledger for fund operations and holdings.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 
@@ -157,6 +181,7 @@ pub fn collect_fund_capital(
     companies: &mut [Company],
     config: &SecuritiesMarketConfig,
     _current_turn: u32,
+    avg_wage: f64,
 ) -> Vec<FundSubscription> {
     let mut subscriptions = Vec::new();
 
@@ -353,6 +378,35 @@ pub fn collect_fund_capital(
         let total_fund_value = fund_cash + portfolio_value;
         if ledger.shares_outstanding > 0 {
             ledger.nav_per_share = total_fund_value / ledger.shares_outstanding as f64;
+        }
+    }
+
+    // R8.5: Enroll eligible citizens in tax-advantaged retirement accounts.
+    // Eligible: working-age population (proxy: classes with allocated_fte > 0).
+    // TaxFreeGrowth: contribution limit = avg_wage * 120
+    // TaxDeferred: contribution limit = avg_wage * 60
+    // Contributions are tracked per-class for PIT deduction (R8.6).
+    if avg_wage > 0.0 {
+        let tax_free_growth_limit = avg_wage * 120.0;
+        let tax_deferred_limit = avg_wage * 60.0;
+        for region in regions.iter_mut() {
+            for class in region.class_demographics.rural_classes.values_mut() {
+                // Only working-age classes with income participate
+                if class.allocated_fte > 0.0 && class.savings > 0.0 {
+                    // Split: 60% to TaxFreeGrowth, 40% to TaxDeferred
+                    let eligible_amount = class.savings.min(tax_free_growth_limit + tax_deferred_limit);
+                    let tax_deferred_contribution = eligible_amount * 0.4;
+                    // Track TaxDeferred contributions for PIT deduction (R8.6)
+                    class.tax_advantaged_contributions_this_year += tax_deferred_contribution;
+                }
+            }
+            for class in region.class_demographics.urban_classes.values_mut() {
+                if class.allocated_fte > 0.0 && class.savings > 0.0 {
+                    let eligible_amount = class.savings.min(tax_free_growth_limit + tax_deferred_limit);
+                    let tax_deferred_contribution = eligible_amount * 0.4;
+                    class.tax_advantaged_contributions_this_year += tax_deferred_contribution;
+                }
+            }
         }
     }
 
@@ -898,15 +952,20 @@ pub fn charge_fund_fees(
 
         let total_fee = mgmt_fee + perf_fee;
 
-        // Deduct from fund cash
+        // R6.2: Deterministic fee accounting — debit and credit the EXACT same
+        // amount. Never credit more than was debited (fiat creation bug fix).
+        // Route fee revenue to brokerage_account.cash (the active cash field).
         if let Some(ref mut acct) = fund.brokerage_account {
-            let deductible = total_fee.min(acct.cash);
+            let deductible = total_fee.min(acct.cash.max(0.0));
             acct.cash -= deductible;
             total_fees += deductible;
+            // Credit the exact deductible amount to the fund's operating cash
+            // (brokerage_account.cash is the active cash field per R6.2).
+            // The fee stays within the fund as operating revenue — the fund
+            // company earns it. To avoid double-counting, we credit to
+            // liquid_capital (operating revenue) exactly what was debited.
+            fund.liquid_capital += deductible;
         }
-
-        // Credit fee as operating revenue to fund company
-        fund.liquid_capital += total_fee;
     }
 
     total_fees

@@ -157,14 +157,15 @@ impl Default for SecuritiesMarketConfig {
             ccp_maintenance_margin_ratio: 0.0,
             ccp_default_fund_ratio: 0.0,
             // ── Funds ──
-            fund_subscription_rate: 0.0,
-            fund_management_fee_rate: 0.0,
-            fund_performance_fee_rate: 0.0,
-            fund_min_pe_threshold: 0.0,
-            fund_max_pe_threshold: 0.0,
-            fund_min_dividend_yield: 0.0,
+            // R6.1: Non-zero defaults to activate fund lifecycle.
+            fund_subscription_rate: 0.02,
+            fund_management_fee_rate: 0.015,
+            fund_performance_fee_rate: 0.20,
+            fund_min_pe_threshold: 5.0,
+            fund_max_pe_threshold: 25.0,
+            fund_min_dividend_yield: 0.02,
             fund_min_bond_yield: 0.0,
-            fund_benchmark_rate: 0.0,
+            fund_benchmark_rate: 0.04,
             // ── Securitization ──
             mbs_servicing_spread: 0.0,
             mbs_senior_fraction: 0.0,

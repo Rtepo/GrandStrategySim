@@ -35,6 +35,8 @@ pub mod lobbying;
 pub mod local_council;
 pub mod local_government;
 pub mod local_legislation;
+pub mod jst_spending;
+pub mod equalization;
 pub mod mass_movements;
 pub mod ministries;
 pub mod names;

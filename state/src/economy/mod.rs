@@ -142,6 +142,7 @@ pub use media::{clear_information_b2c, populate_information_service_needs, Infor
 pub use migration::{
     apply_migration_flows, calculate_emigrants, calculate_migration_pressure,
     collect_migration_flows, process_deportations, sum_border_enforcement_capacity,
+    MigrationConfig,
 };
 pub use osp::{is_osp, process_osp_volunteer_allocation};
 pub use payment_in_kind::{apply_payment_in_kind, InKindLedger, NutritionalDeficit};

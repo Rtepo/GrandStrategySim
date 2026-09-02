@@ -152,6 +152,17 @@ pub enum CorporateAction {
         /// The method slot this blueprint targets.
         required_slot: crate::registries::production_methods::MethodSlot,
     },
+    /// R4.2: Transform the company's legal form (e.g., family business to
+    /// cooperative, mutual-aid circle to cooperative). Unlike Ipo, this
+    /// action handles non-IPO transitions including buyouts.
+    TransformLegalForm {
+        /// The target legal transition.
+        transition: crate::entities::legal_form::LegalTransition,
+        /// Buyout amount for the prior owner (if applicable). For family-
+        /// business-to-cooperative, this is the cash paid to the family
+        /// for their ownership stake. Zero for transitions without a buyout.
+        buyout_amount: f64,
+    },
 }
 
 /// Source of expansion financing.
@@ -252,12 +263,25 @@ pub trait CorporateStrategy {
 
     /// Evaluate inventory disposal for economic rationality (Phase 5.5).
     fn evaluate_inventory_disposal(&self, ctx: &CorporateDecisionCtx) -> Vec<DisposalOrder>;
+
+    /// R4.4: Evaluate whether the company should transform its legal form.
+    /// Returns `Some(TransformLegalForm)` if a transformation is warranted,
+    /// or `None` if no transformation should occur this turn.
+    fn evaluate_transform(&self, ctx: &CorporateDecisionCtx) -> Option<CorporateAction>;
 }
 
 impl CorporateStrategy for LegalForm {
     fn decide(&self, ctx: &CorporateDecisionCtx) -> CorporateAction {
         if let Some(ipo) = self.evaluate_ipo(ctx) {
             return ipo;
+        }
+
+        // R4.4: Evaluate legal-form transformation (family business to
+        // cooperative, mutual-aid circle to cooperative). This is checked
+        // before distress/expansion because transformation changes the
+        // company's fundamental structure.
+        if let Some(transform) = self.evaluate_transform(ctx) {
+            return transform;
         }
 
         if is_distressed(ctx) {
@@ -367,6 +391,74 @@ impl CorporateStrategy for LegalForm {
 
     fn evaluate_inventory_disposal(&self, ctx: &CorporateDecisionCtx) -> Vec<DisposalOrder> {
         evaluate_inventory_disposal(ctx)
+    }
+
+    fn evaluate_transform(&self, ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
+        match self {
+            LegalForm::FamilyBusiness(data) => {
+                // R4.3: Family business mutualizes into a cooperative when:
+                // 1. The family retains <= 70% (workers have significant stake).
+                // 2. The company has enough workers to form a viable cooperative.
+                // 3. Sector PMI is moderate (not booming — family would IPO instead;
+                //    not bust — company would restructure instead).
+                // 4. The transformation is economically rational: the buyout cost
+                //    (family's share * company_capital) must be affordable from
+                //    the company's own cash.
+                let avg_wage = ctx.country.macro_indicators.average_wage;
+                let min_workers = (avg_wage / 10.0).max(50.0) as u32;
+                if ctx.company.worker_capacity < min_workers {
+                    return None;
+                }
+                if data.family_retained_share > 0.70 {
+                    return None;
+                }
+                let sector_pmi = ctx.market_signal.sector_outlook(ctx.sector);
+                if sector_pmi < 45.0 || sector_pmi > 65.0 {
+                    return None; // Too distressed or too booming
+                }
+
+                // R4.3: Compute buyout amount = family_retained_share * company_capital.
+                // This is the cash paid to the family for their ownership stake.
+                let buyout_amount = ctx.company.company_capital.max(0.0) * data.family_retained_share;
+
+                // Check that the company can afford the buyout from its own cash.
+                let available = ctx
+                    .company
+                    .brokerage_account
+                    .as_ref()
+                    .map(|ba| ba.cash.max(0.0))
+                    .unwrap_or(ctx.company.available_cash.max(0.0));
+                if available < buyout_amount {
+                    return None; // Cannot afford the buyout
+                }
+
+                Some(CorporateAction::TransformLegalForm {
+                    transition: LegalTransition::FamilyBusinessToCooperative,
+                    buyout_amount,
+                })
+            }
+            LegalForm::MutualAidCircle(data) => {
+                // R4.4: Mutual aid circle transitions to a cooperative when:
+                // 1. It has enough members (scaled by average_wage).
+                // 2. It has a sufficient common fund.
+                // 3. Sector PMI is favorable.
+                let avg_wage = ctx.country.macro_indicators.average_wage;
+                let min_members = (avg_wage / 20.0).max(50.0) as u32;
+                if data.member_count < min_members {
+                    return None;
+                }
+                let sector_pmi = ctx.market_signal.sector_outlook(ctx.sector);
+                if sector_pmi < 45.0 {
+                    return None;
+                }
+                // No buyout — the common fund becomes the cooperative's patronage pool.
+                Some(CorporateAction::TransformLegalForm {
+                    transition: LegalTransition::MutualAidCircleToCooperative,
+                    buyout_amount: 0.0,
+                })
+            }
+            _ => None,
+        }
     }
 }
 
@@ -762,7 +854,10 @@ fn evaluate_family_ipo(
     data: &FamilyBusinessData,
     ctx: &CorporateDecisionCtx,
 ) -> Option<CorporateAction> {
-    if ctx.company.company_capital < 10_000_000.0 {
+    // R6.1: Scale threshold by average_wage (inflation-proof).
+    let avg_wage = ctx.country.macro_indicators.average_wage;
+    let min_capital = avg_wage * 2000.0;
+    if ctx.company.company_capital < min_capital {
         return None;
     }
     if data.family_retained_share < 0.30 || data.family_retained_share > 0.95 {
@@ -781,10 +876,14 @@ fn evaluate_cooperative_ipo(
     data: &CooperativeData,
     ctx: &CorporateDecisionCtx,
 ) -> Option<CorporateAction> {
-    if data.member_count < 500 {
+    // R6.3: Scale member threshold and capital threshold by average_wage.
+    let avg_wage = ctx.country.macro_indicators.average_wage;
+    let min_members = (avg_wage / 20.0).max(50.0) as u32;
+    if data.member_count < min_members {
         return None;
     }
-    if ctx.company.company_capital < 5_000_000.0 {
+    let min_capital = avg_wage * 1000.0;
+    if ctx.company.company_capital < min_capital {
         return None;
     }
 
@@ -1273,6 +1372,34 @@ fn dividend_payout_ratio(data: &JointStockData) -> f64 {
     0.3 + board * 0.3
 }
 
+/// R5.2: Update board independence dynamically based on CEO performance.
+///
+/// Independent boards push for higher payout ratios. When the CEO delivers
+/// strong profits, board loyalty increases (independence decreases). When
+/// the CEO underperforms, independence increases (board becomes more hostile).
+///
+/// # Arguments
+/// * `data` - The JSC data with board_independence to update.
+/// * `is_profitable` - Whether the company was profitable this turn.
+/// * `profit_margin` - Net profit / revenue (clamped to [-1, 1]).
+pub fn update_board_independence(
+    data: &mut crate::entities::legal_form::JointStockData,
+    is_profitable: bool,
+    profit_margin: f64,
+) {
+    // R5.2: Independence drifts toward 1.0 when CEO underperforms,
+    // toward 0.4 when CEO overperforms (never fully dependent).
+    let target = if is_profitable {
+        0.4 + (1.0 - profit_margin.clamp(0.0, 1.0)) * 0.3
+    } else {
+        0.8
+    };
+    // Mean-reversion toward target at 5% per turn
+    let rate = 0.05;
+    data.board_independence += (target - data.board_independence) * rate;
+    data.board_independence = data.board_independence.clamp(0.0, 1.0);
+}
+
 fn max_credit(company: &Company, bank_credit_rate: f64) -> f64 {
     if bank_credit_rate >= 0.20 {
         0.0
@@ -1306,6 +1433,7 @@ pub fn try_apply_ipo(
         market_signal: ctx.market_signal,
         private_capital_pool: ctx.country.budget.private_capital,
         bank_credit_rate: ctx.bank_credit_rate,
+        average_wage: ctx.country.macro_indicators.average_wage,
     };
 
     legal_form

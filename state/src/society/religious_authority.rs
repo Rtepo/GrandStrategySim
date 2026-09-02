@@ -269,7 +269,7 @@ pub fn process_religious_authority_turn(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::{ClassDemographics, Region};
+    use crate::society::geography::{ClassDemographics, Region, RuralClass};
     use crate::state::{macro_data::MacroData, Country};
 
     fn make_region(id: &str, religion: &str, pop: i64) -> Region {
@@ -281,7 +281,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("peasants".into(), class);
+            .insert(RuralClass::FreePeasant, class);
         region
     }
 

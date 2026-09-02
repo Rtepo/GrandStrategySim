@@ -770,9 +770,12 @@ pub struct GeographicTraits {
     pub has_geothermal_potential: bool,
 }
 
-/// Rural demographic class with distinct economic behavior
+/// Rural demographic class with distinct economic behavior.
+/// E.6.3: Changed from `snake_case` to `PascalCase` to match existing map keys
+/// and fix the pre-existing `get_class()` bug where `serde_json::to_string`
+/// produced snake_case that never matched PascalCase map keys.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "PascalCase")]
 pub enum RuralClass {
     /// Aristocracy - owns large estates, employs serfs/laborers
     Aristocracy,
@@ -782,6 +785,201 @@ pub enum RuralClass {
     Serf,
     /// Landless Laborers - work for wages, no land
     LandlessLaborer,
+}
+
+impl std::fmt::Display for RuralClass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RuralClass::Aristocracy => write!(f, "Aristocracy"),
+            RuralClass::FreePeasant => write!(f, "FreePeasant"),
+            RuralClass::Serf => write!(f, "Serf"),
+            RuralClass::LandlessLaborer => write!(f, "LandlessLaborer"),
+        }
+    }
+}
+
+impl RuralClass {
+    /// Parse from a PascalCase string (inverse of Display).
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "Aristocracy" => Some(RuralClass::Aristocracy),
+            "FreePeasant" => Some(RuralClass::FreePeasant),
+            "Serf" => Some(RuralClass::Serf),
+            "LandlessLaborer" => Some(RuralClass::LandlessLaborer),
+            _ => None,
+        }
+    }
+
+    /// Returns the PascalCase string identifier for this class.
+    /// Used for display, logging, and external string-keyed lookup tables.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            RuralClass::Aristocracy => "Aristocracy",
+            RuralClass::FreePeasant => "FreePeasant",
+            RuralClass::Serf => "Serf",
+            RuralClass::LandlessLaborer => "LandlessLaborer",
+        }
+    }
+}
+
+/// E.6.3: Urban demographic class with distinct economic behavior.
+/// Replaces naked string keys in `BTreeMap<String, ClassDemographics>`.
+/// `PascalCase` serialization matches existing key conventions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub enum UrbanClass {
+    /// Workers - urban wage laborers
+    Worker,
+    /// Bourgeoisie - urban middle/upper class
+    Bourgeoisie,
+}
+
+impl std::fmt::Display for UrbanClass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UrbanClass::Worker => write!(f, "Worker"),
+            UrbanClass::Bourgeoisie => write!(f, "Bourgeoisie"),
+        }
+    }
+}
+
+impl UrbanClass {
+    /// Parse from a PascalCase string (inverse of Display).
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "Worker" => Some(UrbanClass::Worker),
+            "Bourgeoisie" => Some(UrbanClass::Bourgeoisie),
+            _ => None,
+        }
+    }
+
+    /// Returns the PascalCase string identifier for this class.
+    /// Used for display, logging, and external string-keyed lookup tables.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            UrbanClass::Worker => "Worker",
+            UrbanClass::Bourgeoisie => "Bourgeoisie",
+        }
+    }
+}
+
+/// E.6.3: Unified demographic class enum for `class_ledgers` in
+/// `RegionalLaborPool`. Combines rural and urban classes into a single
+/// typed key, replacing `BTreeMap<(DemographyType, String), ...>`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize, Default)]
+#[serde(rename_all = "PascalCase")]
+pub enum DemographicClass {
+    // Rural
+    /// Aristocracy - owns large estates, employs serfs/laborers
+    Aristocracy,
+    /// Free Peasants - own smallholdings, family labor
+    FreePeasant,
+    /// Serfs/Tied Peasants - tied to latifundia, unpaid labor
+    Serf,
+    /// Landless Laborers - work for wages, no land
+    LandlessLaborer,
+    // Urban
+    /// Workers - urban wage laborers (most common urban class)
+    #[default]
+    Worker,
+    /// Bourgeoisie - urban middle/upper class
+    Bourgeoisie,
+    /// E.6.3: Synthetic commuter class — transient FTE injected from adjacent
+    /// regions. NOT persisted in `rural_classes`/`urban_classes`; only used as
+    /// a `class_ledgers` key during labor clearing.
+    Commuter,
+}
+
+impl DemographicClass {
+    /// Returns true if this is a rural demographic class.
+    pub fn is_rural(&self) -> bool {
+        matches!(
+            self,
+            DemographicClass::Aristocracy
+                | DemographicClass::FreePeasant
+                | DemographicClass::Serf
+                | DemographicClass::LandlessLaborer
+        )
+    }
+
+    /// Returns true if this is an urban demographic class.
+    pub fn is_urban(&self) -> bool {
+        matches!(self, DemographicClass::Worker | DemographicClass::Bourgeoisie)
+    }
+
+    /// Returns true if this is the synthetic commuter class.
+    pub fn is_commuter(&self) -> bool {
+        matches!(self, DemographicClass::Commuter)
+    }
+
+    /// Convert to `RuralClass` if rural, else `None`.
+    pub fn to_rural(&self) -> Option<RuralClass> {
+        match self {
+            DemographicClass::Aristocracy => Some(RuralClass::Aristocracy),
+            DemographicClass::FreePeasant => Some(RuralClass::FreePeasant),
+            DemographicClass::Serf => Some(RuralClass::Serf),
+            DemographicClass::LandlessLaborer => Some(RuralClass::LandlessLaborer),
+            _ => None,
+        }
+    }
+
+    /// Convert to `UrbanClass` if urban, else `None`.
+    pub fn to_urban(&self) -> Option<UrbanClass> {
+        match self {
+            DemographicClass::Worker => Some(UrbanClass::Worker),
+            DemographicClass::Bourgeoisie => Some(UrbanClass::Bourgeoisie),
+            _ => None,
+        }
+    }
+
+    /// Returns the `DemographyType` for this class.
+    pub fn demography_type(&self) -> DemographyType {
+        if self.is_urban() {
+            DemographyType::Urban
+        } else {
+            DemographyType::Rural
+        }
+    }
+
+    /// Returns the PascalCase string identifier for this class.
+    /// Used for display, logging, and external string-keyed lookup tables.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            DemographicClass::Aristocracy => "Aristocracy",
+            DemographicClass::FreePeasant => "FreePeasant",
+            DemographicClass::Serf => "Serf",
+            DemographicClass::LandlessLaborer => "LandlessLaborer",
+            DemographicClass::Worker => "Worker",
+            DemographicClass::Bourgeoisie => "Bourgeoisie",
+            DemographicClass::Commuter => "Commuter",
+        }
+    }
+}
+
+impl std::fmt::Display for DemographicClass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl From<RuralClass> for DemographicClass {
+    fn from(class: RuralClass) -> Self {
+        match class {
+            RuralClass::Aristocracy => DemographicClass::Aristocracy,
+            RuralClass::FreePeasant => DemographicClass::FreePeasant,
+            RuralClass::Serf => DemographicClass::Serf,
+            RuralClass::LandlessLaborer => DemographicClass::LandlessLaborer,
+        }
+    }
+}
+
+impl From<UrbanClass> for DemographicClass {
+    fn from(class: UrbanClass) -> Self {
+        match class {
+            UrbanClass::Worker => DemographicClass::Worker,
+            UrbanClass::Bourgeoisie => DemographicClass::Bourgeoisie,
+        }
+    }
 }
 
 /// Health status for demographic classes
@@ -900,6 +1098,12 @@ pub struct ClassDemographics {
     /// Current economic status
     #[serde(default)]
     pub economic_status: EconomicStatus,
+
+    /// R8.5/R8.6: Tax-advantaged retirement contributions made this year by
+    /// this class. Used for PIT deduction (TaxDeferred variant only).
+    /// Reset at fiscal year-end.
+    #[serde(default)]
+    pub tax_advantaged_contributions_this_year: f64,
 
     /// Labor force participation rate (0-1)
     #[serde(default)]
@@ -1212,13 +1416,13 @@ impl ClassDemographics {
 /// Class demographics for a region
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct RegionalClassDemographics {
-    /// Demographics by rural class
+    /// Demographics by rural class (E.6.3: typed key, Rule 10 save-breaking)
     #[serde(default)]
-    pub rural_classes: BTreeMap<String, ClassDemographics>,
+    pub rural_classes: BTreeMap<RuralClass, ClassDemographics>,
 
-    /// Demographics by urban class
+    /// Demographics by urban class (E.6.3: typed key, Rule 10 save-breaking)
     #[serde(default)]
-    pub urban_classes: BTreeMap<String, ClassDemographics>,
+    pub urban_classes: BTreeMap<UrbanClass, ClassDemographics>,
 }
 
 /// Phase 85: Factional domain type — replaces the dead `MicroRegionType`.
@@ -1400,22 +1604,34 @@ impl Region {
 }
 
 impl RegionalClassDemographics {
-    /// Get demographics for a specific class
+    /// Get demographics for a specific rural class (E.6.3: typed key)
     pub fn get_class(&self, class: RuralClass) -> Option<&ClassDemographics> {
-        let key = serde_json::to_string(&class).unwrap_or_default();
-        self.rural_classes.get(&key)
+        self.rural_classes.get(&class)
     }
 
-    /// Get mutable demographics for a specific class
+    /// Get mutable demographics for a specific rural class (E.6.3: typed key)
     pub fn get_class_mut(&mut self, class: RuralClass) -> Option<&mut ClassDemographics> {
-        let key = serde_json::to_string(&class).unwrap_or_default();
-        self.rural_classes.get_mut(&key)
+        self.rural_classes.get_mut(&class)
     }
 
-    /// Initialize class demographics if missing
+    /// Initialize rural class demographics if missing (E.6.3: typed key)
     pub fn ensure_class(&mut self, class: RuralClass) -> &mut ClassDemographics {
-        let key = serde_json::to_string(&class).unwrap_or_default();
-        self.rural_classes.entry(key).or_default()
+        self.rural_classes.entry(class).or_default()
+    }
+
+    /// Get demographics for a specific urban class (E.6.3: typed key)
+    pub fn get_urban_class(&self, class: UrbanClass) -> Option<&ClassDemographics> {
+        self.urban_classes.get(&class)
+    }
+
+    /// Get mutable demographics for a specific urban class (E.6.3: typed key)
+    pub fn get_urban_class_mut(&mut self, class: UrbanClass) -> Option<&mut ClassDemographics> {
+        self.urban_classes.get_mut(&class)
+    }
+
+    /// Initialize urban class demographics if missing (E.6.3: typed key)
+    pub fn ensure_urban_class(&mut self, class: UrbanClass) -> &mut ClassDemographics {
+        self.urban_classes.entry(class).or_default()
     }
 
     /// Dynamically aggregate serf population from all Latifundia in the region
@@ -1510,7 +1726,6 @@ pub struct Megaregion {
     pub name: String,
     pub country: String,
     pub regions: Vec<String>,
-    pub regional_budget: Map<String, Value>,
     pub population: i64,
     pub gdp: f64,
 
@@ -1865,12 +2080,18 @@ pub fn generate_regional_topology(
             gov.admin_status = AdministrativeStatus::CommissaryAdministration;
             gov.head_type = RegionalHeadType::CentralAdministrator;
         }
-        // Scale budget by regional GDP.
-        gov.budget.liquid_reserves = scaled_gdp * 0.02;
+        // Phase D.11: Scale budget using dynamic formulas based on regional
+        // GDP per capita and population (Rule 2 — no magic multipliers).
+        // Infrastructure maintenance cost scales with infrastructure_level
+        // (proxied by development_level) and average wage (proxied by GDP/capita).
+        // Administrative cost scales with population and GDP/capita.
+        let infra_maintenance_cost = development_level * scaled_gdp_pc * (region_pop as f64) * 0.001;
+        let admin_cost = scaled_gdp_pc * (region_pop as f64) * 0.0005;
+        gov.budget.liquid_reserves = (infra_maintenance_cost + admin_cost) * 0.5;
         gov.budget.tax_revenue = scaled_gdp * 0.01;
         gov.budget.property_tax = scaled_gdp * 0.005;
-        gov.budget.local_expenditures = scaled_gdp * 0.015;
-        gov.budget.budget_balance = scaled_gdp * 0.005;
+        gov.budget.local_expenditures = infra_maintenance_cost + admin_cost;
+        gov.budget.budget_balance = gov.budget.liquid_reserves - gov.budget.local_expenditures;
         gov.debt.credit_rating = if development_level > 0.5 {
             "AA"
         } else if development_level > 0.3 {
@@ -2046,8 +2267,8 @@ fn generate_class_demographics(
     start_year: u32,
     development_level: f64,
 ) -> RegionalClassDemographics {
-    let mut rural_classes = BTreeMap::new();
-    let mut urban_classes = BTreeMap::new();
+    let mut rural_classes: BTreeMap<RuralClass, ClassDemographics> = BTreeMap::new();
+    let mut urban_classes: BTreeMap<UrbanClass, ClassDemographics> = BTreeMap::new();
 
     // Phase 47: Development-driven savings multiplier.
     // High development → wealthier citizens (0.5x to 2.0x savings).
@@ -2086,7 +2307,7 @@ fn generate_class_demographics(
 
     if serf_pop > 0 {
         rural_classes.insert(
-            "Serf".to_string(),
+            RuralClass::Serf,
             ClassDemographics {
                 population: serf_pop,
                 labor_participation: 0.65,
@@ -2096,7 +2317,7 @@ fn generate_class_demographics(
         );
     }
 
-    rural_classes.insert("FreePeasant".to_string(), {
+    rural_classes.insert(RuralClass::FreePeasant, {
         let savings = free_peasant_pop as f64 * 100.0 * dev_savings_mult;
         ClassDemographics {
             population: free_peasant_pop,
@@ -2110,7 +2331,7 @@ fn generate_class_demographics(
             ..Default::default()
         }
     });
-    rural_classes.insert("LandlessLaborer".to_string(), {
+    rural_classes.insert(RuralClass::LandlessLaborer, {
         let savings = landless_pop as f64 * 50.0 * dev_savings_mult;
         ClassDemographics {
             population: landless_pop,
@@ -2124,7 +2345,7 @@ fn generate_class_demographics(
             ..Default::default()
         }
     });
-    rural_classes.insert("Aristocracy".to_string(), {
+    rural_classes.insert(RuralClass::Aristocracy, {
         let savings = aristocracy_pop as f64 * 5000.0 * dev_savings_mult;
         let mut demo = ClassDemographics {
             population: aristocracy_pop,
@@ -2148,7 +2369,7 @@ fn generate_class_demographics(
     let worker_pop = (urban_pop as f64 * 0.70) as i64;
     let middle_pop = urban_pop - worker_pop;
 
-    urban_classes.insert("Worker".to_string(), {
+    urban_classes.insert(UrbanClass::Worker, {
         let savings = worker_pop as f64 * 200.0 * dev_savings_mult;
         ClassDemographics {
             population: worker_pop,
@@ -2162,7 +2383,7 @@ fn generate_class_demographics(
             ..Default::default()
         }
     });
-    urban_classes.insert("Bourgeoisie".to_string(), {
+    urban_classes.insert(UrbanClass::Bourgeoisie, {
         let savings = middle_pop as f64 * 1000.0 * dev_savings_mult;
         let mut demo = ClassDemographics {
             population: middle_pop,
@@ -2961,7 +3182,11 @@ pub fn create_urbanization_project(
 /// For small countries (≤3 regions), returns a single megaregion.
 /// For larger countries, splits regions into `ceil(len / 4)` clusters.
 /// Each cluster gets a unique generated name.
-pub fn generate_megaregions(country: &str, region_ids: &[String]) -> Vec<Megaregion> {
+pub fn generate_megaregions(
+    country: &str,
+    region_ids: &[String],
+    state_structure: crate::politics::state_structure::StateStructure,
+) -> Vec<Megaregion> {
     let mut rng = rand::thread_rng();
 
     // Small countries: single megaregion
@@ -2971,10 +3196,14 @@ pub fn generate_megaregions(country: &str, region_ids: &[String]) -> Vec<Megareg
             name: generate_megaregion_name(country, region_ids.len(), &mut rng),
             country: country.to_string(),
             regions: region_ids.to_vec(),
-            regional_budget: Map::new(),
+
             population: 0,
             gdp: 0.0,
-            governance: None,
+            governance: Some(crate::politics::local_government::initialize_megaregion_governance(
+                &format!("MEG-{country}-01"),
+                country,
+                state_structure,
+            )),
         }];
     }
 
@@ -2985,15 +3214,20 @@ pub fn generate_megaregions(country: &str, region_ids: &[String]) -> Vec<Megareg
 
     for (i, chunk) in region_ids.chunks(cluster_size).enumerate() {
         let megaregion_idx = i + 1;
+        let meg_id = format!("MEG-{country}-{megaregion_idx:02}");
         megaregions.push(Megaregion {
-            id: format!("MEG-{country}-{megaregion_idx:02}"),
+            id: meg_id.clone(),
             name: generate_megaregion_name(country, chunk.len(), &mut rng),
             country: country.to_string(),
             regions: chunk.to_vec(),
-            regional_budget: Map::new(),
+
             population: 0,
             gdp: 0.0,
-            governance: None,
+            governance: Some(crate::politics::local_government::initialize_megaregion_governance(
+                &meg_id,
+                country,
+                state_structure,
+            )),
         });
     }
 

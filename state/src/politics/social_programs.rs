@@ -14,7 +14,7 @@ use crate::entities::Company;
 use crate::politics::ideology::Ideology;
 use crate::politics::ministries::{Ministry, MinistrySpendingAction};
 use crate::registries::enums::Sector;
-use crate::society::geography::ClassDemographics;
+use crate::society::geography::{ClassDemographics, RuralClass, UrbanClass};
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
 
@@ -234,7 +234,7 @@ pub fn evaluate_program(program: &SocialProgram, country: &Country) -> ProgramEv
                 total_eligible_population += demographics.population;
                 eligible_classes.push(ClassEligibility {
                     region_id: region.id.clone(),
-                    class_key: class_key.clone(),
+                    class_key: class_key.to_string(),
                     eligible_population: demographics.population,
                     taper_factor,
                     per_capita_benefit,
@@ -253,7 +253,7 @@ pub fn evaluate_program(program: &SocialProgram, country: &Country) -> ProgramEv
                 total_eligible_population += demographics.population;
                 eligible_classes.push(ClassEligibility {
                     region_id: region.id.clone(),
-                    class_key: class_key.clone(),
+                    class_key: class_key.to_string(),
                     eligible_population: demographics.population,
                     taper_factor,
                     per_capita_benefit,
@@ -619,13 +619,17 @@ fn credit_class_savings(country: &mut Country, region_id: &str, class_key: &str,
         if region.id != region_id {
             continue;
         }
-        if let Some(demo) = region.class_demographics.rural_classes.get_mut(class_key) {
-            demo.savings += amount;
-            return;
+        if let Some(rk) = RuralClass::from_str(class_key) {
+            if let Some(demo) = region.class_demographics.rural_classes.get_mut(&rk) {
+                demo.savings += amount;
+                return;
+            }
         }
-        if let Some(demo) = region.class_demographics.urban_classes.get_mut(class_key) {
-            demo.savings += amount;
-            return;
+        if let Some(uk) = UrbanClass::from_str(class_key) {
+            if let Some(demo) = region.class_demographics.urban_classes.get_mut(&uk) {
+                demo.savings += amount;
+                return;
+            }
         }
     }
 }

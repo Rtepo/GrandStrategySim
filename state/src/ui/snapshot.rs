@@ -11,6 +11,7 @@ use crate::entities::legal_form::LegalForm;
 use crate::entities::Company;
 use crate::registries::enums::Commodity;
 use crate::registries::enums::Sector;
+use crate::society::geography::RuralClass;
 use crate::state::macro_data::{
     GdpBreakdown, InflationIndices, MoneySupplySnapshot, TelemetryHistory,
 };
@@ -487,6 +488,11 @@ pub struct GlobalSnapshot {
     /// Phase 66: Foreign countries with Fog of War applied.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub foreign_countries: Vec<ForeignCountryRow>,
+    /// Phase R10: Foreign sector balance — the external spending pool used
+    /// by tourism and remittances. Visible to the player for transparency
+    /// on cross-border capital flows.
+    #[serde(default)]
+    pub foreign_sector_balance: f64,
 }
 
 // ============================================================================
@@ -3016,10 +3022,10 @@ pub fn build_country_snapshot(
     // LandlessLaborer (rural wage laborers) and Aristocracy (landowning elite).
     let mut peasant_population: f64 = 0.0;
     for region in &country.regions {
-        if let Some(free_peasant) = region.class_demographics.rural_classes.get("FreePeasant") {
+        if let Some(free_peasant) = region.class_demographics.rural_classes.get(&RuralClass::FreePeasant) {
             peasant_population += free_peasant.population as f64;
         }
-        if let Some(serf) = region.class_demographics.rural_classes.get("Serf") {
+        if let Some(serf) = region.class_demographics.rural_classes.get(&RuralClass::Serf) {
             peasant_population += serf.population as f64;
         }
     }
@@ -5102,6 +5108,7 @@ pub fn build_global_snapshot(
         countries,
         diplomacy: None,
         foreign_countries: Vec::new(),
+        foreign_sector_balance: market.foreign_sector_balance,
     }
 }
 
@@ -5357,7 +5364,7 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 war_morale.push(MoraleRow {
                     country: country_name.clone(),
                     region_id: region.id.clone(),
-                    class_name: class_name.clone(),
+                    class_name: class_name.to_string(),
                     war_morale: demo.war_morale,
                     mental_health: demo.mental_health,
                     population: demo.population,

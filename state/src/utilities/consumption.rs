@@ -107,9 +107,22 @@ pub fn process_utility_consumption(
                 + connections.groundwater_capacity)
                 .min(demand.surface_water_demand + demand.groundwater_demand);
 
-            let bill = elec_consumed * pricing_config.price_per_kwh
+            let mut bill = elec_consumed * pricing_config.price_per_kwh
                 + heat_consumed * pricing_config.price_per_gj_heating
                 + water_consumed * pricing_config.price_per_liter_water;
+
+            // R8: Housing Cooperative utility economies of scale.
+            // If the building's owner is a HousingCooperative, apply the
+            // utility discount (e.g., 0.10 = 10% discount on utility bills).
+            // This makes HousingCooperative operational rather than inert.
+            if !hb.owner.is_empty() {
+                if let Some(owner_company) = companies.iter().find(|c| c.id == hb.owner) {
+                    let discount = owner_company.legal_form.calculate_utility_discount();
+                    if discount > 0.0 {
+                        bill *= (1.0 - discount).max(0.0);
+                    }
+                }
+            }
 
             region_billing += bill;
             // Subsidy for housing (low-income support)
@@ -145,9 +158,20 @@ pub fn process_utility_consumption(
                 + connections.groundwater_capacity)
                 .min(demand.surface_water_demand + demand.groundwater_demand);
 
-            let bill = elec_consumed * pricing_config.price_per_kwh
+            let mut bill = elec_consumed * pricing_config.price_per_kwh
                 + heat_consumed * pricing_config.price_per_gj_heating
                 + water_consumed * pricing_config.price_per_liter_water;
+
+            // R8: Housing Cooperative utility economies of scale for commercial
+            // buildings managed by a housing cooperative.
+            if !cb.owner_id.is_empty() {
+                if let Some(owner_company) = companies.iter().find(|c| c.id == cb.owner_id) {
+                    let discount = owner_company.legal_form.calculate_utility_discount();
+                    if discount > 0.0 {
+                        bill *= (1.0 - discount).max(0.0);
+                    }
+                }
+            }
 
             region_billing += bill;
 

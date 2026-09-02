@@ -1,0 +1,13 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo check --lib --message-format=short 2>&1 | Out-File C:\Users\net ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Blocking waiting for file lock on build directory
+    Checking sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+state\src\corporate\manager.rs:1608:42: error[E0382]: use of moved value: `old_legal_form`: value used here after move
+error: could not compile `sim_engine` (lib) due to 1 previous error

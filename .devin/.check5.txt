@@ -1,0 +1,46 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo check --lib 2>&1 | Out-File C:\Users\netse\Downloads\SillyElabo ...
++ ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Blocking waiting for file lock on build directory
+warning: unused imports: `TransferResult` and `settle_transfer`
+  --> state\src\corporate\federation.rs:23:5
+   |
+23 |     settle_transfer, TransferRecipient, TransferResult,
+   |     ^^^^^^^^^^^^^^^                     ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `UrbanClass`
+  --> state\src\economy\trade\retail.rs:14:71
+   |
+14 | use crate::society::geography::{DemographicClass, Region, RuralClass, UrbanClass};
+   |                                                                       ^^^^^^^^^^
+
+warning: unused imports: `RuralClass` and `UrbanClass`
+ --> state\src\politics\elections.rs:6:33
+  |
+6 | use crate::society::geography::{RuralClass, UrbanClass};
+  |                                 ^^^^^^^^^^  ^^^^^^^^^^
+
+warning: function `parse_rural_class` is never used
+    --> state\src\military\war_economy.rs:1054:4
+     |
+1054 | fn parse_rural_class(key: &str) -> Option<RuralClass> {
+     |    ^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `rural_class_to_string` is never used
+    --> state\src\military\war_economy.rs:1067:4
+     |
+1067 | fn rural_class_to_string(class: &RuralClass) -> String {
+     |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: `sim_engine` (lib) generated 5 warnings (run `cargo fix --lib -p sim_engine` to apply 3 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2m 42s

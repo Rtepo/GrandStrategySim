@@ -950,6 +950,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
         ProductionMethod {
             year: 1900,
             required_tech: None,
+            experts_ratio: 0.0,
+            skilled_ratio: 0.0,
+            basic_ratio: 1.0,
             efficiency: 1.0,
             inputs: HashMap::from([(Commodity::Paper, 2.0)]),
             outputs: HashMap::new(),
@@ -962,6 +965,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
         ProductionMethod {
             year: 1980,
             required_tech: None,
+            experts_ratio: 0.0,
+            skilled_ratio: 0.0,
+            basic_ratio: 1.0,
             efficiency: 1.3,
             inputs: HashMap::from([
                 (Commodity::ElectronicComponents, 2.0),
@@ -1052,6 +1058,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
         ProductionMethod {
             year: 1900,
             required_tech: None,
+            experts_ratio: 0.0,
+            skilled_ratio: 0.0,
+            basic_ratio: 1.0,
             efficiency: 1.0,
             inputs: HashMap::from([(Commodity::Paper, 3.0)]),
             outputs: HashMap::new(),
@@ -1064,6 +1073,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
         ProductionMethod {
             year: 1980,
             required_tech: None,
+            experts_ratio: 0.0,
+            skilled_ratio: 0.0,
+            basic_ratio: 1.0,
             efficiency: 1.3,
             inputs: HashMap::from([
                 (Commodity::ElectronicComponents, 2.0),
@@ -1159,6 +1171,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
         ProductionMethod {
             year: 1970,
             required_tech: None,
+            experts_ratio: 0.0,
+            skilled_ratio: 0.0,
+            basic_ratio: 1.0,
             efficiency: 1.0,
             inputs: HashMap::from([(Commodity::Paper, 2.0)]),
             outputs: HashMap::new(),
@@ -1171,6 +1186,9 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
         ProductionMethod {
             year: 1980,
             required_tech: None,
+            experts_ratio: 0.0,
+            skilled_ratio: 0.0,
+            basic_ratio: 1.0,
             efficiency: 1.3,
             inputs: HashMap::from([
                 (Commodity::ElectronicComponents, 2.0),
@@ -1468,6 +1486,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
         ProductionMethod {
             year: 1900,
             required_tech: None,
+            experts_ratio: 0.0,
+            skilled_ratio: 0.0,
+            basic_ratio: 1.0,
             efficiency: 1.0,
             inputs: HashMap::from([(Commodity::Paper, 2.0)]),
             outputs: HashMap::new(),
@@ -1480,6 +1501,9 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
         ProductionMethod {
             year: 1980,
             required_tech: None,
+            experts_ratio: 0.0,
+            skilled_ratio: 0.0,
+            basic_ratio: 1.0,
             efficiency: 1.3,
             inputs: HashMap::from([
                 (Commodity::ElectronicComponents, 2.0),

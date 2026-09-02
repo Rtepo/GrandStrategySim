@@ -618,12 +618,14 @@ pub struct Constitution {
 /// Tracks the national justice and security coverage, frozen company cash
 /// A cohort of prisoners sharing the same demographic origin and sentence length.
 /// Used for tracking time served and applying rehabilitation effects on release.
+/// E.6.3: `origin_class` is now typed `DemographicClass` (replaces `origin_class_id: String`).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct PrisonerCohort {
-    /// Demographic class this cohort originated from (e.g., "workers", "peasants").
+    /// E.6.3: Typed demographic class this cohort originated from.
     #[serde(default)]
-    pub origin_class_id: String,
+    pub origin_class: crate::society::geography::DemographicClass,
     /// Whether from urban (true) or rural (false) demographics.
+    /// (Redundant with `origin_class.is_urban()` but kept for explicit serialization.)
     #[serde(default)]
     pub origin_is_urban: bool,
     /// Region ID where they were arrested.
@@ -1011,6 +1013,38 @@ impl FiscalTransferConfig {
         (total - 1.0).abs() < 0.001
     }
 
+    /// Phase D.1: Construct a `FiscalTransferConfig` from the country's
+    /// `StateStructure` and `StateStructureConfig`.
+    ///
+    /// Maps the (central, region, microregion) tax shares from
+    /// `StateStructureConfig` into the (local_retention, megaregion_share,
+    /// central_share) format used by `process_fiscal_transfers`.
+    ///
+    /// The microregion share is folded into the megaregion share (microregions
+    /// are sub-regional domains within a region; their share is retained
+    /// locally and administered through the regional/megaregion budget).
+    ///
+    /// `minimum_local_retention` is set to half the region share, ensuring
+    /// regions never lose more than 50% of their configured retention to
+    /// upward transfers even under edge-case rounding.
+    pub fn from_state_structure(
+        structure: super::state_structure::StateStructure,
+        config: &super::state_structure::StateStructureConfig,
+    ) -> Self {
+        let (central, region, micro) = config.shares_for(structure);
+        let local_retention = region + micro; // Microregion share stays local
+        let megaregion_share = 0.0; // Megaregion share is separate from state structure
+        let central_share = central;
+        let minimum_local_retention = local_retention * 0.5;
+
+        FiscalTransferConfig {
+            local_retention,
+            megaregion_share,
+            central_share,
+            minimum_local_retention,
+        }
+    }
+
     /// Calculate upward transfers from regional revenue
     ///
     /// # Arguments
@@ -1040,6 +1074,78 @@ impl FiscalTransferConfig {
             let central_transfer = regional_revenue * (self.megaregion_share + self.central_share);
             (local_retained, 0.0, central_transfer)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::politics::state_structure::{StateStructure, StateStructureConfig};
+
+    #[test]
+    fn test_fiscal_transfer_config_from_unitary() {
+        let config = StateStructureConfig::default();
+        let ftc = FiscalTransferConfig::from_state_structure(StateStructure::Unitary, &config);
+        // Unitary: central=0.80, region=0.15, micro=0.05
+        // local_retention = 0.15 + 0.05 = 0.20
+        assert!((ftc.local_retention - 0.20).abs() < 1e-9);
+        assert!((ftc.central_share - 0.80).abs() < 1e-9);
+        assert!((ftc.megaregion_share - 0.0).abs() < 1e-9);
+        assert!((ftc.minimum_local_retention - 0.10).abs() < 1e-9);
+        assert!(ftc.validate());
+    }
+
+    #[test]
+    fn test_fiscal_transfer_config_from_federation() {
+        let config = StateStructureConfig::default();
+        let ftc = FiscalTransferConfig::from_state_structure(StateStructure::Federation, &config);
+        // Federation: central=0.35, region=0.55, micro=0.10
+        // local_retention = 0.55 + 0.10 = 0.65
+        assert!((ftc.local_retention - 0.65).abs() < 1e-9);
+        assert!((ftc.central_share - 0.35).abs() < 1e-9);
+        assert!(ftc.validate());
+    }
+
+    #[test]
+    fn test_fiscal_transfer_config_from_totalitarian() {
+        let config = StateStructureConfig::default();
+        let ftc = FiscalTransferConfig::from_state_structure(StateStructure::Totalitarian, &config);
+        // Totalitarian: central=1.0, region=0.0, micro=0.0
+        assert!((ftc.local_retention - 0.0).abs() < 1e-9);
+        assert!((ftc.central_share - 1.0).abs() < 1e-9);
+        assert!(ftc.validate());
+    }
+
+    #[test]
+    fn test_fiscal_transfer_config_from_autonomous_republic() {
+        let config = StateStructureConfig::default();
+        let ftc =
+            FiscalTransferConfig::from_state_structure(StateStructure::AutonomousRepublic, &config);
+        // Autonomous: central=0.25, region=0.65, micro=0.10
+        // local_retention = 0.65 + 0.10 = 0.75
+        assert!((ftc.local_retention - 0.75).abs() < 1e-9);
+        assert!((ftc.central_share - 0.25).abs() < 1e-9);
+        assert!(ftc.validate());
+    }
+
+    #[test]
+    fn test_fiscal_transfer_calculations_unitary() {
+        let config = StateStructureConfig::default();
+        let ftc = FiscalTransferConfig::from_state_structure(StateStructure::Unitary, &config);
+        let (local, mega, central) = ftc.calculate_transfers(1000.0, false);
+        // No megaregion: central gets megaregion_share + central_share = 0 + 0.80 = 0.80
+        assert!((local - 200.0).abs() < 1e-6);
+        assert!((mega - 0.0).abs() < 1e-6);
+        assert!((central - 800.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_fiscal_transfer_calculations_federation() {
+        let config = StateStructureConfig::default();
+        let ftc = FiscalTransferConfig::from_state_structure(StateStructure::Federation, &config);
+        let (local, _mega, central) = ftc.calculate_transfers(1000.0, false);
+        assert!((local - 650.0).abs() < 1e-6);
+        assert!((central - 350.0).abs() < 1e-6);
     }
 }
 

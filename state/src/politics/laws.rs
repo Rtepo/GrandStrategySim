@@ -479,6 +479,10 @@ pub struct MigrationFlow {
     pub reason: MigrationReason,
     /// Turn when the flow occurred.
     pub turn: u32,
+    /// Phase F2: PassengerTransport units consumed by this flow.
+    /// Set during collection, consumed during settlement.
+    #[serde(default)]
+    pub transport_units_consumed: f64,
 }
 
 /// Border enforcement runtime state (on `Politics`, Phase 15B).

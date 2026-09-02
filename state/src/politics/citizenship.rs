@@ -24,11 +24,15 @@ pub enum CitizenshipLaw {
 }
 
 impl CitizenshipLaw {
-    /// Parse from the existing string in `Politics.civil_rights_law`.
+    /// Parse from the engine key string in `Politics.civil_rights_law`.
     pub fn parse_law(s: &str) -> Self {
         match s {
-            "Segregation" => CitizenshipLaw::Segregation,
-            "5-Year Assimilation" | "10-Year Assimilation" => CitizenshipLaw::CulturalAssimilation,
+            "segregation" => CitizenshipLaw::Segregation,
+            "5_year_assimilation"
+            | "10_year_assimilation"
+            | "3_year_residency"
+            | "5_year_residency"
+            | "jus_sanguinis" => CitizenshipLaw::CulturalAssimilation,
             _ => CitizenshipLaw::OpenCitizenship,
         }
     }
@@ -123,16 +127,32 @@ mod tests {
     #[test]
     fn test_from_str() {
         assert_eq!(
-            CitizenshipLaw::parse_law("Segregation"),
+            CitizenshipLaw::parse_law("segregation"),
             CitizenshipLaw::Segregation
         );
         assert_eq!(
-            CitizenshipLaw::parse_law("5-Year Assimilation"),
+            CitizenshipLaw::parse_law("5_year_assimilation"),
             CitizenshipLaw::CulturalAssimilation
         );
         assert_eq!(
-            CitizenshipLaw::parse_law("10-Year Assimilation"),
+            CitizenshipLaw::parse_law("10_year_assimilation"),
             CitizenshipLaw::CulturalAssimilation
+        );
+        assert_eq!(
+            CitizenshipLaw::parse_law("3_year_residency"),
+            CitizenshipLaw::CulturalAssimilation
+        );
+        assert_eq!(
+            CitizenshipLaw::parse_law("5_year_residency"),
+            CitizenshipLaw::CulturalAssimilation
+        );
+        assert_eq!(
+            CitizenshipLaw::parse_law("jus_sanguinis"),
+            CitizenshipLaw::CulturalAssimilation
+        );
+        assert_eq!(
+            CitizenshipLaw::parse_law("open_citizenship"),
+            CitizenshipLaw::OpenCitizenship
         );
         assert_eq!(
             CitizenshipLaw::parse_law(""),

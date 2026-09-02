@@ -24,7 +24,7 @@ use crate::entities::{Building, Company};
 use crate::politics::laws::PrisonType;
 use crate::politics::system::{JusticeSystemState, PrisonSecurityLevel, PrisonerCohort};
 use crate::registries::enums::Sector;
-use crate::society::geography::HealthStatus;
+use crate::society::geography::{HealthStatus, RuralClass, UrbanClass};
 use crate::state::Country;
 
 /// Result of processing prison labor for one turn.
@@ -145,21 +145,17 @@ fn process_cohort_releases(country: &mut Country, justice_state: &mut JusticeSys
             continue;
         }
 
-        // Find the origin region and class
+        // Find the origin region and class (E.6.3: typed DemographicClass)
         for region in &mut country.regions {
             if region.id != cohort.origin_region_id {
                 continue;
             }
-            let class_opt = if cohort.origin_is_urban {
-                region
-                    .class_demographics
-                    .urban_classes
-                    .get_mut(&cohort.origin_class_id)
+            let class_opt = if let Some(urban) = cohort.origin_class.to_urban() {
+                region.class_demographics.urban_classes.get_mut(&urban)
+            } else if let Some(rural) = cohort.origin_class.to_rural() {
+                region.class_demographics.rural_classes.get_mut(&rural)
             } else {
-                region
-                    .class_demographics
-                    .rural_classes
-                    .get_mut(&cohort.origin_class_id)
+                None
             };
             if let Some(class) = class_opt {
                 // Restore population
@@ -365,7 +361,7 @@ fn generate_new_cohorts(
 
     // Distribute arrests across regions and classes proportionally to radical population
     for region in &country.regions {
-        for (class_id, class) in &region.class_demographics.rural_classes {
+        for (rural_class, class) in &region.class_demographics.rural_classes {
             let radicals = (class.population as f64 * class.political_sentiment.radicals) as i64;
             if radicals > 0 {
                 let arrests = (new_arrests * radicals / total_pop.max(1))
@@ -400,7 +396,7 @@ fn generate_new_cohorts(
                         matches!(sentence_outcome, SentenceOutcome::CommunityService(_));
 
                     justice_state.prisoner_cohorts.push(PrisonerCohort {
-                        origin_class_id: class_id.clone(),
+                        origin_class: crate::society::geography::DemographicClass::from(*rural_class),
                         origin_is_urban: false,
                         origin_region_id: region.id.clone(),
                         sentence_remaining: sentence_turns,
@@ -419,7 +415,7 @@ fn generate_new_cohorts(
                 }
             }
         }
-        for (class_id, class) in &region.class_demographics.urban_classes {
+        for (urban_class, class) in &region.class_demographics.urban_classes {
             let radicals = (class.population as f64 * class.political_sentiment.radicals) as i64;
             if radicals > 0 {
                 let arrests = (new_arrests * radicals / total_pop.max(1))
@@ -453,7 +449,7 @@ fn generate_new_cohorts(
                         matches!(sentence_outcome, SentenceOutcome::CommunityService(_));
 
                     justice_state.prisoner_cohorts.push(PrisonerCohort {
-                        origin_class_id: class_id.clone(),
+                        origin_class: crate::society::geography::DemographicClass::from(*urban_class),
                         origin_is_urban: true,
                         origin_region_id: region.id.clone(),
                         sentence_remaining: sentence_turns,
@@ -630,7 +626,8 @@ pub fn process_prison_labor_turn(
             // Remove targeted demographics from workforce across all regions
             for region in &mut country.regions {
                 // Check rural classes
-                if let Some(class) = region.class_demographics.rural_classes.get_mut(target) {
+                if let Some(rural_key) = RuralClass::from_str(target) {
+                    if let Some(class) = region.class_demographics.rural_classes.get_mut(&rural_key) {
                     let removable = class.population.min(capacity - isolated);
                     if removable > 0 {
                         // Zero out their available_fte contribution
@@ -646,11 +643,13 @@ pub fn process_prison_labor_turn(
 
                         isolated += removable;
                     }
+                    }
                 }
 
                 // Check urban classes
                 if isolated < capacity {
-                    if let Some(class) = region.class_demographics.urban_classes.get_mut(target) {
+                    if let Some(urban_key) = UrbanClass::from_str(target) {
+                        if let Some(class) = region.class_demographics.urban_classes.get_mut(&urban_key) {
                         let removable = class.population.min(capacity - isolated);
                         if removable > 0 {
                             let fte_removed = class.available_fte
@@ -664,6 +663,7 @@ pub fn process_prison_labor_turn(
 
                             isolated += removable;
                         }
+                    }
                     }
                 }
             }

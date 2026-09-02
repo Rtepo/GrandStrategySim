@@ -1,0 +1,1766 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo check --lib 2>&1 | Out-File -FilePath C:\Users\netse\Downloads\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Blocking waiting for file lock on build directory
+    Checking sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error[E0433]: cannot find type `RuralClass` in this scope
+   --> state\src\economy\finance\debt_market.rs:900:50
+    |
+900 |                         if let Some(rural_key) = RuralClass::from_str(class_name) {
+    |                                                  ^^^^^^^^^^ use of undeclared type `RuralClass`
+    |
+help: consider importing this enum
+    |
+ 11 + use crate::society::geography::RuralClass;
+    |
+
+error[E0433]: cannot find type `UrbanClass` in this scope
+   --> state\src\economy\finance\debt_market.rs:905:61
+    |
+905 | ...                   } else if let Some(urban_key) = UrbanClass::from_str(class_name) {
+    |                                                       ^^^^^^^^^^ use of undeclared type `UrbanClass`
+    |
+help: consider importing this enum
+    |
+ 11 + use crate::society::geography::UrbanClass;
+    |
+
+error[E0433]: cannot find type `UrbanClass` in this scope
+   --> state\src\economy\finance\debt_market.rs:912:57
+    |
+912 |                         } else if let Some(urban_key) = UrbanClass::from_str(class_name) {
+    |                                                         ^^^^^^^^^^ use of undeclared type `UrbanClass`
+    |
+help: consider importing this enum
+    |
+ 11 + use crate::society::geography::UrbanClass;
+    |
+
+error[E0425]: cannot find type `RuralClass` in this scope
+   --> state\src\economy\labor\labor.rs:534:48
+    |
+534 |                         let rural_classes: Vec<RuralClass> = region
+    |                                                ^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this enum
+    |
+ 11 + use crate::society::geography::RuralClass;
+    |
+
+error[E0425]: cannot find type `UrbanClass` in this scope
+   --> state\src\economy\labor\labor.rs:565:48
+    |
+565 |                         let urban_classes: Vec<UrbanClass> = region
+    |                                                ^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this enum
+    |
+ 11 + use crate::society::geography::UrbanClass;
+    |
+
+warning: unused import: `DemographicClass`
+  --> state\src\economy\finance\payment_in_kind.rs:11:33
+   |
+11 | use crate::society::geography::{DemographicClass, DemographyType, Region};
+   |                                 ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `RuralClass` and `UrbanClass`
+  --> state\src\economy\justice\legal_status.rs:21:33
+   |
+21 | use crate::society::geography::{RuralClass, UrbanClass};
+   |                                 ^^^^^^^^^^  ^^^^^^^^^^
+
+warning: unused import: `is_citizen`
+ --> state\src\economy\labor\labor_market.rs:5:36
+  |
+5 | use crate::politics::citizenship::{is_citizen, CitizenshipLaw, DiscriminationConfig};
+  |                                    ^^^^^^^^^^
+
+warning: unused import: `DemographyType`
+ --> state\src\economy\labor\labor_market.rs:7:51
+  |
+7 | use crate::society::geography::{DemographicClass, DemographyType, Region};
+  |                                                   ^^^^^^^^^^^^^^
+
+warning: unused imports: `RuralClass` and `UrbanClass`
+  --> state\src\economy\religion\propaganda.rs:17:33
+   |
+17 | use crate::society::geography::{RuralClass, UrbanClass};
+   |                                 ^^^^^^^^^^  ^^^^^^^^^^
+
+error[E0308]: mismatched types
+  --> state\src\economy\finance\payment_in_kind.rs:78:23
+   |
+78 |             .filter(|((cid, _, _), _)| cid == company_id)
+   |                      -^^^^^^^^^^^----
+   |                      ||
+   |                      |expected a tuple with 2 elements, found one with 3 elements
+   |                      expected due to this
+   |
+   = note: expected tuple `(std::string::String, DemographicClass)`
+              found tuple `(_, _, _)`
+
+error[E0308]: mismatched types
+  --> state\src\economy\finance\payment_in_kind.rs:79:20
+   |
+79 |             .map(|((_, dt, cid), fte)| ((*dt, cid.clone()), *fte))
+   |                   -^^^^^^^^^^^^------
+   |                   ||
+   |                   |expected a tuple with 2 elements, found one with 3 elements
+   |                   expected due to this
+   |
+   = note: expected tuple `(std::string::String, DemographicClass)`
+              found tuple `(_, _, _)`
+
+error[E0308]: mismatched types
+  --> state\src\economy\finance\payment_in_kind.rs:85:23
+   |
+85 |             .filter(|((cid, _, _), _)| cid == company_id)
+   |                      -^^^^^^^^^^^----
+   |                      ||
+   |                      |expected a tuple with 2 elements, found one with 3 elements
+   |                      expected due to this
+   |
+   = note: expected tuple `(std::string::String, DemographicClass)`
+              found tuple `(_, _, _)`
+
+error[E0308]: mismatched types
+  --> state\src\economy\finance\payment_in_kind.rs:86:20
+   |
+86 |             .map(|((_, dt, cid), wages)| ((*dt, cid.clone()), *wages))
+   |                   -^^^^^^^^^^^^--------
+   |                   ||
+   |                   |expected a tuple with 2 elements, found one with 3 elements
+   |                   expected due to this
+   |
+   = note: expected tuple `(std::string::String, DemographicClass)`
+              found tuple `(_, _, _)`
+
+error[E0308]: mismatched types
+   --> state\src\economy\finance\payment_in_kind.rs:229:10
+    |
+229 |     for ((_company_id, demography_type, class_id), fte) in &labor_allocation.fte {
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^          --------------------- this is an iterator with items o
+f type `(&(std::string::String, DemographicClass), &f64)`
+    |          |
+    |          expected a tuple with 2 elements, found one with 3 elements
+    |
+    = note: expected tuple `(std::string::String, DemographicClass)`
+               found tuple `(_, _, _)`
+
+error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `RuralC
+lass`
+   --> state\src\economy\justice\legal_status.rs:363:14
+    |
+363 |             .collect();
+    |              ^^^^^^^ value of type `Vec<std::string::String>` cannot be built from `std::iter::Iterator<Item=Rura
+lClass>`
+    |
+help: the trait `FromIterator<RuralClass>` is not implemented for `Vec<std::string::String>`
+      but trait `FromIterator<std::string::String>` is implemented for it
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\vec\mod.rs:3923:0
+    = help: for that trait implementation, expected `std::string::String`, found `RuralClass`
+note: the method call chain might not have had the expected associated types
+   --> state\src\economy\justice\legal_status.rs:362:14
+    |
+358 |           let rural_ids: Vec<String> = region
+    |  ______________________________________-
+359 | |             .class_demographics
+360 | |             .rural_classes
+    | |__________________________- this expression has type `BTreeMap<RuralClass, ClassDemographics>`
+361 |               .keys()
+    |                ------ `Iterator::Item` is `&RuralClass` here
+362 |               .cloned()
+    |                ^^^^^^^^ `Iterator::Item` changed to `RuralClass` here
+note: required by a bound in `std::iter::Iterator::collect`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:2077:4
+
+error[E0308]: mismatched types
+   --> state\src\economy\justice\legal_status.rs:369:30
+    |
+369 |                     .get_mut(&class_id)
+    |                      ------- ^^^^^^^^^ expected `&RuralClass`, found `&String`
+    |                      |
+    |                      arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `UrbanC
+lass`
+   --> state\src\economy\justice\legal_status.rs:388:14
+    |
+388 |             .collect();
+    |              ^^^^^^^ value of type `Vec<std::string::String>` cannot be built from `std::iter::Iterator<Item=Urba
+nClass>`
+    |
+help: the trait `FromIterator<UrbanClass>` is not implemented for `Vec<std::string::String>`
+      but trait `FromIterator<std::string::String>` is implemented for it
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\vec\mod.rs:3923:0
+    = help: for that trait implementation, expected `std::string::String`, found `UrbanClass`
+note: the method call chain might not have had the expected associated types
+   --> state\src\economy\justice\legal_status.rs:387:14
+    |
+383 |           let urban_ids: Vec<String> = region
+    |  ______________________________________-
+384 | |             .class_demographics
+385 | |             .urban_classes
+    | |__________________________- this expression has type `BTreeMap<UrbanClass, ClassDemographics>`
+386 |               .keys()
+    |                ------ `Iterator::Item` is `&UrbanClass` here
+387 |               .cloned()
+    |                ^^^^^^^^ `Iterator::Item` changed to `UrbanClass` here
+note: required by a bound in `std::iter::Iterator::collect`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:2077:4
+
+error[E0308]: mismatched types
+   --> state\src\economy\justice\legal_status.rs:394:30
+    |
+394 |                     .get_mut(&class_id)
+    |                      ------- ^^^^^^^^^ expected `&UrbanClass`, found `&String`
+    |                      |
+    |                      arguments to this method are incorrect
+    |
+    = note: expected reference `&UrbanClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\economy\justice\prison_labor.rs:629:86
+    |
+629 |                 if let Some(class) = region.class_demographics.rural_classes.get_mut(target) {
+    |                                                                              ------- ^^^^^^ expected `&RuralClass
+`, found `&str`
+    |                                                                              |
+    |                                                                              arguments to this method are incorre
+ct
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&str`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\economy\justice\prison_labor.rs:649:90
+    |
+649 |                     if let Some(class) = region.class_demographics.urban_classes.get_mut(target) {
+    |                                                                                  ------- ^^^^^^ expected `&UrbanC
+lass`, found `&str`
+    |                                                                                  |
+    |                                                                                  arguments to this method are inc
+orrect
+    |
+    = note: expected reference `&UrbanClass`
+               found reference `&str`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0271]: expected `{closure@labor.rs:811:26}` to return `(bool, RuralClass)`, but it returns `(bool, UrbanClass)`
+   --> state\src\economy\labor\labor.rs:811:30
+    |
+806 |             .chain(
+    |              ----- required by a bound introduced by this call
+...
+811 |                     .map(|k| (false, k.clone())),
+    |                          --- ^^^^^^^^^^^^^^^^^^ expected `(bool, RuralClass)`, found `(bool, UrbanClass)`
+    |                          |
+    |                          this closure
+    |
+    = note: expected tuple `(_, RuralClass)`
+               found tuple `(_, UrbanClass)`
+    = note: required for `Map<Keys<'_, UrbanClass, ClassDemographics>, {closure@...}>` to implement `Iterator`
+note: required by a bound in `std::iter::Iterator::chain`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-7171538685978802886.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0599]: the method `collect` exists for struct `Chain<Map<Keys<'_, RuralClass, ClassDemographics>, ...>, ...>`, b
+ut its trait bounds were not satisfied
+   --> state\src\economy\labor\labor.rs:813:14
+    |
+801 |           let all_classes: Vec<(bool, String)> = region
+    |  ________________________________________________-
+802 | |             .class_demographics
+803 | |             .rural_classes
+804 | |             .keys()
+...   |
+813 | |             .collect();
+    | |             -^^^^^^^ method cannot be called due to unsatisfied trait bounds
+    | |_____________|
+    |
+    |
+    = note: the following trait bounds were not satisfied:
+            `std::iter::Chain<std::iter::Map<std::collections::btree_map::Keys<'_, RuralClass, ClassDemographics>, {clo
+sure@state\src\economy\labor\labor.rs:805:18: 805:21}>, std::iter::Map<std::collections::btree_map::Keys<'_, UrbanClass
+, ClassDemographics>, {closure@state\src\economy\labor\labor.rs:811:26: 811:29}>>: Iterator`
+            which is required by `&mut std::iter::Chain<std::iter::Map<std::collections::btree_map::Keys<'_, RuralClass
+, ClassDemographics>, {closure@state\src\economy\labor\labor.rs:805:18: 805:21}>, std::iter::Map<std::collections::btre
+e_map::Keys<'_, UrbanClass, ClassDemographics>, {closure@state\src\economy\labor\labor.rs:811:26: 811:29}>>: Iterator`
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-17875555529315177514.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0308]: mismatched types
+   --> state\src\economy\labor\labor.rs:820:65
+    |
+820 |                 region.class_demographics.urban_classes.get_mut(key)
+    |                                                         ------- ^^^ expected `&UrbanClass`, found `&RuralClass`
+    |                                                         |
+    |                                                         arguments to this method are incorrect
+    |
+    = note: expected reference `&UrbanClass`
+               found reference `&RuralClass`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\economy\labor\labor.rs:836:69
+    |
+836 |                     region.class_demographics.urban_classes.get_mut(key)
+    |                                                             ------- ^^^ expected `&UrbanClass`, found `&RuralClas
+s`
+    |                                                             |
+    |                                                             arguments to this method are incorrect
+    |
+    = note: expected reference `&UrbanClass`
+               found reference `&RuralClass`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:348:44
+    |
+348 |                     target_class_id = Some(class_id.clone());
+    |                                       ---- ^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+    |                                       |
+    |                                       arguments to this enum variant are incorrect
+    |
+help: the type constructed contains `RuralClass` due to the type of the argument passed
+   --> state\src\economy\religion\propaganda.rs:348:39
+    |
+348 |                     target_class_id = Some(class_id.clone());
+    |                                       ^^^^^----------------^
+    |                                            |
+    |                                            this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\option.rs:605:4
+help: try using a conversion method
+    |
+348 -                     target_class_id = Some(class_id.clone());
+348 +                     target_class_id = Some(class_id.to_string());
+    |
+
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:360:44
+    |
+360 |                     target_class_id = Some(class_id.clone());
+    |                                       ---- ^^^^^^^^^^^^^^^^ expected `String`, found `UrbanClass`
+    |                                       |
+    |                                       arguments to this enum variant are incorrect
+    |
+help: the type constructed contains `UrbanClass` due to the type of the argument passed
+   --> state\src\economy\religion\propaganda.rs:360:39
+    |
+360 |                     target_class_id = Some(class_id.clone());
+    |                                       ^^^^^----------------^
+    |                                            |
+    |                                            this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\option.rs:605:4
+help: try using a conversion method
+    |
+360 -                     target_class_id = Some(class_id.clone());
+360 +                     target_class_id = Some(class_id.to_string());
+    |
+
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:391:61
+    |
+391 |                 region.class_demographics.urban_classes.get(cid)
+    |                                                         --- ^^^ expected `&UrbanClass`, found `&String`
+    |                                                         |
+    |                                                         arguments to this method are incorrect
+    |
+    = note: expected reference `&UrbanClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:393:61
+    |
+393 |                 region.class_demographics.rural_classes.get(cid)
+    |                                                         --- ^^^ expected `&RuralClass`, found `&String`
+    |                                                         |
+    |                                                         arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:445:69
+    |
+445 |                     region.class_demographics.urban_classes.get_mut(cid)
+    |                                                             ------- ^^^ expected `&UrbanClass`, found `&String`
+    |                                                             |
+    |                                                             arguments to this method are incorrect
+    |
+    = note: expected reference `&UrbanClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:447:69
+    |
+447 |                     region.class_demographics.rural_classes.get_mut(cid)
+    |                                                             ------- ^^^ expected `&RuralClass`, found `&String`
+    |                                                             |
+    |                                                             arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\economy\society\ethnic_violence.rs:181:9
+    |
+180 |     let rural_result = check_class_map_pogrom(
+    |                        ---------------------- arguments to this function are incorrect
+181 |         &region.class_demographics.rural_classes,
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&BTreeMap<String, ClassDemographics>`, found `&BTreeMa
+p<RuralClass, ClassDemographics>`
+    |
+    = note: expected reference `&BTreeMap<std::string::String, _>`
+               found reference `&BTreeMap<RuralClass, _>`
+note: function defined here
+   --> state\src\economy\society\ethnic_violence.rs:268:4
+    |
+268 | fn check_class_map_pogrom(
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+269 |     class_map: &BTreeMap<String, crate::society::geography::ClassDemographics>,
+    |     --------------------------------------------------------------------------
+
+error[E0308]: mismatched types
+   --> state\src\economy\society\ethnic_violence.rs:219:9
+    |
+218 |     let urban_result = check_class_map_pogrom(
+    |                        ---------------------- arguments to this function are incorrect
+219 |         &region.class_demographics.urban_classes,
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&BTreeMap<String, ClassDemographics>`, found `&BTreeMa
+p<UrbanClass, ClassDemographics>`
+    |
+    = note: expected reference `&BTreeMap<std::string::String, _>`
+               found reference `&BTreeMap<UrbanClass, _>`
+note: function defined here
+   --> state\src\economy\society\ethnic_violence.rs:268:4
+    |
+268 | fn check_class_map_pogrom(
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+269 |     class_map: &BTreeMap<String, crate::society::geography::ClassDemographics>,
+    |     --------------------------------------------------------------------------
+
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\society\ethnic_violence.rs:408:9
+    |
+405 |       let class_map = if class_type == "rural" {
+    |  _____________________-
+406 | |         &mut region.class_demographics.rural_classes
+    | |         -------------------------------------------- expected because of this
+407 | |     } else {
+408 | |         &mut region.class_demographics.urban_classes
+    | |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<RuralClass, ...>`, found `&mut BTr
+eeMap<UrbanClass, ...>`
+409 | |     };
+    | |_____- `if` and `else` have incompatible types
+    |
+    = note: expected mutable reference `&mut BTreeMap<RuralClass, _>`
+               found mutable reference `&mut BTreeMap<UrbanClass, _>`
+
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\society\ethnic_violence.rs:446:9
+    |
+443 |       let class_map = if class_type == "rural" {
+    |  _____________________-
+444 | |         &mut region.class_demographics.rural_classes
+    | |         -------------------------------------------- expected because of this
+445 | |     } else {
+446 | |         &mut region.class_demographics.urban_classes
+    | |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<RuralClass, ...>`, found `&mut BTr
+eeMap<UrbanClass, ...>`
+447 | |     };
+    | |_____- `if` and `else` have incompatible types
+    |
+    = note: expected mutable reference `&mut BTreeMap<RuralClass, _>`
+               found mutable reference `&mut BTreeMap<UrbanClass, _>`
+
+error[E0308]: mismatched types
+   --> state\src\economy\trade\retail.rs:597:13
+    |
+593 |         process_class(
+    |         ------------- arguments to this function are incorrect
+...
+597 |             class_id,
+    |             ^^^^^^^^ expected `&str`, found `&RuralClass`
+    |
+    = note: expected reference `&str`
+               found reference `&RuralClass`
+note: closure parameter defined here
+   --> state\src\economy\trade\retail.rs:498:26
+    |
+498 |                          class_id: &str,
+    |                          ^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+   --> state\src\economy\trade\retail.rs:610:13
+    |
+606 |         process_class(
+    |         ------------- arguments to this function are incorrect
+...
+610 |             class_id,
+    |             ^^^^^^^^ expected `&str`, found `&UrbanClass`
+    |
+    = note: expected reference `&str`
+               found reference `&UrbanClass`
+note: closure parameter defined here
+   --> state\src\economy\trade\retail.rs:498:26
+    |
+498 |                          class_id: &str,
+    |                          ^^^^^^^^^^^^^^
+
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\trade\transfer_settler.rs:287:21
+    |
+284 |                   let classes = if *is_rural {
+    |  _______________________________-
+285 | |                     &mut region.class_demographics.rural_classes
+    | |                     -------------------------------------------- expected because of this
+286 | |                 } else {
+287 | |                     &mut region.class_demographics.urban_classes
+    | |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<RuralClass, ...>`, fou
+nd `&mut BTreeMap<UrbanClass, ...>`
+288 | |                 };
+    | |_________________- `if` and `else` have incompatible types
+    |
+    = note: expected mutable reference `&mut BTreeMap<RuralClass, _>`
+               found mutable reference `&mut BTreeMap<UrbanClass, _>`
+
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\trade\transfer_settler.rs:377:13
+    |
+374 |           let classes = if is_rural {
+    |  _______________________-
+375 | |             &mut region.class_demographics.rural_classes
+    | |             -------------------------------------------- expected because of this
+376 | |         } else {
+377 | |             &mut region.class_demographics.urban_classes
+    | |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<RuralClass, ...>`, found `&mut
+ BTreeMap<UrbanClass, ...>`
+378 | |         };
+    | |_________- `if` and `else` have incompatible types
+    |
+    = note: expected mutable reference `&mut BTreeMap<RuralClass, _>`
+               found mutable reference `&mut BTreeMap<UrbanClass, _>`
+
+error[E0308]: mismatched types
+   --> state\src\economy\trade\transfer_settler.rs:578:36
+    |
+578 |             class_info.push((true, key.clone(), demo.savings));
+    |                                    ^^^^^^^^^^^ expected `String`, found `RuralClass`
+    |
+help: try using a conversion method
+    |
+578 -             class_info.push((true, key.clone(), demo.savings));
+578 +             class_info.push((true, key.to_string(), demo.savings));
+    |
+
+error[E0308]: mismatched types
+   --> state\src\economy\trade\transfer_settler.rs:584:37
+    |
+584 |             class_info.push((false, key.clone(), demo.savings));
+    |                                     ^^^^^^^^^^^ expected `String`, found `UrbanClass`
+    |
+help: try using a conversion method
+    |
+584 -             class_info.push((false, key.clone(), demo.savings));
+584 +             class_info.push((false, key.to_string(), demo.savings));
+    |
+
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\trade\transfer_settler.rs:600:13
+    |
+597 |           let classes = if *is_rural {
+    |  _______________________-
+598 | |             &mut region.class_demographics.rural_classes
+    | |             -------------------------------------------- expected because of this
+599 | |         } else {
+600 | |             &mut region.class_demographics.urban_classes
+    | |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<RuralClass, ...>`, found `&mut
+ BTreeMap<UrbanClass, ...>`
+601 | |         };
+    | |_________- `if` and `else` have incompatible types
+    |
+    = note: expected mutable reference `&mut BTreeMap<RuralClass, _>`
+               found mutable reference `&mut BTreeMap<UrbanClass, _>`
+
+error[E0308]: mismatched types
+   --> state\src\economy\trade\transfer_settler.rs:622:36
+    |
+622 |             class_info.push((true, key.clone(), demo.population as f64));
+    |                                    ^^^^^^^^^^^ expected `String`, found `RuralClass`
+    |
+help: try using a conversion method
+    |
+622 -             class_info.push((true, key.clone(), demo.population as f64));
+622 +             class_info.push((true, key.to_string(), demo.population as f64));
+    |
+
+error[E0308]: mismatched types
+   --> state\src\economy\trade\transfer_settler.rs:628:37
+    |
+628 |             class_info.push((false, key.clone(), demo.population as f64));
+    |                                     ^^^^^^^^^^^ expected `String`, found `UrbanClass`
+    |
+help: try using a conversion method
+    |
+628 -             class_info.push((false, key.clone(), demo.population as f64));
+628 +             class_info.push((false, key.to_string(), demo.population as f64));
+    |
+
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\trade\transfer_settler.rs:643:13
+    |
+640 |           let classes = if *is_rural {
+    |  _______________________-
+641 | |             &mut region.class_demographics.rural_classes
+    | |             -------------------------------------------- expected because of this
+642 | |         } else {
+643 | |             &mut region.class_demographics.urban_classes
+    | |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<RuralClass, ...>`, found `&mut
+ BTreeMap<UrbanClass, ...>`
+644 | |         };
+    | |_________- `if` and `else` have incompatible types
+    |
+    = note: expected mutable reference `&mut BTreeMap<RuralClass, _>`
+               found mutable reference `&mut BTreeMap<UrbanClass, _>`
+
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:3490:22
+     |
+3490 |                 for ((company_id, demo_type, class_id), &fte) in &la.fte {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^           ------- this is an iterator with items of type 
+`(&(std::string::String, DemographicClass), &f64)`
+     |                      |
+     |                      expected a tuple with 2 elements, found one with 3 elements
+     |
+     = note: expected tuple `(std::string::String, DemographicClass)`
+                found tuple `(_, _, _)`
+
+error[E0308]: `if` and `else` have incompatible types
+    --> state\src\engine\turn.rs:3589:33
+     |
+3586 |   ...                   let classes = if is_rural {
+     |  _____________________________________-
+3587 | | ...                       &mut region.class_demographics.rural_classes
+     | |                           -------------------------------------------- expected because of this
+3588 | | ...                   } else {
+3589 | | ...                       &mut region.class_demographics.urban_classes
+     | |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<RuralClass, ...
+>`, found `&mut BTreeMap<UrbanClass, ...>`
+3590 | | ...                   };
+     | |_______________________- `if` and `else` have incompatible types
+     |
+     = note: expected mutable reference `&mut BTreeMap<RuralClass, _>`
+                found mutable reference `&mut BTreeMap<UrbanClass, _>`
+
+error[E0277]: a value of type `Vec<(std::string::String, f64, f64)>` cannot be built from an iterator over elements of 
+type `(RuralClass, f64, f64)`
+    --> state\src\engine\turn.rs:6362:34
+     |
+6362 | ...                   .collect();
+     |                        ^^^^^^^ value of type `Vec<(std::string::String, f64, f64)>` cannot be built from `std::i
+ter::Iterator<Item=(RuralClass, f64, f64)>`
+     |
+help: the trait `FromIterator<(RuralClass, _, _)>` is not implemented for `Vec<(std::string::String, f64, f64)>`
+      but trait `FromIterator<(std::string::String, _, _)>` is implemented for it
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\vec\mod.rs:3923:0
+     = help: for that trait implementation, expected `std::string::String`, found `RuralClass`
+note: the method call chain might not have had the expected associated types
+    --> state\src\engine\turn.rs:6359:34
+     |
+6354 |   ...                   let contributing_classes: Vec<(String, f64, f64)> = region
+     |  ___________________________________________________________________________-
+6355 | | ...                       .class_demographics
+6356 | | ...                       .rural_classes
+     | |________________________________________- this expression has type `BTreeMap<RuralClass, ClassDemographics>`
+6357 |   ...                       .iter()
+     |                              ------ `Iterator::Item` is `(&RuralClass, &ClassDemographics)` here
+6358 |   ...                       .filter(|(_, d)| d.cottage_fte_allocated > 0.0)
+     |                              ---------------------------------------------- `Iterator::Item` remains `(&RuralCla
+ss, &ClassDemographics)` here
+6359 |   ...                       .map(|(class_id, d)| {
+     |  ____________________________^
+6360 | | ...                           (class_id.clone(), d.cottage_fte_allocated, d.savings)
+6361 | | ...                       })
+     | |____________________________^ `Iterator::Item` changed to `(RuralClass, f64, f64)` here
+note: required by a bound in `std::iter::Iterator::collect`
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:2077:4
+
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:6473:81
+     |
+6473 | ...                   region.class_demographics.rural_classes.get_mut(class_id)
+     |                                                               ------- ^^^^^^^^ expected `&RuralClass`, found `&S
+tring`
+     |                                                               |
+     |                                                               arguments to this method are incorrect
+     |
+     = note: expected reference `&RuralClass`
+                found reference `&std::string::String`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:6529:77
+     |
+6529 | ...                   region.class_demographics.rural_classes.get_mut(class_id)
+     |                                                               ------- ^^^^^^^^ expected `&RuralClass`, found `&S
+tring`
+     |                                                               |
+     |                                                               arguments to this method are incorrect
+     |
+     = note: expected reference `&RuralClass`
+                found reference `&std::string::String`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:6718:75
+     |
+6718 |             if let Some(fp) = region.class_demographics.rural_classes.get("FreePeasant") {
+     |                                                                       --- ^^^^^^^^^^^^^ expected `&RuralClass`, 
+found `&str`
+     |                                                                       |
+     |                                                                       arguments to this method are incorrect
+     |
+     = note: expected reference `&RuralClass`
+                found reference `&'static str`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:6721:77
+     |
+6721 |             if let Some(serf) = region.class_demographics.rural_classes.get("Serf") {
+     |                                                                         --- ^^^^^^ expected `&RuralClass`, found
+ `&str`
+     |                                                                         |
+     |                                                                         arguments to this method are incorrect
+     |
+     = note: expected reference `&RuralClass`
+                found reference `&'static str`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:7656:26
+     |
+7656 |                 .get_mut("Bourgeoisie")
+     |                  ------- ^^^^^^^^^^^^^ expected `&UrbanClass`, found `&str`
+     |                  |
+     |                  arguments to this method are incorrect
+     |
+     = note: expected reference `&UrbanClass`
+                found reference `&'static str`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:7659:90
+     |
+7659 |             } else if let Some(worker) = region.class_demographics.urban_classes.get_mut("Worker") {
+     |                                                                                  ------- ^^^^^^^^ expected `&Urb
+anClass`, found `&str`
+     |                                                                                  |
+     |                                                                                  arguments to this method are in
+correct
+     |
+     = note: expected reference `&UrbanClass`
+                found reference `&'static str`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:7670:83
+     |
+7670 |             if let Some(worker) = region.class_demographics.urban_classes.get_mut("Worker") {
+     |                                                                           ------- ^^^^^^^^ expected `&UrbanClass
+`, found `&str`
+     |                                                                           |
+     |                                                                           arguments to this method are incorrect
+     |
+     = note: expected reference `&UrbanClass`
+                found reference `&'static str`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\infrastructure\cultural.rs:333:81
+    |
+333 |     if let Some(demographics) = region.class_demographics.rural_classes.get_mut("serf") {
+    |                                                                         ------- ^^^^^^ expected `&RuralClass`, fo
+und `&str`
+    |                                                                         |
+    |                                                                         arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&'static str`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\infrastructure\cultural.rs:364:21
+    |
+364 |                     class_name.clone(),
+    |                     ^^^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+    |
+help: try using a conversion method
+    |
+364 -                     class_name.clone(),
+364 +                     class_name.to_string(),
+    |
+
+error[E0308]: mismatched types
+   --> state\src\infrastructure\cultural.rs:388:26
+    |
+388 |                 .get_mut(class_name)
+    |                  ------- ^^^^^^^^^^ expected `&RuralClass`, found `&String`
+    |                  |
+    |                  arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\military\turn.rs:129:13
+    |
+128 |         crate::military::morale::recover_morale_for_classes(
+    |         --------------------------------------------------- arguments to this function are incorrect
+129 |             &mut region.class_demographics.rural_classes,
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<String, ClassDemographics>`, fou
+nd `&mut BTreeMap<RuralClass, ...>`
+    |
+    = note: expected mutable reference `&mut BTreeMap<std::string::String, _>`
+               found mutable reference `&mut BTreeMap<RuralClass, _>`
+note: function defined here
+   --> state\src\military\morale.rs:221:8
+    |
+221 | pub fn recover_morale_for_classes(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+222 |     rural_classes: &mut BTreeMap<String, ClassDemographics>,
+    |     -------------------------------------------------------
+
+error[E0308]: mismatched types
+   --> state\src\military\turn.rs:198:69
+    |
+198 |                     region.class_demographics.rural_classes.get_mut(&class_key)
+    |                                                             ------- ^^^^^^^^^^ expected `&RuralClass`, found `&St
+ring`
+    |                                                             |
+    |                                                             arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\military\turn.rs:499:48
+    |
+499 |             process_dead(&attacker_casualties, region_demographics, &battle_region_id);
+    |             ------------                       ^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<String, ClassDemograph
+ics>`, found `&mut BTreeMap<RuralClass, ...>`
+    |             |
+    |             arguments to this function are incorrect
+    |
+    = note: expected mutable reference `&mut BTreeMap<std::string::String, _>`
+               found mutable reference `&mut BTreeMap<RuralClass, _>`
+note: function defined here
+   --> state\src\military\combat.rs:246:8
+    |
+246 | pub fn process_dead(
+    |        ^^^^^^^^^^^^
+247 |     casualties: &Casualties,
+248 |     region_demographics: &mut BTreeMap<String, ClassDemographics>,
+    |     -------------------------------------------------------------
+
+error[E0308]: mismatched types
+   --> state\src\military\turn.rs:502:48
+    |
+502 |             process_dead(&defender_casualties, region_demographics, &battle_region_id);
+    |             ------------                       ^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<String, ClassDemograph
+ics>`, found `&mut BTreeMap<RuralClass, ...>`
+    |             |
+    |             arguments to this function are incorrect
+    |
+    = note: expected mutable reference `&mut BTreeMap<std::string::String, _>`
+               found mutable reference `&mut BTreeMap<RuralClass, _>`
+note: function defined here
+   --> state\src\military\combat.rs:246:8
+    |
+246 | pub fn process_dead(
+    |        ^^^^^^^^^^^^
+247 |     casualties: &Casualties,
+248 |     region_demographics: &mut BTreeMap<String, ClassDemographics>,
+    |     -------------------------------------------------------------
+
+error[E0308]: mismatched types
+   --> state\src\military\turn.rs:506:53
+    |
+506 |             process_deserters(&attacker_casualties, region_demographics, &battle_region_id);
+    |             -----------------                       ^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<String, ClassDemo
+graphics>`, found `&mut BTreeMap<RuralClass, ...>`
+    |             |
+    |             arguments to this function are incorrect
+    |
+    = note: expected mutable reference `&mut BTreeMap<std::string::String, _>`
+               found mutable reference `&mut BTreeMap<RuralClass, _>`
+note: function defined here
+   --> state\src\military\combat.rs:291:8
+    |
+291 | pub fn process_deserters(
+    |        ^^^^^^^^^^^^^^^^^
+292 |     casualties: &Casualties,
+293 |     region_demographics: &mut BTreeMap<String, ClassDemographics>,
+    |     -------------------------------------------------------------
+
+error[E0308]: mismatched types
+   --> state\src\military\turn.rs:509:53
+    |
+509 |             process_deserters(&defender_casualties, region_demographics, &battle_region_id);
+    |             -----------------                       ^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<String, ClassDemo
+graphics>`, found `&mut BTreeMap<RuralClass, ...>`
+    |             |
+    |             arguments to this function are incorrect
+    |
+    = note: expected mutable reference `&mut BTreeMap<std::string::String, _>`
+               found mutable reference `&mut BTreeMap<RuralClass, _>`
+note: function defined here
+   --> state\src\military\combat.rs:291:8
+    |
+291 | pub fn process_deserters(
+    |        ^^^^^^^^^^^^^^^^^
+292 |     casualties: &Casualties,
+293 |     region_demographics: &mut BTreeMap<String, ClassDemographics>,
+    |     -------------------------------------------------------------
+
+error[E0308]: mismatched types
+    --> state\src\military\war_economy.rs:417:49
+     |
+ 417 |             let rural_class = parse_rural_class(class_key);
+     |                               ----------------- ^^^^^^^^^ expected `&str`, found `&RuralClass`
+     |                               |
+     |                               arguments to this function are incorrect
+     |
+     = note: expected reference `&str`
+                found reference `&RuralClass`
+note: function defined here
+    --> state\src\military\war_economy.rs:1053:4
+     |
+1053 | fn parse_rural_class(key: &str) -> Option<RuralClass> {
+     |    ^^^^^^^^^^^^^^^^^ ---------
+
+error[E0308]: mismatched types
+   --> state\src\military\war_economy.rs:421:32
+    |
+421 |                     class_key: class_key.clone(),
+    |                                ^^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+    |
+help: try using a conversion method
+    |
+421 -                     class_key: class_key.clone(),
+421 +                     class_key: class_key.to_string(),
+    |
+
+error[E0308]: mismatched types
+   --> state\src\military\war_economy.rs:440:28
+    |
+440 |                 class_key: class_key.clone(),
+    |                            ^^^^^^^^^^^^^^^^^ expected `String`, found `UrbanClass`
+    |
+help: try using a conversion method
+    |
+440 -                 class_key: class_key.clone(),
+440 +                 class_key: class_key.to_string(),
+    |
+
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\military\war_economy.rs:463:17
+    |
+460 |               let class_map = if source.is_urban {
+    |  _____________________________-
+461 | |                 &mut region.class_demographics.urban_classes
+    | |                 -------------------------------------------- expected because of this
+462 | |             } else {
+463 | |                 &mut region.class_demographics.rural_classes
+    | |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<UrbanClass, ...>`, found `
+&mut BTreeMap<RuralClass, ...>`
+464 | |             };
+    | |_____________- `if` and `else` have incompatible types
+    |
+    = note: expected mutable reference `&mut BTreeMap<UrbanClass, _>`
+               found mutable reference `&mut BTreeMap<RuralClass, _>`
+
+error[E0308]: mismatched types
+   --> state\src\military\war_economy.rs:554:89
+    |
+554 |                     if let Some(demo) = region.class_demographics.rural_classes.get_mut(&class_key)
+    |                                                                                 ------- ^^^^^^^^^^ expected `&Rur
+alClass`, found `&String`
+    |                                                                                 |
+    |                                                                                 arguments to this method are inco
+rrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\politics\campaign.rs:428:42
+    |
+428 | ...                   .get(class_name)
+    |                        --- ^^^^^^^^^^ expected `&RuralClass`, found `&String`
+    |                        |
+    |                        arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+
+error[E0308]: mismatched types
+   --> state\src\politics\campaign.rs:430:83
+    |
+430 | ...                   .chain(r.class_demographics.urban_classes.get(class_name))
+    |                                                                 --- ^^^^^^^^^^ expected `&UrbanClass`, found `&St
+ring`
+    |                                                                 |
+    |                                                                 arguments to this method are incorrect
+    |
+    = note: expected reference `&UrbanClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+
+error[E0308]: mismatched types
+   --> state\src\politics\campaign.rs:442:77
+    |
+442 | ...                   region.class_demographics.rural_classes.get_mut(class_name)
+    |                                                               ------- ^^^^^^^^^^ expected `&RuralClass`, found `&
+String`
+    |                                                               |
+    |                                                               arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\politics\campaign.rs:453:77
+    |
+453 | ...                   region.class_demographics.urban_classes.get_mut(class_name)
+    |                                                               ------- ^^^^^^^^^^ expected `&UrbanClass`, found `&
+String`
+    |                                                               |
+    |                                                               arguments to this method are incorrect
+    |
+    = note: expected reference `&UrbanClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0277]: the trait bound `std::string::String: Borrow<RuralClass>` is not satisfied
+   --> state\src\politics\elections.rs:574:22
+    |
+574 |                 .get(class_key)
+    |                  --- ^^^^^^^^^ the trait `Borrow<RuralClass>` is not implemented for `std::string::String`
+    |                  |
+    |                  required by a bound introduced by this call
+    |
+help: the trait `Borrow<RuralClass>` is not implemented for `std::string::String`
+      but trait `Borrow<str>` is implemented for it
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\str.rs:229:0
+    = help: for that trait implementation, expected `str`, found `RuralClass`
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:4
+
+error[E0277]: the trait bound `std::string::String: Borrow<UrbanClass>` is not satisfied
+   --> state\src\politics\elections.rs:600:22
+    |
+600 |                 .get(class_key)
+    |                  --- ^^^^^^^^^ the trait `Borrow<UrbanClass>` is not implemented for `std::string::String`
+    |                  |
+    |                  required by a bound introduced by this call
+    |
+help: the trait `Borrow<UrbanClass>` is not implemented for `std::string::String`
+      but trait `Borrow<str>` is implemented for it
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\str.rs:229:0
+    = help: for that trait implementation, expected `str`, found `UrbanClass`
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:4
+
+error[E0277]: the trait bound `std::string::String: Borrow<RuralClass>` is not satisfied
+   --> state\src\politics\interest_groups.rs:136:22
+    |
+136 |                 .get(class_key)
+    |                  --- ^^^^^^^^^ the trait `Borrow<RuralClass>` is not implemented for `std::string::String`
+    |                  |
+    |                  required by a bound introduced by this call
+    |
+help: the trait `Borrow<RuralClass>` is not implemented for `std::string::String`
+      but trait `Borrow<str>` is implemented for it
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\str.rs:229:0
+    = help: for that trait implementation, expected `str`, found `RuralClass`
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:4
+
+error[E0277]: the trait bound `std::string::String: Borrow<RuralClass>` is not satisfied
+   --> state\src\politics\interest_groups.rs:262:22
+    |
+262 |                 .get(class_key)
+    |                  --- ^^^^^^^^^ the trait `Borrow<RuralClass>` is not implemented for `std::string::String`
+    |                  |
+    |                  required by a bound introduced by this call
+    |
+help: the trait `Borrow<RuralClass>` is not implemented for `std::string::String`
+      but trait `Borrow<str>` is implemented for it
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\str.rs:229:0
+    = help: for that trait implementation, expected `str`, found `RuralClass`
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:4
+
+error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+   --> state\src\politics\lobbying.rs:318:16
+    |
+318 |         .chain(home_region.class_demographics.urban_classes.iter())
+    |          ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &ClassDemographics)`, 
+found `(&UrbanClass, &ClassDemographics)`
+    |          |
+    |          required by a bound introduced by this call
+    |
+    = note: expected tuple `(&RuralClass, &ClassDemographics)`
+               found tuple `(&UrbanClass, &ClassDemographics)`
+note: the method call chain might not have had the expected associated types
+   --> state\src\politics\lobbying.rs:318:61
+    |
+318 |         .chain(home_region.class_demographics.urban_classes.iter())
+    |                -------------------------------------------- ^^^^^^ `IntoIterator::Item` is `(&UrbanClass, &ClassD
+emographics)` here
+    |                |
+    |                this expression has type `BTreeMap<UrbanClass, ClassDemographics>`
+note: required by a bound in `std::iter::Iterator::chain`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-5746853873472208406.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0599]: the method `max_by` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>>
+`, but its trait bounds were not satisfied
+   --> state\src\politics\lobbying.rs:319:10
+    |
+314 |       let target_class_key = home_region
+    |  ____________________________-
+315 | |         .class_demographics
+316 | |         .rural_classes
+317 | |         .iter()
+318 | |         .chain(home_region.class_demographics.urban_classes.iter())
+319 | |         .max_by(|a, b| {
+    | |         -^^^^^^ method cannot be called due to unsatisfied trait bounds
+    | |_________|
+    |
+    |
+    = note: the following trait bounds were not satisfied:
+            `<std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics> as Iterator>::Item = (&RuralClass, &
+ClassDemographics)`
+            which is required by `std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemographics>
+, std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+            `std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemographics>, std::collections::b
+tree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+            which is required by `&mut std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemograp
+hics>, std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-10033379752574956050.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+   --> state\src\politics\mass_movements.rs:145:16
+    |
+145 |         .chain(class_demographics.urban_classes.iter())
+    |          ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &ClassDemographics)`, found `(&Urb
+anClass, &ClassDemographics)`
+    |          |
+    |          required by a bound introduced by this call
+    |
+    = note: expected tuple `(&RuralClass, &ClassDemographics)`
+               found tuple `(&UrbanClass, &ClassDemographics)`
+note: the method call chain might not have had the expected associated types
+   --> state\src\politics\mass_movements.rs:145:49
+    |
+145 |         .chain(class_demographics.urban_classes.iter())
+    |                -------------------------------- ^^^^^^ `IntoIterator::Item` is `(&UrbanClass, &ClassDemographics)
+` here
+    |                |
+    |                this expression has type `BTreeMap<UrbanClass, ClassDemographics>`
+note: required by a bound in `std::iter::Iterator::chain`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-7297774920780375690.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0599]: the method `map` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>>`, 
+but its trait bounds were not satisfied
+   --> state\src\politics\mass_movements.rs:146:10
+    |
+142 |       let total_radicals: i64 = class_demographics
+    |  _______________________________-
+143 | |         .rural_classes
+144 | |         .iter()
+145 | |         .chain(class_demographics.urban_classes.iter())
+146 | |         .map(|(_, class)| {
+    | |         -^^^ method cannot be called due to unsatisfied trait bounds
+    | |_________|
+    |
+    |
+    = note: the following trait bounds were not satisfied:
+            `<std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics> as Iterator>::Item = (&RuralClass, &
+ClassDemographics)`
+            which is required by `std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemographics>
+, std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+            `std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemographics>, std::collections::b
+tree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+            which is required by `&mut std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemograp
+hics>, std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-7065151822896153828.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+   --> state\src\politics\mass_movements.rs:155:16
+    |
+155 |         .chain(class_demographics.urban_classes.iter())
+    |          ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &ClassDemographics)`, found `(&Urb
+anClass, &ClassDemographics)`
+    |          |
+    |          required by a bound introduced by this call
+    |
+    = note: expected tuple `(&RuralClass, &ClassDemographics)`
+               found tuple `(&UrbanClass, &ClassDemographics)`
+note: the method call chain might not have had the expected associated types
+   --> state\src\politics\mass_movements.rs:155:49
+    |
+155 |         .chain(class_demographics.urban_classes.iter())
+    |                -------------------------------- ^^^^^^ `IntoIterator::Item` is `(&UrbanClass, &ClassDemographics)
+` here
+    |                |
+    |                this expression has type `BTreeMap<UrbanClass, ClassDemographics>`
+note: required by a bound in `std::iter::Iterator::chain`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-5746853873472208406.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0599]: the method `map` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>>`, 
+but its trait bounds were not satisfied
+   --> state\src\politics\mass_movements.rs:156:10
+    |
+152 |       let total_population: i64 = class_demographics
+    |  _________________________________-
+153 | |         .rural_classes
+154 | |         .iter()
+155 | |         .chain(class_demographics.urban_classes.iter())
+156 | |         .map(|(_, class)| class.population)
+    | |         -^^^ method cannot be called due to unsatisfied trait bounds
+    | |_________|
+    |
+    |
+    = note: the following trait bounds were not satisfied:
+            `<std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics> as Iterator>::Item = (&RuralClass, &
+ClassDemographics)`
+            which is required by `std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemographics>
+, std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+            `std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemographics>, std::collections::b
+tree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+            which is required by `&mut std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemograp
+hics>, std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-10033379752574956050.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+   --> state\src\politics\mass_movements.rs:172:16
+    |
+172 |         .chain(class_demographics.urban_classes.iter())
+    |          ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &ClassDemographics)`, found `(&Urb
+anClass, &ClassDemographics)`
+    |          |
+    |          required by a bound introduced by this call
+    |
+    = note: expected tuple `(&RuralClass, &ClassDemographics)`
+               found tuple `(&UrbanClass, &ClassDemographics)`
+note: the method call chain might not have had the expected associated types
+   --> state\src\politics\mass_movements.rs:172:49
+    |
+172 |         .chain(class_demographics.urban_classes.iter())
+    |                -------------------------------- ^^^^^^ `IntoIterator::Item` is `(&UrbanClass, &ClassDemographics)
+` here
+    |                |
+    |                this expression has type `BTreeMap<UrbanClass, ClassDemographics>`
+note: required by a bound in `std::iter::Iterator::chain`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-6536571202362233825.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0599]: the method `max_by` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>>
+`, but its trait bounds were not satisfied
+   --> state\src\politics\mass_movements.rs:173:10
+    |
+169 |       let (initiating_class_key, initiating_class) = class_demographics
+    |  ____________________________________________________-
+170 | |         .rural_classes
+171 | |         .iter()
+172 | |         .chain(class_demographics.urban_classes.iter())
+173 | |         .max_by(|a, b| {
+    | |         -^^^^^^ method cannot be called due to unsatisfied trait bounds
+    | |_________|
+    |
+    |
+    = note: the following trait bounds were not satisfied:
+            `<std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics> as Iterator>::Item = (&RuralClass, &
+ClassDemographics)`
+            which is required by `std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemographics>
+, std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+            `std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemographics>, std::collections::b
+tree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+            which is required by `&mut std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemograp
+hics>, std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-10760586703144113444.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+   --> state\src\politics\mass_movements.rs:387:16
+    |
+387 |         .chain(class_demographics.urban_classes.iter())
+    |          ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &ClassDemographics)`, found `(&Urb
+anClass, &ClassDemographics)`
+    |          |
+    |          required by a bound introduced by this call
+    |
+    = note: expected tuple `(&RuralClass, &ClassDemographics)`
+               found tuple `(&UrbanClass, &ClassDemographics)`
+note: the method call chain might not have had the expected associated types
+   --> state\src\politics\mass_movements.rs:387:49
+    |
+387 |         .chain(class_demographics.urban_classes.iter())
+    |                -------------------------------- ^^^^^^ `IntoIterator::Item` is `(&UrbanClass, &ClassDemographics)
+` here
+    |                |
+    |                this expression has type `BTreeMap<UrbanClass, ClassDemographics>`
+note: required by a bound in `std::iter::Iterator::chain`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-8599004484015482389.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0599]: the method `map` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>>`, 
+but its trait bounds were not satisfied
+   --> state\src\politics\mass_movements.rs:388:10
+    |
+384 |       let total_undecided_before: f64 = class_demographics
+    |  _______________________________________-
+385 | |         .rural_classes
+386 | |         .iter()
+387 | |         .chain(class_demographics.urban_classes.iter())
+388 | |         .map(|(_, c)| c.political_sentiment.undecided)
+    | |         -^^^ method cannot be called due to unsatisfied trait bounds
+    | |_________|
+    |
+    |
+    = note: the following trait bounds were not satisfied:
+            `<std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics> as Iterator>::Item = (&RuralClass, &
+ClassDemographics)`
+            which is required by `std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemographics>
+, std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+            `std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemographics>, std::collections::b
+tree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+            which is required by `&mut std::iter::Chain<std::collections::btree_map::Iter<'_, RuralClass, ClassDemograp
+hics>, std::collections::btree_map::Iter<'_, UrbanClass, ClassDemographics>>: Iterator`
+    = note: the full name for the type has been written to 'C:\rust-build-tmp\debug\deps\sim_engine-d16ea7c72c316b8a.lo
+ng-type-8934312448476299246.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0308]: mismatched types
+   --> state\src\politics\mass_movements.rs:633:77
+    |
+633 | ...                   region.class_demographics.rural_classes.get_mut(&class_key)
+    |                                                               ------- ^^^^^^^^^^ expected `&RuralClass`, found `&
+String`
+    |                                                               |
+    |                                                               arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\politics\mass_movements.rs:639:77
+    |
+639 | ...                   region.class_demographics.urban_classes.get_mut(&class_key)
+    |                                                               ------- ^^^^^^^^^^ expected `&UrbanClass`, found `&
+String`
+    |                                                               |
+    |                                                               arguments to this method are incorrect
+    |
+    = note: expected reference `&UrbanClass`
+               found reference `&std::string::String`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0277]: can't compare `RuralClass` with `str`
+   --> state\src\politics\rebellions.rs:149:41
+    |
+149 |             .filter(|(class, _)| *class == "Serf" || *class == "FreePeasant")
+    |                                         ^^ no implementation for `RuralClass == str`
+    |
+help: the trait `PartialEq<str>` is not implemented for `RuralClass`
+      but trait `PartialEq<RuralClass>` is implemented for it
+   --> state\src\society\geography.rs:777:30
+    |
+777 | #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+    |                              ^^^^^^^^^
+    = help: for that trait implementation, expected `RuralClass`, found `str`
+    = note: required for `&RuralClass` to implement `PartialEq<&str>`
+
+error[E0277]: can't compare `RuralClass` with `str`
+   --> state\src\politics\rebellions.rs:149:61
+    |
+149 |             .filter(|(class, _)| *class == "Serf" || *class == "FreePeasant")
+    |                                                             ^^ no implementation for `RuralClass == str`
+    |
+help: the trait `PartialEq<str>` is not implemented for `RuralClass`
+      but trait `PartialEq<RuralClass>` is implemented for it
+   --> state\src\society\geography.rs:777:30
+    |
+777 | #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+    |                              ^^^^^^^^^
+    = help: for that trait implementation, expected `RuralClass`, found `str`
+    = note: required for `&RuralClass` to implement `PartialEq<&str>`
+
+error[E0308]: mismatched types
+   --> state\src\politics\social_programs.rs:237:32
+    |
+237 |                     class_key: class_key.clone(),
+    |                                ^^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+    |
+help: try using a conversion method
+    |
+237 -                     class_key: class_key.clone(),
+237 +                     class_key: class_key.to_string(),
+    |
+
+error[E0308]: mismatched types
+   --> state\src\politics\social_programs.rs:256:32
+    |
+256 |                     class_key: class_key.clone(),
+    |                                ^^^^^^^^^^^^^^^^^ expected `String`, found `UrbanClass`
+    |
+help: try using a conversion method
+    |
+256 -                     class_key: class_key.clone(),
+256 +                     class_key: class_key.to_string(),
+    |
+
+error[E0308]: mismatched types
+   --> state\src\politics\social_programs.rs:622:77
+    |
+622 |         if let Some(demo) = region.class_demographics.rural_classes.get_mut(class_key) {
+    |                                                                     ------- ^^^^^^^^^ expected `&RuralClass`, fou
+nd `&str`
+    |                                                                     |
+    |                                                                     arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&str`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+   --> state\src\politics\social_programs.rs:626:77
+    |
+626 |         if let Some(demo) = region.class_demographics.urban_classes.get_mut(class_key) {
+    |                                                                     ------- ^^^^^^^^^ expected `&UrbanClass`, fou
+nd `&str`
+    |                                                                     |
+    |                                                                     arguments to this method are incorrect
+    |
+    = note: expected reference `&UrbanClass`
+               found reference `&str`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0277]: the trait bound `DemographicClass: Default` is not satisfied
+   --> state\src\politics\system.rs:624:5
+    |
+624 |     /// E.6.3: Typed demographic class this cohort originated from.
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `D
+emographicClass`
+    |
+help: consider annotating `DemographicClass` with `#[derive(Default)]`
+   --> state\src\society\geography.rs:871:1
+    |
+871 + #[derive(Default)]
+872 | pub enum DemographicClass {
+    |
+
+error[E0277]: the trait bound `DemographicClass: Default` is not satisfied
+   --> state\src\politics\system.rs:622:21
+    |
+622 | #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+    |                     ^^^^^^^^^^^ the trait `Default` is not implemented for `DemographicClass`
+    |
+    = note: this error originates in the derive macro `Deserialize` (in Nightly builds, run with -Z macro-backtrace for
+ more info)
+help: consider annotating `DemographicClass` with `#[derive(Default)]`
+   --> state\src\society\geography.rs:871:1
+    |
+871 + #[derive(Default)]
+872 | pub enum DemographicClass {
+    |
+
+error[E0277]: the trait bound `DemographicClass: Default` is not satisfied
+   --> state\src\politics\system.rs:626:5
+    |
+622 | #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+    |                                                           ------- in this derive macro expansion
+...
+626 |     pub origin_class: crate::society::geography::DemographicClass,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `Dem
+ographicClass`
+    |
+help: consider annotating `DemographicClass` with `#[derive(Default)]`
+   --> state\src\society\geography.rs:871:1
+    |
+871 + #[derive(Default)]
+872 | pub enum DemographicClass {
+    |
+
+error[E0308]: mismatched types
+   --> state\src\society\charities.rs:240:45
+    |
+240 |                 eligible.push((r_idx, true, class_key.clone(), demographics.population));
+    |                                             ^^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+    |
+help: try using a conversion method
+    |
+240 -                 eligible.push((r_idx, true, class_key.clone(), demographics.population));
+240 +                 eligible.push((r_idx, true, class_key.to_string(), demographics.population));
+    |
+
+error[E0308]: mismatched types
+   --> state\src\society\charities.rs:258:46
+    |
+258 |                 eligible.push((r_idx, false, class_key.clone(), demographics.population));
+    |                                              ^^^^^^^^^^^^^^^^^ expected `String`, found `UrbanClass`
+    |
+help: try using a conversion method
+    |
+258 -                 eligible.push((r_idx, false, class_key.clone(), demographics.population));
+258 +                 eligible.push((r_idx, false, class_key.to_string(), demographics.population));
+    |
+
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\society\charities.rs:280:17
+    |
+277 |               let classes = if *is_rural {
+    |  ___________________________-
+278 | |                 &mut region.class_demographics.rural_classes
+    | |                 -------------------------------------------- expected because of this
+279 | |             } else {
+280 | |                 &mut region.class_demographics.urban_classes
+    | |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<RuralClass, ...>`, found `
+&mut BTreeMap<UrbanClass, ...>`
+281 | |             };
+    | |_____________- `if` and `else` have incompatible types
+    |
+    = note: expected mutable reference `&mut BTreeMap<RuralClass, _>`
+               found mutable reference `&mut BTreeMap<UrbanClass, _>`
+
+error[E0308]: mismatched types
+    --> state\src\society\geography.rs:2333:26
+     |
+2333 |     rural_classes.insert("LandlessLaborer".to_string(), {
+     |                   ------ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `RuralClass`, found `String`
+     |                   |
+     |                   arguments to this method are incorrect
+     |
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1045:11
+
+error[E0308]: mismatched types
+    --> state\src\society\geography.rs:2347:26
+     |
+2347 |     rural_classes.insert("Aristocracy".to_string(), {
+     |                   ------ ^^^^^^^^^^^^^^^^^^^^^^^^^ expected `RuralClass`, found `String`
+     |                   |
+     |                   arguments to this method are incorrect
+     |
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1045:11
+
+error[E0308]: mismatched types
+    --> state\src\state\banking.rs:2943:34
+     |
+2943 |                         .get_mut(&loan.class_key)
+     |                          ------- ^^^^^^^^^^^^^^^ expected `&RuralClass`, found `&String`
+     |                          |
+     |                          arguments to this method are incorrect
+     |
+     = note: expected reference `&RuralClass`
+                found reference `&std::string::String`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0308]: mismatched types
+    --> state\src\state\banking.rs:2948:34
+     |
+2948 |                         .get_mut(&loan.class_key)
+     |                          ------- ^^^^^^^^^^^^^^^ expected `&UrbanClass`, found `&String`
+     |                          |
+     |                          arguments to this method are incorrect
+     |
+     = note: expected reference `&UrbanClass`
+                found reference `&std::string::String`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `RuralC
+lass`
+    --> state\src\state\banking.rs:3019:18
+     |
+3019 |                 .collect();
+     |                  ^^^^^^^ value of type `Vec<std::string::String>` cannot be built from `std::iter::Iterator<Item
+=RuralClass>`
+     |
+help: the trait `FromIterator<RuralClass>` is not implemented for `Vec<std::string::String>`
+      but trait `FromIterator<std::string::String>` is implemented for it
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\vec\mod.rs:3923:0
+     = help: for that trait implementation, expected `std::string::String`, found `RuralClass`
+note: the method call chain might not have had the expected associated types
+    --> state\src\state\banking.rs:3018:18
+     |
+3014 |               let rural_keys: Vec<String> = region
+     |  ___________________________________________-
+3015 | |                 .class_demographics
+3016 | |                 .rural_classes
+     | |______________________________- this expression has type `BTreeMap<RuralClass, ClassDemographics>`
+3017 |                   .keys()
+     |                    ------ `Iterator::Item` is `&RuralClass` here
+3018 |                   .cloned()
+     |                    ^^^^^^^^ `Iterator::Item` changed to `RuralClass` here
+note: required by a bound in `std::iter::Iterator::collect`
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:2077:4
+
+error[E0308]: mismatched types
+    --> state\src\state\banking.rs:3027:30
+     |
+3027 |                     .get_mut(key)
+     |                      ------- ^^^ expected `&RuralClass`, found `&String`
+     |                      |
+     |                      arguments to this method are incorrect
+     |
+     = note: expected reference `&RuralClass`
+                found reference `&std::string::String`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `UrbanC
+lass`
+    --> state\src\state\banking.rs:3070:18
+     |
+3070 |                 .collect();
+     |                  ^^^^^^^ value of type `Vec<std::string::String>` cannot be built from `std::iter::Iterator<Item
+=UrbanClass>`
+     |
+help: the trait `FromIterator<UrbanClass>` is not implemented for `Vec<std::string::String>`
+      but trait `FromIterator<std::string::String>` is implemented for it
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\vec\mod.rs:3923:0
+     = help: for that trait implementation, expected `std::string::String`, found `UrbanClass`
+note: the method call chain might not have had the expected associated types
+    --> state\src\state\banking.rs:3069:18
+     |
+3065 |               let urban_keys: Vec<String> = region
+     |  ___________________________________________-
+3066 | |                 .class_demographics
+3067 | |                 .urban_classes
+     | |______________________________- this expression has type `BTreeMap<UrbanClass, ClassDemographics>`
+3068 |                   .keys()
+     |                    ------ `Iterator::Item` is `&UrbanClass` here
+3069 |                   .cloned()
+     |                    ^^^^^^^^ `Iterator::Item` changed to `UrbanClass` here
+note: required by a bound in `std::iter::Iterator::collect`
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:2077:4
+
+error[E0308]: mismatched types
+    --> state\src\state\banking.rs:3078:30
+     |
+3078 |                     .get_mut(key)
+     |                      ------- ^^^ expected `&UrbanClass`, found `&String`
+     |                      |
+     |                      arguments to this method are incorrect
+     |
+     = note: expected reference `&UrbanClass`
+                found reference `&std::string::String`
+note: method defined here
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+
+error[E0382]: use of moved value: `key`
+   --> state\src\economy\labor\labor_market.rs:433:52
+    |
+431 |                     let key = (bid.company_id.clone(), *class);
+    |                         --- move occurs because `key` has type `(std::string::String, DemographicClass)`, which d
+oes not implement the `Copy` trait
+432 |                     *allocation_matrix.fte.entry(key).or_insert(0.0) += actual_fte;
+    |                                                  --- value moved here
+433 |                     *allocation_matrix.wages.entry(key).or_insert(0.0) += class_wage;
+    |                                                    ^^^ value used here after move
+    |
+help: consider cloning the value if the performance cost is acceptable
+    |
+432 |                     *allocation_matrix.fte.entry(key.clone()).or_insert(0.0) += actual_fte;
+    |                                                     ++++++++
+
+Some errors have detailed explanations: E0271, E0277, E0308, E0382, E0425, E0433, E0599.
+For more information about an error, try `rustc --explain E0271`.
+warning: `sim_engine` (lib) generated 5 warnings
+error: could not compile `sim_engine` (lib) due to 105 previous errors; 5 warnings emitted

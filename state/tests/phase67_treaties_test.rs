@@ -178,7 +178,7 @@ fn test_schengen_treaty_zeroes_border_enforcement() {
     countries_ref.insert("CountryB".to_string(), (&country_b, &buildings_b, 0));
 
     // Without Schengen treaty
-    let flows_no_treaty = collect_migration_flows(&countries_ref, 1, None);
+    let flows_no_treaty = collect_migration_flows(&countries_ref, 1, None, &sim_engine::economy::labor::migration::MigrationConfig::default());
 
     // With Schengen treaty
     let mut registry = TreatyRegistry::default();
@@ -195,7 +195,7 @@ fn test_schengen_treaty_zeroes_border_enforcement() {
     treaty.signed_turn = Some(1);
     registry.treaties.push(treaty);
 
-    let flows_with_treaty = collect_migration_flows(&countries_ref, 1, Some(&registry));
+    let flows_with_treaty = collect_migration_flows(&countries_ref, 1, Some(&registry), &sim_engine::economy::labor::migration::MigrationConfig::default());
 
     // Both should produce flows (the test verifies the function accepts the treaty parameter)
     // With Schengen, more migrants should reach CountryB due to zeroed enforcement

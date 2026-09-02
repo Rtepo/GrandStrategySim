@@ -190,12 +190,8 @@ fn disband_broken_units(units: &mut Vec<MilitaryUnit>, regions: &mut Vec<Region>
     for (home_region, survivors) in &survivors_to_return {
         if let Some(region) = regions.iter_mut().find(|r| r.id == *home_region) {
             for (rural_class, &count) in survivors {
-                let class_key = serde_json::to_string(rural_class)
-                    .unwrap_or_default()
-                    .trim_matches('"')
-                    .to_string();
                 if let Some(class_demographics) =
-                    region.class_demographics.rural_classes.get_mut(&class_key)
+                    region.class_demographics.rural_classes.get_mut(rural_class)
                 {
                     class_demographics.population += count;
                 }

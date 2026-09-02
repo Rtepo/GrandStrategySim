@@ -19,7 +19,7 @@
 //! 3. `bank.balance_sheet.reserves_at_central_bank += amount` (bank asset increases — reserves transfer in)
 
 use crate::entities::Company;
-use crate::society::geography::Region;
+use crate::society::geography::{Region, RuralClass, UrbanClass};
 use crate::state::Country;
 use std::collections::HashMap;
 
@@ -281,13 +281,18 @@ pub fn settle_transfer_mapped<S: std::hash::BuildHasher>(
             class_key,
         } => {
             if let Some(region) = country.regions.get_mut(*region_idx) {
-                let classes = if *is_rural {
-                    &mut region.class_demographics.rural_classes
+                if *is_rural {
+                    if let Some(rural_key) = RuralClass::from_str(class_key) {
+                        if let Some(demo) = region.class_demographics.rural_classes.get_mut(&rural_key) {
+                            demo.savings += amount;
+                        }
+                    }
                 } else {
-                    &mut region.class_demographics.urban_classes
-                };
-                if let Some(demo) = classes.get_mut(class_key) {
-                    demo.savings += amount;
+                    if let Some(urban_key) = UrbanClass::from_str(class_key) {
+                        if let Some(demo) = region.class_demographics.urban_classes.get_mut(&urban_key) {
+                            demo.savings += amount;
+                        }
+                    }
                 }
             }
         }
@@ -371,17 +376,24 @@ pub fn settle_b2c_purchase(
     let total_debit = amount + vat_amount;
 
     let actual_total = {
-        let classes = if is_rural {
-            &mut region.class_demographics.rural_classes
+        if is_rural {
+            RuralClass::from_str(class_key)
+                .and_then(|k| region.class_demographics.rural_classes.get_mut(&k))
+                .map(|demo| {
+                    let affordable = total_debit.min(demo.savings);
+                    demo.savings -= affordable;
+                    affordable
+                })
+                .unwrap_or(0.0)
         } else {
-            &mut region.class_demographics.urban_classes
-        };
-        if let Some(demo) = classes.get_mut(class_key) {
-            let affordable = total_debit.min(demo.savings);
-            demo.savings -= affordable;
-            affordable
-        } else {
-            0.0
+            UrbanClass::from_str(class_key)
+                .and_then(|k| region.class_demographics.urban_classes.get_mut(&k))
+                .map(|demo| {
+                    let affordable = total_debit.min(demo.savings);
+                    demo.savings -= affordable;
+                    affordable
+                })
+                .unwrap_or(0.0)
         }
     };
 
@@ -575,13 +587,13 @@ pub fn debit_citizen_savings_region(region: &mut Region, amount: f64) -> f64 {
     let mut total_savings = 0.0;
     for (key, demo) in &region.class_demographics.rural_classes {
         if demo.savings > 0.0 {
-            class_info.push((true, key.clone(), demo.savings));
+            class_info.push((true, key.to_string(), demo.savings));
             total_savings += demo.savings;
         }
     }
     for (key, demo) in &region.class_demographics.urban_classes {
         if demo.savings > 0.0 {
-            class_info.push((false, key.clone(), demo.savings));
+            class_info.push((false, key.to_string(), demo.savings));
             total_savings += demo.savings;
         }
     }
@@ -594,13 +606,18 @@ pub fn debit_citizen_savings_region(region: &mut Region, amount: f64) -> f64 {
     for (is_rural, key, class_savings) in &class_info {
         let share = class_savings / total_savings;
         let debit = actual * share;
-        let classes = if *is_rural {
-            &mut region.class_demographics.rural_classes
+        if *is_rural {
+            if let Some(rk) = RuralClass::from_str(key) {
+                if let Some(demo) = region.class_demographics.rural_classes.get_mut(&rk) {
+                    demo.savings -= debit;
+                }
+            }
         } else {
-            &mut region.class_demographics.urban_classes
-        };
-        if let Some(demo) = classes.get_mut(key) {
-            demo.savings -= debit;
+            if let Some(uk) = UrbanClass::from_str(key) {
+                if let Some(demo) = region.class_demographics.urban_classes.get_mut(&uk) {
+                    demo.savings -= debit;
+                }
+            }
         }
     }
 
@@ -619,13 +636,13 @@ pub fn credit_citizen_savings_region(region: &mut Region, amount: f64) -> f64 {
     let mut total_pop = 0.0;
     for (key, demo) in &region.class_demographics.rural_classes {
         if demo.population > 0 {
-            class_info.push((true, key.clone(), demo.population as f64));
+            class_info.push((true, key.to_string(), demo.population as f64));
             total_pop += demo.population as f64;
         }
     }
     for (key, demo) in &region.class_demographics.urban_classes {
         if demo.population > 0 {
-            class_info.push((false, key.clone(), demo.population as f64));
+            class_info.push((false, key.to_string(), demo.population as f64));
             total_pop += demo.population as f64;
         }
     }
@@ -637,13 +654,18 @@ pub fn credit_citizen_savings_region(region: &mut Region, amount: f64) -> f64 {
     for (is_rural, key, pop) in &class_info {
         let share = pop / total_pop;
         let credit = amount * share;
-        let classes = if *is_rural {
-            &mut region.class_demographics.rural_classes
+        if *is_rural {
+            if let Some(rk) = RuralClass::from_str(key) {
+                if let Some(demo) = region.class_demographics.rural_classes.get_mut(&rk) {
+                    demo.savings += credit;
+                }
+            }
         } else {
-            &mut region.class_demographics.urban_classes
-        };
-        if let Some(demo) = classes.get_mut(key) {
-            demo.savings += credit;
+            if let Some(uk) = UrbanClass::from_str(key) {
+                if let Some(demo) = region.class_demographics.urban_classes.get_mut(&uk) {
+                    demo.savings += credit;
+                }
+            }
         }
     }
 
@@ -801,7 +823,7 @@ mod tests {
                 rural_classes: {
                     let mut m = BTreeMap::new();
                     m.insert(
-                        "peasants".to_string(),
+                        RuralClass::FreePeasant,
                         ClassDemographics {
                             population: 100,
                             savings: 50_000.0,
@@ -813,7 +835,7 @@ mod tests {
                 urban_classes: {
                     let mut m = BTreeMap::new();
                     m.insert(
-                        "mieszczanie".to_string(),
+                        UrbanClass::Bourgeoisie,
                         ClassDemographics {
                             population: 200,
                             savings: 80_000.0,
@@ -1018,7 +1040,7 @@ mod tests {
         let initial_savings = country.regions[0]
             .class_demographics
             .rural_classes
-            .get("peasants")
+            .get(&RuralClass::FreePeasant)
             .unwrap()
             .savings;
 
@@ -1029,7 +1051,7 @@ mod tests {
             &mut country,
             0,
             true,
-            "peasants",
+            "FreePeasant",
         );
         assert!(result.is_ok());
 
@@ -1037,7 +1059,7 @@ mod tests {
         let new_savings = country.regions[0]
             .class_demographics
             .rural_classes
-            .get("peasants")
+            .get(&RuralClass::FreePeasant)
             .unwrap()
             .savings;
         assert_eq!(new_savings, initial_savings + 1_000.0);
@@ -1057,7 +1079,7 @@ mod tests {
                 rural_classes: {
                     let mut m = BTreeMap::new();
                     m.insert(
-                        "peasants".to_string(),
+                        RuralClass::FreePeasant,
                         ClassDemographics {
                             population: 100,
                             savings: 5_000.0,
@@ -1074,7 +1096,7 @@ mod tests {
         let initial_savings = region
             .class_demographics
             .rural_classes
-            .get("peasants")
+            .get(&RuralClass::FreePeasant)
             .unwrap()
             .savings;
         let initial_bank_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
@@ -1090,7 +1112,7 @@ mod tests {
             1_000.0,
             &mut region,
             true,
-            "peasants",
+            "FreePeasant",
             0.0,
         );
         assert!(result.is_ok());
@@ -1102,7 +1124,7 @@ mod tests {
             region
                 .class_demographics
                 .rural_classes
-                .get("peasants")
+                .get(&RuralClass::FreePeasant)
                 .unwrap()
                 .savings,
             initial_savings - 1_000.0
@@ -1137,7 +1159,7 @@ mod tests {
                 rural_classes: {
                     let mut m = BTreeMap::new();
                     m.insert(
-                        "peasants".to_string(),
+                        RuralClass::FreePeasant,
                         ClassDemographics {
                             population: 100,
                             savings: 500.0,
@@ -1158,7 +1180,7 @@ mod tests {
             1_000.0,
             &mut region,
             true,
-            "peasants",
+            "FreePeasant",
             0.0,
         );
         assert!(result.is_ok());
@@ -1169,7 +1191,7 @@ mod tests {
             region
                 .class_demographics
                 .rural_classes
-                .get("peasants")
+                .get(&RuralClass::FreePeasant)
                 .unwrap()
                 .savings,
             0.0

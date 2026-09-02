@@ -1,4 +1,4 @@
-//! The global turn orchestrator.
+﻿//! The global turn orchestrator.
 //!
 //! This module defines `run_turn_in_memory`, which sequences the per-country
 //! and global phases of one game turn. It operates purely in-memory via
@@ -45,8 +45,8 @@ use crate::politics::budget_lifecycle::{
     apply_budget_failure_consequence, draft_budget_bill, process_budget_lifecycle,
 };
 use crate::politics::fiscal_transfers::{
-    check_commissary_administration, process_fiscal_transfers, process_municipal_debt_service,
-    process_regional_taxes,
+    check_commissary_administration, process_fiscal_transfers, process_local_elections,
+    process_municipal_debt_service, process_regional_taxes, update_curial_faction_alignments,
 };
 use crate::politics::ministries::{
     allocate_cash_to_ministries, calculate_budget_needs, prepare_minister_strategies_with_parties,
@@ -56,6 +56,7 @@ use crate::politics::process_political_year;
 use crate::registries::enums::Commodity;
 use crate::registries::enums::Sector;
 use crate::registries::Registries;
+use crate::society::geography::{DemographicClass, RuralClass, UrbanClass};
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use crate::state::Country;
 use crate::state::GameState;
@@ -157,9 +158,9 @@ pub(crate) struct CountryTask<'a> {
     /// `labor_allocation` before it is consumed. Used by inspectorate bribery
     /// (Phase 22C) and OHS compensation to route funds to the exact class of
     /// the workers/officials at a specific company.
-    /// Key: company_id → (DemographyType, class_id) of the dominant FTE class.
+    /// Key: company_id → DemographicClass of the dominant FTE class.
     pub(crate) dominant_class_by_company:
-        Option<std::collections::HashMap<String, (crate::society::geography::DemographyType, String)>>,
+        Option<std::collections::HashMap<String, DemographicClass>>,
     /// Phase D.1.2: Pending OHS compensation events from the construction
     /// fraud phase. Compensation is deferred until after the labor allocation
     /// matrix is built and the dominant class map is extracted, so that
@@ -599,10 +600,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                                             .class_demographics
                                             .rural_classes
                                             .iter()
-                                            .map(|(k, v)| (false, k.clone(), v.available_fte))
+                                            .map(|(k, v)| (false, k.to_string(), v.available_fte))
                                             .chain(
                                                 adj.class_demographics.urban_classes.iter().map(
-                                                    |(k, v)| (true, k.clone(), v.available_fte),
+                                                    |(k, v)| (true, k.to_string(), v.available_fte),
                                                 ),
                                             )
                                             .collect();
@@ -613,18 +614,18 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                                                 let class_share = fte / class_total;
                                                 let class_remittance = remittance * class_share;
                                                 if is_urban {
-                                                    if let Some(d) = adj
+                                                    if let Some(d) = UrbanClass::from_str(&class_id).and_then(|k| adj
                                                         .class_demographics
                                                         .urban_classes
-                                                        .get_mut(&class_id)
+                                                        .get_mut(&k))
                                                     {
                                                         d.savings += class_remittance;
                                                     }
                                                 } else {
-                                                    if let Some(d) = adj
+                                                    if let Some(d) = RuralClass::from_str(&class_id).and_then(|k| adj
                                                         .class_demographics
                                                         .rural_classes
-                                                        .get_mut(&class_id)
+                                                        .get_mut(&k))
                                                     {
                                                         d.savings += class_remittance;
                                                     }
@@ -1513,6 +1514,110 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
             // Restore ministry config
             task.ctx.country.politics.ministry_config = ministry_config;
+        });
+
+        // ═══════════════════════════════════════════════════════════
+        // PHASE 7B: JST PROCUREMENT (Local Government B2B Orders)
+        // Phase D.8: Regional governments submit formal Buy Orders for
+        // ConstructionMachinery and AdministrativeServices. Strict market
+        // clearing — unfilled bids are refunded, infrastructure degrades.
+        // ═══════════════════════════════════════════════════════════
+        tasks.par_iter_mut().for_each(|task| {
+            let jst_config = crate::politics::jst_spending::JstSpendingConfig::default();
+            let mut jst_order_book = OrderBook::default();
+
+            // Step 1: Submit JST procurement bids.
+            let _encumbrances = crate::politics::jst_spending::submit_jst_procurement_bids(
+                task.ctx.country,
+                &task.companies,
+                &mut jst_order_book,
+                &jst_config,
+            );
+
+            // Step 2: Populate sell orders (asks) from companies that have
+            // inventory of the commodities JSTs want to buy.
+            let ref_prices = &task.ctx.country.budget.extra.clone();
+            for company in &task.companies {
+                let company_inventory: HashMap<Commodity, f64> = task
+                    .ctx
+                    .buildings
+                    .iter()
+                    .filter(|b| b.owner_id == company.id)
+                    .flat_map(|b| b.inventory.iter())
+                    .fold(HashMap::new(), |mut acc, (commodity, &qty)| {
+                        *acc.entry(*commodity).or_insert(0.0) += qty;
+                        acc
+                    });
+                for (&commodity, &qty) in &company_inventory {
+                    if qty <= 0.0 {
+                        continue;
+                    }
+                    if !jst_order_book.bids.contains_key(&commodity) {
+                        continue;
+                    }
+                    let ref_price = ref_prices
+                        .get(&format!("{:?}", commodity))
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(100.0);
+                    let sell_price = ref_price * 1.1;
+                    jst_order_book
+                        .asks
+                        .entry(commodity)
+                        .or_default()
+                        .push(crate::economy::order_book::Ask {
+                            seller_id: company.id.clone(),
+                            commodity,
+                            quantity: qty.min(1000.0),
+                            limit_price: sell_price,
+                            blueprint_id: None,
+                            quality: None,
+                            durability: None,
+                        });
+                }
+            }
+
+            // Step 3: Match JST orders.
+            match_orders(&mut jst_order_book);
+
+            // Step 4: Settle JST trades (DOMESTIC — no tariffs).
+            let jst_trades = jst_order_book.trades.clone();
+            let gen_config_jst = task.ctx.country.generative_goods_config.clone();
+            // settle_trades handles seller crediting. JST buyer_id is not a
+            // company, so settle_trades will skip the buyer cash credit
+            // (similar to MIN-DEF). The encumbrance was already debited.
+            let _msgs = settle_trades(
+                &jst_trades,
+                &mut task.companies,
+                &mut task.ctx.buildings,
+                task.ctx.turn,
+                &gen_config_jst,
+            );
+
+            // Step 5: Record procured quantities and credit sellers via TransferSettler.
+            let procured = crate::politics::jst_spending::settle_jst_trades(
+                &jst_trades,
+                &mut task.companies,
+            );
+
+            // Step 6: Refund unfilled JST bids.
+            crate::politics::jst_spending::refund_unfilled_jst_bids(
+                &jst_order_book,
+                task.ctx.country,
+            );
+
+            // Step 7: Update infrastructure based on procurement.
+            crate::politics::jst_spending::update_jst_infrastructure(
+                task.ctx.country,
+                &procured,
+                &jst_config,
+            );
+
+            // Step 8: Collect local fees from citizens.
+            crate::politics::jst_spending::collect_local_fees(
+                task.ctx.country,
+                &mut task.companies,
+                &jst_config,
+            );
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -2669,7 +2774,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     if let Some(d) = region
                         .class_demographics
                         .rural_classes
-                        .get_mut("Aristocracy")
+                        .get_mut(&RuralClass::Aristocracy)
                     {
                         d.savings += actual_rent_debited;
                     }
@@ -2677,7 +2782,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     if let Some(d) = region
                         .class_demographics
                         .urban_classes
-                        .get_mut("Bourgeoisie")
+                        .get_mut(&UrbanClass::Bourgeoisie)
                     {
                         d.savings += actual_rent_debited;
                     }
@@ -3158,6 +3263,8 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     pit_rate,
                     &garnishment_rates,
                     commuter_inflow_fte,
+                    &task.ctx.country.politics.civil_rights_law,
+                    &crate::politics::citizenship::DiscriminationConfig::default(),
                 );
                 aggregated_allocation.merge(labor_allocation);
             }
@@ -3376,27 +3483,26 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // and OHS compensation to route funds to the exact class of workers.
         tasks.par_iter_mut().for_each(|task| {
             if let Some(ref la) = task.labor_allocation {
-                use crate::society::geography::DemographyType;
                 use std::collections::HashMap;
-                let mut fte_by_company: HashMap<String, HashMap<(DemographyType, String), f64>> =
+                let mut fte_by_company: HashMap<String, HashMap<DemographicClass, f64>> =
                     HashMap::new();
-                for ((company_id, demo_type, class_id), &fte) in &la.fte {
+                for ((company_id, demographic_class), &fte) in &la.fte {
                     let class_map = fte_by_company
                         .entry(company_id.clone())
                         .or_default();
-                    let entry = class_map.entry((*demo_type, class_id.clone())).or_insert(0.0);
+                    let entry = class_map.entry(*demographic_class).or_insert(0.0);
                     *entry += fte;
                 }
-                let mut dominant: HashMap<String, (DemographyType, String)> = HashMap::new();
+                let mut dominant: HashMap<String, DemographicClass> = HashMap::new();
                 for (company_id, classes) in fte_by_company {
-                    if let Some((demo_type, class_id)) = classes
+                    if let Some(demographic_class) = classes
                         .into_iter()
                         .max_by(|(_, a), (_, b)| {
                             a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)
                         })
                         .map(|(k, _)| k)
                     {
-                        dominant.insert(company_id, (demo_type, class_id));
+                        dominant.insert(company_id, demographic_class);
                     }
                 }
                 task.dominant_class_by_company = Some(dominant);
@@ -3410,7 +3516,6 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // cannot pay, mark for Syndic bankruptcy processing.
         tasks.par_iter_mut().for_each(|task| {
             use crate::economy::transfer_settler::{settle_transfer, TransferRecipient, TransferError};
-            use crate::society::geography::DemographyType;
 
             let pending: Vec<PendingOhsCompensation> =
                 std::mem::take(&mut task.pending_ohs_compensations);
@@ -3438,12 +3543,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     .dominant_class_by_company
                     .as_ref()
                     .and_then(|map| map.get(&comp.employer_id))
-                    .map(|(demo_type, class_id)| {
-                        (class_id.clone(), *demo_type == DemographyType::Rural)
-                    })
+                    .map(|dc| (dc.to_string(), dc.is_rural()))
                     .unwrap_or_else(|| {
                         // Fallback: use "Workers" urban class if no labor data
-                        ("Workers".to_string(), false)
+                        ("Worker".to_string(), false)
                     });
 
                 let recipient = TransferRecipient::CitizenSavings {
@@ -3476,13 +3579,18 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     // the employer is insolvent, then claims via the Syndic).
                     if comp.total_compensation > 0.0 {
                         if let Some(region) = task.ctx.country.regions.get_mut(region_idx) {
-                            let classes = if is_rural {
-                                &mut region.class_demographics.rural_classes
+                            if is_rural {
+                                if let Some(rk) = RuralClass::from_str(&class_key) {
+                                    if let Some(demo) = region.class_demographics.rural_classes.get_mut(&rk) {
+                                        demo.savings += comp.total_compensation;
+                                    }
+                                }
                             } else {
-                                &mut region.class_demographics.urban_classes
-                            };
-                            if let Some(demo) = classes.get_mut(&class_key) {
-                                demo.savings += comp.total_compensation;
+                                if let Some(uk) = UrbanClass::from_str(&class_key) {
+                                    if let Some(demo) = region.class_demographics.urban_classes.get_mut(&uk) {
+                                        demo.savings += comp.total_compensation;
+                                    }
+                                }
                             }
                         }
                         // Debit treasury for the state guarantee
@@ -3741,11 +3849,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 // Serfs (and partially FreePeasants/LandlessLaborers) have their
                 // subsistence needs met in-kind. Their B2C demand for those
                 // commodities must be reduced to avoid double-counting.
-                for ((lid, ldt, lclass), deductions) in &task.in_kind_ledger.deductions_by_class {
+                for ((lid, ldc), deductions) in &task.in_kind_ledger.deductions_by_class {
                     if lid != &region.id {
                         continue;
                     }
-                    let key = (lid.clone(), *ldt, lclass.clone());
+                    // E.6.3: consumer_demand.demand uses (String, DemographicClass) keys
+                    let key = (lid.clone(), *ldc);
                     if let Some(class_demand) = consumer_demand.demand.get_mut(&key) {
                         for (&commodity, &deducted_qty) in deductions {
                             if let Some(existing) = class_demand.get_mut(&commodity) {
@@ -4141,6 +4250,15 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 task.ctx.year,
                 &task.market_signal,
                 task.ctx.turn,
+                task.labor_allocation.as_ref(),
+            );
+        });
+        tasks.par_iter_mut().for_each(|task| {
+            // R2.1: Process cooperative federations.
+            crate::corporate::federation::process_federations(
+                &mut task.companies,
+                task.ctx.country,
+                task.ctx.turn,
             );
         });
         tasks.par_iter_mut().for_each(|task| {
@@ -4196,6 +4314,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 companies_half,
                 &config,
                 current_turn,
+                task.ctx.country.macro_indicators.average_wage,
             );
 
             // SEC-2: Submit fund orders (deterministic valuation score)
@@ -4252,7 +4371,26 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 &mut task.ctx.country.covered_bonds_issued,
                 &mut task.ctx.country.budget,
                 current_turn,
+                Some(&mut task.ctx.country.capital_gains_tax),
             );
+
+            // R3.1: Update share prices for all listed companies after order matching.
+            // Uses VWAP of this turn's trades, or mean-reversion drift if no trades.
+            task.ctx.country.stock_exchange.update_share_prices(
+                &mut task.companies,
+                current_turn,
+                &task.ctx.country.securities_config,
+            );
+
+            // R3.2: Recompute market index after share prices are updated.
+            // Use mem::take to avoid borrow conflict (market_index is inside stock_exchange).
+            {
+                let mut idx = std::mem::take(
+                    &mut task.ctx.country.stock_exchange.market_index,
+                );
+                idx.compute(&task.ctx.country.stock_exchange, &task.companies);
+                task.ctx.country.stock_exchange.market_index = idx;
+            }
 
             // SEC-6: Process MBS coupon payments (debit bank, credit owners)
             crate::securities::mbs::process_mbs_turn(
@@ -4512,9 +4650,33 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             if let Some(ref mut tax_result) = task.ctx.country.last_tax_result {
                 tax_result.property_tax_collected = total_property_tax;
             }
-            let transfer_config = crate::politics::system::FiscalTransferConfig::default();
+            let transfer_config = crate::politics::system::FiscalTransferConfig::from_state_structure(
+                task.ctx.country.politics.state_structure,
+                &task.ctx.country.politics.state_structure_config,
+            );
             process_fiscal_transfers(task.ctx.country, &transfer_config);
             check_commissary_administration(task.ctx.country);
+
+            // Phase D.7: Process local elections and faction alignments.
+            // Runs after fiscal transfers so that election outcomes reflect
+            // the current fiscal situation. Elections fire on the year boundary
+            // (years_to_next_election == 0), faction alignments update yearly.
+            process_local_elections(task.ctx.country, task.ctx.year);
+            update_curial_faction_alignments(task.ctx.country);
+
+            // Phase D.9: Process equalization payments (Janosikowe).
+            // Runs after fiscal transfers (D.1) and before JST spending (D.8),
+            // so that equalization-augmented reserves are available for procurement.
+            let equalization_config =
+                crate::politics::equalization::EqualizationConfig::default();
+            crate::politics::equalization::process_equalization(
+                task.ctx.country,
+                &equalization_config,
+            );
+
+            // Phase D.10: Process active unfunded mandates.
+            // Runs after fiscal transfers and equalization, before JST spending.
+            crate::politics::local_legislation::process_active_mandates(task.ctx.country);
 
             // Phase 15B: Customs evasion recovery — recover evaded taxes
             // scaled by CustomsCapacity from customs_office buildings.
@@ -4560,7 +4722,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     if !produces_inspection || b.owner_id.is_empty() {
                         continue;
                     }
-                    if let Some((demo_type, class_id)) = dominant_map.get(&b.owner_id) {
+                    if let Some(demographic_class) = dominant_map.get(&b.owner_id) {
                         let region_idx = task
                             .ctx
                             .country
@@ -4568,9 +4730,8 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                             .iter()
                             .position(|r| r.id == b.region_id);
                         if let Some(ridx) = region_idx {
-                            let is_rural = *demo_type
-                                == crate::society::geography::DemographyType::Rural;
-                            let entry = (ridx, class_id.clone(), is_rural);
+                            let is_rural = demographic_class.is_rural();
+                            let entry = (ridx, demographic_class.to_string(), is_rural);
                             // Deduplicate
                             if !corrupt_officials.contains(&entry) {
                                 corrupt_officials.push(entry);
@@ -4599,7 +4760,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
             // 3. ALL DEBT SERVICE (NATIONAL + LOCAL, BEFORE any discretionary spending)
             process_debt_service(task.ctx.country, &mut task.companies, current_turn);
-            process_municipal_debt_service(task.ctx.country);
+            process_municipal_debt_service(task.ctx.country, &mut task.companies);
 
             // Phase 10: State reserve warehouse maintenance (physical upkeep)
             process_state_reserve_maintenance(task.ctx.country, &mut task.companies);
@@ -5545,6 +5706,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // Population is strictly conserved across countries.
         // ═══════════════════════════════════════════════════════════
         {
+            // Phase R6: Migration config — replaces all magic numbers.
+            let migration_config =
+                crate::economy::labor::migration::MigrationConfig::default();
+
             // Pass 1: Collect migration flows (read-only access to countries)
             let mut country_refs: HashMap<
                 String,
@@ -5561,21 +5726,31 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 &country_refs,
                 turn,
                 Some(&state.treaty_registry),
+                &migration_config,
             );
 
             // Pass 2: Apply migration flows (mutable access to countries)
             let mut country_mut_refs: HashMap<String, &mut crate::state::Country> = HashMap::new();
+            let mut buildings_mut_refs: HashMap<String, &mut [crate::entities::Building]> =
+                HashMap::new();
             for task in &mut tasks {
                 country_mut_refs.insert(task.ctx.country_name.clone(), task.ctx.country);
+                buildings_mut_refs.insert(task.ctx.country_name.clone(), &mut task.ctx.buildings);
             }
-            crate::economy::migration::apply_migration_flows(&mut country_mut_refs, &flows);
+            crate::economy::migration::apply_migration_flows(
+                &mut country_mut_refs,
+                &mut buildings_mut_refs,
+                &flows,
+                &migration_config,
+            );
 
             // Pass 3: Process deportations per country (parallel-safe, single country)
+            let deportation_config = migration_config.clone();
             tasks.par_iter_mut().for_each(|task| {
                 let border_cap =
                     crate::economy::migration::sum_border_enforcement_capacity(&task.ctx.buildings);
                 let (_deported, wealth) =
-                    crate::economy::migration::process_deportations(task.ctx.country, border_cap);
+                    crate::economy::migration::process_deportations(task.ctx.country, border_cap, &deportation_config);
                 task.deported_wealth = wealth;
             });
             // Sequential: credit deported wealth to foreign_sector_balance (F4).
@@ -5732,9 +5907,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                         task.dominant_class_by_company
                             .as_ref()
                             .and_then(|map| map.get(&insp_company_id))
-                            .map(|(demo_type, class_id)| {
-                                (class_id.clone(), *demo_type == crate::society::geography::DemographyType::Rural)
-                            })
+                            .map(|dc| (dc.to_string(), dc.is_rural()))
                     });
 
                 // If no eligible inspector (empty inspectorate building), skip bribe
@@ -6192,7 +6365,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                                 .iter()
                                 .filter(|(_, d)| d.cottage_fte_allocated > 0.0)
                                 .map(|(class_id, d)| {
-                                    (class_id.clone(), d.cottage_fte_allocated, d.savings)
+                                    (class_id.to_string(), d.cottage_fte_allocated, d.savings)
                                 })
                                 .collect();
                             if !contributing_classes.is_empty() {
@@ -6304,10 +6477,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                         .find(|r| r.id == region_id)
                     {
                         for (class_id, amount) in &dividends {
-                            if let Some(demographics) =
-                                region.class_demographics.rural_classes.get_mut(class_id)
-                            {
-                                demographics.savings += amount;
+                            if let Some(rk) = RuralClass::from_str(class_id) {
+                                if let Some(demographics) =
+                                    region.class_demographics.rural_classes.get_mut(&rk)
+                                {
+                                    demographics.savings += amount;
+                                }
                             }
                         }
                     }
@@ -6360,10 +6535,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     .find(|r| r.id == region_id)
                 {
                     for (class_id, amount) in &distributions {
-                        if let Some(demographics) =
-                            region.class_demographics.rural_classes.get_mut(class_id)
-                        {
-                            demographics.savings += amount;
+                        if let Some(rk) = RuralClass::from_str(class_id) {
+                            if let Some(demographics) =
+                                region.class_demographics.rural_classes.get_mut(&rk)
+                            {
+                                demographics.savings += amount;
+                            }
                         }
                     }
                 }
@@ -6550,10 +6727,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // Phase 90: Compute peasant population (FreePeasant + Serf) for telemetry.
         let mut peasant_pop: f64 = 0.0;
         for region in &country.regions {
-            if let Some(fp) = region.class_demographics.rural_classes.get("FreePeasant") {
+            if let Some(fp) = region.class_demographics.rural_classes.get(&RuralClass::FreePeasant) {
                 peasant_pop += fp.population as f64;
             }
-            if let Some(serf) = region.class_demographics.rural_classes.get("Serf") {
+            if let Some(serf) = region.class_demographics.rural_classes.get(&RuralClass::Serf) {
                 peasant_pop += serf.population as f64;
             }
         }
@@ -6906,20 +7083,46 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
 
-            // Settle year-end: debit entity cash, credit treasury.
+            // R4.2: Settle year-end with ACTUAL cash debits.
+            // Collect (entity_id, tax_amount) pairs from settle_year_end, then
+            // apply debits to brokerage accounts in a sequential post-pass.
+            // This replaces the no-op closure that credited treasury without
+            // debiting taxpayer cash (fiat creation bug).
+            let mut tax_debits: Vec<(String, f64)> = Vec::new();
             let treasury_ref = &mut country.budget.liquid_reserves;
-            let total_tax =
-                country
-                    .capital_gains_tax
-                    .settle_year_end(treasury_ref, |_entity_id, _amount| {
-                        // The debit function — in this sequential phase, we can't
-                        // borrow the entities mutably here, so we record the debit
-                        // and apply it after settlement.
-                        // For now, we just return true to indicate the debit is "accepted".
-                        // The actual cash debit will be applied in the next turn's
-                        // parallel phase when entities are mutable.
-                        true
-                    });
+            let total_tax = country.capital_gains_tax.settle_year_end(
+                treasury_ref,
+                |entity_id, amount| {
+                    // Record the debit; actual cash deduction happens after settlement
+                    // to avoid borrow conflict with country.capital_gains_tax.
+                    tax_debits.push((entity_id.to_string(), amount));
+                    true // Accept the debit; collection happens post-pass
+                },
+            );
+
+            // R4.2: Apply actual cash debits to entity brokerage accounts.
+            // If entity lacks sufficient cash, debit what's available (deterministic
+            // arrears behavior — no fiat creation from Treasury credit without debit).
+            let mut actual_collected = 0.0_f64;
+            for (entity_id, tax_amount) in &tax_debits {
+                if let Some(entities_ctx) = entities.get_mut(&country.name) {
+                    if let Some(company) = entities_ctx.companies.iter_mut().find(|c| c.id == *entity_id) {
+                        if let Some(ref mut acct) = company.brokerage_account {
+                            let debit = tax_amount.min(acct.cash.max(0.0));
+                            acct.cash -= debit;
+                            actual_collected += debit;
+                        }
+                    }
+                }
+            }
+            // R4.2: If actual collected < total_tax (insufficient cash), the
+            // treasury was over-credited. Reverse the difference to preserve
+            // double-entry. The unpaid amount becomes implicit arrears (loss
+            // carry-forward handles future offset).
+            let over_credit = total_tax - actual_collected;
+            if over_credit > 0.0 {
+                country.budget.liquid_reserves -= over_credit;
+            }
 
             // Record the tax collected for UI display.
             country.capital_gains_tax.tax_collected_this_year = total_tax;
@@ -6927,10 +7130,57 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             if country.capital_gains_tax.annual_tax_history.len() > 60 {
                 country.capital_gains_tax.annual_tax_history.remove(0);
             }
+
+            // R6.5: Activate dynamic fund creation — once per political year
+            // per country, attempt to create a new hedge fund from a wealthy VIP.
+            if let Some(ref registry) = country.politics.vip_registry {
+                // Find eligible VIPs: influence > 50, age 35-65, ambitious
+                let eligible_vips: Vec<_> = registry
+                    .vips
+                    .values()
+                    .filter(|v| {
+                        v.base_influence > 50
+                            && v.age >= 35
+                            && v.age <= 65
+                            && crate::corporate::market_behavior::evaluate_market_behavior(
+                                &v.traits,
+                            )
+                            .risk_tolerance
+                            > 0.6
+                    })
+                    .cloned()
+                    .collect();
+                // Try the first eligible VIP (limit 1 new fund per year)
+                if let Some(vip) = eligible_vips.first() {
+                    if let Some((fund_id, fund_company)) =
+                        crate::securities::funds::try_create_fund_from_vip(
+                            vip,
+                            None,
+                            country,
+                            turn,
+                            false,
+                        )
+                    {
+                        // Insert the fund into the entity context
+                        if let Some(entities_ctx) = entities.get_mut(&country.name) {
+                            entities_ctx.companies.push(fund_company);
+                        }
+                        let _ = fund_id;
+                    }
+                }
+            }
+
+            // R8.5: Reset tax-advantaged contribution tracking at fiscal year-end.
+            for region in &mut country.regions {
+                for class in region.class_demographics.rural_classes.values_mut() {
+                    class.tax_advantaged_contributions_this_year = 0.0;
+                }
+                for class in region.class_demographics.urban_classes.values_mut() {
+                    class.tax_advantaged_contributions_this_year = 0.0;
+                }
+            }
         }
     }
-
-    // Phase 59: Land legal certainty, border conflicts, zoning, and arbitration.
     // Runs sequentially (post-parallel) for determinism. Each country processes
     // its own cadastre, border conflicts, zoning plans, and arbitration cases.
     for (country_name, country) in &mut state.countries {
@@ -7415,10 +7665,10 @@ fn process_parliament_building_payroll(
             if let Some(bourgeoisie) = region
                 .class_demographics
                 .urban_classes
-                .get_mut("Bourgeoisie")
+                .get_mut(&UrbanClass::Bourgeoisie)
             {
                 bourgeoisie.savings += mp_payroll;
-            } else if let Some(worker) = region.class_demographics.urban_classes.get_mut("Worker") {
+            } else if let Some(worker) = region.class_demographics.urban_classes.get_mut(&UrbanClass::Worker) {
                 // Fallback: if no Bourgeoisie, credit to Worker.
                 worker.savings += mp_payroll;
             }
@@ -7429,7 +7679,7 @@ fn process_parliament_building_payroll(
     if staff_payroll > 0.0 {
         if let Some(cap_idx) = capital_idx {
             let region = &mut country.regions[cap_idx];
-            if let Some(worker) = region.class_demographics.urban_classes.get_mut("Worker") {
+            if let Some(worker) = region.class_demographics.urban_classes.get_mut(&UrbanClass::Worker) {
                 worker.savings += staff_payroll;
             }
         }

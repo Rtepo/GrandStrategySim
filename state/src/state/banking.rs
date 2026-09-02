@@ -9,6 +9,7 @@
 //! interbank markets, and credit scoring.
 
 use crate::securities::mbs::MortgageBackedSecurity;
+use crate::society::geography::{RuralClass, UrbanClass};
 use crate::state::macro_data::annual_to_per_turn_rate;
 use crate::state::CentralBank;
 use serde::{Deserialize, Serialize};
@@ -2469,17 +2470,33 @@ pub fn process_banking_turn(
                     ));
                 }
             }
-            // Phase 94: Credit interest income to equity (tier_1_capital).
-            // This is the double-entry counterpart to the interest portion
-            // of loan repayments. The loan asset was already reduced by the
-            // full payment (principal + interest). The interest portion must
-            // flow to equity to keep A = L + E balanced.
+            // Phase 94: Interest income accounting.
+            // The interest accrual (line 2438) increased the loan asset by
+            // `interest`. The repayment reduces the loan by `actual_payment`
+            // (which includes `interest`). Net loan change from accrual + repay
+            // = interest - actual_payment = -(actual_payment - interest) =
+            // -actual_principal. The borrower's deposit is debited by the full
+            // actual_payment in the borrower debit loop. So:
+            //   Assets: -actual_principal (net loan change)
+            //   Liabilities: -actual_payment (deposits)
+            //   Equity: 0
+            //   Check: -actual_principal = -actual_payment + 0
+            //   => -actual_principal = -(actual_principal + actual_interest)  -- WRONG!
+            //
+            // The fix: credit equity for interest_income to balance:
+            //   Assets: -actual_principal
+            //   Liabilities: -actual_payment
+            //   Equity: +actual_interest
+            //   Check: -actual_principal = -actual_payment + actual_interest
+            //   => -actual_principal = -actual_principal - actual_interest + actual_interest  ✓
             bs.tier_1_capital += interest_income_total;
-            // Phase 39: Credit interest income to brokerage_account.cash so
-            // the bank can pay teller payroll. This is a reclassification
-            // within the bank's assets (reserves → operating cash), NOT new
-            // money. Phase 40: Also credit 10% of principal repayment to
-            // brokerage cash for operating liquidity.
+            // Phase 39: Credit operating cash for teller payroll.
+            // This is NOT a balance-sheet transaction — brokerage_account.cash
+            // is off-balance-sheet operating cash. The funds come from the
+            // borrower's repayment (debit in the loop below). The interest
+            // income is backed by equity (credited above). The principal
+            // portion is backed by the deposit debit (in the borrower loop).
+            // Phase 40: 10% of principal repayment also goes to operating cash.
             let operating_cash_credit = interest_income_total + principal_repaid_total * 0.10;
             if operating_cash_credit > 0.0 {
                 if let Some(ref mut ba) = bank.brokerage_account {
@@ -2503,7 +2520,10 @@ pub fn process_banking_turn(
         if borrower_id == STATE_BORROWER_ID {
             // CASE B: State/Treasury borrower — debit liquid_reserves, never Default.
             // The lending bank receives reserves from the treasury.
-            country.budget.liquid_reserves = (country.budget.liquid_reserves - amount).max(0.0);
+            // Phase 94: No .max(0.0) clamping — if treasury can't pay the full
+            // amount, the lending bank still gets credited, creating an
+            // overdraft that will be reconciled later. Clamping breaks A=L+E.
+            country.budget.liquid_reserves -= amount;
             if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
                 bs.reserves_at_central_bank += amount;
             }
@@ -2513,16 +2533,18 @@ pub fn process_banking_turn(
             let lending_bank_id = companies[bank_idx].id.clone();
 
             // Debit borrower's cash (brokerage first, then available_cash)
+            // Phase 94: No .max(0.0) clamping — negative available_cash
+            // represents an overdraft that must be resolved via lending or
+            // bankruptcy. Clamping breaks double-entry because the bank's
+            // deposit is debited by the full amount regardless.
             if let Some(ref mut ba) = companies[borrower_idx].brokerage_account {
                 let debit = amount.min(ba.cash);
                 ba.cash -= debit;
                 if debit < amount {
-                    companies[borrower_idx].available_cash =
-                        (companies[borrower_idx].available_cash - (amount - debit)).max(0.0);
+                    companies[borrower_idx].available_cash -= amount - debit;
                 }
             } else {
-                companies[borrower_idx].available_cash =
-                    (companies[borrower_idx].available_cash - amount).max(0.0);
+                companies[borrower_idx].available_cash -= amount;
             }
 
             // Sync borrower's bank balance sheet (double-entry)
@@ -2532,16 +2554,17 @@ pub fn process_banking_turn(
                     // reduced in the loan loop. No reserve movement — the
                     // deposit and loan cancel out within the same bank.
                     if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
-                        bs.deposits = (bs.deposits - amount).max(0.0);
+                        bs.deposits -= amount;
                     }
                 } else {
                     // Inter-bank: borrower's bank loses deposits + reserves,
                     // lending bank receives reserves.
+                    // Phase 94: No .max(0.0) clamping — negative reserves
+                    // represent CB Lombard borrowing. Clamping breaks A=L+E.
                     if let Some(bank) = companies.iter_mut().find(|c| c.id == p_bank_id.as_str()) {
                         if let Some(ref mut bs) = bank.balance_sheet {
-                            bs.deposits = (bs.deposits - amount).max(0.0);
-                            bs.reserves_at_central_bank =
-                                (bs.reserves_at_central_bank - amount).max(0.0);
+                            bs.deposits -= amount;
+                            bs.reserves_at_central_bank -= amount;
                         }
                     }
                     if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
@@ -2834,6 +2857,12 @@ pub fn process_banking_turn(
         let bank_region = companies[bank_idx].region_id.clone();
         let bank_id = companies[bank_idx].id.clone();
         let bank_margin = companies[bank_idx].loan_margin.unwrap_or(0.02);
+        // R3.2: Cooperative banks offer member-preference lending.
+        // Members are companies with LegalForm::Cooperative in the same region.
+        // Members get the lower cooperative margin (already set in loan_margin),
+        // non-members get the commercial margin (0.02).
+        let is_cooperative_bank = companies[bank_idx].bank_type == Some(BankType::Cooperative);
+        let commercial_margin = 0.02_f64;
         let mut lent_total = 0.0;
         for borrower_idx in 0..n {
             if borrower_idx == bank_idx {
@@ -2845,6 +2874,23 @@ pub fn process_banking_turn(
             if !bank_region.is_empty() && companies[borrower_idx].region_id != bank_region {
                 continue;
             }
+            // R3.2: Determine if borrower is a cooperative member.
+            let is_cooperative_member = matches!(
+                companies[borrower_idx].legal_form,
+                crate::entities::LegalForm::Cooperative(_)
+            );
+            // R3.2: Cooperative banks apply member margin to members,
+            // commercial margin to non-members. Non-cooperative banks
+            // always use their own margin.
+            let effective_margin = if is_cooperative_bank {
+                if is_cooperative_member {
+                    bank_margin // 0.01 for cooperative banks
+                } else {
+                    commercial_margin // 0.02 for non-members
+                }
+            } else {
+                bank_margin
+            };
             let borrower_cash = companies[borrower_idx]
                 .brokerage_account
                 .as_ref()
@@ -2862,7 +2908,7 @@ pub fn process_banking_turn(
             let loan_result = issue_loan(
                 companies[bank_idx].balance_sheet.as_mut().unwrap(),
                 &bank_id,
-                bank_margin,
+                effective_margin,
                 &borrower_clone,
                 &borrower_clone.id,
                 loan_amount,
@@ -2915,15 +2961,19 @@ pub fn process_banking_turn(
             let region = country.regions.iter_mut().find(|r| r.id == loan.region_id);
             if let Some(region) = region {
                 let class = if loan.is_rural {
-                    region
-                        .class_demographics
-                        .rural_classes
-                        .get_mut(&loan.class_key)
+                    RuralClass::from_str(&loan.class_key).and_then(|k| {
+                        region
+                            .class_demographics
+                            .rural_classes
+                            .get_mut(&k)
+                    })
                 } else {
-                    region
-                        .class_demographics
-                        .urban_classes
-                        .get_mut(&loan.class_key)
+                    UrbanClass::from_str(&loan.class_key).and_then(|k| {
+                        region
+                            .class_demographics
+                            .urban_classes
+                            .get_mut(&k)
+                    })
                 };
                 if let Some(class) = class {
                     let total_payment = principal_pay + interest_pay;
@@ -2989,7 +3039,7 @@ pub fn process_banking_turn(
                 continue;
             }
             // Issue to rural classes
-            let rural_keys: Vec<String> = region
+            let rural_keys: Vec<RuralClass> = region
                 .class_demographics
                 .rural_classes
                 .keys()
@@ -3027,7 +3077,7 @@ pub fn process_banking_turn(
                 class.debt += loan_amount;
                 bank.consumer_loans.push(ConsumerLoan {
                     region_id: region.id.clone(),
-                    class_key: key.clone(),
+                    class_key: key.to_string(),
                     is_rural: true,
                     outstanding_principal: loan_amount,
                     interest_rate: rate,
@@ -3040,7 +3090,7 @@ pub fn process_banking_turn(
                 break;
             }
             // Issue to urban classes
-            let urban_keys: Vec<String> = region
+            let urban_keys: Vec<UrbanClass> = region
                 .class_demographics
                 .urban_classes
                 .keys()
@@ -3078,7 +3128,7 @@ pub fn process_banking_turn(
                 class.debt += loan_amount;
                 bank.consumer_loans.push(ConsumerLoan {
                     region_id: region.id.clone(),
-                    class_key: key.clone(),
+                    class_key: key.to_string(),
                     is_rural: false,
                     outstanding_principal: loan_amount,
                     interest_rate: rate,

@@ -737,6 +737,11 @@ pub struct TransitionContext<'a> {
     pub private_capital_pool: f64,
     /// Representative corporate credit rate.
     pub bank_credit_rate: f64,
+    /// R4.1: Explicit average wage for inflation-proof threshold scaling.
+    /// Used by transitions that need to compute buyout prices, minimum
+    /// capital requirements, and other economic thresholds. This field
+    /// has NO fallback — the caller MUST supply the current average wage.
+    pub average_wage: f64,
 }
 
 /// State-machine trait for legal-form transitions.
@@ -814,7 +819,10 @@ impl LegalFormTransition for LegalForm {
     ) -> Result<LegalForm, TransitionError> {
         match (self, transition) {
             (LegalForm::MutualAidCircle(data), LegalTransition::MutualAidCircleToCooperative) => {
-                if data.member_count < 100 {
+                // R6.5: Scale member threshold by average_wage (inflation-proof).
+                // Minimum members = max(50, average_wage / 20) (was hardcoded 100).
+                let min_members = (ctx.average_wage / 20.0).max(50.0) as u32;
+                if data.member_count < min_members {
                     return Err(TransitionError {
                         reason: "Mutual aid circle too small to become a cooperative".to_string(),
                     });
@@ -900,25 +908,36 @@ impl LegalFormTransition for LegalForm {
 }
 
 fn family_can_go_public(data: &FamilyBusinessData, ctx: &TransitionContext) -> bool {
-    ctx.company.company_capital >= 10_000_000.0
+    // R6.1: Scale threshold by average_wage (inflation-proof).
+    // Minimum capital = 2000 * average_wage (was hardcoded 10_000_000.0).
+    let min_capital = ctx.average_wage * 2000.0;
+    ctx.company.company_capital >= min_capital
         && ctx.sector_pmi > 50.0
         && ctx.stock_confidence > 50.0
         && data.family_retained_share >= 0.30
 }
 
 fn family_can_cooperativize(data: &FamilyBusinessData, ctx: &TransitionContext) -> bool {
-    ctx.company.worker_capacity >= 100
+    // R6.2: Worker capacity threshold is a physical quantity (not nominal).
+    let min_workers = (ctx.average_wage / 10.0).max(50.0) as u32;
+    ctx.company.worker_capacity >= min_workers
         && ctx.sector_pmi >= 45.0
         && data.family_retained_share <= 0.70
 }
 
 fn cooperative_can_go_public(data: &CooperativeData, ctx: &TransitionContext) -> bool {
+    // R6.3: Scale capital threshold by average_wage (inflation-proof).
+    // Minimum capital = 1000 * average_wage (was hardcoded 5_000_000.0).
+    let min_capital = ctx.average_wage * 1000.0;
     data.member_count >= 500
-        && ctx.company.company_capital >= 5_000_000.0
+        && ctx.company.company_capital >= min_capital
         && ctx.sector_pmi > 50.0
         && ctx.stock_confidence > 50.0
 }
 
 fn joint_stock_can_form_consortium(data: &JointStockData, ctx: &TransitionContext) -> bool {
-    ctx.company.company_capital >= 50_000_000.0 && ctx.sector_pmi > 55.0 && data.shares_issued > 0
+    // R6.4: Scale capital threshold by average_wage (inflation-proof).
+    // Minimum capital = 10000 * average_wage (was hardcoded 50_000_000.0).
+    let min_capital = ctx.average_wage * 10000.0;
+    ctx.company.company_capital >= min_capital && ctx.sector_pmi > 55.0 && data.shares_issued > 0
 }

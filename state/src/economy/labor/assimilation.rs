@@ -73,12 +73,12 @@ pub fn process_assimilation_turn(
     let dominant_culture = country.macro_indicators.culture.clone();
     let civil_law = country.politics.civil_rights_law.clone();
 
-    if civil_law == "Segregation" || dominant_culture.is_empty() {
+    if civil_law == "segregation" || dominant_culture.is_empty() {
         return result;
     }
 
     let dominant_def = reg.from_display_name(&dominant_culture);
-    let base_rate: f64 = if civil_law == "5-Year Assimilation" {
+    let base_rate: f64 = if civil_law == "5_year_assimilation" {
         0.08
     } else {
         0.03
@@ -548,7 +548,7 @@ pub fn process_religious_conversion_turn(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::{ClassDemographics, Region};
+    use crate::society::geography::{ClassDemographics, Region, RuralClass};
     use crate::state::Country;
 
     fn make_region_with_religion(id: &str, religion: &str, pop: i64) -> Region {
@@ -560,7 +560,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("peasants".into(), class);
+            .insert(RuralClass::FreePeasant, class);
         region
     }
 
@@ -580,7 +580,7 @@ mod tests {
             .demographics
             .ethnic_composition
             .insert("Weneda".into(), 0.3);
-        country.politics.civil_rights_law = "5-Year Assimilation".into();
+        country.politics.civil_rights_law = "5_year_assimilation".into();
 
         let buildings: Vec<Building> = vec![];
         let edu_consumption: BTreeMap<String, f64> = BTreeMap::new();
@@ -610,7 +610,7 @@ mod tests {
             .demographics
             .ethnic_composition
             .insert("Weneda".into(), 0.3);
-        country.politics.civil_rights_law = "5-Year Assimilation".into();
+        country.politics.civil_rights_law = "5_year_assimilation".into();
 
         let mut region = Region::default();
         region.id = "test_region".into();
@@ -620,7 +620,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("peasants".into(), class);
+            .insert(RuralClass::FreePeasant, class);
         country.regions = vec![region];
 
         let buildings: Vec<Building> = vec![];
@@ -653,7 +653,7 @@ mod tests {
             .demographics
             .ethnic_composition
             .insert("Weneda".into(), 0.3);
-        country.politics.civil_rights_law = "5-Year Assimilation".into();
+        country.politics.civil_rights_law = "5_year_assimilation".into();
 
         let mut region = Region::default();
         region.id = "test_region".into();
@@ -663,7 +663,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("peasants".into(), class);
+            .insert(RuralClass::FreePeasant, class);
         country.regions = vec![region];
 
         let mut building = Building::default();
@@ -701,7 +701,7 @@ mod tests {
             .demographics
             .ethnic_composition
             .insert("Weneda".into(), 0.3);
-        country.politics.civil_rights_law = "5-Year Assimilation".into();
+        country.politics.civil_rights_law = "5_year_assimilation".into();
 
         let mut region = Region::default();
         region.id = "test_region".into();
@@ -711,7 +711,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("peasants".into(), class);
+            .insert(RuralClass::FreePeasant, class);
         country.regions = vec![region];
 
         let mut building = Building::default();
@@ -757,7 +757,7 @@ mod tests {
             .demographics
             .ethnic_composition
             .insert("Weneda".into(), 0.3);
-        country.politics.civil_rights_law = "Segregation".into();
+        country.politics.civil_rights_law = "segregation".into();
 
         let buildings: Vec<Building> = vec![];
         let edu_consumption: BTreeMap<String, f64> = BTreeMap::from([("r1".into(), 100.0)]);
@@ -779,7 +779,7 @@ mod tests {
     fn test_syncretism_bounding_limit() {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.culture = "Illyria".into();
-        country.politics.civil_rights_law = "5-Year Assimilation".into();
+        country.politics.civil_rights_law = "5_year_assimilation".into();
 
         // Pre-fill with 3 syncretic cultures (at the limit).
         country
@@ -821,7 +821,7 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("peasants".into(), class);
+            .insert(RuralClass::FreePeasant, class);
         country.regions = vec![region];
 
         // Full coverage to trigger syncretism conditions.

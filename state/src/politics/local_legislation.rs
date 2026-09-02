@@ -280,6 +280,28 @@ pub fn execute_mandate_payment(
         }
     };
 
+    // Phase D.6: Debit central Treasury for central_funding and credit JST.
+    // This fixes the fiat-creation bug where central_funding was recorded in
+    // the result but never actually debited from the Treasury.
+    let treasury_available = country.budget.liquid_reserves.max(0.0);
+    let actual_central_funding = central_funding.min(treasury_available);
+    if actual_central_funding > 0.0 {
+        country.budget.liquid_reserves -= actual_central_funding;
+        if let Some(ref mut gov) = country.regions[region_idx].governance {
+            gov.budget.liquid_reserves += actual_central_funding;
+        }
+        result.messages.push(format!(
+            "[MANDATE] Treasury debited {:.2} for central funding, credited to JST reserves.",
+            actual_central_funding
+        ));
+        if actual_central_funding < central_funding {
+            result.messages.push(format!(
+                "[MANDATE] Treasury shortfall: central funding clamped from {:.2} to {:.2}.",
+                central_funding, actual_central_funding
+            ));
+        }
+    }
+
     // Check if region is under commissary administration.
     let is_commissary = country.regions[region_idx]
         .governance
@@ -313,12 +335,21 @@ pub fn execute_mandate_payment(
             return result;
         }
         // Treasury covers the gap — no bonds, no JST debt increase.
-        // Credit JST reserves from Treasury, then debit for payment.
-        if let Some(ref mut gov) = country.regions[region_idx].governance {
-            gov.budget.liquid_reserves += funding_gap;
+        // Phase D.6: Debit Treasury and credit JST reserves (strict double-entry).
+        let treasury_available = country.budget.liquid_reserves.max(0.0);
+        let actual_gap_funding = funding_gap.min(treasury_available);
+        if actual_gap_funding < funding_gap {
             result.messages.push(format!(
-                "[MANDATE] Treasury credited JST reserves by {:.2} (bond lock fallback).",
-                funding_gap
+                "[MANDATE] BOND LOCK: Treasury shortfall: gap funding clamped from {:.2} to {:.2}.",
+                funding_gap, actual_gap_funding
+            ));
+        }
+        country.budget.liquid_reserves -= actual_gap_funding;
+        if let Some(ref mut gov) = country.regions[region_idx].governance {
+            gov.budget.liquid_reserves += actual_gap_funding;
+            result.messages.push(format!(
+                "[MANDATE] Treasury debited {:.2} for bond lock fallback, credited to JST reserves.",
+                actual_gap_funding
             ));
         }
     }
@@ -483,6 +514,81 @@ pub fn execute_mandate_payment(
     result
 }
 
+/// Phase D.10: Process all active mandates in the turn loop.
+///
+/// For each active mandate:
+/// 1. Determine the affected region.
+/// 2. Vote on funding mechanism via `vote_on_mandate_funding`.
+/// 3. Execute the mandate payment via `execute_mandate_payment`.
+/// 4. Remove completed/refused mandates from `active_mandates`.
+///
+/// This function is called from the turn loop after fiscal transfers,
+/// equalization, and before JST spending.
+pub fn process_active_mandates(country: &mut Country) {
+    if country.politics.active_mandates.is_empty() {
+        return;
+    }
+
+    let mut rng = rand::thread_rng();
+    let mandates = std::mem::take(&mut country.politics.active_mandates);
+    let mut remaining_mandates = Vec::new();
+
+    for mandate in mandates {
+        // Find the region for this mandate.
+        let region_idx = country.regions.iter().position(|r| {
+            r.governance
+                .as_ref()
+                .map(|g| g.id.contains(&mandate.description))
+                .unwrap_or(false)
+                || r.id == mandate.description
+        });
+
+        let region_idx = match region_idx {
+            Some(idx) => idx,
+            None => {
+                // Mandate targets a region we can't find — keep it for retry.
+                remaining_mandates.push(mandate);
+                continue;
+            }
+        };
+
+        let region_id = country.regions[region_idx].id.clone();
+        let shortfall = (mandate.required_spending_per_region - mandate.central_funding).max(0.0);
+
+        // Vote on funding.
+        let decision = {
+            let gov = country.regions[region_idx].governance.as_ref();
+            match gov {
+                Some(g) => vote_on_mandate_funding(g, shortfall, &mut rng),
+                None => MandateFundingDecision::Refused,
+            }
+        };
+
+        // Check if Treasury can afford the central funding.
+        let treasury_can_afford = country.budget.liquid_reserves >= mandate.central_funding;
+
+        // Execute the mandate payment.
+        let result = execute_mandate_payment(
+            country,
+            &region_id,
+            &mandate,
+            &decision,
+            treasury_can_afford,
+        );
+
+        // Keep the mandate if it was refused or suspended (retry next turn).
+        // Remove it if it was successfully paid.
+        if !result.refused {
+            // Mandate was executed (fully or partially). Remove from active.
+            continue;
+        }
+        // Mandate was refused — keep for retry.
+        remaining_mandates.push(mandate);
+    }
+
+    country.politics.active_mandates = remaining_mandates;
+}
+
 // ============================================================================
 // TESTS
 // ============================================================================
@@ -592,7 +698,16 @@ mod tests {
     // ── Mandate execution tests ──
 
     fn make_country_with_region(admin_status: AdministrativeStatus, reserves: f64) -> Country {
+        make_country_with_region_and_treasury(admin_status, reserves, 0.0)
+    }
+
+    fn make_country_with_region_and_treasury(
+        admin_status: AdministrativeStatus,
+        reserves: f64,
+        treasury_reserves: f64,
+    ) -> Country {
         let mut country = Country::default();
+        country.budget.liquid_reserves = treasury_reserves;
         let mut region = crate::society::geography::Region::default();
         region.id = "TEST-REGION".to_string();
         let mut gov = RegionalGovernance::default();
@@ -680,8 +795,11 @@ mod tests {
 
     #[test]
     fn test_mandate_payment_commissary_treasury_funded() {
-        let mut country =
-            make_country_with_region(AdministrativeStatus::CommissaryAdministration, 50.0);
+        let mut country = make_country_with_region_and_treasury(
+            AdministrativeStatus::CommissaryAdministration,
+            50.0,
+            1000.0, // Treasury must have reserves to fund the gap (Phase D.6 fix).
+        );
         let mandate = UnfundedMandate {
             description: "Federal mandate".to_string(),
             required_spending_per_region: 300.0,

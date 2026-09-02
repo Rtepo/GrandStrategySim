@@ -148,26 +148,19 @@ pub fn apply_casualty_morale_impact(
 /// # Returns
 /// Combined `MoraleImpactResult` across all classes.
 pub fn apply_casualty_morale_to_classes(
-    rural_classes: &mut BTreeMap<String, ClassDemographics>,
+    rural_classes: &mut BTreeMap<RuralClass, ClassDemographics>,
     casualties: &Casualties,
     config: &MoraleConfig,
 ) -> MoraleImpactResult {
     let mut combined = MoraleImpactResult::default();
 
-    for (class_name, demographics) in rural_classes.iter_mut() {
+    for (class_key, demographics) in rural_classes.iter_mut() {
         // Get casualties for this class from the demographic breakdown
         let class_casualties = casualties
             .demographic_breakdown
             .iter()
             .filter_map(|(rc, &count)| {
-                // Match RuralClass to class name (simplified matching)
-                let name = match rc {
-                    RuralClass::Aristocracy => "Aristocracy",
-                    RuralClass::FreePeasant => "FreePeasant",
-                    RuralClass::Serf => "Serf",
-                    RuralClass::LandlessLaborer => "LandlessLaborer",
-                };
-                if name == class_name {
+                if rc == class_key {
                     Some(count)
                 } else {
                     None
@@ -219,7 +212,7 @@ pub fn recover_morale(demographics: &mut ClassDemographics, config: &MoraleConfi
 
 /// Recovers morale for all demographic classes in a region.
 pub fn recover_morale_for_classes(
-    rural_classes: &mut BTreeMap<String, ClassDemographics>,
+    rural_classes: &mut BTreeMap<RuralClass, ClassDemographics>,
     config: &MoraleConfig,
 ) {
     for demographics in rural_classes.values_mut() {
@@ -426,8 +419,8 @@ mod tests {
     #[test]
     fn test_apply_casualty_morale_to_classes() {
         let mut classes = BTreeMap::new();
-        classes.insert("FreePeasant".to_string(), make_demographics(50_000));
-        classes.insert("LandlessLaborer".to_string(), make_demographics(30_000));
+        classes.insert(RuralClass::FreePeasant, make_demographics(50_000));
+        classes.insert(RuralClass::LandlessLaborer, make_demographics(30_000));
 
         let mut breakdown = HashMap::new();
         breakdown.insert(RuralClass::FreePeasant, 2000);
@@ -442,11 +435,11 @@ mod tests {
         let _result = apply_casualty_morale_to_classes(&mut classes, &casualties, &config);
 
         // FreePeasant should have lower morale (they had casualties)
-        let peasant = classes.get("FreePeasant").unwrap();
+        let peasant = classes.get(&RuralClass::FreePeasant).unwrap();
         assert!(peasant.war_morale < 70.0, "FreePeasant morale must drop");
 
         // LandlessLaborer should have unchanged morale (no casualties)
-        let laborer = classes.get("LandlessLaborer").unwrap();
+        let laborer = classes.get(&RuralClass::LandlessLaborer).unwrap();
         assert_eq!(
             laborer.war_morale, 70.0,
             "LandlessLaborer morale must not change"

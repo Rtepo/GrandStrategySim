@@ -439,21 +439,27 @@ pub fn process_inspectorates_turn(
                             .rural_classes
                             .iter()
                             .find(|(_, d)| d.legal_status == LegalStatus::Illegal)
-                            .map(|(k, _)| (k.clone(), true))
+                            .map(|(k, _)| (k.to_string(), true))
                             .or_else(|| {
                                 region
                                     .class_demographics
                                     .urban_classes
                                     .iter()
                                     .find(|(_, d)| d.legal_status == LegalStatus::Illegal)
-                                    .map(|(k, _)| (k.clone(), false))
+                                    .map(|(k, _)| (k.to_string(), false))
                             });
 
                         if let Some((ck, ir)) = class_key {
                             let class = if ir {
-                                region.class_demographics.rural_classes.get_mut(&ck)
+                                crate::society::geography::RuralClass::from_str(&ck)
+                                    .and_then(|key| {
+                                        region.class_demographics.rural_classes.get_mut(&key)
+                                    })
                             } else {
-                                region.class_demographics.urban_classes.get_mut(&ck)
+                                crate::society::geography::UrbanClass::from_str(&ck)
+                                    .and_then(|key| {
+                                        region.class_demographics.urban_classes.get_mut(&key)
+                                    })
                             };
                             if let Some(class) = class {
                                 if class.population > 0 {

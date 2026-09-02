@@ -11,7 +11,7 @@
 use crate::entities::{ActiveProductionMethod, Building};
 use crate::military::units::{MilitaryUnit, UnitType};
 use crate::registries::enums::{Commodity, Sector};
-use crate::society::geography::{Region, RuralClass};
+use crate::society::geography::{Region, RuralClass, UrbanClass};
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
@@ -414,17 +414,15 @@ pub fn execute_conscription(
             if eligible <= 0 {
                 continue;
             }
-            let rural_class = parse_rural_class(class_key);
-            if let Some(rc) = rural_class {
-                sources.push(RecruitSource {
-                    region_id: region.id.clone(),
-                    class_key: class_key.clone(),
-                    is_urban: false,
-                    count: eligible,
-                    rural_class: Some(rc),
-                });
-                region_total += eligible;
-            }
+            // E.6.3: class_key is already a RuralClass
+            sources.push(RecruitSource {
+                region_id: region.id.clone(),
+                class_key: class_key.to_string(),
+                is_urban: false,
+                count: eligible,
+                rural_class: Some(*class_key),
+            });
+            region_total += eligible;
         }
 
         // Urban classes — mapped to the closest rural class for manpower_origin
@@ -437,7 +435,7 @@ pub fn execute_conscription(
             // (they are wage laborers, not landowners)
             sources.push(RecruitSource {
                 region_id: region.id.clone(),
-                class_key: class_key.clone(),
+                class_key: class_key.to_string(),
                 is_urban: true,
                 count: eligible,
                 rural_class: Some(RuralClass::LandlessLaborer),
@@ -457,13 +455,16 @@ pub fn execute_conscription(
             if region.id != source.region_id {
                 continue;
             }
-            let class_map = if source.is_urban {
-                &mut region.class_demographics.urban_classes
-            } else {
-                &mut region.class_demographics.rural_classes
-            };
+            let demo_opt: Option<&mut crate::society::geography::ClassDemographics> =
+                if source.is_urban {
+                    UrbanClass::from_str(&source.class_key)
+                        .and_then(|k| region.class_demographics.urban_classes.get_mut(&k))
+                } else {
+                    RuralClass::from_str(&source.class_key)
+                        .and_then(|k| region.class_demographics.rural_classes.get_mut(&k))
+                };
 
-            if let Some(demo) = class_map.get_mut(&source.class_key) {
+            if let Some(demo) = demo_opt {
                 let actual_drain = source.count.min(demo.population);
                 demo.population -= actual_drain;
                 total_recruits += actual_drain;
@@ -550,8 +551,8 @@ pub fn demobilize_unit(
         for region in regions.iter_mut() {
             if region.id == unit.home_region {
                 for (rural_class, &count) in &survivors {
-                    let class_key = rural_class_to_string(rural_class);
-                    if let Some(demo) = region.class_demographics.rural_classes.get_mut(&class_key)
+                    if let Some(demo) =
+                        region.class_demographics.rural_classes.get_mut(rural_class)
                     {
                         demo.population += count;
                     }
@@ -1049,28 +1050,6 @@ fn add_conscript_to_oob(
     }
 }
 
-/// Parses a RuralClass from its string key.
-fn parse_rural_class(key: &str) -> Option<RuralClass> {
-    match key.to_lowercase().as_str() {
-        "aristocracy" => Some(RuralClass::Aristocracy),
-        "freepeasant" | "free_peasant" | "free peasant" => Some(RuralClass::FreePeasant),
-        "serf" | "serfs" => Some(RuralClass::Serf),
-        "landlesslaborer" | "landless_laborer" | "landless laborer" => {
-            Some(RuralClass::LandlessLaborer)
-        }
-        _ => None,
-    }
-}
-
-/// Converts a RuralClass to its string key.
-fn rural_class_to_string(class: &RuralClass) -> String {
-    match class {
-        RuralClass::Aristocracy => "Aristocracy".to_string(),
-        RuralClass::FreePeasant => "FreePeasant".to_string(),
-        RuralClass::Serf => "Serf".to_string(),
-        RuralClass::LandlessLaborer => "LandlessLaborer".to_string(),
-    }
-}
 
 // ============================================================================
 // TESTS

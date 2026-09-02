@@ -1,0 +1,942 @@
+﻿
+> > error[E0308]: mismatched types
+       --> state\src\corporate\unions.rs:301:83
+        |
+    301 |                 if let Some(uc) = region.class_demographics.urban_classes.get_mut(class_key) {
+        |                                                                           ------- ^^^^^^^^^ expected `&UrbanC
+la
+  ss`, found `&String`
+        |                                                                           |
+> > error[E0308]: mismatched types
+       --> state\src\corporate\unions.rs:326:75
+        |
+    326 |     if let Some(worker) = region.class_demographics.urban_classes.get_mut("Worker") {
+        |                                                                   ------- ^^^^^^^^ expected `&UrbanClass`, fo
+un
+  d `&str`
+        |                                                                   |
+> > error[E0271]: type mismatch resolving `<IterMut<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+       --> state\src\economy\finance\debt_market.rs:629:20
+        |
+    629 |             .chain(region.class_demographics.urban_classes.iter_mut())
+        |              ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &mut ClassDemog
+ra
+  phics)`, found `(&UrbanClass, &mut ClassDemographics)`
+        |              |
+> > error[E0271]: expected `IterMut<'_, UrbanClass, ClassDemographics>` to be an iterator that yields `(&RuralClass, &m
+ut
+   ClassDemographics)`, but it yields `(&UrbanClass, &mut ClassDemographics)`
+       --> state\src\economy\finance\debt_market.rs:625:33
+        |
+    625 |           for (class_name, cd) in region
+        |  _________________________________^
+    626 | |             .class_demographics
+> > error[E0308]: mismatched types
+       --> state\src\economy\finance\debt_market.rs:894:77
+        |
+    894 | ...                   region.class_demographics.rural_classes.get_mut(class_name)
+        |                                                               ------- ^^^^^^^^^^ expected `&RuralClass`, foun
+d 
+  `&str`
+        |                                                               |
+> > error[E0308]: mismatched types
+       --> state\src\economy\finance\debt_market.rs:898:77
+        |
+    898 | ...                   region.class_demographics.urban_classes.get_mut(class_name)
+        |                                                               ------- ^^^^^^^^^^ expected `&UrbanClass`, foun
+d 
+  `&str`
+        |                                                               |
+> > error[E0308]: mismatched types
+      --> state\src\economy\finance\payment_in_kind.rs:78:23
+       |
+    78 |             .filter(|((cid, _, _), _)| cid == company_id)
+       |                      -^^^^^^^^^^^----
+       |                      ||
+> > error[E0308]: mismatched types
+      --> state\src\economy\finance\payment_in_kind.rs:79:20
+       |
+    79 |             .map(|((_, dt, cid), fte)| ((*dt, cid.clone()), *fte))
+       |                   -^^^^^^^^^^^^------
+       |                   ||
+> > error[E0308]: mismatched types
+      --> state\src\economy\finance\payment_in_kind.rs:85:23
+       |
+    85 |             .filter(|((cid, _, _), _)| cid == company_id)
+       |                      -^^^^^^^^^^^----
+       |                      ||
+> > error[E0308]: mismatched types
+      --> state\src\economy\finance\payment_in_kind.rs:86:20
+       |
+    86 |             .map(|((_, dt, cid), wages)| ((*dt, cid.clone()), *wages))
+       |                   -^^^^^^^^^^^^--------
+       |                   ||
+> > error[E0308]: mismatched types
+       --> state\src\economy\finance\payment_in_kind.rs:229:10
+        |
+    229 |     for ((_company_id, demography_type, class_id), fte) in &labor_allocation.fte {
+        |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^          --------------------- this is an iterator with ite
+ms
+   of type `(&(std::string::String, DemographicClass), &f64)`
+        |          |
+> > error[E0308]: `if` and `else` have incompatible types
+       --> state\src\economy\justice\bribery.rs:205:17
+        |
+    202 |               let classes = if is_rural {
+        |  ___________________________-
+    203 | |                 &mut region.class_demographics.rural_classes
+> > error[E0308]: mismatched types
+       --> state\src\economy\justice\inspectorates.rs:444:33
+        |
+    444 | / ...                   region
+    445 | | ...                       .class_demographics
+    446 | | ...                       .urban_classes
+> > error[E0308]: mismatched types
+       --> state\src\economy\justice\inspectorates.rs:456:81
+        |
+    456 | ...                   region.class_demographics.urban_classes.get_mut(&ck)
+        |                                                               ------- ^^^ expected `&UrbanClass`, found `&Rur
+al
+  Class`
+        |                                                               |
+> > error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `Ru
+ra
+  lClass`
+       --> state\src\economy\justice\legal_status.rs:362:14
+        |
+    362 |             .collect();
+        |              ^^^^^^^ value of type `Vec<std::string::String>` cannot be built from `std::iter::Iterator<Item=
+Ru
+  ralClass>`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\economy\justice\legal_status.rs:368:30
+        |
+    368 |                     .get_mut(&class_id)
+        |                      ------- ^^^^^^^^^ expected `&RuralClass`, found `&String`
+        |                      |
+> > error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `Ur
+ba
+  nClass`
+       --> state\src\economy\justice\legal_status.rs:387:14
+        |
+    387 |             .collect();
+        |              ^^^^^^^ value of type `Vec<std::string::String>` cannot be built from `std::iter::Iterator<Item=
+Ur
+  banClass>`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\economy\justice\legal_status.rs:393:30
+        |
+    393 |                     .get_mut(&class_id)
+        |                      ------- ^^^^^^^^^ expected `&UrbanClass`, found `&String`
+        |                      |
+> > error[E0308]: mismatched types
+       --> state\src\economy\justice\prison_labor.rs:629:86
+        |
+    629 |                 if let Some(class) = region.class_demographics.rural_classes.get_mut(target) {
+        |                                                                              ------- ^^^^^^ expected `&RuralC
+la
+  ss`, found `&str`
+        |                                                                              |
+> > error[E0308]: mismatched types
+       --> state\src\economy\justice\prison_labor.rs:649:90
+        |
+    649 |                     if let Some(class) = region.class_demographics.urban_classes.get_mut(target) {
+        |                                                                                  ------- ^^^^^^ expected `&Ur
+ba
+  nClass`, found `&str`
+        |                                                                                  |
+> > error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `Ru
+ra
+  lClass`
+       --> state\src\economy\labor\labor.rs:539:30
+        |
+    539 | ...                   .collect();
+        |                        ^^^^^^^ value of type `Vec<std::string::String>` cannot be built from `std::iter::Iter
+at
+  or<Item=RuralClass>`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\economy\labor\labor.rs:541:97
+        |
+    541 | ...                   if let Some(demo) = region.class_demographics.rural_classes.get_mut(key)
+        |                                                                                   ------- ^^^ expected `&Rura
+lC
+  lass`, found `&String`
+        |                                                                                   |
+> > error[E0308]: mismatched types
+       --> state\src\economy\labor\labor.rs:554:85
+        |
+    554 | ...                   region.class_demographics.rural_classes.get_mut(key)
+        |                                                               ------- ^^^ expected `&RuralClass`, found `&Str
+in
+  g`
+        |                                                               |
+> > error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `Ur
+ba
+  nClass`
+       --> state\src\economy\labor\labor.rs:570:30
+        |
+    570 | ...                   .collect();
+        |                        ^^^^^^^ value of type `Vec<std::string::String>` cannot be built from `std::iter::Iter
+at
+  or<Item=UrbanClass>`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\economy\labor\labor.rs:572:97
+        |
+    572 | ...                   if let Some(demo) = region.class_demographics.urban_classes.get_mut(key)
+        |                                                                                   ------- ^^^ expected `&Urba
+nC
+  lass`, found `&String`
+        |                                                                                   |
+> > error[E0308]: mismatched types
+       --> state\src\economy\labor\labor.rs:585:85
+        |
+    585 | ...                   region.class_demographics.urban_classes.get_mut(key)
+        |                                                               ------- ^^^ expected `&UrbanClass`, found `&Str
+in
+  g`
+        |                                                               |
+> > error[E0271]: expected `{closure@labor.rs:811:26}` to return `(bool, RuralClass)`, but it returns `(bool, UrbanClas
+s)
+  `
+       --> state\src\economy\labor\labor.rs:811:30
+        |
+    806 |             .chain(
+        |              ----- required by a bound introduced by this call
+    ...
+> > error[E0599]: the method `collect` exists for struct `Chain<Map<Keys<'_, RuralClass, ClassDemographics>, ...>, ...>
+`,
+   but its trait bounds were not satisfied
+       --> state\src\economy\labor\labor.rs:813:14
+        |
+    801 |           let all_classes: Vec<(bool, String)> = region
+        |  ________________________________________________-
+    802 | |             .class_demographics
+> > error[E0308]: mismatched types
+       --> state\src\economy\labor\labor.rs:820:65
+        |
+    820 |                 region.class_demographics.urban_classes.get_mut(key)
+        |                                                         ------- ^^^ expected `&UrbanClass`, found `&RuralClas
+s`
+        |                                                         |
+> > error[E0308]: mismatched types
+       --> state\src\economy\labor\labor.rs:836:69
+        |
+    836 |                     region.class_demographics.urban_classes.get_mut(key)
+        |                                                             ------- ^^^ expected `&UrbanClass`, found `&Rural
+Cl
+  ass`
+        |                                                             |
+> > error[E0308]: mismatched types
+       --> state\src\economy\religion\propaganda.rs:347:44
+        |
+    347 |                     target_class_id = Some(class_id.clone());
+        |                                       ---- ^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+        |                                       |
+> > error[E0308]: mismatched types
+       --> state\src\economy\religion\propaganda.rs:359:44
+        |
+    359 |                     target_class_id = Some(class_id.clone());
+        |                                       ---- ^^^^^^^^^^^^^^^^ expected `String`, found `UrbanClass`
+        |                                       |
+> > error[E0308]: mismatched types
+       --> state\src\economy\religion\propaganda.rs:390:61
+        |
+    390 |                 region.class_demographics.urban_classes.get(cid)
+        |                                                         --- ^^^ expected `&UrbanClass`, found `&String`
+        |                                                         |
+> > error[E0308]: mismatched types
+       --> state\src\economy\religion\propaganda.rs:392:61
+        |
+    392 |                 region.class_demographics.rural_classes.get(cid)
+        |                                                         --- ^^^ expected `&RuralClass`, found `&String`
+        |                                                         |
+> > error[E0308]: mismatched types
+       --> state\src\economy\religion\propaganda.rs:444:69
+        |
+    444 |                     region.class_demographics.urban_classes.get_mut(cid)
+        |                                                             ------- ^^^ expected `&UrbanClass`, found `&Strin
+g`
+        |                                                             |
+> > error[E0308]: mismatched types
+       --> state\src\economy\religion\propaganda.rs:446:69
+        |
+    446 |                     region.class_demographics.rural_classes.get_mut(cid)
+        |                                                             ------- ^^^ expected `&RuralClass`, found `&Strin
+g`
+        |                                                             |
+> > error[E0308]: mismatched types
+       --> state\src\economy\society\ethnic_violence.rs:181:9
+        |
+    180 |     let rural_result = check_class_map_pogrom(
+        |                        ---------------------- arguments to this function are incorrect
+    181 |         &region.class_demographics.rural_classes,
+> > error[E0308]: mismatched types
+       --> state\src\economy\society\ethnic_violence.rs:219:9
+        |
+    218 |     let urban_result = check_class_map_pogrom(
+        |                        ---------------------- arguments to this function are incorrect
+    219 |         &region.class_demographics.urban_classes,
+> > error[E0308]: `if` and `else` have incompatible types
+       --> state\src\economy\society\ethnic_violence.rs:408:9
+        |
+    405 |       let class_map = if class_type == "rural" {
+        |  _____________________-
+    406 | |         &mut region.class_demographics.rural_classes
+> > error[E0308]: `if` and `else` have incompatible types
+       --> state\src\economy\society\ethnic_violence.rs:446:9
+        |
+    443 |       let class_map = if class_type == "rural" {
+        |  _____________________-
+    444 | |         &mut region.class_demographics.rural_classes
+> > error[E0308]: mismatched types
+       --> state\src\economy\trade\retail.rs:597:13
+        |
+    593 |         process_class(
+        |         ------------- arguments to this function are incorrect
+    ...
+> > error[E0308]: mismatched types
+       --> state\src\economy\trade\retail.rs:610:13
+        |
+    606 |         process_class(
+        |         ------------- arguments to this function are incorrect
+    ...
+> > error[E0308]: `if` and `else` have incompatible types
+       --> state\src\economy\trade\transfer_settler.rs:287:21
+        |
+    284 |                   let classes = if *is_rural {
+        |  _______________________________-
+    285 | |                     &mut region.class_demographics.rural_classes
+> > error[E0308]: `if` and `else` have incompatible types
+       --> state\src\economy\trade\transfer_settler.rs:377:13
+        |
+    374 |           let classes = if is_rural {
+        |  _______________________-
+    375 | |             &mut region.class_demographics.rural_classes
+> > error[E0308]: mismatched types
+       --> state\src\economy\trade\transfer_settler.rs:578:36
+        |
+    578 |             class_info.push((true, key.clone(), demo.savings));
+        |                                    ^^^^^^^^^^^ expected `String`, found `RuralClass`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\economy\trade\transfer_settler.rs:584:37
+        |
+    584 |             class_info.push((false, key.clone(), demo.savings));
+        |                                     ^^^^^^^^^^^ expected `String`, found `UrbanClass`
+        |
+> > error[E0308]: `if` and `else` have incompatible types
+       --> state\src\economy\trade\transfer_settler.rs:600:13
+        |
+    597 |           let classes = if *is_rural {
+        |  _______________________-
+    598 | |             &mut region.class_demographics.rural_classes
+> > error[E0308]: mismatched types
+       --> state\src\economy\trade\transfer_settler.rs:622:36
+        |
+    622 |             class_info.push((true, key.clone(), demo.population as f64));
+        |                                    ^^^^^^^^^^^ expected `String`, found `RuralClass`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\economy\trade\transfer_settler.rs:628:37
+        |
+    628 |             class_info.push((false, key.clone(), demo.population as f64));
+        |                                     ^^^^^^^^^^^ expected `String`, found `UrbanClass`
+        |
+> > error[E0308]: `if` and `else` have incompatible types
+       --> state\src\economy\trade\transfer_settler.rs:643:13
+        |
+    640 |           let classes = if *is_rural {
+        |  _______________________-
+    641 | |             &mut region.class_demographics.rural_classes
+> > error[E0308]: mismatched types
+       --> state\src\engine\generator\mod.rs:784:84
+        |
+    784 |             if let Some(aristocracy) = region.class_demographics.rural_classes.get("Aristocracy") {
+        |                                                                                --- ^^^^^^^^^^^^^ expected `&R
+ur
+  alClass`, found `&str`
+        |                                                                                |
+> > error[E0308]: mismatched types
+       --> state\src\engine\generator\mod.rs:787:84
+        |
+    787 |             if let Some(bourgeoisie) = region.class_demographics.urban_classes.get("Bourgeoisie") {
+        |                                                                                --- ^^^^^^^^^^^^^ expected `&U
+rb
+  anClass`, found `&str`
+        |                                                                                |
+> > error[E0308]: mismatched types
+       --> state\src\engine\generator\mod.rs:818:26
+        |
+    818 |                     .get("Aristocracy")
+        |                      --- ^^^^^^^^^^^^^ expected `&RuralClass`, found `&str`
+        |                      |
+> > error[E0308]: mismatched types
+       --> state\src\engine\generator\mod.rs:824:26
+        |
+    824 |                     .get("Bourgeoisie")
+        |                      --- ^^^^^^^^^^^^^ expected `&UrbanClass`, found `&str`
+        |                      |
+> > error[E0599]: no method named `as_str` found for reference `&RuralClass` in the current scope
+       --> state\src\engine\generator\mod.rs:990:51
+        |
+    990 |                 let rural_class = match class_key.as_str() {
+        |                                                   ^^^^^^ method not found in `&RuralClass`
+    System.Management.Automation.RemoteException
+> > error[E0271]: expected `{closure@turn.rs:605:53}` to return `(bool, RuralClass, f64)`, but it returns `(bool, Urban
+Cl
+  ass, f64)`
+       --> state\src\engine\turn.rs:605:62
+        |
+    603 | ...                   .chain(
+        |                        ----- required by a bound introduced by this call
+    604 | ...                       adj.class_demographics.urban_classes.iter().map(
+> > error[E0599]: the method `collect` exists for struct `Chain<Map<Iter<'_, RuralClass, ClassDemographics>, ...>, ...>
+`,
+   but its trait bounds were not satisfied
+       --> state\src\engine\turn.rs:608:46
+        |
+    598 |   ...                   let classes: Vec<(bool, String, f64)> = adj
+        |  _______________________________________________________________-
+    599 | | ...                       .class_demographics
+> > error[E0308]: mismatched types
+       --> state\src\engine\turn.rs:627:66
+        |
+    627 | ...                   .get_mut(&class_id)
+        |                        ------- ^^^^^^^^^ expected `&RuralClass`, found `&UrbanClass`
+        |                        |
+> > error[E0308]: mismatched types
+        --> state\src\engine\turn.rs:2776:34
+         |
+    2776 |                         .get_mut("Aristocracy")
+         |                          ------- ^^^^^^^^^^^^^ expected `&RuralClass`, found `&str`
+         |                          |
+> > error[E0308]: mismatched types
+        --> state\src\engine\turn.rs:2784:34
+         |
+    2784 |                         .get_mut("Bourgeoisie")
+         |                          ------- ^^^^^^^^^^^^^ expected `&UrbanClass`, found `&str`
+         |                          |
+> > error[E0308]: mismatched types
+        --> state\src\engine\turn.rs:3489:22
+         |
+    3489 |                 for ((company_id, demo_type, class_id), &fte) in &la.fte {
+         |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^           ------- this is an iterator with items of t
+yp
+  e `(&(std::string::String, DemographicClass), &f64)`
+         |                      |
+> > error[E0308]: `if` and `else` have incompatible types
+        --> state\src\engine\turn.rs:3588:33
+         |
+    3585 |   ...                   let classes = if is_rural {
+         |  _____________________________________-
+    3586 | | ...                       &mut region.class_demographics.rural_classes
+> > error[E0277]: a value of type `Vec<(std::string::String, f64, f64)>` cannot be built from an iterator over elements
+ o
+  f type `(RuralClass, f64, f64)`
+        --> state\src\engine\turn.rs:6361:34
+         |
+    6361 | ...                   .collect();
+         |                        ^^^^^^^ value of type `Vec<(std::string::String, f64, f64)>` cannot be built from `st
+d:
+  :iter::Iterator<Item=(RuralClass, f64, f64)>`
+         |
+> > error[E0308]: mismatched types
+        --> state\src\engine\turn.rs:6472:81
+         |
+    6472 | ...                   region.class_demographics.rural_classes.get_mut(class_id)
+         |                                                               ------- ^^^^^^^^ expected `&RuralClass`, found
+ `
+  &String`
+         |                                                               |
+> > error[E0308]: mismatched types
+        --> state\src\engine\turn.rs:6528:77
+         |
+    6528 | ...                   region.class_demographics.rural_classes.get_mut(class_id)
+         |                                                               ------- ^^^^^^^^ expected `&RuralClass`, found
+ `
+  &String`
+         |                                                               |
+> > error[E0308]: mismatched types
+        --> state\src\engine\turn.rs:6717:75
+         |
+    6717 |             if let Some(fp) = region.class_demographics.rural_classes.get("FreePeasant") {
+         |                                                                       --- ^^^^^^^^^^^^^ expected `&RuralClas
+s`
+  , found `&str`
+         |                                                                       |
+> > error[E0308]: mismatched types
+        --> state\src\engine\turn.rs:6720:77
+         |
+    6720 |             if let Some(serf) = region.class_demographics.rural_classes.get("Serf") {
+         |                                                                         --- ^^^^^^ expected `&RuralClass`, f
+ou
+  nd `&str`
+         |                                                                         |
+> > error[E0308]: mismatched types
+        --> state\src\engine\turn.rs:7655:26
+         |
+    7655 |                 .get_mut("Bourgeoisie")
+         |                  ------- ^^^^^^^^^^^^^ expected `&UrbanClass`, found `&str`
+         |                  |
+> > error[E0308]: mismatched types
+        --> state\src\engine\turn.rs:7658:90
+         |
+    7658 |             } else if let Some(worker) = region.class_demographics.urban_classes.get_mut("Worker") {
+         |                                                                                  ------- ^^^^^^^^ expected `
+&U
+  rbanClass`, found `&str`
+         |                                                                                  |
+> > error[E0308]: mismatched types
+        --> state\src\engine\turn.rs:7669:83
+         |
+    7669 |             if let Some(worker) = region.class_demographics.urban_classes.get_mut("Worker") {
+         |                                                                           ------- ^^^^^^^^ expected `&UrbanC
+la
+  ss`, found `&str`
+         |                                                                           |
+> > error[E0599]: no method named `as_str` found for reference `&RuralClass` in the current scope
+       --> state\src\infrastructure\cultural.rs:314:37
+        |
+    314 |         let rate = match class_name.as_str() {
+        |                                     ^^^^^^ method not found in `&RuralClass`
+    System.Management.Automation.RemoteException
+> > error[E0308]: mismatched types
+       --> state\src\infrastructure\cultural.rs:333:81
+        |
+    333 |     if let Some(demographics) = region.class_demographics.rural_classes.get_mut("serf") {
+        |                                                                         ------- ^^^^^^ expected `&RuralClass`
+, 
+  found `&str`
+        |                                                                         |
+> > error[E0308]: mismatched types
+       --> state\src\infrastructure\cultural.rs:364:21
+        |
+    364 |                     class_name.clone(),
+        |                     ^^^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\infrastructure\cultural.rs:388:26
+        |
+    388 |                 .get_mut(class_name)
+        |                  ------- ^^^^^^^^^^ expected `&RuralClass`, found `&String`
+        |                  |
+> > error[E0308]: mismatched types
+       --> state\src\military\turn.rs:129:13
+        |
+    128 |         crate::military::morale::recover_morale_for_classes(
+        |         --------------------------------------------------- arguments to this function are incorrect
+    129 |             &mut region.class_demographics.rural_classes,
+> > error[E0308]: mismatched types
+       --> state\src\military\turn.rs:198:69
+        |
+    198 |                     region.class_demographics.rural_classes.get_mut(&class_key)
+        |                                                             ------- ^^^^^^^^^^ expected `&RuralClass`, found 
+`&
+  String`
+        |                                                             |
+> > error[E0308]: mismatched types
+       --> state\src\military\turn.rs:499:48
+        |
+    499 |             process_dead(&attacker_casualties, region_demographics, &battle_region_id);
+        |             ------------                       ^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<String, ClassDemog
+ra
+  phics>`, found `&mut BTreeMap<RuralClass, ...>`
+        |             |
+> > error[E0308]: mismatched types
+       --> state\src\military\turn.rs:502:48
+        |
+    502 |             process_dead(&defender_casualties, region_demographics, &battle_region_id);
+        |             ------------                       ^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<String, ClassDemog
+ra
+  phics>`, found `&mut BTreeMap<RuralClass, ...>`
+        |             |
+> > error[E0308]: mismatched types
+       --> state\src\military\turn.rs:506:53
+        |
+    506 |             process_deserters(&attacker_casualties, region_demographics, &battle_region_id);
+        |             -----------------                       ^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<String, Class
+De
+  mographics>`, found `&mut BTreeMap<RuralClass, ...>`
+        |             |
+> > error[E0308]: mismatched types
+       --> state\src\military\turn.rs:509:53
+        |
+    509 |             process_deserters(&defender_casualties, region_demographics, &battle_region_id);
+        |             -----------------                       ^^^^^^^^^^^^^^^^^^^ expected `&mut BTreeMap<String, Class
+De
+  mographics>`, found `&mut BTreeMap<RuralClass, ...>`
+        |             |
+> > error[E0308]: mismatched types
+        --> state\src\military\war_economy.rs:417:49
+         |
+     417 |             let rural_class = parse_rural_class(class_key);
+         |                               ----------------- ^^^^^^^^^ expected `&str`, found `&RuralClass`
+         |                               |
+> > error[E0308]: mismatched types
+       --> state\src\military\war_economy.rs:421:32
+        |
+    421 |                     class_key: class_key.clone(),
+        |                                ^^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\military\war_economy.rs:440:28
+        |
+    440 |                 class_key: class_key.clone(),
+        |                            ^^^^^^^^^^^^^^^^^ expected `String`, found `UrbanClass`
+        |
+> > error[E0308]: `if` and `else` have incompatible types
+       --> state\src\military\war_economy.rs:463:17
+        |
+    460 |               let class_map = if source.is_urban {
+        |  _____________________________-
+    461 | |                 &mut region.class_demographics.urban_classes
+> > error[E0308]: mismatched types
+       --> state\src\military\war_economy.rs:554:89
+        |
+    554 |                     if let Some(demo) = region.class_demographics.rural_classes.get_mut(&class_key)
+        |                                                                                 ------- ^^^^^^^^^^ expected `
+&R
+  uralClass`, found `&String`
+        |                                                                                 |
+> > error[E0308]: mismatched types
+       --> state\src\politics\campaign.rs:428:42
+        |
+    428 | ...                   .get(class_name)
+        |                        --- ^^^^^^^^^^ expected `&RuralClass`, found `&String`
+        |                        |
+> > error[E0308]: mismatched types
+       --> state\src\politics\campaign.rs:430:83
+        |
+    430 | ...                   .chain(r.class_demographics.urban_classes.get(class_name))
+        |                                                                 --- ^^^^^^^^^^ expected `&UrbanClass`, found 
+`&
+  String`
+        |                                                                 |
+> > error[E0308]: mismatched types
+       --> state\src\politics\campaign.rs:442:77
+        |
+    442 | ...                   region.class_demographics.rural_classes.get_mut(class_name)
+        |                                                               ------- ^^^^^^^^^^ expected `&RuralClass`, foun
+d 
+  `&String`
+        |                                                               |
+> > error[E0308]: mismatched types
+       --> state\src\politics\campaign.rs:453:77
+        |
+    453 | ...                   region.class_demographics.urban_classes.get_mut(class_name)
+        |                                                               ------- ^^^^^^^^^^ expected `&UrbanClass`, foun
+d 
+  `&String`
+        |                                                               |
+> > error[E0277]: the trait bound `std::string::String: Borrow<RuralClass>` is not satisfied
+       --> state\src\politics\elections.rs:574:22
+        |
+    574 |                 .get(class_key)
+        |                  --- ^^^^^^^^^ the trait `Borrow<RuralClass>` is not implemented for `std::string::String`
+        |                  |
+> > error[E0277]: the trait bound `std::string::String: Borrow<UrbanClass>` is not satisfied
+       --> state\src\politics\elections.rs:600:22
+        |
+    600 |                 .get(class_key)
+        |                  --- ^^^^^^^^^ the trait `Borrow<UrbanClass>` is not implemented for `std::string::String`
+        |                  |
+> > error[E0277]: the trait bound `std::string::String: Borrow<RuralClass>` is not satisfied
+       --> state\src\politics\interest_groups.rs:136:22
+        |
+    136 |                 .get(class_key)
+        |                  --- ^^^^^^^^^ the trait `Borrow<RuralClass>` is not implemented for `std::string::String`
+        |                  |
+> > error[E0277]: the trait bound `std::string::String: Borrow<RuralClass>` is not satisfied
+       --> state\src\politics\interest_groups.rs:262:22
+        |
+    262 |                 .get(class_key)
+        |                  --- ^^^^^^^^^ the trait `Borrow<RuralClass>` is not implemented for `std::string::String`
+        |                  |
+> > error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+       --> state\src\politics\lobbying.rs:318:16
+        |
+    318 |         .chain(home_region.class_demographics.urban_classes.iter())
+        |          ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &ClassDemographics
+)`
+  , found `(&UrbanClass, &ClassDemographics)`
+        |          |
+> > error[E0599]: the method `max_by` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., .
+..
+  >>`, but its trait bounds were not satisfied
+       --> state\src\politics\lobbying.rs:319:10
+        |
+    314 |       let target_class_key = home_region
+        |  ____________________________-
+    315 | |         .class_demographics
+> > error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+       --> state\src\politics\mass_movements.rs:145:16
+        |
+    145 |         .chain(class_demographics.urban_classes.iter())
+        |          ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &ClassDemographics)`, found `(
+&U
+  rbanClass, &ClassDemographics)`
+        |          |
+> > error[E0599]: the method `map` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>
+>`
+  , but its trait bounds were not satisfied
+       --> state\src\politics\mass_movements.rs:146:10
+        |
+    142 |       let total_radicals: i64 = class_demographics
+        |  _______________________________-
+    143 | |         .rural_classes
+> > error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+       --> state\src\politics\mass_movements.rs:155:16
+        |
+    155 |         .chain(class_demographics.urban_classes.iter())
+        |          ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &ClassDemographics)`, found `(
+&U
+  rbanClass, &ClassDemographics)`
+        |          |
+> > error[E0599]: the method `map` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>
+>`
+  , but its trait bounds were not satisfied
+       --> state\src\politics\mass_movements.rs:156:10
+        |
+    152 |       let total_population: i64 = class_demographics
+        |  _________________________________-
+    153 | |         .rural_classes
+> > error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+       --> state\src\politics\mass_movements.rs:172:16
+        |
+    172 |         .chain(class_demographics.urban_classes.iter())
+        |          ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &ClassDemographics)`, found `(
+&U
+  rbanClass, &ClassDemographics)`
+        |          |
+> > error[E0599]: the method `max_by` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., .
+..
+  >>`, but its trait bounds were not satisfied
+       --> state\src\politics\mass_movements.rs:173:10
+        |
+    169 |       let (initiating_class_key, initiating_class) = class_demographics
+        |  ____________________________________________________-
+    170 | |         .rural_classes
+> > error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+       --> state\src\politics\mass_movements.rs:387:16
+        |
+    387 |         .chain(class_demographics.urban_classes.iter())
+        |          ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `(&RuralClass, &ClassDemographics)`, found `(
+&U
+  rbanClass, &ClassDemographics)`
+        |          |
+> > error[E0599]: the method `map` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>
+>`
+  , but its trait bounds were not satisfied
+       --> state\src\politics\mass_movements.rs:388:10
+        |
+    384 |       let total_undecided_before: f64 = class_demographics
+        |  _______________________________________-
+    385 | |         .rural_classes
+> > error[E0308]: mismatched types
+       --> state\src\politics\mass_movements.rs:633:77
+        |
+    633 | ...                   region.class_demographics.rural_classes.get_mut(&class_key)
+        |                                                               ------- ^^^^^^^^^^ expected `&RuralClass`, foun
+d 
+  `&String`
+        |                                                               |
+> > error[E0308]: mismatched types
+       --> state\src\politics\mass_movements.rs:639:77
+        |
+    639 | ...                   region.class_demographics.urban_classes.get_mut(&class_key)
+        |                                                               ------- ^^^^^^^^^^ expected `&UrbanClass`, foun
+d 
+  `&String`
+        |                                                               |
+> > error[E0277]: can't compare `RuralClass` with `str`
+       --> state\src\politics\rebellions.rs:149:41
+        |
+    149 |             .filter(|(class, _)| *class == "Serf" || *class == "FreePeasant")
+        |                                         ^^ no implementation for `RuralClass == str`
+        |
+> > error[E0277]: can't compare `RuralClass` with `str`
+       --> state\src\politics\rebellions.rs:149:61
+        |
+    149 |             .filter(|(class, _)| *class == "Serf" || *class == "FreePeasant")
+        |                                                             ^^ no implementation for `RuralClass == str`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\politics\social_programs.rs:237:32
+        |
+    237 |                     class_key: class_key.clone(),
+        |                                ^^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\politics\social_programs.rs:256:32
+        |
+    256 |                     class_key: class_key.clone(),
+        |                                ^^^^^^^^^^^^^^^^^ expected `String`, found `UrbanClass`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\politics\social_programs.rs:622:77
+        |
+    622 |         if let Some(demo) = region.class_demographics.rural_classes.get_mut(class_key) {
+        |                                                                     ------- ^^^^^^^^^ expected `&RuralClass`,
+ f
+  ound `&str`
+        |                                                                     |
+> > error[E0308]: mismatched types
+       --> state\src\politics\social_programs.rs:626:77
+        |
+    626 |         if let Some(demo) = region.class_demographics.urban_classes.get_mut(class_key) {
+        |                                                                     ------- ^^^^^^^^^ expected `&UrbanClass`,
+ f
+  ound `&str`
+        |                                                                     |
+> > error[E0599]: no method named `as_str` found for reference `&RuralClass` in the current scope
+       --> state\src\politics\system.rs:265:55
+        |
+    265 |                 let dues_per_capita = match class_key.as_str() {
+        |                                                       ^^^^^^ method not found in `&RuralClass`
+    System.Management.Automation.RemoteException
+> > error[E0277]: the trait bound `DemographicClass: Default` is not satisfied
+       --> state\src\politics\system.rs:624:5
+        |
+    624 |     /// E.6.3: Typed demographic class this cohort originated from.
+        |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented fo
+r 
+  `DemographicClass`
+        |
+> > error[E0277]: the trait bound `DemographicClass: Default` is not satisfied
+       --> state\src\politics\system.rs:622:21
+        |
+    622 | #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+        |                     ^^^^^^^^^^^ the trait `Default` is not implemented for `DemographicClass`
+        |
+> > error[E0277]: the trait bound `DemographicClass: Default` is not satisfied
+       --> state\src\politics\system.rs:626:5
+        |
+    622 | #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+        |                                                           ------- in this derive macro expansion
+    ...
+> > error[E0308]: mismatched types
+       --> state\src\society\charities.rs:240:45
+        |
+    240 |                 eligible.push((r_idx, true, class_key.clone(), demographics.population));
+        |                                             ^^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+        |
+> > error[E0308]: mismatched types
+       --> state\src\society\charities.rs:258:46
+        |
+    258 |                 eligible.push((r_idx, false, class_key.clone(), demographics.population));
+        |                                              ^^^^^^^^^^^^^^^^^ expected `String`, found `UrbanClass`
+        |
+> > error[E0308]: `if` and `else` have incompatible types
+       --> state\src\society\charities.rs:280:17
+        |
+    277 |               let classes = if *is_rural {
+        |  ___________________________-
+    278 | |                 &mut region.class_demographics.rural_classes
+> > error[E0308]: mismatched types
+        --> state\src\society\geography.rs:2364:9
+         |
+    2268 |         rural_classes.insert(
+         |         ------------- ... which causes `rural_classes` to have type `BTreeMap<std::string::String, ClassDemo
+gr
+  aphics>`
+    2269 |             "Serf".to_string(),
+> > error[E0308]: mismatched types
+        --> state\src\society\geography.rs:2365:9
+         |
+    2331 |     urban_classes.insert("Worker".to_string(), {
+         |     -------------        -------------------- this argument has type `std::string::String`...
+         |     |
+> > error[E0308]: mismatched types
+       --> state\src\society\real_estate_market.rs:827:18
+        |
+    827 |             .get("LandlessLaborer")
+        |              --- ^^^^^^^^^^^^^^^^^ expected `&RuralClass`, found `&str`
+        |              |
+> > error[E0308]: mismatched types
+        --> state\src\society\real_estate_market.rs:1158:34
+         |
+    1158 |                         .get_mut("FreePeasant")
+         |                          ------- ^^^^^^^^^^^^^ expected `&RuralClass`, found `&str`
+         |                          |
+> > error[E0308]: mismatched types
+        --> state\src\state\banking.rs:2943:34
+         |
+    2943 |                         .get_mut(&loan.class_key)
+         |                          ------- ^^^^^^^^^^^^^^^ expected `&RuralClass`, found `&String`
+         |                          |
+> > error[E0308]: mismatched types
+        --> state\src\state\banking.rs:2948:34
+         |
+    2948 |                         .get_mut(&loan.class_key)
+         |                          ------- ^^^^^^^^^^^^^^^ expected `&UrbanClass`, found `&String`
+         |                          |
+> > error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `Ru
+ra
+  lClass`
+        --> state\src\state\banking.rs:3019:18
+         |
+    3019 |                 .collect();
+         |                  ^^^^^^^ value of type `Vec<std::string::String>` cannot be built from `std::iter::Iterator<
+It
+  em=RuralClass>`
+         |
+> > error[E0308]: mismatched types
+        --> state\src\state\banking.rs:3027:30
+         |
+    3027 |                     .get_mut(key)
+         |                      ------- ^^^ expected `&RuralClass`, found `&String`
+         |                      |
+> > error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `Ur
+ba
+  nClass`
+        --> state\src\state\banking.rs:3070:18
+         |
+    3070 |                 .collect();
+         |                  ^^^^^^^ value of type `Vec<std::string::String>` cannot be built from `std::iter::Iterator<
+It
+  em=UrbanClass>`
+         |
+> > error[E0308]: mismatched types
+        --> state\src\state\banking.rs:3078:30
+         |
+    3078 |                     .get_mut(key)
+         |                      ------- ^^^ expected `&UrbanClass`, found `&String`
+         |                      |
+> > error[E0308]: mismatched types
+        --> state\src\ui\snapshot.rs:3024:81
+         |
+    3024 |         if let Some(free_peasant) = region.class_demographics.rural_classes.get("FreePeasant") {
+         |                                                                             --- ^^^^^^^^^^^^^ expected `&Rur
+al
+  Class`, found `&str`
+         |                                                                             |
+> > error[E0308]: mismatched types
+        --> state\src\ui\snapshot.rs:3027:73
+         |
+    3027 |         if let Some(serf) = region.class_demographics.rural_classes.get("Serf") {
+         |                                                                     --- ^^^^^^ expected `&RuralClass`, found
+ `
+  &str`
+         |                                                                     |
+> > error[E0308]: mismatched types
+        --> state\src\ui\snapshot.rs:5366:33
+         |
+    5366 |                     class_name: class_name.clone(),
+         |                                 ^^^^^^^^^^^^^^^^^^ expected `String`, found `RuralClass`
+         |
+> > error[E0382]: use of moved value: `key`
+       --> state\src\economy\labor\labor_market.rs:433:52
+        |
+    431 |                     let key = (bid.company_id.clone(), *class);
+        |                         --- move occurs because `key` has type `(std::string::String, DemographicClass)`, whi
+ch
+   does not implement the `Copy` trait
+    432 |                     *allocation_matrix.fte.entry(key).or_insert(0.0) += actual_fte;
+  
+  
+
+

@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-use crate::society::geography::Region;
+use crate::society::geography::{Region, RuralClass};
 
 /// Type of rebellion based on ideological motivation
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -146,7 +146,7 @@ impl RebellionTrigger {
             .class_demographics
             .rural_classes
             .iter()
-            .filter(|(class, _)| *class == "Serf" || *class == "FreePeasant")
+            .filter(|(class, _)| **class == RuralClass::Serf || **class == RuralClass::FreePeasant)
             .map(|(_, d)| d.population)
             .sum();
 
@@ -241,6 +241,7 @@ pub fn spawn_rebel_proto_state(
         minimum_wage: mother_country.minimum_wage, // Inherit minimum wage policy
         debt_market: crate::economy::debt_market::DebtMarket::default(),
         cultural_institutions: Vec::new(),
+        cooperative_federations: Vec::new(),
         maritime_infrastructure: crate::infrastructure::maritime::MaritimeInfrastructure::default(),
         cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(),
         building_condition_config:

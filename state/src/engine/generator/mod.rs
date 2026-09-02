@@ -21,7 +21,7 @@ use crate::registries::Registries;
 use crate::society::cadastre::generate_cadastre;
 use crate::society::cultures::{generate_cultural_background, CulturalBackground};
 use crate::society::geography::{
-    generate_megaregions, generate_regional_topology, Megaregion, Region,
+    generate_megaregions, generate_regional_topology, Megaregion, Region, RuralClass, UrbanClass,
 };
 use crate::state::banking::{BankBalanceSheet, BankType as BankingBankType};
 use crate::state::macro_data::{
@@ -200,7 +200,8 @@ pub fn generate_world(
         let (mut country, currency, mut country_regions, bank_companies) =
             generate_country(name, options.start_year, &mut rng);
         let region_ids: Vec<String> = country_regions.keys().cloned().collect();
-        let mut megaregion_list = generate_megaregions(name, &region_ids);
+        let mut megaregion_list =
+            generate_megaregions(name, &region_ids, country.politics.state_structure);
 
         // Phase 54: Assign mayor/governor names and register them in the VIP
         // registry. Must run AFTER generate_regional_topology (which happened
@@ -529,6 +530,7 @@ fn generate_country(
         minimum_wage: None,
         debt_market: crate::economy::debt_market::DebtMarket::default(),
         cultural_institutions: Vec::new(),
+        cooperative_federations: Vec::new(),
         maritime_infrastructure: crate::infrastructure::maritime::MaritimeInfrastructure::default(),
         cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(),
         building_condition_config:
@@ -780,10 +782,10 @@ pub fn list_jsc_companies_on_exchange(
         // Collect wealthy-class savings from the company's region
         let mut wealthy_cash_available = 0.0_f64;
         if let Some(region) = country_regions.get(&company_region) {
-            if let Some(aristocracy) = region.class_demographics.rural_classes.get("Aristocracy") {
+            if let Some(aristocracy) = region.class_demographics.rural_classes.get(&RuralClass::Aristocracy) {
                 wealthy_cash_available += aristocracy.savings * 0.05;
             }
-            if let Some(bourgeoisie) = region.class_demographics.urban_classes.get("Bourgeoisie") {
+            if let Some(bourgeoisie) = region.class_demographics.urban_classes.get(&UrbanClass::Bourgeoisie) {
                 wealthy_cash_available += bourgeoisie.savings * 0.05;
             }
         }
@@ -814,13 +816,13 @@ pub fn list_jsc_companies_on_exchange(
                 let aristo_savings = region
                     .class_demographics
                     .rural_classes
-                    .get("Aristocracy")
+                    .get(&RuralClass::Aristocracy)
                     .map(|d| d.savings * 0.05)
                     .unwrap_or(0.0);
                 let bourg_savings = region
                     .class_demographics
                     .urban_classes
-                    .get("Bourgeoisie")
+                    .get(&UrbanClass::Bourgeoisie)
                     .map(|d| d.savings * 0.05)
                     .unwrap_or(0.0);
                 let total_wealthy = aristo_savings + bourg_savings;
@@ -986,15 +988,7 @@ fn spawn_standing_oob(
         }
         for region in regions.values() {
             for (class_key, demo) in &region.class_demographics.rural_classes {
-                let rural_class = match class_key.as_str() {
-                    "FreePeasant" => Some(crate::society::geography::RuralClass::FreePeasant),
-                    "LandlessLaborer" => {
-                        Some(crate::society::geography::RuralClass::LandlessLaborer)
-                    }
-                    "Serf" => Some(crate::society::geography::RuralClass::Serf),
-                    "Aristocracy" => Some(crate::society::geography::RuralClass::Aristocracy),
-                    _ => None,
-                };
+                let rural_class = Some(*class_key);
                 if let Some(rc) = rural_class {
                     let share = demo.population as f64 / total_rural as f64;
                     let drawn = (needed as f64 * share) as i64;
@@ -1492,6 +1486,7 @@ fn build_treasury(
         last_balance_log: String::new(),
         trade_balance: None,
         max_public_wage_multiplier: 1.2, // Phase 5: Default to prevent crowding out
+        equalization_fund: 0.0,          // Phase D.9: Equalization fund starts empty
         extra: Map::new(),
     };
 
@@ -2107,9 +2102,14 @@ fn build_bank_companies(
             operating_cash,
             bank_fte,
         );
+        // R3.1: Cooperative banks (SKOK) use a lower margin (0.01) for member
+        // lending, while commercial banks use 0.02. This is a structural
+        // pricing difference, not a magic number — it reflects the cooperative
+        // business model where profits are reinvested as lower member rates.
+        let is_cooperative_bank = bank_type == BankingBankType::Cooperative;
         company.bank_type = Some(bank_type);
         company.balance_sheet = Some(balance_sheet);
-        company.loan_margin = Some(0.02);
+        company.loan_margin = Some(if is_cooperative_bank { 0.01 } else { 0.02 });
         company.target_fte_demand = bank_fte;
         company.physical_fte_demand = bank_fte;
         company.offered_wage_per_fte = bank_wage;

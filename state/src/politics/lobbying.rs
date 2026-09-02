@@ -13,7 +13,7 @@ use crate::politics::local_council::Councilor;
 use crate::politics::system::Party;
 use crate::registries::enums::Sector;
 use crate::securities::BrokerageAccount;
-use crate::society::geography::Region;
+use crate::society::geography::{Region, RuralClass, UrbanClass};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::{BTreeMap, HashMap};
@@ -310,43 +310,72 @@ pub fn execute_councilor_bribery(
 
     // Credit to wealthiest demographic class in councilor's home region (prevents black hole)
     // Dynamically select class with highest savings_per_capita (or total savings if population is 0)
-    // CRITICAL: Chain both rural_classes and urban_classes to seal Urban Loophole
-    let target_class_key = home_region
+    // CRITICAL: Consider both rural_classes and urban_classes to seal Urban Loophole.
+    // E.6.3: Typed keys require separate iteration then merge by String key.
+    let rural_best = home_region
         .class_demographics
         .rural_classes
         .iter()
-        .chain(home_region.class_demographics.urban_classes.iter())
         .max_by(|a, b| {
-            let a_savings_per_capita = if a.1.population > 0 {
+            let a_spc = if a.1.population > 0 {
                 a.1.savings / a.1.population as f64
             } else {
                 a.1.savings
             };
-            let b_savings_per_capita = if b.1.population > 0 {
+            let b_spc = if b.1.population > 0 {
                 b.1.savings / b.1.population as f64
             } else {
                 b.1.savings
             };
-            a_savings_per_capita
-                .partial_cmp(&b_savings_per_capita)
-                .unwrap_or(std::cmp::Ordering::Equal)
+            a_spc.partial_cmp(&b_spc).unwrap_or(std::cmp::Ordering::Equal)
         })
-        .map(|(key, _)| key.clone())
+        .map(|(k, v)| (k.to_string(), v.population, v.savings, true));
+    let urban_best = home_region
+        .class_demographics
+        .urban_classes
+        .iter()
+        .max_by(|a, b| {
+            let a_spc = if a.1.population > 0 {
+                a.1.savings / a.1.population as f64
+            } else {
+                a.1.savings
+            };
+            let b_spc = if b.1.population > 0 {
+                b.1.savings / b.1.population as f64
+            } else {
+                b.1.savings
+            };
+            a_spc.partial_cmp(&b_spc).unwrap_or(std::cmp::Ordering::Equal)
+        })
+        .map(|(k, v)| (k.to_string(), v.population, v.savings, false));
+    let target_class_key: String = [rural_best, urban_best]
+        .into_iter()
+        .flatten()
+        .max_by(|a, b| {
+            let a_spc = if a.1 > 0 { a.2 / a.1 as f64 } else { a.2 };
+            let b_spc = if b.1 > 0 { b.2 / b.1 as f64 } else { b.2 };
+            a_spc.partial_cmp(&b_spc).unwrap_or(std::cmp::Ordering::Equal)
+        })
+        .map(|(k, _, _, _)| k)
         .unwrap_or_default();
 
     // Try rural_classes first, then urban_classes
-    if let Some(class_demographics) = home_region
-        .class_demographics
-        .rural_classes
-        .get_mut(&target_class_key)
-    {
-        class_demographics.savings += amount;
-    } else if let Some(class_demographics) = home_region
-        .class_demographics
-        .urban_classes
-        .get_mut(&target_class_key)
-    {
-        class_demographics.savings += amount;
+    if let Some(rk) = RuralClass::from_str(&target_class_key) {
+        if let Some(class_demographics) = home_region
+            .class_demographics
+            .rural_classes
+            .get_mut(&rk)
+        {
+            class_demographics.savings += amount;
+        }
+    } else if let Some(uk) = UrbanClass::from_str(&target_class_key) {
+        if let Some(class_demographics) = home_region
+            .class_demographics
+            .urban_classes
+            .get_mut(&uk)
+        {
+            class_demographics.savings += amount;
+        }
     }
 
     // Increase councilor corruption risk (tracked separately, not as savings)

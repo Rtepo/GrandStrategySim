@@ -150,6 +150,7 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
                 minimum_wage: None,
                 debt_market: crate::economy::debt_market::DebtMarket::default(),
                 cultural_institutions: Vec::new(),
+                cooperative_federations: Vec::new(),
                 maritime_infrastructure: crate::infrastructure::maritime::MaritimeInfrastructure::default(),
                 cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(),
                 building_condition_config: crate::infrastructure::building_condition::BuildingConditionConfig::default(),

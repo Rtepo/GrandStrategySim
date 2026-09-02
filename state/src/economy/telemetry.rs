@@ -870,7 +870,7 @@ mod tests {
 
     #[test]
     fn test_casualties_decrement_available_fte() {
-        use crate::society::geography::{ClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region, UrbanClass};
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.population = 1000;
@@ -878,12 +878,12 @@ mod tests {
         demo.labor_participation = 0.5;
         region
             .class_demographics
-            .rural_classes
-            .insert("Worker".to_string(), demo);
+            .urban_classes
+            .insert(UrbanClass::Worker, demo);
 
-        apply_casualties_to_labor(&mut region, 100, 0, true);
+        apply_casualties_to_labor(&mut region, 100, 0, false);
 
-        let demo = &region.class_demographics.rural_classes["Worker"];
+        let demo = &region.class_demographics.urban_classes[&UrbanClass::Worker];
         assert_eq!(demo.population, 900, "population should decrease by dead");
         assert_eq!(demo.deceased, 100, "deceased counter should increase");
         // FTE lost = 100 dead × 0.5 participation = 50
@@ -895,7 +895,7 @@ mod tests {
 
     #[test]
     fn test_disabled_casualties_keep_population_but_lose_fte() {
-        use crate::society::geography::{ClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region, UrbanClass};
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.population = 1000;
@@ -903,12 +903,12 @@ mod tests {
         demo.labor_participation = 0.5;
         region
             .class_demographics
-            .rural_classes
-            .insert("Worker".to_string(), demo);
+            .urban_classes
+            .insert(UrbanClass::Worker, demo);
 
-        apply_casualties_to_labor(&mut region, 0, 50, true);
+        apply_casualties_to_labor(&mut region, 0, 50, false);
 
-        let demo = &region.class_demographics.rural_classes["Worker"];
+        let demo = &region.class_demographics.urban_classes[&UrbanClass::Worker];
         assert_eq!(demo.population, 1000, "disabled workers stay in population");
         assert_eq!(demo.active_disabled, 50, "active_disabled should increase");
         // FTE lost = 50 disabled × 0.5 participation = 25
@@ -924,7 +924,7 @@ mod tests {
 
     #[test]
     fn test_casualties_distribute_proportionally() {
-        use crate::society::geography::{ClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region, RuralClass};
         let mut region = Region::default();
         let mut demo1 = ClassDemographics::default();
         demo1.population = 600;
@@ -937,11 +937,11 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("Class1".to_string(), demo1);
+            .insert(RuralClass::FreePeasant, demo1);
         region
             .class_demographics
             .rural_classes
-            .insert("Class2".to_string(), demo2);
+            .insert(RuralClass::Serf, demo2);
 
         apply_casualties_to_labor(&mut region, 100, 0, true);
 
@@ -956,19 +956,19 @@ mod tests {
 
     #[test]
     fn test_casualties_zero_is_noop() {
-        use crate::society::geography::{ClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region, UrbanClass};
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.population = 1000;
         demo.available_fte = 500.0;
         region
             .class_demographics
-            .rural_classes
-            .insert("Worker".to_string(), demo);
+            .urban_classes
+            .insert(UrbanClass::Worker, demo);
 
-        apply_casualties_to_labor(&mut region, 0, 0, true);
+        apply_casualties_to_labor(&mut region, 0, 0, false);
 
-        let demo = &region.class_demographics.rural_classes["Worker"];
+        let demo = &region.class_demographics.urban_classes[&UrbanClass::Worker];
         assert_eq!(demo.population, 1000);
         assert_eq!(demo.available_fte, 500.0);
     }
@@ -977,18 +977,18 @@ mod tests {
 
     #[test]
     fn test_mark_commuting_out_deducts_fte() {
-        use crate::society::geography::{ClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region, UrbanClass};
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.available_fte = 1000.0;
         region
             .class_demographics
-            .rural_classes
-            .insert("Worker".to_string(), demo);
+            .urban_classes
+            .insert(UrbanClass::Worker, demo);
 
         mark_commuting_out(&mut region, 200.0);
 
-        let demo = &region.class_demographics.rural_classes["Worker"];
+        let demo = &region.class_demographics.urban_classes[&UrbanClass::Worker];
         assert!(
             (demo.available_fte - 800.0).abs() < 1e-6,
             "available_fte should decrease by commuting out amount"
@@ -997,24 +997,24 @@ mod tests {
 
     #[test]
     fn test_mark_commuting_out_zero_is_noop() {
-        use crate::society::geography::{ClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region, UrbanClass};
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.available_fte = 1000.0;
         region
             .class_demographics
-            .rural_classes
-            .insert("Worker".to_string(), demo);
+            .urban_classes
+            .insert(UrbanClass::Worker, demo);
 
         mark_commuting_out(&mut region, 0.0);
 
-        let demo = &region.class_demographics.rural_classes["Worker"];
+        let demo = &region.class_demographics.urban_classes[&UrbanClass::Worker];
         assert_eq!(demo.available_fte, 1000.0);
     }
 
     #[test]
     fn test_mark_commuting_out_distributes_proportionally() {
-        use crate::society::geography::{ClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region, RuralClass, UrbanClass};
         let mut region = Region::default();
         let mut demo1 = ClassDemographics::default();
         demo1.available_fte = 600.0;
@@ -1023,16 +1023,16 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("Class1".to_string(), demo1);
+            .insert(RuralClass::FreePeasant, demo1);
         region
             .class_demographics
             .urban_classes
-            .insert("Class2".to_string(), demo2);
+            .insert(UrbanClass::Bourgeoisie, demo2);
 
         mark_commuting_out(&mut region, 100.0);
 
-        let d1 = &region.class_demographics.rural_classes["Class1"];
-        let d2 = &region.class_demographics.urban_classes["Class2"];
+        let d1 = &region.class_demographics.rural_classes[&RuralClass::FreePeasant];
+        let d2 = &region.class_demographics.urban_classes[&UrbanClass::Bourgeoisie];
         // Class1 has 60% of FTE, so should lose 60; Class2 loses 40.
         assert!(
             (d1.available_fte - 540.0).abs() < 1e-6,

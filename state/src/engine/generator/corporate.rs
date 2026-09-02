@@ -208,7 +208,7 @@ fn consolidate_region_companies(
     // Track which company indices to remove (merged into survivors).
     let mut to_remove: BTreeSet<usize> = BTreeSet::new();
 
-    for (_region_id, indices) in &companies_by_region {
+    for indices in companies_by_region.values() {
         if indices.len() <= MAX_COMPANIES_PER_REGION {
             continue;
         }
@@ -1307,7 +1307,7 @@ fn issue_working_capital_loans(
 
     let xibor = country.central_bank.interest_rates.reference_rate;
     let mut rng = rand::thread_rng();
-    let mut total_loaned = 0.0;
+    let mut _total_loaned = 0.0;
 
     // Phase 92: Per-bank lending cap — 10× Tier 1 capital. This is a standard
     // prudential leverage limit. Without it, a single bank could issue
@@ -1471,7 +1471,7 @@ fn issue_working_capital_loans(
             bs.deposits += principal;
         }
 
-        total_loaned += principal;
+        _total_loaned += principal;
     }
 
     // Phase 91: Tier 1 Capital Safety Net — after all loans are issued,
@@ -1509,7 +1509,7 @@ fn issue_working_capital_loans(
                 //   x = (TARGET * assets - tier_1) / (1 - TARGET)
                 let needed = (TARGET_TIER_1_RATIO * total_assets - bs.tier_1_capital)
                     / (1.0 - TARGET_TIER_1_RATIO);
-                let mut injection = needed.min(max_total_injection - total_injected);
+                let injection = needed.min(max_total_injection - total_injected);
                 if injection > 0.0 {
                     bs.tier_1_capital += injection;
                     bs.reserves_at_central_bank += injection;
@@ -2076,6 +2076,7 @@ fn generate_region_companies(
             information_quality: None,
             shadow_employment: None,
             pending_expansion: None,
+            pending_ipo_shares: None,
             pending_blueprint_design: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
@@ -5226,6 +5227,7 @@ fn generate_retail_stores(
             information_quality: None,
             shadow_employment: None,
             pending_expansion: None,
+            pending_ipo_shares: None,
             pending_blueprint_design: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
@@ -5600,6 +5602,7 @@ fn generate_tourism_entities(
                 information_quality: None,
                 shadow_employment: None,
                 pending_expansion: None,
+                pending_ipo_shares: None,
                 pending_blueprint_design: None,
                 blueprints: Vec::new(),
                 licensed_blueprints: Vec::new(),
@@ -6589,6 +6592,7 @@ pub fn generate_investment_funds(
             information_quality: None,
             shadow_employment: None,
             pending_expansion: None,
+            pending_ipo_shares: None,
             pending_blueprint_design: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),

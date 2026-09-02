@@ -7,6 +7,7 @@
 
 use crate::economy::market::{GlobalMarket, MarketOrders, MarketSignal};
 use crate::entities::{Building, Company, LegalForm, SeasonalState};
+use crate::entities::legal_form::LegalFormTransition;
 use crate::state::treasury::SectorShare;
 use crate::state::Country;
 use serde_json::{Map, Value};
@@ -50,6 +51,7 @@ pub fn process_companies(
     year: u32,
     market_signal: &MarketSignal,
     current_turn: u32,
+    labor_allocation: Option<&crate::economy::labor_market::LaborAllocationMatrix>,
 ) {
     // Build an owner -> building indices map once, eliminating the O(N*M) nested
     // lookup that scaled with the number of companies and buildings.
@@ -114,6 +116,7 @@ pub fn process_companies(
                 avg_fulfillment_ratio,
                 current_turn,
                 buildings,
+                labor_allocation,
             )
         };
 
@@ -367,7 +370,11 @@ pub fn process_companies(
     for (bank_id, amount) in bank_interest {
         if let Some(&idx) = company_id_to_idx.get(&bank_id) {
             if let Some(ref mut bs) = companies[idx].balance_sheet {
+                // Phase 94: Double-entry — interest income increases both
+                // the bank's asset (reserves) and equity (tier_1). Without
+                // the equity credit, A > L+E by the interest amount.
                 bs.reserves_at_central_bank += amount;
+                bs.tier_1_capital += amount;
             }
         }
     }
@@ -377,9 +384,48 @@ pub fn process_companies(
     // State/treasury owners were already credited in apply_action (no tax).
     let dividend_queue = std::mem::take(&mut country.dividend_queue);
     let mut total_withholding_tax = 0.0_f64;
+
+    // R1.3: Pre-compute total population for proportional citizen dividend
+    // distribution (avoids borrow conflict with mutable region iteration).
+    let total_population: f64 = country
+        .regions
+        .iter()
+        .flat_map(|r| {
+            r.class_demographics
+                .rural_classes
+                .values()
+                .chain(r.class_demographics.urban_classes.values())
+                .map(|c| c.population as f64)
+        })
+        .sum();
+
     for (owner_id, amount) in &dividend_queue {
         if owner_id == "STATE" || owner_id == "TREASURY" {
             continue; // Already credited in apply_action
+        }
+        // R5.2: MEMBERS owner — route dividends to the cooperative members
+        // (workers) via regional class demographics. Apply 19% withholding.
+        if owner_id == "MEMBERS" {
+            let withholding = *amount * DIVIDEND_WITHHOLDING_TAX_RATE;
+            let net_dividend = *amount - withholding;
+            total_withholding_tax += withholding;
+            // Distribute net dividend proportionally across all regional
+            // classes by population (Rule 5: proportional distribution).
+            if total_population > 0.0 {
+                for region in &mut country.regions {
+                    for class in region.class_demographics.rural_classes.values_mut() {
+                        let share = class.population as f64 / total_population;
+                        class.savings += net_dividend * share;
+                    }
+                    for class in region.class_demographics.urban_classes.values_mut() {
+                        let share = class.population as f64 / total_population;
+                        class.savings += net_dividend * share;
+                    }
+                }
+            } else {
+                country.budget.liquid_reserves += net_dividend;
+            }
+            continue;
         }
         // Try to credit the owner company's brokerage account
         if let Some(owner) = companies.iter_mut().find(|c| c.id == *owner_id) {
@@ -415,18 +461,6 @@ pub fn process_companies(
 
             // Distribute net dividend proportionally across all regional classes
             // by population (Rule 5: proportional distribution).
-            let total_population: f64 = country
-                .regions
-                .iter()
-                .flat_map(|r| {
-                    r.class_demographics
-                        .rural_classes
-                        .values()
-                        .chain(r.class_demographics.urban_classes.values())
-                        .map(|c| c.population as f64)
-                })
-                .sum();
-
             if total_population > 0.0 {
                 for region in &mut country.regions {
                     for class in region.class_demographics.rural_classes.values_mut() {
@@ -878,6 +912,7 @@ pub fn process_company(
     avg_fulfillment_ratio: f64,
     current_turn: u32,
     buildings: &[Building],
+    labor_allocation: Option<&crate::economy::labor_market::LaborAllocationMatrix>,
 ) -> (bool, f64) {
     let corporate_tax_rate = country.tax_rates.corporate_tax;
     let xibor = market_signal.interest_rate;
@@ -1029,6 +1064,36 @@ pub fn process_company(
         .action_ledger
         .evaluate_and_update(current_turn, net_profit);
 
+    // R5.1: Board governance — evaluate board conflict before applying action.
+    // If the board blocks the action, replace it with Idle. If the board fires
+    // the CEO, clear the CEO VIP reference (a new CEO will be appointed later).
+    let action = {
+        let board_members: &[crate::entities::legal_form::BoardSeat] =
+            if let crate::entities::LegalForm::JointStockCompany(ref data) = company.legal_form {
+                &data.board_members
+            } else {
+                &[]
+            };
+        let is_profitable = net_profit > 0.0;
+        let decision = crate::corporate::strategy::evaluate_board_conflict(
+            board_members,
+            &action,
+            is_profitable,
+        );
+        match decision {
+            crate::corporate::strategy::BoardDecision::Approve => action,
+            crate::corporate::strategy::BoardDecision::Block => {
+                // Board blocks — CEO must idle this turn
+                CorporateAction::Idle
+            }
+            crate::corporate::strategy::BoardDecision::FireCeo => {
+                // Board fires CEO — clear VIP reference
+                company.ceo_vip_id = None;
+                CorporateAction::Idle
+            }
+        }
+    };
+
     apply_action(
         company,
         action,
@@ -1039,10 +1104,23 @@ pub fn process_company(
         net_profit,
         current_turn,
         buildings,
+        labor_allocation,
     );
 
     // 8. Recalculate equity after the action.
     company.company_capital = company.fixed_capital + company.liquid_capital - company.liabilities;
+
+    // R5.2: Update board independence dynamically based on CEO performance.
+    if let crate::entities::LegalForm::JointStockCompany(ref mut data) = company.legal_form {
+        // Use net_profit relative to company_capital as a proxy for profit margin.
+        let capital_base = company.company_capital.max(1.0);
+        let profit_margin = (net_profit / capital_base).clamp(-1.0, 1.0);
+        crate::corporate::strategy::update_board_independence(
+            data,
+            net_profit > 0.0,
+            profit_margin,
+        );
+    }
 
     // 9. Financial history ring buffer.
     // Phase 90/92: Accrual accounting — record the ACTUAL wage flow from the
@@ -1114,6 +1192,7 @@ fn apply_action(
     net_profit: f64,
     current_turn: u32,
     buildings: &[Building],
+    labor_allocation: Option<&crate::economy::labor_market::LaborAllocationMatrix>,
 ) {
     match action {
         CorporateAction::Expand {
@@ -1225,6 +1304,106 @@ fn apply_action(
             }
             company.aggregated_stats.total_dividends += actual_total;
 
+            // R1.1: Cooperative patronage dividend routing.
+            // Cooperatives do NOT use share-based dividend routing. Instead,
+            // patronage is routed strictly to the demographic classes that
+            // supplied FTE to this exact cooperative, proportional to their
+            // FTE contribution (Rule 7: no communization across all classes).
+            // If no labor allocation exists for this cooperative, the debit
+            // is reversed (money is conserved, not destroyed).
+            if let crate::entities::LegalForm::Cooperative(ref mut coop_data) = company.legal_form {
+                // R1.2: Make patronage_pool operational — it accumulates the
+                // total patronage distributed this turn. The pool is reset to
+                // zero at the start of each distribution and set to the actual
+                // routed amount after successful distribution. This makes the
+                // field observable for UI/snapshot purposes (Rule 17).
+                coop_data.patronage_pool = 0.0;
+
+                // Attempt to route patronage via labor allocation matrix.
+                let company_id = company.id.clone();
+                let mut routed_total = 0.0_f64;
+
+                if let Some(la) = labor_allocation {
+                    // Collect (DemographicClass, fte) entries for this company.
+                    let mut class_ftes: Vec<(crate::society::geography::DemographicClass, f64)> =
+                        Vec::new();
+                    let mut total_fte = 0.0_f64;
+                    for ((cid, dc), &fte) in &la.fte {
+                        if *cid == company_id && fte > 0.0 {
+                            class_ftes.push((*dc, fte));
+                            total_fte += fte;
+                        }
+                    }
+
+                    if total_fte > 0.0 {
+                        // Route patronage pro-rata by FTE contribution.
+                        // Apply 19% withholding tax to Treasury.
+                        let withholding_rate = DIVIDEND_WITHHOLDING_TAX_RATE;
+                        let total_withholding = actual_total * withholding_rate;
+                        let net_patronage = actual_total - total_withholding;
+                        country.budget.liquid_reserves += total_withholding;
+
+                        for (dc, fte) in &class_ftes {
+                            let share = fte / total_fte;
+                            let amount = net_patronage * share;
+                            if amount <= 0.0 {
+                                continue;
+                            }
+                            // Route to the exact class in the exact regions
+                            // where this class supplied labor. Use the wages
+                            // map to determine which regions had allocations.
+                            // For each region, credit the class savings.
+                            let mut credited = 0.0_f64;
+                            for region in &mut country.regions {
+                                let is_rural = dc.is_rural();
+                                if is_rural {
+                                    if let Some(rk) = dc.to_rural() {
+                                        if let Some(demo) =
+                                            region.class_demographics.rural_classes.get_mut(&rk)
+                                        {
+                                            demo.savings += amount;
+                                            credited += amount;
+                                        }
+                                    }
+                                } else if let Some(uk) = dc.to_urban() {
+                                    if let Some(demo) =
+                                        region.class_demographics.urban_classes.get_mut(&uk)
+                                    {
+                                        demo.savings += amount;
+                                        credited += amount;
+                                    }
+                                }
+                            }
+                            routed_total += credited;
+                        }
+                    }
+                }
+
+                // Conservation: if nothing was routed (no labor allocation or
+                // no FTE for this cooperative), reverse the debit to avoid
+                // fiat destruction. The cash stays in the cooperative.
+                if routed_total + (actual_total * DIVIDEND_WITHHOLDING_TAX_RATE) < actual_total - 0.01 {
+                    // Reverse: credit back the un-routed portion
+                    let un_routed = actual_total - routed_total - (actual_total * DIVIDEND_WITHHOLDING_TAX_RATE);
+                    if un_routed > 0.0 {
+                        if let Some(ref mut ba) = company.brokerage_account {
+                            ba.cash += un_routed;
+                        } else {
+                            company.available_cash += un_routed;
+                        }
+                        company.aggregated_stats.total_dividends -= un_routed;
+                    }
+                }
+
+                // R1.2: Record the successfully routed patronage in the pool.
+                if let crate::entities::LegalForm::Cooperative(ref mut coop_data) = company.legal_form {
+                    coop_data.patronage_pool = routed_total;
+                }
+
+                // Cooperative patronage routing complete — skip JSC logic.
+                return;
+            }
+
             let owners = company.owners.clone();
             let shares_count = company.shares_count;
             let free_float = company.free_float;
@@ -1294,10 +1473,11 @@ fn apply_action(
             shares_to_float,
             reserve_price,
         } => {
-            // Phase 24A.7: Fix IPO to use real buyer cash, not synthetic proceeds.
+            // Phase 24A.7/R2.2: Fix IPO to use real buyer cash, not synthetic proceeds.
             // Previously, `company.liquid_capital += proceeds` created money from
-            // nothing — no buyer was ever debited. Now we route through the stock
-            // exchange's execute_ipo which validates and debits real buyers.
+            // nothing — no buyer was ever debited. Now we queue the IPO for the
+            // post-pass which validates and debits real buyers. Shares are only
+            // issued if buyers are found (no phantom dilution).
             let default_sector_share = SectorShare {
                 gdp_share: 0.0,
                 crisis_vulnerability: None,
@@ -1349,14 +1529,34 @@ fn apply_action(
                 &ctx,
             ) {
                 let _ = ctx;
-                // Phase 24A.7: Collect real buyers from funds with brokerage accounts.
-                // We queue the IPO for execution in process_companies post-pass
-                // where we have access to the full companies slice.
+                // R5.1: For cooperative-to-JSC conversion, the members own
+                // 100% of the pre-IPO shares. These shares are backed by
+                // the cooperative's existing capital (not unbacked).
+                // The IPO only floats the free-float portion to real buyers.
+                let was_cooperative = matches!(
+                    company.legal_form,
+                    crate::entities::LegalForm::Cooperative(_)
+                );
+
                 let company_id = company.id.clone();
                 country
                     .ipo_queue
                     .push((company_id, shares_to_float, reserve_price));
                 company.legal_form = new_form;
+
+                if was_cooperative {
+                    // R5.1: Set MEMBERS as the owner of pre-IPO shares.
+                    // The cooperative's capital backs these shares.
+                    company.owners.insert("MEMBERS".to_string(), 1.0);
+                    // Set shares_count to the pre-IPO shares (member_count * 100)
+                    // BEFORE adding the floated shares.
+                    if let crate::entities::LegalForm::JointStockCompany(ref data) =
+                        company.legal_form
+                    {
+                        company.shares_count = data.shares_issued;
+                    }
+                }
+
                 // Don't credit proceeds here — they'll be credited when the IPO
                 // is executed with real buyer cash in the post-pass.
                 company.shares_count += shares_to_float;
@@ -1373,6 +1573,88 @@ fn apply_action(
         | CorporateAction::RaiseWages { .. }
         | CorporateAction::CutWages { .. }
         | CorporateAction::Idle => {}
+        CorporateAction::TransformLegalForm {
+            transition,
+            buyout_amount,
+        } => {
+            // R4.2: Apply legal-form transformation with real buyout.
+            // Clone the necessary data first to avoid borrow conflicts.
+            let sector_pmi = market_signal.sector_outlook(company.sector);
+            let stock_confidence = country.budget.stock_market.confidence;
+            let private_capital_pool = country.budget.private_capital;
+            let bank_credit_rate = market_signal.interest_rate;
+            let average_wage = country.macro_indicators.average_wage;
+            let company_clone = company.clone();
+
+            let transition_ctx = crate::entities::legal_form::TransitionContext {
+                company: &company_clone,
+                sector_pmi,
+                stock_confidence,
+                market_signal,
+                private_capital_pool,
+                bank_credit_rate,
+                average_wage,
+            };
+
+            // Attempt the transition. The old legal form is consumed by
+            // try_transition (it takes `self`), so we clone it first to
+            // allow restoration on error.
+            let old_legal_form = company.legal_form.clone();
+            let placeholder = crate::entities::LegalForm::JointStockCompany(
+                crate::entities::JointStockData::default(),
+            );
+            let form_to_try = std::mem::replace(&mut company.legal_form, placeholder);
+            match form_to_try.try_transition(transition, &transition_ctx) {
+                Ok(new_form) => {
+                    // R4.3: Family-business buyout — the family is paid for
+                    // their ownership stake. The buyout amount is debited
+                    // from the company's cash and credited to the family's
+                    // savings (via the dynasty/owner). This is a real
+                    // counterparty transfer (Rule 1: closed-loop).
+                    if buyout_amount > 0.0 {
+                        let available = company
+                            .brokerage_account
+                            .as_ref()
+                            .map(|ba| ba.cash.max(0.0))
+                            .unwrap_or(company.available_cash.max(0.0));
+                        let actual_buyout = buyout_amount.min(available);
+                        if actual_buyout > 0.0 {
+                            // Debit company cash
+                            if let Some(ref mut ba) = company.brokerage_account {
+                                ba.cash -= actual_buyout;
+                            } else {
+                                company.available_cash -= actual_buyout;
+                            }
+                            // Credit to the family's savings. The family is
+                            // identified by the dynasty_id from the old form.
+                            // Route to Aristocracy savings (family owners are
+                            // aristocratic class) in the company's region.
+                            let region_id = company.region_id.clone();
+                            for region in &mut country.regions {
+                                if region.id == region_id {
+                                    if let Some(aristocracy) = region
+                                        .class_demographics
+                                        .rural_classes
+                                        .get_mut(
+                                            &crate::society::geography::RuralClass::Aristocracy,
+                                        )
+                                    {
+                                        aristocracy.savings += actual_buyout;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    company.legal_form = new_form;
+                }
+                Err(err) => {
+                    // Transition rejected — restore the old form.
+                    company.legal_form = old_legal_form;
+                    let _ = err;
+                }
+            }
+        }
         CorporateAction::Furlough {
             fte_count,
             wage_fraction,

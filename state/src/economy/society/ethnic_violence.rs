@@ -15,7 +15,7 @@
 use crate::economy::disasters::{DisasterEvent, DisasterType};
 use crate::registries::enums::Commodity;
 use crate::society::culture_registry::{registry as culture_registry, ReligionDefinition};
-use crate::society::geography::Region;
+use crate::society::geography::{Region, RuralClass, UrbanClass};
 use crate::state::Country;
 use std::collections::BTreeMap;
 
@@ -90,7 +90,7 @@ pub struct PogromResult {
 ///
 /// # Rules
 /// * Pogroms require: unrest > threshold, cultural_distance > threshold, justice_coverage < threshold.
-/// * Not under "Otwarte Obywatelstwo" (OpenCitizenship) law.
+/// * Not under "open_citizenship" (OpenCitizenship) law.
 /// * Wealth transfer is zero-sum: minority loses exactly what dominant gains.
 /// * Security/Justice capacity mitigates severity.
 pub fn check_pogrom_triggers(
@@ -105,7 +105,7 @@ pub fn check_pogrom_triggers(
     let civil_rights_law = country.politics.civil_rights_law.clone();
 
     // OpenCitizenship prevents pogroms.
-    if civil_rights_law == "Otwarte Obywatelstwo" {
+    if civil_rights_law == "open_citizenship" {
         return results;
     }
 
@@ -265,8 +265,8 @@ struct ClassMapPogromResult {
 }
 
 /// Check a single class map (rural or urban) for pogrom triggers.
-fn check_class_map_pogrom(
-    class_map: &BTreeMap<String, crate::society::geography::ClassDemographics>,
+fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
+    class_map: &BTreeMap<K, crate::society::geography::ClassDemographics>,
     _class_type: &str,
     dominant_religion: &str,
     dominant_religion_def: Option<&ReligionDefinition>,
@@ -350,7 +350,7 @@ fn check_class_map_pogrom(
         result.severity = severity;
         result.wealth_transferred = transfer;
         result.casualties = casualties + emigration;
-        result.minority_class = class_name.clone();
+        result.minority_class = class_name.to_string();
         result.event = Some(DisasterEvent {
             disaster_type: DisasterType::Pogrom,
             region_id: region_id.to_string(),
@@ -369,8 +369,8 @@ fn check_class_map_pogrom(
 }
 
 /// Find the savings per capita of the dominant religion class.
-fn find_dominant_savings_per_capita(
-    class_map: &BTreeMap<String, crate::society::geography::ClassDemographics>,
+fn find_dominant_savings_per_capita<K: Ord>(
+    class_map: &BTreeMap<K, crate::society::geography::ClassDemographics>,
     dominant_religion: &str,
 ) -> f64 {
     let mut total_savings = 0.0;
@@ -402,27 +402,51 @@ fn apply_wealth_transfer(
         return;
     }
 
-    let class_map = if class_type == "rural" {
-        &mut region.class_demographics.rural_classes
+    if class_type == "rural" {
+        if let Some(rk) = RuralClass::from_str(minority_class) {
+            if let Some(minority) = region.class_demographics.rural_classes.get_mut(&rk) {
+                let debit = minority.savings.min(amount);
+                minority.savings -= debit;
+
+                let dominant_pop: f64 = region
+                    .class_demographics
+                    .rural_classes
+                    .values()
+                    .filter(|d| d.religion == *dominant_religion || d.religion.is_empty())
+                    .map(|d| d.population as f64)
+                    .sum();
+
+                if dominant_pop > 0.0 {
+                    for demo in region.class_demographics.rural_classes.values_mut() {
+                        if demo.religion == *dominant_religion || demo.religion.is_empty() {
+                            let share = (demo.population as f64) / dominant_pop;
+                            demo.savings += debit * share;
+                        }
+                    }
+                }
+            }
+        }
     } else {
-        &mut region.class_demographics.urban_classes
-    };
+        if let Some(uk) = UrbanClass::from_str(minority_class) {
+            if let Some(minority) = region.class_demographics.urban_classes.get_mut(&uk) {
+                let debit = minority.savings.min(amount);
+                minority.savings -= debit;
 
-    if let Some(minority) = class_map.get_mut(minority_class) {
-        let debit = minority.savings.min(amount);
-        minority.savings -= debit;
+                let dominant_pop: f64 = region
+                    .class_demographics
+                    .urban_classes
+                    .values()
+                    .filter(|d| d.religion == *dominant_religion || d.religion.is_empty())
+                    .map(|d| d.population as f64)
+                    .sum();
 
-        let dominant_pop: f64 = class_map
-            .values()
-            .filter(|d| d.religion == *dominant_religion || d.religion.is_empty())
-            .map(|d| d.population as f64)
-            .sum();
-
-        if dominant_pop > 0.0 {
-            for demo in class_map.values_mut() {
-                if demo.religion == *dominant_religion || demo.religion.is_empty() {
-                    let share = (demo.population as f64) / dominant_pop;
-                    demo.savings += debit * share;
+                if dominant_pop > 0.0 {
+                    for demo in region.class_demographics.urban_classes.values_mut() {
+                        if demo.religion == *dominant_religion || demo.religion.is_empty() {
+                            let share = (demo.population as f64) / dominant_pop;
+                            demo.savings += debit * share;
+                        }
+                    }
                 }
             }
         }
@@ -440,15 +464,20 @@ fn reduce_minority_population(
         return;
     }
 
-    let class_map = if class_type == "rural" {
-        &mut region.class_demographics.rural_classes
+    if class_type == "rural" {
+        if let Some(rk) = RuralClass::from_str(minority_class) {
+            if let Some(demo) = region.class_demographics.rural_classes.get_mut(&rk) {
+                let new_pop = (demo.population - reduction).max(0);
+                demo.population = new_pop;
+            }
+        }
     } else {
-        &mut region.class_demographics.urban_classes
-    };
-
-    if let Some(demo) = class_map.get_mut(minority_class) {
-        let new_pop = (demo.population - reduction).max(0);
-        demo.population = new_pop;
+        if let Some(uk) = UrbanClass::from_str(minority_class) {
+            if let Some(demo) = region.class_demographics.urban_classes.get_mut(&uk) {
+                let new_pop = (demo.population - reduction).max(0);
+                demo.population = new_pop;
+            }
+        }
     }
 
     region.population = (region.population - reduction).max(0);
@@ -457,7 +486,7 @@ fn reduce_minority_population(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::ClassDemographics;
+    use crate::society::geography::{ClassDemographics, RuralClass};
     use crate::state::Country;
 
     fn make_test_region_with_minority() -> Region {
@@ -480,11 +509,11 @@ mod tests {
         region
             .class_demographics
             .rural_classes
-            .insert("minority_class".to_string(), minority);
+            .insert(RuralClass::FreePeasant, minority);
         region
             .class_demographics
             .rural_classes
-            .insert("dominant_class".to_string(), dominant);
+            .insert(RuralClass::Aristocracy, dominant);
 
         region
     }
@@ -493,10 +522,10 @@ mod tests {
     fn test_pogrom_wealth_transfer_zero_sum() {
         let mut region = make_test_region_with_minority();
 
-        apply_wealth_transfer(&mut region, "minority_class", "rural", "Catholicism", 500.0);
+        apply_wealth_transfer(&mut region, "FreePeasant", "rural", "Catholicism", 500.0);
 
-        let minority = &region.class_demographics.rural_classes["minority_class"];
-        let dominant = &region.class_demographics.rural_classes["dominant_class"];
+        let minority = &region.class_demographics.rural_classes[&RuralClass::FreePeasant];
+        let dominant = &region.class_demographics.rural_classes[&RuralClass::Aristocracy];
 
         assert!(
             (minority.savings - 4500.0).abs() < 0.01,
@@ -515,7 +544,7 @@ mod tests {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.social_unrest = 30.0;
         country.macro_indicators.culture = "Illyria".to_string();
-        country.politics.civil_rights_law = "5-Year Assimilation".to_string();
+        country.politics.civil_rights_law = "5_year_assimilation".to_string();
 
         let config = PogromConfig::default();
         let results = check_pogrom_triggers(&mut country, &[], &config, 1);
@@ -531,7 +560,7 @@ mod tests {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.social_unrest = 80.0;
         country.macro_indicators.culture = "Illyria".to_string();
-        country.politics.civil_rights_law = "Otwarte Obywatelstwo".to_string();
+        country.politics.civil_rights_law = "open_citizenship".to_string();
 
         let config = PogromConfig::default();
         let results = check_pogrom_triggers(&mut country, &[], &config, 1);
@@ -544,7 +573,7 @@ mod tests {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.social_unrest = 80.0;
         country.macro_indicators.culture = "Illyria".to_string();
-        country.politics.civil_rights_law = "5-Year Assimilation".to_string();
+        country.politics.civil_rights_law = "5_year_assimilation".to_string();
 
         let mut building = crate::entities::Building::default();
         building
@@ -566,13 +595,13 @@ mod tests {
         let mut region = make_test_region_with_minority();
         let original_pop = region.population;
         let original_minority_pop =
-            region.class_demographics.rural_classes["minority_class"].population;
+            region.class_demographics.rural_classes[&RuralClass::FreePeasant].population;
 
-        reduce_minority_population(&mut region, "minority_class", "rural", 200);
+        reduce_minority_population(&mut region, "FreePeasant", "rural", 200);
 
         assert_eq!(region.population, original_pop - 200);
         assert_eq!(
-            region.class_demographics.rural_classes["minority_class"].population,
+            region.class_demographics.rural_classes[&RuralClass::FreePeasant].population,
             original_minority_pop - 200
         );
     }

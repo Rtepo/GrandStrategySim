@@ -7,7 +7,7 @@ use crate::economy::market::GlobalMarket;
 use crate::economy::order_book::{Bid, OrderBook};
 use crate::entities::legal_form::LatifundiumData;
 use crate::registries::enums::Commodity;
-use crate::society::geography::Region;
+use crate::society::geography::{Region, RuralClass};
 
 /// Religious/Cultural building types
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -330,7 +330,7 @@ fn collect_class_donations(
 
 /// Debit serf class savings for latifundium surplus extraction.
 fn debit_serf_savings(region: &mut Region, amount: f64) {
-    if let Some(demographics) = region.class_demographics.rural_classes.get_mut("serf") {
+    if let Some(demographics) = region.class_demographics.rural_classes.get_mut(&RuralClass::Serf) {
         let actual = amount.min(demographics.savings.max(0.0));
         demographics.savings -= actual;
     }
@@ -361,7 +361,7 @@ pub fn distribute_cash_relief(
         for (class_name, demographics) in &regions[region_idx].class_demographics.rural_classes {
             if demographics.population > 0 {
                 eligible.push((
-                    class_name.clone(),
+                    class_name.to_string(),
                     demographics.savings_per_capita,
                     demographics.population,
                 ));
@@ -382,17 +382,19 @@ pub fn distribute_cash_relief(
                 break;
             }
             let transfer = (per_capita_relief * *pop as f64).min(remaining);
-            if let Some(demographics) = regions[region_idx]
-                .class_demographics
-                .rural_classes
-                .get_mut(class_name)
-            {
-                demographics.savings += transfer;
-                demographics.savings_per_capita = if demographics.population > 0 {
-                    demographics.savings / demographics.population as f64
-                } else {
-                    0.0
-                };
+            if let Some(rk) = RuralClass::from_str(class_name) {
+                if let Some(demographics) = regions[region_idx]
+                    .class_demographics
+                    .rural_classes
+                    .get_mut(&rk)
+                {
+                    demographics.savings += transfer;
+                    demographics.savings_per_capita = if demographics.population > 0 {
+                        demographics.savings / demographics.population as f64
+                    } else {
+                        0.0
+                    };
+                }
             }
             building.available_cash -= transfer;
             building.relief_distributed_this_turn += transfer;

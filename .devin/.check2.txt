@@ -1,0 +1,234 @@
+﻿error[E0433]: cannot find type `RuralClass` in this scope
+   --> state\src\economy\finance\debt_market.rs:900:50
+error[E0433]: cannot find type `UrbanClass` in this scope
+   --> state\src\economy\finance\debt_market.rs:905:61
+error[E0433]: cannot find type `UrbanClass` in this scope
+   --> state\src\economy\finance\debt_market.rs:912:57
+error[E0425]: cannot find type `RuralClass` in this scope
+   --> state\src\economy\labor\labor.rs:534:48
+error[E0425]: cannot find type `UrbanClass` in this scope
+   --> state\src\economy\labor\labor.rs:565:48
+  --> state\src\economy\justice\legal_status.rs:21:33
+  --> state\src\economy\religion\propaganda.rs:17:33
+  --> state\src\economy\trade\retail.rs:14:71
+  --> state\src\engine\turn.rs:59:33
+error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `RuralClass`
+   --> state\src\economy\justice\legal_status.rs:363:14
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\vec\mod.rs:3923:0
+   --> state\src\economy\justice\legal_status.rs:362:14
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:2077:4
+error[E0308]: mismatched types
+   --> state\src\economy\justice\legal_status.rs:369:30
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0277]: a value of type `Vec<std::string::String>` cannot be built from an iterator over elements of type `UrbanClass`
+   --> state\src\economy\justice\legal_status.rs:388:14
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\vec\mod.rs:3923:0
+   --> state\src\economy\justice\legal_status.rs:387:14
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:2077:4
+error[E0308]: mismatched types
+   --> state\src\economy\justice\legal_status.rs:394:30
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\economy\justice\prison_labor.rs:629:86
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\economy\justice\prison_labor.rs:649:90
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0271]: expected `{closure@labor.rs:811:26}` to return `(bool, RuralClass)`, but it returns `(bool, UrbanClass)`
+   --> state\src\economy\labor\labor.rs:811:30
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+error[E0599]: the method `collect` exists for struct `Chain<Map<Keys<'_, RuralClass, ClassDemographics>, ...>, ...>`, but its trait bounds were not satisfied
+   --> state\src\economy\labor\labor.rs:813:14
+error[E0308]: mismatched types
+   --> state\src\economy\labor\labor.rs:820:65
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\economy\labor\labor.rs:836:69
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:348:44
+   --> state\src\economy\religion\propaganda.rs:348:39
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\option.rs:605:4
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:360:44
+   --> state\src\economy\religion\propaganda.rs:360:39
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\option.rs:605:4
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:391:61
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:393:61
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:445:69
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\economy\religion\propaganda.rs:447:69
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\economy\society\ethnic_violence.rs:181:9
+   --> state\src\economy\society\ethnic_violence.rs:268:4
+error[E0308]: mismatched types
+   --> state\src\economy\society\ethnic_violence.rs:219:9
+   --> state\src\economy\society\ethnic_violence.rs:268:4
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\society\ethnic_violence.rs:408:9
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\society\ethnic_violence.rs:446:9
+error[E0308]: mismatched types
+    --> state\src\economy\trade\retail.rs:1138:17
+    --> state\src\economy\trade\transfer_settler.rs:353:8
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\trade\transfer_settler.rs:287:21
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\trade\transfer_settler.rs:377:13
+error[E0308]: mismatched types
+   --> state\src\economy\trade\transfer_settler.rs:578:36
+error[E0308]: mismatched types
+   --> state\src\economy\trade\transfer_settler.rs:584:37
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\trade\transfer_settler.rs:600:13
+error[E0308]: mismatched types
+   --> state\src\economy\trade\transfer_settler.rs:622:36
+error[E0308]: mismatched types
+   --> state\src\economy\trade\transfer_settler.rs:628:37
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\economy\trade\transfer_settler.rs:643:13
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:3490:22
+error[E0308]: `if` and `else` have incompatible types
+    --> state\src\engine\turn.rs:3589:33
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:3851:22
+error[E0277]: a value of type `Vec<(std::string::String, f64, f64)>` cannot be built from an iterator over elements of type `(RuralClass, f64, f64)`
+    --> state\src\engine\turn.rs:6362:34
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\vec\mod.rs:3923:0
+    --> state\src\engine\turn.rs:6359:34
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:2077:4
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:6473:81
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:6529:77
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:6718:75
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:6721:77
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:7656:26
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:7659:90
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+    --> state\src\engine\turn.rs:7670:83
+    --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\infrastructure\cultural.rs:333:81
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\infrastructure\cultural.rs:364:21
+error[E0308]: mismatched types
+   --> state\src\infrastructure\cultural.rs:388:26
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+    --> state\src\military\war_economy.rs:417:49
+    --> state\src\military\war_economy.rs:1053:4
+error[E0308]: mismatched types
+   --> state\src\military\war_economy.rs:421:32
+error[E0308]: mismatched types
+   --> state\src\military\war_economy.rs:440:28
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\military\war_economy.rs:463:17
+error[E0308]: mismatched types
+   --> state\src\military\war_economy.rs:554:89
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\politics\campaign.rs:428:42
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+error[E0308]: mismatched types
+   --> state\src\politics\campaign.rs:430:83
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+error[E0308]: mismatched types
+   --> state\src\politics\campaign.rs:442:77
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\politics\campaign.rs:453:77
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0277]: the trait bound `std::string::String: Borrow<RuralClass>` is not satisfied
+   --> state\src\politics\elections.rs:574:22
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\str.rs:229:0
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:4
+error[E0277]: the trait bound `std::string::String: Borrow<UrbanClass>` is not satisfied
+   --> state\src\politics\elections.rs:600:22
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\str.rs:229:0
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:4
+error[E0277]: the trait bound `std::string::String: Borrow<RuralClass>` is not satisfied
+   --> state\src\politics\interest_groups.rs:136:22
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\str.rs:229:0
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:4
+error[E0277]: the trait bound `std::string::String: Borrow<RuralClass>` is not satisfied
+   --> state\src\politics\interest_groups.rs:262:22
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\str.rs:229:0
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:4
+error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+   --> state\src\politics\lobbying.rs:318:16
+   --> state\src\politics\lobbying.rs:318:61
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+error[E0599]: the method `max_by` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>>`, but its trait bounds were not satisfied
+   --> state\src\politics\lobbying.rs:319:10
+error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+   --> state\src\politics\mass_movements.rs:145:16
+   --> state\src\politics\mass_movements.rs:145:49
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+error[E0599]: the method `map` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>>`, but its trait bounds were not satisfied
+   --> state\src\politics\mass_movements.rs:146:10
+error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+   --> state\src\politics\mass_movements.rs:155:16
+   --> state\src\politics\mass_movements.rs:155:49
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+error[E0599]: the method `map` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>>`, but its trait bounds were not satisfied
+   --> state\src\politics\mass_movements.rs:156:10
+error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+   --> state\src\politics\mass_movements.rs:172:16
+   --> state\src\politics\mass_movements.rs:172:49
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+error[E0599]: the method `max_by` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>>`, but its trait bounds were not satisfied
+   --> state\src\politics\mass_movements.rs:173:10
+error[E0271]: type mismatch resolving `<Iter<'_, UrbanClass, ...> as IntoIterator>::Item == (&..., ...)`
+   --> state\src\politics\mass_movements.rs:387:16
+   --> state\src\politics\mass_movements.rs:387:49
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:510:4
+error[E0599]: the method `map` exists for struct `Chain<Iter<'_, RuralClass, ClassDemographics>, Iter<'_, ..., ...>>`, but its trait bounds were not satisfied
+   --> state\src\politics\mass_movements.rs:388:10
+error[E0308]: mismatched types
+   --> state\src\politics\mass_movements.rs:633:77
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\politics\mass_movements.rs:639:77
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0277]: can't compare `RuralClass` with `str`
+   --> state\src\politics\rebellions.rs:149:41
+   --> state\src\society\geography.rs:777:30
+error[E0277]: can't compare `RuralClass` with `str`
+   --> state\src\politics\rebellions.rs:149:61
+   --> state\src\society\geography.rs:777:30
+error[E0308]: mismatched types
+   --> state\src\politics\social_programs.rs:237:32
+error[E0308]: mismatched types
+   --> state\src\politics\social_programs.rs:256:32
+error[E0308]: mismatched types
+   --> state\src\politics\social_programs.rs:622:77
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\politics\social_programs.rs:626:77
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1006:11
+error[E0308]: mismatched types
+   --> state\src\society\charities.rs:240:45
+error[E0308]: mismatched types
+   --> state\src\society\charities.rs:258:46
+error[E0308]: `if` and `else` have incompatible types
+   --> state\src\society\charities.rs:280:17

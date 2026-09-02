@@ -133,7 +133,7 @@ fn calculate_nominal_power(
         for (class_key, class_data) in &region.class_demographics.rural_classes {
             let class_config = class_group_mapping
                 .rural_class_mapping
-                .get(class_key)
+                .get(&class_key.to_string())
                 .cloned()
                 .unwrap_or_else(|| {
                     // Default config for unmapped classes
@@ -259,7 +259,7 @@ fn calculate_financial_power(
         for (class_key, class_data) in &region.class_demographics.rural_classes {
             let class_config = class_group_mapping
                 .rural_class_mapping
-                .get(class_key)
+                .get(&class_key.to_string())
                 .cloned()
                 .unwrap_or_else(|| {
                     // Default config for unmapped classes

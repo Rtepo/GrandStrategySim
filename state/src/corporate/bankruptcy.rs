@@ -284,15 +284,12 @@ impl Syndic {
             let seized_fx = std::mem::take(&mut brokerage.fx_balances);
             for (currency_code, amount) in seized_fx {
                 if amount > 0.0 && currency_code != self.domestic_currency {
-                    match forex_market.execute_direct_swap(
+                    if let Ok(domestic_received) = forex_market.execute_direct_swap(
                         &currency_code,
                         &self.domestic_currency,
                         amount,
                     ) {
-                        Ok(domestic_received) => {
-                            brokerage.cash += domestic_received;
-                        }
-                        Err(_) => {}
+                        brokerage.cash += domestic_received;
                     }
                 }
             }

@@ -571,7 +571,7 @@ pub fn calculate_seats_wealth_census_with_threshold(
         for (class_key, demo) in &region.class_demographics.rural_classes {
             let group_name = class_group_mapping
                 .rural_class_mapping
-                .get(class_key)
+                .get(&class_key.to_string())
                 .map(|c| c.interest_group.clone())
                 .unwrap_or_else(|| class_group_mapping.default_group.clone());
 
@@ -597,7 +597,7 @@ pub fn calculate_seats_wealth_census_with_threshold(
         for (class_key, demo) in &region.class_demographics.urban_classes {
             let group_name = class_group_mapping
                 .urban_class_mapping
-                .get(class_key)
+                .get(&class_key.to_string())
                 .cloned()
                 .unwrap_or_else(|| class_group_mapping.default_group.clone());
 
@@ -679,7 +679,9 @@ mod tests {
     use super::*;
     use crate::politics::interest_groups::{ClassToGroupMapping, RuralClassConfig, SuffrageType};
     use crate::politics::system::Party;
-    use crate::society::geography::{ClassDemographics, Region, RegionalClassDemographics};
+    use crate::society::geography::{
+        ClassDemographics, Region, RegionalClassDemographics, RuralClass, UrbanClass,
+    };
 
     fn make_test_parties() -> HashMap<String, Party> {
         let mut parties = HashMap::new();
@@ -704,7 +706,7 @@ mod tests {
         let mut region = Region::default();
         let mut rural = std::collections::BTreeMap::new();
         rural.insert(
-            "Aristocracy".to_string(),
+            RuralClass::Aristocracy,
             ClassDemographics {
                 population: 1000,
                 savings: 5_000_000.0,
@@ -713,7 +715,7 @@ mod tests {
             },
         );
         rural.insert(
-            "LandlessLaborer".to_string(),
+            RuralClass::LandlessLaborer,
             ClassDemographics {
                 population: 10000,
                 savings: 50_000.0,
@@ -723,7 +725,7 @@ mod tests {
         );
         let mut urban = std::collections::BTreeMap::new();
         urban.insert(
-            "Bourgeoisie".to_string(),
+            UrbanClass::Bourgeoisie,
             ClassDemographics {
                 population: 3000,
                 savings: 3_000_000.0,
@@ -732,7 +734,7 @@ mod tests {
             },
         );
         urban.insert(
-            "Worker".to_string(),
+            UrbanClass::Worker,
             ClassDemographics {
                 population: 7000,
                 savings: 200_000.0,

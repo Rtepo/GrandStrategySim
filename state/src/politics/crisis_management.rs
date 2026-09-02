@@ -2052,7 +2052,7 @@ mod tests {
     #[test]
     fn starvation_mortality_reduces_destitute_population() {
         use crate::society::geography::{
-            ClassDemographics, EconomicStatus, Region, RegionalClassDemographics,
+            ClassDemographics, EconomicStatus, Region, RegionalClassDemographics, RuralClass,
         };
         use std::collections::BTreeMap;
 
@@ -2061,7 +2061,7 @@ mod tests {
         let mut classes = BTreeMap::new();
         // Destitute class with negative savings → should lose population.
         classes.insert(
-            "Peasants".to_string(),
+            RuralClass::FreePeasant,
             ClassDemographics {
                 population: 10_000,
                 savings: -50_000.0,
@@ -2072,7 +2072,7 @@ mod tests {
         );
         // Stable class → should NOT lose population.
         classes.insert(
-            "Merchants".to_string(),
+            RuralClass::Aristocracy,
             ClassDemographics {
                 population: 5_000,
                 savings: 100_000.0,
@@ -2093,7 +2093,7 @@ mod tests {
         assert!(deaths > 0, "Starvation should produce deaths");
 
         // The destitute class should have lost population.
-        let peasants = &country.regions[0].class_demographics.rural_classes["Peasants"];
+        let peasants = &country.regions[0].class_demographics.rural_classes[&RuralClass::FreePeasant];
         assert!(
             peasants.population < 10_000,
             "Destitute class population should decrease: {}",
@@ -2101,7 +2101,7 @@ mod tests {
         );
 
         // The stable class should NOT have lost population.
-        let merchants = &country.regions[0].class_demographics.rural_classes["Merchants"];
+        let merchants = &country.regions[0].class_demographics.rural_classes[&RuralClass::Aristocracy];
         assert_eq!(
             merchants.population, 5_000,
             "Stable class population should not change"
@@ -2111,7 +2111,7 @@ mod tests {
     #[test]
     fn starvation_mortality_rate_bounded_01_to_05_pct() {
         use crate::society::geography::{
-            ClassDemographics, EconomicStatus, Region, RegionalClassDemographics,
+            ClassDemographics, EconomicStatus, Region, RegionalClassDemographics, RuralClass,
         };
         use std::collections::BTreeMap;
 
@@ -2122,7 +2122,7 @@ mod tests {
         // Mild deficit: savings_per_capita = -100 → deficit_ratio = 1.0
         // mortality = 0.001 + 1.0 * 0.004 = 0.005 = 0.5%
         classes.insert(
-            "Mild".to_string(),
+            RuralClass::FreePeasant,
             ClassDemographics {
                 population: 100_000,
                 savings: -10_000_000.0,
@@ -2141,7 +2141,7 @@ mod tests {
         // With savings_per_capita = -100 and divisor 100: deficit_ratio = 1.0
         // mortality = 0.001 + 1.0 * 0.004 = 0.005 = 0.5% ✓
         classes.insert(
-            "Deep".to_string(),
+            RuralClass::Serf,
             ClassDemographics {
                 population: 100_000,
                 savings: -50_000_000.0,
@@ -2156,13 +2156,13 @@ mod tests {
         };
         country.regions = vec![region];
 
-        let initial_mild = country.regions[0].class_demographics.rural_classes["Mild"].population;
-        let initial_deep = country.regions[0].class_demographics.rural_classes["Deep"].population;
+        let initial_mild = country.regions[0].class_demographics.rural_classes[&RuralClass::FreePeasant].population;
+        let initial_deep = country.regions[0].class_demographics.rural_classes[&RuralClass::Serf].population;
 
         let _deaths = apply_starvation_mortality(&mut country);
 
-        let mild_pop = country.regions[0].class_demographics.rural_classes["Mild"].population;
-        let deep_pop = country.regions[0].class_demographics.rural_classes["Deep"].population;
+        let mild_pop = country.regions[0].class_demographics.rural_classes[&RuralClass::FreePeasant].population;
+        let deep_pop = country.regions[0].class_demographics.rural_classes[&RuralClass::Serf].population;
 
         let mild_rate = (initial_mild - mild_pop) as f64 / initial_mild as f64;
         let deep_rate = (initial_deep - deep_pop) as f64 / initial_deep as f64;
@@ -2192,16 +2192,16 @@ mod tests {
     #[test]
     fn starvation_no_effect_on_non_destitute() {
         use crate::society::geography::{
-            ClassDemographics, EconomicStatus, Region, RegionalClassDemographics,
+            ClassDemographics, EconomicStatus, Region, RegionalClassDemographics, UrbanClass,
         };
         use std::collections::BTreeMap;
 
         let mut country = Country::default();
         let mut region = Region::default();
-        let mut classes = BTreeMap::new();
+        let mut urban = BTreeMap::new();
         // Struggling class with negative savings → should NOT starve (not Destitute).
-        classes.insert(
-            "Workers".to_string(),
+        urban.insert(
+            UrbanClass::Worker,
             ClassDemographics {
                 population: 10_000,
                 savings: -10_000.0,
@@ -2211,8 +2211,8 @@ mod tests {
             },
         );
         region.class_demographics = RegionalClassDemographics {
-            rural_classes: classes,
-            urban_classes: BTreeMap::new(),
+            rural_classes: BTreeMap::new(),
+            urban_classes: urban,
         };
         country.regions = vec![region];
 

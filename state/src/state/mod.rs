@@ -423,6 +423,10 @@ pub struct Country {
     /// Resurrection Phase 1: Cultural/religious institutions as economic actors
     #[serde(default)]
     pub cultural_institutions: Vec<crate::infrastructure::cultural::CulturalBuilding>,
+    /// R2.1: Cooperative federations — deterministic associations of cooperatives
+    /// for shared administrative services and joint debt issuance.
+    #[serde(default)]
+    pub cooperative_federations: Vec<crate::corporate::federation::CooperativeFederation>,
     /// Resurrection Phase 1: Maritime infrastructure (shipyards, ports, docks)
     #[serde(default)]
     pub maritime_infrastructure: crate::infrastructure::maritime::MaritimeInfrastructure,
@@ -728,6 +732,7 @@ impl Country {
             economic_policy: EconomicPolicy::default(),
             debt_market: crate::economy::debt_market::DebtMarket::default(),
             cultural_institutions: Vec::new(),
+            cooperative_federations: Vec::new(),
             maritime_infrastructure:
                 crate::infrastructure::maritime::MaritimeInfrastructure::default(),
             cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(
@@ -1123,6 +1128,7 @@ impl CountryBuilder {
             economic_policy: EconomicPolicy::default(),
             debt_market: crate::economy::debt_market::DebtMarket::default(),
             cultural_institutions: Vec::new(),
+            cooperative_federations: Vec::new(),
             maritime_infrastructure:
                 crate::infrastructure::maritime::MaritimeInfrastructure::default(),
             cultural_relief_config: crate::infrastructure::cultural::CulturalReliefConfig::default(

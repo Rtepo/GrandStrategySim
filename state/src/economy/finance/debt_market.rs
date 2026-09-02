@@ -8,6 +8,7 @@
 //! with arrears capitalization, credit rating crashes, and primary market
 //! lockout.
 
+use crate::society::geography::{RuralClass, UrbanClass};
 use crate::state::macro_data::{annual_to_per_turn_rate, TURNS_PER_YEAR};
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
@@ -626,7 +627,14 @@ pub fn clear_savings_bonds_b2c(country: &mut Country, current_turn: u32) {
             .class_demographics
             .rural_classes
             .iter_mut()
-            .chain(region.class_demographics.urban_classes.iter_mut())
+            .map(|(k, v)| (k.to_string(), v))
+            .chain(
+                region
+                    .class_demographics
+                    .urban_classes
+                    .iter_mut()
+                    .map(|(k, v)| (k.to_string(), v)),
+            )
         {
             if cd.savings <= 0.0 {
                 continue;
@@ -890,14 +898,24 @@ pub fn process_debt_service(
                 for region in &mut country.regions {
                     if region.id == region_id {
                         // Try rural classes first, then urban
-                        if let Some(class) =
-                            region.class_demographics.rural_classes.get_mut(class_name)
-                        {
-                            class.savings += actual_credit;
-                        } else if let Some(class) =
-                            region.class_demographics.urban_classes.get_mut(class_name)
-                        {
-                            class.savings += actual_credit;
+                        if let Some(rural_key) = RuralClass::from_str(class_name) {
+                            if let Some(class) =
+                                region.class_demographics.rural_classes.get_mut(&rural_key)
+                            {
+                                class.savings += actual_credit;
+                            } else if let Some(urban_key) = UrbanClass::from_str(class_name) {
+                                if let Some(class) =
+                                    region.class_demographics.urban_classes.get_mut(&urban_key)
+                                {
+                                    class.savings += actual_credit;
+                                }
+                            }
+                        } else if let Some(urban_key) = UrbanClass::from_str(class_name) {
+                            if let Some(class) =
+                                region.class_demographics.urban_classes.get_mut(&urban_key)
+                            {
+                                class.savings += actual_credit;
+                            }
                         }
                         break;
                     }

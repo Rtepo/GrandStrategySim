@@ -9,7 +9,6 @@ use std::collections::{BTreeMap, HashMap, VecDeque};
 
 use crate::entities::{Building, Company};
 use crate::registries::enums::Commodity;
-use crate::securities::brokerage::BrokerageAccount;
 use crate::securities::covered_bonds::CoveredBond;
 use crate::securities::mbs::TranchePriority;
 use crate::state::treasury::Treasury;
@@ -703,406 +702,6 @@ impl StockExchange {
         }
     }
 
-    /// Execute a limit order against the order book.
-    ///
-    /// # Arguments
-    /// * `order` - The limit order to execute
-    /// * `brokerage_accounts` - Map of entity_id -> mutable brokerage account
-    ///
-    /// # Returns
-    /// Tuple of (executed trades, remaining unfilled quantity)
-    ///
-    /// # Rules
-    /// * Buy orders match against asks at or below limit price
-    /// * Sell orders match against bids at or above limit price
-    /// * Execution price = midpoint of best bid and best ask
-    /// * Double-entry: buyer cash → seller cash, seller shares → buyer shares
-    /// * Transaction fees deducted from both sides
-    pub fn execute_limit_order(
-        &mut self,
-        order: Order,
-        brokerage_accounts: &mut BTreeMap<String, &mut BrokerageAccount>,
-    ) -> (Vec<Trade>, u64) {
-        let instrument_id = order.instrument_id().to_string();
-        let is_buy = matches!(order, Order::Buy { .. });
-        let limit_price = order.limit_price();
-        let mut remaining_qty = order.quantity();
-        let mut trades = Vec::new();
-        let mut trade_counter = self.trade_history.len();
-
-        // Ensure order book entry exists
-        let book = self.order_book.entry(instrument_id.clone()).or_default();
-
-        loop {
-            if remaining_qty == 0 {
-                break;
-            }
-
-            // Find best matching price level
-            let best_idx = if is_buy {
-                // Buy: find lowest ask <= limit_price
-                book.asks
-                    .iter()
-                    .position(|(price, _)| *price <= limit_price)
-            } else {
-                // Sell: find highest bid >= limit_price
-                book.bids
-                    .iter()
-                    .rposition(|(price, _)| *price >= limit_price)
-            };
-
-            let best_idx = match best_idx {
-                Some(idx) => idx,
-                None => break, // No matching orders
-            };
-
-            let (match_price, match_orders) = if is_buy {
-                &mut book.asks[best_idx]
-            } else {
-                &mut book.bids[best_idx]
-            };
-
-            let match_price_val = *match_price;
-            if match_orders.is_empty() {
-                break;
-            }
-
-            // Take the first order at this price level
-            let counter_order = match_orders.first_mut().unwrap();
-            let counter_investor = counter_order.investor_id().to_string();
-            let counter_qty = counter_order.quantity();
-            let fill_qty = remaining_qty.min(counter_qty);
-            let exec_price = match_price_val;
-
-            // Determine buyer and seller
-            let (buyer_id, seller_id) = if is_buy {
-                (order.investor_id().to_string(), counter_investor.clone())
-            } else {
-                (counter_investor.clone(), order.investor_id().to_string())
-            };
-
-            // Double-entry settlement
-            let cost = fill_qty as f64 * exec_price;
-            let fee = cost * self.transaction_fee;
-
-            // Settle buyer and seller separately to avoid double mutable borrow
-            if let Some(buyer_acct) = brokerage_accounts.get_mut(&buyer_id) {
-                buyer_acct.frozen_cash -= cost;
-                buyer_acct.add_lot(&instrument_id, fill_qty, exec_price, 0);
-                buyer_acct.cash -= fee;
-            }
-            if let Some(seller_acct) = brokerage_accounts.get_mut(&seller_id) {
-                seller_acct.cash += cost - fee;
-                // FIFO sell — realized gain/loss is tracked by the caller via capital gains registry
-                let _ = seller_acct.sell_fifo(&instrument_id, fill_qty, exec_price);
-            }
-
-            // Record trade
-            trade_counter += 1;
-            trades.push(Trade {
-                id: format!("TRADE-{}", trade_counter),
-                instrument_id: instrument_id.clone(),
-                buyer_id,
-                seller_id,
-                quantity: fill_qty,
-                price: exec_price,
-                turn: 0, // Set by caller
-            });
-
-            // Update quantities
-            remaining_qty -= fill_qty;
-            counter_order.reduce_quantity(fill_qty);
-
-            // Remove filled counter order
-            if counter_order.is_filled() {
-                match_orders.remove(0);
-            }
-
-            // Clean up empty price levels
-            if match_orders.is_empty() {
-                if is_buy {
-                    book.asks.remove(best_idx);
-                } else {
-                    book.bids.remove(best_idx);
-                }
-            }
-        }
-
-        // Update best bid/ask
-        book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
-        book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
-
-        // Store remaining order in book if not fully filled
-        if remaining_qty > 0 {
-            let book = self.order_book.entry(instrument_id.clone()).or_default();
-            let order_price = order.limit_price();
-            if is_buy {
-                if let Some(pos) = book.bids.iter().position(|(p, _)| *p == order_price) {
-                    book.bids[pos].1.push(order);
-                } else {
-                    book.bids.push((order_price, vec![order]));
-                    book.bids
-                        .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
-                }
-                book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
-            } else {
-                if let Some(pos) = book.asks.iter().position(|(p, _)| *p == order_price) {
-                    book.asks[pos].1.push(order);
-                } else {
-                    book.asks.push((order_price, vec![order]));
-                    book.asks
-                        .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
-                }
-                book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
-            }
-        }
-
-        (trades, remaining_qty)
-    }
-
-    /// Execute a market order against AMM pool.
-    ///
-    /// # Arguments
-    /// * `investor_id` - Entity placing the market order
-    /// * `instrument_id` - Instrument to trade
-    /// * `is_buy` - true for buy, false for sell
-    /// * `quantity` - Number of units
-    /// * `brokerage_accounts` - Map of entity_id -> mutable brokerage account
-    ///
-    /// # Returns
-    /// Trade record if successful, None if no liquidity pool exists
-    ///
-    /// # Rules
-    /// * Routes to AMM LiquidityPool
-    /// * Slippage: price = (pool.cash / pool.shares) * (1 + qty/pool.shares * slippage_factor)
-    /// * Double-entry: pool cash ↔ shares swap
-    pub fn execute_market_order(
-        &mut self,
-        investor_id: &str,
-        instrument_id: &str,
-        is_buy: bool,
-        quantity: u64,
-        brokerage_accounts: &mut BTreeMap<String, &mut BrokerageAccount>,
-    ) -> Option<Trade> {
-        let pool = self.liquidity_pools.get_mut(instrument_id)?;
-        if pool.shares == 0 || pool.cash <= 0.0 {
-            return None;
-        }
-
-        let slippage = calculate_slippage(pool, quantity);
-        let base_price = pool.cash / pool.shares as f64;
-        let exec_price = if is_buy {
-            base_price * (1.0 + slippage)
-        } else {
-            base_price * (1.0 - slippage)
-        };
-
-        let cost = quantity as f64 * exec_price;
-        let fee = cost * pool.pool_fee;
-
-        let investor_acct = brokerage_accounts.get_mut(investor_id)?;
-
-        if is_buy {
-            if investor_acct.cash < cost + fee {
-                return None;
-            }
-            // Buyer pays cash, receives shares
-            investor_acct.cash -= cost + fee;
-            investor_acct.add_lot(instrument_id, quantity, exec_price, 0);
-            // Pool gains cash, loses shares
-            pool.cash += cost;
-            pool.shares -= quantity;
-        } else {
-            let current_holding = investor_acct.get_quantity(instrument_id);
-            if current_holding < quantity {
-                return None;
-            }
-            // Seller receives cash, loses shares (FIFO)
-            investor_acct.cash += cost - fee;
-            let _ = investor_acct.sell_fifo(instrument_id, quantity, exec_price);
-            // Pool loses cash, gains shares
-            pool.cash -= cost;
-            pool.shares += quantity;
-        }
-
-        pool.total_value = pool.cash;
-
-        Some(Trade {
-            id: format!("AMM-{}", self.trade_history.len()),
-            instrument_id: instrument_id.to_string(),
-            buyer_id: if is_buy {
-                investor_id.to_string()
-            } else {
-                "POOL".to_string()
-            },
-            seller_id: if is_buy {
-                "POOL".to_string()
-            } else {
-                investor_id.to_string()
-            },
-            quantity,
-            price: exec_price,
-            turn: 0,
-        })
-    }
-
-    /// Execute IPO with closed-loop capital transfer and proper dilution.
-    ///
-    /// # Arguments
-    /// * `company` - The company going public
-    /// * `shares_to_float` - Number of new shares to issue
-    /// * `reserve_price` - Price per share
-    /// * `buyers` - Vector of (buyer_id, share_allocation) tuples
-    /// * `brokerage_accounts` - Map of entity_id -> brokerage account
-    ///
-    /// # Rules
-    /// * Verify buyers have sufficient cash
-    /// * Atomically transfer cash from buyers to issuer
-    /// * Credit shares to buyer's brokerage portfolios
-    /// * CRITICAL: Dilute existing owners before adding new buyers
-    /// * Recalculate all owner percentages based on new total share count
-    /// * Update free_float to reflect public ownership
-    pub fn execute_ipo(
-        &mut self,
-        company: &mut Company,
-        shares_to_float: u64,
-        reserve_price: f64,
-        buyers: &mut Vec<(String, u64)>,
-        brokerage_accounts: &mut BTreeMap<String, &mut BrokerageAccount>,
-    ) -> Result<(), String> {
-        let total_proceeds = shares_to_float as f64 * reserve_price;
-
-        // Verify buyers have sufficient cash
-        for (buyer_id, allocation) in buyers.iter() {
-            let cost = *allocation as f64 * reserve_price;
-            if let Some(brokerage) = brokerage_accounts.get_mut(buyer_id) {
-                if brokerage.cash < cost {
-                    return Err(format!("Buyer {} insufficient cash", buyer_id));
-                }
-            }
-        }
-
-        // Atomically transfer cash from buyers to issuer
-        for (buyer_id, allocation) in buyers.iter() {
-            let cost = *allocation as f64 * reserve_price;
-            if let Some(brokerage) = brokerage_accounts.get_mut(buyer_id) {
-                brokerage.cash -= cost;
-                brokerage.add_lot(
-                    &format!("EQUITY:{}", company.id),
-                    *allocation,
-                    reserve_price,
-                    0,
-                );
-            }
-        }
-
-        // Phase 56: Credit proceeds to issuing company's brokerage account (not liquid_capital).
-        // This is consistent with the closed-loop capital model where company cash
-        // lives in the brokerage account, not the direct liquid_capital field.
-        if let Some(ref mut acct) = company.brokerage_account {
-            acct.cash += total_proceeds;
-        } else {
-            // Fallback: if no brokerage account, credit to liquid_capital.
-            company.liquid_capital += total_proceeds;
-        }
-
-        // Calculate new total share count BEFORE updating shares_count
-        let old_shares_count = company.shares_count;
-        let new_shares_count = old_shares_count + shares_to_float;
-
-        // CRITICAL: Dilute existing owners based on new total
-        let mut diluted_owners: BTreeMap<String, f64> = BTreeMap::new();
-        for (owner_id, old_percentage) in company.owners.iter() {
-            let old_share_count = old_shares_count as f64 * old_percentage;
-            let new_percentage = old_share_count / new_shares_count as f64;
-            diluted_owners.insert(owner_id.clone(), new_percentage);
-        }
-
-        // Update share count
-        company.shares_count = new_shares_count;
-
-        // Add new buyers with their calculated percentages
-        for (buyer_id, allocation) in buyers.iter() {
-            let share_percentage = *allocation as f64 / new_shares_count as f64;
-            // Use entry API to safely add to existing percentage (handles existing investors)
-            *diluted_owners.entry(buyer_id.clone()).or_insert(0.0) += share_percentage;
-        }
-
-        // Replace owners map with diluted version
-        company.owners = diluted_owners;
-
-        // Update free_float (shares not in owners map)
-        let owned_percentage: f64 = company.owners.values().sum();
-        company.free_float = (1.0 - owned_percentage).max(0.0);
-
-        Ok(())
-    }
-
-    /// Route dividends to actual shareholders with 100% closed-loop accounting.
-    pub fn route_dividends(
-        &mut self,
-        company_id: &str,
-        total_dividend: f64,
-        companies: &mut BTreeMap<String, &mut Company>,
-        brokerage_accounts: &mut BTreeMap<String, &mut BrokerageAccount>,
-        treasury: &mut Treasury,
-        treasury_id: &str,
-    ) -> Result<(), String> {
-        // Look up company (borrow checker safe)
-        let company = companies
-            .get(company_id)
-            .ok_or_else(|| format!("Company {} not found", company_id))?;
-
-        // Verify company has sufficient cash
-        if company.liquid_capital < total_dividend {
-            return Err("Insufficient cash for dividend".to_string());
-        }
-
-        // Calculate dividend per share
-        let dividend_per_share = total_dividend / company.shares_count as f64;
-
-        // Calculate dividend distribution plan (immutable phase)
-        let mut distribution_plan: Vec<(String, f64)> = Vec::new();
-
-        // Route to known owners from owners map
-        for (owner_id, share_percentage) in company.owners.iter() {
-            let owner_share_count = (company.shares_count as f64 * share_percentage) as u64;
-            let dividend_amount = owner_share_count as f64 * dividend_per_share;
-            distribution_plan.push((owner_id.clone(), dividend_amount));
-        }
-
-        // Route free_float shares to LiquidityPool (if exists)
-        if company.free_float > 0.0 {
-            let free_float_shares = (company.shares_count as f64 * company.free_float) as u64;
-            let free_float_dividend = free_float_shares as f64 * dividend_per_share;
-
-            if let Some(pool) = self
-                .liquidity_pools
-                .get_mut(&format!("EQUITY:{}", company_id))
-            {
-                pool.cash += free_float_dividend; // Reward liquidity providers
-            }
-        }
-
-        // Execute distribution (mutable phase - borrow checker safe)
-        for (owner_id, dividend_amount) in distribution_plan {
-            if let Some(brokerage) = brokerage_accounts.get_mut(&owner_id) {
-                brokerage.cash += dividend_amount;
-            } else if let Some(owner_company) = companies.get_mut(&owner_id) {
-                owner_company.liquid_capital += dividend_amount;
-            } else if owner_id == treasury_id {
-                treasury.liquid_reserves += dividend_amount;
-            } else {
-                return Err(format!(
-                    "Owner {} has no valid account for dividend routing",
-                    owner_id
-                ));
-            }
-        }
-
-        Ok(())
-    }
-
     /// Match all pending securities orders across all instrument order books.
     ///
     /// # Arguments
@@ -1130,6 +729,7 @@ impl StockExchange {
         covered_bonds: &mut [crate::securities::CoveredBond],
         treasury: &mut Treasury,
         current_turn: u32,
+        mut cgt_registry: Option<&mut crate::state::capital_gains_tax::CapitalGainsTaxRegistry>,
     ) -> Vec<Trade> {
         if self.circuit_breaker.is_halted {
             return Vec::new();
@@ -1223,7 +823,8 @@ impl StockExchange {
                 // 2. Credit seller: cash += cost - fee
                 // 3. Transfer instrument units from seller to buyer
                 // 4. Credit fee to treasury
-                Self::settle_trade(
+                // R4.1: Returns realized gain/loss for CGT recording
+                let cgt_entry = Self::settle_trade(
                     &buyer_id,
                     &seller_id,
                     instrument_id,
@@ -1235,6 +836,11 @@ impl StockExchange {
                     covered_bonds,
                     treasury,
                 );
+                if let Some((ref seller, gain)) = cgt_entry {
+                    if let Some(ref mut reg) = cgt_registry {
+                        reg.record_realized(seller, gain);
+                    }
+                }
 
                 trade_idx += 1;
                 let trade = Trade {
@@ -1314,7 +920,7 @@ impl StockExchange {
         mbs_pool: &mut [crate::securities::MortgageBackedSecurity],
         covered_bonds: &mut [crate::securities::CoveredBond],
         treasury: &mut Treasury,
-    ) {
+    ) -> Option<(String, f64)> {
         // Credit fees to treasury (both sides pay fee)
         treasury.liquid_reserves += fee * 2.0;
 
@@ -1324,6 +930,10 @@ impl StockExchange {
         } else {
             0.0
         };
+
+        // R4.1: Track realized gain/loss from seller's FIFO sell for CGT.
+        let mut realized_gain: Option<f64> = None;
+        let mut seller_tax_exempt = false;
 
         // Update buyer and seller based on instrument type
         if instrument_id.starts_with("EQUITY:") {
@@ -1337,8 +947,16 @@ impl StockExchange {
                 }
                 if company.id == seller_id {
                     if let Some(ref mut acct) = company.brokerage_account {
+                        // R8.4: Check TaxAdvantagedAccount exemption before recording CGT
+                        seller_tax_exempt = acct
+                            .tax_advantaged_account
+                            .as_ref()
+                            .map(|ta| ta.exempt_from_capital_gains_tax())
+                            .unwrap_or(false);
                         acct.cash += cost - fee;
-                        let _ = acct.sell_fifo(instrument_id, quantity, price_per_share);
+                        if let Some((gain, _sold)) = acct.sell_fifo(instrument_id, quantity, price_per_share) {
+                            realized_gain = Some(gain);
+                        }
                     }
                 }
             }
@@ -1353,8 +971,15 @@ impl StockExchange {
                 }
                 if company.id == seller_id {
                     if let Some(ref mut acct) = company.brokerage_account {
+                        seller_tax_exempt = acct
+                            .tax_advantaged_account
+                            .as_ref()
+                            .map(|ta| ta.exempt_from_capital_gains_tax())
+                            .unwrap_or(false);
                         acct.cash += cost - fee;
-                        let _ = acct.sell_fifo(instrument_id, quantity, price_per_share);
+                        if let Some((gain, _sold)) = acct.sell_fifo(instrument_id, quantity, price_per_share) {
+                            realized_gain = Some(gain);
+                        }
                     }
                 }
             }
@@ -1386,8 +1011,15 @@ impl StockExchange {
                 }
                 if company.id == seller_id {
                     if let Some(ref mut acct) = company.brokerage_account {
+                        seller_tax_exempt = acct
+                            .tax_advantaged_account
+                            .as_ref()
+                            .map(|ta| ta.exempt_from_capital_gains_tax())
+                            .unwrap_or(false);
                         acct.cash += cost - fee;
-                        let _ = acct.sell_fifo(instrument_id, quantity, price_per_share);
+                        if let Some((gain, _sold)) = acct.sell_fifo(instrument_id, quantity, price_per_share) {
+                            realized_gain = Some(gain);
+                        }
                     }
                 }
             }
@@ -1399,27 +1031,14 @@ impl StockExchange {
                 }
             }
         }
-    }
-}
 
-/// Calculate price slippage for AMM execution.
-///
-/// # Arguments
-/// * `pool` - Liquidity pool
-/// * `quantity` - Order size
-///
-/// # Returns
-/// Slippage factor (0.0 = no slippage)
-///
-/// # Rules
-/// * Slippage increases with order size relative to pool depth
-/// * Formula: slippage = (quantity / pool.shares) * 0.1
-fn calculate_slippage(pool: &LiquidityPool, quantity: u64) -> f64 {
-    if pool.shares == 0 {
-        return 1.0; // Maximum slippage for empty pool
+        // R4.1/R8.4: Return realized gain for CGT recording (None if tax-exempt)
+        if seller_tax_exempt {
+            None
+        } else {
+            realized_gain.map(|g| (seller_id.to_string(), g))
+        }
     }
-    let order_ratio = quantity as f64 / pool.shares as f64;
-    order_ratio * 0.1 // 10% slippage factor per pool-depth
 }
 
 #[cfg(test)]

@@ -595,6 +595,11 @@ pub struct Company {
     /// a `ConstructionProject` on the appropriate building.
     #[serde(skip)]
     pub pending_expansion: Option<PendingExpansion>,
+    /// Phase 95: Pending IPO shares from `CorporateAction::IssueShares`.
+    /// Set by `apply_action`, consumed by `process_companies` to execute
+    /// the share issuance on the securities market.
+    #[serde(skip)]
+    pub pending_ipo_shares: Option<u64>,
     /// Phase 95: Pending blueprint design from `CorporateAction::DesignBlueprint`.
     /// Set by `apply_action`, consumed by `process_companies` to process the
     /// design fee transfer and call `design_blueprint`.
@@ -811,6 +816,7 @@ extra: HashMap::new(),
             information_quality: None,
             shadow_employment: None,
             pending_expansion: None,
+            pending_ipo_shares: None,
             pending_blueprint_design: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),

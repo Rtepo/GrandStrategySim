@@ -1,0 +1,14 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo check --lib --message-format=short 2>&1 | Out-File C:\Users\net ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Checking sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+state\src\corporate\federation.rs:22:5: warning: unused import: `crate::economy::trade::transfer_settler::TransferRecip
+ient`
+warning: `sim_engine` (lib) generated 1 warning (run `cargo fix --lib -p sim_engine` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 33.87s

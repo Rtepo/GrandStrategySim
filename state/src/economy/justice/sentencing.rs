@@ -337,30 +337,24 @@ pub fn process_death_penalties(
 pub fn compute_garnishment_rates(
     justice_state: &JusticeSystemState,
     country: &Country,
-) -> std::collections::BTreeMap<(String, bool, String), f64> {
+) -> std::collections::BTreeMap<(String, crate::society::geography::DemographicClass), f64> {
     let mut rates = std::collections::BTreeMap::new();
 
     for cohort in &justice_state.prisoner_cohorts {
         if let SentenceOutcome::CommunityService(_) = cohort.sentence_outcome {
-            let key = (
-                cohort.origin_region_id.clone(),
-                cohort.origin_is_urban,
-                cohort.origin_class_id.clone(),
-            );
-            // Find class population
+            let key = (cohort.origin_region_id.clone(), cohort.origin_class);
+            // Find class population using typed key
             let class_pop = country
                 .regions
                 .iter()
                 .find(|r| r.id == cohort.origin_region_id)
                 .and_then(|r| {
-                    if cohort.origin_is_urban {
-                        r.class_demographics
-                            .urban_classes
-                            .get(&cohort.origin_class_id)
+                    if let Some(urban) = cohort.origin_class.to_urban() {
+                        r.class_demographics.urban_classes.get(&urban)
+                    } else if let Some(rural) = cohort.origin_class.to_rural() {
+                        r.class_demographics.rural_classes.get(&rural)
                     } else {
-                        r.class_demographics
-                            .rural_classes
-                            .get(&cohort.origin_class_id)
+                        None
                     }
                 })
                 .map(|c| c.population as f64)
@@ -603,7 +597,7 @@ mod tests {
     use super::*;
     use crate::entities::Building;
     use crate::politics::system::{JusticeSystemState, PrisonerCohort};
-    use crate::society::geography::{ClassDemographics, PoliticalSentiment};
+    use crate::society::geography::{ClassDemographics, PoliticalSentiment, UrbanClass};
     use crate::state::Country;
 
     #[test]
@@ -628,7 +622,7 @@ mod tests {
 
         let mut justice_state = JusticeSystemState::default();
         justice_state.prisoner_cohorts.push(PrisonerCohort {
-            origin_class_id: "test".to_string(),
+            origin_class: crate::society::geography::DemographicClass::Worker,
             origin_is_urban: true,
             origin_region_id: "r1".to_string(),
             sentence_remaining: 0,
@@ -757,7 +751,7 @@ mod tests {
         region
             .class_demographics
             .urban_classes
-            .insert("workers".to_string(), class);
+            .insert(UrbanClass::Worker, class);
         country.regions.push(region);
 
         // No justice or security buildings → coverage = 0
@@ -791,7 +785,7 @@ mod tests {
         region
             .class_demographics
             .urban_classes
-            .insert("workers".to_string(), class);
+            .insert(UrbanClass::Worker, class);
         country.regions.push(region);
 
         // Add buildings with enough justice AND security capacity
@@ -822,12 +816,12 @@ mod tests {
         region
             .class_demographics
             .urban_classes
-            .insert("workers".to_string(), class);
+            .insert(crate::society::geography::UrbanClass::Worker, class);
         country.regions.push(region);
 
         let justice_state = JusticeSystemState {
             prisoner_cohorts: vec![PrisonerCohort {
-                origin_class_id: "workers".to_string(),
+                origin_class: crate::society::geography::DemographicClass::Worker,
                 origin_is_urban: true,
                 origin_region_id: "r1".to_string(),
                 count: 20,
@@ -838,7 +832,10 @@ mod tests {
         };
 
         let rates = compute_garnishment_rates(&justice_state, &country);
-        let key = ("r1".to_string(), true, "workers".to_string());
+        let key = (
+            "r1".to_string(),
+            crate::society::geography::DemographicClass::Worker,
+        );
         let rate = rates.get(&key).copied().unwrap_or(0.0);
         // 20 convicts / 100 pop * 0.25 = 0.05
         assert!(

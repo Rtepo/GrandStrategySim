@@ -9,6 +9,7 @@
 //! `MacroData.labor_market` and updates `MacroData.average_wage`.
 
 use crate::economy::CountryTurnCtx;
+use crate::society::geography::{RuralClass, UrbanClass};
 use crate::state::macro_data::{annual_to_per_turn_rate, ImmigrantCohort};
 use serde_json::{Map, Value};
 
@@ -127,13 +128,13 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         .unwrap_or_else(|| Value::Object(Map::new()));
 
     let emancipation_law = string_from_value(policy.get("emancipation_law"), "Traditionalism");
-    let civil_law = string_from_value(policy.get("civil_law"), "5-Year Assimilation");
+    let civil_law = string_from_value(policy.get("civil_law"), "5_year_assimilation");
     let labor_law = string_from_value(policy.get("labor_law"), "Free Market");
     let job_agency_active = bool_from_value(policy.get("job_agency_active"), false);
     let _energy_shield = bool_from_value(policy.get("energy_shield"), false);
 
     let crimes = f64_from_value(crime_rate.get("crimes"), 0.0);
-    let safety_index = f64_from_value(crime_rate.get("safety_index"), 80.0);
+    let _safety_index = f64_from_value(crime_rate.get("safety_index"), 80.0);
 
     let (new_avg, new_population) = {
         let demographics = &mut macro_indicators.demographics;
@@ -153,11 +154,13 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         // Phase 8: Apply winter mortality multiplier (computed from regions before closure)
         let winter_death_rate = reduced_death_rate * winter_mortality;
 
-        let mut migration_rate = demographics.net_migration;
-        if safety_index < 40.0 {
-            let fear_flight = ((40.0 - safety_index) / 100.0) * 0.015;
-            migration_rate -= fear_flight;
-        }
+        // Phase R5: Removed parallel fear-flight emigration from labor.rs.
+        // Safety-index-driven emigration is now handled exclusively by the
+        // dedicated migration system in migration.rs (calculate_migration_pressure
+        // includes a safety-index fear factor). This parallel system violated
+        // Rule 14 (no redundant parallel systems) and Rule 19 (no teleportation)
+        // by reducing population without transport capacity or wealth extraction.
+        let migration_rate = demographics.net_migration;
 
         // Phase 74: Convert annual rates to compound per-turn rates.
         // Birth/death/migration rates are annual fractions that compound over time.
@@ -210,13 +213,13 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         for k in &mut demographics.immigrant_cohorts {
             k.count *= death_emigration_factor;
 
-            let rate = if civil_law == "Segregation" {
+            let rate = if civil_law == "segregation" {
                 let mut r = 0.50;
                 if k.seniority > 10 {
                     r = (0.50 - ((k.seniority - 10) as f64 * 0.01)).max(0.40);
                 }
                 r
-            } else if civil_law == "10-Year Assimilation" {
+            } else if civil_law == "10_year_assimilation" {
                 let mut r = 0.40;
                 if k.seniority > 10 {
                     r = (0.40 - ((k.seniority - 10) as f64 * 0.08)).max(0.0);
@@ -237,9 +240,9 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             k.seniority += 1;
         }
 
-        let max_seniority = if civil_law == "Segregation" {
+        let max_seniority = if civil_law == "segregation" {
             u32::MAX
-        } else if civil_law == "10-Year Assimilation" {
+        } else if civil_law == "10_year_assimilation" {
             20
         } else {
             15
@@ -529,7 +532,7 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
                     // Distribute rural_delta across rural classes
                     if rural_pop > 0 && !region.class_demographics.rural_classes.is_empty() {
                         let mut rural_distributed: i64 = 0;
-                        let rural_classes: Vec<String> = region
+                        let rural_classes: Vec<RuralClass> = region
                             .class_demographics
                             .rural_classes
                             .keys()
@@ -560,7 +563,7 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
                     // Distribute urban_delta across urban classes
                     if urban_pop > 0 && !region.class_demographics.urban_classes.is_empty() {
                         let mut urban_distributed: i64 = 0;
-                        let urban_classes: Vec<String> = region
+                        let urban_classes: Vec<UrbanClass> = region
                             .class_demographics
                             .urban_classes
                             .keys()
@@ -796,44 +799,39 @@ pub fn distribute_population_delta_and_reconcile(country: &mut crate::state::Cou
         distributed += region_delta;
 
         // Distribute region_delta proportionally across all classes by population
-        let all_classes: Vec<(bool, String)> = region
-            .class_demographics
-            .rural_classes
-            .keys()
-            .map(|k| (true, k.clone()))
-            .chain(
-                region
-                    .class_demographics
-                    .urban_classes
-                    .keys()
-                    .map(|k| (false, k.clone())),
-            )
-            .collect();
+        // E.6.3: Typed keys — iterate rural and urban separately to avoid
+        // incompatible BTreeMap key types in chained iterators.
         let total_pop: i64 = region_class_pop;
         let mut region_distributed: i64 = 0;
-        for (is_rural, key) in all_classes.iter() {
-            let demo = if *is_rural {
-                region.class_demographics.rural_classes.get_mut(key)
-            } else {
-                region.class_demographics.urban_classes.get_mut(key)
-            };
-            if let Some(demo) = demo {
+        let rural_keys: Vec<RuralClass> =
+            region.class_demographics.rural_classes.keys().cloned().collect();
+        let urban_keys: Vec<UrbanClass> =
+            region.class_demographics.urban_classes.keys().cloned().collect();
+        for key in &rural_keys {
+            if let Some(demo) = region.class_demographics.rural_classes.get_mut(key) {
                 let share = demo.population as f64 / total_pop as f64;
                 let class_delta = (region_delta as f64 * share).round() as i64;
                 demo.population = (demo.population + class_delta).max(0);
                 region_distributed += class_delta;
             }
         }
-        // Fix rounding residue on last class
+        for key in &urban_keys {
+            if let Some(demo) = region.class_demographics.urban_classes.get_mut(key) {
+                let share = demo.population as f64 / total_pop as f64;
+                let class_delta = (region_delta as f64 * share).round() as i64;
+                demo.population = (demo.population + class_delta).max(0);
+                region_distributed += class_delta;
+            }
+        }
+        // Fix rounding residue on last class (try urban last, then rural)
         let residue = region_delta - region_distributed;
         if residue != 0 {
-            if let Some((is_rural, key)) = all_classes.last() {
-                let demo = if *is_rural {
-                    region.class_demographics.rural_classes.get_mut(key)
-                } else {
-                    region.class_demographics.urban_classes.get_mut(key)
-                };
-                if let Some(demo) = demo {
+            if let Some(key) = urban_keys.last() {
+                if let Some(demo) = region.class_demographics.urban_classes.get_mut(key) {
+                    demo.population = (demo.population + residue).max(0);
+                }
+            } else if let Some(key) = rural_keys.last() {
+                if let Some(demo) = region.class_demographics.rural_classes.get_mut(key) {
                     demo.population = (demo.population + residue).max(0);
                 }
             }
