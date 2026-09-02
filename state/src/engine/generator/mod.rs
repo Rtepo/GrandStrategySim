@@ -277,6 +277,22 @@ pub fn generate_world(
     // building.deposit_id matches the resource key for the mine counter.
     crate::society::geography::reseed_resources_from_planet(&mut regions, &state.planet);
 
+    // Phase C3: Derive has_geothermal_potential from Planet vein data.
+    // Regions with UltraRare or Rare veins at shallow depth (< 200m) suggest
+    // volcanic activity → geothermal potential. This makes the field a derived
+    // attribute from planetary geology, not a random or manual flag.
+    use crate::society::planet::RarityTier;
+    for region in regions.values_mut() {
+        region.geographic_traits.has_geothermal_potential = state
+            .planet
+            .veins_for_region(&region.id)
+            .iter()
+            .any(|v| {
+                (v.rarity_tier == RarityTier::UltraRare || v.rarity_tier == RarityTier::Rare)
+                    && v.depth < 200.0
+            });
+    }
+
     let diplomacy = generate_diplomacy(&selected);
 
     // Phase 68: Spawn the World Forum — neutral, all countries as members, Unanimity voting.
@@ -373,7 +389,20 @@ pub fn generate_world(
     for commodity in Commodity::all() {
         prices.insert(commodity.into(), 100.0);
     }
-    let market = serde_json::json!({ "prices": prices, "orders": {} });
+
+    // Seed the foreign sector balance from aggregate simulated GDP.
+    // Represents the rest-of-world economy at half the simulated GDP
+    // (conservative: simulated countries are the major economies).
+    // This is a one-time genesis allocation that scales with the actual
+    // generated world — not a magic number.
+    let total_world_gdp: f64 = state.countries.values().map(|c| c.budget.gdp).sum();
+    let foreign_sector_balance = total_world_gdp * 0.5;
+
+    let market = serde_json::json!({
+        "prices": prices,
+        "orders": {},
+        "foreign_sector_balance": foreign_sector_balance,
+    });
     std::fs::write(
         data_dir.join("market.json"),
         serde_json::to_string_pretty(&market)?,
@@ -588,7 +617,7 @@ fn generate_country(
 
     let mut companies = Vec::new(); // Empty companies for bootstrap
                                     // Add bank companies
-    let bank_companies = build_bank_companies(name, &country.budget, &country.central_bank);
+    let bank_companies = build_bank_companies(name, &mut country.budget, &country.central_bank);
     // Phase 37: Populate debt_market with DSPW primary dealers and enable DSPW.
     let dspw_dealers: Vec<String> = bank_companies
         .iter()
@@ -1891,7 +1920,7 @@ fn build_central_bank(name: &str, treasury: &Treasury) -> crate::state::CentralB
 
 fn build_bank_companies(
     name: &str,
-    treasury: &Treasury,
+    treasury: &mut Treasury,
     central_bank: &crate::state::CentralBank,
 ) -> Vec<Company> {
     let mut rng = rand::thread_rng();
@@ -1991,24 +2020,17 @@ fn build_bank_companies(
         let reserves = (total_deposits * central_bank.reserve_requirement_ratio)
             .max(treasury.gdp * 0.02 * size_factor / num_banks as f64);
 
-        // Phase 91/92: Size Tier 1 capital to survive Working Capital Loan
-        // issuance. After loans are issued, total_assets = reserves + deposits
-        // + loans_issued. The old formula (gdp * 0.05) was too small — loans
-        // expanded assets without expanding equity, causing KNF to liquidate
-        // every bank on Turn 0.
-        // New approach: Tier 1 must cover (deposits + reserves + estimated_loan_exposure)
-        // at 1.5x the KNF minimum ratio (12% if minimum is 8%).
-        // Phase 92: The old estimate (15% of GDP) was off by ~22× because it
-        // didn't account for the actual company sizes. With historically
-        // realistic SMEs (50-500 workers) and a 4-turn payroll runway, total
-        // loan exposure is approximately:
-        //   avg_company_fte * avg_wage * 4 turns * num_companies
-        // We estimate this from the workforce and average wage:
-        //   total_payroll ≈ employed_total * avg_wage (one turn)
-        //   total_loan_exposure ≈ total_payroll * 4 turns * 0.5 (only ~50% of
-        //   companies are eligible for loans — heavy CAPEX + services)
-        // The safety net in issue_working_capital_loans tops up if this
-        // estimate is still insufficient.
+        // Phase 94: Derive tier_1_capital strictly from the balance-sheet
+        // identity A = L + E. At genesis (no loans, no securities):
+        //   assets = reserves
+        //   liabilities = total_deposits
+        //   tier_1_capital = reserves - total_deposits
+        // This may be negative (reserves << deposits since reserve_ratio ~10%).
+        // If so, inject treasury equity to reach the regulatory minimum.
+        // Double-entry: treasury.liquid_reserves -= injection (state pays),
+        //   bank.reserves_at_central_bank += injection (cash received),
+        //   bank.tier_1_capital += injection (equity increases).
+        // This preserves A = L + E at every step.
         const TARGET_TIER_1_RATIO: f64 = 0.12; // 1.5x the 8% KNF minimum
         let avg_wage = treasury.gdp / (treasury.population as f64).max(1.0) * 800.0;
         let workforce = treasury.population as f64 * 0.65; // ~65% activity rate
@@ -2016,9 +2038,26 @@ fn build_bank_companies(
         let estimated_loan_exposure =
             estimated_total_loan_exposure * size_factor / num_banks as f64;
         let estimated_total_assets = total_deposits + reserves + estimated_loan_exposure;
-        let tier_1_from_ratio = estimated_total_assets * TARGET_TIER_1_RATIO;
-        let tier_1_from_gdp = treasury.gdp * 0.05 * size_factor / num_banks as f64;
-        let tier_1_capital = tier_1_from_ratio.max(tier_1_from_gdp);
+        let min_tier_1 = estimated_total_assets * TARGET_TIER_1_RATIO;
+
+        // Step 1: Derive equity from A - L (may be negative).
+        let mut tier_1_capital = reserves - total_deposits;
+        let mut reserves = reserves;
+
+        // Step 2: If below regulatory minimum, inject from treasury.
+        // Cap at 30% of treasury liquid_reserves per bank to prevent
+        // state bankruptcy. The safety net in issue_working_capital_loans
+        // (corporate.rs) provides a secondary top-up after loans are issued.
+        if tier_1_capital < min_tier_1 {
+            let needed = min_tier_1 - tier_1_capital;
+            let available = treasury.liquid_reserves * 0.30 / num_banks as f64;
+            let injection = needed.min(available);
+            if injection > 0.0 {
+                tier_1_capital += injection;
+                reserves += injection;
+                treasury.liquid_reserves -= injection;
+            }
+        }
 
         let balance_sheet = BankBalanceSheet {
             reserves_at_central_bank: reserves,
@@ -2057,14 +2096,14 @@ fn build_bank_companies(
                 .min(2000)
         };
         let bank_wage = base_wage * 1.2; // Banks pay above-average wages
-        let operating_cash = tier_1_capital * 0.1; // 10% of tier_1 for payroll
+        let operating_cash = (tier_1_capital * 0.1).max(0.0); // 10% of tier_1 for payroll
 
         let mut company = Company::new(
             bank_id.clone(),
             bank_name,
             EntitySector::Banking,
             LegalForm::JointStockCompany(crate::entities::JointStockData::default()),
-            tier_1_capital,
+            tier_1_capital.max(0.0),
             operating_cash,
             bank_fte,
         );

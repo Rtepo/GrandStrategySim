@@ -8,6 +8,7 @@ use serde_json::Value;
 use std::collections::{BTreeMap, HashMap};
 
 use crate::securities::exchange::Order;
+use crate::securities::tax_wrappers::TaxAdvantagedAccount;
 
 /// Phase 55: A single position lot in a brokerage portfolio.
 ///
@@ -91,6 +92,11 @@ pub struct BrokerageAccount {
     /// Phase D.5: Margin account for derivative trading.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub margin_account: Option<MarginAccount>,
+
+    /// Tax-advantaged retirement account wrapper (TaxFreeGrowth or TaxDeferred).
+    /// When present, dividends and capital gains are exempt per the variant.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub tax_advantaged_account: Option<TaxAdvantagedAccount>,
 
     /// Any additional brokerage fields.
     #[serde(flatten, default)]

@@ -4,6 +4,15 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+use crate::economy::weather::get_region_weather_modifier;
+use crate::entities::Company;
+use crate::infrastructure::cultural::{CulturalBuilding, CulturalBuildingType};
+use crate::registries::enums::Sector;
+use crate::society::geography::{LandCategory, LandUseInventory};
+use crate::society::housing::{CommercialBuilding, CommercialBuildingType};
+use crate::state::climate::ClimateConfig;
+use crate::state::{Country, Season};
+
 /// Natural wonder type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -107,43 +116,31 @@ pub struct TourismDestination {
     /// Natural wonders in this destination
     #[serde(default)]
     pub natural_wonders: Vec<String>,
-    /// Forest areas (hectares)
-    pub forest_area: f64,
     /// Infrastructure quality 0-1
     pub infrastructure_quality: f64,
-    /// Accommodation capacity
-    pub accommodation_capacity: f64,
     /// Visitor satisfaction 0-1
     pub visitor_satisfaction: f64,
-    /// Marketing budget
-    pub marketing_budget: f64,
 }
 
 impl TourismDestination {
-    /// Calculate total recreation capacity.
-    pub fn total_recreation_capacity(&self) -> f64 {
-        // Forest recreation: 0.001 recreation per hectare
-        let forest_recreation = self.forest_area * 0.001;
-        // Infrastructure multiplier
-        forest_recreation * self.infrastructure_quality
-    }
-
     /// Process destination for one turn.
     ///
     /// # Arguments
     /// * wonder_recreation - Total recreation from natural wonders
+    /// * forest_recreation - Total recreation from forests
     ///
     /// # Returns
     /// Total recreation available
-    pub fn process_turn(&mut self, wonder_recreation: f64) -> f64 {
-        let forest_recreation = self.total_recreation_capacity();
+    pub fn process_turn(&mut self, wonder_recreation: f64, forest_recreation: f64) -> f64 {
         let total_recreation = wonder_recreation + forest_recreation;
 
-        // Visitor satisfaction based on capacity utilization
-        let utilization = total_recreation / (self.accommodation_capacity.max(1.0));
-        if utilization > 0.9 {
+        // Visitor satisfaction based on capacity utilization.
+        // Since accommodation capacity is computed dynamically from buildings,
+        // we use the total recreation as a proxy for utilization pressure.
+        // High recreation relative to visitor satisfaction indicates overuse.
+        if total_recreation > self.visitor_satisfaction * 10_000.0 {
             self.visitor_satisfaction *= 0.95;
-        } else if utilization < 0.5 {
+        } else if total_recreation < self.visitor_satisfaction * 5_000.0 {
             self.visitor_satisfaction = (self.visitor_satisfaction + 0.02).min(1.0);
         }
 
@@ -151,52 +148,26 @@ impl TourismDestination {
     }
 }
 
-/// Tourism industry for a country.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct TourismIndustry {
-    /// Country operating the tourism industry
-    pub country: String,
-    /// Tourism destinations
-    #[serde(default)]
-    pub destinations: BTreeMap<String, TourismDestination>,
-    /// Total recreation consumed
-    pub recreation_consumed: f64,
-    /// Revenue generated
-    pub revenue: f64,
-    /// Citizen satisfaction boost
-    pub citizen_satisfaction_boost: f64,
-    /// Employment in tourism sector
-    pub employment: u32,
+/// Per-destination computed demand (Pass 1 output).
+#[derive(Debug, Clone)]
+pub struct DestinationSettlement {
+    /// (company_id, share) — proportional capacity shares for revenue distribution.
+    pub company_shares: Vec<(String, f64)>,
+    /// Domestic spend for this destination (already debited from citizens).
+    pub domestic_spend: f64,
+    /// Foreign spend requested for this destination (pre-clamp).
+    pub foreign_spend: f64,
 }
 
-impl TourismIndustry {
-    /// Process tourism industry for one turn.
-    ///
-    /// # Arguments
-    /// * available_recreation - Total recreation available from wonders/forests
-    /// * population - Country population
-    ///
-    /// # Returns
-    /// Revenue and satisfaction boost
-    pub fn process_turn(&mut self, available_recreation: f64, population: i64) -> (f64, f64) {
-        // Consume recreation (limited by demand)
-        let recreation_demand = population as f64 * 0.1; // 10% of population seeks recreation
-        let consumed = available_recreation.min(recreation_demand);
-        self.recreation_consumed = consumed;
-
-        // Generate revenue based on consumption
-        let revenue_per_unit = 100.0; // Revenue per recreation unit
-        self.revenue = consumed * revenue_per_unit;
-
-        // Calculate satisfaction boost
-        let satisfaction_per_capita = consumed / population as f64 * 10.0;
-        self.citizen_satisfaction_boost = satisfaction_per_capita.min(0.2);
-
-        // Employment based on revenue
-        self.employment = (self.revenue / 50_000.0) as u32;
-
-        (self.revenue, self.citizen_satisfaction_boost)
-    }
+/// Result of tourism demand computation (Pass 1 output).
+#[derive(Debug, Clone, Default)]
+pub struct TourismDemandResult {
+    /// Per-destination demand entries for sequential settlement.
+    pub destinations: Vec<DestinationSettlement>,
+    /// Total foreign spend requested (will be clamped sequentially).
+    pub total_foreign_requested: f64,
+    /// Total domestic spend (already debited from citizen savings).
+    pub total_domestic_spend: f64,
 }
 
 /// Create a new natural wonder.
@@ -243,114 +214,60 @@ pub fn create_natural_wonder(
     }
 }
 
-/// Create a new tourism destination.
+/// Compute tourism demand for one country for one turn.
 ///
-/// # Arguments
-/// * region_id - Region ID
-/// * name - Destination name
-/// * forest_area - Forest area in hectares
-/// * accommodation_capacity - Accommodation capacity
-/// * rng - Random number generator for unique ID
+/// This is Pass 1 of the two-pass tourism mechanism. It:
+/// 1. Computes attractiveness and capacity per destination (read-only).
+/// 2. Debits domestic savings pro-rata by savings share (Rule 7).
+/// 3. Returns `TourismDemandResult` for sequential clamping and settlement.
 ///
-/// # Returns
-/// New TourismDestination instance
-pub fn create_tourism_destination(
-    region_id: String,
-    name: String,
-    forest_area: f64,
-    accommodation_capacity: f64,
-    rng: &mut impl Rng,
-) -> TourismDestination {
-    let unique_id: u64 = rng.gen();
-    TourismDestination {
-        id: format!("Destination-{}-{}", unique_id, name),
-        region_id,
-        name,
-        natural_wonders: Vec::new(),
-        forest_area,
-        infrastructure_quality: 0.7,
-        accommodation_capacity,
-        visitor_satisfaction: 0.8,
-        marketing_budget: 0.0,
-    }
-}
-
-/// Result of one turn of tourism processing.
-///
-/// Returned by `process_tourism_turn` so the caller can debit
-/// `GlobalMarket.offshore_capital` sequentially after parallel tasks.
-#[derive(Debug, Clone, Default)]
-pub struct TourismTurnResult {
-    /// Total foreign tourism spending (to be debited from GlobalMarket.offshore_capital).
-    pub foreign_tourism_inflow: f64,
-    /// Total domestic tourism spending (debited from citizen savings).
-    pub domestic_tourism_spend: f64,
-    /// Total revenue credited to hospitality companies.
-    pub tourism_revenue: f64,
-}
-
-/// Per-destination computed demand (Pass 1 output).
-struct DestinationDemand {
-    domestic_spend: f64,
-    foreign_spend: f64,
-    /// (company_id, share) — proportional capacity shares for revenue distribution.
-    company_shares: Vec<(String, f64)>,
-}
-
-/// Process tourism for one country for one turn.
+/// Does NOT credit companies. Does NOT touch `GlobalMarket`.
 ///
 /// # Arguments
 /// * `country` - Mutable country (owns regions, natural_wonders, tourism_destinations, parks).
 /// * `commercial_buildings` - All commercial buildings (scanned for hotels/resorts).
-/// * `companies` - All companies (hospitality companies receive revenue).
+/// * `companies` - All companies (read-only — scanned for hospitality sector).
 /// * `season` - Current season for tourism modifiers.
+/// * `climate_config` - Climate-season matrix for per-region tourism multipliers.
+/// * `heritage_tourism_boost` - Per-region heritage multipliers from heritage processing.
+/// * `market_foreign_sector_balance` - Current foreign sector balance (for PPP forex calc).
+/// * `total_world_population` - Total world population (for PPP forex calc).
 ///
 /// # Returns
-/// `TourismTurnResult` with foreign inflow (for sequential GlobalMarket debit),
-/// domestic spend, and total tourism revenue.
+/// `TourismDemandResult` with per-destination settlement data.
 ///
 /// # Rules
-/// * Three-pass design: Pass 1 computes read-only, Pass 2 mutates companies,
-///   Pass 3 mutates country. No simultaneous mutable borrows.
-/// * FIX #1: Foreign spending debited from GlobalMarket.offshore_capital (not treasury).
+/// * FIX #1: Foreign spending debited from GlobalMarket.foreign_sector_balance (not offshore_capital).
 /// * FIX #2: Zero capacity → zero spend. No evaporating cash.
-/// * FIX #3: Three-pass borrow safety.
 /// * FIX #4: domestic_spend capped at total_available_savings.
-pub fn process_tourism_turn(
-    country: &mut crate::state::Country,
-    commercial_buildings: &[crate::society::housing::CommercialBuilding],
-    companies: &mut [crate::entities::Company],
-    season: crate::state::Season,
-) -> TourismTurnResult {
-    use crate::registries::enums::Sector;
-    use crate::society::housing::CommercialBuildingType;
-
+/// * Rule 7: Domestic spend debited by savings share, not population share.
+/// * Rule 2: No magic numbers — forex, spend fraction, pilgrimage all scale dynamically.
+/// * Rule 16: Climate and weather tourism multipliers are consumed.
+pub fn compute_tourism_demand(
+    country: &mut Country,
+    commercial_buildings: &[CommercialBuilding],
+    companies: &[Company],
+    season: Season,
+    climate_config: &ClimateConfig,
+    heritage_tourism_boost: &std::collections::BTreeMap<String, f64>,
+    market_foreign_sector_balance: f64,
+    total_world_population: i64,
+) -> TourismDemandResult {
     let average_wage = country.macro_indicators.average_wage.max(1.0);
-    let tourism_spend_fraction = 0.05;
-    let forex_multiplier = 1.5;
 
-    // Seasonal modifier for tourism attractiveness.
-    let seasonal_modifier = match season {
-        crate::state::Season::Winter => 0.4,
-        crate::state::Season::Spring => 1.1,
-        crate::state::Season::Summer => 1.3,
-        crate::state::Season::Autumn => 0.9,
+    // ── Dynamic forex multiplier (B1): PPP ratio ──
+    // Foreign tourists come from economies with different purchasing power.
+    // The forex multiplier is the ratio of foreign_sector_balance per-capita
+    // to domestic average_wage. The * 2.0 inverts the * 0.5 seeding ratio
+    // to recover the implied rest-of-world GDP.
+    let global_gdp_per_capita = if total_world_population > 0 {
+        (market_foreign_sector_balance * 2.0) / total_world_population as f64
+    } else {
+        average_wage
     };
+    let forex_multiplier = (global_gdp_per_capita / average_wage).clamp(0.5, 3.0);
 
-    // =====================================================================
-    // PASS 1: COMPUTE (Read-Only — no mutations)
-    // =====================================================================
-
-    // Phase A: Process natural wonders and group recreation by region.
-    let mut wonder_recreation_by_region: BTreeMap<String, f64> = BTreeMap::new();
-    for wonder in &mut country.natural_wonders {
-        let recreation = wonder.process_turn();
-        *wonder_recreation_by_region
-            .entry(wonder.region_id.clone())
-            .or_insert(0.0) += recreation;
-    }
-
-    // Compute total available citizen savings (FIX #4: liquidity cap).
+    // ── Compute total available citizen savings (FIX #4: liquidity cap) ──
     let total_available_savings: f64 = country
         .regions
         .iter()
@@ -375,18 +292,71 @@ pub fn process_tourism_turn(
         .map(|c| c.population)
         .sum();
 
-    // Phase B+C+D: For each destination, compute attractiveness, capacity, demand.
-    let mut destination_demands: Vec<DestinationDemand> = Vec::new();
+    // ── Dynamic tourism spend fraction (B2): disposable-income scaling ──
+    let avg_savings_per_capita = total_available_savings / total_population.max(1) as f64;
+    let tourism_spend_fraction = (0.03 + 0.07 * (avg_savings_per_capita / average_wage).min(1.0))
+        .min(0.10);
+
+    // =====================================================================
+    // PASS 1A: Process natural wonders and group recreation by region.
+    // =====================================================================
+    let mut wonder_recreation_by_region: BTreeMap<String, f64> = BTreeMap::new();
+
+    // Build a lookup of region data for pollution and forest area queries.
+    // We clone the minimal data we need to avoid borrow conflicts with
+    // country.natural_wonders (which we mutate in the same loop).
+    let region_data: Vec<(String, f64, LandUseInventory)> = country
+        .regions
+        .iter()
+        .map(|r| {
+            (
+                r.id.clone(),
+                r.elevation_difference_m,
+                r.land_use_inventory.clone(),
+            )
+        })
+        .collect();
+
+    for wonder in &mut country.natural_wonders {
+        // E2: Apply regional pollution damage before processing.
+        if let Some(rd) = region_data.iter().find(|(rid, _, _)| *rid == wonder.region_id) {
+            let (_, _, ref land_use) = rd;
+            let industrial_area = land_use
+                .get_category(LandCategory::Industrial)
+                .map(|d| d.area_hectares)
+                .unwrap_or(0.0);
+            let total_area = land_use.total_area.max(1.0);
+            let pollution_level = (industrial_area / total_area).min(1.0);
+            wonder.apply_pollution(pollution_level);
+        }
+
+        let recreation = wonder.process_turn();
+        *wonder_recreation_by_region
+            .entry(wonder.region_id.clone())
+            .or_insert(0.0) += recreation;
+    }
+
+    // =====================================================================
+    // PASS 1B: For each destination, compute attractiveness, capacity, demand.
+    // =====================================================================
+    let mut destination_demands: Vec<DestinationSettlement> = Vec::new();
     let mut total_domestic_spend = 0.0_f64;
     let mut total_foreign_spend = 0.0_f64;
 
     for dest in country.tourism_destinations.values() {
-        // Phase B: Attractiveness calculation.
+        // ── Phase B: Attractiveness calculation ──
         let wonder_rec = wonder_recreation_by_region
             .get(&dest.region_id)
             .copied()
             .unwrap_or(0.0);
-        let forest_rec = dest.forest_area * 0.001 * dest.infrastructure_quality;
+
+        // G1: Dynamic forest area from land_use_inventory (not static field).
+        let forest_rec = region_data
+            .iter()
+            .find(|(rid, _, _)| *rid == dest.region_id)
+            .and_then(|(_, _, land_use)| land_use.get_category(LandCategory::Forests))
+            .map(|f| f.area_hectares * 0.001 * dest.infrastructure_quality)
+            .unwrap_or(0.0);
 
         // Conservation boost from national parks and landscape parks.
         let mut conservation_boost = 0.0_f64;
@@ -401,16 +371,14 @@ pub fn process_tourism_turn(
             }
         }
 
-        // Phase 17A: Pilgrimage boost from Holy Sites with active temples.
+        // ── B3: Pilgrimage boost with physical temple scaling ──
         let mut pilgrimage_boost = 0.0_f64;
         if let Some(region) = country.regions.iter().find(|r| r.id == dest.region_id) {
             if let Some(holy_site) = &region.holy_site {
-                let has_active_temple = country.cultural_institutions.iter().any(|b| {
+                let has_active_temple = country.cultural_institutions.iter().any(|b: &CulturalBuilding| {
                     b.region_id == region.id
-                        && (b.building_type
-                            == crate::infrastructure::cultural::CulturalBuildingType::Temple
-                            || b.building_type
-                                == crate::infrastructure::cultural::CulturalBuildingType::Monastery)
+                        && (b.building_type == CulturalBuildingType::Temple
+                            || b.building_type == CulturalBuildingType::Monastery)
                         && b.condition > 0.3
                 });
                 if has_active_temple {
@@ -420,28 +388,60 @@ pub fn process_tourism_turn(
                         .get(&holy_site.religion_key)
                         .copied()
                         .unwrap_or(0.0);
-                    pilgrimage_boost = holy_site.pilgrimage_attractiveness * authority * 5000.0;
+                    // Scale by physical temple capacity × condition × average wage.
+                    let temple_capacity: f64 = country
+                        .cultural_institutions
+                        .iter()
+                        .filter(|b| {
+                            b.region_id == region.id
+                                && (b.building_type == CulturalBuildingType::Temple
+                                    || b.building_type == CulturalBuildingType::Monastery)
+                                && b.condition > 0.3
+                        })
+                        .map(|b| b.capacity * b.condition)
+                        .sum();
+                    pilgrimage_boost =
+                        holy_site.pilgrimage_attractiveness * authority * temple_capacity * average_wage;
                 }
             }
         }
 
-        let total_attractiveness =
-            (wonder_rec + forest_rec + conservation_boost + pilgrimage_boost)
-                * seasonal_modifier
-                * dest.visitor_satisfaction;
+        // ── B5: Climate tourism multiplier from climate-season matrix ──
+        let climate_mult = country
+            .regions
+            .iter()
+            .find(|r| r.id == dest.region_id)
+            .and_then(|r| climate_config.climate_season_matrix.get(&(r.climate_profile, season)))
+            .map(|m| m.tourism_multiplier)
+            .unwrap_or(1.0);
 
-        // Phase C: Physical capacity check (No Phantom Resorts).
+        // ── B6: Weather tourism multiplier ──
+        let weather_mult = country
+            .regions
+            .iter()
+            .find(|r| r.id == dest.region_id)
+            .map(|r| get_region_weather_modifier(&country.weather_state, &r.id).tourism_multiplier)
+            .unwrap_or(1.0);
+
+        // ── E3: Heritage tourism boost ──
+        let heritage_boost = heritage_tourism_boost
+            .get(&dest.region_id)
+            .copied()
+            .unwrap_or(1.0);
+
+        let total_attractiveness = (wonder_rec + forest_rec + conservation_boost + pilgrimage_boost)
+            * climate_mult
+            * weather_mult
+            * heritage_boost
+            * dest.visitor_satisfaction;
+
+        // ── Phase C: Physical capacity check (No Phantom Resorts) ──
         let mut accommodation_capacity = 0.0_f64;
 
-        // Map building types to tourism capacity.
         for b in commercial_buildings {
             if b.micro_region_id.is_empty() {
                 continue;
             }
-            // Check if building is in this destination's region.
-            // We match by checking if the building's micro_region_id starts with the region_id,
-            // or if region_id contains the micro_region_id.
-            // For simplicity, we check if any region's micro-regions contain this building.
             let in_region = country.regions.iter().any(|r| {
                 r.id == dest.region_id
                     && (b.micro_region_id.starts_with(&r.id)
@@ -465,20 +465,35 @@ pub fn process_tourism_turn(
             }
         }
 
-        // FIX #2: Zero-capacity guard — no hotels means no tourism revenue.
+        // FIX #2: Zero-cacity guard — no hotels means no tourism revenue.
         if accommodation_capacity <= 0.0 {
             continue;
         }
 
         let effective_capacity = total_attractiveness.min(accommodation_capacity);
 
-        // Phase D: Tourist demand & revenue computation.
+        // ── E1: Wire current_visitors to actual tourist counts ──
+        let total_wonder_capacity: f64 = country
+            .natural_wonders
+            .iter()
+            .filter(|w| w.region_id == dest.region_id)
+            .map(|w| w.visitor_capacity)
+            .sum();
+        if total_wonder_capacity > 0.0 {
+            for wonder in &mut country.natural_wonders {
+                if wonder.region_id == dest.region_id {
+                    wonder.current_visitors = effective_capacity
+                        * (wonder.visitor_capacity / total_wonder_capacity);
+                }
+            }
+        }
+
+        // ── Phase D: Tourist demand & revenue computation ──
         let domestic_demand = effective_capacity * 0.6;
         let theoretical_domestic_spend = domestic_demand * average_wage * tourism_spend_fraction;
 
         let foreign_demand = effective_capacity * 0.4;
-        let foreign_spend =
-            foreign_demand * average_wage * tourism_spend_fraction * forex_multiplier;
+        let foreign_spend = foreign_demand * average_wage * tourism_spend_fraction * forex_multiplier;
 
         // Identify hospitality companies that own buildings in this region.
         let hospitality_companies: Vec<&crate::entities::Company> = companies
@@ -532,14 +547,14 @@ pub fn process_tourism_turn(
         total_domestic_spend += theoretical_domestic_spend;
         total_foreign_spend += foreign_spend;
 
-        destination_demands.push(DestinationDemand {
+        destination_demands.push(DestinationSettlement {
+            company_shares,
             domestic_spend: theoretical_domestic_spend,
             foreign_spend,
-            company_shares,
         });
     }
 
-    // FIX #4: Cap total domestic spend at available savings.
+    // ── FIX #4: Cap total domestic spend at available savings ──
     let capped_domestic_spend = total_domestic_spend.min(total_available_savings);
     let domestic_ratio = if total_domestic_spend > 0.0 {
         capped_domestic_spend / total_domestic_spend
@@ -552,39 +567,22 @@ pub fn process_tourism_turn(
         dd.domestic_spend *= domestic_ratio;
     }
 
-    let total_revenue = capped_domestic_spend + total_foreign_spend;
-
     // =====================================================================
-    // PASS 2: MUTATE COMPANIES (Credit Revenue)
+    // PASS 1C: Debit domestic savings pro-rata by savings share (Rule 7).
     // =====================================================================
-
-    for dd in &destination_demands {
-        let dest_revenue = dd.domestic_spend + dd.foreign_spend;
-        for (company_id, share) in &dd.company_shares {
-            if let Some(company) = companies.iter_mut().find(|c| &c.id == company_id) {
-                company.available_cash += dest_revenue * share;
-            }
-        }
-    }
-
-    // =====================================================================
-    // PASS 3: MUTATE COUNTRY (Debit Savings + Update State)
-    // =====================================================================
-
-    // Debit domestic savings proportionally across all regions.
-    if capped_domestic_spend > 0.0 && total_population > 0 {
+    if capped_domestic_spend > 0.0 && total_available_savings > 0.0 {
         for region in &mut country.regions {
             for class in region.class_demographics.rural_classes.values_mut() {
-                let class_share = class.population as f64 / total_population as f64;
-                let debit = (capped_domestic_spend * class_share).min(class.savings);
+                let savings_share = class.savings / total_available_savings;
+                let debit = (capped_domestic_spend * savings_share).min(class.savings);
                 class.savings -= debit;
                 if class.population > 0 {
                     class.savings_per_capita = class.savings / class.population as f64;
                 }
             }
             for class in region.class_demographics.urban_classes.values_mut() {
-                let class_share = class.population as f64 / total_population as f64;
-                let debit = (capped_domestic_spend * class_share).min(class.savings);
+                let savings_share = class.savings / total_available_savings;
+                let debit = (capped_domestic_spend * savings_share).min(class.savings);
                 class.savings -= debit;
                 if class.population > 0 {
                     class.savings_per_capita = class.savings / class.population as f64;
@@ -599,19 +597,55 @@ pub fn process_tourism_turn(
             .get(&dest.region_id)
             .copied()
             .unwrap_or(0.0);
-        let forest_rec = dest.forest_area * 0.001 * dest.infrastructure_quality;
+        let forest_rec = region_data
+            .iter()
+            .find(|(rid, _, _)| *rid == dest.region_id)
+            .and_then(|(_, _, land_use)| land_use.get_category(LandCategory::Forests))
+            .map(|f| f.area_hectares * 0.001 * dest.infrastructure_quality)
+            .unwrap_or(0.0);
         let total_rec = wonder_rec + forest_rec;
-        let utilization = total_rec / dest.accommodation_capacity.max(1.0);
-        if utilization > 0.9 {
+        // Satisfaction adjusts based on recreation pressure.
+        if total_rec > dest.visitor_satisfaction * 10_000.0 {
             dest.visitor_satisfaction *= 0.95;
-        } else if utilization < 0.5 {
+        } else if total_rec < dest.visitor_satisfaction * 5_000.0 {
             dest.visitor_satisfaction = (dest.visitor_satisfaction + 0.02).min(1.0);
         }
     }
 
-    TourismTurnResult {
-        foreign_tourism_inflow: total_foreign_spend,
-        domestic_tourism_spend: capped_domestic_spend,
-        tourism_revenue: total_revenue,
+    TourismDemandResult {
+        destinations: destination_demands,
+        total_foreign_requested: total_foreign_spend,
+        total_domestic_spend: capped_domestic_spend,
+    }
+}
+
+/// Settle tourism revenue — credit hospitality companies with clamped amounts.
+///
+/// This is Pass 2 of the two-pass tourism mechanism. It credits each
+/// hospitality company its share of domestic and foreign spending.
+/// The `foreign_scaling_ratio` is computed sequentially after clamping
+/// the total foreign inflow against `GlobalMarket.foreign_sector_balance`.
+///
+/// # Arguments
+/// * `companies` - Mutable slice of all companies (hospitality companies credited).
+/// * `demand` - Tourism demand result from `compute_tourism_demand`.
+/// * `foreign_scaling_ratio` - Ratio by which foreign spend is scaled (0.0–1.0).
+///
+/// # Rules
+/// * Debit = Credit: The sum of all company credits equals
+///   `demand.total_domestic_spend + total_foreign_requested * foreign_scaling_ratio`.
+/// * No country mutation, no market mutation.
+pub fn settle_tourism_revenue(
+    companies: &mut [crate::entities::Company],
+    demand: &TourismDemandResult,
+    foreign_scaling_ratio: f64,
+) {
+    for dd in &demand.destinations {
+        let dest_revenue = dd.domestic_spend + dd.foreign_spend * foreign_scaling_ratio;
+        for (company_id, share) in &dd.company_shares {
+            if let Some(company) = companies.iter_mut().find(|c| &c.id == company_id) {
+                company.available_cash += dest_revenue * share;
+            }
+        }
     }
 }

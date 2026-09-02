@@ -426,6 +426,15 @@ pub fn resolve_regional_labor_market(
     // per-company wage loop (strict performance rule).
     let mut bank_debits: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
 
+    // Phase 94: Track total actual paid vs total wage obligation.
+    // Citizens must be credited based on ACTUAL paid amount, not gross wage.
+    // If a company can't afford full payroll, actual_paid < wage_payment.
+    // Crediting citizens with gross_wage while debiting only actual_paid
+    // creates money (M0 violation). We compute a region-wide paid ratio
+    // and scale all class earned_wages by it (Rule 5: proportional).
+    let mut total_actual_paid: f64 = 0.0;
+    let mut total_wage_obligation: f64 = 0.0;
+
     // 1. Debit companies for their exact gross wage payments
     // Phase 40: Wage arrears — if fulfilled_fte exceeds what the company can
     // afford (FTE retention floor), the unpaid portion accrues as arrears
@@ -440,6 +449,7 @@ pub fn resolve_regional_labor_market(
             continue;
         }
         let wage_payment = company.fulfilled_fte as f64 * company.offered_wage_per_fte;
+        total_wage_obligation += wage_payment;
 
         // Compute how much cash is actually available
         let available_cash = company
@@ -484,6 +494,7 @@ pub fn resolve_regional_labor_market(
                 *bank_debits.entry(bank_id.clone()).or_insert(0.0) += actual_paid;
             }
         }
+        total_actual_paid += actual_paid;
 
         // Phase 40: Repay existing arrears from available cash (30% of cash).
         // This runs after the current turn's payroll, so it uses remaining cash.
@@ -592,10 +603,11 @@ pub fn resolve_regional_labor_market(
             if let Some(ref mut bs) = bank.balance_sheet {
                 bs.deposits -= total_debit;
                 bs.reserves_at_central_bank -= total_debit;
-                // Clamp reserves at zero — strict accounting invariant.
-                if bs.reserves_at_central_bank < 0.0 {
-                    bs.reserves_at_central_bank = 0.0;
-                }
+                // Phase 94: No reserve clamping — negative reserves represent
+                // CB Lombard borrowing. Clamping breaks A=L+E (deposits
+                // debited by full amount but reserves debited by less) and
+                // causes M0 FiatCreation. Bank resolution (Step 10) handles
+                // insolvent banks with negative reserves.
             }
         }
     }
@@ -639,6 +651,21 @@ pub fn resolve_regional_labor_market(
     let mut total_pit_withheld: f64 = 0.0;
     let mut total_remittances_withheld: f64 = 0.0;
     let mut total_garnishments_withheld: f64 = 0.0;
+
+    // Phase 94: Scale earned_wages by the actual paid ratio.
+    // If companies couldn't afford full payroll, actual_paid < wage_obligation.
+    // Crediting citizens with full gross_wage while only debiting actual_paid
+    // creates money. Scale all earned_wages proportionally (Rule 5).
+    let paid_ratio = if total_wage_obligation > 0.0 {
+        (total_actual_paid / total_wage_obligation).min(1.0)
+    } else {
+        1.0
+    };
+    if paid_ratio < 1.0 {
+        for ledger in pool.class_ledgers.values_mut() {
+            ledger.earned_wages *= paid_ratio;
+        }
+    }
 
     // CRITICAL FIX: Use tuple keys (DemographyType, class_id) to access ledgers
     for (class_id, demographics) in region.class_demographics.rural_classes.iter_mut() {

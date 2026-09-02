@@ -156,6 +156,47 @@ pub struct Planet {
 }
 
 impl Planet {
+    /// D.6.1: Build a region_id → (lat, lon) lookup from grid cells.
+    /// Returns the first cell's coordinates for each region.
+    /// Used for spatial partitioning of inspectorate fleet range checks.
+    pub fn region_coords(&self) -> std::collections::HashMap<String, (f64, f64)> {
+        self.grid_cells
+            .iter()
+            .filter_map(|c| c.region_id.as_ref().map(|id| (id.clone(), (c.lat, c.lon))))
+            .collect()
+    }
+
+    /// D.6.1: Compute the haversine distance between two lat/lon points in km.
+    /// Used for region-level spatial distance in inspectorate fleet range checks.
+    /// This replaces the naive `simple_region_distance` fallback.
+    pub fn haversine_distance(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
+        const EARTH_RADIUS_KM: f64 = 6371.0;
+        let lat1_rad = lat1.to_radians();
+        let lat2_rad = lat2.to_radians();
+        let dlat = (lat2 - lat1).to_radians();
+        let dlon = (lon2 - lon1).to_radians();
+        let a = (dlat / 2.0).sin().powi(2)
+            + lat1_rad.cos() * lat2_rad.cos() * (dlon / 2.0).sin().powi(2);
+        let c = 2.0 * a.sqrt().asin();
+        EARTH_RADIUS_KM * c
+    }
+
+    /// D.6.1: Compute the distance between two regions in km using the
+    /// planet grid. Falls back to 0.0 if either region is not found.
+    pub fn distance_between_regions(
+        &self,
+        region_a: &str,
+        region_b: &str,
+    ) -> f64 {
+        let coords = self.region_coords();
+        match (coords.get(region_a), coords.get(region_b)) {
+            (Some((lat1, lon1)), Some((lat2, lon2))) => {
+                Self::haversine_distance(*lat1, *lon1, *lat2, *lon2)
+            }
+            _ => 0.0,
+        }
+    }
+
     /// Generate the planet's geological veins.
     ///
     /// # Arguments

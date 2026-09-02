@@ -633,6 +633,79 @@ pub fn revalue_all_parcels(cadastre: &mut Cadastre, config: &CadastreConfig) {
 }
 
 // ============================================================================
+// PROPERTY TAX (Cadastre-based — single source of truth)
+// ============================================================================
+
+/// Configuration for cadastre-based property tax collection.
+///
+/// Replaces the old `ClassLandDistribution`-based tax path with a single,
+/// absolute source of truth: the `Cadastre` parcel registry.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct PropertyTaxConfig {
+    /// Millage rate applied to each parcel's hedonic valuation
+    /// (e.g., 0.02 = 2% of assessed value per turn).
+    pub millage_rate: f64,
+}
+
+impl Default for PropertyTaxConfig {
+    fn default() -> Self {
+        Self {
+            millage_rate: 0.02,
+        }
+    }
+}
+
+/// Compute the nominal property tax owed for each taxable parcel in the cadastre.
+///
+/// # Rules
+/// * **State land is explicitly tax-exempt** — `owner_type == ParcelOwnerType::State`
+///   parcels are skipped. The central Treasury must never pay regional property
+///   taxes on escheated land (self-taxation is prohibited).
+/// * **Municipal land is tax-exempt** — local government self-taxation is prohibited.
+/// * Tax is computed as `compute_parcel_value(parcel, &cadastre_config) * config.millage_rate`.
+/// * Returns a map of `owner_id → total_nominal_tax_owed` for all taxable parcels.
+///
+/// # Arguments
+/// * `cadastre` - The cadastre (parcels are revalued in place first).
+/// * `cadastre_config` - Hedonic valuation configuration.
+/// * `property_tax_config` - Millage rate configuration.
+///
+/// # Returns
+/// `BTreeMap<owner_id, nominal_tax_owed>` — one entry per taxable owner.
+pub fn calculate_cadastre_property_tax(
+    cadastre: &mut Cadastre,
+    cadastre_config: &CadastreConfig,
+    property_tax_config: &PropertyTaxConfig,
+) -> BTreeMap<String, f64> {
+    // Revalue all parcels first to ensure current hedonic valuations.
+    revalue_all_parcels(cadastre, cadastre_config);
+
+    let mut tax_by_owner: BTreeMap<String, f64> = BTreeMap::new();
+
+    for (_, parcel) in cadastre.parcels.iter() {
+        // Explicitly skip State-owned land — tax-exempt (self-taxation prohibited).
+        if parcel.owner_type == ParcelOwnerType::State {
+            continue;
+        }
+        // Explicitly skip Municipal-owned land — local government self-taxation prohibited.
+        if parcel.owner_type == ParcelOwnerType::Municipal {
+            continue;
+        }
+        // Skip frozen parcels (border conflict — no taxation during dispute).
+        if parcel.is_frozen {
+            continue;
+        }
+
+        let tax_owed = parcel.current_value * property_tax_config.millage_rate;
+        if tax_owed > 0.0 {
+            *tax_by_owner.entry(parcel.owner_id.clone()).or_insert(0.0) += tax_owed;
+        }
+    }
+
+    tax_by_owner
+}
+
+// ============================================================================
 // LAND PRICE HISTORY (for FairMarketAverage compensation)
 // ============================================================================
 
@@ -865,7 +938,10 @@ pub fn generate_cadastre(
                 WaterAccessType::None
             };
             let is_forest = land_use_tag == "forest_district" || rng.gen_range(0.0..1.0) < 0.15;
-            let is_natural_wonder = rng.gen_range(0.0..1.0) < 0.02;
+            // C2: is_natural_wonder is no longer randomly assigned here.
+            // It is set deterministically after tourism entity generation,
+            // based on whether a verified NaturalWonder exists in this region.
+            let is_natural_wonder = false;
             let topography = ParcelTopography {
                 water_access,
                 is_forest,

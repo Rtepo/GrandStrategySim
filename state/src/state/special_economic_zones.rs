@@ -203,7 +203,8 @@ pub fn apply_sse_property_tax_rebate(
                     frozen_cash: 0.0,
                     is_frozen: false,
                     margin_account: None,
-                    extra: HashMap::new(),
+                    tax_advantaged_account: None,
+extra: HashMap::new(),
                 });
             }
 
@@ -272,7 +273,8 @@ pub fn grant_investment_subvention(
             frozen_cash: 0.0,
             is_frozen: false,
             margin_account: None,
-            extra: HashMap::new(),
+            tax_advantaged_account: None,
+extra: HashMap::new(),
         });
     }
 
@@ -456,3 +458,4 @@ pub fn fund_sse_budgets(
 
     messages
 }
+

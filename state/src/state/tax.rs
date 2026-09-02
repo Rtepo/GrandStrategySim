@@ -1317,12 +1317,22 @@ pub fn process_tax_collection_turn(
 
     // Apply tax evasion
     let total_companies = companies.len() as f64;
-    let tax_office_workers = country.budget.tax_office_ids.len() as f64;
+    // D.3.1: Use actual employment at tax office buildings, not building count.
+    // A tax office with 0 employees counts the same as one with 500 if we use
+    // building count. Sum current_employment from buildings whose IDs are in
+    // tax_office_ids.
+    let tax_office_workers: f64 = buildings
+        .iter()
+        .filter(|b| country.budget.tax_office_ids.contains(&b.id))
+        .map(|b| b.current_employment as f64)
+        .sum();
+    // D.3.2: Use the defined constant, not a hardcoded 0.1 (which is 2x the
+    // intended ratio of 1 bureaucrat per 20 companies).
     let evasion = calculate_tax_evasion(
         pit_owed,
         tax_office_workers,
         total_companies,
-        0.1, // default bureaucrats per company
+        DEFAULT_BUREAUCRATS_PER_COMPANY,
     );
     let pit_collected = pit_owed * (1.0 - evasion.evasion_rate);
     result.taxes_evaded += pit_owed - pit_collected;
@@ -1366,8 +1376,12 @@ pub fn process_tax_collection_turn(
         };
 
         // Apply evasion
-        let cit_evasion =
-            calculate_tax_evasion(cit_after_sez, tax_office_workers, total_companies, 0.1);
+        let cit_evasion = calculate_tax_evasion(
+            cit_after_sez,
+            tax_office_workers,
+            total_companies,
+            DEFAULT_BUREAUCRATS_PER_COMPANY,
+        );
         let cit_collected = cit_after_sez * (1.0 - cit_evasion.evasion_rate);
         result.taxes_evaded += cit_after_sez - cit_collected;
 
@@ -1424,8 +1438,12 @@ pub fn process_tax_collection_turn(
                 }
                 prev_threshold = bracket.threshold;
             }
-            let wealth_evasion =
-                calculate_tax_evasion(wealth_tax_owed, tax_office_workers, total_companies, 0.1);
+            let wealth_evasion = calculate_tax_evasion(
+                wealth_tax_owed,
+                tax_office_workers,
+                total_companies,
+                DEFAULT_BUREAUCRATS_PER_COMPANY,
+            );
             let wealth_collected = wealth_tax_owed * (1.0 - wealth_evasion.evasion_rate);
             // Phase 42: Only collect from liquid cash (available_cash + brokerage cash)
             let company_liquid = company.available_cash
@@ -2282,6 +2300,7 @@ mod tests {
             net_trade: rustc_hash::FxHashMap::default(),
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
             foreign_patent_fee_ledger: 0.0,
+            foreign_sector_balance: 0.0,
         };
 
         let attempt = CapitalFlightAttempt {
@@ -2330,6 +2349,7 @@ mod tests {
             net_trade: rustc_hash::FxHashMap::default(),
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
             foreign_patent_fee_ledger: 0.0,
+            foreign_sector_balance: 0.0,
         };
 
         let attempt = CapitalFlightAttempt {
@@ -2469,6 +2489,7 @@ mod tests {
             net_trade: rustc_hash::FxHashMap::default(),
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
             foreign_patent_fee_ledger: 0.0,
+            foreign_sector_balance: 0.0,
         };
 
         let fdi_trigger = FdiTrigger {
@@ -2509,6 +2530,7 @@ mod tests {
             net_trade: rustc_hash::FxHashMap::default(),
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
             foreign_patent_fee_ledger: 0.0,
+            foreign_sector_balance: 0.0,
         };
 
         let fdi_trigger = FdiTrigger {

@@ -550,7 +550,8 @@ mod tests {
             frozen_cash: 0.0,
             is_frozen: false,
             margin_account: None,
-            extra: Default::default(),
+            tax_advantaged_account: None,
+extra: Default::default(),
         });
         licensor.blueprints.push(ProductBlueprint {
             id: "bp_test".to_string(),
@@ -584,7 +585,8 @@ mod tests {
             frozen_cash: 0.0,
             is_frozen: false,
             margin_account: None,
-            extra: Default::default(),
+            tax_advantaged_account: None,
+extra: Default::default(),
         });
 
         // Building owned by licensee produced 1000 units of IndustrialMachinery.
@@ -663,7 +665,8 @@ mod tests {
             frozen_cash: 0.0,
             is_frozen: false,
             margin_account: None,
-            extra: Default::default(),
+            tax_advantaged_account: None,
+extra: Default::default(),
         });
 
         let mut building = Building::default();
@@ -708,7 +711,8 @@ mod tests {
             frozen_cash: 0.0,
             is_frozen: false,
             margin_account: None,
-            extra: Default::default(),
+            tax_advantaged_account: None,
+extra: Default::default(),
         });
 
         let queue = vec![CrossBorderRoyaltyQueueEntry {
@@ -742,3 +746,4 @@ mod tests {
         assert_eq!(msgs.len(), 1, "missing licensor must produce a warning");
     }
 }
+

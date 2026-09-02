@@ -225,7 +225,8 @@ impl Party {
                 frozen_cash: 0.0,
                 is_frozen: false,
                 margin_account: None,
-                extra: std::collections::HashMap::new(),
+                tax_advantaged_account: None,
+extra: std::collections::HashMap::new(),
             });
         }
 
@@ -1041,3 +1042,4 @@ impl FiscalTransferConfig {
         }
     }
 }
+

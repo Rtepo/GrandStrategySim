@@ -283,10 +283,17 @@ pub fn arm_rebels(
     let ammo_to_transfer = available_ammo.min(ammo_qty);
 
     // Debit physical commodities from sponsor stockpile (Rule 1 — no spawning)
-    *sponsor_stockpile.entry(Commodity::Rifles).or_insert(0.0) -= rifles_to_transfer;
-    *sponsor_stockpile
-        .entry(Commodity::Ammunition)
-        .or_insert(0.0) -= ammo_to_transfer;
+    // Phase 94: Rule 20 clamp — stockpile cannot go negative.
+    {
+        let rifles = sponsor_stockpile.entry(Commodity::Rifles).or_insert(0.0);
+        *rifles = (*rifles - rifles_to_transfer).max(0.0);
+    }
+    {
+        let ammo = sponsor_stockpile
+            .entry(Commodity::Ammunition)
+            .or_insert(0.0);
+        *ammo = (*ammo - ammo_to_transfer).max(0.0);
+    }
 
     // Record transferred commodities
     result

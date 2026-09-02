@@ -738,7 +738,8 @@ impl Company {
                 frozen_cash: 0.0,
                 is_frozen: false,
                 margin_account: None,
-                extra: HashMap::new(),
+                tax_advantaged_account: None,
+extra: HashMap::new(),
             })
         } else {
             None
@@ -1253,3 +1254,4 @@ mod tests {
         assert_eq!(company.union_id, Some("UNION-001".to_string()));
     }
 }
+

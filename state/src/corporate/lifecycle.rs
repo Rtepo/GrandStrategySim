@@ -2,8 +2,19 @@
 //!
 //! This module implements the `CompanyLifecycle` service which handles:
 //! - Spawning new companies in sectors with strong PMI and positive market signals
-//! - Liquidating bankrupt companies with negative equity or sustained losses
+//! - Liquidating bankrupt companies via the Syndic (universal trustee)
+//!
+//! Phase 96: The crude "mark and remove" liquidation path has been replaced
+//! with a call to `Syndic::execute_liquidation`, which is the SINGLE universal
+//! liquidation path (Rule 14). The Syndic handles:
+//! - FX seizure and conversion
+//! - Cash seizure (brokerage + available_cash)
+//! - Inventory fire-sale
+//! - Building routing to auction pool with per-company creditor claims
+//! - Full waterfall: wages → taxes → secured creditors → shareholders
+//! - Cadastre parcel reassignment to Treasury
 
+use crate::corporate::bankruptcy::{process_auction_turn, Syndic};
 use crate::economy::market::MarketSignal;
 use crate::entities::{Building, Company, FamilyBusinessData, LegalForm};
 use crate::registries::enums::Sector;
@@ -14,27 +25,10 @@ use rustc_hash::FxHashMap;
 type HashMap<K, V> = FxHashMap<K, V>;
 
 /// CompanyLifecycle service manages organic birth and death of companies.
-///
-/// This service is responsible for:
-/// - Spawning new companies in sectors with strong PMI and positive market signals
-/// - Liquidating bankrupt companies with negative equity or sustained losses
 pub struct CompanyLifecycle;
 
 impl CompanyLifecycle {
     /// Process company lifecycle for a single country.
-    ///
-    /// # Arguments
-    /// * `companies` - Mutable slice of companies for this country
-    /// * `buildings` - Mutable slice of buildings for this country
-    /// * `country` - Mutable reference to the country state
-    /// * `year` - Current game year
-    /// * `market_signal` - Market conditions including PMI and interest rates
-    ///
-    /// # Rules
-    /// * New companies are spawned in sectors with PMI > 50 and positive market signals
-    /// * A fraction of private capital is converted into new companies
-    /// * Bankrupt companies (negative equity or sustained losses) are liquidated
-    /// * Buildings of liquidated companies are transferred or destroyed
     pub fn process_lifecycle(
         companies: &mut Vec<Company>,
         buildings: &mut Vec<Building>,
@@ -42,26 +36,24 @@ impl CompanyLifecycle {
         year: u32,
         market_signal: &MarketSignal,
     ) {
-        // 1. Liquidate bankrupt companies
+        // 1. Liquidate bankrupt companies via the Syndic.
         Self::liquidate_bankrupt_companies(companies, buildings, country, year);
 
-        // 2. Spawn new companies in promising sectors
+        // 2. Process the bankruptcy auction market (bidders buy, expired demolish).
+        let policy = crate::state::BankruptcyPolicy::with_defaults();
+        process_auction_turn(companies, buildings, country, &policy);
+
+        // 3. Spawn new companies in promising sectors.
         Self::spawn_new_companies(companies, buildings, country, year, market_signal);
     }
 
-    /// Identify and liquidate bankrupt companies.
-    ///
-    /// # Arguments
-    /// * `companies` - Mutable slice of companies
-    /// * `buildings` - Mutable slice of buildings
-    /// * `country` - Mutable reference to country state
-    /// * `year` - Current game year
+    /// Identify and liquidate bankrupt companies via the Syndic.
     ///
     /// # Rules
     /// * Companies with negative equity (company_capital < 0) are bankrupt
-    /// * Companies with sustained losses (3+ consecutive years of negative profit) are bankrupt
-    /// * Bankrupt companies are removed from the companies vector
-    /// * Their buildings are marked for liquidation (owner_id cleared, capacity zeroed)
+    /// * Companies with sustained losses (3+ consecutive years) are bankrupt
+    /// * Energy companies get receivership instead of liquidation
+    /// * The Syndic handles all asset seizure, creditor payment, and cleanup
     fn liquidate_bankrupt_companies(
         companies: &mut Vec<Company>,
         buildings: &mut Vec<Building>,
@@ -71,23 +63,18 @@ impl CompanyLifecycle {
         let mut to_remove = Vec::new();
 
         for (idx, company) in companies.iter().enumerate() {
-            // Check for negative equity
+            // Check for negative equity.
             if company.company_capital < 0.0 {
-                // Strategic Resolution: Energy companies are too critical to liquidate
+                // Strategic Resolution: Energy companies are too critical to liquidate.
                 if company.sector == Sector::Energy && !company.is_in_receivership {
-                    // Mark for receivership instead of liquidation
-                    // The actual resolution processing happens in the turn loop
                     continue;
                 }
                 to_remove.push(idx);
                 continue;
             }
 
-            // Check for sustained losses (3+ consecutive years)
-            // Phase 33: Grace period — companies with fewer than 2 financial history
-            // entries are too new to be liquidated for sustained losses. They can still
-            // be liquidated for negative equity (checked above). This prevents first-turn
-            // mass bankruptcy when companies haven't had time to establish operations.
+            // Check for sustained losses (3+ consecutive years).
+            // Phase 33: Grace period for new companies.
             if company.financial_history.len() < 2 {
                 continue;
             }
@@ -104,7 +91,6 @@ impl CompanyLifecycle {
                 });
 
             if consecutive_losses {
-                // Strategic Resolution for energy companies with sustained losses
                 if company.sector == Sector::Energy && !company.is_in_receivership {
                     continue;
                 }
@@ -112,90 +98,39 @@ impl CompanyLifecycle {
             }
         }
 
-        // Phase 24A.8: Remove bankrupt companies with full ghost reference cleanup.
+        // Phase 96: Use the Syndic as the universal liquidation path.
+        let domestic_currency = country.macro_indicators.currency.clone();
+        let policy = crate::state::BankruptcyPolicy::with_defaults();
+
         for idx in to_remove.into_iter().rev() {
-            let company_id = companies[idx].id.clone();
-            let company_fixed_capital = companies[idx].fixed_capital;
-            let company_liquid_capital = companies[idx].liquid_capital;
+            // We need to liquidate companies[idx] but also pass the rest of
+            // companies as the bank/creditor slice. Split the vector.
+            let mut company_to_liquidate = companies.remove(idx);
 
-            // 1. Mark loans to this company as Default in all banks
-            for bank in companies.iter_mut() {
-                if let Some(ref mut bs) = bank.balance_sheet {
-                    for loan in &mut bs.loans_issued {
-                        if loan.borrower_id == company_id
-                            && loan.status != crate::state::banking::LoanStatus::Repaid
-                        {
-                            loan.status = crate::state::banking::LoanStatus::Default;
-                        }
-                    }
-                }
-            }
+            // Get a mutable reference to the forex market from country.
+            // The forex market is on GameState, not Country. We need to handle
+            // this carefully — for now, create a dummy forex market since the
+            // Syndic gracefully handles failed FX swaps.
+            // TODO: Pass real forex_market from the turn task.
+            let mut dummy_forex = crate::state::forex::ForexMarket::default();
 
-            // 2. Liquidate buildings owned by this company
-            // Phase 86.5A: Collect building IDs to remove after iteration
-            // to avoid mutating the Vec while iterating.
-            let mut buildings_to_remove: Vec<String> = Vec::new();
-            for building in buildings.iter_mut() {
-                if building.owner_id == company_id {
-                    // Heritage buildings are protected from demolition
-                    if building.is_heritage_site {
-                        building.owner_id.clear();
-                        building.current_employment = 0;
-                        // Preserve capacity for potential state takeover
-                        continue;
-                    }
-                    // Phase 24A.8: Route building assets to auction pool
-                    country.bankruptcy_auction_pool.add_asset(
-                        format!("building_{}", building.id),
-                        company_fixed_capital,
-                        company_id.clone(),
-                        std::collections::HashMap::new(),
-                        &crate::state::BankruptcyPolicy::with_defaults(),
-                    );
-                    // Phase 86.5A: Mark for removal instead of leaving a zombie.
-                    building.owner_id.clear();
-                    building.current_employment = 0;
-                    building.worker_capacity = 0;
-                    buildings_to_remove.push(building.id.clone());
-                }
-            }
-            // Phase 86.5A: Actually remove dead buildings from the collection.
-            buildings.retain(|b| !buildings_to_remove.contains(&b.id));
+            let mut syndic = Syndic::new(domestic_currency.clone());
 
-            // 3. Remove frozen company cash from justice state
-            if let Some(ref mut justice_state) = country.politics.justice_state {
-                justice_state.frozen_company_cash.remove(&company_id);
-            }
+            syndic.execute_liquidation(
+                &mut company_to_liquidate,
+                buildings,
+                &mut dummy_forex,
+                country,
+                companies, // remaining companies (including banks)
+                &policy,
+            );
 
-            // 4. Remove any exchange listings for this company
-            country
-                .stock_exchange
-                .liquidity_pools
-                .remove(&format!("EQUITY:{}", company_id));
-
-            // 5. Add recovered cash to auction pool
-            country.bankruptcy_auction_pool.cash_collected += company_liquid_capital.max(0.0);
-
-            // Remove the company
-            companies.remove(idx);
+            // The Syndic marks is_liquidated = true. The company is already
+            // removed from the vector. No need to push it back.
         }
     }
 
     /// Spawn new companies in sectors with strong PMI and positive market signals.
-    ///
-    /// # Arguments
-    /// * `companies` - Mutable slice of companies (new companies will be pushed)
-    /// * `buildings` - Mutable slice of buildings (new buildings will be pushed)
-    /// * `country` - Mutable reference to country state
-    /// * `year` - Current game year
-    /// * `market_signal` - Market conditions
-    ///
-    /// # Rules
-    /// * Only spawn in sectors with PMI > 50
-    /// * Only spawn if interest rate is reasonable (< 0.15)
-    /// * Convert 1-5% of private capital into new companies
-    /// * New companies start as family businesses or cooperatives
-    /// * Each new company gets one building with base capacity
     fn spawn_new_companies(
         companies: &mut Vec<Company>,
         buildings: &mut Vec<Building>,
@@ -203,22 +138,18 @@ impl CompanyLifecycle {
         year: u32,
         market_signal: &MarketSignal,
     ) {
-        // Don't spawn if interest rates are too high
         if market_signal.interest_rate > 0.15 {
             return;
         }
 
         let private_capital = country.budget.private_capital;
         if private_capital < 1000.0 {
-            return; // Not enough capital to spawn
+            return;
         }
 
-        // Calculate how much capital to invest in new companies (1-5%)
         let investment_fraction = 0.01 + (private_capital / 1_000_000.0).min(0.04);
         let investment = private_capital * investment_fraction;
 
-        // Find promising sectors (PMI > 50)
-        // PMI is stored in the extra Map as a Value
         let promising_sectors: Vec<Sector> = country
             .budget
             .sectors
@@ -237,26 +168,19 @@ impl CompanyLifecycle {
             return;
         }
 
-        // Determine number of new companies to spawn
-        // Base on investment amount and sector count
         let num_companies = ((investment / 10_000.0) as usize).min(5).max(1);
 
         for i in 0..num_companies {
             let sector = promising_sectors[i % promising_sectors.len()];
             let capital_per_company = investment / num_companies as f64;
 
-            // Phase 24C.8: Enforce sector-aware entry barriers.
-            // Companies must meet the minimum capital requirement for their sector,
-            // scaled by average wage (inflation-indexed). Skip spawning if capital
-            // is insufficient for the chosen sector.
             let avg_wage = country.macro_indicators.average_wage.max(1.0);
             let min_capital =
                 crate::corporate::capital_intensity::minimum_capital_for_sector(&sector, avg_wage);
             if capital_per_company < min_capital {
-                continue; // Insufficient capital for this sector's entry barrier
+                continue;
             }
 
-            // Create new company - use FamilyBusiness as default for startups
             let company_id = format!("NEW_{}_{}_{}", country.name, year, i);
             let legal_form = LegalForm::FamilyBusiness(FamilyBusinessData {
                 dynasty_id: None,
@@ -275,14 +199,12 @@ impl CompanyLifecycle {
                 100,
             );
 
-            // Create initial building for the company
             let building_id = format!("BLD_{}_{}_{}", country.name, year, i);
             let new_building = Building::new(building_id, company_id, sector, 100);
 
             companies.push(new_company);
             buildings.push(new_building);
 
-            // Deduct from private capital
             country.budget.private_capital -= capital_per_company;
         }
     }
@@ -327,9 +249,11 @@ mod tests {
             2024,
         );
 
+        // Company is removed (liquidated).
         assert!(companies.is_empty());
-        // Phase 86.5A: Building is now fully removed, not left as a zombie.
-        assert!(buildings.is_empty());
+        // Building remains but is now in the auction pool (not demolished yet).
+        // The Syndic routes buildings to the auction pool, not removes them.
+        assert!(!buildings.is_empty());
     }
 
     #[test]
@@ -341,7 +265,7 @@ mod tests {
         country.budget.private_capital = 100_000.0;
 
         let market_signal = MarketSignal {
-            interest_rate: 0.20, // Too high
+            interest_rate: 0.20,
             sector_pmi: HashMap::default(),
             demand_surplus: HashMap::default(),
             global_surplus: HashMap::default(),
@@ -367,7 +291,7 @@ mod tests {
         let mut buildings = Vec::new();
         let mut country = Country::mock_for_tests();
         country.name = "Test".to_string();
-        country.budget.private_capital = 500.0; // Too low
+        country.budget.private_capital = 500.0;
 
         let market_signal = MarketSignal {
             interest_rate: 0.05,

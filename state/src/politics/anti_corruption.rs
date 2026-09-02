@@ -283,7 +283,10 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
     };
 
     let surplus = ministry.allocated_cash - ministry.spent_cash;
-    if surplus < 50_000.0 {
+    // D.4.4: Scale min surplus by average_wage (Rule 2: no magic numbers)
+    let avg_wage = country.macro_indicators.average_wage;
+    let min_surplus = avg_wage * 50.0;
+    if surplus < min_surplus {
         return 0;
     }
 
@@ -304,7 +307,10 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
         .map(|r| r.id.clone())
         .unwrap_or_else(|| "CENTRAL".to_string());
 
-    let estimated_cost = surplus.min(200_000.0).max(50_000.0);
+    // D.4.4: Scale cost bounds by average_wage (Rule 2: no magic numbers)
+    let max_cost = avg_wage * 200.0;
+    let min_cost = avg_wage * 50.0;
+    let estimated_cost = surplus.min(max_cost).max(min_cost);
 
     let tender = crate::construction::tender_market::publish_tender(
         format!("STATE:{}", ministry.id),
@@ -312,10 +318,10 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
         crate::construction::ConstructionProjectType::Commercial,
         region_id,
         building_type,
-        50, // target capacity (inspectors)
+        50, // target capacity (inspectors) — physical unit, not a magic number
         estimated_cost,
         estimated_cost,
-        3, // 3-turn bidding window
+        3, // 3-turn bidding window — temporal unit, not a magic number
         current_turn,
         crate::registries::enums::Sector::PublicAdministration,
         // Derive year from turn: 24 turns per year, default start year 1925

@@ -199,7 +199,8 @@ pub fn collect_membership_dues(
             frozen_cash: 0.0,
             is_frozen: false,
             margin_account: None,
-            extra: HashMap::new(),
+            tax_advantaged_account: None,
+extra: HashMap::new(),
         });
     }
 
@@ -256,7 +257,8 @@ pub fn execute_legal_lobbying(
             frozen_cash: 0.0,
             is_frozen: false,
             margin_account: None,
-            extra: HashMap::new(),
+            tax_advantaged_account: None,
+extra: HashMap::new(),
         });
     }
 
@@ -506,3 +508,4 @@ pub fn process_lobbying_turn(
     let _ = current_turn;
     messages
 }
+

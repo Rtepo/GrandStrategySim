@@ -871,7 +871,8 @@ impl CommercialBuilding {
                     } else if age > 0 {
                         // Partial decay based on age
                         let decayed = batch.quantity * decay_rate;
-                        batch.quantity -= decayed;
+                        // Rule 20: Clamp to zero — inventory cannot go negative.
+                        batch.quantity = (batch.quantity - decayed).max(0.0);
                         total_decayed += decayed;
 
                         if batch.quantity <= 0.0 {

@@ -916,6 +916,19 @@ pub fn generate_corporate_entities(
         rng,
     )?;
 
+    // C2: Unify cadastre is_natural_wonder with verified NaturalWonder entities.
+    // After tourism entities are generated, mark all parcels in regions that
+    // contain a verified NaturalWonder. This replaces the old random 2% chance.
+    let wonder_region_ids: std::collections::HashSet<String> = country
+        .natural_wonders
+        .iter()
+        .map(|w| w.region_id.clone())
+        .collect();
+    for parcel in country.cadastre.parcels.values_mut() {
+        let is_wonder = wonder_region_ids.contains(&parcel.region_id);
+        parcel.topography.is_natural_wonder = is_wonder;
+    }
+
     // Phase 25: Generate retail stores in each region.
     // Without retail stores, the B2C market has no outlets to sell goods
     // to consumers, so GDP (which is largely final consumption) stays at 0.
@@ -1472,6 +1485,10 @@ fn issue_working_capital_loans(
     //   bank.reserves_at_central_bank += equity_injection (cash received)
     // Cap total injection at 30% of treasury liquid_reserves to prevent
     // state bankruptcy — if insufficient, banks get what's available.
+    // Phase 94: Fix the injection formula to account for the fact that
+    // adding to reserves increases total_assets, creating a circular
+    // dependency. Solving (tier_1 + x) / (assets + x) = target for x:
+    //   x = (target * assets - tier_1) / (1 - target)
     const TARGET_TIER_1_RATIO: f64 = 0.12; // 1.5x the 8% KNF minimum
     let max_total_injection = country.budget.liquid_reserves * 0.30;
     let mut total_injected: f64 = 0.0;
@@ -1487,10 +1504,12 @@ fn issue_working_capital_loans(
             }
             let current_ratio = bs.tier_1_capital / total_assets;
             if current_ratio < TARGET_TIER_1_RATIO {
-                let required_capital = total_assets * TARGET_TIER_1_RATIO;
-                let mut injection = required_capital - bs.tier_1_capital;
-                // Clamp to remaining treasury budget
-                injection = injection.min(max_total_injection - total_injected);
+                // Phase 94: Correct formula — solve for x where:
+                //   (tier_1 + x) / (total_assets + x) = TARGET_TIER_1_RATIO
+                //   x = (TARGET * assets - tier_1) / (1 - TARGET)
+                let needed = (TARGET_TIER_1_RATIO * total_assets - bs.tier_1_capital)
+                    / (1.0 - TARGET_TIER_1_RATIO);
+                let mut injection = needed.min(max_total_injection - total_injected);
                 if injection > 0.0 {
                     bs.tier_1_capital += injection;
                     bs.reserves_at_central_bank += injection;
@@ -1512,12 +1531,174 @@ fn issue_working_capital_loans(
         country.budget.liquid_reserves -= total_injected;
     }
 
+    // Phase 94: Assign primary_bank_id to ALL non-bank companies and create
+    // pre-funded deposit liabilities backed by CB-tracked reserves.
+    //
+    // Without this, most companies have primary_bank_id = None, so the wage
+    // batch bank sync (labor_market.rs) never debits bank reserves when those
+    // companies pay wages. Citizen savings (in M0) increase without a matching
+    // reserve decrease, causing FiatCreation.
+    //
+    // Each company's available_cash was created at genesis but was never in M0
+    // (corporate cash is excluded from the M0 walk). Creating a bank deposit
+    // backed by reserves moves this cash into M0 (bank reserves are in M0).
+    // The liquidity_injected tracker records this as an explicit CB monetary
+    // base endowment — the standard mechanism for bootstrapping an economy.
+    //
+    // Rule 1 & Rule 7: No phantom overdrafts. Deposits are pre-funded BEFORE
+    // any wage payment occurs. Companies with available_cash == 0 get only the
+    // primary_bank_id field set (no deposit) and must secure Working Capital
+    // Loans through issue_loan() before paying wages.
+    assign_primary_banks_to_companies(all_companies, &mut bank_companies, &mut country.central_bank);
+
     // Save ALL banks back to disk (multiple banks may have been modified).
-    if total_loaned > 0.0 || total_injected > 0.0 {
-        let _ = bank_store.save_sector(&country.name, &banking_sector_name, None, &bank_companies);
+    // Phase 94: Always save now — assign_primary_banks_to_companies modifies
+    // bank balance sheets even when no loans were issued or injected.
+    let _ = bank_store.save_sector(&country.name, &banking_sector_name, None, &bank_companies);
+
+    // Phase 94: Re-save non-bank companies to persist the primary_bank_id
+    // field that assign_primary_banks_to_companies just set. Without this,
+    // companies load from disk without primary_bank_id and the wage batch
+    // bank sync never debits bank reserves, causing FiatCreation.
+    {
+        let company_store = DiskEntityStore::<Company>::new(data_dir);
+        let mut by_sector: HashMap<String, Vec<Company>> = HashMap::new();
+        for c in all_companies {
+            if c.sector == crate::registries::enums::Sector::Banking {
+                continue;
+            }
+            let sname = sector_json_name(c.sector);
+            by_sector.entry(sname).or_default().push(c.clone());
+        }
+        for (sector_name, companies) in by_sector {
+            let _ = company_store.save_sector(&country.name, &sector_name, None, &companies);
+        }
     }
 
     Ok(())
+}
+
+/// Phase 94: Assign `primary_bank_id` to all non-bank companies and create
+/// pre-funded deposit liabilities backed by CB-tracked reserves.
+///
+/// # Logic
+/// 1. Group eligible banks (Commercial/Universal/Cooperative) by region.
+/// 2. For each non-bank company with `primary_bank_id == None`:
+///    - If `available_cash > 0`: assign to the largest-reserve bank in the
+///      same region, create `bs.deposits += available_cash`, fund
+///      `bs.reserves_at_central_bank += available_cash`, track via
+///      `central_bank.liquidity_injected`.
+///    - If `available_cash == 0`: assign `primary_bank_id` only (no deposit).
+///      The company must secure a Working Capital Loan before paying wages.
+/// 3. If no bank exists in the company's region, assign to the nearest bank
+///    with the largest reserves across all regions.
+///
+/// # Double-Entry
+/// - Bank: `reserves_at_central_bank += cash` (asset), `deposits += cash` (liability)
+/// - CB: `liquidity_injected += cash` (M0 expansion tracker)
+/// - Company: `primary_bank_id = Some(bank_id)` (field assignment only)
+///
+/// # Rules
+/// - Rule 5 (Market Forces): Bank selection is competitive — largest reserves wins.
+/// - Rule 7 (Rational Actors): No phantom overdrafts — deposits are pre-funded.
+/// - Rule 1 (Double-Entry): Every deposit has matching reserves + CB tracking.
+fn assign_primary_banks_to_companies(
+    all_companies: &mut [Company],
+    bank_companies: &mut [Company],
+    central_bank: &mut crate::state::CentralBank,
+) {
+    use crate::state::banking::BankType;
+    use std::collections::HashMap;
+
+    // Group eligible bank indices by region.
+    let mut banks_by_region: HashMap<String, Vec<usize>> = HashMap::new();
+    let mut all_eligible_bank_indices: Vec<usize> = Vec::new();
+    for (i, bank) in bank_companies.iter().enumerate() {
+        if bank.bank_type.is_none() {
+            continue;
+        }
+        let bt = bank.bank_type.as_ref().unwrap();
+        if *bt != BankType::Commercial && *bt != BankType::Universal && *bt != BankType::Cooperative
+        {
+            continue;
+        }
+        if bank.balance_sheet.is_none() {
+            continue;
+        }
+        banks_by_region
+            .entry(bank.region_id.clone())
+            .or_default()
+            .push(i);
+        all_eligible_bank_indices.push(i);
+    }
+
+    if all_eligible_bank_indices.is_empty() {
+        return;
+    }
+
+    for company in all_companies.iter_mut() {
+        // Skip banks and funds (sector == Banking).
+        if company.sector == crate::registries::enums::Sector::Banking {
+            continue;
+        }
+        // Skip companies that already have a primary bank.
+        if company.primary_bank_id.is_some() {
+            continue;
+        }
+
+        // Find the best bank: largest reserves in the same region.
+        let region_banks = banks_by_region.get(&company.region_id);
+        let best_bank_idx = if let Some(indices) = region_banks {
+            // Competitive allocation: largest reserves wins (Rule 5).
+            indices
+                .iter()
+                .copied()
+                .max_by(|&a, &b| {
+                    let ra = bank_companies[a]
+                        .balance_sheet
+                        .as_ref()
+                        .map(|bs| bs.reserves_at_central_bank)
+                        .unwrap_or(0.0);
+                    let rb = bank_companies[b]
+                        .balance_sheet
+                        .as_ref()
+                        .map(|bs| bs.reserves_at_central_bank)
+                        .unwrap_or(0.0);
+                    ra.partial_cmp(&rb).unwrap_or(std::cmp::Ordering::Equal)
+                })
+        } else {
+            // No bank in region — find nearest bank with largest reserves.
+            all_eligible_bank_indices.iter().copied().max_by(|&a, &b| {
+                let ra = bank_companies[a]
+                    .balance_sheet
+                    .as_ref()
+                    .map(|bs| bs.reserves_at_central_bank)
+                    .unwrap_or(0.0);
+                let rb = bank_companies[b]
+                    .balance_sheet
+                    .as_ref()
+                    .map(|bs| bs.reserves_at_central_bank)
+                    .unwrap_or(0.0);
+                ra.partial_cmp(&rb).unwrap_or(std::cmp::Ordering::Equal)
+            })
+        };
+
+        if let Some(bank_idx) = best_bank_idx {
+            let bank_id = bank_companies[bank_idx].id.clone();
+            company.primary_bank_id = Some(bank_id.clone());
+
+            // Create pre-funded deposit liability backed by reserves.
+            // Only for companies with available_cash > 0 (Rule 7: no phantom overdrafts).
+            let cash = company.available_cash.max(0.0);
+            if cash > 0.0 {
+                if let Some(ref mut bs) = bank_companies[bank_idx].balance_sheet {
+                    bs.deposits += cash;
+                    bs.reserves_at_central_bank += cash;
+                    central_bank.liquidity_injected += cash;
+                }
+            }
+        }
+    }
 }
 
 /// Generates union entities for each sector and assigns them to companies.
@@ -5160,12 +5341,14 @@ fn generate_retail_stores(
     Ok(())
 }
 
-/// Phase 9: Generate tourism entities Ă˘â‚¬â€ť natural wonders, tourism destinations,
+/// Phase 9: Generate tourism entities — natural wonders, tourism destinations,
 /// hospitality companies, and hotel/resort/restaurant/casino commercial buildings.
 ///
 /// # Rules
-/// * ~30% of regions get a natural wonder.
-///* Each region with a wonder gets a tourism destination.
+/// * Natural wonder placement is deterministic, derived from physical planetary
+///   data (geology, climate, coastline, elevation, forest area). No random
+///   spawning — a region gets a wonder IFF its physical traits support one.
+/// * Each region with a wonder gets a tourism destination.
 /// * 1-3 hospitality companies per destination, each owning 1+ commercial buildings.
 /// * Commercial buildings are saved to `entities/<country>/commercial/`.
 fn generate_tourism_entities(
@@ -5177,37 +5360,11 @@ fn generate_tourism_entities(
     rng: &mut impl Rng,
 ) -> Result<(), Box<dyn Error>> {
     use crate::society::housing::{CommercialBuilding, CommercialBuildingType, UtilityConnections};
-    use crate::society::tourism::{NaturalWonder, TourismDestination, WonderType};
+    use crate::society::tourism::{create_natural_wonder, TourismDestination};
 
     if country_regions.is_empty() {
         return Ok(());
     }
-
-    let wonder_types = [
-        WonderType::Waterfall,
-        WonderType::Geyser,
-        WonderType::Beach,
-        WonderType::MountainPeak,
-        WonderType::Canyon,
-        WonderType::Cave,
-        WonderType::VolcanicCrater,
-        WonderType::HotSpring,
-        WonderType::AncientForest,
-        WonderType::GeologicalFormation,
-    ];
-
-    let wonder_names = [
-        "Crystal Falls",
-        "Old Faithful",
-        "Golden Bay",
-        "Eagle Peak",
-        "Deep Gorge",
-        "Whispering Caves",
-        "Fire Crater",
-        "Silver Springs",
-        "Ancient Grove",
-        "Stone Arches",
-    ];
 
     let mut wonders = Vec::new();
     let mut destinations = BTreeMap::new();
@@ -5252,36 +5409,37 @@ fn generate_tourism_entities(
     };
 
     for region in country_regions {
-        // ~30% chance of getting a natural wonder
-        if rng.gen::<f64>() > 0.3 {
-            continue;
-        }
-
-        let wonder_idx = rng.gen_range(0..wonder_types.len());
-        let wonder_type = wonder_types[wonder_idx];
-        let wonder_name = format!("{} ({})", wonder_names[wonder_idx], region.id);
-
-        let wonder = NaturalWonder {
-            id: format!(
-                "WONDER-{}-{}",
-                country.name[..3.min(country.name.len())].to_uppercase(),
-                idgen.company_counter
-            ),
-            name: wonder_name.clone(),
-            wonder_type,
-            region_id: region.id.clone(),
-            health: 0.9,
-            recreation_value: rng.gen_range(0.5..0.9),
-            visitor_capacity: rng.gen_range(1000.0..5000.0),
-            current_visitors: 0.0,
-            pollution_sensitivity: rng.gen_range(0.2..0.6),
-            restoration_cost: 5000.0,
+        // C1: Deterministic wonder placement from physical data.
+        let wonder_type = match determine_wonder_for_region(region) {
+            Some(wt) => wt,
+            None => continue,
         };
+
+        // Create the natural wonder using the factory function.
+        // The factory computes recreation_value, visitor_capacity,
+        // pollution_sensitivity, and restoration_cost per wonder type.
+        let wonder_name = format!("{:?} ({})", wonder_type, region.id);
+        let mut wonder = create_natural_wonder(
+            wonder_name,
+            wonder_type,
+            region.id.clone(),
+            rng,
+        );
+        // Override the ID with a country-prefixed deterministic ID.
+        wonder.id = format!(
+            "WONDER-{}-{}",
+            country.name[..3.min(country.name.len())].to_uppercase(),
+            idgen.company_counter
+        );
+        // Health starts slightly below max to represent natural state.
+        wonder.health = 0.9;
 
         let wonder_id = wonder.id.clone();
         wonders.push(wonder);
 
-        // Create tourism destination for this region
+        // Create tourism destination for this region.
+        // Forest area is NOT stored — it's looked up dynamically from
+        // land_use_inventory during tourism processing (Phase G1).
         let dest_id = format!(
             "DEST-{}-{}",
             country.name[..3.min(country.name.len())].to_uppercase(),
@@ -5292,11 +5450,8 @@ fn generate_tourism_entities(
             region_id: region.id.clone(),
             name: format!("Tourism Region {}", region.id),
             natural_wonders: vec![wonder_id],
-            forest_area: rng.gen_range(5000.0..50000.0),
             infrastructure_quality: rng.gen_range(0.5..0.8),
-            accommodation_capacity: 0.0, // Will be derived from physical buildings
             visitor_satisfaction: 0.8,
-            marketing_budget: 0.0,
         };
         destinations.insert(region.id.clone(), dest);
 
@@ -5500,6 +5655,95 @@ fn generate_tourism_entities(
     country.tourism_destinations = destinations;
 
     Ok(())
+}
+
+/// C1: Deterministically determine whether a region supports a natural wonder,
+/// and if so, which type. Uses ONLY physical data — no random placement.
+///
+/// # Rules
+/// * Beach: requires coastline + non-arctic climate.
+/// * MountainPeak: requires mountainous climate or mountain pass.
+/// * Canyon: requires elevation difference > 500m.
+/// * VolcanicCrater: requires geothermal potential (shallow UltraRare/Rare veins).
+/// * HotSpring: requires geothermal + mountainous.
+/// * AncientForest: requires forest area > 5000 hectares.
+/// * Cave: requires mountainous + limestone geology.
+/// * Waterfall: requires navigable river + elevation difference > 200m.
+/// * Geyser: requires geothermal + water (river or coast).
+/// * GeologicalFormation: requires 3+ distinct vein commodity types.
+///
+/// Returns `None` if no physical traits support a wonder.
+fn determine_wonder_for_region(region: &Region) -> Option<crate::society::tourism::WonderType> {
+    use crate::society::geography::LandCategory;
+    use crate::society::tourism::WonderType;
+
+    // 1. Beach: requires coastline, non-arctic
+    if region.geographic_traits.has_coastline
+        && region.climate_profile != ClimateProfile::Arctic
+    {
+        return Some(WonderType::Beach);
+    }
+
+    // 2. MountainPeak: requires mountainous climate or mountain pass
+    if region.climate_profile == ClimateProfile::Mountainous
+        || region.geographic_traits.has_mountain_pass
+    {
+        return Some(WonderType::MountainPeak);
+    }
+
+    // 3. Canyon: requires significant elevation difference
+    if region.elevation_difference_m > 500.0 {
+        return Some(WonderType::Canyon);
+    }
+
+    // 4. VolcanicCrater: requires geothermal potential.
+    // has_geothermal_potential is derived from Planet veins during world gen (C3).
+    if region.geographic_traits.has_geothermal_potential {
+        return Some(WonderType::VolcanicCrater);
+    }
+
+    // 5. HotSpring: requires geothermal + mountainous
+    if region.geographic_traits.has_geothermal_potential
+        && region.climate_profile == ClimateProfile::Mountainous
+    {
+        return Some(WonderType::HotSpring);
+    }
+
+    // 6. AncientForest: requires significant forest area
+    if let Some(forest) = region.land_use_inventory.get_category(LandCategory::Forests) {
+        if forest.area_hectares > 5000.0 {
+            return Some(WonderType::AncientForest);
+        }
+    }
+
+    // 7. Cave: requires mountainous + limestone geology (karst)
+    if region.climate_profile == ClimateProfile::Mountainous
+        && has_geological_resource(region, "limestone")
+    {
+        return Some(WonderType::Cave);
+    }
+
+    // 8. Waterfall: requires navigable river + elevation difference
+    if region.geographic_traits.has_navigable_river && region.elevation_difference_m > 200.0 {
+        return Some(WonderType::Waterfall);
+    }
+
+    // 9. Geyser: requires geothermal + water
+    if region.geographic_traits.has_geothermal_potential
+        && (region.geographic_traits.has_navigable_river
+            || region.geographic_traits.has_coastline)
+    {
+        return Some(WonderType::Geyser);
+    }
+
+    // 10. GeologicalFormation: requires diverse geology (checked via resources map)
+    // Count distinct geological resources in the region.
+    let resource_count = region.resources.values().count();
+    if resource_count >= 3 {
+        return Some(WonderType::GeologicalFormation);
+    }
+
+    None
 }
 
 /// Phase 44: Generate genesis housing (Mega-Estates with ownership).

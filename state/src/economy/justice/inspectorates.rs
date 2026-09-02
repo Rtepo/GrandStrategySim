@@ -111,6 +111,8 @@ pub fn process_inspectorates_turn(
     companies: &mut [Company],
     buildings: &[Building],
     _turn: u32,
+    avg_wage: f64,
+    planet: &crate::society::planet::Planet,
 ) -> InspectorateTurnResult {
     let mut result = InspectorateTurnResult::default();
 
@@ -127,20 +129,70 @@ pub fn process_inspectorates_turn(
     // ineffective for shadow employment detection.
     let pip_capacity = sum_inspection_capacity(buildings, Commodity::LaborInspectionCapacity);
 
+    // D.6.1: Spatial partitioning — build region coords from Planet grid and
+    // compute fleet ranges per inspectorate type. Targets are only inspected
+    // if they are within range of at least one inspectorate of the relevant
+    // type. This is O(I × R) where I = inspectorate buildings, R = regions.
+    use crate::economy::justice::inspectorate_fleet::compute_inspectorate_fleet_ranges;
+    let region_coords = planet.region_coords();
+    let sanitary_ranges = compute_inspectorate_fleet_ranges(buildings, Commodity::SanitaryInspectionCapacity);
+    let building_ranges = compute_inspectorate_fleet_ranges(buildings, Commodity::BuildingInspectionCapacity);
+    let environmental_ranges = compute_inspectorate_fleet_ranges(buildings, Commodity::EnvironmentalInspectionCapacity);
+
+    /// Check if a target region is within range of any inspectorate of a type.
+    /// D.6.1: If no inspectorate buildings have fleet range, all targets are
+    /// considered in range (national pool fallback for backward compatibility).
+    fn is_region_in_range(
+        ranges: &[(String, String, f64)],
+        target_region: &str,
+        region_coords: &std::collections::HashMap<String, (f64, f64)>,
+    ) -> bool {
+        // No inspectorate buildings with range → national pool fallback
+        if ranges.is_empty() {
+            return true;
+        }
+        ranges.iter().any(|(_, insp_region, range)| {
+            if *range <= 0.0 {
+                return false;
+            }
+            match (region_coords.get(insp_region), region_coords.get(target_region)) {
+                (Some((lat1, lon1)), Some((lat2, lon2))) => {
+                    crate::society::planet::Planet::haversine_distance(*lat1, *lon1, *lat2, *lon2) <= *range
+                }
+                _ => insp_region == target_region, // Fallback: same region only
+            }
+        })
+    }
+
     // 2. Count inspectable entities per inspectorate type
+    // D.6.1: Filter targets by fleet range using spatial partitioning.
     let sanitary_targets: Vec<usize> = companies
         .iter()
         .enumerate()
         .filter(|(_, c)| is_sanitary_target(c))
+        .filter(|(_, c)| {
+            // A company is a sanitary target if any of its buildings are in range
+            buildings.iter()
+                .filter(|b| b.owner_id == c.id)
+                .any(|b| is_region_in_range(&sanitary_ranges, &b.region_id, &region_coords))
+        })
         .map(|(i, _)| i)
         .collect();
 
-    let building_targets: usize = buildings.iter().filter(|b| b.condition < 0.3).count();
+    let building_targets: usize = buildings.iter()
+        .filter(|b| b.condition < 0.3)
+        .filter(|b| is_region_in_range(&building_ranges, &b.region_id, &region_coords))
+        .count();
 
     let environmental_targets: Vec<usize> = companies
         .iter()
         .enumerate()
         .filter(|(_, c)| is_environmental_target(c))
+        .filter(|(_, c)| {
+            buildings.iter()
+                .filter(|b| b.owner_id == c.id)
+                .any(|b| is_region_in_range(&environmental_ranges, &b.region_id, &region_coords))
+        })
         .map(|(i, _)| i)
         .collect();
 
@@ -167,6 +219,8 @@ pub fn process_inspectorates_turn(
     let mut total_fines = 0.0_f64;
     let mut violations = 0_u32;
     let mut justice_demand_added = 0.0_f64;
+    // D.6.3: Collect violations for recent_violations population.
+    let mut new_violations: Vec<crate::politics::laws::Violation> = Vec::new();
 
     // --- sanepid: health code violations ---
     for &idx in &sanitary_targets {
@@ -188,7 +242,8 @@ pub fn process_inspectorates_turn(
                 .map(|b| b.condition)
                 .fold(1.0, f64::min);
             let severity = (0.5 - worst_condition) / 0.5;
-            let fine = 5_000.0 + severity * 15_000.0;
+            // D.4.1: Scale fines by average_wage (Rule 2: no magic numbers)
+            let fine = avg_wage * 5.0 + severity * avg_wage * 15.0;
 
             let available = companies[idx]
                 .brokerage_account
@@ -202,6 +257,14 @@ pub fn process_inspectorates_turn(
                 total_fines += actual_fine;
                 violations += 1;
                 justice_demand_added += 1.0;
+                // D.6.3: Record violation
+                new_violations.push(crate::politics::laws::Violation {
+                    violation_type: crate::politics::laws::ViolationType::HealthCode,
+                    entity_id: companies[idx].id.clone(),
+                    severity,
+                    fine_amount: actual_fine,
+                    turn: _turn,
+                });
             }
         }
     }
@@ -213,7 +276,8 @@ pub fn process_inspectorates_turn(
                 continue;
             }
             let severity = condition_violation_severity(b.condition);
-            let fine = 2_000.0 + severity * 8_000.0;
+            // D.4.1: Scale fines by average_wage (Rule 2: no magic numbers)
+            let fine = avg_wage * 2.0 + severity * avg_wage * 8.0;
 
             // Find the owning company and fine it
             if !b.owner_id.is_empty() {
@@ -230,6 +294,14 @@ pub fn process_inspectorates_turn(
                         total_fines += actual_fine;
                         violations += 1;
                         justice_demand_added += 1.0;
+                        // D.6.3: Record violation
+                        new_violations.push(crate::politics::laws::Violation {
+                            violation_type: crate::politics::laws::ViolationType::BuildingCode,
+                            entity_id: b.id.clone(),
+                            severity,
+                            fine_amount: actual_fine,
+                            turn: _turn,
+                        });
                     }
                 }
             }
@@ -243,8 +315,8 @@ pub fn process_inspectorates_turn(
             if environmental_coverage <= 0.0 {
                 continue;
             }
-            // Fine scales with pollution proxy
-            let fine = (pollution * 100.0).min(50_000.0);
+            // D.4.1: Scale fines by average_wage (Rule 2: no magic numbers)
+            let fine = (pollution * avg_wage * 0.1).min(avg_wage * 50.0);
             let available = companies[idx]
                 .brokerage_account
                 .as_ref()
@@ -257,6 +329,14 @@ pub fn process_inspectorates_turn(
                 total_fines += actual_fine;
                 violations += 1;
                 justice_demand_added += 1.0;
+                // D.6.3: Record violation
+                new_violations.push(crate::politics::laws::Violation {
+                    violation_type: crate::politics::laws::ViolationType::Environmental,
+                    entity_id: companies[idx].id.clone(),
+                    severity: (pollution / 1000.0).min(1.0),
+                    fine_amount: actual_fine,
+                    turn: _turn,
+                });
             }
         }
     }
@@ -323,7 +403,8 @@ pub fn process_inspectorates_turn(
 
             // Fine: triple PIT evaded + penalty on shadow wages
             let shadow_wage_penalty = shadow_wage_per_fte * hidden_fte * 0.5;
-            let fine = (3.0 * pit_evaded + shadow_wage_penalty).max(1000.0);
+            // D.4.1: Scale minimum fine by average_wage (Rule 2: no magic numbers)
+            let fine = (3.0 * pit_evaded + shadow_wage_penalty).max(avg_wage * 1.0);
 
             let available = companies[idx]
                 .brokerage_account
@@ -407,9 +488,20 @@ pub fn process_inspectorates_turn(
     if let Some(ref mut state) = country.politics.shadow_economy_state {
         state.raids_conducted = shadow_raids;
         state.fines_collected += shadow_fines;
+        state.illegals_deported = deported_total;
     }
 
     // 5. Update inspectorate state on Politics
+    // D.6.3: Populate recent_violations with violations detected this turn.
+    // D.6.4: Compute pip_fleet_range_km from PIP building fleet ranges.
+    let pip_fleet_range = {
+        use crate::economy::justice::inspectorate_fleet::{compute_inspectorate_fleet_ranges, inspectorate_fleet_range};
+        let pip_ranges = compute_inspectorate_fleet_ranges(buildings, Commodity::LaborInspectionCapacity);
+        pip_ranges.iter()
+            .filter_map(|(bid, _, _)| buildings.iter().find(|b| b.id == *bid))
+            .map(inspectorate_fleet_range)
+            .fold(0.0_f64, f64::max)
+    };
     if let Some(ref mut ist) = country.politics.inspectorate_state {
         ist.sanepid_capacity = result.sanepid_capacity;
         ist.building_inspectorate_capacity = result.building_inspection_capacity;
@@ -417,6 +509,11 @@ pub fn process_inspectorates_turn(
         ist.violations_detected = violations;
         ist.fines_issued = total_fines;
         ist.labor_inspection_capacity = pip_capacity;
+        ist.pip_fleet_range_km = pip_fleet_range;
+        // D.6.3: Append new violations and cap at 50 most recent (Rule 20)
+        ist.recent_violations.extend(new_violations.clone());
+        let capped: Vec<_> = ist.recent_violations.iter().rev().take(50).cloned().collect();
+        ist.recent_violations = capped;
     } else {
         country.politics.inspectorate_state = Some(crate::politics::laws::InspectorateState {
             sanepid_capacity: result.sanepid_capacity,
@@ -424,10 +521,10 @@ pub fn process_inspectorates_turn(
             environmental_inspectorate_capacity: result.environmental_inspection_capacity,
             violations_detected: violations,
             fines_issued: total_fines,
-            recent_violations: Vec::new(),
+            recent_violations: new_violations,
             labor_inspection_capacity: pip_capacity,
-            pip_fleet_range_km: 0.0,
-            corruption_index: 0.05, // Phase 28: Seed non-zero so bribes can be accepted
+            pip_fleet_range_km: pip_fleet_range,
+            corruption_index: crate::economy::justice::bribery::INITIAL_CORRUPTION_INDEX,
             bribes_accepted_this_turn: 0,
             bribes_total_value: 0.0,
         });
@@ -470,7 +567,7 @@ mod tests {
         }];
         let buildings = vec![make_building("Factory", 0.9, Some("C1".to_string()))];
 
-        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
+        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1, 1000.0, &crate::society::planet::Planet::default());
 
         assert_eq!(result.violations_detected, 0);
         assert!((result.fines_collected - 0.0).abs() < 0.01);
@@ -499,7 +596,7 @@ mod tests {
                 .insert(Commodity::SanitaryInspectionCapacity, 10.0);
         }
 
-        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
+        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1, 1000.0, &crate::society::planet::Planet::default());
 
         assert!(result.violations_detected > 0, "should detect violations");
         assert!(result.fines_collected > 0.0, "should collect fines");
@@ -531,7 +628,7 @@ mod tests {
             .last_production
             .insert(Commodity::BuildingInspectionCapacity, 10.0);
 
-        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
+        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1, 1000.0, &crate::society::planet::Planet::default());
 
         assert!(
             result.violations_detected > 0,
@@ -563,7 +660,7 @@ mod tests {
             .last_production
             .insert(Commodity::EnvironmentalInspectionCapacity, 10.0);
 
-        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
+        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1, 1000.0, &crate::society::planet::Planet::default());
 
         assert!(
             result.violations_detected > 0,
@@ -591,7 +688,7 @@ mod tests {
             .last_production
             .insert(Commodity::SanitaryInspectionCapacity, 10.0);
 
-        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
+        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1, 1000.0, &crate::society::planet::Planet::default());
 
         assert!(
             result.fines_collected <= 100.0,
@@ -624,7 +721,7 @@ mod tests {
             .last_production
             .insert(Commodity::SanitaryInspectionCapacity, 10.0);
 
-        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
+        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1, 1000.0, &crate::society::planet::Planet::default());
 
         assert!(
             result.justice_demand_added > 0.0,
@@ -656,7 +753,7 @@ mod tests {
             .last_production
             .insert(Commodity::EnvironmentalInspectionCapacity, 12.0);
 
-        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
+        let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1, 1000.0, &crate::society::planet::Planet::default());
 
         assert!((result.sanepid_capacity - 15.0).abs() < 0.01);
         assert!((result.building_inspection_capacity - 8.0).abs() < 0.01);

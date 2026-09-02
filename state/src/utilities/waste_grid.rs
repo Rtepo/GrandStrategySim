@@ -303,7 +303,8 @@ impl WasteGridState {
         let mut drained = HashMap::new();
         for (commodity, qty) in &mut self.uncollected_waste {
             let d = *qty * f;
-            *qty -= d;
+            // Rule 20: Clamp to zero — waste reserve cannot go negative.
+            *qty = (*qty - d).max(0.0);
             if d > 0.0 {
                 drained.insert(*commodity, d);
             }

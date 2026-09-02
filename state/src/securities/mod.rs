@@ -22,6 +22,7 @@ pub mod exchange;
 pub mod funds;
 pub mod knf;
 pub mod mbs;
+pub mod tax_wrappers;
 pub mod trade_finance;
 
 pub use brokerage::{BrokerageAccount, MarginAccount, PositionLot};
@@ -39,4 +40,5 @@ pub use exchange::{
 pub use funds::{FundLedger, FundType, InvestmentMandate};
 pub use knf::{AuditFinding, FreezeReason, HaltReason, TradingHalt, ViolationType, KNF};
 pub use mbs::{MbsTranche, MortgageBackedSecurity, TranchePriority};
+pub use tax_wrappers::{RetirementAccountVariant, TaxAdvantagedAccount};
 pub use trade_finance::{BillOfLading, BillStatus, WorkingCapitalLoan};

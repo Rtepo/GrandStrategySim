@@ -220,6 +220,8 @@ struct MarketJson {
     orders: HashMap<Commodity, MarketOrderJson>,
     #[serde(default)]
     res_stats: HashMap<String, MarketTradeStatsJson>,
+    #[serde(default)]
+    foreign_sector_balance: f64,
 }
 
 fn load_market(data_dir: &Path) -> Result<GlobalMarket, TurnError> {
@@ -252,6 +254,7 @@ fn load_market(data_dir: &Path) -> Result<GlobalMarket, TurnError> {
         net_trade: FxHashMap::default(),
         b2c_demand_volume: FxHashMap::default(),
         foreign_patent_fee_ledger: 0.0,
+        foreign_sector_balance: parsed.foreign_sector_balance,
     })
 }
 
@@ -717,6 +720,7 @@ fn save_market(
         prices,
         orders: orders_map,
         res_stats,
+        foreign_sector_balance: market.foreign_sector_balance,
     };
     // Persist supply/demand volumes for Market UI continuity.
     let sv_path = data_dir.join("market_volumes.json");
@@ -890,6 +894,7 @@ fn default_market() -> GlobalMarket {
         net_trade: FxHashMap::default(),
         b2c_demand_volume: FxHashMap::default(),
         foreign_patent_fee_ledger: 0.0,
+        foreign_sector_balance: 0.0,
     }
 }
 

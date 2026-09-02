@@ -148,16 +148,15 @@ pub struct NationalPark {
     pub capitalist_discontent_per_turn: f64,
     /// Ecological health 0-1
     pub ecological_health: f64,
-    /// Visitor capacity
-    pub visitor_capacity: f64,
     /// Management cost per turn
     pub management_cost: f64,
 }
 
 impl NationalPark {
     /// Calculate tourism revenue boost.
+    /// B4: Scales with protected area and ecological health (per-hectare density).
     pub fn tourism_revenue_boost(&self) -> f64 {
-        self.ecological_health * self.tourism_revenue_multiplier * self.visitor_capacity * 10.0
+        self.ecological_health * self.tourism_revenue_multiplier * self.protected_area * 0.01
     }
 
     /// Process park for one turn.
@@ -199,16 +198,15 @@ pub struct LandscapePark {
     pub capitalist_discontent_per_turn: f64,
     /// Ecological health 0-1
     pub ecological_health: f64,
-    /// Visitor capacity
-    pub visitor_capacity: f64,
     /// Management cost per turn
     pub management_cost: f64,
 }
 
 impl LandscapePark {
     /// Calculate tourism revenue boost.
+    /// B4: Scales with protected area and ecological health (per-hectare density).
     pub fn tourism_revenue_boost(&self) -> f64 {
-        self.ecological_health * self.tourism_revenue_multiplier * self.visitor_capacity * 8.0
+        self.ecological_health * self.tourism_revenue_multiplier * self.protected_area * 0.008
     }
 
     /// Process park for one turn.
@@ -260,7 +258,6 @@ pub fn create_national_park(
         tourism_revenue_multiplier: 2.0,
         capitalist_discontent_per_turn: 0.05,
         ecological_health: 1.0,
-        visitor_capacity: total_area * 0.01, // 1 visitor per hectare
         management_cost: total_area * 0.05,
     }
 }
@@ -298,7 +295,6 @@ pub fn create_landscape_park(
         tourism_revenue_multiplier: 1.5,
         capitalist_discontent_per_turn: 0.02,
         ecological_health: 1.0,
-        visitor_capacity: total_area * 0.02, // 2 visitors per hectare
         management_cost: total_area * 0.03,
     }
 }

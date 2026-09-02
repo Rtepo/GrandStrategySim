@@ -88,6 +88,7 @@ pub fn try_material_fraud(
     justice_coverage: f64,
     inspection_probability: f64,
     rng: &mut impl Rng,
+    market_prices: &std::collections::HashMap<Commodity, f64>,
 ) -> Option<MaterialSubstitution> {
     // Find a substitutable commodity in the BOM
     let substitutable: Vec<Commodity> = project
@@ -141,8 +142,19 @@ pub fn try_material_fraud(
 
     project.structural_defect = (project.structural_defect + normalized_defect).min(1.0);
 
-    // Cash retained is approximate (actual savings realized on B2B market)
-    let cash_retained = quantity_substituted * (orig_quality - subst_quality) * 1000.0;
+    // D.4.5: Cash retained = market price difference × quantity.
+    // The contractor saves the difference between the original commodity's
+    // market price and the substitute's market price, multiplied by the
+    // quantity substituted. Falls back to quality-based estimate if prices
+    // are not available.
+    let orig_price = market_prices.get(&original).copied().unwrap_or(0.0);
+    let subst_price = market_prices.get(&substitute).copied().unwrap_or(0.0);
+    let cash_retained = if orig_price > 0.0 && subst_price > 0.0 {
+        quantity_substituted * (orig_price - subst_price).max(0.0)
+    } else {
+        // Fallback: quality-based estimate scaled by avg_wage proxy
+        quantity_substituted * (orig_quality - subst_quality) * 1000.0
+    };
 
     Some(MaterialSubstitution {
         original_commodity: original,
@@ -296,7 +308,7 @@ mod tests {
         let mut project = make_project();
         let mut rng = StdRng::seed_from_u64(42);
         // Low reputation, low justice, low inspection → high fraud chance
-        let result = try_material_fraud(&mut project, 10.0, 0.1, 0.1, &mut rng);
+        let result = try_material_fraud(&mut project, 10.0, 0.1, 0.1, &mut rng, &std::collections::HashMap::new());
         if let Some(fraud) = result {
             assert!(fraud.defect_added > 0.0);
             assert!(project.structural_defect > 0.0);

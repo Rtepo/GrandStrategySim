@@ -189,6 +189,8 @@ fn test_bankruptcy_cleanup_structure() {
         "bankrupt_corp".to_string(),
         std::collections::HashMap::new(),
         &sim_engine::state::BankruptcyPolicy::with_defaults(),
+        "Mining".to_string(),
+        Some("building_1".to_string()),
     );
 
     // Verify the asset is in the pool

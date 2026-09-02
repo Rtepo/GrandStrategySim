@@ -6,7 +6,6 @@
 //! - `ShadowEconomyState` for aggregate shadow economy tracking
 //! - `AmnestyLaw` for configurable legalization programs
 //! - `process_shadow_economy_turn()` for shadow labor processing
-//! - `process_remittances_turn()` for TemporaryWorker outbound remittances
 //! - `process_amnesty_turn()` for gradual legalization of Illegal populations
 //!
 //! # Rules
@@ -75,6 +74,9 @@ pub struct ShadowEconomyState {
     /// Number of Illegals legalized this turn via amnesty.
     #[serde(default)]
     pub legalized_this_turn: i64,
+    /// D.7.2: Total illegals deported by inspectorate raids.
+    #[serde(default)]
+    pub illegals_deported: i64,
 }
 
 /// Amnesty / legalization program configuration.
@@ -308,26 +310,6 @@ pub fn trigger_shadow_employment(
     }
 }
 
-/// Process TemporaryWorker remittances.
-///
-/// Remittances are deducted from net income at the source in `labor_market.rs`
-/// during wage payout. This function is called by the turn engine to route
-/// the accumulated remittance amount to `ForeignEntity` (money leaves the system).
-///
-/// # Arguments
-/// * `total_remittances` - Total remittances accumulated during wage payout.
-/// * `shadow_economy_state` - Mutable state to update with outbound remittances.
-///
-/// # Returns
-/// The total remittance amount (for the caller to route via TransferSettler).
-pub fn process_remittances_turn(
-    total_remittances: f64,
-    shadow_economy_state: &mut ShadowEconomyState,
-) -> f64 {
-    shadow_economy_state.total_remittances_outbound = total_remittances;
-    total_remittances
-}
-
 /// Result of amnesty processing for one turn.
 #[derive(Debug, Clone, Default)]
 pub struct AmnestyTurnResult {
@@ -504,68 +486,6 @@ fn legalize_class(
     result
 }
 
-/// Process deportation of illegal workers after inspectorate raids.
-///
-/// Removes deported individuals from population AND extracts their proportional
-/// share of class savings to prevent per-capita wealth duplication.
-///
-/// # Arguments
-/// * `country` - Mutable country (updates class demographics, budget).
-/// * `deported_count` - Number of illegals to deport.
-/// * `region_id` - Region where the deportation occurs.
-/// * `class_key` - Class key (rural or urban) to deport from.
-/// * `is_rural` - True for rural classes, false for urban.
-///
-/// # Returns
-/// Total wealth extracted (routed to ForeignEntity by the caller).
-///
-/// # Rules
-/// * `per_capita_savings = class.savings / class.population`.
-/// * `deported_wealth = per_capita_savings * deported_count`.
-/// * `class.savings -= deported_wealth` (deduct from pooled savings).
-/// * `class.illegal_population -= deported_count` (remove from population).
-/// * The caller routes `deported_wealth` via `TransferRecipient::ForeignEntity`.
-pub fn process_deportation_wealth_extraction(
-    country: &mut Country,
-    deported_count: i64,
-    region_id: &str,
-    class_key: &str,
-    is_rural: bool,
-) -> f64 {
-    if deported_count <= 0 {
-        return 0.0;
-    }
-
-    let region = match country.regions.iter_mut().find(|r| r.id == region_id) {
-        Some(r) => r,
-        None => return 0.0,
-    };
-
-    let class = if is_rural {
-        region.class_demographics.rural_classes.get_mut(class_key)
-    } else {
-        region.class_demographics.urban_classes.get_mut(class_key)
-    };
-
-    let class = match class {
-        Some(c) => c,
-        None => return 0.0,
-    };
-
-    if class.population <= 0 {
-        return 0.0;
-    }
-
-    let per_capita_savings = class.savings / class.population as f64;
-    let deported_wealth = per_capita_savings * deported_count as f64;
-
-    class.savings -= deported_wealth;
-    class.illegal_population = (class.illegal_population - deported_count).max(0);
-    class.population -= deported_count;
-
-    deported_wealth
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -654,43 +574,6 @@ mod tests {
 
         let result = process_amnesty_turn(&mut country, &mut []);
         assert_eq!(result.legalized_count, 0);
-    }
-
-    #[test]
-    fn test_deportation_wealth_extraction() {
-        let mut country = Country::mock_for_tests();
-        country.regions.clear();
-        let mut region = crate::society::geography::Region::default();
-        region.id = "R1".to_string();
-        let mut class = ClassDemographics::default();
-        class.population = 200;
-        class.savings = 10_000.0;
-        class.illegal_population = 50;
-        region
-            .class_demographics
-            .rural_classes
-            .insert("workers".to_string(), class);
-        country.regions.push(region);
-
-        // Deport 50 people: per_capita = 10000/200 = 50, wealth = 50 * 50 = 2500
-        let wealth = process_deportation_wealth_extraction(&mut country, 50, "R1", "workers", true);
-
-        assert_eq!(wealth, 2500.0);
-        let region = &country.regions[0];
-        let class = &region.class_demographics.rural_classes["workers"];
-        assert_eq!(class.savings, 7500.0);
-        assert_eq!(class.illegal_population, 0);
-        assert_eq!(class.population, 150);
-    }
-
-    #[test]
-    fn test_remittance_income_based() {
-        // Remittances are processed at the source in labor_market.rs.
-        // This test verifies the process_remittances_turn function records the amount.
-        let mut state = ShadowEconomyState::default();
-        let amount = process_remittances_turn(500.0, &mut state);
-        assert_eq!(amount, 500.0);
-        assert_eq!(state.total_remittances_outbound, 500.0);
     }
 
     #[test]

@@ -103,6 +103,14 @@ pub struct GlobalMarket {
     /// The fee is credited here to preserve money mass — capital doesn't
     /// disappear, it moves offshore.
     pub foreign_patent_fee_ledger: f64,
+    /// Foreign sector balance — represents the external world's capacity to
+    /// purchase domestic service exports (tourism, pilgrimage). This is NOT
+    /// offshore tax-haven capital; it is the rest-of-world spending pool.
+    /// Seeded at world generation from aggregate non-simulated global GDP.
+    /// Debited when foreign tourists spend domestically; credited by
+    /// outbound domestic tourism and import payments (future mechanics).
+    /// Can never go below zero — foreign spending is clamped to this balance.
+    pub foreign_sector_balance: f64,
 }
 
 impl GlobalMarket {

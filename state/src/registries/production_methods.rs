@@ -943,6 +943,65 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
+    // D.2.2: Automation slot — Paper-based vs Computerized records
+    sanitary_inspectorate.insert(
+        MethodSlot::Automation,
+        "Paper-based Records".to_string(),
+        ProductionMethod {
+            year: 1900,
+            required_tech: None,
+            efficiency: 1.0,
+            inputs: HashMap::from([(Commodity::Paper, 2.0)]),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    sanitary_inspectorate.insert(
+        MethodSlot::Automation,
+        "Computerized Records".to_string(),
+        ProductionMethod {
+            year: 1980,
+            required_tech: None,
+            efficiency: 1.3,
+            inputs: HashMap::from([
+                (Commodity::ElectronicComponents, 2.0),
+                (Commodity::Software, 2.0),
+            ]),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    // D.2.2: Organization slot — Centralized vs Decentralized
+    sanitary_inspectorate.insert(
+        MethodSlot::Organization,
+        "Centralized Inspectorate".to_string(),
+        ProductionMethod {
+            year: 1900,
+            required_tech: None,
+            experts_ratio: 0.20,
+            skilled_ratio: 0.40,
+            basic_ratio: 0.40,
+            efficiency: 1.0,
+            inputs: HashMap::new(),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    sanitary_inspectorate.insert(
+        MethodSlot::Organization,
+        "Decentralized Field Offices".to_string(),
+        ProductionMethod {
+            year: 1950,
+            required_tech: None,
+            experts_ratio: 0.10,
+            skilled_ratio: 0.30,
+            basic_ratio: 0.60,
+            efficiency: 1.1,
+            inputs: HashMap::from([(Commodity::Cars, 1.0)]),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
     registry.insert("sanitary_inspectorate".to_string(), sanitary_inspectorate);
 
     // -- construction_inspectorate (Building Inspectorate) --
@@ -986,6 +1045,65 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
+    // D.2.2: Automation slot
+    construction_inspectorate.insert(
+        MethodSlot::Automation,
+        "Paper-based Records".to_string(),
+        ProductionMethod {
+            year: 1900,
+            required_tech: None,
+            efficiency: 1.0,
+            inputs: HashMap::from([(Commodity::Paper, 3.0)]),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    construction_inspectorate.insert(
+        MethodSlot::Automation,
+        "Computerized Records".to_string(),
+        ProductionMethod {
+            year: 1980,
+            required_tech: None,
+            efficiency: 1.3,
+            inputs: HashMap::from([
+                (Commodity::ElectronicComponents, 2.0),
+                (Commodity::Software, 2.0),
+            ]),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    // D.2.2: Organization slot
+    construction_inspectorate.insert(
+        MethodSlot::Organization,
+        "Centralized Inspectorate".to_string(),
+        ProductionMethod {
+            year: 1900,
+            required_tech: None,
+            experts_ratio: 0.15,
+            skilled_ratio: 0.35,
+            basic_ratio: 0.50,
+            efficiency: 1.0,
+            inputs: HashMap::new(),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    construction_inspectorate.insert(
+        MethodSlot::Organization,
+        "Decentralized Field Offices".to_string(),
+        ProductionMethod {
+            year: 1950,
+            required_tech: None,
+            experts_ratio: 0.08,
+            skilled_ratio: 0.25,
+            basic_ratio: 0.67,
+            efficiency: 1.1,
+            inputs: HashMap::from([(Commodity::Cars, 1.0)]),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
     registry.insert(
         "construction_inspectorate".to_string(),
         construction_inspectorate,
@@ -1010,6 +1128,86 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Food, 4.0),
             ]),
             outputs: HashMap::from([(Commodity::EnvironmentalInspectionCapacity, 12.0)]),
+            ..Default::default()
+        },
+    );
+    environmental_inspectorate.insert(
+        MethodSlot::Production,
+        "Advanced Environmental Monitoring".to_string(),
+        ProductionMethod {
+            year: 2000,
+            required_tech: None,
+            experts_ratio: 0.30,
+            skilled_ratio: 0.50,
+            basic_ratio: 0.20,
+            efficiency: 2.0,
+            inputs: HashMap::from([
+                (Commodity::Chemicals, 5.0),
+                (Commodity::ElectronicComponents, 8.0),
+                (Commodity::Software, 5.0),
+                (Commodity::Paper, 2.0),
+                (Commodity::Food, 4.0),
+            ]),
+            outputs: HashMap::from([(Commodity::EnvironmentalInspectionCapacity, 30.0)]),
+            ..Default::default()
+        },
+    );
+    // D.2.2: Automation slot
+    environmental_inspectorate.insert(
+        MethodSlot::Automation,
+        "Paper-based Records".to_string(),
+        ProductionMethod {
+            year: 1970,
+            required_tech: None,
+            efficiency: 1.0,
+            inputs: HashMap::from([(Commodity::Paper, 2.0)]),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    environmental_inspectorate.insert(
+        MethodSlot::Automation,
+        "Computerized Records".to_string(),
+        ProductionMethod {
+            year: 1980,
+            required_tech: None,
+            efficiency: 1.3,
+            inputs: HashMap::from([
+                (Commodity::ElectronicComponents, 2.0),
+                (Commodity::Software, 2.0),
+            ]),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    // D.2.2: Organization slot
+    environmental_inspectorate.insert(
+        MethodSlot::Organization,
+        "Centralized Inspectorate".to_string(),
+        ProductionMethod {
+            year: 1970,
+            required_tech: None,
+            experts_ratio: 0.25,
+            skilled_ratio: 0.45,
+            basic_ratio: 0.30,
+            efficiency: 1.0,
+            inputs: HashMap::new(),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    environmental_inspectorate.insert(
+        MethodSlot::Organization,
+        "Decentralized Field Offices".to_string(),
+        ProductionMethod {
+            year: 1990,
+            required_tech: None,
+            experts_ratio: 0.12,
+            skilled_ratio: 0.33,
+            basic_ratio: 0.55,
+            efficiency: 1.1,
+            inputs: HashMap::from([(Commodity::Cars, 1.0)]),
+            outputs: HashMap::new(),
             ..Default::default()
         },
     );
@@ -1219,6 +1417,105 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
                 (Commodity::Food, 1.0),
                 (Commodity::AdministrativeServices, 1.0),
             ]),
+            outputs: HashMap::from([(Commodity::LaborInspectionCapacity, 10.0)]),
+            ..Default::default()
+        },
+    );
+    labor_inspectorate_methods.insert(
+        MethodSlot::Production,
+        "Modern Labor Inspection".to_string(),
+        ProductionMethod {
+            year: 1950,
+            required_tech: None,
+            experts_ratio: 0.35,
+            skilled_ratio: 0.45,
+            basic_ratio: 0.20,
+            efficiency: 1.5,
+            inputs: HashMap::from([
+                (Commodity::Food, 2.0),
+                (Commodity::Paper, 3.0),
+                (Commodity::Cars, 2.0),
+                (Commodity::AdministrativeServices, 2.0),
+            ]),
+            outputs: HashMap::from([(Commodity::LaborInspectionCapacity, 20.0)]),
+            ..Default::default()
+        },
+    );
+    labor_inspectorate_methods.insert(
+        MethodSlot::Production,
+        "Digital Labor Inspection".to_string(),
+        ProductionMethod {
+            year: 2000,
+            required_tech: None,
+            experts_ratio: 0.40,
+            skilled_ratio: 0.45,
+            basic_ratio: 0.15,
+            efficiency: 2.0,
+            inputs: HashMap::from([
+                (Commodity::Food, 2.0),
+                (Commodity::ElectronicComponents, 5.0),
+                (Commodity::Software, 5.0),
+                (Commodity::AdministrativeServices, 3.0),
+            ]),
+            outputs: HashMap::from([(Commodity::LaborInspectionCapacity, 50.0)]),
+            ..Default::default()
+        },
+    );
+    // D.2.2: Automation slot
+    labor_inspectorate_methods.insert(
+        MethodSlot::Automation,
+        "Paper-based Records".to_string(),
+        ProductionMethod {
+            year: 1900,
+            required_tech: None,
+            efficiency: 1.0,
+            inputs: HashMap::from([(Commodity::Paper, 2.0)]),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    labor_inspectorate_methods.insert(
+        MethodSlot::Automation,
+        "Computerized Records".to_string(),
+        ProductionMethod {
+            year: 1980,
+            required_tech: None,
+            efficiency: 1.3,
+            inputs: HashMap::from([
+                (Commodity::ElectronicComponents, 2.0),
+                (Commodity::Software, 2.0),
+            ]),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    // D.2.2: Organization slot
+    labor_inspectorate_methods.insert(
+        MethodSlot::Organization,
+        "Centralized Inspectorate".to_string(),
+        ProductionMethod {
+            year: 1900,
+            required_tech: None,
+            experts_ratio: 0.35,
+            skilled_ratio: 0.45,
+            basic_ratio: 0.20,
+            efficiency: 1.0,
+            inputs: HashMap::new(),
+            outputs: HashMap::new(),
+            ..Default::default()
+        },
+    );
+    labor_inspectorate_methods.insert(
+        MethodSlot::Organization,
+        "Decentralized Field Offices".to_string(),
+        ProductionMethod {
+            year: 1950,
+            required_tech: None,
+            experts_ratio: 0.15,
+            skilled_ratio: 0.35,
+            basic_ratio: 0.50,
+            efficiency: 1.1,
+            inputs: HashMap::from([(Commodity::Cars, 1.0)]),
             outputs: HashMap::new(),
             ..Default::default()
         },

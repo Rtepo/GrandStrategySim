@@ -180,6 +180,11 @@ pub struct ShadowEconomySummary {
     pub total_hidden_fte: f64,
     pub total_pit_evaded: f64,
     pub shadow_gdp: f64,
+    /// D.7.2: Inspectorate raid stats for the Shadow Economy tab.
+    pub shadow_raids_conducted: u32,
+    pub shadow_fines_collected: f64,
+    pub shadow_illegals_deported: i64,
+    pub shadow_total_pit_evaded: f64,
 }
 
 /// OHS / casualty summary.
@@ -1560,6 +1565,17 @@ pub struct GovernmentSnapshot {
     pub government_form: String,
     /// Phase 54: Royal dynasty snapshot (only populated for monarchies).
     pub royal_dynasty: Option<RoyalDynastySnapshot>,
+    /// D.7.1: Inspectorate stats for the Government tab.
+    pub inspectorate_sanepid_capacity: f64,
+    pub inspectorate_building_capacity: f64,
+    pub inspectorate_environmental_capacity: f64,
+    pub inspectorate_labor_capacity: f64,
+    pub inspectorate_violations_detected: u32,
+    pub inspectorate_fines_issued: f64,
+    pub inspectorate_corruption_index: f64,
+    pub inspectorate_bribes_accepted: u32,
+    pub inspectorate_bribes_total_value: f64,
+    pub inspectorate_pip_fleet_range_km: f64,
 }
 
 /// A minister row for the Government tab.
@@ -2937,6 +2953,31 @@ pub fn build_country_snapshot(
             .map(|s| s.total_pit_evaded)
             .unwrap_or(0.0),
         shadow_gdp: macro_data.gdp_breakdown.shadow_gdp,
+        // D.7.2: Inspectorate raid stats
+        shadow_raids_conducted: country
+            .politics
+            .shadow_economy_state
+            .as_ref()
+            .map(|s| s.raids_conducted)
+            .unwrap_or(0),
+        shadow_fines_collected: country
+            .politics
+            .shadow_economy_state
+            .as_ref()
+            .map(|s| s.fines_collected)
+            .unwrap_or(0.0),
+        shadow_illegals_deported: country
+            .politics
+            .shadow_economy_state
+            .as_ref()
+            .map(|s| s.illegals_deported)
+            .unwrap_or(0),
+        shadow_total_pit_evaded: country
+            .politics
+            .shadow_economy_state
+            .as_ref()
+            .map(|s| s.total_pit_evaded)
+            .unwrap_or(0.0),
     };
 
     // OHS casualties: aggregate from class demographics across all regions.
@@ -4536,6 +4577,17 @@ fn build_government_snapshot(country: &Country) -> GovernmentSnapshot {
         // Phase 54: Government form + royal dynasty for monarchy sub-tab.
         government_form: format!("{:?}", politics.government_form),
         royal_dynasty: build_royal_dynasty_snapshot(country),
+        // D.7.1: Inspectorate stats from InspectorateState
+        inspectorate_sanepid_capacity: politics.inspectorate_state.as_ref().map(|ist| ist.sanepid_capacity).unwrap_or(0.0),
+        inspectorate_building_capacity: politics.inspectorate_state.as_ref().map(|ist| ist.building_inspectorate_capacity).unwrap_or(0.0),
+        inspectorate_environmental_capacity: politics.inspectorate_state.as_ref().map(|ist| ist.environmental_inspectorate_capacity).unwrap_or(0.0),
+        inspectorate_labor_capacity: politics.inspectorate_state.as_ref().map(|ist| ist.labor_inspection_capacity).unwrap_or(0.0),
+        inspectorate_violations_detected: politics.inspectorate_state.as_ref().map(|ist| ist.violations_detected).unwrap_or(0),
+        inspectorate_fines_issued: politics.inspectorate_state.as_ref().map(|ist| ist.fines_issued).unwrap_or(0.0),
+        inspectorate_corruption_index: politics.inspectorate_state.as_ref().map(|ist| ist.corruption_index).unwrap_or(0.0),
+        inspectorate_bribes_accepted: politics.inspectorate_state.as_ref().map(|ist| ist.bribes_accepted_this_turn).unwrap_or(0),
+        inspectorate_bribes_total_value: politics.inspectorate_state.as_ref().map(|ist| ist.bribes_total_value).unwrap_or(0.0),
+        inspectorate_pip_fleet_range_km: politics.inspectorate_state.as_ref().map(|ist| ist.pip_fleet_range_km).unwrap_or(0.0),
     }
 }
 

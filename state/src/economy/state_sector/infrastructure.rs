@@ -155,9 +155,11 @@ pub fn execute_infrastructure_production(
         }
 
         // Consume inputs proportionally
+        // Rule 20: Clamp to zero — inventory cannot go negative.
         for (commodity, required_quantity) in inputs.iter() {
             let consumed = required_quantity * fulfillment_ratio;
-            *building_inventory.entry(*commodity).or_insert(0.0) -= consumed;
+            let current = building_inventory.entry(*commodity).or_insert(0.0);
+            *current = (*current - consumed).max(0.0);
         }
 
         // Produce outputs proportionally

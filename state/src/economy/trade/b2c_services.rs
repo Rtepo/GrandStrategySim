@@ -329,7 +329,9 @@ fn apply_service_transactions(
 
         // Update inventory
         if let Some(inv) = building_inventories.get_mut(&txn.building_id) {
-            *inv.entry(commodity).or_insert(0.0) -= txn.units_consumed;
+            // Rule 20: Clamp to zero — inventory cannot go negative.
+            let current = inv.entry(commodity).or_insert(0.0);
+            *current = (*current - txn.units_consumed).max(0.0);
         }
 
         // Debit citizen savings from region

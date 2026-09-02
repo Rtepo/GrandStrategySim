@@ -123,7 +123,8 @@ fn transition_arable_crop(
                     }
                     if let Some(stored) = building.inventory.get_mut(&crop_def.seed_commodity) {
                         let taken = seeds_remaining.min(*stored);
-                        *stored -= taken;
+                        // Rule 20: Clamp to zero — inventory cannot go negative.
+                        *stored = (*stored - taken).max(0.0);
                         seeds_remaining -= taken;
                     }
                 }

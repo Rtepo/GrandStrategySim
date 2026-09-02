@@ -23,6 +23,6 @@ pub use housing::{
     HousingInventory, HousingSlots, HousingType, UtilityConnections,
 };
 pub use tourism::{
-    create_natural_wonder, create_tourism_destination, process_tourism_turn, NaturalWonder,
-    TourismDestination, TourismIndustry, TourismTurnResult, WonderType,
+    compute_tourism_demand, create_natural_wonder, settle_tourism_revenue, DestinationSettlement,
+    NaturalWonder, TourismDemandResult, TourismDestination, WonderType,
 };

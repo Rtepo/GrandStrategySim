@@ -1406,6 +1406,11 @@ pub fn execute_crisis_response(
     // 8. Bounded-rationality: voluntary legalization of shadow workers.
     // During crisis, offer amnesty to bring shadow workers into legal economy.
     // Legalization rate is proportional to inspectorate priority.
+    // D.6.2: Store inspectorate_priority for ministry allocation phase.
+    country.macro_indicators.extra.insert(
+        "inspectorate_priority".to_string(),
+        serde_json::json!(profile.inspectorate_priority),
+    );
     let legalization_rate = profile.inspectorate_priority * 0.05; // up to 5% per turn
     let legalized = voluntary_legalization(country, legalization_rate);
     if legalized > 0 {

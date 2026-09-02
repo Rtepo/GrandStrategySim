@@ -11,6 +11,16 @@ use crate::state::Country;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
+// D.4.6: Named constants for corruption parameters (Rule 2: no magic numbers).
+// These are config-driven values that control corruption dynamics.
+/// Initial corruption index for new inspectorate states — non-zero so bribes
+/// can be accepted from turn 1.
+pub const INITIAL_CORRUPTION_INDEX: f64 = 0.05;
+/// Per-turn passive corruption drift — ensures corruption is never permanently zero.
+pub const CORRUPTION_PASSIVE_DRIFT: f64 = 0.001;
+/// Maximum fraction of current-turn tax revenue embezzled by corrupt officials.
+pub const MAX_CORRUPTION_LEAKAGE_RATE: f64 = 0.3;
+
 /// A bribery attempt during an inspection.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct BribeAttempt {
@@ -132,7 +142,7 @@ pub fn update_corruption_index(
     // Phase 28: Add passive drift so corruption is never permanently zero.
     // Without this, the system is deadlocked at 0.0 because bribe acceptance
     // probability equals corruption_index, and 0.0 means no bribes are ever accepted.
-    let passive_drift = 0.001; // Small per-turn drift
+    let passive_drift = CORRUPTION_PASSIVE_DRIFT;
     let entrenchment = (bribes_accepted_this_turn as f64 * 0.01) + passive_drift;
 
     // Oversight: high justice coverage reduces corruption
@@ -141,34 +151,65 @@ pub fn update_corruption_index(
     *corruption_index = (*corruption_index + entrenchment - oversight).clamp(0.0, 1.0);
 }
 
-/// Phase 29: Apply corruption-based tax revenue leakage.
+/// Phase 29 / D.1.1: Apply corruption-based tax revenue leakage.
 ///
-/// Corruption reduces effective tax collection. A fraction of collected tax
-/// revenue is lost to graft, embezzlement, and corrupt officials. This
-/// creates a fiscal incentive for the state to fight corruption.
+/// Corruption reduces effective tax collection. A fraction of **current-turn**
+/// tax revenue is embezzled by corrupt officials. The embezzled funds are
+/// routed to the corrupt officials' personal class savings via direct
+/// double-entry transfer (Treasury debited, class savings credited).
 ///
 /// # Arguments
-/// * `budget` - Mutable treasury budget (liquid_reserves reduced by leakage).
+/// * `country` - Mutable country (Treasury debited, class savings credited).
 /// * `corruption_index` - Current corruption level [0.0, 1.0].
+/// * `tax_revenue_this_turn` - Total tax revenue collected this turn only.
+/// * `corrupt_officials` - List of `(region_idx, class_key, is_rural)` tuples
+///   identifying the corrupt officials who receive the embezzled funds.
 ///
 /// # Returns
-/// The amount of tax revenue lost to corruption.
+/// The amount of tax revenue embezzled to corrupt officials.
 ///
 /// # Rules
 /// * Leakage factor = `corruption_index * 0.3` (max 30% of revenue lost).
-/// * Only applies to liquid_reserves (collected tax revenue).
-/// * Does not reduce reserves below zero.
-/// * The leaked amount is destroyed (embezzled funds leave the formal economy).
+/// * Leakage base is `tax_revenue_this_turn` only — historical reserves are
+///   never subject to corruption leakage (Rule 16: temporal causality).
+/// * Embezzled funds are credited to corrupt officials' class savings — no
+///   fiat is destroyed (Rule 1: strict double-entry).
+/// * If no corrupt officials are identified (empty list), no leakage occurs.
+/// * Does not reduce Treasury reserves below zero.
 pub fn apply_corruption_tax_leakage(
-    budget: &mut crate::state::treasury::Treasury,
+    country: &mut crate::state::Country,
     corruption_index: f64,
+    tax_revenue_this_turn: f64,
+    corrupt_officials: &[(usize, String, bool)],
 ) -> f64 {
-    let leakage_rate = (corruption_index * 0.3).clamp(0.0, 0.3);
-    if leakage_rate <= 0.0 {
+    let leakage_rate = (corruption_index * MAX_CORRUPTION_LEAKAGE_RATE)
+        .clamp(0.0, MAX_CORRUPTION_LEAKAGE_RATE);
+    if leakage_rate <= 0.0 || tax_revenue_this_turn <= 0.0 || corrupt_officials.is_empty() {
         return 0.0;
     }
-    let leakage = budget.liquid_reserves * leakage_rate;
-    budget.liquid_reserves -= leakage;
+    let leakage = (tax_revenue_this_turn * leakage_rate).min(country.budget.liquid_reserves);
+    if leakage <= 0.0 {
+        return 0.0;
+    }
+
+    // Debit Treasury
+    country.budget.liquid_reserves -= leakage;
+
+    // Credit corrupt officials' class savings (equal split among unique recipients)
+    let per_official = leakage / corrupt_officials.len() as f64;
+    for &(region_idx, ref class_key, is_rural) in corrupt_officials {
+        if let Some(region) = country.regions.get_mut(region_idx) {
+            let classes = if is_rural {
+                &mut region.class_demographics.rural_classes
+            } else {
+                &mut region.class_demographics.urban_classes
+            };
+            if let Some(demo) = classes.get_mut(class_key) {
+                demo.savings += per_official;
+            }
+        }
+    }
+
     leakage
 }
 
@@ -208,30 +249,68 @@ mod tests {
 
     #[test]
     fn test_corruption_tax_leakage_high_corruption() {
-        let mut budget = crate::state::treasury::Treasury::default();
-        budget.liquid_reserves = 1_000_000.0;
-        let leakage = apply_corruption_tax_leakage(&mut budget, 0.5);
+        let mut country = crate::state::Country::mock_for_tests();
+        country.budget.liquid_reserves = 1_000_000.0;
+        // Add a region with a class to receive the embezzled funds
+        country.regions.push(crate::society::geography::Region {
+            id: "test_region".to_string(),
+            ..Default::default()
+        });
+        let officials = vec![(0usize, "Bourgeoisie".to_string(), false)];
+        let leakage = apply_corruption_tax_leakage(&mut country, 0.5, 1_000_000.0, &officials);
         // 0.5 * 0.3 = 0.15 → 15% of 1M = 150k
         assert!((leakage - 150_000.0).abs() < 1.0);
-        assert!((budget.liquid_reserves - 850_000.0).abs() < 1.0);
+        assert!((country.budget.liquid_reserves - 850_000.0).abs() < 1.0);
     }
 
     #[test]
     fn test_corruption_tax_leakage_zero_corruption() {
-        let mut budget = crate::state::treasury::Treasury::default();
-        budget.liquid_reserves = 1_000_000.0;
-        let leakage = apply_corruption_tax_leakage(&mut budget, 0.0);
+        let mut country = crate::state::Country::mock_for_tests();
+        country.budget.liquid_reserves = 1_000_000.0;
+        let officials = vec![(0usize, "Bourgeoisie".to_string(), false)];
+        let leakage = apply_corruption_tax_leakage(&mut country, 0.0, 1_000_000.0, &officials);
         assert_eq!(leakage, 0.0);
-        assert_eq!(budget.liquid_reserves, 1_000_000.0);
+        assert_eq!(country.budget.liquid_reserves, 1_000_000.0);
     }
 
     #[test]
     fn test_corruption_tax_leakage_max_corruption() {
-        let mut budget = crate::state::treasury::Treasury::default();
-        budget.liquid_reserves = 1_000_000.0;
-        let leakage = apply_corruption_tax_leakage(&mut budget, 1.0);
+        let mut country = crate::state::Country::mock_for_tests();
+        country.budget.liquid_reserves = 1_000_000.0;
+        country.regions.push(crate::society::geography::Region {
+            id: "test_region".to_string(),
+            ..Default::default()
+        });
+        let officials = vec![(0usize, "Bourgeoisie".to_string(), false)];
+        let leakage = apply_corruption_tax_leakage(&mut country, 1.0, 1_000_000.0, &officials);
         // 1.0 * 0.3 = 0.3 → 30% of 1M = 300k
         assert!((leakage - 300_000.0).abs() < 1.0);
-        assert!((budget.liquid_reserves - 700_000.0).abs() < 1.0);
+        assert!((country.budget.liquid_reserves - 700_000.0).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_corruption_tax_leakage_no_officials() {
+        let mut country = crate::state::Country::mock_for_tests();
+        country.budget.liquid_reserves = 1_000_000.0;
+        let officials: Vec<(usize, String, bool)> = Vec::new();
+        let leakage = apply_corruption_tax_leakage(&mut country, 0.5, 1_000_000.0, &officials);
+        // No corrupt officials → no leakage
+        assert_eq!(leakage, 0.0);
+        assert_eq!(country.budget.liquid_reserves, 1_000_000.0);
+    }
+
+    #[test]
+    fn test_corruption_tax_leakage_current_turn_only() {
+        let mut country = crate::state::Country::mock_for_tests();
+        country.budget.liquid_reserves = 10_000_000.0; // Large historical reserves
+        country.regions.push(crate::society::geography::Region {
+            id: "test_region".to_string(),
+            ..Default::default()
+        });
+        let officials = vec![(0usize, "Bourgeoisie".to_string(), false)];
+        // Only 100k was collected this turn — leakage should be 15% of 100k, not 10M
+        let leakage = apply_corruption_tax_leakage(&mut country, 0.5, 100_000.0, &officials);
+        assert!((leakage - 15_000.0).abs() < 1.0);
+        assert!((country.budget.liquid_reserves - 9_985_000.0).abs() < 1.0);
     }
 }

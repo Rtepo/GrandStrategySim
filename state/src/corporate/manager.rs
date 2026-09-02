@@ -22,6 +22,11 @@ use super::strategy::{
 /// prefers furlough (free re-instatement) over fire+rehire (recruitment cost).
 const RECRUITMENT_MULTIPLIER: f64 = 4.0;
 
+/// R1.4: Dividend withholding tax rate (19% — standard capital gains tax rate).
+/// Applied to all dividend payments except those to TaxFreeGrowth accounts and
+/// the state/treasury.
+const DIVIDEND_WITHHOLDING_TAX_RATE: f64 = 0.19;
+
 /// Processes every company in the country after the production phase.
 ///
 /// # Arguments
@@ -367,24 +372,81 @@ pub fn process_companies(
         }
     }
 
-    // Phase 24A.6: Process pending dividend queue — credit company/fund owners.
-    // State/treasury owners were already credited in apply_action.
+    // R1.3/R1.4: Process pending dividend queue — credit company/fund/citizen
+    // owners with 19% withholding tax (unless TaxFreeGrowth exempt).
+    // State/treasury owners were already credited in apply_action (no tax).
     let dividend_queue = std::mem::take(&mut country.dividend_queue);
+    let mut total_withholding_tax = 0.0_f64;
     for (owner_id, amount) in &dividend_queue {
         if owner_id == "STATE" || owner_id == "TREASURY" {
             continue; // Already credited in apply_action
         }
-        // Try to credit the owner company's brokerage account or available_cash
+        // Try to credit the owner company's brokerage account
         if let Some(owner) = companies.iter_mut().find(|c| c.id == *owner_id) {
-            if let Some(ref mut ba) = owner.brokerage_account {
-                ba.cash += amount;
+            // R1.4: Check for TaxFreeGrowth exemption
+            let is_tax_exempt = owner
+                .brokerage_account
+                .as_ref()
+                .and_then(|ba| ba.tax_advantaged_account.as_ref())
+                .map(|ta| ta.exempt_from_dividend_tax())
+                .unwrap_or(false);
+
+            let (net_dividend, withholding) = if is_tax_exempt {
+                (*amount, 0.0)
             } else {
-                owner.available_cash += amount;
+                let wh = *amount * DIVIDEND_WITHHOLDING_TAX_RATE;
+                (*amount - wh, wh)
+            };
+
+            if let Some(ref mut ba) = owner.brokerage_account {
+                ba.cash += net_dividend;
+            } else {
+                owner.available_cash += net_dividend;
+            }
+            total_withholding_tax += withholding;
+        } else {
+            // R1.3: Owner not found in companies — this is a citizen shareholder
+            // or foreign entity. Route to regional class demographics savings
+            // (pro-rata by population). Apply 19% withholding tax (no exemption
+            // check possible for untracked entities).
+            let withholding = *amount * DIVIDEND_WITHHOLDING_TAX_RATE;
+            let net_dividend = *amount - withholding;
+            total_withholding_tax += withholding;
+
+            // Distribute net dividend proportionally across all regional classes
+            // by population (Rule 5: proportional distribution).
+            let total_population: f64 = country
+                .regions
+                .iter()
+                .flat_map(|r| {
+                    r.class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(r.class_demographics.urban_classes.values())
+                        .map(|c| c.population as f64)
+                })
+                .sum();
+
+            if total_population > 0.0 {
+                for region in &mut country.regions {
+                    for class in region.class_demographics.rural_classes.values_mut() {
+                        let share = class.population as f64 / total_population;
+                        class.savings += net_dividend * share;
+                    }
+                    for class in region.class_demographics.urban_classes.values_mut() {
+                        let share = class.population as f64 / total_population;
+                        class.savings += net_dividend * share;
+                    }
+                }
+            } else {
+                // No population: escheat to Treasury as unclaimed
+                country.budget.liquid_reserves += net_dividend;
             }
         }
-        // If owner not found in companies, the dividend is lost (owner may be
-        // a citizen class or foreign entity not tracked as a company).
-        // TODO: Route to citizen savings for individual shareholders.
+    }
+    // Credit total withholding tax to treasury
+    if total_withholding_tax > 0.0 {
+        country.budget.liquid_reserves += total_withholding_tax;
     }
 
     // Phase 24A.7: Process pending IPO queue — execute with real buyer cash.
@@ -490,11 +552,12 @@ pub fn process_companies(
                 }
             }
 
-            // Fire-sale inventory to auction pool
+            // Fire-sale inventory to auction pool (Phase 96: use policy, not magic 0.5)
             let inventory_value: f64 = buildings[idx].inventory.values().sum();
             if inventory_value > 0.0 {
-                country.bankruptcy_auction_pool.cash_collected += inventory_value * 0.5;
-                // 50% fire-sale
+                let policy = crate::state::BankruptcyPolicy::with_defaults();
+                country.bankruptcy_auction_pool.cash_collected +=
+                    inventory_value * policy.fire_sale_discount;
             }
 
             // Conserve land: return hectares to regional land inventory
@@ -523,6 +586,8 @@ pub fn process_companies(
                 company_id.clone(),
                 std::collections::HashMap::new(),
                 &crate::state::BankruptcyPolicy::with_defaults(),
+                format!("{:?}", buildings[idx].sector),
+                Some(buildings[idx].id.clone()),
             );
 
             // Phase 86.5A: Actually REMOVE the building from the collection.
@@ -1131,47 +1196,96 @@ fn apply_action(
             }
         }
         CorporateAction::PayDividend { total } => {
-            // Phase 24A.6: Wire dividends to all actual shareholders.
-            // Previously, dividends were subtracted from liquid_capital but only
-            // credited to cultural institutions — the main shareholders (owners,
-            // free float, state) never received their payments.
-            company.liquid_capital = (company.liquid_capital - total).max(0.0);
-            company.aggregated_stats.total_dividends += total;
+            // R5.3: KNF dividend restriction check. If the company is restricted
+            // by KNF (e.g., bank with insufficient Tier 1 capital), cancel the
+            // dividend entirely. Cash stays in the bank as retained earnings to
+            // rebuild Tier 1 capital. Do NOT redirect to treasury (confiscation).
+            if !country.knf.can_pay_dividends(&company.id) {
+                return;
+            }
 
-            // Route to known owners from owners map
+            // R1.1: Debit from brokerage_account.cash (primary) or available_cash
+            // (fallback). Previously debited from stale liquid_capital which could
+            // be zero, causing fiat creation (dividend paid without real debit).
+            let available = company
+                .brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash.max(0.0))
+                .unwrap_or(company.available_cash.max(0.0));
+            let actual_total = total.min(available);
+            if actual_total <= 0.0 {
+                return; // No cash available for dividends
+            }
+
+            // Debit the actual dividend amount from real cash
+            if let Some(ref mut ba) = company.brokerage_account {
+                ba.cash -= actual_total;
+            } else {
+                company.available_cash -= actual_total;
+            }
+            company.aggregated_stats.total_dividends += actual_total;
+
             let owners = company.owners.clone();
             let shares_count = company.shares_count;
+            let free_float = company.free_float;
             let dividend_per_share = if shares_count > 0 {
-                total / shares_count as f64
+                actual_total / shares_count as f64
             } else {
                 0.0
             };
 
+            // Route known owner dividends to the queue (gross, before withholding tax)
             for (owner_id, share_percentage) in &owners {
                 let owner_share_count = (shares_count as f64 * share_percentage) as u64;
                 let dividend_amount = owner_share_count as f64 * dividend_per_share;
                 if dividend_amount <= 0.0 {
                     continue;
                 }
-                // Try to credit the owner (could be a company, fund, or state)
-                // We use country as the intermediary for state-owned dividends
                 if owner_id == "STATE" || owner_id == "TREASURY" {
+                    // State/treasury: no withholding tax, credit directly
                     country.budget.liquid_reserves += dividend_amount;
+                } else {
+                    // Other owners: queue for post-pass (withholding tax applied there)
+                    country
+                        .dividend_queue
+                        .push((owner_id.clone(), dividend_amount));
                 }
-                // Other owners (companies, funds) will be credited in a post-pass
-                // since we can't borrow companies slice here.
-                // For now, track for later settlement.
-                country
-                    .dividend_queue
-                    .push((owner_id.clone(), dividend_amount));
+            }
+
+            // R1.2: Route free-float dividends to liquidity pool or escheat to Treasury.
+            // Free-float shares belong to the public; if no liquidity pool exists,
+            // escheat to Treasury as unclaimed assets (Rule 7: no helicopter money).
+            if free_float > 0.0 && shares_count > 0 {
+                let free_float_shares = (shares_count as f64 * free_float) as u64;
+                let free_float_dividend = free_float_shares as f64 * dividend_per_share;
+                if free_float_dividend > 0.0 {
+                    let instrument_id = format!("EQUITY:{}", company.id);
+                    if let Some(pool) = country.stock_exchange.liquidity_pools.get_mut(&instrument_id) {
+                        pool.cash += free_float_dividend;
+                    } else {
+                        // R1.2: Pool missing — dynamically initialize it with the
+                        // free-float dividend as seed cash.
+                        country.stock_exchange.liquidity_pools.insert(
+                            instrument_id,
+                            crate::securities::LiquidityPool {
+                                cash: free_float_dividend,
+                                ..Default::default()
+                            },
+                        );
+                    }
+                }
             }
 
             // Route dividends to cultural building shareholders (monasteries with shares)
+            // R1.4: Apply 19% withholding tax to cultural institutions (not TaxFreeGrowth).
             for cultural in &mut country.cultural_institutions {
                 if let Some(&share) = cultural.owned_company_shares.get(&company.id) {
-                    let dividend_share = total * share;
+                    let dividend_share = actual_total * share;
                     if dividend_share > 0.0 {
-                        cultural.available_cash += dividend_share;
+                        let withholding = dividend_share * DIVIDEND_WITHHOLDING_TAX_RATE;
+                        let net_dividend = dividend_share - withholding;
+                        cultural.available_cash += net_dividend;
+                        country.budget.liquid_reserves += withholding;
                     }
                 }
             }

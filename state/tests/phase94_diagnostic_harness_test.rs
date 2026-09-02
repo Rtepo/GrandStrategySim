@@ -138,14 +138,46 @@ fn test_6_turn_diagnostic_harness() {
     // --- Assertion 4: No conservation violations ---
     let total_violations = trace.summary.total_violations;
     if total_violations > 0 {
-        // Find the first violation and report it.
+        // Phase 94: Write trace artifacts BEFORE panicking so we can analyze.
+        let output_dir = PathBuf::from(OUTPUT_DIR);
+        std::fs::create_dir_all(&output_dir).ok();
+        let json_path = output_dir.join("turn_trace_q1.json");
+        let csv_path = output_dir.join("turn_summary_q1.csv");
+        write_turn_trace_json(&trace, &json_path).ok();
+        write_turn_summary_csv(&trace, &csv_path).ok();
+
+        // Print ALL violations for diagnostic analysis.
+        eprintln!("\n═══════════════════════════════════════════════════════════════");
+        eprintln!("  PHASE 94 DIAGNOSTIC: {} CONSERVATION VIOLATIONS DETECTED", total_violations);
+        eprintln!("═══════════════════════════════════════════════════════════════");
+        let mut shown = 0;
+        for turn_record in &trace.turns {
+            for cp in &turn_record.checkpoints {
+                for v in &cp.conservation.violations {
+                    eprintln!(
+                        "  [Turn {} Phase {} ({})] {:?} — magnitude={:.2} — {}",
+                        cp.turn, cp.phase_index, cp.phase_name, v.kind, v.magnitude, v.explanation
+                    );
+                    shown += 1;
+                    if shown >= 50 {
+                        eprintln!("  ... (truncated, see turn_trace_q1.json for full list)");
+                        break;
+                    }
+                }
+                if shown >= 50 { break; }
+            }
+            if shown >= 50 { break; }
+        }
+        eprintln!("═══════════════════════════════════════════════════════════════\n");
+
+        // Panic with the first violation for the test framework.
         for turn_record in &trace.turns {
             for cp in &turn_record.checkpoints {
                 if !cp.conservation.violations.is_empty() {
                     let v = &cp.conservation.violations[0];
                     panic!(
-                        "Conservation violation at turn {} phase {} ({}): {:?} — {}",
-                        cp.turn, cp.phase_index, cp.phase_name, v.kind, v.explanation
+                        "Conservation violation at turn {} phase {} ({}): {:?} — magnitude={:.2} — {}",
+                        cp.turn, cp.phase_index, cp.phase_name, v.kind, v.magnitude, v.explanation
                     );
                 }
             }

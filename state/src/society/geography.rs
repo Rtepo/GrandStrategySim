@@ -86,7 +86,7 @@ fn pick_climate_profile(rng: &mut impl rand::Rng) -> ClimateProfile {
 
 /// Distinguishes between rural and urban demographic classes
 /// Required to prevent key collisions in labor ledgers (Phase 6.2)
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum DemographyType {
     Rural,
 

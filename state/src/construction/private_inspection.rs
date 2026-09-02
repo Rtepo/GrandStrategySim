@@ -43,11 +43,18 @@ pub struct InspectionReport {
     pub inspected_turn: u32,
 }
 
-/// Default private inspection fee (currency units).
-pub const DEFAULT_INSPECTION_FEE: f64 = 25_000.0;
+/// Default private inspection fee multiplier — fee = avg_wage × this value.
+/// D.4.3: Replaced hardcoded 25,000.0 with a dynamic multiplier (Rule 2).
+pub const DEFAULT_INSPECTION_FEE_WAGE_MULTIPLIER: f64 = 25.0;
 
 /// Defect threshold above which the investor should file a lawsuit.
 pub const LAWSUIT_DEFECT_THRESHOLD: f64 = 0.15;
+
+/// Compute the dynamic private inspection fee based on average_wage.
+/// D.4.3: Scale fee by average_wage for inflation-proofing (Rule 2).
+pub fn default_inspection_fee(avg_wage: f64) -> f64 {
+    avg_wage * DEFAULT_INSPECTION_FEE_WAGE_MULTIPLIER
+}
 
 /// Hire a private inspector for a project.
 ///
@@ -56,6 +63,7 @@ pub const LAWSUIT_DEFECT_THRESHOLD: f64 = 0.15;
 /// * `investor_id` - The investor hiring the inspector.
 /// * `tender_id` - The associated tender (for reference).
 /// * `current_turn` - Current turn number.
+/// * `avg_wage` - Current average wage for dynamic fee calculation.
 ///
 /// # Returns
 /// A new `PrivateInspection` with status "hired, report pending".
@@ -64,13 +72,14 @@ pub fn hire_private_inspector(
     investor_id: String,
     tender_id: String,
     current_turn: u32,
+    avg_wage: f64,
 ) -> PrivateInspection {
     PrivateInspection {
         id: format!("pinspect_{}_{}", project_id, current_turn),
         tender_id,
         project_id,
         investor_id,
-        fee: DEFAULT_INSPECTION_FEE,
+        fee: default_inspection_fee(avg_wage),
         hired_turn: current_turn,
         report: None,
     }
@@ -121,8 +130,9 @@ mod tests {
             "inv_1".to_string(),
             "tender_1".to_string(),
             10,
+            1000.0,
         );
-        assert_eq!(insp.fee, DEFAULT_INSPECTION_FEE);
+        assert_eq!(insp.fee, default_inspection_fee(1000.0));
         assert!(insp.report.is_none());
     }
 
@@ -133,6 +143,7 @@ mod tests {
             "inv_1".to_string(),
             "tender_1".to_string(),
             10,
+            1000.0,
         );
         let fraud = vec![MaterialSubstitution {
             original_commodity: Commodity::Steel,
@@ -156,6 +167,7 @@ mod tests {
             "inv_1".to_string(),
             "tender_1".to_string(),
             10,
+            1000.0,
         );
         let actionable = conduct_private_inspection(&mut insp, 0.0, 1.0, Vec::new(), 12);
         assert!(!actionable);

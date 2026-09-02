@@ -114,6 +114,20 @@ impl From<crate::io::entity_store::EntityStoreError> for TurnError {
     }
 }
 
+/// Phase D.1.2: Pending OHS compensation event from the construction fraud
+/// phase. Compensation is deferred until after the labor allocation matrix
+/// is built so that funds can be routed to the exact injured worker class
+/// via `settle_transfer` (Rule 1 + Rule 7).
+#[derive(Debug, Clone)]
+pub(crate) struct PendingOhsCompensation {
+    /// Contractor company ID (the employer being debited).
+    pub employer_id: String,
+    /// Region ID where the accident occurred.
+    pub region_id: String,
+    /// Total compensation amount to debit from the employer.
+    pub total_compensation: f64,
+}
+
 /// Per-country work bundle used by the parallel turn executor.
 ///
 /// Holds the mutable [`Country`] reference (split-borrow from `GameState`), the
@@ -133,10 +147,24 @@ pub(crate) struct CountryTask<'a> {
     pub(crate) market_signal: MarketSignal,
     /// Per-country B2B order book for infrastructure/maritime/cultural orders
     pub(crate) order_book: OrderBook,
-    /// Phase 9: Tourism turn result (foreign inflow to be debited from GlobalMarket sequentially)
-    pub(crate) tourism_result: crate::society::tourism::TourismTurnResult,
+    /// Phase 9: Tourism demand result (for sequential foreign-sector clamping + settlement)
+    pub(crate) tourism_demand: crate::society::tourism::TourismDemandResult,
+    /// E3: Heritage tourism boost per region (from heritage processing)
+    pub(crate) heritage_tourism_boost: std::collections::BTreeMap<String, f64>,
     /// Phase 12: Labor allocation from W1, passed to D.5 payment in kind
     pub(crate) labor_allocation: Option<crate::economy::labor_market::LaborAllocationMatrix>,
+    /// Phase D.5.1: Dominant demographic class per company, extracted from
+    /// `labor_allocation` before it is consumed. Used by inspectorate bribery
+    /// (Phase 22C) and OHS compensation to route funds to the exact class of
+    /// the workers/officials at a specific company.
+    /// Key: company_id → (DemographyType, class_id) of the dominant FTE class.
+    pub(crate) dominant_class_by_company:
+        Option<std::collections::HashMap<String, (crate::society::geography::DemographyType, String)>>,
+    /// Phase D.1.2: Pending OHS compensation events from the construction
+    /// fraud phase. Compensation is deferred until after the labor allocation
+    /// matrix is built and the dominant class map is extracted, so that
+    /// funds can be routed to the exact injured worker class.
+    pub(crate) pending_ohs_compensations: Vec<PendingOhsCompensation>,
     /// Saved defense bids from pending_defense_orders, captured before draining
     /// into the global order book. Used for post-clearing refund calculation.
     pub(crate) saved_defense_bids: Vec<crate::economy::order_book::Bid>,
@@ -146,6 +174,9 @@ pub(crate) struct CountryTask<'a> {
     pub(crate) education_needs: std::collections::BTreeMap<String, f64>,
     /// Phase 17C: Apostolic See remittance result (for sequential aggregation into global ledger).
     pub(crate) see_remittance: crate::economy::religious_economy::SeeRemittanceResult,
+    /// Phase F4: Wealth extracted from deported illegal immigrants.
+    /// Credited to foreign_sector_balance in the sequential post-pass.
+    pub(crate) deported_wealth: f64,
     /// Phase 19A: Cross-border blueprint royalty outbox (emitted by this
     /// country's parallel royalty phase; consumed by the sequential post-parallel
     /// crediting pass that credits foreign licensors in their home country).
@@ -375,13 +406,17 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     orders: MarketOrders::default(),
                     market_signal: MarketSignal::default(),
                     order_book: OrderBook::default(),
-                    tourism_result: crate::society::tourism::TourismTurnResult::default(),
+                    tourism_demand: crate::society::tourism::TourismDemandResult::default(),
+                    heritage_tourism_boost: std::collections::BTreeMap::new(),
                     labor_allocation: None,
+                    dominant_class_by_company: None,
+                    pending_ohs_compensations: Vec::new(),
                     saved_defense_bids: Vec::new(),
                     education_consumption: std::collections::BTreeMap::new(),
                     education_needs: std::collections::BTreeMap::new(),
                     see_remittance: crate::economy::religious_economy::SeeRemittanceResult::default(
                     ),
+                    deported_wealth: 0.0,
                     cross_border_royalty_outbox: Vec::new(),
                     foreign_patent_fee_outbox: 0.0,
                     commute_coverage: std::collections::BTreeMap::new(),
@@ -438,6 +473,15 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             .map(|(ccy_code, currency)| (ccy_code.clone(), currency.exchange_rate))
             .collect();
 
+        // Phase 94: Re-aggregate citizen_savings before the turn_start checkpoint
+        // so that budget.citizen_savings is always fresh and consistent with
+        // demo.savings. Without this, the M0 fiat walk sees a stale value at
+        // turn_start, then a "jump" after process_demographics_and_labor runs,
+        // creating a false FiatCreation violation.
+        tasks.par_iter_mut().for_each(|task| {
+            crate::economy::labor::aggregate_citizen_savings(task.ctx.country);
+        });
+
         // ── DIAGNOSTIC CHECKPOINT 0: turn_start ──
         probe.checkpoint("turn_start", 0, turn, &market, &tasks);
 
@@ -484,6 +528,118 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
         });
+        // Phase 23C: Remit commuter wages back to home regions' class savings.
+        // Commuters earned net wages (after PIT) in the host region; these are
+        // distributed proportionally across all adjacent regions' classes as a
+        // simplified remittance (since we don't track per-home-region FTE yet).
+        // Phase 94: Moved here (before banking_turn_post checkpoint) so that
+        // the citizen savings credit and the bank reserve debit (from the
+        // labor phase wage batch sync) are in the same checkpoint interval.
+        // Previously, this ran between production_cycle_post and
+        // b2c_clearing_post, causing a false FiatCreation violation because
+        // the credit appeared without the matching debit in the same phase.
+        tasks.par_iter_mut().for_each(|task| {
+            if let Some(ref labor_alloc) = task.labor_allocation {
+                if labor_alloc.commuter_wages > 0.0 && labor_alloc.commuter_fte > 0.0 {
+                    let wages = labor_alloc.commuter_wages;
+                    // Find adjacent regions and distribute wages proportionally
+                    // to their available FTE.
+                    if let Some(host_region) = task.ctx.country.regions.first() {
+                        let adjacent_ids: Vec<String> = host_region
+                            .edges
+                            .iter()
+                            .filter(|e| {
+                                e.edge_type == crate::society::geography::EdgeType::LandBorder
+                            })
+                            .map(|e| e.target_node.clone())
+                            .collect();
+                        let mut total_adjacent_fte = 0.0_f64;
+                        for adj_id in &adjacent_ids {
+                            if let Some(adj) =
+                                task.ctx.country.regions.iter().find(|r| &r.id == adj_id)
+                            {
+                                total_adjacent_fte += adj
+                                    .class_demographics
+                                    .rural_classes
+                                    .values()
+                                    .chain(adj.class_demographics.urban_classes.values())
+                                    .map(|d| d.available_fte)
+                                    .sum::<f64>();
+                            }
+                        }
+                        if total_adjacent_fte > 0.0 {
+                            for adj_id in &adjacent_ids {
+                                let adj_fte: f64 = task
+                                    .ctx
+                                    .country
+                                    .regions
+                                    .iter()
+                                    .find(|r| &r.id == adj_id)
+                                    .map(|r| {
+                                        r.class_demographics
+                                            .rural_classes
+                                            .values()
+                                            .chain(r.class_demographics.urban_classes.values())
+                                            .map(|d| d.available_fte)
+                                            .sum()
+                                    })
+                                    .unwrap_or(0.0);
+                                let share = adj_fte / total_adjacent_fte;
+                                let remittance = wages * share;
+                                if remittance > 0.0 {
+                                    if let Some(adj) = task
+                                        .ctx
+                                        .country
+                                        .regions
+                                        .iter_mut()
+                                        .find(|r| &r.id == adj_id)
+                                    {
+                                        // Distribute proportionally across classes by available FTE.
+                                        let classes: Vec<(bool, String, f64)> = adj
+                                            .class_demographics
+                                            .rural_classes
+                                            .iter()
+                                            .map(|(k, v)| (false, k.clone(), v.available_fte))
+                                            .chain(
+                                                adj.class_demographics.urban_classes.iter().map(
+                                                    |(k, v)| (true, k.clone(), v.available_fte),
+                                                ),
+                                            )
+                                            .collect();
+                                        let class_total: f64 =
+                                            classes.iter().map(|(_, _, f)| *f).sum();
+                                        if class_total > 0.0 {
+                                            for (is_urban, class_id, fte) in classes {
+                                                let class_share = fte / class_total;
+                                                let class_remittance = remittance * class_share;
+                                                if is_urban {
+                                                    if let Some(d) = adj
+                                                        .class_demographics
+                                                        .urban_classes
+                                                        .get_mut(&class_id)
+                                                    {
+                                                        d.savings += class_remittance;
+                                                    }
+                                                } else {
+                                                    if let Some(d) = adj
+                                                        .class_demographics
+                                                        .rural_classes
+                                                        .get_mut(&class_id)
+                                                    {
+                                                        d.savings += class_remittance;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
         tasks.par_iter_mut().for_each(|task| {
             process_banking_turn(task.ctx.country, &mut task.companies, task.ctx.turn);
         });
@@ -1428,14 +1584,14 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         // Post-clearing: Process heritage effects (prestige, tourism)
+        // E3: Store heritage tourism boost on the task for later tourism demand computation.
         tasks.par_iter_mut().for_each(|task| {
             let mut region_prestige = std::collections::BTreeMap::new();
-            let mut tourism_revenue = std::collections::BTreeMap::new();
             crate::infrastructure::heritage::process_heritage_effects(
                 &mut task.ctx.buildings,
                 task.ctx.year,
                 &mut region_prestige,
-                &mut tourism_revenue,
+                &mut task.heritage_tourism_boost,
             );
         });
 
@@ -1629,13 +1785,27 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 .as_ref()
                 .map(|js| js.justice_coverage)
                 .unwrap_or(0.0);
+            // D.4.7: Dynamic inspection probability — capacity per construction
+            // site, not a hardcoded divisor. (Rule 2: no magic numbers)
+            let total_construction_sites = task
+                .ctx
+                .buildings
+                .iter()
+                .filter(|b| b.active_project.is_some())
+                .count() as f64;
             let inspection_prob = task
                 .ctx
                 .country
                 .politics
                 .inspectorate_state
                 .as_ref()
-                .map(|ist| ist.labor_inspection_capacity / 100.0)
+                .map(|ist| {
+                    if total_construction_sites > 0.0 {
+                        ist.labor_inspection_capacity / total_construction_sites
+                    } else {
+                        0.0
+                    }
+                })
                 .unwrap_or(0.0)
                 .min(1.0);
             let mut rng = rand::rngs::StdRng::seed_from_u64(
@@ -1653,12 +1823,15 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                         .map(|c| c.reputation_score)
                         .unwrap_or(50.0);
                     // Material fraud
+                    let prices_std: std::collections::HashMap<crate::registries::enums::Commodity, f64> =
+                        task.ctx.market_prices.iter().map(|(k, v)| (*k, *v)).collect();
                     let _ = crate::construction::fraud::try_material_fraud(
                         project,
                         contractor_rep,
                         justice_coverage,
                         inspection_prob,
                         &mut rng,
+                        &prices_std,
                     );
                     // OHS cut
                     let _ = crate::construction::fraud::try_ohs_cut(
@@ -1682,62 +1855,25 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
                         // Phase 25: OHS compensation — dynamic multiplier, not hardcoded.
                         // compensation = COMPENSATION_WAGE_MULTIPLIER × average_wage × total_casualties
-                        // Debit the employer company, credit the victim households.
+                        // D.1.2: Compensation is DEFERRED until after the labor allocation
+                        // matrix is built, so it can be routed to the exact injured worker
+                        // class via settle_transfer (Rule 1 + Rule 7). No silent clamping —
+                        // the full amount is attempted; insolvency triggers the Syndic.
                         let avg_wage = task.ctx.country.macro_indicators.average_wage;
                         let compensation_per_casualty =
                             avg_wage * crate::construction::fraud::COMPENSATION_WAGE_MULTIPLIER;
                         let total_compensation = compensation_per_casualty * casualties_i as f64;
 
-                        // Find the employer company (the project's contractor).
                         let employer_id = project.main_contractor_id.clone();
                         if total_compensation > 0.0 {
-                            if let Some(employer) =
-                                task.companies.iter_mut().find(|c| c.id == employer_id)
-                            {
-                                // Debit the employer's cash.
-                                let employer_cash = employer
-                                    .brokerage_account
-                                    .as_ref()
-                                    .map(|ba| ba.cash)
-                                    .unwrap_or(employer.available_cash);
-                                let actual_compensation = total_compensation.min(employer_cash);
-                                if actual_compensation > 0.0 {
-                                    if let Some(ref mut ba) = employer.brokerage_account {
-                                        ba.cash -= actual_compensation;
-                                    } else {
-                                        employer.available_cash -= actual_compensation;
-                                    }
-                                    // Credit the victim households via region class savings.
-                                    // Distribute proportionally across rural and urban classes.
-                                    if let Some(region) = task
-                                        .ctx
-                                        .country
-                                        .regions
-                                        .iter_mut()
-                                        .find(|r| r.id == region_id)
-                                    {
-                                        let total_classes =
-                                            region.class_demographics.rural_classes.len()
-                                                + region.class_demographics.urban_classes.len();
-                                        if total_classes > 0 {
-                                            let per_class =
-                                                actual_compensation / total_classes as f64;
-                                            for demo in
-                                                region.class_demographics.rural_classes.values_mut()
-                                            {
-                                                demo.savings += per_class;
-                                            }
-                                            for demo in
-                                                region.class_demographics.urban_classes.values_mut()
-                                            {
-                                                demo.savings += per_class;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            task.pending_ohs_compensations.push(PendingOhsCompensation {
+                                employer_id: employer_id.clone(),
+                                region_id: region_id.clone(),
+                                total_compensation,
+                            });
                         }
 
+                        // Apply casualties to population immediately (physical effect).
                         if let Some(region) = task
                             .ctx
                             .country
@@ -2505,27 +2641,37 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
 
                 let debit_per_capita = total_rent / total_class_pop as f64;
+                // Phase 94: Track actual debited amount — debits are clamped
+                // to .max(0.0) but the credit must match the ACTUAL debit,
+                // not the theoretical total_rent. Otherwise money is created
+                // when citizens can't afford the full rent.
+                let mut actual_rent_debited = 0.0;
                 for demographics in region.class_demographics.rural_classes.values_mut() {
-                    demographics.savings = (demographics.savings
-                        - debit_per_capita * demographics.population as f64)
-                        .max(0.0);
+                    let owed = debit_per_capita * demographics.population as f64;
+                    let before = demographics.savings;
+                    demographics.savings = (demographics.savings - owed).max(0.0);
+                    actual_rent_debited += before - demographics.savings;
                 }
                 for demographics in region.class_demographics.urban_classes.values_mut() {
-                    demographics.savings = (demographics.savings
-                        - debit_per_capita * demographics.population as f64)
-                        .max(0.0);
+                    let owed = debit_per_capita * demographics.population as f64;
+                    let before = demographics.savings;
+                    demographics.savings = (demographics.savings - owed).max(0.0);
+                    actual_rent_debited += before - demographics.savings;
                 }
 
-                // Credit rent to the owner entity.
+                // Credit ACTUAL debited rent to the owner entity (Rule 1).
+                if actual_rent_debited <= 0.0 {
+                    continue;
+                }
                 if owner.starts_with("STATE:") {
-                    task.ctx.country.budget.liquid_reserves += total_rent;
+                    task.ctx.country.budget.liquid_reserves += actual_rent_debited;
                 } else if owner.starts_with("CLASS:Aristocracy:") {
                     if let Some(d) = region
                         .class_demographics
                         .rural_classes
                         .get_mut("Aristocracy")
                     {
-                        d.savings += total_rent;
+                        d.savings += actual_rent_debited;
                     }
                 } else if owner.starts_with("CLASS:Bourgeoisie:") {
                     if let Some(d) = region
@@ -2533,7 +2679,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                         .urban_classes
                         .get_mut("Bourgeoisie")
                     {
-                        d.savings += total_rent;
+                        d.savings += actual_rent_debited;
                     }
                 }
                 // Unknown owner prefixes: rent is lost (should not happen with genesis housing).
@@ -3145,112 +3291,6 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
         });
 
-        // Phase 23C: Remit commuter wages back to home regions' class savings.
-        // Commuters earned net wages (after PIT) in the host region; these are
-        // distributed proportionally across all adjacent regions' classes as a
-        // simplified remittance (since we don't track per-home-region FTE yet).
-        tasks.par_iter_mut().for_each(|task| {
-            if let Some(ref labor_alloc) = task.labor_allocation {
-                if labor_alloc.commuter_wages > 0.0 && labor_alloc.commuter_fte > 0.0 {
-                    let wages = labor_alloc.commuter_wages;
-                    // Find adjacent regions and distribute wages proportionally
-                    // to their available FTE.
-                    if let Some(host_region) = task.ctx.country.regions.first() {
-                        let adjacent_ids: Vec<String> = host_region
-                            .edges
-                            .iter()
-                            .filter(|e| {
-                                e.edge_type == crate::society::geography::EdgeType::LandBorder
-                            })
-                            .map(|e| e.target_node.clone())
-                            .collect();
-                        let mut total_adjacent_fte = 0.0_f64;
-                        for adj_id in &adjacent_ids {
-                            if let Some(adj) =
-                                task.ctx.country.regions.iter().find(|r| &r.id == adj_id)
-                            {
-                                total_adjacent_fte += adj
-                                    .class_demographics
-                                    .rural_classes
-                                    .values()
-                                    .chain(adj.class_demographics.urban_classes.values())
-                                    .map(|d| d.available_fte)
-                                    .sum::<f64>();
-                            }
-                        }
-                        if total_adjacent_fte > 0.0 {
-                            for adj_id in &adjacent_ids {
-                                let adj_fte: f64 = task
-                                    .ctx
-                                    .country
-                                    .regions
-                                    .iter()
-                                    .find(|r| &r.id == adj_id)
-                                    .map(|r| {
-                                        r.class_demographics
-                                            .rural_classes
-                                            .values()
-                                            .chain(r.class_demographics.urban_classes.values())
-                                            .map(|d| d.available_fte)
-                                            .sum()
-                                    })
-                                    .unwrap_or(0.0);
-                                let share = adj_fte / total_adjacent_fte;
-                                let remittance = wages * share;
-                                if remittance > 0.0 {
-                                    if let Some(adj) = task
-                                        .ctx
-                                        .country
-                                        .regions
-                                        .iter_mut()
-                                        .find(|r| &r.id == adj_id)
-                                    {
-                                        // Distribute proportionally across classes by available FTE.
-                                        let classes: Vec<(bool, String, f64)> = adj
-                                            .class_demographics
-                                            .rural_classes
-                                            .iter()
-                                            .map(|(k, v)| (false, k.clone(), v.available_fte))
-                                            .chain(
-                                                adj.class_demographics.urban_classes.iter().map(
-                                                    |(k, v)| (true, k.clone(), v.available_fte),
-                                                ),
-                                            )
-                                            .collect();
-                                        let class_total: f64 =
-                                            classes.iter().map(|(_, _, f)| *f).sum();
-                                        if class_total > 0.0 {
-                                            for (is_urban, class_id, fte) in classes {
-                                                let class_share = fte / class_total;
-                                                let class_remittance = remittance * class_share;
-                                                if is_urban {
-                                                    if let Some(d) = adj
-                                                        .class_demographics
-                                                        .urban_classes
-                                                        .get_mut(&class_id)
-                                                    {
-                                                        d.savings += class_remittance;
-                                                    }
-                                                } else {
-                                                    if let Some(d) = adj
-                                                        .class_demographics
-                                                        .rural_classes
-                                                        .get_mut(&class_id)
-                                                    {
-                                                        d.savings += class_remittance;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
         // Fix 1.22: Credit withheld PIT + garnishments to each country's Treasury
         tasks.par_iter_mut().for_each(|task| {
             if let Some(ref labor_alloc) = task.labor_allocation {
@@ -3266,10 +3306,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
         });
 
-        // Phase 18A: Route TemporaryWorker remittances to ForeignEntity (money leaves system)
-        // Remittances were already deducted from net_wage in labor_market.rs.
-        // Here we record the outbound amount in shadow_economy_state.
-        // The actual money was already removed from citizen savings at the source.
+        // Phase 18A: Route TemporaryWorker remittances to foreign_sector_balance.
+        // Remittances were already deducted from net_wage in labor_market.rs
+        // (savings credited with net_wage - remittance). Here we credit the
+        // withheld total to the foreign sector balance — the external world's
+        // purchasing pool. This seals the FiatDestruction leak: previously the
+        // amount was only recorded in shadow_economy_state and vanished from M0.
         tasks.par_iter_mut().for_each(|task| {
             if let Some(ref labor_alloc) = task.labor_allocation {
                 if labor_alloc.remittances_withheld > 0.0 {
@@ -3286,6 +3328,19 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
         });
+        // Sequential: credit total remittances to foreign_sector_balance (Rule 1).
+        let total_remittances: f64 = tasks
+            .iter()
+            .map(|t| {
+                t.labor_allocation
+                    .as_ref()
+                    .map(|la| la.remittances_withheld)
+                    .unwrap_or(0.0)
+            })
+            .sum();
+        if total_remittances > 0.0 {
+            market.foreign_sector_balance += total_remittances;
+        }
 
         // Phase 18A: Shadow Economy Processing
         // Processes shadow employment: companies in labor-intensive sectors
@@ -3313,6 +3368,129 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
             // Phase 24D: Accumulate shadow wages as shadow GDP.
             task.gdp_acc.shadow_gdp += shadow_result.total_shadow_wages;
+        });
+
+        // Phase D.5.1: Extract dominant demographic class per company from
+        // the labor allocation matrix before it is consumed by D.5 payment
+        // in kind. This map is used later by inspectorate bribery (Phase 22C)
+        // and OHS compensation to route funds to the exact class of workers.
+        tasks.par_iter_mut().for_each(|task| {
+            if let Some(ref la) = task.labor_allocation {
+                use crate::society::geography::DemographyType;
+                use std::collections::HashMap;
+                let mut fte_by_company: HashMap<String, HashMap<(DemographyType, String), f64>> =
+                    HashMap::new();
+                for ((company_id, demo_type, class_id), &fte) in &la.fte {
+                    let class_map = fte_by_company
+                        .entry(company_id.clone())
+                        .or_default();
+                    let entry = class_map.entry((*demo_type, class_id.clone())).or_insert(0.0);
+                    *entry += fte;
+                }
+                let mut dominant: HashMap<String, (DemographyType, String)> = HashMap::new();
+                for (company_id, classes) in fte_by_company {
+                    if let Some((demo_type, class_id)) = classes
+                        .into_iter()
+                        .max_by(|(_, a), (_, b)| {
+                            a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)
+                        })
+                        .map(|(k, _)| k)
+                    {
+                        dominant.insert(company_id, (demo_type, class_id));
+                    }
+                }
+                task.dominant_class_by_company = Some(dominant);
+            }
+        });
+
+        // Phase D.1.2: Process deferred OHS compensations now that the
+        // dominant class map is available. Route compensation through
+        // settle_transfer (Rule 1: bank balance synchronized) to the exact
+        // injured worker class (Rule 7: no communization). If the employer
+        // cannot pay, mark for Syndic bankruptcy processing.
+        tasks.par_iter_mut().for_each(|task| {
+            use crate::economy::transfer_settler::{settle_transfer, TransferRecipient, TransferError};
+            use crate::society::geography::DemographyType;
+
+            let pending: Vec<PendingOhsCompensation> =
+                std::mem::take(&mut task.pending_ohs_compensations);
+            for comp in pending {
+                let employer_idx = task.companies.iter().position(|c| c.id == comp.employer_id);
+                let employer_idx = match employer_idx {
+                    Some(idx) => idx,
+                    None => continue,
+                };
+                let region_idx = task
+                    .ctx
+                    .country
+                    .regions
+                    .iter()
+                    .position(|r| r.id == comp.region_id);
+                let region_idx = match region_idx {
+                    Some(idx) => idx,
+                    None => continue,
+                };
+
+                // Determine the injured worker class from the dominant class map.
+                // If the contractor has no entry (zero employees), credit to the
+                // region's default labor class as a fallback.
+                let (class_key, is_rural) = task
+                    .dominant_class_by_company
+                    .as_ref()
+                    .and_then(|map| map.get(&comp.employer_id))
+                    .map(|(demo_type, class_id)| {
+                        (class_id.clone(), *demo_type == DemographyType::Rural)
+                    })
+                    .unwrap_or_else(|| {
+                        // Fallback: use "Workers" urban class if no labor data
+                        ("Workers".to_string(), false)
+                    });
+
+                let recipient = TransferRecipient::CitizenSavings {
+                    region_idx,
+                    is_rural,
+                    class_key: class_key.clone(),
+                };
+
+                // Attempt full compensation — no silent clamping.
+                let result = settle_transfer(
+                    &mut task.companies,
+                    employer_idx,
+                    comp.total_compensation,
+                    &recipient,
+                    task.ctx.country,
+                );
+
+                if matches!(result, Err(TransferError::InsufficientCash)) {
+                    // Employer cannot pay — mark for Syndic bankruptcy.
+                    // The compensation claim becomes a wage-priority claim in
+                    // the Syndic's waterfall distribution (wages are first priority).
+                    if let Some(ref mut employer) = task.companies.get_mut(employer_idx) {
+                        // Force negative equity to trigger Syndic liquidation
+                        // in the next lifecycle phase.
+                        employer.company_capital -= comp.total_compensation;
+                    }
+                    // Still credit the victim class — the Syndic will cover from
+                    // asset liquidation proceeds. For now, credit from treasury
+                    // as a state guarantee (the state covers unpaid wages when
+                    // the employer is insolvent, then claims via the Syndic).
+                    if comp.total_compensation > 0.0 {
+                        if let Some(region) = task.ctx.country.regions.get_mut(region_idx) {
+                            let classes = if is_rural {
+                                &mut region.class_demographics.rural_classes
+                            } else {
+                                &mut region.class_demographics.urban_classes
+                            };
+                            if let Some(demo) = classes.get_mut(&class_key) {
+                                demo.savings += comp.total_compensation;
+                            }
+                        }
+                        // Debit treasury for the state guarantee
+                        task.ctx.country.budget.liquid_reserves -=
+                            task.ctx.country.budget.liquid_reserves.min(comp.total_compensation);
+                    }
+                }
+            }
         });
 
         // D.5: Payment in kind (deduct harvest for subsistence)
@@ -3873,28 +4051,71 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         // ═══════════════════════════════════════════════════════════
-        // RESURRECTION PHASE 9: TOURISM INDUSTRY
-        // Runs after B2C clearing (citizens may be depleted), before process_companies.
-        // Parallel: computes demand, credits companies, debits domestic savings.
-        // Foreign inflow is collected for sequential GlobalMarket debit.
         // ═══════════════════════════════════════════════════════════
+        // PHASE 9: TOURISM (Two-Pass: Compute → Clamp → Settle)
+        // Runs after B2C clearing (citizens may be depleted), before process_companies.
+        // Pass 1 (parallel): Compute demand, debit domestic savings. No company credits.
+        // Sequential: Clamp foreign inflow to foreign_sector_balance.
+        // Pass 2 (parallel): Credit companies with clamped amounts.
+        // ═══════════════════════════════════════════════════════════
+
+        // Compute total world population for PPP forex calculation (B1).
+        let total_world_population: i64 = tasks
+            .iter()
+            .flat_map(|t| {
+                t.ctx.country.regions.iter().flat_map(|r| {
+                    r.class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(r.class_demographics.urban_classes.values())
+                })
+            })
+            .map(|c| c.population)
+            .sum();
+
+        // PASS 1 (parallel): Compute demand, debit domestic savings.
+        // No company credits, no market mutation.
+        // Clone the climate config to avoid borrowing tasks immutably while
+        // also borrowing it mutably in the parallel pass.
+        let climate_config_clone = tasks[0].climate_config.clone();
+        let foreign_sector_balance = market.foreign_sector_balance;
         tasks.par_iter_mut().for_each(|task| {
-            let result = crate::society::tourism::process_tourism_turn(
+            let result = crate::society::tourism::compute_tourism_demand(
                 task.ctx.country,
                 &task.commercial_buildings,
-                &mut task.companies,
+                &task.companies,
                 current_season,
+                &climate_config_clone,
+                &task.heritage_tourism_boost,
+                foreign_sector_balance,
+                total_world_population,
             );
-            task.tourism_result = result;
+            task.tourism_demand = result;
         });
 
-        // FIX #1: Sequential post-processing — debit GlobalMarket.offshore_capital
-        // Foreign tourist spending comes from OUTSIDE the domestic economy.
-        let total_foreign_inflow: f64 = tasks
+        // SEQUENTIAL: Clamp foreign inflow to foreign_sector_balance.
+        // Foreign tourist spending comes from the external world's spending pool.
+        // Can never go below zero — foreign spending is clamped to this balance.
+        let total_foreign_requested: f64 = tasks
             .iter()
-            .map(|t| t.tourism_result.foreign_tourism_inflow)
+            .map(|t| t.tourism_demand.total_foreign_requested)
             .sum();
-        market.offshore_capital -= total_foreign_inflow;
+        let foreign_scaling_ratio = if total_foreign_requested > 0.0 {
+            (market.foreign_sector_balance / total_foreign_requested).min(1.0)
+        } else {
+            0.0
+        };
+        let total_foreign_actual = total_foreign_requested * foreign_scaling_ratio;
+        market.foreign_sector_balance -= total_foreign_actual;
+
+        // PASS 2 (parallel): Credit companies with clamped amounts.
+        tasks.par_iter_mut().for_each(|task| {
+            crate::society::tourism::settle_tourism_revenue(
+                &mut task.companies,
+                &task.tourism_demand,
+                foreign_scaling_ratio,
+            );
+        });
 
         tasks.par_iter_mut().for_each(|task| {
             // Phase 24C.7: Update information quality tier for each company
@@ -3931,6 +4152,20 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 &task.market_signal,
                 task.ctx.turn,
             );
+        });
+        tasks.par_iter_mut().for_each(|task| {
+            // Phase 96: Process Strategic Resolution for energy companies in receivership.
+            // This must run BEFORE lifecycle so recovered companies aren't liquidated.
+            for company in &mut task.companies {
+                if company.is_in_receivership {
+                    let mut resolution =
+                        crate::utilities::resolution::StrategicResolution::new(company.id.clone());
+                    resolution.process_turn(
+                        company,
+                        &mut task.ctx.country.budget.liquid_reserves,
+                    );
+                }
+            }
         });
         tasks.par_iter_mut().for_each(|task| {
             CompanyLifecycle::process_lifecycle(
@@ -4188,6 +4423,11 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 + tax_result.customs_revenue
                 + tax_result.state_property_revenue;
             let mut total_cit_debited = 0.0;
+            // Phase 94: Accumulate CIT+wealth tax debits per bank for batch sync.
+            // Without this, debiting company cash without debiting bank reserves
+            // causes M0 FiatCreation (treasury increases, bank reserves unchanged).
+            let mut tax_bank_debits: std::collections::HashMap<String, f64> =
+                std::collections::HashMap::new();
             for liability in &tax_result.liabilities {
                 if let Some(company) = task
                     .companies
@@ -4207,10 +4447,26 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                             }
                         }
                         total_cit_debited += liability.cit_actual;
+                        // Phase 94: Accumulate for batch bank sync.
+                        if let Some(ref bank_id) = company.primary_bank_id {
+                            *tax_bank_debits.entry(bank_id.clone()).or_insert(0.0) += to_debit;
+                        }
                     }
                 }
             }
             total_actual_collected += total_cit_debited;
+
+            // Phase 94: Batch bank sync for CIT+wealth tax — debit bank
+            // deposits and reserves by the exact amounts debited from
+            // companies. No clamping (negative reserves = CB Lombard borrowing).
+            for (bank_id, total_debit) in &tax_bank_debits {
+                if let Some(bank) = task.companies.iter_mut().find(|c| c.id == *bank_id) {
+                    if let Some(ref mut bs) = bank.balance_sheet {
+                        bs.deposits -= total_debit;
+                        bs.reserves_at_central_bank -= total_debit;
+                    }
+                }
+            }
 
             // Phase 42: Route only the ACTUAL collected amounts to the treasury.
             // VAT and customs were already physically credited during trade clearing.
@@ -4251,7 +4507,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             tax_result_stored.actual_pit_collected = withheld_pit;
             tax_result_stored.total_revenue = total_actual_collected + withheld_pit;
             task.ctx.country.last_tax_result = Some(tax_result_stored);
-            let total_property_tax = process_regional_taxes(task.ctx.country);
+            let total_property_tax = process_regional_taxes(task.ctx.country, &mut task.companies);
             // Phase 89: Store aggregated property tax in last_tax_result for Finance UI.
             if let Some(ref mut tax_result) = task.ctx.country.last_tax_result {
                 tax_result.property_tax_collected = total_property_tax;
@@ -4270,8 +4526,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 );
             }
 
-            // Phase 29: Corruption tax leakage — corruption reduces effective
-            // tax collection by embezzling a fraction of collected revenue.
+            // Phase 29 / D.1.1: Corruption tax leakage — corruption embezzles
+            // a fraction of CURRENT-TURN tax revenue to corrupt officials'
+            // class savings. No fiat is destroyed (Rule 1). Historical
+            // reserves are not subject to leakage (Rule 16: temporal causality).
             let corruption_index = task
                 .ctx
                 .country
@@ -4280,9 +4538,52 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 .as_ref()
                 .map(|ist| ist.corruption_index)
                 .unwrap_or(0.0);
+            // Current-turn tax revenue only (PIT + CIT + VAT + wealth + exit + customs + property)
+            let tax_revenue_this_turn =
+                total_actual_collected + withheld_pit + total_property_tax;
+            // Identify corrupt officials: employees of inspectorate buildings.
+            // Use the dominant_class_by_company map to find their demographic class.
+            let mut corrupt_officials: Vec<(usize, String, bool)> = Vec::new();
+            if let Some(ref dominant_map) = task.dominant_class_by_company {
+                use crate::registries::enums::Commodity;
+                let inspection_commodities = [
+                    Commodity::SanitaryInspectionCapacity,
+                    Commodity::BuildingInspectionCapacity,
+                    Commodity::EnvironmentalInspectionCapacity,
+                    Commodity::LaborInspectionCapacity,
+                ];
+                for b in &task.ctx.buildings {
+                    let produces_inspection = b
+                        .last_production
+                        .iter()
+                        .any(|(c, &qty)| inspection_commodities.contains(c) && qty > 0.0);
+                    if !produces_inspection || b.owner_id.is_empty() {
+                        continue;
+                    }
+                    if let Some((demo_type, class_id)) = dominant_map.get(&b.owner_id) {
+                        let region_idx = task
+                            .ctx
+                            .country
+                            .regions
+                            .iter()
+                            .position(|r| r.id == b.region_id);
+                        if let Some(ridx) = region_idx {
+                            let is_rural = *demo_type
+                                == crate::society::geography::DemographyType::Rural;
+                            let entry = (ridx, class_id.clone(), is_rural);
+                            // Deduplicate
+                            if !corrupt_officials.contains(&entry) {
+                                corrupt_officials.push(entry);
+                            }
+                        }
+                    }
+                }
+            }
             let _leakage = crate::economy::justice::bribery::apply_corruption_tax_leakage(
-                &mut task.ctx.country.budget,
+                task.ctx.country,
                 corruption_index,
+                tax_revenue_this_turn,
+                &corrupt_officials,
             );
         });
 
@@ -4349,7 +4650,31 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             // Phase 40: Recalculate budget needs before the second allocation
             // pass to ensure ministries have non-zero targets.
             calculate_budget_needs(task.ctx.country);
+            // D.6.2: Wire inspectorate_priority to inspectorate funding.
+            // When a crisis profile has inspectorate_priority > 0, multiply
+            // the Justice/InternalSecurity ministry's allocated cash to boost
+            // inspectorate effectiveness during crises.
+            let insp_priority = task
+                .ctx
+                .country
+                .macro_indicators
+                .extra
+                .get("inspectorate_priority")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0);
             allocate_cash_to_ministries(task.ctx.country);
+            if insp_priority > 0.0 {
+                if let Some(ref mut config) = task.ctx.country.politics.ministry_config {
+                    for ministry in &mut config.ministries {
+                        let is_justice = ministry.id.contains("Justice")
+                            || ministry.id.contains("InternalSecurity")
+                            || ministry.id.contains("Security");
+                        if is_justice {
+                            ministry.allocated_cash *= 1.0 + insp_priority;
+                        }
+                    }
+                }
+            }
 
             // 7. MINISTRY PHASE A: Strategies + B2B Order Submission + Direct Transfers
             // Clone active_parties to avoid simultaneous mutable+immutable borrow of country
@@ -5249,9 +5574,17 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             tasks.par_iter_mut().for_each(|task| {
                 let border_cap =
                     crate::economy::migration::sum_border_enforcement_capacity(&task.ctx.buildings);
-                let _deported =
+                let (_deported, wealth) =
                     crate::economy::migration::process_deportations(task.ctx.country, border_cap);
+                task.deported_wealth = wealth;
             });
+            // Sequential: credit deported wealth to foreign_sector_balance (F4).
+            // Deportees take their savings out of the country → external world gains.
+            let total_deported_wealth: f64 =
+                tasks.iter().map(|t| t.deported_wealth).sum();
+            if total_deported_wealth > 0.0 {
+                market.foreign_sector_balance += total_deported_wealth;
+            }
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -5269,6 +5602,8 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 &mut task.companies,
                 &task.ctx.buildings,
                 current_turn,
+                task.ctx.country.macro_indicators.average_wage,
+                task.planet,
             );
         });
 
@@ -5335,10 +5670,16 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     continue;
                 }
                 // Check if within PIP range
+                // D.6.1: Use Planet haversine distance for spatial partitioning.
+                // No O(N²) building-pair loops — distance is computed per
+                // inspectorate-region / target-region pair.
+                let planet = task.planet;
                 let in_range = crate::economy::inspectorate_fleet::is_within_inspection_range(
                     &pip_ranges,
                     &region_id,
-                    crate::economy::inspectorate_fleet::simple_region_distance,
+                    |insp_region, target_region| {
+                        planet.distance_between_regions(insp_region, target_region)
+                    },
                 );
                 if !in_range {
                     continue;
@@ -5354,9 +5695,13 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 if !violation_detected {
                     continue;
                 }
-                // Compute fine
-                let fine = (defect * 50_000.0 + (1.0 - ohs_ratio) * 20_000.0).max(5_000.0);
-                // Attempt bribe
+                // D.4.2: Scale fines by average_wage (Rule 2: no magic numbers)
+                let avg_wage = task.ctx.country.macro_indicators.average_wage;
+                let fine = (defect * avg_wage * 50.0 + (1.0 - ohs_ratio) * avg_wage * 20.0)
+                    .max(avg_wage * 5.0);
+                // Attempt bribe — D.5.1: Determine bribe recipient deterministically
+                // from the dominant class employed at the specific inspectorate
+                // building that is inspecting this site. No hardcoded "bourgeoisie".
                 let inspector_region_idx = task
                     .ctx
                     .country
@@ -5364,18 +5709,52 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     .iter()
                     .position(|r| r.id == region_id)
                     .unwrap_or(0);
-                let bribe_result = crate::economy::bribery::try_bribe(
-                    contractor_idx,
-                    fine,
-                    corruption_index,
-                    inspector_region_idx,
-                    "bourgeoisie",
-                    false,
-                    current_turn,
-                    &mut task.companies,
-                    task.ctx.country,
-                    &mut rng,
-                );
+
+                // Find the specific inspectorate building in range of this site.
+                // D.5.1: If no inspectorate has eligible staff (empty building),
+                // the bribe cannot occur.
+                let bribe_recipient: Option<(String, bool)> = pip_ranges.iter()
+                    .find(|(_, insp_region, range)| {
+                        let dist = crate::economy::inspectorate_fleet::simple_region_distance(
+                            insp_region,
+                            &region_id,
+                        );
+                        dist <= *range
+                    })
+                    .and_then(|(insp_building_id, _, _)| {
+                        // Find the inspectorate building's owning company
+                        task.ctx.buildings.iter()
+                            .find(|b| b.id == *insp_building_id)
+                            .map(|b| b.owner_id.clone())
+                    })
+                    .and_then(|insp_company_id| {
+                        // Look up the dominant class of the inspectorate's owning company
+                        task.dominant_class_by_company
+                            .as_ref()
+                            .and_then(|map| map.get(&insp_company_id))
+                            .map(|(demo_type, class_id)| {
+                                (class_id.clone(), *demo_type == crate::society::geography::DemographyType::Rural)
+                            })
+                    });
+
+                // If no eligible inspector (empty inspectorate building), skip bribe
+                let bribe_result = if let Some((class_key, is_rural)) = bribe_recipient {
+                    crate::economy::bribery::try_bribe(
+                        contractor_idx,
+                        fine,
+                        corruption_index,
+                        inspector_region_idx,
+                        &class_key,
+                        is_rural,
+                        current_turn,
+                        &mut task.companies,
+                        task.ctx.country,
+                        &mut rng,
+                    )
+                } else {
+                    // No eligible inspector — no bribe possible, proceed to fine
+                    None
+                };
                 // If bribe rejected or no bribe attempted, levy the fine
                 let bribe_accepted = bribe_result.as_ref().map(|b| b.accepted).unwrap_or(false);
                 if !bribe_accepted {

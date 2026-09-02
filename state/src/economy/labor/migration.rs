@@ -376,9 +376,11 @@ fn determine_migration_reason(country: &Country, _pressure: f64) -> MigrationRea
 ///
 /// # Rules
 /// * Origin population decreases by flow count.
+/// * Origin class savings are debited by per-capita share × emigrant count (F3).
 /// * Destination population increases by flow count.
+/// * Destination class savings are credited with emigrant wealth (F3).
 /// * ImmigrantCohort entries created in destination.
-/// * Population is strictly conserved.
+/// * Population and wealth are strictly conserved.
 pub fn apply_migration_flows(
     countries: &mut HashMap<String, &mut Country>,
     flows: &[MigrationFlow],
@@ -397,12 +399,83 @@ pub fn apply_migration_flows(
             .push((flow.count as u64, &flow.reason));
     }
 
+    // Phase F3: Extract emigrant wealth from origin before reducing population.
+    // Compute per-capita savings across all classes, then debit proportionally.
+    // The extracted wealth is routed to destinations via a wealth map.
+    let mut origin_wealth: HashMap<String, f64> = HashMap::new();
+    for (origin_name, total_out) in &origin_outflows {
+        if let Some(country) = countries.get_mut(origin_name) {
+            let total_class_pop: i64 = country
+                .regions
+                .iter()
+                .flat_map(|r| {
+                    r.class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(r.class_demographics.urban_classes.values())
+                })
+                .map(|d| d.population)
+                .sum();
+
+            if total_class_pop <= 0 || *total_out == 0 {
+                continue;
+            }
+
+            let total_savings: f64 = country
+                .regions
+                .iter()
+                .flat_map(|r| {
+                    r.class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(r.class_demographics.urban_classes.values())
+                })
+                .map(|d| d.savings)
+                .sum();
+
+            let per_capita = total_savings / total_class_pop as f64;
+            let emigrant_wealth = per_capita * *total_out as f64;
+
+            // Debit proportionally from all classes by population share.
+            for region in &mut country.regions {
+                for demo in region.class_demographics.rural_classes.values_mut() {
+                    let share = demo.population as f64 / total_class_pop as f64;
+                    let debit = (emigrant_wealth * share).min(demo.savings);
+                    demo.savings -= debit;
+                }
+                for demo in region.class_demographics.urban_classes.values_mut() {
+                    let share = demo.population as f64 / total_class_pop as f64;
+                    let debit = (emigrant_wealth * share).min(demo.savings);
+                    demo.savings -= debit;
+                }
+            }
+
+            origin_wealth.insert(origin_name.clone(), emigrant_wealth);
+        }
+    }
+
     // Apply outflows (deduct from origin population)
     // Phase 36: Use bottom-up distribution instead of direct budget.population write.
     for (origin_name, total_out) in &origin_outflows {
         if let Some(country) = countries.get_mut(origin_name) {
             let delta = -(*total_out as i64);
             crate::economy::labor::labor::distribute_population_delta_and_reconcile(country, delta);
+        }
+    }
+
+    // Compute total wealth arriving at each destination from all origins.
+    // We distribute origin wealth proportionally to destination inflow shares.
+    let mut dest_wealth: HashMap<String, f64> = HashMap::new();
+    let total_inflow: u64 = flows.iter().map(|f| f.count as u64).sum();
+    if total_inflow > 0 {
+        for flow in flows {
+            let origin_w = origin_wealth.get(&flow.origin_country).copied().unwrap_or(0.0);
+            let origin_total_out = origin_outflows.get(&flow.origin_country).copied().unwrap_or(1);
+            if origin_total_out == 0 {
+                continue;
+            }
+            let flow_share = flow.count as f64 / origin_total_out as f64;
+            *dest_wealth.entry(flow.dest_country.clone()).or_insert(0.0) += origin_w * flow_share;
         }
     }
 
@@ -419,6 +492,34 @@ pub fn apply_migration_flows(
                 country,
                 total_in as i64,
             );
+
+            // Phase F3: Credit emigrant wealth to destination class savings.
+            let arriving_wealth = dest_wealth.get(dest_name).copied().unwrap_or(0.0);
+            if arriving_wealth > 0.0 {
+                let total_class_pop: i64 = country
+                    .regions
+                    .iter()
+                    .flat_map(|r| {
+                        r.class_demographics
+                            .rural_classes
+                            .values()
+                            .chain(r.class_demographics.urban_classes.values())
+                    })
+                    .map(|d| d.population)
+                    .sum();
+                if total_class_pop > 0 {
+                    for region in &mut country.regions {
+                        for demo in region.class_demographics.rural_classes.values_mut() {
+                            let share = demo.population as f64 / total_class_pop as f64;
+                            demo.savings += arriving_wealth * share;
+                        }
+                        for demo in region.class_demographics.urban_classes.values_mut() {
+                            let share = demo.population as f64 / total_class_pop as f64;
+                            demo.savings += arriving_wealth * share;
+                        }
+                    }
+                }
+            }
 
             // Create immigrant cohort for total inflow
             // Phase 18A: Assign LegalStatus based on MigrationLaw
@@ -459,6 +560,7 @@ pub fn apply_migration_flows(
                     seniority: 0,
                     legal_status,
                     remittance_rate,
+                    starting_savings: arriving_wealth,
                     extra: Map::new(),
                 });
 
@@ -490,14 +592,20 @@ pub fn apply_migration_flows(
 /// * `border_capacity` - Border enforcement capacity.
 ///
 /// # Returns
-/// Number of illegal immigrants deported.
+/// `(deported_count, deported_wealth)` — the number of illegal immigrants
+/// deported and the total savings extracted from them. The caller must credit
+/// `deported_wealth` to `foreign_sector_balance` (deportees take their money
+/// out of the country).
 ///
 /// # Rules
 /// * Only deports if `DeportationPolicy` is not `None`.
 /// * Deported population is removed (returns to origin or disappears).
 /// * `MassDeportation` removes all illegal immigrants.
 /// * `Selective` removes 10% per turn.
-pub fn process_deportations(country: &mut Country, border_capacity: f64) -> u64 {
+/// * Phase F4: Per-capita savings are extracted from classes with
+///   `illegal_population` before population removal. This prevents phantom
+///   wealth from remaining in the class savings pool after deportees leave.
+pub fn process_deportations(country: &mut Country, border_capacity: f64) -> (u64, f64) {
     let policy = country
         .politics
         .migration_law
@@ -507,12 +615,12 @@ pub fn process_deportations(country: &mut Country, border_capacity: f64) -> u64 
         .unwrap_or(DeportationPolicy::None);
 
     if matches!(policy, DeportationPolicy::None) {
-        return 0;
+        return (0, 0.0);
     }
 
     let illegal = country.macro_indicators.demographics.illegal_immigrants;
     if illegal <= 0.0 {
-        return 0;
+        return (0, 0.0);
     }
 
     // Border capacity limits how many can be deported per turn
@@ -526,7 +634,49 @@ pub fn process_deportations(country: &mut Country, border_capacity: f64) -> u64 
 
     let deport_count = deport_count as u64;
     if deport_count == 0 {
-        return 0;
+        return (0, 0.0);
+    }
+
+    // Phase F4: Extract per-capita savings from classes with illegal_population.
+    // Distribute the deportation count proportionally across all classes that
+    // have illegal_population, then extract per-capita savings from each.
+    let mut total_deported_wealth: f64 = 0.0;
+    let mut remaining_to_deport = deport_count as i64;
+
+    for region in &mut country.regions {
+        if remaining_to_deport <= 0 {
+            break;
+        }
+        for demo in region.class_demographics.rural_classes.values_mut() {
+            if remaining_to_deport <= 0 {
+                break;
+            }
+            if demo.illegal_population <= 0 || demo.population <= 0 {
+                continue;
+            }
+            let from_this_class = remaining_to_deport.min(demo.illegal_population);
+            let per_capita = demo.savings / demo.population as f64;
+            let wealth = (per_capita * from_this_class as f64).min(demo.savings);
+            demo.savings -= wealth;
+            demo.illegal_population -= from_this_class;
+            total_deported_wealth += wealth;
+            remaining_to_deport -= from_this_class;
+        }
+        for demo in region.class_demographics.urban_classes.values_mut() {
+            if remaining_to_deport <= 0 {
+                break;
+            }
+            if demo.illegal_population <= 0 || demo.population <= 0 {
+                continue;
+            }
+            let from_this_class = remaining_to_deport.min(demo.illegal_population);
+            let per_capita = demo.savings / demo.population as f64;
+            let wealth = (per_capita * from_this_class as f64).min(demo.savings);
+            demo.savings -= wealth;
+            demo.illegal_population -= from_this_class;
+            total_deported_wealth += wealth;
+            remaining_to_deport -= from_this_class;
+        }
     }
 
     // Remove from illegal immigrants
@@ -545,7 +695,7 @@ pub fn process_deportations(country: &mut Country, border_capacity: f64) -> u64 
         border_state.deportations = deport_count as i64;
     }
 
-    deport_count
+    (deport_count, total_deported_wealth)
 }
 
 /// Helper: get nested f64 from serde Map.
@@ -744,7 +894,7 @@ mod tests {
             visa_required: false,
             deportation_policy: DeportationPolicy::None,
         });
-        let deported = process_deportations(&mut country, 100.0);
+        let (deported, _wealth) = process_deportations(&mut country, 100.0);
         assert_eq!(deported, 0);
     }
 
@@ -758,7 +908,7 @@ mod tests {
             visa_required: false,
             deportation_policy: DeportationPolicy::MassDeportation,
         });
-        let deported = process_deportations(&mut country, 100.0);
+        let (deported, _wealth) = process_deportations(&mut country, 100.0);
         assert_eq!(deported, 5000);
         assert_eq!(
             country.macro_indicators.demographics.illegal_immigrants,

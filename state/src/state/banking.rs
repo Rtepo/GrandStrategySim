@@ -295,7 +295,17 @@ impl BankBalanceSheet {
     pub fn is_balanced(&self) -> bool {
         let assets = self.total_assets();
         let liabilities_plus_equity = self.total_liabilities() + self.total_equity();
-        (assets - liabilities_plus_equity).abs() < 1e-6
+        let diff = (assets - liabilities_plus_equity).abs();
+        // Phase 94: Use relative tolerance for large balance sheets.
+        // Absolute 1e-6 is too strict when assets are ~10B (f64 rounding
+        // error at that scale is ~1e-6). Use 1e-9 relative tolerance, with
+        // a 1e-6 absolute floor for small/zero balance sheets.
+        let scale = assets.abs().max(liabilities_plus_equity.abs());
+        if scale < 1e6 {
+            diff < 1e-6
+        } else {
+            diff < scale * 1e-9
+        }
     }
 
     /// Calculates reserve ratio against Central Bank requirement.
@@ -1216,14 +1226,16 @@ impl BfgFund {
                     if bt == &BankType::Commercial || bt == &BankType::Universal {
                         let premium = bs.deposits * self.premium_rate;
 
-                        // Double-entry: Bank pays premium from reserves only (asset transfer)
-                        // tier_1_capital is NOT touched — premium is a reserve transfer,
-                        // not a capital reduction. Previous code debited both asset and
-                        // equity, destroying money mass by `premium` each turn (Black Hole 1.9).
+                        // Phase 94: Double-entry — BFG premium is an expense.
+                        // Asset decreases (reserves out), Equity decreases (expense recognized).
+                        // M0 is preserved because BFG reserves are counted in the M0 walk.
+                        // The old comment about "Black Hole 1.9" was about the M0 walk not
+                        // counting BFG reserves — that is now fixed.
                         bs.reserves_at_central_bank -= premium; // Asset decreases
-                        if bs.reserves_at_central_bank < 0.0 {
-                            bs.reserves_at_central_bank = 0.0;
-                        } // Phase 43: clamp
+                        // Phase 94: No reserve clamping — negative reserves
+                        // represent CB Lombard borrowing. Clamping breaks
+                        // A=L+E and causes M0 FiatCreation.
+                        bs.tier_1_capital -= premium; // Equity decreases (expense)
                         self.reserves += premium; // BFG receives
                     }
                 }
@@ -1353,7 +1365,11 @@ impl SobkScheme {
             if excess > 0.0 {
                 let contribution = excess * 0.5; // Contribute 50% of excess
 
+                // Phase 94: Double-entry — SOBK contribution is an expense.
+                // Asset decreases (reserves out), Equity decreases (expense recognized).
+                // M0 is preserved because SOBK pool is counted in the M0 walk.
                 bs.reserves_at_central_bank -= contribution;
+                bs.tier_1_capital -= contribution; // Equity decreases (expense)
                 self.pool += contribution;
 
                 if !self.members.contains(&bank.id) {
@@ -2124,9 +2140,8 @@ impl BankTax {
 
                                 // Now pay tax
                                 bs.reserves_at_central_bank -= tax_amount;
-                                if bs.reserves_at_central_bank < 0.0 {
-                                    bs.reserves_at_central_bank = 0.0;
-                                } // Phase 43: clamp
+                                // Phase 94: No reserve clamping — negative
+                                // reserves represent CB Lombard borrowing.
                                 bs.tier_1_capital -= tax_amount;
                                 total_tax_collected += tax_amount;
                             } else {
@@ -2137,9 +2152,8 @@ impl BankTax {
                         } else {
                             // Bank has sufficient reserves - pay tax normally
                             bs.reserves_at_central_bank -= tax_amount; // Asset decreases
-                            if bs.reserves_at_central_bank < 0.0 {
-                                bs.reserves_at_central_bank = 0.0;
-                            } // Phase 43: clamp
+                            // Phase 94: No reserve clamping — negative
+                            // reserves represent CB Lombard borrowing.
                             bs.tier_1_capital -= tax_amount; // Equity decreases
                             total_tax_collected += tax_amount;
                         }
@@ -2304,6 +2318,7 @@ pub fn process_banking_turn(
         } else {
             0.0
         };
+        let mut total_omo_executed: f64 = 0.0;
         for bank in companies.iter_mut() {
             if let (Some(_), Some(ref mut bs)) = (&bank.bank_type, &mut bank.balance_sheet) {
                 let bank_share = bs.securities * proportion;
@@ -2312,14 +2327,18 @@ pub fn process_banking_turn(
                     let amount = bank_share.min(bs.securities);
                     bs.securities -= amount;
                     bs.reserves_at_central_bank += amount;
+                    total_omo_executed += amount;
                 } else {
                     // CB sells bonds to banks: bank receives securities, gives up reserves
                     let amount = (-bank_share).min(bs.reserves_at_central_bank.max(0.0));
                     bs.securities += amount;
                     bs.reserves_at_central_bank -= amount;
+                    total_omo_executed -= amount;
                 }
             }
         }
+        // Phase 94: Track M0 creation/destruction via OMO.
+        country.central_bank.liquidity_injected += total_omo_executed;
     }
 
     // Step 3: Interbank Clearing
@@ -2350,7 +2369,12 @@ pub fn process_banking_turn(
                 .central_bank
                 .accrue_deposit_facility_interest(bs.cb_deposit_facility_balance);
             bs.reserves_at_central_bank += interest;
+            // Phase 94: Credit interest income to equity (double-entry:
+            // asset increases, equity must increase to maintain A = L + E).
+            bs.tier_1_capital += interest;
             result.deposit_facility_interest_paid += interest;
+            // Phase 94: Track M0 creation — CB pays interest from void, creating base money.
+            country.central_bank.liquidity_injected += interest;
             result.total_deposit_facility_balance += bs.cb_deposit_facility_balance;
         }
     }
@@ -2365,16 +2389,23 @@ pub fn process_banking_turn(
                 let needed = -position;
                 bs.cb_lombard_loans += needed;
                 bs.reserves_at_central_bank += needed;
+                // Phase 94: Track M0 creation — CB lends new base money to banks.
+                country.central_bank.liquidity_injected += needed;
             }
             // Accrue interest on existing Lombard loans (paid by bank to CB)
             let interest = country
                 .central_bank
                 .accrue_lombard_facility_interest(bs.cb_lombard_loans);
             bs.reserves_at_central_bank -= interest;
-            if bs.reserves_at_central_bank < 0.0 {
-                bs.reserves_at_central_bank = 0.0;
-            } // Phase 43: clamp
+            // Phase 94: No reserve clamping — negative reserves represent
+            // CB Lombard borrowing. Clamping breaks A=L+E and causes M0
+            // FiatCreation.
+            // Phase 94: Debit interest expense from equity (double-entry:
+            // asset decreases, equity must decrease to maintain A = L + E).
+            bs.tier_1_capital -= interest;
             result.lombard_facility_interest_received += interest;
+            // Phase 94: Interest paid to CB destroys base money — track it.
+            country.central_bank.liquidity_injected -= interest;
             result.total_lombard_loans += bs.cb_lombard_loans;
         }
     }
@@ -2438,16 +2469,17 @@ pub fn process_banking_turn(
                     ));
                 }
             }
-            // Repaid amounts return to bank reserves
-            bs.reserves_at_central_bank += repaid_total;
+            // Phase 94: Credit interest income to equity (tier_1_capital).
+            // This is the double-entry counterpart to the interest portion
+            // of loan repayments. The loan asset was already reduced by the
+            // full payment (principal + interest). The interest portion must
+            // flow to equity to keep A = L + E balanced.
+            bs.tier_1_capital += interest_income_total;
             // Phase 39: Credit interest income to brokerage_account.cash so
-            // the bank can pay teller payroll. This is double-entry: the
-            // interest was already added to reserves (asset side), now we
-            // make it available as operating cash. The principal stays in
-            // reserves; only the interest portion flows to brokerage cash.
-            // Phase 40: Also credit 10% of principal repayment to brokerage
-            // cash for operating liquidity. This ensures banks have organic
-            // cash flow to fund teller payroll and repay wage arrears.
+            // the bank can pay teller payroll. This is a reclassification
+            // within the bank's assets (reserves → operating cash), NOT new
+            // money. Phase 40: Also credit 10% of principal repayment to
+            // brokerage cash for operating liquidity.
             let operating_cash_credit = interest_income_total + principal_repaid_total * 0.10;
             if operating_cash_credit > 0.0 {
                 if let Some(ref mut ba) = bank.brokerage_account {
@@ -2462,12 +2494,19 @@ pub fn process_banking_turn(
 
     // Phase 24A.2: Execute borrower debits (deferred to avoid double-borrow).
     // Three cases: (A) company borrower, (B) state/treasury borrower, (C) vanished borrower.
+    // Phase 94: Fixed double-entry — reserves are now adjusted per-loan here,
+    // NOT in the loan loop. For intra-bank, deposits are destroyed (no reserve
+    // movement). For inter-bank, the lending bank receives reserves from the
+    // borrower's bank.
     const STATE_BORROWER_ID: &str = "STATE";
     for (borrower_id, loan_id, bank_idx, amount, _principal_portion) in pending_loan_debits {
         if borrower_id == STATE_BORROWER_ID {
             // CASE B: State/Treasury borrower — debit liquid_reserves, never Default.
-            // The lending bank's reserves were already credited in the loan loop.
+            // The lending bank receives reserves from the treasury.
             country.budget.liquid_reserves = (country.budget.liquid_reserves - amount).max(0.0);
+            if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
+                bs.reserves_at_central_bank += amount;
+            }
         } else if let Some(borrower_idx) = companies.iter().position(|c| c.id == borrower_id) {
             // CASE A: Company borrower — debit cash and sync borrower's bank.
             let payer_bank_id = companies[borrower_idx].primary_bank_id.clone();
@@ -2489,20 +2528,24 @@ pub fn process_banking_turn(
             // Sync borrower's bank balance sheet (double-entry)
             if let Some(ref p_bank_id) = payer_bank_id {
                 if p_bank_id == &lending_bank_id {
-                    // Intra-bank: deposit is destroyed, reserves already adjusted
-                    // in the loan loop (reserves += repaid_total). Adjust deposits only.
+                    // Intra-bank: deposit is destroyed, loan asset was already
+                    // reduced in the loan loop. No reserve movement — the
+                    // deposit and loan cancel out within the same bank.
                     if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
                         bs.deposits = (bs.deposits - amount).max(0.0);
                     }
                 } else {
                     // Inter-bank: borrower's bank loses deposits + reserves,
-                    // lending bank's reserves already increased in the loan loop.
+                    // lending bank receives reserves.
                     if let Some(bank) = companies.iter_mut().find(|c| c.id == p_bank_id.as_str()) {
                         if let Some(ref mut bs) = bank.balance_sheet {
                             bs.deposits = (bs.deposits - amount).max(0.0);
                             bs.reserves_at_central_bank =
                                 (bs.reserves_at_central_bank - amount).max(0.0);
                         }
+                    }
+                    if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
+                        bs.reserves_at_central_bank += amount;
                     }
                 }
             }
@@ -2639,9 +2682,14 @@ pub fn process_banking_turn(
                     .iter()
                     .map(|l| l.outstanding_balance)
                     .sum();
-                companies[borrower_idx].available_cash += lr.principal_amount;
+                // Phase 94: Credit the borrower's bank deposit (brokerage_account.cash)
+                // OR available_cash as fallback — NOT both. The loan creates a deposit
+                // at the bank, which is the borrower's asset. Double-counting both
+                // fields creates money from nothing.
                 if let Some(ref mut ba) = companies[borrower_idx].brokerage_account {
                     ba.cash += lr.principal_amount;
+                } else {
+                    companies[borrower_idx].available_cash += lr.principal_amount;
                 }
                 result.total_new_credit += lr.principal_amount;
                 // Update this bank's tracking: reduce excess, increase new_loans_turn
@@ -3239,10 +3287,11 @@ pub fn dspw_auction_settlement(
             if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
                 // Debit bank reserves.
                 bs.reserves_at_central_bank -= purchase_price;
-                if bs.reserves_at_central_bank < 0.0 {
-                    bs.reserves_at_central_bank = 0.0;
-                } // Phase 43: clamp
-                  // Credit bank securities holdings.
+                // Phase 94: No reserve clamping — negative reserves
+                // represent CB Lombard borrowing. Clamping breaks A=L+E
+                // (securities credited by full amount but reserves debited
+                // by less) and causes M0 FiatCreation.
+                // Credit bank securities holdings.
                 bs.securities += purchase_price;
             }
 

@@ -1,145 +1,189 @@
 //! Fiscal transfer processing and regional tax collection with closed-loop macroeconomics
+//!
+//! Phase 94: Property tax is now cadastre-based. The old `ClassLandDistribution`
+//! tax path has been completely deleted. The `Cadastre` is the single, absolute
+//! source of truth for all land valuation and taxation (Rule 14).
 
+use crate::entities::Company;
 use crate::politics::local_council::{calculate_curial_faction_alignment, calculate_seat_count};
 use crate::politics::local_government::AdministrativeStatus;
 use crate::politics::system::FiscalTransferConfig;
-use crate::society::geography::{EconomicStatus, Region, RuralClass};
+use crate::society::cadastre::{self, ParcelOwnerType, PropertyTaxConfig};
+use crate::society::geography::{EconomicStatus, RuralClass};
 use crate::state::Country;
 use std::collections::BTreeMap;
 
-/// Collect local taxes in all regions with closed-loop macroeconomic integrity
+/// Collect property taxes based on cadastre parcel valuations with strict
+/// double-entry bookkeeping.
 ///
-/// # CRITICAL: Closed-Loop Taxation
-/// Taxes are NOT spawned from nowhere. They are explicitly deducted from the
-/// savings of the classes that own the land in ClassLandDistribution.
-/// Serfs (RuralClass::Serf) do not pay taxes as they have no cash economy.
+/// # CRITICAL: Closed-Loop Taxation (Rule 1)
+/// The `Cadastre` is the single source of truth for land ownership and valuation.
+/// State-owned and Municipal-owned parcels are explicitly tax-exempt (self-taxation
+/// is prohibited). For every currency unit credited to a regional budget, exactly
+/// one currency unit is debited from a payer's cash or savings. Shortfalls reduce
+/// the credit — no fiat is ever created.
 ///
 /// # Arguments
-/// * `country` - Mutable reference to the country
+/// * `country` - Mutable reference to the country (contains the cadastre).
+/// * `companies` - Mutable slice of companies (for `available_cash` debits).
 ///
 /// # Returns
-/// Total property tax collected across all regions (for national tax reporting).
-///
-/// # Rules
-/// * Property tax is calculated based on land ownership by class
-/// * Taxes are deducted from class savings in RegionalClassDemographics
-/// * If a class cannot afford the tax, savings go negative (debt) and EconomicStatus drops
-/// * Serfs are exempt from taxation
-pub fn process_regional_taxes(country: &mut Country) -> f64 {
+/// Total property tax **actually collected** across all regions.
+pub fn process_regional_taxes(country: &mut Country, companies: &mut [Company]) -> f64 {
+    let property_tax_config = PropertyTaxConfig::default();
+
+    // Compute nominal tax per owner from the cadastre (revalues parcels first).
+    // State and Municipal parcels are explicitly skipped inside this function.
+    let tax_by_owner = cadastre::calculate_cadastre_property_tax(
+        &mut country.cadastre,
+        &country.cadastre_config,
+        &property_tax_config,
+    );
+
+    // Build a map: owner_id -> region_id for regional budget crediting.
+    let owner_region_map: BTreeMap<String, String> = country
+        .cadastre
+        .parcels
+        .values()
+        .filter(|p| {
+            p.owner_type != ParcelOwnerType::State && p.owner_type != ParcelOwnerType::Municipal
+        })
+        .map(|p| (p.owner_id.clone(), p.region_id.clone()))
+        .collect();
+
+    // Debit from payers and track actual collected per region.
+    let mut actual_collected_per_region: BTreeMap<String, f64> = BTreeMap::new();
+
+    for (owner_id, nominal_tax) in &tax_by_owner {
+        let actual_paid = debit_tax_from_payer(country, companies, owner_id, *nominal_tax);
+        if actual_paid > 0.0 {
+            if let Some(region_id) = owner_region_map.get(owner_id) {
+                *actual_collected_per_region
+                    .entry(region_id.clone())
+                    .or_insert(0.0) += actual_paid;
+            }
+        }
+    }
+
+    // Credit regional budgets with the ACTUAL collected amounts (double-entry).
     let mut total_property_tax: f64 = 0.0;
     for region in &mut country.regions {
-        // Calculate property tax based on land ownership
-        let (property_tax, tax_by_class) = calculate_property_tax(region);
-
-        // Calculate local service fees (simplified - could be expanded)
-        let local_fees = calculate_local_fees(region);
-
-        // Deduct taxes from class savings (closed-loop)
-        deduct_taxes_from_classes(region, &tax_by_class);
-
-        // Update regional budget
+        let collected = actual_collected_per_region
+            .get(&region.id)
+            .copied()
+            .unwrap_or(0.0);
         if let Some(governance) = region.governance.as_mut() {
-            let total_revenue = property_tax + local_fees;
-            governance.budget.tax_revenue = total_revenue;
-            governance.budget.property_tax = property_tax;
-            governance.budget.local_fees = local_fees;
-            // Phase 33: Credit liquid_reserves so the region can spend.
-            // This is double-entry consistent: taxes were debited from class savings above.
-            governance.budget.liquid_reserves += total_revenue;
+            governance.budget.tax_revenue = collected;
+            governance.budget.property_tax = collected;
+            governance.budget.local_fees = 0.0;
+            // Credit liquid_reserves with EXACTLY what was debited from payers.
+            governance.budget.liquid_reserves += collected;
         }
-        total_property_tax += property_tax;
+        total_property_tax += collected;
     }
     total_property_tax
 }
 
-/// Calculate property tax and tax burden by class
+/// Debit property tax from a payer's cash or savings.
 ///
-/// # Arguments
-/// * `region` - Reference to the region
+/// # Strict Double-Entry (Rule 1)
+/// Debits only what the payer can afford (clamped to 0, no negative cash).
+/// Returns the ACTUAL amount debited, which may be less than the nominal tax.
+/// The uncollected shortfall is simply not credited to any budget — no fiat.
 ///
-/// # Returns
-/// (total_property_tax, tax_by_class: BTreeMap<RuralClass, f64>)
-fn calculate_property_tax(region: &Region) -> (f64, BTreeMap<RuralClass, f64>) {
-    let mut tax_by_class = BTreeMap::new();
-    let mut total_tax = 0.0;
-
-    let tax_rate = 0.02; // 2% property tax rate (configurable)
-
-    for land_dist in region.land_distribution.values() {
-        let tax_per_hectare = tax_rate * 100.0; // Simplified: 2 currency units per hectare
-
-        // Aristocracy pays tax on their land
-        let aristocracy_tax = land_dist.aristocracy_hectares as f64 * tax_per_hectare;
-        tax_by_class.insert(RuralClass::Aristocracy, aristocracy_tax);
-        total_tax += aristocracy_tax;
-
-        // Free Peasants pay tax on their land
-        let peasant_tax = land_dist.free_peasant_hectares as f64 * tax_per_hectare;
-        tax_by_class.insert(RuralClass::FreePeasant, peasant_tax);
-        total_tax += peasant_tax;
-
-        // Note: Corporations and Municipalities are not RuralClass
-        // Their taxes would be handled separately in corporate tax logic
+/// # Owner Resolution
+/// * `Corporate` / `ForeignFund` / `Religious` / `Cooperative` owners: debited
+///   from `Company.available_cash` by `owner_id`.
+/// * `Private` owners with `DYNASTY_` prefix: debited from Aristocracy class savings.
+/// * `Private` owners with `PEASANT_` prefix: debited from FreePeasant class savings.
+fn debit_tax_from_payer(
+    country: &mut Country,
+    companies: &mut [Company],
+    owner_id: &str,
+    nominal_tax: f64,
+) -> f64 {
+    if nominal_tax <= 0.0 {
+        return 0.0;
     }
 
-    (total_tax, tax_by_class)
-}
+    // Find the owner's parcel to determine owner_type and region.
+    let (owner_type, region_id) = match country
+        .cadastre
+        .parcels
+        .values()
+        .find(|p| p.owner_id == owner_id)
+        .map(|p| (p.owner_type, p.region_id.clone()))
+    {
+        Some(x) => x,
+        None => return 0.0, // Owner not found — cannot debit. No fiat creation.
+    };
 
-/// Calculate local service fees (simplified placeholder)
-fn calculate_local_fees(_region: &Region) -> f64 {
-    // Placeholder: could be based on population, services provided, etc.
-    0.0
-}
-
-/// Deduct taxes from class savings with tax oppression mechanics
-///
-/// # CRITICAL: Tax Oppression
-/// If a class cannot afford the tax, their savings go negative (debt) or
-/// their EconomicStatus drops, simulating tax oppression.
-///
-/// # Arguments
-/// * `region` - Mutable reference to the region
-/// * `tax_by_class` - Tax burden by class
-fn deduct_taxes_from_classes(region: &mut Region, tax_by_class: &BTreeMap<RuralClass, f64>) {
-    let class_demographics = &mut region.class_demographics;
-
-    for (class, tax_amount) in tax_by_class {
-        // Serfs do not pay taxes (no cash economy)
-        if *class == RuralClass::Serf {
-            continue;
-        }
-
-        if let Some(demographics) = class_demographics.get_class_mut(*class) {
-            if demographics.savings >= *tax_amount {
-                demographics.savings -= *tax_amount;
+    match owner_type {
+        ParcelOwnerType::Corporate
+        | ParcelOwnerType::ForeignFund
+        | ParcelOwnerType::Religious
+        | ParcelOwnerType::Cooperative => {
+            if let Some(company) = companies.iter_mut().find(|c| c.id == owner_id) {
+                let debit = nominal_tax.min(company.available_cash.max(0.0));
+                company.available_cash -= debit;
+                debit
             } else {
-                // Cannot afford tax - go into debt or drop economic status
-                let shortfall = *tax_amount - demographics.savings;
-                demographics.savings = -shortfall; // Debt
-
-                // Drop economic status due to tax oppression
-                demographics.economic_status = match demographics.economic_status {
-                    EconomicStatus::Prosperous => EconomicStatus::Stable,
-                    EconomicStatus::Stable => EconomicStatus::Struggling,
-                    EconomicStatus::Struggling => EconomicStatus::Destitute,
-                    EconomicStatus::Destitute => EconomicStatus::Destitute,
-                };
-            }
-
-            // Recalculate per-capita savings
-            if demographics.population > 0 {
-                demographics.savings_per_capita =
-                    demographics.savings / demographics.population as f64;
+                0.0 // Company not found — no fiat creation.
             }
         }
+        ParcelOwnerType::Private => {
+            let rural_class = if owner_id.starts_with("DYNASTY_") {
+                RuralClass::Aristocracy
+            } else if owner_id.starts_with("PEASANT_") {
+                RuralClass::FreePeasant
+            } else {
+                RuralClass::Aristocracy
+            };
+
+            let region_idx = country.regions.iter().position(|r| r.id == region_id);
+            let Some(idx) = region_idx else {
+                return 0.0;
+            };
+
+            if let Some(demographics) =
+                country.regions[idx].class_demographics.get_class_mut(rural_class)
+            {
+                let debit = nominal_tax.min(demographics.savings.max(0.0));
+                demographics.savings -= debit;
+                if demographics.population > 0 {
+                    demographics.savings_per_capita =
+                        demographics.savings / demographics.population as f64;
+                }
+                if debit > 0.0 && demographics.savings <= 0.0 {
+                    demographics.economic_status = match demographics.economic_status {
+                        EconomicStatus::Prosperous => EconomicStatus::Stable,
+                        EconomicStatus::Stable => EconomicStatus::Struggling,
+                        EconomicStatus::Struggling => EconomicStatus::Destitute,
+                        EconomicStatus::Destitute => EconomicStatus::Destitute,
+                    };
+                }
+                debit
+            } else {
+                0.0
+            }
+        }
+        // State and Municipal are tax-exempt — should never reach here.
+        ParcelOwnerType::State | ParcelOwnerType::Municipal => 0.0,
     }
 }
 
-/// Process upward fiscal transfers with no double-dipping
+/// Process upward fiscal transfers with no double-dipping.
 ///
 /// # CRITICAL: No Double Dipping
 /// Region splits revenue exactly once according to FiscalTransferConfig.
 /// Megaregion keeps 100% of its transfer - no second upward transfer to Central.
+///
+/// # CRITICAL: Strict Double-Entry (Rule 1)
+/// When a region's liquid_reserves are insufficient to cover the full upward
+/// transfer, the debit is clamped to available reserves. The megaregion and
+/// central budgets are credited ONLY the actual debited fraction, scaled
+/// proportionally. The equation `actual_debit == actual_megaregion + actual_central`
+/// always holds exactly. No fiat is created when reserves are insufficient.
 ///
 /// # Arguments
 /// * `country` - Mutable reference to the country
@@ -163,34 +207,39 @@ pub fn process_fiscal_transfers(country: &mut Country, transfer_config: &FiscalT
         governance.budget.central_transfer = central_transfer;
         governance.budget.budget_balance = local_retained - governance.budget.local_expenditures;
 
-        // Phase 33: Debit liquid_reserves for upward transfers (double-entry).
-        // The regional budget was credited in process_regional_taxes.
-        // Now we debit the portion that flows upward.
+        // Phase 94: Strict double-entry — debit clamped to available reserves.
+        // Credits to megaregion/central are scaled proportionally so that
+        // actual_debit == actual_megaregion + actual_central always holds.
         let total_upward = megaregion_transfer + central_transfer;
-        let debit = total_upward.min(governance.budget.liquid_reserves);
-        governance.budget.liquid_reserves -= debit;
+        let actual_debit = total_upward.min(governance.budget.liquid_reserves.max(0.0));
+        governance.budget.liquid_reserves -= actual_debit;
 
-        // Transfer to Megaregion (if applicable)
-        if has_megaregion && megaregion_transfer > 0.0 {
-            if let Some(megaregion) = country
-                .megaregions
-                .iter_mut()
-                .find(|m| m.regions.contains(&region.id))
-            {
-                if let Some(meg_gov) = megaregion.governance.as_mut() {
-                    meg_gov.budget.regional_transfers += megaregion_transfer;
-                    // Phase 33: Also credit megaregion liquid_reserves.
-                    meg_gov.budget.liquid_reserves += megaregion_transfer;
+        if total_upward > 0.0 {
+            let collection_ratio = actual_debit / total_upward;
+            let actual_megaregion = megaregion_transfer * collection_ratio;
+            let actual_central = central_transfer * collection_ratio;
+
+            // Transfer to Megaregion (if applicable)
+            if has_megaregion && actual_megaregion > 0.0 {
+                if let Some(megaregion) = country
+                    .megaregions
+                    .iter_mut()
+                    .find(|m| m.regions.contains(&region.id))
+                {
+                    if let Some(meg_gov) = megaregion.governance.as_mut() {
+                        meg_gov.budget.regional_transfers += actual_megaregion;
+                        meg_gov.budget.liquid_reserves += actual_megaregion;
+                    }
                 }
             }
+
+            // Transfer to Central Budget
+            country.budget.liquid_reserves += actual_central;
         }
 
-        // Transfer to Central Budget
-        country.budget.liquid_reserves += central_transfer;
+        // CRITICAL: Megaregions do NOT transfer to Central
+        // They keep 100% of their regional transfers for development/coordination spending
     }
-
-    // CRITICAL: Megaregions do NOT transfer to Central
-    // They keep 100% of their regional transfers for development/coordination spending
 }
 
 /// Check for Commissary Administration trigger
@@ -405,40 +454,46 @@ pub fn update_curial_faction_alignments(country: &mut Country) {
 mod tests {
     use super::*;
     use crate::politics::system::FiscalTransferConfig;
+    use crate::society::cadastre::{Cadastre, CadastreConfig, ParcelChunk, PropertyTaxConfig};
     use crate::society::geography::Region;
     use crate::state::Country;
 
-    /// Phase 33: Test that process_regional_taxes credits liquid_reserves.
+    /// Phase 94: Test that cadastre-based property tax credits liquid_reserves
+    /// with exactly the amount debited from the payer (double-entry).
     #[test]
-    fn test_regional_taxes_credit_liquid_reserves() {
+    fn test_cadastre_property_tax_double_entry() {
         let mut country = Country::default();
         country.name = "TestLand".to_string();
+        country.cadastre_config = CadastreConfig::default();
+
         // Create a region with governance initialized.
         let mut region = Region::default();
         region.id = "REG-001".to_string();
         region.owner_country = "TestLand".to_string();
         region.governance = Some(
-            crate::politics::local_government::initialize_regional_governance(
-                "REG-001", "TestLand",
-            ),
+            crate::politics::local_government::initialize_regional_governance("REG-001", "TestLand"),
         );
-        // Add some land distribution so property tax is non-zero.
-        use crate::society::geography::ClassLandDistribution;
-        let mut land_dist = ClassLandDistribution::default();
-        land_dist.aristocracy_hectares = 100;
-        region.land_distribution.insert("1".to_string(), land_dist);
+
         // Add aristocracy class with savings.
         use crate::society::geography::{ClassDemographics, RegionalClassDemographics, RuralClass};
         let mut demos = RegionalClassDemographics::default();
         let mut aristo = ClassDemographics::default();
         aristo.population = 100;
-        aristo.savings = 10000.0;
-        // The key is the serde_json serialization of the RuralClass enum.
+        aristo.savings = 100_000.0;
         let aristo_key = serde_json::to_string(&RuralClass::Aristocracy).unwrap_or_default();
         demos.rural_classes.insert(aristo_key, aristo);
         region.class_demographics = demos;
 
         country.regions = vec![region];
+
+        // Add a Private (Aristocracy) parcel to the cadastre.
+        let mut parcel = ParcelChunk::default();
+        parcel.owner_type = crate::society::cadastre::ParcelOwnerType::Private;
+        parcel.owner_id = "DYNASTY_REG-001_0".to_string();
+        parcel.region_id = "REG-001".to_string();
+        parcel.size_hectares = 100.0;
+        parcel.soil_class = "Class_III".to_string();
+        country.cadastre.insert(parcel);
 
         let reserves_before = country.regions[0]
             .governance
@@ -446,7 +501,131 @@ mod tests {
             .unwrap()
             .budget
             .liquid_reserves;
-        process_regional_taxes(&mut country);
+        let savings_before = country.regions[0]
+            .class_demographics
+            .get_class(RuralClass::Aristocracy)
+            .map(|d| d.savings)
+            .unwrap_or(0.0);
+
+        let companies: Vec<Company> = Vec::new();
+        let total_collected = process_regional_taxes(&mut country, &mut companies.to_vec());
+
+        let reserves_after = country.regions[0]
+            .governance
+            .as_ref()
+            .unwrap()
+            .budget
+            .liquid_reserves;
+        let savings_after = country.regions[0]
+            .class_demographics
+            .get_class(RuralClass::Aristocracy)
+            .map(|d| d.savings)
+            .unwrap_or(0.0);
+
+        // Double-entry: reserves gained exactly what savings lost.
+        let reserves_gain = reserves_after - reserves_before;
+        let savings_loss = savings_before - savings_after;
+        assert!(
+            reserves_gain > 0.0,
+            "Tax collection should credit liquid_reserves"
+        );
+        assert!(
+            (reserves_gain - savings_loss).abs() < 0.01,
+            "Double-entry: reserves gain ({}) must equal savings loss ({})",
+            reserves_gain,
+            savings_loss
+        );
+        assert!(
+            (total_collected - reserves_gain).abs() < 0.01,
+            "Total collected must equal reserves gain"
+        );
+    }
+
+    /// Phase 94: Test that State-owned parcels are tax-exempt.
+    #[test]
+    fn test_state_parcels_tax_exempt() {
+        let mut cadastre = Cadastre::default();
+        let config = CadastreConfig::default();
+        let tax_config = PropertyTaxConfig::default();
+
+        // Add a State-owned parcel.
+        let mut state_parcel = ParcelChunk::default();
+        state_parcel.owner_type = crate::society::cadastre::ParcelOwnerType::State;
+        state_parcel.owner_id = "TREASURY".to_string();
+        state_parcel.region_id = "REG-001".to_string();
+        state_parcel.size_hectares = 1000.0;
+        state_parcel.soil_class = "Class_I".to_string();
+        cadastre.insert(state_parcel);
+
+        // Add a Private parcel for comparison.
+        let mut private_parcel = ParcelChunk::default();
+        private_parcel.owner_type = crate::society::cadastre::ParcelOwnerType::Private;
+        private_parcel.owner_id = "DYNASTY_REG-001_0".to_string();
+        private_parcel.region_id = "REG-001".to_string();
+        private_parcel.size_hectares = 100.0;
+        private_parcel.soil_class = "Class_III".to_string();
+        cadastre.insert(private_parcel);
+
+        let tax_by_owner =
+            crate::society::cadastre::calculate_cadastre_property_tax(&mut cadastre, &config, &tax_config);
+
+        // State-owned parcel should NOT appear in the tax map.
+        assert!(
+            !tax_by_owner.contains_key("TREASURY"),
+            "State-owned parcels must be tax-exempt"
+        );
+        // Private parcel SHOULD appear.
+        assert!(
+            tax_by_owner.contains_key("DYNASTY_REG-001_0"),
+            "Private parcels must be taxed"
+        );
+    }
+
+    /// Phase 94: Test that insufficient savings result in no fiat creation.
+    #[test]
+    fn test_insufficient_savings_no_fiat() {
+        let mut country = Country::default();
+        country.name = "TestLand".to_string();
+        country.cadastre_config = CadastreConfig::default();
+
+        let mut region = Region::default();
+        region.id = "REG-001".to_string();
+        region.owner_country = "TestLand".to_string();
+        region.governance = Some(
+            crate::politics::local_government::initialize_regional_governance("REG-001", "TestLand"),
+        );
+
+        // Aristocracy with very low savings (cannot afford full tax).
+        use crate::society::geography::{ClassDemographics, RegionalClassDemographics, RuralClass};
+        let mut demos = RegionalClassDemographics::default();
+        let mut aristo = ClassDemographics::default();
+        aristo.population = 100;
+        aristo.savings = 10.0; // Very low — tax will be much higher
+        let aristo_key = serde_json::to_string(&RuralClass::Aristocracy).unwrap_or_default();
+        demos.rural_classes.insert(aristo_key, aristo);
+        region.class_demographics = demos;
+
+        country.regions = vec![region];
+
+        // Add a high-value Private (Aristocracy) parcel.
+        let mut parcel = ParcelChunk::default();
+        parcel.owner_type = crate::society::cadastre::ParcelOwnerType::Private;
+        parcel.owner_id = "DYNASTY_REG-001_0".to_string();
+        parcel.region_id = "REG-001".to_string();
+        parcel.size_hectares = 1000.0;
+        parcel.soil_class = "Class_I".to_string(); // Highest value
+        country.cadastre.insert(parcel);
+
+        let reserves_before = country.regions[0]
+            .governance
+            .as_ref()
+            .unwrap()
+            .budget
+            .liquid_reserves;
+
+        let mut companies: Vec<Company> = Vec::new();
+        let total_collected = process_regional_taxes(&mut country, &mut companies);
+
         let reserves_after = country.regions[0]
             .governance
             .as_ref()
@@ -454,13 +633,29 @@ mod tests {
             .budget
             .liquid_reserves;
 
+        let reserves_gain = reserves_after - reserves_before;
+        // The collected amount must equal the reserves gain (no fiat).
         assert!(
-            reserves_after > reserves_before,
-            "Tax collection should credit liquid_reserves"
+            (total_collected - reserves_gain).abs() < 0.01,
+            "No fiat: total_collected ({}) must equal reserves_gain ({})",
+            total_collected,
+            reserves_gain
         );
+        // The collected amount must NOT exceed the available savings (10.0).
         assert!(
-            reserves_after > 0.0,
-            "Liquid reserves should be positive after tax collection"
+            total_collected <= 10.01,
+            "Collected ({}) must not exceed available savings (10.0) — no fiat",
+            total_collected
+        );
+        // Savings must not go negative.
+        let savings_after = country.regions[0]
+            .class_demographics
+            .get_class(RuralClass::Aristocracy)
+            .map(|d| d.savings)
+            .unwrap_or(0.0);
+        assert!(
+            savings_after >= 0.0,
+            "Savings must not go negative — no fiat debt creation"
         );
     }
 
@@ -514,6 +709,15 @@ mod tests {
         assert!(
             regional_after < regional_before,
             "Regional budget should be debited for transfer"
+        );
+        // Phase 94: Double-entry — central gain must equal regional loss.
+        let central_gain = central_after - central_before;
+        let regional_loss = regional_before - regional_after;
+        assert!(
+            (central_gain - regional_loss).abs() < 0.01,
+            "Double-entry: central gain ({}) must equal regional loss ({})",
+            central_gain,
+            regional_loss
         );
     }
 }

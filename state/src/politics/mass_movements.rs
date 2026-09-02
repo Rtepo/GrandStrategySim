@@ -329,11 +329,16 @@ pub fn suppress_mass_movement(
             let fuel_consumed = fuel_required.min(fuel_available);
 
             // PHYSICALLY DEDUCT from inventory
+            // Rule 20: Clamp to zero — inventory cannot go negative.
             if ammo_consumed > 0.0 {
-                *building.inventory.get_mut(&Commodity::Ammunition).unwrap() -= ammo_consumed;
+                if let Some(qty) = building.inventory.get_mut(&Commodity::Ammunition) {
+                    *qty = (*qty - ammo_consumed).max(0.0);
+                }
             }
             if fuel_consumed > 0.0 {
-                *building.inventory.get_mut(&Commodity::Fuels).unwrap() -= fuel_consumed;
+                if let Some(qty) = building.inventory.get_mut(&Commodity::Fuels) {
+                    *qty = (*qty - fuel_consumed).max(0.0);
+                }
             }
 
             // Supply ratio: how much of required supplies were actually available

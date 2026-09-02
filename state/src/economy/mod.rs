@@ -126,9 +126,8 @@ pub use inspectorates::{process_inspectorates_turn, InspectorateTurnResult};
 pub use justice_system::{calculate_national_demand, process_justice_turn, JusticeTurnResult};
 pub use labor::process_demographics_and_labor;
 pub use legal_status::{
-    process_amnesty_turn, process_deportation_wealth_extraction, process_remittances_turn,
-    process_shadow_economy_turn, AmnestyLaw, AmnestyTurnResult, LegalStatus, ShadowEconomyState,
-    ShadowEconomyTurnResult, ShadowEmployment,
+    process_amnesty_turn, process_shadow_economy_turn, AmnestyLaw, AmnestyTurnResult, LegalStatus,
+    ShadowEconomyState, ShadowEconomyTurnResult, ShadowEmployment,
 };
 pub use logistics::{
     assign_geographic_traits_from_edges, compute_freight_route, expire_deferred_trades,

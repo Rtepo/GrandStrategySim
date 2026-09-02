@@ -158,6 +158,11 @@ pub struct ImmigrantCohort {
     /// Only applies to TemporaryWorker status. Default 0.10 (10%).
     #[serde(default = "default_remittance_rate")]
     pub remittance_rate: f64,
+    /// Phase F3: Savings brought by immigrants from their origin country.
+    /// Extracted from origin class savings on emigration and distributed
+    /// to destination class savings on settlement. Ensures wealth conservation.
+    #[serde(default)]
+    pub starting_savings: f64,
     /// Any additional cohort fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -224,9 +229,6 @@ pub struct Demographics {
     /// Unassimilated immigrants.
     #[serde(default)]
     pub unassimilated_immigrants: f64,
-    /// Effective immigrant remittance flow.
-    #[serde(default)]
-    pub effective_immigrant_remittances: f64,
     /// Emigrants abroad.
     #[serde(default)]
     pub emigrants: f64,

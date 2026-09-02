@@ -194,6 +194,7 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
                 seniority: 0,
                 legal_status: crate::economy::legal_status::LegalStatus::TemporaryWorker,
                 remittance_rate: 0.10,
+                starting_savings: 0.0,
                 extra: Map::new(),
             });
         }
@@ -205,7 +206,6 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         death_emigration_factor = death_emigration_factor.clamp(0.0, 1.0);
 
         let mut active_immigrants = 0.0;
-        let mut immigrant_remittances = 0.0;
 
         for k in &mut demographics.immigrant_cohorts {
             k.count *= death_emigration_factor;
@@ -231,7 +231,6 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             };
 
             if rate > 0.0 {
-                immigrant_remittances += k.count * rate;
                 active_immigrants += k.count;
             }
 
@@ -249,7 +248,6 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             .immigrant_cohorts
             .retain(|k| k.count > 10.0 && k.seniority <= max_seniority);
         demographics.unassimilated_immigrants = active_immigrants;
-        demographics.effective_immigrant_remittances = immigrant_remittances;
 
         // Age groups.
         let children = demographics.age_groups.children;
@@ -679,7 +677,7 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
 ///
 /// # Arguments
 /// * `country` - Mutable country state to update citizen_savings
-fn aggregate_citizen_savings(country: &mut crate::state::Country) {
+pub fn aggregate_citizen_savings(country: &mut crate::state::Country) {
     // Phase 43: Include BOTH rural and urban class savings.
     // The previous version only summed rural_classes, ignoring urban_classes
     // (Workers, Bourgeoisie), which caused citizen_savings to be severely
