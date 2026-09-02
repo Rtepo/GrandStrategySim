@@ -334,7 +334,7 @@ mod tests {
         assert!(all.contains(&Commodity::CoolingTower));
         assert!(all.contains(&Commodity::PhotovoltaicPanels));
         assert!(all.contains(&Commodity::CoalGas));
-        assert_eq!(all.len(), 142);
+        assert_eq!(all.len(), 150);
     }
 
     // ── Production Method Registry Tests ──

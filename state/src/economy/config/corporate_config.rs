@@ -35,6 +35,12 @@ pub struct CorporateTechConfig {
     /// Default 0.2 (20% of company capital).
     #[serde(default = "default_max_rd_budget_ratio")]
     pub max_rd_budget_ratio: f64,
+
+    /// Fee premium applied to foreign patent purchases (Phase E.8).
+    /// Default 1.5 (50% premium over domestic innovation point price).
+    /// Replaces the hardcoded `FOREIGN_PATENT_FEE_PREMIUM` constant.
+    #[serde(default = "default_foreign_patent_fee_premium")]
+    pub foreign_patent_fee_premium: f64,
 }
 
 fn default_rd_threshold() -> f64 {
@@ -57,6 +63,10 @@ fn default_max_rd_budget_ratio() -> f64 {
     0.2
 }
 
+fn default_foreign_patent_fee_premium() -> f64 {
+    1.5
+}
+
 impl Default for CorporateTechConfig {
     fn default() -> Self {
         Self {
@@ -65,6 +75,7 @@ impl Default for CorporateTechConfig {
             licensing_benefit_threshold: default_licensing_threshold(),
             state_patent_royalty_ratio: default_state_patent_royalty(),
             max_rd_budget_ratio: default_max_rd_budget_ratio(),
+            foreign_patent_fee_premium: default_foreign_patent_fee_premium(),
         }
     }
 }
@@ -81,6 +92,7 @@ mod tests {
         assert_eq!(config.licensing_benefit_threshold, 0.0);
         assert_eq!(config.state_patent_royalty_ratio, 0.03);
         assert_eq!(config.max_rd_budget_ratio, 0.2);
+        assert_eq!(config.foreign_patent_fee_premium, 1.5);
     }
 
     #[test]
@@ -91,11 +103,13 @@ mod tests {
             licensing_benefit_threshold: 100.0,
             state_patent_royalty_ratio: 0.05,
             max_rd_budget_ratio: 0.3,
+            foreign_patent_fee_premium: 2.0,
         };
         assert_eq!(config.rd_allocation_threshold_ratio, 3.0);
         assert_eq!(config.rd_allocation_percentage, 0.15);
         assert_eq!(config.licensing_benefit_threshold, 100.0);
         assert_eq!(config.state_patent_royalty_ratio, 0.05);
         assert_eq!(config.max_rd_budget_ratio, 0.3);
+        assert_eq!(config.foreign_patent_fee_premium, 2.0);
     }
 }

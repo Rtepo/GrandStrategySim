@@ -48,7 +48,8 @@ fn commodity_to_domain(commodity: &Commodity) -> Option<ResearchDomain> {
 /// * `companies` - Slice of all companies (for finding building owner companies)
 /// * `country` - Mutable country state (Treasury debited, bank synced)
 /// * `building_inventories` - Building inventories containing innovation commodities
-/// * `config` - Innovation config (price per point)
+/// * `average_wage` - Country average wage for dynamic price computation (Phase E.8)
+/// * `_config` - Innovation config (retained for API compat; price is now dynamic)
 ///
 /// # Rules
 /// * Physical Limits: Innovation Points are physical commodities in inventory
@@ -64,7 +65,8 @@ pub fn trade_innovation_points_b2b(
     companies: &mut [Company],
     country: &mut Country,
     building_inventories: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
-    config: &InnovationConfig,
+    average_wage: f64,
+    _config: &InnovationConfig,
 ) {
     // Build owner_id → company_idx map for settle_treasury_to_company.
     let id_to_idx: std::collections::HashMap<String, usize> = companies
@@ -108,7 +110,9 @@ pub fn trade_innovation_points_b2b(
                 // Phase E.2: Use settle_treasury_to_company to credit the owner
                 // company's cash account (fixes fiat leak where money went to
                 // building.reserve with no real counterparty).
-                let price_per_point = config.innovation_point_price;
+                // Phase E.8: Dynamic price — 10× average_wage (inflation-proof, Rule 2).
+                // Replaces the hardcoded 100.0 magic number.
+                let price_per_point = (average_wage * 10.0).max(1.0);
                 let total_cost = available_points * price_per_point;
 
                 // Find the owner company index.
@@ -331,6 +335,9 @@ mod tests {
         country
     }
 
+    /// Test average wage: 10.0 → price_per_point = 100.0 (matches old hardcoded value).
+    const TEST_AVG_WAGE: f64 = 10.0;
+
     #[test]
     fn state_owned_university_direct_transfer() {
         let mut building = Building::default();
@@ -352,6 +359,7 @@ mod tests {
             &mut companies,
             &mut country,
             &mut building_inventories,
+            TEST_AVG_WAGE,
             &InnovationConfig::default(),
         );
 
@@ -397,6 +405,7 @@ mod tests {
             &mut companies,
             &mut country,
             &mut building_inventories,
+            TEST_AVG_WAGE,
             &InnovationConfig::default(),
         );
 
@@ -404,7 +413,8 @@ mod tests {
             country.budget.science.innovation_pool[&ResearchDomain::Medicine],
             50.0
         );
-        assert_eq!(country.budget.liquid_reserves, 5000.0); // 50 * 100 deducted
+        // Price = 10 * 10 = 100, cost = 50 * 100 = 5000
+        assert_eq!(country.budget.liquid_reserves, 5000.0);
         // Phase E.2: Owner company receives the payment, not building.reserve.
         let owner_cash = companies[0]
             .brokerage_account
@@ -439,6 +449,7 @@ mod tests {
             &mut companies,
             &mut country,
             &mut building_inventories,
+            TEST_AVG_WAGE,
             &InnovationConfig::default(),
         );
 
@@ -477,6 +488,7 @@ mod tests {
             &mut companies,
             &mut country,
             &mut building_inventories,
+            TEST_AVG_WAGE,
             &InnovationConfig::default(),
         );
 

@@ -7,14 +7,16 @@
 //! * Pogroms require: social_unrest > 50, cultural_distance > 0.4, justice_coverage < 0.3.
 //! * Not under OpenCitizenship law (discrimination is a prerequisite).
 //! * Wealth transfer: DEBIT minority savings, CREDIT dominant class savings (zero-sum).
-//! * Casualties and emigration reduce minority population.
+//! * Casualties: killed population's wealth is looted by the dominant class (Phase 4).
+//! * Emigration: routed through the migration system as Persecution refugees (Phase 3).
 //! * Mitigated by SecurityCapacity and JusticeCapacity.
-//! * Minority identification uses religion (ClassDemographics.religion) as the differentiator,
-//!   since culture is stored at the country level, not per-class.
+//! * Phase 10: Minority identification uses `ClassDemographics.culture` as the
+//!   differentiator (cultural/ethnic violence), not religion.
 
 use crate::economy::disasters::{DisasterEvent, DisasterType};
+use crate::politics::{MigrationFlow, MigrationReason};
 use crate::registries::enums::Commodity;
-use crate::society::culture_registry::{registry as culture_registry, ReligionDefinition};
+use crate::society::culture_registry::registry as culture_registry;
 use crate::society::geography::{Region, RuralClass, UrbanClass};
 use crate::state::Country;
 use std::collections::BTreeMap;
@@ -69,10 +71,16 @@ pub struct PogromResult {
     pub triggered: bool,
     /// Severity 0.0–1.0.
     pub severity: f64,
-    /// Wealth transferred from minority to dominant class (zero-sum).
+    /// Wealth transferred from minority to dominant class (zero-sum looting of survivors).
     pub wealth_transferred: f64,
-    /// Population killed or forced to emigrate.
+    /// Wealth extracted from killed casualties (looted savings of the dead, Phase 4).
+    pub casualty_wealth: f64,
+    /// Population killed (direct reduction — dead people).
     pub casualties: i64,
+    /// Population forced to emigrate (routed to migration system, Phase 3).
+    pub emigration: i64,
+    /// Origin country name (for migration flow creation).
+    pub origin_country: String,
     /// Disaster event for logging.
     pub event: Option<DisasterEvent>,
 }
@@ -101,8 +109,9 @@ pub fn check_pogrom_triggers(
 ) -> Vec<PogromResult> {
     let mut results = Vec::new();
     let reg = culture_registry();
-    let dominant_religion = country.macro_indicators.religion.clone();
+    let dominant_culture = country.macro_indicators.culture.clone();
     let civil_rights_law = country.politics.civil_rights_law.clone();
+    let origin_country = country.name.clone();
 
     // OpenCitizenship prevents pogroms.
     if civil_rights_law == "open_citizenship" {
@@ -139,19 +148,20 @@ pub fn check_pogrom_triggers(
         return results;
     }
 
-    let dominant_religion_def = reg.religion_from_display_name(&dominant_religion);
+    let dominant_culture_def = reg.from_display_name(&dominant_culture);
 
     for region in &mut country.regions {
         let result = check_region_pogrom(
             region,
-            &dominant_religion,
-            dominant_religion_def,
+            &dominant_culture,
+            dominant_culture_def,
             social_unrest,
             justice_coverage,
             total_security_capacity,
             total_pop,
             config,
             turn,
+            &origin_country,
         );
         if result.triggered {
             results.push(result);
@@ -164,24 +174,24 @@ pub fn check_pogrom_triggers(
 /// Check a single region for pogrom triggers.
 fn check_region_pogrom(
     region: &mut Region,
-    dominant_religion: &str,
-    dominant_religion_def: Option<&ReligionDefinition>,
+    dominant_culture: &str,
+    dominant_culture_def: Option<&crate::society::culture_registry::CultureDefinition>,
     social_unrest: f64,
     justice_coverage: f64,
     total_security_capacity: f64,
     total_pop: f64,
     config: &PogromConfig,
     turn: u32,
+    origin_country: &str,
 ) -> PogromResult {
     let result = PogromResult::default();
-    let _reg = culture_registry();
 
     // Check rural classes first.
     let rural_result = check_class_map_pogrom(
         &region.class_demographics.rural_classes,
         "rural",
-        dominant_religion,
-        dominant_religion_def,
+        dominant_culture,
+        dominant_culture_def,
         social_unrest,
         justice_coverage,
         total_security_capacity,
@@ -191,25 +201,52 @@ fn check_region_pogrom(
         &region.id,
     );
     if rural_result.triggered {
-        // Apply effects to the region.
+        // Phase 4: Extract casualty wealth BEFORE reducing population.
+        let casualty_wealth = extract_casualty_wealth(
+            region,
+            &rural_result.minority_class,
+            "rural",
+            rural_result.casualties,
+        );
+        // Phase 3: Extract emigrant wealth BEFORE reducing population.
+        // This wealth travels with emigrants to their destination via migration.
+        let _emigrant_wealth = extract_emigrant_wealth(
+            region,
+            &rural_result.minority_class,
+            "rural",
+            rural_result.emigration,
+        );
+        // Apply survivor wealth transfer (looting of survivors' savings).
         apply_wealth_transfer(
             region,
             &rural_result.minority_class,
             "rural",
-            dominant_religion,
+            dominant_culture,
             rural_result.wealth_transferred,
         );
+        // Phase 4: Credit casualty wealth to dominant class (loot of the dead).
+        if casualty_wealth > 0.0 {
+            credit_dominant_class(region, "rural", dominant_culture, casualty_wealth);
+        }
+        // Phase 3: Reduce population only for casualties (killed).
+        // Emigrants are NOT reduced here — they are routed to migration.
         reduce_minority_population(
             region,
             &rural_result.minority_class,
             "rural",
             rural_result.casualties,
         );
+        // Recalculate savings_per_capita for affected classes.
+        recalculate_savings_per_capita(region);
+
         let mut pogrom = PogromResult::default();
         pogrom.triggered = true;
         pogrom.severity = rural_result.severity;
         pogrom.wealth_transferred = rural_result.wealth_transferred;
+        pogrom.casualty_wealth = casualty_wealth;
         pogrom.casualties = rural_result.casualties;
+        pogrom.emigration = rural_result.emigration;
+        pogrom.origin_country = origin_country.to_string();
         pogrom.event = rural_result.event;
         return pogrom;
     }
@@ -218,8 +255,8 @@ fn check_region_pogrom(
     let urban_result = check_class_map_pogrom(
         &region.class_demographics.urban_classes,
         "urban",
-        dominant_religion,
-        dominant_religion_def,
+        dominant_culture,
+        dominant_culture_def,
         social_unrest,
         justice_coverage,
         total_security_capacity,
@@ -229,24 +266,44 @@ fn check_region_pogrom(
         &region.id,
     );
     if urban_result.triggered {
+        let casualty_wealth = extract_casualty_wealth(
+            region,
+            &urban_result.minority_class,
+            "urban",
+            urban_result.casualties,
+        );
+        let _emigrant_wealth = extract_emigrant_wealth(
+            region,
+            &urban_result.minority_class,
+            "urban",
+            urban_result.emigration,
+        );
         apply_wealth_transfer(
             region,
             &urban_result.minority_class,
             "urban",
-            dominant_religion,
+            dominant_culture,
             urban_result.wealth_transferred,
         );
+        if casualty_wealth > 0.0 {
+            credit_dominant_class(region, "urban", dominant_culture, casualty_wealth);
+        }
         reduce_minority_population(
             region,
             &urban_result.minority_class,
             "urban",
             urban_result.casualties,
         );
+        recalculate_savings_per_capita(region);
+
         let mut pogrom = PogromResult::default();
         pogrom.triggered = true;
         pogrom.severity = urban_result.severity;
         pogrom.wealth_transferred = urban_result.wealth_transferred;
+        pogrom.casualty_wealth = casualty_wealth;
         pogrom.casualties = urban_result.casualties;
+        pogrom.emigration = urban_result.emigration;
+        pogrom.origin_country = origin_country.to_string();
         pogrom.event = urban_result.event;
         return pogrom;
     }
@@ -260,6 +317,7 @@ struct ClassMapPogromResult {
     severity: f64,
     wealth_transferred: f64,
     casualties: i64,
+    emigration: i64,
     minority_class: String,
     event: Option<DisasterEvent>,
 }
@@ -268,8 +326,8 @@ struct ClassMapPogromResult {
 fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
     class_map: &BTreeMap<K, crate::society::geography::ClassDemographics>,
     _class_type: &str,
-    dominant_religion: &str,
-    dominant_religion_def: Option<&ReligionDefinition>,
+    dominant_culture: &str,
+    dominant_culture_def: Option<&crate::society::culture_registry::CultureDefinition>,
     social_unrest: f64,
     justice_coverage: f64,
     total_security_capacity: f64,
@@ -283,25 +341,21 @@ fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
         severity: 0.0,
         wealth_transferred: 0.0,
         casualties: 0,
+        emigration: 0,
         minority_class: String::new(),
         event: None,
     };
     let reg = culture_registry();
 
     for (class_name, demo) in class_map.iter() {
-        if demo.religion == *dominant_religion || demo.religion.is_empty() {
+        // Phase 10: Use culture for minority identification, not religion.
+        if demo.culture == *dominant_culture || demo.culture.is_empty() {
             continue;
         }
 
-        let minority_religion_def = reg.religion_from_display_name(&demo.religion);
-        let dist = match (dominant_religion_def, minority_religion_def) {
-            (Some(d), Some(m)) => {
-                if d.religious_group == m.religious_group {
-                    0.3
-                } else {
-                    0.7
-                }
-            }
+        let minority_culture_def = reg.from_display_name(&demo.culture);
+        let dist = match (dominant_culture_def, minority_culture_def) {
+            (Some(d), Some(m)) => crate::society::culture_registry::cultural_distance(d, m),
             _ => 0.5,
         };
 
@@ -310,7 +364,7 @@ fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
         }
 
         let minority_spc = demo.savings_per_capita;
-        let dominant_spc = find_dominant_savings_per_capita(class_map, dominant_religion);
+        let dominant_spc = find_dominant_savings_per_capita(class_map, dominant_culture);
 
         let wealth_inequality = if dominant_spc > 0.0 {
             let ratio = minority_spc / dominant_spc;
@@ -349,14 +403,15 @@ fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
         result.triggered = true;
         result.severity = severity;
         result.wealth_transferred = transfer;
-        result.casualties = casualties + emigration;
+        result.casualties = casualties;
+        result.emigration = emigration;
         result.minority_class = class_name.to_string();
         result.event = Some(DisasterEvent {
             disaster_type: DisasterType::Pogrom,
             region_id: region_id.to_string(),
             severity,
             buildings_destroyed: 0,
-            casualties: result.casualties,
+            casualties: casualties + emigration,
             economic_damage: transfer,
             turn,
             extra: serde_json::Map::new(),
@@ -368,16 +423,16 @@ fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
     result
 }
 
-/// Find the savings per capita of the dominant religion class.
+/// Find the savings per capita of the dominant culture class.
 fn find_dominant_savings_per_capita<K: Ord>(
     class_map: &BTreeMap<K, crate::society::geography::ClassDemographics>,
-    dominant_religion: &str,
+    dominant_culture: &str,
 ) -> f64 {
     let mut total_savings = 0.0;
     let mut total_pop = 0.0;
 
     for demo in class_map.values() {
-        if demo.religion == *dominant_religion || demo.religion.is_empty() {
+        if demo.culture == *dominant_culture || demo.culture.is_empty() {
             total_savings += demo.savings;
             total_pop += demo.population as f64;
         }
@@ -395,7 +450,7 @@ fn apply_wealth_transfer(
     region: &mut Region,
     minority_class: &str,
     class_type: &str,
-    dominant_religion: &str,
+    dominant_culture: &str,
     amount: f64,
 ) {
     if amount <= 0.0 {
@@ -412,13 +467,13 @@ fn apply_wealth_transfer(
                     .class_demographics
                     .rural_classes
                     .values()
-                    .filter(|d| d.religion == *dominant_religion || d.religion.is_empty())
+                    .filter(|d| d.culture == *dominant_culture || d.culture.is_empty())
                     .map(|d| d.population as f64)
                     .sum();
 
                 if dominant_pop > 0.0 {
                     for demo in region.class_demographics.rural_classes.values_mut() {
-                        if demo.religion == *dominant_religion || demo.religion.is_empty() {
+                        if demo.culture == *dominant_culture || demo.culture.is_empty() {
                             let share = (demo.population as f64) / dominant_pop;
                             demo.savings += debit * share;
                         }
@@ -436,13 +491,13 @@ fn apply_wealth_transfer(
                     .class_demographics
                     .urban_classes
                     .values()
-                    .filter(|d| d.religion == *dominant_religion || d.religion.is_empty())
+                    .filter(|d| d.culture == *dominant_culture || d.culture.is_empty())
                     .map(|d| d.population as f64)
                     .sum();
 
                 if dominant_pop > 0.0 {
                     for demo in region.class_demographics.urban_classes.values_mut() {
-                        if demo.religion == *dominant_religion || demo.religion.is_empty() {
+                        if demo.culture == *dominant_culture || demo.culture.is_empty() {
                             let share = (demo.population as f64) / dominant_pop;
                             demo.savings += debit * share;
                         }
@@ -453,7 +508,8 @@ fn apply_wealth_transfer(
     }
 }
 
-/// Reduce minority population by casualties + emigration.
+/// Reduce minority population by casualties (killed people — direct reduction).
+/// Phase 3: Emigration is NOT handled here — emigrants are routed to migration.
 fn reduce_minority_population(
     region: &mut Region,
     minority_class: &str,
@@ -483,6 +539,197 @@ fn reduce_minority_population(
     region.population = (region.population - reduction).max(0);
 }
 
+/// Phase 4: Extract wealth from killed casualties (loot of the dead).
+/// Debits `casualties * savings_per_capita` from the minority class savings.
+/// Returns the extracted amount.
+fn extract_casualty_wealth(
+    region: &mut Region,
+    minority_class: &str,
+    class_type: &str,
+    casualties: i64,
+) -> f64 {
+    if casualties <= 0 {
+        return 0.0;
+    }
+
+    let extract = |demo: &mut crate::society::geography::ClassDemographics| -> f64 {
+        let per_capita = if demo.population > 0 {
+            demo.savings / demo.population as f64
+        } else {
+            0.0
+        };
+        let wealth = per_capita * casualties as f64;
+        let debit = wealth.min(demo.savings);
+        demo.savings -= debit;
+        debit
+    };
+
+    if class_type == "rural" {
+        if let Some(rk) = RuralClass::from_str(minority_class) {
+            if let Some(demo) = region.class_demographics.rural_classes.get_mut(&rk) {
+                return extract(demo);
+            }
+        }
+    } else {
+        if let Some(uk) = UrbanClass::from_str(minority_class) {
+            if let Some(demo) = region.class_demographics.urban_classes.get_mut(&uk) {
+                return extract(demo);
+            }
+        }
+    }
+
+    0.0
+}
+
+/// Phase 3: Extract wealth from emigrating population.
+/// Debits `emigration * savings_per_capita` from the minority class savings.
+/// Returns the extracted amount. This wealth travels with the emigrants
+/// to their destination country via the migration settlement system.
+fn extract_emigrant_wealth(
+    region: &mut Region,
+    minority_class: &str,
+    class_type: &str,
+    emigration: i64,
+) -> f64 {
+    if emigration <= 0 {
+        return 0.0;
+    }
+
+    let extract = |demo: &mut crate::society::geography::ClassDemographics| -> f64 {
+        let per_capita = if demo.population > 0 {
+            demo.savings / demo.population as f64
+        } else {
+            0.0
+        };
+        let wealth = per_capita * emigration as f64;
+        let debit = wealth.min(demo.savings);
+        demo.savings -= debit;
+        debit
+    };
+
+    if class_type == "rural" {
+        if let Some(rk) = RuralClass::from_str(minority_class) {
+            if let Some(demo) = region.class_demographics.rural_classes.get_mut(&rk) {
+                // Phase 3: Reduce population for emigration here — emigrants
+                // leave the region. Their wealth is extracted and will be
+                // credited to the destination via migration settlement.
+                let wealth = extract(demo);
+                let new_pop = (demo.population - emigration).max(0);
+                demo.population = new_pop;
+                region.population = (region.population - emigration).max(0);
+                return wealth;
+            }
+        }
+    } else {
+        if let Some(uk) = UrbanClass::from_str(minority_class) {
+            if let Some(demo) = region.class_demographics.urban_classes.get_mut(&uk) {
+                let wealth = extract(demo);
+                let new_pop = (demo.population - emigration).max(0);
+                demo.population = new_pop;
+                region.population = (region.population - emigration).max(0);
+                return wealth;
+            }
+        }
+    }
+
+    0.0
+}
+
+/// Phase 4: Credit extracted wealth to the dominant attacking class.
+/// Distributed proportionally by population share among dominant-culture classes.
+fn credit_dominant_class(
+    region: &mut Region,
+    class_type: &str,
+    dominant_culture: &str,
+    amount: f64,
+) {
+    if amount <= 0.0 {
+        return;
+    }
+
+    if class_type == "rural" {
+        let dominant_pop: f64 = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .filter(|d| d.culture == *dominant_culture || d.culture.is_empty())
+            .map(|d| d.population as f64)
+            .sum();
+
+        if dominant_pop > 0.0 {
+            for demo in region.class_demographics.rural_classes.values_mut() {
+                if demo.culture == *dominant_culture || demo.culture.is_empty() {
+                    let share = (demo.population as f64) / dominant_pop;
+                    demo.savings += amount * share;
+                }
+            }
+        }
+    } else {
+        let dominant_pop: f64 = region
+            .class_demographics
+            .urban_classes
+            .values()
+            .filter(|d| d.culture == *dominant_culture || d.culture.is_empty())
+            .map(|d| d.population as f64)
+            .sum();
+
+        if dominant_pop > 0.0 {
+            for demo in region.class_demographics.urban_classes.values_mut() {
+                if demo.culture == *dominant_culture || demo.culture.is_empty() {
+                    let share = (demo.population as f64) / dominant_pop;
+                    demo.savings += amount * share;
+                }
+            }
+        }
+    }
+}
+
+/// Recalculate savings_per_capita for all classes in a region.
+fn recalculate_savings_per_capita(region: &mut Region) {
+    for demo in region.class_demographics.rural_classes.values_mut() {
+        demo.savings_per_capita = if demo.population > 0 {
+            demo.savings / demo.population as f64
+        } else {
+            0.0
+        };
+    }
+    for demo in region.class_demographics.urban_classes.values_mut() {
+        demo.savings_per_capita = if demo.population > 0 {
+            demo.savings / demo.population as f64
+        } else {
+            0.0
+        };
+    }
+}
+
+/// Phase 3: Create migration flows from pogrom emigration results.
+///
+/// Converts pogrom `PogromResult` entries into `MigrationFlow` records with
+/// `MigrationReason::Persecution`. These flows are then passed to the migration
+/// settlement system to credit population and wealth to destination countries.
+///
+/// Note: Destination selection is handled by the migration system's existing
+/// attractiveness-based distribution. Here we only create the outflow records.
+/// The migration system will match these with destinations based on pressure
+/// and treaty status.
+pub fn create_pogrom_migration_flows(
+    pogrom_results: &[PogromResult],
+    turn: u32,
+) -> Vec<MigrationFlow> {
+    pogrom_results
+        .iter()
+        .filter(|r| r.emigration > 0)
+        .map(|r| MigrationFlow {
+            origin_country: r.origin_country.clone(),
+            dest_country: String::new(), // Destination assigned by migration system
+            count: r.emigration,
+            reason: MigrationReason::Persecution,
+            turn,
+            transport_units_consumed: 0.0, // Set by migration system
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -495,12 +742,14 @@ mod tests {
         region.population = 10000;
 
         let mut minority = ClassDemographics::default();
+        minority.culture = "Weneda".to_string();
         minority.religion = "Islam".to_string();
         minority.population = 2000;
         minority.savings = 5000.0;
         minority.savings_per_capita = 2.5;
 
         let mut dominant = ClassDemographics::default();
+        dominant.culture = "Illyria".to_string();
         dominant.religion = "Catholicism".to_string();
         dominant.population = 8000;
         dominant.savings = 1000.0;
@@ -522,7 +771,7 @@ mod tests {
     fn test_pogrom_wealth_transfer_zero_sum() {
         let mut region = make_test_region_with_minority();
 
-        apply_wealth_transfer(&mut region, "FreePeasant", "rural", "Catholicism", 500.0);
+        apply_wealth_transfer(&mut region, "FreePeasant", "rural", "Illyria", 500.0);
 
         let minority = &region.class_demographics.rural_classes[&RuralClass::FreePeasant];
         let dominant = &region.class_demographics.rural_classes[&RuralClass::Aristocracy];

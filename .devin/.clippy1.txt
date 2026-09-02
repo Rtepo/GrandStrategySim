@@ -1,0 +1,196 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo clippy --workspace --all-targets -- -D warnings 2>&1 | Out-File ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Checking sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error: unused imports: `MigrationFlow` and `MigrationReason`
+  --> state\src\economy\society\ethnic_violence.rs:17:29
+   |
+17 | use crate::politics::laws::{MigrationFlow, MigrationReason};
+   |                             ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+error[E0308]: mismatched types
+   --> state\src\economy\society\ethnic_violence.rs:194:9
+    |
+190 |     let rural_result = check_class_map_pogrom(
+    |                        ---------------------- arguments to this function are incorrect
+...
+194 |         dominant_culture_def,
+    |         ^^^^^^^^^^^^^^^^^^^^ expected `Option<&ReligionDefinition>`, found `Option<&CultureDefinition>`
+    |
+    = note: expected enum `std::option::Option<&society::culture_registry::ReligionDefinition>`
+               found enum `std::option::Option<&society::culture_registry::CultureDefinition>`
+note: function defined here
+   --> state\src\economy\society\ethnic_violence.rs:324:4
+    |
+324 | fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+...
+328 |     dominant_religion_def: Option<&ReligionDefinition>,
+    |     --------------------------------------------------
+
+error[E0425]: cannot find function `extract_casualty_wealth` in this scope
+   --> state\src\economy\society\ethnic_violence.rs:205:31
+    |
+205 |         let casualty_wealth = extract_casualty_wealth(
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0609]: no field `emigration` on type `economy::society::ethnic_violence::ClassMapPogromResult`
+   --> state\src\economy\society\ethnic_violence.rs:216:26
+    |
+216 |             rural_result.emigration,
+    |                          ^^^^^^^^^^ unknown field
+    |
+    = note: available fields are: `triggered`, `severity`, `wealth_transferred`, `casualties`, `minority_class`, `event
+`
+
+error[E0425]: cannot find function `extract_emigrant_wealth` in this scope
+   --> state\src\economy\society\ethnic_violence.rs:212:31
+    |
+212 |         let emigrant_wealth = extract_emigrant_wealth(
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `credit_dominant_class` in this scope
+   --> state\src\economy\society\ethnic_violence.rs:228:13
+    |
+228 |             credit_dominant_class(region, "rural", dominant_culture, casualty_wealth);
+    |             ^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `recalculate_savings_per_capita` in this scope
+   --> state\src\economy\society\ethnic_violence.rs:239:9
+    |
+239 |         recalculate_savings_per_capita(region);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0609]: no field `emigration` on type `economy::society::ethnic_violence::ClassMapPogromResult`
+   --> state\src\economy\society\ethnic_violence.rs:247:42
+    |
+247 |         pogrom.emigration = rural_result.emigration;
+    |                                          ^^^^^^^^^^ unknown field
+    |
+    = note: available fields are: `triggered`, `severity`, `wealth_transferred`, `casualties`, `minority_class`, `event
+`
+
+error[E0308]: mismatched types
+   --> state\src\economy\society\ethnic_violence.rs:258:9
+    |
+254 |     let urban_result = check_class_map_pogrom(
+    |                        ---------------------- arguments to this function are incorrect
+...
+258 |         dominant_culture_def,
+    |         ^^^^^^^^^^^^^^^^^^^^ expected `Option<&ReligionDefinition>`, found `Option<&CultureDefinition>`
+    |
+    = note: expected enum `std::option::Option<&society::culture_registry::ReligionDefinition>`
+               found enum `std::option::Option<&society::culture_registry::CultureDefinition>`
+note: function defined here
+   --> state\src\economy\society\ethnic_violence.rs:324:4
+    |
+324 | fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+...
+328 |     dominant_religion_def: Option<&ReligionDefinition>,
+    |     --------------------------------------------------
+
+error[E0425]: cannot find function `extract_casualty_wealth` in this scope
+   --> state\src\economy\society\ethnic_violence.rs:268:31
+    |
+268 |         let casualty_wealth = extract_casualty_wealth(
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0609]: no field `emigration` on type `economy::society::ethnic_violence::ClassMapPogromResult`
+   --> state\src\economy\society\ethnic_violence.rs:278:26
+    |
+278 |             urban_result.emigration,
+    |                          ^^^^^^^^^^ unknown field
+    |
+    = note: available fields are: `triggered`, `severity`, `wealth_transferred`, `casualties`, `minority_class`, `event
+`
+
+error[E0425]: cannot find function `extract_emigrant_wealth` in this scope
+   --> state\src\economy\society\ethnic_violence.rs:274:31
+    |
+274 |         let emigrant_wealth = extract_emigrant_wealth(
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `credit_dominant_class` in this scope
+   --> state\src\economy\society\ethnic_violence.rs:288:13
+    |
+288 |             credit_dominant_class(region, "urban", dominant_culture, casualty_wealth);
+    |             ^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `recalculate_savings_per_capita` in this scope
+   --> state\src\economy\society\ethnic_violence.rs:296:9
+    |
+296 |         recalculate_savings_per_capita(region);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0609]: no field `emigration` on type `economy::society::ethnic_violence::ClassMapPogromResult`
+   --> state\src\economy\society\ethnic_violence.rs:304:42
+    |
+304 |         pogrom.emigration = urban_result.emigration;
+    |                                          ^^^^^^^^^^ unknown field
+    |
+    = note: available fields are: `triggered`, `severity`, `wealth_transferred`, `casualties`, `minority_class`, `event
+`
+
+error[E0308]: mismatched types
+   --> state\src\economy\society\ethnic_violence.rs:194:9
+    |
+190 |     let rural_result = check_class_map_pogrom(
+    |                        ---------------------- arguments to this function are incorrect
+...
+194 |         dominant_culture_def,
+    |         ^^^^^^^^^^^^^^^^^^^^ expected `Option<&ReligionDefinition>`, found `Option<&CultureDefinition>`
+    |
+    = note: expected enum `std::option::Option<&society::culture_registry::ReligionDefinition>`
+               found enum `std::option::Option<&society::culture_registry::CultureDefinition>`
+note: function defined here
+   --> state\src\economy\society\ethnic_violence.rs:325:4
+    |
+325 | fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+...
+329 |     dominant_religion_def: Option<&ReligionDefinition>,
+    |     --------------------------------------------------
+
+error[E0308]: mismatched types
+   --> state\src\economy\society\ethnic_violence.rs:258:9
+    |
+254 |     let urban_result = check_class_map_pogrom(
+    |                        ---------------------- arguments to this function are incorrect
+...
+258 |         dominant_culture_def,
+    |         ^^^^^^^^^^^^^^^^^^^^ expected `Option<&ReligionDefinition>`, found `Option<&CultureDefinition>`
+    |
+    = note: expected enum `std::option::Option<&society::culture_registry::ReligionDefinition>`
+               found enum `std::option::Option<&society::culture_registry::CultureDefinition>`
+note: function defined here
+   --> state\src\economy\society\ethnic_violence.rs:325:4
+    |
+325 | fn check_class_map_pogrom<K: Ord + std::fmt::Display>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+...
+329 |     dominant_religion_def: Option<&ReligionDefinition>,
+    |     --------------------------------------------------
+
+error[E0063]: missing field `emigration` in initializer of `economy::society::ethnic_violence::ClassMapPogromResult`
+   --> state\src\economy\society\ethnic_violence.rs:338:22
+    |
+338 |     let mut result = ClassMapPogromResult {
+    |                      ^^^^^^^^^^^^^^^^^^^^ missing `emigration`
+
+Some errors have detailed explanations: E0308, E0425, E0609.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `sim_engine` (lib) due to 15 previous errors
+warning: build failed, waiting for other jobs to finish...
+Some errors have detailed explanations: E0063, E0308, E0425.
+For more information about an error, try `rustc --explain E0063`.
+error: could not compile `sim_engine` (lib test) due to 12 previous errors

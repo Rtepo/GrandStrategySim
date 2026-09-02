@@ -24,9 +24,6 @@ use crate::registries::tech_tree::{TechId, TechNode, TechType};
 use crate::state::Country;
 use std::collections::{BTreeMap, HashMap};
 
-/// Foreign patent fee premium multiplier (1.5× domestic price for cross-border expertise).
-const FOREIGN_PATENT_FEE_PREMIUM: f64 = 1.5;
-
 /// Allocates corporate R&D budget from excess cash.
 ///
 /// # Arguments
@@ -40,6 +37,7 @@ const FOREIGN_PATENT_FEE_PREMIUM: f64 = 1.5;
 /// # Rules
 /// * Strategic AI Decision: Only allocate if cash > threshold * operating_expenses
 /// * Allocate percentage of excess cash to rd_budget
+/// * Phase E.8: Cap total rd_budget at max_rd_budget_ratio * company_capital
 /// * No magic numbers: uses CorporateTechConfig and average_wage
 pub fn allocate_corporate_rd_budget(
     companies: &mut [Company],
@@ -52,10 +50,18 @@ pub fn allocate_corporate_rd_budget(
 
         if company.available_cash > cash_threshold {
             let excess_cash = company.available_cash - cash_threshold;
-            let rd_allocation = excess_cash * config.rd_allocation_percentage;
+            let mut rd_allocation = excess_cash * config.rd_allocation_percentage;
 
-            company.available_cash -= rd_allocation;
-            company.rd_budget += rd_allocation;
+            // Phase E.8: Enforce max_rd_budget_ratio cap.
+            let company_capital = company.company_capital.max(0.0);
+            let max_rd_budget = company_capital * config.max_rd_budget_ratio;
+            let headroom = (max_rd_budget - company.rd_budget).max(0.0);
+            rd_allocation = rd_allocation.min(headroom);
+
+            if rd_allocation > 0.0 {
+                company.available_cash -= rd_allocation;
+                company.rd_budget += rd_allocation;
+            }
         }
     }
 }
@@ -100,6 +106,7 @@ pub fn execute_corporate_method_research(
     country: &mut Country,
     average_wage: f64,
     current_turn: u32,
+    config: &CorporateTechConfig,
 ) -> f64 {
     let price_per_point = average_wage * 0.5; // Fair market price: ~half a wage per point.
     let mut total_foreign_fees: f64 = 0.0;
@@ -161,8 +168,10 @@ pub fn execute_corporate_method_research(
             let shortfall = (remaining_points - points_acquired).max(0.0);
 
             // If domestic supply is insufficient, pay Foreign Patent Fee.
+            // If domestic supply is insufficient, pay Foreign Patent Fee.
+            // Phase E.8: Use config.foreign_patent_fee_premium (was hardcoded 1.5).
             let foreign_fee = if shortfall > 0.0 {
-                shortfall * price_per_point * FOREIGN_PATENT_FEE_PREMIUM
+                shortfall * price_per_point * config.foreign_patent_fee_premium
             } else {
                 0.0
             };
@@ -438,6 +447,9 @@ mod tests {
         company.available_cash = 500_000.0;
         company.worker_capacity = 100;
         company.sector = Sector::HeavyIndustry;
+        // Phase E.8: Set company_capital high enough so max_rd_budget_ratio
+        // cap (20% of company_capital) doesn't bind.
+        company.company_capital = 500_000.0;
 
         let config = CorporateTechConfig::default();
         let average_wage = 10.0;
@@ -449,8 +461,34 @@ mod tests {
         // Threshold: 100000 * 2.0 = 200000
         // Excess: 500000 - 200000 = 300000
         // Allocation: 300000 * 0.10 = 30000
+        // Cap: 500000 * 0.2 = 100000 (doesn't bind, 30000 < 100000)
         assert_eq!(companies[0].rd_budget, 30000.0);
         assert_eq!(companies[0].available_cash, 470000.0);
+    }
+
+    #[test]
+    fn rd_allocation_capped_by_max_ratio() {
+        // Phase E.8: Verify max_rd_budget_ratio caps total R&D budget.
+        let mut company = Company::default();
+        company.available_cash = 500_000.0;
+        company.worker_capacity = 100;
+        company.sector = Sector::HeavyIndustry;
+        // Low company_capital → cap binds.
+        company.company_capital = 50_000.0;
+        // Existing rd_budget already at 8000.
+        company.rd_budget = 8_000.0;
+
+        let config = CorporateTechConfig::default();
+        let average_wage = 10.0;
+
+        let mut companies = vec![company];
+        allocate_corporate_rd_budget(&mut companies, &config, average_wage);
+
+        // Cap: 50000 * 0.2 = 10000
+        // Headroom: 10000 - 8000 = 2000
+        // Uncapped allocation: 30000, but capped to 2000.
+        assert_eq!(companies[0].rd_budget, 10_000.0);
+        assert_eq!(companies[0].available_cash, 498_000.0);
     }
 
     #[test]

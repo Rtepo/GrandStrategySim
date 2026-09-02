@@ -46,13 +46,13 @@ fn test_coal_gas_exists() {
 }
 
 #[test]
-fn test_commodity_count_is_142() {
-    // The total number of commodity variants must be exactly 142.
+fn test_commodity_count_is_150() {
+    // The total number of commodity variants must be exactly 150.
     let all = Commodity::all();
     assert_eq!(
         all.len(),
-        142,
-        "Commodity::all() must return exactly 142 variants"
+        150,
+        "Commodity::all() must return exactly 150 variants"
     );
 }
 

@@ -1,0 +1,26 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo test --workspace --all-targets 2>&1 | Out-File C:\Users\netse\D ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error[E0503]: cannot use `task.ctx.country.macro_indicators.average_wage` because it was mutably borrowed
+    --> state\src\engine\turn.rs:5569:17
+     |
+5564 |             trade_innovation_points_b2b(
+     |             --------------------------- borrow later used by call
+...
+5567 |                 &mut task.ctx.country,
+     |                 --------------------- `task.ctx.country` is borrowed here
+5568 |                 &mut building_inventories,
+5569 |                 task.ctx.country.macro_indicators.average_wage.max(1.0),
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ use of borrowed `task.ctx.country`
+
+For more information about this error, try `rustc --explain E0503`.
+error: could not compile `sim_engine` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `sim_engine` (lib test) due to 1 previous error

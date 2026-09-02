@@ -5158,6 +5158,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 task.ctx.country,
                 average_wage,
                 task.ctx.turn,
+                &corp_config,
             );
             task.foreign_patent_fee_outbox += foreign_fees;
 
@@ -5561,11 +5562,13 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
 
             // Trade innovation points from universities to State
+            let avg_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
             trade_innovation_points_b2b(
                 &mut task.ctx.buildings,
                 &mut task.companies,
                 &mut task.ctx.country,
                 &mut building_inventories,
+                avg_wage,
                 &innovation_config,
             );
 

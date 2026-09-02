@@ -1,0 +1,211 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo clippy --workspace --all-targets -- -D warnings 2>&1 | Out-File ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Checking sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> state\src\economy\justice\legal_status.rs:369:30
+    |
+369 |                     .get_mut(&class_id)
+    |                              ^^^^^^^^^ help: change this to: `class_id`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_borro
+w
+    = note: `-D clippy::needless-borrow` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_borrow)]`
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> state\src\economy\justice\legal_status.rs:394:30
+    |
+394 |                     .get_mut(&class_id)
+    |                              ^^^^^^^^^ help: change this to: `class_id`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_borro
+w
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+    --> state\src\engine\turn.rs:5569:17
+     |
+5569 |                 &mut task.ctx.country,
+     |                 ^^^^^^^^^^^^^^^^^^^^^ help: change this to: `task.ctx.country`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_borr
+ow
+
+error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
+   --> state\src\politics\campaign.rs:430:41
+    |
+430 | / ...                   UrbanClass::from_str(class_name)
+431 | | ...                       .and_then(|k| r.class_demographics.urban_classes.get(&k))
+432 | | ...                       .into_iter(),
+    | |______________________________________^
+    |
+note: this parameter accepts any `IntoIterator`, so you don't need to call `.into_iter()`
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\core\src\iter\traits\iterator.rs:513:11
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#useless_conver
+sion
+    = note: `-D clippy::useless-conversion` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::useless_conversion)]`
+help: consider removing the `.into_iter()`
+    |
+431 -                                             .and_then(|k| r.class_demographics.urban_classes.get(&k))
+432 -                                             .into_iter(),
+431 +                                             .and_then(|k| r.class_demographics.urban_classes.get(&k)),
+    |
+
+error: iterating on a map's values
+   --> state\src\politics\mass_movements.rs:145:31
+    |
+145 |       let total_radicals: i64 = class_demographics
+    |  _______________________________^
+146 | |         .rural_classes
+147 | |         .iter()
+148 | |         .map(|(_, class)| {
+149 | |             let radical_fraction = class.political_sentiment.radicals;
+150 | |             (class.population as f64 * radical_fraction) as i64
+151 | |         })
+    | |__________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#iter_kv_map
+    = note: `-D clippy::iter-kv-map` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::iter_kv_map)]`
+help: try
+    |
+145 ~     let total_radicals: i64 = class_demographics
+146 +         .rural_classes.values().map(|class| {
+147 +             let radical_fraction = class.political_sentiment.radicals;
+148 +             (class.population as f64 * radical_fraction) as i64
+149 +         })
+    |
+
+error: iterating on a map's values
+   --> state\src\politics\mass_movements.rs:153:11
+    |
+153 |           + class_demographics
+    |  ___________^
+154 | |             .urban_classes
+155 | |             .iter()
+156 | |             .map(|(_, class)| {
+157 | |                 let radical_fraction = class.political_sentiment.radicals;
+158 | |                 (class.population as f64 * radical_fraction) as i64
+159 | |             })
+    | |______________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#iter_kv_map
+help: try
+    |
+153 ~         + class_demographics
+154 +             .urban_classes.values().map(|class| {
+155 +                 let radical_fraction = class.political_sentiment.radicals;
+156 +                 (class.population as f64 * radical_fraction) as i64
+157 +             })
+    |
+
+error: iterating on a map's values
+   --> state\src\politics\mass_movements.rs:162:33
+    |
+162 |       let total_population: i64 = class_demographics
+    |  _________________________________^
+163 | |         .rural_classes
+164 | |         .iter()
+165 | |         .map(|(_, class)| class.population)
+    | |___________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#iter_kv_map
+help: try
+    |
+162 ~     let total_population: i64 = class_demographics
+163 +         .rural_classes.values().map(|class| class.population)
+    |
+
+error: iterating on a map's values
+   --> state\src\politics\mass_movements.rs:167:11
+    |
+167 |           + class_demographics
+    |  ___________^
+168 | |             .urban_classes
+169 | |             .iter()
+170 | |             .map(|(_, class)| class.population)
+    | |_______________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#iter_kv_map
+help: try
+    |
+167 ~         + class_demographics
+168 +             .urban_classes.values().map(|class| class.population)
+    |
+
+error: iterating on a map's values
+   --> state\src\politics\mass_movements.rs:421:39
+    |
+421 |       let total_undecided_before: f64 = class_demographics
+    |  _______________________________________^
+422 | |         .rural_classes
+423 | |         .iter()
+424 | |         .map(|(_, c)| c.political_sentiment.undecided)
+    | |______________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#iter_kv_map
+help: try
+    |
+421 ~     let total_undecided_before: f64 = class_demographics
+422 +         .rural_classes.values().map(|c| c.political_sentiment.undecided)
+    |
+
+error: iterating on a map's values
+   --> state\src\politics\mass_movements.rs:426:11
+    |
+426 |           + class_demographics
+    |  ___________^
+427 | |             .urban_classes
+428 | |             .iter()
+429 | |             .map(|(_, c)| c.political_sentiment.undecided)
+    | |__________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#iter_kv_map
+help: try
+    |
+426 ~         + class_demographics
+427 +             .urban_classes.values().map(|c| c.political_sentiment.undecided)
+    |
+
+error: method `from_str` can be confused for the standard trait method `std::str::FromStr::from_str`
+   --> state\src\society\geography.rs:803:5
+    |
+803 | /     pub fn from_str(s: &str) -> Option<Self> {
+804 | |         match s {
+805 | |             "Aristocracy" => Some(RuralClass::Aristocracy),
+806 | |             "FreePeasant" => Some(RuralClass::FreePeasant),
+...   |
+811 | |     }
+    | |_____^
+    |
+    = help: consider implementing the trait `std::str::FromStr` or choosing a less ambiguous method name
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#should_impleme
+nt_trait
+    = note: `-D clippy::should-implement-trait` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::should_implement_trait)]`
+
+error: method `from_str` can be confused for the standard trait method `std::str::FromStr::from_str`
+   --> state\src\society\geography.rs:848:5
+    |
+848 | /     pub fn from_str(s: &str) -> Option<Self> {
+849 | |         match s {
+850 | |             "Worker" => Some(UrbanClass::Worker),
+851 | |             "Bourgeoisie" => Some(UrbanClass::Bourgeoisie),
+...   |
+854 | |     }
+    | |_____^
+    |
+    = help: consider implementing the trait `std::str::FromStr` or choosing a less ambiguous method name
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#should_impleme
+nt_trait
+
+error: could not compile `sim_engine` (lib) due to 12 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `sim_engine` (lib test) due to 12 previous errors

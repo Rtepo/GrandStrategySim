@@ -829,17 +829,20 @@ pub fn assign_core_traits(rng: &mut impl rand::Rng) -> (Vec<String>, String) {
     let mut assigned = Vec::new();
     let num_traits = 2 + rng.gen_range(0..3); // 2, 3, or 4 traits
 
-    for _ in 0..num_traits {
+    let mut attempts = 0;
+    while assigned.len() < num_traits && attempts < num_traits * 4 {
         let mut random_weight = rng.gen::<f64>() * total_weight;
         for (trait_id, weight) in CORE_TRAITS {
             random_weight -= weight;
             if random_weight <= 0.0 {
-                if !assigned.contains(&trait_id.to_string()) {
-                    assigned.push(trait_id.to_string());
+                let trait_string = trait_id.to_string();
+                if !assigned.contains(&trait_string) {
+                    assigned.push(trait_string);
                 }
                 break;
             }
         }
+        attempts += 1;
     }
 
     // Main trait is the first assigned trait (or "Diplomatic" as fallback).
