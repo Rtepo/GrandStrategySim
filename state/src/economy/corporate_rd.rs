@@ -262,6 +262,8 @@ fn is_tech_relevant_to_sector(tech_node: &TechNode, sector: Sector) -> bool {
 /// * License if (current_cost - new_cost - royalty) > threshold
 /// * Voluntary licensing (no forced payments)
 /// * Dynamic costs derived from average_wage and VWAP (no magic numbers)
+/// * Phase E.6: Also evaluates State Fundamental techs that unlock Commercial
+///   methods. State licenses use the `state_patent_royalty_ratio` from config.
 pub fn evaluate_licensing_opportunities(
     companies: &mut [Company],
     all_companies: &[Company],
@@ -270,8 +272,10 @@ pub fn evaluate_licensing_opportunities(
     average_wage: f64,
     market_history: &MarketHistory,
     current_turn: u32,
+    discovered_techs: &[TechId],
 ) {
     for company in companies.iter_mut() {
+        // 1. Private-to-private licensing (existing path).
         for other_company in all_companies.iter() {
             if other_company.id == company.id {
                 continue;
@@ -303,9 +307,55 @@ pub fn evaluate_licensing_opportunities(
                             tech_id: patent.tech_id.clone(),
                             licensor_company_id: other_company.id.clone(),
                             licensed_turn: current_turn,
+                            royalty_vwap_ratio: patent.royalty_vwap_ratio,
                         };
                         company.licensed_methods.push(license);
                     }
+                }
+            }
+        }
+
+        // 2. Phase E.6: State Fundamental tech licensing.
+        // State-discovered Fundamental techs that unlock Commercial methods
+        // for this company's sector are licensed from "STATE" at the
+        // state_patent_royalty_ratio.
+        for tech_id in discovered_techs {
+            if company
+                .licensed_methods
+                .iter()
+                .any(|lm| lm.tech_id == *tech_id)
+            {
+                continue;
+            }
+            // Skip techs the company already has a patent for.
+            if company.patents.iter().any(|p| &p.tech_id == tech_id) {
+                continue;
+            }
+
+            if let Some(tech_node) = tech_tree.get(tech_id) {
+                // Only Fundamental techs are state-licensed.
+                if tech_node.tech_type != TechType::Fundamental {
+                    continue;
+                }
+                if !is_tech_relevant_to_sector(tech_node, company.sector) {
+                    continue;
+                }
+
+                let current_unit_cost = estimate_current_unit_cost(company, average_wage);
+                let new_unit_cost =
+                    estimate_new_unit_cost(tech_node, average_wage, market_history);
+                let vwap_fallback = average_wage * 10.0;
+                let royalty_cost = config.state_patent_royalty_ratio * vwap_fallback;
+                let net_benefit = current_unit_cost - new_unit_cost - royalty_cost;
+
+                if net_benefit > config.licensing_benefit_threshold {
+                    let license = LicensedMethod {
+                        tech_id: tech_id.clone(),
+                        licensor_company_id: "STATE".to_string(),
+                        licensed_turn: current_turn,
+                        royalty_vwap_ratio: config.state_patent_royalty_ratio,
+                    };
+                    company.licensed_methods.push(license);
                 }
             }
         }

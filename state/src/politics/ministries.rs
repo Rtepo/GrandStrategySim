@@ -1274,8 +1274,10 @@ fn execute_competency_spending(
                     let actual = per_company.min(ministry.ministry_cash);
                     if actual > 0.0 {
                         // Phase 35: Debit ministry_cash (the pocket), not liquid_reserves.
+                        // Phase E.7: Credit rd_budget (not liquid_capital) so grants
+                        // route into the actual R&D pipeline.
                         ministry.ministry_cash -= actual;
-                        companies[*idx].liquid_capital += actual;
+                        companies[*idx].rd_budget += actual;
                         ministry.spent_cash += actual;
                         ministry
                             .spending_actions

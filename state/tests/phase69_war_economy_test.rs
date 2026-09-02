@@ -20,7 +20,9 @@ use sim_engine::military::war_economy::{
     process_expired_decrees, ConscriptionLevel, WarEconomyConfig, WarEconomyState,
 };
 use sim_engine::registries::enums::{Commodity, Sector};
-use sim_engine::society::geography::{ClassDemographics, Region, RegionalClassDemographics};
+use sim_engine::society::geography::{
+    ClassDemographics, Region, RegionalClassDemographics, RuralClass, UrbanClass,
+};
 use sim_engine::state::Country;
 use std::collections::BTreeMap;
 
@@ -37,7 +39,7 @@ fn make_test_region(id: &str, population: i64) -> Region {
 
     let mut rural_classes = BTreeMap::new();
     rural_classes.insert(
-        "FreePeasant".to_string(),
+        RuralClass::FreePeasant,
         ClassDemographics {
             population: population / 2,
             savings: 50_000.0,
@@ -46,7 +48,7 @@ fn make_test_region(id: &str, population: i64) -> Region {
         },
     );
     rural_classes.insert(
-        "LandlessLaborer".to_string(),
+        RuralClass::LandlessLaborer,
         ClassDemographics {
             population: population / 2,
             savings: 20_000.0,
@@ -57,7 +59,7 @@ fn make_test_region(id: &str, population: i64) -> Region {
 
     let mut urban_classes = BTreeMap::new();
     urban_classes.insert(
-        "Bourgeoisie".to_string(),
+        UrbanClass::Bourgeoisie,
         ClassDemographics {
             population: population / 4,
             savings: 100_000.0,
@@ -321,7 +323,7 @@ fn test_conscription_applies_labor_penalty() {
     let original_labor: f64 = regions[0]
         .class_demographics
         .rural_classes
-        .get("FreePeasant")
+        .get(&RuralClass::FreePeasant)
         .map(|d| d.labor_participation)
         .unwrap_or(0.0);
 
@@ -339,7 +341,7 @@ fn test_conscription_applies_labor_penalty() {
     let new_labor: f64 = regions[0]
         .class_demographics
         .rural_classes
-        .get("FreePeasant")
+        .get(&RuralClass::FreePeasant)
         .map(|d| d.labor_participation)
         .unwrap_or(0.0);
 

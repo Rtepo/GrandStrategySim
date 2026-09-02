@@ -1,0 +1,84 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo test --workspace --all-targets 2>&1 | Out-File C:\Users\netse\D ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error[E0061]: this function takes 6 arguments but 5 arguments were supplied
+   --> state\src\economy\trade\royalties.rs:212:5
+    |
+212 |     integrate_royalty_payments(
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+216 |         innovation_config,
+    |         ----------------- argument #4 of type `&std::collections::HashMap<std::string::String, Commodity>` is mis
+sing
+    |
+note: function defined here
+   --> state\src\economy\trade\royalties.rs:111:8
+    |
+111 | pub fn integrate_royalty_payments(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+115 |     company_output_commodities: &HashMap<String, Commodity>,
+    |     -------------------------------------------------------
+help: provide the argument
+    |
+212 |     integrate_royalty_payments(
+...
+215 |         planned_production,
+216 ~         /* &std::collections::HashMap<std::string::String, Commodity> */,
+217 ~         innovation_config,
+    |
+
+error[E0061]: this function takes 6 arguments but 5 arguments were supplied
+   --> state\src\economy\trade\royalties.rs:212:5
+    |
+212 |     integrate_royalty_payments(
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+216 |         innovation_config,
+    |         ----------------- argument #4 of type `&std::collections::HashMap<std::string::String, enums::Commodity>`
+ is missing
+    |
+note: function defined here
+   --> state\src\economy\trade\royalties.rs:111:8
+    |
+111 | pub fn integrate_royalty_payments(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+115 |     company_output_commodities: &HashMap<String, Commodity>,
+    |     -------------------------------------------------------
+help: provide the argument
+    |
+212 |     integrate_royalty_payments(
+...
+215 |         planned_production,
+216 ~         /* &std::collections::HashMap<std::string::String, enums::Commodity> */,
+217 ~         innovation_config,
+    |
+
+warning: unused variable: `innovation_config`
+   --> state\src\economy\trade\royalties.rs:116:5
+    |
+116 |     innovation_config: &InnovationConfig,
+    |     ^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_innovation_config`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `ethnic_composition`
+    --> state\src\society\geography.rs:2281:5
+     |
+2281 |     ethnic_composition: &BTreeMap<String, f64>,
+     |     ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ethnic_composition`
+
+For more information about this error, try `rustc --explain E0061`.
+warning: `sim_engine` (lib) generated 2 warnings
+error: could not compile `sim_engine` (lib) due to 1 previous error; 2 warnings emitted
+warning: build failed, waiting for other jobs to finish...
+warning: `sim_engine` (lib test) generated 2 warnings (2 duplicates)
+error: could not compile `sim_engine` (lib test) due to 1 previous error; 2 warnings emitted

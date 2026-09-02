@@ -1,0 +1,168 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo test --workspace --all-targets 2>&1 | Out-File C:\Users\netse\D ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error[E0609]: no field `companies` on type `CountryTurnCtx<'_>`
+    --> state\src\engine\turn.rs:5543:31
+     |
+5543 |                 &mut task.ctx.companies,
+     |                               ^^^^^^^^^ unknown field
+     |
+     = note: available fields are: `country_name`, `turn`, `year`, `registries`, `country` ... and 2 others
+
+For more information about this error, try `rustc --explain E0609`.
+error: could not compile `sim_engine` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error[E0061]: this function takes 6 arguments but 4 arguments were supplied
+   --> state\src\economy\trade\innovation_trading.rs:350:9
+    |
+350 |           trade_innovation_points_b2b(
+    |  _________^^^^^^^^^^^^^^^^^^^^^^^^^^^-
+351 | |             &mut [building],
+352 | |             &mut treasury,
+    | |             ------------- argument #2 of type `&mut [entities::Company]` is missing
+353 | |             &mut building_inventories,
+354 | |             &InnovationConfig::default(),
+355 | |         );
+    | |_________- argument #5 of type `&mut state::Country` is missing
+    |
+note: function defined here
+   --> state\src\economy\trade\innovation_trading.rs:64:8
+    |
+ 64 | pub fn trade_innovation_points_b2b(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 65 |     buildings: &mut [Building],
+ 66 |     companies: &mut [Company],
+    |     -------------------------
+...
+ 69 |     country: &mut Country,
+    |     ---------------------
+help: provide the arguments
+    |
+350 ~         trade_innovation_points_b2b(
+351 +             &mut [building],
+352 +             /* &mut [entities::Company] */,
+353 +             &mut treasury,
+354 +             &mut building_inventories,
+355 +             /* &mut state::Country */,
+356 +             &InnovationConfig::default(),
+357 ~         );
+    |
+
+error[E0061]: this function takes 6 arguments but 4 arguments were supplied
+   --> state\src\economy\trade\innovation_trading.rs:391:9
+    |
+391 |           trade_innovation_points_b2b(
+    |  _________^^^^^^^^^^^^^^^^^^^^^^^^^^^-
+392 | |             &mut buildings,
+393 | |             &mut treasury,
+    | |             ------------- argument #2 of type `&mut [entities::Company]` is missing
+394 | |             &mut building_inventories,
+395 | |             &InnovationConfig::default(),
+396 | |         );
+    | |_________- argument #5 of type `&mut state::Country` is missing
+    |
+note: function defined here
+   --> state\src\economy\trade\innovation_trading.rs:64:8
+    |
+ 64 | pub fn trade_innovation_points_b2b(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 65 |     buildings: &mut [Building],
+ 66 |     companies: &mut [Company],
+    |     -------------------------
+...
+ 69 |     country: &mut Country,
+    |     ---------------------
+help: provide the arguments
+    |
+391 ~         trade_innovation_points_b2b(
+392 +             &mut buildings,
+393 +             /* &mut [entities::Company] */,
+394 +             &mut treasury,
+395 +             &mut building_inventories,
+396 +             /* &mut state::Country */,
+397 +             &InnovationConfig::default(),
+398 ~         );
+    |
+
+error[E0061]: this function takes 6 arguments but 4 arguments were supplied
+   --> state\src\economy\trade\innovation_trading.rs:426:9
+    |
+426 |           trade_innovation_points_b2b(
+    |  _________^^^^^^^^^^^^^^^^^^^^^^^^^^^-
+427 | |             &mut buildings,
+428 | |             &mut treasury,
+    | |             ------------- argument #2 of type `&mut [entities::Company]` is missing
+429 | |             &mut building_inventories,
+430 | |             &InnovationConfig::default(),
+431 | |         );
+    | |_________- argument #5 of type `&mut state::Country` is missing
+    |
+note: function defined here
+   --> state\src\economy\trade\innovation_trading.rs:64:8
+    |
+ 64 | pub fn trade_innovation_points_b2b(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 65 |     buildings: &mut [Building],
+ 66 |     companies: &mut [Company],
+    |     -------------------------
+...
+ 69 |     country: &mut Country,
+    |     ---------------------
+help: provide the arguments
+    |
+426 ~         trade_innovation_points_b2b(
+427 +             &mut buildings,
+428 +             /* &mut [entities::Company] */,
+429 +             &mut treasury,
+430 +             &mut building_inventories,
+431 +             /* &mut state::Country */,
+432 +             &InnovationConfig::default(),
+433 ~         );
+    |
+
+error[E0061]: this function takes 6 arguments but 4 arguments were supplied
+   --> state\src\economy\trade\innovation_trading.rs:466:9
+    |
+466 |           trade_innovation_points_b2b(
+    |  _________^^^^^^^^^^^^^^^^^^^^^^^^^^^-
+467 | |             &mut [building],
+468 | |             &mut treasury,
+    | |             ------------- argument #2 of type `&mut [entities::Company]` is missing
+469 | |             &mut building_inventories,
+470 | |             &InnovationConfig::default(),
+471 | |         );
+    | |_________- argument #5 of type `&mut state::Country` is missing
+    |
+note: function defined here
+   --> state\src\economy\trade\innovation_trading.rs:64:8
+    |
+ 64 | pub fn trade_innovation_points_b2b(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 65 |     buildings: &mut [Building],
+ 66 |     companies: &mut [Company],
+    |     -------------------------
+...
+ 69 |     country: &mut Country,
+    |     ---------------------
+help: provide the arguments
+    |
+466 ~         trade_innovation_points_b2b(
+467 +             &mut [building],
+468 +             /* &mut [entities::Company] */,
+469 +             &mut treasury,
+470 +             &mut building_inventories,
+471 +             /* &mut state::Country */,
+472 +             &InnovationConfig::default(),
+473 ~         );
+    |
+
+Some errors have detailed explanations: E0061, E0609.
+For more information about an error, try `rustc --explain E0061`.
+error: could not compile `sim_engine` (lib test) due to 5 previous errors

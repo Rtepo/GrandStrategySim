@@ -11,7 +11,7 @@ use sim_engine::data::consumption_registry;
 use sim_engine::economy::trade::retail::build_consumer_demand;
 use sim_engine::registries::enums::Commodity;
 use sim_engine::registries::production_methods_data::default_production_methods;
-use sim_engine::society::geography::{ClassDemographics, Region, RuralClass};
+use sim_engine::society::geography::{ClassDemographics, Region, RuralClass, UrbanClass};
 use sim_engine::society::housing::{
     HousingBuilding, HousingSlots, HousingType, UtilityConnections,
 };
@@ -436,7 +436,7 @@ fn test_build_consumer_demand_with_substitution() {
     region
         .class_demographics
         .rural_classes
-        .insert("FreePeasant".to_string(), demos);
+        .insert(RuralClass::FreePeasant, demos);
 
     let mut prices = rustc_hash::FxHashMap::default();
     // Set Meat price very high relative to wage
@@ -479,7 +479,7 @@ fn test_build_consumer_demand_homeless_no_furniture() {
     region
         .class_demographics
         .urban_classes
-        .insert("Worker".to_string(), demos);
+        .insert(UrbanClass::Worker, demos);
 
     // No housing buildings → homeless
     let demand = build_consumer_demand(&region, 0, &rustc_hash::FxHashMap::default(), 100.0, &[]);

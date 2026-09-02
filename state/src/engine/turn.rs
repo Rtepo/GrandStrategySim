@@ -529,6 +529,26 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
         });
+        // Phase 10: Initialize per-class culture from country's dominant culture.
+        // This is the save-migration path for old saves that don't have the
+        // `culture` field — empty values are backfilled with the dominant culture.
+        tasks.par_iter_mut().for_each(|task| {
+            let culture = task.ctx.country.macro_indicators.culture.clone();
+            if !culture.is_empty() {
+                for region in &mut task.ctx.country.regions {
+                    for demo in region.class_demographics.rural_classes.values_mut() {
+                        if demo.culture.is_empty() {
+                            demo.culture = culture.clone();
+                        }
+                    }
+                    for demo in region.class_demographics.urban_classes.values_mut() {
+                        if demo.culture.is_empty() {
+                            demo.culture = culture.clone();
+                        }
+                    }
+                }
+            }
+        });
         // Phase 23C: Remit commuter wages back to home regions' class savings.
         // Commuters earned net wages (after PIT) in the host region; these are
         // distributed proportionally across all adjacent regions' classes as a
@@ -5150,6 +5170,8 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
             // Evaluate licensing opportunities (needs a snapshot of all companies)
             let companies_snapshot = task.companies.clone();
+            // Phase E.6: Pass discovered techs for State patent licensing.
+            let discovered_techs = task.ctx.country.budget.science.discovered.clone();
             crate::economy::corporate_rd::evaluate_licensing_opportunities(
                 &mut task.companies,
                 &companies_snapshot,
@@ -5158,6 +5180,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 average_wage,
                 &state.market_history,
                 task.ctx.turn,
+                &discovered_techs,
             );
 
             // Phase 95: Assign active_blueprint to buildings.
@@ -5540,7 +5563,8 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             // Trade innovation points from universities to State
             trade_innovation_points_b2b(
                 &mut task.ctx.buildings,
-                &mut task.ctx.country.budget,
+                &mut task.companies,
+                &mut task.ctx.country,
                 &mut building_inventories,
                 &innovation_config,
             );
@@ -5552,10 +5576,23 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
 
+            // Phase E.1: Execute State Fundamental Research (was dead code).
+            // Consumes domain-specific innovation points from the treasury pool
+            // to discover Fundamental technologies.
+            let tech_tree = crate::registries::tech_tree_data::default_tech_tree();
+            crate::economy::state_sector::state_research::execute_state_research(
+                &mut task.ctx.country.budget,
+                &tech_tree,
+                task.ctx.turn,
+            );
+
             // Process all royalty payments (private + state patents)
             let corp_tech_config = task.ctx.country.corporate_tech_config.clone();
             let mut planned_production: std::collections::BTreeMap<String, f64> =
                 std::collections::BTreeMap::new();
+            // Phase E.4: Build company_id → primary output commodity map for VWAP lookup.
+            let mut company_output_commodities: std::collections::HashMap<String, Commodity> =
+                std::collections::HashMap::new();
             for building in &task.ctx.buildings {
                 let scale = building.current_employment as f64 / 1000.0;
                 let total_output: f64 =
@@ -5565,12 +5602,28 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                         .entry(building.owner_id.clone())
                         .or_insert(0.0) += total_output;
                 }
+                // Track the primary output commodity (first non-intangible output).
+                if !building.active_method.outputs.is_empty() {
+                    if let Some((&commodity, &_qty)) = building
+                        .active_method
+                        .outputs
+                        .iter()
+                        .find(|(_, &q)| q > 0.0)
+                    {
+                        if !commodity.is_intangible() {
+                            company_output_commodities
+                                .entry(building.owner_id.clone())
+                                .or_insert(commodity);
+                        }
+                    }
+                }
             }
 
             process_all_royalty_payments(
                 &mut task.companies,
                 &state.market_history,
                 &planned_production,
+                &company_output_commodities,
                 &innovation_config,
                 &corp_tech_config,
                 &mut task.ctx.country.budget,

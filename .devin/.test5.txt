@@ -1,0 +1,164 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo test --workspace --all-targets 2>&1 | Out-File C:\Users\netse\D ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Blocking waiting for file lock on build directory
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+warning: unused variable: `ethnic_composition`
+    --> state\src\society\geography.rs:2279:5
+     |
+2279 |     ethnic_composition: &BTreeMap<String, f64>,
+     |     ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ethnic_composition`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `sim_engine` (lib) generated 1 warning (run `cargo fix --lib -p sim_engine` to apply 1 suggestion)
+error[E0308]: mismatched types
+   --> state\tests\ai_stability_audit_test.rs:389:28
+    |
+387 |         rural.insert("Peasants".to_string(), class);
+    |         -----        ---------------------- this argument has type `std::string::String`...
+    |         |
+    |         ... which causes `rural` to have type `BTreeMap<std::string::String, ClassDemographics>`
+388 |         region.class_demographics = RegionalClassDemographics {
+389 |             rural_classes: rural,
+    |                            ^^^^^ expected `BTreeMap<RuralClass, ClassDemographics>`, found `BTreeMap<String, Clas
+sDemographics>`
+    |
+    = note: expected struct `BTreeMap<RuralClass, _>`
+               found struct `BTreeMap<std::string::String, _>`
+
+error[E0308]: mismatched types
+  --> state\tests\phase69_war_economy_test.rs:70:9
+   |
+39 |     rural_classes.insert(
+   |     ------------- ... which causes `rural_classes` to have type `BTreeMap<String, ClassDemographics>`
+40 |         "FreePeasant".to_string(),
+   |         ------------------------- this argument has type `String`...
+...
+70 |         rural_classes,
+   |         ^^^^^^^^^^^^^ expected `BTreeMap<RuralClass, ClassDemographics>`, found `BTreeMap<String, ClassDemographic
+s>`
+   |
+   = note: expected struct `BTreeMap<RuralClass, _>`
+              found struct `BTreeMap<String, _>`
+
+error[E0308]: mismatched types
+  --> state\tests\phase69_war_economy_test.rs:71:9
+   |
+59 |     urban_classes.insert(
+   |     ------------- ... which causes `urban_classes` to have type `BTreeMap<String, ClassDemographics>`
+60 |         "Bourgeoisie".to_string(),
+   |         ------------------------- this argument has type `String`...
+...
+71 |         urban_classes,
+   |         ^^^^^^^^^^^^^ expected `BTreeMap<UrbanClass, ClassDemographics>`, found `BTreeMap<String, ClassDemographic
+s>`
+   |
+   = note: expected struct `BTreeMap<UrbanClass, _>`
+              found struct `BTreeMap<String, _>`
+
+error[E0308]: mismatched types
+   --> state\tests\ai_stability_audit_test.rs:407:74
+    |
+407 |         let class = &country.regions[0].class_demographics.rural_classes["Peasants"];
+    |                                                                          ^^^^^^^^^^ expected `&RuralClass`, found
+ `&str`
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&'static str`
+
+error[E0308]: mismatched types
+   --> state\tests\phase74_rebalance_test.rs:439:17
+    |
+439 |         .insert("FreePeasant".to_string(), demos);
+    |          ------ ^^^^^^^^^^^^^^^^^^^^^^^^^ expected `RuralClass`, found `String`
+    |          |
+    |          arguments to this method are incorrect
+    |
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1045:11
+
+error[E0308]: mismatched types
+   --> state\tests\ai_stability_audit_test.rs:508:28
+    |
+499 |         rural.insert("Peasants".to_string(), unemployed_class);
+    |         -----        ---------------------- this argument has type `std::string::String`...
+    |         |
+    |         ... which causes `rural` to have type `BTreeMap<std::string::String, ClassDemographics>`
+...
+508 |             rural_classes: rural,
+    |                            ^^^^^ expected `BTreeMap<RuralClass, ClassDemographics>`, found `BTreeMap<String, Clas
+sDemographics>`
+    |
+    = note: expected struct `BTreeMap<RuralClass, _>`
+               found struct `BTreeMap<std::string::String, _>`
+
+error[E0308]: mismatched types
+   --> state\tests\ai_stability_audit_test.rs:516:77
+    |
+516 |         let peasants = &country.regions[0].class_demographics.rural_classes["Peasants"];
+    |                                                                             ^^^^^^^^^^ expected `&RuralClass`, fo
+und `&str`
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&'static str`
+
+error[E0308]: mismatched types
+   --> state\tests\phase74_rebalance_test.rs:482:17
+    |
+482 |         .insert("Worker".to_string(), demos);
+    |          ------ ^^^^^^^^^^^^^^^^^^^^ expected `UrbanClass`, found `String`
+    |          |
+    |          arguments to this method are incorrect
+    |
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:1045:11
+
+error[E0308]: mismatched types
+   --> state\tests\ai_stability_audit_test.rs:523:77
+    |
+523 |         let artisans = &country.regions[0].class_demographics.rural_classes["Artisans"];
+    |                                                                             ^^^^^^^^^^ expected `&RuralClass`, fo
+und `&str`
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&'static str`
+
+error[E0308]: mismatched types
+   --> state\tests\phase69_war_economy_test.rs:324:14
+    |
+324 |         .get("FreePeasant")
+    |          --- ^^^^^^^^^^^^^ expected `&RuralClass`, found `&str`
+    |          |
+    |          arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&'static str`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+
+error[E0308]: mismatched types
+   --> state\tests\phase69_war_economy_test.rs:342:14
+    |
+342 |         .get("FreePeasant")
+    |          --- ^^^^^^^^^^^^^ expected `&RuralClass`, found `&str`
+    |          |
+    |          arguments to this method are incorrect
+    |
+    = note: expected reference `&RuralClass`
+               found reference `&'static str`
+note: method defined here
+   --> /rustc/8bab26f4f68e0e26f0bb7960be334d5b520ea452/library\alloc\src\collections\btree\map.rs:717:11
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `sim_engine` (test "ai_stability_audit_test") due to 5 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `sim_engine` (test "phase74_rebalance_test") due to 2 previous errors
+error: could not compile `sim_engine` (test "phase69_war_economy_test") due to 4 previous errors
+warning: `sim_engine` (lib test) generated 1 warning (1 duplicate)

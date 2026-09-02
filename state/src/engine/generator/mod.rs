@@ -633,8 +633,14 @@ fn generate_country(
     companies.extend(bank_companies);
     crate::politics::bootstrap_politics(&mut country, &mut companies, start_year as u32, rng);
 
-    let mut country_regions =
-        generate_regional_topology(name, population as i64, gdp_total, start_year.as_year());
+    let mut country_regions = generate_regional_topology(
+        name,
+        population as i64,
+        gdp_total,
+        start_year.as_year(),
+        &cultural.demonym,
+        &cultural.ethnic_composition,
+    );
 
     // Phase 21A: Generate geological formations with finite, depletable deposits.
     let region_ids: Vec<String> = country_regions.keys().cloned().collect();

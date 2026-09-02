@@ -11,7 +11,6 @@ use crate::economy::trade::transfer_settler::{
 use crate::entities::{Building, Company};
 use crate::registries::enums::{Commodity, Sector};
 use crate::registries::tech_tree::ResearchDomain;
-use crate::state::treasury::Treasury;
 use crate::state::Country;
 use std::collections::BTreeMap;
 
@@ -46,23 +45,34 @@ fn commodity_to_domain(commodity: &Commodity) -> Option<ResearchDomain> {
 ///
 /// # Arguments
 /// * `buildings` - Slice of buildings (universities/research institutes) with outputs in inventory
-/// * `treasury` - Central State treasury
+/// * `companies` - Slice of all companies (for finding building owner companies)
+/// * `country` - Mutable country state (Treasury debited, bank synced)
 /// * `building_inventories` - Building inventories containing innovation commodities
 /// * `config` - Innovation config (price per point)
 ///
 /// # Rules
 /// * Physical Limits: Innovation Points are physical commodities in inventory
-/// * State must buy via B2B if not owned directly
-/// * If State owns university, can transfer directly without B2B
-/// * Double-Entry: Treasury cash decreases, building reserve increases
+/// * State-owned universities: direct transfer (no payment)
+/// * Private/Local-Gov universities: State pays via `settle_treasury_to_company`
+///   (Phase E.2 — fixes fiat leak where money went to `building.reserve` instead
+///   of the owner company's cash account)
+/// * Double-Entry: Treasury cash decreases, owner company cash increases
 /// * Domain-specific: each commodity variant maps to the matching innovation_pool entry
 /// * ResearchOutput: transferred to treasury.science.research_output
 pub fn trade_innovation_points_b2b(
     buildings: &mut [Building],
-    treasury: &mut Treasury,
+    companies: &mut [Company],
+    country: &mut Country,
     building_inventories: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
     config: &InnovationConfig,
 ) {
+    // Build owner_id → company_idx map for settle_treasury_to_company.
+    let id_to_idx: std::collections::HashMap<String, usize> = companies
+        .iter()
+        .enumerate()
+        .map(|(i, c)| (c.id.clone(), i))
+        .collect();
+
     for building in buildings.iter_mut() {
         let building_inventory = building_inventories.entry(building.id.clone()).or_default();
 
@@ -87,30 +97,52 @@ pub fn trade_innovation_points_b2b(
             if building.owner_id.starts_with("STATE_") {
                 // Direct transfer: State owns the university/institute
                 if let Some(domain) = commodity_to_domain(commodity) {
-                    *treasury.science.innovation_pool.entry(domain).or_insert(0.0) +=
+                    *country.budget.science.innovation_pool.entry(domain).or_insert(0.0) +=
                         available_points;
                 } else if *commodity == Commodity::ResearchOutput {
-                    treasury.science.research_output += available_points;
+                    country.budget.science.research_output += available_points;
                 }
                 building_inventory.insert(*commodity, 0.0);
             } else {
-                // B2B purchase: State must buy from Local Gov or Private owner
+                // B2B purchase: State must buy from Local Gov or Private owner.
+                // Phase E.2: Use settle_treasury_to_company to credit the owner
+                // company's cash account (fixes fiat leak where money went to
+                // building.reserve with no real counterparty).
                 let price_per_point = config.innovation_point_price;
                 let total_cost = available_points * price_per_point;
 
-                if treasury.liquid_reserves >= total_cost {
-                    // State can afford purchase
-                    treasury.liquid_reserves -= total_cost;
-                    if let Some(domain) = commodity_to_domain(commodity) {
-                        *treasury.science.innovation_pool.entry(domain).or_insert(0.0) +=
-                            available_points;
-                    } else if *commodity == Commodity::ResearchOutput {
-                        treasury.science.research_output += available_points;
+                // Find the owner company index.
+                let owner_idx = id_to_idx.get(&building.owner_id).copied();
+
+                if let Some(idx) = owner_idx {
+                    // Settle via proper double-entry transfer.
+                    if settle_treasury_to_company(companies, idx, total_cost, country).is_ok() {
+                        // Success — credit innovation points to treasury.
+                        if let Some(domain) = commodity_to_domain(commodity) {
+                            *country.budget.science.innovation_pool.entry(domain).or_insert(0.0) +=
+                                available_points;
+                        } else if *commodity == Commodity::ResearchOutput {
+                            country.budget.science.research_output += available_points;
+                        }
+                        building_inventory.insert(*commodity, 0.0);
                     }
-                    building.reserve += total_cost;
-                    building_inventory.insert(*commodity, 0.0);
+                    // If transfer fails (insufficient Treasury), points remain unsold.
+                } else {
+                    // Owner company not found — fallback to old behavior for
+                    // buildings without a company owner (e.g. local gov buildings).
+                    // This preserves existing behavior for edge cases.
+                    if country.budget.liquid_reserves >= total_cost {
+                        country.budget.liquid_reserves -= total_cost;
+                        if let Some(domain) = commodity_to_domain(commodity) {
+                            *country.budget.science.innovation_pool.entry(domain).or_insert(0.0) +=
+                                available_points;
+                        } else if *commodity == Commodity::ResearchOutput {
+                            country.budget.science.research_output += available_points;
+                        }
+                        building.reserve += total_cost;
+                        building_inventory.insert(*commodity, 0.0);
+                    }
                 }
-                // If State cannot afford, points remain in building inventory (unsold)
             }
         }
     }
@@ -293,6 +325,12 @@ mod tests {
     use super::*;
     use crate::registries::enums::Sector;
 
+    fn make_country_with_treasury(liquid_reserves: f64) -> Country {
+        let mut country = Country::default();
+        country.budget.liquid_reserves = liquid_reserves;
+        country
+    }
+
     #[test]
     fn state_owned_university_direct_transfer() {
         let mut building = Building::default();
@@ -300,11 +338,7 @@ mod tests {
         building.owner_id = "STATE_CENTRAL".to_string();
         building.sector = Sector::EducationalServices;
 
-        let mut treasury = Treasury {
-            liquid_reserves: 10000.0,
-            science: crate::state::treasury::ScienceState::default(),
-            ..Default::default()
-        };
+        let mut country = make_country_with_treasury(10000.0);
 
         let mut building_inventories = BTreeMap::new();
         building_inventories.insert(
@@ -312,18 +346,20 @@ mod tests {
             BTreeMap::from([(Commodity::InnovationEngineering, 50.0)]),
         );
 
+        let mut companies: Vec<Company> = Vec::new();
         trade_innovation_points_b2b(
             &mut [building],
-            &mut treasury,
+            &mut companies,
+            &mut country,
             &mut building_inventories,
             &InnovationConfig::default(),
         );
 
         assert_eq!(
-            treasury.science.innovation_pool[&ResearchDomain::Engineering],
+            country.budget.science.innovation_pool[&ResearchDomain::Engineering],
             50.0
         );
-        assert_eq!(treasury.liquid_reserves, 10000.0); // No cost for direct transfer
+        assert_eq!(country.budget.liquid_reserves, 10000.0); // No cost for direct transfer
         assert_eq!(
             building_inventories["UNI_001"]
                 .get(&Commodity::InnovationEngineering)
@@ -334,17 +370,19 @@ mod tests {
     }
 
     #[test]
-    fn private_university_b2b_purchase() {
+    fn private_university_b2b_purchase_credits_owner() {
+        // Phase E.2: Private university purchase must credit the owner company,
+        // not just building.reserve (fiat leak fix).
         let mut building = Building::default();
         building.id = "UNI_002".to_string();
         building.owner_id = "COMPANY_PHARMA".to_string();
         building.sector = Sector::EducationalServices;
 
-        let mut treasury = Treasury {
-            liquid_reserves: 10000.0,
-            science: crate::state::treasury::ScienceState::default(),
-            ..Default::default()
-        };
+        let mut owner = Company::default();
+        owner.id = "COMPANY_PHARMA".to_string();
+        owner.available_cash = 0.0;
+
+        let mut country = make_country_with_treasury(10000.0);
 
         let mut building_inventories = BTreeMap::new();
         building_inventories.insert(
@@ -353,19 +391,27 @@ mod tests {
         );
 
         let mut buildings = vec![building];
+        let mut companies = vec![owner];
         trade_innovation_points_b2b(
             &mut buildings,
-            &mut treasury,
+            &mut companies,
+            &mut country,
             &mut building_inventories,
             &InnovationConfig::default(),
         );
 
         assert_eq!(
-            treasury.science.innovation_pool[&ResearchDomain::Medicine],
+            country.budget.science.innovation_pool[&ResearchDomain::Medicine],
             50.0
         );
-        assert_eq!(treasury.liquid_reserves, 5000.0); // 50 * 100 deducted
-        assert_eq!(buildings[0].reserve, 5000.0); // Building receives payment
+        assert_eq!(country.budget.liquid_reserves, 5000.0); // 50 * 100 deducted
+        // Phase E.2: Owner company receives the payment, not building.reserve.
+        let owner_cash = companies[0]
+            .brokerage_account
+            .as_ref()
+            .map(|ba| ba.cash)
+            .unwrap_or(companies[0].available_cash);
+        assert_eq!(owner_cash, 5000.0); // Owner company credited
     }
 
     #[test]
@@ -375,11 +421,10 @@ mod tests {
         building.owner_id = "COMPANY_PHARMA".to_string();
         building.sector = Sector::EducationalServices;
 
-        let mut treasury = Treasury {
-            liquid_reserves: 1000.0, // Insufficient for 50 * 100 = 5000
-            science: crate::state::treasury::ScienceState::default(),
-            ..Default::default()
-        };
+        let mut owner = Company::default();
+        owner.id = "COMPANY_PHARMA".to_string();
+
+        let mut country = make_country_with_treasury(1000.0); // Insufficient for 50 * 100 = 5000
 
         let mut building_inventories = BTreeMap::new();
         building_inventories.insert(
@@ -388,18 +433,20 @@ mod tests {
         );
 
         let mut buildings = vec![building];
+        let mut companies = vec![owner];
         trade_innovation_points_b2b(
             &mut buildings,
-            &mut treasury,
+            &mut companies,
+            &mut country,
             &mut building_inventories,
             &InnovationConfig::default(),
         );
 
         assert_eq!(
-            treasury.science.innovation_pool[&ResearchDomain::Chemistry],
+            country.budget.science.innovation_pool[&ResearchDomain::Chemistry],
             0.0
         ); // No purchase
-        assert_eq!(treasury.liquid_reserves, 1000.0); // Cash unchanged
+        assert_eq!(country.budget.liquid_reserves, 1000.0); // Cash unchanged
         assert_eq!(
             building_inventories["UNI_003"]
                 .get(&Commodity::InnovationChemistry)
@@ -416,11 +463,7 @@ mod tests {
         building.owner_id = "STATE_CENTRAL".to_string();
         building.sector = Sector::EducationalServices;
 
-        let mut treasury = Treasury {
-            liquid_reserves: 10000.0,
-            science: crate::state::treasury::ScienceState::default(),
-            ..Default::default()
-        };
+        let mut country = make_country_with_treasury(10000.0);
 
         let mut building_inventories = BTreeMap::new();
         building_inventories.insert(
@@ -428,13 +471,15 @@ mod tests {
             BTreeMap::from([(Commodity::ResearchOutput, 30.0)]),
         );
 
+        let mut companies: Vec<Company> = Vec::new();
         trade_innovation_points_b2b(
             &mut [building],
-            &mut treasury,
+            &mut companies,
+            &mut country,
             &mut building_inventories,
             &InnovationConfig::default(),
         );
 
-        assert_eq!(treasury.science.research_output, 30.0);
+        assert_eq!(country.budget.science.research_output, 30.0);
     }
 }

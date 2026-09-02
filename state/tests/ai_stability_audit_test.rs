@@ -367,7 +367,7 @@ mod tests {
     fn test_counter_cyclical_transfers_to_unemployed() {
         use sim_engine::politics::crisis_management::counter_cyclical_response;
         use sim_engine::society::geography::{
-            ClassDemographics, Region, RegionalClassDemographics,
+            ClassDemographics, Region, RegionalClassDemographics, RuralClass,
         };
         use sim_engine::state::Country;
 
@@ -384,7 +384,7 @@ mod tests {
         class.available_fte = 1000.0;
         class.allocated_fte = 600.0; // 400 unemployed
         class.savings = 0.0;
-        rural.insert("Peasants".to_string(), class);
+        rural.insert(RuralClass::FreePeasant, class);
         region.class_demographics = RegionalClassDemographics {
             rural_classes: rural,
             urban_classes: std::collections::BTreeMap::new(),
@@ -404,7 +404,7 @@ mod tests {
         );
 
         // Verify unemployed workers received funds
-        let class = &country.regions[0].class_demographics.rural_classes["Peasants"];
+        let class = &country.regions[0].class_demographics.rural_classes[&RuralClass::FreePeasant];
         assert!(
             class.savings > 0.0,
             "Unemployed workers should have received stimulus"
@@ -478,7 +478,7 @@ mod tests {
     fn test_counter_cyclical_targets_unemployed_only() {
         use sim_engine::politics::crisis_management::counter_cyclical_response;
         use sim_engine::society::geography::{
-            ClassDemographics, Region, RegionalClassDemographics,
+            ClassDemographics, Region, RegionalClassDemographics, RuralClass,
         };
         use sim_engine::state::Country;
 
@@ -496,13 +496,13 @@ mod tests {
         unemployed_class.available_fte = 1000.0;
         unemployed_class.allocated_fte = 600.0; // 400 unemployed
         unemployed_class.savings = 0.0;
-        rural.insert("Peasants".to_string(), unemployed_class);
+        rural.insert(RuralClass::FreePeasant, unemployed_class);
 
         let mut employed_class = ClassDemographics::default();
         employed_class.available_fte = 500.0;
         employed_class.allocated_fte = 500.0; // 0 unemployed
         employed_class.savings = 0.0;
-        rural.insert("Artisans".to_string(), employed_class);
+        rural.insert(RuralClass::LandlessLaborer, employed_class);
 
         region.class_demographics = RegionalClassDemographics {
             rural_classes: rural,
@@ -513,14 +513,14 @@ mod tests {
         let _msgs = counter_cyclical_response(&mut country, 5);
 
         // Peasants (unemployed) should receive funds
-        let peasants = &country.regions[0].class_demographics.rural_classes["Peasants"];
+        let peasants = &country.regions[0].class_demographics.rural_classes[&RuralClass::FreePeasant];
         assert!(
             peasants.savings > 0.0,
             "Unemployed class should receive stimulus"
         );
 
         // Artisans (fully employed) should NOT receive funds
-        let artisans = &country.regions[0].class_demographics.rural_classes["Artisans"];
+        let artisans = &country.regions[0].class_demographics.rural_classes[&RuralClass::LandlessLaborer];
         assert_eq!(
             artisans.savings, 0.0,
             "Fully employed class should NOT receive stimulus"

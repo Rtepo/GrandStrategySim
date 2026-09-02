@@ -2013,6 +2013,8 @@ pub fn generate_regional_topology(
     population: i64,
     gdp: f64,
     start_year: u32,
+    dominant_culture: &str,
+    ethnic_composition: &BTreeMap<String, f64>,
 ) -> HashMap<String, Region> {
     let mut rng = rand::thread_rng();
     let gdp_pc = gdp / population as f64;
@@ -2157,6 +2159,8 @@ pub fn generate_regional_topology(
                 region_pop,
                 start_year,
                 development_level,
+                dominant_culture,
+                ethnic_composition,
             ),
             governance,
             capacity_pool: BTreeMap::new(),
@@ -2273,9 +2277,18 @@ fn generate_class_demographics(
     region_pop: i64,
     start_year: u32,
     development_level: f64,
+    dominant_culture: &str,
+    ethnic_composition: &BTreeMap<String, f64>,
 ) -> RegionalClassDemographics {
     let mut rural_classes: BTreeMap<RuralClass, ClassDemographics> = BTreeMap::new();
     let mut urban_classes: BTreeMap<UrbanClass, ClassDemographics> = BTreeMap::new();
+
+    // Phase 10: The dominant culture is assigned to all class entries.
+    // Minority cultures are tracked at the macro level via `ethnic_composition`
+    // and assimilation operates on that composition. The per-class `culture`
+    // field is used for pogrom/terrorism minority identification (comparing
+    // against the dominant culture) and for future per-class assimilation.
+    let _ = ethnic_composition;
 
     // Phase 47: Development-driven savings multiplier.
     // High development → wealthier citizens (0.5x to 2.0x savings).
@@ -2319,6 +2332,7 @@ fn generate_class_demographics(
                 population: serf_pop,
                 labor_participation: 0.65,
                 savings: 0.0, // Serfs don't have cash savings
+                culture: dominant_culture.to_string(),
                 ..Default::default()
             },
         );
@@ -2335,6 +2349,7 @@ fn generate_class_demographics(
             } else {
                 0.0
             },
+            culture: dominant_culture.to_string(),
             ..Default::default()
         }
     });
@@ -2349,6 +2364,7 @@ fn generate_class_demographics(
             } else {
                 0.0
             },
+            culture: dominant_culture.to_string(),
             ..Default::default()
         }
     });
@@ -2363,6 +2379,7 @@ fn generate_class_demographics(
             } else {
                 0.0
             },
+            culture: dominant_culture.to_string(),
             ..Default::default()
         };
         // Phase 47: Seed initial household durables for wealthy classes.
@@ -2387,6 +2404,7 @@ fn generate_class_demographics(
             } else {
                 0.0
             },
+            culture: dominant_culture.to_string(),
             ..Default::default()
         }
     });
@@ -2401,6 +2419,7 @@ fn generate_class_demographics(
             } else {
                 0.0
             },
+            culture: dominant_culture.to_string(),
             ..Default::default()
         };
         // Phase 47: Seed initial household durables for wealthy classes.

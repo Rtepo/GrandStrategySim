@@ -1,0 +1,43 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo test --workspace --all-targets 2>&1 | Out-File C:\Users\netse\D ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error[E0433]: cannot find type `RuralClass` in this scope
+  --> state\tests\phase69_war_economy_test.rs:40:9
+   |
+40 |         RuralClass::FreePeasant,
+   |         ^^^^^^^^^^ use of undeclared type `RuralClass`
+
+error[E0433]: cannot find type `RuralClass` in this scope
+  --> state\tests\phase69_war_economy_test.rs:49:9
+   |
+49 |         RuralClass::LandlessLaborer,
+   |         ^^^^^^^^^^ use of undeclared type `RuralClass`
+
+error[E0433]: cannot find type `UrbanClass` in this scope
+  --> state\tests\phase69_war_economy_test.rs:60:9
+   |
+60 |         UrbanClass::Bourgeoisie,
+   |         ^^^^^^^^^^ use of undeclared type `UrbanClass`
+
+error[E0433]: cannot find type `RuralClass` in this scope
+   --> state\tests\phase69_war_economy_test.rs:324:15
+    |
+324 |         .get(&RuralClass::FreePeasant)
+    |               ^^^^^^^^^^ use of undeclared type `RuralClass`
+
+error[E0433]: cannot find type `RuralClass` in this scope
+   --> state\tests\phase69_war_economy_test.rs:342:15
+    |
+342 |         .get(&RuralClass::FreePeasant)
+    |               ^^^^^^^^^^ use of undeclared type `RuralClass`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `sim_engine` (test "phase69_war_economy_test") due to 5 previous errors
+warning: build failed, waiting for other jobs to finish...

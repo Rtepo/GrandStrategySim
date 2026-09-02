@@ -11,7 +11,7 @@ use crate::entities::Company;
 use crate::registries::enums::Commodity;
 use crate::registries::tech_tree::TechId;
 use crate::state::treasury::Treasury;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 /// Calculates royalty fulfillment ratio for a company.
 ///
@@ -94,6 +94,9 @@ pub fn process_royalty_payment(
 /// * `companies` - All companies in the simulation
 /// * `market_history` - Market history containing last turn's VWAP
 /// * `planned_production` - Planned production quantities by company
+/// * `company_output_commodities` - Map of company_id → primary output commodity (Phase E.4)
+/// * `innovation_config` - Innovation config
+/// * `average_wage` - Country average wage for VWAP fallback
 ///
 /// # Returns
 /// Updated companies with royalty payments processed
@@ -103,11 +106,14 @@ pub fn process_royalty_payment(
 /// * Production scales proportionally if cash-constrained
 /// * VWAP-anchored scaling for inflation protection
 /// * Using last turn's VWAP guarantees determinism
+/// * Phase E.4: VWAP lookup uses the company's actual output commodity
+/// * Phase E.5: Royalty ratio uses the stored ratio on LicensedMethod
 pub fn integrate_royalty_payments(
     companies: &mut [Company],
     market_history: &MarketHistory,
     planned_production: &BTreeMap<String, f64>,
-    innovation_config: &InnovationConfig,
+    company_output_commodities: &HashMap<String, Commodity>,
+    _innovation_config: &InnovationConfig,
     average_wage: f64,
 ) {
     // Dynamic VWAP fallback: 10× average_wage (inflation-proof, Rule 2).
@@ -123,26 +129,23 @@ pub fn integrate_royalty_payments(
             continue;
         }
 
-        // Get last turn's VWAP for output commodity (use first output from first licensed method)
-        let last_turn_vwap = market_history
-            .vwap_per_commodity
-            .values()
-            .next()
-            .copied()
-            .unwrap_or(vwap_fallback);
+        // Phase E.4: Get last turn's VWAP for the company's actual output commodity.
+        let output_commodity = company_output_commodities.get(&company.id).copied();
+        let last_turn_vwap = match output_commodity {
+            Some(commodity) => market_history
+                .vwap_per_commodity
+                .get(&commodity)
+                .copied()
+                .unwrap_or(vwap_fallback),
+            None => vwap_fallback,
+        };
 
-        // Calculate royalty fulfillment ratio using patent's royalty_vwap_ratio or config default
+        // Phase E.5: Use stored royalty ratio on LicensedMethod (not licensee's own patents).
         let licensed_royalties: Vec<(TechId, f64)> = company
             .licensed_methods
             .iter()
             .map(|lm| {
-                let ratio = company
-                    .patents
-                    .iter()
-                    .find(|p| p.tech_id == lm.tech_id)
-                    .map(|p| p.royalty_vwap_ratio)
-                    .unwrap_or(innovation_config.default_royalty_vwap_ratio);
-                (lm.tech_id.clone(), ratio)
+                (lm.tech_id.clone(), lm.royalty_vwap_ratio)
             })
             .collect();
 
@@ -157,12 +160,8 @@ pub fn integrate_royalty_payments(
 
         // Collect payment instructions
         for licensed_method in &company.licensed_methods {
-            let royalty_ratio = company
-                .patents
-                .iter()
-                .find(|p| p.tech_id == licensed_method.tech_id)
-                .map(|p| p.royalty_vwap_ratio)
-                .unwrap_or(innovation_config.default_royalty_vwap_ratio);
+            // Phase E.5: Use stored royalty ratio, not licensee's own patents.
+            let royalty_ratio = licensed_method.royalty_vwap_ratio;
             let royalty_amount = actual_quantity * royalty_ratio * last_turn_vwap;
             payment_instructions.push((
                 company.id.clone(),
@@ -190,9 +189,11 @@ pub fn integrate_royalty_payments(
 /// * `companies` - All companies in the simulation.
 /// * `market_history` - Market history with VWAP data.
 /// * `planned_production` - Planned production quantities by company.
+/// * `company_output_commodities` - Map of company_id → primary output commodity (Phase E.4).
 /// * `innovation_config` - Innovation configuration with default royalty ratio.
 /// * `corporate_tech_config` - Corporate tech config with state patent royalty ratio.
 /// * `treasury` - Mutable treasury for state royalty credits.
+/// * `average_wage` - Country average wage for VWAP fallback.
 ///
 /// # Rules
 /// * Private patent royalties: licensee → licensor company (double-entry).
@@ -200,10 +201,12 @@ pub fn integrate_royalty_payments(
 /// * State patents apply to ALL companies using the technology (state-owned + private).
 /// * Graceful degradation: partial cash = partial production.
 /// * VWAP-anchored for inflation protection.
+/// * Phase E.4: VWAP lookup uses the company's actual output commodity.
 pub fn process_all_royalty_payments(
     companies: &mut [Company],
     market_history: &MarketHistory,
     planned_production: &BTreeMap<String, f64>,
+    company_output_commodities: &HashMap<String, Commodity>,
     innovation_config: &InnovationConfig,
     corporate_tech_config: &CorporateTechConfig,
     treasury: &mut Treasury,
@@ -214,6 +217,7 @@ pub fn process_all_royalty_payments(
         companies,
         market_history,
         planned_production,
+        company_output_commodities,
         innovation_config,
         average_wage,
     );
@@ -231,12 +235,16 @@ pub fn process_all_royalty_payments(
             continue;
         }
 
-        let last_turn_vwap = market_history
-            .vwap_per_commodity
-            .values()
-            .next()
-            .copied()
-            .unwrap_or(vwap_fallback);
+        // Phase E.4: Use the company's actual output commodity for VWAP lookup.
+        let output_commodity = company_output_commodities.get(&company.id).copied();
+        let last_turn_vwap = match output_commodity {
+            Some(commodity) => market_history
+                .vwap_per_commodity
+                .get(&commodity)
+                .copied()
+                .unwrap_or(vwap_fallback),
+            None => vwap_fallback,
+        };
 
         let has_state_license = company
             .licensed_methods

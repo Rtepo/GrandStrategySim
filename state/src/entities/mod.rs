@@ -115,6 +115,14 @@ pub struct LicensedMethod {
     pub licensor_company_id: String,
     /// Turn when license was signed.
     pub licensed_turn: u32,
+    /// Royalty VWAP ratio from the licensor's patent (Phase E.5).
+    /// Stored at license creation to avoid looking up the licensee's own patents.
+    #[serde(default = "default_royalty_vwap_ratio")]
+    pub royalty_vwap_ratio: f64,
+}
+
+fn default_royalty_vwap_ratio() -> f64 {
+    0.05
 }
 
 // ============================================================================
