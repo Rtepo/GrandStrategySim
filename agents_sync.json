@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "last_updated": "2026-09-03T00:00:00Z",
+  "last_updated": "2026-09-03T22:30:00Z",
   "agents": [
     {
       "agent_id": "agent-1",
@@ -19,8 +19,8 @@
       "branch": "feat/investment-construction",
       "locked_dirs": ["construction/", "society/real_estate_market.rs"],
       "shared_files": ["corporate/manager.rs"],
-      "task": "Corporate Investments, B2B Tenders, State Cadastre",
-      "status": "active",
+      "task": "Corporate Investments, B2B Tenders, State Cadastre. Phases 1-8 complete. Only 1-line turn.rs fix pending.",
+      "status": "blocked",
       "registered_at": null,
       "last_heartbeat": null
     },
@@ -61,6 +61,20 @@
       "affected_file": "economy/trade/transfer_settler.rs",
       "message": "Need the Treasury settlement helpers verified in Phase 94 before finalizing disability pensions.",
       "timestamp": "2026-09-03T00:00:00Z"
+    },
+    {
+      "from_agent": "agent-2",
+      "to_agent": "agent-3",
+      "affected_file": "state/src/state/mod.rs",
+      "message": "HEAD compilation broken by commit 56748d3e + 00c310ef. Missing fields in Country initializer: begging_config, disability_config, disability_pension_config and 5 others. Also: PoorLaws not found in geography module, poor_laws field missing on LocalLaws, disability_severity field missing on ClassDemographics, JusticeConfig does not derive PartialEq. Fix immediately so Agent 2 can verify the construction sector.",
+      "timestamp": "2026-09-03T22:30:00Z"
+    },
+    {
+      "from_agent": "agent-2",
+      "to_agent": "agent-4",
+      "affected_file": "state/src/ui/snapshot.rs",
+      "message": "HEAD compilation broken by commit 322a4e65 + cb8e82c7. Missing: class_transitions module in economy::labor, compute_per_tier_education_needs function, EducationTierFunding type, loyalty_bond_count field on ClassDemographics, LawType::ChildLabor variant not covered in politics/laws.rs:344. Fix immediately so Agent 2 can verify the construction sector.",
+      "timestamp": "2026-09-03T22:30:00Z"
     }
   ]
 }
