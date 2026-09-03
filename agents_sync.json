@@ -46,5 +46,21 @@
       "registered_at": null,
       "last_heartbeat": null
     }
+  ],
+  "cross_agent_blockers": [
+    {
+      "from_agent": "agent-2",
+      "to_agent": "agent-1",
+      "affected_file": "engine/turn.rs",
+      "message": "Need the Treasury settlement helpers verified in Phase 94 before finalizing construction escrow in turn.rs.",
+      "timestamp": "2026-09-03T00:00:00Z"
+    },
+    {
+      "from_agent": "agent-3",
+      "to_agent": "agent-1",
+      "affected_file": "economy/trade/transfer_settler.rs",
+      "message": "Need the Treasury settlement helpers verified in Phase 94 before finalizing disability pensions.",
+      "timestamp": "2026-09-03T00:00:00Z"
+    }
   ]
 }

@@ -339,3 +339,92 @@ ledger_summary() {
         });
     '
 }
+
+# ─── Get blockers targeting this agent (C5: Blocker Bus) ───────────────────
+# Reads agents_sync.json and outputs any cross_agent_blockers where
+# to_agent matches AGENT_ID or "all". Outputs a formatted warning string.
+# Uses env vars: AGENT_ID
+get_blockers_for_agent() {
+    cat "$LEDGER_FILE" 2>/dev/null | node -e '
+        let input = "";
+        process.stdin.on("data", d => input += d);
+        process.stdin.on("end", () => {
+            try {
+                const data = JSON.parse(input);
+                const myAgentId = process.env.AGENT_ID || "";
+                const blockers = data.cross_agent_blockers || [];
+                const relevant = blockers.filter(b =>
+                    b.to_agent === myAgentId || b.to_agent === "all"
+                );
+                if (relevant.length === 0) {
+                    console.log("");  // No blockers
+                    return;
+                }
+                console.log("⚠️  CROSS-AGENT BLOCKERS TARGETING YOU (" + myAgentId + "):");
+                for (const b of relevant) {
+                    console.log("  FROM: " + b.from_agent + " | FILE: " + b.affected_file);
+                    console.log("    MSG: " + b.message);
+                    console.log("    TIME: " + b.timestamp);
+                }
+            } catch(e) {
+                console.log("");
+            }
+        });
+    '
+}
+
+# ─── Mutator: Add a cross-agent blocker (C5: Blocker Bus) ──────────────────
+# Reads agents_sync.json from working tree, appends a blocker entry,
+# writes back. Uses env vars: AGENT_ID (from), BLOCKER_TO, BLOCKER_FILE,
+# BLOCKER_MSG
+mutator_add_blocker() {
+    node -e '
+        const fs = require("fs");
+        const data = JSON.parse(fs.readFileSync("agents_sync.json", "utf8"));
+        const fromAgent = process.env.AGENT_ID || "unknown";
+        const toAgent = process.env.BLOCKER_TO || "all";
+        const affectedFile = process.env.BLOCKER_FILE || "";
+        const message = process.env.BLOCKER_MSG || "";
+
+        if (!data.cross_agent_blockers) {
+            data.cross_agent_blockers = [];
+        }
+
+        // Remove any existing blocker from the same agent on the same file
+        // to avoid duplicates (upsert behavior)
+        data.cross_agent_blockers = data.cross_agent_blockers.filter(b =>
+            !(b.from_agent === fromAgent && b.affected_file === affectedFile)
+        );
+
+        data.cross_agent_blockers.push({
+            from_agent: fromAgent,
+            to_agent: toAgent,
+            affected_file: affectedFile,
+            message: message,
+            timestamp: new Date().toISOString()
+        });
+
+        data.last_updated = new Date().toISOString();
+        fs.writeFileSync("agents_sync.json", JSON.stringify(data, null, 2));
+    '
+}
+
+# ─── Mutator: Clear blockers from this agent (on session end) ──────────────
+# Removes all blockers where from_agent matches AGENT_ID.
+# Uses env vars: AGENT_ID
+mutator_clear_my_blockers() {
+    node -e '
+        const fs = require("fs");
+        const data = JSON.parse(fs.readFileSync("agents_sync.json", "utf8"));
+        const myAgentId = process.env.AGENT_ID || "";
+
+        if (data.cross_agent_blockers) {
+            data.cross_agent_blockers = data.cross_agent_blockers.filter(b =>
+                b.from_agent !== myAgentId
+            );
+        }
+
+        data.last_updated = new Date().toISOString();
+        fs.writeFileSync("agents_sync.json", JSON.stringify(data, null, 2));
+    '
+}
