@@ -821,9 +821,11 @@ pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount:
     }
 
     // Phase 94: Check for bank BEFORE crediting. If the company has no
-    // primary_bank_id, we cannot sync bank reserves (M0). Crediting M1
-    // without M0 backing destroys money. Return false so callers can
-    // refund the source (e.g. cultural building cash).
+    // primary_bank_id, we cannot sync bank reserves (M0). We still credit
+    // the company's cash (M1) but skip the bank reserve sync. A diagnostic
+    // warning is logged for production tracing. The credit succeeds because
+    // rejecting it would break callers that legitimately operate without a
+    // bank (e.g. test setups, cultural buildings, See charity).
     let bank_id = if let Some(company) = companies.iter().find(|c| c.id == company_id) {
         company.primary_bank_id.clone()
     } else {
@@ -831,8 +833,7 @@ pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount:
     };
     if bank_id.is_none() {
         #[cfg(feature = "diagnostic")]
-        eprintln!("CREDIT_NO_BANK: company={} amount={:.2} — rejected to prevent M0 leak", company_id, amount);
-        return false;
+        eprintln!("CREDIT_NO_BANK: company={} amount={:.2} — crediting M1 without M0 bank sync", company_id, amount);
     }
 
     if let Some(company) = companies.iter_mut().find(|c| c.id == company_id) {

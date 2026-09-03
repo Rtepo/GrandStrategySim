@@ -389,8 +389,24 @@ mod tests {
         let mut owner = Company::default();
         owner.id = "COMPANY_PHARMA".to_string();
         owner.available_cash = 0.0;
+        // Phase 94: Give the owner a primary_bank_id so settle_treasury_to_company
+        // can sync bank reserves (M0 conservation).
+        owner.primary_bank_id = Some("BANK_TEST".to_string());
+
+        // Create a test bank so the bank sync in settle_treasury_to_company works.
+        let mut bank = Company::default();
+        bank.id = "BANK_TEST".to_string();
+        bank.sector = Sector::Banking;
+        bank.bank_type = Some(crate::state::banking::BankType::Universal);
+        bank.balance_sheet = Some(crate::state::banking::BankBalanceSheet {
+            reserves_at_central_bank: 1_000_000.0,
+            deposits: 1_000_000.0,
+            tier_1_capital: 0.0,
+            ..Default::default()
+        });
 
         let mut country = make_country_with_treasury(10000.0);
+        let mut companies = vec![owner, bank];
 
         let mut building_inventories = BTreeMap::new();
         building_inventories.insert(
@@ -399,7 +415,6 @@ mod tests {
         );
 
         let mut buildings = vec![building];
-        let mut companies = vec![owner];
         trade_innovation_points_b2b(
             &mut buildings,
             &mut companies,
