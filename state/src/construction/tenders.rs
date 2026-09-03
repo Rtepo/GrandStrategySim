@@ -77,6 +77,15 @@ pub struct ConstructionTender {
     /// Investor's budget ceiling (total price the investor will pay).
     #[serde(default)]
     pub estimated_cost: f64,
+
+    /// Phase 1 fix (C3): Cash escrowed from the investor at publication
+    /// time. For Corporate investors, this was debited from
+    /// `available_cash` / `brokerage_account.cash` and credited to
+    /// `debit_cash`. For State investors, debited from
+    /// `country.budget.liquid_reserves`. On cancellation, this amount is
+    /// refunded. On award, this becomes `project.investor_cash_debited`.
+    #[serde(default)]
+    pub escrowed_amount: f64,
     /// Bidding window in turns.
     #[serde(default)]
     pub deadline_turns: u32,

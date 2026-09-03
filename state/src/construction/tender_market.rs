@@ -11,6 +11,7 @@ use crate::construction::tenders::{
 };
 use crate::entities::Company;
 use crate::registries::enums::Sector;
+use crate::state::Country;
 use rand::Rng;
 use std::collections::BTreeMap;
 
@@ -50,7 +51,7 @@ pub fn publish_tender(
     sector: crate::registries::enums::Sector,
     start_year: u32,
 ) -> ConstructionTender {
-    let required_materials = get_construction_bom(sector, start_year);
+    let required_materials = get_construction_bom(sector, start_year, target_capacity_increase);
 
     let tender_id = format!(
         "tender_{}_{}_{}",
@@ -73,12 +74,114 @@ pub fn publish_tender(
         target_capacity_increase,
         target_capital_increase,
         estimated_cost,
+        escrowed_amount: 0.0,
         deadline_turns,
         published_turn: current_turn,
         status: TenderStatus::Open,
         bids: Vec::new(),
         awarded_bid: None,
         expansion_target_building_id: None,
+    }
+}
+
+/// Phase 1 fix (C3): Encumber `estimated_cost` from the investor's cash
+/// at tender publication time. This creates a real escrow that ensures
+/// the investor has the funds to pay the contractor.
+///
+/// For Corporate investors: debits `brokerage_account.cash` (or
+/// `available_cash`), credits `debit_cash`.
+/// For State investors: debits `country.budget.liquid_reserves`.
+///
+/// # Arguments
+/// * `tender` - The tender to encumber funds for (mutated: `escrowed_amount` set).
+/// * `companies` - Mutable slice of companies (for Corporate investor lookup).
+/// * `country` - Mutable country state (for State Treasury debit).
+///
+/// # Returns
+/// `true` if escrow was successful, `false` if insufficient funds.
+pub fn encumber_tender_escrow(
+    tender: &mut ConstructionTender,
+    companies: &mut [Company],
+    country: &mut Country,
+) -> bool {
+    let cost = tender.estimated_cost;
+    if cost <= 0.0 {
+        return true; // Nothing to escrow
+    }
+
+    let is_state = tender.investor_id.starts_with("STATE:");
+
+    if is_state {
+        // State escrow: debit Treasury reserves
+        if country.budget.liquid_reserves < cost {
+            return false;
+        }
+        country.budget.liquid_reserves -= cost;
+        tender.escrowed_amount = cost;
+        true
+    } else {
+        // Corporate escrow: debit company cash, credit debit_cash
+        let investor_idx = match companies.iter().position(|c| c.id == tender.investor_id) {
+            Some(idx) => idx,
+            None => return false,
+        };
+
+        let available = if let Some(ref ba) = companies[investor_idx].brokerage_account {
+            ba.cash
+        } else {
+            companies[investor_idx].available_cash
+        };
+
+        if available < cost {
+            return false;
+        }
+
+        if let Some(ref mut ba) = companies[investor_idx].brokerage_account {
+            ba.cash -= cost;
+        } else {
+            companies[investor_idx].available_cash -= cost;
+        }
+        companies[investor_idx].debit_cash += cost;
+        tender.escrowed_amount = cost;
+        true
+    }
+}
+
+/// Phase 1 fix (C3): Refund the escrowed amount to the investor when a
+/// tender is cancelled (no eligible bids) or abandoned.
+///
+/// For Corporate investors: credits `brokerage_account.cash` (or
+/// `available_cash`), debits `debit_cash`.
+/// For State investors: credits `country.budget.liquid_reserves`.
+///
+/// # Arguments
+/// * `tender` - The cancelled tender (reads `escrowed_amount`).
+/// * `companies` - Mutable slice of companies (for Corporate investor refund).
+/// * `country` - Mutable country state (for State Treasury refund).
+pub fn refund_tender_escrow(
+    tender: &ConstructionTender,
+    companies: &mut [Company],
+    country: &mut Country,
+) {
+    let refund = tender.escrowed_amount;
+    if refund <= 0.0 {
+        return;
+    }
+
+    let is_state = tender.investor_id.starts_with("STATE:");
+
+    if is_state {
+        country.budget.liquid_reserves += refund;
+    } else {
+        if let Some(investor_idx) = companies.iter().position(|c| c.id == tender.investor_id) {
+            if let Some(ref mut ba) = companies[investor_idx].brokerage_account {
+                ba.cash += refund;
+            } else {
+                companies[investor_idx].available_cash += refund;
+            }
+            companies[investor_idx].debit_cash =
+                (companies[investor_idx].debit_cash - refund).max(0.0);
+        }
     }
 }
 
@@ -345,6 +448,8 @@ pub fn award_tender(
         is_new_building: tender.expansion_target_building_id.is_none(),
         total_cost: contract_price,
         cost_spent: 0.0,
+        investor_cash_debited: tender.escrowed_amount,
+        tranches_paid: 0.0,
         duration_turns: 0,
         turns_elapsed: 0,
         progress: 0.0,
@@ -367,6 +472,9 @@ pub fn award_tender(
         ohs_accidents: 0,
         network_link_target: None,
         network_target_level: None,
+        weather_productivity: 1.0,
+        disaster_material_loss: 0.0,
+        parcel_id: String::new(),
     };
 
     tender.status = TenderStatus::Awarded;
@@ -399,14 +507,20 @@ fn bidder_extra_reputation(company: &Company) -> f64 {
 /// * `current_turn` - Current turn number.
 ///
 /// # Returns
-/// Vector of (tender_id, project, expansion_target_building_id) tuples for
-/// newly awarded tenders. The expansion target is `Some(building_id)` for
-/// expansion tenders, `None` for new-building tenders.
+/// Tuple of:
+/// * Vector of (tender_id, project, expansion_target_building_id) tuples for
+///   newly awarded tenders.
+/// * Vector of cancelled tenders (no eligible bids) — caller must refund
+///   their escrow via `refund_tender_escrow`.
 pub fn process_tender_awards(
     tenders: &mut Vec<ConstructionTender>,
     current_turn: u32,
-) -> Vec<(String, ConstructionProject, Option<String>)> {
+) -> (
+    Vec<(String, ConstructionProject, Option<String>)>,
+    Vec<ConstructionTender>,
+) {
     let mut awarded = Vec::new();
+    let mut cancelled = Vec::new();
 
     let mut to_remove = Vec::new();
     for (idx, tender) in tenders.iter_mut().enumerate() {
@@ -436,10 +550,13 @@ pub fn process_tender_awards(
 
     // Remove awarded/cancelled tenders from the active list
     for idx in to_remove.iter().rev() {
-        tenders.remove(*idx);
+        let removed = tenders.remove(*idx);
+        if removed.status == TenderStatus::Cancelled {
+            cancelled.push(removed);
+        }
     }
 
-    awarded
+    (awarded, cancelled)
 }
 
 /// AI helper: a construction company decides whether to bid on a tender

@@ -576,6 +576,8 @@ pub fn generate_corporate_entities(
             id: building_id,
             name: name.to_string(),
             owner_id: "State".to_string(),
+            parcel_id: None,
+            pending_harvest_biomass: std::collections::HashMap::new(),
             year_built: start_year.saturating_sub(rng.gen_range(1..30)),
             sector: Sector::PublicServices,
             worker_capacity: capacity,
@@ -648,6 +650,8 @@ pub fn generate_corporate_entities(
             id: building_id.clone(),
             name: format!("Landfill ({})", region.id),
             owner_id: "State".to_string(),
+            parcel_id: None,
+            pending_harvest_biomass: std::collections::HashMap::new(),
             year_built: start_year.saturating_sub(rng.gen_range(1..10)),
             sector: Sector::WasteManagement,
             worker_capacity: 50,
@@ -2079,6 +2083,7 @@ fn generate_region_companies(
             pending_ipo_shares: None,
             pending_blueprint_design: None,
             pending_ip_theft: None,
+            pending_abandon_project: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
             reputation_score: 50.0,
@@ -2145,6 +2150,8 @@ fn generate_region_companies(
             id: building_id.clone(),
             name: building_name,
             owner_id: company_id.clone(),
+            parcel_id: None,
+            pending_harvest_biomass: std::collections::HashMap::new(),
             year_built: start_year.saturating_sub(rng.gen_range(1..30)),
             sector,
             worker_capacity: base_capacity,
@@ -2273,6 +2280,7 @@ fn sector_display(sector: Sector) -> String {
         Sector::Religion => "Religion",
         Sector::MaintenanceWorkshops => "Maintenance Workshops",
         Sector::Government => "Government",
+        Sector::Insurance => "Insurance",
     }
     .to_string()
 }
@@ -2458,6 +2466,14 @@ fn sector_suffix(sector: Sector, rng: &mut impl rand::Rng) -> &'static str {
         ]
         .choose(rng)
         .unwrap(),
+        Sector::Insurance => [
+            "Insurance Co",
+            "Assurance Ltd",
+            "Underwriting Trust",
+            "Risk Mutual",
+        ]
+        .choose(rng)
+        .unwrap(),
     }
 }
 
@@ -2479,6 +2495,8 @@ fn legal_form_suffix(legal_form: &crate::entities::LegalForm) -> &'static str {
         LegalForm::NonProfit(_) => "Foundation",
         LegalForm::MutualAidCircle(_) => "Mutual Aid",
         LegalForm::Guild(_) => "Guild",
+        LegalForm::MutualInsurance(_) => "Mutual Insurance",
+        LegalForm::ShelteredWorkshop(_) => "Sheltered Workshop",
     }
 }
 
@@ -3032,6 +3050,7 @@ fn default_building_name(sector: Sector) -> String {
         Sector::NGO => "NGO Office".to_string(),
         Sector::Religion => "Religious Institution".to_string(),
         Sector::Government => "Parliament".to_string(),
+        Sector::Insurance => "Insurance Office".to_string(),
     }
 }
 
@@ -3599,6 +3618,7 @@ fn create_seed_company_with_explicit_method(
         pending_ipo_shares: None,
         pending_blueprint_design: None,
         pending_ip_theft: None,
+            pending_abandon_project: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
         reputation_score: 50.0,
@@ -3655,6 +3675,8 @@ fn create_seed_company_with_explicit_method(
         id: building_id.clone(),
         name: building_name.to_string(),
         owner_id: company_id.clone(),
+            parcel_id: None,
+            pending_harvest_biomass: std::collections::HashMap::new(),
         year_built: start_year.saturating_sub(rng.gen_range(1..30)),
         sector,
         worker_capacity: base_capacity,
@@ -4059,6 +4081,7 @@ fn create_seed_company(
         pending_ipo_shares: None,
         pending_blueprint_design: None,
         pending_ip_theft: None,
+            pending_abandon_project: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
         reputation_score: 50.0,
@@ -4140,6 +4163,8 @@ fn create_seed_company(
         id: building_id.clone(),
         name: building_name,
         owner_id: company_id.clone(),
+            parcel_id: None,
+            pending_harvest_biomass: std::collections::HashMap::new(),
         year_built: start_year.saturating_sub(rng.gen_range(1..30)),
         sector,
         worker_capacity: base_capacity,
@@ -4583,6 +4608,8 @@ fn build_crop_batches(
                     planted_turn,
                     accumulated_yield: pre_accumulated,
                     rot_accumulator: 0.0,
+                    maturity_turn: 0,
+                    parcel_id: 0,
                 });
             }
         }
@@ -4609,6 +4636,8 @@ fn build_crop_batches(
                     planted_turn,
                     accumulated_yield: pre_accumulated,
                     rot_accumulator: 0.0,
+                    maturity_turn: 0,
+                    parcel_id: 0,
                 });
             }
         }
@@ -4724,6 +4753,8 @@ fn create_strategic_reserve_agency(
             id: building_id,
             name: "Strategic Reserve Warehouse".to_string(),
             owner_id: agency_id.clone(),
+            parcel_id: None,
+            pending_harvest_biomass: std::collections::HashMap::new(),
             year_built: start_year.saturating_sub(5),
             sector: Sector::PublicServices,
             worker_capacity: staff,
@@ -4794,6 +4825,8 @@ fn create_strategic_reserve_agency(
             id: storage_id,
             name: "Pumped Storage Plant".to_string(),
             owner_id: agency_id.clone(),
+            parcel_id: None,
+            pending_harvest_biomass: std::collections::HashMap::new(),
             year_built: start_year.saturating_sub(5),
             sector: Sector::PublicServices,
             worker_capacity: storage_staff,
@@ -4911,6 +4944,7 @@ fn create_strategic_reserve_agency(
         pending_ipo_shares: None,
         pending_blueprint_design: None,
         pending_ip_theft: None,
+            pending_abandon_project: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
         reputation_score: 50.0,
@@ -5247,6 +5281,7 @@ fn generate_retail_stores(
             pending_ipo_shares: None,
             pending_blueprint_design: None,
             pending_ip_theft: None,
+            pending_abandon_project: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
             reputation_score: 50.0,
@@ -5625,6 +5660,7 @@ fn generate_tourism_entities(
                 pending_ipo_shares: None,
                 pending_blueprint_design: None,
                 pending_ip_theft: None,
+            pending_abandon_project: None,
                 blueprints: Vec::new(),
                 licensed_blueprints: Vec::new(),
                 reputation_score: 50.0,
@@ -6360,6 +6396,7 @@ fn create_charity_company(
         pending_ipo_shares: None,
         pending_blueprint_design: None,
         pending_ip_theft: None,
+            pending_abandon_project: None,
         blueprints: Vec::new(),
         licensed_blueprints: Vec::new(),
         reputation_score: 50.0,
@@ -6621,6 +6658,7 @@ pub fn generate_investment_funds(
             pending_ipo_shares: None,
             pending_blueprint_design: None,
             pending_ip_theft: None,
+            pending_abandon_project: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
             reputation_score: 60.0,

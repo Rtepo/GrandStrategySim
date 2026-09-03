@@ -71,6 +71,16 @@ pub struct CropBatch {
 
     /// Rot accumulator (0.0 = no rot, 1.0 = 100% destroyed)
     pub rot_accumulator: f64,
+
+    /// Turn when this batch reaches full maturity (for plantations).
+    /// 0 = already mature (arable crops or pre-matured genesis plantations).
+    #[serde(default)]
+    pub maturity_turn: u32,
+
+    /// Cadastre parcel ID this batch is planted on.
+    /// Links the batch to a specific `ParcelChunk` for soil nutrient tracking.
+    #[serde(default)]
+    pub parcel_id: u32,
 }
 
 /// Agricultural crop state in the production cycle
@@ -685,6 +695,10 @@ pub struct Company {
     /// Phase E.10: Pending IP theft action (queued by apply_action, consumed by turn loop).
     #[serde(skip)]
     pub pending_ip_theft: Option<PendingIPTheft>,
+    /// Phase 4 fix (C6): Pending project abandonment (queued by apply_action,
+    /// consumed by turn loop where buildings are mutable).
+    #[serde(skip)]
+    pub pending_abandon_project: Option<String>,
     /// Phase 18A: Shadow employment (off-the-books undocumented workers).
     /// None for companies that don't hire illegals or aren't in labor-intensive sectors.
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -899,6 +913,7 @@ extra: HashMap::new(),
             pending_ipo_shares: None,
             pending_blueprint_design: None,
             pending_ip_theft: None,
+            pending_abandon_project: None,
             blueprints: Vec::new(),
             licensed_blueprints: Vec::new(),
             reputation_score: 50.0,
@@ -1124,6 +1139,10 @@ pub struct Building {
     /// Owner company id (`"owner_id"`).
     #[serde(default)]
     pub owner_id: String,
+    /// Phase 8 fix (M4): Cadastre parcel ID this building sits on.
+    /// Empty for legacy buildings without cadastre linkage.
+    #[serde(default)]
+    pub parcel_id: Option<String>,
     /// Year built (`"year_built"`).
     #[serde(default)]
     pub year_built: u32,
@@ -1201,6 +1220,12 @@ pub struct Building {
     /// Phase 4: Maximum inventory capacity (tons units).
     #[serde(default = "default_building_inventory_capacity")]
     pub inventory_capacity: f64,
+    /// Agriculture 2.0: Unharvested biomass deposited by the crop batch system.
+    /// The production method extracts from this pool using its efficiency
+    /// multiplier. NOT tradable inventory — it's physical crop in the field.
+    /// Cleared each turn by `execute_production_cycle` for agriculture buildings.
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub pending_harvest_biomass: HashMap<Commodity, f64>,
     /// Phase 7: Active construction project on this site (None if operational).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub active_project: Option<crate::construction::ConstructionProject>,
@@ -1274,6 +1299,7 @@ impl Building {
             id,
             name: String::new(),
             owner_id,
+            parcel_id: None,
             year_built: 0,
             sector,
             worker_capacity,
@@ -1295,6 +1321,7 @@ impl Building {
             aggregated_stats: AggregatedStats::default(),
             inventory: BTreeMap::new(),
             inventory_capacity: default_building_inventory_capacity(),
+            pending_harvest_biomass: HashMap::new(),
             active_project: None,
             pending_method_upgrade: None,
             active_emission_control: String::new(),

@@ -258,6 +258,8 @@ mod tests {
             is_new_building: true,
             total_cost: 500_000.0,
             cost_spent: 0.0,
+            investor_cash_debited: 500_000.0,
+            tranches_paid: 0.0,
             duration_turns: 10,
             turns_elapsed: 0,
             progress: 0.0,
@@ -280,6 +282,9 @@ mod tests {
             ohs_accidents: 0,
             network_link_target: None,
             network_target_level: None,
+            weather_productivity: 1.0,
+            disaster_material_loss: 0.0,
+            parcel_id: String::new(),
         }
     }
 

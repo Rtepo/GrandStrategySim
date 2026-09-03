@@ -82,5 +82,15 @@ If you realize you have violated any of these rules:
 
 ---
 
+## Critical Collaboration Protocol
+
+**CRITICAL COLLABORATION PROTOCOL:** Before creating a branch, starting a
+task, or modifying any file, you MUST read `AGENTS_SYNC.md`. You are STRICTLY
+FORBIDDEN from editing files or domains currently locked by another agent.
+You must update your row in `AGENTS_SYNC.md` when starting work and when
+finishing/merging.
+
+---
+
 *These rules are immutable and take precedence over any task-specific
 instructions that conflict with them.*

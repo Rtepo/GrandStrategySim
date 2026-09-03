@@ -18,6 +18,44 @@ use crate::state::Country;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+/// Phase 7 fix (M3): Corporate investment fractions, replacing hardcoded
+/// magic-number reinvestment ratios with configurable values.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct CorporateInvestmentConfig {
+    /// Fraction of gross profit reinvested by family businesses.
+    pub family_reinvestment_fraction: f64,
+    /// Fraction of gross profit reinvested by cooperatives.
+    pub cooperative_reinvestment_fraction: f64,
+    /// Fraction of gross profit reinvested by joint-stock companies
+    /// (when internal funds suffice).
+    pub joint_stock_reinvestment_fraction: f64,
+    /// Fraction of gross profit reinvested by logistics warehouse builders.
+    pub logistics_reinvestment_fraction: f64,
+    /// Maximum credit as a fraction of company capital.
+    pub max_credit_fraction: f64,
+    /// Interest rate threshold above which no credit is extended.
+    pub credit_rate_threshold: f64,
+    /// Hiring cap as a fraction of worker capacity per turn.
+    pub hiring_cap_fraction: f32,
+    /// Minimum hiring cap (small companies can always hire a few).
+    pub min_hiring_cap: u32,
+}
+
+impl Default for CorporateInvestmentConfig {
+    fn default() -> Self {
+        Self {
+            family_reinvestment_fraction: 0.30,
+            cooperative_reinvestment_fraction: 0.20,
+            joint_stock_reinvestment_fraction: 0.50,
+            logistics_reinvestment_fraction: 0.30,
+            max_credit_fraction: 0.5,
+            credit_rate_threshold: 0.20,
+            hiring_cap_fraction: 0.20,
+            min_hiring_cap: 5,
+        }
+    }
+}
+
 /// All signals a company observes before deciding its turn.
 #[derive(Debug, Clone)]
 pub struct CorporateDecisionCtx<'a> {
@@ -173,6 +211,15 @@ pub enum CorporateAction {
         target_company_id: String,
         /// Method of IP theft.
         method: crate::entities::IPTheftMethod,
+    },
+    /// Phase 4 fix (C6): Voluntarily abandon a stalled or unprofitable
+    /// construction project. The investor cuts their losses and reclaims
+    /// any unspent escrow. Delivered-but-unconsumed materials remain in
+    /// the building inventory. The contractor keeps any tranches already
+    /// paid (work performed).
+    AbandonProject {
+        /// Building ID whose active project should be abandoned.
+        building_id: String,
     },
 }
 
@@ -393,6 +440,8 @@ impl CorporateStrategy for LegalForm {
             LegalForm::LogisticsCompany(_) => logistics_expansion(ctx), // Phase 29: ROI-driven warehouse expansion
             LegalForm::NonProfit(_) => CorporateAction::Idle, // Non-profits don't pursue corporate expansion
             LegalForm::Guild(_) => CorporateAction::Idle, // Phase 85: Guilds expand via member recruitment, not capital
+            LegalForm::MutualInsurance(_) => CorporateAction::Idle, // Phase H5: Mutual insurers expand via premium collection, not capital
+            LegalForm::ShelteredWorkshop(_) => CorporateAction::Idle, // Phase D6: Sheltered workshops expand via state subsidy, not capital
         }
     }
 
@@ -1053,11 +1102,12 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
     })
 }
 
-/// Phase 37: Cap new worker hiring to 20% of current capacity per turn.
-/// Small companies (<5 workers) can add up to 5 to allow initial scaling.
+/// Phase 37: Cap new worker hiring to a fraction of current capacity per turn.
+/// Small companies can add up to `min_hiring_cap` to allow initial scaling.
 fn cap_new_workers(company: &Company, raw: u32) -> u32 {
-    let cap = (company.worker_capacity as f32 * 0.20) as u32 + 1;
-    raw.min(cap.max(5))
+    let config = CorporateInvestmentConfig::default();
+    let cap = (company.worker_capacity as f32 * config.hiring_cap_fraction) as u32 + 1;
+    raw.min(cap.max(config.min_hiring_cap))
 }
 
 fn family_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
@@ -1072,7 +1122,7 @@ fn family_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
         if expansion_weight > 0.8 {
             return CorporateAction::Idle;
         }
-        let investment = ctx.gross_profit * 0.30 * (1.0 - expansion_weight);
+        let investment = ctx.gross_profit * CorporateInvestmentConfig::default().family_reinvestment_fraction * (1.0 - expansion_weight);
         let new_workers =
             cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
         CorporateAction::Expand {
@@ -1093,7 +1143,7 @@ fn cooperative_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
         if expansion_weight > 0.8 {
             return CorporateAction::Idle;
         }
-        let investment = ctx.gross_profit * 0.20 * (1.0 - expansion_weight);
+        let investment = ctx.gross_profit * CorporateInvestmentConfig::default().cooperative_reinvestment_fraction * (1.0 - expansion_weight);
         let new_workers =
             cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
         CorporateAction::Expand {
@@ -1112,7 +1162,7 @@ fn mutual_aid_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
         if expansion_weight > 0.8 {
             return CorporateAction::Idle;
         }
-        let investment = ctx.gross_profit * 0.10 * (1.0 - expansion_weight);
+        let investment = ctx.gross_profit * 0.10 * (1.0 - expansion_weight); // Conservative: 10% retained
         let new_workers =
             cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
         CorporateAction::Expand {
@@ -1134,10 +1184,10 @@ fn joint_stock_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
     let internal = ctx.company.liquid_capital;
 
     if desired <= internal {
-        // Phase 29: Increased from 0.30 to 0.50 for higher investment velocity.
+        // Phase 29: Increased reinvestment fraction for higher investment velocity.
         let raw = ((desired / 1_000.0) as u32).max(1);
         CorporateAction::Expand {
-            investment: desired * 0.50,
+            investment: desired * CorporateInvestmentConfig::default().joint_stock_reinvestment_fraction,
             new_workers: cap_new_workers(ctx.company, raw),
             finance: FinanceSource::Internal,
         }
@@ -1181,7 +1231,7 @@ fn logistics_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
     // The logistics company can expect to capture a portion of the overflow fees
     // by providing warehouse capacity. Use 50% capture rate as a conservative estimate.
     let projected_storage_revenue = region_overflow_fees * 0.5;
-    let investment = ctx.gross_profit * 0.30;
+    let investment = ctx.gross_profit * CorporateInvestmentConfig::default().logistics_reinvestment_fraction;
     let warehouse_cost = investment.max(10_000.0);
 
     // Payback threshold: warehouse should pay for itself within 20 turns
@@ -1412,10 +1462,11 @@ pub fn update_board_independence(
 }
 
 fn max_credit(company: &Company, bank_credit_rate: f64) -> f64 {
-    if bank_credit_rate >= 0.20 {
+    let config = CorporateInvestmentConfig::default();
+    if bank_credit_rate >= config.credit_rate_threshold {
         0.0
     } else {
-        company.company_capital.max(0.0) * 0.5
+        company.company_capital.max(0.0) * config.max_credit_fraction
     }
 }
 

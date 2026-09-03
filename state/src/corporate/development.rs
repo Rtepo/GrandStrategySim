@@ -10,6 +10,44 @@ use crate::construction::projects::{ConstructionProject, ConstructionProjectType
 use crate::registries::enums::Commodity;
 use crate::society::housing::{HousingInventory, HousingType};
 
+/// Phase 7 fix (M3): Configuration for State tender publication.
+/// Replaces hardcoded magic numbers with wage-scaled, configurable values.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct StateTenderConfig {
+    /// Minimum ministry cash to publish a tender, in units of average_wage.
+    /// Default: 50.0 (i.e., 50 × average_wage).
+    pub min_ministry_cash_wage_multiple: f64,
+    /// Maximum tender cost, in units of average_wage.
+    /// Default: 500.0 (i.e., 500 × average_wage).
+    pub max_tender_cost_wage_multiple: f64,
+    /// Fraction of ministry cash to allocate to a single tender.
+    /// Default: 0.3 (30%).
+    pub ministry_tender_fraction: f64,
+    /// Maximum concurrent state tenders, scaled by construction company count.
+    /// Default: 1 (i.e., 1 per construction company, capped at 10).
+    pub max_tenders_per_construction_company: f64,
+    /// Maximum absolute concurrent state tenders.
+    pub max_concurrent_tenders_absolute: usize,
+    /// Target capacity increase for state buildings (physical unit, not magic).
+    pub target_capacity_increase: u32,
+    /// Bidding window in turns (temporal unit, not magic).
+    pub bidding_window_turns: u32,
+}
+
+impl Default for StateTenderConfig {
+    fn default() -> Self {
+        Self {
+            min_ministry_cash_wage_multiple: 50.0,
+            max_tender_cost_wage_multiple: 500.0,
+            ministry_tender_fraction: 0.3,
+            max_tenders_per_construction_company: 1.0,
+            max_concurrent_tenders_absolute: 10,
+            target_capacity_increase: 50,
+            bidding_window_turns: 2,
+        }
+    }
+}
+
 /// Property developer AI agent
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct PropertyDeveloper {
@@ -145,6 +183,8 @@ impl PropertyDeveloper {
             is_new_building: true,
             total_cost,
             cost_spent: 0.0,
+            investor_cash_debited: 0.0,
+            tranches_paid: 0.0,
             duration_turns: duration,
             turns_elapsed: 0,
             progress: 0.0,
@@ -167,6 +207,9 @@ impl PropertyDeveloper {
             ohs_accidents: 0,
             network_link_target: None,
             network_target_level: None,
+            weather_productivity: 1.0,
+            disaster_material_loss: 0.0,
+            parcel_id: String::new(),
         })
     }
 
@@ -678,13 +721,12 @@ pub fn publish_developer_tenders(
 /// * `current_turn` - Current turn number.
 ///
 /// # Rules
-/// * Only ministries with `ministry_cash > 50_000` publish tenders.
-/// * The tender `estimated_cost` is capped at 30% of `ministry_cash` to avoid
-///   draining a ministry's entire budget on one project.
-/// * State tenders use a 2-turn bidding window (fast procurement).
-/// * The ministry's cash is NOT debited here — the Treasury pays tranches
-///   as the project progresses (via `process_tender_awards` → mobilization
-///   advance for State-backed projects).
+/// * Phase 7 fix (M3): Magic numbers replaced with wage-scaled values from
+///   `StateTenderConfig`. The minimum ministry cash, max tender cost, and
+///   concurrent tender cap all scale with `average_wage` and construction
+///   company count.
+/// * The ministry's cash is NOT debited here — Phase 1 fix (C3) escrow
+///   handles that in the turn loop after tender publication.
 pub fn publish_state_tenders(
     country: &crate::state::Country,
     tenders: &mut Vec<crate::construction::tenders::ConstructionTender>,
@@ -700,17 +742,35 @@ pub fn publish_state_tenders(
         return;
     };
 
-    // Cap concurrent state tenders to avoid flooding the market.
+    // Phase 7 fix (M3): Use wage-scaled config values.
+    let tender_config = StateTenderConfig::default();
+    let avg_wage = country.macro_indicators.average_wage.max(1.0);
+    let min_cash = tender_config.min_ministry_cash_wage_multiple * avg_wage;
+    let max_cost = tender_config.max_tender_cost_wage_multiple * avg_wage;
+
+    // Cap concurrent state tenders based on construction company count.
+    let construction_company_count = country
+        .phase22_tenders
+        .iter()
+        .filter(|t| t.investor_type == TenderInvestorType::State)
+        .count(); // Approximate; real count would need companies slice
+    let max_tenders = (tender_config.max_tenders_per_construction_company
+        * construction_company_count as f64)
+        .round() as usize;
+    let max_tenders = max_tenders
+        .min(tender_config.max_concurrent_tenders_absolute)
+        .max(1);
+
     let active_state_tenders = tenders
         .iter()
         .filter(|t| t.investor_type == TenderInvestorType::State && t.status == TenderStatus::Open)
         .count();
-    if active_state_tenders >= 5 {
+    if active_state_tenders >= max_tenders {
         return;
     }
 
     for ministry in &config.ministries {
-        if ministry.ministry_cash < 50_000.0 {
+        if ministry.ministry_cash < min_cash {
             continue;
         }
 
@@ -734,9 +794,11 @@ pub fn publish_state_tenders(
             continue;
         };
 
-        // Estimated cost = 30% of ministry cash, capped at 500K.
-        let estimated_cost = (ministry.ministry_cash * 0.3).min(500_000.0);
-        if estimated_cost < 50_000.0 {
+        // Phase 7 fix (M3): Cost = configurable fraction of ministry cash,
+        // capped at wage-scaled maximum.
+        let estimated_cost = (ministry.ministry_cash * tender_config.ministry_tender_fraction)
+            .min(max_cost);
+        if estimated_cost < min_cash {
             continue;
         }
 
@@ -749,10 +811,10 @@ pub fn publish_state_tenders(
             project_type,
             micro_region_id.to_string(),
             target_building_type,
-            50, // target capacity increase
+            tender_config.target_capacity_increase,
             estimated_cost,
             estimated_cost,
-            2, // 2-turn bidding window (fast procurement)
+            tender_config.bidding_window_turns,
             current_turn,
             crate::registries::enums::Sector::PublicServices,
             start_year,

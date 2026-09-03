@@ -112,7 +112,7 @@ fn adjust_bank_balance<S: std::hash::BuildHasher>(
 
 /// Unmapped fallback for helper functions that are called without an index map.
 /// Searches linearly for the bank; prefer `adjust_bank_balance` when a map exists.
-fn adjust_bank_balance_unmapped(
+pub fn adjust_bank_balance_unmapped(
     companies: &mut [Company],
     bank_id: &str,
     deposit_delta: f64,
@@ -261,6 +261,21 @@ pub fn settle_transfer_mapped<S: std::hash::BuildHasher>(
     if !is_intra_bank {
         if let Some(ref bank_id) = payer_bank_id {
             adjust_bank_balance(companies, id_to_idx, bank_id, -amount, -amount);
+        } else if companies[payer_idx].sector == crate::registries::enums::Sector::Banking {
+            // The payer IS a bank paying from its own reserves (e.g. fines,
+            // taxes, deposit insurance). Debit the bank's own balance sheet
+            // so that reserves_at_central_bank decreases alongside the
+            // cash already debited above. Without this, the bank's
+            // available_cash decreases (M1) but reserves (M0) do not,
+            // creating false M0 when the recipient is the Treasury.
+            if let Some(ref mut bs) = companies[payer_idx].balance_sheet {
+                bs.reserves_at_central_bank -= amount;
+                bs.deposits -= amount;
+            }
+        } else {
+            #[cfg(feature = "diagnostic")]
+            eprintln!("TRACE_NO_BANK_TRANSFER: payer={} amount={:.2} recipient={:?} — M0 creation risk (no bank debit)",
+                companies[payer_idx].id, amount, recipient);
         }
     }
 
@@ -568,6 +583,18 @@ pub fn settle_treasury_to_company(
         return Err(TransferError::InsufficientCash);
     }
 
+    // Phase 94: Verify recipient has a primary_bank_id BEFORE debiting treasury.
+    // Without this, treasury (M0) is debited but no bank reserves (M0) are
+    // credited, destroying money. If the recipient has no bank, reject the
+    // transfer to keep M0 conserved.
+    let recipient_bank_id = companies[recipient_idx].primary_bank_id.clone();
+    if recipient_bank_id.is_none() {
+        #[cfg(feature = "diagnostic")]
+        eprintln!("TREASURY_NO_BANK: recipient={} amount={:.2} — rejected to prevent M0 destruction",
+            companies[recipient_idx].id, amount);
+        return Err(TransferError::InsufficientReserves);
+    }
+
     // Debit Treasury
     country.budget.liquid_reserves -= amount;
 
@@ -579,7 +606,6 @@ pub fn settle_treasury_to_company(
     }
 
     // Sync recipient's bank: deposits and reserves increase
-    let recipient_bank_id = companies[recipient_idx].primary_bank_id.clone();
     if let Some(ref bank_id) = recipient_bank_id {
         adjust_bank_balance_unmapped(companies, bank_id, amount, amount);
     }
@@ -589,6 +615,104 @@ pub fn settle_treasury_to_company(
         recipient_bank_id,
         ..Default::default()
     })
+}
+
+/// Phase 1 fix (C3): Release escrowed funds from a corporate investor to a
+/// contractor. The investor's cash was already debited at tender publication
+/// time (escrow). This function releases the encumbrance and credits the
+/// contractor WITHOUT debiting the investor again.
+///
+/// # Arguments
+/// * `companies` - Mutable slice of all companies.
+/// * `investor_idx` - Index of the investor company (escrow holder).
+/// * `contractor_idx` - Index of the contractor company (recipient).
+/// * `amount` - Amount to release from escrow.
+/// * `country` - Mutable country state (for bank sync).
+///
+/// # Returns
+/// `Ok(())` on success, `Err(reason)` on failure.
+///
+/// # Rules
+/// * Reduces investor's `debit_cash` (releases encumbrance).
+/// * Credits contractor's cash (brokerage_account or available_cash).
+/// * Syncs contractor's bank balance sheet.
+/// * Does NOT debit investor's available_cash (already debited at escrow).
+pub fn release_escrow_company_to_contractor(
+    companies: &mut [Company],
+    investor_idx: usize,
+    contractor_idx: usize,
+    amount: f64,
+    country: &mut Country,
+) -> Result<(), String> {
+    if amount <= 0.0 {
+        return Err("Amount must be positive".to_string());
+    }
+    if investor_idx >= companies.len() || contractor_idx >= companies.len() {
+        return Err("Invalid company index".to_string());
+    }
+
+    // Release the encumbrance on the investor's side
+    companies[investor_idx].debit_cash =
+        (companies[investor_idx].debit_cash - amount).max(0.0);
+
+    // Credit the contractor's cash
+    if let Some(ref mut ba) = companies[contractor_idx].brokerage_account {
+        ba.cash += amount;
+    } else {
+        companies[contractor_idx].available_cash += amount;
+    }
+
+    // Sync contractor's bank: deposits and reserves increase
+    let contractor_bank_id = companies[contractor_idx].primary_bank_id.clone();
+    if let Some(ref bank_id) = contractor_bank_id {
+        adjust_bank_balance_unmapped(companies, bank_id, amount, amount);
+    }
+
+    let _ = country;
+    Ok(())
+}
+
+/// Phase 1 fix (C3): Release escrowed Treasury funds to a contractor.
+/// The Treasury's `liquid_reserves` was already debited at tender
+/// publication time (escrow). This function credits the contractor
+/// WITHOUT debiting the Treasury again.
+///
+/// # Arguments
+/// * `companies` - Mutable slice of all companies.
+/// * `contractor_idx` - Index of the contractor company (recipient).
+/// * `amount` - Amount to release from escrow.
+/// * `country` - Mutable country state (for bank sync, NOT debited).
+///
+/// # Returns
+/// `Ok(())` on success, `Err(reason)` on failure.
+pub fn release_escrow_treasury_to_contractor(
+    companies: &mut [Company],
+    contractor_idx: usize,
+    amount: f64,
+    country: &mut Country,
+) -> Result<(), String> {
+    if amount <= 0.0 {
+        return Err("Amount must be positive".to_string());
+    }
+    if contractor_idx >= companies.len() {
+        return Err("Invalid contractor index".to_string());
+    }
+
+    // Credit the contractor's cash (Treasury was already debited at escrow)
+    if let Some(ref mut ba) = companies[contractor_idx].brokerage_account {
+        ba.cash += amount;
+    } else {
+        companies[contractor_idx].available_cash += amount;
+    }
+
+    // Sync contractor's bank: deposits and reserves increase
+    let contractor_bank_id = companies[contractor_idx].primary_bank_id.clone();
+    if let Some(ref bank_id) = contractor_bank_id {
+        adjust_bank_balance_unmapped(companies, bank_id, amount, amount);
+    }
+
+    let _ = country;
+    Ok(())
 }
 
 /// Debit citizen savings from all classes in a region proportionally to their savings.
@@ -696,16 +820,30 @@ pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount:
         return false;
     }
 
-    let bank_id = if let Some(company) = companies.iter_mut().find(|c| c.id == company_id) {
+    // Phase 94: Check for bank BEFORE crediting. If the company has no
+    // primary_bank_id, we cannot sync bank reserves (M0). Crediting M1
+    // without M0 backing destroys money. Return false so callers can
+    // refund the source (e.g. cultural building cash).
+    let bank_id = if let Some(company) = companies.iter().find(|c| c.id == company_id) {
+        company.primary_bank_id.clone()
+    } else {
+        return false;
+    };
+    if bank_id.is_none() {
+        #[cfg(feature = "diagnostic")]
+        eprintln!("CREDIT_NO_BANK: company={} amount={:.2} — rejected to prevent M0 leak", company_id, amount);
+        return false;
+    }
+
+    if let Some(company) = companies.iter_mut().find(|c| c.id == company_id) {
         if let Some(ba) = &mut company.brokerage_account {
             ba.cash += amount;
         } else {
             company.available_cash += amount;
         }
-        company.primary_bank_id.clone()
     } else {
         return false;
-    };
+    }
 
     if let Some(ref bank_id) = bank_id {
         adjust_bank_balance_unmapped(companies, bank_id, amount, amount);

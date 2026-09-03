@@ -131,8 +131,23 @@ pub struct ConstructionProject {
     pub total_cost: f64,
 
     /// Cost spent so far (cash paid for delivered materials).
+    /// Phase 1 fix (C2): This field tracks ONLY material costs consumed
+    /// from the building inventory. It does NOT include tranche payments
+    /// to the contractor (those are tracked in `tranches_paid`).
     #[serde(default)]
     pub cost_spent: f64,
+
+    /// Phase 1 fix (C1/C3): Actual cash debited from the investor via
+    /// tender escrow at publication time. This is the amount that can be
+    /// refunded on cancellation. Equals `estimated_cost` on award.
+    #[serde(default)]
+    pub investor_cash_debited: f64,
+
+    /// Phase 1 fix (C2): Total tranche payments released to the contractor.
+    /// Separated from `cost_spent` to avoid double-counting. The refund
+    /// on cancellation = `investor_cash_debited - tranches_paid`.
+    #[serde(default)]
+    pub tranches_paid: f64,
 
     /// Estimated duration in turns (for planning only; actual completion
     /// depends on material delivery).
@@ -165,6 +180,13 @@ pub struct ConstructionProject {
     /// Empty for legacy self-build projects (investor = building owner).
     #[serde(default)]
     pub investor_id: String,
+
+    /// Phase 8 fix (M4): Cadastre parcel ID reserved for this project.
+    /// Empty if no parcel has been acquired/reserved yet.
+    /// For State projects, this is a Treasury-owned parcel reallocated
+    /// (NOT purchased) to the project.
+    #[serde(default)]
+    pub parcel_id: String,
 
     /// Main contractor company ID (who builds the project).
     /// Empty for legacy self-build projects.
@@ -230,6 +252,23 @@ pub struct ConstructionProject {
     /// Network level to build/upgrade to (None for non-network projects).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub network_target_level: Option<NetworkLevel>,
+
+    // ── Phase 3: Weather/disaster effects (C5) ──
+    /// Construction productivity multiplier from weather (1.0 = normal,
+    /// 0.0 = halted). Updated each turn by `advance_construction_projects`
+    /// from the region's active weather events. Reduces the rate at which
+    /// materials can be consumed (e.g., 0.5 = half-speed construction).
+    #[serde(default = "one_f64")]
+    pub weather_productivity: f64,
+
+    /// Accumulated material loss from disasters (total units destroyed).
+    /// Tracked for accounting and diagnostics.
+    #[serde(default)]
+    pub disaster_material_loss: f64,
+}
+
+fn one_f64() -> f64 {
+    1.0
 }
 
 impl ConstructionProject {
@@ -274,18 +313,25 @@ impl ConstructionProject {
     ///
     /// # Arguments
     /// * `inventory` - The building's physical inventory (mutated — materials are removed).
+    /// * `unit_costs` - Map of commodity to unit cost for tracking `cost_spent`.
+    /// * `productivity` - Weather/productivity multiplier (1.0 = normal,
+    ///   0.0 = halted). Reduces the amount of material that can be consumed
+    ///   this turn. Phase 3 fix (C5).
     ///
     /// # Rules
     /// * For each required material, move available quantity from inventory to
-    ///   `delivered_materials`, capped at the remaining requirement.
+    ///   `delivered_materials`, capped at the remaining requirement AND at
+    ///   `available * productivity` (weather slows construction).
     /// * Updates `progress` and `cost_spent` after consumption.
     /// * Returns true if any materials were consumed this call.
     pub fn consume_delivered_materials(
         &mut self,
         inventory: &mut BTreeMap<Commodity, f64>,
         unit_costs: &BTreeMap<Commodity, f64>,
+        productivity: f64,
     ) -> bool {
         let mut any_consumed = false;
+        let p = productivity.clamp(0.0, 1.0);
 
         for (&commodity, &required) in &self.required_materials {
             if required <= 0.0 {
@@ -304,7 +350,14 @@ impl ConstructionProject {
             if available <= 0.0 {
                 continue;
             }
-            let to_consume = available.min(remaining_needed);
+            // Phase 3 fix (C5): Weather reduces how much material can be
+            // consumed per turn. A productivity of 0.5 means only half the
+            // available inventory can be installed this turn.
+            let installable = available * p;
+            let to_consume = installable.min(remaining_needed);
+            if to_consume <= 0.0 {
+                continue;
+            }
             // Remove from building inventory
             let new_qty = (available - to_consume).max(0.0);
             if new_qty > 0.0 {

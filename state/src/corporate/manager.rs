@@ -822,8 +822,6 @@ pub fn manage_strategic_reserves(
                     let purchase_amount = budget / current_price.max(0.01);
 
                     if country.budget.liquid_reserves >= budget {
-                        country.budget.liquid_reserves -= budget;
-
                         // Update reserves (respect physical max_capacity)
                         let current = data
                             .commodity_reserves
@@ -838,6 +836,17 @@ pub fn manage_strategic_reserves(
                         let actual_purchase = purchase_amount.min(max_capacity - current).max(0.0);
 
                         if actual_purchase > 0.0 {
+                            // Phase 94: Do NOT debit the treasury here. The
+                            // SRA places buy orders using its own available_cash
+                            // (M1, not tracked in M0). When the orders settle
+                            // in the B2B phase, the SRA's cash is debited and
+                            // the seller is credited — M0 neutral because
+                            // company cash is M1. Previously the treasury was
+                            // debited but the SRA never received the funds,
+                            // destroying money from M0. Also, when capacity
+                            // clamped actual_purchase < purchase_amount, the
+                            // unspent budget was lost.
+
                             data.commodity_reserves
                                 .insert(commodity_str.clone(), current + actual_purchase);
                             market_orders.add_buy(commodity, actual_purchase);
@@ -962,7 +971,12 @@ pub fn process_company(
 
     // 5.5. Handle Latifundium labor cost calculation
     if let LegalForm::Latifundium(latifundium) = &company.legal_form {
-        let market_wage = country.macro_indicators.labor_market.unemployment_rate;
+        // Phase 1 (Agrarian Audit B1): Use average_wage, NOT unemployment_rate.
+        // The unemployment_rate is a 0.0-1.0 fraction, not a wage. Using it
+        // here made calculate_labor_cost produce near-zero values regardless
+        // of serf population, rendering the entire labor cost system
+        // non-functional.
+        let market_wage = country.macro_indicators.average_wage;
         let effective_labor_cost =
             latifundium.calculate_labor_cost(company.worker_capacity, market_wage);
 
@@ -1052,6 +1066,7 @@ pub fn process_company(
         CorporateAction::GeologicalSurvey { .. } => Some("GeologicalSurvey"),
         CorporateAction::DesignBlueprint { .. } => Some("DesignBlueprint"),
         CorporateAction::StealIP { .. } => Some("StealIP"),
+        CorporateAction::AbandonProject { .. } => Some("AbandonProject"),
         _ => None,
     };
     if let Some(action_str) = action_type_str {
@@ -1850,6 +1865,12 @@ fn apply_action(
                 method: method.clone(),
             });
         }
+        CorporateAction::AbandonProject { building_id } => {
+            // Phase 4 fix (C6): Queue the abandonment for processing in the
+            // turn loop (where buildings are mutable). apply_action only has
+            // &[Building], not &mut [Building].
+            company.pending_abandon_project = Some(building_id.clone());
+        }
     }
 }
 
@@ -2177,6 +2198,238 @@ pub fn set_wage_offers(companies: &mut [Company], market_average_wage: f64) {
         };
 
         company.offered_wage_per_fte = final_wage;
+    }
+}
+
+// ============================================================================
+// PHASE 4 (AGRARIAN AUDIT): MUTUAL AID CIRCLE MECHANICS
+// ============================================================================
+
+/// Configuration for mutual aid circle pooling and payout (no magic numbers).
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+pub struct MutualAidConfig {
+    /// Fraction of member class savings contributed to common_fund each turn.
+    /// E.g. 0.02 = 2% of member savings pooled per turn.
+    #[serde(default = "default_contribution_rate")]
+    pub contribution_rate: f64,
+    /// Savings per capita threshold below which members receive aid payouts.
+    /// Scaled by average_wage for inflation-proofing.
+    #[serde(default = "default_distress_wage_multiple")]
+    pub distress_threshold_wage_multiple: f64,
+    /// Maximum fraction of common_fund paid out per turn.
+    #[serde(default = "default_max_payout_fraction")]
+    pub max_payout_fraction: f64,
+    /// Minimum common_fund balance to remain operational.
+    /// Below this for N consecutive turns, the circle dissolves.
+    #[serde(default = "default_min_fund")]
+    pub min_fund_for_survival: f64,
+    /// Consecutive turns below min_fund before dissolution.
+    #[serde(default = "default_dissolution_turns")]
+    pub dissolution_turns: u32,
+}
+
+impl Default for MutualAidConfig {
+    fn default() -> Self {
+        Self {
+            contribution_rate: default_contribution_rate(),
+            distress_threshold_wage_multiple: default_distress_wage_multiple(),
+            max_payout_fraction: default_max_payout_fraction(),
+            min_fund_for_survival: default_min_fund(),
+            dissolution_turns: default_dissolution_turns(),
+        }
+    }
+}
+
+fn default_contribution_rate() -> f64 {
+    0.02
+}
+fn default_distress_wage_multiple() -> f64 {
+    0.5
+}
+fn default_max_payout_fraction() -> f64 {
+    0.25
+}
+fn default_min_fund() -> f64 {
+    0.0
+}
+fn default_dissolution_turns() -> u32 {
+    12
+}
+
+/// Phase 4 (Agrarian Audit C5): Process mutual aid circle pooling and payouts.
+///
+/// Each turn, for every company with `LegalForm::MutualAidCircle`:
+/// 1. **Pooling**: Member classes contribute a fraction of their savings to
+///    the circle's `common_fund`. Double-entry: debit member class savings,
+///    credit company `available_cash` (which represents the common_fund).
+/// 2. **Payout**: When a member class's `savings_per_capita` falls below the
+///    distress threshold, the circle pays out from `common_fund`. Double-entry:
+///    debit company `available_cash`, credit member class savings.
+/// 3. **Dissolution**: If `common_fund` (available_cash) drops below
+///    `min_fund_for_survival` for `dissolution_turns` consecutive turns, the
+///    circle enters bankruptcy via the standard corporate lifecycle.
+///
+/// # Arguments
+/// * `companies` - Mutable slice of companies (mutual aid circles identified
+///   by their `LegalForm::MutualAidCircle` variant).
+/// * `regions` - Mutable slice of regions (for member class savings access).
+/// * `average_wage` - Current macro average wage (for threshold scaling).
+/// * `config` - Mutual aid configuration.
+///
+/// # Conservation
+/// All transfers are strict double-entry: member savings ↔ company cash.
+/// No money is created or destroyed.
+pub fn process_mutual_aid_turn(
+    companies: &mut [Company],
+    regions: &mut [crate::society::geography::Region],
+    average_wage: f64,
+    config: &MutualAidConfig,
+) {
+    use crate::entities::legal_form::LegalForm;
+    use crate::society::geography::{DemographicClass, RuralClass, UrbanClass};
+
+    let distress_threshold = average_wage * config.distress_threshold_wage_multiple;
+
+    for company in companies.iter_mut() {
+        // Only process MutualAidCircle legal forms.
+        let (member_count, _common_fund) = match &company.legal_form {
+            LegalForm::MutualAidCircle(data) => (data.member_count, data.common_fund),
+            _ => continue,
+        };
+
+        if member_count == 0 {
+            continue;
+        }
+
+        // Find the region this circle operates in.
+        let region_idx = regions.iter().position(|r| r.id == company.region_id);
+        let Some(ri) = region_idx else {
+            continue;
+        };
+
+        // Determine member classes. Mutual aid circles typically serve
+        // FreePeasant and LandlessLaborer classes in rural regions, and
+        // Worker classes in urban regions. We check all classes and
+        // pool/payout from any that have population.
+        let member_classes = [
+            DemographicClass::from(RuralClass::FreePeasant),
+            DemographicClass::from(RuralClass::LandlessLaborer),
+            DemographicClass::from(UrbanClass::Worker),
+        ];
+
+        // Phase 1: Pooling — collect contributions from member classes.
+        let mut total_contributions = 0.0;
+        for class in &member_classes {
+            let demo = if let Some(rural) = class.to_rural() {
+                regions[ri].class_demographics.rural_classes.get_mut(&rural)
+            } else if let Some(urban) = class.to_urban() {
+                regions[ri].class_demographics.urban_classes.get_mut(&urban)
+            } else {
+                None
+            };
+
+            if let Some(demo) = demo {
+                if demo.population > 0 && demo.savings > 0.0 {
+                    let contribution = demo.savings * config.contribution_rate;
+                    if contribution > 0.0 {
+                        demo.savings -= contribution;
+                        total_contributions += contribution;
+                    }
+                }
+            }
+        }
+
+        // Credit contributions to the circle's available_cash (common_fund).
+        if total_contributions > 0.0 {
+            company.available_cash += total_contributions;
+        }
+
+        // Phase 2: Payout — distribute aid to distressed member classes.
+        let max_payout = company.available_cash * config.max_payout_fraction;
+        if max_payout > 0.0 {
+            // Collect distressed classes and their deficit amounts.
+            let mut payouts: Vec<(DemographicClass, f64)> = Vec::new();
+            let mut total_deficit = 0.0;
+
+            for class in &member_classes {
+                let demo = if let Some(rural) = class.to_rural() {
+                    regions[ri].class_demographics.rural_classes.get(&rural)
+                } else if let Some(urban) = class.to_urban() {
+                    regions[ri].class_demographics.urban_classes.get(&urban)
+                } else {
+                    None
+                };
+
+                if let Some(demo) = demo {
+                    if demo.population > 0 && demo.savings_per_capita < distress_threshold {
+                        let deficit = distress_threshold - demo.savings_per_capita;
+                        let needed = deficit * demo.population as f64;
+                        payouts.push((*class, needed));
+                        total_deficit += needed;
+                    }
+                }
+            }
+
+            // Pro-rata distribution of the max payout based on relative deficit.
+            if total_deficit > 0.0 {
+                let payout_ratio = (max_payout / total_deficit).min(1.0);
+                for (class, needed) in &payouts {
+                    let payout = needed * payout_ratio;
+                    if payout <= 0.0 {
+                        continue;
+                    }
+                    // Debit the circle's available_cash.
+                    let actual = company.available_cash.min(payout);
+                    company.available_cash -= actual;
+
+                    // Credit the member class savings.
+                    if let Some(rural) = class.to_rural() {
+                        if let Some(demo) =
+                            regions[ri].class_demographics.rural_classes.get_mut(&rural)
+                        {
+                            demo.savings += actual;
+                            if demo.population > 0 {
+                                demo.savings_per_capita = demo.savings / demo.population as f64;
+                            }
+                        }
+                    } else if let Some(urban) = class.to_urban() {
+                        if let Some(demo) =
+                            regions[ri].class_demographics.urban_classes.get_mut(&urban)
+                        {
+                            demo.savings += actual;
+                            if demo.population > 0 {
+                                demo.savings_per_capita = demo.savings / demo.population as f64;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Phase 3: Dissolution tracking.
+        // Update the common_fund field on the legal form data to reflect
+        // the current available_cash (they represent the same pool).
+        let fund_below_min = company.available_cash < config.min_fund_for_survival;
+        if let LegalForm::MutualAidCircle(data) = &mut company.legal_form {
+            data.common_fund = company.available_cash;
+        }
+
+        if fund_below_min {
+            // Increment a dissolution counter stored on the company.
+            // We use the existing `furlough_turns_accumulated` field as a
+            // general-purpose "turns in distress" counter for mutual aid
+            // circles (it's not used for furlough on non-seasonal companies).
+            company.furlough_turns_accumulated += 1;
+            if company.furlough_turns_accumulated >= config.dissolution_turns as u32 {
+                // Mark for bankruptcy via the standard corporate lifecycle.
+                // The lifecycle module will handle asset liquidation and
+                // removal from the active market.
+                company.is_in_receivership = true;
+            }
+        } else {
+            // Reset the counter when the fund is healthy.
+            company.furlough_turns_accumulated = 0;
+        }
     }
 }
 
