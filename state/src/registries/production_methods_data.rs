@@ -10063,6 +10063,50 @@ fn education_methods() -> BuildingMethods {
             CapacityType::PrimarySeats,
         ),
     );
+    // Phase E.9.4: 8-grade primary school method (for EightPlusFour systems).
+    // Covers ages 6-14 in a single building. Higher capacity but also higher
+    // Paper and Administrative Services consumption due to larger student body.
+    m.insert(
+        MethodSlot::Production,
+        "Eight-Grade Primary School".into(),
+        pm_education(
+            1880,
+            None,
+            0.30,
+            0.40,
+            0.30,
+            1.25, // no_middle_primary_capacity_boost
+            &[
+                (Commodity::Paper, 8.0),
+                (Commodity::Food, 7.0),
+                (Commodity::AdministrativeServices, 3.0),
+            ],
+            &[(Commodity::EducationSlots, 19.0)], // 15 * 1.25
+            CapacityType::PrimarySeats,
+        ),
+    );
+    // Phase E.9.4: Middle school method (Gimnazjum-style, for 3-tier systems).
+    // Covers ages 10-14/17 depending on system. Requires more specialized
+    // labor (higher expert ratio) and additional Paper/Chemicals for science labs.
+    m.insert(
+        MethodSlot::Production,
+        "Middle School (Gimnazjum)".into(),
+        pm_education(
+            1880,
+            None,
+            0.35, // higher expert ratio than primary
+            0.40,
+            0.25,
+            1.0,
+            &[
+                (Commodity::Paper, 6.0),
+                (Commodity::Food, 5.0),
+                (Commodity::Chemicals, 2.0), // basic science lab supplies
+            ],
+            &[(Commodity::EducationSlots, 12.0)],
+            CapacityType::MiddleSeats,
+        ),
+    );
     m.insert(
         MethodSlot::Production,
         "University Laboratory".into(),
