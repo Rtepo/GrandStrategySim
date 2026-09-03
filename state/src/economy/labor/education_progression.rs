@@ -250,6 +250,206 @@ fn remove_pro_rata(map: &mut BTreeMap<String, f64>, amount: f64) {
     }
 }
 
+/// Phase E.4: Compute child labor FTE per region based on education capacity
+/// and child labor law.
+pub fn compute_child_labor_fte(
+    country: &mut Country,
+    education_consumption: &BTreeMap<String, f64>,
+    education_needs: &BTreeMap<String, f64>,
+) -> BTreeMap<String, f64> {
+    use crate::politics::laws::ChildLaborLaw;
+
+    let mut child_labor_by_region = BTreeMap::new();
+    let permitted_fraction = match &country.politics.child_labor_law {
+        Some(law) => law.permitted_child_labor_fraction(),
+        None => 0.0,
+    };
+
+    if permitted_fraction <= 0.0 {
+        return child_labor_by_region;
+    }
+
+    let youth_share = country
+        .macro_indicators
+        .demographics
+        .age_groups
+        .children
+        .max(0.0)
+        .min(1.0);
+
+    for region in &mut country.regions {
+        if region.population <= 0 {
+            continue;
+        }
+
+        let consumed = education_consumption.get(&region.id).copied().unwrap_or(0.0);
+        let needed = education_needs.get(&region.id).copied().unwrap_or(0.0);
+        let coverage = if needed > 0.0 {
+            (consumed / needed).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+
+        let unserved_fraction = 1.0 - coverage;
+        let child_labor_eligible_fraction = unserved_fraction * permitted_fraction;
+        let youth_pop = region.population as f64 * youth_share;
+        let child_labor_fte = youth_pop * child_labor_eligible_fraction;
+
+        if child_labor_fte > 0.0 {
+            let rural_pop: f64 = region
+                .class_demographics
+                .rural_classes
+                .values()
+                .map(|d| d.population as f64)
+                .sum();
+            let urban_pop: f64 = region
+                .class_demographics
+                .urban_classes
+                .values()
+                .map(|d| d.population as f64)
+                .sum();
+            let total_pop = rural_pop + urban_pop;
+
+            if total_pop > 0.0 {
+                let rural_child_fte = child_labor_fte * (rural_pop / total_pop);
+                let urban_child_fte = child_labor_fte * (urban_pop / total_pop);
+
+                if rural_child_fte > 0.0 && rural_pop > 0.0 {
+                    for demo in region.class_demographics.rural_classes.values_mut() {
+                        let share = demo.population as f64 / rural_pop;
+                        demo.available_fte += rural_child_fte * share;
+                    }
+                }
+
+                if urban_child_fte > 0.0 && urban_pop > 0.0 {
+                    for demo in region.class_demographics.urban_classes.values_mut() {
+                        let share = demo.population as f64 / urban_pop;
+                        demo.available_fte += urban_child_fte * share;
+                    }
+                }
+            }
+        }
+
+        child_labor_by_region.insert(region.id.clone(), child_labor_fte);
+    }
+
+    child_labor_by_region
+}
+
+/// Phase E.9.2: Translate education building seat types when SchoolSystem changes.
+pub fn translate_school_seat_types(
+    buildings: &mut [crate::entities::Building],
+    old_system: crate::politics::laws::SchoolSystem,
+    new_system: crate::politics::laws::SchoolSystem,
+) -> usize {
+    use crate::politics::laws::SchoolSystem;
+    use crate::registries::enums::CapacityType;
+
+    if old_system == new_system {
+        return 0;
+    }
+
+    let old_has_middle = old_system.has_middle_tier();
+    let new_has_middle = new_system.has_middle_tier();
+
+    if old_has_middle && !new_has_middle {
+        let mut changed = 0;
+        for building in buildings.iter_mut() {
+            if building.active_method.seat_type == Some(CapacityType::MiddleSeats) {
+                building.active_method.seat_type = Some(CapacityType::HighSchoolSeats);
+                changed += 1;
+            }
+        }
+        return changed;
+    }
+
+    0
+}
+
+/// Phase E.9.3: Per-tier education needs based on age progression brackets.
+pub fn compute_per_tier_education_needs(
+    country: &Country,
+) -> BTreeMap<String, (f64, f64, f64)> {
+    use crate::politics::laws::SchoolSystem;
+
+    let school_system = country
+        .politics
+        .education_law
+        .as_ref()
+        .map(|law| law.school_system)
+        .unwrap_or(SchoolSystem::FourPlusFourPlusFour);
+
+    let (primary_bracket, middle_bracket, high_bracket) = school_system.age_brackets();
+    let edu_config = &country.education_config;
+
+    let age_groups = &country.macro_indicators.demographics.age_groups;
+    let children_share = age_groups.children.max(0.0).min(1.0);
+    let adults_share = age_groups.adults.max(0.0).min(1.0);
+
+    let (primary_age_span, middle_age_span, high_age_span) = {
+        let p = (primary_bracket.1 - primary_bracket.0) as f64;
+        let m = if middle_bracket.1 > 0 {
+            (middle_bracket.1 - middle_bracket.0) as f64
+        } else {
+            0.0
+        };
+        let h = (high_bracket.1 - high_bracket.0) as f64;
+        (p, m, h)
+    };
+
+    let total_schooling_span = primary_age_span + middle_age_span + high_age_span;
+    const UNIVERSITY_AGE_SPAN: f64 = 6.0;
+    const ADULT_AGE_SPAN: f64 = 49.0;
+
+    let mut needs = BTreeMap::new();
+
+    for region in &country.regions {
+        if region.population <= 0 {
+            needs.insert(region.id.clone(), (0.0, 0.0, 0.0));
+            continue;
+        }
+
+        let pop = region.population as f64;
+
+        let (primary_need, secondary_need, higher_need) = if total_schooling_span > 0.0 && children_share > 0.0 {
+            let school_age_pop = pop * children_share
+                * (total_schooling_span / (total_schooling_span + UNIVERSITY_AGE_SPAN));
+            let primary_pop = school_age_pop * (primary_age_span / total_schooling_span);
+            let secondary_pop = school_age_pop * ((middle_age_span + high_age_span) / total_schooling_span);
+            let university_pop = pop * adults_share * (UNIVERSITY_AGE_SPAN / ADULT_AGE_SPAN);
+
+            let urban_pop: f64 = region
+                .class_demographics
+                .urban_classes
+                .values()
+                .map(|d| d.population as f64)
+                .sum();
+            let rural_pop: f64 = region
+                .class_demographics
+                .rural_classes
+                .values()
+                .map(|d| d.population as f64)
+                .sum();
+            let total_pop = urban_pop + rural_pop;
+            let urban_mult = if total_pop > 0.0 {
+                let urban_fraction = urban_pop / total_pop;
+                1.0 + urban_fraction * (edu_config.urban_education_mult - 1.0)
+            } else {
+                1.0
+            };
+
+            (primary_pop, secondary_pop * urban_mult, university_pop)
+        } else {
+            let base_need = pop * edu_config.education_need_fraction;
+            (base_need * 0.50, base_need * 0.35, base_need * 0.15)
+        };
+
+        needs.insert(region.id.clone(), (primary_need, secondary_need, higher_need));
+    }
+
+    needs
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

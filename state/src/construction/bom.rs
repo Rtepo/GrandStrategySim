@@ -77,7 +77,6 @@ pub fn get_construction_bom(
         Sector::NGO => bom_commercial(era_factor),
         Sector::Religion => bom_commercial(era_factor),
         Sector::Government => bom_commercial(era_factor),
-        Sector::Insurance => bom_commercial(era_factor), // Phase H5: Insurance offices are commercial buildings
     };
 
     base.into_iter()
@@ -118,7 +117,6 @@ fn reference_capacity(sector: Sector) -> u32 {
         Sector::NGO => 200,
         Sector::Religion => 200,
         Sector::Government => 200,
-        Sector::Insurance => 200,
     }
 }
 

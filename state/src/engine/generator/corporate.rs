@@ -2280,7 +2280,6 @@ fn sector_display(sector: Sector) -> String {
         Sector::Religion => "Religion",
         Sector::MaintenanceWorkshops => "Maintenance Workshops",
         Sector::Government => "Government",
-        Sector::Insurance => "Insurance",
     }
     .to_string()
 }
@@ -2466,14 +2465,6 @@ fn sector_suffix(sector: Sector, rng: &mut impl rand::Rng) -> &'static str {
         ]
         .choose(rng)
         .unwrap(),
-        Sector::Insurance => [
-            "Insurance Co",
-            "Assurance Ltd",
-            "Underwriting Trust",
-            "Risk Mutual",
-        ]
-        .choose(rng)
-        .unwrap(),
     }
 }
 
@@ -2495,8 +2486,6 @@ fn legal_form_suffix(legal_form: &crate::entities::LegalForm) -> &'static str {
         LegalForm::NonProfit(_) => "Foundation",
         LegalForm::MutualAidCircle(_) => "Mutual Aid",
         LegalForm::Guild(_) => "Guild",
-        LegalForm::MutualInsurance(_) => "Mutual Insurance",
-        LegalForm::ShelteredWorkshop(_) => "Sheltered Workshop",
     }
 }
 
@@ -3050,7 +3039,6 @@ fn default_building_name(sector: Sector) -> String {
         Sector::NGO => "NGO Office".to_string(),
         Sector::Religion => "Religious Institution".to_string(),
         Sector::Government => "Parliament".to_string(),
-        Sector::Insurance => "Insurance Office".to_string(),
     }
 }
 

@@ -2,7 +2,7 @@
 //!
 //! This module defines `run_turn_in_memory`, which sequences the per-country
 //! and global phases of one game turn. It operates purely in-memory via
-//! `InMemoryTurnContext` ï¿½ no disk I/O occurs during turn processing.
+//! `InMemoryTurnContext` — no disk I/O occurs during turn processing.
 
 use crate::corporate::{process_companies, process_unions, CompanyLifecycle};
 use crate::economy::debt_market::{
@@ -158,7 +158,7 @@ pub(crate) struct CountryTask<'a> {
     /// `labor_allocation` before it is consumed. Used by inspectorate bribery
     /// (Phase 22C) and OHS compensation to route funds to the exact class of
     /// the workers/officials at a specific company.
-    /// Key: company_id ï¿½ DemographicClass of the dominant FTE class.
+    /// Key: company_id › DemographicClass of the dominant FTE class.
     pub(crate) dominant_class_by_company:
         Option<std::collections::HashMap<String, DemographicClass>>,
     /// Phase D.1.2: Pending OHS compensation events from the construction
@@ -185,9 +185,9 @@ pub(crate) struct CountryTask<'a> {
         Vec<crate::economy::blueprints::CrossBorderRoyaltyQueueEntry>,
     /// Phase 95: Foreign patent fee outbox (emitted by this country's parallel
     /// R&D research phase; consumed by the sequential post-parallel pass that
-    /// credits GlobalMarket.offshore_capital ï¿½ money preserved, never destroyed).
+    /// credits GlobalMarket.offshore_capital — money preserved, never destroyed).
     pub(crate) foreign_patent_fee_outbox: f64,
-    /// Phase 23C: Per-region commute coverage ratio (0.0ï¿½1.0) from
+    /// Phase 23C: Per-region commute coverage ratio (0.0–1.0) from
     /// `clear_passenger_transport_b2c`. Used by the labor-market phase to
     /// compute how much FTE can commute into each region from neighbors.
     pub(crate) commute_coverage: std::collections::BTreeMap<String, f64>,
@@ -219,14 +219,14 @@ pub(crate) struct CountryTask<'a> {
     /// parallel production pass and applied to `state.planet` sequentially
     /// with pro-rata clamping after the parallel pass completes.
     pub(crate) depletion_buffer: Vec<crate::economy::production::geology::DepletionRequest>,
-    /// Phase 94: Cached owner_id ï¿½ building indices. Rebuilt with .clear()
+    /// Phase 94: Cached owner_id › building indices. Rebuilt with .clear()
     /// at phase boundaries that need it. Retains allocated capacity across
     /// turns to avoid allocator thrashing.
     pub(crate) owner_to_building_indices: rustc_hash::FxHashMap<String, Vec<usize>>,
-    /// Phase 94: Cached company_id ï¿½ company index. Rebuilt with .clear()
+    /// Phase 94: Cached company_id › company index. Rebuilt with .clear()
     /// at phase boundaries that need it.
     pub(crate) company_id_to_idx: rustc_hash::FxHashMap<String, usize>,
-    /// Phase 94: Cached commercial building id ï¿½ owner_id. Rebuilt with
+    /// Phase 94: Cached commercial building id › owner_id. Rebuilt with
     /// .clear() at phase boundaries that need it.
     pub(crate) store_id_to_owner: rustc_hash::FxHashMap<String, String>,
     /// Phase 15B (Agent 4): Total value of cross-border B2B trades settled
@@ -237,7 +237,7 @@ pub(crate) struct CountryTask<'a> {
 }
 
 impl<'a> CountryTask<'a> {
-    /// Rebuild the ownerï¿½buildings index map. Called at phase boundaries
+    /// Rebuild the owner›buildings index map. Called at phase boundaries
     /// where building ownership lookups are needed. Uses .clear() to retain
     /// capacity from previous turns.
     pub(crate) fn rebuild_owner_to_building_indices(&mut self) {
@@ -250,7 +250,7 @@ impl<'a> CountryTask<'a> {
         }
     }
 
-    /// Rebuild the company_idï¿½index map. Called at phase boundaries where
+    /// Rebuild the company_id›index map. Called at phase boundaries where
     /// company lookups are needed.
     pub(crate) fn rebuild_company_id_to_idx(&mut self) {
         self.company_id_to_idx.clear();
@@ -259,7 +259,7 @@ impl<'a> CountryTask<'a> {
         }
     }
 
-    /// Rebuild the store_idï¿½owner map from commercial buildings.
+    /// Rebuild the store_id›owner map from commercial buildings.
     pub(crate) fn rebuild_store_id_to_owner(&mut self) {
         self.store_id_to_owner.clear();
         for b in &self.commercial_buildings {
@@ -465,8 +465,8 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             })
             .collect();
 
-        // Agent 4 ï¿½ Phase 3: Build currency exchange rate map for FX conversion.
-        // Maps currency code ï¿½ exchange_rate vs global numeraire.
+        // Agent 4 — Phase 3: Build currency exchange rate map for FX conversion.
+        // Maps currency code › exchange_rate vs global numeraire.
         // Used by settle_trades_with_tariffs to replace hardcoded exchange_rate = 1.0.
         let currency_rates: HashMap<String, f64> = state
             .currencies
@@ -483,7 +483,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             crate::economy::labor::aggregate_citizen_savings(task.ctx.country);
         });
 
-        // ï¿½ï¿½ DIAGNOSTIC CHECKPOINT 0: turn_start ï¿½ï¿½
+        // ¦¦ DIAGNOSTIC CHECKPOINT 0: turn_start ¦¦
         probe.checkpoint("turn_start", 0, turn, &market, &tasks);
 
         // ===========================================================
@@ -531,7 +531,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
         // Phase 10: Initialize per-class culture from country's dominant culture.
         // This is the save-migration path for old saves that don't have the
-        // `culture` field ï¿½ empty values are backfilled with the dominant culture.
+        // `culture` field — empty values are backfilled with the dominant culture.
         tasks.par_iter_mut().for_each(|task| {
             let culture = task.ctx.country.macro_indicators.culture.clone();
             if !culture.is_empty() {
@@ -664,7 +664,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         tasks.par_iter_mut().for_each(|task| {
             process_banking_turn(task.ctx.country, &mut task.companies, task.ctx.turn);
         });
-        // ï¿½ï¿½ DIAGNOSTIC CHECKPOINT: banking_turn_post ï¿½ï¿½
+        // ¦¦ DIAGNOSTIC CHECKPOINT: banking_turn_post ¦¦
         probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         tasks.par_iter_mut().for_each(|task| {
             update_gdp_shares_from_employment(&mut task.ctx);
@@ -700,7 +700,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 .average_wage
                 .max(subsistence_wage_floor);
 
-            // Phase 95: Build a blueprint lookup map (blueprint_id ï¿½ ProductBlueprint)
+            // Phase 95: Build a blueprint lookup map (blueprint_id › ProductBlueprint)
             // from all companies' owned and licensed blueprints.
             let bp_lookup: std::collections::HashMap<
                 String,
@@ -715,7 +715,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 m
             };
 
-            // Phase 94: Build a company_id ï¿½ disruption map to avoid O(Bï¿½C)
+            // Phase 94: Build a company_id › disruption map to avoid O(B×C)
             // linear scan inside the building loop.
             let mut company_disruption: rustc_hash::FxHashMap<String, f64> =
                 rustc_hash::FxHashMap::default();
@@ -751,7 +751,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 );
             }
         });
-        // ï¿½ï¿½ DIAGNOSTIC CHECKPOINT 1: building_cycle_post ï¿½ï¿½
+        // ¦¦ DIAGNOSTIC CHECKPOINT 1: building_cycle_post ¦¦
         probe.checkpoint("building_cycle_post", 1, turn, &market, &tasks);
 
         // Emergency Stabilization: Clone the immutable base prices (set once at
@@ -778,7 +778,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         let mut global_order_book = OrderBook::default();
 
         // ===========================================================
-        // RESURRECTION PHASE 3: MILITARY ï¿½ Drain pending defense orders
+        // RESURRECTION PHASE 3: MILITARY — Drain pending defense orders
         // MoD B2B buy orders from last turn's Phase 8 are merged into the
         // global order book here, BEFORE matching. This ensures the MoD
         // only buys with cash it already received in last turn's Phase 8.
@@ -815,7 +815,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
             // Phase 28: Transfer collected donations from cultural buildings to
             // their owning Church/NGO companies so they can pay wages.
-            // This is the organic funding mechanism ï¿½ no magical seed capital.
+            // This is the organic funding mechanism — no magical seed capital.
             // Double-entry: DEBIT building.available_cash, CREDIT company.available_cash.
             for building in &mut task.ctx.country.cultural_institutions {
                 if building.available_cash > 0.0 {
@@ -844,7 +844,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
         });
 
-        // Phase 17C: Apostolic See remittance (parallel ï¿½ each country debits its own buildings/treasury)
+        // Phase 17C: Apostolic See remittance (parallel — each country debits its own buildings/treasury)
         // The See ledger aggregation happens sequentially below.
         tasks.par_iter_mut().for_each(|task| {
             let religious_law = task
@@ -915,9 +915,9 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             );
         });
 
-        // Phase 37: Mobilization advance ï¿½ release first tranche (trigger_progress=0)
+        // Phase 37: Mobilization advance — release first tranche (trigger_progress=0)
         // BEFORE B2B order submission so contractors have cash to bid for materials.
-        // This breaks the "no cash ï¿½ no bids ï¿½ no materials ï¿½ no progress ï¿½ no tranche" deadlock.
+        // This breaks the "no cash › no bids › no materials › no progress › no tranche" deadlock.
         tasks.par_iter_mut().for_each(|task| {
             let _released = crate::construction::orders::release_construction_tranches(
                 &mut task.ctx.buildings,
@@ -999,7 +999,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         // Phase 29: Construction companies submit bids on open tenders.
-        // This makes the tender market functional ï¿½ without bids, all
+        // This makes the tender market functional — without bids, all
         // tenders would be cancelled on expiry.
         tasks.par_iter_mut().for_each(|task| {
             let mut tenders = std::mem::take(&mut task.ctx.country.phase22_tenders);
@@ -1033,10 +1033,18 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         tasks.par_iter_mut().for_each(|task| {
             let mut tenders = std::mem::take(&mut task.ctx.country.phase22_tenders);
-            let awarded = crate::construction::tender_market::process_tender_awards(
+            let (awarded, cancelled) = crate::construction::tender_market::process_tender_awards(
                 &mut tenders,
                 task.ctx.turn,
             );
+            // Phase 1 fix (C3): Refund escrow on cancelled tenders.
+            for cancelled_tender in &cancelled {
+                crate::construction::tender_market::refund_tender_escrow(
+                    cancelled_tender,
+                    &mut task.companies,
+                    &mut task.ctx.country,
+                );
+            }
             // Attach awarded projects to buildings in the tender's micro-region
             for (_tender_id, project, expansion_target) in awarded {
                 // Phase 29: If this is an expansion tender, attach to the
@@ -1111,7 +1119,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             crate::military::add_fleet_demand_to_market(&fleets, &mut task.orders.orders);
         });
 
-        // Collect all bids and asks from countries ï¿½ Phase 6.3: Production Planning
+        // Collect all bids and asks from countries — Phase 6.3: Production Planning
         // Phase 23A: Manage deferred trades (increment counters, expire old ones).
         for task in &mut tasks {
             let freight_config = task.ctx.country.freight_logistics_config.clone();
@@ -1130,7 +1138,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             let b2b_config = task.ctx.country.b2b_order_config.clone();
             let gen_cfg = task.ctx.country.generative_goods_config.clone();
 
-            // Phase 94: Rebuild ownerï¿½buildings index map with .clear() to
+            // Phase 94: Rebuild owner›buildings index map with .clear() to
             // retain capacity and avoid allocator thrashing.
             task.rebuild_owner_to_building_indices();
 
@@ -1159,7 +1167,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
             // Phase 19C: Submit fixed-asset purchase bids (cash-bottlenecked).
             // Companies buy machinery/vehicles with willingness-to-pay clamped
-            // by available cash ï¿½ cash-poor firms buy cheaper, lower-quality
+            // by available cash — cash-poor firms buy cheaper, lower-quality
             // substitutes (or go without if they can't afford even the floor).
             let _asset_msgs = submit_fixed_asset_purchase_bids(
                 &mut task.companies,
@@ -1193,7 +1201,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         match_orders_with_embargoes(&mut global_order_book, &company_country, &diplomacy);
         let all_trades = global_order_book.trades.clone();
 
-        // ï¿½ï¿½ DIAGNOSTIC CHECKPOINT 2: b2b_orders_post ï¿½ï¿½
+        // ¦¦ DIAGNOSTIC CHECKPOINT 2: b2b_orders_post ¦¦
         probe.checkpoint("b2b_orders_post", 2, turn, &market, &tasks);
 
         // Phase 24A.1: Redistribute unfilled bids from global_order_book back to
@@ -1202,7 +1210,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // into global_order_book), so the refund calls at lines 756-777 operated on
         // an empty order book and never released encumbered debit_cash.
         // Each refund function is selective by buyer_id, so redistributing all
-        // unfilled bids to all tasks is safe ï¿½ only the task that owns the buyer
+        // unfilled bids to all tasks is safe — only the task that owns the buyer
         // entity will process the refund.
         let unfilled_bids: Vec<(Commodity, Vec<Bid>)> = global_order_book
             .bids
@@ -1221,7 +1229,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         // Settle trades (peer-to-peer with double-entry accounting)
         // Phase 6.4a: Cash settlement + physical inventory routing to Building.inventory
-        // Phase 23A: Freight procurement gate ï¿½ cross-region trades must secure
+        // Phase 23A: Freight procurement gate — cross-region trades must secure
         // FreightCapacity before physical settlement. Trades that cannot secure
         // freight are deferred (frozen) and retried next turn.
         for task in &mut tasks {
@@ -1236,7 +1244,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 .collect();
 
             // Phase 23A-3: FREIGHT PROCUREMENT GATE
-            // Agent 4 ï¿½ Phase 6: Scale freight config by average_wage for
+            // Agent 4 — Phase 6: Scale freight config by average_wage for
             // inflation-proofing (Rule 2).
             let freight_config = task
                 .ctx
@@ -1279,7 +1287,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 &gen_config_clone,
             );
 
-            // Agent 4 ï¿½ Phase 4: Accumulate cross-border trade value for the
+            // Agent 4 — Phase 4: Accumulate cross-border trade value for the
             // smuggling phase. Replaces the previous magic `sum(production) * 1000.0`
             // estimate with the actual settled cross-border trade value (Rule 2).
             let cross_border_value: f64 = secured_trades
@@ -1332,11 +1340,11 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             task.gdp_acc.investment += investment;
         }
 
-        // ï¿½ï¿½ DIAGNOSTIC CHECKPOINT 3: b2b_settlement_post ï¿½ï¿½
+        // ¦¦ DIAGNOSTIC CHECKPOINT 3: b2b_settlement_post ¦¦
         probe.checkpoint("b2b_settlement_post", 3, turn, &market, &tasks);
 
         // ===========================================================
-        // PHASE 31: CRISIS MANAGEMENT AI ï¿½ EXECUTIVE DECREES
+        // PHASE 31: CRISIS MANAGEMENT AI — EXECUTIVE DECREES
         // Runs BEFORE ministry procurement so that tax adjustments, bond
         // issuance, and emergency subsidies are available for the turn.
         // Bypasses bill_lifecycle entirely (executive decrees only).
@@ -1435,7 +1443,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         // ===========================================================
         // PHASE 7: MINISTRY PROCUREMENT (Domestic Order Book)
-        // CRITICAL: Uses settle_trades (NOT settle_trades_with_tariffs) ï¿½
+        // CRITICAL: Uses settle_trades (NOT settle_trades_with_tariffs) —
         // ministry orders are domestic; tariffs must NOT apply.
         // ===========================================================
         tasks.par_iter_mut().for_each(|task| {
@@ -1506,7 +1514,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
                 // Match ministry orders internally (domestic-only, no embargo check)
                 match_orders(&mut local_order_book);
-                // Settle ministry trades ï¿½ DOMESTIC: use settle_trades (no tariffs)
+                // Settle ministry trades — DOMESTIC: use settle_trades (no tariffs)
                 let ministry_trades = local_order_book.trades.clone();
                 let gen_config_clone2 = task.ctx.country.generative_goods_config.clone();
                 let _msgs = settle_trades(
@@ -1540,7 +1548,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // PHASE 7B: JST PROCUREMENT (Local Government B2B Orders)
         // Phase D.8: Regional governments submit formal Buy Orders for
         // ConstructionMachinery and AdministrativeServices. Strict market
-        // clearing ï¿½ unfilled bids are refunded, infrastructure degrades.
+        // clearing — unfilled bids are refunded, infrastructure degrades.
         // ===========================================================
         tasks.par_iter_mut().for_each(|task| {
             let jst_config = crate::politics::jst_spending::JstSpendingConfig::default();
@@ -1599,7 +1607,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             // Step 3: Match JST orders.
             match_orders(&mut jst_order_book);
 
-            // Step 4: Settle JST trades (DOMESTIC ï¿½ no tariffs).
+            // Step 4: Settle JST trades (DOMESTIC — no tariffs).
             let jst_trades = jst_order_book.trades.clone();
             let gen_config_jst = task.ctx.country.generative_goods_config.clone();
             // settle_trades handles seller crediting. JST buyer_id is not a
@@ -1666,7 +1674,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // The old order_book::refund_unfilled_bids credited liquid_capital
         // (wrong field) and has been deleted.
         tasks.par_iter_mut().for_each(|task| {
-            // Phase 94: Rebuild company_idï¿½index map with .clear() to retain capacity.
+            // Phase 94: Rebuild company_id›index map with .clear() to retain capacity.
             task.rebuild_company_id_to_idx();
             refund_unfilled_b2b_bids(
                 &task.order_book,
@@ -1786,7 +1794,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // ===========================================================
         // RESURRECTION PHASE 3: MILITARY TURN
         // MIL-1: Upkeep (burn stockpiles, pay wages)
-        // MIL-2: Supply delivery (B2B trades ï¿½ depot ï¿½ unit stockpiles)
+        // MIL-2: Supply delivery (B2B trades › depot › unit stockpiles)
         // MIL-3: Deterministic combat resolution
         // MIL-4: Casualty demographics + unit disbandment (conservation of mass)
         // MIL-5: Peasant devastation
@@ -1815,7 +1823,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         // ===========================================================
         // PHASE 69: WAR ECONOMY
-        // 69-A: Conscription (drain demographics ï¿½ military units)
+        // 69-A: Conscription (drain demographics › military units)
         // 69-B: War bond issuance (if at war and deficit exceeds threshold)
         // 69-C: Expired decree cleanup (after production, see below)
         // ===========================================================
@@ -1865,6 +1873,15 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // execution so construction materials are not accidentally
         // consumed by production logic.
         // ===========================================================
+        // Phase 8 fix (M4): Ensure all active projects have land before
+        // advancing. State projects reallocate Treasury parcels; corporate
+        // projects without land are stalled.
+        tasks.par_iter_mut().for_each(|task| {
+            crate::construction::orders::ensure_all_projects_have_land(
+                &mut task.ctx.buildings,
+                &mut task.ctx.country.cadastre,
+            );
+        });
         tasks.par_iter_mut().for_each(|task| {
             let unit_costs = std::collections::BTreeMap::new();
             let (_msgs, construction_investment) =
@@ -1875,7 +1892,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     task.ctx.country,
                 );
             // Phase 34: Accumulate materials consumed (cost_spent delta) as
-            // GDP investment (I). This is NOT tranche payments ï¿½ tranches are
+            // GDP investment (I). This is NOT tranche payments — tranches are
             // cash transfers, not capital formation. I only counts physical
             // materials consumed and work performed.
             task.gdp_acc.investment += construction_investment;
@@ -1910,7 +1927,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 .as_ref()
                 .map(|js| js.justice_coverage)
                 .unwrap_or(0.0);
-            // D.4.7: Dynamic inspection probability ï¿½ capacity per construction
+            // D.4.7: Dynamic inspection probability — capacity per construction
             // site, not a hardcoded divisor. (Rule 2: no magic numbers)
             let total_construction_sites = task
                 .ctx
@@ -1978,11 +1995,11 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                         let disabled = casualties_i - dead;
                         let region_id = building.region_id.clone();
 
-                        // Phase 25: OHS compensation ï¿½ dynamic multiplier, not hardcoded.
-                        // compensation = COMPENSATION_WAGE_MULTIPLIER ï¿½ average_wage ï¿½ total_casualties
+                        // Phase 25: OHS compensation — dynamic multiplier, not hardcoded.
+                        // compensation = COMPENSATION_WAGE_MULTIPLIER × average_wage × total_casualties
                         // D.1.2: Compensation is DEFERRED until after the labor allocation
                         // matrix is built, so it can be routed to the exact injured worker
-                        // class via settle_transfer (Rule 1 + Rule 7). No silent clamping ï¿½
+                        // class via settle_transfer (Rule 1 + Rule 7). No silent clamping —
                         // the full amount is attempted; insolvency triggers the Syndic.
                         let avg_wage = task.ctx.country.macro_indicators.average_wage;
                         let compensation_per_casualty =
@@ -2025,7 +2042,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // PHASE 23B: TRANSPORT NETWORK DEGRADATION & MAINTENANCE
         // Network links degrade each turn (physical). Maintenance is
         // funded by the Treasury (double-entry: cash debited, links restored).
-        // Phase 25: Strict realism ï¿½ if no Construction-sector company exists,
+        // Phase 25: Strict realism — if no Construction-sector company exists,
         // maintenance CANNOT happen. Links degrade and are NOT repaired. The
         // treasury is NOT debited. The economy suffers the physical consequences.
         // ===========================================================
@@ -2037,7 +2054,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             );
             // Phase 25: Only repair if a Construction-sector company exists.
             // If no construction company is available, the work cannot physically
-            // happen ï¿½ links remain degraded.
+            // happen — links remain degraded.
             let has_construction_company = task
                 .companies
                 .iter()
@@ -2121,7 +2138,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // ===========================================================
         // PHASE 8: WAVE-BASED PRODUCTION EXECUTION
         // Wave 1: Energy sector produces Commodity::Energy/Heat from fuel
-        // Phase 8.1: Grid distribution (Commodity::Energy ï¿½ ElectricitySupply)
+        // Phase 8.1: Grid distribution (Commodity::Energy › ElectricitySupply)
         // Phase 8.2: Utility consumption (deficits, penalties, billing)
         // Wave 3: General production (with blackout efficiency penalties)
         // Phase 8.3: Waste collection & processing
@@ -2143,10 +2160,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             );
         });
 
-        // ï¿½ï¿½ DIAGNOSTIC CHECKPOINT: production_cycle_post ï¿½ï¿½
+        // ¦¦ DIAGNOSTIC CHECKPOINT: production_cycle_post ¦¦
         probe.checkpoint("production_cycle_post", 5, turn, &market, &tasks);
 
-        // Phase 8.1: Grid Distribution ï¿½ Phase 81: New energy grid distribution.
+        // Phase 8.1: Grid Distribution — Phase 81: New energy grid distribution.
         // Replaces the old distribute_utilities for electricity. The new system
         // performs DC flow balancing, overproduction handling, and load shedding.
         // Water/heat distribution still uses the old distribute_utilities.
@@ -2165,7 +2182,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     .iter()
                     .map(|(&k, &v)| (k, v))
                     .collect();
-                // Phase 81 Wave 2: PPA negotiation ï¿½ bilateral long-term contracts
+                // Phase 81 Wave 2: PPA negotiation — bilateral long-term contracts
                 // between generators and industrial consumers. Runs before grid
                 // distribution so PPA-contracted MW is reserved.
                 let global_base_price = task
@@ -2216,7 +2233,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             })
             .collect();
 
-        // Phase 8.2: Utility Consumption ï¿½ calculate deficits, penalties, billing
+        // Phase 8.2: Utility Consumption — calculate deficits, penalties, billing
         // Collect efficiency penalties per task for Wave 3.
         // Phase 81: Merge grid penalties (load shedding + industrial buff) with
         // utility consumption penalties (water/sewage). Grid penalties take
@@ -2301,17 +2318,17 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 );
 
                 // ===========================================================
-                // PHASE 83: HYDRO GRID ï¿½ Water reserve regeneration (Step 16)
+                // PHASE 83: HYDRO GRID — Water reserve regeneration (Step 16)
                 // PARADIGM SHIFT: Groundwater and surface water regenerate
                 // naturally, with quality drift toward natural baselines
-                // (groundwater ï¿½ 0.9, surface ï¿½ 0.6).
+                // (groundwater › 0.9, surface › 0.6).
                 // ===========================================================
                 let aquifer_capacity = region.water_reserves.groundwater_volume
                     + region.water_reserves.groundwater_regen_rate * 100.0;
                 region.water_reserves.regenerate(aquifer_capacity);
 
                 // ===========================================================
-                // PHASE 83: HYDRO GRID ï¿½ Pipe degradation (Step 15)
+                // PHASE 83: HYDRO GRID — Pipe degradation (Step 15)
                 // Water and sewer pipes degrade over time, increasing
                 // leakage and transmission losses.
                 // ===========================================================
@@ -2347,7 +2364,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         // ===========================================================
-        // PHASE 82/83: MUNICIPAL AI ï¿½ Heating & Infrastructure Investment
+        // PHASE 82/83: MUNICIPAL AI — Heating & Infrastructure Investment
         // Runs AFTER utility pricing, thermal grid degradation, smog/biohazard
         // computation, and water reserve regeneration (Rule 16: Temporal
         // Causality). The AI observes current demand/supply and crises, then
@@ -2704,7 +2721,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
 
-            // --- Electrical AI (simplified ï¿½ no separate electrical AI function) ---
+            // --- Electrical AI (simplified — no separate electrical AI function) ---
             // The electrical investment plan is derived from power grid state.
             // For now, use a basic deficit check.
             combined_electrical.is_crisis = false;
@@ -2724,7 +2741,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             task.ctx.country.municipal_infrastructure_plan = unified_plan;
         }
 
-        // Phase 44: Residential Rent Collection ï¿½ double-entry transfer.
+        // Phase 44: Residential Rent Collection — double-entry transfer.
         // Debit occupying class savings, credit owner entity (State treasury or class savings).
         // No money creation or destruction.
         tasks.par_iter_mut().for_each(|task| {
@@ -2766,7 +2783,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
 
                 let debit_per_capita = total_rent / total_class_pop as f64;
-                // Phase 94: Track actual debited amount ï¿½ debits are clamped
+                // Phase 94: Track actual debited amount — debits are clamped
                 // to .max(0.0) but the credit must match the ACTUAL debit,
                 // not the theoretical total_rent. Otherwise money is created
                 // when citizens can't afford the full rent.
@@ -2886,8 +2903,8 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         // ===========================================================
-        // PHASE 84: WASTE EPIC ï¿½ Solid Waste Management & Circular Economy
-        // 10-step waste processing (W.1ï¿½W.10), runs after consumption,
+        // PHASE 84: WASTE EPIC — Solid Waste Management & Circular Economy
+        // 10-step waste processing (W.1–W.10), runs after consumption,
         // before mortality. Mass-conserved waste generation from actual
         // consumption receipts. Trash streams B2B-excluded. WtE outputs
         // ash. Landfills have hard capacity stop. Dual fee billing.
@@ -2905,7 +2922,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // Phase 25: Restock retail stores from producer buildings.
         // After production, transfer a portion of output goods from producer
         // buildings to retail stores in the same region. This is a simplified
-        // wholesale mechanism ï¿½ in a full implementation, wholesalers would
+        // wholesale mechanism — in a full implementation, wholesalers would
         // buy via B2B and distribute to stores. Here we simulate the physical
         // flow of goods from factories to retail shelves.
         // Phase 76: Clone market_history for dynamic acquisition_cost pricing.
@@ -2937,7 +2954,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 Commodity::Livestock,
             ];
 
-            // Build a map: region_id ï¿½ list of (building_idx, commodity, qty)
+            // Build a map: region_id › list of (building_idx, commodity, qty)
             // for producer buildings with surplus output goods
             let mut surplus_by_region: HashMap<String, Vec<(usize, Commodity, f64)>> =
                 HashMap::new();
@@ -3380,7 +3397,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // building.current_employment. Without this sync, production uses stale
         // employment values and GDP stays at 0.
         tasks.par_iter_mut().for_each(|task| {
-            // Build a map from company_id ï¿½ fulfilled_fte
+            // Build a map from company_id › fulfilled_fte
             let mut fulfilled_by_company: HashMap<String, f64> = HashMap::new();
             for c in &task.companies {
                 fulfilled_by_company.insert(c.id.clone(), c.fulfilled_fte as f64);
@@ -3436,7 +3453,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // Phase 18A: Route TemporaryWorker remittances to foreign_sector_balance.
         // Remittances were already deducted from net_wage in labor_market.rs
         // (savings credited with net_wage - remittance). Here we credit the
-        // withheld total to the foreign sector balance ï¿½ the external world's
+        // withheld total to the foreign sector balance — the external world's
         // purchasing pool. This seals the FiatDestruction leak: previously the
         // amount was only recorded in shadow_economy_state and vanished from M0.
         tasks.par_iter_mut().for_each(|task| {
@@ -3575,7 +3592,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     class_key: class_key.clone(),
                 };
 
-                // Attempt full compensation ï¿½ no silent clamping.
+                // Attempt full compensation — no silent clamping.
                 let result = settle_transfer(
                     &mut task.companies,
                     employer_idx,
@@ -3585,7 +3602,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 );
 
                 if matches!(result, Err(TransferError::InsufficientCash)) {
-                    // Employer cannot pay ï¿½ mark for Syndic bankruptcy.
+                    // Employer cannot pay — mark for Syndic bankruptcy.
                     // The compensation claim becomes a wage-priority claim in
                     // the Syndic's waterfall distribution (wages are first priority).
                     if let Some(ref mut employer) = task.companies.get_mut(employer_idx) {
@@ -3593,7 +3610,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                         // in the next lifecycle phase.
                         employer.company_capital -= comp.total_compensation;
                     }
-                    // Still credit the victim class ï¿½ the Syndic will cover from
+                    // Still credit the victim class — the Syndic will cover from
                     // asset liquidation proceeds. For now, credit from treasury
                     // as a state guarantee (the state covers unpaid wages when
                     // the employer is insolvent, then claims via the Syndic).
@@ -3717,10 +3734,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         // D.6: Deposit remaining harvest to warehouses
-        // World Generation & Climate Audit (v0.5.3): FIX ï¿½ Previously this
+        // World Generation & Climate Audit (v0.5.3): FIX — Previously this
         // loop iterated over ALL regions for EACH company, calling
         // calculate_harvest_yield_and_rot N times per company (where N =
-        // number of regions in the country). This caused Nï¿½ mass duplication
+        // number of regions in the country). This caused N× mass duplication
         // of harvest yield. Now each company is harvested exactly once,
         // using its own region's climate profile.
         tasks.par_iter_mut().for_each(|task| {
@@ -3769,7 +3786,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
         });
 
-        // Phase 29: Periodic storage fee settlement ï¿½ warehouse owners
+        // Phase 29: Periodic storage fee settlement — warehouse owners
         // collect accumulated fees from batch owners. If owners cannot pay,
         // batches are seized and liquidated. This makes warehousing a real
         // revenue stream for logistics companies.
@@ -3814,7 +3831,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         // Phase 6.5: B2C Market Phases R1-R7
-        // Phase 44: Removed the wasted R1 consumer demand build ï¿½ it was computed
+        // Phase 44: Removed the wasted R1 consumer demand build — it was computed
         // and immediately discarded (`let _consumer_demand = ...`). The demand is
         // rebuilt during R6 clearing where it is actually used.
 
@@ -3851,7 +3868,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             let num_regions = task.ctx.country.regions.len();
             // Phase 94: Rebuild index maps BEFORE the region loop to avoid
             // borrow conflicts with &mut task.ctx.country.regions[region_idx].
-            // These maps don't depend on region ï¿½ they map commercial_buildings
+            // These maps don't depend on region — they map commercial_buildings
             // and companies, which are stable within the B2C phase.
             task.rebuild_store_id_to_owner();
             task.rebuild_company_id_to_idx();
@@ -3915,7 +3932,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     &task.store_id_to_owner,
                     &task.company_id_to_idx,
                 );
-                // Phase 41: Credit treasury with VAT (SINGLE credit ï¿½ no double-counting in tax turn).
+                // Phase 41: Credit treasury with VAT (SINGLE credit — no double-counting in tax turn).
                 if vat_collected > 0.0 {
                     task.ctx.country.budget.liquid_reserves += vat_collected;
                     task.ctx.country.accumulated_vat += vat_collected;
@@ -3934,7 +3951,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
         });
 
-        // ï¿½ï¿½ DIAGNOSTIC CHECKPOINT: b2c_clearing_post ï¿½ï¿½
+        // ¦¦ DIAGNOSTIC CHECKPOINT: b2c_clearing_post ¦¦
         probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
         // Phase 47: Degrade household durable cohorts by one turn.
@@ -4173,7 +4190,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         // ===========================================================
         // RESURRECTION PHASE 10: RATIONING CONSEQUENCES
-        // After B2C clearing ï¿½ mortality and unrest penalties from rationing.
+        // After B2C clearing — mortality and unrest penalties from rationing.
         // ===========================================================
         tasks.par_iter_mut().for_each(|task| {
             apply_rationing_consequences(task.ctx.country);
@@ -4181,7 +4198,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         // ===========================================================
         // ===========================================================
-        // PHASE 9: TOURISM (Two-Pass: Compute ï¿½ Clamp ï¿½ Settle)
+        // PHASE 9: TOURISM (Two-Pass: Compute › Clamp › Settle)
         // Runs after B2C clearing (citizens may be depleted), before process_companies.
         // Pass 1 (parallel): Compute demand, debit domestic savings. No company credits.
         // Sequential: Clamp foreign inflow to foreign_sector_balance.
@@ -4224,7 +4241,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         // SEQUENTIAL: Clamp foreign inflow to foreign_sector_balance.
         // Foreign tourist spending comes from the external world's spending pool.
-        // Can never go below zero ï¿½ foreign spending is clamped to this balance.
+        // Can never go below zero — foreign spending is clamped to this balance.
         let total_foreign_requested: f64 = tasks
             .iter()
             .map(|t| t.tourism_demand.total_foreign_requested)
@@ -4376,6 +4393,37 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                                 task.ctx.country,
                             );
                         }
+                    }
+                }
+            }
+        });
+        // Phase 4 fix (C6): Process voluntary project abandonment.
+        // Companies queue AbandonProject actions via pply_action;
+        // the actual abandonment is processed here where buildings are
+        // mutable. Refunds remaining escrow to the investor.
+        tasks.par_iter_mut().for_each(|task| {
+            let pending_abandons: Vec<String> = task
+                .companies
+                .iter_mut()
+                .filter_map(|c| c.pending_abandon_project.take())
+                .collect();
+            for building_id in pending_abandons {
+                match crate::construction::orders::abandon_project(
+                    &building_id,
+                    &mut task.ctx.buildings,
+                    &mut task.companies,
+                    task.ctx.country,
+                ) {
+                    Ok(refund) => {
+                        if refund > 0.0 {
+                            task.ctx.country.macro_indicators.extra.insert(
+                                "abandonment_refund".to_string(),
+                                serde_json::json!(refund),
+                            );
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Abandonment failed for {}: {}", building_id, e);
                     }
                 }
             }
@@ -4596,11 +4644,11 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 current_turn,
             );
 
-            // SEC-8d: CCP default waterfall ï¿½ check for defaulted CCP members
+            // SEC-8d: CCP default waterfall — check for defaulted CCP members
             // Phase 86.5B: Wire previously-disconnected default waterfall.
             // If any CCP member has a margin_deficit exceeding their posted
             // margin, they are in default and the CCP waterfall kicks in
-            // (margin ï¿½ default fund ï¿½ mutualization).
+            // (margin › default fund › mutualization).
             let defaulted_members: Vec<String> = task
                 .ctx
                 .country
@@ -4657,7 +4705,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 );
                 if enacted {
                     // Phase 40: Write back final bill allocations to ministry_config.
-                    // Previously, the enacted bill was dropped ï¿½ allocations never
+                    // Previously, the enacted bill was dropped — allocations never
                     // reached the ministries, leaving them at 0.0.
                     if let Some(ref mut config) = task.ctx.country.politics.ministry_config {
                         for (i, ministry) in config.ministries.iter_mut().enumerate() {
@@ -4706,23 +4754,28 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                         let from_cash = to_debit.min(company.available_cash);
                         company.available_cash -= from_cash;
                         let remaining = to_debit - from_cash;
+                        let mut from_broker = 0.0;
                         if remaining > 0.0 {
                             if let Some(ref mut ba) = company.brokerage_account {
-                                let from_broker = remaining.min(ba.cash);
+                                from_broker = remaining.min(ba.cash);
                                 ba.cash -= from_broker;
                             }
                         }
-                        total_cit_debited += liability.cit_actual;
-                        // Phase 94: Accumulate for batch bank sync.
+                        let actual_debit = from_cash + from_broker;
+                        let cit_share = if to_debit > 0.0 { actual_debit * (liability.cit_actual / to_debit) } else { 0.0 };
+                        let wealth_share = actual_debit - cit_share;
+                        total_cit_debited += cit_share;
+                        total_wealth_tax_debited += wealth_share;
+                        // Phase 94: Accumulate ACTUAL debit for batch bank sync.
                         if let Some(ref bank_id) = company.primary_bank_id {
-                            *tax_bank_debits.entry(bank_id.clone()).or_insert(0.0) += to_debit;
+                            *tax_bank_debits.entry(bank_id.clone()).or_insert(0.0) += actual_debit;
                         }
                     }
                 }
             }
             total_actual_collected += total_cit_debited;
 
-            // Phase 94: Batch bank sync for CIT+wealth tax ï¿½ debit bank
+            // Phase 94: Batch bank sync for CIT+wealth tax — debit bank
             // deposits and reserves by the exact amounts debited from
             // companies. No clamping (negative reserves = CB Lombard borrowing).
             for (bank_id, total_debit) in &tax_bank_debits {
@@ -4746,7 +4799,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             // Only route PIT + CIT + wealth tax (VAT/customs already credited).
             let route_amount = tax_result.actual_pit_collected
                 + total_cit_debited
-                + total_wealth_tax_debited;
+                + tax_result.wealth_tax_collected;
             if route_amount > 0.0 {
                 crate::state::route_tax_collection_to_country(
                     route_amount,
@@ -4806,7 +4859,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             // Runs after fiscal transfers and equalization, before JST spending.
             crate::politics::local_legislation::process_active_mandates(task.ctx.country);
 
-            // Phase 15B: Customs evasion recovery ï¿½ recover evaded taxes
+            // Phase 15B: Customs evasion recovery — recover evaded taxes
             // scaled by CustomsCapacity from customs_office buildings.
             if tax_result.taxes_evaded > 0.0 {
                 let _recovered = crate::economy::smuggling::process_customs_evasion_recovery(
@@ -4816,7 +4869,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 );
             }
 
-            // Phase 29 / D.1.1: Corruption tax leakage ï¿½ corruption embezzles
+            // Phase 29 / D.1.1: Corruption tax leakage — corruption embezzles
             // a fraction of CURRENT-TURN tax revenue to corrupt officials'
             // class savings. No fiat is destroyed (Rule 1). Historical
             // reserves are not subject to leakage (Rule 16: temporal causality).
@@ -4896,7 +4949,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             // Phase 10: Black Ops funding (strict double-entry: debit reserves, credit intelligence)
             process_black_ops_funding(task.ctx.country, task.ctx.registries);
 
-            // Phase 47: Emergency Retail Subsidy ï¿½ if a region's last retail
+            // Phase 47: Emergency Retail Subsidy — if a region's last retail
             // company is failing, the Treasury injects a subsidy to cover
             // minimum upkeep and wages. Strict double-entry, hard-capped by
             // available Treasury liquid reserves.
@@ -4918,7 +4971,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             let deficit = promised_total - task.ctx.country.budget.liquid_reserves;
             if deficit > 0.0 && !task.ctx.country.debt_market.is_locked_out_of_primary {
                 issue_treasury_securities(task.ctx.country, deficit, current_turn);
-                // Phase 38: DSPW auction settlement ï¿½ primary dealer banks
+                // Phase 38: DSPW auction settlement — primary dealer banks
                 // pull-purchase from auction inventory created above.
                 // This runs immediately after issuance so the treasury
                 // is funded before ministry cash allocation.
@@ -5002,7 +5055,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         tasks.par_iter_mut().for_each(|task| {
             let mut ministry_config = task.ctx.country.politics.ministry_config.take();
             if let Some(ref mut config) = ministry_config {
-                let order_book = OrderBook::default(); // placeholder ï¿½ would be the global order book
+                let order_book = OrderBook::default(); // placeholder — would be the global order book
                 for ministry in &mut config.ministries {
                     process_minister_post_clearing(
                         ministry,
@@ -5017,13 +5070,13 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         // ===========================================================
         // PHASE 13: SOCIAL PROGRAMS + CHARITY (THIRD PILLAR)
-        // Order: 1) Charity fundraising ï¿½ 2) Social welfare distribution ï¿½ 3) Charity distribution
+        // Order: 1) Charity fundraising › 2) Social welfare distribution › 3) Charity distribution
         // Fundraising must precede welfare so charities have cash to distribute.
         // Welfare must precede charity distribution so charity supplements gaps.
         // All transfers are strict double-entry.
         // ===========================================================
         tasks.par_iter_mut().for_each(|task| {
-            // 13a: Charity fundraising ï¿½ collect donations from wealthy/co-religionists
+            // 13a: Charity fundraising — collect donations from wealthy/co-religionists
             crate::society::charities::process_charity_fundraising(
                 &mut task.companies,
                 task.ctx.country,
@@ -5032,7 +5085,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         tasks.par_iter_mut().for_each(|task| {
-            // 13b: Social welfare distribution ï¿½ execute active SocialPrograms
+            // 13b: Social welfare distribution — execute active SocialPrograms
             crate::politics::social_programs::execute_social_welfare(
                 task.ctx.country,
                 &mut task.companies,
@@ -5041,7 +5094,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         tasks.par_iter_mut().for_each(|task| {
-            // 13c: Charity distribution ï¿½ distribute relief to poorest classes
+            // 13c: Charity distribution — distribute relief to poorest classes
             crate::society::charities::process_charity_distribution(
                 &mut task.companies,
                 task.ctx.country,
@@ -5062,7 +5115,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         // Phase 35: Gate process_political_year to run only once per year
         // (on the last turn of each year, turn 23/47/71...). Previously this
-        // ran every turn, causing the election timer to tick 24ï¿½ too fast
+        // ran every turn, causing the election timer to tick 24× too fast
         // (elections every 4 turns instead of every 4 years) and political
         // capital to be regenerated every turn, masking the payroll failure
         // cascade that drives it to 0.0.
@@ -5117,8 +5170,8 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // This wires the previously-dead-code `process_political_turn` into the
         // engine loop, enabling per-turn legislation advancement, leader trait
         // effects, VIP incapacity checks, and committee reviews.
-        // Full law enactment (enact_bill ï¿½ enact_law) is enabled from the first
-        // integration ï¿½ no logging-only phase. Latent bugs are fixed directly.
+        // Full law enactment (enact_bill › enact_law) is enabled from the first
+        // integration — no logging-only phase. Latent bugs are fixed directly.
         //
         // CRITICAL: This also drains `vip_registry.pending_unnatural_deaths` at
         // the start of each turn to trigger immediate succession for
@@ -5226,7 +5279,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         // ===========================================================
-        // RESURRECTION PHASE 4: REAL ECONOMY ï¿½ Phase 9/9.1/9.2
+        // RESURRECTION PHASE 4: REAL ECONOMY — Phase 9/9.1/9.2
         // ===========================================================
 
         // Phase 9: R&D, Fishing, Infrastructure
@@ -5300,7 +5353,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             //   assign the licensed blueprint ID.
             // - Otherwise, clear active_blueprint (legacy behavior).
             {
-                // Build a lookup: company_id ï¿½ Vec<(commodity, blueprint_id, design_score)>
+                // Build a lookup: company_id › Vec<(commodity, blueprint_id, design_score)>
                 let mut bp_lookup: std::collections::HashMap<
                     String,
                     Vec<(crate::registries::enums::Commodity, String, f64)>,
@@ -5375,7 +5428,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
 
-            // 9.2: Fishing turn ï¿½ deterministic, no rand
+            // 9.2: Fishing turn — deterministic, no rand
             let fishing_config = task.ctx.country.fishing_config.clone();
             let _harvest = process_fishing_turn(
                 &mut task.ctx.country.fish_stocks,
@@ -5406,7 +5459,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 average_wage,
             );
             // Phase A.4: Write back the mutated cash maps to their source
-            // entities (Rule 1: double-entry bookkeeping ï¿½ every debit must
+            // entities (Rule 1: double-entry bookkeeping — every debit must
             // have a counterparty credit, and the debit must actually persist).
             // Without this write-back, `company_cash` deductions were silently
             // discarded, creating a money-creation leak (Rule 1 violation).
@@ -5417,14 +5470,14 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
             // Write back local government cash if the country has local govs.
             // NOTE: `Country` does not currently have a `local_governments`
-            // field ï¿½ the `local_govs` map is populated empty and only used
+            // field — the `local_govs` map is populated empty and only used
             // in-memory by `allocate_owner_infrastructure_funding`. When local
             // government treasury support is added, write back here. This is
             // a latent gap documented in the plan (Risks section).
         });
 
         // Phase 9.1: B2C Service Clearing (Education + Healthcare)
-        // Moved here per blueprint revision ï¿½ aligned with consumer budgeting phase
+        // Moved here per blueprint revision — aligned with consumer budgeting phase
         tasks.par_iter_mut().for_each(|task| {
             let service_config = task.ctx.country.service_pricing_config.clone();
             let mut building_inventories: std::collections::BTreeMap<
@@ -5454,12 +5507,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             task.education_consumption = edu_consumption;
             task.education_needs = education_needs;
 
-            // Phase B.3: Education Progression ï¿½ consume EducationSlots to shift
-            // demographics.education shares (none ï¿½ basic ï¿½ secondary ï¿½ higher).
+            // Phase B.3: Education Progression — consume EducationSlots to shift
+            // demographics.education shares (none › basic › secondary › higher).
             // Runs after B2C clearing (temporal causality: consumption data is
             // available) and before assimilation (Phase 17B benefits from
             // updated education coverage). The updated shares are visible to
-            // process_demographics_and_labor NEXT turn (one-turn lag ï¿½ Rule 16).
+            // process_demographics_and_labor NEXT turn (one-turn lag — Rule 16).
             let _progression_result = crate::economy::labor::process_education_progression_turn(
                 task.ctx.country,
                 &task.education_consumption,
@@ -5645,7 +5698,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // Both run in parallel (per-country, no cross-country deps).
         // ===========================================================
         tasks.par_iter_mut().for_each(|task| {
-            // Agent 4 ï¿½ Phase 4: Use actual cross-border trade value instead of
+            // Agent 4 — Phase 4: Use actual cross-border trade value instead of
             // the previous magic `sum(production) * 1000.0` estimate (Rule 2).
             // Smuggling is a function of cross-border trade only, not total
             // domestic output (Rule 15).
@@ -5701,7 +5754,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             let corp_tech_config = task.ctx.country.corporate_tech_config.clone();
             let mut planned_production: std::collections::BTreeMap<String, f64> =
                 std::collections::BTreeMap::new();
-            // Phase E.4: Build company_id ï¿½ primary output commodity map for VWAP lookup.
+            // Phase E.4: Build company_id › primary output commodity map for VWAP lookup.
             let mut company_output_commodities: std::collections::HashMap<String, Commodity> =
                 std::collections::HashMap::new();
             for building in &task.ctx.buildings {
@@ -5793,7 +5846,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // Phase 95: Sequential post-parallel crediting of foreign patent fees.
         // Each country's parallel R&D phase emitted FX outflows (debited
         // companies via settle_transfer to ForeignEntity). Here we credit the
-        // sum to GlobalMarket.offshore_capital ï¿½ money preserved, never destroyed.
+        // sum to GlobalMarket.offshore_capital — money preserved, never destroyed.
         let total_foreign_fees: f64 = tasks.iter().map(|t| t.foreign_patent_fee_outbox).sum();
         if total_foreign_fees > 0.0 {
             market.foreign_patent_fee_ledger += total_foreign_fees;
@@ -5868,7 +5921,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // next-turn ToT computation. Uses a two-slot approach:
         //   _prev_employment = previous turn's end values (for snapshot comparison)
         //   _cur_employment  = current turn's end values
-        // At end of turn: move _cur_* ï¿½ _prev_*, then store current as _cur_*.
+        // At end of turn: move _cur_* › _prev_*, then store current as _cur_*.
         // The snapshot compares current sector data to _prev_* (previous turn).
         // Phase 36 fix: Previously, _prev_* was overwritten with current-turn
         // data, making the snapshot compare current-to-current (ToT always 0%).
@@ -5903,7 +5956,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
         }
 
-        // Phase 42: Safety clamp ï¿½ ensure FX reserves never go negative.
+        // Phase 42: Safety clamp — ensure FX reserves never go negative.
         // Phase 43: Also purge legacy "IEU" keys from fx_reserves.
         for task in &mut tasks {
             task.ctx.country.central_bank.fx_reserves.remove("IEU");
@@ -5931,7 +5984,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // Population is strictly conserved across countries.
         // ===========================================================
         {
-            // Phase R6: Migration config ï¿½ replaces all magic numbers.
+            // Phase R6: Migration config — replaces all magic numbers.
             let migration_config =
                 crate::economy::labor::migration::MigrationConfig::default();
 
@@ -5979,7 +6032,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 task.deported_wealth = wealth;
             });
             // Sequential: credit deported wealth to foreign_sector_balance (F4).
-            // Deportees take their savings out of the country ï¿½ external world gains.
+            // Deportees take their savings out of the country › external world gains.
             let total_deported_wealth: f64 =
                 tasks.iter().map(|t| t.deported_wealth).sum();
             if total_deported_wealth > 0.0 {
@@ -6071,7 +6124,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
                 // Check if within PIP range
                 // D.6.1: Use Planet haversine distance for spatial partitioning.
-                // No O(N2) building-pair loops ï¿½ distance is computed per
+                // No O(N2) building-pair loops — distance is computed per
                 // inspectorate-region / target-region pair.
                 let planet = task.planet;
                 let in_range = crate::economy::inspectorate_fleet::is_within_inspection_range(
@@ -6099,7 +6152,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 let avg_wage = task.ctx.country.macro_indicators.average_wage;
                 let fine = (defect * avg_wage * 50.0 + (1.0 - ohs_ratio) * avg_wage * 20.0)
                     .max(avg_wage * 5.0);
-                // Attempt bribe ï¿½ D.5.1: Determine bribe recipient deterministically
+                // Attempt bribe — D.5.1: Determine bribe recipient deterministically
                 // from the dominant class employed at the specific inspectorate
                 // building that is inspecting this site. No hardcoded "bourgeoisie".
                 let inspector_region_idx = task
@@ -6150,7 +6203,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                         &mut rng,
                     )
                 } else {
-                    // No eligible inspector ï¿½ no bribe possible, proceed to fine
+                    // No eligible inspector — no bribe possible, proceed to fine
                     None
                 };
                 // If bribe rejected or no bribe attempted, levy the fine
@@ -6229,7 +6282,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 &mut task.companies,
                 &religious_law,
             );
-            // Phase 28: Church fund is a State expenditure (treasury ï¿½ church).
+            // Phase 28: Church fund is a State expenditure (treasury › church).
             // It counts as government spending (G) in GDP.
             task.gdp_acc.government_spending += church_fund_result.total_paid;
         });
@@ -6250,7 +6303,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         // ===========================================================
         // PHASE 78: RELIGIOUS AUTHORITY COMPUTATION
-        // Computes per-religion authority scores (0.0ï¿½1.0) based on buildings,
+        // Computes per-religion authority scores (0.0–1.0) based on buildings,
         // charity, holy sites, and clergy-to-follower ratio. Must run BEFORE
         // religious conversion (which uses authority scores).
         // ===========================================================
@@ -6566,7 +6619,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     let mut cottage_fte_by_sector: std::collections::BTreeMap<String, f64> =
                         std::collections::BTreeMap::new();
                     for demographics in region.class_demographics.rural_classes.values() {
-                        // Sum cottage FTE ï¿½ the sector is derived from the domain
+                        // Sum cottage FTE — the sector is derived from the domain
                         // For now, aggregate all cottage FTE into a single sector key
                         *cottage_fte_by_sector
                             .entry("crafts".to_string())
@@ -6776,8 +6829,8 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // ===========================================================
         // PHASE 85B: URBANIZATION CYCLE
         // Runs after B2C clearing and GDP computation, before entity collection.
-        // - 85B.1: Emancipation check (GuildBurgher domains ï¿½ City Regions)
-        // - 85B.2: Annexation attempts (City Regions ï¿½ adjacent parcels)
+        // - 85B.1: Emancipation check (GuildBurgher domains › City Regions)
+        // - 85B.2: Annexation attempts (City Regions › adjacent parcels)
         // Must run here so that emancipation/annexation effects are visible
         // to the next turn's demographics/labor phase (Rule 16).
         // ===========================================================
@@ -6803,7 +6856,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             all_depletion_requests.append(&mut task.depletion_buffer);
         }
 
-        // ï¿½ï¿½ DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ï¿½ï¿½
+        // ¦¦ DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ¦¦
         probe.checkpoint("turn_end", 4, turn, &market, &tasks);
 
         // Collect entities back from tasks into ctx.entities format.
@@ -7094,7 +7147,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         );
     }
 
-    // Phase 66: Process expelled spies ï¿½ queue ExpelDiplomat actions
+    // Phase 66: Process expelled spies — queue ExpelDiplomat actions
     for (home, host) in &expel_actions {
         state.pending_diplomatic_actions.push(
             crate::state::diplomatic_actions::DiplomaticAction::ExpelDiplomat {
@@ -7185,7 +7238,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         if let Some(country) = state.countries.get_mut(ai_country_name) {
             country.geopolitical_doctrine = doctrine.clone();
         }
-        // Execute doctrine ï¿½ generate diplomatic actions
+        // Execute doctrine — generate diplomatic actions
         let mut rng = rand::thread_rng();
         let actions = crate::international::ai_doctrines::execute_doctrine(
             state,
@@ -7202,7 +7255,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
     let diplo_config = state.diplomatic_config.clone();
     crate::state::diplomatic_actions::drain_diplomatic_actions(state, &diplo_config);
 
-    // Phase 68: Process international organizations ï¿½ integration progression, voting evolution.
+    // Phase 68: Process international organizations — integration progression, voting evolution.
     let org_config = state.org_config.clone();
     let populations: std::collections::BTreeMap<String, u64> = state
         .countries
@@ -7215,7 +7268,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         &populations,
     );
 
-    // Phase 68: Enforce directives ï¿½ apply fines for non-compliance (double-entry).
+    // Phase 68: Enforce directives — apply fines for non-compliance (double-entry).
     let fines = state
         .international_organizations
         .enforce_directives(current_turn_for_treaties);
@@ -7265,7 +7318,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
     // B2C-populated) supply/demand volumes. The turn-start clear at line ~2693
     // eliminated stale values; B2C was added immediately after; now B2B is
     // merged. Result: supply_volume = current_B2B, demand_volume = B2C + current_B2B.
-    // The old Phase-80 FIX comment warned against clearing here ï¿½ that was
+    // The old Phase-80 FIX comment warned against clearing here — that was
     // because the clear used to happen at this location (end-of-turn). The
     // clear now happens at turn start (before B2C aggregation), so this merge
     // is safe and correct.
@@ -7273,7 +7326,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         *market.supply_volume.entry(good).or_insert(0.0) += order.sell;
         *market.demand_volume.entry(good).or_insert(0.0) += order.buy;
     }
-    // No disk persistence ï¿½ entities stay in ctx.
+    // No disk persistence — entities stay in ctx.
 
     turn += 1;
     // Phase 27: 1 Year = 24 Turns (2 turns per month). Year only increments
@@ -7290,7 +7343,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             let entity_ids: Vec<String> =
                 country.capital_gains_tax.accruals.keys().cloned().collect();
 
-            // Build a map of entity_id ï¿½ mutable brokerage cash reference.
+            // Build a map of entity_id › mutable brokerage cash reference.
             // We need to debit from brokerage accounts, so we collect the cash amounts
             // and update them after settlement.
             let mut entity_cash: std::collections::HashMap<String, f64> =
@@ -7327,7 +7380,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
             // R4.2: Apply actual cash debits to entity brokerage accounts.
             // If entity lacks sufficient cash, debit what's available (deterministic
-            // arrears behavior ï¿½ no fiat creation from Treasury credit without debit).
+            // arrears behavior — no fiat creation from Treasury credit without debit).
             let mut actual_collected = 0.0_f64;
             for (entity_id, tax_amount) in &tax_debits {
                 if let Some(entities_ctx) = entities.get_mut(&country.name) {
@@ -7356,7 +7409,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 country.capital_gains_tax.annual_tax_history.remove(0);
             }
 
-            // R6.5: Activate dynamic fund creation ï¿½ once per political year
+            // R6.5: Activate dynamic fund creation — once per political year
             // per country, attempt to create a new hedge fund from a wealthy VIP.
             if let Some(ref registry) = country.politics.vip_registry {
                 // Find eligible VIPs: influence > 50, age 35-65, ambitious
@@ -7782,15 +7835,15 @@ fn merge_orders(target: &mut MarketOrders, source: &MarketOrders) {
 /// Process Parliament building payroll and procurement for one turn.
 ///
 /// # Rules (User-Mandated Corrections)
-/// * MP salaries ï¿½ credited to `"Bourgeoisie"` (urban) in capital region.
-/// * Staff salaries ï¿½ credited to `"Worker"` (urban) in capital region.
+/// * MP salaries › credited to `"Bourgeoisie"` (urban) in capital region.
+/// * Staff salaries › credited to `"Worker"` (urban) in capital region.
 /// * If Treasury cannot afford payroll: NO money printed, payroll fails.
 ///   - `building.condition -= 0.05` (rapid degradation)
 ///   - `political_capital -= 20.0` (massive hit)
 ///   - Coalition partners' `factional_tension += 0.15` (splintering risk)
 /// * When Parliament is suspended (State of Emergency):
 ///   - MP wages not paid (savings).
-///   - Staff wages continue (skeleton crew) ï¿½ credited to `"Worker"`.
+///   - Staff wages continue (skeleton crew) › credited to `"Worker"`.
 ///   - Goods consumption reduced by 80%.
 fn process_parliament_building_payroll(
     country: &mut crate::state::Country,
@@ -7845,7 +7898,7 @@ fn process_parliament_building_payroll(
 
     // Check if Treasury can afford the payroll.
     if country.budget.liquid_reserves < total_payroll {
-        // PAYROLL FAILS ï¿½ no money printed (Correction 4).
+        // PAYROLL FAILS — no money printed (Correction 4).
         let shortfall = total_payroll - country.budget.liquid_reserves;
 
         // 1. Political capital crashes.
@@ -7872,7 +7925,7 @@ fn process_parliament_building_payroll(
         }
 
         messages.push(format!(
-            "[PARLIAMENT BANKRUPT] Payroll failed ï¿½ shortfall: {:.0}. Political capital collapsing, coalition tension rising.",
+            "[PARLIAMENT BANKRUPT] Payroll failed — shortfall: {:.0}. Political capital collapsing, coalition tension rising.",
             shortfall
         ));
 
@@ -7880,7 +7933,7 @@ fn process_parliament_building_payroll(
         return messages;
     }
 
-    // Treasury can afford payroll ï¿½ debit and credit specific classes.
+    // Treasury can afford payroll — debit and credit specific classes.
     country.budget.liquid_reserves -= total_payroll;
 
     // Credit MP salaries to Bourgeoisie in capital region (Correction 3).
@@ -7916,7 +7969,7 @@ fn process_parliament_building_payroll(
         mp_payroll,
         staff_payroll,
         if parliament_suspended {
-            "(suspended ï¿½ MPs unpaid)"
+            "(suspended — MPs unpaid)"
         } else {
             ""
         }

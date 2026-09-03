@@ -440,8 +440,6 @@ impl CorporateStrategy for LegalForm {
             LegalForm::LogisticsCompany(_) => logistics_expansion(ctx), // Phase 29: ROI-driven warehouse expansion
             LegalForm::NonProfit(_) => CorporateAction::Idle, // Non-profits don't pursue corporate expansion
             LegalForm::Guild(_) => CorporateAction::Idle, // Phase 85: Guilds expand via member recruitment, not capital
-            LegalForm::MutualInsurance(_) => CorporateAction::Idle, // Phase H5: Mutual insurers expand via premium collection, not capital
-            LegalForm::ShelteredWorkshop(_) => CorporateAction::Idle, // Phase D6: Sheltered workshops expand via state subsidy, not capital
         }
     }
 

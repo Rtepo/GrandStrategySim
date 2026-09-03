@@ -473,6 +473,30 @@ pub struct Country {
     /// Phase 4: B2C service pricing configuration.
     #[serde(default)]
     pub service_pricing_config: crate::economy::service_config::ServicePricingConfig,
+    /// Phase E.5: Education configuration (eradicates magic numbers D5–D11).
+    #[serde(default)]
+    pub education_config: crate::economy::config::education_config::EducationConfig,
+    /// Phase D10: Disability configuration (eradicates magic numbers).
+    #[serde(default)]
+    pub disability_config: crate::economy::labor::disability_config::DisabilityConfig,
+    /// Phase D7: Pension law (None = no pension system).
+    #[serde(default)]
+    pub pension_law: Option<crate::economy::pension::PensionLaw>,
+    /// Phase D7: Pension liabilities (unfunded benefits).
+    #[serde(default)]
+    pub pension_liabilities: Vec<crate::economy::pension::PensionLiability>,
+    /// Phase D7: Pension contribution history.
+    #[serde(default)]
+    pub pension_contribution_history: std::collections::BTreeMap<String, u32>,
+    /// Phase D7: Disability pension configuration.
+    #[serde(default)]
+    pub disability_pension_config: Option<crate::economy::pension::DisabilityPensionConfig>,
+    /// Phase D8: Begging configuration.
+    #[serde(default)]
+    pub begging_config: Option<crate::economy::begging::BeggingConfig>,
+    /// Phase 22D: Justice system configuration.
+    #[serde(default)]
+    pub justice_config: crate::economy::justice::justice_system::JusticeConfig,
     /// Phase 4: Infrastructure funding configuration.
     #[serde(default)]
     pub infrastructure_config: crate::economy::infrastructure_config::InfrastructureConfig,
@@ -754,6 +778,14 @@ impl Country {
             b2b_order_config: crate::economy::b2b_config::B2bOrderConfig::default(),
             fishing_config: crate::economy::fishing_config::FishingConfig::default(),
             service_pricing_config: crate::economy::service_config::ServicePricingConfig::default(),
+            education_config: crate::economy::config::education_config::EducationConfig::default(),
+            disability_config: crate::economy::labor::disability_config::DisabilityConfig::default(),
+            pension_law: None,
+            pension_liabilities: Vec::new(),
+            pension_contribution_history: std::collections::BTreeMap::new(),
+            disability_pension_config: None,
+            begging_config: None,
+            justice_config: crate::economy::justice::justice_system::JusticeConfig::default(),
             infrastructure_config:
                 crate::economy::infrastructure_config::InfrastructureConfig::default(),
             innovation_config: crate::economy::innovation_config::InnovationConfig::default(),
@@ -1151,6 +1183,14 @@ impl CountryBuilder {
             b2b_order_config: crate::economy::b2b_config::B2bOrderConfig::default(),
             fishing_config: crate::economy::fishing_config::FishingConfig::default(),
             service_pricing_config: crate::economy::service_config::ServicePricingConfig::default(),
+            education_config: crate::economy::config::education_config::EducationConfig::default(),
+            disability_config: crate::economy::labor::disability_config::DisabilityConfig::default(),
+            pension_law: None,
+            pension_liabilities: Vec::new(),
+            pension_contribution_history: std::collections::BTreeMap::new(),
+            disability_pension_config: None,
+            begging_config: None,
+            justice_config: crate::economy::justice::justice_system::JusticeConfig::default(),
             infrastructure_config:
                 crate::economy::infrastructure_config::InfrastructureConfig::default(),
             innovation_config: crate::economy::innovation_config::InnovationConfig::default(),
