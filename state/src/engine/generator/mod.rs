@@ -1538,6 +1538,7 @@ fn build_treasury(
         trade_balance: None,
         max_public_wage_multiplier: 1.2, // Phase 5: Default to prevent crowding out
         equalization_fund: 0.0,          // Phase D.9: Equalization fund starts empty
+        external_financing_injected: 0.0, // Phase M0-Audit
         extra: Map::new(),
     };
 
