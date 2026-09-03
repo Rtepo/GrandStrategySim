@@ -84,12 +84,30 @@ If you realize you have violated any of these rules:
 
 ## Critical Collaboration Protocol
 
-**CRITICAL COLLABORATION PROTOCOL:** Before creating a branch, starting a
-task, or modifying any file, you MUST read `agents_sync.json` (the
-authoritative machine-readable ledger) and `AGENTS_SYNC.md` (the
-human-readable mirror). You are STRICTLY FORBIDDEN from editing files or
-domains currently locked by another agent. You must update your entry in
-`agents_sync.json` when starting work and when finishing/merging.
+**CRITICAL COLLABORATION PROTOCOL:** Inter-agent synchronization is
+**strictly automated** via `agents_sync.json` and the lifecycle hooks in
+`.devin/hooks.v1.json`. The old manual `AGENTS_SYNC.md` has been
+**eradicated** — agents MUST NOT recreate it or manually edit any
+synchronization ledger. All registration, locking, heartbeat, and
+unlocking is handled automatically by the hooks.
+
+Before creating a branch, starting a task, or modifying any file, you
+MUST read `agents_sync.json` to check which directories are locked by
+other agents. You are STRICTLY FORBIDDEN from editing files or domains
+currently locked by another agent.
+
+### Cross-Agent Blocker Bus
+
+`agents_sync.json` contains a `"cross_agent_blockers"` array for
+structured inter-agent communication. Each blocker entry contains:
+`from_agent`, `to_agent` (or `"all"`), `affected_file`, `message`, and
+`timestamp`. The SessionStart hook automatically parses this array and
+injects high-visibility warnings into your context if you are the target
+of any blocker. Use `.devin/scripts/block.sh` to post blockers:
+
+```bash
+bash .devin/scripts/block.sh <to_agent|all> <affected_file> "<message>"
+```
 
 ### Automated Synchronization Hooks
 
@@ -99,7 +117,8 @@ The repository is equipped with automated lifecycle hooks
 - **SessionStart hook** (`.devin/scripts/start.sh`): Automatically
   registers your session in `agents_sync.json`, locks your requested
   directories, reaps zombie locks (agents with stale heartbeats >15 min),
-  and spawns a background heartbeat process.
+  parses cross-agent blockers targeting you, and spawns a background
+  heartbeat process.
 - **Stop hook** (`.devin/scripts/stop.sh`): Context-aware CI/CD gate.
   If only `.md`/`.txt`/`.json` files were modified, bypasses all
   compilation and tests. If source code (`.rs`/`.ts`/`.tsx`) was modified,

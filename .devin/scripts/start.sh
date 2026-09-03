@@ -98,6 +98,8 @@ cleanup() {
     fi
     # Unlock via transactional loop (C1) — surgical revert on failure
     sync_transactional mutator_unlock_agent "sync: unlock agent $SESSION_ID on session end" 5 || true
+    # Clear this agent's posted blockers (C5)
+    sync_transactional mutator_clear_my_blockers "sync: clear blockers from $AGENT_ID on session end" 3 || true
 }
 trap 'cleanup' EXIT
 
@@ -128,12 +130,31 @@ if [ -f "$HEARTBEAT_SCRIPT" ]; then
     HEARTBEAT_PID=$!
 fi
 
-# ─── Print additionalContext with current ledger state ─────────────────────
+# ─── Parse cross-agent blockers targeting this agent (C5) ──────────────────
+# Read the ledger and extract any blockers where to_agent matches
+# AGENT_ID or "all". Inject them as high-visibility warnings.
+BLOCKER_WARNINGS=$(get_blockers_for_agent 2>/dev/null || echo "")
+
+# ─── Print additionalContext with current ledger state + blockers ──────────
 LEDGER_SUMMARY=$(ledger_summary 2>/dev/null || echo "Ledger unavailable")
+
 ADDITIONAL_CONTEXT="Multi-Agent Sync: Registered as $AGENT_ID (session: $SESSION_ID, branch: $AGENT_BRANCH). Locked dirs: [${LOCKED_DIRS:-none}]. Active agents:
 $LEDGER_SUMMARY
 
 CRITICAL: Before editing any file, check agents_sync.json to verify no other agent has locked the target directory. Update your row when starting/finishing tasks."
+
+# Append blocker warnings if any exist
+if [ -n "$BLOCKER_WARNINGS" ]; then
+    ADDITIONAL_CONTEXT="$ADDITIONAL_CONTEXT
+
+$BLOCKER_WARNINGS
+
+You MUST coordinate with the blocking agent(s) before modifying the affected files. Use 'bash .devin/scripts/block.sh <to_agent|all> <file> \"<message>\"' to post your own blockers."
+else
+    ADDITIONAL_CONTEXT="$ADDITIONAL_CONTEXT
+
+No cross-agent blockers targeting you. Use 'bash .devin/scripts/block.sh <to_agent|all> <file> \"<message>\"' to post a blocker to another agent."
+fi
 
 # Output JSON for Devin to inject into context
 node -e '
