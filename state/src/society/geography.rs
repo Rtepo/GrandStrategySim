@@ -591,6 +591,10 @@ pub struct Region {
     #[serde(default)]
     pub class_demographics: RegionalClassDemographics,
 
+    /// Phase E.7.1: Per-region education shares.
+    #[serde(default)]
+    pub education: crate::state::macro_data::Education,
+
     // NEW: Regional governance (JST)
     #[serde(default)]
     pub governance: Option<crate::politics::local_government::RegionalGovernance>,
@@ -1236,6 +1240,14 @@ pub struct ClassDemographics {
     /// Bounded by HousingBuilding storage capacity (Rule 20).
     #[serde(default)]
     pub cottage_raw_inventory: BTreeMap<crate::registries::enums::Commodity, f64>,
+
+    /// Phase E.8.3: Citizens under loyalty bonds for locally-funded education.
+    #[serde(default)]
+    pub loyalty_bond_count: i64,
+
+    /// Phase E.8.3: Turn when current loyalty bonds expire.
+    #[serde(default)]
+    pub loyalty_bond_expires_turn: u32,
 }
 
 /// Phase 47: A cohort of household durable goods held by a demographic class.
@@ -2528,6 +2540,7 @@ pub fn generate_maritime_nodes(
         edges: Vec::new(),
         land_distribution: BTreeMap::new(),
         class_demographics: RegionalClassDemographics::default(),
+        education: crate::state::macro_data::Education::default(),
         governance: None,
         capacity_pool: BTreeMap::new(),
         capacity_utilization: BTreeMap::new(),
@@ -2577,6 +2590,7 @@ pub fn generate_maritime_nodes(
         edges: Vec::new(),
         land_distribution: BTreeMap::new(),
         class_demographics: RegionalClassDemographics::default(),
+        education: crate::state::macro_data::Education::default(),
         governance: None,
         capacity_pool: BTreeMap::new(),
         capacity_utilization: BTreeMap::new(),
@@ -3611,6 +3625,7 @@ mod phase30_tests {
             edges,
             land_distribution: BTreeMap::new(),
             class_demographics: Default::default(),
+            education: Default::default(),
             governance: None,
             capacity_pool: BTreeMap::new(),
             capacity_utilization: BTreeMap::new(),
