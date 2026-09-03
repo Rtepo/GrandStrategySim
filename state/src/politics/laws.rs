@@ -467,6 +467,10 @@ pub fn enact_law(country: &mut crate::state::Country, law_type: LawType) -> Stri
                 old_structure, new_structure
             )
         }
+        LawType::ChildLabor(law) => {
+            country.politics.child_labor_law = Some(law.clone());
+            format!("Child labor law enacted: {:?}", law)
+        }
     }
 }
 
