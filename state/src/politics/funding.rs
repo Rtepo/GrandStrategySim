@@ -38,9 +38,10 @@ pub enum FundingModel {
 }
 
 /// Budget source for funding
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum BudgetSource {
+    #[default]
     Central,
     Regional,
     Mixed {

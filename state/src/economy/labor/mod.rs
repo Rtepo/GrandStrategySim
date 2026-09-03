@@ -1,5 +1,6 @@
 //! Labor subdirectory: demographics, labor market, migration, assimilation.
 pub mod assimilation;
+pub mod disability_config;
 pub mod education_progression;
 pub mod labor;
 pub mod labor_config;

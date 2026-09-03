@@ -836,6 +836,9 @@ pub struct Politics {
     pub emancipation_law: String,
     #[serde(default)]
     pub labor_law: String,
+    /// Phase D5/E.4: Child labor law.
+    #[serde(default)]
+    pub child_labor_law: Option<crate::politics::laws::ChildLaborLaw>,
     #[serde(default)]
     pub union_law: String,
     #[serde(default)]
@@ -854,6 +857,9 @@ pub struct Politics {
     /// Education law configuration (new capacity-based model)
     #[serde(default)]
     pub education_law: Option<crate::politics::laws::EducationLaw>,
+    /// Phase E.9.2: Previous school system.
+    #[serde(default)]
+    pub previous_school_system: Option<crate::politics::laws::SchoolSystem>,
     /// Justice law configuration (Phase 14).
     #[serde(default)]
     pub justice_law: Option<crate::politics::laws::JusticeLaw>,

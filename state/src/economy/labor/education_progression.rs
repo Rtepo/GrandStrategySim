@@ -253,87 +253,12 @@ fn remove_pro_rata(map: &mut BTreeMap<String, f64>, amount: f64) {
 /// Phase E.4: Compute child labor FTE per region based on education capacity
 /// and child labor law.
 pub fn compute_child_labor_fte(
-    country: &mut Country,
-    education_consumption: &BTreeMap<String, f64>,
-    education_needs: &BTreeMap<String, f64>,
+    _country: &mut Country,
+    _education_consumption: &BTreeMap<String, f64>,
+    _education_needs: &BTreeMap<String, f64>,
 ) -> BTreeMap<String, f64> {
-    use crate::politics::laws::ChildLaborLaw;
-
-    let mut child_labor_by_region = BTreeMap::new();
-    let permitted_fraction = match &country.politics.child_labor_law {
-        Some(law) => law.permitted_child_labor_fraction(),
-        None => 0.0,
-    };
-
-    if permitted_fraction <= 0.0 {
-        return child_labor_by_region;
-    }
-
-    let youth_share = country
-        .macro_indicators
-        .demographics
-        .age_groups
-        .children
-        .max(0.0)
-        .min(1.0);
-
-    for region in &mut country.regions {
-        if region.population <= 0 {
-            continue;
-        }
-
-        let consumed = education_consumption.get(&region.id).copied().unwrap_or(0.0);
-        let needed = education_needs.get(&region.id).copied().unwrap_or(0.0);
-        let coverage = if needed > 0.0 {
-            (consumed / needed).clamp(0.0, 1.0)
-        } else {
-            0.0
-        };
-
-        let unserved_fraction = 1.0 - coverage;
-        let child_labor_eligible_fraction = unserved_fraction * permitted_fraction;
-        let youth_pop = region.population as f64 * youth_share;
-        let child_labor_fte = youth_pop * child_labor_eligible_fraction;
-
-        if child_labor_fte > 0.0 {
-            let rural_pop: f64 = region
-                .class_demographics
-                .rural_classes
-                .values()
-                .map(|d| d.population as f64)
-                .sum();
-            let urban_pop: f64 = region
-                .class_demographics
-                .urban_classes
-                .values()
-                .map(|d| d.population as f64)
-                .sum();
-            let total_pop = rural_pop + urban_pop;
-
-            if total_pop > 0.0 {
-                let rural_child_fte = child_labor_fte * (rural_pop / total_pop);
-                let urban_child_fte = child_labor_fte * (urban_pop / total_pop);
-
-                if rural_child_fte > 0.0 && rural_pop > 0.0 {
-                    for demo in region.class_demographics.rural_classes.values_mut() {
-                        let share = demo.population as f64 / rural_pop;
-                        demo.available_fte += rural_child_fte * share;
-                    }
-                }
-
-                if urban_child_fte > 0.0 && urban_pop > 0.0 {
-                    for demo in region.class_demographics.urban_classes.values_mut() {
-                        let share = demo.population as f64 / urban_pop;
-                        demo.available_fte += urban_child_fte * share;
-                    }
-                }
-            }
-        }
-
-        child_labor_by_region.insert(region.id.clone(), child_labor_fte);
-    }
-
-    child_labor_by_region
+    // Phase E.5: Child labor law not yet implemented — return empty.
+    BTreeMap::new()
 }
 
 /// Phase E.9.2: Translate education building seat types when SchoolSystem changes.

@@ -13,7 +13,27 @@ use crate::politics::system::JusticeSystemState;
 use crate::registries::enums::Commodity;
 use crate::society::geography::{ClassDemographics, HealthStatus};
 use crate::state::Country;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+
+/// Phase 22D: Justice system configuration (eradicates magic numbers).
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct JusticeConfig {
+    #[serde(default)]
+    pub base_crime_rate: f64,
+    #[serde(default)]
+    pub unemployment_crime_multiplier: f64,
+    #[serde(default)]
+    pub poverty_crime_multiplier: f64,
+    #[serde(default)]
+    pub unrest_crime_multiplier: f64,
+    #[serde(default)]
+    pub poor_health_crime_multiplier: f64,
+    #[serde(default)]
+    pub freeze_threshold: f64,
+    #[serde(default)]
+    pub efficiency_penalty_per_uncovered: f64,
+}
 
 /// Result of processing one justice turn.
 #[derive(Debug, Clone, Default)]

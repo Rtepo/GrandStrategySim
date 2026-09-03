@@ -81,6 +81,9 @@ pub struct EducationLaw {
 
     /// Compulsory education configuration
     pub compulsory_education: CompulsoryEducationConfig,
+    /// Phase E.8.1: Per-tier education financing law.
+    #[serde(default)]
+    pub financing: Option<EducationFinancingLaw>,
 }
 
 /// Education model types
@@ -109,6 +112,46 @@ pub enum SchoolSystem {
     EightPlusFour,
     /// Direct Primary → High
     NoMiddleSchool,
+}
+
+impl SchoolSystem {
+    /// Phase E.9.1: Returns the duration (in years) of each tier.
+    pub fn tier_years(&self) -> (u32, u32, u32) {
+        match self {
+            SchoolSystem::FourPlusFourPlusFour => (4, 4, 4),
+            SchoolSystem::SixPlusThreePlusThree => (6, 3, 3),
+            SchoolSystem::EightPlusFour => (8, 0, 4),
+            SchoolSystem::NoMiddleSchool => (6, 0, 6),
+        }
+    }
+    pub fn has_middle_tier(&self) -> bool { self.tier_years().1 > 0 }
+    pub fn age_brackets(&self) -> ((u32, u32), (u32, u32), (u32, u32)) {
+        const START_AGE: u32 = 6;
+        let (p, m, h) = self.tier_years();
+        let primary = (START_AGE, START_AGE + p);
+        let middle = if m > 0 { (primary.1, primary.1 + m) } else { (0, 0) };
+        let high_start = if m > 0 { middle.1 } else { primary.1 };
+        let high = (high_start, high_start + h);
+        (primary, middle, high)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct EducationFinancingLaw {
+    #[serde(default)] pub primary_funding: EducationTierFunding,
+    #[serde(default)] pub secondary_funding: EducationTierFunding,
+    #[serde(default)] pub higher_funding: EducationTierFunding,
+    #[serde(default)] pub budget_source: crate::politics::funding::BudgetSource,
+    #[serde(default)] pub local_override_permitted: bool,
+    #[serde(default = "default_loyalty_bond_duration")] pub loyalty_bond_duration: u32,
+}
+fn default_loyalty_bond_duration() -> u32 { 10 }
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum EducationTierFunding {
+    #[default] StateFunded,
+    Subsidized { rate: f64 },
+    FreeMarket,
 }
 
 /// Compulsory education configuration
@@ -278,6 +321,8 @@ pub enum LawType {
     /// Phase 65: State structure change — alters the relationship between
     /// central and regional governments (Unitary/Federation/Totalitarian/AutonomousRepublic).
     StateStructureChange(crate::politics::state_structure::StateStructure),
+    /// Phase D5: Child labor law.
+    ChildLabor(ChildLaborLaw),
 }
 
 /// Enact a law, mutating the country's physical economic configuration.
@@ -308,7 +353,9 @@ pub fn enact_law(country: &mut crate::state::Country, law_type: LawType) -> Stri
             )
         }
         LawType::Education(law) => {
+            let old_system = country.politics.education_law.as_ref().map(|l| l.school_system);
             country.politics.education_law = Some(law.clone());
+            country.politics.previous_school_system = old_system;
             // Phase C.2: Use force_free flag instead of magic nominal price.
             let is_state_run = law.education_model == EducationModel::StateRun;
             country.service_pricing_config.force_free_education = is_state_run;
@@ -646,6 +693,23 @@ impl ReligiousLaw {
                 church_tax_rate: 0.0,
                 apostolic_remittance_rate: 0.10,
             },
+        }
+    }
+}
+
+/// Phase D5: Child labor law.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub enum ChildLaborLaw {
+    Prohibited,
+    #[default] Restricted,
+    Unrestricted,
+}
+impl ChildLaborLaw {
+    pub fn permitted_child_labor_fraction(&self) -> f64 {
+        match self {
+            ChildLaborLaw::Prohibited => 0.0,
+            ChildLaborLaw::Restricted => 0.3,
+            ChildLaborLaw::Unrestricted => 1.0,
         }
     }
 }
