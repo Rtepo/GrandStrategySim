@@ -3953,6 +3953,36 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // ── DIAGNOSTIC CHECKPOINT: b2c_clearing_post ──
         probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let total_bank_res: f64 = tasks.iter().flat_map(|t| {
+                std::iter::once(t.ctx.country.bfg_fund.reserves)
+                .chain(std::iter::once(t.ctx.country.sobk_scheme.pool))
+                .chain(t.companies.iter()
+                    .filter(|c| c.sector == crate::registries::enums::Sector::Banking)
+                    .filter_map(|c| c.balance_sheet.as_ref())
+                    .flat_map(|bs| [bs.reserves_at_central_bank, bs.cb_deposit_facility_balance]))
+            }).sum();
+            let total_treasury: f64 = tasks.iter().flat_map(|t| {
+                std::iter::once(t.ctx.country.budget.liquid_reserves)
+                .chain(t.ctx.country.regions.iter().filter_map(|r| r.governance.as_ref().map(|g| g.budget.liquid_reserves)))
+                .chain(t.ctx.country.megaregions.iter().filter_map(|m| m.governance.as_ref().map(|g| g.budget.liquid_reserves)))
+            }).sum();
+            let total_ministry: f64 = tasks.iter().flat_map(|t| {
+                t.ctx.country.politics.ministry_config.iter()
+                    .flat_map(|c| c.ministries.iter())
+                    .map(|m| m.ministry_cash)
+                    .chain(t.ctx.country.pending_defense_orders.iter().map(|b| b.quantity * b.limit_price))
+            }).sum();
+            let total_citizen: f64 = tasks.iter().flat_map(|t| {
+                t.ctx.country.regions.iter().flat_map(|r| {
+                    r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values())
+                }).map(|d| d.savings)
+            }).sum();
+            eprintln!("POST_B2C_CHK: turn={} bank_res={:.2} treasury={:.2} ministry={:.2} citizen={:.2} offshore={:.2} charity={:.2}",
+                turn, total_bank_res, total_treasury, total_ministry, total_citizen, market.offshore_capital, market.apostolic_see_ledger.global_charity_pool);
+        }
+
         // Phase 47: Degrade household durable cohorts by one turn.
         // Runs after B2C clearing, before telemetry. Durable goods
         // (Furniture, Cars, Televisions, Clothing, etc.) slowly wear out

@@ -3347,6 +3347,14 @@ pub fn dspw_auction_settlement(
 
             // Credit treasury with the purchase price.
             country.budget.liquid_reserves += purchase_price;
+            // Phase M0-Audit: This is M0-neutral (bank reserves decreased,
+            // treasury increased — both in walk_global_fiat). No
+            // external_financing_injected increment needed.
+            // FUTURE: When foreign bond buyers are implemented, their
+            // purchases would bring money from outside the tracked M0
+            // system. In that case, increment
+            // country.budget.external_financing_injected by the foreign
+            // purchase amount to prevent false M0 conservation violations.
 
             // Add bank as security holder and clear auction flag.
             let sec = &mut country.debt_market.outstanding_securities[sec_idx];

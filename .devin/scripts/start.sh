@@ -88,6 +88,10 @@ export LOCKED_DIRS
 AGENT_TASK="${DEVIN_AGENT_TASK:-session-startup}"
 export AGENT_TASK
 
+# ─── Detect manager role (RBAC) ────────────────────────────────────────────
+validate_manager_auth
+export AGENT_ROLE
+
 # ─── Cleanup trap (C2) ─────────────────────────────────────────────────────
 HEARTBEAT_PID=""
 

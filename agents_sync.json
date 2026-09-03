@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "last_updated": "2026-09-03T00:00:00Z",
+  "version": 2,
+  "last_updated": "2026-09-03T23:30:00Z",
   "agents": [
     {
       "agent_id": "agent-1",
@@ -10,6 +10,7 @@
       "shared_files": ["engine/turn.rs"],
       "task": "Phase 94 M0 fiat leak diagnostics",
       "status": "active",
+      "role": "worker",
       "registered_at": null,
       "last_heartbeat": null
     },
@@ -21,6 +22,7 @@
       "shared_files": ["corporate/manager.rs"],
       "task": "Corporate Investments, B2B Tenders, State Cadastre",
       "status": "active",
+      "role": "worker",
       "registered_at": null,
       "last_heartbeat": null
     },
@@ -32,6 +34,7 @@
       "shared_files": ["telemetry.rs"],
       "task": "Disability lifecycles, Sheltered Workshops, B2C Care",
       "status": "active",
+      "role": "worker",
       "registered_at": null,
       "last_heartbeat": null
     },
@@ -43,6 +46,19 @@
       "shared_files": [],
       "task": "Regionalizing education shares, Loyalty Bonds, tiered financing",
       "status": "active",
+      "role": "worker",
+      "registered_at": null,
+      "last_heartbeat": null
+    },
+    {
+      "agent_id": "agent-5",
+      "session_id": null,
+      "branch": "main",
+      "locked_dirs": [],
+      "shared_files": [],
+      "task": "Lead System Manager — repository governance, merge authority, M0 diagnostics",
+      "status": "active",
+      "role": "manager",
       "registered_at": null,
       "last_heartbeat": null
     }
