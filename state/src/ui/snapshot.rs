@@ -6148,7 +6148,7 @@ pub fn build_education_mobility_snapshot(
     class_transition_result: Option<&crate::economy::labor::class_transitions::ClassTransitionResult>,
     child_labor_fte: &std::collections::BTreeMap<String, f64>,
 ) -> EducationMobilitySnapshot {
-    use crate::politics::laws::{EducationTierFunding, SchoolSystem};
+    use crate::politics::laws::SchoolSystem;
 
     let edu = &country.macro_indicators.demographics.education;
     let secondary_sum: f64 = edu.secondary.values().sum();

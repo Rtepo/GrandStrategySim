@@ -708,6 +708,32 @@ pub enum ChildLaborLaw {
     #[default] Restricted,
     Unrestricted,
 }
+
+/// Emancipation law level, parsed from the string in `politics.emancipation_law`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum EmancipationLaw {
+    #[default] Traditionalism,
+    PropertyRights,
+    LimitedSuffrage,
+    FullEmancipation,
+}
+
+impl EmancipationLaw {
+    /// Parse from the string stored in `country.politics.emancipation_law`.
+    pub fn parse_from_str(s: &str) -> Self {
+        match s {
+            "Property Rights" => EmancipationLaw::PropertyRights,
+            "Limited Suffrage" => EmancipationLaw::LimitedSuffrage,
+            "Full Emancipation" => EmancipationLaw::FullEmancipation,
+            _ => EmancipationLaw::Traditionalism,
+        }
+    }
+
+    /// Returns true if the law allows serf → free peasant transitions.
+    pub fn allows_emancipation_transition(&self) -> bool {
+        !matches!(self, EmancipationLaw::Traditionalism)
+    }
+}
 impl ChildLaborLaw {
     pub fn permitted_child_labor_fraction(&self) -> f64 {
         match self {
