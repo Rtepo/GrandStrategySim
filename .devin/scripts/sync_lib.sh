@@ -17,6 +17,140 @@ LEDGER_FILE="agents_sync.json"
 REAP_MS=$((15 * 60 * 1000))  # 15 minutes in milliseconds
 GIT_REMOTE="origin"
 GIT_BRANCH="main"
+MANAGER_AUTH_FILE=".devin/.manager_auth"
+MANAGER_AUDIT_LOG=".devin/.manager_audit_log"
+
+# ─── Manager Authentication (RBAC) ─────────────────────────────────────────
+# Checks .devin/.manager_auth for a valid manager token.
+# Returns 0 if valid manager, 1 otherwise.
+# Sets AGENT_ROLE env var to "manager" or "worker".
+validate_manager_auth() {
+    local project_dir="${DEVIN_PROJECT_DIR:-$(pwd)}"
+    local auth_file="$project_dir/$MANAGER_AUTH_FILE"
+
+    if [ ! -f "$auth_file" ]; then
+        AGENT_ROLE="worker"
+        return 1
+    fi
+
+    # Read and validate the token
+    local token_session_id token_fingerprint
+    token_session_id=$(node -e '
+        const fs = require("fs");
+        try {
+            const t = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            console.log(t.session_id || "");
+        } catch(e) { console.log(""); }
+    ' "$auth_file" 2>/dev/null || echo "")
+
+    # Check if session_id matches current session
+    if [ -z "$token_session_id" ] || [ "$token_session_id" != "${SESSION_ID:-}" ]; then
+        AGENT_ROLE="worker"
+        return 1
+    fi
+
+    # Validate fingerprint
+    local current_fp
+    current_fp=$(node -e '
+        const os = require("os");
+        const crypto = require("crypto");
+        const fp = os.hostname() + "|" + (process.env.USERNAME || process.env.USER || "unknown");
+        console.log(crypto.createHash("sha256").update(fp).digest("hex"));
+    ' 2>/dev/null || echo "")
+
+    token_fingerprint=$(node -e '
+        const fs = require("fs");
+        try {
+            const t = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            console.log(t.fingerprint || "");
+        } catch(e) { console.log(""); }
+    ' "$auth_file" 2>/dev/null || echo "")
+
+    if [ "$current_fp" != "$token_fingerprint" ]; then
+        AGENT_ROLE="worker"
+        return 1
+    fi
+
+    AGENT_ROLE="manager"
+    export AGENT_ROLE
+    return 0
+}
+
+# ─── Get agent role from ledger ────────────────────────────────────────────
+# Returns "manager" or "worker" based on the ledger entry for this session.
+get_agent_role() {
+    cat "$LEDGER_FILE" 2>/dev/null | node -e '
+        let input = "";
+        process.stdin.on("data", d => input += d);
+        process.stdin.on("end", () => {
+            try {
+                const data = JSON.parse(input);
+                const sid = process.env.SESSION_ID || "";
+                const agent = data.agents.find(a => a.session_id === sid);
+                console.log(agent ? (agent.role || "worker") : "worker");
+            } catch(e) { console.log("worker"); }
+        });
+    '
+}
+
+# ─── Mutator: Force-unlock an agent (manager only) ─────────────────────────
+# Uses env var: FORCE_UNLOCK_TARGET
+mutator_force_unlock() {
+    node -e '
+        const fs = require("fs");
+        const data = JSON.parse(fs.readFileSync("agents_sync.json", "utf8"));
+        const target = process.env.FORCE_UNLOCK_TARGET || "";
+
+        let agent = data.agents.find(a => a.agent_id === target);
+        if (agent) {
+            agent.status = "force-unlocked";
+            agent.locked_dirs = [];
+            agent.session_id = null;
+            agent.last_heartbeat = null;
+        }
+        data.last_updated = new Date().toISOString();
+        fs.writeFileSync("agents_sync.json", JSON.stringify(data, null, 2));
+    '
+}
+
+# ─── Mutator: Resolve blockers (manager only) ──────────────────────────────
+# Uses env vars: RESOLVE_MODE (index|from_agent|all), RESOLVE_TARGET
+mutator_resolve_blocker() {
+    node -e '
+        const fs = require("fs");
+        const data = JSON.parse(fs.readFileSync("agents_sync.json", "utf8"));
+        const mode = process.env.RESOLVE_MODE || "all";
+        const target = process.env.RESOLVE_TARGET || "";
+
+        if (!data.cross_agent_blockers) {
+            data.cross_agent_blockers = [];
+        }
+
+        if (mode === "all") {
+            data.cross_agent_blockers = [];
+        } else if (mode === "from_agent") {
+            data.cross_agent_blockers = data.cross_agent_blockers.filter(
+                b => b.from_agent !== target
+            );
+        } else if (mode === "index") {
+            const idx = parseInt(target);
+            if (!isNaN(idx) && idx >= 0 && idx < data.cross_agent_blockers.length) {
+                data.cross_agent_blockers.splice(idx, 1);
+            }
+        }
+        data.last_updated = new Date().toISOString();
+        fs.writeFileSync("agents_sync.json", JSON.stringify(data, null, 2));
+    '
+}
+
+# ─── Log manager action to audit trail ─────────────────────────────────────
+log_manager_action() {
+    local action="$1"
+    local details="$2"
+    local timestamp
+    timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "unknown")
+    echo "$timestamp | manager:${AGENT_ID:-unknown} | $action | $details" >> "$MANAGER_AUDIT_LOG" 2>/dev/null || true
+}
 
 # ─── Helper: Check for index.lock (C3) ─────────────────────────────────────
 index_lock_exists() {

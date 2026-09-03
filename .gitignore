@@ -40,3 +40,7 @@ commit_v*.txt
 .devin/.clearance_granted
 .devin/.cicd_state
 .devin/.cicd_bypass
+
+# Manager RBAC auth + audit (gitignored, never committed)
+.devin/.manager_auth
+.devin/.manager_audit_log

@@ -91,6 +91,25 @@ If you realize you have violated any of these rules:
 synchronization ledger. All registration, locking, heartbeat, and
 unlocking is handled automatically by the hooks.
 
+### Role-Based Access Control (RBAC)
+
+Agents have one of two roles, stored in `agents_sync.json`:
+
+- **`"worker"`** (default): May push to `feat/*` and `fix/*` branches only.
+  Blocked from pushing to or merging into `main` by the `pre_push.sh` hook.
+  To merge their work, workers request the manager to run `merge_worker.sh`.
+- **`"manager"`**: May push to any branch, including `main`. The manager
+  runs the Global Diagnostic Harness (Iron CI/CD + M0 conservation audit +
+  macro-architectural audit) before merging. Authenticated via
+  `.devin/.manager_auth` token file (gitignored).
+
+**Manager bootstrap:** `bash .devin/scripts/claim_manager.sh`
+**Manager CLI tools:**
+- `force_unlock.sh <agent_id>` — break zombie locks
+- `resolve_blocker.sh <index|from_agent|all> [--generate-stub]` — clear blockers + generate Rust stubs
+- `view_blockers.sh` — topological dependency graph (read-only, any agent)
+- `merge_worker.sh <branch>` — formal merge + diagnostics + reverse sync
+
 Before creating a branch, starting a task, or modifying any file, you
 MUST read `agents_sync.json` to check which directories are locked by
 other agents. You are STRICTLY FORBIDDEN from editing files or domains

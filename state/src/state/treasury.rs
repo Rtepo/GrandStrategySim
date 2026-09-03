@@ -333,6 +333,14 @@ pub struct Treasury {
     /// is swept to general `liquid_reserves` as an administrative fee.
     #[serde(default, skip_serializing_if = "is_zero_f64")]
     pub equalization_fund: f64,
+    /// Phase M0-Audit: Cumulative external financing received by the Treasury
+    /// from outside the tracked M0 system (foreign bond purchases, direct CB
+    /// deficit monetization, etc.). Used by the M0 conservation test to
+    /// distinguish valid fiscal M0 expansion from conservation violations.
+    /// Every time the Treasury receives money from an external/non-tracked
+    /// source, this field is incremented by the same amount.
+    #[serde(default)]
+    pub external_financing_injected: f64,
     /// All other runtime-added keys, preserved losslessly.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -363,6 +371,7 @@ impl Default for Treasury {
             liquidation_expenses: 0.0, // Phase 6.3: Default liquidation expenses
             logistics_revenue: 0.0,    // Phase 6.3.5: Default logistics revenue
             equalization_fund: 0.0,    // Phase D.9: Default equalization fund
+            external_financing_injected: 0.0, // Phase M0-Audit
             extra: Map::new(),
         }
     }
