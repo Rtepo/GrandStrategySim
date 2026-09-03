@@ -206,14 +206,11 @@ pub fn process_rural_urban_class_transitions(
                     let transition_fraction = match emancipation {
                         EmancipationLaw::FullEmancipation => 0.25, // 25% per turn
                         EmancipationLaw::LimitedSuffrage => 0.05,  // 5% per turn
-                        EmancipationLaw::PropertyRights => {
+                        EmancipationLaw::PropertyRights
                             // Only destitute serfs transition under Property Rights.
-                            if serf_demo.economic_status == EconomicStatus::Destitute {
+                            if serf_demo.economic_status == EconomicStatus::Destitute => {
                                 0.03
-                            } else {
-                                0.0
                             }
-                        }
                         _ => 0.0,
                     };
 

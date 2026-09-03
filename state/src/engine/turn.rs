@@ -1041,6 +1041,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             for cancelled_tender in &cancelled {
                 crate::construction::tender_market::refund_tender_escrow(
                     cancelled_tender,
+                    &mut task.companies,
                     task.ctx.country,
                 );
             }

@@ -1,0 +1,36 @@
+﻿
+> error[E0428]: the name `PoorLaws` is defined multiple times
+      --> state\src\society\geography.rs:1504:1
+       |
+  1490 | pub struct PoorLaws {
+> error[E0119]: conflicting implementations of trait `Debug` for type `geography::PoorLaws`
+      --> state\src\society\geography.rs:1503:10
+       |
+  1489 | #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+> error[E0119]: conflicting implementations of trait `Clone` for type `geography::PoorLaws`
+      --> state\src\society\geography.rs:1503:17
+       |
+  1489 | #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+> error[E0119]: conflicting implementations of trait `Default` for type `geography::PoorLaws`
+      --> state\src\society\geography.rs:1503:59
+       |
+  1489 | #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+> error[E0119]: conflicting implementations of trait `entities::_::_serde::Serialize` for type `geography::PoorLaws`
+      --> state\src\society\geography.rs:1503:24
+       |
+  1489 | #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+> error[E0119]: conflicting implementations of trait `entities::_::_serde::Deserialize<'_>` for type `geography::PoorLa
+ws
+  `
+      --> state\src\society\geography.rs:1503:35
+       |
+> error[E0119]: conflicting implementations of trait `StructuralPartialEq` for type `geography::PoorLaws`
+      --> state\src\society\geography.rs:1503:48
+       |
+  1489 | #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+> error[E0119]: conflicting implementations of trait `PartialEq` for type `geography::PoorLaws`
+      --> state\src\society\geography.rs:1503:48
+       |
+  1489 | #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+
+

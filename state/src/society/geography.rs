@@ -549,6 +549,10 @@ fn default_winter_mortality_multiplier() -> f64 {
     1.0
 }
 
+fn default_disability_severity() -> f64 {
+    0.5
+}
+
 /// A single region with class-based land ownership
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Region {
@@ -590,6 +594,10 @@ pub struct Region {
     // NEW: Class demographics
     #[serde(default)]
     pub class_demographics: RegionalClassDemographics,
+
+    /// Phase E.7.1: Per-region education shares.
+    #[serde(default)]
+    pub education: crate::state::macro_data::Education,
 
     // NEW: Regional governance (JST)
     #[serde(default)]
@@ -1200,6 +1208,10 @@ pub struct ClassDemographics {
     #[serde(default)]
     pub active_disabled: i64,
 
+    /// Phase D: Average disability severity for disabled members (0.0–1.0).
+    #[serde(default = "default_disability_severity")]
+    pub disability_severity: f64,
+
     /// Phase 47: Persistent durable-goods holdings for this class.
     /// Mirrors FixedAssetCohort but for household consumption.
     /// Aggregated by (commodity, quality_bucket) to bound memory.
@@ -1236,6 +1248,14 @@ pub struct ClassDemographics {
     /// Bounded by HousingBuilding storage capacity (Rule 20).
     #[serde(default)]
     pub cottage_raw_inventory: BTreeMap<crate::registries::enums::Commodity, f64>,
+
+    /// Phase E.8.3: Citizens under loyalty bonds for locally-funded education.
+    #[serde(default)]
+    pub loyalty_bond_count: i64,
+
+    /// Phase E.8.3: Turn when current loyalty bonds expire.
+    #[serde(default)]
+    pub loyalty_bond_expires_turn: u32,
 }
 
 /// Phase 47: A cohort of household durable goods held by a demographic class.
@@ -1465,6 +1485,20 @@ pub enum FactionDomainType {
     IndustrialistDomain,
 }
 
+/// Phase D8: Poor laws configuration for a factional domain.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct PoorLaws {
+    /// Whether begging is repressed by local authorities.
+    #[serde(default)]
+    pub begging_repressed: bool,
+    /// Rate at which begging is repressed (0.0–1.0).
+    #[serde(default)]
+    pub begging_repression_rate: f64,
+    /// Local disability relief rate as fraction of average_wage (0.0–1.0).
+    #[serde(default)]
+    pub local_disability_relief_rate: f64,
+}
+
 /// Phase 85: Local laws imposed by the ruling faction of a FactionalDomain.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LocalLaws {
@@ -1486,6 +1520,9 @@ pub struct LocalLaws {
     /// PeasantCommunity: bonus to cottage production efficiency (0.0-1.0).
     #[serde(default)]
     pub cottage_industry_bonus: f64,
+    /// Phase D8: Poor laws for disability relief and begging repression.
+    #[serde(default)]
+    pub poor_laws: PoorLaws,
 }
 
 /// Micro-region budget (sub-budget derived from local property taxes)
@@ -2164,6 +2201,7 @@ pub fn generate_regional_topology(
                 dominant_culture,
                 ethnic_composition,
             ),
+            education: crate::state::macro_data::Education::default(),
             governance,
             capacity_pool: BTreeMap::new(),
             capacity_utilization: BTreeMap::new(),
@@ -2528,6 +2566,7 @@ pub fn generate_maritime_nodes(
         edges: Vec::new(),
         land_distribution: BTreeMap::new(),
         class_demographics: RegionalClassDemographics::default(),
+        education: crate::state::macro_data::Education::default(),
         governance: None,
         capacity_pool: BTreeMap::new(),
         capacity_utilization: BTreeMap::new(),
@@ -2577,6 +2616,7 @@ pub fn generate_maritime_nodes(
         edges: Vec::new(),
         land_distribution: BTreeMap::new(),
         class_demographics: RegionalClassDemographics::default(),
+        education: crate::state::macro_data::Education::default(),
         governance: None,
         capacity_pool: BTreeMap::new(),
         capacity_utilization: BTreeMap::new(),
@@ -3611,6 +3651,7 @@ mod phase30_tests {
             edges,
             land_distribution: BTreeMap::new(),
             class_demographics: Default::default(),
+            education: Default::default(),
             governance: None,
             capacity_pool: BTreeMap::new(),
             capacity_utilization: BTreeMap::new(),

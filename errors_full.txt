@@ -1,0 +1,66 @@
+﻿
+> error[E0432]: unresolved import `crate::society::geography::PoorLaws`
+    --> state\src\economy\begging.rs:26:52
+     |
+  26 | use crate::society::geography::{ClassDemographics, PoorLaws, RuralClass, UrbanClass};
+> error[E0433]: cannot find `class_transitions` in `labor`
+      --> state\src\ui\snapshot.rs:6148:61
+       |
+  6148 |     class_transition_result: Option<&crate::economy::labor::class_transitions::ClassTransitionResult>,
+> error[E0425]: cannot find function `compute_per_tier_education_needs` in module `crate::economy::labor`
+      --> state\src\ui\snapshot.rs:6167:43
+       |
+  6167 |     let per_tier = crate::economy::labor::compute_per_tier_education_needs(country);
+> error[E0433]: cannot find type `EducationTierFunding` in this scope
+      --> state\src\ui\snapshot.rs:6262:9
+       |
+  6262 |         EducationTierFunding::StateFunded => ("state_funded".to_string(), 1.0),
+> error[E0433]: cannot find type `EducationTierFunding` in this scope
+      --> state\src\ui\snapshot.rs:6263:9
+       |
+  6263 |         EducationTierFunding::Subsidized { rate } => ("subsidized".to_string(), *rate),
+> error[E0433]: cannot find type `EducationTierFunding` in this scope
+      --> state\src\ui\snapshot.rs:6264:9
+       |
+  6264 |         EducationTierFunding::FreeMarket => ("free_market".to_string(), 0.0),
+> error[E0609]: no field `poor_laws` on type `LocalLaws`
+     --> state\src\economy\begging.rs:289:35
+      |
+  289 |         Some(mr) if mr.local_laws.poor_laws.local_disability_relief_rate > 0.0 => mr,
+> error[E0609]: no field `disability_severity` on type `&ClassDemographics`
+     --> state\src\economy\pension.rs:620:33
+      |
+  620 |             let severity = demo.disability_severity;
+> error[E0609]: no field `disability_severity` on type `&ClassDemographics`
+     --> state\src\economy\pension.rs:642:33
+      |
+  642 |             let severity = demo.disability_severity;
+> error[E0063]: missing fields `begging_config`, `disability_config`, `disability_pension_config` and 5 other fields in
+ i
+  nitializer of `state::Country`
+     --> state\src\engine\generator\mod.rs:480:23
+      |
+> error[E0063]: missing fields `begging_config`, `disability_config`, `disability_pension_config` and 5 other fields in
+ i
+  nitializer of `state::Country`
+     --> state\src\io\save_manager.rs:106:13
+      |
+> error[E0063]: missing fields `begging_config`, `disability_config`, `disability_pension_config` and 5 other fields in
+ i
+  nitializer of `state::Country`
+     --> state\src\politics\rebellions.rs:191:29
+      |
+> error[E0369]: binary operation `==` cannot be applied to type `JusticeConfig`
+     --> state\src\state\mod.rs:499:5
+      |
+  255 | #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+> error[E0609]: no field `loyalty_bond_count` on type `&ClassDemographics`
+      --> state\src\ui\snapshot.rs:6225:20
+       |
+  6225 |         .map(|d| d.loyalty_bond_count)
+> error[E0004]: non-exhaustive patterns: `LawType::ChildLabor(_)` not covered
+     --> state\src\politics\laws.rs:344:11
+      |
+  344 |     match law_type {
+
+

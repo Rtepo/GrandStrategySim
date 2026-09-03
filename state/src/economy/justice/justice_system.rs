@@ -17,20 +17,27 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 /// Phase 22D: Justice system configuration (eradicates magic numbers).
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct JusticeConfig {
+    /// Baseline crime rate per capita before modifiers.
     #[serde(default)]
     pub base_crime_rate: f64,
+    /// Crime multiplier for each unit of unemployment above baseline.
     #[serde(default)]
     pub unemployment_crime_multiplier: f64,
+    /// Crime multiplier for population below poverty line.
     #[serde(default)]
     pub poverty_crime_multiplier: f64,
+    /// Crime multiplier per unit of social unrest.
     #[serde(default)]
     pub unrest_crime_multiplier: f64,
+    /// Crime multiplier for population with poor health status.
     #[serde(default)]
     pub poor_health_crime_multiplier: f64,
+    /// Temperature below which crime increases from hardship.
     #[serde(default)]
     pub freeze_threshold: f64,
+    /// Efficiency penalty per unit of uncovered justice capacity.
     #[serde(default)]
     pub efficiency_penalty_per_uncovered: f64,
 }

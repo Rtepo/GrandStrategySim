@@ -1,14 +1,14 @@
 ﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
-At line:1 char:1
-+ cargo build --workspace 2>&1 | Out-File .devin/.cicd_build6.txt -Enco ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At line:1 char:50
++ ... e\Downloads\SillyElaborateState; cargo check --workspace 2>&1 | Out-F ...
++                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
 package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
 workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
     Blocking waiting for file lock on build directory
-   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+    Checking sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
 error[E0432]: unresolved import `crate::politics::laws::EmancipationLaw`
   --> state\src\economy\labor\class_transitions.rs:24:5
    |
@@ -91,34 +91,7 @@ nitializer of `state::Country`
     |                             ^^^^^^^^^^^^^^^^^^^^^ missing `begging_config`, `disability_config`, `disability_pens
 ion_config` and 5 other fields
 
-error[E0063]: missing field `education` in initializer of `Region`
-    --> state\src\society\geography.rs:2153:22
-     |
-2153 |         regions.push(Region {
-     |                      ^^^^^^ missing `education`
-
-error[E0369]: binary operation `==` cannot be applied to type `JusticeConfig`
-   --> state\src\state\mod.rs:499:5
-    |
-255 | #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-    |                                                --------- in this derive macro expansion
-...
-499 |     pub justice_config: crate::economy::justice::justice_system::JusticeConfig,
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-note: an implementation of `PartialEq` might be missing for `JusticeConfig`
-   --> state\src\economy\justice\justice_system.rs:21:1
-    |
- 21 | pub struct JusticeConfig {
-    | ^^^^^^^^^^^^^^^^^^^^^^^^ must implement `PartialEq`
-help: consider annotating `JusticeConfig` with `#[derive(PartialEq)]`
-   --> state\src\economy\justice\justice_system.rs:21:1
-    |
- 21 + #[derive(PartialEq)]
- 22 | pub struct JusticeConfig {
-    |
-
-Some errors have detailed explanations: E0063, E0369, E0432, E0609.
+Some errors have detailed explanations: E0063, E0432, E0609.
 For more information about an error, try `rustc --explain E0063`.
 warning: `sim_engine` (lib) generated 2 warnings
-error: could not compile `sim_engine` (lib) due to 10 previous errors; 2 warnings emitted
+error: could not compile `sim_engine` (lib) due to 8 previous errors; 2 warnings emitted

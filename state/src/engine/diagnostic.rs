@@ -371,6 +371,9 @@ pub struct FiatWalk {
     pub offshore_capital: f64,
     /// See-held fiat: Apostolic See charity pool.
     pub see_charity_pool: f64,
+    /// Phase 94: Ministry cash pockets — fiat debited from treasury and held
+    /// by ministries until spent. This is M0 base money.
+    pub ministry_cash: f64,
     /// CB injection tracker (the sole permitted delta source).
     pub cumulative_cb_injection: f64,
 }
@@ -393,6 +396,8 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     let mut bank_reserves: f64 = 0.0;
     let mut cumulative_cb_injection: f64 = 0.0;
 
+    let mut ministry_cash: f64 = 0.0;
+
     for task in tasks {
         let country = &task.ctx.country;
         treasury_cash += country.budget.liquid_reserves;
@@ -408,6 +413,13 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         for megaregion in &country.megaregions {
             if let Some(ref gov) = megaregion.governance {
                 treasury_cash += gov.budget.liquid_reserves;
+            }
+        }
+        // Phase 94: Ministry cash pockets are M0 — debited from treasury
+        // and held until ministries spend it on B2B orders or services.
+        if let Some(ref config) = country.politics.ministry_config {
+            for ministry in &config.ministries {
+                ministry_cash += ministry.ministry_cash;
             }
         }
         // Phase 94: Citizen savings (demo.savings) are physical cash in
@@ -452,7 +464,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     // B2C purchases are M0-neutral: citizen cash decreases, bank reserves
     // increase. Wage payments require bank reserves to decrease when
     // physical cash is withdrawn â€” this is handled in the wage payment code.
-    let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital + see_charity_pool;
+    let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital + see_charity_pool + ministry_cash;
 
     FiatWalk {
         total,
@@ -461,6 +473,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         bank_reserves,
         offshore_capital,
         see_charity_pool,
+        ministry_cash,
         cumulative_cb_injection,
     }
 }

@@ -580,6 +580,11 @@ gender: string,
 portrait_seed: string, };
 
 /**
+ * Phase E.10: Education and social mobility telemetry snapshot.
+ */
+export type EducationMobilitySnapshot = { education_none_share: number, education_basic_share: number, education_secondary_share: number, education_higher_share: number, education_consumed: number, education_needed: number, education_coverage: number, primary_need: number, secondary_need: number, higher_need: number, school_system: string, has_middle_tier: boolean, primary_years: number, middle_years: number, high_years: number, primary_funding_model: string, primary_subsidy_rate: number, secondary_funding_model: string, secondary_subsidy_rate: number, higher_funding_model: string, higher_subsidy_rate: number, rural_to_urban_count: bigint, serf_to_free_peasant_count: bigint, serf_to_landless_count: bigint, worker_to_bourgeoisie_count: bigint, child_labor_law: string, child_labor_fte: number, loyalty_bond_count: bigint, };
+
+/**
  * State of Emergency snapshot.
  */
 export type EmergencySnapshot = { active: boolean, reason: string, turns_remaining: number, parliament_suspended: boolean, };

@@ -1,0 +1,12 @@
+﻿
+> error[E0599]: no method named `allows_emancipation_transition` found for enum `EmancipationLaw` in the current scope
+     --> state\src\economy\labor\class_transitions.rs:197:25
+      |
+  197 |         if emancipation.allows_emancipation_transition() {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `EmancipationLaw`
+      |
+     ::: state\src\politics\laws.rs:727:1
+      |
+  727 | pub enum EmancipationLaw {
+
+

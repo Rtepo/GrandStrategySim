@@ -802,7 +802,7 @@ mod tests {
         // total_damages = 450 * 3.0 = 1350
         // Thief can only pay ~100, so unpaid = ~1250
         let thief = &companies[0];
-        assert!(thief.judgment_debts.len() > 0);
+        assert!(!thief.judgment_debts.is_empty());
         assert!(thief.liabilities > 0.0);
         // No manual company_capital override — it stays as is.
         // The accounting equation will organically compute negative equity.

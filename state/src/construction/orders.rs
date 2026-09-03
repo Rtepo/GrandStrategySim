@@ -865,7 +865,7 @@ pub fn ensure_project_land(
     // State projects: reallocate a Treasury parcel (no purchase)
     if project.investor_id.starts_with("STATE:") {
         if let Some(parcel_id) = find_undeveloped_state_parcel(cadastre, region_id, buildings) {
-            let project_id = format!("{}_{}", region_id, format!("{:?}", project.project_type));
+            let project_id = format!("{}_{:?}", region_id, project.project_type);
             if reallocate_state_parcel(cadastre, parcel_id, &project_id) {
                 project.parcel_id = format!("{:?}", parcel_id);
                 return true;

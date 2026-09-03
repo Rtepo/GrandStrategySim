@@ -267,7 +267,6 @@ pub fn translate_school_seat_types(
     old_system: crate::politics::laws::SchoolSystem,
     new_system: crate::politics::laws::SchoolSystem,
 ) -> usize {
-    use crate::politics::laws::SchoolSystem;
     use crate::registries::enums::CapacityType;
 
     if old_system == new_system {

@@ -6101,3 +6101,167 @@ pub fn build_energy_grid_snapshot(
         },
     }
 }
+
+// ============================================================================
+// PHASE E.10: EDUCATION & MOBILITY TELEMETRY SNAPSHOT
+// ============================================================================
+
+/// Phase E.10: Education and social mobility telemetry snapshot.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct EducationMobilitySnapshot {
+    pub education_none_share: f64,
+    pub education_basic_share: f64,
+    pub education_secondary_share: f64,
+    pub education_higher_share: f64,
+    pub education_consumed: f64,
+    pub education_needed: f64,
+    pub education_coverage: f64,
+    pub primary_need: f64,
+    pub secondary_need: f64,
+    pub higher_need: f64,
+    pub school_system: String,
+    pub has_middle_tier: bool,
+    pub primary_years: u32,
+    pub middle_years: u32,
+    pub high_years: u32,
+    pub primary_funding_model: String,
+    pub primary_subsidy_rate: f64,
+    pub secondary_funding_model: String,
+    pub secondary_subsidy_rate: f64,
+    pub higher_funding_model: String,
+    pub higher_subsidy_rate: f64,
+    pub rural_to_urban_count: i64,
+    pub serf_to_free_peasant_count: i64,
+    pub serf_to_landless_count: i64,
+    pub worker_to_bourgeoisie_count: i64,
+    pub child_labor_law: String,
+    pub child_labor_fte: f64,
+    pub loyalty_bond_count: i64,
+}
+
+/// Phase E.10: Build an education and mobility snapshot for a country.
+pub fn build_education_mobility_snapshot(
+    country: &crate::state::Country,
+    education_consumption: &std::collections::BTreeMap<String, f64>,
+    education_needs: &std::collections::BTreeMap<String, f64>,
+    class_transition_result: Option<&crate::economy::labor::class_transitions::ClassTransitionResult>,
+    child_labor_fte: &std::collections::BTreeMap<String, f64>,
+) -> EducationMobilitySnapshot {
+    use crate::politics::laws::SchoolSystem;
+
+    let edu = &country.macro_indicators.demographics.education;
+    let secondary_sum: f64 = edu.secondary.values().sum();
+    let higher_sum: f64 = edu.higher.values().sum();
+    let total = edu.none + edu.basic + secondary_sum + higher_sum;
+    let (none_share, basic_share, secondary_share, higher_share) = if total > 0.0 {
+        (edu.none / total, edu.basic / total, secondary_sum / total, higher_sum / total)
+    } else {
+        (1.0, 0.0, 0.0, 0.0)
+    };
+
+    let consumed: f64 = education_consumption.values().sum();
+    let needed: f64 = education_needs.values().sum();
+    let coverage = if needed > 0.0 { (consumed / needed).clamp(0.0, 1.0) } else { 0.0 };
+
+    let per_tier = crate::economy::labor::compute_per_tier_education_needs(country);
+    let (primary_need, secondary_need, higher_need) = per_tier.values().fold(
+        (0.0, 0.0, 0.0),
+        |(p, s, h), (rp, rs, rh)| (p + rp, s + rs, h + rh),
+    );
+
+    let school_system = country
+        .politics
+        .education_law
+        .as_ref()
+        .map(|l| l.school_system)
+        .unwrap_or(SchoolSystem::FourPlusFourPlusFour);
+    let (py, my, hy) = school_system.tier_years();
+
+    let financing = country
+        .politics
+        .education_law
+        .as_ref()
+        .and_then(|l| l.financing.as_ref());
+
+    let (primary_funding_model, primary_subsidy_rate) = financing
+        .map(|f| funding_model_str(&f.primary_funding))
+        .unwrap_or(("state_funded".to_string(), 1.0));
+    let (secondary_funding_model, secondary_subsidy_rate) = financing
+        .map(|f| funding_model_str(&f.secondary_funding))
+        .unwrap_or(("state_funded".to_string(), 1.0));
+    let (higher_funding_model, higher_subsidy_rate) = financing
+        .map(|f| funding_model_str(&f.higher_funding))
+        .unwrap_or(("state_funded".to_string(), 1.0));
+
+    let (rural_to_urban, serf_to_free, serf_to_landless, worker_to_bourgeoisie) =
+        if let Some(r) = class_transition_result {
+            (r.rural_to_urban, r.serf_to_free_peasant, r.serf_to_landless, r.worker_to_bourgeoisie)
+        } else {
+            (0, 0, 0, 0)
+        };
+
+    let child_labor_law_str = country
+        .politics
+        .child_labor_law
+        .as_ref()
+        .map(|l| match l {
+            crate::politics::laws::ChildLaborLaw::Prohibited => "prohibited",
+            crate::politics::laws::ChildLaborLaw::Restricted => "restricted",
+            crate::politics::laws::ChildLaborLaw::Unrestricted => "unrestricted",
+        })
+        .unwrap_or("prohibited")
+        .to_string();
+
+    let total_child_labor_fte: f64 = child_labor_fte.values().sum();
+    let loyalty_bond_count: i64 = country
+        .regions
+        .iter()
+        .flat_map(|r| {
+            r.class_demographics.rural_classes.values().chain(
+                r.class_demographics.urban_classes.values(),
+            )
+        })
+        .map(|d| d.loyalty_bond_count)
+        .sum();
+
+    EducationMobilitySnapshot {
+        education_none_share: none_share,
+        education_basic_share: basic_share,
+        education_secondary_share: secondary_share,
+        education_higher_share: higher_share,
+        education_consumed: consumed,
+        education_needed: needed,
+        education_coverage: coverage,
+        primary_need,
+        secondary_need,
+        higher_need,
+        school_system: format!("{:?}", school_system).to_lowercase(),
+        has_middle_tier: school_system.has_middle_tier(),
+        primary_years: py,
+        middle_years: my,
+        high_years: hy,
+        primary_funding_model,
+        primary_subsidy_rate,
+        secondary_funding_model,
+        secondary_subsidy_rate,
+        higher_funding_model,
+        higher_subsidy_rate,
+        rural_to_urban_count: rural_to_urban,
+        serf_to_free_peasant_count: serf_to_free,
+        serf_to_landless_count: serf_to_landless,
+        worker_to_bourgeoisie_count: worker_to_bourgeoisie,
+        child_labor_law: child_labor_law_str,
+        child_labor_fte: total_child_labor_fte,
+        loyalty_bond_count,
+    }
+}
+
+fn funding_model_str(f: &crate::politics::laws::EducationTierFunding) -> (String, f64) {
+    use crate::politics::laws::EducationTierFunding;
+    match f {
+        EducationTierFunding::StateFunded => ("state_funded".to_string(), 1.0),
+        EducationTierFunding::Subsidized { rate } => ("subsidized".to_string(), *rate),
+        EducationTierFunding::FreeMarket => ("free_market".to_string(), 0.0),
+    }
+}

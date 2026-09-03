@@ -254,6 +254,7 @@ pub fn execute_emancipation(
         edges: Vec::new(),
         land_distribution: std::collections::BTreeMap::new(),
         class_demographics: parent_region.class_demographics.clone(),
+        education: parent_region.education.clone(),
         governance: Some(crate::politics::local_government::RegionalGovernance {
             id: new_city_id.clone(),
             head_type: crate::politics::local_government::RegionalHeadType::Mayor,

@@ -1,13 +1,12 @@
 ﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
-At line:1 char:1
-+ cargo build --workspace 2>&1 | Out-File .devin/.cicd_build4.txt -Enco ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At line:1 char:50
++ ... e\Downloads\SillyElaborateState; cargo build --workspace 2>&1 | Out-F ...
++                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
 package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
 workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
-    Blocking waiting for file lock on build directory
    Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
 error[E0428]: the name `PoorLaws` is defined multiple times
     --> state\src\society\geography.rs:1504:1
@@ -27,12 +26,6 @@ warning: unused import: `crate::politics::laws::SchoolSystem`
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
     = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
-
-warning: unused import: `EducationTierFunding`
-    --> state\src\ui\snapshot.rs:6151:33
-     |
-6151 |     use crate::politics::laws::{EducationTierFunding, SchoolSystem};
-     |                                 ^^^^^^^^^^^^^^^^^^^^
 
 error[E0119]: conflicting implementations of trait `Debug` for type `geography::PoorLaws`
     --> state\src\society\geography.rs:1503:10
@@ -107,5 +100,5 @@ error[E0119]: conflicting implementations of trait `PartialEq` for type `geograp
 
 Some errors have detailed explanations: E0119, E0428.
 For more information about an error, try `rustc --explain E0119`.
-warning: `sim_engine` (lib) generated 2 warnings
-error: could not compile `sim_engine` (lib) due to 8 previous errors; 2 warnings emitted
+warning: `sim_engine` (lib) generated 1 warning
+error: could not compile `sim_engine` (lib) due to 8 previous errors; 1 warning emitted
