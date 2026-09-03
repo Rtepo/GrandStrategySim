@@ -1,0 +1,18 @@
+Agent 2: Declare HEAD compilation blocker + fix turn.rs escrow refund
+
+- agents_sync.json: Update agent-2 status to "blocked". Post 2 cross-agent
+  blockers targeting agent-3 (missing disability/poor_laws/JusticeConfig
+  fields from commits 56748d3e + 00c310ef) and agent-4 (missing
+  class_transitions/EducationTierFunding/loyalty_bond_count from commits
+  322a4e65 + cb8e82c7).
+- turn.rs: Fix refund_tender_escrow call to pass &mut task.companies
+  (3rd argument). HEAD had a 2-arg call but the function takes 3 args
+  (tender, companies, country). This is Agent 2's only uncommitted change.
+
+Agent 2 is HOLDING POSITION per Broken Build Protocol. Will not fix
+concurrent agents' code (Rule 22). Will re-run Iron CI/CD once HEAD
+compiles green.
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>

@@ -292,6 +292,7 @@ fn create_local_laws(faction_type: FactionDomainType, config: &FactionalDomainCo
             blocks_heavy_industry: false,
             allows_commercial_zoning: true,
             cottage_industry_bonus: 0.0,
+            poor_laws: Default::default(),
         },
         FactionDomainType::AristocraticEstate => LocalLaws {
             entry_tariff_rate: 0.0,
@@ -300,6 +301,7 @@ fn create_local_laws(faction_type: FactionDomainType, config: &FactionalDomainCo
             blocks_heavy_industry: true,
             allows_commercial_zoning: false,
             cottage_industry_bonus: 0.0,
+            poor_laws: Default::default(),
         },
         FactionDomainType::ClergyLand => LocalLaws {
             entry_tariff_rate: 0.0,
@@ -308,6 +310,7 @@ fn create_local_laws(faction_type: FactionDomainType, config: &FactionalDomainCo
             blocks_heavy_industry: false,
             allows_commercial_zoning: false,
             cottage_industry_bonus: 0.0,
+            poor_laws: Default::default(),
         },
         FactionDomainType::PeasantCommunity => LocalLaws {
             entry_tariff_rate: 0.0,
@@ -316,6 +319,7 @@ fn create_local_laws(faction_type: FactionDomainType, config: &FactionalDomainCo
             blocks_heavy_industry: false,
             allows_commercial_zoning: false,
             cottage_industry_bonus: config.peasant_cottage_bonus,
+            poor_laws: Default::default(),
         },
         FactionDomainType::IndustrialistDomain => LocalLaws {
             entry_tariff_rate: 0.0,
@@ -324,6 +328,7 @@ fn create_local_laws(faction_type: FactionDomainType, config: &FactionalDomainCo
             blocks_heavy_industry: false,
             allows_commercial_zoning: true,
             cottage_industry_bonus: 0.0,
+            poor_laws: Default::default(),
         },
     }
 }

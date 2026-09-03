@@ -1,0 +1,31 @@
+Add automated multi-agent sync ledger with intelligent hooks (v4)
+
+Replace manual AGENTS_SYNC.md with automated JSON-based system:
+- agents_sync.json: machine-readable ledger tracking 4 agents
+- .devin/scripts/sync_lib.sh: transactional git sync loop with surgical
+  revert (git reset HEAD~1 + git checkout -- agents_sync.json), NEVER
+  git reset --hard (AGENTS.md Rule 2 compliance)
+- .devin/scripts/start.sh: SessionStart hook (pull, reap zombies, register,
+  lock dirs, spawn background heartbeat)
+- .devin/scripts/heartbeat.sh: background heartbeat every 3 min with
+  index.lock evasion (skips cycle if .git/index.lock exists)
+- .devin/scripts/stop.sh: Stop hook with context-aware CI/CD bypass
+  (skips cargo/npm if only .md/.txt/.json changed; enforces Iron CI/CD
+  if .rs/.ts/.tsx changed; auto-unlocks agent on exit)
+- .devin/scripts/pre_commit.sh: PreToolUse hook for git commit gating
+  (bypasses CI/CD for docs-only commits; blocks source commits without
+  valid CI/CD pass; checks directory lock conflicts)
+- .devin/hooks.v1.json: wires SessionStart/Stop/PreToolUse hooks with
+  60-second timeouts
+- AGENTS.md: updated to reference agents_sync.json as authoritative
+
+Key resiliency features:
+- C1: Strict transactional git sync loop (pull→rebase→mutate→commit→push)
+  with surgical revert on rejection (up to 5 attempts)
+- C2: Zombie lock reaping (agents with stale heartbeats >15 min auto-reaped)
+- C3: index.lock evasion in heartbeat (skips cycle, never crashes)
+- C4: 60-second hook timeouts (prevents mid-cleanup kills)
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>

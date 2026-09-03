@@ -930,6 +930,8 @@ mod tests {
             planted_turn: 0,
             accumulated_yield: 0.0,
             rot_accumulator: 0.0,
+            maturity_turn: 0,
+            parcel_id: 0,
         };
         profile.batches.push(batch);
         company.agricultural_profile = Some(profile);

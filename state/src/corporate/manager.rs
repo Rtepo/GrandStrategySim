@@ -2420,7 +2420,7 @@ pub fn process_mutual_aid_turn(
             // general-purpose "turns in distress" counter for mutual aid
             // circles (it's not used for furlough on non-seasonal companies).
             company.furlough_turns_accumulated += 1;
-            if company.furlough_turns_accumulated >= config.dissolution_turns as u32 {
+            if company.furlough_turns_accumulated >= config.dissolution_turns {
                 // Mark for bankruptcy via the standard corporate lifecycle.
                 // The lifecycle module will handle asset liquidation and
                 // removal from the active market.

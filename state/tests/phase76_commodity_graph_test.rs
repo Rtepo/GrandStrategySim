@@ -103,7 +103,7 @@ fn construction_services_has_consumer() {
 
     let mut found = false;
     for &sector in &sectors {
-        let bom = get_construction_bom(sector, 1925);
+        let bom = get_construction_bom(sector, 1925, 100);
         if bom.contains_key(&Commodity::ConstructionServices) {
             found = true;
             break;
@@ -128,7 +128,7 @@ fn asphalt_has_consumer() {
 
     let mut found = false;
     for &sector in &sectors {
-        let bom = get_construction_bom(sector, 1925);
+        let bom = get_construction_bom(sector, 1925, 100);
         if bom.contains_key(&Commodity::Asphalt) {
             found = true;
             break;
@@ -177,7 +177,7 @@ fn no_orphan_inputs_phase76() {
         Sector::Religion,
         Sector::Government,
     ] {
-        let bom = get_construction_bom(sector, 1925);
+        let bom = get_construction_bom(sector, 1925, 100);
         for &c in bom.keys() {
             bom_consumed.insert(c);
         }

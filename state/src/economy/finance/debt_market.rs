@@ -928,6 +928,22 @@ pub fn process_debt_service(
             country.budget.liquid_reserves += actual_credit;
         } else {
             // Commercial bank or fund holder: credit the company.
+            // Phase 94: For non-bank companies, we must also sync bank
+            // reserves (M0) when crediting company cash (M1). Without
+            // this, treasury debits M0 but only M1 is credited, destroying
+            // base money. We collect the bank_id first, then credit cash,
+            // then sync the bank.
+            let holder_bank_id: Option<String> = {
+                if let Some(company) = companies.iter().find(|c| c.id == *entity_id) {
+                    if company.balance_sheet.is_some() {
+                        None // Bank holder — reserves credited directly below
+                    } else {
+                        company.primary_bank_id.clone()
+                    }
+                } else {
+                    None
+                }
+            };
             if let Some(company) = companies.iter_mut().find(|c| c.id == *entity_id) {
                 if let Some(ref mut bs) = company.balance_sheet {
                     // Bank holder: credit reserves (principal repayment + interest income)
@@ -938,6 +954,15 @@ pub fn process_debt_service(
                 } else {
                     // Fallback: credit available_cash
                     company.available_cash += actual_credit;
+                }
+            }
+            // Phase 94: Sync non-bank holder's bank reserves (M0).
+            if let Some(ref bank_id) = holder_bank_id {
+                if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
+                    if let Some(ref mut bs) = bank.balance_sheet {
+                        bs.deposits += actual_credit;
+                        bs.reserves_at_central_bank += actual_credit;
+                    }
                 }
             }
             // Foreign entity holders: money leaves the system (no credit needed).

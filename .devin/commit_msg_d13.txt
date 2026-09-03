@@ -1,0 +1,20 @@
+Phase D13: Complete disability struct definitions and reconcile concurrent changes
+
+- Add PoorLaws struct and poor_laws field to LocalLaws in geography.rs
+- Add disability_severity, disabled_labor_capacity, extracted_caregivers to ClassDemographics
+- Add education field to Region struct
+- Add EmancipationLaw enum to laws.rs with parse_from_str method
+- Add LawType::ChildLabor match arm in enact_law
+- Add JusticeConfig struct with PartialEq derive to justice_system.rs
+- Add missing Country field initializers in generator, save_manager, rebellions
+- Add poor_laws to all 5 LocalLaws initializers in factional_domains.rs
+- Add education field to Region initializers in logistics, commuting, air_cargo
+- Register begging, pension, disability_config, education_config modules
+- Fix CropBatch initializer missing maturity_turn and parcel_id
+
+Iron CI/CD: build PASSED, clippy PASSED, npm build PASSED
+9 pre-existing test failures in trade/religion modules (unrelated to disability work)
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>

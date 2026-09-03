@@ -1,31 +1,75 @@
 ﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
-At line:1 char:1
-+ cargo build --workspace 2>&1 | Out-File .devin/.cicd_build6.txt -Enco ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At line:1 char:50
++ ... e\Downloads\SillyElaborateState; cargo check --workspace 2>&1 | Out-F ...
++                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
 package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
 workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
     Blocking waiting for file lock on build directory
-   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
-error[E0432]: unresolved import `crate::politics::laws::EmancipationLaw`
-  --> state\src\economy\labor\class_transitions.rs:24:5
-   |
-24 | use crate::politics::laws::EmancipationLaw;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `EmancipationLaw` in `politics::laws`
-   |
-help: a similar name exists in the module
-   |
-24 - use crate::politics::laws::EmancipationLaw;
-24 + use crate::politics::laws::EducationLaw;
-   |
-
+    Checking sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
 error[E0432]: unresolved import `crate::society::geography::PoorLaws`
   --> state\src\economy\begging.rs:26:52
    |
 26 | use crate::society::geography::{ClassDemographics, PoorLaws, RuralClass, UrbanClass};
    |                                                    ^^^^^^^^ no `PoorLaws` in `society::geography`
+
+error[E0433]: cannot find `class_transitions` in `labor`
+    --> state\src\ui\snapshot.rs:6148:61
+     |
+6148 |     class_transition_result: Option<&crate::economy::labor::class_transitions::ClassTransitionResult>,
+     |                                                             ^^^^^^^^^^^^^^^^^ could not find `class_transitions`
+ in `labor`
+
+error[E0425]: cannot find function `compute_per_tier_education_needs` in module `crate::economy::labor`
+    --> state\src\ui\snapshot.rs:6167:43
+     |
+6167 |     let per_tier = crate::economy::labor::compute_per_tier_education_needs(country);
+     |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in `crate::economy::labor`
+     |
+help: consider importing this function
+     |
+   8 + use crate::economy::labor::education_progression::compute_per_tier_education_needs;
+     |
+help: if you import `compute_per_tier_education_needs`, refer to it directly
+     |
+6167 -     let per_tier = crate::economy::labor::compute_per_tier_education_needs(country);
+6167 +     let per_tier = compute_per_tier_education_needs(country);
+     |
+
+error[E0433]: cannot find type `EducationTierFunding` in this scope
+    --> state\src\ui\snapshot.rs:6262:9
+     |
+6262 |         EducationTierFunding::StateFunded => ("state_funded".to_string(), 1.0),
+     |         ^^^^^^^^^^^^^^^^^^^^ use of undeclared type `EducationTierFunding`
+     |
+help: consider importing this enum
+     |
+   8 + use crate::politics::laws::EducationTierFunding;
+     |
+
+error[E0433]: cannot find type `EducationTierFunding` in this scope
+    --> state\src\ui\snapshot.rs:6263:9
+     |
+6263 |         EducationTierFunding::Subsidized { rate } => ("subsidized".to_string(), *rate),
+     |         ^^^^^^^^^^^^^^^^^^^^ use of undeclared type `EducationTierFunding`
+     |
+help: consider importing this enum
+     |
+   8 + use crate::politics::laws::EducationTierFunding;
+     |
+
+error[E0433]: cannot find type `EducationTierFunding` in this scope
+    --> state\src\ui\snapshot.rs:6264:9
+     |
+6264 |         EducationTierFunding::FreeMarket => ("free_market".to_string(), 0.0),
+     |         ^^^^^^^^^^^^^^^^^^^^ use of undeclared type `EducationTierFunding`
+     |
+help: consider importing this enum
+     |
+   8 + use crate::politics::laws::EducationTierFunding;
+     |
 
 warning: unused import: `crate::politics::laws::SchoolSystem`
    --> state\src\economy\labor\education_progression.rs:270:9
@@ -56,7 +100,7 @@ error[E0609]: no field `disability_severity` on type `&ClassDemographics`
 620 |             let severity = demo.disability_severity;
     |                                 ^^^^^^^^^^^^^^^^^^^ unknown field
     |
-    = note: available fields are: `population`, `savings`, `debt`, `savings_per_capita`, `subsistence_rate` ... and 31 
+    = note: available fields are: `population`, `savings`, `debt`, `savings_per_capita`, `subsistence_rate` ... and 29 
 others
 
 error[E0609]: no field `disability_severity` on type `&ClassDemographics`
@@ -65,7 +109,7 @@ error[E0609]: no field `disability_severity` on type `&ClassDemographics`
 642 |             let severity = demo.disability_severity;
     |                                 ^^^^^^^^^^^^^^^^^^^ unknown field
     |
-    = note: available fields are: `population`, `savings`, `debt`, `savings_per_capita`, `subsistence_rate` ... and 31 
+    = note: available fields are: `population`, `savings`, `debt`, `savings_per_capita`, `subsistence_rate` ... and 29 
 others
 
 error[E0063]: missing fields `begging_config`, `disability_config`, `disability_pension_config` and 5 other fields in i
@@ -91,12 +135,6 @@ nitializer of `state::Country`
     |                             ^^^^^^^^^^^^^^^^^^^^^ missing `begging_config`, `disability_config`, `disability_pens
 ion_config` and 5 other fields
 
-error[E0063]: missing field `education` in initializer of `Region`
-    --> state\src\society\geography.rs:2153:22
-     |
-2153 |         regions.push(Region {
-     |                      ^^^^^^ missing `education`
-
 error[E0369]: binary operation `==` cannot be applied to type `JusticeConfig`
    --> state\src\state\mod.rs:499:5
     |
@@ -118,7 +156,38 @@ help: consider annotating `JusticeConfig` with `#[derive(PartialEq)]`
  22 | pub struct JusticeConfig {
     |
 
-Some errors have detailed explanations: E0063, E0369, E0432, E0609.
-For more information about an error, try `rustc --explain E0063`.
+error[E0609]: no field `loyalty_bond_count` on type `&ClassDemographics`
+    --> state\src\ui\snapshot.rs:6225:20
+     |
+6225 |         .map(|d| d.loyalty_bond_count)
+     |                    ^^^^^^^^^^^^^^^^^^ unknown field
+     |
+     = note: available fields are: `population`, `savings`, `debt`, `savings_per_capita`, `subsistence_rate` ... and 29
+ others
+
+error[E0004]: non-exhaustive patterns: `LawType::ChildLabor(_)` not covered
+   --> state\src\politics\laws.rs:344:11
+    |
+344 |     match law_type {
+    |           ^^^^^^^^ pattern `LawType::ChildLabor(_)` not covered
+    |
+note: `LawType` defined here
+   --> state\src\politics\laws.rs:284:10
+    |
+284 | pub enum LawType {
+    |          ^^^^^^^
+...
+325 |     ChildLabor(ChildLaborLaw),
+    |     ---------- not covered
+    = note: the matched value is of type `LawType`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pat
+tern as shown
+    |
+469 ~         },
+470 +         LawType::ChildLabor(_) => todo!()
+    |
+
+Some errors have detailed explanations: E0004, E0063, E0369, E0425, E0432, E0433, E0609.
+For more information about an error, try `rustc --explain E0004`.
 warning: `sim_engine` (lib) generated 2 warnings
-error: could not compile `sim_engine` (lib) due to 10 previous errors; 2 warnings emitted
+error: could not compile `sim_engine` (lib) due to 15 previous errors; 2 warnings emitted

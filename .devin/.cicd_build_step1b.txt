@@ -1,7 +1,7 @@
 ﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
-At line:1 char:1
-+ cargo build --workspace 2>&1 | Out-File .devin/.cicd_build6.txt -Enco ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At line:1 char:50
++ ... e\Downloads\SillyElaborateState; cargo build --workspace 2>&1 | Out-F ...
++                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  

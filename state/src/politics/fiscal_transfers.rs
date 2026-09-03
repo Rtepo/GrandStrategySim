@@ -395,6 +395,15 @@ pub fn process_municipal_debt_service(country: &mut Country, companies: &mut [Co
             }
             let per_holder = actual_interest / holders.len() as f64;
             for holder_id in holders {
+                // Phase 94: Collect bank_id before crediting to sync bank
+                // reserves (M0) when crediting company cash (M1).
+                let holder_bank_id: Option<String> = {
+                    if let Some(company) = companies.iter().find(|c| c.id == *holder_id) {
+                        company.primary_bank_id.clone()
+                    } else {
+                        None
+                    }
+                };
                 // Try to credit as a company first.
                 if let Some(company) = companies.iter_mut().find(|c| c.id == *holder_id) {
                     company.available_cash += per_holder;
@@ -414,6 +423,15 @@ pub fn process_municipal_debt_service(country: &mut Country, companies: &mut [Co
                     // If neither company nor citizen class found, the interest
                     // is withheld — no fiat creation. The bondholder ID may
                     // reference a foreign entity or VIP not tracked here.
+                }
+                // Phase 94: Sync non-bank holder's bank reserves (M0).
+                if let Some(ref bank_id) = holder_bank_id {
+                    if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
+                        if let Some(ref mut bs) = bank.balance_sheet {
+                            bs.deposits += per_holder;
+                            bs.reserves_at_central_bank += per_holder;
+                        }
+                    }
                 }
             }
         }

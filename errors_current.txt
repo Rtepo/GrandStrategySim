@@ -1,0 +1,57 @@
+﻿
+> error[E0432]: unresolved import `crate::politics::laws::EmancipationLaw`
+    --> state\src\economy\labor\class_transitions.rs:24:5
+     |
+  24 | use crate::politics::laws::EmancipationLaw;
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `EmancipationLaw` in `politics::laws`
+     |
+> error[E0432]: unresolved import `crate::society::geography::PoorLaws`
+    --> state\src\economy\begging.rs:26:52
+     |
+  26 | use crate::society::geography::{ClassDemographics, PoorLaws, RuralClass, UrbanClass};
+     |                                                    ^^^^^^^^ no `PoorLaws` in `society::geography`
+  
+> error[E0609]: no field `poor_laws` on type `LocalLaws`
+     --> state\src\economy\begging.rs:289:35
+      |
+  289 |         Some(mr) if mr.local_laws.poor_laws.local_disability_relief_rate > 0.0 => mr,
+      |                                   ^^^^^^^^^ unknown field
+      |
+> error[E0609]: no field `disability_severity` on type `&ClassDemographics`
+     --> state\src\economy\pension.rs:620:33
+      |
+  620 |             let severity = demo.disability_severity;
+      |                                 ^^^^^^^^^^^^^^^^^^^ unknown field
+      |
+> error[E0609]: no field `disability_severity` on type `&ClassDemographics`
+     --> state\src\economy\pension.rs:642:33
+      |
+  642 |             let severity = demo.disability_severity;
+      |                                 ^^^^^^^^^^^^^^^^^^^ unknown field
+      |
+> error[E0063]: missing fields `begging_config`, `disability_config`, `disability_pension_config` and 5 other fields in
+ i
+  nitializer of `state::Country`
+     --> state\src\engine\generator\mod.rs:480:23
+      |
+  480 |     let mut country = Country {
+      |                       ^^^^^^^ missing `begging_config`, `disability_config`, `disability_pension_config` and 5 
+ot
+> error[E0063]: missing fields `begging_config`, `disability_config`, `disability_pension_config` and 5 other fields in
+ i
+  nitializer of `state::Country`
+     --> state\src\io\save_manager.rs:106:13
+      |
+  106 |             Country {
+      |             ^^^^^^^ missing `begging_config`, `disability_config`, `disability_pension_config` and 5 other fiel
+ds
+> error[E0063]: missing fields `begging_config`, `disability_config`, `disability_pension_config` and 5 other fields in
+ i
+  nitializer of `state::Country`
+     --> state\src\politics\rebellions.rs:191:29
+      |
+  191 |     let mut rebel_country = crate::state::Country {
+      |                             ^^^^^^^^^^^^^^^^^^^^^ missing `begging_config`, `disability_config`, `disability_pe
+ns
+
+

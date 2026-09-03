@@ -201,6 +201,7 @@ mod tests {
             edges,
             land_distribution: BTreeMap::new(),
             class_demographics: Default::default(),
+            education: crate::state::macro_data::Education::default(),
             governance: None,
             capacity_pool: BTreeMap::new(),
             capacity_utilization: BTreeMap::new(),
