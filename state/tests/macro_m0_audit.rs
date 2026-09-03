@@ -58,7 +58,7 @@ use tempfile::TempDir;
 /// - treasury_cash = budget.liquid_reserves + regional/megaregion budgets
 /// - citizen_cash = sum of all demo.savings (physical cash in circulation)
 /// - bank_reserves = bank reserves_at_central_bank + cb_deposit_facility
-///                   + BFG reserves + SOBK pool
+///   + BFG reserves + SOBK pool
 /// - ministry_cash = sum of ministry.ministry_cash
 fn compute_m0(
     country: &Country,
@@ -189,7 +189,7 @@ fn test_m0_conservation_single_turn() {
     };
 
     let GeneratedWorld {
-        state: mut state,
+        mut state,
         ..
     } = generate_world(data_dir, options, &registries)
         .expect("world generation failed");
@@ -261,7 +261,7 @@ fn test_m0_conservation_six_turns() {
     };
 
     let GeneratedWorld {
-        state: mut state,
+        mut state,
         ..
     } = generate_world(data_dir, options, &registries)
         .expect("world generation failed");
