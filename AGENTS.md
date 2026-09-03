@@ -85,10 +85,34 @@ If you realize you have violated any of these rules:
 ## Critical Collaboration Protocol
 
 **CRITICAL COLLABORATION PROTOCOL:** Before creating a branch, starting a
-task, or modifying any file, you MUST read `AGENTS_SYNC.md`. You are STRICTLY
-FORBIDDEN from editing files or domains currently locked by another agent.
-You must update your row in `AGENTS_SYNC.md` when starting work and when
-finishing/merging.
+task, or modifying any file, you MUST read `agents_sync.json` (the
+authoritative machine-readable ledger) and `AGENTS_SYNC.md` (the
+human-readable mirror). You are STRICTLY FORBIDDEN from editing files or
+domains currently locked by another agent. You must update your entry in
+`agents_sync.json` when starting work and when finishing/merging.
+
+### Automated Synchronization Hooks
+
+The repository is equipped with automated lifecycle hooks
+(`.devin/hooks.v1.json`) that manage the synchronization ledger:
+
+- **SessionStart hook** (`.devin/scripts/start.sh`): Automatically
+  registers your session in `agents_sync.json`, locks your requested
+  directories, reaps zombie locks (agents with stale heartbeats >15 min),
+  and spawns a background heartbeat process.
+- **Stop hook** (`.devin/scripts/stop.sh`): Context-aware CI/CD gate.
+  If only `.md`/`.txt`/`.json` files were modified, bypasses all
+  compilation and tests. If source code (`.rs`/`.ts`/`.tsx`) was modified,
+  enforces the full Iron CI/CD pipeline. Automatically unlocks your
+  entry on session end.
+- **PreToolUse hook** (`.devin/scripts/pre_commit.sh`): Intercepts
+  `git commit` commands. Bypasses CI/CD for docs/config-only commits.
+  Blocks source-code commits without a valid CI/CD pass. Checks for
+  directory lock conflicts before allowing commits.
+
+All JSON mutations use a strict transactional git sync loop with surgical
+revert (never `git reset --hard`). Zombie agents are automatically reaped
+when their heartbeat goes stale.
 
 ---
 

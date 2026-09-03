@@ -1,12 +1,36 @@
 {
+  "SessionStart": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" .devin/scripts/start.sh",
+          "timeout": 60
+        }
+      ]
+    }
+  ],
   "Stop": [
     {
       "matcher": "",
       "hooks": [
         {
           "type": "command",
-          "command": "powershell -ExecutionPolicy Bypass -File .devin/scripts/check_cicd.ps1",
-          "timeout": 5
+          "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" .devin/scripts/stop.sh",
+          "timeout": 60
+        }
+      ]
+    }
+  ],
+  "PreToolUse": [
+    {
+      "matcher": "exec",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" .devin/scripts/pre_commit.sh",
+          "timeout": 60
         }
       ]
     }
