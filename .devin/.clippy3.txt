@@ -1,0 +1,99 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo clippy --workspace --all-targets -- -D warnings 2>&1 | Out-File ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Blocking waiting for file lock on build directory
+    Checking sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error[E0422]: cannot find struct, variant or union type `ClassDemographics` in this scope
+   --> state\src\economy\labor\class_transitions.rs:310:17
+    |
+310 |                 ClassDemographics {
+    |                 ^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this struct
+    |
+295 +     use crate::society::geography::ClassDemographics;
+    |
+
+error[E0422]: cannot find struct, variant or union type `ClassDemographics` in this scope
+   --> state\src\economy\labor\class_transitions.rs:323:17
+    |
+323 |                 ClassDemographics {
+    |                 ^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this struct
+    |
+295 +     use crate::society::geography::ClassDemographics;
+    |
+
+error[E0422]: cannot find struct, variant or union type `ClassDemographics` in this scope
+   --> state\src\economy\labor\class_transitions.rs:336:17
+    |
+336 |                 ClassDemographics {
+    |                 ^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this struct
+    |
+295 +     use crate::society::geography::ClassDemographics;
+    |
+
+error[E0422]: cannot find struct, variant or union type `ClassDemographics` in this scope
+   --> state\src\economy\labor\class_transitions.rs:351:17
+    |
+351 |                 ClassDemographics {
+    |                 ^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this struct
+    |
+295 +     use crate::society::geography::ClassDemographics;
+    |
+
+error: this `if` can be collapsed into the outer `match`
+   --> state\src\economy\labor\class_transitions.rs:209:29
+    |
+209 | / ...                   if serf_demo.economic_status == EconomicStatus::Destitute {
+210 | | ...                       0.03
+211 | | ...                   } else {
+212 | | ...                       0.0
+213 | | ...                   }
+    | |_______________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#collapsible_ma
+tch
+    = note: `-D clippy::collapsible-match` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_match)]`
+help: collapse nested if block
+    |
+207 ~                         EmancipationLaw::PropertyRights
+208 |                             // Only destitute serfs transition under Property Rights.
+209 ~                             if serf_demo.economic_status == EconomicStatus::Destitute => {
+210 |                                 0.03
+211 ~                             }
+    |
+
+error: method `from_str` can be confused for the standard trait method `std::str::FromStr::from_str`
+   --> state\src\politics\laws.rs:321:5
+    |
+321 | /     pub fn from_str(s: &str) -> Self {
+322 | |         match s {
+323 | |             "Traditionalism" | "traditionalism" => Self::Traditionalism,
+324 | |             "Property Rights" | "property_rights" => Self::PropertyRights,
+...   |
+329 | |     }
+    | |_____^
+    |
+    = help: consider implementing the trait `std::str::FromStr` or choosing a less ambiguous method name
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#should_impleme
+nt_trait
+    = note: `-D clippy::should-implement-trait` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::should_implement_trait)]`
+
+For more information about this error, try `rustc --explain E0422`.
+error: could not compile `sim_engine` (lib test) due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `sim_engine` (lib) due to 2 previous errors

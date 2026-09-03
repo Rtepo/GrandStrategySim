@@ -1,0 +1,42 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo build --workspace 2>&1 | Out-File C:\Users\netse\Downloads\Sill ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error[E0063]: missing field `healthcare_config` in initializer of `state::Country`
+   --> state\src\engine\generator\mod.rs:552:23
+    |
+552 |     let mut country = Country {
+    |                       ^^^^^^^ missing `healthcare_config`
+
+error[E0063]: missing field `healthcare_config` in initializer of `state::Country`
+   --> state\src\io\save_manager.rs:106:13
+    |
+106 |             Country {
+    |             ^^^^^^^ missing `healthcare_config`
+
+error[E0063]: missing field `healthcare_config` in initializer of `state::Country`
+   --> state\src\politics\rebellions.rs:191:29
+    |
+191 |     let mut rebel_country = crate::state::Country {
+    |                             ^^^^^^^^^^^^^^^^^^^^^ missing `healthcare_config`
+
+error[E0063]: missing field `healthcare_config` in initializer of `state::Country`
+   --> state\src\state\mod.rs:727:9
+    |
+727 |         Self {
+    |         ^^^^ missing `healthcare_config`
+
+error[E0063]: missing field `healthcare_config` in initializer of `state::Country`
+    --> state\src\state\mod.rs:1133:9
+     |
+1133 |         Country {
+     |         ^^^^^^^ missing `healthcare_config`
+
+For more information about this error, try `rustc --explain E0063`.
+error: could not compile `sim_engine` (lib) due to 5 previous errors

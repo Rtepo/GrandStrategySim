@@ -1,0 +1,21 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo build --workspace 2>&1 | Out-File C:\Users\netse\Downloads\Sill ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+warning: unused import: `ShelteredWorkshopData`
+    --> state\src\engine\turn.rs:5989:58
+     |
+5989 |             use crate::entities::legal_form::{LegalForm, ShelteredWorkshopData};
+     |                                                          ^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `sim_engine` (lib) generated 1 warning (run `cargo fix --lib -p sim_engine` to apply 1 suggestion)
+   Compiling sim-engine-app v0.95.1 (C:\Users\netse\Downloads\SillyElaborateState\src-tauri)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2m 49s

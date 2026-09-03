@@ -1,0 +1,86 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo build --workspace 2>&1 | Out-File C:\Users\netse\Downloads\Sill ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Blocking waiting for file lock on build directory
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error[E0432]: unresolved imports `crate::economy::clear_care_capacity_b2c`, `crate::economy::populate_care_service_need
+s`
+  --> state\src\engine\turn.rs:21:5
+   |
+21 |     clear_care_capacity_b2c,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ no `clear_care_capacity_b2c` in `economy`
+...
+24 |     populate_care_service_needs, populate_information_service_needs,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `populate_care_service_needs` in `economy`
+   |
+help: a similar name exists in the module
+   |
+21 -     clear_care_capacity_b2c,
+21 +     clear_health_capacity_b2c,
+   |
+help: a similar name exists in the module
+   |
+24 -     populate_care_service_needs, populate_information_service_needs,
+24 +     populate_commute_service_needs, populate_information_service_needs,
+   |
+
+error[E0599]: no method named `healthcare_price_per_slot` found for reference `&ServicePricingConfig` in the current sc
+ope
+    --> state\src\economy\trade\b2c_services.rs:1122:37
+     |
+1122 |         let price_per_unit = config.healthcare_price_per_slot(1000.0);
+     |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `&ServicePricingConfig`
+
+error[E0609]: no field `budget` on type `std::option::Option<RegionalGovernance>`
+    --> state\src\economy\trade\b2c_services.rs:1147:76
+     |
+1147 | ...                   let paid = total_payment.min(region.governance.budget.liquid_reserves);
+     |                                                                      ^^^^^^ unknown field
+     |
+help: one of the expressions' fields has a field of the same name
+     |
+1147 |                             let paid = total_payment.min(region.governance.unwrap().budget.liquid_reserves);
+     |                                                                            +++++++++
+
+error[E0609]: no field `budget` on type `std::option::Option<RegionalGovernance>`
+    --> state\src\economy\trade\b2c_services.rs:1148:47
+     |
+1148 | ...                   region.governance.budget.liquid_reserves -= paid;
+     |                                         ^^^^^^ unknown field
+     |
+help: one of the expressions' fields has a field of the same name
+     |
+1148 |                             region.governance.unwrap().budget.liquid_reserves -= paid;
+     |                                               +++++++++
+
+error[E0609]: no field `budget` on type `std::option::Option<RegionalGovernance>`
+    --> state\src\economy\trade\b2c_services.rs:1166:80
+     |
+1166 | ...                   let paid = regional_part.min(region.governance.budget.liquid_reserves);
+     |                                                                      ^^^^^^ unknown field
+     |
+help: one of the expressions' fields has a field of the same name
+     |
+1166 |                                 let paid = regional_part.min(region.governance.unwrap().budget.liquid_reserves);
+     |                                                                                +++++++++
+
+error[E0609]: no field `budget` on type `std::option::Option<RegionalGovernance>`
+    --> state\src\economy\trade\b2c_services.rs:1167:51
+     |
+1167 | ...                   region.governance.budget.liquid_reserves -= paid;
+     |                                         ^^^^^^ unknown field
+     |
+help: one of the expressions' fields has a field of the same name
+     |
+1167 |                                 region.governance.unwrap().budget.liquid_reserves -= paid;
+     |                                                   +++++++++
+
+Some errors have detailed explanations: E0432, E0599, E0609.
+For more information about an error, try `rustc --explain E0432`.
+error: could not compile `sim_engine` (lib) due to 6 previous errors

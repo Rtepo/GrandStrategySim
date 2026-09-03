@@ -1,0 +1,20 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo build --workspace 2>&1 | Out-File -FilePath C:\Users\netse\Down ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+warning: value assigned to `remaining` is never read
+   --> state\src\infrastructure\effects.rs:410:17
+    |
+410 |                 remaining -= to_extract;
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: `sim_engine` (lib) generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.66s

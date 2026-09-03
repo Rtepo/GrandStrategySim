@@ -1,0 +1,28 @@
+﻿cargo : warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+At line:1 char:1
++ cargo build --workspace 2>&1 | Out-File C:\Users\netse\Downloads\Sill ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: profil...workspace root::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package:   C:\Users\netse\Downloads\SillyElaborateState\state\Cargo.toml
+workspace: C:\Users\netse\Downloads\SillyElaborateState\Cargo.toml
+    Blocking waiting for file lock on build directory
+   Compiling sim_engine v0.1.0 (C:\Users\netse\Downloads\SillyElaborateState\state)
+error[E0609]: no field `name` on type `&Region`
+    --> state\src\ui\snapshot.rs:3579:40
+     |
+3579 |                         region_name: r.name.clone(),
+     |                                        ^^^^ unknown field
+     |
+     = note: available fields are: `id`, `display_name`, `owner_country`, `population`, `gdp` ... and 39 others
+
+error[E0308]: mismatched types
+    --> state\src\ui\snapshot.rs:3582:37
+     |
+3582 |                         population: r.population,
+     |                                     ^^^^^^^^^^^^ expected `u64`, found `i64`
+
+Some errors have detailed explanations: E0308, E0609.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `sim_engine` (lib) due to 2 previous errors
