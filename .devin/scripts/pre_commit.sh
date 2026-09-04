@@ -62,6 +62,15 @@ if [ -z "$SESSION_ID" ]; then
 fi
 export SESSION_ID
 
+# ─── Manager Immunity (RBAC) ────────────────────────────────────────────────
+# The System Manager must never be blocked by worker-level commit hooks
+# while performing cross-branch integration duties. Authenticated via
+# session_id + fingerprint two-factor auth (validate_manager_auth).
+validate_manager_auth
+if [ "$AGENT_ROLE" = "manager" ]; then
+    exit 0
+fi
+
 # ─── Pass-through if not a git commit ──────────────────────────────────────
 if ! echo "$COMMAND" | grep -q "git commit"; then
     exit 0

@@ -13,6 +13,19 @@ $ErrorActionPreference = "Stop"
 $projectDir = $env:DEVIN_PROJECT_DIR
 if (-not $projectDir) { $projectDir = (Get-Location).Path }
 
+# ─── Manager Immunity (RBAC) ────────────────────────────────────────────────
+# The System Manager must never be blocked by CI/CD gates while performing
+# cross-branch integration duties. Delegates to the bash single-source-of-truth
+# (validate_manager_auth in sync_lib.sh) via cross-shell execution.
+# Uses $input | Out-String to read stdin JSON (not [Console]::In.ReadToEnd()
+# which can hang if the stream doesn't send EOF).
+$stdinJson = $input | Out-String
+$sessionId = $stdinJson | node -e "let i='';process.stdin.on('data',d=>i+=d);process.stdin.on('end',()=>{try{console.log(JSON.parse(i).session_id||'')}catch(e){console.log('')}})" 2>$null
+if ($sessionId) {
+    $managerCheck = bash -c "export SESSION_ID='$sessionId'; source .devin/scripts/sync_lib.sh && validate_manager_auth && echo OK" 2>$null
+    if ($managerCheck -match "OK") { exit 0 }
+}
+
 $cicdStateFile = Join-Path $projectDir ".devin\.cicd_state"
 $ledgerFile = Join-Path $projectDir "agents_sync.json"
 $planFile = Join-Path $projectDir ".devin\.plan_submitted"

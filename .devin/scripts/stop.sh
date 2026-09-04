@@ -56,6 +56,16 @@ cleanup() {
 }
 trap 'cleanup' EXIT
 
+# ─── Manager Immunity (RBAC) ────────────────────────────────────────────────
+# The System Manager must never be blocked by the stop hook's CI/CD gate
+# while performing cross-branch integration duties. Authenticated via
+# session_id + fingerprint two-factor auth. The cleanup trap above still
+# runs on exit, ensuring auto-unlock.
+validate_manager_auth
+if [ "$AGENT_ROLE" = "manager" ]; then
+    exit 0
+fi
+
 # ─── Get all modified files ────────────────────────────────────────────────
 # Tracked changes (staged + unstaged) vs HEAD
 TRACKED_FILES=$(git diff --name-only HEAD 2>/dev/null || true)
