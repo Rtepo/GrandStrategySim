@@ -449,6 +449,24 @@ mutator_heartbeat() {
     '
 }
 
+# ─── Mutator: Set last_green_commit (global CI/CD state) ───────────────────
+# Updates the top-level last_green_commit field in agents_sync.json.
+# Called by the run_iron_cicd skill after all four pipeline steps pass.
+# Uses env var: GREEN_COMMIT (the git commit hash that was tested)
+mutator_set_green_commit() {
+    node -e '
+        const fs = require("fs");
+        const data = JSON.parse(fs.readFileSync("agents_sync.json", "utf8"));
+        const commit = process.env.GREEN_COMMIT || "";
+        if (commit) {
+            data.last_green_commit = commit;
+            data.last_green_commit_at = new Date().toISOString();
+        }
+        data.last_updated = new Date().toISOString();
+        fs.writeFileSync("agents_sync.json", JSON.stringify(data, null, 2));
+    '
+}
+
 # ─── Helper: Get current ledger as additionalContext string ────────────────
 # Outputs a human-readable summary of all active agents for injection into
 # the agent context via hookSpecificOutput.additionalContext.

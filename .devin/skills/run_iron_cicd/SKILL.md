@@ -14,7 +14,14 @@ permissions:
     - Exec(cargo *)
     - Exec(npm *)
     - Exec(cd *)
+    - Exec(git rev-parse *)
+    - Exec(git pull *)
+    - Exec(git push *)
+    - Exec(git add *)
+    - Exec(git commit *)
+    - Exec(source *)
     - Write(.devin/.cicd_state)
+    - Write(agents_sync.json)
 ---
 
 # Iron CI/CD Pipeline
@@ -62,12 +69,47 @@ If ANY step fails:
 
 ## State File
 
-When all four steps pass, write a state file to `.devin/.cicd_state` containing:
+When all four steps pass, you must record the tested commit hash in TWO places:
+
+### 1. Local state file (`.devin/.cicd_state`)
+
+Write a state file to `.devin/.cicd_state` containing:
 ```
-PASSED <ISO timestamp>
+PASSED <ISO timestamp> <git commit hash>
 ```
 
-This file is checked by the Stop hook to prevent premature completion.
+The commit hash is obtained via `git rev-parse HEAD`. Example:
+```
+PASSED 2026-09-03T22:45:00Z 94b9f32e287ef49ed00c6965eb0efead139332cd
+```
+
+This file is checked by the Stop and PreCommit hooks as a local fallback.
+
+### 2. Global state (`agents_sync.json`)
+
+Update the top-level `last_green_commit` field in `agents_sync.json` so that all
+agents who `git pull` know which commit has been tested globally. Use the
+`sync_transactional` function with the `mutator_set_green_commit` mutator:
+
+```bash
+export GREEN_COMMIT="$(git rev-parse HEAD)"
+source .devin/scripts/sync_lib.sh
+sync_transactional mutator_set_green_commit "sync: update last_green_commit to $GREEN_COMMIT" 5
+```
+
+This ensures that workers who pull main after your CI/CD pass will not be
+falsely blocked by the pre_commit or stop hooks — their HEAD will match
+`last_green_commit` and the hash comparison will allow them through.
+
+### Why commit hashes, not mtime
+
+The old mtime-based check compared `.cicd_state` modification time against
+source file modification times. This was fundamentally broken: `git pull`
+updates file mtimes even when no local code change occurred, causing
+false-positive CI/CD blocks for agents who merely synchronized with remote.
+Commit-hash comparison is immune to this: if `git rev-parse HEAD` matches
+`last_green_commit`, the exact code at HEAD has been tested, regardless of
+when files were last touched on disk.
 
 ## Completion
 

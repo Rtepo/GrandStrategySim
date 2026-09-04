@@ -1,6 +1,12 @@
 # Stop hook: Blocks the agent from stopping until the Iron CI/CD pipeline has passed.
-# SMART BYPASS: If the only modified files are docs/config (.md, .json, .ps1, .txt, etc.),
-# the CI/CD pipeline is skipped — it only runs when source code (.rs, .ts, .tsx, Cargo.toml, etc.) changed.
+# SMART BYPASS (ABSOLUTE PRIORITY): If the only modified files are docs/config
+# (.md, .json, .ps1, .txt, etc.), the CI/CD pipeline is skipped — it only runs
+# when source code (.rs, .ts, .tsx, Cargo.toml, etc.) changed.
+# This bypass check runs BEFORE any CI/CD state evaluation.
+#
+# COMMIT-HASH VALIDATION: Instead of mtime (which breaks on git pull), we
+# compare git rev-parse HEAD against last_green_commit. If they match, the
+# commit at HEAD was already tested globally → allow.
 
 $ErrorActionPreference = "Stop"
 
@@ -8,6 +14,7 @@ $projectDir = $env:DEVIN_PROJECT_DIR
 if (-not $projectDir) { $projectDir = (Get-Location).Path }
 
 $cicdStateFile = Join-Path $projectDir ".devin\.cicd_state"
+$ledgerFile = Join-Path $projectDir "agents_sync.json"
 $planFile = Join-Path $projectDir ".devin\.plan_submitted"
 $clearanceFile = Join-Path $projectDir ".devin\.clearance_granted"
 
@@ -21,7 +28,7 @@ if (-not (Test-Path $clearanceFile)) {
     exit 0
 }
 
-# --- SMART BYPASS: detect whether source code was modified ---------------------
+# --- SMART BYPASS (ABSOLUTE PRIORITY): detect source code modifications --------
 # Extensions that require CI/CD enforcement (source code + build manifests).
 $sourceExtensions = @(
     '.rs', '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
@@ -65,7 +72,8 @@ foreach ($file in $modifiedFiles) {
     }
 }
 
-# If no source-code files were modified, bypass CI/CD entirely.
+# BYPASS RULE: If no source-code files were modified, bypass CI/CD entirely.
+# This executes BEFORE any CI/CD state evaluation.
 if (-not $hasSourceChange) {
     # Write a bypass marker so the state is auditable.
     $bypassLog = Join-Path $projectDir ".devin\.cicd_bypass"
@@ -76,70 +84,62 @@ if (-not $hasSourceChange) {
     exit 0
 }
 
-# --- Source code WAS modified — enforce the full CI/CD gate --------------------
+# --- Source code WAS modified — enforce CI/CD gate (commit-hash) ---------------
+# Rationale: mtime is fundamentally incompatible with Git workflows.
+# `git pull` updates file mtimes even when no local code change occurred,
+# causing false-positive CI/CD blocks for agents who merely synchronized.
+# New logic: Compare git rev-parse HEAD against last_green_commit.
 
-# Check if CI/CD has passed
-if (-not (Test-Path $cicdStateFile)) {
-    $output = @{
-        decision = "block"
-        reason = "IRON CI/CD: Source code was modified but the Iron CI/CD pipeline has not been run. Invoke the /run_iron_cicd skill to run: cargo build --workspace, cargo test --workspace --all-targets, cargo clippy --workspace --all-targets -- -D warnings, npm run build. Only report back to the user after ALL four pass with zero errors and zero warnings."
-    } | ConvertTo-Json -Compress
-    Write-Output $output
-    exit 2
+# Get current HEAD commit hash
+$currentHead = ""
+try {
+    $currentHead = (git -C $projectDir rev-parse HEAD 2>$null).Trim()
+} catch {}
+
+if ([string]::IsNullOrEmpty($currentHead)) {
+    # Not a git repo or HEAD unavailable — allow (can't enforce)
+    exit 0
 }
 
-# Check if the CI/CD pass is valid by comparing timestamps.
-# Instead of an arbitrary 30-minute expiration, we compare the LastWriteTime
-# of the .cicd_state file against the most recently modified source file.
-# If the .cicd_state file is NEWER than all source files, no code has changed
-# since the last successful pipeline run, and we allow stop — regardless of age.
-$content = Get-Content $cicdStateFile -Raw
-if ($content -match "^PASSED (.+)$") {
-    $cicdStateTime = (Get-Item $cicdStateFile).LastWriteTime
-
-    # Find the most recently modified source file in the workspace.
-    # Only check extensions that require CI/CD enforcement.
-    $newestSourceTime = [DateTime]::MinValue
-    $sourceFiles = @()
+# Read last_green_commit from agents_sync.json (global, priority 1)
+$greenCommit = ""
+if (Test-Path $ledgerFile) {
     try {
-        # Search for source files recursively, excluding target/ and node_modules/
-        $sourceFiles = Get-ChildItem -Path $projectDir -Recurse -File `
-            -Include *.rs, *.ts, *.tsx, *.js, *.jsx, *.mjs, *.cjs, *.toml, *.py, `
-                     *.c, *.cpp, *.cc, *.h, *.hpp, *.go, *.java, *.kt, *.swift, `
-                     *.rb, *.vue, *.svelte, *.astro, *.css, *.scss, *.sass, *.less `
-            -ErrorAction SilentlyContinue |
-            Where-Object {
-                $_.FullName -notmatch '\\target\\' -and
-                $_.FullName -notmatch '\\node_modules\\' -and
-                $_.FullName -notmatch '\\\.git\\'
-            }
+        $ledger = Get-Content $ledgerFile -Raw | ConvertFrom-Json
+        $greenCommit = $ledger.last_green_commit
     } catch {}
+}
 
-    foreach ($file in $sourceFiles) {
-        if ($file.LastWriteTime -gt $newestSourceTime) {
-            $newestSourceTime = $file.LastWriteTime
-        }
+# Fall back to .cicd_state (local, priority 2)
+if ([string]::IsNullOrEmpty($greenCommit) -and (Test-Path $cicdStateFile)) {
+    $content = Get-Content $cicdStateFile -Raw
+    if ($content -match "^PASSED\s+\S+\s+(\S+)") {
+        $greenCommit = $Matches[1]
     }
+}
 
-    # If the CI/CD state file is NEWER than the newest source file,
-    # no code has changed since the pipeline passed — allow stop.
-    if ($cicdStateTime -ge $newestSourceTime) {
-        exit 0
-    }
-
-    # Source code was modified after the last CI/CD pass — block.
+# If no green commit recorded anywhere — block
+if ([string]::IsNullOrEmpty($greenCommit)) {
     $output = @{
         decision = "block"
-        reason = "IRON CI/CD: Source code was modified after the last CI/CD pass. Invoke the /run_iron_cicd skill to re-run the pipeline."
+        reason = "IRON CI/CD: Source code was modified but no CI/CD pass has been recorded. Invoke the /run_iron_cicd skill to run: cargo build --workspace, cargo test --workspace --all-targets, cargo clippy --workspace --all-targets -- -D warnings, npm run build. Only report back to the user after ALL four pass with zero errors and zero warnings."
     } | ConvertTo-Json -Compress
     Write-Output $output
     exit 2
 }
 
-# State file exists but doesn't contain PASSED — block
+# Commit-hash comparison: HEAD vs last_green_commit
+if ($currentHead -eq $greenCommit) {
+    # The commit at HEAD was already tested globally → allow stop
+    exit 0
+}
+
+# HEAD differs from last tested commit — block
+$headShort = $currentHead.Substring(0, [Math]::Min(12, $currentHead.Length))
+$greenShort = $greenCommit.Substring(0, [Math]::Min(12, $greenCommit.Length))
 $output = @{
     decision = "block"
-    reason = "IRON CI/CD: The CI/CD state file is invalid. Invoke the /run_iron_cicd skill to run the full pipeline."
+    reason = "IRON CI/CD: HEAD ($headShort) does not match last_green_commit ($greenShort). The current commit has not been tested. Invoke the /run_iron_cicd skill to re-run the pipeline."
 } | ConvertTo-Json -Compress
 Write-Output $output
 exit 2

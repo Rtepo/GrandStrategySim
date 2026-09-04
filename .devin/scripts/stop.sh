@@ -7,10 +7,14 @@
 # Behavior:
 #   1. trap 'cleanup' EXIT — ensures auto-unlock even if CI/CD crashes
 #   2. Get all modified files (staged + unstaged + untracked)
-#   3. BYPASS RULE: If ALL modified files are .md/.txt/.json/.sh/.ps1/.yaml/.yml
-#      → skip all CI/CD → proceed to cleanup
+#   3. BYPASS RULE (ABSOLUTE PRIORITY): If ALL modified files are
+#      .md/.txt/.json/.sh/.ps1/.yaml/.yml → skip all CI/CD → proceed to cleanup
+#      This check runs BEFORE any CI/CD state evaluation.
 #   4. EXECUTION RULE: If ANY modified file is .rs/.ts/.tsx/.js/.jsx/.css/.scss/.vue/.svelte
-#      → enforce full Iron CI/CD gate (check .cicd_state timestamp)
+#      → enforce Iron CI/CD gate via commit-hash comparison:
+#        Compare git rev-parse HEAD against last_green_commit (from .cicd_state
+#        or agents_sync.json). If they match, the commit was already tested
+#        globally → allow. Otherwise → block.
 #   5. Auto-unlock: Call sync_transactional mutator_unlock_agent (C1)
 #   6. Kill background heartbeat if running
 
@@ -95,65 +99,78 @@ if [ "$HAS_SOURCE_CHANGE" -eq 0 ]; then
     exit 0
 fi
 
-# ─── Source code WAS modified — enforce Iron CI/CD gate ────────────────────
+# ─── Source code WAS modified — enforce Iron CI/CD gate (commit-hash) ───────
+# ABSOLUTE BYPASS PRIORITY: The bypass rule above (HAS_SOURCE_CHANGE == 0)
+# already exited 0 for non-source changes. We only reach here if source files
+# were modified. Now we use commit-hash comparison instead of mtime.
+#
+# Rationale: mtime is fundamentally incompatible with Git workflows.
+# `git pull` updates file mtimes even when no local code change occurred,
+# causing false-positive CI/CD blocks for agents who merely synchronized.
+#
+# New logic: Compare git rev-parse HEAD against last_green_commit.
+#   - If they match → the commit at HEAD was already tested globally → allow.
+#   - If they differ → the current HEAD has not been tested → block.
+#
+# last_green_commit is read from:
+#   1. .devin/.cicd_state (local, written by run_iron_cicd skill)
+#   2. agents_sync.json last_green_commit (global, synced via git pull)
+# The global source takes priority since it reflects manager-verified state.
+
 PROJECT_DIR="${DEVIN_PROJECT_DIR:-$(pwd)}"
 CICD_STATE_FILE="$PROJECT_DIR/.devin/.cicd_state"
+LEDGER_PATH="$PROJECT_DIR/$LEDGER_FILE"
 
-if [ ! -f "$CICD_STATE_FILE" ]; then
-    # No CI/CD state file — block
+# Get current HEAD commit hash
+CURRENT_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
+
+if [ -z "$CURRENT_HEAD" ]; then
+    # Not a git repo or HEAD unavailable — allow (can't enforce)
+    exit 0
+fi
+
+# Read last_green_commit from agents_sync.json (global, priority 1)
+GREEN_COMMIT=""
+if [ -f "$LEDGER_PATH" ]; then
+    GREEN_COMMIT=$(node -e '
+        try {
+            const data = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+            console.log(data.last_green_commit || "");
+        } catch(e) { console.log(""); }
+    ' "$LEDGER_PATH" 2>/dev/null || echo "")
+fi
+
+# Fall back to .cicd_state (local, priority 2)
+if [ -z "$GREEN_COMMIT" ] && [ -f "$CICD_STATE_FILE" ]; then
+    CICD_CONTENT=$(cat "$CICD_STATE_FILE" 2>/dev/null || echo "")
+    if echo "$CICD_CONTENT" | grep -q "^PASSED"; then
+        # Format: "PASSED <ISO timestamp> <commit hash>"
+        GREEN_COMMIT=$(echo "$CICD_CONTENT" | awk '{print $3}' 2>/dev/null || echo "")
+    fi
+fi
+
+# If no green commit recorded anywhere — block
+if [ -z "$GREEN_COMMIT" ]; then
     node -e '
         console.log(JSON.stringify({
             decision: "block",
-            reason: "IRON CI/CD: Source code was modified but the Iron CI/CD pipeline has not been run. Invoke the /run_iron_cicd skill to run: cargo build --workspace, cargo test --workspace --all-targets, cargo clippy --workspace --all-targets -- -D warnings, npm run build. Only report back to the user after ALL four pass with zero errors and zero warnings."
+            reason: "IRON CI/CD: Source code was modified but no CI/CD pass has been recorded. Invoke the /run_iron_cicd skill to run: cargo build --workspace, cargo test --workspace --all-targets, cargo clippy --workspace --all-targets -- -D warnings, npm run build. Only report back to the user after ALL four pass with zero errors and zero warnings."
         }));
     '
     exit 2
 fi
 
-# Check if CI/CD pass is valid (state file must be newer than newest source file)
-CICD_CONTENT=$(cat "$CICD_STATE_FILE" 2>/dev/null || echo "")
-if echo "$CICD_CONTENT" | grep -q "^PASSED"; then
-    # Compare .cicd_state mtime against newest source file mtime
-    CICD_MTIME=$(stat -c %Y "$CICD_STATE_FILE" 2>/dev/null || stat -f %m "$CICD_STATE_FILE" 2>/dev/null || echo 0)
-
-    # Find newest source file mtime
-    NEWEST_SOURCE_MTIME=0
-    if [ -n "$ALL_FILES" ]; then
-        for file in $ALL_FILES; do
-            for ext in $SOURCE_EXTENSIONS; do
-                if echo "$file" | grep -qE "${ext}$"; then
-                    if [ -f "$file" ]; then
-                        FMTIME=$(stat -c %Y "$file" 2>/dev/null || stat -f %m "$file" 2>/dev/null || echo 0)
-                        if [ "$FMTIME" -gt "$NEWEST_SOURCE_MTIME" ]; then
-                            NEWEST_SOURCE_MTIME=$FMTIME
-                        fi
-                    fi
-                    break
-                fi
-            done
-        done
-    fi
-
-    if [ "$CICD_MTIME" -ge "$NEWEST_SOURCE_MTIME" ]; then
-        # CI/CD passed after the newest source change — allow stop
-        exit 0
-    fi
-
-    # Source code was modified after last CI/CD pass — block
-    node -e '
-        console.log(JSON.stringify({
-            decision: "block",
-            reason: "IRON CI/CD: Source code was modified after the last CI/CD pass. Invoke the /run_iron_cicd skill to re-run the pipeline."
-        }));
-    '
-    exit 2
+# Commit-hash comparison: HEAD vs last_green_commit
+if [ "$CURRENT_HEAD" = "$GREEN_COMMIT" ]; then
+    # The commit at HEAD was already tested globally → allow stop
+    exit 0
 fi
 
-# State file exists but doesn't contain PASSED — block
+# HEAD differs from last tested commit — block
 node -e '
     console.log(JSON.stringify({
         decision: "block",
-        reason: "IRON CI/CD: The CI/CD state file is invalid. Invoke the /run_iron_cicd skill to run the full pipeline."
+        reason: "IRON CI/CD: HEAD (" + process.argv[1].slice(0,12) + ") does not match last_green_commit (" + process.argv[2].slice(0,12) + "). The current commit has not been tested. Invoke the /run_iron_cicd skill to run the full pipeline."
     }));
-'
+' "$CURRENT_HEAD" "$GREEN_COMMIT"
 exit 2
