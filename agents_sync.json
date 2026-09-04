@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "last_updated": "2026-09-04T00:00:00Z",
+  "last_updated": "2026-09-04T09:56:47.460Z",
   "last_green_commit": "94b9f32e287ef49ed00c6965eb0efead139332cd",
   "last_green_commit_at": "2026-09-03T22:54:40Z",
   "agents": [
@@ -8,8 +8,13 @@
       "agent_id": "agent-1",
       "session_id": null,
       "branch": "fix/m0-leaks-phase94",
-      "locked_dirs": ["economy/trade/", "military/supply/"],
-      "shared_files": ["engine/turn.rs"],
+      "locked_dirs": [
+        "economy/trade/",
+        "military/supply/"
+      ],
+      "shared_files": [
+        "engine/turn.rs"
+      ],
       "task": "Phase 94 M0 fiat leak diagnostics",
       "status": "active",
       "role": "worker",
@@ -20,8 +25,13 @@
       "agent_id": "agent-2",
       "session_id": null,
       "branch": "feat/investment-construction",
-      "locked_dirs": ["construction/", "society/real_estate_market.rs"],
-      "shared_files": ["corporate/manager.rs"],
+      "locked_dirs": [
+        "construction/",
+        "society/real_estate_market.rs"
+      ],
+      "shared_files": [
+        "corporate/manager.rs"
+      ],
       "task": "Corporate Investments, B2B Tenders, State Cadastre. Phases 1-8 complete. Only 1-line turn.rs fix pending.",
       "status": "blocked",
       "role": "worker",
@@ -32,8 +42,13 @@
       "agent_id": "agent-3",
       "session_id": null,
       "branch": "feat/disability-social-care",
-      "locked_dirs": ["infrastructure/care.rs", "politics/social_programs.rs"],
-      "shared_files": ["telemetry.rs"],
+      "locked_dirs": [
+        "infrastructure/care.rs",
+        "politics/social_programs.rs"
+      ],
+      "shared_files": [
+        "telemetry.rs"
+      ],
       "task": "Disability lifecycles, Sheltered Workshops, B2C Care",
       "status": "active",
       "role": "worker",
@@ -44,7 +59,10 @@
       "agent_id": "agent-4",
       "session_id": null,
       "branch": "feat/education-mobility",
-      "locked_dirs": ["economy/labor/education", "economy/config/education_config.rs"],
+      "locked_dirs": [
+        "economy/labor/education",
+        "economy/config/education_config.rs"
+      ],
       "shared_files": [],
       "task": "Regionalizing education shares, Loyalty Bonds, tiered financing",
       "status": "active",
