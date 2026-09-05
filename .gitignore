@@ -44,3 +44,6 @@ commit_v*.txt
 # Manager RBAC auth + audit (gitignored, never committed)
 .devin/.manager_auth
 .devin/.manager_audit_log
+
+# Daemon v2.0 CI/CD failure state (ephemeral, not committed)
+.devin/.cicd_failure_state.json

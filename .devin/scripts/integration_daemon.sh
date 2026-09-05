@@ -1,13 +1,19 @@
 #!/bin/bash
-# integration_daemon.sh — Autonomous CI/CD pipeline daemon (Agent 5 / Manager).
+# integration_daemon.sh v2.0 — Autonomous CI/CD pipeline daemon (Agent 5 / Manager).
 #
-# Polls for INTEGRATION_REQUESTED events every 15 seconds, runs the Iron CI/CD
-# pipeline on a staging branch (never main directly), merges green branches to
-# main, archives task briefs, and emits AUDIT_REQUESTED when all 7 blueprints
+# Polls for INTEGRATION_REQUESTED events every 15 seconds, runs the 5-stage Iron
+# CI/CD pipeline on a staging branch (never main directly), merges green branches
+# to main, archives task briefs, and emits AUDIT_REQUESTED when all blueprints
 # are promoted.
 #
 # This is the sole CI/CD path — no external stage_merge.sh dependency.
-# The daemon owns the full pipeline: staging branch → 4-stage CI/CD → main.
+# The daemon owns the full pipeline: staging branch → 5-stage CI/CD → main.
+#
+# v2.0 improvements:
+#   - Sprint check scans BOTH events/ and .archive/ for PROMOTED_TO_MAIN
+#   - 3-strike deadlock guard: branches blocked after 3 consecutive failures
+#   - 5th CI/CD stage: headless 50-tick runtime smoke test
+#   - Automated archive hygiene: deletes files >7 days old every 100 cycles
 #
 # Usage: nohup bash .devin/scripts/integration_daemon.sh >> .devin/integration_log/daemon.log 2>&1 &
 #
@@ -34,6 +40,8 @@ TASKS_DIR="$HUB_DIR/.devin/tasks"
 TASKS_ARCHIVE_DIR="$TASKS_DIR/.archive"
 IN_PROGRESS_DIR="$TASKS_DIR/in_progress"
 STAGING_BRANCH="staging"
+FAILURE_STATE_FILE="$HUB_DIR/.devin/.cicd_failure_state.json"
+MAX_CONSECUTIVE_FAILURES=3
 
 mkdir -p "$LOG_DIR" "$ARCHIVE_DIR" "$TASKS_ARCHIVE_DIR" "$IN_PROGRESS_DIR"
 
@@ -127,13 +135,7 @@ NODE_EOF
 }
 
 # ─── Helper: Dirty-tree guard — prevents data loss from workers coding in HUB_DIR ─
-# Before ANY git checkout, the daemon MUST verify the working tree is clean.
-# If a worker is coding in the hub (outside their worktree), their uncommitted
-# changes would be destroyed by a branch switch. This guard detects that and
-# halts CI/CD until the tree is clean.
 guard_clean_tree() {
-    # Check only tracked files (modified/staged) — untracked .devin/ files are
-    # expected infrastructure and won't be destroyed by git checkout.
     local dirty=$(git status --porcelain 2>/dev/null | grep -v '^??' | head -1)
     if [ -n "$dirty" ]; then
         echo ""
@@ -144,7 +146,6 @@ guard_clean_tree() {
         git status --porcelain 2>/dev/null | grep -v '^??' | head -10 | sed 's/^/    /'
         echo ""
 
-        # Emit SYSTEM_ALERT to User — immediate notification
         bash "$SCRIPT_DIR/emit_event.sh" "SYSTEM_ALERT" "agent-5" "user" \
             "{\"reason\":\"Uncommitted changes detected in HUB_DIR. A worker is outside their worktree. CI/CD halted to prevent data loss.\",\"dirty_files\":\"$(git status --porcelain 2>/dev/null | grep -v '^??' | head -5 | tr '\n' ';')\"}" 2>/dev/null
 
@@ -152,7 +153,6 @@ guard_clean_tree() {
         echo "  Waiting for working tree to be clean..."
         echo ""
 
-        # Sleep until the tree is clean (check every 30 seconds)
         while true; do
             dirty=$(git status --porcelain 2>/dev/null | grep -v '^??' | head -1)
             if [ -z "$dirty" ]; then
@@ -166,15 +166,91 @@ guard_clean_tree() {
     return 0
 }
 
-# ─── Helper: Run CI/CD — the sole execution path (staging → 4-stage → main) ─
-# Creates a staging branch from main, merges the worker branch, runs all 4
+# ─── Helper: Check CI/CD failure state (3-strike guard) ────────────────────
+# Returns 0 if branch is allowed, 1 if blocked.
+# Sets global BRANCH_BLOCKED_REASON if blocked.
+check_failure_state() {
+    local branch="$1"
+    BRANCH_BLOCKED_REASON=""
+
+    [ -f "$FAILURE_STATE_FILE" ] || return 0
+
+    BRANCH_IN="$branch" STATE_IN="$FAILURE_STATE_FILE" node <<'NODE_EOF'
+        const fs = require("fs");
+        try {
+            let raw = fs.readFileSync(process.env.STATE_IN, "utf8");
+            if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+            const state = JSON.parse(raw);
+            const b = state.branches && state.branches[process.env.BRANCH_IN];
+            if (b && b.blocked) {
+                console.log("BLOCKED:" + (b.last_failure_reason || "unknown") + ":" + (b.consecutive_failures || 3));
+            } else {
+                console.log("OK:" + ((b && b.consecutive_failures) || 0));
+            }
+        } catch(e) {
+            console.log("OK:0");
+        }
+NODE_EOF
+}
+
+# ─── Helper: Update failure state after CI/CD result ───────────────────────
+# $1 = branch, $2 = "success" or "failure", $3 = failure reason
+update_failure_state() {
+    local branch="$1"
+    local result="$2"
+    local reason="${3:-}"
+
+    BRANCH_IN="$branch" RESULT_IN="$result" REASON_IN="$reason" STATE_IN="$FAILURE_STATE_FILE" STATE_OUT="$FAILURE_STATE_FILE" node <<'NODE_EOF'
+        const fs = require("fs");
+        const branch = process.env.BRANCH_IN;
+        const result = process.env.RESULT_IN;
+        const reason = process.env.REASON_IN;
+        const stateFile = process.env.STATE_IN;
+
+        let state = { branches: {} };
+        try {
+            let raw = fs.readFileSync(stateFile, "utf8");
+            if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+            state = JSON.parse(raw);
+            if (!state.branches) state.branches = {};
+        } catch(e) {
+            state = { branches: {} };
+        }
+
+        if (!state.branches[branch]) {
+            state.branches[branch] = { consecutive_failures: 0, blocked: false };
+        }
+
+        if (result === "success") {
+            state.branches[branch].consecutive_failures = 0;
+            state.branches[branch].blocked = false;
+        } else {
+            state.branches[branch].consecutive_failures = (state.branches[branch].consecutive_failures || 0) + 1;
+            state.branches[branch].last_failure_reason = reason;
+            state.branches[branch].last_failure_ts = new Date().toISOString();
+            if (state.branches[branch].consecutive_failures >= 3) {
+                state.branches[branch].blocked = true;
+                console.log("BLOCKED:" + branch + ":" + state.branches[branch].consecutive_failures);
+            } else {
+                console.log("FAILURE:" + branch + ":" + state.branches[branch].consecutive_failures);
+            }
+        }
+
+        const tmp = stateFile + ".tmp";
+        fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
+        fs.renameSync(tmp, stateFile);
+NODE_EOF
+}
+
+# ─── Helper: Run CI/CD — the sole execution path (staging → 5-stage → main) ─
+# Creates a staging branch from main, merges the worker branch, runs all 5
 # Iron CI/CD stages, and only merges to main after ALL pass.
 # Returns 0 on success (echoes SUCCESS:<commit>), 1 on failure (echoes reason).
 run_cicd() {
     local worker_branch="$1"
     local log_prefix="$LOG_DIR/$(date -u +%Y%m%dT%H%M%SZ)_${worker_branch//\//_}"
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: Running 4-stage Iron pipeline on staging branch."
+    echo "[$(date -u +%H:%M:%S)] CI/CD: Running 5-stage Iron pipeline on staging branch."
 
     # Guard: ensure working tree is clean before any branch switch
     guard_clean_tree
@@ -196,8 +272,8 @@ run_cicd() {
         return 1
     fi
 
-    # Step 3: Run all 4 CI/CD steps on staging
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [1/4] cargo build..."
+    # Step 3: Run all 5 CI/CD steps on staging
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [1/5] cargo build..."
     cargo build --workspace 2>&1 | tee "${log_prefix}_build.txt" | tail -3
     local build_rc=${PIPESTATUS[0]}
     if [ $build_rc -ne 0 ]; then
@@ -207,8 +283,8 @@ run_cicd() {
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [2/4] cargo test..."
-    cargo test --workspace --all-targets 2>&1 | tee "${log_prefix}_test.txt" | tail -5
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [2/5] cargo test (excluding smoke test)..."
+    cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -5
     local test_rc=${PIPESTATUS[0]}
     if [ $test_rc -ne 0 ]; then
         git checkout main 2>/dev/null
@@ -217,7 +293,7 @@ run_cicd() {
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [3/4] cargo clippy..."
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [3/5] cargo clippy..."
     cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tee "${log_prefix}_clippy.txt" | tail -3
     local clippy_rc=${PIPESTATUS[0]}
     if [ $clippy_rc -ne 0 ]; then
@@ -227,13 +303,24 @@ run_cicd() {
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [4/4] npm run build..."
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [4/5] npm run build..."
     npm run build 2>&1 | tee "${log_prefix}_npm.txt" | tail -3
     local npm_rc=${PIPESTATUS[0]}
     if [ $npm_rc -ne 0 ]; then
         git checkout main 2>/dev/null
         echo "NPM_FAILED" > "${log_prefix}_FAILED.txt"
         echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: npm run build (rc=$npm_rc)"
+        return 1
+    fi
+
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [5/5] headless 50-tick smoke test..."
+    cargo test --workspace --test headless_smoke_test -- headless_50_tick_smoke --nocapture 2>&1 | tee "${log_prefix}_smoke.txt"
+    local smoke_rc=${PIPESTATUS[0]}
+    if [ $smoke_rc -ne 0 ]; then
+        git checkout main 2>/dev/null
+        echo "SMOKE_FAILED" > "${log_prefix}_FAILED.txt"
+        echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: headless smoke test (rc=$smoke_rc)"
+        echo "  See full panic output in: ${log_prefix}_smoke.txt"
         return 1
     fi
 
@@ -269,24 +356,58 @@ process_integration_request() {
     echo "  Branch:    $EVENT_BRANCH"
     echo "  Description: ${EVENT_DESCRIPTION:0:80}..."
 
+    # ─── 3-strike deadlock guard ───────────────────────────────────────────
+    local failure_check=$(check_failure_state "$EVENT_BRANCH")
+    if [[ "$failure_check" == BLOCKED:* ]]; then
+        local block_reason=$(echo "$failure_check" | cut -d: -f2)
+        local block_count=$(echo "$failure_check" | cut -d: -f3)
+        echo "[$(date -u +%H:%M:%S)] BRANCH BLOCKED: $EVENT_BRANCH ($block_count consecutive failures). Rejecting."
+
+        # Archive the event without processing
+        mv "$event_file" "$ARCHIVE_DIR/" 2>/dev/null || true
+
+        # Emit SYSTEM_ALERT to User
+        bash "$SCRIPT_DIR/emit_event.sh" "SYSTEM_ALERT" "agent-5" "user" \
+            "{\"failed_branch\":\"$EVENT_BRANCH\",\"assigned_worker\":\"$EVENT_SOURCE\",\"reason\":\"Branch BLOCKED after $block_count consecutive CI/CD failures ($block_reason). Manual intervention required. Run unblock_branch.sh to unlock.\"}" 2>/dev/null
+
+        # Emit CLARIFICATION_REQUESTED to worker
+        bash "$SCRIPT_DIR/emit_event.sh" "CLARIFICATION_REQUESTED" "agent-5" "$EVENT_SOURCE" \
+            "{\"branch\":\"$EVENT_BRANCH\",\"reason\":\"Branch blocked after $block_count consecutive failures. Fix root cause and request manual unlock from manager.\",\"action\":\"Fix errors, then ask manager to run unblock_branch.sh\"}" 2>/dev/null
+
+        echo "  SYSTEM_ALERT emitted to user."
+        echo "  CLARIFICATION_REQUESTED emitted to $EVENT_SOURCE."
+        return 1
+    fi
+
     # Archive the INTEGRATION_REQUESTED event immediately to prevent reprocessing
     mv "$event_file" "$ARCHIVE_DIR/" 2>/dev/null || true
 
-    # Run CI/CD — the sole execution path (staging → 4-stage → main)
+    # Run CI/CD — the sole execution path (staging → 5-stage → main)
     local cicd_result=$(run_cicd "$EVENT_BRANCH")
     local cicd_rc=$?
 
     if [ $cicd_rc -ne 0 ]; then
-        # CI/CD FAILED — reject back to worker
+        # CI/CD FAILED — update failure state
+        local fail_reason=$(echo "$cicd_result" | head -1)
+        local state_update=$(update_failure_state "$EVENT_BRANCH" "failure" "$fail_reason")
+
+        # Check if this failure triggered a block
+        if [[ "$state_update" == BLOCKED:* ]]; then
+            local block_count=$(echo "$state_update" | cut -d: -f3)
+            echo "[$(date -u +%H:%M:%S)] BRANCH NOW BLOCKED: $EVENT_BRANCH after $block_count consecutive failures."
+
+            bash "$SCRIPT_DIR/emit_event.sh" "SYSTEM_ALERT" "agent-5" "user" \
+                "{\"failed_branch\":\"$EVENT_BRANCH\",\"assigned_worker\":\"$EVENT_SOURCE\",\"reason\":\"Branch BLOCKED after $block_count consecutive CI/CD failures. Manual intervention required.\"}" 2>/dev/null
+        fi
+
         echo "[$(date -u +%H:%M:%S)] CI/CD FAILED for $EVENT_BRANCH. Rejecting to $EVENT_SOURCE."
 
         # Emit CLARIFICATION_REQUESTED with failure details
-        local fail_reason=$(echo "$cicd_result" | head -1)
         bash "$SCRIPT_DIR/emit_event.sh" "CLARIFICATION_REQUESTED" "agent-5" "$EVENT_SOURCE" \
             "{\"branch\":\"$EVENT_BRANCH\",\"reason\":\"CI/CD failed: $fail_reason\",\"action\":\"Fix errors and re-run request_integration.sh\"}" 2>/dev/null
 
-        # Emit SYSTEM_ALERT to User — direct ping on the event bus
-        local alert_reason=$(echo "$fail_reason" | sed 's/MERGE_CONFLICT:/Merge Conflict in /; s/BUILD_FAILED/Cargo Build Failed/; s/TEST_FAILED/Cargo Test Failed/; s/CLIPPY_FAILED/Cargo Clippy Failed/; s/NPM_FAILED/NPM Build Failed/')
+        # Emit SYSTEM_ALERT to User
+        local alert_reason=$(echo "$fail_reason" | sed 's/MERGE_CONFLICT:/Merge Conflict in /; s/BUILD_FAILED/Cargo Build Failed/; s/TEST_FAILED/Cargo Test Failed/; s/CLIPPY_FAILED/Cargo Clippy Failed/; s/NPM_FAILED/NPM Build Failed/; s/SMOKE_FAILED/Headless Smoke Test Failed/')
         bash "$SCRIPT_DIR/emit_event.sh" "SYSTEM_ALERT" "agent-5" "user" \
             "{\"failed_branch\":\"$EVENT_BRANCH\",\"assigned_worker\":\"$EVENT_SOURCE\",\"reason\":\"$alert_reason\"}" 2>/dev/null
 
@@ -295,7 +416,10 @@ process_integration_request() {
         return 1
     fi
 
-    # CI/CD PASSED — extract staging commit
+    # CI/CD PASSED — reset failure state
+    update_failure_state "$EVENT_BRANCH" "success" ""
+
+    # Extract staging commit
     local staging_commit=$(echo "$cicd_result" | grep "^SUCCESS:" | cut -d: -f2)
     if [ -z "$staging_commit" ]; then
         staging_commit=$(git rev-parse HEAD)
@@ -303,11 +427,9 @@ process_integration_request() {
     echo "[$(date -u +%H:%M:%S)] CI/CD PASSED. Staging commit: $staging_commit"
 
     # ─── Merge to main ─────────────────────────────────────────────────────
-    # Skip audit if SKIP_AUDIT=1 (manager's discretion for this sprint)
     if [ "${SKIP_AUDIT:-0}" = "1" ]; then
         echo "[$(date -u +%H:%M:%S)] SKIP_AUDIT=1 — promoting directly to main."
 
-        # run_cicd already merged staging into main via ff-only
         local main_commit=$(git rev-parse HEAD)
 
         # Update last_green_commit
@@ -354,13 +476,15 @@ NODE_EOF
 }
 
 # ─── Helper: Check sprint completion (PROMOTED_TO_MAIN events only) ────────
+# v2.0: Scans BOTH events/ and .archive/ for PROMOTED_TO_MAIN events.
 check_sprint_complete() {
     local roadmap="$HUB_DIR/.devin/tasks/design_review/roadmap.json"
+    local events_dir="$HUB_DIR/.devin/events"
     local events_archive="$HUB_DIR/.devin/events/.archive"
     [ -f "$roadmap" ] || return 1
     [ -d "$events_archive" ] || return 1
 
-    ROADMAP_IN="$roadmap" ARCHIVE_IN="$events_archive" node <<'NODE_EOF'
+    ROADMAP_IN="$roadmap" EVENTS_IN="$events_dir" ARCHIVE_IN="$events_archive" node <<'NODE_EOF'
         const fs = require("fs");
         const path = require("path");
 
@@ -381,20 +505,19 @@ check_sprint_complete() {
         const total = expectedBranches.size;
         if (total === 0) { process.exit(1); }
 
-        const archiveDir = process.env.ARCHIVE_IN;
+        // v2.0: Scan BOTH events/ and .archive/ for PROMOTED_TO_MAIN
         const promotedBranches = new Set();
-        let files;
-        try {
-            files = fs.readdirSync(archiveDir).filter(f => f.endsWith(".json"));
-        } catch(e) {
-            process.exit(1);
-        }
-
-        for (const f of files) {
+        const scanDirs = [process.env.EVENTS_IN, process.env.ARCHIVE_IN];
+        for (const dir of scanDirs) {
             try {
-                const evt = readJson(path.join(archiveDir, f));
-                if (evt.type === "PROMOTED_TO_MAIN" && evt.payload && evt.payload.branch) {
-                    promotedBranches.add(evt.payload.branch);
+                const files = fs.readdirSync(dir).filter(f => f.endsWith(".json"));
+                for (const f of files) {
+                    try {
+                        const evt = readJson(path.join(dir, f));
+                        if (evt.type === "PROMOTED_TO_MAIN" && evt.payload && evt.payload.branch) {
+                            promotedBranches.add(evt.payload.branch);
+                        }
+                    } catch(e) { continue; }
                 }
             } catch(e) { continue; }
         }
@@ -415,15 +538,40 @@ NODE_EOF
     return $?
 }
 
+# ─── Helper: Automated archive hygiene ─────────────────────────────────────
+# Deletes files older than 7 days from .archive/ and integration_log/.
+# Preserves PROMOTED_TO_MAIN events (needed for sprint completion check).
+cleanup_old_files() {
+    # Clean .archive/ — JSON files older than 7 days, EXCEPT PROMOTED_TO_MAIN
+    local archive_candidates
+    archive_candidates=$(find "$ARCHIVE_DIR" -type f -name "*.json" -mtime +7 ! -name "*PROMOTED_TO_MAIN*" 2>/dev/null)
+    if [ -n "$archive_candidates" ]; then
+        echo "$archive_candidates" | while IFS= read -r f; do rm -f "$f"; done
+        local archive_count=$(echo "$archive_candidates" | wc -l)
+        echo "[$(date -u +%H:%M:%S)] Hygiene: deleted $archive_count archive files older than 7 days."
+    fi
+
+    # Clean integration_log/ — .txt and .log files older than 7 days
+    local log_candidates
+    log_candidates=$(find "$LOG_DIR" -type f \( -name "*.txt" -o -name "*.log" \) -mtime +7 2>/dev/null)
+    if [ -n "$log_candidates" ]; then
+        echo "$log_candidates" | while IFS= read -r f; do rm -f "$f"; done
+        local log_count=$(echo "$log_candidates" | wc -l)
+        echo "[$(date -u +%H:%M:%S)] Hygiene: deleted $log_count log files older than 7 days."
+    fi
+}
+
 # ─── Main Loop ─────────────────────────────────────────────────────────────
 echo ""
 echo "============================================================"
-echo "  INTEGRATION DAEMON — Agent 5 (Manager)"
+echo "  INTEGRATION DAEMON v2.0 — Agent 5 (Manager)"
 echo "  PID: $$"
 echo "  HUB_DIR: $HUB_DIR"
 echo "  Poll interval: ${POLL_INTERVAL}s"
 echo "  SKIP_AUDIT: ${SKIP_AUDIT:-0}"
-echo "  CI/CD path: run_cicd() (sole path, no external deps)"
+echo "  CI/CD path: run_cicd() — 5-stage Iron pipeline"
+echo "  Deadlock guard: ${MAX_CONSECUTIVE_FAILURES}-strike auto-block"
+echo "  Hygiene: 7-day archive cleanup every 100 cycles"
 echo "  Started: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "============================================================"
 echo ""
@@ -433,6 +581,11 @@ CYCLE=0
 while true; do
     CYCLE=$((CYCLE + 1))
     NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    # Run hygiene every 100 cycles (~25 min)
+    if [ $((CYCLE % 100)) -eq 0 ]; then
+        cleanup_old_files
+    fi
 
     # Find INTEGRATION_REQUESTED events (maxdepth 1 — do NOT scan .archive/)
     EVENT_FILES=$(find "$EVENTS_DIR" -maxdepth 1 -name "*INTEGRATION_REQUESTED*" -type f 2>/dev/null)
@@ -449,18 +602,16 @@ while true; do
         if check_sprint_complete; then
             echo ""
             echo "============================================================"
-            echo "  ALL 7 BLUEPRINTS INTEGRATED AND MERGED TO MAIN"
+            echo "  ALL BLUEPRINTS INTEGRATED AND MERGED TO MAIN"
             echo "  AUDIT_REQUESTED event emitted to Agent 4"
-            echo "  Agent 4 must now run:"
-            echo "    bash .devin/scripts/process_audit_queue.sh"
-            echo "  Then execute active simulation ticks to verify:"
+            echo "  Agent 4 must now run the comprehensive system-wide audit:"
             echo "    - M0 conservation (emigration forex flow)"
             echo "    - Off-grid physics (water-to-pollution mass conservation)"
             echo "    - Demographic stability (cooperative collapse routing)"
             echo "============================================================"
 
             bash "$SCRIPT_DIR/emit_event.sh" "AUDIT_REQUESTED" "agent-5" "agent-4" \
-                '{"reason":"All 7 blueprints merged to main. Run comprehensive system-wide test suite.","verification_targets":["M0 conservation (emigration forex flow)","Off-grid physics (water-to-pollution mass conservation)","Demographic stability (cooperative collapse routing)"]}' 2>/dev/null
+                '{"reason":"All blueprints merged to main. Run comprehensive system-wide test suite.","verification_targets":["M0 conservation (emigration forex flow)","Off-grid physics (water-to-pollution mass conservation)","Demographic stability (cooperative collapse routing)"]}' 2>/dev/null
 
             echo "[$(date -u +%H:%M:%S)] AUDIT_REQUESTED emitted. Daemon exiting."
             break
