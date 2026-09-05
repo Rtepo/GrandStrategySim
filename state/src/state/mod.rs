@@ -530,6 +530,15 @@ pub struct Country {
     /// Phase 6: Landscape parks
     #[serde(default)]
     pub landscape_parks: Vec<crate::politics::conservation::LandscapePark>,
+    /// Phase 18E: Nature reserves
+    #[serde(default)]
+    pub nature_reserves: Vec<crate::politics::conservation::NatureReserve>,
+    /// Phase 18E: Buffer zones around protected areas
+    #[serde(default)]
+    pub buffer_zones: Vec<crate::politics::conservation::BufferZone>,
+    /// Phase 18E: Urban recreation parks
+    #[serde(default)]
+    pub urban_parks: Vec<crate::politics::conservation::UrbanPark>,
     /// Phase 8: Utility pricing tariffs for electricity, heating, water, sewage.
     #[serde(default)]
     pub utility_pricing_config: crate::utilities::UtilityPricingConfig,
@@ -799,6 +808,9 @@ impl Country {
             conservation_policies: Vec::new(),
             national_parks: Vec::new(),
             landscape_parks: Vec::new(),
+            nature_reserves: Vec::new(),
+            buffer_zones: Vec::new(),
+            urban_parks: Vec::new(),
             special_economic_zones: Vec::new(),
             natural_wonders: Vec::new(),
             tourism_destinations: BTreeMap::new(),
@@ -1203,6 +1215,9 @@ impl CountryBuilder {
             conservation_policies: Vec::new(),
             national_parks: Vec::new(),
             landscape_parks: Vec::new(),
+            nature_reserves: Vec::new(),
+            buffer_zones: Vec::new(),
+            urban_parks: Vec::new(),
             utility_pricing_config: crate::utilities::UtilityPricingConfig::default(),
             utility_config: crate::utilities::UtilityConfig::default(),
             natural_wonders: Vec::new(),

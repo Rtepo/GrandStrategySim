@@ -290,13 +290,30 @@ pub fn apply_production_decree(
 
 /// Lifts a production decree, restoring original production methods.
 ///
+/// Rule 18 compliance: Civilian-to-military conversion has trade-offs.
+/// Reconversion back to civilian production incurs a reconversion cost
+/// — the factory must be retooled again, which reduces efficiency
+/// temporarily (the `decree_retooling_penalty` applied in reverse).
+/// This ensures conversion is not a zero-cost reversible operation.
+///
 /// # Arguments
 /// * `buildings` - All buildings for this country (mutable).
 /// * `decree` - The decree to lift.
-pub fn lift_production_decree(buildings: &mut [Building], decree: &ProductionDecree) {
+/// * `reconversion_penalty` - Efficiency penalty for retooling back to civilian.
+pub fn lift_production_decree(
+    buildings: &mut [Building],
+    decree: &ProductionDecree,
+    reconversion_penalty: f64,
+) {
+    let mut restored_method = decree.original_method.clone();
+    // Rule 18: Reconversion incurs a retooling penalty (trade-off).
+    // The original method's efficiency is temporarily reduced by the
+    // reconversion penalty, mirroring the original conversion penalty.
+    restored_method.efficiency *= (1.0 - reconversion_penalty).max(0.0);
+
     for building in buildings.iter_mut() {
         if decree.affected_building_ids.contains(&building.id) {
-            building.active_method = decree.original_method.clone();
+            building.active_method = restored_method.clone();
         }
     }
 }
@@ -308,10 +325,12 @@ pub fn lift_production_decree(buildings: &mut [Building], decree: &ProductionDec
 /// # Arguments
 /// * `buildings` - All buildings for this country (mutable).
 /// * `war_economy` - War economy state (mutable).
+/// * `config` - War economy configuration (for reconversion penalty).
 /// * `current_turn` - Current turn number.
 pub fn process_expired_decrees(
     buildings: &mut [Building],
     war_economy: &mut WarEconomyState,
+    config: &WarEconomyConfig,
     current_turn: u32,
 ) {
     let mut expired_indices: Vec<usize> = Vec::new();
@@ -324,7 +343,7 @@ pub fn process_expired_decrees(
     // Process in reverse order to maintain indices
     for &idx in expired_indices.iter().rev() {
         let decree = war_economy.active_decrees.remove(idx);
-        lift_production_decree(buildings, &decree);
+        lift_production_decree(buildings, &decree, config.decree_retooling_penalty);
     }
 }
 
@@ -1239,8 +1258,8 @@ mod tests {
             .outputs
             .contains_key(&Commodity::MediumTanks));
 
-        // Lift the decree
-        lift_production_decree(&mut buildings, &decree);
+        // Lift the decree (with reconversion penalty = 0.0 for test)
+        lift_production_decree(&mut buildings, &decree, 0.0);
 
         // Verify original method was restored
         assert!(buildings[0]
@@ -1290,7 +1309,8 @@ mod tests {
         };
 
         // Not expired at turn 15
-        process_expired_decrees(&mut buildings, &mut war_economy, 15);
+        let test_config = WarEconomyConfig::default();
+        process_expired_decrees(&mut buildings, &mut war_economy, &test_config, 15);
         assert_eq!(war_economy.active_decrees.len(), 1);
         assert!(buildings[0]
             .active_method
@@ -1298,7 +1318,7 @@ mod tests {
             .contains_key(&Commodity::MediumTanks));
 
         // Expired at turn 20
-        process_expired_decrees(&mut buildings, &mut war_economy, 20);
+        process_expired_decrees(&mut buildings, &mut war_economy, &test_config, 20);
         assert_eq!(war_economy.active_decrees.len(), 0);
         assert!(buildings[0]
             .active_method

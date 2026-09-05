@@ -1564,6 +1564,209 @@ pub fn process_tax_collection_turn(
     result
 }
 
+// ============================================================================
+// PHASE 18E: PARK ENTRY FEE (C2G) AND ECOLOGICAL TAX COLLECTION
+// ============================================================================
+
+/// Phase 18E: Collect park entry fees via C2G (Citizen-to-Government) routing.
+///
+/// Entry fees are administrative fees, NOT B2C retail transactions.
+/// Government entities do not participate in B2C market clearing.
+///
+/// # Arguments
+/// * `country` - Mutable country (for budget credit)
+/// * `regions` - Mutable regions (for citizen savings debit)
+/// * `park_id` - Park ID for tracking
+/// * `park_region_id` - Region where the park is located
+/// * `visitor_count` - Number of visitors this turn
+/// * `fee_per_visitor` - Fee per visitor (as fraction of average_wage)
+///
+/// # Returns
+/// Total fees collected (debited from citizens, credited to park sub-account)
+///
+/// # Rules
+/// * Debit: ClassDemographics.savings (Labor accounts) in park's region
+/// * Credit: park.funding_balance (park sub-account)
+/// * Double-entry: Sum of citizen debits == amount credited to park
+/// * If citizens cannot afford full fee, partial collection (clamped at 0.0)
+pub fn collect_park_entry_fees(
+    country: &mut crate::state::Country,
+    regions: &mut [crate::society::geography::Region],
+    park_id: &str,
+    park_region_id: &str,
+    visitor_count: f64,
+    fee_per_visitor: f64,
+) -> f64 {
+    if visitor_count <= 0.0 || fee_per_visitor <= 0.0 {
+        return 0.0;
+    }
+
+    let average_wage = country.macro_indicators.average_wage.max(1.0);
+    let total_fee = visitor_count * fee_per_visitor * average_wage;
+
+    if let Some(region) = regions.iter_mut().find(|r| r.id == park_region_id) {
+        let total_pop: i64 = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .chain(region.class_demographics.urban_classes.values())
+            .map(|c| c.population)
+            .sum();
+
+        if total_pop > 0 {
+            let per_capita_fee = total_fee / total_pop as f64;
+            let mut total_debited = 0.0;
+
+            for class in region.class_demographics.rural_classes.values_mut() {
+                let debit = per_capita_fee * class.population as f64;
+                let actual_debit = debit.min(class.savings);
+                class.savings = (class.savings - actual_debit).max(0.0);
+                if class.population > 0 {
+                    class.savings_per_capita = class.savings / class.population as f64;
+                }
+                total_debited += actual_debit;
+            }
+            for class in region.class_demographics.urban_classes.values_mut() {
+                let debit = per_capita_fee * class.population as f64;
+                let actual_debit = debit.min(class.savings);
+                class.savings = (class.savings - actual_debit).max(0.0);
+                if class.population > 0 {
+                    class.savings_per_capita = class.savings / class.population as f64;
+                }
+                total_debited += actual_debit;
+            }
+
+            // Credit the park's funding_balance sub-account
+            // Find the park by ID and credit its funding_balance
+            for park in &mut country.national_parks {
+                if park.id == park_id {
+                    park.funding_balance += total_debited;
+                    park.last_turn_visitor_count = visitor_count;
+                    break;
+                }
+            }
+            for park in &mut country.landscape_parks {
+                if park.id == park_id {
+                    park.funding_balance += total_debited;
+                    park.last_turn_visitor_count = visitor_count;
+                    break;
+                }
+            }
+            for park in &mut country.urban_parks {
+                if park.id == park_id {
+                    park.funding_balance += total_debited;
+                    park.last_turn_visitor_count = visitor_count;
+                    break;
+                }
+            }
+
+            return total_debited;
+        }
+    }
+
+    0.0
+}
+
+/// Phase 18E: Collect ecological taxes from industrial firms in buffer zones.
+///
+/// Ecological taxes are debited from company.liquid_capital and credited
+/// to the adjacent protected area's funding_balance sub-account.
+///
+/// # Arguments
+/// * `country` - Mutable country (for park funding credit)
+/// * `companies` - Mutable companies (for liquid_capital debit)
+/// * `buffer_zone` - Buffer zone with industrial area and tax rate
+///
+/// # Returns
+/// Total ecological tax collected
+///
+/// # Rules
+/// * Debit: company.liquid_capital (industrial firms in buffer zone)
+/// * Credit: protected_area.funding_balance
+/// * Tax scales by industrial_area × ecological_tax_per_hectare × pollution_multiplier
+/// * If company cannot afford full tax, partial collection (clamped at 0.0)
+pub fn collect_ecological_tax(
+    country: &mut crate::state::Country,
+    companies: &mut [crate::entities::Company],
+    buffer_zone: &crate::politics::conservation::BufferZone,
+) -> f64 {
+    let tax_owed = buffer_zone.compute_ecological_tax();
+    if tax_owed <= 0.0 {
+        return 0.0;
+    }
+
+    // Find industrial companies in the buffer zone's region
+    let industrial_companies: Vec<usize> = companies
+        .iter()
+        .enumerate()
+        .filter(|(_, c)| {
+            c.region_id == buffer_zone.region_id
+                && (c.sector == crate::registries::enums::Sector::HeavyIndustry
+                    || c.sector == crate::registries::enums::Sector::LightIndustry
+                    || c.sector == crate::registries::enums::Sector::ArmamentsIndustry
+                    || c.sector == crate::registries::enums::Sector::Mining)
+        })
+        .map(|(i, _)| i)
+        .collect();
+
+    if industrial_companies.is_empty() {
+        return 0.0;
+    }
+
+    // Distribute tax pro-rata by company liquid_capital
+    let total_capital: f64 = industrial_companies
+        .iter()
+        .map(|&i| companies[i].liquid_capital.max(0.0))
+        .sum();
+
+    if total_capital <= 0.0 {
+        return 0.0;
+    }
+
+    let mut total_collected = 0.0;
+    for &idx in &industrial_companies {
+        let share = companies[idx].liquid_capital.max(0.0) / total_capital;
+        let company_tax = tax_owed * share;
+        let actual_tax = company_tax.min(companies[idx].liquid_capital.max(0.0));
+        companies[idx].liquid_capital -= actual_tax;
+        total_collected += actual_tax;
+    }
+
+    // Credit to the protected area's funding_balance
+    let protected_id = &buffer_zone.protected_area_id;
+    let protected_type = &buffer_zone.protected_area_type;
+
+    match protected_type.as_str() {
+        "national_park" => {
+            for park in &mut country.national_parks {
+                if park.id == *protected_id {
+                    park.funding_balance += total_collected;
+                    break;
+                }
+            }
+        }
+        "landscape_park" => {
+            for park in &mut country.landscape_parks {
+                if park.id == *protected_id {
+                    park.funding_balance += total_collected;
+                    break;
+                }
+            }
+        }
+        "nature_reserve" => {
+            for reserve in &mut country.nature_reserves {
+                if reserve.id == *protected_id {
+                    reserve.funding_balance += total_collected;
+                    break;
+                }
+            }
+        }
+        _ => {}
+    }
+
+    total_collected
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

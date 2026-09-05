@@ -174,7 +174,7 @@ fn test_decree_restores_original_method() {
     )
     .unwrap();
 
-    lift_production_decree(&mut buildings, &decree);
+    lift_production_decree(&mut buildings, &decree, 0.0);
 
     assert_eq!(buildings[0].active_method.outputs, original_outputs);
 }
@@ -533,12 +533,14 @@ fn test_expired_decree_auto_cleanup() {
         ..Default::default()
     };
 
+    let test_config = WarEconomyConfig::default();
+
     // Turn 14: not expired
-    process_expired_decrees(&mut buildings, &mut war_economy, 14);
+    process_expired_decrees(&mut buildings, &mut war_economy, &test_config, 14);
     assert_eq!(war_economy.active_decrees.len(), 1);
 
     // Turn 15: expired — should be cleaned up
-    process_expired_decrees(&mut buildings, &mut war_economy, 15);
+    process_expired_decrees(&mut buildings, &mut war_economy, &test_config, 15);
     assert_eq!(war_economy.active_decrees.len(), 0);
     assert_eq!(buildings[0].active_method.outputs, original_outputs);
 }

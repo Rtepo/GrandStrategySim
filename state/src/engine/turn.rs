@@ -41,6 +41,7 @@ use crate::military::war_economy::{
     execute_conscription, issue_war_bonds, process_expired_decrees, WarEconomyConfig,
 };
 use crate::military::{add_military_demand_to_market, process_military_turn};
+use crate::military::units::MilitaryUnit;
 use crate::politics::budget_lifecycle::{
     apply_budget_failure_consequence, draft_budget_bill, process_budget_lifecycle,
 };
@@ -1819,6 +1820,49 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             );
             // Log military messages (in full implementation, would push to event log)
             let _ = mil_messages;
+
+            // STORAGE COUNTERPARTY: MoD pays warehouse rent for military equipment.
+            // Rule 1: Strict counterparty. Rule 2: Scale by average_wage. Rule 20: Degrade if unfunded.
+            let b2b_config = task.ctx.country.b2b_order_config.clone();
+            let average_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
+            let warehouse_owner_id: String = task
+                .commercial_buildings
+                .iter()
+                .find(|b| b.building_type == crate::society::housing::CommercialBuildingType::Warehouse)
+                .map(|b| b.owner_id.clone())
+                .unwrap_or_default();
+            if !warehouse_owner_id.is_empty() {
+                let mut units = task.ctx.country.order_of_battle.flatten();
+                let storage_result = crate::military::process_mod_storage_costs(
+                    &mut units,
+                    &task.ctx.country.military_stockpile,
+                    &mut task.ctx.country.budget.liquid_reserves,
+                    b2b_config.warehouse_storage_fee_per_ton,
+                    average_wage,
+                    &warehouse_owner_id,
+                );
+                if storage_result.amount_paid > 0.0 {
+                    crate::economy::transfer_settler::credit_company_by_id(
+                        &mut task.companies,
+                        &warehouse_owner_id,
+                        storage_result.amount_paid,
+                    );
+                }
+                let unit_map: rustc_hash::FxHashMap<String, &MilitaryUnit> =
+                    units.iter().map(|u| (u.id.clone(), u)).collect();
+                for army in &mut task.ctx.country.order_of_battle.armies {
+                    for division in &mut army.divisions {
+                        for regiment in &mut division.regiments {
+                            for unit in &mut regiment.units {
+                                if let Some(processed) = unit_map.get(&unit.id) {
+                                    *unit = (*processed).clone();
+                                }
+                            }
+                        }
+                    }
+                }
+                let _ = storage_result;
+            }
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -3053,6 +3097,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             process_expired_decrees(
                 &mut task.ctx.buildings,
                 &mut task.ctx.country.war_economy,
+                &war_economy_config,
                 task.ctx.turn,
             );
         });
@@ -5269,11 +5314,14 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             let config = task.ctx.country.military_config.clone();
             let mod_cash = task.ctx.country.budget.liquid_reserves * 0.3; // Reserve 30% for MoD procurement
             let market_prices = &market.base_prices;
+            let fronts = task.ctx.country.military_fronts.clone();
             let bids = crate::military::submit_defense_b2b_orders(
                 &task.ctx.country.order_of_battle.flatten(),
+                &fronts,
                 &config,
                 mod_cash,
                 market_prices,
+                task.ctx.turn,
             );
             // Encumber the cash (deduct from liquid_reserves)
             let total_encumbered: f64 = bids.iter().map(|b| b.quantity * b.limit_price).sum();

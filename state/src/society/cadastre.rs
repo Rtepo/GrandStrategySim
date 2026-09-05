@@ -412,6 +412,119 @@ impl Cadastre {
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (ParcelId, &mut ParcelChunk)> {
         self.parcels.iter_mut()
     }
+
+    // ========================================================================
+    // PHASE 18E: PARK PARCEL ANNEXATION / RELEASE API
+    // ========================================================================
+
+    /// Phase 18E: Annex a parcel into a protected area (park/reserve/buffer zone).
+    ///
+    /// Marks the parcel as government-owned and freezes it against
+    /// industrial/urban development. The parcel's zoning is changed to
+    /// Protected and its owner is set to the government entity.
+    ///
+    /// # Arguments
+    /// * `parcel_id` - ID of the parcel to annex
+    /// * `government_owner_id` - ID of the government entity (e.g., "STATE_Poland")
+    /// * `current_turn` - Current turn for zoning change tracking
+    ///
+    /// # Returns
+    /// `true` if annexation succeeded, `false` if parcel not found
+    pub fn annex_parcel_for_park(
+        &mut self,
+        parcel_id: ParcelId,
+        government_owner_id: &str,
+        current_turn: u32,
+    ) -> bool {
+        let parcel = match self.parcels.get_mut(parcel_id) {
+            Some(p) => p,
+            None => return false,
+        };
+
+        // Change ownership to government
+        parcel.owner_type = crate::society::cadastre::ParcelOwnerType::State;
+        parcel.owner_id = government_owner_id.to_string();
+        // Freeze the parcel — no development allowed
+        parcel.is_frozen = true;
+        // Change zoning to protected (reuse existing zoning if Protected exists)
+        parcel.zoning = crate::society::cadastre::ZoningDesignation::ProtectedNatural;
+        parcel.zoning_change_turn = current_turn;
+
+        true
+    }
+
+    /// Phase 18E: Release a parcel from a protected area (park abolition/shrinkage).
+    ///
+    /// Unfreezes the parcel and returns it to the general land pool.
+    /// The parcel's zoning is set to Agricultural (default for released land)
+    /// and ownership remains with the government until privatized.
+    ///
+    /// # Arguments
+    /// * `parcel_id` - ID of the parcel to release
+    /// * `current_turn` - Current turn for zoning change tracking
+    ///
+    /// # Returns
+    /// `true` if release succeeded, `false` if parcel not found
+    pub fn release_parcel_from_park(
+        &mut self,
+        parcel_id: ParcelId,
+        current_turn: u32,
+    ) -> bool {
+        let parcel = match self.parcels.get_mut(parcel_id) {
+            Some(p) => p,
+            None => return false,
+        };
+
+        // Unfreeze the parcel
+        parcel.is_frozen = false;
+        // Reset zoning to Agricultural (default for released land)
+        parcel.zoning = crate::society::cadastre::ZoningDesignation::Agricultural;
+        parcel.zoning_change_turn = current_turn;
+
+        true
+    }
+
+    /// Phase 18E: Find parcels in a region suitable for park annexation.
+    ///
+    /// Returns parcel IDs that are:
+    /// - In the specified region
+    /// - Not already frozen
+    /// - Not already state-owned
+    /// - At least `min_size_hectares` in size
+    ///
+    /// # Arguments
+    /// * `region_id` - Region to search
+    /// * `min_size_hectares` - Minimum parcel size
+    /// * `max_count` - Maximum number of parcels to return
+    pub fn find_annexable_parcels_in_region(
+        &self,
+        region_id: &str,
+        min_size_hectares: f64,
+        max_count: usize,
+    ) -> Vec<ParcelId> {
+        self.parcels
+            .iter()
+            .filter(|(_, p)| {
+                p.region_id == region_id
+                    && !p.is_frozen
+                    && p.owner_type != crate::society::cadastre::ParcelOwnerType::State
+                    && p.size_hectares >= min_size_hectares
+            })
+            .take(max_count)
+            .map(|(id, _)| id)
+            .collect()
+    }
+
+    /// Phase 18E: Compute total annexed area for a list of parcel IDs.
+    ///
+    /// Used to verify that park total_area matches the sum of annexed parcels.
+    pub fn compute_annexed_area(&self, parcel_ids: &[ParcelId]) -> f64 {
+        parcel_ids
+            .iter()
+            .filter_map(|id| self.parcels.get(*id))
+            .map(|p| p.size_hectares)
+            .sum()
+    }
 }
 
 // ============================================================================

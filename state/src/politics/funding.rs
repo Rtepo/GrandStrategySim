@@ -102,3 +102,79 @@ pub struct ServiceFundingConfig {
     #[serde(default)]
     pub student_loans: Option<StudentLoanConfig>,
 }
+
+// ============================================================================
+// PHASE 18E: PARK FUNDING — C2G ADMINISTRATIVE FEE ROUTING
+// ============================================================================
+
+/// Phase 18E: Funding source for parks and protected areas.
+///
+/// Park funding follows strict double-entry bookkeeping:
+/// - Entry fees: C2G (Citizen-to-Government) administrative fee collection.
+///   Debited from citizen Labor accounts (class.savings), credited to
+///   the park's funding_balance sub-account.
+/// - Ecological taxes: Debited from industrial company liquid_capital,
+///   credited to the park's funding_balance sub-account.
+/// - Government subsidy: Debited from country.budget.liquid_reserves,
+///   credited to the park's funding_balance sub-account.
+/// - If funding_balance < 0 (revenue < costs), ecological_health degrades
+///   proportionally to the deficit.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum ParkFundingSource {
+    /// Fully government-funded (no entry fees).
+    /// Management cost debited from country.budget.liquid_reserves.
+    #[default]
+    GovernmentFunded,
+
+    /// Entry fees cover management costs (C2G administrative fee).
+    /// Citizens debited via Labor account savings, credited to park sub-account.
+    EntryFeeFunded,
+
+    /// Mixed: entry fees + government subsidy.
+    /// Entry fees cover a fraction; remainder from budget.
+    MixedFunding {
+        /// Fraction covered by entry fees (0.0-1.0)
+        entry_fee_fraction: f64,
+        /// Fraction covered by government budget (0.0-1.0)
+        government_fraction: f64,
+    },
+
+    /// Ecological tax funded: industrial firms in buffer zone pay ecological tax.
+    /// Tax debited from company.liquid_capital, credited to park sub-account.
+    EcologicalTaxFunded,
+}
+
+/// Phase 18E: Park funding configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ParkFundingConfig {
+    /// Primary funding source
+    pub funding_source: ParkFundingSource,
+    /// Entry fee as fraction of average_wage (0.0 = free, 0.01 = 1% of avg wage)
+    #[serde(default)]
+    pub entry_fee_wage_fraction: f64,
+    /// Ecological tax per hectare of industrial land in buffer zone
+    #[serde(default)]
+    pub ecological_tax_per_hectare: f64,
+    /// CAPEX amortization period in turns (for infrastructure cost-plus pricing)
+    #[serde(default = "default_park_amortization_turns")]
+    pub capex_amortization_turns: u32,
+    /// Ecological health degradation rate when funding_balance < 0
+    #[serde(default = "default_park_health_degradation_rate")]
+    pub health_degradation_rate: f64,
+}
+
+fn default_park_amortization_turns() -> u32 { 60 }
+fn default_park_health_degradation_rate() -> f64 { 0.02 }
+
+impl Default for ParkFundingConfig {
+    fn default() -> Self {
+        Self {
+            funding_source: ParkFundingSource::default(),
+            entry_fee_wage_fraction: 0.001,
+            ecological_tax_per_hectare: 0.0,
+            capex_amortization_turns: default_park_amortization_turns(),
+            health_degradation_rate: default_park_health_degradation_rate(),
+        }
+    }
+}

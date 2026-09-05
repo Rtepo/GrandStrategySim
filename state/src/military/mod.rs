@@ -71,9 +71,10 @@ pub use retreat::{
 pub use turn::process_military_turn;
 pub use units::{EquipmentReserve, MilitaryUnit, PeasantBattalion, UnitStats, UnitType};
 pub use upkeep::{
-    add_fleet_demand_to_market, add_military_demand_to_market, degrade_military_equipment,
+    add_fleet_demand_to_market, add_military_demand_to_market,
+    calculate_total_military_equipment_volume, degrade_military_equipment,
     deliver_military_supplies, deliver_military_supplies_and_equipment, process_military_upkeep,
-    submit_defense_b2b_orders,
+    process_mod_storage_costs, submit_defense_b2b_orders, ModStorageResult,
 };
 pub use war_declarations::{
     check_tension_escalations, decay_all_tensions, declare_war, settle_peace, tension_key,
