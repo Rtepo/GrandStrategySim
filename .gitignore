@@ -47,3 +47,7 @@ commit_v*.txt
 
 # Daemon v2.0 CI/CD failure state (ephemeral, not committed)
 .devin/.cicd_failure_state.json
+
+# Daemon v2.1 — untrack all transient integration logs
+.devin/integration_log/
+.devin/.daemon_event_*.env
