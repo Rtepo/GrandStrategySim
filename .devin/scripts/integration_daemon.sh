@@ -175,6 +175,29 @@ guard_clean_tree() {
     return 0
 }
 
+# ─── Helper: Empty Branch Guard — rejects branches with no commits ahead of main ─
+# v2.2: Prevents false promotions when a branch has no new code vs main.
+# Returns 0 if branch has commits + file diffs, 1 otherwise.
+# Echoes the failure reason (EMPTY_BRANCH_NO_COMMITS / EMPTY_BRANCH_NO_DIFFS) on failure.
+check_branch_has_commits() {
+    local branch="$1"
+    local ahead
+    ahead=$(git rev-list --count main.."$branch" 2>/dev/null || echo "0")
+    if [ "$ahead" -eq 0 ]; then
+        echo "EMPTY_BRANCH_NO_COMMITS"
+        return 1
+    fi
+    # Also verify there are actual file differences (tree vs tree, not merge-base)
+    local diff_files
+    diff_files=$(git diff --name-only main "$branch" 2>/dev/null | head -1)
+    if [ -z "$diff_files" ]; then
+        echo "EMPTY_BRANCH_NO_DIFFS"
+        return 1
+    fi
+    echo "[$(date -u +%H:%M:%S)] Branch check: $branch is $ahead commits ahead of main, files differ." >&2
+    return 0
+}
+
 # ─── Helper: Check CI/CD failure state (3-strike guard) ────────────────────
 # Returns 0 if branch is allowed, 1 if blocked.
 # Sets global BRANCH_BLOCKED_REASON if blocked.
@@ -288,6 +311,18 @@ run_cicd() {
             echo "MERGE_CONFLICT:$conflicts" > "${log_prefix}_FAILED.txt"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: Merge conflict in: $conflicts"
         fi
+        return 1
+    fi
+
+    # ─── Merge Verification (v2.2) ──────────────────────────────────────────
+    # Verify staging's tree actually differs from main (catches no-op merges).
+    # Uses git diff main HEAD (space, not triple-dot) to compare actual trees.
+    local merge_diff
+    merge_diff=$(git diff --name-only main HEAD 2>/dev/null | head -1)
+    if [ -z "$merge_diff" ]; then
+        git checkout main 2>/dev/null
+        echo "MERGE_NOOP" > "${log_prefix}_FAILED.txt"
+        echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: Merge produced no tree changes (staging tree == main tree). Possible false merge."
         return 1
     fi
 
@@ -423,17 +458,46 @@ process_integration_request() {
         return 1
     fi
 
+    # ─── Empty Branch Guard (v2.2) ──────────────────────────────────────────
+    # Reject branches with no commits or file diffs ahead of main.
+    local branch_check
+    branch_check=$(check_branch_has_commits "$EVENT_BRANCH")
+    local branch_check_rc=$?
+    if [ $branch_check_rc -ne 0 ]; then
+        echo "[$(date -u +%H:%M:%S)] EMPTY BRANCH: $EVENT_BRANCH — $branch_check" >&2
+        local state_update
+        state_update=$(update_failure_state "$EVENT_BRANCH" "failure" "$branch_check")
+
+        bash "$SCRIPT_DIR/emit_event.sh" "SYSTEM_ALERT" "agent-5" "user" \
+            "{\"failed_branch\":\"$EVENT_BRANCH\",\"reason\":\"$branch_check\",\"action\":\"Ensure code is committed and branch is ahead of main\"}" 2>/dev/null
+        bash "$SCRIPT_DIR/emit_event.sh" "CLARIFICATION_REQUESTED" "agent-5" "$EVENT_SOURCE" \
+            "{\"branch\":\"$EVENT_BRANCH\",\"reason\":\"$branch_check\",\"action\":\"Commit your code and re-run request_integration.sh\"}" 2>/dev/null
+
+        echo "  EMPTY_BRANCH alert emitted to user."
+        echo "  CLARIFICATION_REQUESTED emitted to $EVENT_SOURCE."
+        mv "$event_file" "$ARCHIVE_DIR/" 2>/dev/null || true
+        return 1
+    fi
+
     # Archive the INTEGRATION_REQUESTED event immediately to prevent reprocessing
     mv "$event_file" "$ARCHIVE_DIR/" 2>/dev/null || true
 
-    # Run CI/CD — the sole execution path (staging → 5-stage → main)
-    local cicd_result=$(run_cicd "$EVENT_BRANCH")
-    local cicd_rc=$?
+    # ─── Run CI/CD — the sole execution path (staging → 5-stage → main) ──────
+    # v2.2: Use tee for real-time streaming + PIPESTATUS for exit code.
+    #   - tee streams all output to stderr (→ daemon.log) in real-time
+    #   - PIPESTATUS[0] captures run_cicd's real exit code (not local's 0)
+    #   - cicd_log file preserves output for SUCCESS:<commit> extraction
+    local cicd_log="$LOG_DIR/$(date -u +%Y%m%dT%H%M%SZ)_${EVENT_BRANCH//\//_}_cicd_output.txt"
+    run_cicd "$EVENT_BRANCH" 2>&1 | tee "$cicd_log" >&2
+    local cicd_rc=${PIPESTATUS[0]}
 
     if [ $cicd_rc -ne 0 ]; then
         # CI/CD FAILED — update failure state
-        local fail_reason=$(echo "$cicd_result" | head -1)
-        local state_update=$(update_failure_state "$EVENT_BRANCH" "failure" "$fail_reason")
+        local fail_reason
+        fail_reason=$(grep -E "^(MERGE_CONFLICT:|BUILD_FAILED|TEST_FAILED|CLIPPY_FAILED|NPM_FAILED|SMOKE_FAILED|TIMEOUT_FAILED|DIRTY_TREE_TIMEOUT|EMPTY_BRANCH|MERGE_NOOP)" "$cicd_log" | head -1)
+        [ -z "$fail_reason" ] && fail_reason="UNKNOWN_FAILURE"
+        local state_update
+        state_update=$(update_failure_state "$EVENT_BRANCH" "failure" "$fail_reason")
 
         # Check if this failure triggered a block
         if [[ "$state_update" == BLOCKED:* ]]; then
@@ -451,7 +515,7 @@ process_integration_request() {
             "{\"branch\":\"$EVENT_BRANCH\",\"reason\":\"CI/CD failed: $fail_reason\",\"action\":\"Fix errors and re-run request_integration.sh\"}" 2>/dev/null
 
         # Emit SYSTEM_ALERT to User
-        local alert_reason=$(echo "$fail_reason" | sed 's/MERGE_CONFLICT:/Merge Conflict in /; s/BUILD_FAILED/Cargo Build Failed/; s/TEST_FAILED/Cargo Test Failed/; s/CLIPPY_FAILED/Cargo Clippy Failed/; s/NPM_FAILED/NPM Build Failed/; s/SMOKE_FAILED/Headless Smoke Test Failed/; s/TIMEOUT_FAILED/CI\/CD Stage Timeout/; s/DIRTY_TREE_TIMEOUT/Dirty Tree Timeout (5 min wait exceeded)/')
+        local alert_reason=$(echo "$fail_reason" | sed 's/MERGE_CONFLICT:/Merge Conflict in /; s/BUILD_FAILED/Cargo Build Failed/; s/TEST_FAILED/Cargo Test Failed/; s/CLIPPY_FAILED/Cargo Clippy Failed/; s/NPM_FAILED/NPM Build Failed/; s/SMOKE_FAILED/Headless Smoke Test Failed/; s/TIMEOUT_FAILED/CI\/CD Stage Timeout/; s/DIRTY_TREE_TIMEOUT/Dirty Tree Timeout (5 min wait exceeded)/; s/EMPTY_BRANCH_NO_COMMITS/Empty Branch — No Commits Ahead of Main/; s/EMPTY_BRANCH_NO_DIFFS/Empty Branch — No File Differences vs Main/; s/MERGE_NOOP/Merge Produced No Tree Changes (False Merge)/')
         bash "$SCRIPT_DIR/emit_event.sh" "SYSTEM_ALERT" "agent-5" "user" \
             "{\"failed_branch\":\"$EVENT_BRANCH\",\"assigned_worker\":\"$EVENT_SOURCE\",\"reason\":\"$alert_reason\"}" 2>/dev/null
 
@@ -463,8 +527,9 @@ process_integration_request() {
     # CI/CD PASSED — reset failure state
     update_failure_state "$EVENT_BRANCH" "success" ""
 
-    # Extract staging commit
-    local staging_commit=$(echo "$cicd_result" | grep "^SUCCESS:" | cut -d: -f2)
+    # Extract staging commit from the CI/CD output log
+    local staging_commit
+    staging_commit=$(grep "^SUCCESS:" "$cicd_log" | tail -1 | cut -d: -f2)
     if [ -z "$staging_commit" ]; then
         staging_commit=$(git rev-parse HEAD)
     fi
@@ -608,14 +673,17 @@ cleanup_old_files() {
 # ─── Main Loop ─────────────────────────────────────────────────────────────
 echo ""
 echo "============================================================"
-echo "  INTEGRATION DAEMON v2.1 — Agent 5 (Manager)"
+echo "  INTEGRATION DAEMON v2.2 — Agent 5 (Manager)"
 echo "  PID: $$"
 echo "  HUB_DIR: $HUB_DIR"
 echo "  Poll interval: ${POLL_INTERVAL}s"
 echo "  SKIP_AUDIT: ${SKIP_AUDIT:-0}"
-echo "  CI/CD path: run_cicd() — 5-stage Iron pipeline with watchdog timeouts"
+echo "  CI/CD path: run_cicd() — 5-stage Iron pipeline with watchdog timeouts + empty branch guard"
 echo "  Deadlock guard: ${MAX_CONSECUTIVE_FAILURES}-strike auto-block"
 echo "  Watchdog: POSIX timeout on all stages (build/test/clippy: 300s, npm: 180s, smoke: 120s)"
+echo "  Empty branch guard: rejects branches with no commits/diffs ahead of main"
+echo "  Merge verification: git diff main HEAD (tree-vs-tree, not merge-base)"
+echo "  Output streaming: tee + PIPESTATUS for real-time logging + correct exit codes"
 echo "  Hygiene: 7-day archive cleanup every 100 cycles"
 echo "  Started: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "============================================================"
