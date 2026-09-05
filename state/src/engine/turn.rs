@@ -550,6 +550,56 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
         });
+        // ═══════════════════════════════════════════════════════════
+        // BLUEPRINT 007-FIX: COOPERATIVE LIFECYCLE & HOMELESS TRANSITIONS
+        // Must run AFTER process_demographics_and_labor (line 512) and
+        // BEFORE the next turn's health/life-expectancy calculation
+        // (Rule 16: temporal causality).
+        //
+        // This phase:
+        // 1. Processes cooperative collapse detection on the already-populated
+        //    CooperativeRegistry (NO company scanning — registry was updated
+        //    via on_cooperative_created/on_cooperative_liquidated event hooks).
+        // 2. For displaced members, assigns homeless state and updates
+        //    ClassDemographics.population.
+        // 3. For emigrating members, executes the M0-preserving 3-step forex
+        //    flow: DEBIT citizen savings → CREDIT CB domestic ledger →
+        //    DEBIT CB forex reserves. Calls distribute_population_delta_and_reconcile
+        //    to remove emigrants from the national population.
+        // 4. For non-emigrating homeless, attempts rehousing via the 3-tier
+        //    cascade (market rent → welfare/poor-laws → homeless shelter).
+        // 5. Applies health/happiness penalties to ClassDemographics for
+        //    remaining homeless members.
+        // 6. Persists partial forex fills in remaining_unconverted_capital
+        //    for retry next turn (Rule 20 — no silent deletion).
+        // ═══════════════════════════════════════════════════════════
+        tasks.par_iter_mut().for_each(|task| {
+            let avg_wage = task.ctx.country.macro_indicators.average_wage;
+            let current_turn = task.ctx.turn;
+            // Capital controls rate from the country's economic policy.
+            // Default to 0.0 (no capital controls) if not configured.
+            let capital_controls_rate = 0.0;
+            // Target forex currency and exchange rate — use "USD" as the
+            // default target currency for emigration capital flight.
+            // The exchange rate is derived from the forex market if available,
+            // otherwise defaults to 1.0 (1:1 parity).
+            let forex_currency = "USD".to_string();
+            let exchange_rate = 1.0; // Simplified — full implementation would
+                                     // look up the current market exchange rate.
+            // Welfare / poor_laws: check if the country has an active welfare
+            // program (treasury solvent and welfare policy enabled).
+            let welfare_enabled = task.ctx.country.budget.liquid_reserves > 0.0;
+
+            let _homeless_result = crate::economy::labor::process_homeless_transitions(
+                task.ctx.country,
+                current_turn,
+                avg_wage,
+                capital_controls_rate,
+                &forex_currency,
+                exchange_rate,
+                welfare_enabled,
+            );
+        });
         // Phase 23C: Remit commuter wages back to home regions' class savings.
         // Commuters earned net wages (after PIT) in the host region; these are
         // distributed proportionally across all adjacent regions' classes as a

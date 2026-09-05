@@ -699,6 +699,69 @@ impl LegalForm {
             LegalForm::HousingCommunity(_) | LegalForm::HousingCooperative(_)
         )
     }
+
+    /// Blueprint 007-FIX: Extract cooperative data if this is a HousingCooperative.
+    /// Returns None for non-cooperative legal forms.
+    pub fn get_cooperative_data(&self) -> Option<&HousingCooperativeData> {
+        match self {
+            LegalForm::HousingCooperative(data) => Some(data),
+            _ => None,
+        }
+    }
+}
+
+// ============================================================================
+// BLUEPRINT 007-FIX: EVENT-BASED COOPERATIVE CACHE HOOKS
+// These functions bridge the Company/LegalForm model and the
+// CooperativeRegistry. They are called ONLY when a cooperative is
+// explicitly created or liquidated — NOT per-turn (O(1) per event).
+// ============================================================================
+
+/// Event hook: Call this when a Company is assigned
+/// `LegalForm::HousingCooperative(HousingCooperativeData)`.
+/// Registers the cooperative in the `CooperativeRegistry` so the turn
+/// loop can process its lifecycle.
+///
+/// # Arguments
+/// * `registry` - The country's cooperative registry.
+/// * `company_id` - The Company ID that has the HousingCooperative legal form.
+/// * `cooperative_data` - The HousingCooperativeData from the legal form.
+/// * `founded_turn` - Current turn number.
+pub fn on_cooperative_created(
+    registry: &mut crate::society::housing::CooperativeRegistry,
+    company_id: String,
+    cooperative_data: &HousingCooperativeData,
+    founded_turn: u32,
+) {
+    registry.on_cooperative_created(
+        company_id,
+        "Housing Cooperative".to_string(),
+        cooperative_data.managed_buildings.clone(),
+        cooperative_data.member_households,
+        cooperative_data.share_capital,
+        founded_turn,
+    );
+}
+
+/// Event hook: Call this when a Company with
+/// `LegalForm::HousingCooperative` is liquidated (from the
+/// bankruptcy/liquidation code path). Transitions the cooperative to
+/// `Liquidated` stage and returns displaced members for homeless state
+/// assignment.
+///
+/// # Arguments
+/// * `registry` - The country's cooperative registry.
+/// * `company_id` - The Company ID being liquidated.
+/// * `current_turn` - Current turn number.
+///
+/// # Returns
+/// Vec of (member_id, wealth_tier) pairs for displaced members.
+pub fn on_cooperative_liquidated(
+    registry: &mut crate::society::housing::CooperativeRegistry,
+    company_id: &str,
+    current_turn: u32,
+) -> Vec<(String, crate::society::housing::WealthTier)> {
+    registry.on_cooperative_liquidated(company_id, current_turn)
 }
 
 /// Possible directed legal-form transitions.

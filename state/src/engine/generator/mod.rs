@@ -1954,6 +1954,7 @@ fn build_central_bank(name: &str, treasury: &Treasury) -> crate::state::CentralB
         fx_reserves,
         physical_gold_reserves: 0.0,
         liquidity_injected: 0.0,
+        domestic_currency_repatriated: 0.0,
         omo_bond_holdings: 0.0,
         omo_target_rate: 0.0,
         omo_last_operation_turn: 0,

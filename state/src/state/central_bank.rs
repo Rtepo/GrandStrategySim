@@ -151,6 +151,14 @@ pub struct CentralBank {
     /// Used for tracking monetary base expansion.
     #[serde(default)]
     pub liquidity_injected: f64,
+    /// Blueprint 007-FIX: Domestic currency repatriated by the central bank
+    /// when emigrants convert their domestic savings to foreign currency.
+    /// The CB "buys back" its own currency using forex reserves — M0 is
+    /// preserved because the money moves from citizen savings to the CB
+    /// domestic ledger (it is NOT deleted). This field is the running
+    /// cumulative total of all such repatriations.
+    #[serde(default)]
+    pub domestic_currency_repatriated: f64,
     /// Government bonds held by CB acquired via secondary market OMO purchases.
     /// When CB buys bonds from banks, it credits their reserves and takes the bonds.
     /// When CB sells bonds to banks, it debits their reserves and gives the bonds back.
@@ -227,6 +235,7 @@ impl Default for CentralBank {
             fx_reserves: std::collections::HashMap::new(),
             physical_gold_reserves: 0.0,
             liquidity_injected: 0.0,
+            domestic_currency_repatriated: 0.0,
             omo_bond_holdings: 0.0,
             omo_target_rate: 0.0,
             omo_last_operation_turn: 0,
@@ -742,6 +751,8 @@ impl CentralBank {
         if available_forex >= forex_needed {
             // Full fill: drain the specific currency reserve
             *self.fx_reserves.entry(forex_currency.to_string()).or_insert(0.0) -= forex_needed;
+            // Blueprint 007-FIX Step 2: CREDIT CB domestic ledger (M0 preserved)
+            self.domestic_currency_repatriated += amount_domestic;
             ForexDrainResult {
                 domestic_currency_bought_back: amount_domestic,
                 forex_reserve_drained: forex_needed,
@@ -765,6 +776,8 @@ impl CentralBank {
                 }
                 remaining = 0.0;
             }
+            // Blueprint 007-FIX Step 2: CREDIT CB domestic ledger (M0 preserved)
+            self.domestic_currency_repatriated += amount_domestic;
             ForexDrainResult {
                 domestic_currency_bought_back: amount_domestic,
                 forex_reserve_drained: forex_needed,
@@ -773,11 +786,6 @@ impl CentralBank {
             }
         } else {
             // Insufficient reserves — partial fill only
-            let _fill_ratio = if total_forex > 0.0 {
-                forex_needed / total_forex
-            } else {
-                0.0
-            };
             let filled_forex = total_forex.min(forex_needed);
             let filled_domestic = filled_forex * exchange_rate;
 
@@ -788,6 +796,10 @@ impl CentralBank {
                 }
             }
 
+            // Blueprint 007-FIX Step 2: CREDIT CB domestic ledger only for
+            // the amount actually converted (M0 preserved for the filled part).
+            // The remaining unfilled amount stays with the citizen (queued).
+            self.domestic_currency_repatriated += filled_domestic;
             ForexDrainResult {
                 domestic_currency_bought_back: filled_domestic,
                 forex_reserve_drained: filled_forex,

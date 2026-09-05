@@ -10,6 +10,8 @@ pub mod migration;
 
 // Re-export contents of labor.rs at the labor/ module level.
 pub use class_transitions::ClassTransitionResult;
+pub use class_transitions::HomelessTransitionResult;
+pub use class_transitions::process_homeless_transitions;
 pub use class_transitions::process_rural_urban_class_transitions;
 pub use education_progression::compute_child_labor_fte;
 pub use education_progression::compute_per_tier_education_needs;

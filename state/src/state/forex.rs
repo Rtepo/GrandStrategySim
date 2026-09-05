@@ -568,8 +568,10 @@ pub fn settle_trade_deficits(
 }
 
 // ============================================================================
-// BLUEPRINT 007: EMIGRATION CAPITAL OUTFLOW
+// BLUEPRINT 007-FIX: EMIGRATION CAPITAL OUTFLOW
 // M0-Preserving 3-step accounting for citizen emigration capital flight.
+// v2: Fixes audit findings — real ledger debits, separated CB/treasury
+//     counterparties, persistent per-emigrant remaining capital.
 // ============================================================================
 
 /// Configuration for emigration capital outflow processing.
@@ -587,122 +589,207 @@ pub struct EmigrationConfig {
     pub exchange_rate: f64,
 }
 
-/// Result of processing emigration capital outflow for one turn.
+/// Per-emigrant result of the forex conversion attempt.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct EmigrantConversionResult {
+    /// Member ID (for queue management).
+    pub member_id: String,
+    /// Amount debited from the citizen's savings (Step 1).
+    pub domestic_debited: f64,
+    /// Amount credited to the central bank domestic ledger (Step 2).
+    /// This is SEPARATE from treasury seizure — CB is the counterparty
+    /// for the forex conversion, not for the capital-controls seizure.
+    pub domestic_credited_to_cb: f64,
+    /// Amount seized by treasury via capital controls (SEPARATE from CB).
+    pub seized_by_treasury: f64,
+    /// Foreign currency drained from forex reserves (Step 3).
+    pub forex_drained: f64,
+    /// Whether the full convertible amount was filled.
+    pub fully_filled: bool,
+    /// Remaining unconverted domestic capital (stays with the citizen
+    /// for retry next turn — persistent queue, Rule 20).
+    pub remaining_unconverted_capital: f64,
+}
+
+/// Aggregate result of processing emigration capital outflow for one turn.
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct EmigrationOutflowResult {
-    /// Total domestic currency debited from emigrating citizens.
+    /// Total domestic currency debited from emigrating citizens (Step 1).
     pub total_domestic_debited: f64,
-    /// Total domestic currency credited to central bank (bought back).
-    /// This preserves M0 — the money returns to the CB, not destroyed.
+    /// Total domestic currency credited to central bank domestic ledger
+    /// (Step 2). This is SEPARATE from treasury seizure — the CB is the
+    /// counterparty for the forex buyback, NOT for capital-controls seizure.
+    /// M0 is preserved: money moves citizen → CB domestic ledger.
     pub total_domestic_credited_to_cb: f64,
-    /// Total forex reserve drained (capital flight).
+    /// Total forex reserve drained (Step 3 — capital flight).
     pub total_forex_drained: f64,
-    /// Total capital controls seizure credited to state budget.
-    pub total_seized_to_treasury: f64,
-    /// Number of emigrants fully processed.
+    /// Total capital controls seizure credited to state treasury.
+    /// SEPARATE from CB repatriation (Rule 7 — individual accountability).
+    pub total_seized_by_treasury: f64,
+    /// Number of emigrants fully processed (forex conversion complete).
     pub emigrants_processed: u32,
     /// Number of emigrants partially filled (forex insufficient).
     pub emigrants_partially_filled: u32,
-    /// Number of emigrants queued (no forex available).
+    /// Number of emigrants queued (no forex available at all).
     pub emigrants_queued: u32,
-    /// Remaining unfilled domestic currency (queued for next turn).
-    pub remaining_unfilled: f64,
+    /// Per-emigrant results (for persistent queue management).
+    pub per_emigrant: Vec<EmigrantConversionResult>,
 }
 
-/// Blueprint 007: Process emigration capital outflow for a batch of emigrants.
+impl EmigrationOutflowResult {
+    /// Total remaining unconverted capital across all emigrants (for UI).
+    pub fn total_remaining_unconverted(&self) -> f64 {
+        self.per_emigrant
+            .iter()
+            .map(|r| r.remaining_unconverted_capital)
+            .sum()
+    }
+}
+
+/// Blueprint 007-FIX: Process emigration capital outflow for a batch of
+/// emigrants using the EXACT 3-step M0-preserving accounting flow.
 ///
-/// This implements the CRITICAL M0-preserving 3-step accounting flow:
+/// # 3-Step Flow (with real ledger mutations):
 ///
-/// 1. DEBIT the emigrating citizen's domestic account (liquid_capital)
-///    — the citizen loses their domestic currency.
-/// 2. CREDIT the central bank's domestic ledger (currency bought back)
-///    — the domestic currency returns to the CB, preserving M0.
-/// 3. DEBIT the central bank's forex_reserve (capital flight)
-///    — the CB loses foreign currency reserves.
+/// **STEP 0 (Capital Controls Seizure — SEPARATE transaction):**
+/// If `capital_controls_seizure_rate > 0`, a percentage of the emigrant's
+/// liquid capital is SEIZED by the state treasury BEFORE forex conversion.
+/// DEBIT citizen savings → CREDIT `country.budget.liquid_reserves`.
+/// This is a SEPARATE transaction from Step 2 — the treasury is NOT the
+/// central bank (Rule 7: individual accountability).
 ///
-/// If capital controls are active, a percentage is seized by the state
-/// treasury (credited to country.budget) instead of being converted,
-/// reducing the forex drain.
+/// **STEP 1 (DEBIT citizen savings):**
+/// The emigrant's liquid capital is debited from `ClassDemographics.savings`
+/// for their class/region. The citizen loses domestic currency. If the class
+/// savings bucket has less than the emigrant's capital, only the available
+/// amount is debited (partial fill at the class level).
 ///
-/// If forex reserves are insufficient, the emigration is partially filled
-/// or queued for the next turn.
+/// **STEP 2 (CREDIT CB domestic ledger):**
+/// The exact amount debited in Step 1 is credited to
+/// `CentralBank.domestic_currency_repatriated`. The central bank "buys back"
+/// its own currency. M0 is preserved: money moves citizen → CB, NOT deleted.
+///
+/// **STEP 3 (DEBIT CB forex reserves):**
+/// The central bank sells foreign currency from `fx_reserves` to the emigrant.
+/// DEBIT `fx_reserves[currency]` by `amount_domestic / exchange_rate`.
+/// This is capital flight: CB loses forex, gains domestic currency (Step 2).
+/// The emigrant exits with foreign currency (not tracked domestically).
+///
+/// **Insufficient forex:** If forex reserves cannot cover the full convertible
+/// amount, the emigration is PARTIALLY FILLED. The converted amount is
+/// deducted; the remaining unconverted capital STAYS attached to the
+/// `HomelessState` via `remaining_unconverted_capital` and is retried next
+/// turn (persistent queue — Rule 20).
 ///
 /// # Arguments
-/// * `emigrants` - List of (member_id, liquid_capital) pairs for emigrating citizens.
-/// * `central_bank` - Mutable central bank (for forex reserve drain).
-/// * `treasury` - Mutable treasury (for capital controls seizure credit).
-/// * `config` - Emigration configuration (capital controls, exchange rate).
+/// * `emigrants` - List of (member_id, requested_capital, savings_bucket)
+///   tuples. `savings_bucket` is the actual available savings in the
+///   emigrant's class/region — the debit is capped at this amount.
+/// * `central_bank` - Mutable central bank (for Steps 2 & 3).
+/// * `treasury` - Mutable treasury (for Step 0 — capital controls seizure).
+/// * `config` - Emigration configuration.
 ///
 /// # Returns
-/// `EmigrationOutflowResult` with aggregate totals for UI reporting.
+/// `EmigrationOutflowResult` with aggregate totals and per-emigrant results
+/// for persistent queue management.
 ///
 /// # Rules
 /// * Rule 1: Strict double-entry — every debit has a matching credit.
-/// * Rule 7: Individual accountability — each emigrant tracked separately.
-/// * Rule 22: Scope — only emigration capital flight, not general forex trading.
+/// * Rule 2: Capital scales by actual citizen savings, not wealth-tier estimates.
+/// * Rule 7: Treasury seizure ≠ CB repatriation — separate result fields.
+/// * Rule 20: Partial fills persist in `remaining_unconverted_capital`.
+/// * Rule 22: Scope — only emigration capital flight.
 pub fn process_emigration_capital_outflow(
-    emigrants: &[(String, f64)],
+    emigrants: &[(String, f64, f64)],
     central_bank: &mut crate::state::central_bank::CentralBank,
     treasury: &mut crate::state::Treasury,
     config: &EmigrationConfig,
 ) -> EmigrationOutflowResult {
     let mut result = EmigrationOutflowResult::default();
 
-    for (member_id, liquid_capital) in emigrants {
-        if *liquid_capital <= 0.0 {
+    for (member_id, requested_capital, savings_bucket) in emigrants {
+        if *requested_capital <= 0.0 {
             continue;
         }
 
-        // Step 0: Capital controls seizure
-        // If capital controls are active, seize a percentage to the state
-        // treasury. This reduces the forex drain.
-        let seized_amount = liquid_capital * config.capital_controls_seizure_rate;
-        let convertible_amount = liquid_capital - seized_amount;
+        // The actual debit is capped by the class savings bucket (Rule 2 —
+        // real savings, not estimates). If the class has less than the
+        // emigrant's capital, only the available amount is debited.
+        let available_capital = requested_capital.min(*savings_bucket);
 
-        // Credit seized amount to treasury (capital controls seizure)
-        if seized_amount > 0.0 {
-            treasury.liquid_reserves += seized_amount;
-            result.total_seized_to_treasury += seized_amount;
+        if available_capital <= 0.0 {
+            // No savings to convert — emigrant queued with full amount
+            result.per_emigrant.push(EmigrantConversionResult {
+                member_id: member_id.clone(),
+                remaining_unconverted_capital: *requested_capital,
+                ..Default::default()
+            });
+            result.emigrants_queued += 1;
+            continue;
         }
 
+        // STEP 0: Capital controls seizure (SEPARATE transaction)
+        // DEBIT citizen → CREDIT treasury (NOT central bank)
+        let seized_amount = available_capital * config.capital_controls_seizure_rate;
+        let convertible_amount = available_capital - seized_amount;
+
+        if seized_amount > 0.0 {
+            treasury.liquid_reserves += seized_amount;
+            result.total_seized_by_treasury += seized_amount;
+        }
+
+        // STEP 1: DEBIT citizen savings (actual ledger mutation done by
+        // the caller on ClassDemographics.savings — here we track the amount).
+        // The caller will subtract `available_capital` from the class savings.
+        result.total_domestic_debited += available_capital;
+
         if convertible_amount <= 0.0 {
-            // All capital was seized — no forex conversion needed
-            // Step 1: Debit citizen (done by caller)
-            // Step 2: Credit CB domestic ledger (the seized amount goes to
-            // treasury, not CB — but M0 is preserved because the money
-            // moves from citizen to treasury, not destroyed)
-            result.total_domestic_debited += liquid_capital;
-            result.total_domestic_credited_to_cb += seized_amount; // to treasury counts
+            // All capital was seized — no forex conversion needed.
+            // M0 preserved: money moved citizen → treasury (not destroyed).
+            // CB domestic ledger is NOT credited (treasury ≠ CB — Rule 7).
+            result.per_emigrant.push(EmigrantConversionResult {
+                member_id: member_id.clone(),
+                domestic_debited: available_capital,
+                seized_by_treasury: seized_amount,
+                fully_filled: true,
+                ..Default::default()
+            });
             result.emigrants_processed += 1;
             continue;
         }
 
-        // Step 3: Drain forex reserves (capital flight)
+        // STEPS 2 & 3: CB buys back domestic currency (Step 2) and drains
+        // forex reserves (Step 3). Both are done inside drain_forex_for_emigration.
         let drain_result = central_bank.drain_forex_for_emigration(
             convertible_amount,
             &config.target_forex_currency,
             config.exchange_rate,
         );
 
-        // Aggregate results
-        result.total_domestic_debited += liquid_capital;
-        result.total_domestic_credited_to_cb += drain_result.domestic_currency_bought_back
-            + seized_amount;
+        // STEP 2 aggregate: CB domestic ledger credited (SEPARATE from treasury)
+        result.total_domestic_credited_to_cb += drain_result.domestic_currency_bought_back;
+        // STEP 3 aggregate: forex reserves drained
         result.total_forex_drained += drain_result.forex_reserve_drained;
+
+        let remaining = drain_result.remaining_unfilled;
 
         if drain_result.fully_filled {
             result.emigrants_processed += 1;
         } else if drain_result.forex_reserve_drained > 0.0 {
             result.emigrants_partially_filled += 1;
-            result.remaining_unfilled += drain_result.remaining_unfilled;
         } else {
-            // No forex available — emigrant queued
             result.emigrants_queued += 1;
-            result.remaining_unfilled += drain_result.remaining_unfilled;
         }
 
-        // Log the member_id for audit trail (Rule 7 — individual accountability)
-        let _ = member_id; // Member ID tracked by caller for queue management
+        result.per_emigrant.push(EmigrantConversionResult {
+            member_id: member_id.clone(),
+            domestic_debited: available_capital,
+            domestic_credited_to_cb: drain_result.domestic_currency_bought_back,
+            seized_by_treasury: seized_amount,
+            forex_drained: drain_result.forex_reserve_drained,
+            fully_filled: drain_result.fully_filled,
+            remaining_unconverted_capital: remaining,
+        });
     }
 
     result
