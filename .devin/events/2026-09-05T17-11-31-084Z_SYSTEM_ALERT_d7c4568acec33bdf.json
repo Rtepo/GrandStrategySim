@@ -1,0 +1,11 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-05T17:11:31.084Z",
+  "id": "d7c4568acec33bdf",
+  "payload": {
+    "reason": "Uncommitted changes detected in HUB_DIR. A worker is outside their worktree. CI/CD halted to prevent data loss.",
+    "dirty_files": "A  .devin/tasks/.archive/20260905T082955Z_005_agricultural-fertilizer-split-and-fixes.json;A  .devin/tasks/.archive/20260905T082955Z_020_environmental-protection-and-green-spaces.json;A  .devin/tasks/.archive/20260905T082956Z_025_housing-cooperatives-and-utilities.json;A  .devin/tasks/.archive/20260905T082957Z_010_military-industrial-complex-audit.json;A  .devin/tasks/.archive/20260905T082957Z_015_sports-recreation-and-health.json;"
+  }
+}

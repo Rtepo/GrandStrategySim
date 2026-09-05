@@ -1,0 +1,11 @@
+{
+  "id": "idea-e474d09f",
+  "idea_name": "agricultural-fertilizer-split-and-fixes",
+  "submitted_by": "agent-5",
+  "submitted_at": "2026-09-05T07:45:54.932Z",
+  "raw_directive": "1. Overhaul the chemical industry. Split 'fertilizers' (both artificial and natural) out of the general 'chemicals' category. Chemicals will remain as standard inputs (e.g., pesticides) for agriculture and the broader economy. 2. Add a new factory type: Artificial Fertilizer Plant. Update livestock production methods to account for natural fertilizer generation/usage. 3. Fix bugs reported by Agent 1: 'initialize_agricultural_profiles' is failing to assign profiles during generation (0/37 coverage), and verify the loan issuance logic as some agricultural firms lack working capital loans.",
+  "status": "pending_design",
+  "priority": 5,
+  "suggested_domain": null,
+  "suggested_agent": "agent-1"
+}
