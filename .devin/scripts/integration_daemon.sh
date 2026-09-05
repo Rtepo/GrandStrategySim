@@ -135,33 +135,42 @@ NODE_EOF
 }
 
 # ─── Helper: Dirty-tree guard — prevents data loss from workers coding in HUB_DIR ─
+# v2.1: All output goes to >&2 (stderr) so it reaches daemon.log even inside $(...).
+# v2.1: Maximum wait of 300s (5 min) — then DIRTY_TREE_TIMEOUT to prevent infinite hang.
 guard_clean_tree() {
     local dirty=$(git status --porcelain 2>/dev/null | grep -v '^??' | head -1)
     if [ -n "$dirty" ]; then
-        echo ""
-        echo "[$(date -u +%H:%M:%S)] !!! DIRTY WORKING TREE DETECTED IN HUB_DIR !!!"
-        echo "  Uncommitted tracked changes found. A worker may be coding outside their worktree."
-        echo "  CI/CD HALTED to prevent data loss."
-        echo "  Dirty tracked files (first 10):"
-        git status --porcelain 2>/dev/null | grep -v '^??' | head -10 | sed 's/^/    /'
-        echo ""
+        echo "" >&2
+        echo "[$(date -u +%H:%M:%S)] !!! DIRTY WORKING TREE DETECTED IN HUB_DIR !!!" >&2
+        echo "  Uncommitted tracked changes found. A worker may be coding outside their worktree." >&2
+        echo "  CI/CD HALTED to prevent data loss." >&2
+        echo "  Dirty tracked files (first 10):" >&2
+        git status --porcelain 2>/dev/null | grep -v '^??' | head -10 | sed 's/^/    /' >&2
+        echo "" >&2
 
         bash "$SCRIPT_DIR/emit_event.sh" "SYSTEM_ALERT" "agent-5" "user" \
             "{\"reason\":\"Uncommitted changes detected in HUB_DIR. A worker is outside their worktree. CI/CD halted to prevent data loss.\",\"dirty_files\":\"$(git status --porcelain 2>/dev/null | grep -v '^??' | head -5 | tr '\n' ';')\"}" 2>/dev/null
 
-        echo "  SYSTEM_ALERT emitted to user."
-        echo "  Waiting for working tree to be clean..."
-        echo ""
+        echo "  SYSTEM_ALERT emitted to user." >&2
+        echo "  Waiting for working tree to be clean (max 300s)..." >&2
+        echo "" >&2
 
-        while true; do
+        local max_wait=300
+        local waited=0
+        while [ $waited -lt $max_wait ]; do
             dirty=$(git status --porcelain 2>/dev/null | grep -v '^??' | head -1)
             if [ -z "$dirty" ]; then
-                echo "[$(date -u +%H:%M:%S)] Working tree is now clean. Resuming CI/CD."
+                echo "[$(date -u +%H:%M:%S)] Working tree is now clean. Resuming CI/CD." >&2
                 return 0
             fi
-            echo "[$(date -u +%H:%M:%S)] Still dirty. Sleeping 30s..."
+            echo "[$(date -u +%H:%M:%S)] Still dirty. Sleeping 30s... (waited ${waited}s/${max_wait}s)" >&2
             sleep 30
+            waited=$((waited + 30))
         done
+
+        echo "[$(date -u +%H:%M:%S)] DIRTY TREE TIMEOUT after ${max_wait}s. Aborting CI/CD." >&2
+        echo "DIRTY_TREE_TIMEOUT"
+        return 1
     fi
     return 0
 }
@@ -243,6 +252,8 @@ NODE_EOF
 }
 
 # ─── Helper: Run CI/CD — the sole execution path (staging → 5-stage → main) ─
+# v2.1: All stages wrapped in POSIX timeout to prevent infinite hangs.
+# timeout returns 124 when the command exceeds the limit.
 # Creates a staging branch from main, merges the worker branch, runs all 5
 # Iron CI/CD stages, and only merges to main after ALL pass.
 # Returns 0 on success (echoes SUCCESS:<commit>), 1 on failure (echoes reason).
@@ -250,84 +261,117 @@ run_cicd() {
     local worker_branch="$1"
     local log_prefix="$LOG_DIR/$(date -u +%Y%m%dT%H%M%SZ)_${worker_branch//\//_}"
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: Running 5-stage Iron pipeline on staging branch."
+    echo "[$(date -u +%H:%M:%S)] CI/CD: Running 5-stage Iron pipeline on staging branch (with watchdog timeouts)."
 
     # Guard: ensure working tree is clean before any branch switch
-    guard_clean_tree
+    if ! guard_clean_tree; then
+        echo "DIRTY_TREE_TIMEOUT"
+        return 1
+    fi
 
-    # Step 1: Create/reset staging from main
-    git checkout main 2>&1 | tail -1
-    git branch -f "$STAGING_BRANCH" main 2>/dev/null || true
-    git checkout "$STAGING_BRANCH" 2>&1 | tail -1
+    # Step 1: Create/reset staging from main (timeout: 30s each)
+    timeout 30 git checkout main 2>&1 | tail -1
+    timeout 30 git branch -f "$STAGING_BRANCH" main 2>/dev/null || true
+    timeout 30 git checkout "$STAGING_BRANCH" 2>&1 | tail -1
 
-    # Step 2: Merge worker branch into staging (NOT main)
-    git merge "$worker_branch" --no-edit 2>&1 | tail -5
-    local merge_rc=$?
+    # Step 2: Merge worker branch into staging (NOT main) (timeout: 60s)
+    timeout 60 git merge "$worker_branch" --no-edit 2>&1 | tail -5
+    local merge_rc=${PIPESTATUS[0]}
     if [ $merge_rc -ne 0 ]; then
         local conflicts=$(git diff --name-only --diff-filter=U 2>/dev/null | tr '\n' ' ')
         git merge --abort 2>/dev/null || true
         git checkout main 2>/dev/null
-        echo "MERGE_CONFLICT:$conflicts" > "${log_prefix}_FAILED.txt"
-        echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: Merge conflict in: $conflicts"
+        if [ $merge_rc -eq 124 ]; then
+            echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: git merge TIMEOUT (exceeded 60s)"
+        else
+            echo "MERGE_CONFLICT:$conflicts" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: Merge conflict in: $conflicts"
+        fi
         return 1
     fi
 
-    # Step 3: Run all 5 CI/CD steps on staging
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [1/5] cargo build..."
-    cargo build --workspace 2>&1 | tee "${log_prefix}_build.txt" | tail -3
+    # Step 3: Run all 5 CI/CD steps on staging (with watchdog timeouts)
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [1/5] cargo build... (timeout: 300s)"
+    timeout 300 cargo build --workspace 2>&1 | tee "${log_prefix}_build.txt" | tail -3
     local build_rc=${PIPESTATUS[0]}
     if [ $build_rc -ne 0 ]; then
         git checkout main 2>/dev/null
-        echo "BUILD_FAILED" > "${log_prefix}_FAILED.txt"
-        echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo build (rc=$build_rc)"
+        if [ $build_rc -eq 124 ]; then
+            echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo build TIMEOUT (exceeded 300s)"
+        else
+            echo "BUILD_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo build (rc=$build_rc)"
+        fi
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [2/5] cargo test (excluding smoke test)..."
-    cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -5
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [2/5] cargo test (excluding smoke test)... (timeout: 300s)"
+    timeout 300 cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -5
     local test_rc=${PIPESTATUS[0]}
     if [ $test_rc -ne 0 ]; then
         git checkout main 2>/dev/null
-        echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
-        echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test (rc=$test_rc)"
+        if [ $test_rc -eq 124 ]; then
+            echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test TIMEOUT (exceeded 300s)"
+        else
+            echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test (rc=$test_rc)"
+        fi
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [3/5] cargo clippy..."
-    cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tee "${log_prefix}_clippy.txt" | tail -3
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [3/5] cargo clippy... (timeout: 300s)"
+    timeout 300 cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tee "${log_prefix}_clippy.txt" | tail -3
     local clippy_rc=${PIPESTATUS[0]}
     if [ $clippy_rc -ne 0 ]; then
         git checkout main 2>/dev/null
-        echo "CLIPPY_FAILED" > "${log_prefix}_FAILED.txt"
-        echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo clippy (rc=$clippy_rc)"
+        if [ $clippy_rc -eq 124 ]; then
+            echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo clippy TIMEOUT (exceeded 300s)"
+        else
+            echo "CLIPPY_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo clippy (rc=$clippy_rc)"
+        fi
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [4/5] npm run build..."
-    npm run build 2>&1 | tee "${log_prefix}_npm.txt" | tail -3
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [4/5] npm run build... (timeout: 180s)"
+    timeout 180 npm run build 2>&1 | tee "${log_prefix}_npm.txt" | tail -3
     local npm_rc=${PIPESTATUS[0]}
     if [ $npm_rc -ne 0 ]; then
         git checkout main 2>/dev/null
-        echo "NPM_FAILED" > "${log_prefix}_FAILED.txt"
-        echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: npm run build (rc=$npm_rc)"
+        if [ $npm_rc -eq 124 ]; then
+            echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: npm run build TIMEOUT (exceeded 180s)"
+        else
+            echo "NPM_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: npm run build (rc=$npm_rc)"
+        fi
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [5/5] headless 50-tick smoke test..."
-    cargo test --workspace --test headless_smoke_test -- headless_50_tick_smoke --nocapture 2>&1 | tee "${log_prefix}_smoke.txt"
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [5/5] headless 50-tick smoke test... (timeout: 120s)"
+    timeout 120 cargo test --workspace --test headless_smoke_test -- headless_50_tick_smoke --nocapture 2>&1 | tee "${log_prefix}_smoke.txt"
     local smoke_rc=${PIPESTATUS[0]}
     if [ $smoke_rc -ne 0 ]; then
         git checkout main 2>/dev/null
-        echo "SMOKE_FAILED" > "${log_prefix}_FAILED.txt"
-        echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: headless smoke test (rc=$smoke_rc)"
-        echo "  See full panic output in: ${log_prefix}_smoke.txt"
+        if [ $smoke_rc -eq 124 ]; then
+            echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: headless smoke test TIMEOUT (exceeded 120s)"
+        else
+            echo "SMOKE_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: headless smoke test (rc=$smoke_rc)"
+            echo "  See full panic output in: ${log_prefix}_smoke.txt"
+        fi
         return 1
     fi
 
-    # Step 4: ALL CI/CD PASSED — now safe to merge staging into main
+    # Step 4: ALL CI/CD PASSED — now safe to merge staging into main (timeout: 30s)
     local staging_commit=$(git rev-parse HEAD)
-    git checkout main 2>&1 | tail -1
-    git merge --ff-only "$staging_commit" 2>&1 | tail -3
+    timeout 30 git checkout main 2>&1 | tail -1
+    timeout 30 git merge --ff-only "$staging_commit" 2>&1 | tail -3
     local ff_rc=$?
     if [ $ff_rc -ne 0 ]; then
         echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: Cannot fast-forward main to staging."
@@ -407,7 +451,7 @@ process_integration_request() {
             "{\"branch\":\"$EVENT_BRANCH\",\"reason\":\"CI/CD failed: $fail_reason\",\"action\":\"Fix errors and re-run request_integration.sh\"}" 2>/dev/null
 
         # Emit SYSTEM_ALERT to User
-        local alert_reason=$(echo "$fail_reason" | sed 's/MERGE_CONFLICT:/Merge Conflict in /; s/BUILD_FAILED/Cargo Build Failed/; s/TEST_FAILED/Cargo Test Failed/; s/CLIPPY_FAILED/Cargo Clippy Failed/; s/NPM_FAILED/NPM Build Failed/; s/SMOKE_FAILED/Headless Smoke Test Failed/')
+        local alert_reason=$(echo "$fail_reason" | sed 's/MERGE_CONFLICT:/Merge Conflict in /; s/BUILD_FAILED/Cargo Build Failed/; s/TEST_FAILED/Cargo Test Failed/; s/CLIPPY_FAILED/Cargo Clippy Failed/; s/NPM_FAILED/NPM Build Failed/; s/SMOKE_FAILED/Headless Smoke Test Failed/; s/TIMEOUT_FAILED/CI\/CD Stage Timeout/; s/DIRTY_TREE_TIMEOUT/Dirty Tree Timeout (5 min wait exceeded)/')
         bash "$SCRIPT_DIR/emit_event.sh" "SYSTEM_ALERT" "agent-5" "user" \
             "{\"failed_branch\":\"$EVENT_BRANCH\",\"assigned_worker\":\"$EVENT_SOURCE\",\"reason\":\"$alert_reason\"}" 2>/dev/null
 
@@ -564,13 +608,14 @@ cleanup_old_files() {
 # ─── Main Loop ─────────────────────────────────────────────────────────────
 echo ""
 echo "============================================================"
-echo "  INTEGRATION DAEMON v2.0 — Agent 5 (Manager)"
+echo "  INTEGRATION DAEMON v2.1 — Agent 5 (Manager)"
 echo "  PID: $$"
 echo "  HUB_DIR: $HUB_DIR"
 echo "  Poll interval: ${POLL_INTERVAL}s"
 echo "  SKIP_AUDIT: ${SKIP_AUDIT:-0}"
-echo "  CI/CD path: run_cicd() — 5-stage Iron pipeline"
+echo "  CI/CD path: run_cicd() — 5-stage Iron pipeline with watchdog timeouts"
 echo "  Deadlock guard: ${MAX_CONSECUTIVE_FAILURES}-strike auto-block"
+echo "  Watchdog: POSIX timeout on all stages (build/test/clippy: 300s, npm: 180s, smoke: 120s)"
 echo "  Hygiene: 7-day archive cleanup every 100 cycles"
 echo "  Started: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "============================================================"
