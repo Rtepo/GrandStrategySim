@@ -161,6 +161,10 @@ pub enum MethodSlot {
     /// Represents retrofit emission control equipment (scrubbers, filters, FGD).
     /// Upgradable independently of the production method.
     EmissionControl,
+    /// Blueprint 006: Construction method slot for physical infrastructure
+    /// builds (e.g., Deep Well Construction). Distinct from Production —
+    /// represents one-time CAPEX projects, not ongoing production.
+    Construction,
 }
 
 impl MethodSlot {
@@ -178,6 +182,7 @@ impl MethodSlot {
             "sanitation" => Some(MethodSlot::Sanitation),
             "waste_disposal" => Some(MethodSlot::WasteDisposal),
             "emission_control" => Some(MethodSlot::EmissionControl),
+            "construction" => Some(MethodSlot::Construction),
             _ => None,
         }
     }
@@ -221,6 +226,11 @@ pub struct BuildingMethods {
     /// Applied to heavy industry, heating plants, and power plants.
     #[serde(default)]
     pub emission_control: HashMap<String, ProductionMethod>,
+    /// Blueprint 006: Construction methods for physical infrastructure
+    /// builds (e.g., Deep Well Construction). Distinct from Production —
+    /// represents one-time CAPEX projects, not ongoing production.
+    #[serde(default)]
+    pub construction: HashMap<String, ProductionMethod>,
 }
 
 impl BuildingMethods {
@@ -238,6 +248,7 @@ impl BuildingMethods {
             MethodSlot::Sanitation => self.sanitation.get(name),
             MethodSlot::WasteDisposal => self.waste_disposal.get(name),
             MethodSlot::EmissionControl => self.emission_control.get(name),
+            MethodSlot::Construction => self.construction.get(name),
         }
     }
 
@@ -276,6 +287,9 @@ impl BuildingMethods {
             }
             MethodSlot::EmissionControl => {
                 self.emission_control.insert(name, pm);
+            }
+            MethodSlot::Construction => {
+                self.construction.insert(name, pm);
             }
         }
     }

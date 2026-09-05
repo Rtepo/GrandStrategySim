@@ -27,8 +27,9 @@ pub struct UtilityConsumptionResult {
 /// Process utility consumption for all buildings, calculate deficits, penalties, and billing.
 ///
 /// # Arguments
-/// * `regions` - Mutable regions (winter_mortality_multiplier written here).
-/// * `housing_buildings` - Housing buildings (read for demand).
+/// * `regions` - Mutable regions (winter_mortality_multiplier written here,
+///   water_reserves drawn down for standalone wells).
+/// * `housing_buildings` - Mutable housing buildings (well extraction recorded).
 /// * `commercial_buildings` - Commercial buildings (read for demand).
 /// * `companies` - Mutable companies (utility providers credited via available_cash).
 /// * `utility_config` - Conversion factors and penalty parameters.
@@ -40,9 +41,11 @@ pub struct UtilityConsumptionResult {
 /// * `winter_mortality_multiplier` is written to `Region` for Phase 5 of the NEXT turn.
 /// * All utility bill payments credit `Company.available_cash` (NOT brokerage_account).
 /// * Treasury subsidizes consumers who cannot afford the full bill.
+/// * Blueprint 006: Standalone wells draw from region.water_reserves.groundwater_volume.
+///   Sewage is gated by water_extracted. Off-grid sewage routes to standalone_biohazard.
 pub fn process_utility_consumption(
     regions: &mut [Region],
-    housing_buildings: &[HousingBuilding],
+    housing_buildings: &mut [HousingBuilding],
     commercial_buildings: &[CommercialBuilding],
     companies: &mut [Company],
     utility_config: &UtilityConfig,
@@ -66,7 +69,7 @@ pub fn process_utility_consumption(
         let mut region_subsidy: f64 = 0.0;
 
         // Process housing buildings
-        for hb in housing_buildings.iter() {
+        for hb in housing_buildings.iter_mut() {
             if !region.micro_regions.contains_key(&hb.micro_region_id) {
                 continue;
             }
@@ -111,19 +114,46 @@ pub fn process_utility_consumption(
                 + connections.groundwater_capacity;
             let water_demand_total = demand.surface_water_demand + demand.groundwater_demand;
 
-            let water_consumed = if crate::utilities::consumption_bom::is_centralized_water_method(
+            let (water_consumed, is_off_grid) = if crate::utilities::consumption_bom::is_centralized_water_method(
                 &hb.active_water_supply,
             ) {
                 // Centralized supply — water from municipal mains
-                water_from_connections.min(water_demand_total)
+                (water_from_connections.min(water_demand_total), false)
             } else if hb.can_draw_standalone_water() {
-                // Standalone supply with constructed well — yield capped by well
+                // Standalone supply with constructed well — draw from aquifer.
+                // Rule 1: Water must be physically extracted from groundwater_volume.
                 let well_yield = hb.standalone_water_yield();
-                water_from_connections.min(well_yield).min(water_demand_total)
+                let well_demand = well_yield.min(water_demand_total);
+                // Physical extraction from region's aquifer (Rule 1, Rule 20).
+                let (drawn_liters, _water_quality) =
+                    region.water_reserves.draw_groundwater(well_demand);
+                // Record extraction for well lifecycle (Rule 15: maintenance scaling).
+                if let Some(well) = hb.water_well.as_mut() {
+                    well.record_extraction(drawn_liters);
+                }
+                (drawn_liters, true)
             } else {
                 // No well constructed = no standalone water (Rule 1: conservation)
-                0.0
+                (0.0, true)
             };
+
+            // Blueprint 006: Gate sewage by water_extracted (Rule 1: mass conservation).
+            // sewage_volume = MIN(water_consumed, demand.sewage_generation).
+            // A building with zero water produces zero sewage.
+            let sewage_volume = water_consumed.min(demand.sewage_generation);
+
+            // Blueprint 006: Route off-grid sewage to LocalPollutionState.
+            // Off-grid buildings (no sewer connection) convert sewage to
+            // standalone_biohazard mass (Rule 1: no mass vanishes).
+            if is_off_grid && sewage_volume > 0.0 {
+                crate::environment::smog::off_grid_waste_emission(
+                    &mut region.local_pollution,
+                    sewage_volume,
+                    demand.waste_generation,
+                    &hb.id,
+                    &region_id,
+                );
+            }
 
             let mut bill = elec_consumed * pricing_config.price_per_kwh
                 + heat_consumed * pricing_config.price_per_gj_heating

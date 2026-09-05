@@ -161,9 +161,34 @@ impl WaterReserveState {
     /// equilibrium at `inflow / outflow_rate`. Groundwater outflows at
     /// half the surface rate (aquifers retain water longer).
     /// Quality drifts toward natural defaults (soil filtration, biodegradation).
-    pub fn regenerate(&mut self, aquifer_capacity: f64) {
-        // Groundwater volume: regen capped at aquifer capacity
-        self.groundwater_volume += self.groundwater_regen_rate;
+    ///
+    /// Blueprint 006 v2 CORRECTION: Aquifer recharge is FRACTIONAL based on
+    /// regional precipitation, NOT a full reset to capacity. Wells CAN deplete
+    /// the aquifer if extraction exceeds recharge. The aquifer slowly recovers
+    /// over many turns via fractional recharge.
+    ///
+    /// # Arguments
+    /// * `aquifer_capacity` - Hard upper bound on groundwater_volume (Rule 20).
+    /// * `precipitation_mm` - Regional precipitation in mm this turn.
+    /// * `recharge_coefficient` - Fraction of precipitation that recharges the
+    ///   aquifer (0.0-1.0, depends on soil permeability, vegetation, etc.).
+    /// * `aquifer_recharge_area` - Surface area in m² that contributes to
+    ///   aquifer recharge (region area × infiltration fraction).
+    pub fn regenerate_fractional(
+        &mut self,
+        aquifer_capacity: f64,
+        precipitation_mm: f64,
+        recharge_coefficient: f64,
+        aquifer_recharge_area: f64,
+    ) {
+        // Blueprint 006: Fractional recharge from precipitation.
+        // recharge_volume = precipitation_mm * recharge_coefficient * aquifer_recharge_area
+        // precipitation_mm is in mm; 1 mm over 1 m² = 1 liter of water.
+        let recharge_volume = precipitation_mm.max(0.0)
+            * recharge_coefficient.clamp(0.0, 1.0)
+            * aquifer_recharge_area.max(0.0);
+        self.groundwater_volume += recharge_volume;
+        // Rule 20: Hard clamp to aquifer_capacity (upper bound only, NOT a reset)
         if self.groundwater_volume > aquifer_capacity {
             self.groundwater_volume = aquifer_capacity;
         }
@@ -184,6 +209,13 @@ impl WaterReserveState {
         let sw_drift = (NATURAL_SURFACE_WATER_QUALITY - self.surface_water_quality) * 0.01;
         self.surface_water_quality += sw_drift;
         self.surface_water_quality = self.surface_water_quality.clamp(0.0, 1.0);
+    }
+
+    /// Legacy regenerate — delegates to regenerate_fractional with zero
+    /// precipitation (no recharge, only outflow and quality drift).
+    /// Kept for backward compatibility with existing test code.
+    pub fn regenerate(&mut self, aquifer_capacity: f64) {
+        self.regenerate_fractional(aquifer_capacity, 0.0, 0.0, 0.0);
     }
 
     /// Draw water from groundwater reserve. Returns (actual_drawn, quality).
@@ -1378,5 +1410,76 @@ mod tests {
     fn test_dehydration_mortality_no_demand() {
         let m = compute_dehydration_mortality(50.0, 0.0);
         assert_eq!(m, 1.0); // no demand = no dehydration
+    }
+
+    // ── Blueprint 006: Fractional Aquifer Recharge ──
+
+    #[test]
+    fn test_fractional_recharge_does_not_reset_to_capacity() {
+        // Blueprint 006 invariant: Fractional recharge must NOT reset
+        // a depleted aquifer to full capacity. A depleted aquifer should
+        // recover slowly over many turns.
+        let mut wrs = WaterReserveState {
+            groundwater_volume: 0.0, // fully depleted
+            groundwater_quality: 0.8,
+            ..Default::default()
+        };
+        let capacity = 1_000_000.0; // 1M liters
+        // Moderate precipitation: 150mm, 10% recharge, 1000 m² area
+        wrs.regenerate_fractional(capacity, 150.0, 0.10, 1000.0);
+        // Recharge volume = 150 * 0.10 * 1000 = 15,000 liters
+        // After outflow: 15000 * (1 - 0.025) = 14,625 liters
+        // Must be MUCH less than capacity (1M)
+        assert!(wrs.groundwater_volume < capacity * 0.05,
+            "Fractional recharge must not reset to capacity: got {}",
+            wrs.groundwater_volume);
+        assert!(wrs.groundwater_volume > 0.0,
+            "Fractional recharge must add some water");
+    }
+
+    #[test]
+    fn test_depleted_aquifer_recovers_slowly() {
+        // Blueprint 006 invariant: A depleted aquifer recovers slowly
+        // over multiple turns, not in a single turn.
+        let mut wrs = WaterReserveState {
+            groundwater_volume: 0.0,
+            groundwater_quality: 0.8,
+            ..Default::default()
+        };
+        let capacity = 1_000_000.0;
+        // Simulate 10 turns of recharge
+        let mut volumes = Vec::new();
+        for _ in 0..10 {
+            wrs.regenerate_fractional(capacity, 150.0, 0.10, 1000.0);
+            volumes.push(wrs.groundwater_volume);
+        }
+        // Volume must be monotonically increasing (recharge > outflow at low volumes)
+        for i in 1..volumes.len() {
+            assert!(volumes[i] >= volumes[i-1] || volumes[i].abs() < 1.0,
+                "Aquifer should recover monotonically at low volumes");
+        }
+        // After 10 turns, still well below capacity
+        assert!(wrs.groundwater_volume < capacity * 0.5,
+            "Aquifer should not reach capacity in 10 turns: got {}",
+            wrs.groundwater_volume);
+    }
+
+    #[test]
+    fn test_well_depletion_drives_yield_to_zero() {
+        // Blueprint 006 invariant: Aquifer depletion causes well yield
+        // to reach zero. When groundwater_volume = 0, draw_groundwater
+        // returns 0.0.
+        let mut wrs = WaterReserveState {
+            groundwater_volume: 50.0, // nearly depleted
+            groundwater_quality: 0.8,
+            ..Default::default()
+        };
+        // Draw more than available
+        let (drawn1, _) = wrs.draw_groundwater(100.0);
+        assert_eq!(drawn1, 50.0); // only 50L available
+        assert_eq!(wrs.groundwater_volume, 0.0);
+        // Now depleted — drawing more yields zero
+        let (drawn2, _) = wrs.draw_groundwater(100.0);
+        assert_eq!(drawn2, 0.0, "Depleted aquifer must yield 0.0 water");
     }
 }

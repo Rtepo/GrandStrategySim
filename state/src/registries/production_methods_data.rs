@@ -1187,6 +1187,8 @@ pub fn default_production_methods() -> HashMap<String, BuildingMethods> {
     registry.insert("light_industry".to_string(), light_industry_methods());
     registry.insert("armaments_industry".to_string(), armaments_methods());
     registry.insert("construction".to_string(), construction_methods());
+    // Blueprint 006: Deep Well Construction method for off-grid water wells.
+    registry.insert("deep_well_construction".to_string(), deep_well_construction_methods());
     registry.insert("energy".to_string(), energy_methods());
     // Phase 81: Plant-type-specific energy production method registries.
     registry.insert("coal_fired_plant".to_string(), coal_fired_plant_methods());
@@ -7106,6 +7108,75 @@ fn construction_methods() -> BuildingMethods {
             2.0,
             &[(Commodity::Food, 5.0), (Commodity::Software, 2.0)],
             &[],
+        ),
+    );
+    m
+}
+
+/// Blueprint 006: Deep Well Construction methods.
+/// Physical BOM uses Steel (casing/lining), Cement (shaft seal), and
+/// ConstructionMachinery (pump head). NOT Stone/Timber/Bricks — those are
+/// inadequate for deep wells that must maintain structural integrity under
+/// groundwater pressure. Rule 15: BOM scales by well_depth and building_capacity.
+fn deep_well_construction_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    // Manual Well Construction: pre-industrial, labor-intensive, shallow wells.
+    m.insert(
+        MethodSlot::Construction,
+        "Manual Well Construction".into(),
+        pm(
+            1880,
+            None,
+            0.05,
+            0.20,
+            0.75,
+            1.0,
+            &[
+                (Commodity::Steel, 0.5),
+                (Commodity::Cement, 0.3),
+                (Commodity::Food, 5.0),
+            ],
+            &[(Commodity::ConstructionServices, 10.0)],
+        ),
+    );
+    // Mechanized Well Construction: steam-powered drilling, deeper wells.
+    m.insert(
+        MethodSlot::Construction,
+        "Mechanized Well Construction".into(),
+        pm(
+            1890,
+            Some("steam_001"),
+            0.10,
+            0.25,
+            0.65,
+            1.5,
+            &[
+                (Commodity::Steel, 1.0),
+                (Commodity::Cement, 0.5),
+                (Commodity::ConstructionMachinery, 0.1),
+                (Commodity::Fuels, 5.0),
+            ],
+            &[(Commodity::ConstructionServices, 15.0)],
+        ),
+    );
+    // Modern Well Construction: powered drilling rig, deepest wells.
+    m.insert(
+        MethodSlot::Construction,
+        "Modern Well Construction".into(),
+        pm(
+            1920,
+            Some("steel_004"),
+            0.15,
+            0.30,
+            0.55,
+            2.0,
+            &[
+                (Commodity::Steel, 2.0),
+                (Commodity::Cement, 1.0),
+                (Commodity::ConstructionMachinery, 0.5),
+                (Commodity::Energy, 5.0),
+            ],
+            &[(Commodity::ConstructionServices, 25.0)],
         ),
     );
     m

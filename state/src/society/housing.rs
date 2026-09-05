@@ -125,12 +125,32 @@ pub struct WaterWell {
     /// Total CAPEX spent on construction (for amortization, Rule 21).
     #[serde(default)]
     pub total_capex: f64,
+
+    /// Blueprint 006: Maintenance cost per turn (scales by water_extracted
+    /// last turn — Rule 15: physical scaling, no flat rates).
+    #[serde(default)]
+    pub maintenance_cost_per_turn: f64,
+
+    /// Blueprint 006: Remaining yield lifetime (decrements with extraction).
+    /// When zero → abandoned = true. Represents physical well degradation.
+    #[serde(default)]
+    pub remaining_yield_lifetime: f64,
+
+    /// Blueprint 006: Abandoned flag (when true, yield = 0.0, well must be
+    /// re-constructed or replaced). Rule 4: no immortal wells.
+    #[serde(default)]
+    pub abandoned: bool,
+
+    /// Blueprint 006: Water extracted last turn (liters) — used to scale
+    /// maintenance cost (Rule 15).
+    #[serde(default)]
+    pub last_turn_extracted_liters: f64,
 }
 
 impl WaterWell {
-    /// Check if the well is operational (constructed and has yield capacity).
+    /// Check if the well is operational (constructed, not abandoned, has yield).
     pub fn is_operational(&self) -> bool {
-        self.constructed && self.max_yield_liters > 0.0
+        self.constructed && !self.abandoned && self.max_yield_liters > 0.0
     }
 
     /// Compute the CAPEX cost for constructing a well, scaled by building
@@ -154,6 +174,11 @@ impl WaterWell {
     /// Compute the physical BOM for well construction, scaled by capacity
     /// and depth (Rule 3 — physical quantities static, Rule 15 — scaled).
     ///
+    /// Blueprint 006: Uses Steel (casing/lining), Cement (shaft seal), and
+    /// ConstructionMachinery (pump head). NOT Stone/Timber/Bricks — those are
+    /// pre-industrial materials inadequate for a deep well that must maintain
+    /// structural integrity under groundwater pressure.
+    ///
     /// Returns (Commodity, quantity) pairs for the construction materials.
     pub fn compute_capex_bom(
         building_capacity: u32,
@@ -161,22 +186,25 @@ impl WaterWell {
     ) -> Vec<(Commodity, f64)> {
         let capacity = building_capacity.max(1) as f64;
         let depth = depth_m.max(1.0);
-        // Stone lining: scales with shaft circumference × depth
-        let stone = capacity * 0.05 * depth * 0.1;
-        // Timber shoring: scales with depth
-        let timber = capacity * 0.02 * depth * 0.1;
-        // Bricks for wellhead: scales with capacity
-        let bricks = capacity * 0.1;
+        // Steel casing/lining: scales with shaft circumference × depth.
+        // ~0.01 tons of steel per slot per meter of depth.
+        let steel = capacity * 0.01 * depth;
+        // Cement shaft seal: scales with depth (borehole annulus volume).
+        // ~0.005 units of cement per slot per meter.
+        let cement = capacity * 0.005 * depth;
+        // ConstructionMachinery (pump head): scales with capacity (bigger pump
+        // for more occupants). ~0.001 machinery units per slot.
+        let machinery = capacity * 0.001;
 
         let mut bom = Vec::new();
-        if stone > 0.0 {
-            bom.push((Commodity::Stone, stone));
+        if steel > 0.0 {
+            bom.push((Commodity::Steel, steel));
         }
-        if timber > 0.0 {
-            bom.push((Commodity::Timber, timber));
+        if cement > 0.0 {
+            bom.push((Commodity::Cement, cement));
         }
-        if bricks > 0.0 {
-            bom.push((Commodity::Bricks, bricks));
+        if machinery > 0.0 {
+            bom.push((Commodity::ConstructionMachinery, machinery));
         }
         bom
     }
@@ -187,6 +215,46 @@ impl WaterWell {
     pub fn compute_max_yield(depth_m: f64, aquifer_quality: f64) -> f64 {
         let depth_bonus = (depth_m / 10.0).min(3.0); // 3x max from depth
         50.0 * depth_bonus * aquifer_quality.clamp(0.1, 1.0)
+    }
+
+    /// Blueprint 006: Record water extraction for this turn and update
+    /// lifecycle state (maintenance cost, yield lifetime decrement).
+    /// Rule 15: maintenance scales by water_extracted.
+    /// Rule 4: yield lifetime decrements — wells deplete and can be abandoned.
+    pub fn record_extraction(&mut self, liters_extracted: f64) {
+        self.last_turn_extracted_liters = liters_extracted;
+        // Maintenance cost: ~0.001 currency per liter extracted (Rule 15).
+        // Scaled by physical wear on pump and casing.
+        self.maintenance_cost_per_turn = liters_extracted * 0.001;
+        // Yield lifetime: decrements by extraction volume / total_capacity.
+        // A well serving 100 occupants at 50L/turn has ~5000L/turn extraction.
+        // Lifetime of ~10000 turns at full load (realistic well lifespan).
+        if self.max_yield_liters > 0.0 {
+            let lifetime_decrement = liters_extracted / (self.max_yield_liters * 10000.0);
+            self.remaining_yield_lifetime = (self.remaining_yield_lifetime - lifetime_decrement).max(0.0);
+            if self.remaining_yield_lifetime <= 0.0 {
+                self.abandoned = true;
+            }
+        }
+    }
+
+    /// Blueprint 006: Create a fully constructed well for world-generation
+    /// off-grid buildings (Day-1 shock prevention — no B2B steel/concrete
+    /// demand spike at Turn 0).
+    pub fn new_constructed_at_world_gen(depth_m: f64, aquifer_quality: f64) -> Self {
+        let max_yield = Self::compute_max_yield(depth_m, aquifer_quality);
+        Self {
+            constructed: true,
+            construction_progress: 1.0,
+            depth_m,
+            max_yield_liters: max_yield,
+            construction_started_turn: 0,
+            total_capex: 0.0, // Sunk cost — not tracked for world-gen wells
+            maintenance_cost_per_turn: 0.0,
+            remaining_yield_lifetime: 10000.0, // Full lifespan
+            abandoned: false,
+            last_turn_extracted_liters: 0.0,
+        }
     }
 }
 
@@ -766,14 +834,20 @@ impl HousingBuilding {
     }
 
     /// Blueprint 006: Get the maximum standalone water yield available
-    /// from this building's well (0.0 if no well or not constructed).
+    /// from this building's well (0.0 if no well, not constructed, or abandoned).
     pub fn standalone_water_yield(&self) -> f64 {
         if !self.can_draw_standalone_water() {
             return 0.0;
         }
         self.water_well
             .as_ref()
-            .map(|w| w.max_yield_liters)
+            .map(|w| {
+                if w.abandoned {
+                    0.0
+                } else {
+                    w.max_yield_liters
+                }
+            })
             .unwrap_or(0.0)
     }
 }
@@ -1837,4 +1911,138 @@ pub enum RehousingOutcome {
     },
     /// Tier 3: No rehousing possible — member remains homeless.
     RemainsHomeless,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_no_well_yields_zero_water() {
+        // Blueprint 006 invariant: Off-grid buildings with no constructed
+        // well yield 0.0 water.
+        let hb = HousingBuilding {
+            active_water_supply: "Local Well".to_string(),
+            water_well: None,
+            ..Default::default()
+        };
+        assert_eq!(hb.standalone_water_yield(), 0.0);
+        assert!(!hb.can_draw_standalone_water());
+    }
+
+    #[test]
+    fn test_unconstructed_well_yields_zero_water() {
+        // Blueprint 006 invariant: A well that exists but is not yet
+        // constructed yields 0.0 water.
+        let hb = HousingBuilding {
+            active_water_supply: "Local Well".to_string(),
+            water_well: Some(WaterWell {
+                constructed: false,
+                construction_progress: 0.5,
+                depth_m: 20.0,
+                max_yield_liters: 100.0,
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        assert_eq!(hb.standalone_water_yield(), 0.0);
+        assert!(!hb.can_draw_standalone_water());
+    }
+
+    #[test]
+    fn test_abandoned_well_yields_zero_water() {
+        // Blueprint 006 invariant: An abandoned well yields 0.0 water.
+        let hb = HousingBuilding {
+            active_water_supply: "Local Well".to_string(),
+            water_well: Some(WaterWell {
+                constructed: true,
+                abandoned: true,
+                max_yield_liters: 100.0,
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        assert_eq!(hb.standalone_water_yield(), 0.0);
+        assert!(!hb.can_draw_standalone_water());
+    }
+
+    #[test]
+    fn test_constructed_well_yields_water() {
+        // Blueprint 006 invariant: A constructed, non-abandoned well
+        // yields its max_yield_liters.
+        let hb = HousingBuilding {
+            active_water_supply: "Local Well".to_string(),
+            water_well: Some(WaterWell {
+                constructed: true,
+                abandoned: false,
+                max_yield_liters: 150.0,
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        assert_eq!(hb.standalone_water_yield(), 150.0);
+        assert!(hb.can_draw_standalone_water());
+    }
+
+    #[test]
+    fn test_capex_bom_uses_steel_cement_machinery() {
+        // Blueprint 006 invariant: CAPEX BOM uses Steel, Cement, and
+        // ConstructionMachinery — NOT Stone/Timber/Bricks.
+        let bom = WaterWell::compute_capex_bom(100, 30.0);
+        let commodities: Vec<_> = bom.iter().map(|(c, _)| *c).collect();
+        assert!(commodities.contains(&Commodity::Steel), "BOM must contain Steel");
+        assert!(commodities.contains(&Commodity::Cement), "BOM must contain Cement");
+        assert!(commodities.contains(&Commodity::ConstructionMachinery), "BOM must contain ConstructionMachinery");
+        // Must NOT contain pre-industrial materials
+        assert!(!commodities.contains(&Commodity::Stone), "BOM must NOT contain Stone");
+        assert!(!commodities.contains(&Commodity::Timber), "BOM must NOT contain Timber");
+        assert!(!commodities.contains(&Commodity::Bricks), "BOM must NOT contain Bricks");
+    }
+
+    #[test]
+    fn test_world_gen_well_is_constructed() {
+        // Blueprint 006 invariant: World-generation wells are fully
+        // constructed (no Day-1 demand shock).
+        let well = WaterWell::new_constructed_at_world_gen(20.0, 0.8);
+        assert!(well.constructed);
+        assert!(!well.abandoned);
+        assert_eq!(well.construction_progress, 1.0);
+        assert!(well.max_yield_liters > 0.0);
+        assert_eq!(well.total_capex, 0.0); // Sunk cost, not tracked
+        assert!(well.remaining_yield_lifetime > 0.0);
+    }
+
+    #[test]
+    fn test_well_record_extraction_updates_lifecycle() {
+        // Blueprint 006 invariant: Recording extraction updates maintenance
+        // cost and decrements yield lifetime.
+        let mut well = WaterWell {
+            constructed: true,
+            max_yield_liters: 100.0,
+            remaining_yield_lifetime: 100.0,
+            ..Default::default()
+        };
+        well.record_extraction(50.0);
+        assert_eq!(well.last_turn_extracted_liters, 50.0);
+        assert!(well.maintenance_cost_per_turn > 0.0);
+        assert!(well.remaining_yield_lifetime < 100.0, "Lifetime must decrement");
+    }
+
+    #[test]
+    fn test_well_abandonment_when_lifetime_reaches_zero() {
+        // Blueprint 006 invariant: Wells deplete and can be abandoned.
+        // With max_yield=100L and 10000-turn lifespan, total lifetime capacity
+        // = 100 * 10000 = 1,000,000 L. Decrement per turn = extraction / 1M.
+        // To abandon in one turn, extract more than remaining_lifetime * 1M.
+        let mut well = WaterWell {
+            constructed: true,
+            max_yield_liters: 100.0,
+            remaining_yield_lifetime: 0.0001, // nearly depleted
+            ..Default::default()
+        };
+        // Extract 100L: decrement = 100 / (100 * 10000) = 0.0001
+        // remaining = 0.0001 - 0.0001 = 0.0 → abandoned
+        well.record_extraction(100.0);
+        assert!(well.abandoned, "Well must be abandoned when lifetime reaches zero");
+    }
 }

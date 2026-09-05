@@ -322,6 +322,41 @@ pub fn distribute_biohazard_to_parcels(
     }
 }
 
+/// Blueprint 006: Off-grid waste emission — routes off-grid sewage and solid
+/// waste to LocalPollutionState. Off-grid buildings (no sewer connection)
+/// must convert sewage to standalone_biohazard mass and solid waste to
+/// waste_dumping_biohazard. This enforces mass conservation: off-grid sewage
+/// does not vanish into the void — it pollutes the local environment.
+///
+/// # Arguments
+/// * `pollution` - Mutable local pollution state for the region
+/// * `sewage_volume_liters` - Sewage volume in liters (gated by water_extracted)
+/// * `solid_waste_mass` - Solid waste mass in tons
+/// * `_building_id` - Building ID (for diagnostics, unused in mass calculation)
+/// * `_region_id` - Region ID (for diagnostics, unused in mass calculation)
+///
+/// # Physics
+/// * Sewage → biohazard: 0.001 kg biohazard mass per liter of raw sewage
+///   (physical conversion factor from WHO wastewater strength data).
+/// * Solid waste → waste_dumping_biohazard: uses existing waste_grid.rs
+///   logic via waste_dumping_biohazard field.
+pub fn off_grid_waste_emission(
+    pollution: &mut LocalPollutionState,
+    sewage_volume_liters: f64,
+    solid_waste_mass: f64,
+    _building_id: &str,
+    _region_id: &str,
+) {
+    // Sewage → standalone_biohazard mass (Rule 1: mass conservation).
+    // 0.001 kg biohazard per liter of raw sewage.
+    let sewage_biohazard_mass = sewage_volume_liters.max(0.0) * 0.001;
+    pollution.standalone_biohazard += sewage_biohazard_mass;
+
+    // Solid waste → waste_dumping_biohazard (Rule 1: mass conservation).
+    // Off-grid solid waste is dumped locally, generating biohazard.
+    pollution.waste_dumping_biohazard += solid_waste_mass.max(0.0);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -333,6 +368,40 @@ mod tests {
         assert_eq!(p.standalone_emissions, 0.0);
         assert_eq!(p.centralized_emissions, 0.0);
         assert_eq!(p.industrial_emissions, 0.0);
+    }
+
+    // ── Blueprint 006: Off-Grid Waste Emission ──
+
+    #[test]
+    fn test_off_grid_waste_emission_routes_sewage_to_biohazard() {
+        // Blueprint 006 invariant: Off-grid sewage routes to
+        // LocalPollutionState.standalone_biohazard.
+        let mut p = LocalPollutionState::default();
+        assert_eq!(p.standalone_biohazard, 0.0);
+        off_grid_waste_emission(&mut p, 1000.0, 0.0, "b1", "r1");
+        // 1000L sewage * 0.001 = 1.0 kg biohazard mass
+        assert!((p.standalone_biohazard - 1.0).abs() < 1e-9,
+            "Sewage must convert to biohazard mass");
+    }
+
+    #[test]
+    fn test_off_grid_waste_emission_routes_solid_waste() {
+        // Blueprint 006 invariant: Solid waste routes to
+        // waste_dumping_biohazard.
+        let mut p = LocalPollutionState::default();
+        assert_eq!(p.waste_dumping_biohazard, 0.0);
+        off_grid_waste_emission(&mut p, 0.0, 5.0, "b1", "r1");
+        assert!((p.waste_dumping_biohazard - 5.0).abs() < 1e-9,
+            "Solid waste must route to waste_dumping_biohazard");
+    }
+
+    #[test]
+    fn test_off_grid_waste_emission_zero_sewage() {
+        // Blueprint 006 invariant: Zero sewage produces zero biohazard.
+        let mut p = LocalPollutionState::default();
+        off_grid_waste_emission(&mut p, 0.0, 0.0, "b1", "r1");
+        assert_eq!(p.standalone_biohazard, 0.0);
+        assert_eq!(p.waste_dumping_biohazard, 0.0);
     }
 
     #[test]

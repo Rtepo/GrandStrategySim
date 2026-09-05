@@ -722,11 +722,27 @@ pub struct Region {
     /// None = normal rural region. Some = City Region.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub city_metadata: Option<CityRegionMetadata>,
+
+    /// Blueprint 006: Hard upper bound on groundwater volume (liters).
+    /// Physical geological property set during world generation. Rule 20:
+    /// groundwater_volume is clamped to [0, aquifer_capacity_liters].
+    #[serde(default)]
+    pub aquifer_capacity_liters: f64,
+
+    /// Blueprint 006: Aquifer quality (0.0-1.0). Scales well yield and
+    /// water quality. Set from geological generation.
+    #[serde(default = "default_aquifer_quality")]
+    pub aquifer_quality: f64,
 }
 
 /// Phase 47: Default development level for old saves (conservative mid-low).
 fn default_development_level() -> f64 {
     0.3
+}
+
+/// Blueprint 006: Default aquifer quality for old saves.
+pub fn default_aquifer_quality() -> f64 {
+    0.8
 }
 
 /// Phase 81: Default elevation difference (0.0 = flat terrain).
@@ -2226,6 +2242,8 @@ pub fn generate_regional_topology(
             sewer_network: Default::default(),
             waste_grid: Default::default(),
             city_metadata: None,
+            aquifer_capacity_liters: 0.0,
+            aquifer_quality: default_aquifer_quality(),
         });
     }
 
@@ -2238,6 +2256,27 @@ pub fn generate_regional_topology(
             .unwrap_or_default();
         // Initialize land use inventory
         initialize_default_land_inventory(region);
+
+        // Blueprint 006: Initialize aquifer properties based on climate profile.
+        // Aquifer capacity scales with region area and climate (wetter climates
+        // have larger aquifers). Quality varies by geology (default 0.8).
+        let region_area_ha = region.land_use_inventory.total_area.max(1.0);
+        let (capacity_per_ha, quality) = match region.climate_profile {
+            ClimateProfile::Tropical => (500_000.0, 0.85),     // High rainfall, good aquifers
+            ClimateProfile::SubTropical => (400_000.0, 0.80),  // Moderate
+            ClimateProfile::Temperate => (300_000.0, 0.85),    // Good infiltration
+            ClimateProfile::Coastal => (350_000.0, 0.75),      // Saltwater intrusion risk
+            ClimateProfile::Continental => (200_000.0, 0.80),  // Lower rainfall
+            ClimateProfile::Mountainous => (150_000.0, 0.70),  // Hard rock, low aquifer
+            ClimateProfile::Desert => (50_000.0, 0.60),        // Scant groundwater
+            ClimateProfile::Arctic => (30_000.0, 0.65),        // Permafrost limits aquifer
+        };
+        region.aquifer_capacity_liters = region_area_ha * capacity_per_ha;
+        region.aquifer_quality = quality;
+        // Initialize groundwater_volume to 80% of capacity (not full —
+        // aquifers start partially depleted from natural equilibrium).
+        region.water_reserves.groundwater_volume = region.aquifer_capacity_liters * 0.8;
+        region.water_reserves.groundwater_quality = quality;
     }
 
     regions.into_iter().map(|r| (r.id.clone(), r)).collect()
@@ -2591,6 +2630,8 @@ pub fn generate_maritime_nodes(
         sewer_network: Default::default(),
         waste_grid: Default::default(),
         city_metadata: None,
+        aquifer_capacity_liters: 0.0,
+        aquifer_quality: default_aquifer_quality(),
     };
     maritime_nodes.insert(sea_node_id, sea_node);
 
@@ -2641,6 +2682,8 @@ pub fn generate_maritime_nodes(
         sewer_network: Default::default(),
         waste_grid: Default::default(),
         city_metadata: None,
+        aquifer_capacity_liters: 0.0,
+        aquifer_quality: default_aquifer_quality(),
     };
     maritime_nodes.insert(ocean_node_id, ocean_node);
 
@@ -3677,6 +3720,8 @@ mod phase30_tests {
             sewer_network: Default::default(),
             waste_grid: Default::default(),
             city_metadata: None,
+            aquifer_capacity_liters: 0.0,
+            aquifer_quality: default_aquifer_quality(),
         }
     }
 

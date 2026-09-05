@@ -6086,12 +6086,24 @@ fn generate_housing(
                 active_lighting: default_lighting.clone(),
                 active_heating: default_heating.clone(),
                 active_power_generation: default_power_generation.clone(),
-                active_water_supply: String::new(),
+                // Blueprint 006: Assign "Local Well" as default water supply
+                // for world-gen housing. Pre-existing buildings spawn with a
+                // fully constructed well (Day-1 shock prevention — no B2B
+                // steel/concrete demand spike at Turn 0).
+                active_water_supply: "Local Well".to_string(),
                 active_sanitation: String::new(),
                 active_waste_disposal: String::new(),
                 pending_upgrade: None,
                 commercial_slots: None,
-                water_well: None,
+                // Blueprint 006: Initialize constructed well at world gen.
+                // Depth based on regional aquifer (default 20m for shallow wells).
+                // Yield computed from depth and aquifer quality.
+                water_well: Some(
+                    crate::society::housing::WaterWell::new_constructed_at_world_gen(
+                        20.0, // Default well depth: 20 meters (shallow aquifer)
+                        0.8,  // Default aquifer quality
+                    ),
+                ),
             };
             all_housing.push(housing);
         }

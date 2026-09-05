@@ -297,6 +297,8 @@ pub fn execute_emancipation(
             annexation_cooldown: 0,
             pending_annexation_targets: Vec::new(),
         }),
+        aquifer_capacity_liters: 0.0,
+        aquifer_quality: crate::society::geography::default_aquifer_quality(),
     };
 
     // Financial settlement: domain budget → city treasury (double-entry, exact).

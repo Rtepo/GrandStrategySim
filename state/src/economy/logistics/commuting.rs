@@ -227,6 +227,8 @@ mod tests {
             sewer_network: Default::default(),
             waste_grid: Default::default(),
             city_metadata: None,
+            aquifer_capacity_liters: 0.0,
+            aquifer_quality: crate::society::geography::default_aquifer_quality(),
         }
     }
 

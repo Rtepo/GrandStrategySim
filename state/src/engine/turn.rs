@@ -2340,7 +2340,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 let pricing_config = task.ctx.country.utility_pricing_config.clone();
                 let result = crate::utilities::consumption::process_utility_consumption(
                     &mut task.ctx.country.regions,
-                    &task.housing_buildings,
+                    &mut task.housing_buildings,
                     &task.commercial_buildings,
                     &mut task.companies,
                     &utility_config,
@@ -2413,13 +2413,30 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
                 // ═══════════════════════════════════════════════════════════
                 // PHASE 83: HYDRO GRID — Water reserve regeneration (Step 16)
-                // PARADIGM SHIFT: Groundwater and surface water regenerate
-                // naturally, with quality drift toward natural baselines
-                // (groundwater → 0.9, surface → 0.6).
+                // Blueprint 006 v2: FRACTIONAL aquifer recharge based on
+                // regional precipitation, NOT a full reset to capacity.
+                // Wells CAN deplete the aquifer. The aquifer slowly recovers
+                // over many turns via fractional recharge.
                 // ═══════════════════════════════════════════════════════════
-                let aquifer_capacity = region.water_reserves.groundwater_volume
-                    + region.water_reserves.groundwater_regen_rate * 100.0;
-                region.water_reserves.regenerate(aquifer_capacity);
+                let aquifer_capacity = if region.aquifer_capacity_liters > 0.0 {
+                    region.aquifer_capacity_liters
+                } else {
+                    // Fallback for old saves without aquifer_capacity_liters
+                    region.water_reserves.groundwater_volume
+                        + region.water_reserves.groundwater_regen_rate * 100.0
+                };
+                // Precipitation-based recharge: precipitation_mm derived from
+                // climate profile. Recharge coefficient ~0.1 (10% of rain
+                // infiltrates to aquifer, rest is surface runoff/evaporation).
+                // Recharge area = region area in m² (from km² × 1e6).
+                let (precipitation_mm, recharge_coeff, recharge_area) =
+                    climate_precipitation_for_region(region);
+                region.water_reserves.regenerate_fractional(
+                    aquifer_capacity,
+                    precipitation_mm,
+                    recharge_coeff,
+                    recharge_area,
+                );
 
                 // ═══════════════════════════════════════════════════════════
                 // PHASE 83: HYDRO GRID — Pipe degradation (Step 15)
@@ -7885,6 +7902,40 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
 /// Phase 31: Track consecutive zero-value turns for crisis detection.
 ///
+/// Blueprint 006: Compute precipitation-based aquifer recharge parameters
+/// for a region based on its climate profile and area.
+///
+/// Returns (precipitation_mm, recharge_coefficient, aquifer_recharge_area_m2).
+/// Precipitation varies by climate: Tropical/SubTropical get monsoon rain,
+/// Desert gets near-zero, Temperate gets moderate, etc.
+fn climate_precipitation_for_region(
+    region: &crate::society::geography::Region,
+) -> (f64, f64, f64) {
+    use crate::society::geography::ClimateProfile;
+    // Precipitation mm per turn (rough averages, ~3 months per turn).
+    let precipitation_mm = match region.climate_profile {
+        ClimateProfile::Tropical => 300.0,     // Monsoon: heavy rain
+        ClimateProfile::SubTropical => 200.0,  // Mediterranean: moderate
+        ClimateProfile::Temperate => 150.0,    // Four seasons: moderate
+        ClimateProfile::Coastal => 180.0,      // Coastal: fairly wet
+        ClimateProfile::Continental => 100.0,  // Inland: drier
+        ClimateProfile::Mountainous => 120.0,  // Orographic: moderate
+        ClimateProfile::Desert => 10.0,        // Arid: near-zero
+        ClimateProfile::Arctic => 20.0,        // Cold: low precipitation
+    };
+    // Recharge coefficient: fraction of precipitation that infiltrates to
+    // aquifer. ~10% is typical (rest is surface runoff, evaporation,
+    // transpiration). Sandy soils higher, clay lower.
+    let recharge_coeff = 0.10;
+    // Recharge area: region area in m². land_use_inventory.total_area is
+    // in hectares (1 ha = 10,000 m²). Use a fraction for infiltration.
+    let region_area_m2 = region.land_use_inventory.total_area * 10000.0;
+    // Only a fraction of the region surface contributes to aquifer recharge
+    // (rest is built-up, rocky, or has impermeable surfaces).
+    let recharge_area = region_area_m2 * 0.3;
+    (precipitation_mm, recharge_coeff, recharge_area)
+}
+
 /// Stores a counter in the country's `macro_indicators.extra` map.
 /// If `is_zero` is true, increments the counter; otherwise resets to 0.
 /// Returns the current (post-update) counter value.
