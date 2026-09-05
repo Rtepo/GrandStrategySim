@@ -306,9 +306,11 @@ run_cicd() {
         git checkout main 2>/dev/null
         if [ $merge_rc -eq 124 ]; then
             echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "TIMEOUT_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: git merge TIMEOUT (exceeded 60s)"
         else
             echo "MERGE_CONFLICT:$conflicts" > "${log_prefix}_FAILED.txt"
+            echo "MERGE_CONFLICT:$conflicts"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: Merge conflict in: $conflicts"
         fi
         return 1
@@ -322,6 +324,7 @@ run_cicd() {
     if [ -z "$merge_diff" ]; then
         git checkout main 2>/dev/null
         echo "MERGE_NOOP" > "${log_prefix}_FAILED.txt"
+        echo "MERGE_NOOP"
         echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: Merge produced no tree changes (staging tree == main tree). Possible false merge."
         return 1
     fi
@@ -334,9 +337,11 @@ run_cicd() {
         git checkout main 2>/dev/null
         if [ $build_rc -eq 124 ]; then
             echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "TIMEOUT_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo build TIMEOUT (exceeded 300s)"
         else
             echo "BUILD_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "BUILD_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo build (rc=$build_rc)"
         fi
         return 1
@@ -349,9 +354,11 @@ run_cicd() {
         git checkout main 2>/dev/null
         if [ $test_rc -eq 124 ]; then
             echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "TIMEOUT_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test TIMEOUT (exceeded 300s)"
         else
             echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "TEST_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test (rc=$test_rc)"
         fi
         return 1
@@ -364,9 +371,11 @@ run_cicd() {
         git checkout main 2>/dev/null
         if [ $clippy_rc -eq 124 ]; then
             echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "TIMEOUT_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo clippy TIMEOUT (exceeded 300s)"
         else
             echo "CLIPPY_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "CLIPPY_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo clippy (rc=$clippy_rc)"
         fi
         return 1
@@ -379,9 +388,11 @@ run_cicd() {
         git checkout main 2>/dev/null
         if [ $npm_rc -eq 124 ]; then
             echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "TIMEOUT_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: npm run build TIMEOUT (exceeded 180s)"
         else
             echo "NPM_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "NPM_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: npm run build (rc=$npm_rc)"
         fi
         return 1
@@ -394,9 +405,11 @@ run_cicd() {
         git checkout main 2>/dev/null
         if [ $smoke_rc -eq 124 ]; then
             echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "TIMEOUT_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: headless smoke test TIMEOUT (exceeded 120s)"
         else
             echo "SMOKE_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "SMOKE_FAILED"
             echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: headless smoke test (rc=$smoke_rc)"
             echo "  See full panic output in: ${log_prefix}_smoke.txt"
         fi
