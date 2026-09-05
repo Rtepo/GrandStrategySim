@@ -1014,3 +1014,488 @@ impl CommercialBuilding {
         }
     }
 }
+
+// ============================================================================
+// BLUEPRINT 007: HOUSING COOPERATIVE LIFECYCLE
+// Complete lifecycle: genesis → growth → collapse → liquidation
+// ============================================================================
+
+/// Lifecycle stage of a housing cooperative.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum CooperativeLifecycleStage {
+    /// Cooperative has been founded but is not yet operational (collecting
+    /// share capital from founding members).
+    #[default]
+    Forming,
+    /// Cooperative is operational — collecting fees, maintaining buildings,
+    /// and accepting new members up to capacity.
+    Operational,
+    /// Cooperative is in financial distress — missed fee payments,
+    /// declining reserves, but not yet insolvent.
+    Distressed,
+    /// Cooperative is insolvent — reserves depleted, fees uncollected,
+    /// pending liquidation by the Syndic.
+    Insolvent,
+    /// Cooperative has been liquidated — assets sold, members displaced,
+    /// ledger closed. Retained for historical tracking.
+    Liquidated,
+}
+
+/// Wealth tier of a cooperative member — determines fee schedule,
+/// emigration probability, and capital flight amount.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum WealthTier {
+    /// Lowest tier — subsistence income, minimal savings.
+    #[default]
+    Destitute,
+    /// Working class — wage income, modest savings.
+    Working,
+    /// Middle class — stable income, significant savings.
+    Middle,
+    /// Upper class — high income, large liquid capital.
+    Upper,
+}
+
+/// Individual cooperative ledger tracking assets, debts, and resident
+/// obligations for a single housing cooperative (Rule 7 — individual
+/// accountability).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct CooperativeLedger {
+    /// Total share capital paid by members (equity).
+    #[serde(default)]
+    pub share_capital: f64,
+
+    /// Reserve fund for maintenance and emergencies.
+    /// Scales by building age, floor_area, and maintenance history (Rule 15).
+    #[serde(default)]
+    pub reserve_fund: f64,
+
+    /// Outstanding maintenance expenses owed to contractors.
+    #[serde(default)]
+    pub outstanding_maintenance_debt: f64,
+
+    /// Utility bills owed to grid operators (water, heat, electricity).
+    #[serde(default)]
+    pub outstanding_utility_debt: f64,
+
+    /// Per-member fee obligations: member_id → (amount owed, turns overdue).
+    /// Unpaid fees trigger eviction and debt collection (Rule 8).
+    #[serde(default)]
+    pub member_fee_arrears: std::collections::BTreeMap<String, (f64, u32)>,
+
+    /// Total fee revenue collected this turn.
+    #[serde(default)]
+    pub fee_revenue_this_turn: f64,
+
+    /// Total maintenance costs this turn.
+    #[serde(default)]
+    pub maintenance_costs_this_turn: f64,
+
+    /// Consecutive turns with negative net income (distress counter).
+    #[serde(default)]
+    pub consecutive_loss_turns: u32,
+
+    /// Total building floor_area under management (sqm) — scales reserve
+    /// requirements (Rule 15).
+    #[serde(default)]
+    pub total_floor_area_sqm: f64,
+
+    /// Average building age under management (turns) — older buildings
+    /// require higher reserve funds (Rule 15).
+    #[serde(default)]
+    pub avg_building_age_turns: f64,
+}
+
+impl CooperativeLedger {
+    /// Compute the required minimum reserve fund, scaled by floor area,
+    /// building age, and average wage (Rules 2, 15).
+    pub fn required_reserve(&self, avg_wage: f64) -> f64 {
+        // Base: 0.5 months of wages per 100 sqm (scales with physical size)
+        let area_factor = self.total_floor_area_sqm / 100.0;
+        // Age multiplier: 1.0 at age 0, +2% per turn of age (compounding decay)
+        let age_mult = 1.0 + (self.avg_building_age_turns * 0.02);
+        // Maintenance history factor: more arrears = need more reserves
+        let arrears_factor = 1.0 + (self.outstanding_maintenance_debt / avg_wage.max(1.0)).min(5.0);
+        area_factor * age_mult * arrears_factor * avg_wage * 0.5
+    }
+
+    /// Check if the cooperative is solvent (reserves + share capital > debts).
+    pub fn is_solvent(&self) -> bool {
+        let assets = self.share_capital + self.reserve_fund;
+        let liabilities = self.outstanding_maintenance_debt + self.outstanding_utility_debt;
+        assets > liabilities
+    }
+
+    /// Check if the cooperative is in distress (3+ consecutive loss turns
+    /// or reserve fund below 50% of required).
+    pub fn is_distressed(&self, avg_wage: f64) -> bool {
+        if self.consecutive_loss_turns >= 3 {
+            return true;
+        }
+        let required = self.required_reserve(avg_wage);
+        self.reserve_fund < required * 0.5
+    }
+
+    /// Check if the cooperative is insolvent (cannot cover debts).
+    pub fn is_insolvent(&self) -> bool {
+        !self.is_solvent() && self.reserve_fund <= 0.0
+    }
+
+    /// Process fee collection from members for this turn.
+    /// Returns (total_collected, total_uncollected).
+    /// Fees scale by average_wage and floor_area (Rule 2 — no flat rates).
+    pub fn process_fee_collection(
+        &mut self,
+        member_count: u32,
+        avg_wage: f64,
+        floor_area_per_member: f64,
+    ) -> (f64, f64) {
+        // Fee = 0.02 * avg_wage per member per turn (2% of monthly wage)
+        // scaled by floor area (larger units pay more — Rule 15)
+        let area_factor = (floor_area_per_member / 50.0).max(0.5);
+        let fee_per_member = avg_wage * 0.02 * area_factor;
+        let total_billed = fee_per_member * member_count as f64;
+
+        // Collect from reserve fund capacity — if members can't pay,
+        // the arrears accumulate (Rule 8 — rational actors)
+        let collected = total_billed.min(self.share_capital + self.reserve_fund);
+        let uncollected = total_billed - collected;
+
+        self.fee_revenue_this_turn = collected;
+        self.reserve_fund += collected;
+
+        if uncollected > 0.0 {
+            // Record arrears at the cooperative level (individual member
+            // tracking is done via member_fee_arrears map)
+            self.outstanding_maintenance_debt += uncollected;
+        }
+
+        (collected, uncollected)
+    }
+}
+
+/// A housing cooperative with complete lifecycle (Rule 4).
+/// Manages multiple buildings, collects fees from members, maintains
+/// reserve funds, and can collapse/liquidate.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct HousingCooperative {
+    /// Unique cooperative ID.
+    #[serde(default)]
+    pub id: String,
+
+    /// Display name.
+    #[serde(default)]
+    pub name: String,
+
+    /// Current lifecycle stage.
+    #[serde(default)]
+    pub lifecycle_stage: CooperativeLifecycleStage,
+
+    /// Managed building IDs.
+    #[serde(default)]
+    pub managed_buildings: Vec<String>,
+
+    /// Member household IDs with their wealth tier.
+    /// Hard limit on membership (Rule 20 — overflow = waitlist).
+    #[serde(default)]
+    pub members: std::collections::BTreeMap<String, WealthTier>,
+
+    /// Waitlist of prospective members (overflow behavior, Rule 20).
+    #[serde(default)]
+    pub waitlist: Vec<String>,
+
+    /// Maximum member count (scaled by total building capacity).
+    #[serde(default)]
+    pub max_members: u32,
+
+    /// Individual ledger tracking assets, debts, and obligations (Rule 7).
+    #[serde(default)]
+    pub ledger: CooperativeLedger,
+
+    /// Turn when the cooperative was founded.
+    #[serde(default)]
+    pub founded_turn: u32,
+
+    /// Turn when the cooperative collapsed (if applicable).
+    #[serde(default)]
+    pub collapsed_turn: Option<u32>,
+
+    /// Turn when liquidation was completed (if applicable).
+    #[serde(default)]
+    pub liquidated_turn: Option<u32>,
+
+    /// Utility economies of scale discount (0.0–1.0).
+    /// Larger cooperatives negotiate better utility rates.
+    #[serde(default)]
+    pub utility_economies: f64,
+}
+
+impl HousingCooperative {
+    /// Check if the cooperative can accept new members.
+    pub fn has_capacity(&self) -> bool {
+        (self.members.len() as u32) < self.max_members
+    }
+
+    /// Check if the cooperative should collapse based on financial distress.
+    pub fn should_collapse(&self, avg_wage: f64) -> bool {
+        match self.lifecycle_stage {
+            CooperativeLifecycleStage::Operational => self.ledger.is_distressed(avg_wage),
+            CooperativeLifecycleStage::Distressed => self.ledger.is_insolvent(),
+            _ => false,
+        }
+    }
+
+    /// Transition the cooperative to a new lifecycle stage.
+    pub fn transition_to(&mut self, stage: CooperativeLifecycleStage, current_turn: u32) {
+        match stage {
+            CooperativeLifecycleStage::Distressed => {
+                self.lifecycle_stage = CooperativeLifecycleStage::Distressed;
+            }
+            CooperativeLifecycleStage::Insolvent => {
+                self.lifecycle_stage = CooperativeLifecycleStage::Insolvent;
+                self.collapsed_turn = Some(current_turn);
+            }
+            CooperativeLifecycleStage::Liquidated => {
+                self.lifecycle_stage = CooperativeLifecycleStage::Liquidated;
+                self.liquidated_turn = Some(current_turn);
+            }
+            _ => {}
+        }
+    }
+
+    /// Get the list of displaced member IDs when the cooperative is liquidated.
+    /// These members need to be assigned a HomelessState.
+    pub fn get_displaced_members(&self) -> Vec<(String, WealthTier)> {
+        self.members
+            .iter()
+            .map(|(id, tier)| (id.clone(), *tier))
+            .collect()
+    }
+
+    /// Compute the utility discount for this cooperative based on size
+    /// (economies of scale). Larger cooperatives get bigger discounts.
+    pub fn compute_utility_discount(&self) -> f64 {
+        let member_count = self.members.len() as f64;
+        // Discount scales logarithmically: 10 members = ~7%, 100 = ~14%
+        (member_count.ln() * 0.03).min(0.20)
+    }
+}
+
+/// Homeless state for a displaced cooperative member.
+/// Tracks the member's transition from housed → homeless → emigrated or rehoused.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct HomelessState {
+    /// Member ID (matches the cooperative member ID).
+    #[serde(default)]
+    pub member_id: String,
+
+    /// Former cooperative ID.
+    #[serde(default)]
+    pub former_cooperative_id: String,
+
+    /// Turn when displacement occurred.
+    #[serde(default)]
+    pub displacement_turn: u32,
+
+    /// Wealth tier at time of displacement (determines emigration probability).
+    #[serde(default)]
+    pub wealth_tier: WealthTier,
+
+    /// Liquid capital balance at time of displacement (for capital flight).
+    #[serde(default)]
+    pub liquid_capital: f64,
+
+    /// Emigration probability per turn (0.0–1.0, scales with wealth tier
+    /// and turns homeless).
+    #[serde(default)]
+    pub emigration_probability: f64,
+
+    /// Turns spent homeless (escalating mortality risk).
+    #[serde(default)]
+    pub turns_homeless: u32,
+
+    /// Whether this member has been rehoused.
+    #[serde(default)]
+    pub rehoused: bool,
+
+    /// Whether this member has emigrated (capital flight triggered).
+    #[serde(default)]
+    pub emigrated: bool,
+}
+
+impl HomelessState {
+    /// Create a new homeless state for a displaced member.
+    pub fn new(
+        member_id: String,
+        former_cooperative_id: String,
+        displacement_turn: u32,
+        wealth_tier: WealthTier,
+        liquid_capital: f64,
+    ) -> Self {
+        // Base emigration probability scales with wealth tier:
+        // Upper class emigrates most readily (they have resources to leave),
+        // Destitute members emigrate least (they can't afford it).
+        let base_prob = match wealth_tier {
+            WealthTier::Upper => 0.15,
+            WealthTier::Middle => 0.08,
+            WealthTier::Working => 0.03,
+            WealthTier::Destitute => 0.01,
+        };
+        Self {
+            member_id,
+            former_cooperative_id,
+            displacement_turn,
+            wealth_tier,
+            liquid_capital,
+            emigration_probability: base_prob,
+            turns_homeless: 0,
+            rehoused: false,
+            emigrated: false,
+        }
+    }
+
+    /// Update the homeless state for one turn.
+    /// Increases emigration probability and mortality risk over time.
+    /// Returns true if the member should emigrate this turn.
+    pub fn update_turn(&mut self) -> bool {
+        if self.rehoused || self.emigrated {
+            return false;
+        }
+        self.turns_homeless += 1;
+        // Emigration probability increases each turn homeless (desperation)
+        self.emigration_probability = (self.emigration_probability + 0.02).min(0.50);
+        // Roll: if probability exceeds threshold, member emigrates
+        // Using deterministic threshold for simulation stability
+        self.emigration_probability >= 0.25
+    }
+
+    /// Health penalty for being homeless (0.0–1.0, higher = worse).
+    /// Scales with turns homeless — escalating mortality risk.
+    pub fn health_penalty(&self) -> f64 {
+        // 5% health degradation per turn homeless, capped at 80%
+        (self.turns_homeless as f64 * 0.05).min(0.80)
+    }
+
+    /// Happiness penalty for being homeless (0.0–1.0, higher = worse).
+    pub fn happiness_penalty(&self) -> f64 {
+        // Immediate 40% happiness drop, +5% per turn
+        (0.40 + self.turns_homeless as f64 * 0.05).min(0.95)
+    }
+}
+
+/// Registry of all housing cooperatives in a country.
+/// Keyed by cooperative ID for individual accountability (Rule 7).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct CooperativeRegistry {
+    /// All active and historical cooperatives.
+    #[serde(default)]
+    pub cooperatives: std::collections::BTreeMap<String, HousingCooperative>,
+
+    /// Currently homeless members awaiting rehousing or emigration.
+    #[serde(default)]
+    pub homeless: Vec<HomelessState>,
+
+    /// Total emigration capital outflow this turn (for UI snapshot, Rule 17).
+    #[serde(default)]
+    pub emigration_capital_outflow_this_turn: f64,
+
+    /// Total forex reserve drain this turn (for UI snapshot, Rule 17).
+    #[serde(default)]
+    pub forex_reserve_drain_this_turn: f64,
+
+    /// Cumulative emigration capital outflow (all turns).
+    #[serde(default)]
+    pub total_emigration_capital_outflow: f64,
+
+    /// Cumulative forex reserve drain (all turns).
+    #[serde(default)]
+    pub total_forex_reserve_drain: f64,
+}
+
+impl CooperativeRegistry {
+    /// Process cooperative lifecycle for one turn.
+    /// Checks for collapse triggers, processes fee collection, and
+    /// transitions cooperatives through lifecycle stages.
+    pub fn process_lifecycle_turn(
+        &mut self,
+        avg_wage: f64,
+        current_turn: u32,
+    ) -> Vec<(String, Vec<(String, WealthTier)>)> {
+        let mut displaced_batches = Vec::new();
+
+        // Check each cooperative for collapse
+        let coop_ids: Vec<String> = self.cooperatives.keys().cloned().collect();
+        for coop_id in coop_ids {
+            let coop = match self.cooperatives.get_mut(&coop_id) {
+                Some(c) => c,
+                None => continue,
+            };
+
+            // Skip already-liquidated cooperatives
+            if coop.lifecycle_stage == CooperativeLifecycleStage::Liquidated {
+                continue;
+            }
+
+            // Update utility economies discount
+            coop.utility_economies = coop.compute_utility_discount();
+
+            // Check for collapse
+            if coop.should_collapse(avg_wage) {
+                if coop.lifecycle_stage == CooperativeLifecycleStage::Operational {
+                    coop.transition_to(CooperativeLifecycleStage::Distressed, current_turn);
+                } else if coop.lifecycle_stage == CooperativeLifecycleStage::Distressed {
+                    coop.transition_to(CooperativeLifecycleStage::Insolvent, current_turn);
+                    // Collect displaced members
+                    let displaced = coop.get_displaced_members();
+                    if !displaced.is_empty() {
+                        displaced_batches.push((coop_id.clone(), displaced.clone()));
+                        // Create homeless states for each displaced member
+                        for (member_id, wealth_tier) in &displaced {
+                            // Estimate liquid capital from wealth tier
+                            let liquid = match wealth_tier {
+                                WealthTier::Upper => avg_wage * 100.0,
+                                WealthTier::Middle => avg_wage * 20.0,
+                                WealthTier::Working => avg_wage * 5.0,
+                                WealthTier::Destitute => avg_wage * 0.5,
+                            };
+                            self.homeless.push(HomelessState::new(
+                                member_id.clone(),
+                                coop_id.clone(),
+                                current_turn,
+                                *wealth_tier,
+                                liquid,
+                            ));
+                        }
+                    }
+                    // Transition to liquidated
+                    coop.transition_to(CooperativeLifecycleStage::Liquidated, current_turn);
+                }
+            }
+        }
+
+        displaced_batches
+    }
+
+    /// Update all homeless members for one turn.
+    /// Returns the list of members who should emigrate this turn
+    /// (for capital flight processing).
+    pub fn update_homeless_turn(&mut self) -> Vec<HomelessState> {
+        let mut to_emigrate = Vec::new();
+        for homeless in &mut self.homeless {
+            if homeless.update_turn() {
+                homeless.emigrated = true;
+                to_emigrate.push(homeless.clone());
+            }
+        }
+        // Remove emigrated and rehoused from active homeless list
+        self.homeless.retain(|h| !h.emigrated && !h.rehoused);
+        to_emigrate
+    }
+
+    /// Get the total homeless population count.
+    pub fn homeless_count(&self) -> usize {
+        self.homeless.len()
+    }
+}

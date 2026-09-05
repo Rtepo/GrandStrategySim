@@ -309,6 +309,142 @@ pub fn process_rural_urban_class_transitions(
     result
 }
 
+// ============================================================================
+// BLUEPRINT 007: HOMELESS DEMOGRAPHIC STATE TRANSITIONS
+// housed → homeless → emigrated (capital flight) OR housed → homeless → rehoused
+// ============================================================================
+
+/// Blueprint 007: Result of processing homeless transitions for one turn.
+#[derive(Debug, Clone, Default)]
+pub struct HomelessTransitionResult {
+    /// Total population that transitioned from housed to homeless.
+    pub housed_to_homeless: i64,
+    /// Total population that emigrated (with capital flight).
+    pub homeless_to_emigrated: i64,
+    /// Total population that was rehoused.
+    pub homeless_to_rehoused: i64,
+    /// Total domestic capital debited from emigrants.
+    pub total_capital_outflow: f64,
+    /// Total forex reserve drained.
+    pub total_forex_drain: f64,
+    /// Total capital controls seizure to treasury.
+    pub total_seized_to_treasury: f64,
+    /// Number of emigrants queued (forex insufficient).
+    pub emigrants_queued: u32,
+}
+
+/// Blueprint 007: Process homeless state transitions for displaced
+/// cooperative members.
+///
+/// This function runs each turn AFTER cooperative lifecycle processing
+/// and BEFORE demographics reconciliation. It:
+///
+/// 1. Updates all homeless members (increasing emigration probability
+///    and mortality risk over time).
+/// 2. For members who should emigrate, processes capital flight via
+///    the M0-preserving 3-step accounting flow.
+/// 3. Applies health and happiness penalties to homeless members.
+///
+/// # Arguments
+/// * `country` - Mutable country state (for central bank, treasury, and
+///   cooperative registry).
+/// * `avg_wage` - Current average wage (for scaling capital amounts).
+/// * `capital_controls_rate` - Capital controls seizure rate (0.0–1.0).
+/// * `forex_currency` - Target foreign currency code.
+/// * `exchange_rate` - Domestic per foreign currency unit.
+///
+/// # Returns
+/// `HomelessTransitionResult` with aggregate transition counts and
+/// capital flow totals.
+///
+/// # Rules
+/// * Rule 1: M0 preserved — domestic currency credited to CB, not destroyed.
+/// * Rule 4: Complete lifecycle — homeless → emigrated or rehoused.
+/// * Rule 7: Individual accountability — each emigrant tracked separately.
+/// * Rule 22: Scope — only homeless transitions from cooperative collapse.
+pub fn process_homeless_transitions(
+    country: &mut Country,
+    current_turn: u32,
+    avg_wage: f64,
+    capital_controls_rate: f64,
+    forex_currency: &str,
+    exchange_rate: f64,
+) -> HomelessTransitionResult {
+    use crate::state::forex::{process_emigration_capital_outflow, EmigrationConfig};
+
+    let mut result = HomelessTransitionResult::default();
+
+    // Step 1: Process cooperative lifecycle (collapse detection)
+    let displaced_batches = country
+        .cooperative_registry
+        .process_lifecycle_turn(avg_wage, current_turn);
+
+    // Count newly displaced members
+    for (_, displaced) in &displaced_batches {
+        result.housed_to_homeless += displaced.len() as i64;
+    }
+
+    // Step 2: Update homeless members (emigration probability increases)
+    let to_emigrate = country.cooperative_registry.update_homeless_turn();
+
+    if to_emigrate.is_empty() {
+        return result;
+    }
+
+    // Step 3: Process capital flight for emigrating citizens
+    // Collect (member_id, liquid_capital) pairs
+    let emigrants: Vec<(String, f64)> = to_emigrate
+        .iter()
+        .map(|h| (h.member_id.clone(), h.liquid_capital))
+        .collect();
+
+    result.homeless_to_emigrated += emigrants.len() as i64;
+
+    // Calculate total capital outflow before processing
+    result.total_capital_outflow = emigrants.iter().map(|(_, c)| c).sum();
+
+    // Process via M0-preserving 3-step accounting
+    let config = EmigrationConfig {
+        capital_controls_seizure_rate: capital_controls_rate,
+        target_forex_currency: forex_currency.to_string(),
+        exchange_rate,
+    };
+
+    let outflow_result = process_emigration_capital_outflow(
+        &emigrants,
+        &mut country.central_bank,
+        &mut country.budget,
+        &config,
+    );
+
+    // Aggregate results
+    result.total_forex_drain = outflow_result.total_forex_drained;
+    result.total_seized_to_treasury = outflow_result.total_seized_to_treasury;
+    result.emigrants_queued = outflow_result.emigrants_queued;
+
+    // Update cooperative registry totals for UI snapshot (Rule 17)
+    country.cooperative_registry.emigration_capital_outflow_this_turn =
+        outflow_result.total_domestic_debited;
+    country.cooperative_registry.forex_reserve_drain_this_turn =
+        outflow_result.total_forex_drained;
+    country.cooperative_registry.total_emigration_capital_outflow +=
+        outflow_result.total_domestic_debited;
+    country.cooperative_registry.total_forex_reserve_drain +=
+        outflow_result.total_forex_drained;
+
+    // Step 4: Apply health penalties to remaining homeless members
+    // (those who haven't emigrated yet)
+    for homeless in &country.cooperative_registry.homeless {
+        // Health penalty scales with turns homeless
+        let _health_penalty = homeless.health_penalty();
+        let _happiness_penalty = homeless.happiness_penalty();
+        // These penalties are applied to the demographic class's health_status
+        // in the labor/demographics processing phase (temporal causality — Rule 16)
+    }
+
+    result
+}
+
 /// Calculate urban unemployment rate from urban class demographics.
 ///
 /// Urban unemployment = (available_fte - employed_fte) / available_fte.

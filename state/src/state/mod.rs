@@ -387,6 +387,10 @@ pub struct Country {
     /// Each tuple is (company_id, building_id).
     #[serde(default)]
     pub halt_queue: Vec<(String, String)>,
+    /// Blueprint 007: Housing cooperative registry with complete lifecycle
+    /// tracking, homeless displaced members, and emigration capital outflow.
+    #[serde(default)]
+    pub cooperative_registry: crate::society::housing::CooperativeRegistry,
     /// Emergency Stabilization: Pending furlough wage payments to be credited
     /// to regional worker class savings in the labor market post-pass.
     /// Each tuple is (company_id, amount).
@@ -758,6 +762,7 @@ impl Country {
             bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(),
             demolition_queue: Vec::new(),
             halt_queue: Vec::new(),
+            cooperative_registry: crate::society::housing::CooperativeRegistry::default(),
             furlough_wage_queue: Vec::new(),
             recruitment_cost_queue: Vec::new(),
             knf: crate::securities::KNF::default(),
@@ -1166,6 +1171,7 @@ impl CountryBuilder {
             bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(),
             demolition_queue: Vec::new(),
             halt_queue: Vec::new(),
+            cooperative_registry: crate::society::housing::CooperativeRegistry::default(),
             furlough_wage_queue: Vec::new(),
             recruitment_cost_queue: Vec::new(),
             knf: crate::securities::KNF::default(),

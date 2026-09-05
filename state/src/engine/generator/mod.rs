@@ -521,6 +521,7 @@ fn generate_country(
         bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(),
         demolition_queue: Vec::new(),
         halt_queue: Vec::new(),
+        cooperative_registry: crate::society::housing::CooperativeRegistry::default(),
         furlough_wage_queue: Vec::new(),
         recruitment_cost_queue: Vec::new(),
         knf: crate::securities::KNF::default(),

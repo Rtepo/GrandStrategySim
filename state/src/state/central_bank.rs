@@ -684,6 +684,139 @@ impl CentralBank {
             false
         }
     }
+
+    /// Blueprint 007: Get the total forex reserve balance across all
+    /// foreign currencies, converted to a notional domestic value.
+    ///
+    /// For simplicity, we sum all FX reserve balances. The caller
+    /// should pass the appropriate exchange rate if conversion is needed.
+    pub fn total_forex_reserves(&self) -> f64 {
+        self.fx_reserves.values().sum()
+    }
+
+    /// Blueprint 007: Drain forex reserves for emigration capital outflow.
+    ///
+    /// This is the CRITICAL M0-preserving capital flight function.
+    /// When a citizen emigrates, they convert domestic currency to foreign
+    /// currency. The central bank SELLS foreign currency from its reserves
+    /// and BUYS BACK domestic currency.
+    ///
+    /// # 3-Step Accounting Flow (M0-Preserving):
+    /// 1. DEBIT the emigrating citizen's domestic account (liquid_capital)
+    ///    — done by the caller before invoking this function.
+    /// 2. CREDIT the central bank's domestic ledger (currency bought back)
+    ///    — the domestic currency returns to the CB, preserving M0.
+    /// 3. DEBIT the central bank's forex_reserve (capital flight)
+    ///    — the CB loses foreign currency reserves.
+    ///
+    /// # Arguments
+    /// * `amount_domestic` - Amount of domestic currency to convert (citizen's
+    ///   liquid capital that is being taken out of the country).
+    /// * `forex_currency` - The foreign currency code the emigrant wants
+    ///   (e.g., "USD", "EUR").
+    /// * `exchange_rate` - Domestic currency per unit of foreign currency
+    ///   (e.g., if 1 USD = 4 domestic, exchange_rate = 4.0).
+    ///
+    /// # Returns
+    /// `ForexDrainResult` with the actual amounts debited/credited and
+    /// whether the full amount was filled or partially filled.
+    pub fn drain_forex_for_emigration(
+        &mut self,
+        amount_domestic: f64,
+        forex_currency: &str,
+        exchange_rate: f64,
+    ) -> ForexDrainResult {
+        if amount_domestic <= 0.0 || exchange_rate <= 0.0 {
+            return ForexDrainResult::zero();
+        }
+
+        // Amount of foreign currency needed
+        let forex_needed = amount_domestic / exchange_rate;
+
+        // Check available forex reserves in the requested currency
+        let available_forex = self.fx_reserves.get(forex_currency).copied().unwrap_or(0.0);
+
+        // Also check total reserves across all currencies as a fallback
+        let total_forex = self.total_forex_reserves();
+
+        if available_forex >= forex_needed {
+            // Full fill: drain the specific currency reserve
+            *self.fx_reserves.entry(forex_currency.to_string()).or_insert(0.0) -= forex_needed;
+            ForexDrainResult {
+                domestic_currency_bought_back: amount_domestic,
+                forex_reserve_drained: forex_needed,
+                fully_filled: true,
+                remaining_unfilled: 0.0,
+            }
+        } else if total_forex >= forex_needed {
+            // Partial fill from specific currency, top up from others
+            // First drain the requested currency
+            let mut remaining = forex_needed;
+            if available_forex > 0.0 {
+                *self.fx_reserves.entry(forex_currency.to_string()).or_insert(0.0) = 0.0;
+                remaining -= available_forex;
+            }
+            // Drain from other currencies proportionally (Rule 5 — pro-rata)
+            let other_total = total_forex - available_forex;
+            if other_total > 0.0 && remaining > 0.0 {
+                let drain_ratio = (remaining / other_total).min(1.0);
+                for balance in self.fx_reserves.values_mut() {
+                    *balance -= *balance * drain_ratio;
+                }
+                remaining = 0.0;
+            }
+            ForexDrainResult {
+                domestic_currency_bought_back: amount_domestic,
+                forex_reserve_drained: forex_needed,
+                fully_filled: remaining <= 0.0,
+                remaining_unfilled: remaining * exchange_rate,
+            }
+        } else {
+            // Insufficient reserves — partial fill only
+            let _fill_ratio = if total_forex > 0.0 {
+                forex_needed / total_forex
+            } else {
+                0.0
+            };
+            let filled_forex = total_forex.min(forex_needed);
+            let filled_domestic = filled_forex * exchange_rate;
+
+            // Drain all reserves proportionally (Rule 5 — pro-rata)
+            if total_forex > 0.0 {
+                for balance in self.fx_reserves.values_mut() {
+                    *balance = 0.0; // All reserves exhausted
+                }
+            }
+
+            ForexDrainResult {
+                domestic_currency_bought_back: filled_domestic,
+                forex_reserve_drained: filled_forex,
+                fully_filled: false,
+                remaining_unfilled: amount_domestic - filled_domestic,
+            }
+        }
+    }
+}
+
+/// Blueprint 007: Result of a forex reserve drain operation for emigration.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct ForexDrainResult {
+    /// Domestic currency bought back by the central bank (credited to CB ledger).
+    /// This amount is REMOVED from the citizen's account and RETURNED to the CB.
+    pub domestic_currency_bought_back: f64,
+    /// Foreign currency drained from forex reserves (capital flight).
+    pub forex_reserve_drained: f64,
+    /// Whether the full emigration amount was filled (true) or partially (false).
+    pub fully_filled: bool,
+    /// Remaining domestic currency that could not be converted (if forex insufficient).
+    /// The emigration is queued for this remaining amount.
+    pub remaining_unfilled: f64,
+}
+
+impl ForexDrainResult {
+    fn zero() -> Self {
+        Self::default()
+    }
 }
 
 // ============================================================================
