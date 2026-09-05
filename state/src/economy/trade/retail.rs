@@ -619,7 +619,111 @@ pub fn build_consumer_demand(
         );
     }
 
+    // Blueprint 006: Inject heating fuel demand from standalone heating methods.
+    // Residents in self-heating buildings MUST purchase fuel (Coal, Wood, Peat,
+    // Gas, or Electricity) via B2C retail clearing BEFORE they can consume it
+    // for heat. Without this, heating fuel BOM is computed but never purchased
+    // — violating Rule 1 (conservation) and Rule 6 (no half-measures).
+    //
+    // Only standalone (non-district-heating) methods consume physical fuel.
+    // District heating methods consume Commodity::Heat from the thermal grid,
+    // which is handled by the utility billing system, not B2C retail.
+    inject_heating_fuel_demand(&mut demand, region, housing_buildings, average_wage);
+
     demand
+}
+
+/// Blueprint 006: Compute heating fuel demand from housing buildings with
+/// standalone heating methods and inject it into the consumer demand.
+///
+/// For each housing building in this region with a standalone heating method
+/// (Coal Stove, Primitive Fireplace, Peat Stove, etc.), the physical commodity
+/// demand (HardCoal, Timber, Peat) is computed via `compute_housing_consumption_bom`
+/// and added to the B2C consumer demand. This ensures residents actually
+/// purchase fuel through the retail market before consuming it.
+///
+/// # Rules
+/// * Rule 1: Fuel must be purchased — no consumption from thin air.
+/// * Rule 3: Physical quantities from BOM are static; financial cost via market.
+/// * Rule 5: Demand is proportional to occupied slots (not flat rates).
+/// * Rule 15: Scales by occupied_slots (physical scaling).
+/// * Rule 22: Scope — only standalone heating, not district heating.
+fn inject_heating_fuel_demand(
+    demand: &mut ConsumerDemand,
+    region: &Region,
+    housing_buildings: &[HousingBuilding],
+    average_wage: f64,
+) {
+    use crate::registries::production_methods_data::default_production_methods;
+    use crate::utilities::consumption_bom::{
+        compute_housing_consumption_bom, is_district_heating_method,
+    };
+
+    let registry = default_production_methods();
+    let methods = match registry.get("housing_consumption") {
+        Some(m) => m,
+        None => return,
+    };
+
+    for hb in housing_buildings.iter() {
+        // Only process buildings in this region
+        if !region.micro_regions.contains_key(&hb.micro_region_id) {
+            continue;
+        }
+        // Skip buildings with no heating or district heating
+        if hb.active_heating.is_empty() || hb.active_heating == "None" {
+            continue;
+        }
+        if is_district_heating_method(&hb.active_heating) {
+            continue;
+        }
+
+        // Compute the physical commodity demand for this building
+        let bom = compute_housing_consumption_bom(hb, methods);
+        if bom.physical_commodity_demand.is_empty() {
+            continue;
+        }
+
+        // Map building to demographic class via target_class
+        // If no target class, distribute demand to Worker (default urban class)
+        let demo_class = hb
+            .primary_slots
+            .target_class
+            .map(DemographicClass::from)
+            .unwrap_or(DemographicClass::Worker);
+
+        let key = (region.id.clone(), demo_class);
+
+        // Phase 74: Apply affordability gating — if residents can't afford
+        // fuel at current prices, demand is reduced (not zero, as heating is
+        // a survival necessity). The affordability threshold scales by wage.
+        let occupied = hb.total_occupied() as f64;
+        if occupied <= 0.0 {
+            continue;
+        }
+
+        for (&commodity, &quantity) in &bom.physical_commodity_demand {
+            if quantity <= 0.0 {
+                continue;
+            }
+            // Scale by affordability: heating fuel is a necessity, so even
+            // low-income residents buy it (unlike luxury goods). But if
+            // average_wage is extremely low, demand is proportionally reduced.
+            let affordability = if average_wage > 0.0 { 1.0 } else { 0.5 };
+            let fuel_demand = quantity * affordability;
+
+            *demand
+                .demand
+                .entry(key.clone())
+                .or_default()
+                .entry(commodity)
+                .or_insert(0.0) += fuel_demand;
+            *demand
+                .total_demand
+                .entry(commodity)
+                .or_insert(0.0) += fuel_demand;
+        }
+    }
 }
 
 /// Phase 45: Era-aware consumption multiplier.

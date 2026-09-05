@@ -6091,6 +6091,7 @@ fn generate_housing(
                 active_waste_disposal: String::new(),
                 pending_upgrade: None,
                 commercial_slots: None,
+                water_well: None,
             };
             all_housing.push(housing);
         }

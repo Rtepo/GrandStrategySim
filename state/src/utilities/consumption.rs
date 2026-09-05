@@ -103,9 +103,27 @@ pub fn process_utility_consumption(
             let heat_consumed = connections
                 .district_heating_capacity
                 .min(demand.heating_demand);
-            let water_consumed = (connections.surface_water_capacity
-                + connections.groundwater_capacity)
-                .min(demand.surface_water_demand + demand.groundwater_demand);
+
+            // Blueprint 006: Water consumption gated by well for standalone.
+            // Off-grid buildings MUST have a constructed WaterWell to draw water.
+            // Without a well, standalone water yields zero — no water from thin air.
+            let water_from_connections = connections.surface_water_capacity
+                + connections.groundwater_capacity;
+            let water_demand_total = demand.surface_water_demand + demand.groundwater_demand;
+
+            let water_consumed = if crate::utilities::consumption_bom::is_centralized_water_method(
+                &hb.active_water_supply,
+            ) {
+                // Centralized supply — water from municipal mains
+                water_from_connections.min(water_demand_total)
+            } else if hb.can_draw_standalone_water() {
+                // Standalone supply with constructed well — yield capped by well
+                let well_yield = hb.standalone_water_yield();
+                water_from_connections.min(well_yield).min(water_demand_total)
+            } else {
+                // No well constructed = no standalone water (Rule 1: conservation)
+                0.0
+            };
 
             let mut bill = elec_consumed * pricing_config.price_per_kwh
                 + heat_consumed * pricing_config.price_per_gj_heating

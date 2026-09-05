@@ -88,6 +88,108 @@ pub struct UtilityConnections {
     pub water_quality_received: f64,
 }
 
+/// Blueprint 006: Physical water well constructed on a housing building
+/// for off-grid water sourcing.
+///
+/// A well must be physically constructed (CAPEX) before a building can
+/// use standalone water supply methods (Local Well, Hand Pump Well, etc.).
+/// Without a constructed well, `active_water_supply` standalone methods
+/// yield zero water — no water from thin air (Rule 1: conservation).
+///
+/// CAPEX is scaled by the building's total capacity (Rule 15 — no flat rates).
+/// A well serving a 100-slot tenement costs more than one serving a 4-slot hut.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct WaterWell {
+    /// Whether the well has been constructed (false = no well, no water).
+    #[serde(default)]
+    pub constructed: bool,
+
+    /// Construction progress (0.0 to 1.0). When >= 1.0, `constructed` = true.
+    /// Increments per turn based on construction effort allocated.
+    #[serde(default)]
+    pub construction_progress: f64,
+
+    /// Well depth in meters (scales CAPEX — deeper wells cost more).
+    /// Determined by region groundwater depth at construction time.
+    #[serde(default)]
+    pub depth_m: f64,
+
+    /// Maximum yield per turn in liters (scales with depth and aquifer quality).
+    #[serde(default)]
+    pub max_yield_liters: f64,
+
+    /// Turn when construction was initiated (for tracking).
+    #[serde(default)]
+    pub construction_started_turn: u32,
+
+    /// Total CAPEX spent on construction (for amortization, Rule 21).
+    #[serde(default)]
+    pub total_capex: f64,
+}
+
+impl WaterWell {
+    /// Check if the well is operational (constructed and has yield capacity).
+    pub fn is_operational(&self) -> bool {
+        self.constructed && self.max_yield_liters > 0.0
+    }
+
+    /// Compute the CAPEX cost for constructing a well, scaled by building
+    /// capacity and well depth (Rule 15 — no flat rates).
+    ///
+    /// `building_capacity` = total housing slots (occupants to serve).
+    /// `depth_m` = required well depth (from region geology).
+    /// `avg_wage` = current average wage (Rule 2 — inflation-proof).
+    ///
+    /// Returns CAPEX in currency units.
+    pub fn compute_capex(building_capacity: u32, depth_m: f64, avg_wage: f64) -> f64 {
+        // Base cost scales with capacity (more occupants = bigger well shaft)
+        // and depth (deeper = more excavation). Scaled by avg_wage (Rule 2).
+        let capacity_factor = building_capacity.max(1) as f64;
+        let depth_factor = depth_m.max(1.0);
+        // ~2 days of wages per unit of capacity per meter of depth
+        let base_labor_days = capacity_factor * depth_factor * 0.5;
+        base_labor_days * avg_wage
+    }
+
+    /// Compute the physical BOM for well construction, scaled by capacity
+    /// and depth (Rule 3 — physical quantities static, Rule 15 — scaled).
+    ///
+    /// Returns (Commodity, quantity) pairs for the construction materials.
+    pub fn compute_capex_bom(
+        building_capacity: u32,
+        depth_m: f64,
+    ) -> Vec<(Commodity, f64)> {
+        let capacity = building_capacity.max(1) as f64;
+        let depth = depth_m.max(1.0);
+        // Stone lining: scales with shaft circumference × depth
+        let stone = capacity * 0.05 * depth * 0.1;
+        // Timber shoring: scales with depth
+        let timber = capacity * 0.02 * depth * 0.1;
+        // Bricks for wellhead: scales with capacity
+        let bricks = capacity * 0.1;
+
+        let mut bom = Vec::new();
+        if stone > 0.0 {
+            bom.push((Commodity::Stone, stone));
+        }
+        if timber > 0.0 {
+            bom.push((Commodity::Timber, timber));
+        }
+        if bricks > 0.0 {
+            bom.push((Commodity::Bricks, bricks));
+        }
+        bom
+    }
+
+    /// Compute maximum well yield based on depth and aquifer quality.
+    /// Deeper wells in good aquifers yield more water.
+    /// ~50 liters per occupant per turn is baseline demand.
+    pub fn compute_max_yield(depth_m: f64, aquifer_quality: f64) -> f64 {
+        let depth_bonus = (depth_m / 10.0).min(3.0); // 3x max from depth
+        50.0 * depth_bonus * aquifer_quality.clamp(0.1, 1.0)
+    }
+}
+
 /// Phase 85: Workshop production method (Rule 13 — Technological Matrices).
 /// Each method has distinct inputs, output multipliers, and CAPEX.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
@@ -229,6 +331,13 @@ pub struct HousingBuilding {
     /// Capacity scales with building floor_area (Rule 15 — no flat rates).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub commercial_slots: Option<CommercialSlot>,
+
+    /// Blueprint 006: Physical water well for off-grid water sourcing.
+    /// A well must be constructed (CAPEX) before standalone water supply
+    /// methods can draw water. None = no well, no off-grid water.
+    /// Centralized (municipal mains) buildings don't need a well.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub water_well: Option<WaterWell>,
 }
 
 /// Commercial building type
@@ -633,6 +742,39 @@ impl HousingBuilding {
     /// Check if building is overcrowded
     pub fn is_overcrowded(&self) -> bool {
         self.total_occupied() > self.total_capacity()
+    }
+
+    /// Blueprint 006: Check if this building can draw water from a standalone
+    /// (off-grid) source. Returns true only if:
+    /// 1. `active_water_supply` is a standalone method (not centralized)
+    /// 2. A `WaterWell` exists and is constructed/operational
+    ///
+    /// Without a constructed well, standalone water supply yields zero water
+    /// — no water from thin air (Rule 1: conservation).
+    pub fn can_draw_standalone_water(&self) -> bool {
+        use crate::utilities::consumption_bom::is_centralized_water_method;
+        if self.active_water_supply.is_empty() || self.active_water_supply == "None" {
+            return false;
+        }
+        if is_centralized_water_method(&self.active_water_supply) {
+            return false; // Centralized — doesn't need a well
+        }
+        self.water_well
+            .as_ref()
+            .map(|w| w.is_operational())
+            .unwrap_or(false)
+    }
+
+    /// Blueprint 006: Get the maximum standalone water yield available
+    /// from this building's well (0.0 if no well or not constructed).
+    pub fn standalone_water_yield(&self) -> f64 {
+        if !self.can_draw_standalone_water() {
+            return 0.0;
+        }
+        self.water_well
+            .as_ref()
+            .map(|w| w.max_yield_liters)
+            .unwrap_or(0.0)
     }
 }
 
