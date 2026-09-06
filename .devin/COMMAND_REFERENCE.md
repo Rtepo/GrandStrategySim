@@ -1,4 +1,4 @@
-# Command Reference — SillyElaborateState Infrastructure v2.3
+﻿# Command Reference â€” SillyElaborateState Infrastructure v2.3
 
 ## Quick Start
 
@@ -10,12 +10,12 @@ bash .devin/scripts/console.sh <command> [args]
 
 ## Commands
 
-### /kickoff — Assign Blueprint to Worker
+### $kickoff â€” Assign Blueprint to Worker
 
 **When to use:** After Agent 4 (Architect) drafts a roadmap and gives you the agent + blueprint ID.
 
 ```bash
-bash .devin/scripts/console.sh /kickoff agent-3 004-FIX
+bash .devin/scripts/console.sh $kickoff agent-3 004-FIX
 ```
 
 **What it does automatically:**
@@ -31,12 +31,12 @@ bash .devin/scripts/console.sh /kickoff agent-3 004-FIX
 
 ---
 
-### /audit_standard — Trigger Full Audit
+### $audit_standard â€” Trigger Full Audit
 
 **When to use:** When all sprint branches are merged and you want Agent 4 to run the comprehensive 23-rule audit.
 
 ```bash
-bash .devin/scripts/console.sh /audit_standard
+bash .devin/scripts/console.sh $audit_standard
 ```
 
 **What it does automatically:**
@@ -49,12 +49,12 @@ bash .devin/scripts/console.sh /audit_standard
 
 ---
 
-### /forward_fail — Route Audit Failures to Workers
+### $forward_fail â€” Route Audit Failures to Workers
 
 **When to use:** After Agent 4 emits `AUDIT_FAIL` and you want to automatically route the failures to the responsible workers.
 
 ```bash
-bash .devin/scripts/console.sh /forward_fail latest
+bash .devin/scripts/console.sh $forward_fail latest
 ```
 
 **What it does automatically:**
@@ -69,12 +69,12 @@ bash .devin/scripts/console.sh /forward_fail latest
 
 ---
 
-### /unblock — Clear CI/CD Block
+### $unblock â€” Clear CI/CD Block
 
 **When to use:** When a worker agent hits the 3-strike CI/CD failure limit and is blocked.
 
 ```bash
-bash .devin/scripts/console.sh /unblock agent-3
+bash .devin/scripts/console.sh $unblock agent-3
 ```
 
 **What it does automatically:**
@@ -89,12 +89,12 @@ bash .devin/scripts/console.sh /unblock agent-3
 
 ---
 
-### /pulse — System Telemetry Dashboard
+### $pulse â€” System Telemetry Dashboard
 
 **When to use:** Quick health check of the daemon, sprint progress, and agent strike status.
 
 ```bash
-bash .devin/scripts/console.sh /pulse
+bash .devin/scripts/console.sh $pulse
 ```
 
 **What it does automatically:**
@@ -107,12 +107,12 @@ bash .devin/scripts/console.sh /pulse
 
 ---
 
-### /logs — Quick Failure Log Access
+### $logs â€” Quick Failure Log Access
 
 **When to use:** When an agent fails CI/CD and you want to see the exact error without hunting for log files.
 
 ```bash
-bash .devin/scripts/console.sh /logs agent-3
+bash .devin/scripts/console.sh $logs agent-3
 ```
 
 **What it does automatically:**
@@ -126,12 +126,12 @@ bash .devin/scripts/console.sh /logs agent-3
 
 ---
 
-### /override — Administrative Fast-Track Merge
+### $override â€” Administrative Fast-Track Merge
 
 **When to use:** When changes are trivial (docs, typos, config) and waiting 10 minutes for CI/CD is wasteful.
 
 ```bash
-bash .devin/scripts/console.sh /override agent-3
+bash .devin/scripts/console.sh $override agent-3
 ```
 
 **What it does automatically:**
@@ -148,12 +148,12 @@ bash .devin/scripts/console.sh /override agent-3
 
 ---
 
-### /smoke_main — Run Smoke Test on Main
+### $smoke_main â€” Run Smoke Test on Main
 
 **When to use:** Before generating new roadmaps or after major merges to verify baseline macroeconomic stability.
 
 ```bash
-bash .devin/scripts/console.sh /smoke_main
+bash .devin/scripts/console.sh $smoke_main
 ```
 
 **What it does automatically:**
@@ -167,12 +167,12 @@ bash .devin/scripts/console.sh /smoke_main
 
 ---
 
-### /daemon — Restart Integration Daemon
+### $daemon â€” Restart Integration Daemon
 
 **When to use:** When the daemon is hanging, stuck in a dirty-tree loop, or needs a fresh start after infrastructure updates.
 
 ```bash
-bash .devin/scripts/console.sh /daemon
+bash .devin/scripts/console.sh $daemon
 ```
 
 **What it does automatically:**
@@ -186,12 +186,12 @@ bash .devin/scripts/console.sh /daemon
 
 ---
 
-### /release — Version Bump, Tag, and Push
+### $release â€” Version Bump, Tag, and Push
 
 **When to use:** When preparing a new GitHub release.
 
 ```bash
-bash .devin/scripts/console.sh /release 1.2.0
+bash .devin/scripts/console.sh $release 1.2.0
 ```
 
 **What it does automatically:**
@@ -206,12 +206,12 @@ bash .devin/scripts/console.sh /release 1.2.0
 
 ---
 
-### /menu — Show Help Screen
+### $menu â€” Show Help Screen
 
 **When to use:** When you forget the available commands or their syntax.
 
 ```bash
-bash .devin/scripts/console.sh /menu
+bash .devin/scripts/console.sh $menu
 ```
 
 **What it does:** Displays all available commands with brief descriptions and examples.
@@ -222,41 +222,41 @@ bash .devin/scripts/console.sh /menu
 
 ```
 Agent 4 drafts roadmap
-  -> User runs: /kickoff agent-3 004-FIX
+  -> User runs: $kickoff agent-3 004-FIX
     -> System assigns branch, emits TASK_ASSIGNED
       -> Agent 3 implements, runs request_integration.sh
         -> Daemon runs CI/CD (6-stage pipeline)
           -> PASS: PROMOTED_TO_MAIN emitted
-          -> FAIL: 3-strike block -> User runs: /unblock agent-3
+          -> FAIL: 3-strike block -> User runs: $unblock agent-3
             -> Agent 3 fixes, resubmits -> cycle repeats
-          -> Trivial changes: /override agent-3 (bypass CI/CD)
+          -> Trivial changes: $override agent-3 (bypass CI/CD)
 
 All branches merged:
-  -> User runs: /audit_standard
+  -> User runs: $audit_standard
     -> Agent 4 audits against 23 Global Rules
       -> AUDIT_PASS: Sprint complete!
-      -> AUDIT_FAIL: User runs: /forward_fail latest
+      -> AUDIT_FAIL: User runs: $forward_fail latest
         -> System routes REMEDIATION_REQUESTED to workers
           -> Workers fix, resubmit -> cycle repeats
 
 Health checks:
-  -> /pulse: daemon status + sprint progress + agent strikes
-  -> /logs agent-3: quick failure log access
-  -> /smoke_main: baseline stability verification
-  -> /daemon: restart hanging daemon
+  -> $pulse: daemon status + sprint progress + agent strikes
+  -> $logs agent-3: quick failure log access
+  -> $smoke_main: baseline stability verification
+  -> $daemon: restart hanging daemon
 
 Release:
-  -> /release 1.2.0: bump, tag, push
+  -> $release 1.2.0: bump, tag, push
 ```
 
 ## Event Flow
 
 ```
-/kickoff      -> TASK_ASSIGNED (manager -> worker)
+$kickoff      -> TASK_ASSIGNED (manager -> worker)
 CI/CD pass    -> PROMOTED_TO_MAIN (daemon -> all)
-/override     -> PROMOTED_TO_MAIN (manager -> all, method: override_bypass)
+$override     -> PROMOTED_TO_MAIN (manager -> all, method: override_bypass)
 /audit        -> AUDIT_REQUESTED (manager -> agent-4)
 audit fail    -> AUDIT_FAIL (agent-4 -> manager)
-/forward_fail -> REMEDIATION_REQUESTED (manager -> workers)
-/unblock      -> CLARIFICATION_REQUESTED (manager -> worker)
+$forward_fail -> REMEDIATION_REQUESTED (manager -> workers)
+$unblock      -> CLARIFICATION_REQUESTED (manager -> worker)
 ```
