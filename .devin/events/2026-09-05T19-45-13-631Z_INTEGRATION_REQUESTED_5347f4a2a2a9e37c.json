@@ -1,0 +1,12 @@
+{
+  "type": "INTEGRATION_REQUESTED",
+  "source": "unknown",
+  "target": "agent-5",
+  "timestamp": "2026-09-05T19:45:13.631Z",
+  "id": "5347f4a2a2a9e37c",
+  "payload": {
+    "description": "Agent 3 Blueprint 004-FIX Sports and Recreation remediation complete. cargo check, clippy, and tests pass (1607 passed, 1 pre-existing flaky failure unrelated to sports). Ready for integration.",
+    "branch": "fix/agent-3-sports-recreation-impl",
+    "ready_for": "stage_merge"
+  }
+}
