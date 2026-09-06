@@ -1,0 +1,12 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-06T20:57:32.256Z",
+  "id": "c283eaa439543792",
+  "payload": {
+    "failed_branch": "feat/agent-2-housing-cooperatives",
+    "assigned_worker": "unknown",
+    "reason": "Merge Conflict in .devin/scripts/emit_event.sh .devin/scripts/request_integration.sh state/src/economy/labor/class_transitions.rs state/src/society/housing.rs state/src/state/central_bank.rs state/src/state/forex.rs "
+  }
+}
