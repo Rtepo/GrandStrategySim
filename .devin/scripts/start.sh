@@ -160,6 +160,22 @@ else
 No cross-agent blockers targeting you. Use 'bash .devin/scripts/block.sh <to_agent|all> <file> \"<message>\"' to post a blocker to another agent."
 fi
 
+# v2.3: Inject SOP into agent context
+SOP_FILE="${DEVIN_PROJECT_DIR:-$(pwd)}/.devin/SOP.md"
+# Also check parent hub for external worktrees
+if [ ! -f "$SOP_FILE" ]; then
+    SOP_FILE="$(cd "${DEVIN_PROJECT_DIR:-$(pwd)}/.." 2>/dev/null && pwd)/SillyElaborateState/.devin/SOP.md"
+fi
+SOP_CONTENT=""
+if [ -f "$SOP_FILE" ]; then
+    SOP_CONTENT=$(cat "$SOP_FILE")
+    ADDITIONAL_CONTEXT="$ADDITIONAL_CONTEXT
+
+=== STANDARD OPERATING PROCEDURE ===
+$SOP_CONTENT
+=== END SOP ==="
+fi
+
 # Output JSON for Devin to inject into context
 node -e '
     const ctx = process.argv[1];

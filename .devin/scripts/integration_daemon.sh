@@ -330,7 +330,7 @@ run_cicd() {
     fi
 
     # Step 3: Run all 5 CI/CD steps on staging (with watchdog timeouts)
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [1/5] cargo build... (timeout: 600s)"
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [1/6] cargo build... (timeout: 600s)"
     timeout 600 cargo build --workspace 2>&1 | tee "${log_prefix}_build.txt" | tail -3
     local build_rc=${PIPESTATUS[0]}
     if [ $build_rc -ne 0 ]; then
@@ -347,15 +347,32 @@ run_cicd() {
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [2/5] cargo test (excluding smoke test)... (timeout: 600s)"
-    timeout 600 cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -5
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [2a/6] cargo test --no-run (compiling tests)... (timeout: 600s)"
+    timeout 600 cargo test --workspace --all-targets --no-run 2>&1 | tee "${log_prefix}_test_compile.txt" | tail -3
+    local test_compile_rc=${PIPESTATUS[0]}
+    if [ $test_compile_rc -ne 0 ]; then
+        git checkout main 2>/dev/null
+        if [ $test_compile_rc -eq 124 ]; then
+            echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "TIMEOUT_FAILED"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test --no-run TIMEOUT (exceeded 600s)"
+        else
+            echo "TEST_COMPILE_FAILED" > "${log_prefix}_FAILED.txt"
+            echo "TEST_COMPILE_FAILED"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test --no-run (rc=$test_compile_rc)"
+        fi
+        return 1
+    fi
+
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [2b/6] cargo test (executing, skip smoke)... (timeout: 120s)"
+    timeout 120 cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -5
     local test_rc=${PIPESTATUS[0]}
     if [ $test_rc -ne 0 ]; then
         git checkout main 2>/dev/null
         if [ $test_rc -eq 124 ]; then
             echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
             echo "TIMEOUT_FAILED"
-            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test TIMEOUT (exceeded 300s)"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test execution TIMEOUT (exceeded 120s)"
         else
             echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
             echo "TEST_FAILED"
@@ -364,7 +381,7 @@ run_cicd() {
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [3/5] cargo clippy... (timeout: 600s)"
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [3/6] cargo clippy... (timeout: 600s)"
     timeout 600 cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tee "${log_prefix}_clippy.txt" | tail -3
     local clippy_rc=${PIPESTATUS[0]}
     if [ $clippy_rc -ne 0 ]; then
@@ -381,7 +398,7 @@ run_cicd() {
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [4/5] npm run build... (timeout: 180s)"
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [4/6] npm run build... (timeout: 180s)"
     timeout 180 npm run build 2>&1 | tee "${log_prefix}_npm.txt" | tail -3
     local npm_rc=${PIPESTATUS[0]}
     if [ $npm_rc -ne 0 ]; then
@@ -398,7 +415,7 @@ run_cicd() {
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [5/5] headless 50-tick smoke test... (timeout: 600s)"
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [5/6] headless 50-tick smoke test... (timeout: 600s)"
     timeout 600 cargo test --workspace --test headless_smoke_test -- headless_50_tick_smoke --nocapture 2>&1 | tee "${log_prefix}_smoke.txt"
     local smoke_rc=${PIPESTATUS[0]}
     if [ $smoke_rc -ne 0 ]; then
@@ -507,7 +524,7 @@ process_integration_request() {
     if [ $cicd_rc -ne 0 ]; then
         # CI/CD FAILED — update failure state
         local fail_reason
-        fail_reason=$(grep -E "^(MERGE_CONFLICT:|BUILD_FAILED|TEST_FAILED|CLIPPY_FAILED|NPM_FAILED|SMOKE_FAILED|TIMEOUT_FAILED|DIRTY_TREE_TIMEOUT|EMPTY_BRANCH|MERGE_NOOP)" "$cicd_log" | head -1)
+        fail_reason=$(grep -E "^(MERGE_CONFLICT:|BUILD_FAILED|TEST_COMPILE_FAILED|TEST_FAILED|CLIPPY_FAILED|NPM_FAILED|SMOKE_FAILED|TIMEOUT_FAILED|DIRTY_TREE_TIMEOUT|EMPTY_BRANCH|MERGE_NOOP)" "$cicd_log" | head -1)
         [ -z "$fail_reason" ] && fail_reason="UNKNOWN_FAILURE"
         local state_update
         state_update=$(update_failure_state "$EVENT_BRANCH" "failure" "$fail_reason")
@@ -528,7 +545,7 @@ process_integration_request() {
             "{\"branch\":\"$EVENT_BRANCH\",\"reason\":\"CI/CD failed: $fail_reason\",\"action\":\"Fix errors and re-run request_integration.sh\"}" 2>/dev/null
 
         # Emit SYSTEM_ALERT to User
-        local alert_reason=$(echo "$fail_reason" | sed 's/MERGE_CONFLICT:/Merge Conflict in /; s/BUILD_FAILED/Cargo Build Failed/; s/TEST_FAILED/Cargo Test Failed/; s/CLIPPY_FAILED/Cargo Clippy Failed/; s/NPM_FAILED/NPM Build Failed/; s/SMOKE_FAILED/Headless Smoke Test Failed/; s/TIMEOUT_FAILED/CI\/CD Stage Timeout/; s/DIRTY_TREE_TIMEOUT/Dirty Tree Timeout (5 min wait exceeded)/; s/EMPTY_BRANCH_NO_COMMITS/Empty Branch — No Commits Ahead of Main/; s/EMPTY_BRANCH_NO_DIFFS/Empty Branch — No File Differences vs Main/; s/MERGE_NOOP/Merge Produced No Tree Changes (False Merge)/')
+        local alert_reason=$(echo "$fail_reason" | sed 's/MERGE_CONFLICT:/Merge Conflict in /; s/BUILD_FAILED/Cargo Build Failed/; s/TEST_COMPILE_FAILED/Cargo Test Compilation Failed/; s/TEST_FAILED/Cargo Test Failed/; s/CLIPPY_FAILED/Cargo Clippy Failed/; s/NPM_FAILED/NPM Build Failed/; s/SMOKE_FAILED/Headless Smoke Test Failed/; s/TIMEOUT_FAILED/CI\/CD Stage Timeout/; s/DIRTY_TREE_TIMEOUT/Dirty Tree Timeout (5 min wait exceeded)/; s/EMPTY_BRANCH_NO_COMMITS/Empty Branch — No Commits Ahead of Main/; s/EMPTY_BRANCH_NO_DIFFS/Empty Branch — No File Differences vs Main/; s/MERGE_NOOP/Merge Produced No Tree Changes (False Merge)/')
         bash "$SCRIPT_DIR/emit_event.sh" "SYSTEM_ALERT" "agent-5" "user" \
             "{\"failed_branch\":\"$EVENT_BRANCH\",\"assigned_worker\":\"$EVENT_SOURCE\",\"reason\":\"$alert_reason\"}" 2>/dev/null
 
@@ -597,67 +614,62 @@ NODE_EOF
     return 0
 }
 
-# ─── Helper: Check sprint completion (PROMOTED_TO_MAIN events only) ────────
-# v2.0: Scans BOTH events/ and .archive/ for PROMOTED_TO_MAIN events.
+# ─── Helper: Check sprint completion via sprint_manifest.txt (v2.3) ────────
+# Reads .devin/sprint_manifest.txt and checks if all listed branches have
+# PROMOTED_TO_MAIN events in events/ or .archive/.
+# Returns 0 if all branches promoted, 1 otherwise.
 check_sprint_complete() {
-    local roadmap="$HUB_DIR/.devin/tasks/design_review/roadmap.json"
-    local events_dir="$HUB_DIR/.devin/events"
-    local events_archive="$HUB_DIR/.devin/events/.archive"
-    [ -f "$roadmap" ] || return 1
-    [ -d "$events_archive" ] || return 1
+    local manifest="$HUB_DIR/.devin/sprint_manifest.txt"
+    [ -f "$manifest" ] || return 1
 
-    ROADMAP_IN="$roadmap" EVENTS_IN="$events_dir" ARCHIVE_IN="$events_archive" node <<'NODE_EOF'
-        const fs = require("fs");
-        const path = require("path");
+    # Read manifest branches (skip comments/blank lines)
+    local branches
+    branches=$(grep -v '^#' "$manifest" | grep -v '^$' | sort -u)
+    [ -n "$branches" ] || return 1
 
-        function readJson(f) {
-            let raw = fs.readFileSync(f, "utf8");
-            if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
-            return JSON.parse(raw);
-        }
+    local total
+    total=$(echo "$branches" | wc -l)
+    [ "$total" -gt 0 ] || return 1
 
-        let roadmap;
-        try {
-            roadmap = readJson(process.env.ROADMAP_IN);
-        } catch(e) {
-            console.error("Cannot read roadmap: " + e.message);
-            process.exit(2);
-        }
-        const expectedBranches = new Set(roadmap.blueprints.map(b => b.branch));
-        const total = expectedBranches.size;
-        if (total === 0) { process.exit(1); }
-
-        // v2.0: Scan BOTH events/ and .archive/ for PROMOTED_TO_MAIN
-        const promotedBranches = new Set();
-        const scanDirs = [process.env.EVENTS_IN, process.env.ARCHIVE_IN];
-        for (const dir of scanDirs) {
-            try {
-                const files = fs.readdirSync(dir).filter(f => f.endsWith(".json"));
+    # Scan events/ and .archive/ for PROMOTED_TO_MAIN branches
+    local promoted
+    promoted=$(find "$EVENTS_DIR" "$ARCHIVE_DIR" -name "*PROMOTED_TO_MAIN*.json" -type f 2>/dev/null \
+        | EVENT_FILES_STDIN="$EVENTS_DIR" node <<'NODE_EOF'
+            const fs = require("fs");
+            let input = "";
+            process.stdin.on("data", d => input += d);
+            process.stdin.on("end", () => {
+                const files = input.trim().split("\n").filter(f => f);
+                const branches = new Set();
                 for (const f of files) {
                     try {
-                        const evt = readJson(path.join(dir, f));
+                        let raw = fs.readFileSync(f, "utf8");
+                        if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+                        const evt = JSON.parse(raw);
                         if (evt.type === "PROMOTED_TO_MAIN" && evt.payload && evt.payload.branch) {
-                            promotedBranches.add(evt.payload.branch);
+                            branches.add(evt.payload.branch);
                         }
                     } catch(e) { continue; }
                 }
-            } catch(e) { continue; }
-        }
-
-        let completed = 0;
-        for (const b of expectedBranches) {
-            if (promotedBranches.has(b)) completed++;
-        }
-
-        if (completed >= total) {
-            console.log("COMPLETED=" + completed + "/" + total);
-            process.exit(0);
-        } else {
-            console.log("PROGRESS=" + completed + "/" + total);
-            process.exit(1);
-        }
+                for (const b of branches) console.log(b);
+            });
 NODE_EOF
-    return $?
+    )
+
+    local completed=0
+    while IFS= read -r branch; do
+        if echo "$promoted" | grep -qxF "$branch"; then
+            completed=$((completed + 1))
+        fi
+    done <<< "$branches"
+
+    if [ "$completed" -ge "$total" ]; then
+        echo "[$(date -u +%H:%M:%S)] Sprint check: COMPLETED=$completed/$total"
+        return 0
+    else
+        echo "[$(date -u +%H:%M:%S)] Sprint check: PROGRESS=$completed/$total"
+        return 1
+    fi
 }
 
 # ─── Helper: Automated archive hygiene ─────────────────────────────────────
@@ -683,20 +695,123 @@ cleanup_old_files() {
     fi
 }
 
+# ─── Helper: Rescue rogue events from worktrees (v2.3) ─────────────────────
+# Scans .devin/worktrees/ for INTEGRATION_REQUESTED JSON files that were
+# erroneously dropped into worktree-local event dirs instead of the hub.
+# Moves them to the hub queue for processing.
+rescue_worktree_events() {
+    local wt_dir="$HUB_DIR/.devin/worktrees"
+    [ -d "$wt_dir" ] || return 0
+
+    local rogue_events
+    rogue_events=$(find "$wt_dir" -path "*/.devin/events/*INTEGRATION_REQUESTED*.json" -type f 2>/dev/null)
+
+    if [ -n "$rogue_events" ]; then
+        echo "[$(date -u +%H:%M:%S)] WORKTREE RESCUE: Found rogue events in worktrees."
+        while IFS= read -r evt; do
+            [ -f "$evt" ] || continue
+            local basename_evt
+            basename_evt=$(basename "$evt")
+            echo "  Rescuing: $basename_evt"
+            mv "$evt" "$EVENTS_DIR/" 2>/dev/null || true
+        done <<< "$rogue_events"
+    fi
+}
+
+# ─── Helper: Process AUDIT_FAIL event (v2.3) ───────────────────────────────
+# Parses Agent 4's structured AUDIT_FAIL JSON, identifies failing blueprints,
+# and emits REMEDIATION_REQUESTED events to the responsible worker agents.
+process_audit_fail() {
+    local event_file="$1"
+    local map_file="$HUB_DIR/.devin/blueprint_agent_map.json"
+
+    [ -f "$map_file" ] || { echo "[$(date -u +%H:%M:%S)] AUDIT_FAIL: No blueprint_agent_map.json — cannot route." >&2; return 1; }
+
+    echo "[$(date -u +%H:%M:%S)] Processing AUDIT_FAIL: $(basename "$event_file")"
+
+    AUDIT_IN="$event_file" MAP_IN="$map_file" SCRIPT_DIR="$SCRIPT_DIR" node <<'NODE_EOF'
+        const fs = require("fs");
+        const { execSync } = require("child_process");
+
+        function readJson(f) {
+            let raw = fs.readFileSync(f, "utf8");
+            if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+            return JSON.parse(raw);
+        }
+
+        const audit = readJson(process.env.AUDIT_IN);
+        const map = readJson(process.env.MAP_IN);
+        const results = audit.payload.blueprint_results || [];
+        const failedChecks = audit.payload.failed_checks || [];
+        const scriptDir = process.env.SCRIPT_DIR;
+
+        let routed = 0;
+        for (const result of results) {
+            if (result.verdict === "PASS") continue;
+
+            const bpId = result.id;
+            const mapping = map[bpId];
+            if (!mapping) {
+                console.error("  WARNING: No mapping for blueprint " + bpId + " — skipping");
+                continue;
+            }
+
+            const bpFailures = failedChecks.filter(c => c.startsWith(bpId + ":"));
+
+            const payload = JSON.stringify({
+                blueprint_id: bpId,
+                branch: mapping.branch,
+                verdict: result.verdict,
+                reason: result.reason,
+                failed_checks: bpFailures,
+                audit_fail_event: audit.id,
+                action: "Fix the listed failures and re-run request_integration.sh"
+            }).replace(/'/g, "'\\''");
+
+            try {
+                execSync(`bash "${scriptDir}/emit_event.sh" REMEDIATION_REQUESTED agent-5 ${mapping.agent} '${payload}'`, { stdio: "inherit" });
+                routed++;
+            } catch(e) {
+                console.error("  Failed to emit REMEDIATION_REQUESTED for " + bpId);
+            }
+        }
+
+        // Emit SYSTEM_ALERT to user
+        const alertPayload = JSON.stringify({
+            verdict: audit.payload.verdict,
+            failed_blueprints: results.filter(r => r.verdict !== "PASS").map(r => r.id),
+            requires_remediation: audit.payload.requires_remediation,
+            routed_count: routed
+        }).replace(/'/g, "'\\''");
+        try {
+            execSync(`bash "${scriptDir}/emit_event.sh" SYSTEM_ALERT agent-5 user '${alertPayload}'`, { stdio: "inherit" });
+        } catch(e) {}
+
+        console.log("  Routed " + routed + " REMEDIATION_REQUESTED events to workers.");
+NODE_EOF
+
+    mv "$event_file" "$ARCHIVE_DIR/" 2>/dev/null || true
+    echo "[$(date -u +%H:%M:%S)] AUDIT_FAIL processed and archived."
+    return 0
+}
+
 # ─── Main Loop ─────────────────────────────────────────────────────────────
 echo ""
 echo "============================================================"
-echo "  INTEGRATION DAEMON v2.2 — Agent 5 (Manager)"
+echo "  INTEGRATION DAEMON v2.3 — Agent 5 (Manager)"
 echo "  PID: $$"
 echo "  HUB_DIR: $HUB_DIR"
 echo "  Poll interval: ${POLL_INTERVAL}s"
 echo "  SKIP_AUDIT: ${SKIP_AUDIT:-0}"
-echo "  CI/CD path: run_cicd() — 5-stage Iron pipeline with watchdog timeouts + empty branch guard"
+echo "  CI/CD path: run_cicd() — 6-stage Iron pipeline with watchdog timeouts + empty branch guard"
 echo "  Deadlock guard: ${MAX_CONSECUTIVE_FAILURES}-strike auto-block"
-echo "  Watchdog: POSIX timeout on all stages (build/test/clippy/smoke: 600s, npm: 180s)"
+echo "  Watchdog: POSIX timeout (build/test-compile/test-exec/clippy/smoke: 600s/600s/120s/600s/600s, npm: 180s)"
 echo "  Empty branch guard: rejects branches with no commits/diffs ahead of main"
 echo "  Merge verification: git diff main HEAD (tree-vs-tree, not merge-base)"
 echo "  Output streaming: tee + PIPESTATUS for real-time logging + correct exit codes"
+echo "  Worktree rescue: scans .devin/worktrees/ for rogue events every cycle"
+echo "  AUDIT_FAIL routing: auto-emits REMEDIATION_REQUESTED to mapped workers"
+echo "  Sprint trigger: sprint_manifest.txt-based (dynamic, not hardcoded roadmap)"
 echo "  Hygiene: 7-day archive cleanup every 100 cycles"
 echo "  Started: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "============================================================"
@@ -713,6 +828,19 @@ while true; do
         cleanup_old_files
     fi
 
+    # v2.3: Rescue rogue events from worktrees before scanning hub queue
+    rescue_worktree_events
+
+    # v2.3: Process AUDIT_FAIL events (auto-route REMEDIATION_REQUESTED to workers)
+    AUDIT_FAIL_FILES=$(find "$EVENTS_DIR" -maxdepth 1 -name "*AUDIT_FAIL*" -not -name "*CORRECTION*" -type f 2>/dev/null)
+    if [ -n "$AUDIT_FAIL_FILES" ]; then
+        echo "[$NOW] Cycle $CYCLE — AUDIT_FAIL events detected!"
+        while IFS= read -r af_file; do
+            [ -f "$af_file" ] || continue
+            process_audit_fail "$af_file"
+        done <<< "$AUDIT_FAIL_FILES"
+    fi
+
     # Find INTEGRATION_REQUESTED events (maxdepth 1 — do NOT scan .archive/)
     EVENT_FILES=$(find "$EVENTS_DIR" -maxdepth 1 -name "*INTEGRATION_REQUESTED*" -type f 2>/dev/null)
 
@@ -724,27 +852,21 @@ while true; do
             process_integration_request "$event_file"
         done <<< "$EVENT_FILES"
 
-        # Check sprint completion after each integration
-        # DISABLED v2.2: Sprint check causes false AUDIT_REQUESTED during hotfix integration.
-        # The 7/7 counter reflects the previous blueprint sprint, not the current FIX branches.
-        # Re-enable when starting a new formal blueprint sprint.
-        # if check_sprint_complete; then
-        #     echo ""
-        #     echo "============================================================"
-        #     echo "  ALL BLUEPRINTS INTEGRATED AND MERGED TO MAIN"
-        #     echo "  AUDIT_REQUESTED event emitted to Agent 4"
-        #     echo "  Agent 4 must now run the comprehensive system-wide audit:"
-        #     echo "    - M0 conservation (emigration forex flow)"
-        #     echo "    - Off-grid physics (water-to-pollution mass conservation)"
-        #     echo "    - Demographic stability (cooperative collapse routing)"
-        #     echo "============================================================"
-        #
-        #     bash "$SCRIPT_DIR/emit_event.sh" "AUDIT_REQUESTED" "agent-5" "agent-4" \
-        #         '{"reason":"All blueprints merged to main. Run comprehensive system-wide test suite.","verification_targets":["M0 conservation (emigration forex flow)","Off-grid physics (water-to-pollution mass conservation)","Demographic stability (cooperative collapse routing)"]}' 2>/dev/null
-        #
-        #     echo "[$(date -u +%H:%M:%S)] AUDIT_REQUESTED emitted. Daemon exiting."
-        #     break
-        # fi
+        # v2.3: Check sprint completion via sprint_manifest.txt (dynamic, not hardcoded)
+        if check_sprint_complete; then
+            echo ""
+            echo "============================================================"
+            echo "  ALL SPRINT BRANCHES INTEGRATED AND MERGED TO MAIN"
+            echo "  AUDIT_REQUESTED event emitted to Agent 4"
+            echo "  Agent 4 must now run the comprehensive system-wide audit"
+            echo "  against all 23 Global Rules."
+            echo "============================================================"
+
+            bash "$SCRIPT_DIR/emit_event.sh" "AUDIT_REQUESTED" "agent-5" "agent-4" \
+                '{"reason":"All sprint manifest branches merged to main. Run comprehensive 23-rule macro-architectural audit.","audit_type":"full_macro_architectural"}' 2>/dev/null
+
+            echo "[$(date -u +%H:%M:%S)] AUDIT_REQUESTED emitted. Daemon continuing to monitor for AUDIT_FAIL."
+        fi
     else
         # Quiet cycle — print status every 10 cycles (~2.5 min)
         if [ $((CYCLE % 10)) -eq 0 ]; then

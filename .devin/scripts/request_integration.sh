@@ -37,6 +37,43 @@ if [[ "$CURRENT_PWD" != *".devin/worktrees/"* ]] && [[ "$CURRENT_PWD" != *"-agen
     exit 1
 fi
 
+# ─── Pre-Integration Guard (v2.3) ──────────────────────────────────────────
+# Force local cargo check + test before emitting the event.
+# Prevents hallucinated "all tests pass" submissions.
+if [ -f Cargo.toml ]; then
+    echo ""
+    echo "=== Pre-Integration Guard: Local CI Verification ==="
+    echo "Running cargo check..."
+    if ! cargo check --workspace 2>&1; then
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════════════╗"
+        echo "║  PRE-INTEGRATION GUARD: cargo check FAILED                      ║"
+        echo "║                                                                  ║"
+        echo "║  Your code does not compile. Fix errors before requesting        ║"
+        echo "║  integration. The INTEGRATION_REQUESTED event has NOT been       ║"
+        echo "║  emitted.                                                        ║"
+        echo "╚══════════════════════════════════════════════════════════════════╝"
+        exit 1
+    fi
+
+    echo "Running cargo test (excluding smoke)..."
+    if ! cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1; then
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════════════╗"
+        echo "║  PRE-INTEGRATION GUARD: cargo test FAILED                       ║"
+        echo "║                                                                  ║"
+        echo "║  Local tests fail. Fix failing tests before requesting           ║"
+        echo "║  integration. The INTEGRATION_REQUESTED event has NOT been       ║"
+        echo "║  emitted.                                                        ║"
+        echo "╚══════════════════════════════════════════════════════════════════╝"
+        exit 1
+    fi
+
+    echo ""
+    echo "Pre-Integration Guard: PASS (cargo check + cargo test green)"
+    echo ""
+fi
+
 # ─── Validate arguments ────────────────────────────────────────────────────
 if [ $# -lt 1 ]; then
     echo "Usage: bash .devin/scripts/request_integration.sh \"<description>\"" >&2

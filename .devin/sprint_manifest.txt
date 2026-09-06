@@ -1,0 +1,9 @@
+# Sprint Manifest — Dynamic Audit Trigger
+# Each line is a branch name that must be promoted to main before
+# AUDIT_REQUESTED is emitted. Lines starting with # are comments.
+# The daemon checks this file after every successful promotion.
+# When all listed branches have PROMOTED_TO_MAIN events, the audit fires.
+# To start a new sprint: edit this file, or use /kickoff (auto-updates).
+fix/agent-1-waterwell-mass-conservation
+fix/agent-2-m0-demographics-cooperatives
+fix/agent-3-sports-recreation-impl

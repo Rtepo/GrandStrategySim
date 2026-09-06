@@ -36,18 +36,34 @@ if [ -z "$EVENT_PAYLOAD" ]; then
     EVENT_PAYLOAD="{}"
 fi
 
-# ─── Detect hub directory ──────────────────────────────────────────────────
-# If running in a worker worktree, the hub is at ../SillyElaborateState/
-# If running in the primary hub, HUB_DIR is the current directory.
-PROJECT_DIR="${DEVIN_PROJECT_DIR:-$(pwd)}"
-PARENT_DIR="$(cd "$PROJECT_DIR/.." && pwd)"
-HUB_CANDIDATE="$PARENT_DIR/SillyElaborateState"
-
-if [ -d "$HUB_CANDIDATE/.devin" ]; then
-    HUB_DIR="$HUB_CANDIDATE"
-else
-    HUB_DIR="$PROJECT_DIR"
-fi
+# ─── Detect hub directory (v2.3) ───────────────────────────────────────────
+# Walks up the directory tree to find the hub, skipping /worktrees/ paths.
+# Falls back to old parent-dir logic for external worktrees.
+detect_hub_dir() {
+    local dir="${DEVIN_PROJECT_DIR:-$(pwd)}"
+    while [ "$dir" != "/" ] && [ -n "$dir" ]; do
+        # Skip paths containing /worktrees/ (internal worktrees)
+        case "$dir" in
+            */worktrees/*) ;;
+            *)
+                if [ -d "$dir/.devin/events" ]; then
+                    echo "$dir"
+                    return 0
+                fi
+                ;;
+        esac
+        dir="$(cd "$dir/.." 2>/dev/null && pwd)"
+    done
+    # Fallback: old logic for external worktrees (e.g. SillyElaborateState-agent-1-water)
+    local parent
+    parent="$(cd "${DEVIN_PROJECT_DIR:-$(pwd)}/.." 2>/dev/null && pwd)"
+    if [ -d "$parent/SillyElaborateState/.devin" ]; then
+        echo "$parent/SillyElaborateState"
+        return 0
+    fi
+    echo "${DEVIN_PROJECT_DIR:-$(pwd)}"  # last resort
+}
+HUB_DIR="$(detect_hub_dir)"
 
 # ─── Create event directories if missing ───────────────────────────────────
 EVENTS_DIR="$HUB_DIR/.devin/events"
