@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # console.sh v1.0 â€” Command Console for SillyElaborateState infrastructure.
 #
 # The user-facing CLI for daemon management, sprint kickoff, audit triggering,
