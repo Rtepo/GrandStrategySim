@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "last_updated": "2026-09-06T09:30:50.347Z",
+  "last_updated": "2026-09-06T17:32:52.672Z",
   "last_green_commit": "923d9dc0c3d955f60e8056f7f7d344e1f3df1b13",
   "last_green_commit_at": "2026-09-05T22:03:01.164Z",
   "agents": [
@@ -91,6 +91,16 @@
       "status": "inactive",
       "registered_at": "2026-09-06T07:48:32.964Z",
       "last_heartbeat": "2026-09-06T07:48:32.966Z"
+    },
+    {
+      "agent_id": "agent-d801903d",
+      "session_id": "coffee-zebu",
+      "branch": "main",
+      "locked_dirs": [],
+      "task": "session-startup",
+      "status": "active",
+      "registered_at": "2026-09-06T17:32:52.670Z",
+      "last_heartbeat": "2026-09-06T17:32:52.672Z"
     }
   ],
   "cross_agent_blockers": [
