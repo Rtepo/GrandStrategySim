@@ -1,8 +1,8 @@
 #!/bin/bash
-# console.sh v1.0 â€” Command Console for SillyElaborateState infrastructure.
+# console.sh v1.0 - Command Console for SillyElaborateState infrastructure.
 #
 # The user-facing CLI for daemon management, sprint kickoff, audit triggering,
-# and failure routing. All commands maximize internal automation â€” no manual
+# and failure routing. All commands maximize internal automation - no manual
 # ID or branch hunting required.
 #
 # Usage: bash .devin/scripts/console.sh <command> [args]
@@ -15,7 +15,7 @@ export HUB_DIR
 
 source "$SCRIPT_DIR/sync_lib.sh"
 
-# â”€â”€â”€ $kickoff <agent> <blueprint_id> â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $kickoff <agent> <blueprint_id> ---------------------------------------
 cmd_kickoff() {
     local agent="${1:-}"
     local blueprint_id="${2:-}"
@@ -149,7 +149,7 @@ NODE_EOF
     echo "  Blueprint mapping registered"
 }
 
-# â”€â”€â”€ $audit_standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $audit_standard -------------------------------------------------------
 cmd_audit_standard() {
     echo "=== $audit_standard: Emitting AUDIT_REQUESTED to Agent 4 ==="
 
@@ -182,7 +182,7 @@ cmd_audit_standard() {
         ];
 
         const payload = {
-            reason: "Manual audit trigger â€” full 23-rule verification requested",
+            reason: "Manual audit trigger - full 23-rule verification requested",
             verification_targets: rules,
             audit_type: "full_macro_architectural",
             staging_commit: "current_main_head",
@@ -201,7 +201,7 @@ NODE_EOF
     echo "  Agent 4 will output AUDIT_FAIL (structured JSON) or AUDIT_PASS"
 }
 
-# â”€â”€â”€ $forward_fail [latest|<event_id>] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $forward_fail [latest|<event_id>] -------------------------------------
 cmd_forward_fail() {
     local target="${1:-latest}"
 
@@ -290,7 +290,7 @@ NODE_EOF
             const bpId = result.id;
             const mapping = map[bpId];
             if (!mapping) {
-                console.log("  WARNING: No mapping for " + bpId + " â€” skipping");
+                console.log("  WARNING: No mapping for " + bpId + " - skipping");
                 continue;
             }
 
@@ -321,7 +321,7 @@ NODE_EOF
     echo "=== $forward_fail complete ==="
 }
 
-# â”€â”€â”€ $unblock <agent> â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $unblock <agent> ------------------------------------------------------
 cmd_unblock() {
     local agent="${1:-}"
 
@@ -401,7 +401,7 @@ NODE_EOF
 
     if [ -z "$branch" ]; then
         echo "  ERROR: Could not determine branch for $agent."
-        echo "  Usage: $unblock <agent> â€” agent must have an entry in blueprint_agent_map.json"
+        echo "  Usage: $unblock <agent> - agent must have an entry in blueprint_agent_map.json"
         exit 1
     fi
 
@@ -473,11 +473,11 @@ NODE_EOF
     echo "  CLARIFICATION_REQUESTED emitted to $agent"
 }
 
-# â”€â”€â”€ /help â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $menu -----------------------------------------------------------------
 cmd_help() {
     cat <<'HELP'
 ============================================================
-  Command Console â€” SillyElaborateState Infrastructure v2.3
+  Command Console - SillyElaborateState Infrastructure v2.3
 ============================================================
 
   $kickoff <agent> <blueprint_id>
@@ -524,7 +524,7 @@ cmd_help() {
 HELP
 }
 
-# â”€â”€â”€ $pulse â€” Telemetry dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $pulse - Telemetry dashboard ------------------------------------------
 cmd_pulse() {
     echo "=== $pulse: System Telemetry ==="
     echo ""
@@ -564,7 +564,7 @@ cmd_pulse() {
                     status="PROMOTED"
                     promoted=$((promoted + 1))
                 fi
-                echo "    $br â€” $status"
+                echo "    $br - $status"
             done <<< "$branches"
             echo "  Sprint progress: $promoted/$total promoted"
         else
@@ -621,7 +621,7 @@ NODE_EOF
     echo "=== $pulse complete ==="
 }
 
-# â”€â”€â”€ $logs <agent> â€” Quick failure log access â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $logs <agent> - Quick failure log access ------------------------------
 cmd_logs() {
     local agent="${1:-}"
 
@@ -708,7 +708,7 @@ NODE_EOF
     echo "=== $logs complete ==="
 }
 
-# â”€â”€â”€ $override <agent> â€” Administrative fast-track merge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $override <agent> - Administrative fast-track merge -------------------
 cmd_override() {
     local agent="${1:-}"
 
@@ -832,7 +832,7 @@ NODE_EOF
     echo "  Failure state reset for $branch"
 }
 
-# â”€â”€â”€ $smoke_main â€” Run smoke test on main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $smoke_main - Run smoke test on main ----------------------------------
 cmd_smoke_main() {
     echo "=== $smoke_main: Headless 50-tick smoke test on main ==="
     echo ""
@@ -865,7 +865,7 @@ cmd_smoke_main() {
     fi
 }
 
-# â”€â”€â”€ $daemon â€” Restart the integration daemon â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $daemon - Restart the integration daemon ------------------------------
 cmd_daemon() {
     echo "=== $daemon: Restarting integration daemon ==="
     echo ""
@@ -895,7 +895,7 @@ cmd_daemon() {
     echo "=== $daemon complete ==="
 }
 
-# â”€â”€â”€ $release <version> â€” Version bump, tag, and push â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- $release <version> - Version bump, tag, and push ----------------------
 cmd_release() {
     local version="${1:-}"
 
@@ -1051,7 +1051,7 @@ NODE_EOF
     echo "  Pushed to origin"
 }
 
-# â”€â”€â”€ Command Router (must be after all function definitions) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Command Router (must be after all function definitions) ---------------
 COMMAND="${1:-}"
 shift || true
 

@@ -1,4 +1,4 @@
-﻿# Command Reference â€” SillyElaborateState Infrastructure v2.3
+# Command Reference - SillyElaborateState Infrastructure v2.3
 
 ## Quick Start
 
@@ -10,7 +10,7 @@ bash .devin/scripts/console.sh <command> [args]
 
 ## Commands
 
-### $kickoff â€” Assign Blueprint to Worker
+### $kickoff - Assign Blueprint to Worker
 
 **When to use:** After Agent 4 (Architect) drafts a roadmap and gives you the agent + blueprint ID.
 
@@ -31,7 +31,7 @@ bash .devin/scripts/console.sh $kickoff agent-3 004-FIX
 
 ---
 
-### $audit_standard â€” Trigger Full Audit
+### $audit_standard - Trigger Full Audit
 
 **When to use:** When all sprint branches are merged and you want Agent 4 to run the comprehensive 23-rule audit.
 
@@ -49,7 +49,7 @@ bash .devin/scripts/console.sh $audit_standard
 
 ---
 
-### $forward_fail â€” Route Audit Failures to Workers
+### $forward_fail - Route Audit Failures to Workers
 
 **When to use:** After Agent 4 emits `AUDIT_FAIL` and you want to automatically route the failures to the responsible workers.
 
@@ -69,7 +69,7 @@ bash .devin/scripts/console.sh $forward_fail latest
 
 ---
 
-### $unblock â€” Clear CI/CD Block
+### $unblock - Clear CI/CD Block
 
 **When to use:** When a worker agent hits the 3-strike CI/CD failure limit and is blocked.
 
@@ -89,7 +89,7 @@ bash .devin/scripts/console.sh $unblock agent-3
 
 ---
 
-### $pulse â€” System Telemetry Dashboard
+### $pulse - System Telemetry Dashboard
 
 **When to use:** Quick health check of the daemon, sprint progress, and agent strike status.
 
@@ -107,7 +107,7 @@ bash .devin/scripts/console.sh $pulse
 
 ---
 
-### $logs â€” Quick Failure Log Access
+### $logs - Quick Failure Log Access
 
 **When to use:** When an agent fails CI/CD and you want to see the exact error without hunting for log files.
 
@@ -126,7 +126,7 @@ bash .devin/scripts/console.sh $logs agent-3
 
 ---
 
-### $override â€” Administrative Fast-Track Merge
+### $override - Administrative Fast-Track Merge
 
 **When to use:** When changes are trivial (docs, typos, config) and waiting 10 minutes for CI/CD is wasteful.
 
@@ -148,7 +148,7 @@ bash .devin/scripts/console.sh $override agent-3
 
 ---
 
-### $smoke_main â€” Run Smoke Test on Main
+### $smoke_main - Run Smoke Test on Main
 
 **When to use:** Before generating new roadmaps or after major merges to verify baseline macroeconomic stability.
 
@@ -167,7 +167,7 @@ bash .devin/scripts/console.sh $smoke_main
 
 ---
 
-### $daemon â€” Restart Integration Daemon
+### $daemon - Restart Integration Daemon
 
 **When to use:** When the daemon is hanging, stuck in a dirty-tree loop, or needs a fresh start after infrastructure updates.
 
@@ -186,7 +186,7 @@ bash .devin/scripts/console.sh $daemon
 
 ---
 
-### $release â€” Version Bump, Tag, and Push
+### $release - Version Bump, Tag, and Push
 
 **When to use:** When preparing a new GitHub release.
 
@@ -206,7 +206,7 @@ bash .devin/scripts/console.sh $release 1.2.0
 
 ---
 
-### $menu â€” Show Help Screen
+### $menu - Show Help Screen
 
 **When to use:** When you forget the available commands or their syntax.
 
