@@ -1234,15 +1234,46 @@ NODE_EOF
         }
 NODE_EOF
 
-    # Archive ALL pending events for this agent (flush inbox completely)
-    local archived_count=0
-    echo "$all_files" | tr ';' '\n' | while IFS= read -r f; do
-        [ -f "$f" ] || continue
-        mv "$f" "$archive_dir/" 2>/dev/null && archived_count=$((archived_count + 1))
-    done
+    # Archive ALL pending events for this agent — safe per-file target verification
+    # Re-scans events_dir, parses each JSON, and ONLY moves files where
+    # target === agent. No blanket wildcards. No stale list reuse.
+    local archived_count
+    archived_count=$(AGENT="$agent" EVENTS_DIR="$events_dir" ARCHIVE_DIR="$archive_dir" node <<'NODE_EOF'
+        const fs = require("fs");
+        const path = require("path");
+        const dir = process.env.EVENTS_DIR;
+        const archiveDir = process.env.ARCHIVE_DIR;
+        const agent = process.env.AGENT;
+        let count = 0;
+        try {
+            const files = fs.readdirSync(dir)
+                .filter(f => f.endsWith(".json") && !f.startsWith("."));
+            for (const f of files) {
+                const src = path.join(dir, f);
+                try {
+                    let raw = fs.readFileSync(src, "utf8");
+                    if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+                    const evt = JSON.parse(raw);
+                    // STRICT: only move if target exactly matches this agent
+                    if (evt.target === agent) {
+                        const dst = path.join(archiveDir, f);
+                        fs.renameSync(src, dst);
+                        count++;
+                    }
+                } catch(e) {
+                    // Skip unparseable or invalid JSON — do NOT move
+                    continue;
+                }
+            }
+        } catch(e) {
+            process.stderr.write("Archive error: " + e.message + "\n");
+        }
+        console.log(count);
+NODE_EOF
+    )
 
     echo ""
-    echo "  Archived $total_count event(s) to .devin/events/.archive/"
+    echo "  Archived $archived_count event(s) to .devin/events/.archive/"
     echo "  Inbox for $agent is now EMPTY."
     echo ""
     echo "=== SYSTEM DIRECTIVE ==="
