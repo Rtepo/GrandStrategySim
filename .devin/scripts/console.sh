@@ -521,8 +521,9 @@ cmd_help() {
     Bump version in Cargo.toml/package.json/tauri.conf.json, commit, tag, and push.
 
   $inbox <agent>
-    Read the oldest pending event for an agent. Prints a readable briefing
-    and archives the event so the inbox is cleared.
+    Read the NEWEST pending event for an agent. Prints a readable briefing,
+    archives ALL pending events (flush), and emits a system directive to
+    auto-trigger the worker into action.
     Example: $inbox agent-3
 
 ============================================================
@@ -1056,7 +1057,7 @@ NODE_EOF
     echo "  Pushed to origin"
 }
 
-# --- $inbox <agent> - Worker self-service event reader ----------------------
+# --- $inbox <agent> - Worker self-service event reader (newest wins) --------
 cmd_inbox() {
     local agent="${1:-}"
 
@@ -1064,8 +1065,9 @@ cmd_inbox() {
         echo "Usage: \$inbox <agent>"
         echo "Example: \$inbox agent-3"
         echo ""
-        echo "Reads the oldest pending event targeting this agent, prints a readable"
-        echo "briefing, and archives the event file so the inbox is cleared."
+        echo "Reads the NEWEST pending event targeting this agent, prints a readable"
+        echo "briefing, archives ALL pending events for the agent (flush), and emits"
+        echo "a system directive to auto-trigger the worker into action."
         exit 1
     fi
 
@@ -1078,9 +1080,10 @@ cmd_inbox() {
     [ -d "$events_dir" ] || { echo "  ERROR: events directory not found."; exit 1; }
     mkdir -p "$archive_dir"
 
-    # Find the oldest JSON file where target matches this agent
-    local event_file
-    event_file=$(AGENT="$agent" EVENTS_DIR="$events_dir" node <<'NODE_EOF'
+    # Find the NEWEST JSON file where target matches this agent,
+    # and collect ALL matching files for archiving.
+    local result
+    result=$(AGENT="$agent" EVENTS_DIR="$events_dir" node <<'NODE_EOF'
         const fs = require("fs");
         const dir = process.env.EVENTS_DIR;
         const agent = process.env.AGENT;
@@ -1093,18 +1096,21 @@ cmd_inbox() {
                         let raw = fs.readFileSync(full, "utf8");
                         if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
                         const evt = JSON.parse(raw);
-                        return { file: full, name: f, evt, mtime: fs.statSync(full).mtimeMs };
+                        return { file: full, name: f, evt };
                     } catch(e) { return null; }
                 })
                 .filter(x => x && x.evt.target === agent);
 
             if (files.length === 0) {
+                console.log("NONE|0");
                 process.exit(0);
             }
 
-            // Sort by filename (timestamps in filename give chronological order)
-            files.sort((a, b) => a.name.localeCompare(b.name));
-            console.log(files[0].file);
+            // Sort by filename descending (newest first)
+            files.sort((a, b) => b.name.localeCompare(a.name));
+            const newest = files[0].file;
+            const all = files.map(f => f.file).join(";");
+            console.log(newest + "|" + all);
         } catch(e) {
             process.stderr.write("Error scanning events: " + e.message + "\n");
             process.exit(1);
@@ -1112,17 +1118,26 @@ cmd_inbox() {
 NODE_EOF
     )
 
-    if [ -z "$event_file" ]; then
+    if [ -z "$result" ] || [ "$result" = "NONE|0" ]; then
         echo "  Inbox is empty. No pending events for $agent."
         echo ""
         echo "=== \$inbox complete ==="
         exit 0
     fi
 
-    echo "  Found event: $(basename "$event_file")"
+    local event_file
+    local all_files
+    event_file=$(echo "$result" | cut -d'|' -f1)
+    all_files=$(echo "$result" | cut -d'|' -f2)
+
+    local total_count
+    total_count=$(echo "$all_files" | tr ';' '\n' | grep -c '.')
+
+    echo "  Newest event: $(basename "$event_file")"
+    echo "  Pending events for $agent: $total_count (all will be archived)"
     echo ""
 
-    # Parse and display the event in a highly readable format
+    # Parse and display the NEWEST event in a highly readable format
     EVENT_FILE="$event_file" node <<'NODE_EOF'
         const fs = require("fs");
         try {
@@ -1131,9 +1146,9 @@ NODE_EOF
             const evt = JSON.parse(raw);
             const p = evt.payload || {};
 
-            console.log("  ╔══════════════════════════════════════════════════════════════╗");
-            console.log("  ║  INCOMING EVENT BRIEFING                                    ║");
-            console.log("  ╚══════════════════════════════════════════════════════════════╝");
+            console.log("  +------------------------------------------------------------+");
+            console.log("  |  INCOMING EVENT BRIEFING (NEWEST)                          |");
+            console.log("  +------------------------------------------------------------+");
             console.log("");
             console.log("  Event ID:    " + (evt.id || "N/A"));
             console.log("  Event Type:  " + (evt.type || "UNKNOWN"));
@@ -1213,15 +1228,25 @@ NODE_EOF
                 console.log("");
             }
 
-            console.log("  ══════════════════════════════════════════════════════════════");
+            console.log("  ==============================================================");
         } catch(e) {
             console.log("  ERROR parsing event: " + e.message);
         }
 NODE_EOF
 
-    # Archive the event file
-    mv "$event_file" "$archive_dir/" 2>/dev/null
-    echo "  Event archived to .devin/events/.archive/"
+    # Archive ALL pending events for this agent (flush inbox completely)
+    local archived_count=0
+    echo "$all_files" | tr ';' '\n' | while IFS= read -r f; do
+        [ -f "$f" ] || continue
+        mv "$f" "$archive_dir/" 2>/dev/null && archived_count=$((archived_count + 1))
+    done
+
+    echo ""
+    echo "  Archived $total_count event(s) to .devin/events/.archive/"
+    echo "  Inbox for $agent is now EMPTY."
+    echo ""
+    echo "=== SYSTEM DIRECTIVE ==="
+    echo "You have read your task. Do not wait for further user prompts. Immediately begin implementing the fixes/tasks in your assigned worktree. Run local checks (cargo check/test) when done, and submit using request_integration.sh."
     echo ""
     echo "=== \$inbox complete ==="
 }
