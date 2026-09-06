@@ -215,6 +215,7 @@ mod tests {
             capacity_prices: BTreeMap::new(),
             land_use_inventory: Default::default(),
             climate_profile: ClimateProfile::Temperate,
+            sports_facilities: Vec::new(),
             micro_regions: BTreeMap::new(),
             treasury: Default::default(),
             microregion_budgets: HashMap::new(),

@@ -1759,6 +1759,7 @@ fn build_macro_data(
             average_lifespan: 40.0 + (gdp_pc * 10.0),
             mortality_rate: 0.0,
             hospital_coverage: rng.gen_range(20.0..60.0) * (gdp_pc / 2.0),
+            sports_capacity_per_capita: 0.0,
         },
         education_statistics: crate::state::macro_data::EducationStatistics {
             // Phase C.4: Derive from actual demographics, not magic envelopes.

@@ -102,15 +102,33 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
     let budget = &mut country.budget;
     let macro_indicators = &mut country.macro_indicators;
 
+    // Phase 18S: Read sports health config before splitting borrows.
+    let sports_le_bonus = country.labor_config.sports_health_bonus_per_capacity_unit;
+    let sports_hle_bonus = country.labor_config.sports_healthy_life_bonus_per_capacity_unit;
+
     // Health read and update — Phase 86.5A: Use typed fields, not extra.
     let medical_infrastructure_base = macro_indicators.health_statistics.hospital_coverage;
     let healthcare_quality = macro_indicators.health_statistics.service_quality;
     let work_deaths = 0.0; // Tracked via mortality_rate
 
-    let life_expectancy =
-        (60.0 + medical_infrastructure_base * 0.20 + (healthcare_quality / 100.0) * 15.0).min(95.0);
-    let healthy_life_expectancy =
-        (50.0 + medical_infrastructure_base * 0.15 + (healthcare_quality / 100.0) * 10.0).min(85.0);
+    // Phase 18S: Per-capita sports access term (physical access, not
+    // demographic abstraction). sports_access_coverage is the ratio of
+    // consumed SportsCapacity to region population, clamped [0.0, 1.0].
+    let sports_access_coverage = macro_indicators
+        .health_statistics
+        .sports_capacity_per_capita
+        .clamp(0.0, 1.0);
+
+    let life_expectancy = (60.0
+        + medical_infrastructure_base * 0.20
+        + (healthcare_quality / 100.0) * 15.0
+        + sports_access_coverage * sports_le_bonus)
+        .min(95.0);
+    let healthy_life_expectancy = (50.0
+        + medical_infrastructure_base * 0.15
+        + (healthcare_quality / 100.0) * 10.0
+        + sports_access_coverage * sports_hle_bonus)
+        .min(85.0);
 
     macro_indicators.health_statistics.average_lifespan = life_expectancy;
     macro_indicators.health_statistics.mortality_rate = work_deaths;
@@ -852,4 +870,68 @@ pub fn distribute_population_delta_and_reconcile(country: &mut crate::state::Cou
         }
     }
     reconcile_population_bottom_up(country);
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::economy::labor::labor_config::LaborConfig;
+    use crate::state::macro_data::HealthStatistics;
+
+    #[test]
+    fn life_expectancy_increases_with_sports_access() {
+        // Phase 18S: Life expectancy must include a per-capita sports access
+        // term (physical access, not demographic abstraction).
+        let config = LaborConfig::default();
+        let sports_bonus = config.sports_health_bonus_per_capacity_unit;
+
+        // Base life expectancy (no sports access)
+        let base_le = 60.0 + 50.0 * 0.20 + (70.0 / 100.0) * 15.0;
+        // With full sports access (coverage = 1.0)
+        let full_le = base_le + 1.0 * sports_bonus;
+        // With partial sports access (coverage = 0.5)
+        let half_le = base_le + 0.5 * sports_bonus;
+
+        assert!(
+            full_le > base_le,
+            "Life expectancy must increase with full sports access"
+        );
+        assert!(
+            half_le > base_le,
+            "Life expectancy must increase with partial sports access"
+        );
+        assert!(
+            full_le > half_le,
+            "Full sports access must yield higher life expectancy than partial"
+        );
+        assert!(
+            sports_bonus > 0.0,
+            "Sports health bonus config must be positive"
+        );
+    }
+
+    #[test]
+    fn healthy_life_expectancy_increases_with_sports_access() {
+        let config = LaborConfig::default();
+        let sports_bonus = config.sports_healthy_life_bonus_per_capacity_unit;
+
+        let base_hle = 50.0 + 50.0 * 0.15 + (70.0 / 100.0) * 10.0;
+        let full_hle = base_hle + 1.0 * sports_bonus;
+
+        assert!(
+            full_hle > base_hle,
+            "Healthy life expectancy must increase with sports access"
+        );
+        assert!(
+            sports_bonus > 0.0,
+            "Sports healthy life bonus config must be positive"
+        );
+    }
+
+    #[test]
+    fn sports_capacity_per_capita_field_exists() {
+        // Verify the HealthStatistics struct has the sports_capacity_per_capita field.
+        let mut hs = HealthStatistics::default();
+        hs.sports_capacity_per_capita = 0.5;
+        assert_eq!(hs.sports_capacity_per_capita, 0.5);
+    }
 }

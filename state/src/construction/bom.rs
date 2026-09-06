@@ -77,6 +77,7 @@ pub fn get_construction_bom(
         Sector::NGO => bom_commercial(era_factor),
         Sector::Religion => bom_commercial(era_factor),
         Sector::Government => bom_commercial(era_factor),
+        Sector::SportsRecreation => bom_commercial(era_factor),
     };
 
     base.into_iter()
@@ -117,6 +118,7 @@ fn reference_capacity(sector: Sector) -> u32 {
         Sector::NGO => 200,
         Sector::Religion => 200,
         Sector::Government => 200,
+        Sector::SportsRecreation => 200,
     }
 }
 

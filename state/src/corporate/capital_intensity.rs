@@ -54,6 +54,7 @@ pub fn sector_capital_intensity(sector: &Sector) -> CapitalIntensity {
         Sector::Religion => CapitalIntensity::Micro, // Religious institutions are service entities
         Sector::MaintenanceWorkshops => CapitalIntensity::Medium, // Phase 19B: repair shops need moderate capital (tools, benches)
         Sector::Government => CapitalIntensity::High, // Phase 32: Parliament building requires significant capital
+        Sector::SportsRecreation => CapitalIntensity::Medium, // Phase 18S: Sports facilities require moderate capital
     }
 }
 

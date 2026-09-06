@@ -18,9 +18,9 @@ use crate::economy::{
     apply_payment_in_kind, apply_rationing_to_demand, build_consumer_demand,
     calculate_diversity_bonus, check_terrorism_triggers, clear_b2c_markets,
     clear_education_slots_b2c, clear_health_capacity_b2c, clear_information_b2c,
-    compute_propaganda_subsidy_rate, execute_production_cycle, generate_store_offers,
+    clear_sports_capacity_b2c, compute_propaganda_subsidy_rate, execute_production_cycle, generate_store_offers,
     market_history, order_book, populate_education_service_needs, populate_health_service_needs,
-    populate_information_service_needs, process_all_royalty_payments,
+    populate_information_service_needs, populate_sports_service_needs, process_all_royalty_payments,
     process_blueprint_royalty_payments, process_building_cycle_with_geology,
     process_cross_border_royalty_queue, process_demographics_and_labor, process_fishing_turn,
     process_justice_turn, process_prison_labor_turn, process_propaganda_turn,
@@ -5673,6 +5673,53 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 &mut building_inventories,
                 &service_config,
             );
+
+            // Phase 18S: Sports & Recreation B2C clearing.
+            // Runs after health clearing and before information clearing.
+            // Receives ACTUAL weather state (not a global turn counter) so
+            // open-air facilities close in winter/EarlyFrost and indoor
+            // facilities operate year-round. Public facilities use 100%
+            // buyer_subsidy so zero-savings citizens can access them.
+            let sports_needs = populate_sports_service_needs(task.ctx.country);
+            let weather_state = task.ctx.country.weather_state.clone();
+            let sports_consumption = clear_sports_capacity_b2c(
+                &mut task.ctx.buildings,
+                &mut task.companies,
+                task.ctx.country,
+                &sports_needs,
+                &mut building_inventories,
+                &service_config,
+                &weather_state,
+                current_season,
+            );
+
+            // Phase 18S: Update sports_capacity_per_capita for life expectancy.
+            // Computed from actual consumed SportsCapacity / population.
+            let total_pop: f64 = task
+                .ctx
+                .country
+                .regions
+                .iter()
+                .flat_map(|r| {
+                    r.class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(r.class_demographics.urban_classes.values())
+                })
+                .map(|c| c.population as f64)
+                .sum();
+            let total_sports_consumed: f64 =
+                sports_consumption.values().copied().sum();
+            let sports_per_capita = if total_pop > 0.0 {
+                (total_sports_consumed / total_pop).clamp(0.0, 1.0)
+            } else {
+                0.0
+            };
+            task.ctx
+                .country
+                .macro_indicators
+                .health_statistics
+                .sports_capacity_per_capita = sports_per_capita;
 
             // Phase 18C: Information B2C clearing with propaganda subsidy
             let info_needs = populate_information_service_needs(task.ctx.country);

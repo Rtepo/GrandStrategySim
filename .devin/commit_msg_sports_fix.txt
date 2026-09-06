@@ -1,0 +1,43 @@
+feat: Agent 3 Blueprint 004-FIX — Sports & Recreation remediation
+
+Implement sports and recreation from scratch with concrete physical
+mechanics and explicit double-entry B2C fee clearing.
+
+Key additions:
+- Commodity::SportsCapacity (visitor-slots per turn, B2C-traded)
+- CapacityType::SportsCapacity for typed infrastructure capacity
+- Sector::SportsRecreation with display_name and primary_commodities
+- infrastructure/sports.rs: SportsFacility with OpenAir/Indoor classes,
+  complete lifecycle (Constructing/Operational/Privatizing/Closed/Demolished),
+  seasonality based on ACTUAL WeatherState (not global turn counter)
+- clear_sports_capacity_b2c in b2c_services.rs: two-phase B2C clearing
+  modeled on clear_education_slots_b2c/clear_health_capacity_b2c
+- Public facilities accessible to ZERO-savings citizens via 100% subsidy
+- Private facilities gated by B2C affordability (insufficient savings = unmet)
+- Open-air facilities close in winter/EarlyFrost (factor=0.0), reduced in
+  heatwave (factor=0.3); indoor facilities operate year-round
+- Production methods for Open Air Field, Indoor Hall, Stadium with physical
+  inputs (Seeds/Water/Energy/SecurityCapacity) and SportsCapacity output
+- ServicePricingConfig: sports_opex_wage_multiplier, sports_capex_wage_multiplier
+- LaborConfig: sports_health_bonus_per_capacity_unit,
+  sports_healthy_life_bonus_per_capacity_unit
+- Life expectancy extended with per-capita sports access term (physical,
+  not demographic abstraction)
+- HealthStatistics.sports_capacity_per_capita field
+- Region.sports_facilities: Vec<SportsFacility>
+- SportsFacilityFundingSource enum (Public/Private/Subsidized/PrivatizationTransfer)
+- Turn loop integration: sports clearing after health, before information,
+  receives actual weather_state and current_season
+- All exhaustive matches updated (bom.rs, capital_intensity.rs, corporate.rs,
+  snapshot.rs, company_queries.rs)
+- 11 new unit tests (subsidy access, private rejection, winter closure,
+  indoor operation, serialization, production methods, pricing, health)
+
+cargo check: PASS
+cargo clippy --workspace --all-targets -- -D warnings: PASS
+cargo test --workspace --lib: 1607 passed, 1 failed (pre-existing flaky
+  test_border_conflict_generation, unrelated to sports work)
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>

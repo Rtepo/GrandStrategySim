@@ -43,6 +43,7 @@ fn sector_display_name(sector: Sector) -> String {
         Sector::Religion => "Religion",
         Sector::MaintenanceWorkshops => "Maintenance Workshops",
         Sector::Government => "Government",
+        Sector::SportsRecreation => "Sports & Recreation",
     }
     .to_string()
 }

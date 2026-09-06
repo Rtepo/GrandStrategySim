@@ -39,6 +39,7 @@ pub mod healthcare;
 pub mod heritage;
 pub mod maritime;
 pub mod pricing;
+pub mod sports;
 
 /// Phase A.1: Sync `region.capacity_pool` from live education/healthcare buildings.
 ///

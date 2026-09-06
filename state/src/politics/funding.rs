@@ -178,3 +178,68 @@ impl Default for ParkFundingConfig {
         }
     }
 }
+
+// ============================================================================
+// Phase 18S: Sports Facility Funding Models
+// ============================================================================
+
+/// Phase 18S: Funding model for sports facilities.
+///
+/// Determines who pays for sports facility operation and how citizen access
+/// is gated. Public facilities use 100% buyer_subsidy so citizens with ZERO
+/// savings can access them for free. Private facilities are gated by B2C
+/// clearing (insufficient savings → unmet demand).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum SportsFacilityFundingSource {
+    /// Local government ownership — free at point of use via 100% subsidy.
+    #[default]
+    Public,
+    /// Private commercial — B2C fee collection, gated by savings.
+    Private,
+    /// Subsidized — government pays base, citizens pay remainder.
+    Subsidized {
+        /// Government subsidy fraction (0.0-1.0)
+        government_subsidy_rate: f64,
+        /// Citizen co-payment fraction (0.0-1.0)
+        citizen_copayment_rate: f64,
+    },
+    /// Privatization transfer — public facility being sold to private owner.
+    PrivatizationTransfer {
+        /// Turn when privatization started
+        start_turn: u32,
+        /// Transition period in turns
+        transition_period: u32,
+    },
+}
+
+/// Phase 18S: Sports facility funding configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SportsFacilityFundingConfig {
+    /// Funding source model
+    #[serde(default)]
+    pub funding_source: SportsFacilityFundingSource,
+    /// CAPEX amortization period in turns (Rule 21: cost-plus pricing)
+    #[serde(default = "default_sports_amortization_turns")]
+    pub capex_amortization_turns: u32,
+    /// Cost-plus margin (profit/solvency buffer above OPEX + CAPEX)
+    #[serde(default = "default_sports_cost_plus_margin")]
+    pub cost_plus_margin: f64,
+}
+
+fn default_sports_amortization_turns() -> u32 {
+    48
+}
+fn default_sports_cost_plus_margin() -> f64 {
+    0.10
+}
+
+impl Default for SportsFacilityFundingConfig {
+    fn default() -> Self {
+        Self {
+            funding_source: SportsFacilityFundingSource::default(),
+            capex_amortization_turns: default_sports_amortization_turns(),
+            cost_plus_margin: default_sports_cost_plus_margin(),
+        }
+    }
+}

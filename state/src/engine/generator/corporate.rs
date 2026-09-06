@@ -2280,6 +2280,7 @@ fn sector_display(sector: Sector) -> String {
         Sector::Religion => "Religion",
         Sector::MaintenanceWorkshops => "Maintenance Workshops",
         Sector::Government => "Government",
+        Sector::SportsRecreation => "Sports and Recreation",
     }
     .to_string()
 }
@@ -2462,6 +2463,14 @@ fn sector_suffix(sector: Sector, rng: &mut impl rand::Rng) -> &'static str {
             "Government Bureau",
             "State Holdings",
             "Public Authority",
+        ]
+        .choose(rng)
+        .unwrap(),
+        Sector::SportsRecreation => [
+            "Sports Club",
+            "Athletic Association",
+            "Recreation Trust",
+            "Stadium Group",
         ]
         .choose(rng)
         .unwrap(),
@@ -3039,6 +3048,7 @@ fn default_building_name(sector: Sector) -> String {
         Sector::NGO => "NGO Office".to_string(),
         Sector::Religion => "Religious Institution".to_string(),
         Sector::Government => "Parliament".to_string(),
+        Sector::SportsRecreation => "Sports Facility".to_string(),
     }
 }
 
