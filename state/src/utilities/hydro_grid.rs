@@ -181,13 +181,18 @@ impl WaterReserveState {
         recharge_coefficient: f64,
         aquifer_recharge_area: f64,
     ) {
-        // Blueprint 006: Fractional recharge from precipitation.
-        // recharge_volume = precipitation_mm * recharge_coefficient * aquifer_recharge_area
-        // precipitation_mm is in mm; 1 mm over 1 m² = 1 liter of water.
-        let recharge_volume = precipitation_mm.max(0.0)
+        // Blueprint 006: Fractional recharge from TWO sources:
+        // 1. Precipitation-based: precipitation_mm * recharge_coefficient * area
+        //    (1 mm over 1 m² = 1 liter of water)
+        // 2. Baseline groundwater_regen_rate: natural percolation from
+        //    subsurface flows, condensation, and slow infiltration that
+        //    occurs even in dry climates. This field was previously unused
+        //    in the fractional model — now incorporated as an additive term.
+        let precip_recharge = precipitation_mm.max(0.0)
             * recharge_coefficient.clamp(0.0, 1.0)
             * aquifer_recharge_area.max(0.0);
-        self.groundwater_volume += recharge_volume;
+        let baseline_recharge = self.groundwater_regen_rate.max(0.0);
+        self.groundwater_volume += precip_recharge + baseline_recharge;
         // Rule 20: Hard clamp to aquifer_capacity (upper bound only, NOT a reset)
         if self.groundwater_volume > aquifer_capacity {
             self.groundwater_volume = aquifer_capacity;

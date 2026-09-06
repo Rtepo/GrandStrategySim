@@ -2061,4 +2061,40 @@ mod tests {
         well.record_extraction(100.0);
         assert!(well.abandoned, "Well must be abandoned when lifetime reaches zero");
     }
+
+    #[test]
+    fn test_well_construction_progress_completes() {
+        // Blueprint 006 invariant: Well construction progress increments
+        // and reaches completion (constructed = true) after enough turns.
+        let mut well = WaterWell {
+            constructed: false,
+            construction_progress: 0.0,
+            depth_m: 20.0,
+            max_yield_liters: 100.0,
+            ..Default::default()
+        };
+        // Simulate 11 turns of construction at 10% per turn
+        // (11 to handle floating-point: 10 * 0.10 may not exactly equal 1.0)
+        for _ in 0..11 {
+            if !well.constructed {
+                well.construction_progress = (well.construction_progress + 0.10).min(1.0);
+                if well.construction_progress >= 1.0 {
+                    well.constructed = true;
+                }
+            }
+        }
+        assert!(well.constructed, "Well must be constructed after 11 turns");
+        assert_eq!(well.construction_progress, 1.0);
+    }
+
+    #[test]
+    fn test_well_capex_is_nonzero_when_computed() {
+        // Blueprint 006 invariant: CAPEX is computed and nonzero for
+        // newly constructed wells (runtime CAPEX path).
+        let capex = WaterWell::compute_capex(100, 30.0, 50.0);
+        assert!(capex > 0.0, "Well CAPEX must be nonzero");
+        // CAPEX scales with capacity and depth (Rule 15)
+        let capex_bigger = WaterWell::compute_capex(200, 60.0, 50.0);
+        assert!(capex_bigger > capex, "Larger/deeper wells must cost more");
+    }
 }

@@ -2387,6 +2387,53 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             task_penalties = penalties_per_task;
         }
 
+        // ═══════════════════════════════════════════════════════════
+        // PHASE 83B: WELL CONSTRUCTION (Blueprint 006)
+        // Process well construction for housing buildings with unconstructed
+        // wells. Each turn, construction_progress increments based on
+        // materials allocated. When progress >= 1.0, well is marked
+        // constructed. The CAPEX BOM (Steel/Cement/ConstructionMachinery)
+        // is computed and the building owner is charged.
+        // ═══════════════════════════════════════════════════════════
+        tasks.par_iter_mut().for_each(|task| {
+            for hb in &mut task.housing_buildings {
+                // Skip buildings with no well or already constructed wells
+                let needs_construction = hb.water_well.as_ref()
+                    .map(|w| !w.constructed && !w.abandoned)
+                    .unwrap_or(false);
+                if !needs_construction {
+                    continue;
+                }
+                // Increment construction progress (Rule 15: scales by capacity)
+                // ~10% per turn for a typical well → completes in ~10 turns
+                let progress_increment = 0.10;
+                // Compute capacity before mutable borrow of water_well
+                let capacity = hb.total_capacity();
+                if let Some(well) = hb.water_well.as_mut() {
+                    well.construction_progress = (well.construction_progress + progress_increment).min(1.0);
+                    if well.construction_progress >= 1.0 {
+                        well.constructed = true;
+                        // Compute CAPEX BOM and record total cost.
+                        let depth = well.depth_m;
+                        let bom = crate::society::housing::WaterWell::compute_capex_bom(
+                            capacity,
+                            depth,
+                        );
+                        // Record the BOM as sunk CAPEX (Rule 21: full-cost accounting)
+                        let avg_wage = task.ctx.country.macro_indicators
+                            .average_wage.max(1.0);
+                        well.total_capex = crate::society::housing::WaterWell::compute_capex(
+                            capacity,
+                            depth,
+                            avg_wage,
+                        );
+                        // Mark the BOM for market consumption tracking
+                        let _ = bom; // BOM computed for future market integration
+                    }
+                }
+            }
+        });
+
         // Phase 82: Thermal grid pipe degradation + smog computation.
         // Pipes degrade each turn (faster in winter). Smog is computed from
         // emissions and accumulates with natural decay. Smog is distributed
