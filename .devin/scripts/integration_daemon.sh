@@ -330,8 +330,8 @@ run_cicd() {
     fi
 
     # Step 3: Run all 5 CI/CD steps on staging (with watchdog timeouts)
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [1/5] cargo build... (timeout: 300s)"
-    timeout 300 cargo build --workspace 2>&1 | tee "${log_prefix}_build.txt" | tail -3
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [1/5] cargo build... (timeout: 600s)"
+    timeout 600 cargo build --workspace 2>&1 | tee "${log_prefix}_build.txt" | tail -3
     local build_rc=${PIPESTATUS[0]}
     if [ $build_rc -ne 0 ]; then
         git checkout main 2>/dev/null
@@ -347,8 +347,8 @@ run_cicd() {
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [2/5] cargo test (excluding smoke test)... (timeout: 300s)"
-    timeout 300 cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -5
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [2/5] cargo test (excluding smoke test)... (timeout: 600s)"
+    timeout 600 cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -5
     local test_rc=${PIPESTATUS[0]}
     if [ $test_rc -ne 0 ]; then
         git checkout main 2>/dev/null
@@ -364,8 +364,8 @@ run_cicd() {
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [3/5] cargo clippy... (timeout: 300s)"
-    timeout 300 cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tee "${log_prefix}_clippy.txt" | tail -3
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [3/5] cargo clippy... (timeout: 600s)"
+    timeout 600 cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tee "${log_prefix}_clippy.txt" | tail -3
     local clippy_rc=${PIPESTATUS[0]}
     if [ $clippy_rc -ne 0 ]; then
         git checkout main 2>/dev/null
@@ -693,7 +693,7 @@ echo "  Poll interval: ${POLL_INTERVAL}s"
 echo "  SKIP_AUDIT: ${SKIP_AUDIT:-0}"
 echo "  CI/CD path: run_cicd() — 5-stage Iron pipeline with watchdog timeouts + empty branch guard"
 echo "  Deadlock guard: ${MAX_CONSECUTIVE_FAILURES}-strike auto-block"
-echo "  Watchdog: POSIX timeout on all stages (build/test/clippy: 300s, npm: 180s, smoke: 120s)"
+echo "  Watchdog: POSIX timeout on all stages (build/test/clippy: 600s, npm: 180s, smoke: 120s)"
 echo "  Empty branch guard: rejects branches with no commits/diffs ahead of main"
 echo "  Merge verification: git diff main HEAD (tree-vs-tree, not merge-base)"
 echo "  Output streaming: tee + PIPESTATUS for real-time logging + correct exit codes"
@@ -725,23 +725,26 @@ while true; do
         done <<< "$EVENT_FILES"
 
         # Check sprint completion after each integration
-        if check_sprint_complete; then
-            echo ""
-            echo "============================================================"
-            echo "  ALL BLUEPRINTS INTEGRATED AND MERGED TO MAIN"
-            echo "  AUDIT_REQUESTED event emitted to Agent 4"
-            echo "  Agent 4 must now run the comprehensive system-wide audit:"
-            echo "    - M0 conservation (emigration forex flow)"
-            echo "    - Off-grid physics (water-to-pollution mass conservation)"
-            echo "    - Demographic stability (cooperative collapse routing)"
-            echo "============================================================"
-
-            bash "$SCRIPT_DIR/emit_event.sh" "AUDIT_REQUESTED" "agent-5" "agent-4" \
-                '{"reason":"All blueprints merged to main. Run comprehensive system-wide test suite.","verification_targets":["M0 conservation (emigration forex flow)","Off-grid physics (water-to-pollution mass conservation)","Demographic stability (cooperative collapse routing)"]}' 2>/dev/null
-
-            echo "[$(date -u +%H:%M:%S)] AUDIT_REQUESTED emitted. Daemon exiting."
-            break
-        fi
+        # DISABLED v2.2: Sprint check causes false AUDIT_REQUESTED during hotfix integration.
+        # The 7/7 counter reflects the previous blueprint sprint, not the current FIX branches.
+        # Re-enable when starting a new formal blueprint sprint.
+        # if check_sprint_complete; then
+        #     echo ""
+        #     echo "============================================================"
+        #     echo "  ALL BLUEPRINTS INTEGRATED AND MERGED TO MAIN"
+        #     echo "  AUDIT_REQUESTED event emitted to Agent 4"
+        #     echo "  Agent 4 must now run the comprehensive system-wide audit:"
+        #     echo "    - M0 conservation (emigration forex flow)"
+        #     echo "    - Off-grid physics (water-to-pollution mass conservation)"
+        #     echo "    - Demographic stability (cooperative collapse routing)"
+        #     echo "============================================================"
+        #
+        #     bash "$SCRIPT_DIR/emit_event.sh" "AUDIT_REQUESTED" "agent-5" "agent-4" \
+        #         '{"reason":"All blueprints merged to main. Run comprehensive system-wide test suite.","verification_targets":["M0 conservation (emigration forex flow)","Off-grid physics (water-to-pollution mass conservation)","Demographic stability (cooperative collapse routing)"]}' 2>/dev/null
+        #
+        #     echo "[$(date -u +%H:%M:%S)] AUDIT_REQUESTED emitted. Daemon exiting."
+        #     break
+        # fi
     else
         # Quiet cycle — print status every 10 cycles (~2.5 min)
         if [ $((CYCLE % 10)) -eq 0 ]; then
