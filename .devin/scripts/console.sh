@@ -15,19 +15,6 @@ export HUB_DIR
 
 source "$SCRIPT_DIR/sync_lib.sh"
 
-# ─── Command Router ────────────────────────────────────────────────────────
-COMMAND="${1:-}"
-shift || true
-
-case "$COMMAND" in
-    /kickoff)        cmd_kickoff "$@" ;;
-    /audit_standard) cmd_audit_standard "$@" ;;
-    /forward_fail)   cmd_forward_fail "$@" ;;
-    /unblock)        cmd_unblock "$@" ;;
-    /help|"")        cmd_help ;;
-    *)               echo "Unknown command: $COMMAND"; echo ""; cmd_help; exit 1 ;;
-esac
-
 # ─── /kickoff <agent> <blueprint_id> ───────────────────────────────────────
 cmd_kickoff() {
     local agent="${1:-}"
@@ -379,7 +366,7 @@ NODE_EOF
                 for (const [bpId, info] of Object.entries(map)) {
                     if (info.agent === process.env.AGENT) {
                         console.log(info.branch);
-                        return;
+                        process.exit(0);
                     }
                 }
             } catch(e) {}
@@ -402,7 +389,7 @@ NODE_EOF
                     for (const [b, info] of Object.entries(state.branches || {})) {
                         if (info.blocked && b.includes("agent-" + agentNum)) {
                             console.log(b);
-                            return;
+                            process.exit(0);
                         }
                     }
                 } catch(e) {}
@@ -518,3 +505,16 @@ cmd_help() {
 ============================================================
 HELP
 }
+
+# ─── Command Router (must be after all function definitions) ───────────────
+COMMAND="${1:-}"
+shift || true
+
+case "$COMMAND" in
+    /kickoff)        cmd_kickoff "$@" ;;
+    /audit_standard) cmd_audit_standard "$@" ;;
+    /forward_fail)   cmd_forward_fail "$@" ;;
+    /unblock)        cmd_unblock "$@" ;;
+    /help|"")        cmd_help ;;
+    *)               echo "Unknown command: $COMMAND"; echo ""; cmd_help; exit 1 ;;
+esac
