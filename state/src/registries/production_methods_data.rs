@@ -7113,72 +7113,26 @@ fn construction_methods() -> BuildingMethods {
     m
 }
 
-/// Blueprint 006: Deep Well Construction methods.
-/// Physical BOM uses Steel (casing/lining), Cement (shaft seal), and
-/// ConstructionMachinery (pump head). NOT Stone/Timber/Bricks — those are
-/// inadequate for deep wells that must maintain structural integrity under
-/// groundwater pressure. Rule 15: BOM scales by well_depth and building_capacity.
+// === DEEP WELL CONSTRUCTION ===
 fn deep_well_construction_methods() -> BuildingMethods {
     let mut m = BuildingMethods::default();
-    // Manual Well Construction: pre-industrial, labor-intensive, shallow wells.
-    m.insert(
-        MethodSlot::Construction,
-        "Manual Well Construction".into(),
-        pm(
-            1880,
-            None,
-            0.05,
-            0.20,
-            0.75,
-            1.0,
-            &[
-                (Commodity::Steel, 0.5),
-                (Commodity::Cement, 0.3),
-                (Commodity::Food, 5.0),
-            ],
-            &[(Commodity::ConstructionServices, 10.0)],
-        ),
-    );
-    // Mechanized Well Construction: steam-powered drilling, deeper wells.
-    m.insert(
-        MethodSlot::Construction,
-        "Mechanized Well Construction".into(),
-        pm(
-            1890,
-            Some("steam_001"),
-            0.10,
-            0.25,
-            0.65,
-            1.5,
-            &[
-                (Commodity::Steel, 1.0),
-                (Commodity::Cement, 0.5),
-                (Commodity::ConstructionMachinery, 0.1),
-                (Commodity::Fuels, 5.0),
-            ],
-            &[(Commodity::ConstructionServices, 15.0)],
-        ),
-    );
-    // Modern Well Construction: powered drilling rig, deepest wells.
-    m.insert(
-        MethodSlot::Construction,
-        "Modern Well Construction".into(),
-        pm(
-            1920,
-            Some("steel_004"),
-            0.15,
-            0.30,
-            0.55,
-            2.0,
-            &[
-                (Commodity::Steel, 2.0),
-                (Commodity::Cement, 1.0),
-                (Commodity::ConstructionMachinery, 0.5),
-                (Commodity::Energy, 5.0),
-            ],
-            &[(Commodity::ConstructionServices, 25.0)],
-        ),
-    );
+
+    // ── Production: outputs WaterWellAsset ──
+    m.insert(MethodSlot::Production, "Hand-Dug Well".into(), pm(1880, None, 0.05, 0.15, 0.80, 1.0, &[(Commodity::Timber, 8.0), (Commodity::Bricks, 12.0), (Commodity::Food, 5.0)], &[(Commodity::WaterWellAsset, 1.0)]));
+    m.insert(MethodSlot::Production, "Driven Point Well".into(), pm(1900, Some("steel_004"), 0.10, 0.25, 0.65, 1.5, &[(Commodity::Steel, 5.0), (Commodity::Cement, 8.0), (Commodity::Food, 5.0)], &[(Commodity::WaterWellAsset, 2.0)]));
+    m.insert(MethodSlot::Production, "Rotary Drilled Well".into(), pm(1930, Some("mech_008"), 0.15, 0.30, 0.55, 2.5, &[(Commodity::Steel, 10.0), (Commodity::Cement, 15.0), (Commodity::ConstructionMachinery, 3.0), (Commodity::Food, 5.0)], &[(Commodity::WaterWellAsset, 5.0)]));
+    m.insert(MethodSlot::Production, "Modern Deep Borehole".into(), pm(1970, Some("auto3_001"), 0.20, 0.35, 0.45, 4.0, &[(Commodity::Steel, 15.0), (Commodity::Cement, 20.0), (Commodity::ConstructionMachinery, 8.0), (Commodity::ElectronicComponents, 3.0), (Commodity::Food, 5.0)], &[(Commodity::WaterWellAsset, 10.0)]));
+
+    // ── Automation: 3 tiers, max gap 50 years ──
+    m.insert(MethodSlot::Automation, "Hand Digging".into(), pm(1880, None, 0.05, 0.15, 0.80, 1.0, &[(Commodity::Food, 3.0)], &[]));
+    m.insert(MethodSlot::Automation, "Powered Augers".into(), pm(1920, Some("steam_001"), 0.10, 0.25, 0.65, 2.0, &[(Commodity::Fuels, 8.0), (Commodity::Steel, 2.0)], &[]));
+    m.insert(MethodSlot::Automation, "Heavy Rotary Rigs".into(), pm(1970, Some("auto3_001"), 0.20, 0.35, 0.45, 4.0, &[(Commodity::Energy, 15.0), (Commodity::ConstructionMachinery, 5.0), (Commodity::Steel, 3.0)], &[]));
+
+    // ── Organization: 3 tiers, max gap 50 years ──
+    m.insert(MethodSlot::Organization, "Informal Crews".into(), pm(1880, None, 0.05, 0.15, 0.80, 1.0, &[(Commodity::Food, 3.0)], &[]));
+    m.insert(MethodSlot::Organization, "Specialized Contractors".into(), pm(1920, Some("mech_008"), 0.10, 0.25, 0.65, 1.5, &[(Commodity::Food, 5.0), (Commodity::Paper, 3.0)], &[]));
+    m.insert(MethodSlot::Organization, "Corporate Drilling Fleets".into(), pm(1970, Some("cs_004"), 0.20, 0.35, 0.45, 2.5, &[(Commodity::Food, 5.0), (Commodity::Paper, 5.0), (Commodity::Software, 2.0)], &[]));
+
     m
 }
 

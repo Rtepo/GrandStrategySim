@@ -615,6 +615,10 @@ pub enum Commodity {
     /// "hazardous_waste" — Phase 84: From heavy chemicals, medical, WtE ash.
     /// B2B-EXCLUDED — flows through WasteGridState logistical transfers only.
     HazardousWaste,
+    /// "water_well_asset" — Blueprint 006: Constructed water well asset
+    /// (physical infrastructure). Output of deep_well_construction sector;
+    /// consumed by off-grid housing.
+    WaterWellAsset,
 }
 
 impl std::fmt::Display for Commodity {
@@ -888,7 +892,7 @@ impl Commodity {
     }
 
     /// Returns all tradeable commodity variants in canonical (English) JSON order.
-    pub fn all() -> [Commodity; 150] {
+    pub fn all() -> [Commodity; 151] {
         [
             Commodity::Agd,
             Commodity::Aluminum,
@@ -1040,6 +1044,7 @@ impl Commodity {
             Commodity::CoolingTower,
             Commodity::PhotovoltaicPanels,
             Commodity::CoalGas,
+            Commodity::WaterWellAsset,
         ]
     }
 }
@@ -1199,6 +1204,7 @@ impl TryFrom<&str> for Commodity {
             "cooling_tower" => Ok(Commodity::CoolingTower),
             "photovoltaic_panels" => Ok(Commodity::PhotovoltaicPanels),
             "coal_gas" => Ok(Commodity::CoalGas),
+            "water_well_asset" => Ok(Commodity::WaterWellAsset),
             _ => Err(format!("unknown commodity: {s}")),
         }
     }

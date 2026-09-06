@@ -215,8 +215,8 @@ fn commodity_count_matches() {
     let all = Commodity::all();
     assert_eq!(
         all.len(),
-        150,
-        "Commodity::all() should return 150 variants, got {}",
+        151,
+        "Commodity::all() should return 151 variants, got {}",
         all.len()
     );
 }
@@ -375,8 +375,8 @@ fn all_commodities_are_valid() {
     let all = Commodity::all();
     assert_eq!(
         all.len(),
-        150,
-        "Commodity::all() must return exactly 150 variants"
+        151,
+        "Commodity::all() must return exactly 151 variants"
     );
 }
 
