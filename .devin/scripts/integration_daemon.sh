@@ -723,9 +723,36 @@ rescue_worktree_events() {
 # and emits REMEDIATION_REQUESTED events to the responsible worker agents.
 process_audit_fail() {
     local event_file="$1"
-    local map_file="$HUB_DIR/.devin/blueprint_agent_map.json"
 
-    [ -f "$map_file" ] || { echo "[$(date -u +%H:%M:%S)] AUDIT_FAIL: No blueprint_agent_map.json — cannot route." >&2; return 1; }
+    # Resolve map_file with multiple fallbacks — HUB_DIR may be stale if
+    # the daemon changed working directory during CI/CD (staging checkout).
+    local map_file="$HUB_DIR/.devin/blueprint_agent_map.json"
+    if [ ! -f "$map_file" ]; then
+        # Fallback 1: derive from SCRIPT_DIR
+        local hub_from_script
+        hub_from_script="$(cd "$SCRIPT_DIR/../.." 2>/dev/null && pwd)"
+        if [ -n "$hub_from_script" ] && [ -f "$hub_from_script/.devin/blueprint_agent_map.json" ]; then
+            map_file="$hub_from_script/.devin/blueprint_agent_map.json"
+            HUB_DIR="$hub_from_script"
+        fi
+    fi
+    if [ ! -f "$map_file" ]; then
+        # Fallback 2: derive from EVENTS_DIR (always set at startup)
+        if [ -n "$EVENTS_DIR" ] && [ -d "$EVENTS_DIR" ]; then
+            local hub_from_events
+            hub_from_events="$(cd "$EVENTS_DIR/../.." 2>/dev/null && pwd)"
+            if [ -n "$hub_from_events" ] && [ -f "$hub_from_events/.devin/blueprint_agent_map.json" ]; then
+                map_file="$hub_from_events/.devin/blueprint_agent_map.json"
+                HUB_DIR="$hub_from_events"
+            fi
+        fi
+    fi
+
+    [ -f "$map_file" ] || {
+        echo "[$(date -u +%H:%M:%S)] AUDIT_FAIL: map file not found at '$map_file' — cannot route." >&2
+        echo "[$(date -u +%H:%M:%S)] AUDIT_FAIL: HUB_DIR='$HUB_DIR' SCRIPT_DIR='$SCRIPT_DIR' EVENTS_DIR='$EVENTS_DIR'" >&2
+        return 1
+    }
 
     echo "[$(date -u +%H:%M:%S)] Processing AUDIT_FAIL: $(basename "$event_file")"
 
