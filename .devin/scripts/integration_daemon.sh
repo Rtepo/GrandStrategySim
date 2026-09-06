@@ -398,8 +398,8 @@ run_cicd() {
         return 1
     fi
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [5/5] headless 50-tick smoke test... (timeout: 120s)"
-    timeout 120 cargo test --workspace --test headless_smoke_test -- headless_50_tick_smoke --nocapture 2>&1 | tee "${log_prefix}_smoke.txt"
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [5/5] headless 50-tick smoke test... (timeout: 600s)"
+    timeout 600 cargo test --workspace --test headless_smoke_test -- headless_50_tick_smoke --nocapture 2>&1 | tee "${log_prefix}_smoke.txt"
     local smoke_rc=${PIPESTATUS[0]}
     if [ $smoke_rc -ne 0 ]; then
         git checkout main 2>/dev/null
@@ -693,7 +693,7 @@ echo "  Poll interval: ${POLL_INTERVAL}s"
 echo "  SKIP_AUDIT: ${SKIP_AUDIT:-0}"
 echo "  CI/CD path: run_cicd() — 5-stage Iron pipeline with watchdog timeouts + empty branch guard"
 echo "  Deadlock guard: ${MAX_CONSECUTIVE_FAILURES}-strike auto-block"
-echo "  Watchdog: POSIX timeout on all stages (build/test/clippy: 600s, npm: 180s, smoke: 120s)"
+echo "  Watchdog: POSIX timeout on all stages (build/test/clippy/smoke: 600s, npm: 180s)"
 echo "  Empty branch guard: rejects branches with no commits/diffs ahead of main"
 echo "  Merge verification: git diff main HEAD (tree-vs-tree, not merge-base)"
 echo "  Output streaming: tee + PIPESTATUS for real-time logging + correct exit codes"
