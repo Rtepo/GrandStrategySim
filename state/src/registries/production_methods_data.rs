@@ -10433,6 +10433,96 @@ fn sports_recreation_methods() -> BuildingMethods {
         ),
     );
 
+    // Phase 18S: Automation methods (Rule 13 — 3 tiers, max 50-year gap).
+    // Automation represents labor-saving technology for sports facility operations.
+    m.insert(
+        MethodSlot::Automation,
+        "Manual Groundskeeping".into(),
+        pm(
+            1900,
+            None,
+            0.10,
+            0.20,
+            0.70,
+            1.0,
+            &[(Commodity::Food, 3.0)],
+            &[],
+        ),
+    );
+    m.insert(
+        MethodSlot::Automation,
+        "Mechanical Maintenance".into(),
+        pm(
+            1940,
+            Some("elecf_001"),
+            0.15,
+            0.30,
+            0.55,
+            1.5,
+            &[(Commodity::Energy, 5.0), (Commodity::Steel, 2.0)],
+            &[],
+        ),
+    );
+    m.insert(
+        MethodSlot::Automation,
+        "Computerized Facility Management".into(),
+        pm(
+            1980,
+            Some("cs_005"),
+            0.25,
+            0.35,
+            0.40,
+            2.5,
+            &[(Commodity::Energy, 8.0), (Commodity::Software, 3.0)],
+            &[],
+        ),
+    );
+
+    // Phase 18S: Organization methods (Rule 13 — 3 tiers, max 50-year gap).
+    // Organization represents management structure for sports facility operations.
+    m.insert(
+        MethodSlot::Organization,
+        "Amateur Club".into(),
+        pm(
+            1900,
+            None,
+            0.30,
+            0.40,
+            0.30,
+            1.0,
+            &[(Commodity::Food, 5.0)],
+            &[],
+        ),
+    );
+    m.insert(
+        MethodSlot::Organization,
+        "Professional League".into(),
+        pm(
+            1940,
+            Some("mech_008"),
+            0.25,
+            0.40,
+            0.35,
+            1.5,
+            &[(Commodity::Food, 5.0), (Commodity::Paper, 5.0)],
+            &[],
+        ),
+    );
+    m.insert(
+        MethodSlot::Organization,
+        "Corporate Sports Enterprise".into(),
+        pm(
+            1980,
+            Some("cs_004"),
+            0.35,
+            0.40,
+            0.25,
+            2.5,
+            &[(Commodity::Food, 5.0), (Commodity::Software, 2.0)],
+            &[],
+        ),
+    );
+
     m
 }
 
