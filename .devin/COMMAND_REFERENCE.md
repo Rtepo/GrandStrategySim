@@ -206,6 +206,31 @@ bash .devin/scripts/console.sh $release 1.2.0
 
 ---
 
+### $inbox - Worker Self-Service Event Reader
+
+**When to use:** When a worker agent needs to read their assigned tasks or remediation requests without waiting for a long prompt from the manager.
+
+```bash
+bash .devin/scripts/console.sh $inbox agent-3
+```
+
+**What it does automatically:**
+1. Scans `.devin/events/` for the oldest JSON file where `target` matches the agent
+2. Parses the event and prints a highly readable briefing:
+   - Event Type, Event ID, From, To, Timestamp
+   - Blueprint ID, Branch, Task Name, Verdict
+   - Failed Checks (if any)
+   - Reason, Action Required, Instructions
+   - SOP context (if attached)
+   - Constraints, Deliverables (if present)
+3. Moves the event file to `.devin/events/.archive/` so the inbox is cleared
+4. If inbox is empty, reports "No pending events"
+
+**You provide:** agent name only
+**System handles:** event discovery, parsing, readable formatting, archiving
+
+---
+
 ### $menu - Show Help Screen
 
 **When to use:** When you forget the available commands or their syntax.

@@ -480,45 +480,50 @@ cmd_help() {
   Command Console - SillyElaborateState Infrastructure v2.3
 ============================================================
 
-  \$kickoff <agent> <blueprint_id>
+  $kickoff <agent> <blueprint_id>
     Assign a blueprint to a worker agent. Auto-derives branch from
     roadmap, updates sprint manifest + blueprint map, emits TASK_ASSIGNED.
-    Example: \$kickoff agent-3 004-FIX
+    Example: $kickoff agent-3 004-FIX
 
-  \$audit_standard
+  $audit_standard
     Trigger full 23-rule macro-architectural audit by Agent 4.
     Auto-attaches the Global Rules checklist. No arguments needed.
 
-  \$forward_fail [latest|<event_id>]
+  $forward_fail [latest|<event_id>]
     Route the most recent AUDIT_FAIL event to responsible workers.
     Auto-emits REMEDIATION_REQUESTED to each failing blueprint's agent.
-    Example: \$forward_fail latest
+    Example: $forward_fail latest
 
-  \$unblock <agent>
+  $unblock <agent>
     Clear CI/CD 3-strike block for an agent's branch. Auto-detects the
     branch from blueprint_agent_map.json, unblocks, and wakes the agent.
-    Example: \$unblock agent-3
+    Example: $unblock agent-3
 
-  \$menu
+  $menu
     Show this help screen.
 
-  \$pulse
+  $pulse
     Display daemon PID, active sprint branches, and agent strike/block status.
 
-  \$logs <agent>
+  $logs <agent>
     Show the last 30 lines of the most recent CI/CD log for the agent's branch.
 
-  \$override <agent>
+  $override <agent>
     Administrative fast-track merge. Bypasses CI/CD for trivial changes (docs, typos).
 
-  \$smoke_main
+  $smoke_main
     Run the headless 50-tick smoke test directly on the main branch.
 
-  \$daemon
+  $daemon
     Restart the integration daemon (stop + launch). Outputs the new PID.
 
-  \$release <version>
+  $release <version>
     Bump version in Cargo.toml/package.json/tauri.conf.json, commit, tag, and push.
+
+  $inbox <agent>
+    Read the oldest pending event for an agent. Prints a readable briefing
+    and archives the event so the inbox is cleared.
+    Example: $inbox agent-3
 
 ============================================================
 HELP
@@ -1051,6 +1056,176 @@ NODE_EOF
     echo "  Pushed to origin"
 }
 
+# --- $inbox <agent> - Worker self-service event reader ----------------------
+cmd_inbox() {
+    local agent="${1:-}"
+
+    if [ -z "$agent" ]; then
+        echo "Usage: \$inbox <agent>"
+        echo "Example: \$inbox agent-3"
+        echo ""
+        echo "Reads the oldest pending event targeting this agent, prints a readable"
+        echo "briefing, and archives the event file so the inbox is cleared."
+        exit 1
+    fi
+
+    echo "=== \$inbox: $agent ==="
+    echo ""
+
+    local events_dir="$HUB_DIR/.devin/events"
+    local archive_dir="$HUB_DIR/.devin/events/.archive"
+
+    [ -d "$events_dir" ] || { echo "  ERROR: events directory not found."; exit 1; }
+    mkdir -p "$archive_dir"
+
+    # Find the oldest JSON file where target matches this agent
+    local event_file
+    event_file=$(AGENT="$agent" EVENTS_DIR="$events_dir" node <<'NODE_EOF'
+        const fs = require("fs");
+        const dir = process.env.EVENTS_DIR;
+        const agent = process.env.AGENT;
+        try {
+            const files = fs.readdirSync(dir)
+                .filter(f => f.endsWith(".json") && !f.startsWith("."))
+                .map(f => {
+                    const full = dir + "/" + f;
+                    try {
+                        let raw = fs.readFileSync(full, "utf8");
+                        if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+                        const evt = JSON.parse(raw);
+                        return { file: full, name: f, evt, mtime: fs.statSync(full).mtimeMs };
+                    } catch(e) { return null; }
+                })
+                .filter(x => x && x.evt.target === agent);
+
+            if (files.length === 0) {
+                process.exit(0);
+            }
+
+            // Sort by filename (timestamps in filename give chronological order)
+            files.sort((a, b) => a.name.localeCompare(b.name));
+            console.log(files[0].file);
+        } catch(e) {
+            process.stderr.write("Error scanning events: " + e.message + "\n");
+            process.exit(1);
+        }
+NODE_EOF
+    )
+
+    if [ -z "$event_file" ]; then
+        echo "  Inbox is empty. No pending events for $agent."
+        echo ""
+        echo "=== \$inbox complete ==="
+        exit 0
+    fi
+
+    echo "  Found event: $(basename "$event_file")"
+    echo ""
+
+    # Parse and display the event in a highly readable format
+    EVENT_FILE="$event_file" node <<'NODE_EOF'
+        const fs = require("fs");
+        try {
+            let raw = fs.readFileSync(process.env.EVENT_FILE, "utf8");
+            if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+            const evt = JSON.parse(raw);
+            const p = evt.payload || {};
+
+            console.log("  ╔══════════════════════════════════════════════════════════════╗");
+            console.log("  ║  INCOMING EVENT BRIEFING                                    ║");
+            console.log("  ╚══════════════════════════════════════════════════════════════╝");
+            console.log("");
+            console.log("  Event ID:    " + (evt.id || "N/A"));
+            console.log("  Event Type:  " + (evt.type || "UNKNOWN"));
+            console.log("  From:        " + (evt.source || "N/A"));
+            console.log("  To:          " + (evt.target || "N/A"));
+            console.log("  Timestamp:   " + (evt.timestamp || "N/A"));
+            console.log("");
+
+            if (p.blueprint_id || p.branch) {
+                console.log("  --- Task Details ---");
+                if (p.blueprint_id) console.log("  Blueprint:   " + p.blueprint_id);
+                if (p.branch)      console.log("  Branch:      " + p.branch);
+                if (p.task_name)   console.log("  Task Name:   " + p.task_name);
+                if (p.verdict)     console.log("  Verdict:     " + p.verdict);
+                console.log("");
+            }
+
+            if (p.failed_checks && p.failed_checks.length > 0) {
+                console.log("  --- Failed Checks (" + p.failed_checks.length + ") ---");
+                for (const c of p.failed_checks) {
+                    console.log("    - " + c);
+                }
+                console.log("");
+            }
+
+            if (p.reason) {
+                console.log("  --- Reason ---");
+                console.log("    " + p.reason);
+                console.log("");
+            }
+
+            if (p.action) {
+                console.log("  --- Action Required ---");
+                console.log("    " + p.action);
+                console.log("");
+            }
+
+            if (p.instructions && p.instructions.length > 0) {
+                console.log("  --- Instructions ---");
+                for (const inst of p.instructions) {
+                    console.log("    " + inst);
+                }
+                console.log("");
+            }
+
+            if (p.sop) {
+                console.log("  --- SOP (Standard Operating Procedure) ---");
+                const sopLines = p.sop.split("\n").slice(0, 20);
+                for (const line of sopLines) {
+                    console.log("    " + line);
+                }
+                if (p.sop.split("\n").length > 20) {
+                    console.log("    ... (truncated, see .devin/SOP.md for full text)");
+                }
+                console.log("");
+            }
+
+            if (p.audit_fail_event) {
+                console.log("  --- Audit Reference ---");
+                console.log("    Audit Fail Event ID: " + p.audit_fail_event);
+                console.log("");
+            }
+
+            if (p.constraints && p.constraints.length > 0) {
+                console.log("  --- Constraints ---");
+                for (const c of p.constraints) {
+                    console.log("    - " + c);
+                }
+                console.log("");
+            }
+
+            if (p.deliverables && p.deliverables.length > 0) {
+                console.log("  --- Deliverables ---");
+                for (const d of p.deliverables) {
+                    console.log("    - " + d);
+                }
+                console.log("");
+            }
+
+            console.log("  ══════════════════════════════════════════════════════════════");
+        } catch(e) {
+            console.log("  ERROR parsing event: " + e.message);
+        }
+NODE_EOF
+
+    # Archive the event file
+    mv "$event_file" "$archive_dir/" 2>/dev/null
+    echo "  Event archived to .devin/events/.archive/"
+    echo ""
+    echo "=== \$inbox complete ==="
+}
+
 # --- Command Router (must be after all function definitions) ---------------
 COMMAND="${1:-}"
 shift || true
@@ -1066,6 +1241,7 @@ case "$COMMAND" in
     \$smoke_main)     cmd_smoke_main "$@" ;;
     \$daemon)         cmd_daemon "$@" ;;
     \$release)        cmd_release "$@" ;;
+    \$inbox)          cmd_inbox "$@" ;;
     \$menu|"")        cmd_help ;;
     *)               echo "Unknown command: $COMMAND"; echo ""; cmd_help; exit 1 ;;
 esac
