@@ -499,11 +499,556 @@ cmd_help() {
     branch from blueprint_agent_map.json, unblocks, and wakes the agent.
     Example: /unblock agent-3
 
-  /help
+  /menu
     Show this help screen.
+
+  /pulse
+    Display daemon PID, active sprint branches, and agent strike/block status.
+
+  /logs <agent>
+    Show the last 30 lines of the most recent CI/CD log for the agent's branch.
+
+  /override <agent>
+    Administrative fast-track merge. Bypasses CI/CD for trivial changes (docs, typos).
+
+  /smoke_main
+    Run the headless 50-tick smoke test directly on the main branch.
+
+  /daemon
+    Restart the integration daemon (stop + launch). Outputs the new PID.
+
+  /release <version>
+    Bump version in Cargo.toml/package.json/tauri.conf.json, commit, tag, and push.
 
 ============================================================
 HELP
+}
+
+# ─── /pulse — Telemetry dashboard ──────────────────────────────────────────
+cmd_pulse() {
+    echo "=== /pulse: System Telemetry ==="
+    echo ""
+
+    # Daemon status
+    local pid_file="$HUB_DIR/.devin/.integration_daemon.pid"
+    if [ -f "$pid_file" ]; then
+        local pid
+        pid=$(cat "$pid_file" 2>/dev/null || echo "")
+        if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+            echo "  Daemon: ALIVE (PID $pid)"
+        else
+            echo "  Daemon: OFF (stale PID file: $pid)"
+        fi
+    else
+        echo "  Daemon: OFF (no PID file)"
+    fi
+    echo ""
+
+    # Sprint manifest
+    local manifest="$HUB_DIR/.devin/sprint_manifest.txt"
+    if [ -f "$manifest" ]; then
+        local branches
+        branches=$(grep -v '^#' "$manifest" | grep -v '^$' | sort -u)
+        if [ -n "$branches" ]; then
+            echo "  Sprint Manifest:"
+            local total=0
+            local promoted=0
+            while IFS= read -r br; do
+                [ -z "$br" ] && continue
+                total=$((total + 1))
+                local status="PENDING"
+                # Check for PROMOTED_TO_MAIN event
+                if find "$HUB_DIR/.devin/events" "$HUB_DIR/.devin/events/.archive" \
+                    -name "*PROMOTED_TO_MAIN*.json" -type f 2>/dev/null \
+                    | xargs grep -l "\"$br\"" 2>/dev/null | grep -q .; then
+                    status="PROMOTED"
+                    promoted=$((promoted + 1))
+                fi
+                echo "    $br — $status"
+            done <<< "$branches"
+            echo "  Sprint progress: $promoted/$total promoted"
+        else
+            echo "  Sprint Manifest: (empty)"
+        fi
+    else
+        echo "  Sprint Manifest: (not found)"
+    fi
+    echo ""
+
+    # Agent failure states
+    local state_file="$HUB_DIR/.devin/.cicd_failure_state.json"
+    local map_file="$HUB_DIR/.devin/blueprint_agent_map.json"
+    if [ -f "$state_file" ]; then
+        echo "  Agent Strike Status:"
+        STATE_IN="$state_file" MAP_IN="$map_file" node <<'NODE_EOF'
+            const fs = require("fs");
+            try {
+                let raw = fs.readFileSync(process.env.STATE_IN, "utf8");
+                if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+                const state = JSON.parse(raw);
+
+                let map = {};
+                try {
+                    let mraw = fs.readFileSync(process.env.MAP_IN, "utf8");
+                    if (mraw.charCodeAt(0) === 0xFEFF) mraw = mraw.slice(1);
+                    map = JSON.parse(mraw);
+                } catch(e) {}
+
+                // Build agent -> branches mapping
+                const agentBranches = {};
+                for (const [bpId, info] of Object.entries(map)) {
+                    if (!agentBranches[info.agent]) agentBranches[info.agent] = [];
+                    agentBranches[info.agent].push(info.branch);
+                }
+
+                for (const [branch, info] of Object.entries(state.branches || {})) {
+                    // Find which agent owns this branch
+                    let agent = "unknown";
+                    for (const [a, brs] of Object.entries(agentBranches)) {
+                        if (brs.includes(branch)) { agent = a; break; }
+                    }
+                    const blocked = info.blocked ? "BLOCKED" : "active";
+                    const strikes = info.consecutive_failures || 0;
+                    const reason = info.last_failure_reason || "none";
+                    console.log("    " + agent + " | " + branch + " | strikes=" + strikes + " | " + blocked + " | last=" + reason);
+                }
+            } catch(e) { console.log("    (error reading state)"); }
+NODE_EOF
+    else
+        echo "  Agent Strike Status: (no failure state file)"
+    fi
+    echo ""
+    echo "=== /pulse complete ==="
+}
+
+# ─── /logs <agent> — Quick failure log access ──────────────────────────────
+cmd_logs() {
+    local agent="${1:-}"
+
+    if [ -z "$agent" ]; then
+        echo "Usage: /logs <agent>"
+        echo "Example: /logs agent-3"
+        exit 1
+    fi
+
+    echo "=== /logs: $agent ==="
+
+    local map_file="$HUB_DIR/.devin/blueprint_agent_map.json"
+    local log_dir="$HUB_DIR/.devin/integration_log"
+
+    [ -d "$log_dir" ] || { echo "  ERROR: integration_log/ not found."; exit 1; }
+
+    # Find the agent's branch from blueprint_agent_map.json
+    local branch=""
+    if [ -f "$map_file" ]; then
+        branch=$(AGENT="$agent" MAP_IN="$map_file" node <<'NODE_EOF'
+            const fs = require("fs");
+            try {
+                let raw = fs.readFileSync(process.env.MAP_IN, "utf8");
+                if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+                const map = JSON.parse(raw);
+                for (const [bpId, info] of Object.entries(map)) {
+                    if (info.agent === process.env.AGENT) {
+                        console.log(info.branch);
+                        process.exit(0);
+                    }
+                }
+            } catch(e) {}
+            console.log("");
+NODE_EOF
+        )
+    fi
+
+    if [ -z "$branch" ]; then
+        echo "  No branch found for $agent in blueprint_agent_map.json"
+        exit 1
+    fi
+
+    echo "  Branch: $branch"
+    echo ""
+
+    # Sanitize branch name for log file matching (replace / with _)
+    local branch_safe="${branch//\//_}"
+
+    # Find the most recent log files for this branch
+    local latest_failed=""
+    local latest_test=""
+    local latest_cicd=""
+
+    latest_failed=$(find "$log_dir" -maxdepth 1 -name "*${branch_safe}_FAILED.txt" -type f 2>/dev/null | sort -r | head -1)
+    latest_test=$(find "$log_dir" -maxdepth 1 -name "*${branch_safe}_test.txt" -type f 2>/dev/null | sort -r | head -1)
+    latest_cicd=$(find "$log_dir" -maxdepth 1 -name "*${branch_safe}_cicd_output.txt" -type f 2>/dev/null | sort -r | head -1)
+
+    # Priority: FAILED.txt > test.txt > cicd_output.txt
+    local target_log=""
+    local log_type=""
+    if [ -n "$latest_failed" ]; then
+        target_log="$latest_failed"
+        log_type="FAILED"
+    elif [ -n "$latest_test" ]; then
+        target_log="$latest_test"
+        log_type="TEST"
+    elif [ -n "$latest_cicd" ]; then
+        target_log="$latest_cicd"
+        log_type="CICD_OUTPUT"
+    fi
+
+    if [ -z "$target_log" ]; then
+        echo "  No log files found for branch: $branch"
+        echo "  Searched in: $log_dir"
+        exit 1
+    fi
+
+    echo "  Log type: $log_type"
+    echo "  File: $(basename "$target_log")"
+    echo "  --- Last 30 lines ---"
+    tail -n 30 "$target_log" 2>/dev/null
+    echo "  --- End of log ---"
+    echo ""
+    echo "=== /logs complete ==="
+}
+
+# ─── /override <agent> — Administrative fast-track merge ───────────────────
+cmd_override() {
+    local agent="${1:-}"
+
+    if [ -z "$agent" ]; then
+        echo "Usage: /override <agent>"
+        echo "Example: /override agent-3"
+        echo ""
+        echo "WARNING: This bypasses CI/CD. Use only for trivial changes (docs, typos)."
+        exit 1
+    fi
+
+    echo "=== /override: $agent (ADMINISTRATIVE BYPASS) ==="
+    echo "  WARNING: This bypasses the 10-minute CI/CD pipeline."
+    echo "  Use ONLY for trivial changes (docs, typos, config)."
+    echo ""
+
+    local map_file="$HUB_DIR/.devin/blueprint_agent_map.json"
+
+    # Find the agent's branch
+    local branch=""
+    if [ -f "$map_file" ]; then
+        branch=$(AGENT="$agent" MAP_IN="$map_file" node <<'NODE_EOF'
+            const fs = require("fs");
+            try {
+                let raw = fs.readFileSync(process.env.MAP_IN, "utf8");
+                if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+                const map = JSON.parse(raw);
+                for (const [bpId, info] of Object.entries(map)) {
+                    if (info.agent === process.env.AGENT) {
+                        console.log(info.branch);
+                        process.exit(0);
+                    }
+                }
+            } catch(e) {}
+            console.log("");
+NODE_EOF
+        )
+    fi
+
+    if [ -z "$branch" ]; then
+        echo "  ERROR: Could not determine branch for $agent."
+        exit 1
+    fi
+
+    echo "  Branch: $branch"
+
+    # Verify branch exists
+    if ! git rev-parse --verify "$branch" >/dev/null 2>&1; then
+        echo "  ERROR: Branch '$branch' does not exist."
+        exit 1
+    fi
+
+    # Check for uncommitted changes
+    local dirty
+    dirty=$(git status --porcelain 2>/dev/null | grep -v '^??' | head -1)
+    if [ -n "$dirty" ]; then
+        echo "  ERROR: Working tree is dirty. Commit or stash changes first."
+        git status --short | head -5
+        exit 1
+    fi
+
+    # Confirm with user
+    echo "  Proceeding with fast-track merge of $branch into main..."
+    echo ""
+
+    # Step 1: Checkout main
+    git checkout main 2>&1 | tail -1
+    if [ $? -ne 0 ]; then
+        echo "  ERROR: Cannot checkout main."
+        exit 1
+    fi
+
+    # Step 2: Merge the branch
+    git merge "$branch" --no-edit 2>&1 | tail -5
+    local merge_rc=$?
+    if [ $merge_rc -ne 0 ]; then
+        local conflicts
+        conflicts=$(git diff --name-only --diff-filter=U 2>/dev/null | tr '\n' ' ')
+        git merge --abort 2>/dev/null || true
+        echo "  ERROR: Merge conflict in: $conflicts"
+        echo "  Merge aborted. Resolve conflicts manually."
+        exit 1
+    fi
+
+    # Step 3: Get the resulting commit
+    local main_commit
+    main_commit=$(git rev-parse HEAD)
+
+    # Step 4: Reset failure state
+    local state_file="$HUB_DIR/.devin/.cicd_failure_state.json"
+    if [ -f "$state_file" ]; then
+        BRANCH="$branch" STATE_FILE="$state_file" node <<'NODE_EOF'
+            const fs = require("fs");
+            const branch = process.env.BRANCH;
+            const stateFile = process.env.STATE_FILE;
+            let state = { branches: {} };
+            try {
+                let raw = fs.readFileSync(stateFile, "utf8");
+                if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+                state = JSON.parse(raw);
+                if (!state.branches) state.branches = {};
+            } catch(e) { state = { branches: {} }; }
+            if (state.branches[branch]) {
+                state.branches[branch].consecutive_failures = 0;
+                state.branches[branch].blocked = false;
+            }
+            const tmp = stateFile + ".tmp";
+            fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
+            fs.renameSync(tmp, stateFile);
+NODE_EOF
+    fi
+
+    # Step 5: Emit PROMOTED_TO_MAIN
+    bash "$SCRIPT_DIR/emit_event.sh" "PROMOTED_TO_MAIN" "agent-5" "all" \
+        "{\"branch\":\"$branch\",\"commit\":\"$main_commit\",\"method\":\"override_bypass\"}" 2>/dev/null
+
+    echo ""
+    echo "=== /override complete ==="
+    echo "  Branch $branch merged to main @ $main_commit"
+    echo "  PROMOTED_TO_MAIN emitted (method: override_bypass)"
+    echo "  Failure state reset for $branch"
+}
+
+# ─── /smoke_main — Run smoke test on main ──────────────────────────────────
+cmd_smoke_main() {
+    echo "=== /smoke_main: Headless 50-tick smoke test on main ==="
+    echo ""
+
+    # Verify we're on main
+    local current_branch
+    current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+    if [ "$current_branch" != "main" ]; then
+        echo "  WARNING: Currently on branch '$current_branch', not 'main'."
+        echo "  Switching to main..."
+        git checkout main 2>&1 | tail -1
+    fi
+
+    echo "  Branch: $(git rev-parse --abbrev-ref HEAD)"
+    echo "  Commit: $(git rev-parse --short HEAD)"
+    echo "  Running: cargo test --workspace --test headless_smoke_test -- headless_50_tick_smoke --nocapture"
+    echo "  (timeout: 600s)"
+    echo ""
+
+    timeout 600 cargo test --workspace --test headless_smoke_test -- headless_50_tick_smoke --nocapture 2>&1
+    local rc=$?
+
+    echo ""
+    if [ $rc -eq 0 ]; then
+        echo "=== /smoke_main: PASS ==="
+    elif [ $rc -eq 124 ]; then
+        echo "=== /smoke_main: TIMEOUT (exceeded 600s) ==="
+    else
+        echo "=== /smoke_main: FAIL (rc=$rc) ==="
+    fi
+}
+
+# ─── /daemon — Restart the integration daemon ──────────────────────────────
+cmd_daemon() {
+    echo "=== /daemon: Restarting integration daemon ==="
+    echo ""
+
+    # Step 1: Stop existing daemon
+    echo "  Stopping existing daemon..."
+    bash "$SCRIPT_DIR/stop_daemon.sh" 2>&1 || true
+    echo ""
+
+    # Clear stale PID file if present
+    local pid_file="$HUB_DIR/.devin/.integration_daemon.pid"
+    if [ -f "$pid_file" ]; then
+        rm -f "$pid_file"
+    fi
+
+    # Step 2: Launch fresh daemon
+    echo "  Launching fresh daemon..."
+    bash "$SCRIPT_DIR/launch_daemon.sh" 2>&1
+    local launch_rc=$?
+
+    if [ $launch_rc -ne 0 ]; then
+        echo "  ERROR: Daemon launch failed."
+        exit 1
+    fi
+
+    echo ""
+    echo "=== /daemon complete ==="
+}
+
+# ─── /release <version> — Version bump, tag, and push ──────────────────────
+cmd_release() {
+    local version="${1:-}"
+
+    if [ -z "$version" ]; then
+        echo "Usage: /release <version>"
+        echo "Example: /release 1.2.0"
+        exit 1
+    fi
+
+    # Strip leading 'v' if present
+    version="${version#v}"
+
+    echo "=== /release: v$version ==="
+    echo ""
+
+    # Verify clean tree
+    local dirty
+    dirty=$(git status --porcelain 2>/dev/null | grep -v '^??' | head -1)
+    if [ -n "$dirty" ]; then
+        echo "  ERROR: Working tree is dirty. Commit changes first."
+        git status --short | head -5
+        exit 1
+    fi
+
+    # Verify on main
+    local current_branch
+    current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+    if [ "$current_branch" != "main" ]; then
+        echo "  ERROR: Must be on 'main' branch (currently on '$current_branch')."
+        exit 1
+    fi
+
+    echo "  Bumping version to $version in:"
+
+    # Cargo.toml (workspace root)
+    local cargo_toml="$HUB_DIR/Cargo.toml"
+    if [ -f "$cargo_toml" ]; then
+        VERSION="$version" FILE="$cargo_toml" node <<'NODE_EOF'
+            const fs = require("fs");
+            const f = process.env.FILE;
+            let content = fs.readFileSync(f, "utf8");
+            // Replace version = "x.y.z" in the [workspace.package] section
+            content = content.replace(
+                /^(\[workspace\.package\][\s\S]*?version\s*=\s*)"[^"]*"/m,
+                '$1"' + process.env.VERSION + '"'
+            );
+            // Also replace top-level version if no workspace.package section
+            if (!content.includes("[workspace.package]")) {
+                content = content.replace(
+                    /^version\s*=\s*"[^"]*"/m,
+                    'version = "' + process.env.VERSION + '"'
+                );
+            }
+            fs.writeFileSync(f, content);
+            console.log("    Cargo.toml (workspace root)");
+NODE_EOF
+    fi
+
+    # state/Cargo.toml
+    local state_cargo="$HUB_DIR/state/Cargo.toml"
+    if [ -f "$state_cargo" ]; then
+        VERSION="$version" FILE="$state_cargo" node <<'NODE_EOF'
+            const fs = require("fs");
+            const f = process.env.FILE;
+            let content = fs.readFileSync(f, "utf8");
+            content = content.replace(
+                /^version\s*=\s*"[^"]*"/m,
+                'version = "' + process.env.VERSION + '"'
+            );
+            fs.writeFileSync(f, content);
+            console.log("    state/Cargo.toml");
+NODE_EOF
+    fi
+
+    # src-tauri/Cargo.toml
+    local tauri_cargo="$HUB_DIR/src-tauri/Cargo.toml"
+    if [ -f "$tauri_cargo" ]; then
+        VERSION="$version" FILE="$tauri_cargo" node <<'NODE_EOF'
+            const fs = require("fs");
+            const f = process.env.FILE;
+            let content = fs.readFileSync(f, "utf8");
+            content = content.replace(
+                /^version\s*=\s*"[^"]*"/m,
+                'version = "' + process.env.VERSION + '"'
+            );
+            fs.writeFileSync(f, content);
+            console.log("    src-tauri/Cargo.toml");
+NODE_EOF
+    fi
+
+    # package.json
+    local pkg_json="$HUB_DIR/package.json"
+    if [ -f "$pkg_json" ]; then
+        VERSION="$version" FILE="$pkg_json" node <<'NODE_EOF'
+            const fs = require("fs");
+            const f = process.env.FILE;
+            let content = fs.readFileSync(f, "utf8");
+            content = content.replace(
+                /"version"\s*:\s*"[^"]*"/,
+                '"version": "' + process.env.VERSION + '"'
+            );
+            fs.writeFileSync(f, content);
+            console.log("    package.json");
+NODE_EOF
+    fi
+
+    # src-tauri/tauri.conf.json
+    local tauri_conf="$HUB_DIR/src-tauri/tauri.conf.json"
+    if [ -f "$tauri_conf" ]; then
+        VERSION="$version" FILE="$tauri_conf" node <<'NODE_EOF'
+            const fs = require("fs");
+            const f = process.env.FILE;
+            let content = fs.readFileSync(f, "utf8");
+            // Tauri config has "version" field and possibly "package" > "version"
+            content = content.replace(
+                /"version"\s*:\s*"[^"]*"/g,
+                '"version": "' + process.env.VERSION + '"'
+            );
+            fs.writeFileSync(f, content);
+            console.log("    src-tauri/tauri.conf.json");
+NODE_EOF
+    fi
+
+    echo ""
+
+    # Commit the version bump
+    echo "  Committing version bump..."
+    git add -A 2>/dev/null
+    git commit -m "chore: bump version to v$version" 2>&1 | tail -2
+    local commit_rc=$?
+    if [ $commit_rc -ne 0 ]; then
+        echo "  WARNING: git commit returned $commit_rc (may be nothing to commit)"
+    fi
+
+    # Create annotated tag
+    echo "  Creating annotated tag v$version..."
+    git tag -a "v$version" -m "Release v$version" 2>&1
+    local tag_rc=$?
+    if [ $tag_rc -ne 0 ]; then
+        echo "  WARNING: git tag returned $tag_rc (tag may already exist)"
+    fi
+
+    # Push commit and tag
+    echo "  Pushing commit to origin..."
+    git push origin main 2>&1 | tail -3
+    echo "  Pushing tag to origin..."
+    git push origin "v$version" 2>&1 | tail -3
+
+    echo ""
+    echo "=== /release complete ==="
+    echo "  Version: v$version"
+    echo "  Tag: v$version"
+    echo "  Pushed to origin"
 }
 
 # ─── Command Router (must be after all function definitions) ───────────────
@@ -515,6 +1060,12 @@ case "$COMMAND" in
     /audit_standard) cmd_audit_standard "$@" ;;
     /forward_fail)   cmd_forward_fail "$@" ;;
     /unblock)        cmd_unblock "$@" ;;
-    /help|"")        cmd_help ;;
+    /pulse)          cmd_pulse "$@" ;;
+    /logs)           cmd_logs "$@" ;;
+    /override)       cmd_override "$@" ;;
+    /smoke_main)     cmd_smoke_main "$@" ;;
+    /daemon)         cmd_daemon "$@" ;;
+    /release)        cmd_release "$@" ;;
+    /menu|"")        cmd_help ;;
     *)               echo "Unknown command: $COMMAND"; echo ""; cmd_help; exit 1 ;;
 esac
