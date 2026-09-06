@@ -10426,7 +10426,7 @@ fn sports_recreation_methods() -> BuildingMethods {
                 (Commodity::Energy, 15.0), // floodlights, HVAC
                 (Commodity::Water, 10.0),
                 (Commodity::Food, 5.0),
-                (Commodity::SecurityCapacity, 4.0),
+                (Commodity::AdministrativeServices, 4.0), // event management, ticketing
             ],
             &[(Commodity::SportsCapacity, 100.0)],
             CapacityType::SportsCapacity,
