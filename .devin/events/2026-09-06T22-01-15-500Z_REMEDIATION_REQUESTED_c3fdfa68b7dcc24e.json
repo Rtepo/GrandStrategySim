@@ -1,0 +1,16 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-3",
+  "timestamp": "2026-09-06T22:01:15.500Z",
+  "id": "c3fdfa68b7dcc24e",
+  "payload": {
+    "blueprint_id": "004-FIX",
+    "branch": "fix/agent-3-sports-recreation-impl",
+    "verdict": "PARTIAL_PASS",
+    "reason": "7/10 PASS, 3 PARTIAL, 1 FAIL. Core mechanics (commodity, module, facility types, B2C clearing, health integration, turn loop) work. FAIL: sports_capacity_per_capita not exposed in CountrySnapshot/MacroIndicatorsResponse/LaborSummary (Rule 17). PARTIAL: construction BOMs generic (bom_commercial), public access conditional on treasury solvency, WeatherState lacks explicit temperature field, parallel dead SportsFacility path (Rule 14).",
+    "failed_checks": [],
+    "audit_fail_event": "02a6bed38194085e",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-06T20:58:08.336Z",
+  "id": "44e19a2e9669eb15",
+  "payload": {
+    "failed_branch": "feat/agent-2-housing-utilities",
+    "assigned_worker": "unknown",
+    "reason": "Merge Conflict in state/src/engine/generator/corporate.rs state/src/society/housing.rs state/src/utilities/consumption.rs "
+  }
+}

@@ -1,0 +1,12 @@
+{
+    "id":  "8ea793c61864c45c",
+    "payload":  {
+                    "branch":  "fix/agent-1-waterwell-mass-conservation",
+                    "description":  "Blueprint 006-FIX v5: Fixed 2 PARTIAL issues — (1) groundwater_regen_rate now incorporated into fractional recharge as baseline percolation, (2) runtime well CAPEX path added to turn loop (construction progress + BOM + cost computation). 16/16 tests pass.",
+                    "ready_for":  "stage_merge"
+                },
+    "source":  "agent-1",
+    "timestamp":  "2026-09-06T22:12:15.227Z",
+    "type":  "INTEGRATION_REQUESTED",
+    "target":  "agent-5"
+}

@@ -1,0 +1,16 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-2",
+  "timestamp": "2026-09-06T22:01:16.248Z",
+  "id": "2cf3bfb86cdca8cf",
+  "payload": {
+    "blueprint_id": "007-FIX",
+    "branch": "fix/agent-2-m0-demographics-cooperatives",
+    "verdict": "FAIL",
+    "reason": "Unchanged — 3 critical FAILs (cooperative hooks never called, empty vacancies, partial-fill retry uses wrong field), 2 PARTIAL (region_id unset, first-urban-class fallback)",
+    "failed_checks": [],
+    "audit_fail_event": "02a6bed38194085e",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}

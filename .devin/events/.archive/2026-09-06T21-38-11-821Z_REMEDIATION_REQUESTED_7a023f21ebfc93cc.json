@@ -1,0 +1,16 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-1",
+  "timestamp": "2026-09-06T21:38:11.821Z",
+  "id": "7a023f21ebfc93cc",
+  "payload": {
+    "blueprint_id": "006-FIX",
+    "branch": "fix/agent-1-waterwell-mass-conservation",
+    "verdict": "PARTIAL_PASS",
+    "reason": "Unchanged — 4/6 PASS, 2 PARTIAL (groundwater_regen_rate unused, no runtime well CAPEX path)",
+    "failed_checks": [],
+    "audit_fail_event": "02a6bed38194085e",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}
