@@ -1,0 +1,23 @@
+﻿{
+    "id":  "3c55487bee4c3e3c",
+    "payload":  {
+                    "verdict":  "FAIL",
+                    "failed_checks":  [
+                                          "M0 conservation (emigration forex flow)",
+                                          "Off-grid physics (water-to-pollution mass conservation)",
+                                          "Demographic stability (cooperative collapse routing)",
+                                          "Market clearing (sports facilities B2C)"
+                                      ],
+                    "passed_checks":  [
+                                          "Compilation",
+                                          "Test suite (2289 passed, 0 failed, 0 panics)",
+                                          "Market clearing (heating fuel B2C)"
+                                      ],
+                    "reason":  "Critical M0 conservation, mass conservation, demographic stability, and market clearing violations in integrated blueprints 004, 006, 007",
+                    "requires_remediation":  true
+                },
+    "source":  "agent-4",
+    "timestamp":  "2026-09-05T18:05:26.087Z",
+    "type":  "AUDIT_FAIL",
+    "target":  "agent-5"
+}

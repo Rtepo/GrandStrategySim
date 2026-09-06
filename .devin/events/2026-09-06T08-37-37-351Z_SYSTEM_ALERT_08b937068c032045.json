@@ -1,0 +1,12 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-06T08:37:37.351Z",
+  "id": "08b937068c032045",
+  "payload": {
+    "failed_branch": "fix/agent-1-waterwell-mass-conservation",
+    "assigned_worker": "agent-1",
+    "reason": "Cargo Test Failed"
+  }
+}

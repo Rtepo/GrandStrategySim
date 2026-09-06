@@ -1,0 +1,55 @@
+﻿{
+    "id":  "74062d9e3e3e3aa6",
+    "payload":  {
+                    "requires_remediation":  true,
+                    "verdict":  "FAIL",
+                    "failed_checks":  [
+                                          "004-FIX: Commodity::SportsCapacity missing",
+                                          "004-FIX: infrastructure/sports.rs missing",
+                                          "004-FIX: OpenAirField/IndoorHall/Stadium missing",
+                                          "004-FIX: clear_sports_capacity_b2c missing",
+                                          "004-FIX: climate/season wiring missing",
+                                          "004-FIX: sports_access_coverage health term missing",
+                                          "006-FIX: fractional aquifer recharge not implemented (groundwater_regen_rate=0.0)",
+                                          "006-FIX: Day-1 constructed wells not implemented (water_well: None at world gen)",
+                                          "006-FIX: sewage gating not implemented (no sewage_volume = MIN(water_extracted, demand))",
+                                          "006-FIX: off_grid_waste_emission function missing",
+                                          "006-FIX: CAPEX BOM uses Stone/Timber/Bricks instead of Steel/Concrete",
+                                          "006-FIX: WaterWell lifecycle fields missing (maintenance_cost, remaining_yield_lifetime, abandoned)",
+                                          "007-FIX runtime: try_rehouse passes empty vacancies — Tier 1 and Tier 2 unreachable",
+                                          "007-FIX runtime: partial-fill retry uses original liquid_capital not remaining_unconverted_capital"
+                                      ],
+                    "blueprint_results":  [
+                                              {
+                                                  "verdict":  "FAIL",
+                                                  "id":  "004-FIX",
+                                                  "reason":  "All 8 mechanics missing — no SportsCapacity, no sports module, no facility types, no B2C clearing, no climate wiring, no health impact, no turn loop wiring, no lifecycle"
+                                              },
+                                              {
+                                                  "verdict":  "FAIL",
+                                                  "id":  "006-FIX",
+                                                  "reason":  "All 6 mechanics missing — no fractional recharge, no Day-1 constructed wells, no sewage gating, no off-grid pollution routing, wrong CAPEX BOM (Stone/Timber/Bricks instead of Steel/Concrete), no well lifecycle fields"
+                                              },
+                                              {
+                                                  "verdict":  "PARTIAL_PASS",
+                                                  "id":  "007-FIX",
+                                                  "reason":  "7/7 mechanics implemented in code, but 2 runtime defects: (1) try_rehouse call site passes empty vacancies vector so Tier 1 and Tier 2 are unreachable, (2) partial-fill retry uses original liquid_capital instead of remaining_unconverted_capital"
+                                              }
+                                          ],
+                    "reason":  "004-FIX and 006-FIX entirely unimplemented. 007-FIX implemented with two runtime defects (empty rehousing vacancies, partial-fill retry uses original capital).",
+                    "passed_checks":  [
+                                          "Compilation",
+                                          "Test suite (2289 passed, 0 failed, 0 panics)",
+                                          "007-FIX event-based cooperative cache",
+                                          "007-FIX 3-step forex flow (DEBIT citizen, CREDIT CB domestic, DEBIT fx_reserves)",
+                                          "007-FIX treasury/CB separation",
+                                          "007-FIX turn loop wiring",
+                                          "007-FIX macro-demographic update",
+                                          "007-FIX persistent emigration queue field"
+                                      ]
+                },
+    "source":  "agent-4",
+    "timestamp":  "2026-09-05T22:18:34.602Z",
+    "type":  "AUDIT_FAIL",
+    "target":  "agent-5"
+}

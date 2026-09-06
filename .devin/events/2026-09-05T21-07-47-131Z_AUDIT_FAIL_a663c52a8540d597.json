@@ -1,0 +1,46 @@
+﻿{
+    "id":  "a663c52a8540d597",
+    "payload":  {
+                    "audit_006_fix":  {
+                                          "capex_bom":  "FAIL",
+                                          "sewage_gating":  "FAIL",
+                                          "off_grid_pollution_routing":  "FAIL",
+                                          "day1_constructed_wells":  "FAIL",
+                                          "well_lifecycle":  "FAIL",
+                                          "fractional_recharge":  "FAIL",
+                                          "well_extraction_from_aquifer":  "FAIL"
+                                      },
+                    "audit_004_fix":  {
+                                          "sports_capacity_commodity":  "FAIL (not in main; exists in worktree only)",
+                                          "b2c_sports_clearing":  "FAIL (not in main)",
+                                          "sports_facility_module":  "FAIL (not in main)",
+                                          "subsidy_access":  "FAIL (not in main)",
+                                          "sports_health_impact":  "FAIL (not in main)",
+                                          "turn_loop_wiring":  "FAIL (not in main)",
+                                          "sports_production_methods":  "FAIL (not in main)",
+                                          "climate_season_wiring":  "FAIL (not in main)"
+                                      },
+                    "requires_remediation":  true,
+                    "verdict":  "FAIL",
+                    "audit_007_fix":  {
+                                          "three_tier_rehousing":  "FAIL",
+                                          "treasury_cb_separation":  "FAIL",
+                                          "macro_demographic_update":  "FAIL",
+                                          "event_based_cache":  "FAIL",
+                                          "turn_loop_wiring":  "FAIL",
+                                          "persistent_emigration_queue":  "FAIL",
+                                          "three_step_forex":  "FAIL",
+                                          "health_happiness_applied":  "FAIL"
+                                      },
+                    "reason":  "006-FIX and 007-FIX not implemented in main. 004-FIX exists only in worktree, not merged. All 7 mass-conservation checks, all 8 M0/demographics checks, and all 8 sports checks FAIL against main branch source code.",
+                    "runtime":  {
+                                    "headless_smoke":  "PASS (1 passed, 0 failed)",
+                                    "cargo_test":  "PASS (2289 passed, 0 failed, 0 panics)",
+                                    "cargo_check":  "PASS (exit 0)"
+                                }
+                },
+    "source":  "agent-4",
+    "timestamp":  "2026-09-05T21:07:47.212Z",
+    "type":  "AUDIT_FAIL",
+    "target":  "agent-5"
+}

@@ -1,0 +1,23 @@
+﻿{
+    "id":  "74fb84dcabf892c7",
+    "payload":  {
+                    "task_name":  "mass-conservation-waterwell-sewage-fix",
+                    "branch":  "fix/agent-1-waterwell-mass-conservation",
+                    "action":  "Read the blueprint at . Create branch fix/agent-1-waterwell-mass-conservation from main. Implement the fixes exactly as specified. When ready, run request_integration.sh from your worktree.",
+                    "task_type":  "remediation_implementation",
+                    "blueprint_file":  ".devin/tasks/active/006-FIX_mass-conservation-waterwell-sewage.json",
+                    "blueprint_id":  "blueprint-006-FIX",
+                    "base_branch":  "main",
+                    "priority":  "critical",
+                    "constraints":  [
+                                        "Strict concrete physical mechanics and double-entry ledger accounting only",
+                                        "No abstract demographic multipliers or magic numbers",
+                                        "No off-topic refactoring (Rule 22 scope discipline)",
+                                        "Use existing asset tracking, warehouse logic, and Company balance sheets"
+                                    ]
+                },
+    "source":  "agent-5",
+    "timestamp":  "2026-09-05T18:56:01.048Z",
+    "type":  "TASK_ASSIGNED",
+    "target":  "agent-1"
+}

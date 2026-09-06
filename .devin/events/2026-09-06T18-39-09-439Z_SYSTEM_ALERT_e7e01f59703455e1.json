@@ -1,0 +1,12 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-06T18:39:09.439Z",
+  "id": "e7e01f59703455e1",
+  "payload": {
+    "failed_branch": "fix/agent-3-sports-recreation-impl",
+    "assigned_worker": "unknown",
+    "reason": "Cargo Test Failed"
+  }
+}

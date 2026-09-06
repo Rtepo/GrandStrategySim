@@ -1,0 +1,12 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-05T21:43:28.828Z",
+  "id": "15d2ea6a69c22b11",
+  "payload": {
+    "failed_branch": "fix/agent-3-sports-recreation-impl",
+    "assigned_worker": "agent-5",
+    "reason": "Merge Conflict in .devin/scripts/integration_daemon.sh .gitignore "
+  }
+}

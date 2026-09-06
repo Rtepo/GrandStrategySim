@@ -1,0 +1,12 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-06T18:39:07.439Z",
+  "id": "d321d7d9b6d74f68",
+  "payload": {
+    "failed_branch": "fix/agent-3-sports-recreation-impl",
+    "assigned_worker": "unknown",
+    "reason": "Branch BLOCKED after 3 consecutive CI/CD failures. Manual intervention required."
+  }
+}

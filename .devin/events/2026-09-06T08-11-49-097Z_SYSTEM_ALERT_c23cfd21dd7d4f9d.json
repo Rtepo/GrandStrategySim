@@ -1,0 +1,12 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-06T08:11:49.097Z",
+  "id": "c23cfd21dd7d4f9d",
+  "payload": {
+    "failed_branch": "fix/agent-3-sports-recreation-impl",
+    "assigned_worker": "unknown",
+    "reason": "CI/CD Stage Timeout"
+  }
+}

@@ -1,0 +1,39 @@
+﻿{
+    "id":  "d171192910440204",
+    "payload":  {
+                    "constraints":  [
+                                        "All fixes must use concrete physical mechanics and explicit double-entry ledger accounting",
+                                        "Use actual asset tracking and existing warehouse logic (e.g., Company balance sheets, Inventory structs, FreightCapacity)",
+                                        "Absolutely NO abstract demographic multipliers or magic number adjustments",
+                                        "No off-topic subjects or opportunistic refactoring (Rule 22)",
+                                        "Focus exclusively on the specific violations: M0 emigration forex flow, off-grid water-to-pollution mass conservation, cooperative collapse routing, sports facilities B2C market clearing",
+                                        "Each blueprint must be strict JSON with fields: id, task_name, assigned_to (leave blank for manager to assign), priority, branch, base_branch, depends_on, blocks, rationale, scope (array of files and changes)",
+                                        "Save directly to .devin/tasks/queued/ as 004-FIX.json, 006-FIX.json, 007-FIX.json"
+                                    ],
+                    "passed_checks":  [
+                                          "Compilation",
+                                          "Test suite (2289 passed, 0 failed, 0 panics)",
+                                          "Market clearing (heating fuel B2C)"
+                                      ],
+                    "action":  "Draft 3 remediation blueprints and save to .devin/tasks/queued/. Do NOT implement code. Manager will review and assign to workers.",
+                    "task_type":  "remediation_blueprint_drafting",
+                    "output_dir":  ".devin/tasks/queued/",
+                    "audit_failed_checks":  [
+                                                "M0 conservation (emigration forex flow)",
+                                                "Off-grid physics (water-to-pollution mass conservation)",
+                                                "Demographic stability (cooperative collapse routing)",
+                                                "Market clearing (sports facilities B2C)"
+                                            ],
+                    "reason":  "AUDIT_FAIL received: M0 conservation, mass conservation, demographic stability, and market clearing violations in blueprints 004, 006, 007",
+                    "priority":  "critical",
+                    "deliverables":  [
+                                         "004-FIX.json",
+                                         "006-FIX.json",
+                                         "007-FIX.json"
+                                     ]
+                },
+    "source":  "agent-5",
+    "timestamp":  "2026-09-05T18:29:01.499Z",
+    "type":  "TASK_ASSIGNED",
+    "target":  "agent-4"
+}
