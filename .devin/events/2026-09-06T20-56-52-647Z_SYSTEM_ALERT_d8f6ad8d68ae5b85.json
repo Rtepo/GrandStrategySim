@@ -1,0 +1,17 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-06T20:56:52.647Z",
+  "id": "d8f6ad8d68ae5b85",
+  "payload": {
+    "verdict": "FAIL",
+    "failed_blueprints": [
+      "004-FIX",
+      "006-FIX",
+      "007-FIX"
+    ],
+    "requires_remediation": true,
+    "routed_count": 3
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-1",
+  "timestamp": "2026-09-06T20:56:50.973Z",
+  "id": "176f2fe345b1ae12",
+  "payload": {
+    "blueprint_id": "006-FIX",
+    "branch": "fix/agent-1-waterwell-mass-conservation",
+    "verdict": "FAIL",
+    "reason": "All 6 mechanics missing — no fractional recharge, no Day-1 constructed wells, no sewage gating, no off-grid pollution routing, wrong CAPEX BOM (Stone/Timber/Bricks instead of Steel/Concrete), no well lifecycle fields",
+    "failed_checks": [
+      "006-FIX: fractional aquifer recharge not implemented (groundwater_regen_rate=0.0)",
+      "006-FIX: Day-1 constructed wells not implemented (water_well: None at world gen)",
+      "006-FIX: sewage gating not implemented (no sewage_volume = MIN(water_extracted, demand))",
+      "006-FIX: off_grid_waste_emission function missing",
+      "006-FIX: CAPEX BOM uses Stone/Timber/Bricks instead of Steel/Concrete",
+      "006-FIX: WaterWell lifecycle fields missing (maintenance_cost, remaining_yield_lifetime, abandoned)"
+    ],
+    "audit_fail_event": "74062d9e3e3e3aa6",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-06T19:28:40.990Z",
+  "id": "01b1532e1b549e6a",
+  "payload": {
+    "failed_branch": "fix/agent-3-sports-recreation-impl",
+    "assigned_worker": "unknown",
+    "reason": "Branch BLOCKED after 3 consecutive CI/CD failures (EMPTY_BRANCH_NO_COMMITS). Manual intervention required. Run unblock_branch.sh to unlock."
+  }
+}

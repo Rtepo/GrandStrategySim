@@ -1,0 +1,23 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-2",
+  "timestamp": "2026-09-06T20:56:54.709Z",
+  "id": "1f149b0164b7cfe4",
+  "payload": {
+    "blueprint_id": "007-FIX",
+    "branch": "fix/agent-2-m0-demographics-cooperatives",
+    "verdict": "FAIL",
+    "reason": "3 critical FAILs: (1) on_cooperative_created/on_cooperative_liquidated hooks defined but NEVER CALLED — CooperativeRegistry always empty, (2) try_rehouse call site passes Vec::new() vacancies — Tier 1 market rent and Tier 2 welfare unreachable, only Tier 3 homeless executes, (3) partial-fill retry uses h.liquid_capital not h.remaining_unconverted_capital causing double conversion. 2 PARTIAL: (a) HomelessState.region_id never set so forex savings_bucket lookup returns 0.0 and Step 1-3 flow is skipped, (b) demographic updates use first-urban-class fallback losing individual accountability",
+    "failed_checks": [
+      "007-FIX: on_cooperative_created/on_cooperative_liquidated hooks NEVER CALLED — registry always empty",
+      "007-FIX: try_rehouse call site passes Vec::new() — Tier 1 and Tier 2 unreachable",
+      "007-FIX: Partial-fill retry uses h.liquid_capital not h.remaining_unconverted_capital",
+      "007-FIX: HomelessState.region_id never set — forex savings_bucket lookup returns 0.0",
+      "007-FIX: Demographic updates use first-urban-class fallback (Rule 7 violation)",
+      "007-FIX: try_rehouse does not credit property owner (Rule 1 closed-loop violation)"
+    ],
+    "audit_fail_event": "ab2fcf3aa9a46366",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}

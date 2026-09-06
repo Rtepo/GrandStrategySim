@@ -1,0 +1,19 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-1",
+  "timestamp": "2026-09-06T20:56:53.859Z",
+  "id": "4c93087a2a61f160",
+  "payload": {
+    "blueprint_id": "006-FIX",
+    "branch": "fix/agent-1-waterwell-mass-conservation",
+    "verdict": "PARTIAL_PASS",
+    "reason": "4/6 PASS (deep_well_construction matrix, sewage gating, off-grid pollution routing, well lifecycle with Steel/Cement BOM). 2 PARTIAL: (1) groundwater_regen_rate field is unused zero placeholder while actual recharge works via local variable in regenerate_fractional, (2) no runtime CAPEX construction path for post-world-gen wells — WaterWellAsset commodity produced but never consumed",
+    "failed_checks": [
+      "006-FIX: groundwater_regen_rate field is unused zero placeholder",
+      "006-FIX: No runtime CAPEX construction path for post-world-gen wells"
+    ],
+    "audit_fail_event": "ab2fcf3aa9a46366",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-3",
+  "timestamp": "2026-09-06T20:56:50.126Z",
+  "id": "6f42ce297de1bbeb",
+  "payload": {
+    "blueprint_id": "004-FIX",
+    "branch": "fix/agent-3-sports-recreation-impl",
+    "verdict": "FAIL",
+    "reason": "All 8 mechanics missing — no SportsCapacity, no sports module, no facility types, no B2C clearing, no climate wiring, no health impact, no turn loop wiring, no lifecycle",
+    "failed_checks": [
+      "004-FIX: Commodity::SportsCapacity missing",
+      "004-FIX: infrastructure/sports.rs missing",
+      "004-FIX: OpenAirField/IndoorHall/Stadium missing",
+      "004-FIX: clear_sports_capacity_b2c missing",
+      "004-FIX: climate/season wiring missing",
+      "004-FIX: sports_access_coverage health term missing"
+    ],
+    "audit_fail_event": "74062d9e3e3e3aa6",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}

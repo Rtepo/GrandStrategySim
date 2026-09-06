@@ -1,0 +1,72 @@
+﻿{
+    "id":  "ab2fcf3aa9a46366",
+    "payload":  {
+                    "blueprint_results":  [
+                                              {
+                                                  "verdict":  "PASS",
+                                                  "id":  "004-FIX",
+                                                  "reason":  "All 10 verification items PASS — SportsCapacity commodity, CapacityType, sports module, 3 facility types, 3+3+3 Rule 13 matrix, B2C clearing with weather seasonality, zero-savings public access with treasury subsidy debit, health/life-expectancy integration, UI telemetry, turn loop wiring"
+                                              },
+                                              {
+                                                  "verdict":  "PARTIAL_PASS",
+                                                  "id":  "006-FIX",
+                                                  "reason":  "4/6 PASS (deep_well_construction matrix, sewage gating, off-grid pollution routing, well lifecycle with Steel/Cement BOM). 2 PARTIAL: (1) groundwater_regen_rate field is unused zero placeholder while actual recharge works via local variable in regenerate_fractional, (2) no runtime CAPEX construction path for post-world-gen wells — WaterWellAsset commodity produced but never consumed"
+                                              },
+                                              {
+                                                  "verdict":  "FAIL",
+                                                  "id":  "007-FIX",
+                                                  "reason":  "3 critical FAILs: (1) on_cooperative_created/on_cooperative_liquidated hooks defined but NEVER CALLED — CooperativeRegistry always empty, (2) try_rehouse call site passes Vec::new() vacancies — Tier 1 market rent and Tier 2 welfare unreachable, only Tier 3 homeless executes, (3) partial-fill retry uses h.liquid_capital not h.remaining_unconverted_capital causing double conversion. 2 PARTIAL: (a) HomelessState.region_id never set so forex savings_bucket lookup returns 0.0 and Step 1-3 flow is skipped, (b) demographic updates use first-urban-class fallback losing individual accountability"
+                                              }
+                                          ],
+                    "audit_request":  "d22c6cbe1c74f8ab",
+                    "staging_commit":  "690481cf3f9c01b3acb48eb3919d0a92df51307b",
+                    "verdict":  "FAIL",
+                    "failed_checks":  [
+                                          "007-FIX: on_cooperative_created/on_cooperative_liquidated hooks NEVER CALLED — registry always empty",
+                                          "007-FIX: try_rehouse call site passes Vec::new() — Tier 1 and Tier 2 unreachable",
+                                          "007-FIX: Partial-fill retry uses h.liquid_capital not h.remaining_unconverted_capital",
+                                          "007-FIX: HomelessState.region_id never set — forex savings_bucket lookup returns 0.0",
+                                          "007-FIX: Demographic updates use first-urban-class fallback (Rule 7 violation)",
+                                          "007-FIX: try_rehouse does not credit property owner (Rule 1 closed-loop violation)",
+                                          "006-FIX: groundwater_regen_rate field is unused zero placeholder",
+                                          "006-FIX: No runtime CAPEX construction path for post-world-gen wells"
+                                      ],
+                    "passed_checks":  [
+                                          "Compilation (cargo check exit 0)",
+                                          "Test suite (2324 passed, 0 failed, 1 ignored)",
+                                          "004-FIX: Commodity::SportsCapacity present",
+                                          "004-FIX: CapacityType::SportsCapacity present",
+                                          "004-FIX: infrastructure/sports.rs module registered",
+                                          "004-FIX: OpenAir/Indoor/Stadium facility types",
+                                          "004-FIX: 3 Production + 3 Automation + 3 Organization methods (Rule 13)",
+                                          "004-FIX: clear_sports_capacity_b2c invoked from turn.rs:5685",
+                                          "004-FIX: WeatherState + Season passed explicitly to compute_season_efficiency",
+                                          "004-FIX: Open-air closes in winter/EarlyFrost, indoor year-round",
+                                          "004-FIX: Public facility accessible to zero-savings citizens via buyer_subsidy",
+                                          "004-FIX: Treasury debited for public sports subsidy",
+                                          "004-FIX: sports_access_coverage term in life_expectancy and healthy_life_expectancy",
+                                          "004-FIX: sports_capacity_per_capita in HealthStatistics",
+                                          "004-FIX: Sector::SportsRecreation in UI snapshot",
+                                          "006-FIX: deep_well_construction 4P+3A+3O matrix with correct labor ratios",
+                                          "006-FIX: All input commodities have producers (no orphan inputs)",
+                                          "006-FIX: regenerate_fractional uses precipitation_mm * recharge_coefficient * aquifer_recharge_area",
+                                          "006-FIX: Sewage gated by MIN(water_consumed, demand.sewage_generation)",
+                                          "006-FIX: off_grid_waste_emission routes sewage to LocalPollutionState",
+                                          "006-FIX: WaterWell has maintenance_cost_per_turn, remaining_yield_lifetime, abandoned fields",
+                                          "006-FIX: CAPEX BOM uses Steel/Cement/ConstructionMachinery",
+                                          "006-FIX: World-gen housing receives constructed wells via new_constructed_at_world_gen",
+                                          "007-FIX: process_homeless_transitions wired into turn loop at turn.rs:554-602",
+                                          "007-FIX: Re-exported from economy/labor/mod.rs:14",
+                                          "007-FIX: Three-step forex code present (citizen debit, CB domestic credit, FX reserve debit)",
+                                          "007-FIX: Treasury seizure tracked separately from CB credit",
+                                          "007-FIX: remaining_unconverted_capital field exists in HomelessState"
+                                      ],
+                    "requires_remediation":  true,
+                    "head_commit":  "39119035afbf629746a6710ede440b73c9518d7a",
+                    "reason":  "007-FIX has 3 critical defects: (1) cooperative event hooks never called so registry is always empty, (2) try_rehouse passes empty vacancies so Tiers 1+2 unreachable, (3) partial-fill retry uses original liquid_capital not remaining_unconverted_capital. 006-FIX has 2 partial findings: groundwater_regen_rate unused, no runtime well CAPEX construction path. 004-FIX fully compliant."
+                },
+    "source":  "agent-4",
+    "timestamp":  "2026-09-06T19:46:29.078Z",
+    "type":  "AUDIT_FAIL",
+    "target":  "agent-5"
+}

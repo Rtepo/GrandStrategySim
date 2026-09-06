@@ -1,0 +1,16 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-2",
+  "timestamp": "2026-09-06T20:56:51.762Z",
+  "id": "e395a3001010e278",
+  "payload": {
+    "blueprint_id": "007-FIX",
+    "branch": "fix/agent-2-m0-demographics-cooperatives",
+    "verdict": "PARTIAL_PASS",
+    "reason": "7/7 mechanics implemented in code, but 2 runtime defects: (1) try_rehouse call site passes empty vacancies vector so Tier 1 and Tier 2 are unreachable, (2) partial-fill retry uses original liquid_capital instead of remaining_unconverted_capital",
+    "failed_checks": [],
+    "audit_fail_event": "74062d9e3e3e3aa6",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}

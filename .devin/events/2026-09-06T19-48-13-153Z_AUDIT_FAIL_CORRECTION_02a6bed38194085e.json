@@ -1,0 +1,35 @@
+﻿{
+    "id":  "02a6bed38194085e",
+    "payload":  {
+                    "new_failed_checks":  [
+                                              "004-FIX: sports_capacity_per_capita not exposed in any UI snapshot DTO (Rule 17)",
+                                              "004-FIX: Construction BOMs use generic bom_commercial for all facility types",
+                                              "004-FIX: Zero-savings public access conditional on treasury solvency (insolvency fallback returns 0)",
+                                              "004-FIX: Region.sports_facilities and SportsFacility::process_turn are dead code (Rule 14)"
+                                          ],
+                    "verdict":  "FAIL",
+                    "reason":  "Overall verdict unchanged (FAIL due to 007-FIX). Correcting 004-FIX assessment from PASS to PARTIAL based on deeper subagent findings: (1) UI telemetry FAIL — sports_capacity_per_capita not exposed in any snapshot DTO (Rule 17 violation), (2) construction BOMs not facility-specific, (3) zero-savings public access conditional on treasury solvency, (4) parallel dead SportsFacility path on Region.sports_facilities (Rule 14 concern).",
+                    "blueprint_results":  [
+                                              {
+                                                  "verdict":  "PARTIAL_PASS",
+                                                  "id":  "004-FIX",
+                                                  "reason":  "7/10 PASS, 3 PARTIAL, 1 FAIL. Core mechanics (commodity, module, facility types, B2C clearing, health integration, turn loop) work. FAIL: sports_capacity_per_capita not exposed in CountrySnapshot/MacroIndicatorsResponse/LaborSummary (Rule 17). PARTIAL: construction BOMs generic (bom_commercial), public access conditional on treasury solvency, WeatherState lacks explicit temperature field, parallel dead SportsFacility path (Rule 14)."
+                                              },
+                                              {
+                                                  "verdict":  "PARTIAL_PASS",
+                                                  "id":  "006-FIX",
+                                                  "reason":  "Unchanged — 4/6 PASS, 2 PARTIAL (groundwater_regen_rate unused, no runtime well CAPEX path)"
+                                              },
+                                              {
+                                                  "verdict":  "FAIL",
+                                                  "id":  "007-FIX",
+                                                  "reason":  "Unchanged — 3 critical FAILs (cooperative hooks never called, empty vacancies, partial-fill retry uses wrong field), 2 PARTIAL (region_id unset, first-urban-class fallback)"
+                                              }
+                                          ],
+                    "supersedes":  "ab2fcf3aa9a46366"
+                },
+    "source":  "agent-4",
+    "timestamp":  "2026-09-06T19:48:13.163Z",
+    "type":  "AUDIT_FAIL_CORRECTION",
+    "target":  "agent-5"
+}
