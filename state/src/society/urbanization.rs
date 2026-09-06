@@ -272,6 +272,7 @@ pub fn execute_emancipation(
         capacity_prices: std::collections::BTreeMap::new(),
         land_use_inventory: crate::society::geography::LandUseInventory::default(),
         climate_profile: parent_region.climate_profile,
+        sports_facilities: Vec::new(),
         micro_regions: std::collections::BTreeMap::new(),
         treasury: crate::state::treasury::Treasury::default(),
         microregion_budgets: std::collections::HashMap::new(),

@@ -68,6 +68,7 @@ pub async fn get_available_sectors() -> Result<Vec<SectorOption>, String> {
                 Sector::Religion => "Religion",
                 Sector::MaintenanceWorkshops => "Maintenance Workshops",
                 Sector::Government => "Government",
+                Sector::SportsRecreation => "Sports & Recreation",
             }
             .to_string();
             SectorOption { value, label }

@@ -153,6 +153,8 @@ pub enum Sector {
     /// Employs politicians and administrative staff, consumes Paper/Energy/Services,
     /// and is funded from Treasury payroll.
     Government,
+    /// Phase 18S: `"sports_recreation"` — sports facilities, stadiums, gyms, fields.
+    SportsRecreation,
 }
 
 impl Sector {
@@ -181,6 +183,7 @@ impl Sector {
             Sector::Religion => "religion",
             Sector::MaintenanceWorkshops => "maintenance_workshops",
             Sector::Government => "government",
+            Sector::SportsRecreation => "sports_recreation",
         };
         crate::i18n::i18n().sector(key)
     }
@@ -253,6 +256,7 @@ impl Sector {
             // Phase 32: Government sector doesn't produce tradeable commodities;
             // it consumes Paper, Energy, and Services from the market.
             Sector::Government => vec![],
+            Sector::SportsRecreation => vec![Commodity::SportsCapacity],
         }
     }
 }
@@ -619,6 +623,11 @@ pub enum Commodity {
     /// (physical infrastructure). Output of deep_well_construction sector;
     /// consumed by off-grid housing.
     WaterWellAsset,
+    /// "sports_capacity" — Phase 18S: Sports/recreation visitor-slots per turn.
+    /// A service capacity commodity analogous to EducationSlots and HealthCapacity.
+    /// Represents one physical seat in a sports facility for one turn.
+    /// B2C-traded via clear_sports_capacity_b2c.
+    SportsCapacity,
 }
 
 impl std::fmt::Display for Commodity {
@@ -898,7 +907,7 @@ impl Commodity {
     }
 
     /// Returns all tradeable commodity variants in canonical (English) JSON order.
-    pub fn all() -> [Commodity; 151] {
+    pub fn all() -> [Commodity; 152] {
         [
             Commodity::Agd,
             Commodity::Aluminum,
@@ -1051,6 +1060,7 @@ impl Commodity {
             Commodity::PhotovoltaicPanels,
             Commodity::CoalGas,
             Commodity::WaterWellAsset,
+            Commodity::SportsCapacity,
         ]
     }
 }
@@ -1301,6 +1311,8 @@ pub enum CapacityType {
     /// Distinct from DistrictHeating (which is GJ heat supply).
     /// Determines how many buildings can connect to district heating.
     ThermalGridCapacity,
+    /// Sports/recreation visitor-slots per turn
+    SportsCapacity,
 }
 
 #[cfg(test)]

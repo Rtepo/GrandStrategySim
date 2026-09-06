@@ -95,6 +95,16 @@ pub struct ServicePricingConfig {
     /// the treasury via subsidies, not by citizens.
     #[serde(default)]
     pub force_free_healthcare: bool,
+
+    /// Phase 18S: OPEX wage multiplier for sports/recreation.
+    /// Default 0.03 (3% of average wage per visitor-slot).
+    #[serde(default = "default_sports_opex")]
+    pub sports_opex_wage_multiplier: f64,
+
+    /// Phase 18S: CAPEX per sports visitor-slot, as average_wage multiplier.
+    /// Default 0.4 (40% of average wage per slot for facility amortization).
+    #[serde(default = "default_sports_capex")]
+    pub sports_capex_wage_multiplier: f64,
 }
 
 fn default_education_opex() -> f64 {
@@ -120,6 +130,12 @@ fn default_information_opex() -> f64 {
 }
 fn default_information_capex() -> f64 {
     0.1
+}
+fn default_sports_opex() -> f64 {
+    0.03
+}
+fn default_sports_capex() -> f64 {
+    0.4
 }
 fn default_margin() -> f64 {
     0.10
@@ -147,6 +163,8 @@ impl Default for ServicePricingConfig {
             smoothing_window: default_smoothing_window(),
             force_free_education: false,
             force_free_healthcare: false,
+            sports_opex_wage_multiplier: default_sports_opex(),
+            sports_capex_wage_multiplier: default_sports_capex(),
         }
     }
 }
@@ -196,6 +214,19 @@ impl ServicePricingConfig {
         let opex = wage * self.information_opex_wage_multiplier;
         let capex_amort =
             wage * self.information_capex_wage_multiplier / self.amortization_turns.max(1) as f64;
+        (opex + capex_amort) * (1.0 + self.cost_plus_margin)
+    }
+
+    /// Phase 18S: Compute the cost-plus price for a sports/recreation visitor-slot.
+    ///
+    /// Follows the same Cost-Plus model as education and healthcare (Rule 21):
+    /// `price = (opex + capex_amortization) * (1 + margin)`
+    /// where all components are scaled by `average_wage` (Rule 2).
+    pub fn sports_price_per_capacity(&self, average_wage: f64) -> f64 {
+        let wage = average_wage.max(1.0);
+        let opex = wage * self.sports_opex_wage_multiplier;
+        let capex_amort =
+            wage * self.sports_capex_wage_multiplier / self.amortization_turns.max(1) as f64;
         (opex + capex_amort) * (1.0 + self.cost_plus_margin)
     }
 

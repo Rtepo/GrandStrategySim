@@ -1366,6 +1366,7 @@ pub fn default_production_methods() -> HashMap<String, BuildingMethods> {
     registry.insert("media_and_entertainment".to_string(), media_methods());
     registry.insert("medical_services".to_string(), medical_methods());
     registry.insert("educational_services".to_string(), education_methods());
+    registry.insert("sports_recreation".to_string(), sports_recreation_methods());
     registry.insert("public_services".to_string(), public_services_methods());
     registry.insert(
         "maintenance_workshops".to_string(),
@@ -10344,6 +10345,94 @@ fn education_methods() -> BuildingMethods {
             &[],
         ),
     );
+    m
+}
+
+// === PHASE 18S: SPORTS & RECREATION ===
+/// Phase 18S: Sports and recreation facility production methods.
+///
+/// Three distinct facility types with different physical mechanics:
+///
+/// - **Open Air Field**: Grass pitch, minimal Steel/Timber frame. Consumes
+///   GrassSeed, Water, Labor. Climate-vulnerable (closes in winter).
+/// - **Indoor Hall**: Steel/Concrete/Bricks structure. Consumes Energy,
+///   Water, Labor. Operates year-round.
+/// - **Stadium**: Steel/Concrete/Glass/Lighting. Consumes Energy, Water,
+///   Labor, SecurityServices. High CAPEX amortization. Year-round.
+///
+/// All three output `Commodity::SportsCapacity` (visitor-slots per turn),
+/// a service-capacity commodity analogous to EducationSlots/HealthCapacity.
+fn sports_recreation_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+
+    // Open Air Field — grass pitch, minimal frame.
+    // Climate vulnerability = 1.0 (closes in winter via weather state).
+    // Capacity scales by pitch_area_m2 (size_metric at runtime).
+    m.insert(
+        MethodSlot::Production,
+        "Open Air Field".into(),
+        pm_education(
+            1880,
+            None,
+            0.10, // experts: 1 coach per 1000
+            0.20, // skilled: groundskeepers
+            0.70, // basic: general labor
+            1.0,
+            &[
+                (Commodity::Seeds, 2.0),
+                (Commodity::Water, 5.0),
+                (Commodity::Food, 3.0), // sustenance for staff
+            ],
+            &[(Commodity::SportsCapacity, 20.0)],
+            CapacityType::SportsCapacity,
+        ),
+    );
+
+    // Indoor Hall — steel/concrete/bricks structure, year-round operation.
+    // Climate vulnerability = 0.0. Capacity scales by floor_area_m2.
+    m.insert(
+        MethodSlot::Production,
+        "Indoor Hall".into(),
+        pm_education(
+            1890,
+            None,
+            0.15, // experts: trainers
+            0.25, // skilled: maintenance
+            0.60, // basic: staff
+            1.0,
+            &[
+                (Commodity::Energy, 8.0), // lighting + HVAC
+                (Commodity::Water, 4.0),
+                (Commodity::Food, 3.0),
+            ],
+            &[(Commodity::SportsCapacity, 30.0)],
+            CapacityType::SportsCapacity,
+        ),
+    );
+
+    // Stadium — high-capacity, high-CAPEX venue.
+    // Capacity scales by seat_count. High amortization.
+    m.insert(
+        MethodSlot::Production,
+        "Stadium".into(),
+        pm_education(
+            1900,
+            None,
+            0.20, // experts: directors, head coaches
+            0.30, // skilled: operations, security lead
+            0.50, // basic: ushers, cleaners
+            1.0,
+            &[
+                (Commodity::Energy, 15.0), // floodlights, HVAC
+                (Commodity::Water, 10.0),
+                (Commodity::Food, 5.0),
+                (Commodity::SecurityCapacity, 4.0),
+            ],
+            &[(Commodity::SportsCapacity, 100.0)],
+            CapacityType::SportsCapacity,
+        ),
+    );
+
     m
 }
 

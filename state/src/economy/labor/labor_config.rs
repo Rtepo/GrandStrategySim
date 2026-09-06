@@ -135,6 +135,15 @@ pub struct LaborConfig {
     /// Unemployment cyclical/structural split (fraction that is cyclical).
     #[serde(default = "default_cyclical_share")]
     pub cyclical_share: f64,
+
+    /// Phase 18S: Life expectancy bonus per unit of sports access coverage
+    /// (max years at full coverage). Default 2.0 years.
+    #[serde(default = "default_sports_health_bonus_per_capacity_unit")]
+    pub sports_health_bonus_per_capacity_unit: f64,
+    /// Phase 18S: Healthy life expectancy bonus per unit of sports access.
+    /// Default 1.5 years.
+    #[serde(default = "default_sports_healthy_life_bonus_per_capacity_unit")]
+    pub sports_healthy_life_bonus_per_capacity_unit: f64,
 }
 
 fn default_base_life_expectancy() -> f64 {
@@ -230,6 +239,12 @@ fn default_structural_poverty_weight() -> f64 {
 fn default_cyclical_share() -> f64 {
     0.6
 }
+fn default_sports_health_bonus_per_capacity_unit() -> f64 {
+    2.0
+}
+fn default_sports_healthy_life_bonus_per_capacity_unit() -> f64 {
+    1.5
+}
 
 impl Default for LaborConfig {
     fn default() -> Self {
@@ -266,6 +281,10 @@ impl Default for LaborConfig {
             cyclical_poverty_weight: default_cyclical_poverty_weight(),
             structural_poverty_weight: default_structural_poverty_weight(),
             cyclical_share: default_cyclical_share(),
+            sports_health_bonus_per_capacity_unit:
+                default_sports_health_bonus_per_capacity_unit(),
+            sports_healthy_life_bonus_per_capacity_unit:
+                default_sports_healthy_life_bonus_per_capacity_unit(),
         }
     }
 }

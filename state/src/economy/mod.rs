@@ -77,8 +77,9 @@ pub use b2b_orders::{
 };
 pub use b2c_services::{
     clear_education_slots_b2c, clear_health_capacity_b2c, clear_passenger_transport_b2c,
-    populate_commute_service_needs, populate_education_service_needs,
-    populate_health_service_needs,
+    clear_sports_capacity_b2c, populate_commute_service_needs,
+    populate_education_service_needs, populate_health_service_needs,
+    populate_sports_service_needs,
 };
 pub use blueprints::{
     compute_blueprint_royalty_fee, design_blueprint, design_score, CrossBorderRoyaltyQueueEntry,

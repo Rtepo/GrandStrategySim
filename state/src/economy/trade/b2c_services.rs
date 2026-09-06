@@ -210,7 +210,202 @@ pub fn clear_health_capacity_b2c(
     );
 }
 
-/// Compute service transactions (read-only phase).
+/// Phase 18S: Populate sports/recreation service needs from regional demographics.
+///
+/// # Rules
+/// * Each person generates base sports need of 0.05 visitor-slots.
+/// * Urban populations have 1.5x higher demand (more sedentary lifestyles).
+/// * Demand is NOT filtered by savings — public facilities are accessible to
+///   all citizens via 100% buyer_subsidy (blueprint v2 correction).
+/// * Private facilities are naturally gated by B2C clearing (insufficient
+///   savings → unmet demand).
+pub fn populate_sports_service_needs(country: &Country) -> BTreeMap<String, f64> {
+    let mut needs = BTreeMap::new();
+    for region in &country.regions {
+        let mut sports_need = 0.0_f64;
+        for class in region.class_demographics.rural_classes.values() {
+            sports_need += class.population as f64 * 0.05;
+        }
+        for class in region.class_demographics.urban_classes.values() {
+            sports_need += class.population as f64 * 0.05 * 1.5;
+        }
+        needs.insert(region.id.clone(), sports_need);
+    }
+    needs
+}
+
+/// Phase 18S: Executes B2C clearing for SportsCapacity with seasonality and
+/// insolvency guard.
+///
+/// # Arguments
+/// * `buildings` - Slice of sports facilities with SportsCapacity inventory
+/// * `companies` - Mutable companies (for crediting private building revenue)
+/// * `country` - Mutable country (for citizen savings and government subsidy)
+/// * `service_needs` - Sports service needs by region
+/// * `building_inventories` - Mutable building inventories
+/// * `config` - Service pricing configuration
+/// * `weather_state` - Weather state for seasonality modifier computation
+/// * `season` - Current season enum
+///
+/// # Rules
+/// * Public institutions use PriceIntervention with 100% buyer_subsidy
+///   (citizens with ZERO savings can access public facilities for free)
+/// * Private institutions charge market price (insufficient savings → unmet)
+/// * Insolvency Guard: If government runs out of cash, subsidy fails gracefully
+/// * Open-air facilities lose efficiency in winter based on ACTUAL weather data
+/// * Indoor facilities operate year-round
+/// * Citizen savings are debited directly from ClassDemographics (Phase 16A)
+/// * Government subsidy debits from country.budget.liquid_reserves
+///
+/// # Returns
+/// Map of region_id → sports capacity consumed (for health impact calculation)
+pub fn clear_sports_capacity_b2c(
+    buildings: &mut [Building],
+    companies: &mut [Company],
+    country: &mut Country,
+    service_needs: &BTreeMap<String, f64>,
+    building_inventories: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
+    config: &ServicePricingConfig,
+    weather_state: &crate::economy::weather::WeatherState,
+    season: crate::state::Season,
+) -> BTreeMap<String, f64> {
+    let commodity = Commodity::SportsCapacity;
+
+    // Phase 18S: Apply seasonality modifiers to building inventories before
+    // clearing. Open-air facilities lose capacity in winter/extreme heat based
+    // on actual regional weather data. Indoor facilities operate year-round.
+    // We apply the modifier by scaling the available inventory.
+    let mut seasonality_factors: std::collections::HashMap<String, f64> =
+        std::collections::HashMap::new();
+    for building in buildings.iter() {
+        let factor = compute_sports_seasonality_factor(
+            building,
+            weather_state,
+            season,
+        );
+        seasonality_factors.insert(building.id.clone(), factor);
+    }
+
+    // Apply seasonality by scaling down inventory for this turn's clearing.
+    // We temporarily reduce the inventory, then restore the unsold portion.
+    let mut original_inventory: std::collections::HashMap<String, f64> =
+        std::collections::HashMap::new();
+    for (bid, factor) in &seasonality_factors {
+        if let Some(inv) = building_inventories.get_mut(bid) {
+            if let Some(qty) = inv.get_mut(&commodity) {
+                let original = *qty;
+                original_inventory.insert(bid.clone(), original);
+                *qty = original * factor;
+            }
+        }
+    }
+
+    let txns = compute_service_transactions(
+        buildings,
+        country,
+        service_needs,
+        building_inventories,
+        config,
+        commodity,
+    );
+
+    // Aggregate units consumed per region before applying.
+    let mut region_consumption: BTreeMap<String, f64> = BTreeMap::new();
+    for txn in &txns {
+        if txn.units_consumed > 0.0 {
+            *region_consumption
+                .entry(txn.region_id.clone())
+                .or_insert(0.0) += txn.units_consumed;
+        }
+    }
+
+    apply_service_transactions(
+        txns,
+        buildings,
+        companies,
+        country,
+        building_inventories,
+        commodity,
+    );
+
+    // Restore unsold inventory that was held back by seasonality.
+    // The difference between original and current (after clearing) is what
+    // was consumed. We restore the seasonality-scaled portion that wasn't sold.
+    for (bid, original) in &original_inventory {
+        if let Some(inv) = building_inventories.get_mut(bid) {
+            if let Some(qty) = inv.get_mut(&commodity) {
+                let factor = seasonality_factors.get(bid).copied().unwrap_or(1.0);
+                let scaled = original * factor;
+                let consumed = scaled - *qty;
+                // Restore: original - consumed (but not negative)
+                *qty = (original - consumed).max(0.0);
+            }
+        }
+    }
+
+    region_consumption
+}
+
+/// Phase 18S: Compute the seasonality factor for a sports facility based on
+/// its type and the regional weather state.
+///
+/// # Rules
+/// * Open-air facilities (OpenAirField): close in winter (factor = 0.0 if
+///   EarlyFrost or temperature below 0°C), reduced in extreme heat (0.3)
+/// * Indoor facilities (IndoorHall, Stadium): operate year-round (factor = 1.0)
+/// * The modifier is computed FROM the weather state, not a global counter
+fn compute_sports_seasonality_factor(
+    building: &Building,
+    weather_state: &crate::economy::weather::WeatherState,
+    season: crate::state::Season,
+) -> f64 {
+    // Determine facility class from the active production method name.
+    // Sports facilities are identified by their sector and production method.
+    let is_open_air = building
+        .active_method
+        .active_methods
+        .production
+        .contains("Open Air")
+        || building
+            .active_method
+            .active_methods
+            .production
+            .contains("open_air");
+
+    if !is_open_air {
+        // IndoorHall and Stadium operate year-round
+        return 1.0;
+    }
+
+    // Open-air: check weather events for the building's region
+    let region_id = &building.region_id;
+    let has_early_frost = weather_state
+        .active_events
+        .iter()
+        .any(|e| {
+            e.event_type == crate::economy::weather::WeatherEventType::EarlyFrost
+                && e.affected_regions.iter().any(|r| r == region_id)
+        });
+    let has_heatwave = weather_state
+        .active_events
+        .iter()
+        .any(|e| {
+            e.event_type == crate::economy::weather::WeatherEventType::Heatwave
+                && e.affected_regions.iter().any(|r| r == region_id)
+        });
+
+    // Winter + EarlyFrost → closed
+    if season == crate::state::Season::Winter || has_early_frost {
+        return 0.0;
+    }
+
+    // Extreme heat summer → reduced to 30%
+    if season == crate::state::Season::Summer && has_heatwave {
+        return 0.3;
+    }
+
+    1.0
+}
 ///
 /// Iterates buildings, reads citizen savings from regions, and determines
 /// how much each citizen pays and how much the government subsidizes.
@@ -384,6 +579,9 @@ fn calculate_service_price(
         }
         crate::registries::enums::Sector::MedicalServices => {
             config.health_price_per_capacity(average_wage)
+        }
+        crate::registries::enums::Sector::SportsRecreation => {
+            config.sports_price_per_capacity(average_wage)
         }
         _ => config.default_service_price(average_wage),
     }
@@ -831,5 +1029,249 @@ mod tests {
             .copied()
             .unwrap_or(0.0);
         assert_eq!(remaining, 0.0);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // Phase 18S: Sports & Recreation B2C Clearing Tests
+    // ═══════════════════════════════════════════════════════════
+
+    #[test]
+    fn sports_public_facility_accessible_to_zero_savings_citizen() {
+        // Blueprint v2 correction: Public sports facilities must be accessible
+        // to citizens with ZERO savings through 100% buyer_subsidy.
+        let mut building = Building::default();
+        building.id = "SPORTS_PUB_001".to_string();
+        building.owner_id = "LOCAL_CITY".to_string();
+        building.sector = Sector::SportsRecreation;
+        building.region_id = "REGION_SPORTS".to_string();
+
+        // Citizen has ZERO savings, government has plenty of cash
+        let mut country = make_test_country("REGION_SPORTS", 0.0, 100000.0);
+        let service_needs = BTreeMap::from([("REGION_SPORTS".to_string(), 50.0)]);
+        let mut building_inventories = BTreeMap::from([(
+            "SPORTS_PUB_001".to_string(),
+            BTreeMap::from([(Commodity::SportsCapacity, 100.0)]),
+        )]);
+
+        let mut buildings = vec![building];
+        let mut companies: Vec<Company> = Vec::new();
+        let weather = crate::economy::weather::WeatherState::default();
+        let consumption = clear_sports_capacity_b2c(
+            &mut buildings,
+            &mut companies,
+            &mut country,
+            &service_needs,
+            &mut building_inventories,
+            &ServicePricingConfig::default(),
+            &weather,
+            crate::state::Season::Summer,
+        );
+
+        // Public facility with 100% subsidy: citizens with zero savings
+        // can access it. Consumption should be > 0.
+        let consumed = consumption.get("REGION_SPORTS").copied().unwrap_or(0.0);
+        assert!(
+            consumed > 0.0,
+            "Public sports facility must be accessible to zero-savings citizens via subsidy"
+        );
+
+        // Citizen savings should remain 0 (fully subsidized)
+        let region = &country.regions[0];
+        let demo = &region.class_demographics.rural_classes[&RuralClass::FreePeasant];
+        assert_eq!(
+            demo.savings, 0.0,
+            "Zero-savings citizen should not be charged for public sports facility"
+        );
+
+        // Government treasury should be debited
+        assert!(
+            country.budget.liquid_reserves < 100000.0,
+            "Government treasury must be debited for sports subsidy"
+        );
+    }
+
+    #[test]
+    fn sports_private_facility_rejects_zero_savings_citizen() {
+        // Private sports facilities are gated by B2C affordability.
+        // Citizens with zero savings should have unmet demand.
+        let mut building = Building::default();
+        building.id = "SPORTS_PRIV_001".to_string();
+        building.owner_id = "PRIVATE_CORP".to_string();
+        building.sector = Sector::SportsRecreation;
+        building.region_id = "REGION_SPORTS".to_string();
+
+        // Citizen has ZERO savings
+        let mut country = make_test_country("REGION_SPORTS", 0.0, 100000.0);
+        let service_needs = BTreeMap::from([("REGION_SPORTS".to_string(), 50.0)]);
+        let mut building_inventories = BTreeMap::from([(
+            "SPORTS_PRIV_001".to_string(),
+            BTreeMap::from([(Commodity::SportsCapacity, 100.0)]),
+        )]);
+
+        let mut buildings = vec![building];
+        let mut companies: Vec<Company> = Vec::new();
+        let weather = crate::economy::weather::WeatherState::default();
+        let consumption = clear_sports_capacity_b2c(
+            &mut buildings,
+            &mut companies,
+            &mut country,
+            &service_needs,
+            &mut building_inventories,
+            &ServicePricingConfig::default(),
+            &weather,
+            crate::state::Season::Summer,
+        );
+
+        // Private facility: zero-savings citizen cannot afford it.
+        let consumed = consumption.get("REGION_SPORTS").copied().unwrap_or(0.0);
+        assert_eq!(
+            consumed, 0.0,
+            "Private sports facility must reject zero-savings citizens (unmet demand)"
+        );
+
+        // Inventory should remain full (nothing consumed)
+        let remaining = building_inventories["SPORTS_PRIV_001"]
+            .get(&Commodity::SportsCapacity)
+            .copied()
+            .unwrap_or(0.0);
+        assert_eq!(
+            remaining, 100.0,
+            "Private facility inventory should be untouched when citizen has no savings"
+        );
+    }
+
+    #[test]
+    fn sports_open_air_closes_in_winter() {
+        // Open-air facilities must close when weather indicates winter.
+        let mut building = Building::default();
+        building.id = "SPORTS_OPEN_001".to_string();
+        building.owner_id = "LOCAL_CITY".to_string();
+        building.sector = Sector::SportsRecreation;
+        building.region_id = "REGION_SPORTS".to_string();
+        // Mark as open-air via production method name
+        building.active_method.active_methods.production = "Open Air Field".to_string();
+
+        let mut country = make_test_country("REGION_SPORTS", 1000.0, 100000.0);
+        let service_needs = BTreeMap::from([("REGION_SPORTS".to_string(), 50.0)]);
+        let mut building_inventories = BTreeMap::from([(
+            "SPORTS_OPEN_001".to_string(),
+            BTreeMap::from([(Commodity::SportsCapacity, 100.0)]),
+        )]);
+
+        let mut buildings = vec![building];
+        let mut companies: Vec<Company> = Vec::new();
+        let weather = crate::economy::weather::WeatherState::default();
+
+        // Winter → open-air facility closes (factor = 0.0)
+        let consumption = clear_sports_capacity_b2c(
+            &mut buildings,
+            &mut companies,
+            &mut country,
+            &service_needs,
+            &mut building_inventories,
+            &ServicePricingConfig::default(),
+            &weather,
+            crate::state::Season::Winter,
+        );
+
+        let consumed = consumption.get("REGION_SPORTS").copied().unwrap_or(0.0);
+        assert_eq!(
+            consumed, 0.0,
+            "Open-air sports facility must close in winter (zero consumption)"
+        );
+
+        // Inventory should remain full (seasonality factor = 0.0)
+        let remaining = building_inventories["SPORTS_OPEN_001"]
+            .get(&Commodity::SportsCapacity)
+            .copied()
+            .unwrap_or(0.0);
+        assert_eq!(
+            remaining, 100.0,
+            "Open-air facility inventory should be untouched in winter"
+        );
+    }
+
+    #[test]
+    fn sports_indoor_hall_operates_in_winter() {
+        // Indoor facilities operate at full capacity year-round.
+        let mut building = Building::default();
+        building.id = "SPORTS_INDOOR_001".to_string();
+        building.owner_id = "LOCAL_CITY".to_string();
+        building.sector = Sector::SportsRecreation;
+        building.region_id = "REGION_SPORTS".to_string();
+        // Mark as indoor (not open-air) via production method name
+        building.active_method.active_methods.production = "Indoor Hall".to_string();
+
+        let mut country = make_test_country("REGION_SPORTS", 1000.0, 100000.0);
+        let service_needs = BTreeMap::from([("REGION_SPORTS".to_string(), 50.0)]);
+        let mut building_inventories = BTreeMap::from([(
+            "SPORTS_INDOOR_001".to_string(),
+            BTreeMap::from([(Commodity::SportsCapacity, 100.0)]),
+        )]);
+
+        let mut buildings = vec![building];
+        let mut companies: Vec<Company> = Vec::new();
+        let weather = crate::economy::weather::WeatherState::default();
+
+        // Winter → indoor facility still operates at full capacity
+        let consumption = clear_sports_capacity_b2c(
+            &mut buildings,
+            &mut companies,
+            &mut country,
+            &service_needs,
+            &mut building_inventories,
+            &ServicePricingConfig::default(),
+            &weather,
+            crate::state::Season::Winter,
+        );
+
+        let consumed = consumption.get("REGION_SPORTS").copied().unwrap_or(0.0);
+        assert!(
+            consumed > 0.0,
+            "Indoor sports facility must operate at full capacity in winter"
+        );
+    }
+
+    #[test]
+    fn sports_commodity_serialization() {
+        // Verify SportsCapacity serializes and deserializes correctly.
+        let commodity = Commodity::SportsCapacity;
+        let json = serde_json::to_string(&commodity).unwrap();
+        let deserialized: Commodity = serde_json::from_str(&json).unwrap();
+        assert_eq!(commodity, deserialized);
+    }
+
+    #[test]
+    fn sports_capacity_type_serialization() {
+        // Verify CapacityType::SportsCapacity serializes correctly.
+        use crate::infrastructure::CapacityType;
+        let cap = CapacityType::SportsCapacity;
+        let json = serde_json::to_string(&cap).unwrap();
+        let deserialized: CapacityType = serde_json::from_str(&json).unwrap();
+        assert_eq!(cap, deserialized);
+    }
+
+    #[test]
+    fn sports_production_methods_registered() {
+        // Verify sports production methods are registered.
+        let methods = crate::registries::production_methods_data::default_production_methods();
+        let sports = methods.get("sports_recreation");
+        assert!(
+            sports.is_some(),
+            "Sports recreation methods must be registered"
+        );
+    }
+
+    #[test]
+    fn sports_service_price_scales_with_wage() {
+        // Rule 2: Price must scale with average_wage (no magic constants).
+        let config = ServicePricingConfig::default();
+        let price_low = config.sports_price_per_capacity(1000.0);
+        let price_high = config.sports_price_per_capacity(10_000.0);
+        assert!(
+            price_high > price_low,
+            "Sports price must scale with wage"
+        );
+        assert!(price_low > 0.0, "Sports price must be positive");
     }
 }

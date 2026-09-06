@@ -623,6 +623,12 @@ pub struct Region {
     #[serde(default)]
     pub climate_profile: ClimateProfile,
 
+    // Phase 18S: Sports and recreation facilities in this region.
+    // Each facility has a complete lifecycle (construction, operation,
+    // privatization, demolition) and produces SportsCapacity.
+    #[serde(default)]
+    pub sports_facilities: Vec<crate::infrastructure::sports::SportsFacility>,
+
     // NEW: Micro-regions within this region (Phase 6.1)
     #[serde(default)]
     pub micro_regions: BTreeMap<String, MicroRegion>,
@@ -2204,6 +2210,7 @@ pub fn generate_regional_topology(
             arable_land_used: 0,
             extraction_limits: mine_limits,
             climate_profile,
+            sports_facilities: Vec::new(),
             extraction_used: base_mine_template().into_keys().map(|k| (k, 0)).collect(),
             resources,
             is_capital: i == 0,
@@ -2598,6 +2605,7 @@ pub fn generate_maritime_nodes(
         arable_land_used: 0,
         extraction_limits: BTreeMap::new(),
         climate_profile: ClimateProfile::default(),
+        sports_facilities: Vec::new(),
         extraction_used: BTreeMap::new(),
         resources: Map::new(),
         is_capital: false,
@@ -2650,6 +2658,7 @@ pub fn generate_maritime_nodes(
         arable_land_used: 0,
         extraction_limits: BTreeMap::new(),
         climate_profile: ClimateProfile::default(),
+        sports_facilities: Vec::new(),
         extraction_used: BTreeMap::new(),
         resources: Map::new(),
         is_capital: false,
@@ -3701,6 +3710,7 @@ mod phase30_tests {
             capacity_prices: BTreeMap::new(),
             land_use_inventory: Default::default(),
             climate_profile: ClimateProfile::Temperate,
+            sports_facilities: Vec::new(),
             micro_regions: BTreeMap::new(),
             treasury: Default::default(),
             microregion_budgets: HashMap::new(),

@@ -410,6 +410,12 @@ pub struct HealthStatistics {
     /// Hospital coverage.
     #[serde(default)]
     pub hospital_coverage: f64,
+
+    /// Phase 18S: Sports/recreation capacity per capita (physical access).
+    /// Computed from consumed SportsCapacity / region population.
+    /// Drives life expectancy and healthy life expectancy bonuses.
+    #[serde(default)]
+    pub sports_capacity_per_capita: f64,
 }
 
 impl HealthStatistics {}
