@@ -15,14 +15,14 @@ export HUB_DIR
 
 source "$SCRIPT_DIR/sync_lib.sh"
 
-# --- $kickoff <agent> <blueprint_id> ---------------------------------------
+# --- \$kickoff <agent> <blueprint_id> ---------------------------------------
 cmd_kickoff() {
     local agent="${1:-}"
     local blueprint_id="${2:-}"
 
     if [ -z "$agent" ] || [ -z "$blueprint_id" ]; then
-        echo "Usage: $kickoff <agent> <blueprint_id>"
-        echo "Example: $kickoff agent-3 004-FIX"
+        echo "Usage: \$kickoff <agent> <blueprint_id>"
+        echo "Example: \$kickoff agent-3 004-FIX"
         exit 1
     fi
 
@@ -71,7 +71,7 @@ NODE_EOF
     bp_branch=$(echo "$bp_data" | cut -d'|' -f2)
     bp_task_name=$(echo "$bp_data" | cut -d'|' -f3)
 
-    echo "=== $kickoff: $agent <- $blueprint_id ==="
+    echo "=== \$kickoff: $agent <- $blueprint_id ==="
     echo "  Blueprint:  $bp_full_id"
     echo "  Branch:     $bp_branch"
     echo "  Task:       $bp_task_name"
@@ -143,15 +143,15 @@ NODE_EOF
     bash "$SCRIPT_DIR/emit_event.sh" "TASK_ASSIGNED" "agent-5" "$agent" "$payload"
 
     echo ""
-    echo "=== $kickoff complete ==="
+    echo "=== \$kickoff complete ==="
     echo "  TASK_ASSIGNED emitted to $agent"
     echo "  Branch $bp_branch added to sprint manifest"
     echo "  Blueprint mapping registered"
 }
 
-# --- $audit_standard -------------------------------------------------------
+# --- \$audit_standard -------------------------------------------------------
 cmd_audit_standard() {
-    echo "=== $audit_standard: Emitting AUDIT_REQUESTED to Agent 4 ==="
+    echo "=== \$audit_standard: Emitting AUDIT_REQUESTED to Agent 4 ==="
 
     local payload
     payload=$(node <<'NODE_EOF'
@@ -195,17 +195,17 @@ NODE_EOF
     bash "$SCRIPT_DIR/emit_event.sh" "AUDIT_REQUESTED" "agent-5" "agent-4" "$payload"
 
     echo ""
-    echo "=== $audit_standard complete ==="
+    echo "=== \$audit_standard complete ==="
     echo "  AUDIT_REQUESTED emitted to agent-4"
     echo "  23 Global Rules checklist attached"
     echo "  Agent 4 will output AUDIT_FAIL (structured JSON) or AUDIT_PASS"
 }
 
-# --- $forward_fail [latest|<event_id>] -------------------------------------
+# --- \$forward_fail [latest|<event_id>] -------------------------------------
 cmd_forward_fail() {
     local target="${1:-latest}"
 
-    echo "=== $forward_fail: Routing AUDIT_FAIL to workers ==="
+    echo "=== \$forward_fail: Routing AUDIT_FAIL to workers ==="
 
     local audit_file=""
 
@@ -318,16 +318,16 @@ NODE_EOF
 NODE_EOF
 
     echo ""
-    echo "=== $forward_fail complete ==="
+    echo "=== \$forward_fail complete ==="
 }
 
-# --- $unblock <agent> ------------------------------------------------------
+# --- \$unblock <agent> ------------------------------------------------------
 cmd_unblock() {
     local agent="${1:-}"
 
     if [ -z "$agent" ]; then
-        echo "Usage: $unblock <agent>"
-        echo "Example: $unblock agent-3"
+        echo "Usage: \$unblock <agent>"
+        echo "Example: \$unblock agent-3"
         echo ""
         echo "Currently blocked branches:"
         local state_file="$HUB_DIR/.devin/.cicd_failure_state.json"
@@ -349,7 +349,7 @@ NODE_EOF
         exit 1
     fi
 
-    echo "=== $unblock: $agent ==="
+    echo "=== \$unblock: $agent ==="
 
     local map_file="$HUB_DIR/.devin/blueprint_agent_map.json"
     local state_file="$HUB_DIR/.devin/.cicd_failure_state.json"
@@ -401,7 +401,7 @@ NODE_EOF
 
     if [ -z "$branch" ]; then
         echo "  ERROR: Could not determine branch for $agent."
-        echo "  Usage: $unblock <agent> - agent must have an entry in blueprint_agent_map.json"
+        echo "  Usage: \$unblock <agent> - agent must have an entry in blueprint_agent_map.json"
         exit 1
     fi
 
@@ -468,65 +468,65 @@ NODE_EOF
     bash "$SCRIPT_DIR/emit_event.sh" "CLARIFICATION_REQUESTED" "agent-5" "$agent" "$payload"
 
     echo ""
-    echo "=== $unblock complete ==="
+    echo "=== \$unblock complete ==="
     echo "  Branch $branch unblocked"
     echo "  CLARIFICATION_REQUESTED emitted to $agent"
 }
 
-# --- $menu -----------------------------------------------------------------
+# --- \$menu -----------------------------------------------------------------
 cmd_help() {
     cat <<'HELP'
 ============================================================
   Command Console - SillyElaborateState Infrastructure v2.3
 ============================================================
 
-  $kickoff <agent> <blueprint_id>
+  \$kickoff <agent> <blueprint_id>
     Assign a blueprint to a worker agent. Auto-derives branch from
     roadmap, updates sprint manifest + blueprint map, emits TASK_ASSIGNED.
-    Example: $kickoff agent-3 004-FIX
+    Example: \$kickoff agent-3 004-FIX
 
-  $audit_standard
+  \$audit_standard
     Trigger full 23-rule macro-architectural audit by Agent 4.
     Auto-attaches the Global Rules checklist. No arguments needed.
 
-  $forward_fail [latest|<event_id>]
+  \$forward_fail [latest|<event_id>]
     Route the most recent AUDIT_FAIL event to responsible workers.
     Auto-emits REMEDIATION_REQUESTED to each failing blueprint's agent.
-    Example: $forward_fail latest
+    Example: \$forward_fail latest
 
-  $unblock <agent>
+  \$unblock <agent>
     Clear CI/CD 3-strike block for an agent's branch. Auto-detects the
     branch from blueprint_agent_map.json, unblocks, and wakes the agent.
-    Example: $unblock agent-3
+    Example: \$unblock agent-3
 
-  $menu
+  \$menu
     Show this help screen.
 
-  $pulse
+  \$pulse
     Display daemon PID, active sprint branches, and agent strike/block status.
 
-  $logs <agent>
+  \$logs <agent>
     Show the last 30 lines of the most recent CI/CD log for the agent's branch.
 
-  $override <agent>
+  \$override <agent>
     Administrative fast-track merge. Bypasses CI/CD for trivial changes (docs, typos).
 
-  $smoke_main
+  \$smoke_main
     Run the headless 50-tick smoke test directly on the main branch.
 
-  $daemon
+  \$daemon
     Restart the integration daemon (stop + launch). Outputs the new PID.
 
-  $release <version>
+  \$release <version>
     Bump version in Cargo.toml/package.json/tauri.conf.json, commit, tag, and push.
 
 ============================================================
 HELP
 }
 
-# --- $pulse - Telemetry dashboard ------------------------------------------
+# --- \$pulse - Telemetry dashboard ------------------------------------------
 cmd_pulse() {
-    echo "=== $pulse: System Telemetry ==="
+    echo "=== \$pulse: System Telemetry ==="
     echo ""
 
     # Daemon status
@@ -618,20 +618,20 @@ NODE_EOF
         echo "  Agent Strike Status: (no failure state file)"
     fi
     echo ""
-    echo "=== $pulse complete ==="
+    echo "=== \$pulse complete ==="
 }
 
-# --- $logs <agent> - Quick failure log access ------------------------------
+# --- \$logs <agent> - Quick failure log access ------------------------------
 cmd_logs() {
     local agent="${1:-}"
 
     if [ -z "$agent" ]; then
-        echo "Usage: $logs <agent>"
-        echo "Example: $logs agent-3"
+        echo "Usage: \$logs <agent>"
+        echo "Example: \$logs agent-3"
         exit 1
     fi
 
-    echo "=== $logs: $agent ==="
+    echo "=== \$logs: $agent ==="
 
     local map_file="$HUB_DIR/.devin/blueprint_agent_map.json"
     local log_dir="$HUB_DIR/.devin/integration_log"
@@ -705,22 +705,22 @@ NODE_EOF
     tail -n 30 "$target_log" 2>/dev/null
     echo "  --- End of log ---"
     echo ""
-    echo "=== $logs complete ==="
+    echo "=== \$logs complete ==="
 }
 
-# --- $override <agent> - Administrative fast-track merge -------------------
+# --- \$override <agent> - Administrative fast-track merge -------------------
 cmd_override() {
     local agent="${1:-}"
 
     if [ -z "$agent" ]; then
-        echo "Usage: $override <agent>"
-        echo "Example: $override agent-3"
+        echo "Usage: \$override <agent>"
+        echo "Example: \$override agent-3"
         echo ""
         echo "WARNING: This bypasses CI/CD. Use only for trivial changes (docs, typos)."
         exit 1
     fi
 
-    echo "=== $override: $agent (ADMINISTRATIVE BYPASS) ==="
+    echo "=== \$override: $agent (ADMINISTRATIVE BYPASS) ==="
     echo "  WARNING: This bypasses the 10-minute CI/CD pipeline."
     echo "  Use ONLY for trivial changes (docs, typos, config)."
     echo ""
@@ -826,15 +826,15 @@ NODE_EOF
         "{\"branch\":\"$branch\",\"commit\":\"$main_commit\",\"method\":\"override_bypass\"}" 2>/dev/null
 
     echo ""
-    echo "=== $override complete ==="
+    echo "=== \$override complete ==="
     echo "  Branch $branch merged to main @ $main_commit"
     echo "  PROMOTED_TO_MAIN emitted (method: override_bypass)"
     echo "  Failure state reset for $branch"
 }
 
-# --- $smoke_main - Run smoke test on main ----------------------------------
+# --- \$smoke_main - Run smoke test on main ----------------------------------
 cmd_smoke_main() {
-    echo "=== $smoke_main: Headless 50-tick smoke test on main ==="
+    echo "=== \$smoke_main: Headless 50-tick smoke test on main ==="
     echo ""
 
     # Verify we're on main
@@ -857,17 +857,17 @@ cmd_smoke_main() {
 
     echo ""
     if [ $rc -eq 0 ]; then
-        echo "=== $smoke_main: PASS ==="
+        echo "=== \$smoke_main: PASS ==="
     elif [ $rc -eq 124 ]; then
-        echo "=== $smoke_main: TIMEOUT (exceeded 600s) ==="
+        echo "=== \$smoke_main: TIMEOUT (exceeded 600s) ==="
     else
-        echo "=== $smoke_main: FAIL (rc=$rc) ==="
+        echo "=== \$smoke_main: FAIL (rc=$rc) ==="
     fi
 }
 
-# --- $daemon - Restart the integration daemon ------------------------------
+# --- \$daemon - Restart the integration daemon ------------------------------
 cmd_daemon() {
-    echo "=== $daemon: Restarting integration daemon ==="
+    echo "=== \$daemon: Restarting integration daemon ==="
     echo ""
 
     # Step 1: Stop existing daemon
@@ -892,23 +892,23 @@ cmd_daemon() {
     fi
 
     echo ""
-    echo "=== $daemon complete ==="
+    echo "=== \$daemon complete ==="
 }
 
-# --- $release <version> - Version bump, tag, and push ----------------------
+# --- \$release <version> - Version bump, tag, and push ----------------------
 cmd_release() {
     local version="${1:-}"
 
     if [ -z "$version" ]; then
-        echo "Usage: $release <version>"
-        echo "Example: $release 1.2.0"
+        echo "Usage: \$release <version>"
+        echo "Example: \$release 1.2.0"
         exit 1
     fi
 
     # Strip leading 'v' if present
     version="${version#v}"
 
-    echo "=== $release: v$version ==="
+    echo "=== \$release: v$version ==="
     echo ""
 
     # Verify clean tree
@@ -1045,7 +1045,7 @@ NODE_EOF
     git push origin "v$version" 2>&1 | tail -3
 
     echo ""
-    echo "=== $release complete ==="
+    echo "=== \$release complete ==="
     echo "  Version: v$version"
     echo "  Tag: v$version"
     echo "  Pushed to origin"
