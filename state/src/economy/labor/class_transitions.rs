@@ -394,6 +394,7 @@ pub struct HomelessTransitionResult {
 /// * Rule 22: Scope — only cooperative lifecycle + M0.
 pub fn process_homeless_transitions(
     country: &mut Country,
+    housing_buildings: &[crate::society::housing::HousingBuilding],
     current_turn: u32,
     avg_wage: f64,
     capital_controls_rate: f64,
@@ -418,19 +419,43 @@ pub fn process_homeless_transitions(
     // For newly displaced members, decrement ClassDemographics.population
     // for their housed class. The members are now in the homeless tracking
     // counter (cooperative_registry.homeless).
-    for (_, _displaced) in &displaced_batches {
-        result.housed_to_homeless += _displaced.len() as i64;
-        // Macro-demographic update: decrement housed class population.
-        // The displaced members are tracked in cooperative_registry.homeless
-        // (the homeless tracking counter). We decrement the first urban class
-        // we find as a simplified demographic transition (Rule 9 — avoid
-        // double mutable borrows by using index lookups).
-        for region in &mut country.regions {
-            for demo in region.class_demographics.urban_classes.values_mut() {
-                if demo.population > 0 {
-                    let decrement = _displaced.len() as i64;
-                    demo.population = (demo.population - decrement).max(0);
-                    break; // Only decrement one class per batch
+    for (coop_id, displaced) in &displaced_batches {
+        result.housed_to_homeless += displaced.len() as i64;
+        // Blueprint 007-FIX-v2: Target the correct urban class based on
+        // wealth tier, not just the first urban class (audit fix).
+        // Map: Destitute/Working → Worker, Middle/Upper → Bourgeoisie.
+        let coop_region = country
+            .cooperative_registry
+            .cooperatives
+            .get(coop_id)
+            .map(|c| c.region_id.clone())
+            .unwrap_or_default();
+        for (_member_id, wealth_tier) in displaced {
+            let target_class = wealth_tier_to_urban_class(*wealth_tier);
+            for region in &mut country.regions {
+                if region.id != coop_region {
+                    continue;
+                }
+                if let Some(demo) =
+                    region.class_demographics.urban_classes.get_mut(&target_class)
+                {
+                    if demo.population > 0 {
+                        demo.population -= 1;
+                    }
+                    break;
+                }
+            }
+            // If region not found, fall back to first region with that class
+            if coop_region.is_empty() {
+                for region in &mut country.regions {
+                    if let Some(demo) =
+                        region.class_demographics.urban_classes.get_mut(&target_class)
+                    {
+                        if demo.population > 0 {
+                            demo.population -= 1;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -449,8 +474,17 @@ pub fn process_homeless_transitions(
         let emigrants: Vec<(String, f64, f64)> = to_emigrate
             .iter()
             .map(|h| {
+                // Blueprint 007-FIX-v2: Use remaining_unconverted_capital for
+                // retry (partial fill from previous turn), not liquid_capital
+                // (audit fix — partial-fill retry used wrong field).
+                let requested = if h.remaining_unconverted_capital > 0.0 {
+                    h.remaining_unconverted_capital
+                } else {
+                    h.liquid_capital
+                };
                 // Find the savings bucket for this emigrant's region.
-                // Default to the first urban class's savings if region not found.
+                // Use the class matching their wealth tier, not just the first.
+                let target_class = wealth_tier_to_urban_class(h.wealth_tier);
                 let savings_bucket = country
                     .regions
                     .iter()
@@ -458,16 +492,17 @@ pub fn process_homeless_transitions(
                     .and_then(|r| {
                         r.class_demographics
                             .urban_classes
-                            .values()
-                            .next()
+                            .get(&target_class)
                             .map(|d| d.savings)
                     })
                     .unwrap_or(0.0);
-                (h.member_id.clone(), h.liquid_capital, savings_bucket)
+                (h.member_id.clone(), requested, savings_bucket)
             })
             .collect();
 
-        result.homeless_to_emigrated += emigrants.len() as i64;
+        // Blueprint 007-FIX-v2: Don't count all emigrants as emigrated yet.
+        // Only fully-filled emigrants actually leave. Partial fills stay
+        // for retry (audit fix — count was inflated by partial fills).
         result.total_capital_outflow = emigrants.iter().map(|(_, c, _)| c).sum();
 
         // Process via M0-preserving 3-step accounting
@@ -498,18 +533,23 @@ pub fn process_homeless_transitions(
         for per in &outflow_result.per_emigrant {
             if per.domestic_debited > 0.0 {
                 // Find the emigrant's region and debit the class savings
-                let region_id = to_emigrate
+                let emigrant_info = to_emigrate
                     .iter()
-                    .find(|h| h.member_id == per.member_id)
+                    .find(|h| h.member_id == per.member_id);
+                let region_id = emigrant_info
                     .map(|h| h.region_id.clone())
                     .unwrap_or_default();
+                let target_class = emigrant_info
+                    .map(|h| wealth_tier_to_urban_class(h.wealth_tier))
+                    .unwrap_or(crate::society::geography::UrbanClass::Worker);
                 for region in &mut country.regions {
                     if region.id == region_id {
-                        for demo in region.class_demographics.urban_classes.values_mut() {
+                        if let Some(demo) =
+                            region.class_demographics.urban_classes.get_mut(&target_class)
+                        {
                             if demo.savings > 0.0 {
                                 demo.savings =
                                     (demo.savings - per.domestic_debited).max(0.0);
-                                break;
                             }
                         }
                         break;
@@ -541,8 +581,10 @@ pub fn process_homeless_transitions(
         // Step 4b: Emigration demographic update
         // For successful emigrants (fully filled), call
         // distribute_population_delta_and_reconcile to remove them from
-        // the national population count.
+        // the national population count. Only fully-filled emigrants
+        // actually leave the country (audit fix).
         let successful_emigrants = outflow_result.emigrants_processed as i64;
+        result.homeless_to_emigrated += successful_emigrants;
         if successful_emigrants > 0 {
             crate::economy::labor::distribute_population_delta_and_reconcile(
                 country,
@@ -574,11 +616,25 @@ pub fn process_homeless_transitions(
         .collect();
 
     for idx in homeless_indices {
-        // Find vacancies in the member's region (simplified — in a full
-        // implementation this would scan HousingBuilding vacancies).
-        // For now, we pass an empty vacancy list if we can't access buildings.
-        // The caller (turn loop) should pass building data if available.
-        let vacancies: Vec<(String, String, f64)> = Vec::new();
+        // Blueprint 007-FIX-v2: Compute REAL vacancies from housing buildings
+        // in the member's region (audit fix — was always Vec::new()).
+        // A vacancy is a building with unoccupied slots and a rent > 0.
+        let member_region = country.cooperative_registry.homeless[idx].region_id.clone();
+        let member_wealth_tier = country.cooperative_registry.homeless[idx].wealth_tier;
+        let vacancies: Vec<(String, String, f64)> = housing_buildings
+            .iter()
+            .filter(|hb| hb.micro_region_id == member_region)
+            .filter(|hb| {
+                hb.primary_slots.occupied_slots < hb.primary_slots.total_capacity
+            })
+            .map(|hb| {
+                (
+                    hb.id.clone(),
+                    hb.owner.clone(),
+                    hb.primary_slots.rent_per_slot,
+                )
+            })
+            .collect();
 
         let (homeless, treasury) = split_at_mut_pair(
             &mut country.cooperative_registry.homeless,
@@ -593,16 +649,20 @@ pub fn process_homeless_transitions(
             welfare_enabled,
         );
 
+        let target_class = wealth_tier_to_urban_class(member_wealth_tier);
         match &outcome {
             RehousingOutcome::MarketRent { .. } => {
                 result.homeless_to_rehoused += 1;
                 // Macro-demographic update: move population from homeless
-                // tracking back to housed class.
+                // tracking back to the correct housed class (audit fix).
                 for region in &mut country.regions {
-                    if let Some(demo) =
-                        region.class_demographics.urban_classes.values_mut().next()
-                    {
-                        demo.population += 1;
+                    if region.id == member_region {
+                        if let Some(demo) =
+                            region.class_demographics.urban_classes.get_mut(&target_class)
+                        {
+                            demo.population += 1;
+                        }
+                        break;
                     }
                 }
             }
@@ -610,10 +670,13 @@ pub fn process_homeless_transitions(
                 result.homeless_to_rehoused += 1;
                 result.welfare_rehoused += 1;
                 for region in &mut country.regions {
-                    if let Some(demo) =
-                        region.class_demographics.urban_classes.values_mut().next()
-                    {
-                        demo.population += 1;
+                    if region.id == member_region {
+                        if let Some(demo) =
+                            region.class_demographics.urban_classes.get_mut(&target_class)
+                        {
+                            demo.population += 1;
+                        }
+                        break;
                     }
                 }
             }
@@ -633,14 +696,14 @@ pub fn process_homeless_transitions(
         }
         let health_penalty = homeless.health_penalty();
         let happiness_penalty = homeless.happiness_penalty();
+        let target_class = wealth_tier_to_urban_class(homeless.wealth_tier);
 
-        // Apply to the first urban class in the member's region.
-        // In a full implementation, this would target the specific class
-        // that the displaced member belonged to.
+        // Blueprint 007-FIX-v2: Apply to the correct urban class in the
+        // member's region (audit fix — was always first urban class).
         for region in &mut country.regions {
             if region.id == homeless.region_id {
                 if let Some(demo) =
-                    region.class_demographics.urban_classes.values_mut().next()
+                    region.class_demographics.urban_classes.get_mut(&target_class)
                 {
                     // Degrade health status based on penalty severity
                     if health_penalty > 0.6 {
@@ -683,6 +746,20 @@ fn split_at_mut_pair<'a, T>(
     idx: usize,
 ) -> (&'a mut T, &'a mut crate::state::Treasury) {
     (&mut vec[idx], treasury)
+}
+
+/// Blueprint 007-FIX-v2: Map a WealthTier to the corresponding UrbanClass
+/// for demographic targeting (audit fix — was always first urban class).
+/// Destitute/Working → Worker, Middle/Upper → Bourgeoisie.
+fn wealth_tier_to_urban_class(
+    tier: crate::society::housing::WealthTier,
+) -> crate::society::geography::UrbanClass {
+    use crate::society::geography::UrbanClass;
+    use crate::society::housing::WealthTier;
+    match tier {
+        WealthTier::Destitute | WealthTier::Working => UrbanClass::Worker,
+        WealthTier::Middle | WealthTier::Upper => UrbanClass::Bourgeoisie,
+    }
 }
 
 /// Calculate urban unemployment rate from urban class demographics.

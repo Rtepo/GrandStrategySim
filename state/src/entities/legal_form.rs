@@ -732,6 +732,7 @@ pub fn on_cooperative_created(
     company_id: String,
     cooperative_data: &HousingCooperativeData,
     founded_turn: u32,
+    region_id: &str,
 ) {
     registry.on_cooperative_created(
         company_id,
@@ -740,6 +741,7 @@ pub fn on_cooperative_created(
         cooperative_data.member_households,
         cooperative_data.share_capital,
         founded_turn,
+        region_id.to_string(),
     );
 }
 

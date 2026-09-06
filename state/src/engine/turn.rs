@@ -592,6 +592,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
             let _homeless_result = crate::economy::labor::process_homeless_transitions(
                 task.ctx.country,
+                &task.housing_buildings,
                 current_turn,
                 avg_wage,
                 capital_controls_rate,

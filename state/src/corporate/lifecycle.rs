@@ -107,6 +107,44 @@ impl CompanyLifecycle {
             // companies as the bank/creditor slice. Split the vector.
             let mut company_to_liquidate = companies.remove(idx);
 
+            // Blueprint 007-FIX: Fire on_cooperative_liquidated event hook
+            // BEFORE the Syndic executes liquidation. This transitions the
+            // cooperative to Liquidated stage in the CooperativeRegistry and
+            // collects displaced members for homeless state assignment.
+            // The event-based cache is updated ONLY on create/liquidate —
+            // no per-turn O(N) company scanning (Rule: PERFORMANCE).
+            if company_to_liquidate
+                .legal_form
+                .is_housing_legal_form()
+            {
+                let current_turn = _year;
+                let displaced = crate::entities::legal_form::on_cooperative_liquidated(
+                    &mut country.cooperative_registry,
+                    &company_to_liquidate.id,
+                    current_turn,
+                );
+                // Create HomelessState entries for each displaced member
+                let avg_wage = country.macro_indicators.average_wage;
+                for (member_id, wealth_tier) in &displaced {
+                    let liquid = match wealth_tier {
+                        crate::society::housing::WealthTier::Upper => avg_wage * 100.0,
+                        crate::society::housing::WealthTier::Middle => avg_wage * 20.0,
+                        crate::society::housing::WealthTier::Working => avg_wage * 5.0,
+                        crate::society::housing::WealthTier::Destitute => avg_wage * 0.5,
+                    };
+                    let mut homeless = crate::society::housing::HomelessState::new(
+                        member_id.clone(),
+                        company_to_liquidate.id.clone(),
+                        current_turn,
+                        *wealth_tier,
+                        liquid,
+                    );
+                    // Set region_id for rehousing vacancy search
+                    homeless.region_id = company_to_liquidate.region_id.clone();
+                    country.cooperative_registry.homeless.push(homeless);
+                }
+            }
+
             // Get a mutable reference to the forex market from country.
             // The forex market is on GameState, not Country. We need to handle
             // this carefully — for now, create a dummy forex market since the

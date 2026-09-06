@@ -1446,6 +1446,11 @@ pub struct HousingCooperative {
     /// Larger cooperatives negotiate better utility rates.
     #[serde(default)]
     pub utility_economies: f64,
+
+    /// Blueprint 007-FIX-v2: Region where the cooperative operates.
+    /// Used to set region_id on displaced HomelessState entries.
+    #[serde(default)]
+    pub region_id: String,
 }
 
 impl HousingCooperative {
@@ -1688,6 +1693,7 @@ impl CooperativeRegistry {
                     if !displaced.is_empty() {
                         displaced_batches.push((coop_id.clone(), displaced.clone()));
                         // Create homeless states for each displaced member
+                        let coop_region = coop.region_id.clone();
                         for (member_id, wealth_tier) in &displaced {
                             // Estimate liquid capital from wealth tier
                             let liquid = match wealth_tier {
@@ -1696,13 +1702,17 @@ impl CooperativeRegistry {
                                 WealthTier::Working => avg_wage * 5.0,
                                 WealthTier::Destitute => avg_wage * 0.5,
                             };
-                            self.homeless.push(HomelessState::new(
+                            let mut homeless = HomelessState::new(
                                 member_id.clone(),
                                 coop_id.clone(),
                                 current_turn,
                                 *wealth_tier,
                                 liquid,
-                            ));
+                            );
+                            // Blueprint 007-FIX-v2: Set region_id for rehousing
+                            // vacancy search and demographic targeting (audit fix).
+                            homeless.region_id = coop_region.clone();
+                            self.homeless.push(homeless);
                         }
                     }
                     // Transition to liquidated
@@ -1727,8 +1737,12 @@ impl CooperativeRegistry {
                 to_emigrate.push(homeless.clone());
             }
         }
-        // Remove emigrated and rehoused from active homeless list
-        self.homeless.retain(|h| !h.emigrated && !h.rehoused);
+        // Blueprint 007-FIX-v2: DO NOT remove emigrated members here.
+        // The caller (process_homeless_transitions) needs to revert
+        // emigrated = false for partial-fill members (persistent queue).
+        // Cleanup is done by the caller AFTER partial-fill processing.
+        // Only remove already-rehoused members (they're done).
+        self.homeless.retain(|h| !h.rehoused);
         to_emigrate
     }
 
@@ -1762,6 +1776,7 @@ impl CooperativeRegistry {
         member_households: u32,
         share_capital: f64,
         founded_turn: u32,
+        region_id: String,
     ) {
         let max_members = member_households.max(1);
         let total_floor_area = managed_buildings.len() as f64 * 100.0; // estimate
@@ -1782,6 +1797,7 @@ impl CooperativeRegistry {
             collapsed_turn: None,
             liquidated_turn: None,
             utility_economies: 0.0,
+            region_id,
         };
         self.cooperatives.insert(company_id, coop);
     }
