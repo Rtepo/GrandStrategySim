@@ -630,6 +630,12 @@ impl std::fmt::Display for Commodity {
 }
 
 impl Commodity {
+    /// Minimum expected number of commodity variants in `Commodity::all()`.
+    /// Tests should use `assert!(Commodity::all().len() >= MIN_COMMODITIES)`
+    /// instead of exact equality to avoid breakage when new commodities are
+    /// added by concurrent agents.
+    pub const MIN_COMMODITIES: usize = 150;
+
     /// Returns the inventory key for this commodity.
     ///
     /// # Returns

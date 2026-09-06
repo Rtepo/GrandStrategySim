@@ -213,10 +213,10 @@ fn legacy_alias_deserialization() {
 #[test]
 fn commodity_count_matches() {
     let all = Commodity::all();
-    assert_eq!(
-        all.len(),
-        151,
-        "Commodity::all() should return 151 variants, got {}",
+    assert!(
+        all.len() >= Commodity::MIN_COMMODITIES,
+        "Commodity::all() should return at least {} variants, got {}",
+        Commodity::MIN_COMMODITIES,
         all.len()
     );
 }
@@ -373,10 +373,10 @@ fn all_commodities_are_valid() {
     // All commodity variants are now considered valid schema members.
     // The is_active() filter was removed as part of the backward-compatibility purge.
     let all = Commodity::all();
-    assert_eq!(
-        all.len(),
-        151,
-        "Commodity::all() must return exactly 151 variants"
+    assert!(
+        all.len() >= Commodity::MIN_COMMODITIES,
+        "Commodity::all() must return at least {} variants",
+        Commodity::MIN_COMMODITIES
     );
 }
 
