@@ -147,6 +147,25 @@ NODE_EOF
     echo "  TASK_ASSIGNED emitted to $agent"
     echo "  Branch $bp_branch added to sprint manifest"
     echo "  Blueprint mapping registered"
+
+    # v3.1: Auto-launch the integration daemon if not already running.
+    # A new sprint kickoff means events will be flowing — the daemon must
+    # be active to process INTEGRATION_REQUESTED events.
+    local pid_file="$HUB_DIR/.devin/.integration_daemon.pid"
+    if [ -f "$pid_file" ]; then
+        local existing_pid
+        existing_pid=$(cat "$pid_file" 2>/dev/null || echo "")
+        if [ -n "$existing_pid" ] && kill -0 "$existing_pid" 2>/dev/null; then
+            echo "  Daemon already running (PID $existing_pid)."
+        else
+            rm -f "$pid_file"
+            echo "  Daemon PID stale. Launching fresh daemon..."
+            bash "$SCRIPT_DIR/launch_daemon.sh" 2>&1 | tail -n 50
+        fi
+    else
+        echo "  No daemon running. Launching for new sprint..."
+        bash "$SCRIPT_DIR/launch_daemon.sh" 2>&1 | tail -n 50
+    fi
 }
 
 # --- \$audit_standard -------------------------------------------------------
@@ -524,6 +543,12 @@ cmd_help() {
     Read the NEWEST pending event for an agent. Prints a readable briefing,
     archives ALL pending events (flush), and emits a system directive to
     auto-trigger the worker into action.
+
+  $recover <agent>
+    Recover a crashed (OOM) agent. Inspects the worktree, cleans stale
+    locks (index.lock, REBASE_HEAD, MERGE_HEAD), and emits RECOVERY_WAKE
+    to safely reboot the agent via auto_wake.sh.
+    Example: $recover agent-2
     Example: $inbox agent-3
 
 ============================================================
@@ -934,6 +959,13 @@ cmd_release() {
         exit 1
     fi
 
+    # v3.1: Stop the integration daemon before release.
+    # The daemon must not run idle between milestones. Releasing marks the
+    # end of a sprint cycle, so the daemon is stopped to free resources.
+    echo "  Stopping integration daemon (end of sprint cycle)..."
+    bash "$SCRIPT_DIR/stop_daemon.sh" 2>&1 || true
+    echo ""
+
     echo "  Bumping version to $version in:"
 
     # Cargo.toml (workspace root)
@@ -1055,6 +1087,7 @@ NODE_EOF
     echo "  Version: v$version"
     echo "  Tag: v$version"
     echo "  Pushed to origin"
+    echo "  Daemon stopped. Run \$daemon to restart for the next sprint."
 }
 
 # --- $inbox <agent> - Worker self-service event reader (newest wins) --------
@@ -1282,6 +1315,145 @@ NODE_EOF
     echo "=== \$inbox complete ==="
 }
 
+# --- $recover <agent> - Centralized OOM crash recovery (v3.1) ---------------
+cmd_recover() {
+    local agent="${1:-}"
+
+    if [ -z "$agent" ]; then
+        echo "Usage: \$recover <agent>"
+        echo "Example: \$recover agent-2"
+        echo ""
+        echo "Inspects the crashed agent's worktree, cleans stale locks,"
+        echo "and emits RECOVERY_WAKE to safely reboot the agent via auto_wake.sh."
+        exit 1
+    fi
+
+    echo "=== \$recover: $agent ==="
+    echo ""
+
+    # Step 1: Resolve agent's worktree path
+    local map_file="$HUB_DIR/.devin/blueprint_agent_map.json"
+    local worktree_path=""
+    local agent_branch=""
+
+    # Try blueprint_agent_map.json first
+    if [ -f "$map_file" ]; then
+        agent_branch=$(AGENT="$agent" MAP_FILE="$map_file" node <<'NODE_EOF'
+            const fs = require("fs");
+            try {
+                let raw = fs.readFileSync(process.env.MAP_FILE, "utf8");
+                if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+                const map = JSON.parse(raw);
+                for (const [bpId, mapping] of Object.entries(map)) {
+                    if (mapping.agent === process.env.AGENT) {
+                        console.log(mapping.branch);
+                        process.exit(0);
+                    }
+                }
+            } catch(e) {}
+            process.exit(0);
+NODE_EOF
+        )
+    fi
+
+    # Derive worktree path using the convention ../SillyElaborateState-<agent>
+    local wt_candidate="$HUB_DIR/../SillyElaborateState-$agent"
+    if [ -d "$wt_candidate" ]; then
+        worktree_path="$(cd "$wt_candidate" 2>/dev/null && pwd)"
+    fi
+
+    # Fallback: scan parent dir for matching worktrees
+    if [ -z "$worktree_path" ]; then
+        local wt_found
+        wt_found=$(find "$HUB_DIR/.." -maxdepth 1 -type d -name "SillyElaborateState-${agent}*" 2>/dev/null | head -1)
+        if [ -n "$wt_found" ]; then
+            worktree_path="$(cd "$wt_found" 2>/dev/null && pwd)"
+        fi
+    fi
+
+    if [ -z "$worktree_path" ]; then
+        echo "  WARNING: No worktree found for $agent."
+        echo "  Emitting RECOVERY_WAKE event anyway — agent can resume from any location."
+    else
+        echo "  Worktree: $worktree_path"
+        echo "  Branch:   ${agent_branch:-unknown}"
+    fi
+    echo ""
+
+    # Step 2: Inspect working tree
+    local cleaned_files=""
+    if [ -n "$worktree_path" ] && [ -d "$worktree_path/.git" -o -f "$worktree_path/.git" ]; then
+        echo "  Inspecting working tree..."
+        local wt_status
+        wt_status=$(cd "$worktree_path" 2>/dev/null && git status --porcelain 2>/dev/null | head -10 || echo "")
+        if [ -n "$wt_status" ]; then
+            echo "  Working tree is NOT clean. Files (first 10):"
+            echo "$wt_status" | sed 's/^/    /'
+        else
+            echo "  Working tree is clean."
+        fi
+        echo ""
+
+        # Step 3: Clean up corrupt temp files/locks
+        echo "  Cleaning stale locks..."
+
+        # Remove stale index.lock
+        if [ -f "$worktree_path/.git/index.lock" ]; then
+            rm -f "$worktree_path/.git/index.lock" 2>/dev/null && cleaned_files="${cleaned_files}index.lock "
+        fi
+
+        # Remove stale rebase/merge state files (interrupted by crash)
+        for stale_file in REBASE_HEAD MERGE_HEAD MERGE_MSG MERGE_MODE CHERRY_PICK_HEAD; do
+            if [ -f "$worktree_path/.git/$stale_file" ]; then
+                rm -f "$worktree_path/.git/$stale_file" 2>/dev/null && cleaned_files="${cleaned_files}${stale_file} "
+            fi
+        done
+
+        # Note: Do NOT remove ORIG_HEAD (needed for recovery)
+        # Note: Do NOT use git reset --hard or git stash pop (banned by AGENTS.md)
+
+        if [ -n "$cleaned_files" ]; then
+            echo "  Cleaned: $cleaned_files"
+        else
+            echo "  No stale locks found."
+        fi
+    fi
+
+    # Clean hub-level daemon temp files
+    local hub_cleaned=""
+    for tmp_file in "$HUB_DIR"/.devin/.daemon_event_*.env; do
+        [ -f "$tmp_file" ] || continue
+        rm -f "$tmp_file" 2>/dev/null && hub_cleaned="${hub_cleaned}$(basename "$tmp_file") "
+    done
+    if [ -n "$hub_cleaned" ]; then
+        echo "  Cleaned hub temp files: $hub_cleaned"
+    fi
+    echo ""
+
+    # Step 4: Emit RECOVERY_WAKE event
+    local payload
+    payload=$(node -e '
+        const p = {
+            reason: "OOM crash recovery",
+            worktree: process.env.WT || "",
+            branch: process.env.BR || "",
+            action: "Run $inbox to resume your task. Your working tree has been inspected and locks cleaned. No work was lost.",
+            cleaned_files: process.env.CF || ""
+        };
+        console.log(JSON.stringify(p));
+    ' WT="$worktree_path" BR="$agent_branch" CF="$cleaned_files $hub_cleaned")
+
+    bash "$SCRIPT_DIR/emit_event.sh" "RECOVERY_WAKE" "agent-5" "$agent" "$payload"
+
+    echo ""
+    echo "=== \$recover complete ==="
+    echo "  RECOVERY_WAKE emitted to $agent"
+    echo "  auto_wake.sh will detect this event and reboot the agent"
+    if [ -n "$worktree_path" ]; then
+        echo "  Agent should run: cd $worktree_path && bash .devin/scripts/console.sh \$inbox $agent"
+    fi
+}
+
 # --- Command Router (must be after all function definitions) ---------------
 COMMAND="${1:-}"
 shift || true
@@ -1298,6 +1470,7 @@ case "$COMMAND" in
     \$daemon)         cmd_daemon "$@" ;;
     \$release)        cmd_release "$@" ;;
     \$inbox)          cmd_inbox "$@" ;;
+    \$recover)        cmd_recover "$@" ;;
     \$menu|"")        cmd_help ;;
     *)               echo "Unknown command: $COMMAND"; echo ""; cmd_help; exit 1 ;;
 esac
