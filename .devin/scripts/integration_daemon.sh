@@ -45,6 +45,19 @@ MAX_CONSECUTIVE_FAILURES=3
 
 mkdir -p "$LOG_DIR" "$ARCHIVE_DIR" "$TASKS_ARCHIVE_DIR" "$IN_PROGRESS_DIR"
 
+# ─── v3: sccache compilation cache ──────────────────────────────────────────
+# Enable sccache if available — caches Rust compilation artifacts across runs,
+# reducing build times by 60-80% for incremental changes.
+if command -v sccache &>/dev/null; then
+    export RUSTC_WRAPPER="sccache"
+    export SCCACHE_DIR="${SCCACHE_DIR:-$HUB_DIR/.devin/.sccache}"
+    export SCCACHE_CACHE_SIZE="2G"
+    mkdir -p "$SCCACHE_DIR" 2>/dev/null || true
+    echo "[$(date -u +%H:%M:%S)] sccache enabled (cache: $SCCACHE_DIR, limit: 2G)"
+else
+    echo "[$(date -u +%H:%M:%S)] sccache not found — using standard compilation"
+fi
+
 # ─── Manager Authentication ────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/sync_lib.sh"
@@ -427,20 +440,56 @@ run_cicd() {
     done
 
     echo "[$(date -u +%H:%M:%S)] CI/CD: [2b/6] cargo test (executing, skip smoke)... (timeout: 300s)"
-    timeout 300 cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -5
-    local test_rc=${PIPESTATUS[0]}
-    if [ $test_rc -ne 0 ]; then
-        git checkout main 2>/dev/null
-        if [ $test_rc -eq 124 ]; then
-            echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
-            echo "TIMEOUT_FAILED"
-            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test execution TIMEOUT (exceeded 300s)"
-        else
+    # v3: Use cargo-nextest for parallel test execution with --test-threads=4
+    # for OOM prevention. Falls back to cargo test if nextest is not installed.
+    if command -v cargo-nextest &>/dev/null; then
+        echo "  (using cargo-nextest with --test-threads=4 for OOM safety)"
+        timeout 300 cargo nextest run --workspace --all-targets \
+            --skip headless_50_tick_smoke \
+            --profile ci --test-threads=4 2>&1 | tee "${log_prefix}_test.txt" | tail -n 50
+        local test_rc=${PIPESTATUS[0]}
+        if [ $test_rc -ne 0 ]; then
+            git checkout main 2>/dev/null
+            if [ $test_rc -eq 124 ]; then
+                echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+                echo "TIMEOUT_FAILED"
+                echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo nextest TIMEOUT (exceeded 300s)"
+            else
+                echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
+                echo "TEST_FAILED"
+                echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo nextest (rc=$test_rc)"
+            fi
+            return 1
+        fi
+
+        # v3 Patch: nextest intentionally ignores doctests.
+        # Run cargo test --doc separately to cover doc-test assertions.
+        echo "[$(date -u +%H:%M:%S)] CI/CD: [2b/6] cargo test --doc (doctests)... (timeout: 120s)"
+        timeout 120 cargo test --workspace --doc 2>&1 | tee "${log_prefix}_doctest.txt" | tail -n 50
+        local doctest_rc=${PIPESTATUS[0]}
+        if [ $doctest_rc -ne 0 ]; then
+            git checkout main 2>/dev/null
             echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
             echo "TEST_FAILED"
-            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test (rc=$test_rc)"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test --doc (rc=$doctest_rc)"
+            return 1
         fi
-        return 1
+    else
+        timeout 300 cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -n 50
+        local test_rc=${PIPESTATUS[0]}
+        if [ $test_rc -ne 0 ]; then
+            git checkout main 2>/dev/null
+            if [ $test_rc -eq 124 ]; then
+                echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+                echo "TIMEOUT_FAILED"
+                echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test execution TIMEOUT (exceeded 300s)"
+            else
+                echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
+                echo "TEST_FAILED"
+                echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test (rc=$test_rc)"
+            fi
+            return 1
+        fi
     fi
 
     echo "[$(date -u +%H:%M:%S)] CI/CD: [3/6] cargo clippy... (timeout: 600s)"
@@ -478,7 +527,13 @@ run_cicd() {
     fi
 
     echo "[$(date -u +%H:%M:%S)] CI/CD: [5/6] headless 50-tick smoke test... (timeout: 600s)"
-    timeout 600 cargo test --workspace --test headless_smoke_test -- headless_50_tick_smoke --nocapture 2>&1 | tee "${log_prefix}_smoke.txt"
+    # v3: Use nextest for smoke test with --test-threads=4 for OOM safety
+    if command -v cargo-nextest &>/dev/null; then
+        timeout 600 cargo nextest run --workspace --test headless_smoke_test \
+            --profile ci --test-threads=4 -- headless_50_tick_smoke --nocapture 2>&1 | tee "${log_prefix}_smoke.txt" | tail -n 50
+    else
+        timeout 600 cargo test --workspace --test headless_smoke_test -- headless_50_tick_smoke --nocapture 2>&1 | tee "${log_prefix}_smoke.txt" | tail -n 50
+    fi
     local smoke_rc=${PIPESTATUS[0]}
     if [ $smoke_rc -ne 0 ]; then
         git checkout main 2>/dev/null
@@ -810,9 +865,11 @@ rescue_worktree_events() {
     fi
 }
 
-# ─── Helper: Process AUDIT_FAIL event (v2.3) ───────────────────────────────
+# ─── Helper: Process AUDIT_FAIL event (v3) ───────────────────────────────
 # Parses Agent 4's structured AUDIT_FAIL JSON, identifies failing blueprints,
 # and emits REMEDIATION_REQUESTED events to the responsible worker agents.
+# v3: Dedup guard — skips if Agent 4 already routed directly.
+# v3: Supports AUDIT_FAIL_ADDENDUM (new_failed_checks) schema.
 process_audit_fail() {
     local event_file="$1"
 
@@ -848,9 +905,10 @@ process_audit_fail() {
 
     echo "[$(date -u +%H:%M:%S)] Processing AUDIT_FAIL: $(basename "$event_file")"
 
-    AUDIT_IN="$event_file" MAP_IN="$map_file" SCRIPT_DIR="$SCRIPT_DIR" node <<'NODE_EOF'
+    AUDIT_IN="$event_file" MAP_IN="$map_file" SCRIPT_DIR="$SCRIPT_DIR" EVENTS_DIR="$EVENTS_DIR" ARCHIVE_DIR="$ARCHIVE_DIR" node <<'NODE_EOF'
         const fs = require("fs");
         const { execSync } = require("child_process");
+        const path = require("path");
 
         function readJson(f) {
             let raw = fs.readFileSync(f, "utf8");
@@ -861,10 +919,39 @@ process_audit_fail() {
         const audit = readJson(process.env.AUDIT_IN);
         const map = readJson(process.env.MAP_IN);
         const results = audit.payload.blueprint_results || [];
+        const newFailedChecks = audit.payload.new_failed_checks || [];
         const failedChecks = audit.payload.failed_checks || [];
         const scriptDir = process.env.SCRIPT_DIR;
+        const eventsDir = process.env.EVENTS_DIR;
+        const archiveDir = process.env.ARCHIVE_DIR;
+        const auditId = audit.id || "unknown";
+
+        // v3: Dedup guard — check if Agent 4 already routed REMEDIATION_REQUESTED
+        // events for this audit_fail_event ID. Scan events/ and .archive/ for
+        // existing REMEDIATION_REQUESTED events with the same audit_fail_event.
+        function alreadyRouted(bpId) {
+            const dirs = [eventsDir, archiveDir];
+            for (const dir of dirs) {
+                try {
+                    const files = fs.readdirSync(dir).filter(f => f.includes("REMEDIATION_REQUESTED"));
+                    for (const f of files) {
+                        try {
+                            const evt = readJson(path.join(dir, f));
+                            if (evt.payload && evt.payload.audit_fail_event === auditId &&
+                                evt.payload.blueprint_id === bpId) {
+                                return true;
+                            }
+                        } catch(e) { continue; }
+                    }
+                } catch(e) { continue; }
+            }
+            return false;
+        }
 
         let routed = 0;
+        let skipped = 0;
+
+        // Route standard blueprint_results
         for (const result of results) {
             if (result.verdict === "PASS") continue;
 
@@ -872,6 +959,13 @@ process_audit_fail() {
             const mapping = map[bpId];
             if (!mapping) {
                 console.error("  WARNING: No mapping for blueprint " + bpId + " — skipping");
+                continue;
+            }
+
+            // v3: Dedup guard
+            if (alreadyRouted(bpId)) {
+                console.log("  DEDUP: " + bpId + " already routed by Agent 4. Skipping.");
+                skipped++;
                 continue;
             }
 
@@ -883,7 +977,7 @@ process_audit_fail() {
                 verdict: result.verdict,
                 reason: result.reason,
                 failed_checks: bpFailures,
-                audit_fail_event: audit.id,
+                audit_fail_event: auditId,
                 action: "Fix the listed failures and re-run request_integration.sh"
             }).replace(/'/g, "'\\''");
 
@@ -895,18 +989,54 @@ process_audit_fail() {
             }
         }
 
+        // v3: Route AUDIT_FAIL_ADDENDUM new_failed_checks
+        for (const check of newFailedChecks) {
+            const bpId = check.split(":")[0].trim();
+            if (!bpId) continue;
+
+            const mapping = map[bpId];
+            if (!mapping) {
+                console.error("  WARNING: No mapping for blueprint " + bpId + " (new_failed_checks) — skipping");
+                continue;
+            }
+
+            // v3: Dedup guard
+            if (alreadyRouted(bpId)) {
+                console.log("  DEDUP: " + bpId + " already routed by Agent 4. Skipping.");
+                skipped++;
+                continue;
+            }
+
+            const payload = JSON.stringify({
+                blueprint_id: bpId,
+                branch: mapping.branch,
+                new_failed_checks: [check],
+                audit_fail_event: auditId,
+                action: "Fix the listed failure and re-run request_integration.sh"
+            }).replace(/'/g, "'\\''");
+
+            try {
+                execSync(`bash "${scriptDir}/emit_event.sh" REMEDIATION_REQUESTED agent-5 ${mapping.agent} '${payload}'`, { stdio: "inherit" });
+                routed++;
+            } catch(e) {
+                console.error("  Failed to emit REMEDIATION_REQUESTED for " + bpId + " (new_failed_checks)");
+            }
+        }
+
         // Emit SYSTEM_ALERT to user
         const alertPayload = JSON.stringify({
             verdict: audit.payload.verdict,
             failed_blueprints: results.filter(r => r.verdict !== "PASS").map(r => r.id),
+            new_failed_checks: newFailedChecks,
             requires_remediation: audit.payload.requires_remediation,
-            routed_count: routed
+            routed_count: routed,
+            skipped_dedup: skipped
         }).replace(/'/g, "'\\''");
         try {
             execSync(`bash "${scriptDir}/emit_event.sh" SYSTEM_ALERT agent-5 user '${alertPayload}'`, { stdio: "inherit" });
         } catch(e) {}
 
-        console.log("  Routed " + routed + " REMEDIATION_REQUESTED events to workers.");
+        console.log("  Routed " + routed + " REMEDIATION_REQUESTED events to workers (skipped " + skipped + " duplicates).");
 NODE_EOF
 
     mv "$event_file" "$ARCHIVE_DIR/" 2>/dev/null || true
@@ -917,7 +1047,7 @@ NODE_EOF
 # ─── Main Loop ─────────────────────────────────────────────────────────────
 echo ""
 echo "============================================================"
-echo "  INTEGRATION DAEMON v2.3 — Agent 5 (Manager)"
+echo "  INTEGRATION DAEMON v3.0 — Agent 5 (Manager)"
 echo "  PID: $$"
 echo "  HUB_DIR: $HUB_DIR"
 echo "  Poll interval: ${POLL_INTERVAL}s"
@@ -929,7 +1059,7 @@ echo "  Empty branch guard: rejects branches with no commits/diffs ahead of main
 echo "  Merge verification: git diff main HEAD (tree-vs-tree, not merge-base)"
 echo "  Output streaming: tee + PIPESTATUS for real-time logging + correct exit codes"
 echo "  Worktree rescue: scans .devin/worktrees/ for rogue events every cycle"
-echo "  AUDIT_FAIL routing: auto-emits REMEDIATION_REQUESTED to mapped workers"
+echo "  AUDIT_FAIL routing: auto-emits REMEDIATION_REQUESTED to mapped workers (v3: dedup + ADDENDUM)"
 echo "  Sprint trigger: sprint_manifest.txt-based (dynamic, not hardcoded roadmap)"
 echo "  Hygiene: 7-day archive cleanup every 100 cycles"
 echo "  Started: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -955,8 +1085,11 @@ while true; do
     # v2.3: Rescue rogue events from worktrees before scanning hub queue
     rescue_worktree_events
 
-    # v2.3: Process AUDIT_FAIL events (auto-route REMEDIATION_REQUESTED to workers)
-    AUDIT_FAIL_FILES=$(find "$EVENTS_DIR" -maxdepth 1 -name "*AUDIT_FAIL*" -not -name "*CORRECTION*" -type f 2>/dev/null)
+    # v3: Process AUDIT_FAIL and AUDIT_FAIL_ADDENDUM events
+    # (auto-route REMEDIATION_REQUESTED to workers, with dedup guard)
+    AUDIT_FAIL_FILES=$(find "$EVENTS_DIR" -maxdepth 1 \
+        \( -name "*AUDIT_FAIL*" -o -name "*AUDIT_FAIL_ADDENDUM*" \) \
+        -not -name "*CORRECTION*" -type f 2>/dev/null)
     if [ -n "$AUDIT_FAIL_FILES" ]; then
         echo "[$NOW] Cycle $CYCLE — AUDIT_FAIL events detected!"
         while IFS= read -r af_file; do

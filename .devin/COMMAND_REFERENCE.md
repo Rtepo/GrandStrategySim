@@ -1,4 +1,4 @@
-# Command Reference - SillyElaborateState Infrastructure v2.3
+# Command Reference - SillyElaborateState Infrastructure v3.0
 
 ## Quick Start
 
@@ -283,6 +283,75 @@ CI/CD pass    -> PROMOTED_TO_MAIN (daemon -> all)
 $override     -> PROMOTED_TO_MAIN (manager -> all, method: override_bypass)
 /audit        -> AUDIT_REQUESTED (manager -> agent-4)
 audit fail    -> AUDIT_FAIL (agent-4 -> manager)
-$forward_fail -> REMEDIATION_REQUESTED (manager -> workers)
+                v3: route_failures.sh -> REMEDIATION_REQUESTED (agent-4 -> workers, direct)
+$forward_fail -> REMEDIATION_REQUESTED (manager -> workers, fallback with dedup)
 $unblock      -> CLARIFICATION_REQUESTED (manager -> worker)
 ```
+
+---
+
+## v3: Auto-Wake Daemons
+
+### auto_wake.sh — Active Listening
+
+**When to use:** To enable autonomous agent wake-up when events arrive.
+
+```bash
+# Agent 4 (Auditor) — auto-wakes on PROMOTED_TO_MAIN / AUDIT_REQUESTED
+bash .devin/scripts/auto_wake.sh agent-4 "bash .devin/scripts/run_audit.sh"
+
+# Worker agents — auto-wake on REMEDIATION_REQUESTED / CLARIFICATION_REQUESTED
+bash .devin/scripts/auto_wake.sh agent-1 "bash .devin/scripts/console.sh \$inbox agent-1"
+bash .devin/scripts/auto_wake.sh agent-2 "bash .devin/scripts/console.sh \$inbox agent-2"
+bash .devin/scripts/auto_wake.sh agent-3 "bash .devin/scripts/console.sh \$inbox agent-3"
+```
+
+**What it does:**
+1. Polls `.devin/events/` every 10 seconds for events targeting the agent
+2. Race condition guard: re-checks file existence before reading (prevents ENOENT)
+3. Prints a high-visibility alert with event details (payload truncated to 50 lines)
+4. Optionally executes the wake command
+5. Tracks seen events in `.devin/.auto_wake_seen_<agent>.txt`
+
+---
+
+## v3: Direct Auditor Routing
+
+### route_failures.sh — Agent 4 Direct AUDIT_FAIL Routing
+
+**When to use:** Automatically called by `run_audit.sh` after AUDIT_FAIL emission.
+
+```bash
+bash .devin/scripts/route_failures.sh <audit_fail_event_file>
+```
+
+**What it does:**
+1. Parses `blueprint_agent_map.json`
+2. For each failing blueprint in `blueprint_results`, emits `REMEDIATION_REQUESTED` directly to the mapped worker
+3. Also handles `AUDIT_FAIL_ADDENDUM` events with `new_failed_checks` schema
+4. Emits `SYSTEM_ALERT` to user with routing summary
+5. No manager intervention required
+
+---
+
+## v3: Shift-Left Pre-Integration
+
+### request_integration.sh v3
+
+**v3 enhancements:**
+1. Clean tree verification before any git operations
+2. `git fetch origin main` + `git rebase origin/main` (or merge fallback)
+3. Full local CI: cargo check + nextest (--test-threads=4) + doctests + clippy + npm
+4. sccache enabled with 2G cache limit
+5. All log captures use `tail -n 50` to prevent OOM
+
+---
+
+## v3: OOM Crash Recovery
+
+If an agent terminal crashes (OOM or other):
+
+1. Restart the terminal
+2. Run `bash .devin/scripts/console.sh $inbox <agent>` or `git status`
+3. No manual manager routing needed — auto_wake + route_failures handle it
+4. Events persist as JSON files — nothing is lost

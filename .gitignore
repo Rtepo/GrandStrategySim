@@ -53,3 +53,7 @@ commit_v*.txt
 .devin/.daemon_event_*.env
 .devin/.integration_daemon.pid
 .devin/worktrees/
+
+# v3: sccache compilation cache and auto-wake seen files
+.devin/.sccache/
+.devin/.auto_wake_seen_*.txt

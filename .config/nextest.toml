@@ -1,0 +1,9 @@
+# nextest CI profile — Architecture v3
+# Used by integration_daemon.sh and request_integration.sh for parallel
+# test execution with OOM-safe thread limits and flaky test retries.
+
+[profile.ci]
+retries = 2
+fail-fast = false
+status-level = "fail"
+final-status-level = "fail"

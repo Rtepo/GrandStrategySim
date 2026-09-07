@@ -46,7 +46,69 @@ Every sector MUST have:
 - PROMOTED_TO_MAIN: Manager -> All (after CI/CD passes)
 - AUDIT_REQUESTED: Manager -> Agent 4 (after sprint complete)
 - AUDIT_FAIL: Agent 4 -> Manager (structured JSON with failed_checks)
+- AUDIT_FAIL_ADDENDUM: Agent 4 -> Manager (new_failed_checks schema)
 - AUDIT_PASS: Agent 4 -> Manager (all checks pass)
-- REMEDIATION_REQUESTED: Manager -> Worker (auto-routed from AUDIT_FAIL)
+- REMEDIATION_REQUESTED: Agent 4 -> Worker (v3: direct routing, bypassing manager)
 - CLARIFICATION_REQUESTED: Manager -> Worker (CI/CD failure details)
-- SYSTEM_ALERT: Manager -> User (critical issues requiring human attention)
+- SYSTEM_ALERT: Manager/Agent 4 -> User (critical issues requiring human attention)
+
+## v3: Shift-Left Pre-Integration (updated)
+
+`request_integration.sh` v3 now performs BEFORE emitting the event:
+1. Clean tree verification (`git status --porcelain` must be empty)
+2. `git fetch origin main` + `git rebase origin/main` (or merge fallback)
+3. `cargo check --workspace`
+4. `cargo nextest run --test-threads=4` (or `cargo test` fallback) + `cargo test --doc`
+5. `cargo clippy --workspace --all-targets -- -D warnings`
+6. `npm run build`
+
+All log captures use `tail -n 50` to prevent LLM context window bloat.
+
+## v3: OOM Prevention
+
+- All `cargo nextest` commands use `--test-threads=4` to cap concurrent test
+  threads and prevent RAM spikes from the simulation engine.
+- All log captures passed back to workers use `tail -n 50` to prevent
+  LLM context window bloat and secondary OOM crashes.
+- `sccache` is configured with `SCCACHE_CACHE_SIZE="2G"` to prevent
+  unbounded disk growth.
+
+## Crash Recovery Protocol (OOM)
+
+If an agent terminal crashes due to Out-Of-Memory (OOM) or any other reason:
+
+1. **Restart the agent's terminal.** No special flags or commands needed.
+2. **Run one of the following to resume seamlessly:**
+   - `bash .devin/scripts/console.sh $inbox <agent>` — read pending events
+   - `git status` — check working tree state and current branch
+3. **No manual manager routing is required.** The v3 architecture handles
+   this automatically:
+   - `auto_wake.sh` will re-detect any unprocessed events targeting the agent.
+   - `route_failures.sh` (Agent 4) routes AUDIT_FAIL directly to workers.
+   - The daemon's dedup guard prevents duplicate REMEDIATION_REQUESTED events.
+4. **If the working tree is dirty after a crash:**
+   - Inspect with `git status` and `git diff`.
+   - Commit or discard changes as appropriate.
+   - Re-run `request_integration.sh` (which will verify clean tree before rebase).
+5. **If the daemon itself crashed:**
+   - Restart with `bash .devin/scripts/launch_daemon.sh`.
+   - The daemon resumes polling and processes any queued events.
+   - No events are lost — they persist as JSON files in `.devin/events/`.
+
+## v3: Auto-Wake Daemons
+
+To start an auto-wake daemon for an agent:
+
+```bash
+# Agent 4 (Auditor) — auto-wakes on PROMOTED_TO_MAIN / AUDIT_REQUESTED
+bash .devin/scripts/auto_wake.sh agent-4 "bash .devin/scripts/run_audit.sh"
+
+# Worker agents — auto-wake on REMEDIATION_REQUESTED / CLARIFICATION_REQUESTED
+bash .devin/scripts/auto_wake.sh agent-1 "bash .devin/scripts/console.sh \$inbox agent-1"
+bash .devin/scripts/auto_wake.sh agent-2 "bash .devin/scripts/console.sh \$inbox agent-2"
+bash .devin/scripts/auto_wake.sh agent-3 "bash .devin/scripts/console.sh \$inbox agent-3"
+```
+
+The daemon uses a seen-file (`.devin/.auto_wake_seen_<agent>.txt`) to prevent
+re-triggering. Race condition guards protect against concurrent file archival
+by the integration daemon.
