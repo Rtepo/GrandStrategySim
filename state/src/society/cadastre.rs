@@ -3133,9 +3133,10 @@ mod tests {
         let cad_config = CadastreConfig::default();
         let mut rng = rand::thread_rng();
 
-        // Run multiple times to catch the probabilistic trigger
+        // Run multiple times to catch the probabilistic trigger.
+        // 1000 iterations at ~3.33% per-iteration probability gives >99.99% coverage.
         let mut conflict_generated = false;
-        for _ in 0..100 {
+        for _ in 0..1000 {
             generate_border_conflicts(
                 &mut cadastre,
                 &mut conflicts,
