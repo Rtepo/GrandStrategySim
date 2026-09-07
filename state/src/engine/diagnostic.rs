@@ -1616,3 +1616,321 @@ pub fn write_turn_summary_csv(trace: &TurnTrace, path: &Path) -> std::io::Result
 
     Ok(())
 }
+
+// ============================================================================
+// v4: SECTOR LEDGER, MARKET CLEARING, AND BANKING STATE DUMPS
+// For external Python auditor verification (Agent 4).
+// Feature-gated: only compiled with --features diagnostic.
+// ============================================================================
+
+/// v4 dump version tag for forward compatibility.
+pub const V4_DUMP_VERSION: &str = "v4.0";
+
+// --- Sector Ledger Dump -----------------------------------------------------
+
+/// Sector ledger dump — per-sector company financials + cross-sector flows.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SectorLedgerDump {
+    pub dump_version: String,
+    pub dump_type: String,
+    pub turn: u32,
+    pub year: u32,
+    pub country: String,
+    pub sectors: HashMap<String, SectorEntry>,
+    pub cross_sector_flows: CrossSectorFlows,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct SectorEntry {
+    pub companies: Vec<SectorCompanyEntry>,
+    pub sector_totals: SectorTotals,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct SectorCompanyEntry {
+    pub id: String,
+    pub liquid_capital: f64,
+    pub available_cash: f64,
+    pub debit_cash: f64,
+    pub credit_cash: f64,
+    pub liabilities: f64,
+    pub fixed_capital: f64,
+    pub is_liquidated: bool,
+    pub merged_into: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct SectorTotals {
+    pub liquid_capital: f64,
+    pub available_cash: f64,
+    pub liabilities: f64,
+    pub fixed_capital: f64,
+    pub company_count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CrossSectorFlows {
+    pub b2b_payments: f64,
+    pub inter_sector_transfers: Vec<InterSectorTransfer>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct InterSectorTransfer {
+    pub from: String,
+    pub to: String,
+    pub amount: f64,
+    pub commodity: String,
+}
+
+// --- Market Clearing Dump ---------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarketClearingDump {
+    pub dump_version: String,
+    pub dump_type: String,
+    pub turn: u32,
+    pub year: u32,
+    pub final_prices: HashMap<Commodity, f64>,
+    pub net_surplus: HashMap<Commodity, f64>,
+    pub supply_volume: HashMap<Commodity, f64>,
+    pub demand_volume: HashMap<Commodity, f64>,
+    pub offshore_capital: f64,
+}
+
+// --- Banking State Dump -----------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BankingStateDump {
+    pub dump_version: String,
+    pub dump_type: String,
+    pub turn: u32,
+    pub year: u32,
+    pub banks: Vec<BankDumpEntry>,
+    pub banking_system_totals: BankingSystemTotals,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct BankDumpEntry {
+    pub id: String,
+    pub reserves_at_central_bank: f64,
+    pub cb_deposit_facility_balance: f64,
+    pub deposits: f64,
+    pub cb_lombard_loans: f64,
+    pub securities: f64,
+    pub tier_1_capital: f64,
+    pub total_assets: f64,
+    pub total_liabilities: f64,
+    pub total_equity: f64,
+    pub is_balanced: bool,
+    pub balance_delta: f64,
+    pub loans_count: u32,
+    pub loans_outstanding: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct BankingSystemTotals {
+    pub total_reserves: f64,
+    pub total_deposits: f64,
+    pub total_loans_outstanding: f64,
+    pub total_interbank_exposure: f64,
+    pub bank_count: u32,
+}
+
+// --- Dump Builders ----------------------------------------------------------
+
+/// Build a sector ledger dump from the turn context.
+#[cfg(feature = "diagnostic")]
+pub fn build_sector_ledger_dump(
+    ctx: &crate::engine::turn_context::InMemoryTurnContext,
+    turn: u32,
+    year: u32,
+) -> SectorLedgerDump {
+    let mut sectors: HashMap<String, SectorEntry> = HashMap::new();
+
+    for (country_name, entities) in &ctx.entities {
+        for company in &entities.companies {
+            if company.is_liquidated || company.merged_into.is_some() {
+                continue;
+            }
+            let sector_name = format!("{:?}", company.sector);
+            let entry = sectors.entry(sector_name.clone()).or_default();
+            entry.companies.push(SectorCompanyEntry {
+                id: company.id.clone(),
+                liquid_capital: company.liquid_capital,
+                available_cash: company.available_cash,
+                debit_cash: company.debit_cash,
+                credit_cash: company.credit_cash,
+                liabilities: company.liabilities,
+                fixed_capital: company.fixed_capital,
+                is_liquidated: company.is_liquidated,
+                merged_into: company.merged_into.clone(),
+            });
+            entry.sector_totals.liquid_capital += company.liquid_capital;
+            entry.sector_totals.available_cash += company.available_cash;
+            entry.sector_totals.liabilities += company.liabilities;
+            entry.sector_totals.fixed_capital += company.fixed_capital;
+            entry.sector_totals.company_count += 1;
+        }
+    }
+
+    let country = ctx
+        .entities
+        .keys()
+        .next()
+        .cloned()
+        .unwrap_or_default();
+
+    SectorLedgerDump {
+        dump_version: V4_DUMP_VERSION.to_string(),
+        dump_type: "sector_ledger".to_string(),
+        turn,
+        year,
+        country,
+        sectors,
+        cross_sector_flows: CrossSectorFlows::default(),
+    }
+}
+
+/// Build a market clearing dump from the global market state.
+#[cfg(feature = "diagnostic")]
+pub fn build_market_clearing_dump(market: &GlobalMarket, turn: u32, year: u32) -> MarketClearingDump {
+    MarketClearingDump {
+        dump_version: V4_DUMP_VERSION.to_string(),
+        dump_type: "market_clearing".to_string(),
+        turn,
+        year,
+        final_prices: market.base_prices.iter().map(|(k, v)| (*k, *v)).collect(),
+        net_surplus: market.net_surplus.iter().map(|(k, v)| (*k, *v)).collect(),
+        supply_volume: market.supply_volume.iter().map(|(k, v)| (*k, *v)).collect(),
+        demand_volume: market.demand_volume.iter().map(|(k, v)| (*k, *v)).collect(),
+        offshore_capital: market.offshore_capital,
+    }
+}
+
+/// Build a commercial banking state dump from the turn context.
+#[cfg(feature = "diagnostic")]
+pub fn build_banking_state_dump(
+    ctx: &crate::engine::turn_context::InMemoryTurnContext,
+    turn: u32,
+    year: u32,
+) -> BankingStateDump {
+    let mut banks = Vec::new();
+    let mut total_reserves = 0.0;
+    let mut total_deposits = 0.0;
+    let mut total_loans_outstanding = 0.0;
+    let mut total_interbank_exposure = 0.0;
+
+    for entities in ctx.entities.values() {
+        for company in &entities.companies {
+            if company.sector != crate::registries::enums::Sector::Banking {
+                continue;
+            }
+            if let Some(ref bs) = company.balance_sheet {
+                let total_assets = bs.total_assets();
+                let total_liabilities = bs.total_liabilities();
+                let total_equity = bs.total_equity();
+                let balance_delta = (total_assets - total_liabilities - total_equity).abs();
+                let loans_outstanding: f64 = bs
+                    .loans_issued
+                    .iter()
+                    .map(|l| l.outstanding_balance)
+                    .sum();
+                let interbank_given: f64 = bs.interbank_loans_given.values().sum();
+                let interbank_taken: f64 = bs.interbank_loans_taken.values().sum();
+
+                total_reserves += bs.reserves_at_central_bank + bs.cb_deposit_facility_balance;
+                total_deposits += bs.deposits;
+                total_loans_outstanding += loans_outstanding;
+                total_interbank_exposure += interbank_given + interbank_taken;
+
+                banks.push(BankDumpEntry {
+                    id: company.id.clone(),
+                    reserves_at_central_bank: bs.reserves_at_central_bank,
+                    cb_deposit_facility_balance: bs.cb_deposit_facility_balance,
+                    deposits: bs.deposits,
+                    cb_lombard_loans: bs.cb_lombard_loans,
+                    securities: bs.securities,
+                    tier_1_capital: bs.tier_1_capital,
+                    total_assets,
+                    total_liabilities,
+                    total_equity,
+                    is_balanced: bs.is_balanced(),
+                    balance_delta,
+                    loans_count: bs.loans_issued.len() as u32,
+                    loans_outstanding,
+                });
+            }
+        }
+    }
+
+    BankingStateDump {
+        dump_version: V4_DUMP_VERSION.to_string(),
+        dump_type: "commercial_banking".to_string(),
+        turn,
+        year,
+        banks,
+        banking_system_totals: BankingSystemTotals {
+            total_reserves,
+            total_deposits,
+            total_loans_outstanding,
+            total_interbank_exposure,
+            bank_count: 0, // set below
+        },
+    }
+}
+
+/// Write all three dump types to a directory.
+///
+/// Produces:
+/// - `sector_ledger.json`
+/// - `market_clearing.json`
+/// - `banking_state.json`
+/// - `manifest.json`
+#[cfg(feature = "diagnostic")]
+pub fn write_all_dumps(
+    ctx: &crate::engine::turn_context::InMemoryTurnContext,
+    turn: u32,
+    year: u32,
+    output_dir: &Path,
+) -> std::io::Result<()> {
+    use std::io::Write;
+
+    let sector = build_sector_ledger_dump(ctx, turn, year);
+    let clearing = build_market_clearing_dump(&ctx.market, turn, year);
+    let mut banking = build_banking_state_dump(ctx, turn, year);
+    banking.banking_system_totals.bank_count = banking.banks.len() as u32;
+
+    std::fs::write(
+        output_dir.join("sector_ledger.json"),
+        serde_json::to_string_pretty(&sector)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?,
+    )?;
+    std::fs::write(
+        output_dir.join("market_clearing.json"),
+        serde_json::to_string_pretty(&clearing)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?,
+    )?;
+    std::fs::write(
+        output_dir.join("banking_state.json"),
+        serde_json::to_string_pretty(&banking)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?,
+    )?;
+
+    // Manifest
+    let manifest = serde_json::json!({
+        "dump_version": V4_DUMP_VERSION,
+        "engine_version": env!("CARGO_PKG_VERSION"),
+        "turns_run": turn,
+        "features_enabled": ["diagnostic"],
+        "files": ["sector_ledger.json", "market_clearing.json", "banking_state.json"]
+    });
+    let mut manifest_file = std::fs::File::create(output_dir.join("manifest.json"))?;
+    writeln!(
+        manifest_file,
+        "{}",
+        serde_json::to_string_pretty(&manifest)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+    )?;
+
+    Ok(())
+}

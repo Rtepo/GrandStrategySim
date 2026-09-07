@@ -135,6 +135,37 @@ fn test_6_turn_diagnostic_harness() {
         total_checkpoints
     );
 
+    // --- v4: Write sector ledger, market clearing, and banking state dumps ---
+    // These JSON dumps allow Agent 4 (Auditor) to verify double-entry
+    // invariants using external Python scripts without reading Rust source.
+    // Written BEFORE the violation check so dumps are available even when
+    // conservation violations are detected (the auditor needs them most then).
+    use sim_engine::engine::diagnostic::write_all_dumps;
+    let output_dir = PathBuf::from(OUTPUT_DIR);
+    std::fs::create_dir_all(&output_dir).expect("failed to create output directory");
+    let final_turn = state.calendar.global_turn;
+    let final_year = state.calendar.current_year;
+    write_all_dumps(&ctx, final_turn, final_year, &output_dir)
+        .expect("failed to write v4 diagnostic dumps");
+
+    // Verify v4 dump files exist
+    assert!(
+        output_dir.join("sector_ledger.json").exists(),
+        "sector_ledger.json should exist in diagnostic_output/"
+    );
+    assert!(
+        output_dir.join("market_clearing.json").exists(),
+        "market_clearing.json should exist in diagnostic_output/"
+    );
+    assert!(
+        output_dir.join("banking_state.json").exists(),
+        "banking_state.json should exist in diagnostic_output/"
+    );
+    assert!(
+        output_dir.join("manifest.json").exists(),
+        "manifest.json should exist in diagnostic_output/"
+    );
+
     // --- Assertion 4: No conservation violations ---
     let total_violations = trace.summary.total_violations;
     if total_violations > 0 {

@@ -549,7 +549,13 @@ cmd_help() {
     locks (index.lock, REBASE_HEAD, MERGE_HEAD), and emits RECOVERY_WAKE
     to safely reboot the agent via auto_wake.sh.
     Example: $recover agent-2
-    Example: $inbox agent-3
+
+  $approve_snapshots [filter]
+    Review and approve pending cargo-insta snapshots (.snap.new files).
+    Pre-flight: clean tree check, insta installed. Post-review: emits
+    SNAPSHOTS_APPROVED event. Does NOT auto-commit approved snapshots.
+    Example: $approve_snapshots
+    Example: $approve_snapshots market
 
 ============================================================
 HELP
@@ -1315,6 +1321,77 @@ NODE_EOF
     echo "=== \$inbox complete ==="
 }
 
+# --- $approve_snapshots [filter] - Review cargo-insta snapshots (v4) --------
+cmd_approve_snapshots() {
+    local filter="${1:-}"
+
+    # 1. Pre-flight: verify clean working tree (no uncommitted source changes)
+    if ! git diff --quiet -- state/src/ state/tests/ 2>/dev/null; then
+        echo "ERROR: Uncommitted source changes detected."
+        echo "       Commit or stash before reviewing snapshots."
+        echo ""
+        git status --short -- state/src/ state/tests/ 2>/dev/null | head -10
+        exit 1
+    fi
+
+    # 2. Pre-flight: verify cargo-insta is installed
+    if ! command -v cargo-insta &>/dev/null; then
+        echo "ERROR: cargo-insta not installed."
+        echo "       Run: cargo install cargo-insta --locked"
+        exit 1
+    fi
+
+    # 3. Check for pending snapshots
+    local pending
+    pending=$(find state/src state/tests -name '*.snap.new' 2>/dev/null | wc -l)
+    if [ "$pending" -eq 0 ]; then
+        echo "No pending snapshots to review."
+        exit 0
+    fi
+    echo "Found $pending pending snapshot(s) to review."
+
+    # 4. Run cargo insta review with optional filter
+    echo ""
+    echo "Starting interactive snapshot review..."
+    echo "  (accept: <a>, reject: <r>, skip: <s>)"
+    echo ""
+    if [ -n "$filter" ]; then
+        cargo insta review --accept-unseen -- "$filter"
+    else
+        cargo insta review --accept-unseen
+    fi
+    local review_rc=$?
+
+    # 5. Post-review: report results
+    local remaining
+    remaining=$(find state/src state/tests -name '*.snap.new' 2>/dev/null | wc -l)
+    local approved=$((pending - remaining))
+
+    echo ""
+    echo "Snapshot review complete:"
+    echo "  Approved: $approved"
+    echo "  Rejected/Skipped: $remaining"
+
+    # 6. Emit event for audit trail
+    if [ "$approved" -gt 0 ]; then
+        bash .devin/scripts/emit_event.sh \
+            "SNAPSHOTS_APPROVED" \
+            "agent-5" \
+            "all" \
+            "{\"approved\":$approved,\"remaining\":$remaining}" \
+            2>/dev/null || true
+    fi
+
+    # 7. Remind to commit
+    if [ "$approved" -gt 0 ]; then
+        echo ""
+        echo "NOTE: Approved snapshots are in state/src/snapshots/."
+        echo "      Commit them with: git add state/src/snapshots/ && git commit"
+    fi
+
+    exit $review_rc
+}
+
 # --- $recover <agent> - Centralized OOM crash recovery (v3.1) ---------------
 cmd_recover() {
     local agent="${1:-}"
@@ -1471,6 +1548,7 @@ case "$COMMAND" in
     \$release)        cmd_release "$@" ;;
     \$inbox)          cmd_inbox "$@" ;;
     \$recover)        cmd_recover "$@" ;;
+    \$approve_snapshots) cmd_approve_snapshots "$@" ;;
     \$menu|"")        cmd_help ;;
     *)               echo "Unknown command: $COMMAND"; echo ""; cmd_help; exit 1 ;;
 esac

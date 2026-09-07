@@ -442,8 +442,13 @@ run_cicd() {
     echo "[$(date -u +%H:%M:%S)] CI/CD: [2b/6] cargo test (executing, skip smoke)... (timeout: 300s)"
     # v3: Use cargo-nextest for parallel test execution with --test-threads=4
     # for OOM prevention. Falls back to cargo test if nextest is not installed.
+    # v4.0.1: Export CI=true so cargo-insta fails hard on snapshot mismatches
+    #         instead of silently writing .snap.new files or hanging on prompts.
+    export CI=true
     if command -v cargo-nextest &>/dev/null; then
         echo "  (using cargo-nextest with --test-threads=4 for OOM safety)"
+        # v4: No --features epic-tests → [[test]] blocks with required-features
+        #     are skipped entirely by Cargo (no empty binaries, no nextest confusion)
         timeout 300 cargo nextest run --workspace --all-targets \
             --skip headless_50_tick_smoke \
             --profile ci --test-threads=4 2>&1 | tee "${log_prefix}_test.txt" | tail -n 50
@@ -489,6 +494,34 @@ run_cicd() {
                 echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test (rc=$test_rc)"
             fi
             return 1
+        fi
+    fi
+
+    # v4: Epic test suite (only when RUN_EPIC_TESTS=1 — pre-merge or $audit_standard)
+    if [ "${RUN_EPIC_TESTS:-0}" = "1" ]; then
+        echo "[$(date -u +%H:%M:%S)] CI/CD: [2b-epic] Running epic test suite... (timeout: 600s)"
+        # CI=true already exported above — insta strict mode is active.
+        if command -v cargo-nextest &>/dev/null; then
+            timeout 600 cargo nextest run --workspace --all-targets \
+                --features epic-tests,diagnostic \
+                --profile ci --test-threads=4 2>&1 | tee "${log_prefix}_epic_test.txt" | tail -n 50
+        else
+            timeout 600 cargo test --workspace --all-targets \
+                --features epic-tests,diagnostic 2>&1 | tee "${log_prefix}_epic_test.txt" | tail -n 50
+        fi
+        local epic_rc=${PIPESTATUS[0]}
+        if [ $epic_rc -ne 0 ]; then
+            echo "[$(date -u +%H:%M:%S)] CI/CD WARNING: Epic tests failed (rc=$epic_rc) — continuing with audit path."
+            EPIC_DIAG_OUTPUT_PATH=""
+        else
+            # v4.0.1: Extract absolute path to diagnostic_output/ for AUDIT_REQUESTED payload
+            EPIC_DIAG_OUTPUT_PATH="$(cd "$HUB_DIR/state/tests/diagnostic_output" 2>/dev/null && pwd)"
+            if [ -n "$EPIC_DIAG_OUTPUT_PATH" ] && [ -d "$EPIC_DIAG_OUTPUT_PATH" ]; then
+                echo "[$(date -u +%H:%M:%S)] Diagnostic artifacts at: $EPIC_DIAG_OUTPUT_PATH"
+            else
+                echo "[$(date -u +%H:%M:%S)] WARNING: diagnostic_output/ not found — epic tests may not have produced dumps."
+                EPIC_DIAG_OUTPUT_PATH=""
+            fi
         fi
     fi
 
@@ -725,8 +758,15 @@ NODE_EOF
     else
         # Audit path: emit AUDIT_REQUESTED for Agent 4
         echo "[$(date -u +%H:%M:%S)] Audit path: emitting AUDIT_REQUESTED for Agent 4."
+        # v4.0.1: Include diagnostic_output_path if epic tests produced dumps
+        local audit_payload
+        if [ -n "${EPIC_DIAG_OUTPUT_PATH:-}" ]; then
+            audit_payload="{\"branch\":\"$EVENT_BRANCH\",\"staging_commit\":\"$staging_commit\",\"diagnostic_output_path\":\"$EPIC_DIAG_OUTPUT_PATH\"}"
+        else
+            audit_payload="{\"branch\":\"$EVENT_BRANCH\",\"staging_commit\":\"$staging_commit\"}"
+        fi
         bash "$SCRIPT_DIR/emit_event.sh" "AUDIT_REQUESTED" "agent-5" "agent-4" \
-            "{\"branch\":\"$EVENT_BRANCH\",\"staging_commit\":\"$staging_commit\"}" 2>/dev/null
+            "$audit_payload" 2>/dev/null
         echo "  Waiting for Agent 4 AUDIT_PASS before promoting to main."
     fi
 
@@ -1119,8 +1159,15 @@ while true; do
             echo "  against all 23 Global Rules."
             echo "============================================================"
 
+            # v4.0.1: Include diagnostic_output_path if epic tests produced dumps
+            local sprint_audit_payload
+            if [ -n "${EPIC_DIAG_OUTPUT_PATH:-}" ]; then
+                sprint_audit_payload="{\"reason\":\"All sprint manifest branches merged to main. Run comprehensive 23-rule macro-architectural audit.\",\"audit_type\":\"full_macro_architectural\",\"diagnostic_output_path\":\"$EPIC_DIAG_OUTPUT_PATH\"}"
+            else
+                sprint_audit_payload='{"reason":"All sprint manifest branches merged to main. Run comprehensive 23-rule macro-architectural audit.","audit_type":"full_macro_architectural"}'
+            fi
             bash "$SCRIPT_DIR/emit_event.sh" "AUDIT_REQUESTED" "agent-5" "agent-4" \
-                '{"reason":"All sprint manifest branches merged to main. Run comprehensive 23-rule macro-architectural audit.","audit_type":"full_macro_architectural"}' 2>/dev/null
+                "$sprint_audit_payload" 2>/dev/null
 
             echo "[$(date -u +%H:%M:%S)] AUDIT_REQUESTED emitted. Daemon continuing to monitor for AUDIT_FAIL."
         fi

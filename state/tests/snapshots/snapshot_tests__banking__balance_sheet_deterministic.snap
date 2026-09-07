@@ -1,0 +1,5 @@
+---
+source: state/tests/snapshot_tests.rs
+expression: json.to_string()
+---
+"{\"cb_deposit_facility_balance\":10000.0,\"cb_lombard_loans\":15000.0,\"deposits\":240000.0,\"is_balanced\":false,\"reserves_at_central_bank\":50000.0,\"securities\":30000.0,\"tier_1_capital\":32000.0,\"total_assets\":90000.0,\"total_equity\":32000.0,\"total_liabilities\":255000.0}"

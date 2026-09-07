@@ -160,8 +160,11 @@ if [ -f Cargo.toml ]; then
     fi
 
     echo "Running cargo test (excluding smoke)..."
+    # v4: Export CI=true for insta strict mode. No --features epic-tests
+    #     → epic test binaries are skipped by Cargo (fast CI).
+    export CI=true
     if command -v cargo-nextest &>/dev/null; then
-        echo "  (using cargo-nextest with --test-threads=4 for OOM safety)"
+        echo "  (using cargo-nextest with --test-threads=4 for OOM safety, fast mode)"
         if ! cargo nextest run --workspace --all-targets \
             --skip headless_50_tick_smoke \
             --profile ci --test-threads=4 2>&1 | tail -n 50; then

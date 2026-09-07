@@ -143,3 +143,34 @@ Uses a single `find` command with concatenated `-name` patterns (`maxdepth 1` on
   exceeds 85%, defers the wake (prints alert only).
 - **bc-free:** Uses bash parameter expansion `${used_pct%.*}` for integer
   conversion instead of the `bc` command.
+
+## v4: Data-Driven Testing Framework
+
+### v4: CI Strict Mode (cargo-insta)
+
+`export CI=true` is set before every `cargo nextest` invocation in both
+`integration_daemon.sh` and `request_integration.sh`. This ensures
+cargo-insta fails hard on snapshot mismatches instead of silently writing
+`.snap.new` files or hanging on interactive prompts.
+
+### v4: Snapshot Review Workflow
+
+1. Run tests locally (without `CI=true`) to generate `.snap.new` files.
+2. Run `bash .devin/scripts/console.sh $approve_snapshots` to review.
+3. Accept/reject each snapshot interactively.
+4. Commit approved `.snap` files: `git add state/tests/snapshots/ && git commit`.
+
+### v4: Epic Test Segregation
+
+Epic/diagnostic tests are in `state/tests/epics/` and gated by the
+`epic-tests` Cargo feature via `[[test]]` blocks with `required-features`.
+Fast CI does NOT compile epic tests (Cargo skips them entirely).
+Epic CI runs with `--features epic-tests,diagnostic` (pre-merge or `$audit_standard`).
+
+### v4: Diagnostic JSON Dumps
+
+The diagnostic harness emits JSON dumps to `state/tests/diagnostic_output/`
+for external Python auditor verification:
+- `sector_ledger.json`, `market_clearing.json`, `banking_state.json`, `manifest.json`
+- The `AUDIT_REQUESTED` event includes `diagnostic_output_path` so Agent 4
+  can locate the files without reading Rust source code.

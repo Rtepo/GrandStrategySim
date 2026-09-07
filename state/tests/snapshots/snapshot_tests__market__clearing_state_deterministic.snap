@@ -1,0 +1,5 @@
+---
+source: state/tests/snapshot_tests.rs
+expression: json.to_string()
+---
+"{\"base_prices\":{\"Energy\":8.4,\"Food\":3.2,\"Iron\":5.0,\"Steel\":12.5},\"demand_volume\":{\"Food\":3050.0,\"Steel\":4800.0},\"net_surplus\":{\"Energy\":0.0,\"Food\":-50.0,\"Iron\":100.0,\"Steel\":200.0},\"offshore_capital\":100000.0,\"supply_volume\":{\"Food\":3000.0,\"Steel\":5000.0}}"

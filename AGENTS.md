@@ -152,6 +152,19 @@ All JSON mutations use a strict transactional git sync loop with surgical
 revert (never `git reset --hard`). Zombie agents are automatically reaped
 when their heartbeat goes stale.
 
+### v4: Epic Test Feature Flag
+
+Epic/diagnostic tests are gated by the `epic-tests` Cargo feature. When
+writing or modifying tests:
+- **Fast unit/phase tests** go in `state/tests/` (compiled every CI run).
+- **Epic/diagnostic tests** go in `state/tests/epics/` (only compiled with
+  `--features epic-tests`). Each epic test file has a `[[test]]` block in
+  `state/Cargo.toml` with `required-features = ["epic-tests"]`.
+- **Do NOT** add `#[cfg(feature = "epic-tests")]` inside `.rs` files — the
+  `[[test]]` block handles compilation gating.
+- `CI=true` is exported before all `cargo nextest` runs so cargo-insta
+  fails hard on snapshot mismatches in CI.
+
 ---
 
 *These rules are immutable and take precedence over any task-specific

@@ -1,6 +1,12 @@
-# nextest CI profile — Architecture v3
+# nextest CI profile — Architecture v4
 # Used by integration_daemon.sh and request_integration.sh for parallel
 # test execution with OOM-safe thread limits and flaky test retries.
+#
+# v4: Epic test segregation is handled by Cargo features, not nextest filters.
+# Fast CI: cargo nextest run --workspace --all-targets (no --features epic-tests)
+# Epic CI: cargo nextest run --workspace --all-targets --features epic-tests,diagnostic
+# The [[test]] blocks in state/Cargo.toml with required-features = ["epic-tests"]
+# ensure epic test binaries are not compiled during fast CI runs.
 
 [profile.ci]
 retries = 2

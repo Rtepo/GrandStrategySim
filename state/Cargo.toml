@@ -29,6 +29,7 @@ incremental = true
 
 [dev-dependencies]
 tempfile = "3.10"
+insta = { version = "1.40", features = ["ron"] }
 
 [features]
 default = []
@@ -36,6 +37,63 @@ default = []
 ## CapturingProbe / 6-turn diagnostic harness test. When enabled, the
 ## probed entry point `run_turn_in_memory_probed` is exported.
 diagnostic = []
+## v4: Gates compilation of epic/diagnostic test binaries. When disabled,
+## Cargo skips all [[test]] blocks with required-features = ["epic-tests"],
+## preventing empty test binaries from confusing nextest in fast CI runs.
+epic-tests = []
+
+# ============================================================================
+# v4: Epic test targets — only compiled with --features epic-tests
+# ============================================================================
+[[test]]
+name = "waste_epic_test"
+path = "tests/epics/waste_epic_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
+name = "sanitation_epic_test"
+path = "tests/epics/sanitation_epic_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
+name = "thermal_epic_test"
+path = "tests/epics/thermal_epic_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
+name = "macro_m0_audit"
+path = "tests/epics/macro_m0_audit.rs"
+required-features = ["epic-tests"]
+
+[[test]]
+name = "phase94_diagnostic_harness_test"
+path = "tests/epics/phase94_diagnostic_harness_test.rs"
+required-features = ["epic-tests", "diagnostic"]
+
+[[test]]
+name = "banking_integration_test"
+path = "tests/epics/banking_integration_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
+name = "supply_chain_integrity_test"
+path = "tests/epics/supply_chain_integrity_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
+name = "world_gen_audit_test"
+path = "tests/epics/world_gen_audit_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
+name = "ai_stability_audit_test"
+path = "tests/epics/ai_stability_audit_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
+name = "accounting_invariants_test"
+path = "tests/epics/accounting_invariants_test.rs"
+required-features = ["epic-tests"]
 
 [profile.release]
 opt-level = 3

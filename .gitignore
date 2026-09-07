@@ -57,3 +57,8 @@ commit_v*.txt
 # v3: sccache compilation cache and auto-wake seen files
 .devin/.sccache/
 .devin/.auto_wake_seen_*.txt
+
+# v4: cargo-insta pending snapshot files (approved .snap files ARE committed)
+*.snap.new
+state/tests/diagnostic_output/*.json
+state/tests/diagnostic_output/*.csv

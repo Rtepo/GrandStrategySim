@@ -407,3 +407,46 @@ Uses a single `find` command with concatenated `-name` patterns.
 - **auto_wake.sh:** Before wake command execution, checks RAM. If > 85%,
   defers the wake (prints alert only).
 - **Detection:** PowerShell (Windows) or `free` (Linux), with safe fallback.
+
+---
+
+## v4: Data-Driven Testing Framework
+
+### $approve_snapshots [filter]
+
+**When to use:** After a mechanics change that alters complex state outputs
+captured by cargo-insta snapshot tests.
+
+```bash
+bash .devin/scripts/console.sh $approve_snapshots
+bash .devin/scripts/console.sh $approve_snapshots market
+```
+
+**What it does:**
+1. Pre-flight: verifies clean working tree (no uncommitted source changes)
+2. Pre-flight: verifies cargo-insta is installed
+3. Checks for pending `.snap.new` files
+4. Runs `cargo insta review` interactively (accept/reject/skip)
+5. Emits `SNAPSHOTS_APPROVED` event for audit trail
+6. Reminds to commit approved snapshots (does NOT auto-commit)
+
+### v4: Epic Test Segregation
+
+Epic/diagnostic tests are in `state/tests/epics/` and gated by the
+`epic-tests` Cargo feature. Fast CI runs do NOT compile epic tests.
+
+- **Fast CI:** `cargo nextest run --workspace --all-targets` (no `--features epic-tests`)
+- **Epic CI:** `cargo nextest run --workspace --all-targets --features epic-tests,diagnostic`
+- **CI=true:** Exported before all nextest runs so cargo-insta fails hard on mismatches
+
+### v4: Diagnostic JSON Dumps
+
+When epic tests run with `--features diagnostic`, the diagnostic harness
+emits JSON dumps to `state/tests/diagnostic_output/`:
+- `sector_ledger.json` — per-sector company financials
+- `market_clearing.json` — market clearing state (prices, surplus, volume)
+- `banking_state.json` — commercial banking balance sheets + loan books
+- `manifest.json` — dump metadata
+
+The `AUDIT_REQUESTED` event includes `diagnostic_output_path` so Agent 4
+can locate these files for external Python verification.
