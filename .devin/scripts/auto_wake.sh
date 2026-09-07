@@ -19,26 +19,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # ─── Source sync library for session_id lookup ─────────────────────────────
 source "$SCRIPT_DIR/sync_lib.sh" 2>/dev/null || true
 
-# ─── v4.3: Load API key from .devin/.env ───────────────────────────────────
-# The Devin CLI binary has a known quirk where it fails to parse the
-# browser-generated credentials.toml, falling back to an interactive TUI
-# login picker which hangs headless processes. We load WINDSURF_API_KEY
-# from .devin/.env to bypass the credentials.toml entirely.
-ENV_FILE=""
-if [ -f "$SCRIPT_DIR/../.env" ]; then
-    ENV_FILE="$SCRIPT_DIR/../.env"
-elif [ -f "$PWD/.devin/.env" ]; then
-    ENV_FILE="$PWD/.devin/.env"
-fi
-if [ -n "$ENV_FILE" ]; then
-    set -a
-    source "$ENV_FILE" 2>/dev/null || true
-    set +a
-    echo "[init] Loaded WINDSURF_API_KEY from $ENV_FILE"
-else
-    echo "[init] WARNING: No .devin/.env file found. WINDSURF_API_KEY not set."
-fi
-
 # ─── v4.2: Resolve Devin CLI binary path ───────────────────────────────────
 # devin.exe is not in PATH on Windows. Resolve it via multiple fallbacks.
 resolve_devin_cli() {
@@ -353,7 +333,6 @@ NODE_PROMPT_EOF
                 # LLM inference cycle on GLM-5.2 High.
                 #
                 # v4.3 hardening:
-                #   - WINDSURF_API_KEY loaded from .devin/.env (bypasses credentials.toml quirk)
                 #   - < /dev/null forces immediate crash if auth fails (no TUI picker hang)
                 #   - timeout 300 kills the process after 5 minutes if it hangs
                 #   - Output written directly to log file (unbuffered, real-time monitoring)
