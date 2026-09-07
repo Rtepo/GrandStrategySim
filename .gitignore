@@ -51,3 +51,5 @@ commit_v*.txt
 # Daemon v2.1 — untrack all transient integration logs
 .devin/integration_log/
 .devin/.daemon_event_*.env
+.devin/.integration_daemon.pid
+.devin/worktrees/
