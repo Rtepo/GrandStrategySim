@@ -1487,4 +1487,29 @@ mod tests {
         let (drawn2, _) = wrs.draw_groundwater(100.0);
         assert_eq!(drawn2, 0.0, "Depleted aquifer must yield 0.0 water");
     }
+
+    #[test]
+    fn test_groundwater_regen_rate_used_in_fractional_recharge() {
+        // Blueprint 006 invariant: groundwater_regen_rate is NOT a dead
+        // zero placeholder — it contributes to recharge alongside
+        // precipitation. A nonzero regen_rate with zero precipitation
+        // must still produce recharge.
+        let mut wrs = WaterReserveState {
+            groundwater_volume: 0.0,
+            groundwater_quality: 0.8,
+            groundwater_regen_rate: 500.0, // 500L/turn baseline
+            ..Default::default()
+        };
+        let capacity = 1_000_000.0;
+        // Zero precipitation — only baseline regen_rate contributes
+        wrs.regenerate_fractional(capacity, 0.0, 0.10, 1000.0);
+        // Recharge = 0 (precip) + 500 (baseline) = 500L
+        // After outflow: 500 * (1 - 0.025) = 487.5L
+        assert!(wrs.groundwater_volume > 0.0,
+            "Nonzero groundwater_regen_rate must produce recharge even with zero precipitation: got {}",
+            wrs.groundwater_volume);
+        assert!((wrs.groundwater_volume - 487.5).abs() < 1.0,
+            "Recharge should be ~487.5L (500 baseline - 2.5% outflow): got {}",
+            wrs.groundwater_volume);
+    }
 }

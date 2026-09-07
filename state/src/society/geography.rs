@@ -2284,6 +2284,21 @@ pub fn generate_regional_topology(
         // aquifers start partially depleted from natural equilibrium).
         region.water_reserves.groundwater_volume = region.aquifer_capacity_liters * 0.8;
         region.water_reserves.groundwater_quality = quality;
+        // Blueprint 006: Set groundwater_regen_rate to a climate-appropriate
+        // baseline percolation rate (liters per turn). This represents
+        // subsurface flows and slow infiltration independent of precipitation.
+        // Scales with region area — larger regions have more recharge surface.
+        let regen_per_ha = match region.climate_profile {
+            ClimateProfile::Tropical => 500.0,      // High humidity, constant percolation
+            ClimateProfile::SubTropical => 300.0,   // Moderate
+            ClimateProfile::Temperate => 200.0,     // Seasonal but steady
+            ClimateProfile::Coastal => 250.0,       // Coastal fog, moderate
+            ClimateProfile::Continental => 100.0,   // Lower humidity
+            ClimateProfile::Mountainous => 80.0,    // Hard rock, low percolation
+            ClimateProfile::Desert => 10.0,         // Near-zero baseline
+            ClimateProfile::Arctic => 5.0,          // Permafrost blocks percolation
+        };
+        region.water_reserves.groundwater_regen_rate = region_area_ha * regen_per_ha;
     }
 
     regions.into_iter().map(|r| (r.id.clone(), r)).collect()
