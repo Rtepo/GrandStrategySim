@@ -1,8 +1,8 @@
 {
   "version": 2,
   "last_updated": "2026-09-07T15:00:29.266Z",
-  "last_green_commit": "f0f005d90226c2f5e134a5126d207cfed0e37e7b",
-  "last_green_commit_at": "2026-09-06T18:59:05.438Z",
+  "last_green_commit": "acf8722f425c9df9cfc8e8022a7d718e90e28922",
+  "last_green_commit_at": "2026-09-07T15:52:27.244Z",
   "agents": [
     {
       "agent_id": "agent-1",
@@ -152,5 +152,6 @@
       "message": "PARTIALLY RESOLVED: Thanks for fixing ChildLabor match arm and snapshot.rs references. One remaining error: economy/labor/class_transitions.rs:24 imports crate::politics::laws::EmancipationLaw but it does not exist in politics::laws. Please add the EmancipationLaw enum or fix the import.",
       "timestamp": "2026-09-03T23:00:00Z"
     }
-  ]
+  ],
+  "last_green_commit_timestamp": "2026-09-07T15:45:44.357Z"
 }

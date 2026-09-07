@@ -280,6 +280,25 @@ PAYLOAD=$(node -e '
 # ─── Emit event to hub ─────────────────────────────────────────────────────
 bash "$SCRIPT_DIR/emit_event.sh" "INTEGRATION_REQUESTED" "$AGENT_ID_VAL" "agent-5" "$PAYLOAD"
 
+# ─── v4.1: Auto-launch daemon if not running ───────────────────────────────
+# An INTEGRATION_REQUESTED event is useless if no daemon is polling for it.
+# Inject the same daemon-launch logic used by cmd_kickoff in console.sh:
+# check .integration_daemon.pid — if missing or stale, launch a fresh daemon.
+DAEMON_PID_FILE="$HUB_DIR/.devin/.integration_daemon.pid"
+if [ -f "$DAEMON_PID_FILE" ]; then
+    EXISTING_DAEMON_PID=$(cat "$DAEMON_PID_FILE" 2>/dev/null || echo "")
+    if [ -n "$EXISTING_DAEMON_PID" ] && kill -0 "$EXISTING_DAEMON_PID" 2>/dev/null; then
+        echo "  Daemon already running (PID $EXISTING_DAEMON_PID)."
+    else
+        rm -f "$DAEMON_PID_FILE"
+        echo "  Daemon PID stale. Launching fresh daemon..."
+        bash "$SCRIPT_DIR/launch_daemon.sh" 2>&1 | tail -n 50
+    fi
+else
+    echo "  No daemon running. Launching to process integration request..."
+    bash "$SCRIPT_DIR/launch_daemon.sh" 2>&1 | tail -n 50
+fi
+
 echo ""
 echo "Request recorded. The manager will merge your branch during the next"
 echo "integration cycle. No further action is needed from you."

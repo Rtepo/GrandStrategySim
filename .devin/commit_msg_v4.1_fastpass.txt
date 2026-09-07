@@ -1,0 +1,18 @@
+feat: v4.1 fast-pass CI for non-Rust changes
+
+request_integration.sh: Language-detection bypass before cargo commands.
+Checks git diff origin/main --name-only for .rs/Cargo.toml/Cargo.lock.
+If zero Rust files changed, prints "Non-Rust changes detected:
+Fast-passing CI" and skips cargo check/test/clippy. npm build still
+runs if frontend files changed. This unblocks Python-only and
+docs-only commits from the full Rust CI/CD pipeline.
+
+run_iron_cicd SKILL.md: Added Step 0 fast-pass. When no Rust files
+are detected, skips Steps 1-3 (cargo build/test/clippy), optionally
+runs Step 4 (npm) for frontend changes, and still writes the green
+commit hash to .cicd_state and agents_sync.json so pre_commit.sh
+and stop.sh hooks allow the commit through.
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>

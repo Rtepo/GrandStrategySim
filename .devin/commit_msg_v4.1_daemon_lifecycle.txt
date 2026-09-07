@@ -1,0 +1,22 @@
+fix: v4.1 daemon lifecycle — auto-launch auto_wake + event cleanup
+
+Root causes of stalled Zero-Touch architecture:
+1. launch_daemon.sh never spawned auto_wake.sh, so Agent 4 never
+   woke up to process AUDIT_REQUESTED events
+2. stop_daemon.sh never killed auto_wake background processes
+3. 121 stale events cluttered .devin/events/ (all archived now)
+4. request_integration.sh didn't auto-launch daemon (fixed prior)
+
+Patches:
+- launch_daemon.sh: Spawns auto_wake.sh for agent-4 (auditor with
+  run_audit.sh wake command) and workers from sprint_manifest.txt.
+  Tracks PIDs in .devin/.auto_wake_pids.txt
+- stop_daemon.sh: Reads .auto_wake_pids.txt and kills all auto_wake
+  processes before stopping the daemon
+- request_integration.sh: Auto-launches daemon after emitting event
+  (patched in prior commit, included here for completeness)
+- Archived 121 stale events from .devin/events/ to .devin/events/.archive/
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>
