@@ -86,6 +86,10 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
     let mut taxes: HashMap<String, TaxRates> = load_named_map(&data_dir.join("tax_rates.json"))?;
     let politics_map: HashMap<String, Politics> =
         load_named_map(&data_dir.join("politics.json")).unwrap_or_default();
+    // Rule 4: Load cooperative registries from save (previously defaulted to
+    // empty, making the cooperative lifecycle dead after any save/load cycle).
+    let mut cooperative_registries: HashMap<String, crate::society::housing::CooperativeRegistry> =
+        load_named_map(&data_dir.join("cooperative_registries.json")).unwrap_or_default();
 
     let mut state = GameState::new();
     state.currencies =
@@ -100,6 +104,8 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
             .remove(&name)
             .ok_or_else(|| SaveError::MissingCountry(name.clone()))?;
         let politics = politics_map.get(&name).cloned().unwrap_or_default();
+        // Rule 4: Remove cooperative registry before `name` is moved into Country.
+        let cooperative_registry = cooperative_registries.remove(&name).unwrap_or_default();
 
         state.countries.insert(
             name.clone(),
@@ -142,7 +148,7 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
                 bank_resolution: crate::state::BankResolution::default(),
                 bank_tax: crate::state::BankTax::default(),
                 stock_exchange: crate::securities::StockExchange::default(),
-                dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), cooperative_registry: crate::society::housing::CooperativeRegistry::default(), furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(),
+                dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), cooperative_registry, furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(),
                 knf: crate::securities::KNF::default(),
                 capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
                 sovereign_default_turns_remaining: 0,
@@ -359,6 +365,8 @@ pub fn save_game_state(data_dir: &Path, state: &GameState) -> Result<(), SaveErr
         String,
         crate::economy::logistics::transport_networks::TransportNetworkOverlay,
     > = HashMap::new();
+    let mut cooperative_registries: HashMap<String, crate::society::housing::CooperativeRegistry> =
+        HashMap::new();
     for (name, country) in &state.countries {
         budgets.insert(name.clone(), country.budget.clone());
         macro_map.insert(name.clone(), country.macro_indicators.clone());
@@ -366,6 +374,7 @@ pub fn save_game_state(data_dir: &Path, state: &GameState) -> Result<(), SaveErr
         politics_map.insert(name.clone(), country.politics.clone());
         geology.insert(name.clone(), country.geological_formations.clone());
         transport.insert(name.clone(), country.transport_networks.clone());
+        cooperative_registries.insert(name.clone(), country.cooperative_registry.clone());
     }
 
     save_named_map(&data_dir.join("budgets.json"), &budgets)?;
@@ -375,6 +384,10 @@ pub fn save_game_state(data_dir: &Path, state: &GameState) -> Result<(), SaveErr
     save_named_map(&data_dir.join("currencies.json"), &state.currencies)?;
     save_named_map(&data_dir.join("geology.json"), &geology)?;
     save_named_map(&data_dir.join("transport_networks.json"), &transport)?;
+    save_named_map(
+        &data_dir.join("cooperative_registries.json"),
+        &cooperative_registries,
+    )?;
 
     let storage = if state.extra.is_empty() {
         serde_json::json!({})

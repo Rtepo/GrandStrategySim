@@ -395,6 +395,7 @@ pub struct HomelessTransitionResult {
 pub fn process_homeless_transitions(
     country: &mut Country,
     housing_buildings: &[crate::society::housing::HousingBuilding],
+    companies: &mut [crate::entities::Company],
     current_turn: u32,
     avg_wage: f64,
     capital_controls_rate: f64,
@@ -651,8 +652,19 @@ pub fn process_homeless_transitions(
 
         let target_class = wealth_tier_to_urban_class(member_wealth_tier);
         match &outcome {
-            RehousingOutcome::MarketRent { .. } => {
+            RehousingOutcome::MarketRent {
+                owner_id,
+                rent_paid,
+                ..
+            } => {
                 result.homeless_to_rehoused += 1;
+                // Rule 1 (Double-entry): Credit the property owner's
+                // liquid_capital with the exact rent debited from the tenant.
+                // Previously the tenant was debited but the owner was never
+                // credited — money vanished from the closed-loop economy.
+                if let Some(company) = companies.iter_mut().find(|c| &c.id == owner_id) {
+                    company.liquid_capital += *rent_paid;
+                }
                 // Macro-demographic update: move population from homeless
                 // tracking back to the correct housed class (audit fix).
                 for region in &mut country.regions {
@@ -666,9 +678,19 @@ pub fn process_homeless_transitions(
                     }
                 }
             }
-            RehousingOutcome::Welfare { .. } => {
+            RehousingOutcome::Welfare {
+                owner_id,
+                rent_paid,
+                ..
+            } => {
                 result.homeless_to_rehoused += 1;
                 result.welfare_rehoused += 1;
+                // Rule 1 (Double-entry): Credit the property owner's
+                // liquid_capital with the exact rent paid by the treasury.
+                // The treasury was debited but the owner was never credited.
+                if let Some(company) = companies.iter_mut().find(|c| &c.id == owner_id) {
+                    company.liquid_capital += *rent_paid;
+                }
                 for region in &mut country.regions {
                     if region.id == member_region {
                         if let Some(demo) =
