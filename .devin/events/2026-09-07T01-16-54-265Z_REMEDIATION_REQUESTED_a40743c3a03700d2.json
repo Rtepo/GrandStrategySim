@@ -1,0 +1,21 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-3",
+  "timestamp": "2026-09-07T01:16:54.265Z",
+  "id": "a40743c3a03700d2",
+  "payload": {
+    "blueprint_id": "004-FIX",
+    "branch": "fix/agent-3-sports-recreation-impl",
+    "verdict": "PARTIAL_PASS",
+    "reason": "7/10 PASS, 3 PARTIAL, 1 FAIL. Core sports mechanics work (commodity, module, facility types, B2C clearing with weather seasonality, zero-savings public access, health integration, turn loop). FAIL: sports_capacity_per_capita not exposed in CountrySnapshot/MacroIndicatorsResponse/LaborSummary (Rule 17 — feature invisible to player). PARTIAL: construction BOMs generic, public access conditional on treasury solvency, parallel dead SportsFacility path (Rule 14).",
+    "failed_checks": [
+      "004-FIX: sports_capacity_per_capita not exposed in any UI snapshot DTO (Rule 17 — Full-Stack Accountability)",
+      "004-FIX: Construction BOMs use generic bom_commercial for all facility types (minor)",
+      "004-FIX: Zero-savings public access conditional on treasury solvency (minor)",
+      "004-FIX: Region.sports_facilities and SportsFacility::process_turn are dead code (Rule 14, minor)"
+    ],
+    "audit_fail_event": "8f7c8fa0faffcb8b",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}

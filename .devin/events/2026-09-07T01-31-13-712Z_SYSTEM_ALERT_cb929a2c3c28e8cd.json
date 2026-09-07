@@ -1,0 +1,11 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-07T01:31:13.712Z",
+  "id": "cb929a2c3c28e8cd",
+  "payload": {
+    "reason": "Uncommitted changes detected in HUB_DIR. A worker is outside their worktree. CI/CD halted to prevent data loss.",
+    "dirty_files": " D .devin/events/2026-09-06T22-17-25-071Z_CLARIFICATION_REQUESTED_28ad014c4826dea7.json; M agents_sync.json;"
+  }
+}

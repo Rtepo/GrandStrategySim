@@ -1,0 +1,16 @@
+﻿{
+    "id":  "4cfbd5ba63adaaa1",
+    "payload":  {
+                    "new_failed_checks":  [
+                                              "007-FIX-v2: CooperativeRegistry not persisted on save/load — save_manager.rs:351-369 and :83-145 initialize to default() and never read/write the field. Loaded games have empty registry (Rule 4).",
+                                              "007-FIX-v2: ClassDemographics.savings not refunded for unconverted portion on partial FX fill — could double-debit on next turn if savings bucket regrows (Rule 1 caveat)"
+                                          ],
+                    "verdict":  "FAIL",
+                    "reason":  "Additional defect found by deep subagent audit: CooperativeRegistry is not persisted on save/load. save_manager.rs initializes it to default() (empty) and never reads/writes it. A loaded game starts with an empty registry, making the cooperative lifecycle dead after any save/load cycle (Rule 4 — Complete Entity Lifecycles). This is in addition to the 2 blocking defects already reported: (1) 004-FIX UI telemetry Rule 17, (2) 007-FIX-v2 owner credit Rule 1.",
+                    "supersedes":  "8f7c8fa0faffcb8b"
+                },
+    "source":  "agent-4",
+    "timestamp":  "2026-09-07T01:18:47.576Z",
+    "type":  "AUDIT_FAIL_ADDENDUM",
+    "target":  "agent-5"
+}

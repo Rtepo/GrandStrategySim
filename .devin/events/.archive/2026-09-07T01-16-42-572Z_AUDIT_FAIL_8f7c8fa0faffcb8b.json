@@ -1,0 +1,57 @@
+﻿{
+    "id":  "8f7c8fa0faffcb8b",
+    "payload":  {
+                    "blueprint_results":  [
+                                              {
+                                                  "verdict":  "PARTIAL_PASS",
+                                                  "id":  "004-FIX",
+                                                  "reason":  "7/10 PASS, 3 PARTIAL, 1 FAIL. Core sports mechanics work (commodity, module, facility types, B2C clearing with weather seasonality, zero-savings public access, health integration, turn loop). FAIL: sports_capacity_per_capita not exposed in CountrySnapshot/MacroIndicatorsResponse/LaborSummary (Rule 17 — feature invisible to player). PARTIAL: construction BOMs generic, public access conditional on treasury solvency, parallel dead SportsFacility path (Rule 14)."
+                                              },
+                                              {
+                                                  "verdict":  "PARTIAL_PASS",
+                                                  "id":  "006-FIX",
+                                                  "reason":  "4/6 PASS (deep_well_construction 4P+3A+3O matrix, sewage gating, off-grid pollution routing, well lifecycle with Steel/Cement BOM). 2 PARTIAL (non-blocking): groundwater_regen_rate field unused zero placeholder, no runtime CAPEX construction path for post-world-gen wells."
+                                              },
+                                              {
+                                                  "verdict":  "PARTIAL_PASS",
+                                                  "id":  "007-FIX",
+                                                  "reason":  "All 5 prior defects FIXED: (1) cooperative hooks now called at world-gen and liquidation, (2) try_rehouse passes real vacancies from housing buildings, (3) partial-fill retry uses remaining_unconverted_capital, (4) HomelessState.region_id set at creation, (5) demographic updates use wealth_tier_to_urban_class. NEW medium-severity issue: try_rehouse debits citizen/treasury but does not credit property owner — RehousingOutcome includes owner_id but caller discards it with { .. } match pattern (Rule 1 closed-loop leak)."
+                                              }
+                                          ],
+                    "audit_request":  "f6f26b64e89a305d",
+                    "failed_checks":  [
+                                          "004-FIX: sports_capacity_per_capita not exposed in any UI snapshot DTO (Rule 17 — Full-Stack Accountability)",
+                                          "007-FIX-v2: try_rehouse does not credit property owner — rent money debited from citizen/treasury but vanishes (Rule 1 — closed-loop leak)",
+                                          "006-FIX: groundwater_regen_rate field is unused zero placeholder (minor)",
+                                          "006-FIX: No runtime CAPEX construction path for post-world-gen wells (minor)",
+                                          "004-FIX: Construction BOMs use generic bom_commercial for all facility types (minor)",
+                                          "004-FIX: Zero-savings public access conditional on treasury solvency (minor)",
+                                          "004-FIX: Region.sports_facilities and SportsFacility::process_turn are dead code (Rule 14, minor)"
+                                      ],
+                    "verdict":  "FAIL",
+                    "passed_checks":  [
+                                          "CI/CD: cargo build PASS",
+                                          "CI/CD: cargo test 2324 passed 0 failed 1 ignored",
+                                          "CI/CD: cargo clippy 0 warnings",
+                                          "CI/CD: npm build PASS",
+                                          "007-FIX-v2: on_cooperative_created called at corporate.rs:6221 (world-gen)",
+                                          "007-FIX-v2: on_cooperative_liquidated called at corporate/lifecycle.rs:121 (bankruptcy)",
+                                          "007-FIX-v2: try_rehouse passes real vacancies from housing_buildings filter",
+                                          "007-FIX-v2: partial-fill retry uses remaining_unconverted_capital at class_transitions.rs:480-481",
+                                          "007-FIX-v2: HomelessState.region_id set at housing.rs:1714",
+                                          "007-FIX-v2: demographic updates use wealth_tier_to_urban_class at class_transitions.rs:754",
+                                          "007-FIX-v2: savings_bucket lookup uses correct region_id and target_class",
+                                          "007-FIX-v2: health/happiness penalties applied to correct region and class",
+                                          "004-FIX: All core sports mechanics functional",
+                                          "006-FIX: All core mass conservation mechanics functional"
+                                      ],
+                    "reason":  "007-FIX-v2 successfully fixed all 3 critical FAILs and 2 PARTIALs from prior audit. However 2 remaining defects block PASS: (1) 004-FIX UI telemetry FAIL — sports_capacity_per_capita not exposed in any snapshot DTO (Rule 17 violation), (2) 007-FIX-v2 try_rehouse does not credit property owner — rent debited from citizen/treasury but vanishes instead of being credited to owner company (Rule 1 closed-loop leak). 006-FIX has 2 non-blocking minor PARTIALs.",
+                    "requires_remediation":  true,
+                    "head_commit":  "b1acf04371488b9b8e2cd63dd92ab7a9bc8d385e",
+                    "cicd":  "PASS (cargo build + cargo test 2324 passed/0 failed/1 ignored + clippy 0 warnings + npm build)"
+                },
+    "source":  "agent-4",
+    "timestamp":  "2026-09-07T01:16:42.608Z",
+    "type":  "AUDIT_FAIL",
+    "target":  "agent-5"
+}

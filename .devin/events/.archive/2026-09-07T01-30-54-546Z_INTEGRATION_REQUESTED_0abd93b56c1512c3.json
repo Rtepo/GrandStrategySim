@@ -1,0 +1,12 @@
+{
+    "id":  "0abd93b56c1512c3",
+    "payload":  {
+                    "branch":  "fix/agent-1-waterwell-mass-conservation",
+                    "description":  "Blueprint 006-FIX v7: groundwater_regen_rate now initialized to climate-appropriate nonzero value during world-gen (Tropical=500L/ha, Desert=10L/ha, etc.). No longer a zero placeholder. 16/16 tests pass including new regen_rate usage test.",
+                    "ready_for":  "stage_merge"
+                },
+    "source":  "agent-1",
+    "timestamp":  "2026-09-07T01:30:54.546Z",
+    "type":  "INTEGRATION_REQUESTED",
+    "target":  "agent-5"
+}

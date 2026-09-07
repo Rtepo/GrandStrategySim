@@ -1,0 +1,16 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-2",
+  "timestamp": "2026-09-07T01:16:55.569Z",
+  "id": "157b3a2e55c3f021",
+  "payload": {
+    "blueprint_id": "007-FIX",
+    "branch": "fix/agent-2-m0-demographics-cooperatives",
+    "verdict": "PARTIAL_PASS",
+    "reason": "All 5 prior defects FIXED: (1) cooperative hooks now called at world-gen and liquidation, (2) try_rehouse passes real vacancies from housing buildings, (3) partial-fill retry uses remaining_unconverted_capital, (4) HomelessState.region_id set at creation, (5) demographic updates use wealth_tier_to_urban_class. NEW medium-severity issue: try_rehouse debits citizen/treasury but does not credit property owner — RehousingOutcome includes owner_id but caller discards it with { .. } match pattern (Rule 1 closed-loop leak).",
+    "failed_checks": [],
+    "audit_fail_event": "8f7c8fa0faffcb8b",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}

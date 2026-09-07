@@ -1,0 +1,12 @@
+{
+  "type": "SYSTEM_ALERT",
+  "source": "agent-5",
+  "target": "user",
+  "timestamp": "2026-09-07T01:43:17.226Z",
+  "id": "a699d23267b2e898",
+  "payload": {
+    "failed_branch": "fix/agent-1-waterwell-mass-conservation",
+    "assigned_worker": "agent-1",
+    "reason": "Dirty Tree Timeout (5 min wait exceeded)"
+  }
+}
