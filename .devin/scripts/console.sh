@@ -950,7 +950,7 @@ cmd_release() {
 
     # Verify clean tree
     local dirty
-    dirty=$(git status --porcelain 2>/dev/null | grep -v '^??' | head -1)
+    dirty=$(git status --porcelain 2>/dev/null | grep -v '^??' | head -1 || true)
     if [ -n "$dirty" ]; then
         echo "  ERROR: Working tree is dirty. Commit changes first."
         git status --short | head -5
