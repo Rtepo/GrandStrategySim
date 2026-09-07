@@ -1,0 +1,13 @@
+{
+    "id":  "37e3b0dec75e83a9",
+    "payload":  {
+                    "branch":  "fix/agent-1-waterwell-mass-conservation",
+                    "description":  "Blueprint 006-FIX v10: Both PARTIAL issues already fixed in commits 84a4f034 + 7be55862. groundwater_regen_rate initialized to climate-appropriate nonzero value (geography.rs:2291). Runtime well CAPEX path in turn.rs:2373 PHASE 83B. 3/3 targeted tests pass. Hub tree clean. Previous failures were DIRTY_TREE_TIMEOUT from hub event accumulation + stale staging branch.",
+                    "commit":  "7be55862",
+                    "ready_for":  "stage_merge"
+                },
+    "source":  "agent-1",
+    "timestamp":  "2026-09-07T02:43:22.158Z",
+    "type":  "INTEGRATION_REQUESTED",
+    "target":  "agent-5"
+}

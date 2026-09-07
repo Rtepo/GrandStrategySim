@@ -1,0 +1,16 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-2",
+  "timestamp": "2026-09-07T02:57:09.477Z",
+  "id": "a2ea15c3bce4493c",
+  "payload": {
+    "blueprint_id": "007-FIX",
+    "branch": "fix/agent-2-m0-demographics-cooperatives",
+    "verdict": "PARTIAL_PASS",
+    "reason": "Unchanged from v4. All 5 original defects FIXED. 2 remaining issues: (1) try_rehouse does not credit property owner (Rule 1), (2) CooperativeRegistry not persisted on save/load (Rule 4).",
+    "failed_checks": [],
+    "audit_fail_event": "6251e249c0a9f5f8",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}

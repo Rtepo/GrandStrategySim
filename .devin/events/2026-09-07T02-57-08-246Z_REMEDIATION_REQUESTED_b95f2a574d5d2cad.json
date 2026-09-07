@@ -1,0 +1,18 @@
+{
+  "type": "REMEDIATION_REQUESTED",
+  "source": "agent-5",
+  "target": "agent-3",
+  "timestamp": "2026-09-07T02:57:08.246Z",
+  "id": "b95f2a574d5d2cad",
+  "payload": {
+    "blueprint_id": "004-FIX",
+    "branch": "fix/agent-3-sports-recreation-impl",
+    "verdict": "PARTIAL_PASS",
+    "reason": "Unchanged from v4. 7/10 PASS, 3 PARTIAL, 1 FAIL. FAIL: sports_capacity_per_capita not exposed in snapshot DTOs (Rule 17). Agent 3 remediation commit 5196e298 was rebased out.",
+    "failed_checks": [
+      "004-FIX: sports_capacity_per_capita not exposed in UI snapshot DTOs (Rule 17)"
+    ],
+    "audit_fail_event": "6251e249c0a9f5f8",
+    "action": "Fix the listed failures and re-run request_integration.sh"
+  }
+}
