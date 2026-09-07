@@ -354,7 +354,7 @@ run_cicd() {
     timeout 30 git checkout "$STAGING_BRANCH" 2>&1 | tail -1
 
     # Step 2: Merge worker branch into staging (NOT main) (timeout: 60s)
-    timeout 60 git merge "$worker_branch" --no-edit 2>&1 | tail -5
+    timeout 60 git merge "$worker_branch" --no-edit 2>&1 | tail -n 50
     local merge_rc=${PIPESTATUS[0]}
     if [ $merge_rc -ne 0 ]; then
         local conflicts=$(git diff --name-only --diff-filter=U 2>/dev/null | tr '\n' ' ')
@@ -391,7 +391,7 @@ run_cicd() {
 
     # Step 3: Run all 5 CI/CD steps on staging (with watchdog timeouts)
     echo "[$(date -u +%H:%M:%S)] CI/CD: [1/6] cargo build... (timeout: 600s)"
-    timeout 600 cargo build --workspace 2>&1 | tee "${log_prefix}_build.txt" | tail -3
+    timeout 600 cargo build --workspace 2>&1 | tee "${log_prefix}_build.txt" | tail -n 50
     local build_rc=${PIPESTATUS[0]}
     if [ $build_rc -ne 0 ]; then
         git checkout main 2>/dev/null
@@ -408,7 +408,7 @@ run_cicd() {
     fi
 
     echo "[$(date -u +%H:%M:%S)] CI/CD: [2a/6] cargo test --no-run (compiling tests)... (timeout: 600s)"
-    timeout 600 cargo test --workspace --all-targets --no-run 2>&1 | tee "${log_prefix}_test_compile.txt" | tail -3
+    timeout 600 cargo test --workspace --all-targets --no-run 2>&1 | tee "${log_prefix}_test_compile.txt" | tail -n 50
     local test_compile_rc=${PIPESTATUS[0]}
     if [ $test_compile_rc -ne 0 ]; then
         git checkout main 2>/dev/null
@@ -493,7 +493,7 @@ run_cicd() {
     fi
 
     echo "[$(date -u +%H:%M:%S)] CI/CD: [3/6] cargo clippy... (timeout: 600s)"
-    timeout 600 cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tee "${log_prefix}_clippy.txt" | tail -3
+    timeout 600 cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tee "${log_prefix}_clippy.txt" | tail -n 50
     local clippy_rc=${PIPESTATUS[0]}
     if [ $clippy_rc -ne 0 ]; then
         git checkout main 2>/dev/null
@@ -510,7 +510,7 @@ run_cicd() {
     fi
 
     echo "[$(date -u +%H:%M:%S)] CI/CD: [4/6] npm run build... (timeout: 180s)"
-    timeout 180 npm run build 2>&1 | tee "${log_prefix}_npm.txt" | tail -3
+    timeout 180 npm run build 2>&1 | tee "${log_prefix}_npm.txt" | tail -n 50
     local npm_rc=${PIPESTATUS[0]}
     if [ $npm_rc -ne 0 ]; then
         git checkout main 2>/dev/null
@@ -555,7 +555,7 @@ run_cicd() {
     rm -f "$HUB_DIR/.git/index.lock" 2>/dev/null || true
     timeout 30 git checkout main 2>&1 | tail -1
     rm -f "$HUB_DIR/.git/index.lock" 2>/dev/null || true
-    timeout 30 git merge --ff-only "$staging_commit" 2>&1 | tail -3
+    timeout 30 git merge --ff-only "$staging_commit" 2>&1 | tail -n 50
     local ff_rc=$?
     if [ $ff_rc -ne 0 ]; then
         echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: Cannot fast-forward main to staging."

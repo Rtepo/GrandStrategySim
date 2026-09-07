@@ -69,6 +69,35 @@ echo "  Started: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "============================================================"
 echo ""
 
+# ─── v3.1: RAM throttle check before waking agents ────────────────────────
+# Returns 0 if RAM is below 85% (safe to wake), 1 if above (defer wake).
+# bc-free: converts float to int via bash parameter expansion.
+check_ram_before_wake() {
+    local used_pct=0
+
+    if command -v powershell.exe &>/dev/null; then
+        used_pct=$(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \
+            "\$os = Get-CimInstance Win32_OperatingSystem; [math]::Round((\$os.TotalVisibleMemorySize - \$os.FreePhysicalMemory) / \$os.TotalVisibleMemorySize * 100, 1)" \
+            2>/dev/null | tr -d '\r' || echo "0")
+    elif command -v free &>/dev/null; then
+        used_pct=$(free | awk '/Mem:/ {printf "%.1f", $3/$2*100}')
+    fi
+
+    # Convert float to integer via bash parameter expansion (no bc dependency)
+    local used_int="${used_pct%.*}"
+    used_int="${used_int:-0}"
+
+    case "$used_int" in
+        ''|*[!0-9]*) return 0 ;;  # Can't detect — proceed
+    esac
+
+    if [ "$used_int" -ge 85 ]; then
+        echo "[$(date -u +%H:%M:%S)] RAM THROTTLE: System RAM at ${used_pct}%. Deferring wake command."
+        return 1
+    fi
+    return 0
+}
+
 CYCLE=0
 basename_evt=""
 parse_rc=0
@@ -123,6 +152,8 @@ while true; do
                     const eventType = evt.type || "";
 
                     // Match if target is this agent, or "all" for broadcast events
+                    // v3.1: RECOVERY_WAKE targets the specific agent, so it's
+                    // already matched by targetType === agentId.
                     const isMatch = (targetType === agentId) ||
                                     (targetType === "all" &&
                                      (eventType === "PROMOTED_TO_MAIN" ||
@@ -174,9 +205,16 @@ NODE_EOF
 
                 # Execute wake command if provided
                 if [ -n "$WAKE_COMMAND" ]; then
-                    echo "[$(date -u +%H:%M:%S)] Auto-wake: Executing wake command..."
-                    eval "$WAKE_COMMAND" 2>&1 | tail -n 50 || true
-                    echo "[$(date -u +%H:%M:%S)] Auto-wake: Wake command completed."
+                    # v3.1: RAM throttle — don't wake new agents under memory pressure
+                    if check_ram_before_wake; then
+                        echo "[$(date -u +%H:%M:%S)] Auto-wake: Executing wake command..."
+                        eval "$WAKE_COMMAND" 2>&1 | tail -n 50 || true
+                        echo "[$(date -u +%H:%M:%S)] Auto-wake: Wake command completed."
+                    else
+                        echo "[$(date -u +%H:%M:%S)] Auto-wake: Wake command deferred due to RAM pressure."
+                        echo "  The alert has been printed. Run manually when RAM is available:"
+                        echo "    $WAKE_COMMAND"
+                    fi
                 else
                     echo "[$(date -u +%H:%M:%S)] Auto-wake: Alert only (no wake command configured)."
                     echo "  Run: bash .devin/scripts/console.sh \$inbox $AGENT_ID"

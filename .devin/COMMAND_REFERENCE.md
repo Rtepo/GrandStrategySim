@@ -1,4 +1,4 @@
-# Command Reference - SillyElaborateState Infrastructure v3.0
+# Command Reference - SillyElaborateState Infrastructure v3.1
 
 ## Quick Start
 
@@ -355,3 +355,55 @@ If an agent terminal crashes (OOM or other):
 2. Run `bash .devin/scripts/console.sh $inbox <agent>` or `git status`
 3. No manual manager routing needed — auto_wake + route_failures handle it
 4. Events persist as JSON files — nothing is lost
+
+---
+
+## v3.1: Centralized OOM Recovery ($recover)
+
+### $recover <agent> - Recover a Crashed Agent
+
+**When to use:** When a worker agent crashes (OOM) and needs a clean reboot.
+
+```bash
+bash .devin/scripts/console.sh $recover agent-2
+```
+
+**What it does automatically:**
+1. Resolves the agent's worktree path via blueprint_agent_map.json
+2. Inspects the working tree (git status) — report only, no auto-commit
+3. Cleans stale locks: index.lock, REBASE_HEAD, MERGE_HEAD, MERGE_MSG
+4. Cleans hub-level daemon temp files (.daemon_event_*.env)
+5. Emits RECOVERY_WAKE event to the agent
+6. auto_wake.sh detects the event and reboots the agent
+
+**You provide:** agent name only
+**System handles:** worktree detection, lock cleanup, event emission, auto-wake
+
+---
+
+## v3.1: Daemon Lifecycle Automation
+
+- **`$release`** now automatically stops the daemon before version bump.
+  The daemon must not run idle between milestones.
+- **`$kickoff`** now automatically launches the daemon if not already running.
+  Eliminates the "forgot to start the daemon" failure mode.
+
+---
+
+## v3.1: Aggressive Garbage Collection
+
+The daemon runs `cleanup_stale_diagnostics()` every 50 cycles (~12.5 min).
+Deletes stale diagnostic files from the project root (maxdepth 1 only):
+`build_out*.txt`, `build_err*.txt`, `build_check*.txt`, `clippy*.txt`,
+`*_test.txt`, `*_FAILED.txt`, `cicd_output*.txt`, `npm_build*.txt`, etc.
+Uses a single `find` command with concatenated `-name` patterns.
+
+---
+
+## v3.1: Active RAM Throttling
+
+- **Daemon:** Before `cargo nextest`, checks RAM. If > 85%, suspends and
+  waits 30s (max 10 retries). Uses bc-free integer comparison.
+- **auto_wake.sh:** Before wake command execution, checks RAM. If > 85%,
+  defers the wake (prints alert only).
+- **Detection:** PowerShell (Windows) or `free` (Linux), with safe fallback.

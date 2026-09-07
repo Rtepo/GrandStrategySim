@@ -112,3 +112,34 @@ bash .devin/scripts/auto_wake.sh agent-3 "bash .devin/scripts/console.sh \$inbox
 The daemon uses a seen-file (`.devin/.auto_wake_seen_<agent>.txt`) to prevent
 re-triggering. Race condition guards protect against concurrent file archival
 by the integration daemon.
+
+## v3.1: Centralized OOM Recovery ($recover)
+
+Use `$recover <agent>` to recover a crashed agent:
+```bash
+bash .devin/scripts/console.sh $recover agent-2
+```
+This inspects the worktree, cleans stale locks (index.lock, REBASE_HEAD,
+MERGE_HEAD), and emits a RECOVERY_WAKE event for auto-wake reboot.
+No manual manager routing required.
+
+## v3.1: Daemon Lifecycle Automation
+
+- `$release` automatically stops the daemon (end of sprint cycle).
+- `$kickoff` automatically launches the daemon if not already running.
+
+## v3.1: Aggressive Garbage Collection
+
+The daemon runs `cleanup_stale_diagnostics()` every 50 cycles (~12.5 min),
+deleting stale diagnostic files from the project root:
+`build_out*.txt`, `build_err*.txt`, `clippy*.txt`, `*_test.txt`, `*_FAILED.txt`, etc.
+Uses a single `find` command with concatenated `-name` patterns (`maxdepth 1` only).
+
+## v3.1: Active RAM Throttling
+
+- **Daemon:** Before `cargo nextest` execution, checks system RAM. If usage
+  exceeds 85%, suspends the test run and waits 30s (max 10 retries = 5 min).
+- **auto_wake.sh:** Before executing a wake command, checks RAM. If usage
+  exceeds 85%, defers the wake (prints alert only).
+- **bc-free:** Uses bash parameter expansion `${used_pct%.*}` for integer
+  conversion instead of the `bc` command.
