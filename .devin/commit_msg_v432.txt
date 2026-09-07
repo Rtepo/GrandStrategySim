@@ -1,0 +1,27 @@
+fix: v4.3.2 auto-wake — unset IDE env vars, remove --resume, increase timeout
+
+Three critical fixes for the zero-touch auto-wake infrastructure:
+
+1. Unset WINDSURF_IDE_TYPE, ACP_BACKEND, WINDSURF_EXT_HOST_PID before
+   invoking devin CLI. These IDE environment variables cause the CLI to
+   use the Windsurf/Enterprise auth path instead of reading
+   credentials.toml, resulting in the interactive login picker even
+   when the user is authenticated via `devin auth login`.
+
+2. Remove --resume <SESSION_ID> from the devin invocation. Sessions
+   that are active in the IDE cannot be resumed from a second process
+   (ACP conflict: "failed to start ACP agent session"). A fresh
+   session is used instead; the constructed prompt contains all
+   necessary context.
+
+3. Increase timeout from 300s to 600s (10 minutes) to allow complex
+   audit tasks to complete before the process is killed.
+
+Verified: Agent 4 successfully authenticated, ran audit_dumps.py,
+investigated Rust source code, and identified the M0 leak root cause
+(Syndic execute_liquidation does not handle bank balance sheets —
+reserves, deposits, loans vanish without routing to counterparties).
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>

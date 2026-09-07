@@ -139,7 +139,7 @@ check_ram_before_wake() {
         ''|*[!0-9]*) return 0 ;;  # Can't detect — proceed
     esac
 
-    if [ "$used_int" -ge 85 ]; then
+    if [ "$used_int" -ge 95 ]; then
         echo "[$(date -u +%H:%M:%S)] RAM THROTTLE: System RAM at ${used_pct}%. Deferring wake command."
         return 1
     fi
@@ -328,25 +328,35 @@ NODE_PROMPT_EOF
                 # Record trigger time for rate limiting
                 echo "$now_epoch" > "$LAST_TRIGGER_FILE" 2>/dev/null || true
 
-                # Invoke Devin CLI in non-interactive print mode to resume the
-                # target session and inject the prompt. This triggers a real
-                # LLM inference cycle on GLM-5.2 High.
+                # Invoke Devin CLI in non-interactive print mode with a fresh
+                # session to process the event. This triggers a real LLM
+                # inference cycle on GLM-5.2 High.
                 #
                 # v4.3 hardening:
                 #   - < /dev/null forces immediate crash if auth fails (no TUI picker hang)
                 #   - timeout 300 kills the process after 5 minutes if it hangs
                 #   - Output written directly to log file (unbuffered, real-time monitoring)
                 #
+                # v4.3.2: Removed --resume because sessions active in the IDE
+                # cannot be resumed from a second process (ACP conflict: "failed
+                # to start ACP agent session"). A fresh session is used instead;
+                # the constructed prompt contains all necessary context.
+                #
                 # Flags:
                 #   -p                          — Print mode (non-interactive, exits after one turn)
-                #   --resume <SESSION_ID>       — Resume the target agent's existing session
                 #   --model glm-5.2-high        — Enforce free GLM-5.2 High model
                 #   --permission-mode dangerous — Auto-approve ALL tools (edits + shell) for headless autonomy
                 #   --respect-workspace-trust false — Skip workspace trust prompt
                 #   -- "<prompt>"               — The constructed prompt
-                echo "[$(date -u +%H:%M:%S)] Auto-wake: Invoking devin -p --resume (timeout 300s, stdin=/dev/null)..." >> "$HUB_DIR/.devin/integration_log/auto_wake_${AGENT_ID}.log"
+                echo "[$(date -u +%H:%M:%S)] Auto-wake: Invoking devin -p (timeout 600s, stdin=/dev/null)..." >> "$HUB_DIR/.devin/integration_log/auto_wake_${AGENT_ID}.log"
 
-                timeout 300 "$DEVIN_CLI" -p --resume "$target_session_id" \
+                # v4.3.1: Unset IDE environment variables that cause the CLI to
+                # use the Windsurf/Enterprise auth path instead of reading
+                # credentials.toml. Without this, the CLI shows the login picker
+                # even when the user is authenticated via `devin auth login`.
+                unset WINDSURF_IDE_TYPE ACP_BACKEND WINDSURF_EXT_HOST_PID
+
+                timeout 600 "$DEVIN_CLI" -p \
                     --model glm-5.2-high \
                     --permission-mode dangerous \
                     --respect-workspace-trust false \
