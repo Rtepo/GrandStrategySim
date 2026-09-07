@@ -16,6 +16,51 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# ─── Source sync library for session_id lookup ─────────────────────────────
+source "$SCRIPT_DIR/sync_lib.sh" 2>/dev/null || true
+
+# ─── v4.2: Resolve Devin CLI binary path ───────────────────────────────────
+# devin.exe is not in PATH on Windows. Resolve it via multiple fallbacks.
+resolve_devin_cli() {
+    # 1. Check if devin is in PATH
+    local cli
+    cli=$(command -v devin 2>/dev/null || echo "")
+    if [ -n "$cli" ] && [ -x "$cli" ]; then
+        echo "$cli"
+        return 0
+    fi
+    # 2. Check DEVIN_CLI_PATH env var
+    if [ -n "${DEVIN_CLI_PATH:-}" ] && [ -x "$DEVIN_CLI_PATH" ]; then
+        echo "$DEVIN_CLI_PATH"
+        return 0
+    fi
+    # 3. Check known Windows install location
+    local win_path
+    win_path="$HOME/AppData/Local/Programs/Devin/resources/app/extensions/windsurf/devin/bin/devin.exe"
+    if [ -x "$win_path" ]; then
+        echo "$win_path"
+        return 0
+    fi
+    # 4. Check LOCALAPPDATA
+    if [ -n "${LOCALAPPDATA:-}" ]; then
+        win_path="$LOCALAPPDATA/Programs/Devin/resources/app/extensions/windsurf/devin/bin/devin.exe"
+        if [ -x "$win_path" ]; then
+            echo "$win_path"
+            return 0
+        fi
+    fi
+    # Not found
+    echo ""
+    return 1
+}
+
+DEVIN_CLI=""
+DEVIN_CLI=$(resolve_devin_cli 2>/dev/null || echo "")
+
+# ─── v4.2: Rate limiting — max 1 trigger per agent per 60 seconds ──────────
+LAST_TRIGGER_FILE=""
+RATE_LIMIT_SECONDS=60
+
 # ─── Validate arguments ────────────────────────────────────────────────────
 if [ $# -lt 1 ]; then
     echo "Usage: bash .devin/scripts/auto_wake.sh <agent_id> [wake_command]" >&2
@@ -52,6 +97,7 @@ detect_hub_dir() {
 HUB_DIR="$(detect_hub_dir)"
 EVENTS_DIR="$HUB_DIR/.devin/events"
 SEEN_FILE="$HUB_DIR/.devin/.auto_wake_seen_${AGENT_ID}.txt"
+LAST_TRIGGER_FILE="$HUB_DIR/.devin/.autowake_last_trigger_${AGENT_ID}.txt"
 
 mkdir -p "$EVENTS_DIR" 2>/dev/null || true
 touch "$SEEN_FILE" 2>/dev/null || true
@@ -59,12 +105,14 @@ touch "$SEEN_FILE" 2>/dev/null || true
 POLL_INTERVAL=10
 
 echo "============================================================"
-echo "  AUTO-WAKE DAEMON v3 — Agent: $AGENT_ID"
+echo "  AUTO-WAKE DAEMON v4.2 — Agent: $AGENT_ID"
 echo "  PID: $$"
 echo "  HUB_DIR: $HUB_DIR"
 echo "  EVENTS_DIR: $EVENTS_DIR"
+echo "  DEVIN_CLI: ${DEVIN_CLI:-<not found>}"
+echo "  Rate limit: ${RATE_LIMIT_SECONDS}s"
 echo "  Poll interval: ${POLL_INTERVAL}s"
-echo "  Wake command: ${WAKE_COMMAND:-<none — alert only>}"
+echo "  Wake mode: True Auto-Wake (devin -p --resume --model glm-5.2-high)"
 echo "  Started: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "============================================================"
 echo ""
@@ -203,22 +251,101 @@ NODE_EOF
                 # Match found — add to seen file
                 echo "$basename_evt" >> "$SEEN_FILE" 2>/dev/null || true
 
-                # Execute wake command if provided
-                if [ -n "$WAKE_COMMAND" ]; then
-                    # v3.1: RAM throttle — don't wake new agents under memory pressure
-                    if check_ram_before_wake; then
-                        echo "[$(date -u +%H:%M:%S)] Auto-wake: Executing wake command..."
-                        eval "$WAKE_COMMAND" 2>&1 | tail -n 50 || true
-                        echo "[$(date -u +%H:%M:%S)] Auto-wake: Wake command completed."
-                    else
-                        echo "[$(date -u +%H:%M:%S)] Auto-wake: Wake command deferred due to RAM pressure."
-                        echo "  The alert has been printed. Run manually when RAM is available:"
-                        echo "    $WAKE_COMMAND"
-                    fi
-                else
-                    echo "[$(date -u +%H:%M:%S)] Auto-wake: Alert only (no wake command configured)."
-                    echo "  Run: bash .devin/scripts/console.sh \$inbox $AGENT_ID"
+                # ─── v4.2: True Auto-Wake — programmatically trigger LLM inference ──
+                # Instead of printing alerts or running bash wake commands, we
+                # invoke the Devin CLI in non-interactive print mode to resume
+                # the target agent's session and inject a prompt. This triggers
+                # an actual LLM inference cycle.
+
+                # Check rate limit (max 1 trigger per agent per 60 seconds)
+                now_epoch=$(date +%s 2>/dev/null || echo 0)
+                last_trigger=0
+                if [ -f "$LAST_TRIGGER_FILE" ]; then
+                    last_trigger=$(cat "$LAST_TRIGGER_FILE" 2>/dev/null || echo 0)
                 fi
+                elapsed=$((now_epoch - last_trigger))
+                if [ "$elapsed" -lt "$RATE_LIMIT_SECONDS" ]; then
+                    echo "[$(date -u +%H:%M:%S)] Auto-wake: Rate limited. Last trigger ${elapsed}s ago, need ${RATE_LIMIT_SECONDS}s. Skipping."
+                    continue
+                fi
+
+                # v3.1: RAM throttle — don't wake agents under memory pressure
+                if ! check_ram_before_wake; then
+                    echo "[$(date -u +%H:%M:%S)] Auto-wake: Deferred due to RAM pressure."
+                    echo "  Event: $basename_evt — will retry next cycle."
+                    continue
+                fi
+
+                # Check if Devin CLI is available
+                if [ -z "$DEVIN_CLI" ]; then
+                    echo "[$(date -u +%H:%M:%S)] Auto-wake: ERROR — Devin CLI binary not found."
+                    echo "  Set DEVIN_CLI_PATH env var or ensure devin is in PATH."
+                    echo "  Event: $basename_evt — will retry next cycle."
+                    continue
+                fi
+
+                # Look up the target agent's session_id from agents_sync.json
+                target_session_id=$(get_session_id_for_agent "$AGENT_ID" 2>/dev/null || echo "")
+
+                if [ -z "$target_session_id" ]; then
+                    echo "[$(date -u +%H:%M:%S)] Auto-wake: No session_id found for $AGENT_ID in agents_sync.json."
+                    echo "  Cannot trigger LLM inference without a session ID."
+                    echo "  Event: $basename_evt — will retry next cycle."
+                    continue
+                fi
+
+                # Construct prompt from event file
+                event_prompt=$(EVT_FILE="$evt_file" AGENT_ID="$AGENT_ID" node <<'NODE_PROMPT_EOF'
+                    const fs = require("fs");
+                    try {
+                        let raw = fs.readFileSync(process.env.EVT_FILE, "utf8");
+                        if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+                        const evt = JSON.parse(raw);
+                        const eventType = evt.type || "UNKNOWN";
+                        const source = evt.source || "unknown";
+                        const payload = evt.payload || {};
+                        const payloadStr = JSON.stringify(payload, null, 2).slice(0, 2000);
+
+                        let prompt = `You have received a ${eventType} event from ${source}.\n`;
+                        prompt += `Event file: ${process.env.EVT_FILE}\n`;
+                        prompt += `Payload:\n${payloadStr}\n\n`;
+                        prompt += `Read the event file at ${process.env.EVT_FILE} and execute the requested action.\n`;
+                        prompt += `IMPORTANT: After you have processed this event, move the event file to the .devin/events/.archive/ folder so it is not re-processed.\n`;
+                        prompt += `Use: mv ${process.env.EVT_FILE} ${process.env.EVT_FILE.replace(/events\//, 'events/.archive/')}\n`;
+                        console.log(prompt);
+                    } catch(e) {
+                        console.log("Error reading event: " + e.message);
+                        process.exit(1);
+                    }
+NODE_PROMPT_EOF
+                2>/dev/null || echo "Error: Could not read event $evt_file")
+
+                echo "[$(date -u +%H:%M:%S)] Auto-wake: Triggering LLM inference for $AGENT_ID (session: $target_session_id)"
+                echo "  Event: $basename_evt"
+                echo "  CLI: $DEVIN_CLI"
+                echo "  Prompt length: $(echo "$event_prompt" | wc -c) bytes"
+
+                # Record trigger time for rate limiting
+                echo "$now_epoch" > "$LAST_TRIGGER_FILE" 2>/dev/null || true
+
+                # Invoke Devin CLI in non-interactive print mode to resume the
+                # target session and inject the prompt. This triggers a real
+                # LLM inference cycle on GLM-5.2 High.
+                #
+                # Flags:
+                #   -p                          — Print mode (non-interactive, exits after one turn)
+                #   --resume <SESSION_ID>       — Resume the target agent's existing session
+                #   --model glm-5.2-high        — Enforce free GLM-5.2 High model
+                #   --permission-mode accept-edits — Auto-approve file edits in non-interactive mode
+                #   --respect-workspace-trust false — Skip workspace trust prompt
+                #   -- "<prompt>"               — The constructed prompt
+                "$DEVIN_CLI" -p --resume "$target_session_id" \
+                    --model glm-5.2-high \
+                    --permission-mode accept-edits \
+                    --respect-workspace-trust false \
+                    -- "$event_prompt" 2>&1 | tail -n 100 || true
+
+                echo "[$(date -u +%H:%M:%S)] Auto-wake: LLM inference cycle completed for $AGENT_ID."
             fi
         done <<< "$event_files"
     fi

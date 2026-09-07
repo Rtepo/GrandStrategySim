@@ -292,26 +292,31 @@ $unblock      -> CLARIFICATION_REQUESTED (manager -> worker)
 
 ## v3: Auto-Wake Daemons
 
-### auto_wake.sh — Active Listening
+### auto_wake.sh — Active Listening (v4.2: True Auto-Wake)
 
 **When to use:** To enable autonomous agent wake-up when events arrive.
 
 ```bash
 # Agent 4 (Auditor) — auto-wakes on PROMOTED_TO_MAIN / AUDIT_REQUESTED
-bash .devin/scripts/auto_wake.sh agent-4 "bash .devin/scripts/run_audit.sh"
+bash .devin/scripts/auto_wake.sh agent-4
 
 # Worker agents — auto-wake on REMEDIATION_REQUESTED / CLARIFICATION_REQUESTED
-bash .devin/scripts/auto_wake.sh agent-1 "bash .devin/scripts/console.sh \$inbox agent-1"
-bash .devin/scripts/auto_wake.sh agent-2 "bash .devin/scripts/console.sh \$inbox agent-2"
-bash .devin/scripts/auto_wake.sh agent-3 "bash .devin/scripts/console.sh \$inbox agent-3"
+bash .devin/scripts/auto_wake.sh agent-1
+bash .devin/scripts/auto_wake.sh agent-2
+bash .devin/scripts/auto_wake.sh agent-3
 ```
 
-**What it does:**
+**What it does (v4.2):**
 1. Polls `.devin/events/` every 10 seconds for events targeting the agent
 2. Race condition guard: re-checks file existence before reading (prevents ENOENT)
-3. Prints a high-visibility alert with event details (payload truncated to 50 lines)
-4. Optionally executes the wake command
-5. Tracks seen events in `.devin/.auto_wake_seen_<agent>.txt`
+3. Resolves the agent's `session_id` from `agents_sync.json`
+4. Constructs a prompt from the event payload
+5. **Programmatically triggers an LLM inference cycle** via:
+   `devin -p --resume <SESSION_ID> --model glm-5.2-high --permission-mode accept-edits --respect-workspace-trust false -- "<prompt>"`
+6. Rate limited: max 1 trigger per agent per 60 seconds
+7. RAM throttle: no trigger if system RAM > 85%
+8. Tracks seen events in `.devin/.auto_wake_seen_<agent>.txt`
+9. The Devin CLI binary path is auto-resolved (PATH, DEVIN_CLI_PATH, or known install location)
 
 ---
 
@@ -404,8 +409,8 @@ Uses a single `find` command with concatenated `-name` patterns.
 
 - **Daemon:** Before `cargo nextest`, checks RAM. If > 85%, suspends and
   waits 30s (max 10 retries). Uses bc-free integer comparison.
-- **auto_wake.sh:** Before wake command execution, checks RAM. If > 85%,
-  defers the wake (prints alert only).
+- **auto_wake.sh:** Before LLM trigger execution, checks RAM. If > 85%,
+  defers the trigger (event will be retried next cycle).
 - **Detection:** PowerShell (Windows) or `free` (Linux), with safe fallback.
 
 ---

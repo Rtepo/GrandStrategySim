@@ -101,17 +101,47 @@ To start an auto-wake daemon for an agent:
 
 ```bash
 # Agent 4 (Auditor) — auto-wakes on PROMOTED_TO_MAIN / AUDIT_REQUESTED
-bash .devin/scripts/auto_wake.sh agent-4 "bash .devin/scripts/run_audit.sh"
+bash .devin/scripts/auto_wake.sh agent-4
 
 # Worker agents — auto-wake on REMEDIATION_REQUESTED / CLARIFICATION_REQUESTED
-bash .devin/scripts/auto_wake.sh agent-1 "bash .devin/scripts/console.sh \$inbox agent-1"
-bash .devin/scripts/auto_wake.sh agent-2 "bash .devin/scripts/console.sh \$inbox agent-2"
-bash .devin/scripts/auto_wake.sh agent-3 "bash .devin/scripts/console.sh \$inbox agent-3"
+bash .devin/scripts/auto_wake.sh agent-1
+bash .devin/scripts/auto_wake.sh agent-2
+bash .devin/scripts/auto_wake.sh agent-3
 ```
 
 The daemon uses a seen-file (`.devin/.auto_wake_seen_<agent>.txt`) to prevent
 re-triggering. Race condition guards protect against concurrent file archival
 by the integration daemon.
+
+## v4.2: True Auto-Wake (Programmatic LLM Trigger)
+
+The auto-wake daemon no longer merely prints alerts to a log file. When a
+matching event is detected, it **programmatically triggers an LLM inference
+cycle** by invoking:
+
+```bash
+devin -p --resume <SESSION_ID> --model glm-5.2-high \
+    --permission-mode accept-edits --respect-workspace-trust false \
+    -- "<constructed prompt from event payload>"
+```
+
+This resumes the target agent's existing Devin CLI session, injects a prompt
+describing the event, and runs one full inference cycle. The agent reads the
+event, executes the requested action, and archives the event file.
+
+**Requirements:**
+- The agent's `session_id` must be registered in `agents_sync.json` (done
+  automatically by the `SessionStart` hook).
+- The Devin CLI binary must be resolvable (checked at auto_wake.sh startup).
+- Rate limited: max 1 trigger per agent per 60 seconds.
+- RAM throttle: no trigger if system RAM > 85%.
+
+**Stop Hook Event Injection:**
+The `stop.sh` hook also scans for pending events when an agent tries to stop.
+If events are found, it blocks the stop with `decision: "block"` and injects
+the event summary as context. The agent must process the event and move the
+`.json` file to `.devin/events/.archive/` to clear the block. Max 3 blocks
+per session to prevent infinite loops.
 
 ## v3.1: Centralized OOM Recovery ($recover)
 

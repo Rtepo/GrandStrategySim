@@ -38,14 +38,13 @@ echo ""
 echo "=== Launching auto_wake daemons ==="
 
 # Agent 4 (Auditor) — wakes on AUDIT_REQUESTED events to run macro audit
-# The wake command prints the inbox so Agent 4 sees the audit request.
-# (run_audit.sh requires process_audit_queue.sh which is not yet implemented;
-#  the auto_wake alert itself is sufficient to notify Agent 4.)
+# v4.2: auto_wake.sh now programmatically triggers LLM inference via
+# devin -p --resume <session_id> --model glm-5.2-high. No wake command needed.
 nohup bash .devin/scripts/auto_wake.sh agent-4 \
     >> .devin/integration_log/auto_wake_agent-4.log 2>&1 &
 WAKE_PID_4=$!
 echo "$WAKE_PID_4" >> "$WAKE_PID_FILE"
-echo "  agent-4 (Auditor): PID $WAKE_PID_4 — wake: run_audit.sh"
+echo "  agent-4 (Auditor): PID $WAKE_PID_4 — true auto-wake (devin -p --resume)"
 
 # Scan sprint manifest for worker branches and launch auto_wake for each agent
 MANIFEST="$HUB_DIR/.devin/sprint_manifest.txt"

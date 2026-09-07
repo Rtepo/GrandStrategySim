@@ -56,6 +56,107 @@ cleanup() {
 }
 trap 'cleanup' EXIT
 
+# ─── v4.2: Pending Event Injection ─────────────────────────────────────────
+# Before allowing the agent to stop, check for pending events targeting this
+# agent in .devin/events/. If found, block the stop and inject the event as
+# context, forcing another inference cycle. The agent must process the event
+# and move it to .devin/events/.archive/ to clear the block.
+#
+# Guard: Track delivered events in .devin/.stop_hook_delivered_<agent>.txt
+# to prevent infinite loops. Max 3 blocks per session.
+check_pending_events() {
+    local events_dir="${DEVIN_PROJECT_DIR:-$(pwd)}/.devin/events"
+    [ -d "$events_dir" ] || return 0
+
+    # Resolve agent_id from session_id via agents_sync.json
+    local ledger="${DEVIN_PROJECT_DIR:-$(pwd)}/agents_sync.json"
+    [ -f "$ledger" ] || return 0
+
+    local current_agent_id
+    current_agent_id=$(SESSION_ID="$SESSION_ID" node -e '
+        const fs = require("fs");
+        let input = "";
+        process.stdin.on("data", d => input += d);
+        process.stdin.on("end", () => {
+            try {
+                const data = JSON.parse(input);
+                const sid = process.env.SESSION_ID || "";
+                const agent = data.agents.find(a => a.session_id === sid && a.status === "active");
+                console.log(agent ? agent.agent_id : "");
+            } catch(e) { console.log(""); }
+        });
+    ' < "$ledger" 2>/dev/null || echo "")
+
+    # Fallback: also check if DEVIN_AGENT_ID env var is set
+    if [ -z "$current_agent_id" ] && [ -n "${DEVIN_AGENT_ID:-}" ]; then
+        current_agent_id="$DEVIN_AGENT_ID"
+    fi
+
+    [ -z "$current_agent_id" ] && return 0
+
+    # Check block count guard (max 3 blocks per session)
+    local delivered_file="${DEVIN_PROJECT_DIR:-$(pwd)}/.devin/.stop_hook_delivered_${current_agent_id}.txt"
+    local block_count=0
+    if [ -f "$delivered_file" ]; then
+        block_count=$(wc -l < "$delivered_file" 2>/dev/null || echo 0)
+    fi
+    if [ "$block_count" -ge 3 ]; then
+        return 0  # Max blocks reached — allow stop
+    fi
+
+    # Scan for pending events targeting this agent
+    local pending_events
+    pending_events=$(find "$events_dir" -maxdepth 1 -name "*.json" -type f 2>/dev/null | while IFS= read -r evt; do
+        [ -f "$evt" ] || continue
+        EVT_FILE="$evt" AGENT_ID="$current_agent_id" node -e '
+            const fs = require("fs");
+            try {
+                let raw = fs.readFileSync(process.env.EVT_FILE, "utf8");
+                if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+                const evt = JSON.parse(raw);
+                const target = evt.target || "";
+                const agentId = process.env.AGENT_ID;
+                if (target === agentId || target === "all") {
+                    console.log(process.env.EVT_FILE + "|" + (evt.type || "UNKNOWN") + "|" + (evt.source || "unknown"));
+                }
+            } catch(e) { /* skip */ }
+        ' 2>/dev/null
+    done)
+
+    if [ -z "$pending_events" ]; then
+        return 0  # No pending events — allow stop
+    fi
+
+    # Build event summary for injection
+    local event_count
+    event_count=$(echo "$pending_events" | wc -l 2>/dev/null || echo 1)
+    local summary=""
+    local archive_dir="$events_dir/.archive"
+    local first_event_file=""
+
+    while IFS='|' read -r evt_file evt_type evt_source; do
+        [ -z "$evt_file" ] && continue
+        [ -z "$first_event_file" ] && first_event_file="$evt_file"
+        summary="${summary}- ${evt_type} from ${evt_source}: ${evt_file}\n"
+    done <<< "$pending_events"
+
+    # Record this delivery
+    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) ${event_count} events" >> "$delivered_file" 2>/dev/null || true
+
+    # Block the stop and inject event context with archival instruction
+    node -e '
+        const summary = process.argv[1];
+        const count = process.argv[2];
+        const archiveDir = process.argv[3];
+        const firstEvent = process.argv[4];
+        console.log(JSON.stringify({
+            decision: "block",
+            reason: "PENDING_EVENT: You have " + count + " unread event(s) in .devin/events/:\n" + summary + "\nIMPORTANT: Read each event file, execute the requested action, then MOVE the processed .json event file to " + archiveDir + "/ to archive it. Example: mv " + firstEvent + " " + archiveDir + "/\nIf you do not archive the event file, this hook will keep blocking your stop until the 3-block limit is reached."
+        }));
+    ' "$summary" "$event_count" "$archive_dir" "$first_event_file"
+    exit 2
+}
+
 # ─── Manager Immunity (RBAC) ────────────────────────────────────────────────
 # The System Manager must never be blocked by the stop hook's CI/CD gate
 # while performing cross-branch integration duties. Authenticated via
@@ -63,6 +164,8 @@ trap 'cleanup' EXIT
 # runs on exit, ensuring auto-unlock.
 validate_manager_auth
 if [ "$AGENT_ROLE" = "manager" ]; then
+    # v4.2: Even the manager must check for pending events before stopping
+    check_pending_events
     exit 0
 fi
 
@@ -106,6 +209,7 @@ fi
 if [ "$HAS_SOURCE_CHANGE" -eq 0 ]; then
     # Write bypass marker for auditability
     echo "BYPASS $(date -u +%Y-%m-%dT%H:%M:%SZ) - no source-code changes. Modified: $(echo "$ALL_FILES" | tr '\n' ',' )" >> .devin/.cicd_bypass 2>/dev/null || true
+    check_pending_events
     exit 0
 fi
 
@@ -136,6 +240,7 @@ CURRENT_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
 
 if [ -z "$CURRENT_HEAD" ]; then
     # Not a git repo or HEAD unavailable — allow (can't enforce)
+    check_pending_events
     exit 0
 fi
 
@@ -173,6 +278,7 @@ fi
 # Commit-hash comparison: HEAD vs last_green_commit
 if [ "$CURRENT_HEAD" = "$GREEN_COMMIT" ]; then
     # The commit at HEAD was already tested globally → allow stop
+    check_pending_events
     exit 0
 fi
 

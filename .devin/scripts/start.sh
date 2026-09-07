@@ -57,6 +57,8 @@ AGENT_ID=$(echo "$SESSION_ID" | node -e '
     });
 ' 2>/dev/null || echo "agent-unknown")
 export AGENT_ID
+# v4.2: Also export as DEVIN_AGENT_ID for stop.sh fallback lookup
+export DEVIN_AGENT_ID="$AGENT_ID"
 
 # Detect current branch
 AGENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")

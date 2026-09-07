@@ -324,7 +324,13 @@ mutator_register_agent() {
         });
 
         // Find or create this agent entry
+        // v4.2: Also match by agent_id to update existing entries that may
+        // have null session_id from older runs.
         let agent = data.agents.find(a => a.session_id === sessionId);
+        if (!agent) {
+            // Try matching by agent_id (for entries with null session_id)
+            agent = data.agents.find(a => a.agent_id === agentId && !a.session_id);
+        }
         if (!agent) {
             agent = { agent_id: agentId, session_id: sessionId };
             data.agents.push(agent);
@@ -559,6 +565,26 @@ mutator_add_blocker() {
         data.last_updated = new Date().toISOString();
         fs.writeFileSync("agents_sync.json", JSON.stringify(data, null, 2));
     '
+}
+
+# ─── Helper: Get session_id for a given agent_id ───────────────────────────
+# v4.2: Used by auto_wake.sh to resolve agent-4 → session_id for devin -p --resume
+# Echoes the session_id to stdout, or empty string if not found.
+# Usage: get_session_id_for_agent "agent-4"
+get_session_id_for_agent() {
+    local target_agent="$1"
+    local ledger="${LEDGER_FILE:-agents_sync.json}"
+    [ -f "$ledger" ] || return 0
+
+    node -e '
+        const fs = require("fs");
+        const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+        const target = process.argv[2];
+        const agent = data.agents.find(a => a.agent_id === target && a.status === "active");
+        if (agent && agent.session_id) {
+            console.log(agent.session_id);
+        }
+    ' "$ledger" "$target_agent" 2>/dev/null || echo ""
 }
 
 # ─── Mutator: Clear blockers from this agent (on session end) ──────────────
