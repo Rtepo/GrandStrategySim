@@ -218,6 +218,10 @@ pub struct LaborSummary {
     pub peasant_population: f64,
     /// Phase 89: Peasant share of total national population (percentage).
     pub peasant_pct: f64,
+    /// Phase 18S: Sports/recreation capacity per capita (Rule 17 — full-stack
+    /// accountability). Exposed from HealthStatistics so the UI can render
+    /// sports infrastructure access without reading internal state.
+    pub sports_capacity_per_capita: f64,
 }
 
 /// ToT (Turn-over-Turn) and YoY (Year-over-Year) percentage deltas
@@ -3162,6 +3166,7 @@ pub fn build_country_snapshot(
         furloughed_total: macro_data.labor_market.furloughed_total,
         peasant_population,
         peasant_pct,
+        sports_capacity_per_capita: macro_data.health_statistics.sports_capacity_per_capita,
     };
 
     // Corruption index

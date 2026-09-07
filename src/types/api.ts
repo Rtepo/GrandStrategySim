@@ -909,7 +909,13 @@ peasant_population: number,
 /**
  * Phase 89: Peasant share of total national population (percentage).
  */
-peasant_pct: number, };
+peasant_pct: number, 
+/**
+ * Phase 18S: Sports/recreation capacity per capita (Rule 17 — full-stack
+ * accountability). Exposed from HealthStatistics so the UI can render
+ * sports infrastructure access without reading internal state.
+ */
+sports_capacity_per_capita: number, };
 
 /**
  * Phase 84: Landfill snapshot for UI display.
