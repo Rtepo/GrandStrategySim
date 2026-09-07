@@ -145,7 +145,43 @@ echo ""
 # ─── Pre-Integration Guard (v3: full local CI mirror) ─────────────────────
 # Force local cargo check + test + clippy + npm before emitting the event.
 # v3: If it passes here, it passes on the daemon.
+# v4.1: Fast-pass — if no Rust-related files changed vs origin/main, skip
+#       all cargo commands entirely. Python-only or docs-only changes do
+#       not require Rust compilation. npm build is still run if frontend
+#       files changed.
 if [ -f Cargo.toml ]; then
+    # v4.1: Language-detection fast-pass
+    CHANGED_FILES=$(git diff origin/main --name-only 2>/dev/null || git diff HEAD~1 --name-only 2>/dev/null || echo "")
+    RUST_FILE_COUNT=$(echo "$CHANGED_FILES" | grep -cE '\.rs$|Cargo\.toml$|Cargo\.lock$' || true)
+    FRONTEND_FILE_COUNT=$(echo "$CHANGED_FILES" | grep -cE '\.ts$|\.tsx$|\.js$|\.jsx$|\.mjs$|\.cjs$|\.css$|\.scss$|\.sass$|\.less$|\.vue$|\.svelte$|\.astro$' || true)
+
+    if [ "$RUST_FILE_COUNT" -eq 0 ]; then
+        echo "=== Pre-Integration Guard v4.1: Fast-Pass ==="
+        echo "  Non-Rust changes detected: Fast-passing CI"
+        echo "  Changed files (no .rs/Cargo.toml/Cargo.lock):"
+        echo "$CHANGED_FILES" | head -10 | sed 's/^/    /'
+        echo ""
+
+        # Still run npm build if frontend files changed
+        if [ "$FRONTEND_FILE_COUNT" -gt 0 ]; then
+            echo "  Frontend changes detected — running npm run build..."
+            if ! npm run build 2>&1 | tail -n 50; then
+                echo ""
+                echo "=============================================================="
+                echo "  PRE-INTEGRATION GUARD: npm run build FAILED"
+                echo "  Frontend build fails. Fix before requesting integration."
+                echo "  The event has NOT been emitted."
+                echo "=============================================================="
+                exit 1
+            fi
+            echo "  npm run build: PASS"
+        else
+            echo "  No frontend changes — skipping npm build."
+        fi
+
+        echo "  Fast-pass: PASS"
+        echo ""
+    else
     echo "=== Pre-Integration Guard v3: Full Local CI ==="
 
     echo "Running cargo check..."
@@ -223,6 +259,7 @@ if [ -f Cargo.toml ]; then
     echo ""
     echo "Pre-Integration Guard v3: PASS (check + test + doctest + clippy + npm green)"
     echo ""
+    fi  # end RUST_FILE_COUNT else
 fi
 
 # ─── Determine agent identity ──────────────────────────────────────────────
