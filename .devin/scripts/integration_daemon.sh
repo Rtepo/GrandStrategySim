@@ -292,9 +292,17 @@ run_cicd() {
         return 1
     fi
 
+    # v2.3.1: Auto-remove stale git index.lock before any branch switch.
+    # A stale index.lock (left by a killed git process) causes
+    # "fatal: Unable to create '/path/.git/index.lock': File exists"
+    # which fabricates merge conflicts and unfairly blocks workers.
+    rm -f "$HUB_DIR/.git/index.lock" 2>/dev/null || true
+
     # Step 1: Create/reset staging from main (timeout: 30s each)
+    rm -f "$HUB_DIR/.git/index.lock" 2>/dev/null || true
     timeout 30 git checkout main 2>&1 | tail -1
     timeout 30 git branch -f "$STAGING_BRANCH" main 2>/dev/null || true
+    rm -f "$HUB_DIR/.git/index.lock" 2>/dev/null || true
     timeout 30 git checkout "$STAGING_BRANCH" 2>&1 | tail -1
 
     # Step 2: Merge worker branch into staging (NOT main) (timeout: 60s)
@@ -302,8 +310,12 @@ run_cicd() {
     local merge_rc=${PIPESTATUS[0]}
     if [ $merge_rc -ne 0 ]; then
         local conflicts=$(git diff --name-only --diff-filter=U 2>/dev/null | tr '\n' ' ')
+        # v2.3.1: Graceful abort — clean up all merge state, remove lock, return to main
         git merge --abort 2>/dev/null || true
+        git reset --merge 2>/dev/null || true
+        rm -f "$HUB_DIR/.git/index.lock" 2>/dev/null || true
         git checkout main 2>/dev/null
+        rm -f "$HUB_DIR/.git/index.lock" 2>/dev/null || true
         if [ $merge_rc -eq 124 ]; then
             echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
             echo "TIMEOUT_FAILED"
@@ -435,7 +447,9 @@ run_cicd() {
 
     # Step 4: ALL CI/CD PASSED — now safe to merge staging into main (timeout: 30s)
     local staging_commit=$(git rev-parse HEAD)
+    rm -f "$HUB_DIR/.git/index.lock" 2>/dev/null || true
     timeout 30 git checkout main 2>&1 | tail -1
+    rm -f "$HUB_DIR/.git/index.lock" 2>/dev/null || true
     timeout 30 git merge --ff-only "$staging_commit" 2>&1 | tail -3
     local ff_rc=$?
     if [ $ff_rc -ne 0 ]; then
