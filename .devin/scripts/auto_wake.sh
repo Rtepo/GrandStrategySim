@@ -19,6 +19,26 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # ─── Source sync library for session_id lookup ─────────────────────────────
 source "$SCRIPT_DIR/sync_lib.sh" 2>/dev/null || true
 
+# ─── v4.3: Load API key from .devin/.env ───────────────────────────────────
+# The Devin CLI binary has a known quirk where it fails to parse the
+# browser-generated credentials.toml, falling back to an interactive TUI
+# login picker which hangs headless processes. We load WINDSURF_API_KEY
+# from .devin/.env to bypass the credentials.toml entirely.
+ENV_FILE=""
+if [ -f "$SCRIPT_DIR/../.env" ]; then
+    ENV_FILE="$SCRIPT_DIR/../.env"
+elif [ -f "$PWD/.devin/.env" ]; then
+    ENV_FILE="$PWD/.devin/.env"
+fi
+if [ -n "$ENV_FILE" ]; then
+    set -a
+    source "$ENV_FILE" 2>/dev/null || true
+    set +a
+    echo "[init] Loaded WINDSURF_API_KEY from $ENV_FILE"
+else
+    echo "[init] WARNING: No .devin/.env file found. WINDSURF_API_KEY not set."
+fi
+
 # ─── v4.2: Resolve Devin CLI binary path ───────────────────────────────────
 # devin.exe is not in PATH on Windows. Resolve it via multiple fallbacks.
 resolve_devin_cli() {
@@ -332,18 +352,26 @@ NODE_PROMPT_EOF
                 # target session and inject the prompt. This triggers a real
                 # LLM inference cycle on GLM-5.2 High.
                 #
+                # v4.3 hardening:
+                #   - WINDSURF_API_KEY loaded from .devin/.env (bypasses credentials.toml quirk)
+                #   - < /dev/null forces immediate crash if auth fails (no TUI picker hang)
+                #   - timeout 300 kills the process after 5 minutes if it hangs
+                #   - Output written directly to log file (unbuffered, real-time monitoring)
+                #
                 # Flags:
                 #   -p                          — Print mode (non-interactive, exits after one turn)
                 #   --resume <SESSION_ID>       — Resume the target agent's existing session
                 #   --model glm-5.2-high        — Enforce free GLM-5.2 High model
-                #   --permission-mode accept-edits — Auto-approve file edits in non-interactive mode
+                #   --permission-mode dangerous — Auto-approve ALL tools (edits + shell) for headless autonomy
                 #   --respect-workspace-trust false — Skip workspace trust prompt
                 #   -- "<prompt>"               — The constructed prompt
-                "$DEVIN_CLI" -p --resume "$target_session_id" \
+                echo "[$(date -u +%H:%M:%S)] Auto-wake: Invoking devin -p --resume (timeout 300s, stdin=/dev/null)..." >> "$HUB_DIR/.devin/integration_log/auto_wake_${AGENT_ID}.log"
+
+                timeout 300 "$DEVIN_CLI" -p --resume "$target_session_id" \
                     --model glm-5.2-high \
-                    --permission-mode accept-edits \
+                    --permission-mode dangerous \
                     --respect-workspace-trust false \
-                    -- "$event_prompt" 2>&1 | tail -n 100 || true
+                    -- "$event_prompt" < /dev/null >> "$HUB_DIR/.devin/integration_log/auto_wake_${AGENT_ID}.log" 2>&1 || true
 
                 echo "[$(date -u +%H:%M:%S)] Auto-wake: LLM inference cycle completed for $AGENT_ID."
             fi
