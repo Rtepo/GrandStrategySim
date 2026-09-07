@@ -10,13 +10,16 @@ export SKIP_AUDIT=1
 mkdir -p .devin/integration_log
 
 # ─── Launch the integration daemon ─────────────────────────────────────────
+# NOTE: Do NOT write the PID file here — the daemon writes its own PID at
+# startup (line 78 of integration_daemon.sh). Writing it here causes the
+# daemon to see its own PID and abort with "already running".
+rm -f .devin/.integration_daemon.pid  # Clear any stale PID file
 nohup bash .devin/scripts/integration_daemon.sh >> .devin/integration_log/daemon.log 2>&1 &
 DAEMON_PID=$!
 echo "DAEMON_PID=$DAEMON_PID"
-echo "$DAEMON_PID" > .devin/.integration_daemon.pid
 echo "Log: .devin/integration_log/daemon.log"
 echo "PID file: .devin/.integration_daemon.pid"
-sleep 2
+sleep 3
 if kill -0 "$DAEMON_PID" 2>/dev/null; then
     echo "Daemon is running (PID $DAEMON_PID)."
 else
@@ -35,7 +38,10 @@ echo ""
 echo "=== Launching auto_wake daemons ==="
 
 # Agent 4 (Auditor) — wakes on AUDIT_REQUESTED events to run macro audit
-nohup bash .devin/scripts/auto_wake.sh agent-4 "bash .devin/scripts/run_audit.sh" \
+# The wake command prints the inbox so Agent 4 sees the audit request.
+# (run_audit.sh requires process_audit_queue.sh which is not yet implemented;
+#  the auto_wake alert itself is sufficient to notify Agent 4.)
+nohup bash .devin/scripts/auto_wake.sh agent-4 \
     >> .devin/integration_log/auto_wake_agent-4.log 2>&1 &
 WAKE_PID_4=$!
 echo "$WAKE_PID_4" >> "$WAKE_PID_FILE"
