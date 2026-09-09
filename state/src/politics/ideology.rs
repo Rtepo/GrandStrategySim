@@ -3,12 +3,124 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-/// A three-dimensional ideological compass.
+/// Authoritative ideological position of an entity on three continuous axes.
+///
+/// All three axes are `f64` in `[-1.0, +1.0]`, clamped on every mutation.
+///   economy:   -1.0 = total collectivization, +1.0 = laissez-faire capitalism
+///   liberty:   -1.0 = totalitarian,         +1.0 = anarchic liberty
+///   tradition: -1.0 = revolutionary futurism, +1.0 = entrenched traditionalism
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
-pub struct IdeologyCompass {
+pub struct IdeologyCoordinates {
     pub economy: f64,
     pub liberty: f64,
     pub tradition: f64,
+}
+
+impl IdeologyCoordinates {
+    /// Construct coordinates, clamping each axis to [-1.0, +1.0].
+    pub fn new(economy: f64, liberty: f64, tradition: f64) -> Self {
+        Self {
+            economy: economy.clamp(-1.0, 1.0),
+            liberty: liberty.clamp(-1.0, 1.0),
+            tradition: tradition.clamp(-1.0, 1.0),
+        }
+    }
+
+    /// Euclidean distance between two coordinate sets.
+    pub fn distance_to(self, other: IdeologyCoordinates) -> f64 {
+        let de = self.economy - other.economy;
+        let dl = self.liberty - other.liberty;
+        let dt = self.tradition - other.tradition;
+        (de * de + dl * dl + dt * dt).sqrt()
+    }
+
+    /// Scale all three axes by a scalar (for drift magnitude).
+    pub fn scale(self, s: f64) -> IdeologyCoordinates {
+        IdeologyCoordinates {
+            economy: self.economy * s,
+            liberty: self.liberty * s,
+            tradition: self.tradition * s,
+        }
+    }
+
+    /// Element-wise addition (for combining drift vectors).
+    pub fn add(self, other: IdeologyCoordinates) -> IdeologyCoordinates {
+        IdeologyCoordinates {
+            economy: self.economy + other.economy,
+            liberty: self.liberty + other.liberty,
+            tradition: self.tradition + other.tradition,
+        }
+    }
+
+    /// Element-wise subtraction.
+    pub fn sub(self, other: IdeologyCoordinates) -> IdeologyCoordinates {
+        IdeologyCoordinates {
+            economy: self.economy - other.economy,
+            liberty: self.liberty - other.liberty,
+            tradition: self.tradition - other.tradition,
+        }
+    }
+
+    /// Clamp all axes to [-1.0, +1.0] in place.
+    pub fn clamp_mut(&mut self) {
+        self.economy = self.economy.clamp(-1.0, 1.0);
+        self.liberty = self.liberty.clamp(-1.0, 1.0);
+        self.tradition = self.tradition.clamp(-1.0, 1.0);
+    }
+}
+
+/// Legacy alias retained while the cross-module rename to `IdeologyCoordinates`
+/// is completed (Ideology Step 5). It is a transparent alias, not a serde shim:
+/// both names serialize identically and refer to the same struct.
+pub type IdeologyCompass = IdeologyCoordinates;
+
+/// Linear interpolation between two endpoint values.
+///
+/// Given an input `t` in [-1.0, +1.0], returns the value that is
+/// `lo` at t = -1.0 and `hi` at t = +1.0, linearly interpolated.
+///
+/// # Formula
+///   result = lo + (hi - lo) * (t + 1.0) / 2.0
+///
+/// # Example
+///   lerp(0.0, 10.0, 0.0)  -> 5.0   (midpoint)
+///   lerp(0.0, 10.0, -1.0) -> 0.0   (left endpoint)
+///   lerp(0.0, 10.0, 1.0)  -> 10.0  (right endpoint)
+#[inline]
+pub fn lerp(lo: f64, hi: f64, t: f64) -> f64 {
+    lo + (hi - lo) * ((t + 1.0) / 2.0)
+}
+
+/// Clamp the result of a lerp to a minimum of 0.0 (for rates that
+/// cannot be negative, e.g. tax rates).
+#[inline]
+pub fn lerp_clamped_nonneg(lo: f64, hi: f64, t: f64) -> f64 {
+    lerp(lo, hi, t).max(0.0)
+}
+
+/// Select a value from a sorted list of (threshold, value) bands.
+///
+/// `bands` must be sorted by threshold in ascending order. For an input
+/// `t`, returns the value of the last band whose threshold <= t.
+/// If no band matches (t < all thresholds), returns the first band's value.
+///
+/// # Example
+///   let bands = [(-0.6, "Autarky"), (-0.2, "Protectionism"), (0.4, "Free Trade")];
+///   band_select(-0.5, &bands) -> "Protectionism"
+pub fn band_select<'a, T: Copy>(t: f64, bands: &'a [(f64, T)]) -> T {
+    assert!(
+        !bands.is_empty(),
+        "band_select called with empty bands"
+    );
+    let mut result = bands[0].1;
+    for &(threshold, value) in bands {
+        if t >= threshold {
+            result = value;
+        } else {
+            break;
+        }
+    }
+    result
 }
 
 /// Policy preferences derived from an ideology.
@@ -120,79 +232,79 @@ impl Ideology {
     }
 
     /// Compass coordinates used for coalition distance and stability math.
-    pub fn compass(self) -> IdeologyCompass {
+    pub fn compass(self) -> IdeologyCoordinates {
         match self {
-            Ideology::OrthodoxMarxism => IdeologyCompass {
+            Ideology::OrthodoxMarxism => IdeologyCoordinates {
                 economy: -0.8,
                 liberty: 0.0,
                 tradition: -0.7,
             },
-            Ideology::MarxismLeninism => IdeologyCompass {
+            Ideology::MarxismLeninism => IdeologyCoordinates {
                 economy: -1.0,
                 liberty: -1.0,
                 tradition: -0.5,
             },
-            Ideology::Maoism => IdeologyCompass {
+            Ideology::Maoism => IdeologyCoordinates {
                 economy: -1.0,
                 liberty: -1.0,
                 tradition: -1.0,
             },
-            Ideology::SocialDemocracy => IdeologyCompass {
+            Ideology::SocialDemocracy => IdeologyCoordinates {
                 economy: -0.3,
                 liberty: 0.5,
                 tradition: -0.3,
             },
-            Ideology::GreenPolitics => IdeologyCompass {
+            Ideology::GreenPolitics => IdeologyCoordinates {
                 economy: -0.4,
                 liberty: 0.7,
                 tradition: -0.6,
             },
-            Ideology::ClassicalLiberalism => IdeologyCompass {
+            Ideology::ClassicalLiberalism => IdeologyCoordinates {
                 economy: 0.8,
                 liberty: 0.6,
                 tradition: 0.0,
             },
-            Ideology::SocialLiberalism => IdeologyCompass {
+            Ideology::SocialLiberalism => IdeologyCoordinates {
                 economy: 0.2,
                 liberty: 0.8,
                 tradition: -0.2,
             },
-            Ideology::Agrarianism => IdeologyCompass {
+            Ideology::Agrarianism => IdeologyCoordinates {
                 economy: 0.0,
                 liberty: 0.2,
                 tradition: 0.4,
             },
-            Ideology::ChristianDemocracy => IdeologyCompass {
+            Ideology::ChristianDemocracy => IdeologyCoordinates {
                 economy: 0.1,
                 liberty: 0.3,
                 tradition: 0.6,
             },
-            Ideology::SocialConservatism => IdeologyCompass {
+            Ideology::SocialConservatism => IdeologyCoordinates {
                 economy: 0.0,
                 liberty: -0.3,
                 tradition: 0.8,
             },
-            Ideology::Neoconservatism => IdeologyCompass {
+            Ideology::Neoconservatism => IdeologyCoordinates {
                 economy: 0.3,
                 liberty: -0.3,
                 tradition: 0.6,
             },
-            Ideology::Neoliberalism => IdeologyCompass {
+            Ideology::Neoliberalism => IdeologyCoordinates {
                 economy: 0.9,
                 liberty: 0.5,
                 tradition: 0.0,
             },
-            Ideology::NationalConservatism => IdeologyCompass {
+            Ideology::NationalConservatism => IdeologyCoordinates {
                 economy: 0.2,
                 liberty: -0.5,
                 tradition: 0.7,
             },
-            Ideology::AnarchoCapitalism => IdeologyCompass {
+            Ideology::AnarchoCapitalism => IdeologyCoordinates {
                 economy: 1.0,
                 liberty: 1.0,
                 tradition: -0.5,
             },
-            Ideology::Fascism => IdeologyCompass {
+            Ideology::Fascism => IdeologyCoordinates {
                 economy: 0.2,
                 liberty: -1.0,
                 tradition: 0.3,
@@ -635,4 +747,179 @@ impl Ideology {
             | Ideology::NationalConservatism => OrganizationType::DemocraticCentralism,
         }
     }
+}
+
+// =============================================================================
+// Ideology centroid registry + coordinate classifier (Ideology Step 1, Part 2)
+// =============================================================================
+
+/// A canonical ideology centroid for label classification.
+#[derive(Debug, Clone, Copy)]
+pub struct IdeologyCentroid {
+    pub label: &'static str,
+    pub coordinates: IdeologyCoordinates,
+    pub required_year: u32,
+}
+
+/// Static registry of the 15 canonical centroids.
+///
+/// These replace the hardcoded `compass()` match arms as the authoritative
+/// reference data for label classification. The numeric values are identical
+/// to the current `compass()` return values — they are reference data points,
+/// not behavioral magic thresholds (Directive 2).
+pub static IDEOLOGY_CENTROIDS: &[IdeologyCentroid] = &[
+    IdeologyCentroid {
+        label: "Orthodox Marxism",
+        coordinates: IdeologyCoordinates {
+            economy: -0.8,
+            liberty: 0.0,
+            tradition: -0.7,
+        },
+        required_year: 1848,
+    },
+    IdeologyCentroid {
+        label: "Marxism-Leninism",
+        coordinates: IdeologyCoordinates {
+            economy: -1.0,
+            liberty: -1.0,
+            tradition: -0.5,
+        },
+        required_year: 1900,
+    },
+    IdeologyCentroid {
+        label: "Maoism",
+        coordinates: IdeologyCoordinates {
+            economy: -1.0,
+            liberty: -1.0,
+            tradition: -1.0,
+        },
+        required_year: 1930,
+    },
+    IdeologyCentroid {
+        label: "Social Democracy",
+        coordinates: IdeologyCoordinates {
+            economy: -0.3,
+            liberty: 0.5,
+            tradition: -0.3,
+        },
+        required_year: 1890,
+    },
+    IdeologyCentroid {
+        label: "Green Politics",
+        coordinates: IdeologyCoordinates {
+            economy: -0.4,
+            liberty: 0.7,
+            tradition: -0.6,
+        },
+        required_year: 1970,
+    },
+    IdeologyCentroid {
+        label: "Classical Liberalism",
+        coordinates: IdeologyCoordinates {
+            economy: 0.8,
+            liberty: 0.6,
+            tradition: 0.0,
+        },
+        required_year: 1776,
+    },
+    IdeologyCentroid {
+        label: "Social Liberalism",
+        coordinates: IdeologyCoordinates {
+            economy: 0.2,
+            liberty: 0.8,
+            tradition: -0.2,
+        },
+        required_year: 1850,
+    },
+    IdeologyCentroid {
+        label: "Agrarianism",
+        coordinates: IdeologyCoordinates {
+            economy: 0.0,
+            liberty: 0.2,
+            tradition: 0.4,
+        },
+        required_year: 1880,
+    },
+    IdeologyCentroid {
+        label: "Christian Democracy",
+        coordinates: IdeologyCoordinates {
+            economy: 0.1,
+            liberty: 0.3,
+            tradition: 0.6,
+        },
+        required_year: 1945,
+    },
+    IdeologyCentroid {
+        label: "Social Conservatism",
+        coordinates: IdeologyCoordinates {
+            economy: 0.0,
+            liberty: -0.3,
+            tradition: 0.8,
+        },
+        required_year: 1800,
+    },
+    IdeologyCentroid {
+        label: "Neoconservatism",
+        coordinates: IdeologyCoordinates {
+            economy: 0.3,
+            liberty: -0.3,
+            tradition: 0.6,
+        },
+        required_year: 1968,
+    },
+    IdeologyCentroid {
+        label: "Neoliberalism",
+        coordinates: IdeologyCoordinates {
+            economy: 0.9,
+            liberty: 0.5,
+            tradition: 0.0,
+        },
+        required_year: 1970,
+    },
+    IdeologyCentroid {
+        label: "National Conservatism",
+        coordinates: IdeologyCoordinates {
+            economy: 0.2,
+            liberty: -0.5,
+            tradition: 0.7,
+        },
+        required_year: 1900,
+    },
+    IdeologyCentroid {
+        label: "Anarcho-Capitalism",
+        coordinates: IdeologyCoordinates {
+            economy: 1.0,
+            liberty: 1.0,
+            tradition: -0.5,
+        },
+        required_year: 1950,
+    },
+    IdeologyCentroid {
+        label: "Fascism",
+        coordinates: IdeologyCoordinates {
+            economy: 0.2,
+            liberty: -1.0,
+            tradition: 0.3,
+        },
+        required_year: 1920,
+    },
+];
+
+/// Classify an entity's coordinates into the nearest canonical label.
+///
+/// Returns the label string and the Euclidean distance (for "purity" /
+/// faction drift). Only centroids whose `required_year` <= `year` are
+/// eligible (zeitgeist gating).
+///
+/// This function is called ONLY for display and naming (UI snapshot,
+/// party name generation, diplomacy flavor). It is NEVER called inside
+/// a behavioral decision path.
+pub fn classify(coords: IdeologyCoordinates, year: u32) -> (&'static str, f64) {
+    IDEOLOGY_CENTROIDS
+        .iter()
+        .filter(|c| year >= c.required_year)
+        .map(|c| (c.label, coords.distance_to(c.coordinates)))
+        .min_by(|(_, d1), (_, d2)| d1.partial_cmp(d2).unwrap_or(std::cmp::Ordering::Equal))
+        .map(|(label, dist)| (label, dist))
+        .unwrap_or(("Centrist", 0.0))
 }
