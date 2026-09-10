@@ -5269,7 +5269,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // This ensures wealth/capital-gains tax brackets always reflect the
         // ruling ideology. Player agency is expressed through elections.
         tasks.par_iter_mut().for_each(|task| {
-            crate::politics::apply_ruling_ideology_policies(task.ctx.country);
+            crate::politics::apply_ruling_coordinate_policies(task.ctx.country, task.ctx.year);
         });
 
         // Phase 39: Check snap election every turn (not just at year boundary).
@@ -5290,7 +5290,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         tasks.par_iter_mut().for_each(|task| {
             let unrest = task.ctx.country.macro_indicators.social_unrest;
             let msgs =
-                crate::politics::run_election_if_due(task.ctx.country, unrest, task.ctx.turn);
+                crate::politics::run_election_if_due(
+                    task.ctx.country,
+                    unrest,
+                    task.ctx.turn,
+                    task.ctx.year,
+                );
             for msg in msgs {
                 task.ctx.country.budget.extra.insert(
                     format!("election_msg_{}", task.ctx.turn),

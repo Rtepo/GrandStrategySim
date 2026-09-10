@@ -1168,3 +1168,59 @@ pub fn resolve_school_system(tradition: f64, year: u32) -> &'static str {
         "Secular"
     }
 }
+
+/// Derive the economic school label from ideological coordinates.
+///
+/// Replaces `Ideology::economic_school()` (15-arm match). The school is a
+/// display label determined primarily by the economy axis, with a liberty
+/// correction: authoritarian left regimes are labeled "Marxist" rather than
+/// "Keynesian" (matches the legacy Fascism -> "Marxist" and
+/// Marxism-Leninism -> "Marxist" mappings).
+///
+///   economy < -0.5                        -> "Marxist"
+///   -0.5..-0.1 && liberty < -0.3          -> "Marxist"  (authoritarian left)
+///   -0.5..-0.1 && liberty >= -0.3         -> "Keynesian"
+///   -0.1..0.3                             -> "State Interventionism"
+///   0.3..0.6 && tradition > 0.3           -> "Narodowy Solidaryzm"
+///   0.3..0.6 && tradition <= 0.3          -> "Classical"
+///   0.6..0.9                              -> "Austrian"
+///   >= 0.9                                -> "Monetarist"
+pub fn economic_school_from_coords(coords: IdeologyCoordinates) -> &'static str {
+    if coords.economy < -0.5 {
+        "Marxist"
+    } else if coords.economy < -0.1 {
+        if coords.liberty < -0.3 {
+            "Marxist"
+        } else {
+            "Keynesian"
+        }
+    } else if coords.economy < 0.3 {
+        "State Interventionism"
+    } else if coords.economy < 0.6 {
+        if coords.tradition > 0.3 {
+            "Narodowy Solidaryzm"
+        } else {
+            "Classical"
+        }
+    } else if coords.economy < 0.9 {
+        "Austrian"
+    } else {
+        "Monetarist"
+    }
+}
+
+/// Get the ruling party's ideological coordinates.
+///
+/// Derives coordinates from the ruling party's stored ideology string via
+/// `Ideology::compass()`. This bridges the legacy string-based party
+/// representation to the continuous coordinate system until the `Party`
+/// struct gains a native `coordinates` field (Step 1 scope).
+pub fn get_ruling_coordinates(country: &crate::state::Country) -> IdeologyCoordinates {
+    country
+        .politics
+        .active_parties
+        .get(&country.politics.ruling_party)
+        .and_then(|p| Ideology::from_name(&p.ideology))
+        .map(|i| i.compass())
+        .unwrap_or_default()
+}

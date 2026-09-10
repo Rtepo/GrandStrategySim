@@ -4,7 +4,10 @@ use rand::Rng;
 
 use super::elections;
 use super::generator;
-use super::ideology::Ideology;
+use super::ideology::{
+    economic_school_from_coords, get_ruling_coordinates, resolve_preferences, Ideology,
+    IdeologyCoordinates,
+};
 use super::interest_groups;
 use super::local_council;
 use super::names;
@@ -535,7 +538,7 @@ extra: std::collections::HashMap::new(),
         country.politics.years_to_elections = form.election_cycle();
         country.politics.budget_crisis = false;
 
-        apply_ruling_ideology_policies(country);
+        apply_ruling_coordinate_policies(country, year);
 
         let coalition_str = if country.politics.coalition.is_empty() {
             "with a decisive majority".to_string()
@@ -1159,7 +1162,12 @@ pub fn check_snap_election(country: &mut Country, current_turn: u32) -> Vec<Stri
 
 /// Phase 39: Run election if one is due. Called every turn (not just at year
 /// boundaries) so snap elections take effect immediately. Returns messages.
-pub fn run_election_if_due(country: &mut Country, unrest: f64, current_turn: u32) -> Vec<String> {
+pub fn run_election_if_due(
+    country: &mut Country,
+    unrest: f64,
+    current_turn: u32,
+    year: u32,
+) -> Vec<String> {
     let mut messages = Vec::new();
     let form = country.politics.government_form;
 
@@ -1202,7 +1210,7 @@ pub fn run_election_if_due(country: &mut Country, unrest: f64, current_turn: u32
     country.politics.years_to_elections = form.election_cycle();
     country.politics.budget_crisis = false;
 
-    apply_ruling_ideology_policies(country);
+    apply_ruling_coordinate_policies(country, year);
 
     // Phase 40: Initialize/update Parliament struct after elections.
     // Previously, run_election_if_due only updated the flat parliament HashMap
@@ -1275,16 +1283,24 @@ pub fn run_election_if_due(country: &mut Country, unrest: f64, current_turn: u32
     messages
 }
 
-pub fn apply_ruling_ideology_policies(country: &mut Country) {
-    let ruling_ideology = country
-        .politics
-        .active_parties
-        .get(&country.politics.ruling_party)
-        .and_then(|p| Ideology::from_name(&p.ideology))
-        .unwrap_or_default();
-    let prefs = ruling_ideology.preferences();
+/// I-REV-2: Apply the ruling party's policy bundle from its ideological
+/// coordinates.
+///
+/// This is the coordinate-system replacement for `apply_ruling_ideology_policies`.
+/// It resolves the full policy bundle via `resolve_preferences` (continuous
+/// functions of the 3 axes), writes every field to `country.politics`, sets
+/// the economic school label, refreshes tariffs from the trade doctrine, and
+/// applies the inflation-proof tax policy using `average_wage`.
+pub fn apply_ruling_coordinate_policies(country: &mut Country, year: u32) {
+    let ruling_coords = get_ruling_coordinates(country);
+    let prefs = resolve_preferences(ruling_coords, year);
 
-    country.politics.government_economic_school = ruling_ideology.economic_school().to_string();
+    // Economic school label (display only -- derived from coordinates, not
+    // the enum). Replaces `ruling_ideology.economic_school()`.
+    country.politics.government_economic_school =
+        economic_school_from_coords(ruling_coords).to_string();
+
+    // Policy bundle fields (replaces the 12 prefs.* assignments).
     country.politics.trade_doctrine = prefs.trade_doctrine.to_string();
     // Phase 29: Set commodity-specific tariffs based on the trade doctrine.
     crate::politics::trade_policy::set_tariffs_from_doctrine(country);
@@ -1300,127 +1316,100 @@ pub fn apply_ruling_ideology_policies(country: &mut Country) {
     country.politics.emancipation_law = prefs.emancipation.to_string();
 
     // Phase 39: Apply ideology-driven tax policy every turn.
-    apply_ideology_tax_policy(country, ruling_ideology);
+    // Now coordinate-based and inflation-proof (scales by average_wage).
+    let avg_wage = country.macro_indicators.average_wage;
+    apply_coordinate_tax_policy(country, ruling_coords, avg_wage);
 }
 
-/// Phase 39: Sets wealth tax and capital gains tax brackets based on the
-/// ruling ideology's economic school. Applied every turn to ensure
-/// ideological consistency. Player agency is expressed through elections.
-fn apply_ideology_tax_policy(country: &mut Country, ideology: Ideology) {
+/// Apply tax policy derived from ideological coordinates.
+///
+/// All wealth-tax thresholds are scaled by `average_wage` to be
+/// inflation-proof (Directive 2). The multiplier is the number of
+/// years of average wages that define each wealth tier.
+fn apply_coordinate_tax_policy(
+    country: &mut Country,
+    coords: IdeologyCoordinates,
+    average_wage: f64,
+) {
     use crate::state::tax::{CapitalGainsTax, TaxBracket, WealthTax};
     use serde_json::Map;
 
-    let (wealth_brackets, cg_brackets): (Vec<TaxBracket>, Vec<TaxBracket>) = match ideology {
-        // Socialist/Marxist: heavy wealth tax, high capital gains
-        Ideology::OrthodoxMarxism | Ideology::MarxismLeninism | Ideology::Maoism => (
-            vec![
-                TaxBracket {
-                    threshold: 1_000_000.0,
-                    rate: 0.02,
-                    extra: Map::new(),
-                },
-                TaxBracket {
-                    threshold: 10_000_000.0,
-                    rate: 0.05,
-                    extra: Map::new(),
-                },
-            ],
-            vec![TaxBracket {
-                threshold: 0.0,
-                rate: 0.30,
-                extra: Map::new(),
-            }],
-        ),
-        // Social Democratic: moderate wealth tax, standard capital gains
-        Ideology::SocialDemocracy | Ideology::GreenPolitics => (
-            vec![
-                TaxBracket {
-                    threshold: 2_000_000.0,
-                    rate: 0.01,
-                    extra: Map::new(),
-                },
-                TaxBracket {
-                    threshold: 10_000_000.0,
-                    rate: 0.03,
-                    extra: Map::new(),
-                },
-            ],
-            vec![TaxBracket {
-                threshold: 0.0,
-                rate: 0.19,
-                extra: Map::new(),
-            }],
-        ),
-        // Keynesian/Social Liberal: light wealth tax, standard capital gains
-        Ideology::SocialLiberalism => (
-            vec![TaxBracket {
-                threshold: 5_000_000.0,
-                rate: 0.005,
-                extra: Map::new(),
-            }],
-            vec![TaxBracket {
-                threshold: 0.0,
-                rate: 0.19,
-                extra: Map::new(),
-            }],
-        ),
-        // Centrist/Agrarian: baseline wealth tax, standard capital gains
-        Ideology::Agrarianism | Ideology::ChristianDemocracy => (
-            vec![TaxBracket {
-                threshold: 5_000_000.0,
-                rate: 0.01,
-                extra: Map::new(),
-            }],
-            vec![TaxBracket {
-                threshold: 0.0,
-                rate: 0.19,
-                extra: Map::new(),
-            }],
-        ),
-        // Classical Liberal: no wealth tax, lower capital gains
-        Ideology::ClassicalLiberalism => (
-            vec![],
-            vec![TaxBracket {
-                threshold: 0.0,
-                rate: 0.15,
-                extra: Map::new(),
-            }],
-        ),
-        // Conservative: no wealth tax, standard capital gains
-        Ideology::SocialConservatism
-        | Ideology::NationalConservatism
-        | Ideology::Neoconservatism => (
-            vec![],
-            vec![TaxBracket {
-                threshold: 0.0,
-                rate: 0.19,
-                extra: Map::new(),
-            }],
-        ),
-        // Neoliberal: no wealth tax, low capital gains
-        Ideology::Neoliberalism => (
-            vec![],
-            vec![TaxBracket {
-                threshold: 0.0,
-                rate: 0.10,
-                extra: Map::new(),
-            }],
-        ),
-        // Anarcho-Capitalist: no taxes at all
-        Ideology::AnarchoCapitalism => (vec![], vec![]),
-        // Fascism: state-controlled, moderate wealth tax, high capital gains
-        Ideology::Fascism => (
-            vec![TaxBracket {
-                threshold: 2_000_000.0,
+    // Ensure average_wage is positive (guard against degenerate states).
+    let wage = average_wage.max(1.0);
+
+    // --- Wealth Tax ---
+    // Number of brackets: 2 if economy < -0.2 (left), 1 if -0.2..0.5, 0 if >= 0.5
+    let wealth_brackets: Vec<TaxBracket> = if coords.economy < -0.6 {
+        // Marxist tier: two brackets, aggressive
+        vec![
+            TaxBracket {
+                threshold: wage * 1_000.0, // 1,000 years of avg wage
                 rate: 0.02,
                 extra: Map::new(),
-            }],
-            vec![TaxBracket {
-                threshold: 0.0,
-                rate: 0.25,
+            },
+            TaxBracket {
+                threshold: wage * 10_000.0, // 10,000 years of avg wage
+                rate: 0.05,
                 extra: Map::new(),
-            }],
-        ),
+            },
+        ]
+    } else if coords.economy < -0.2 {
+        // Social Democratic tier: two brackets, moderate
+        vec![
+            TaxBracket {
+                threshold: wage * 2_000.0, // 2,000 years of avg wage
+                rate: 0.01,
+                extra: Map::new(),
+            },
+            TaxBracket {
+                threshold: wage * 10_000.0, // 10,000 years of avg wage
+                rate: 0.03,
+                extra: Map::new(),
+            },
+        ]
+    } else if coords.economy < 0.0 {
+        // Social Liberal tier: one bracket, light
+        vec![TaxBracket {
+            threshold: wage * 5_000.0, // 5,000 years of avg wage
+            rate: 0.005,
+            extra: Map::new(),
+        }]
+    } else if coords.economy < 0.3 {
+        // Centrist/Agrarian/ChristianDem: one bracket, baseline
+        vec![TaxBracket {
+            threshold: wage * 5_000.0, // 5,000 years of avg wage
+            rate: 0.01,
+            extra: Map::new(),
+        }]
+    } else if coords.liberty < -0.5 {
+        // Fascism (economy ~0.2, liberty < -0.5): state-controlled, moderate
+        vec![TaxBracket {
+            threshold: wage * 2_000.0, // 2,000 years of avg wage
+            rate: 0.02,
+            extra: Map::new(),
+        }]
+    } else {
+        // Classical Liberal / Neoliberal / Anarcho-Capitalist: no wealth tax
+        vec![]
+    };
+
+    // --- Capital Gains Tax ---
+    // capital_gains_rate: left -> 0.30 (30%), right -> 0.10 (10%)
+    // Anarcho-Capitalist (economy = 1.0): 0.0
+    let capital_gains_rate = if coords.economy >= 0.99 {
+        0.0
+    } else {
+        crate::politics::ideology::lerp_clamped_nonneg(0.30, 0.10, coords.economy)
+    };
+
+    let cg_brackets: Vec<TaxBracket> = if capital_gains_rate > 0.0 {
+        vec![TaxBracket {
+            threshold: 0.0,
+            rate: capital_gains_rate,
+            extra: Map::new(),
+        }]
+    } else {
+        vec![]
     };
 
     country.tax_rates.wealth_tax = WealthTax {
@@ -2063,7 +2052,7 @@ pub fn bootstrap_politics(
             country.politics.coalition = Vec::new();
             country.politics.coalition_id = "authoritarian".to_string();
             country.politics.minority_government = false;
-            apply_ruling_ideology_policies(country);
+            apply_ruling_coordinate_policies(country, year);
         }
     }
 }

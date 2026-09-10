@@ -150,8 +150,8 @@ pub use traits::{
     TraitRegistry,
 };
 pub use turn::{
-    apply_ruling_ideology_policies, assign_regional_heads, bootstrap_politics, check_snap_election,
-    process_political_turn, process_political_year, run_election_if_due,
+    apply_ruling_coordinate_policies, assign_regional_heads, bootstrap_politics,
+    check_snap_election, process_political_turn, process_political_year, run_election_if_due,
 };
 pub use vip_registry::{
     age_health_degradation, assign_core_traits, death_probability, DeathCause, DiplomaticPost,
