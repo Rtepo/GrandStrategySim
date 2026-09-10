@@ -3,6 +3,7 @@ use std::collections::{BTreeMap, HashMap};
 
 use crate::entities::Company;
 use crate::entities::Union;
+use crate::politics::ideology::IdeologyCoordinates;
 use crate::registries::enums::Sector;
 use crate::society::geography::{RegionalClassDemographics, RuralClass};
 use crate::state::macro_data::LaborMarket;
@@ -709,3 +710,124 @@ pub fn calculate_available_unskilled_labor(
 
     landless_laborers + free_peasants + urban_unemployed
 }
+
+// =============================================================================
+// Interest group alignment table (Ideology Step 4, Part 5)
+// =============================================================================
+
+/// Each interest group has a natural ideological center of gravity.
+/// Parties attract group support based on coordinate proximity.
+#[derive(Debug, Clone, Copy)]
+pub struct InterestGroupAlignment {
+    pub group_name: &'static str,
+    pub center: IdeologyCoordinates,
+    /// How far (in coordinate distance) this group will follow a party.
+    /// Beyond this radius, the group contributes zero political weight.
+    pub attraction_radius: f64,
+}
+
+/// Static registry of interest group ideological alignments.
+///
+/// Coordinates are derived from the current `base_weights()` arrays:
+/// each group's center is the power-weighted centroid of the ideologies
+/// that currently back it. The attraction_radius is calibrated so that
+/// a group fully supports parties at its center and contributes zero
+/// to parties beyond ~1.5 coordinate distance.
+pub static INTEREST_GROUP_ALIGNMENTS: &[InterestGroupAlignment] = &[
+    InterestGroupAlignment {
+        // Trade Unions: backed by Orthodox Marxism (-0.8, 0.0, -0.7),
+        // Marxism-Leninism (-1.0, -1.0, -0.5), Social Democracy (-0.3, 0.5, -0.3).
+        // Weighted center (rough): economy -0.7, liberty -0.2, tradition -0.5
+        group_name: "Trade Unions",
+        center: IdeologyCoordinates {
+            economy: -0.7,
+            liberty: -0.2,
+            tradition: -0.5,
+        },
+        attraction_radius: 1.2,
+    },
+    InterestGroupAlignment {
+        // Capitalists: backed by Classical Liberalism (0.8, 0.6, 0.0),
+        // Neoliberalism (0.9, 0.5, 0.0), Anarcho-Capitalism (1.0, 1.0, -0.5).
+        // Weighted center: economy 0.9, liberty 0.7, tradition -0.2
+        group_name: "Capitalists",
+        center: IdeologyCoordinates {
+            economy: 0.9,
+            liberty: 0.7,
+            tradition: -0.2,
+        },
+        attraction_radius: 1.2,
+    },
+    InterestGroupAlignment {
+        // Petty Bourgeoisie: backed by Agrarianism (0.0, 0.2, 0.4),
+        // Social Conservatism (0.0, -0.3, 0.8), National Conservatism (0.2, -0.5, 0.7).
+        // Weighted center: economy 0.1, liberty -0.2, tradition 0.6
+        group_name: "Petty Bourgeoisie",
+        center: IdeologyCoordinates {
+            economy: 0.1,
+            liberty: -0.2,
+            tradition: 0.6,
+        },
+        attraction_radius: 1.2,
+    },
+    InterestGroupAlignment {
+        // Intelligentsia: backed by Social Liberalism (0.2, 0.8, -0.2),
+        // Green Politics (-0.4, 0.7, -0.6), Social Democracy (-0.3, 0.5, -0.3).
+        // Weighted center: economy -0.2, liberty 0.7, tradition -0.4
+        group_name: "Intelligentsia",
+        center: IdeologyCoordinates {
+            economy: -0.2,
+            liberty: 0.7,
+            tradition: -0.4,
+        },
+        attraction_radius: 1.3,
+    },
+    InterestGroupAlignment {
+        // Armed Forces: backed by Neoconservatism (0.3, -0.3, 0.6),
+        // National Conservatism (0.2, -0.5, 0.7), Fascism (0.2, -1.0, 0.3).
+        // Weighted center: economy 0.2, liberty -0.6, tradition 0.5
+        group_name: "Armed Forces",
+        center: IdeologyCoordinates {
+            economy: 0.2,
+            liberty: -0.6,
+            tradition: 0.5,
+        },
+        attraction_radius: 1.2,
+    },
+    InterestGroupAlignment {
+        // Clergy: backed by Christian Democracy (0.1, 0.3, 0.6),
+        // Social Conservatism (0.0, -0.3, 0.8), Agrarianism (0.0, 0.2, 0.4).
+        // Weighted center: economy 0.0, liberty 0.1, tradition 0.6
+        group_name: "Clergy",
+        center: IdeologyCoordinates {
+            economy: 0.0,
+            liberty: 0.1,
+            tradition: 0.6,
+        },
+        attraction_radius: 1.1,
+    },
+    InterestGroupAlignment {
+        // Students: backed by Social Democracy (-0.3, 0.5, -0.3),
+        // Green Politics (-0.4, 0.7, -0.6), Orthodox Marxism (-0.8, 0.0, -0.7).
+        // Weighted center: economy -0.5, liberty 0.4, tradition -0.5
+        group_name: "Students",
+        center: IdeologyCoordinates {
+            economy: -0.5,
+            liberty: 0.4,
+            tradition: -0.5,
+        },
+        attraction_radius: 1.3,
+    },
+    InterestGroupAlignment {
+        // Specialists: backed by Social Liberalism (0.2, 0.8, -0.2),
+        // Neoliberalism (0.9, 0.5, 0.0), Classical Liberalism (0.8, 0.6, 0.0).
+        // Weighted center: economy 0.6, liberty 0.6, tradition -0.1
+        group_name: "Specialists",
+        center: IdeologyCoordinates {
+            economy: 0.6,
+            liberty: 0.6,
+            tradition: -0.1,
+        },
+        attraction_radius: 1.2,
+    },
+];

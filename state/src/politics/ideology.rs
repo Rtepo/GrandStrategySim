@@ -1,7 +1,9 @@
+use crate::politics::interest_groups::{InterestGroup, INTEREST_GROUP_ALIGNMENTS};
 use crate::politics::system::OrganizationType;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Authoritative ideological position of an entity on three continuous axes.
 ///
@@ -1223,4 +1225,254 @@ pub fn get_ruling_coordinates(country: &crate::state::Country) -> IdeologyCoordi
         .and_then(|p| Ideology::from_name(&p.ideology))
         .map(|i| i.compass())
         .unwrap_or_default()
+}
+
+// =============================================================================
+// Coordinate-based base bid (Ideology Step 4, Part 5.3)
+// =============================================================================
+
+/// Compute a party's bid from interest groups via coordinate attraction.
+///
+/// A party at coordinates near a group's center draws that group's full
+/// political weight. A party far away (beyond attraction_radius) draws
+/// nothing. This replaces the rigid `&[("Trade Unions", 0.5)]` weight
+/// lists with gravitational attraction (Directive 5 — market forces).
+pub fn coordinate_base_bid(
+    party_coords: IdeologyCoordinates,
+    groups: &HashMap<String, InterestGroup>,
+    _year: u32,
+) -> f64 {
+    INTEREST_GROUP_ALIGNMENTS
+        .iter()
+        .map(|a| {
+            let dist = party_coords.distance_to(a.center);
+            let attraction = (1.0 - dist / a.attraction_radius).max(0.0);
+            let power = groups
+                .get(a.group_name)
+                .map(|g| g.total_political_weight)
+                .unwrap_or(0.0);
+            power * attraction
+        })
+        .sum()
+}
+
+// =============================================================================
+// Pro-business score (Ideology Step 4, Part 8.1)
+// =============================================================================
+
+/// Compute a pro-business score from coordinates.
+/// 0.0 = pro-worker, 1.0 = pro-business.
+pub fn pro_business_score(coords: IdeologyCoordinates) -> f64 {
+    (coords.economy + 1.0) / 2.0
+}
+
+// =============================================================================
+// Party organization from coordinates (Ideology Step 4, Part 8.2)
+// =============================================================================
+
+/// Derive party organization type from coordinates.
+pub fn organization_from_coords(coords: IdeologyCoordinates) -> OrganizationType {
+    if coords.economy < -0.7 && coords.liberty < -0.3 {
+        OrganizationType::Vanguard
+    } else if coords.economy < -0.5 && coords.liberty < 0.0 {
+        OrganizationType::DemocraticCentralism
+    } else if coords.liberty < -0.6 {
+        OrganizationType::Militarized
+    } else if coords.liberty > 0.6 && coords.economy > 0.5 {
+        OrganizationType::Decentralized
+    } else {
+        OrganizationType::BigTent
+    }
+}
+
+// =============================================================================
+// Drift mechanics (Ideology Step 4, Part 6)
+// =============================================================================
+
+/// Configuration for ideological drift mechanics.
+/// All values are named, documented, and tunable (Directive 2).
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub struct DriftConfig {
+    /// Zeitgeist pull strength per year (fraction of axis range).
+    /// 0.02 = 2% of the axis range per year — slow historical drift.
+    pub zeitgeist_strength: f64,
+    /// Electoral gravity strength — correction after losing elections.
+    /// 0.08 = 8% — significant correction toward the winning center.
+    pub electoral_strength: f64,
+    /// Leader personality bias strength — personal influence on party.
+    /// 0.03 = 3% — real but bounded.
+    pub leader_strength: f64,
+    /// Inertia factor — extreme entities resist drift more.
+    /// 0.3 = extreme entities (distance 1.0) are 30% more resistant.
+    pub inertia_factor: f64,
+    /// Crisis pull strength multiplier.
+    /// 0.3 = crisis shifts economy axis by up to 30% of range.
+    pub crisis_strength: f64,
+}
+
+impl Default for DriftConfig {
+    fn default() -> Self {
+        Self {
+            zeitgeist_strength: 0.02,
+            electoral_strength: 0.08,
+            leader_strength: 0.03,
+            inertia_factor: 0.3,
+            crisis_strength: 0.3,
+        }
+    }
+}
+
+/// The global ideological zeitgeist for a given year.
+/// Returns a drift vector applied to entity coordinates over time.
+///
+/// This is a continuous, time-interpolated field (not a step function).
+/// The drift is computed by piecewise-linear interpolation between
+/// historical eras.
+pub fn zeitgeist_drift(year: u32) -> IdeologyCoordinates {
+    let y = year as f64;
+
+    // Economy axis drift:
+    //   Pre-1930: Classical economics dominant -> +0.3
+    //   1930-1970: Keynesian consensus -> -0.2
+    //   Post-1970: Neoliberal turn -> +0.4
+    let economy = if y < 1930.0 {
+        0.3
+    } else if y < 1970.0 {
+        // Linear interpolation: 1930 -> +0.3, 1970 -> -0.2
+        lerp(0.3, -0.2, ((y - 1930.0) / 40.0).clamp(-1.0, 1.0) * 2.0 - 1.0)
+    } else {
+        // 1970 -> -0.2, 2000 -> +0.4, then hold
+        lerp(-0.2, 0.4, ((y - 1970.0) / 30.0).clamp(-1.0, 1.0) * 2.0 - 1.0)
+    };
+
+    // Liberty axis drift:
+    //   1920-1945: Fascist window -> -0.3 (temporary)
+    //   Post-1945: Anti-fascist norm -> +0.2
+    let liberty = if y < 1920.0 {
+        0.0
+    } else if y < 1945.0 {
+        // 1920 -> 0.0, 1933 -> -0.3, 1945 -> 0.0
+        let peak = ((y - 1920.0) / 13.0).clamp(0.0, 1.0);
+        let decline = ((y - 1933.0) / 12.0).clamp(0.0, 1.0);
+        -0.3 * peak * (1.0 - decline)
+    } else {
+        // 1945 -> 0.0, 1970 -> +0.2, then hold
+        lerp(0.0, 0.2, ((y - 1945.0) / 25.0).clamp(-1.0, 1.0) * 2.0 - 1.0)
+    };
+
+    // Tradition axis drift: slow secularization trend
+    //   Pre-1900: +0.1 (traditional)
+    //   1900-2000: -0.3 (secularization)
+    let tradition = if y < 1900.0 {
+        0.1
+    } else {
+        lerp(0.1, -0.3, ((y - 1900.0) / 100.0).clamp(-1.0, 1.0) * 2.0 - 1.0)
+    };
+
+    IdeologyCoordinates::new(economy, liberty, tradition)
+}
+
+/// Input bundle for a single entity's drift computation.
+pub struct DriftInput<'a> {
+    pub year: u32,
+    pub config: DriftConfig,
+    /// The ruling coalition's coordinate centroid (for electoral gravity).
+    pub ruling_centroid: IdeologyCoordinates,
+    /// How much support the entity lost in the last election (0.0-1.0).
+    pub vote_share_lost: f64,
+    /// Crisis severity (0.0 = none, 1.0 = severe).
+    pub crisis_severity: f64,
+    /// Interest group power map (for demographic gravity).
+    pub group_power: &'a HashMap<String, f64>,
+    /// Leader's personal coordinate bias (VIP traits -> coordinates).
+    pub leader_coordinates_bias: IdeologyCoordinates,
+}
+
+/// Apply one year of ideological drift to an entity's coordinates.
+///
+/// Drift is the sum of five forces, scaled by inertia (extreme entities
+/// resist change). The result is clamped to [-1.0, +1.0] on each axis.
+pub fn apply_ideological_drift(coords: &mut IdeologyCoordinates, input: &DriftInput) {
+    let cfg = input.config;
+
+    // 1. Zeitgeist pull (weak, universal)
+    let zeit = zeitgeist_drift(input.year);
+    let zeit_pull = zeit.scale(cfg.zeitgeist_strength);
+
+    // 2. Electoral gravity (strong, for parties that lost votes)
+    let electoral_pull = electoral_gravity(
+        *coords,
+        input.ruling_centroid,
+        input.vote_share_lost,
+    )
+    .scale(cfg.electoral_strength);
+
+    // 3. Crisis pull (medium, economy + liberty axes)
+    let crisis_pull = crisis_ideological_pull(input.crisis_severity, cfg.crisis_strength);
+
+    // 4. Demographic pull (medium, toward weighted interest-group centers)
+    let demo_pull = demographic_gravity(input.group_power);
+
+    // 5. Leader personality bias (weak, personal)
+    let leader_bias = input.leader_coordinates_bias.scale(cfg.leader_strength);
+
+    // 6. Inertia: extreme entities resist change.
+    // Conviction = distance from origin (dead center). Extreme = high conviction.
+    let conviction = coords.distance_to(IdeologyCoordinates::default());
+    let inertia = 1.0 - (conviction * cfg.inertia_factor).min(0.7);
+
+    let total_drift = zeit_pull
+        .add(electoral_pull)
+        .add(crisis_pull)
+        .add(demo_pull)
+        .add(leader_bias)
+        .scale(inertia);
+
+    coords.economy = (coords.economy + total_drift.economy).clamp(-1.0, 1.0);
+    coords.liberty = (coords.liberty + total_drift.liberty).clamp(-1.0, 1.0);
+    coords.tradition = (coords.tradition + total_drift.tradition).clamp(-1.0, 1.0);
+}
+
+/// Electoral gravity: losing parties drift toward the ruling coalition's
+/// centroid, proportional to how much support they lost.
+pub fn electoral_gravity(
+    party_coords: IdeologyCoordinates,
+    ruling_centroid: IdeologyCoordinates,
+    vote_share_lost: f64,
+) -> IdeologyCoordinates {
+    let direction = ruling_centroid.sub(party_coords);
+    direction.scale(vote_share_lost.clamp(0.0, 1.0))
+}
+
+/// Crisis ideological pull: recession -> leftward; unemployment -> authoritarian;
+/// inflation -> anti-incumbent.
+pub fn crisis_ideological_pull(severity: f64, strength: f64) -> IdeologyCoordinates {
+    let s = severity.clamp(0.0, 1.0) * strength;
+    IdeologyCoordinates::new(
+        -s,        // leftward pull in crisis
+        -s * 0.67,  // authoritarian temptation
+        -s * 0.33,  // anti-incumbent / reform demand
+    )
+}
+
+/// Demographic gravity: weighted center of all interest groups by power.
+pub fn demographic_gravity(group_power: &HashMap<String, f64>) -> IdeologyCoordinates {
+    let mut weighted = IdeologyCoordinates::default();
+    let mut total_weight = 0.0;
+    for a in INTEREST_GROUP_ALIGNMENTS {
+        let power = group_power.get(a.group_name).copied().unwrap_or(0.0);
+        if power > 0.0 {
+            weighted = weighted.add(a.center.scale(power));
+            total_weight += power;
+        }
+    }
+    if total_weight > 0.0 {
+        IdeologyCoordinates::new(
+            weighted.economy / total_weight,
+            weighted.liberty / total_weight,
+            weighted.tradition / total_weight,
+        )
+    } else {
+        IdeologyCoordinates::default()
+    }
 }
