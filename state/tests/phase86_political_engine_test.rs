@@ -80,7 +80,7 @@ fn test_derive_weight_picks_heaviest_from_multiple_provisions() {
 fn test_bill_new_derives_weight_from_clauses() {
     let clause = Clause {
         description: "Tax reform".to_string(),
-        ideological_vector: sim_engine::politics::ideology::IdeologyCompass::default(),
+        ideological_vector: sim_engine::politics::ideology::IdeologyCoordinates::default(),
         budget_impact: 100.0,
         provision: Some(BillProvision::TaxRateChange {
             income_tax: Some(0.25),
@@ -106,7 +106,7 @@ fn test_bill_new_derives_weight_from_clauses() {
 fn test_bill_new_with_no_provisions_defaults_to_ordinary() {
     let clause = Clause {
         description: "Empty clause".to_string(),
-        ideological_vector: sim_engine::politics::ideology::IdeologyCompass::default(),
+        ideological_vector: sim_engine::politics::ideology::IdeologyCoordinates::default(),
         budget_impact: 0.0,
         provision: None,
         sunset_turn: None,
@@ -531,6 +531,7 @@ fn test_dynasty_process_marriage_creates_spouse_vip() {
         traits: Vec::new(),
         main_trait: String::new(),
         ideology: String::new(),
+        coordinates: Default::default(),
         religion: String::new(),
         nationality: String::new(),
         dynasty: Some("Habsburg".to_string()),
@@ -612,6 +613,7 @@ fn test_dynasty_succession_order_after_birth() {
         traits: Vec::new(),
         main_trait: String::new(),
         ideology: String::new(),
+        coordinates: Default::default(),
         religion: String::new(),
         nationality: String::new(),
         dynasty: Some("Habsburg".to_string()),
@@ -728,6 +730,7 @@ fn test_dynasty_death_updates_member_record() {
         traits: Vec::new(),
         main_trait: String::new(),
         ideology: String::new(),
+        coordinates: Default::default(),
         religion: String::new(),
         nationality: String::new(),
         dynasty: Some("Habsburg".to_string()),

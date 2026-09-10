@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::ideology::Ideology;
+use super::ideology::IdeologyCoordinates;
 use super::interest_groups::InterestGroup;
 use super::system::{Constitution, Party};
 use serde::{Deserialize, Serialize};
@@ -203,9 +203,9 @@ pub fn build_coalition_with_concessions(
         return (leader, Vec::new(), false, "[COA-000]".to_string(), 0.0);
     }
 
-    let leader_ideology = active_parties
+    let leader_coords = active_parties
         .get(&leader)
-        .and_then(|p| Ideology::from_name(&p.ideology))
+        .map(|p| p.coordinates)
         .unwrap_or_default();
 
     // Calculate total distance reduction from concessions
@@ -218,8 +218,7 @@ pub fn build_coalition_with_concessions(
         .map(|(n, seats)| {
             let dist = active_parties
                 .get(n)
-                .and_then(|p| Ideology::from_name(&p.ideology))
-                .map(|i| ideological_distance(leader_ideology, i))
+                .map(|p| ideological_distance(leader_coords, p.coordinates))
                 .unwrap_or(f64::MAX);
             (n.clone(), dist, *seats)
         })
@@ -275,21 +274,19 @@ pub fn check_coalition_stability(
         return (false, String::new());
     }
 
-    let leader_ideology = active_parties
+    let leader_coords = active_parties
         .get(ruling_party)
-        .and_then(|p| Ideology::from_name(&p.ideology))
+        .map(|p| p.coordinates)
         .unwrap_or_default();
 
     let mut max_dist = 0.0;
     let mut worst_partner = String::new();
     for partner in coalition {
         if let Some(party) = active_parties.get(partner) {
-            if let Some(ideo) = Ideology::from_name(&party.ideology) {
-                let dist = ideological_distance(leader_ideology, ideo);
-                if dist > max_dist {
-                    max_dist = dist;
-                    worst_partner = partner.clone();
-                }
+            let dist = ideological_distance(leader_coords, party.coordinates);
+            if dist > max_dist {
+                max_dist = dist;
+                worst_partner = partner.clone();
             }
         }
     }
@@ -400,14 +397,9 @@ pub fn calculate_upper_house_composition(
     seats
 }
 
-/// Euclidean distance between two ideologies on the three-dimensional compass.
-pub fn ideological_distance(a: Ideology, b: Ideology) -> f64 {
-    let c1 = a.compass();
-    let c2 = b.compass();
-    let dx = c1.economy - c2.economy;
-    let dy = c1.liberty - c2.liberty;
-    let dz = c1.tradition - c2.tradition;
-    (dx * dx + dy * dy + dz * dz).sqrt()
+/// Euclidean distance between two ideological coordinate sets on the three-dimensional compass.
+pub fn ideological_distance(a: IdeologyCoordinates, b: IdeologyCoordinates) -> f64 {
+    a.distance_to(b)
 }
 
 fn strongest_party(parties: &HashMap<String, Party>) -> Option<String> {

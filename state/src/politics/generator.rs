@@ -4,7 +4,7 @@
 //! cultural group and the party's ideology. Names use English keys for struct IDs
 //! but can include native flavor in display names.
 
-use crate::politics::ideology::Ideology;
+use crate::politics::ideology::{Ideology, IdeologyCoordinates};
 use rand::Rng;
 
 /// Cultural naming patterns for party generation
@@ -262,29 +262,27 @@ pub fn get_cultural_patterns(cultural_group: &str) -> CulturalNamingPatterns {
     }
 }
 
-/// Check if an ideology is radical
-fn is_radical(ideology: Ideology) -> bool {
-    matches!(
-        ideology,
-        Ideology::OrthodoxMarxism
-            | Ideology::Maoism
-            | Ideology::Fascism
-            | Ideology::AnarchoCapitalism
-    )
+/// Check if coordinates are radical (far from center on any axis).
+/// Radical ideologies occupy the extreme corners of the coordinate space.
+fn is_radical(coords: IdeologyCoordinates) -> bool {
+    // Distance from center (0,0,0). Radical if any axis exceeds 0.8
+    // or the overall distance exceeds 1.2.
+    coords.economy.abs() > 0.8
+        || coords.liberty.abs() > 0.8
+        || coords.tradition.abs() > 0.8
+        || coords.distance_to(IdeologyCoordinates::default()) > 1.2
 }
 
-/// Check if an ideology is centrist
-fn is_centrist(ideology: Ideology) -> bool {
-    matches!(
-        ideology,
-        Ideology::SocialLiberalism | Ideology::ChristianDemocracy | Ideology::ClassicalLiberalism
-    )
+/// Check if coordinates are centrist (close to center).
+/// Centrist ideologies cluster near the origin of the coordinate space.
+fn is_centrist(coords: IdeologyCoordinates) -> bool {
+    coords.distance_to(IdeologyCoordinates::default()) < 0.5
 }
 
-/// Select a weighted item from a vector based on ideology
-fn select_weighted(items: &[&'static str], ideology: Ideology, rng: &mut impl Rng) -> &'static str {
-    let radical = is_radical(ideology);
-    let centrist = is_centrist(ideology);
+/// Select a weighted item from a vector based on coordinates
+fn select_weighted(items: &[&'static str], coords: IdeologyCoordinates, rng: &mut impl Rng) -> &'static str {
+    let radical = is_radical(coords);
+    let centrist = is_centrist(coords);
 
     // Simple selection - in full implementation, this would use weighted probabilities
     let index = if radical {
@@ -298,12 +296,13 @@ fn select_weighted(items: &[&'static str], ideology: Ideology, rng: &mut impl Rn
     items.get(index).copied().unwrap_or(items[0])
 }
 
-/// Generate a party name based on cultural group and ideology
+/// Generate a party name based on cultural group and ideological coordinates
 ///
 /// # Arguments
 /// * `country_name` - Name of the country
 /// * `cultural_group` - Cultural group of the country
-/// * `ideology` - Party ideology
+/// * `coords` - Party ideological coordinates
+/// * `year` - Current year (for ideology label classification)
 /// * `rng` - Random number generator
 ///
 /// # Returns
@@ -318,12 +317,13 @@ fn select_weighted(items: &[&'static str], ideology: Ideology, rng: &mut impl Rn
 pub fn generate_party_name(
     country_name: &str,
     cultural_group: &str,
-    ideology: Ideology,
+    coords: IdeologyCoordinates,
+    year: u32,
     rng: &mut impl Rng,
 ) -> String {
     let patterns = get_cultural_patterns(cultural_group);
-    let radical = is_radical(ideology);
-    let centrist = is_centrist(ideology);
+    let radical = is_radical(coords);
+    let centrist = is_centrist(coords);
 
     // Component selection weights based on ideology
     let prefix_weight = if radical { 0.7 } else { 0.4 };
@@ -340,17 +340,17 @@ pub fn generate_party_name(
 
     // Optional prefix
     if rng.gen::<f64>() < prefix_weight {
-        let prefix = select_weighted(&patterns.prefixes, ideology, rng);
+        let prefix = select_weighted(&patterns.prefixes, coords, rng);
         components.push(prefix.to_string());
     }
 
     // Noun (always present)
-    let noun = select_weighted(&patterns.nouns, ideology, rng);
+    let noun = select_weighted(&patterns.nouns, coords, rng);
     components.push(noun.to_string());
 
     // Theme (high probability for radical parties)
     if rng.gen::<f64>() < theme_weight {
-        let theme = select_weighted(&patterns.themes, ideology, rng);
+        let theme = select_weighted(&patterns.themes, coords, rng);
         components.push(theme.to_string());
     }
 
@@ -364,12 +364,27 @@ pub fn generate_party_name(
     // Combine components
     let name = components.join(" ");
 
-    // Fallback: if generation fails, use country + ideology
+    // Fallback: if generation fails, use country + classified ideology label
     if name.is_empty() {
-        format!("{} {}", country_name, ideology.as_str())
+        let (label, _) = crate::politics::ideology::classify(coords, year);
+        format!("{} {}", country_name, label)
     } else {
         name
     }
+}
+
+/// Legacy wrapper: Generate a party name from an Ideology enum variant.
+/// Converts the ideology to coordinates via `compass()` then delegates to
+/// the coordinate-based `generate_party_name`.
+pub fn generate_party_name_from_ideology(
+    country_name: &str,
+    cultural_group: &str,
+    ideology: Ideology,
+    year: u32,
+    rng: &mut impl Rng,
+) -> String {
+    let coords = ideology.compass();
+    generate_party_name(country_name, cultural_group, coords, year, rng)
 }
 
 /// Phase 41: Derive a country adjective from the country name.
@@ -404,8 +419,8 @@ mod tests {
     #[test]
     fn test_generate_party_name_not_empty() {
         let mut rng = rand::thread_rng();
-        let name =
-            generate_party_name("TestCountry", "slavic", Ideology::SocialDemocracy, &mut rng);
+        let coords = Ideology::SocialDemocracy.compass();
+        let name = generate_party_name("TestCountry", "slavic", coords, 1900, &mut rng);
         assert!(!name.is_empty());
     }
 
@@ -413,10 +428,12 @@ mod tests {
     fn test_fallback_mechanism() {
         let mut rng = rand::thread_rng();
         // Test with unknown cultural group
+        let coords = Ideology::SocialLiberalism.compass();
         let name = generate_party_name(
             "TestCountry",
             "UnknownGroup",
-            Ideology::SocialLiberalism,
+            coords,
+            1900,
             &mut rng,
         );
         assert!(!name.is_empty());

@@ -212,7 +212,7 @@ impl Committee {
     /// * Anti-government bias helps opposition bills
     pub fn calculate_recommendation(
         &self,
-        _bill_ideology: &crate::politics::ideology::IdeologyCompass,
+        _bill_ideology: &crate::politics::ideology::IdeologyCoordinates,
         _initiator_party: &str,
         is_ruling_party: bool,
     ) -> f64 {
@@ -397,7 +397,7 @@ impl CommitteeSystem {
 // PHASE 48: COMMITTEE CHAIR MUTATION POWER
 // ============================================================================
 
-use crate::politics::ideology::IdeologyCompass;
+use crate::politics::ideology::IdeologyCoordinates;
 use crate::politics::legislation::{Bill, BillProvision, Clause};
 use crate::politics::vip_registry::Vip;
 
@@ -445,7 +445,7 @@ pub fn determine_chair_action(
     _committee: &Committee,
     is_ruling_party_bill: bool,
     chair_party_discipline: f64,
-    chair_party_ideology: &IdeologyCompass,
+    chair_party_ideology: &IdeologyCoordinates,
 ) -> ChairAction {
     // Step 1: ideological distance (Manhattan).
     let bill_ideology = bill.calculate_ideological_impact();
@@ -563,7 +563,7 @@ pub fn determine_chair_action(
 }
 
 /// Find the clause index with the highest ideological distance from the chair.
-fn most_distant_clause(clauses: &[Clause], ideology: &IdeologyCompass) -> usize {
+fn most_distant_clause(clauses: &[Clause], ideology: &IdeologyCoordinates) -> usize {
     clauses
         .iter()
         .enumerate()
@@ -623,7 +623,7 @@ mod phase48_tests {
             initiator: "RulingParty".to_string(),
             core_clauses: vec![Clause {
                 description: "Test clause".to_string(),
-                ideological_vector: IdeologyCompass {
+                ideological_vector: IdeologyCoordinates {
                     economy,
                     liberty,
                     tradition,
@@ -654,8 +654,8 @@ mod phase48_tests {
         }
     }
 
-    fn centrist_ideology() -> IdeologyCompass {
-        IdeologyCompass {
+    fn centrist_ideology() -> IdeologyCoordinates {
+        IdeologyCoordinates {
             economy: 0.0,
             liberty: 0.0,
             tradition: 0.0,
@@ -802,7 +802,7 @@ mod phase48_tests {
 
     #[test]
     fn test_most_distant_clause() {
-        let ideology = IdeologyCompass {
+        let ideology = IdeologyCoordinates {
             economy: 0.0,
             liberty: 0.0,
             tradition: 0.0,
@@ -810,7 +810,7 @@ mod phase48_tests {
         let clauses = vec![
             Clause {
                 description: "Close".to_string(),
-                ideological_vector: IdeologyCompass {
+                ideological_vector: IdeologyCoordinates {
                     economy: 0.1,
                     liberty: 0.0,
                     tradition: 0.0,
@@ -819,7 +819,7 @@ mod phase48_tests {
             },
             Clause {
                 description: "Far".to_string(),
-                ideological_vector: IdeologyCompass {
+                ideological_vector: IdeologyCoordinates {
                     economy: 0.9,
                     liberty: 0.9,
                     tradition: 0.0,

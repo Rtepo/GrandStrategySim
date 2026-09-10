@@ -338,7 +338,7 @@ pub fn process_political_year(
         ];
         for (ideo, support) in &fallback_ideologies {
             let name =
-                generator::generate_party_name(&country.name, cultural_group, *ideo, &mut rng);
+                generator::generate_party_name(&country.name, cultural_group, ideo.compass(), year, &mut rng);
             let organization =
                 super::system::PartyOrganization::from_ideology_with_variance(*ideo, &mut rng);
             let vip = super::names::generate_full_vip(cultural_group, &mut rng);
@@ -354,6 +354,7 @@ pub fn process_political_year(
                     .map(|(g, _)| g.to_string())
                     .collect(),
                 id: format!("[PRT-ESC-{}]", ideo.as_str()),
+                coordinates: ideo.compass(),
                 brokerage_account: None,
                 loans: Vec::new(),
                 organization,
@@ -408,7 +409,7 @@ pub fn process_political_year(
                 continue;
             }
             let name =
-                generator::generate_party_name(&country.name, cultural_group, *ideo, &mut rng);
+                generator::generate_party_name(&country.name, cultural_group, ideo.compass(), year, &mut rng);
             let vip = super::names::generate_full_vip(cultural_group, &mut rng);
             let leader = super::names::vip_to_leader(vip, ideo.as_str());
             let organization =
@@ -424,6 +425,7 @@ pub fn process_political_year(
                     .map(|(g, _)| g.to_string())
                     .collect(),
                 id: format!("[PRT-{}]", idx),
+                coordinates: ideo.compass(),
                 leader,
                 organization,
                 ..Party::default()
@@ -1048,7 +1050,7 @@ fn regenerate_parties(
     for (ideo, bid) in bids {
         if bid > threshold && !used_ideologies.contains(&ideo) {
             // Use procedural name generator
-            let name = generator::generate_party_name(country_name, cultural_group, ideo, &mut rng);
+            let name = generator::generate_party_name(country_name, cultural_group, ideo.compass(), year, &mut rng);
             let organization =
                 super::system::PartyOrganization::from_ideology_with_variance(ideo, &mut rng);
             // Phase 33: Generate a named leader for the new party.
@@ -1065,6 +1067,7 @@ fn regenerate_parties(
                     .map(|(g, _)| g.to_string())
                     .collect(),
                 id: format!("[PRT-{}]", new_parties.len()),
+                coordinates: ideo.compass(),
                 brokerage_account: None, // Will be initialized during banking integration
                 loans: Vec::new(),
                 organization: organization.clone(),
@@ -1077,7 +1080,7 @@ fn regenerate_parties(
             let mut attempts = 0;
             while new_parties.contains_key(&unique_name) && attempts < 20 {
                 unique_name =
-                    generator::generate_party_name(country_name, cultural_group, ideo, &mut rng);
+                    generator::generate_party_name(country_name, cultural_group, ideo.compass(), year, &mut rng);
                 attempts += 1;
             }
             if new_parties.contains_key(&unique_name) {
@@ -1107,6 +1110,7 @@ fn regenerate_parties(
                 support: 100.0,
                 base: vec!["Bureaucrats".to_string(), "Specialists".to_string()],
                 id: "[PRT-000]".to_string(),
+                coordinates: Default::default(), // Centrist technocratic government
                 leader,
                 ..Party::default()
             },

@@ -1056,6 +1056,40 @@ pub fn vip_to_leader(vip: VipName, ideology: &str) -> crate::politics::system::L
     }
 }
 
+/// Convert a generated VipName into a Leader struct using ideological coordinates.
+///
+/// Derives the `views` string from `classify(coords, year)` instead of a raw
+/// ideology string. This is the coordinate-system replacement for `vip_to_leader`.
+pub fn vip_to_leader_from_coordinates(
+    vip: VipName,
+    coords: crate::politics::ideology::IdeologyCoordinates,
+    year: u32,
+) -> crate::politics::system::Leader {
+    use crate::politics::system::Leader;
+
+    let (label, _) = crate::politics::ideology::classify(coords, year);
+    let views = label.to_string();
+
+    let mut rng = rand::thread_rng();
+    let (traits, main_trait) = crate::politics::vip_registry::assign_core_traits(&mut rng);
+
+    Leader {
+        name: vip.full_name,
+        gender: vip.gender,
+        age: 45 + rng.gen_range(0..25),
+        health: "Good".to_string(),
+        days_sick: 0,
+        religion: String::new(),
+        nationality: String::new(),
+        views,
+        traits,
+        main_trait,
+        dynasty: None,
+        base_influence: 40 + rng.gen_range(0..40),
+        faction: String::new(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

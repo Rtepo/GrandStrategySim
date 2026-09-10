@@ -6,7 +6,7 @@ use std::hash::{Hash, Hasher};
 use serde::{Deserialize, Serialize};
 
 use super::committees::{Committee, CommitteeSystem};
-use super::ideology::IdeologyCompass;
+use super::ideology::IdeologyCoordinates;
 use super::legislation::{Bill, LegislativeStage};
 use super::local_council::{calculate_vote_probability, Councilor};
 
@@ -166,7 +166,7 @@ pub fn process_floor_vote(
 ///
 /// # Returns
 /// Alignment score (0-1, higher = more aligned)
-fn calculate_ideological_alignment(councilor: &Councilor, bill_ideology: &IdeologyCompass) -> f64 {
+fn calculate_ideological_alignment(councilor: &Councilor, bill_ideology: &IdeologyCoordinates) -> f64 {
     // Simplified: use faction as proxy for ideology
     // In full implementation, councilors would have personal ideology
     match councilor.faction {

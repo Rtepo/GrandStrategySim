@@ -21,6 +21,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use super::ideology::IdeologyCoordinates;
+
 // ============================================================================
 // DEATH CAUSE — strict enum (no free-form strings)
 // ============================================================================
@@ -334,9 +336,12 @@ pub struct Vip {
     /// Primary/dominant trait.
     #[serde(default)]
     pub main_trait: String,
-    /// Ideology string.
+    /// Ideology string (derived display label from `classify()`).
     #[serde(default)]
     pub ideology: String,
+    /// Authoritative ideological coordinates on three continuous axes.
+    #[serde(default)]
+    pub coordinates: IdeologyCoordinates,
     /// Religion (empty if none).
     #[serde(default)]
     pub religion: String,
@@ -875,6 +880,7 @@ mod tests {
             traits: vec!["Loyal".to_string()],
             main_trait: "Loyal".to_string(),
             ideology: "Centrist".to_string(),
+            coordinates: Default::default(),
             religion: String::new(),
             nationality: "TestNation".to_string(),
             dynasty: None,

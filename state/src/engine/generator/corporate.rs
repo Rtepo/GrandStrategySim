@@ -67,6 +67,37 @@ fn ceo_ideology_from_traits(traits: &[String], main_trait: &str, rng: &mut impl 
     }
 }
 
+/// Derive a CEO's ideological coordinates from their assigned traits.
+///
+/// Maps CEO trait profiles to coordinate offsets on the three ideological axes,
+/// producing a continuous `IdeologyCoordinates` value. This replaces the
+/// discrete string-based `ceo_ideology_from_traits` for the coordinate system.
+///
+/// # Axis mappings
+/// * **economy**: Reformer/Technocrat → left; Corrupt/Ambitious/Libertarian → right
+/// * **liberty**: Reformer/Diplomatic/Libertarian → positive; Populist/Paternalist → negative
+/// * **tradition**: Conservative/Pious/Paternalist → positive; Reformer/Technocrat → negative
+pub fn ceo_coordinates_from_traits(traits: &[String], main_trait: &str) -> crate::politics::ideology::IdeologyCoordinates {
+    let has = |t: &str| traits.iter().any(|x| x == t) || main_trait == t;
+
+    let mut economy = 0.0;
+    let mut liberty = 0.0;
+    let mut tradition = 0.0;
+
+    if has("Reformer") { economy -= 0.2; liberty += 0.2; tradition -= 0.2; }
+    if has("Conservative") { economy += 0.1; tradition += 0.3; }
+    if has("Populist") { economy -= 0.1; liberty -= 0.2; }
+    if has("Technocrat") { economy += 0.2; liberty += 0.1; tradition -= 0.1; }
+    if has("Paternalist") { economy -= 0.1; liberty -= 0.3; tradition += 0.2; }
+    if has("Libertarian") { economy += 0.4; liberty += 0.4; }
+    if has("Pious") { tradition += 0.3; }
+    if has("Militarist") || has("Cruel") { economy += 0.3; liberty -= 0.2; tradition += 0.2; }
+    if has("Corrupt") || has("Ambitious") { economy += 0.3; }
+    if has("Diplomatic") || has("Charismatic") { liberty += 0.1; tradition += 0.1; }
+
+    crate::politics::ideology::IdeologyCoordinates::new(economy, liberty, tradition)
+}
+
 /// Phase 89/91: Check if a sector is eligible for Working Capital Loans.
 ///
 /// All wage-paying sectors receive 6-turn Working Capital Loans during world
@@ -1010,6 +1041,7 @@ pub fn generate_corporate_entities(
         let ceo_name = crate::politics::names::generate_full_vip(&cultural_group, rng);
         let (traits, main_trait) = assign_core_traits(rng);
         let ideology = ceo_ideology_from_traits(&traits, &main_trait, rng);
+        let ceo_coords = ceo_coordinates_from_traits(&traits, &main_trait);
         // Small companies (worker_capacity < 5): younger age, lower influence
         // (small-business owner profile vs corporate executive).
         let (age, base_influence) = if company.worker_capacity < 5 {
@@ -1028,6 +1060,7 @@ pub fn generate_corporate_entities(
             traits,
             main_trait,
             ideology,
+            coordinates: ceo_coords,
             nationality: country.name.clone(),
             roles: vec![VipRoleExtended::Ceo],
             base_influence,
@@ -1056,6 +1089,7 @@ pub fn generate_corporate_entities(
                 let bm_name = crate::politics::names::generate_full_vip(&cultural_group, rng);
                 let (bm_traits, bm_main_trait) = assign_core_traits(rng);
                 let bm_ideology = ceo_ideology_from_traits(&bm_traits, &bm_main_trait, rng);
+                let bm_coords = ceo_coordinates_from_traits(&bm_traits, &bm_main_trait);
                 let role = if i == 0 {
                     crate::entities::legal_form::BoardRole::Chair
                 } else {
@@ -1077,6 +1111,7 @@ pub fn generate_corporate_entities(
                     traits: bm_traits,
                     main_trait: bm_main_trait,
                     ideology: bm_ideology,
+                    coordinates: bm_coords,
                     nationality: country.name.clone(),
                     roles: vec![vip_role],
                     base_influence: 10 + rng.gen_range(0..20),
@@ -1118,6 +1153,7 @@ pub fn generate_corporate_entities(
                     }
                     let heir_ideology =
                         ceo_ideology_from_traits(&heir_traits, &heir_main_trait, rng);
+                    let heir_coords = ceo_coordinates_from_traits(&heir_traits, &heir_main_trait);
                     let heir_vip = Vip {
                         full_name: heir_name.full_name.clone(),
                         gender: heir_name.gender,
@@ -1129,6 +1165,7 @@ pub fn generate_corporate_entities(
                         traits: heir_traits,
                         main_trait: heir_main_trait,
                         ideology: heir_ideology,
+                        coordinates: heir_coords,
                         nationality: country.name.clone(),
                         roles: vec![VipRoleExtended::Heir],
                         base_influence: 5 + rng.gen_range(0..10),
@@ -6688,6 +6725,7 @@ pub fn generate_investment_funds(
         }
 
         let ideology = ceo_ideology_from_traits(&traits, &main_trait, rng);
+        let manager_coords = ceo_coordinates_from_traits(&traits, &main_trait);
         let manager_vip = Vip {
             full_name: manager_name.full_name.clone(),
             gender: manager_name.gender,
@@ -6699,6 +6737,7 @@ pub fn generate_investment_funds(
             traits: traits.clone(),
             main_trait: main_trait.clone(),
             ideology,
+            coordinates: manager_coords,
             nationality: country.name.clone(),
             roles: vec![VipRoleExtended::Ceo], // Fund managers are CEOs of the fund company
             base_influence: 15 + rng.gen_range(0..25),

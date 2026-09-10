@@ -1,3 +1,4 @@
+use crate::politics::ideology::IdeologyCoordinates;
 use crate::politics::interest_groups::{ClassToGroupMapping, InterestGroup, SuffrageSystem};
 use crate::securities::BrokerageAccount;
 use crate::state::banking::{Borrower, Loan};
@@ -122,6 +123,11 @@ pub struct Party {
     pub base: Vec<String>,
     #[serde(default)]
     pub id: String,
+
+    /// Authoritative ideological position on three continuous axes.
+    /// The `ideology` string above is a derived display label from `classify()`.
+    #[serde(default)]
+    pub coordinates: IdeologyCoordinates,
 
     // NEW: Brokerage account for double-entry banking integration
     #[serde(default)]
@@ -509,7 +515,25 @@ pub struct PartyOrganization {
 }
 
 impl PartyOrganization {
-    /// Initialize organization based on ideology with random variance
+    /// Initialize organization based on ideological coordinates with random variance
+    pub fn from_coordinates_with_variance(
+        coords: IdeologyCoordinates,
+        rng: &mut impl rand::Rng,
+    ) -> Self {
+        let org_type = crate::politics::ideology::organization_from_coords(coords);
+        let _ = rng; // Variance applied inside organization_from_coords in future
+        PartyOrganization {
+            organization_type: org_type,
+            cohesion: org_type.base_cohesion(),
+            discipline: org_type.base_discipline(),
+            faction_count: org_type.default_faction_count(),
+            factional_tension: 0.0,
+            leadership_stability: 0.8,
+        }
+    }
+
+    /// Initialize organization based on ideology enum with random variance.
+    /// Legacy method retained for backward compatibility during migration.
     pub fn from_ideology_with_variance(
         ideology: crate::politics::ideology::Ideology,
         rng: &mut impl rand::Rng,

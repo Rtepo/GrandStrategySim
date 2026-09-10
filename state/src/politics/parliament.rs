@@ -9,6 +9,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
+use super::ideology::IdeologyCoordinates;
 use super::names::{generate_full_vip, generate_unique_vip};
 use super::system::{Party, Politics};
 
@@ -37,8 +38,11 @@ pub struct NamedVip {
     pub party: String,
     /// Role/office.
     pub role: VipRole,
-    /// Ideology string.
+    /// Ideology string (derived display label from `classify()`).
     pub ideology: String,
+    /// Authoritative ideological coordinates.
+    #[serde(default)]
+    pub coordinates: IdeologyCoordinates,
     /// Age.
     pub age: u32,
 }
@@ -111,6 +115,9 @@ pub struct ParliamentaryClub {
     pub seats: u32,
     /// Ideology string (inherited from parent or declared at splinter).
     pub ideology: String,
+    /// Authoritative ideological coordinates (inherited from parent or declared at splinter).
+    #[serde(default)]
+    pub coordinates: IdeologyCoordinates,
     /// Club discipline (0.0–1.0).
     pub discipline: f64,
     /// Whether this club was formed by mid-term splintering.
@@ -482,6 +489,7 @@ fn build_clubs_from_seats(
                 parent_party: Some(party_id.clone()),
                 seats: seat_count,
                 ideology,
+                coordinates: party.map(|p| p.coordinates).unwrap_or_default(),
                 discipline,
                 is_splinter: false,
                 formation_turn: current_turn,
@@ -570,6 +578,7 @@ fn generate_speaker(
         party: ruling.clone(),
         role: VipRole::Speaker,
         ideology,
+        coordinates: party.map(|p| p.coordinates).unwrap_or_default(),
         age,
     }
 }
@@ -608,6 +617,7 @@ fn generate_deputy_speakers(
                 party: party_id.clone(),
                 role: VipRole::DeputySpeaker,
                 ideology,
+                coordinates: party.map(|p| p.coordinates).unwrap_or_default(),
                 age: 40 + rng.gen_range(0..25),
             }
         })
@@ -661,6 +671,11 @@ fn build_vips(
             .get(&politics.ruling_party)
             .map(|p| p.ideology.clone())
             .unwrap_or_default(),
+        coordinates: politics
+            .active_parties
+            .get(&politics.ruling_party)
+            .map(|p| p.coordinates)
+            .unwrap_or_default(),
         age: politics.head_of_state.age,
     });
 
@@ -670,6 +685,11 @@ fn build_vips(
         .active_parties
         .get(&pm_party)
         .map(|p| p.ideology.clone())
+        .unwrap_or_default();
+    let pm_coordinates = politics
+        .active_parties
+        .get(&pm_party)
+        .map(|p| p.coordinates)
         .unwrap_or_default();
     let pm_name = politics
         .active_parties
@@ -688,6 +708,7 @@ fn build_vips(
         party: pm_party,
         role: VipRole::PrimeMinister,
         ideology: pm_ideology,
+        coordinates: pm_coordinates,
         age: 45 + rng.gen_range(0..20),
     });
 
@@ -705,11 +726,17 @@ fn build_vips(
                 .get(&ministry.minister_party)
                 .map(|p| p.ideology.clone())
                 .unwrap_or_default();
+            let min_coordinates = politics
+                .active_parties
+                .get(&ministry.minister_party)
+                .map(|p| p.coordinates)
+                .unwrap_or_default();
             vips.push(NamedVip {
                 full_name: min_name,
                 party: ministry.minister_party.clone(),
                 role: VipRole::Minister,
                 ideology: min_ideology,
+                coordinates: min_coordinates,
                 age: 40 + rng.gen_range(0..25),
             });
         }
@@ -824,6 +851,7 @@ pub fn check_faction_splintering(
     for (club_idx, defectors, reason) in splinters {
         let source_id = parliament.clubs[club_idx].id.clone();
         let source_ideology = parliament.clubs[club_idx].ideology.clone();
+        let source_coordinates = parliament.clubs[club_idx].coordinates;
 
         // Reduce source club seats.
         parliament.clubs[club_idx].seats -= defectors;
@@ -843,6 +871,7 @@ pub fn check_faction_splintering(
             parent_party: None,
             seats: defectors,
             ideology: source_ideology,
+            coordinates: source_coordinates,
             discipline: 0.3, // Splinter groups are less disciplined.
             is_splinter: true,
             formation_turn: current_turn,

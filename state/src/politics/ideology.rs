@@ -71,11 +71,6 @@ impl IdeologyCoordinates {
     }
 }
 
-/// Legacy alias retained while the cross-module rename to `IdeologyCoordinates`
-/// is completed (Ideology Step 5). It is a transparent alias, not a serde shim:
-/// both names serialize identically and refer to the same struct.
-pub type IdeologyCompass = IdeologyCoordinates;
-
 /// Linear interpolation between two endpoint values.
 ///
 /// Given an input `t` in [-1.0, +1.0], returns the value that is

@@ -8,7 +8,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::politics::ideology::IdeologyCompass;
+use crate::politics::ideology::IdeologyCoordinates;
 use crate::politics::vip_registry::VipRegistry;
 
 // ============================================================================
@@ -328,7 +328,7 @@ pub struct CouncilOpinion {
 /// the decree's ideological vector and the member's faction ideology.
 pub fn calculate_council_opinion(
     council: &AdvisoryCouncil,
-    decree_ideology: &IdeologyCompass,
+    decree_ideology: &IdeologyCoordinates,
     vip_registry: &VipRegistry,
 ) -> CouncilOpinion {
     let mut supporters = Vec::new();
@@ -405,51 +405,51 @@ pub fn apply_decree_against_council(
     messages
 }
 
-/// Convert an ideology string to an IdeologyCompass.
+/// Convert an ideology string to an IdeologyCoordinates.
 /// Simplified mapping for council opinion calculation.
-fn ideology_from_string(ideology: &str) -> IdeologyCompass {
+fn ideology_from_string(ideology: &str) -> IdeologyCoordinates {
     match ideology {
-        "OrthodoxMarxism" | "MarxismLeninism" | "Maoism" => IdeologyCompass {
+        "OrthodoxMarxism" | "MarxismLeninism" | "Maoism" => IdeologyCoordinates {
             economy: -0.8,
             liberty: -0.3,
             tradition: -0.5,
         },
-        "SocialDemocracy" | "GreenPolitics" => IdeologyCompass {
+        "SocialDemocracy" | "GreenPolitics" => IdeologyCoordinates {
             economy: -0.4,
             liberty: 0.5,
             tradition: 0.0,
         },
-        "ClassicalLiberalism" | "SocialLiberalism" => IdeologyCompass {
+        "ClassicalLiberalism" | "SocialLiberalism" => IdeologyCoordinates {
             economy: 0.3,
             liberty: 0.7,
             tradition: -0.2,
         },
-        "Agrarianism" | "ChristianDemocracy" => IdeologyCompass {
+        "Agrarianism" | "ChristianDemocracy" => IdeologyCoordinates {
             economy: 0.0,
             liberty: 0.2,
             tradition: 0.5,
         },
-        "SocialConservatism" | "Neoconservatism" => IdeologyCompass {
+        "SocialConservatism" | "Neoconservatism" => IdeologyCoordinates {
             economy: 0.4,
             liberty: -0.2,
             tradition: 0.6,
         },
-        "Neoliberalism" | "NationalConservatism" => IdeologyCompass {
+        "Neoliberalism" | "NationalConservatism" => IdeologyCoordinates {
             economy: 0.6,
             liberty: 0.0,
             tradition: 0.4,
         },
-        "AnarchoCapitalism" => IdeologyCompass {
+        "AnarchoCapitalism" => IdeologyCoordinates {
             economy: 0.9,
             liberty: 0.8,
             tradition: -0.3,
         },
-        "Fascism" => IdeologyCompass {
+        "Fascism" => IdeologyCoordinates {
             economy: 0.2,
             liberty: -0.8,
             tradition: 0.7,
         },
-        _ => IdeologyCompass {
+        _ => IdeologyCoordinates {
             economy: 0.0,
             liberty: 0.0,
             tradition: 0.0,
@@ -611,7 +611,7 @@ mod tests {
             ..Default::default()
         });
 
-        let decree_ideology = IdeologyCompass {
+        let decree_ideology = IdeologyCoordinates {
             economy: 0.4,
             liberty: -0.2,
             tradition: 0.6,

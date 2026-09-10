@@ -8,6 +8,7 @@
 
 use crate::entities::Company;
 use crate::politics::campaign::BlackMoneySource;
+use crate::politics::ideology::IdeologyCoordinates;
 use crate::politics::legislation::Bill;
 use crate::politics::local_council::Councilor;
 use crate::politics::system::Party;
@@ -53,9 +54,9 @@ pub struct LobbyingGroup {
     #[serde(default)]
     pub target_regions: Vec<String>,
 
-    /// Political alignment (ideology vector)
+    /// Political alignment — authoritative ideological coordinates.
     #[serde(default)]
-    pub political_alignment: HashMap<String, f64>,
+    pub coordinates: IdeologyCoordinates,
 
     /// Influence power (derived from pooled capital + member count)
     #[serde(default)]

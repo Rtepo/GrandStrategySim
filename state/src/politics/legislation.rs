@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::ideology::IdeologyCompass;
+use super::ideology::IdeologyCoordinates;
 use super::legislative_weight::LegislativeWeight;
 
 /// Legislative bill with modular clauses and concessions
@@ -63,7 +63,7 @@ pub struct Clause {
     pub description: String,
 
     /// Ideological impact vector (economy, liberty, tradition)
-    pub ideological_vector: IdeologyCompass,
+    pub ideological_vector: IdeologyCoordinates,
 
     /// Budget impact
     #[serde(default)]
@@ -93,7 +93,7 @@ impl Default for Clause {
     fn default() -> Self {
         Clause {
             description: String::new(),
-            ideological_vector: IdeologyCompass {
+            ideological_vector: IdeologyCoordinates {
                 economy: 0.0,
                 liberty: 0.0,
                 tradition: 0.0,
@@ -209,8 +209,8 @@ impl Bill {
     ///
     /// # Returns
     /// Combined ideological vector from all clauses
-    pub fn calculate_ideological_impact(&self) -> IdeologyCompass {
-        let mut total = IdeologyCompass {
+    pub fn calculate_ideological_impact(&self) -> IdeologyCoordinates {
+        let mut total = IdeologyCoordinates {
             economy: 0.0,
             liberty: 0.0,
             tradition: 0.0,
