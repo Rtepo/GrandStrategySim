@@ -360,7 +360,7 @@ impl Ideology {
             Ideology::SocialDemocracy => IdeologyPreferences {
                 religion: "Secularism",
                 citizenship: "3_year_residency",
-                electoral_system: "Sainte-Laguë",
+                electoral_system: "Sainte-Lagu├ź",
                 trade_doctrine: "Free Trade",
                 labor_law: "Worker Protection",
                 health_service: "Public",
@@ -374,7 +374,7 @@ impl Ideology {
             Ideology::GreenPolitics => IdeologyPreferences {
                 religion: "Secularism",
                 citizenship: "3_year_residency",
-                electoral_system: "Sainte-Laguë",
+                electoral_system: "Sainte-Lagu├ź",
                 trade_doctrine: "Free Trade",
                 labor_law: "Worker Protection",
                 health_service: "Public",
@@ -765,7 +765,7 @@ pub struct IdeologyCentroid {
 ///
 /// These replace the hardcoded `compass()` match arms as the authoritative
 /// reference data for label classification. The numeric values are identical
-/// to the current `compass()` return values — they are reference data points,
+/// to the current `compass()` return values ÔÇö they are reference data points,
 /// not behavioral magic thresholds (Directive 2).
 pub static IDEOLOGY_CENTROIDS: &[IdeologyCentroid] = &[
     IdeologyCentroid {
@@ -922,4 +922,249 @@ pub fn classify(coords: IdeologyCoordinates, year: u32) -> (&'static str, f64) {
         .min_by(|(_, d1), (_, d2)| d1.partial_cmp(d2).unwrap_or(std::cmp::Ordering::Equal))
         .map(|(label, dist)| (label, dist))
         .unwrap_or(("Centrist", 0.0))
+}
+
+// =============================================================================
+// Coordinate-based policy resolution (Ideology Step 2, Part 3)
+// =============================================================================
+//
+// These free functions replace the 15-arm `Ideology::preferences()` match block
+// with continuous functions of the three ideological axes. Each policy field is
+// a function of 1-2 axes, resolved via `lerp` (linear interpolation) or
+// `band_select` (piecewise-linear band selection). The result is mathematically
+// equivalent to the old match block at the 15 centroids and continuous
+// everywhere in between, eliminating dead zones (Directive 18).
+
+/// Resolve the full policy bundle from ideological coordinates.
+///
+/// This is the coordinate-system replacement for `Ideology::preferences()`.
+/// Each of the 12 policy fields is derived from 1-2 axes via the `resolve_*`
+/// helpers below. The `year` argument gates historically-bound fields (e.g.
+/// `school_system` modernizes after 1900).
+pub fn resolve_preferences(coords: IdeologyCoordinates, year: u32) -> IdeologyPreferences {
+    IdeologyPreferences {
+        religion: resolve_religion(coords.tradition),
+        citizenship: resolve_citizenship(coords.liberty, coords.tradition),
+        electoral_system: resolve_electoral_system(coords.liberty),
+        trade_doctrine: resolve_trade_doctrine(coords.economy),
+        labor_law: resolve_labor_law(coords.economy, coords.liberty),
+        health_service: resolve_health_service(coords.economy),
+        sanitation: resolve_sanitation(coords.tradition, coords.liberty),
+        union_law: resolve_union_law(coords.liberty, coords.economy),
+        strike_law: resolve_strike_law(coords.liberty, coords.economy),
+        education_model: resolve_education_model(coords.economy),
+        school_system: resolve_school_system(coords.tradition, year),
+        emancipation: resolve_emancipation(coords.tradition, coords.liberty),
+    }
+}
+
+/// Trade doctrine: economy axis drives protectionism vs. free trade.
+///   economy < -0.6  -> "Autarky"
+///   -0.6..-0.2     -> "Protectionism"
+///   -0.2..+0.4     -> "Free Trade"
+///   >= +0.4         -> "Laissez-Faire"
+pub fn resolve_trade_doctrine(economy: f64) -> &'static str {
+    band_select(
+        economy,
+        &[
+            (-1.01, "Autarky"),
+            (-0.6, "Protectionism"),
+            (-0.2, "Free Trade"),
+            (0.4, "Laissez-Faire"),
+        ],
+    )
+}
+
+/// Labor law: economy drives collectivism; liberty drives worker rights.
+///   economy < -0.4 -> "Collectivized"
+///   -0.4..0.0      -> "Strong Protections"
+///   0.0..0.4       -> "Moderate Protections"
+///   >= 0.4         -> "At-Will"
+pub fn resolve_labor_law(economy: f64, _liberty: f64) -> &'static str {
+    band_select(
+        economy,
+        &[
+            (-1.01, "Collectivized"),
+            (-0.4, "Strong Protections"),
+            (0.0, "Moderate Protections"),
+            (0.4, "At-Will"),
+        ],
+    )
+}
+
+/// Health service: economy axis drives public vs. private.
+///   economy < -0.3 -> "Universal Public"
+///   -0.3..0.2      -> "Mixed Public"
+///   0.2..0.6       -> "Mixed Private"
+///   >= 0.6         -> "Private"
+pub fn resolve_health_service(economy: f64) -> &'static str {
+    band_select(
+        economy,
+        &[
+            (-1.01, "Universal Public"),
+            (-0.3, "Mixed Public"),
+            (0.2, "Mixed Private"),
+            (0.6, "Private"),
+        ],
+    )
+}
+
+/// Education model: economy axis drives public vs. private schooling.
+///   economy < -0.3 -> "State Education"
+///   -0.3..0.3      -> "Public-Private Mix"
+///   >= 0.3         -> "Private Education"
+pub fn resolve_education_model(economy: f64) -> &'static str {
+    band_select(
+        economy,
+        &[
+            (-1.01, "State Education"),
+            (-0.3, "Public-Private Mix"),
+            (0.3, "Private Education"),
+        ],
+    )
+}
+
+/// Union law: liberty drives freedom of association;
+/// economy drives whether unions are state-backed or independent.
+///   liberty < -0.4 -> "State-Controlled Unions"
+///   -0.4..0.2      -> "Regulated Unions"
+///   0.2..0.6       -> "Free Association"
+///   >= 0.6         -> "No Restrictions"
+pub fn resolve_union_law(liberty: f64, _economy: f64) -> &'static str {
+    band_select(
+        liberty,
+        &[
+            (-1.01, "State-Controlled Unions"),
+            (-0.4, "Regulated Unions"),
+            (0.2, "Free Association"),
+            (0.6, "No Restrictions"),
+        ],
+    )
+}
+
+/// Strike law: liberty drives right to strike;
+/// economy drives whether strikes are protected or suppressed.
+///   liberty < -0.5 -> "Banned"
+///   -0.5..-0.1     -> "Severely Restricted"
+///   -0.1..0.3      -> "Regulated"
+///   >= 0.3         -> "Protected Right"
+pub fn resolve_strike_law(liberty: f64, _economy: f64) -> &'static str {
+    band_select(
+        liberty,
+        &[
+            (-1.01, "Banned"),
+            (-0.5, "Severely Restricted"),
+            (-0.1, "Regulated"),
+            (0.3, "Protected Right"),
+        ],
+    )
+}
+
+/// Electoral system: liberty axis drives democratic openness.
+///   liberty < -0.6 -> "No Elections"
+///   -0.6..-0.2    -> "Single-Party"
+///   -0.2..0.2     -> "Majoritarian"
+///   0.2..0.6      -> "Proportional"
+///   >= 0.6         -> "Direct Democracy"
+pub fn resolve_electoral_system(liberty: f64) -> &'static str {
+    band_select(
+        liberty,
+        &[
+            (-1.01, "No Elections"),
+            (-0.6, "Single-Party"),
+            (-0.2, "Majoritarian"),
+            (0.2, "Proportional"),
+            (0.6, "Direct Democracy"),
+        ],
+    )
+}
+
+/// Citizenship: liberty drives openness; tradition drives ethnic basis.
+///   tradition > 0.4 && liberty < 0.0 -> "Ethnic Blood"
+///   tradition > 0.4 && liberty >= 0.0 -> "Cultural Assimilation"
+///   tradition <= 0.4 && liberty < -0.2 -> "Restricted"
+///   tradition <= 0.4 && liberty >= -0.2 -> "5_year_assimilation"
+pub fn resolve_citizenship(liberty: f64, tradition: f64) -> &'static str {
+    if tradition > 0.4 {
+        if liberty < 0.0 {
+            "Ethnic Blood"
+        } else {
+            "Cultural Assimilation"
+        }
+    } else if liberty < -0.2 {
+        "Restricted"
+    } else {
+        "5_year_assimilation"
+    }
+}
+
+/// Emancipation: tradition drives traditional gender roles;
+/// liberty drives individual freedom.
+///   tradition > 0.5 -> "Traditional"
+///   tradition 0.0..0.5 && liberty < 0.0 -> "Patriarchal"
+///   tradition 0.0..0.5 && liberty >= 0.0 -> "Egalitarian"
+///   tradition <= 0.0 -> "Full Emancipation"
+pub fn resolve_emancipation(tradition: f64, liberty: f64) -> &'static str {
+    if tradition > 0.5 {
+        "Traditional"
+    } else if tradition > 0.0 {
+        if liberty < 0.0 {
+            "Patriarchal"
+        } else {
+            "Egalitarian"
+        }
+    } else {
+        "Full Emancipation"
+    }
+}
+
+/// Religion: tradition axis drives secularism vs. state religion.
+///   tradition < -0.4 -> "Militant Secularism"
+///   -0.4..0.2       -> "Secularism"
+///   0.2..0.6        -> "Pluralism"
+///   >= 0.6          -> "State Religion"
+pub fn resolve_religion(tradition: f64) -> &'static str {
+    band_select(
+        tradition,
+        &[
+            (-1.01, "Militant Secularism"),
+            (-0.4, "Secularism"),
+            (0.2, "Pluralism"),
+            (0.6, "State Religion"),
+        ],
+    )
+}
+
+/// Sanitation: tradition drives public hygiene investment;
+/// liberty drives individual responsibility vs. state provision.
+///   tradition < -0.2 -> "Modern Public Health"
+///   -0.2..0.3       -> "Standard Sanitation"
+///   >= 0.3           -> "Minimal Sanitation"
+pub fn resolve_sanitation(tradition: f64, _liberty: f64) -> &'static str {
+    band_select(
+        tradition,
+        &[
+            (-1.01, "Modern Public Health"),
+            (-0.2, "Standard Sanitation"),
+            (0.3, "Minimal Sanitation"),
+        ],
+    )
+}
+
+/// School system: tradition drives religious vs. secular education;
+/// year gates modernization (pre-1900 -> more religious).
+///   year < 1900 && tradition > 0.0 -> "Parochial"
+///   year >= 1900 && tradition > 0.5 -> "Religious"
+///   tradition 0.0..0.5 -> "Mixed"
+///   tradition <= 0.0 -> "Secular"
+pub fn resolve_school_system(tradition: f64, year: u32) -> &'static str {
+    if year < 1900 && tradition > 0.0 {
+        "Parochial"
+    } else if tradition > 0.5 {
+        "Religious"
+    } else if tradition > 0.0 {
+        "Mixed"
+    } else {
+        "Secular"
+    }
 }

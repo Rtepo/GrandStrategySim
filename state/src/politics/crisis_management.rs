@@ -1,4 +1,4 @@
-//! Phase 31/32: Crisis Management AI — Executive Decrees + Fast-Track Legislation.
+//! Phase 31/32: Crisis Management AI ÔÇö Executive Decrees + Fast-Track Legislation.
 //!
 //! This module implements the government's automatic crisis-response system.
 //! When the economy enters a crisis (GDP decline, shadow economy explosion,
@@ -7,23 +7,23 @@
 //!
 //! # Architectural Rules (Phase 32 Revision)
 //!
-//! 1. **Decrees vs Fast-Track** — Minor interventions (subsidies, legalization,
+//! 1. **Decrees vs Fast-Track** ÔÇö Minor interventions (subsidies, legalization,
 //!    distress handling) remain executive decrees. Major systemic actions
 //!    (broad tax changes, bond authorization) go through Parliament as
 //!    fast-track legislation. When a State of Emergency is active with
 //!    `parliament_suspended = true`, ALL actions revert to executive decrees.
-//! 2. **Strict Double-Entry for Sovereign Bonds** — Bonds must be purchased
+//! 2. **Strict Double-Entry for Sovereign Bonds** ÔÇö Bonds must be purchased
 //!    by banks or citizens with real liquidity. If the private sector is
 //!    illiquid, the auction fails and the State gets no money.
-//! 3. **Coalition Moderation** — The ruling coalition's ideological
+//! 3. **Coalition Moderation** ÔÇö The ruling coalition's ideological
 //!    composition moderates the response (mathematical, no voting).
-//! 4. **State of Emergency** — A separate political field on `Politics` that
+//! 4. **State of Emergency** ÔÇö A separate political field on `Politics` that
 //!    can suspend Parliament and allow the executive to bypass all legislation.
 
 #![allow(missing_docs)]
 
 use crate::entities::Company;
-use crate::politics::ideology::Ideology;
+use crate::politics::ideology::{lerp, lerp_clamped_nonneg, Ideology, IdeologyCoordinates};
 use crate::politics::parliament::StateOfEmergency;
 use crate::politics::system::Politics;
 use crate::registries::enums::{Commodity, Sector};
@@ -39,9 +39,9 @@ type HashMap<K, V> = FxHashMap<K, V>;
 /// Classification of a crisis action as executive decree or fast-track legislation.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CrisisActionType {
-    /// Minor, specific intervention — executed directly by the executive.
+    /// Minor, specific intervention ÔÇö executed directly by the executive.
     Decree,
-    /// Major systemic action — must go through Parliament via fast-track legislation.
+    /// Major systemic action ÔÇö must go through Parliament via fast-track legislation.
     FastTrack,
 }
 
@@ -51,31 +51,31 @@ pub enum CrisisActionType {
 /// * If State of Emergency is active with `parliament_suspended = true`, ALL actions are decrees.
 /// * If no Parliament exists (0 chambers), ALL actions are decrees.
 /// * If Parliament exists and is not suspended:
-///   - Broad tax changes → FastTrack
-///   - Bond issuance authorization → FastTrack
-///   - Emergency subsidies → Decree
-///   - Shadow worker legalization → Decree
-///   - Distress handling → Decree
-///   - Starvation mortality → Decree (mechanical, not political)
+///   - Broad tax changes Ôćĺ FastTrack
+///   - Bond issuance authorization Ôćĺ FastTrack
+///   - Emergency subsidies Ôćĺ Decree
+///   - Shadow worker legalization Ôćĺ Decree
+///   - Distress handling Ôćĺ Decree
+///   - Starvation mortality Ôćĺ Decree (mechanical, not political)
 pub fn classify_crisis_action(
     politics: &Politics,
     action_scope: CrisisActionScope,
 ) -> CrisisActionType {
-    // State of Emergency with parliament suspended → all decrees.
+    // State of Emergency with parliament suspended Ôćĺ all decrees.
     if let Some(ref soe) = politics.state_of_emergency {
         if soe.can_bypass_parliament() {
             return CrisisActionType::Decree;
         }
     }
 
-    // No Parliament (absolutist/dictatorial) → all decrees.
+    // No Parliament (absolutist/dictatorial) Ôćĺ all decrees.
     let has_parliament =
         politics.government_form.chambers() > 0 && politics.parliament_struct.is_some();
     if !has_parliament {
         return CrisisActionType::Decree;
     }
 
-    // Parliament exists — classify by scope.
+    // Parliament exists ÔÇö classify by scope.
     match action_scope {
         CrisisActionScope::BroadTaxChange
         | CrisisActionScope::BondAuthorization
@@ -170,7 +170,7 @@ fn process_state_of_emergency_with_snapshot(
                 parliament.suspended = false;
             }
             return Some(
-                "[STATE OF EMERGENCY] Auto-expired — Parliament resumes normal function."
+                "[STATE OF EMERGENCY] Auto-expired ÔÇö Parliament resumes normal function."
                     .to_string(),
             );
         }
@@ -207,7 +207,7 @@ fn process_state_of_emergency_with_snapshot(
         }
 
         return Some(format!(
-            "[STATE OF EMERGENCY] Activated: {} — Parliament {}",
+            "[STATE OF EMERGENCY] Activated: {} ÔÇö Parliament {}",
             reason,
             if parliament_suspended {
                 "SUSPENDED"
@@ -268,7 +268,7 @@ pub struct CrisisIndicators {
     pub investment_collapse: bool,
     /// Whether net exports (NX) has been 0 for 2+ consecutive turns.
     pub trade_collapse: bool,
-    /// Unemployment rate (0.0–1.0).
+    /// Unemployment rate (0.0ÔÇô1.0).
     pub unemployment_rate: f64,
     /// Average wage relative to subsistence wage (1.0 = at subsistence).
     pub wage_to_subsistence_ratio: f64,
@@ -368,7 +368,7 @@ pub fn detect_crisis(
 pub fn compute_subsistence_wage(market_prices: &HashMap<Commodity, f64>) -> f64 {
     let food_price = market_prices.get(&Commodity::Food).copied().unwrap_or(50.0);
     // A worker needs ~200 units of food per year for subsistence.
-    // Engine runs 24 turns/year, so per-turn subsistence = 200/24 ≈ 8.33 units.
+    // Engine runs 24 turns/year, so per-turn subsistence = 200/24 Ôëł 8.33 units.
     (200.0 / 24.0) * food_price
 }
 
@@ -596,6 +596,86 @@ impl CrisisResponseProfile {
             },
         }
     }
+
+    /// Coordinate-based crisis response profile (Ideology Step 2, Part 3.2).
+    ///
+    /// This is the coordinate-system replacement for `for_ideology()`. Each
+    /// field is a linear (or piecewise-linear) function of the ideological
+    /// axes. The 15 enum arms become sample points that the linear
+    /// interpolation passes through (or approximates): the result is
+    /// mathematically equivalent at the centroids and continuous everywhere
+    /// else, eliminating dead zones (Directive 18).
+    ///
+    /// # Field semantics
+    /// * `pit_adjustment` / `cit_adjustment` / `vat_adjustment` ÔÇö tax
+    ///   adjustments in percentage points. Left raises taxes to fund crisis
+    ///   relief; right cuts taxes to stimulate private response.
+    /// * `spending_cut_pct` ÔÇö fraction of budget cut (austerity). Left
+    ///   protects spending (0.0); right cuts deeply (up to 0.50).
+    /// * `bond_issuance_cap_gdp` ÔÇö max sovereign bond issuance as a fraction
+    ///   of GDP. Left borrows (0.15); right forbids new debt (0.0).
+    /// * `subsidy_pct_of_payroll` ÔÇö emergency payroll subsidy fraction. Left
+    ///   is generous (0.80); right provides none (0.0).
+    /// * `subsidized_sectors` ÔÇö sectors eligible for emergency subsidies,
+    ///   selected by threshold bands on the economy axis.
+    /// * `inspectorate_priority` ÔÇö enforcement funding priority (0.0ÔÇô1.0).
+    ///   Left enforces aggressively; right is lax.
+    pub fn for_coordinates(coords: IdeologyCoordinates) -> Self {
+        // PIT adjustment (pp): left -> +3.0 (raise), right -> -5.0 (cut).
+        let pit_adjustment = lerp(3.0, -5.0, coords.economy);
+
+        // CIT adjustment (pp): left -> +2.0 (raise), right -> -4.0 (cut).
+        let cit_adjustment = lerp(2.0, -4.0, coords.economy);
+
+        // VAT adjustment (pp): left -> +2.0 (raise consumption tax to fund
+        // relief), right -> -5.0 (cut). Matches the centroid extremes:
+        // Marxist-left = +2.0, Anarcho-Capitalism = -5.0.
+        let vat_adjustment = lerp(2.0, -5.0, coords.economy);
+
+        // Spending cut fraction: left -> 0.0 (protect spending),
+        // right -> 0.50 (austerity).
+        let spending_cut_pct = lerp_clamped_nonneg(0.0, 0.50, coords.economy);
+
+        // Bond issuance cap (% of GDP): left -> 0.15 (borrow),
+        // right -> 0.0 (no new debt).
+        let bond_issuance_cap_gdp = lerp_clamped_nonneg(0.15, 0.0, coords.economy);
+
+        // Emergency payroll subsidy fraction: left -> 0.80 (generous),
+        // right -> 0.0 (none). Matches the field's documented scale
+        // (0.80 = 80% of payroll) and the centroid extremes.
+        let subsidy_pct_of_payroll = lerp_clamped_nonneg(0.80, 0.0, coords.economy);
+
+        // Inspectorate priority: left -> 1.0 (aggressive enforcement),
+        // right -> 0.0 (lax).
+        let inspectorate_priority = lerp(1.0, 0.0, coords.economy).clamp(0.0, 1.0);
+
+        // Subsidized sectors: threshold-based set selection from the economy
+        // axis. Left (economy < -0.3): heavy industry + agriculture + medical
+        // services. Center (-0.3..0.3): agriculture + medical services.
+        // Right (>= 0.3): none (the market solves it).
+        let subsidized_sectors: Vec<Sector> = if coords.economy < -0.3 {
+            vec![
+                Sector::HeavyIndustry,
+                Sector::Agriculture,
+                Sector::MedicalServices,
+            ]
+        } else if coords.economy < 0.3 {
+            vec![Sector::Agriculture, Sector::MedicalServices]
+        } else {
+            vec![]
+        };
+
+        Self {
+            pit_adjustment,
+            cit_adjustment,
+            vat_adjustment,
+            spending_cut_pct,
+            bond_issuance_cap_gdp,
+            subsidy_pct_of_payroll,
+            subsidized_sectors,
+            inspectorate_priority,
+        }
+    }
 }
 
 // ============================================================================
@@ -611,7 +691,7 @@ impl CrisisResponseProfile {
 /// * If the coalition's average ideology diverges from the ruling party's
 ///   ideology by > 0.3 on the economic compass axis, tax adjustments are
 ///   halved and bond cap is reduced by 30%.
-/// * If `minority_government == true`, tax adjustments are capped at ±1%
+/// * If `minority_government == true`, tax adjustments are capped at ┬▒1%
 ///   and subsidies are reduced by 50%.
 /// * Non-democratic regimes: no moderation (full crisis profile applied).
 pub fn apply_coalition_moderation(
@@ -636,7 +716,7 @@ pub fn apply_coalition_moderation(
 
     // Coalition moderation: compute average coalition ideology divergence.
     if politics.coalition.len() <= 1 {
-        return; // Single-party government — no moderation needed.
+        return; // Single-party government ÔÇö no moderation needed.
     }
 
     let ruling_compass = ruling_ideology.compass();
@@ -656,7 +736,7 @@ pub fn apply_coalition_moderation(
         let avg_economy = total_economy / party_count;
         let divergence = (avg_economy - ruling_compass.economy).abs();
         if divergence > 0.3 {
-            // Coalition is fractured — water down the decree.
+            // Coalition is fractured ÔÇö water down the decree.
             profile.pit_adjustment *= 0.5;
             profile.cit_adjustment *= 0.5;
             profile.vat_adjustment *= 0.5;
@@ -673,8 +753,8 @@ pub fn apply_coalition_moderation(
 /// Phase 31: Execute fiscal response via executive decree.
 ///
 /// Adjusts PIT, CIT, and VAT based on the crisis response profile.
-/// Tax adjustments are bounded: PIT 0%–60%, CIT 0%–40%, VAT 0%–25%.
-/// Maximum change per turn: ±3 percentage points (±1% for minority governments).
+/// Tax adjustments are bounded: PIT 0%ÔÇô60%, CIT 0%ÔÇô40%, VAT 0%ÔÇô25%.
+/// Maximum change per turn: ┬▒3 percentage points (┬▒1% for minority governments).
 ///
 /// # Returns
 /// Vector of human-readable decree messages for telemetry.
@@ -766,7 +846,7 @@ pub fn execute_fiscal_response(
 /// * `current_turn` - Current turn number.
 ///
 /// # Returns
-/// (amount_raised, messages) — amount_raised may be less than amount_needed
+/// (amount_raised, messages) ÔÇö amount_raised may be less than amount_needed
 /// if the auction is partially or fully undersubscribed.
 pub fn issue_crisis_bonds(
     country: &mut Country,
@@ -827,7 +907,7 @@ pub fn issue_crisis_bonds(
 
     if total_capacity <= 0.0 {
         messages.push(
-            "[CRISIS BONDS] Auction FAILED — private sector has no liquidity. State gets no money."
+            "[CRISIS BONDS] Auction FAILED ÔÇö private sector has no liquidity. State gets no money."
                 .to_string(),
         );
         return (0.0, messages);
@@ -848,7 +928,7 @@ pub fn issue_crisis_bonds(
 
     let total_raised = actual_amount * issue_price;
 
-    // Step 4: Settle — debit bank reserves, credit treasury.
+    // Step 4: Settle ÔÇö debit bank reserves, credit treasury.
     // Allocate bond purchases proportionally across banks by excess reserves.
     let mut remaining = actual_amount;
     for (idx, excess) in &bank_indices {
@@ -1023,7 +1103,7 @@ pub fn allocate_emergency_subsidies(
         if !profile.subsidized_sectors.contains(&c.sector) {
             continue;
         }
-        // Subsidy = subsidy_pct × payroll (approximated by available_cash × 0.1
+        // Subsidy = subsidy_pct ├Ś payroll (approximated by available_cash ├Ś 0.1
         // since we don't have direct payroll access here).
         // A better approximation uses the company's wage bill.
         let payroll_estimate = c.available_cash.max(0.0) * 0.1;
@@ -1140,7 +1220,7 @@ pub fn bounded_production_scale(
 ///
 /// # Arguments
 /// * `country` - Mutable country state.
-/// * `legalization_rate` - Fraction of shadow workers to legalize (0.0–1.0).
+/// * `legalization_rate` - Fraction of shadow workers to legalize (0.0ÔÇô1.0).
 ///
 /// # Returns
 /// Number of workers legalized.
@@ -1194,10 +1274,10 @@ pub fn gradual_distress_handling(companies: &mut [Company], distress_threshold: 
 ///
 /// Destitute classes with negative per-capita savings lose population at a rate
 /// proportional to the depth of their deficit:
-/// `mortality_rate = 0.001 + deficit_ratio * 0.004` (0.1%–0.5% per turn).
+/// `mortality_rate = 0.001 + deficit_ratio * 0.004` (0.1%ÔÇô0.5% per turn).
 ///
-/// At 24 turns/year, this gives 2.4%–12% annual mortality under famine conditions.
-/// Starvation deaths are NOT emigration — they do not add to another country's
+/// At 24 turns/year, this gives 2.4%ÔÇô12% annual mortality under famine conditions.
+/// Starvation deaths are NOT emigration ÔÇö they do not add to another country's
 /// population.
 ///
 /// # Arguments
@@ -1259,7 +1339,7 @@ pub fn get_ruling_ideology(politics: &Politics) -> Ideology {
         .unwrap_or(Ideology::SocialLiberalism)
 }
 
-/// Phase 31: Main entry point — execute all crisis response executive decrees.
+/// Phase 31: Main entry point ÔÇö execute all crisis response executive decrees.
 ///
 /// Called from `process_political_turn` BEFORE ministry procurement.
 /// Bypasses `bill_lifecycle` entirely (executive decrees only).
@@ -1302,7 +1382,7 @@ pub fn execute_crisis_response(
                         parl.suspended = false;
                     }
                     messages.push(
-                        "[STATE OF EMERGENCY] Auto-expired — Parliament resumes.".to_string(),
+                        "[STATE OF EMERGENCY] Auto-expired ÔÇö Parliament resumes.".to_string(),
                     );
                 }
             }
@@ -1340,7 +1420,7 @@ pub fn execute_crisis_response(
         && !parliament_suspended;
 
     messages.push(format!(
-        "[CRISIS DETECTED] Severity: {:.0}% — GDP decline: {:.1}%, Shadow ratio: {:.1}%, Treasury: {:.1} months",
+        "[CRISIS DETECTED] Severity: {:.0}% ÔÇö GDP decline: {:.1}%, Shadow ratio: {:.1}%, Treasury: {:.1} months",
         indicators.severity() * 100.0,
         indicators.gdp_decline_pct * 100.0,
         indicators.shadow_gdp_ratio * 100.0,
@@ -1580,7 +1660,7 @@ pub fn counter_cyclical_response(country: &mut Country, _current_turn: u32) -> V
                 }
 
                 messages.push(format!(
-                    "[COUNTER-CYCLICAL] Fiscal stimulus: {:.0} transferred from treasury to unemployed workers (unemployment {:.1}% → {:.1}%)",
+                    "[COUNTER-CYCLICAL] Fiscal stimulus: {:.0} transferred from treasury to unemployed workers (unemployment {:.1}% Ôćĺ {:.1}%)",
                     stimulus, prev_unemployment, unemployment_rate
                 ));
             }
@@ -1626,7 +1706,7 @@ mod tests {
     fn test_classify_crisis_action_decree_when_no_parliament() {
         let mut politics = Politics::default();
         politics.government_form = GovernmentForm::AbsoluteMonarchy;
-        // No parliament_struct → all decrees.
+        // No parliament_struct Ôćĺ all decrees.
         let action_type = classify_crisis_action(&politics, CrisisActionScope::BroadTaxChange);
         assert_eq!(action_type, CrisisActionType::Decree);
     }
@@ -1653,7 +1733,7 @@ mod tests {
             true,
             "President".to_string(),
         );
-        // SoE with parliament_suspended → all decrees.
+        // SoE with parliament_suspended Ôćĺ all decrees.
         let action_type = classify_crisis_action(&politics, CrisisActionScope::BroadTaxChange);
         assert_eq!(action_type, CrisisActionType::Decree);
     }
@@ -1730,7 +1810,7 @@ mod tests {
         // Tick 2.
         let _ = process_state_of_emergency(&mut politics, &indicators, &country, 12);
         assert!(politics.state_of_emergency.as_ref().unwrap().active);
-        // Tick 3 — should expire (mild crisis → no reactivation).
+        // Tick 3 ÔÇö should expire (mild crisis Ôćĺ no reactivation).
         let msg = process_state_of_emergency(&mut politics, &indicators, &country, 13);
         assert!(msg.is_some());
         assert!(!politics.state_of_emergency.as_ref().unwrap().active);
@@ -1931,11 +2011,11 @@ mod tests {
 
         assert!(
             profile.pit_adjustment.abs() <= 1.0,
-            "Minority government should cap PIT at ±1pp"
+            "Minority government should cap PIT at ┬▒1pp"
         );
         assert!(
             profile.cit_adjustment.abs() <= 1.0,
-            "Minority government should cap CIT at ±1pp"
+            "Minority government should cap CIT at ┬▒1pp"
         );
     }
 
@@ -2059,7 +2139,7 @@ mod tests {
         let mut country = Country::default();
         let mut region = Region::default();
         let mut classes = BTreeMap::new();
-        // Destitute class with negative savings → should lose population.
+        // Destitute class with negative savings Ôćĺ should lose population.
         classes.insert(
             RuralClass::FreePeasant,
             ClassDemographics {
@@ -2070,7 +2150,7 @@ mod tests {
                 ..Default::default()
             },
         );
-        // Stable class → should NOT lose population.
+        // Stable class Ôćĺ should NOT lose population.
         classes.insert(
             RuralClass::Aristocracy,
             ClassDemographics {
@@ -2119,7 +2199,7 @@ mod tests {
         let mut region = Region::default();
         let mut classes = BTreeMap::new();
 
-        // Mild deficit: savings_per_capita = -100 → deficit_ratio = 1.0
+        // Mild deficit: savings_per_capita = -100 Ôćĺ deficit_ratio = 1.0
         // mortality = 0.001 + 1.0 * 0.004 = 0.005 = 0.5%
         classes.insert(
             RuralClass::FreePeasant,
@@ -2131,15 +2211,15 @@ mod tests {
                 ..Default::default()
             },
         );
-        // Deep deficit: savings_per_capita = -500 → deficit_ratio = 5.0 (capped)
-        // mortality = 0.001 + 5.0 * 0.004 = 0.021 → capped at 0.005 = 0.5%
+        // Deep deficit: savings_per_capita = -500 Ôćĺ deficit_ratio = 5.0 (capped)
+        // mortality = 0.001 + 5.0 * 0.004 = 0.021 Ôćĺ capped at 0.005 = 0.5%
         // Wait, deficit_ratio = -(-500)/100 = 5.0, so mortality = 0.001 + 5.0*0.004 = 0.021
         // But that's 2.1% which exceeds the 0.5% cap. Let me recalculate.
         // Actually the formula is 0.001 + deficit_ratio * 0.004, and deficit_ratio is capped at 5.0.
         // So max = 0.001 + 5.0 * 0.004 = 0.021 = 2.1% per turn.
         // But the spec says max 0.5%. Let me fix the deficit_ratio divisor.
         // With savings_per_capita = -100 and divisor 100: deficit_ratio = 1.0
-        // mortality = 0.001 + 1.0 * 0.004 = 0.005 = 0.5% ✓
+        // mortality = 0.001 + 1.0 * 0.004 = 0.005 = 0.5% Ôťô
         classes.insert(
             RuralClass::Serf,
             ClassDemographics {
@@ -2170,12 +2250,12 @@ mod tests {
         // Mild deficit: rate should be ~0.5% (0.005)
         assert!(
             mild_rate <= 0.006,
-            "Mild starvation rate should be ≤ 0.6%, got {:.4}",
+            "Mild starvation rate should be ÔëĄ 0.6%, got {:.4}",
             mild_rate
         );
         assert!(
             mild_rate >= 0.001,
-            "Mild starvation rate should be ≥ 0.1%, got {:.4}",
+            "Mild starvation rate should be Ôëą 0.1%, got {:.4}",
             mild_rate
         );
 
@@ -2184,7 +2264,7 @@ mod tests {
         // The key constraint is that it's bounded and realistic.
         assert!(
             deep_rate <= 0.025,
-            "Deep starvation rate should be ≤ 2.5%, got {:.4}",
+            "Deep starvation rate should be ÔëĄ 2.5%, got {:.4}",
             deep_rate
         );
     }
@@ -2199,7 +2279,7 @@ mod tests {
         let mut country = Country::default();
         let mut region = Region::default();
         let mut urban = BTreeMap::new();
-        // Struggling class with negative savings → should NOT starve (not Destitute).
+        // Struggling class with negative savings Ôćĺ should NOT starve (not Destitute).
         urban.insert(
             UrbanClass::Worker,
             ClassDemographics {
@@ -2243,7 +2323,7 @@ mod tests {
     #[test]
     fn bounded_freight_quantity_zero_cost() {
         let result = bounded_freight_quantity(100.0, 0.0, 0.0);
-        assert!((result - 100.0).abs() < 1e-9, "Zero cost → full quantity");
+        assert!((result - 100.0).abs() < 1e-9, "Zero cost Ôćĺ full quantity");
     }
 
     #[test]

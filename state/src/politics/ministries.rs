@@ -8,7 +8,7 @@
 
 use crate::economy::order_book::OrderBook;
 use crate::entities::Company;
-use crate::politics::ideology::Ideology;
+use crate::politics::ideology::{lerp, Ideology, IdeologyCoordinates};
 use crate::politics::system::Party;
 use crate::registries::enums::Commodity;
 use crate::state::Country;
@@ -47,7 +47,7 @@ pub enum GovernmentCompetency {
     SocialWelfare,
     /// Justice and courts.
     Justice,
-    /// Treasury — always exists, manages taxation & fiscal policy.
+    /// Treasury ÔÇö always exists, manages taxation & fiscal policy.
     /// Does NOT handle debt service (that is a central obligation).
     Treasury,
     /// Science and R&D.
@@ -72,7 +72,7 @@ pub enum GovernmentCompetency {
 // BUDGET PRIORITIES
 // ============================================================================
 
-/// Ideology-derived spending weights (0.0–1.0) for each policy area.
+/// Ideology-derived spending weights (0.0ÔÇô1.0) for each policy area.
 ///
 /// Used by the amendment negotiation logic and the autonomous minister AI
 /// to determine spending priorities.
@@ -301,6 +301,55 @@ impl IdeologyBudgetPriorities for Ideology {
                 free_market: 0.0,
             },
         }
+    }
+}
+
+// ============================================================================
+// Coordinate-based budget priorities (Ideology Step 2, Part 3.3)
+// ============================================================================
+
+/// Compute budget priority weights from ideological coordinates.
+///
+/// This is the coordinate-system replacement for `IdeologyBudgetPriorities::
+/// budget_priorities()`. Each of the 9 weights is a linear function of the
+/// economy, liberty, and/or tradition axes. Weights are clamped to
+/// `[0.0, 1.0]`; the caller normalizes them to sum to 1.0 before distributing
+/// GDP. The result is mathematically equivalent to the old 15-arm match block
+/// at the centroids and continuous everywhere in between (Directive 18).
+pub fn budget_priorities_from_coords(coords: IdeologyCoordinates) -> BudgetPriorities {
+    BudgetPriorities {
+        // Heavy industry: left favors national industry (0.9), right less (0.2).
+        heavy_industry: lerp(0.9, 0.2, coords.economy).clamp(0.0, 1.0),
+
+        // Internal security: authoritarian (liberty < 0) favors (0.7),
+        // libertarian less (0.3).
+        internal_security: lerp(0.7, 0.3, coords.liberty).clamp(0.0, 1.0),
+
+        // Education: left favors public education (0.8), right less (0.4).
+        education: lerp(0.8, 0.4, coords.economy).clamp(0.0, 1.0),
+
+        // Healthcare: left favors (0.8), right less (0.3).
+        healthcare: lerp(0.8, 0.3, coords.economy).clamp(0.0, 1.0),
+
+        // Infrastructure: relatively neutral, slight left lean (0.6 -> 0.5).
+        infrastructure: lerp(0.6, 0.5, coords.economy).clamp(0.0, 1.0),
+
+        // Social welfare: left favors (0.9), right minimal (0.1).
+        social_welfare: lerp(0.9, 0.1, coords.economy).clamp(0.0, 1.0),
+
+        // Agriculture: tradition favors (0.7), futurism less (0.3).
+        agriculture: lerp(0.3, 0.7, coords.tradition).clamp(0.0, 1.0),
+
+        // Armed forces: blend of economy (left 0.5, right 0.4) and liberty
+        // (authoritarian 0.8, libertarian 0.3).
+        armed_forces: {
+            let eco = lerp(0.5, 0.4, coords.economy);
+            let lib = lerp(0.8, 0.3, coords.liberty);
+            (eco * 0.5 + lib * 0.5).clamp(0.0, 1.0)
+        },
+
+        // Free market: left 0.0, right 1.0.
+        free_market: lerp(0.0, 1.0, coords.economy).clamp(0.0, 1.0),
     }
 }
 
@@ -555,12 +604,12 @@ pub fn form_government(
         }
     } else {
         // Single-party government: PM gets all portfolios, but each ministry
-        // gets a UNIQUE minister name (Phase 37 fix — was cloning PM name for all).
+        // gets a UNIQUE minister name (Phase 37 fix ÔÇö was cloning PM name for all).
         let pm_party = coalition.first().cloned().unwrap_or_default();
         let pm_name = resolve_minister_name(active_parties, &pm_party, cg);
         let cultural_group = cg;
         let mut rng = rand::thread_rng();
-        // Phase 45: Use the global used_names set — no local HashSet.
+        // Phase 45: Use the global used_names set ÔÇö no local HashSet.
         used_names.insert(pm_name.clone());
         for comp in all_competencies.iter() {
             if pm_reserved.contains(comp) {
@@ -703,7 +752,7 @@ fn competency_display_name(comp: GovernmentCompetency) -> String {
 ///   / sum(all weights across all ministries).
 /// * Minimum floor of 10,000 per ministry to ensure basic functionality
 ///   even in very poor economies.
-/// * Does NOT debit treasury — that happens in `allocate_cash_to_ministries`.
+/// * Does NOT debit treasury ÔÇö that happens in `allocate_cash_to_ministries`.
 pub fn calculate_budget_needs(country: &mut Country) {
     let Some(ref mut config) = country.politics.ministry_config else {
         return;
@@ -762,7 +811,7 @@ pub fn calculate_budget_needs(country: &mut Country) {
 /// * Ministries are hard-capped by actual `treasury.liquid_reserves`.
 /// * If the treasury cannot fully fund the promised amounts, allocations are
 ///   proportionally reduced to match physical cash on hand.
-/// * `sum(allocated) <= liquid_reserves` — no negative cash ever.
+/// * `sum(allocated) <= liquid_reserves` ÔÇö no negative cash ever.
 /// * `treasury.liquid_reserves` is decremented by the total allocated.
 pub fn allocate_cash_to_ministries(country: &mut Country) {
     let Some(ref mut config) = country.politics.ministry_config else {
@@ -802,7 +851,7 @@ pub fn sum_ministry_allocations(config: &Option<MinistryConfig>) -> f64 {
 }
 
 // ============================================================================
-// MINISTER AI — PHASE A: PRE-CLEARING STRATEGIES
+// MINISTER AI ÔÇö PHASE A: PRE-CLEARING STRATEGIES
 // ============================================================================
 
 /// Variant of `prepare_minister_strategies` that takes active_parties directly,
@@ -864,7 +913,7 @@ fn execute_competency_spending_with_parties(
 ) -> f64 {
     // Phase 35: Cap spending at ministry_cash (the pocket), NOT liquid_reserves.
     // allocate_cash_to_ministries already moved cash from liquid_reserves into
-    // ministry_cash, so we debit from the pocket only — no double-debit.
+    // ministry_cash, so we debit from the pocket only ÔÇö no double-debit.
     let available = ministry
         .ministry_cash
         .min(ministry.allocated_cash - ministry.spent_cash);
@@ -1383,7 +1432,7 @@ fn execute_competency_spending(
 }
 
 // ============================================================================
-// MINISTER AI — PHASE B: POST-CLEARING RECONCILIATION
+// MINISTER AI ÔÇö PHASE B: POST-CLEARING RECONCILIATION
 // ============================================================================
 
 /// Reconciles ministry spending after B2B market clearing.
@@ -1424,7 +1473,7 @@ pub fn process_minister_post_clearing(
     // Log executed trades for this ministry
     for trade in &order_book.trades {
         if trade.buyer_id == ministry.id {
-            // The trade was already settled during match_orders — cash moved
+            // The trade was already settled during match_orders ÔÇö cash moved
             // from encumbrance to seller. The spent_cash already reflects this.
         }
     }
@@ -1534,7 +1583,7 @@ mod tests {
     fn test_resolve_minister_name_with_empty_leader() {
         let mut parties = HashMap::new();
         let mut party = Party::default();
-        party.leader.name = String::new(); // Empty name — the bug we're fixing.
+        party.leader.name = String::new(); // Empty name ÔÇö the bug we're fixing.
         parties.insert("P1".to_string(), party);
         let name = resolve_minister_name(&parties, "P1", "slavic");
         // Phase 39: Should generate a random VIP name, not "Minister (P1)".
