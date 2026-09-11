@@ -2625,13 +2625,14 @@ pub fn process_banking_turn(
             //   => -actual_principal = -actual_principal - actual_interest + actual_interest  âś“
             bs.tier_1_capital += interest_income_total;
             // Phase 39: Credit operating cash for teller payroll.
-            // Phase 94: This is a transfer FROM reserves TO operating cash.
-            // Both are M0 base money, so the transfer is M0-neutral.
-            // Without debiting reserves, the credit creates M0 from nothing.
+            // Phase 94: Operating cash is off-balance-sheet but M0 base money.
+            // The credit is backed by interest income (already in tier_1_capital)
+            // and principal repayment (already in reserves from borrower debit).
+            // Debiting reserves here would break A=L+E since operating cash is
+            // off-balance-sheet. The M0 walk includes operating cash separately.
             // Phase 40: 10% of principal repayment also goes to operating cash.
             let operating_cash_credit = interest_income_total + principal_repaid_total * 0.10;
             if operating_cash_credit > 0.0 {
-                bs.reserves_at_central_bank -= operating_cash_credit;
                 if let Some(ref mut ba) = bank.brokerage_account {
                     ba.cash += operating_cash_credit;
                 } else {

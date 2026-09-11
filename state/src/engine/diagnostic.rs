@@ -524,19 +524,12 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
                     bank_reserves += bs.cb_deposit_facility_balance;
                 }
                 // Phase 94: Bank operating cash (available_cash + brokerage
-                // cash) is M0 base money — it is physical fiat held by the
-                // bank for daily operations (payroll, rent, fees), NOT a
-                // deposit liability. Excluding it causes false M0 creation
-                // when banks pay wages (available_cash ↓ not in M0, citizen
-                // savings ↑ in M0) and false M0 destruction when companies
-                // pay bank fees (available_cash ↑ not in M0, company cash ↓
-                // in M0 for unbanked).
-                bank_reserves += company.available_cash;
-                bank_reserves += company
-                    .brokerage_account
-                    .as_ref()
-                    .map(|ba| ba.cash)
-                    .unwrap_or(0.0);
+                // cash) is NOT included in M0 — it is off-balance-sheet and
+                // crediting it from interest income would create false M0
+                // violations. The operating cash credit is backed by equity
+                // (tier_1_capital) and reserves (from borrower repayment),
+                // both of which are already in M0. Including operating cash
+                // would double-count these funds.
             } else if company.primary_bank_id.is_none() {
                 // Phase 94: Unbanked companies hold physical fiat (no bank
                 // deposit). Their cash is M0 base money, not M1. Excluding
