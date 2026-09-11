@@ -2308,6 +2308,13 @@ pub struct ArbitrationCourt {
     pub total_compensation_owed: f64,
     /// Total compensation paid to date
     pub total_compensation_paid: f64,
+    /// Escrow for compensation whose plaintiff cannot be resolved at
+    /// payment time. This is fiat held by the Court, NOT spendable Treasury
+    /// cash. It remains in M0 (counted in walk_global_fiat). Double-entry
+    /// counterparty for treasury debits that cannot be credited to a live
+    /// plaintiff (Directive 1: no void sinks).
+    #[serde(default)]
+    pub unclaimed_arbitration_funds: f64,
 }
 
 impl ArbitrationCourt {
@@ -2515,6 +2522,12 @@ pub fn pay_arbitration_compensation(court: &mut ArbitrationCourt, treasury: &mut
             total_paid += payment;
             court.total_compensation_paid += payment;
             court.total_compensation_owed = (court.total_compensation_owed - payment).max(0.0);
+
+            // Credit the escrow (Directive 1: double-entry). The plaintiff
+            // cannot be resolved from this function's signature (no access
+            // to companies/regions), so the fiat is parked in the Court's
+            // escrow — a tracked M0 reservoir — rather than destroyed.
+            court.unclaimed_arbitration_funds += payment;
 
             if case.compensation_claimed <= 0.0 {
                 // Mark as fully paid by changing status to a resolved state

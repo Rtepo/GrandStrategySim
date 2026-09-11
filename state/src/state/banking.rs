@@ -546,6 +546,14 @@ impl InterbankMarket {
                     let loan = sobk.provide_emergency_loan(&bank.id, needed, current_xibor);
                     if loan > 0.0 {
                         bs.reserves_at_central_bank += loan;
+                        // Record the SOBK loan as a bank liability so the
+                        // balance-sheet identity holds (Directive 1: assets
+                        // increase via reserves, liabilities must increase
+                        // by the same amount).
+                        *bs
+                            .interbank_loans_taken
+                            .entry("SOBK".to_string())
+                            .or_insert(0.0) += loan;
                     }
                 } else if position > 0.0 {
                     // Member bank with surplus — repay outstanding SOBK loans.
@@ -554,6 +562,13 @@ impl InterbankMarket {
                         let repay = position.min(outstanding);
                         sobk.repay_loan(&bank.id, repay);
                         bs.reserves_at_central_bank -= repay;
+                        // Reduce the SOBK liability on the bank's balance
+                        // sheet so the identity holds (Directive 1: assets
+                        // decrease via reserves, liabilities must decrease
+                        // by the same amount).
+                        if let Some(sobk_loan) = bs.interbank_loans_taken.get_mut("SOBK") {
+                            *sobk_loan = (*sobk_loan - repay).max(0.0);
+                        }
                     }
                 }
             }
@@ -1811,6 +1826,14 @@ impl BankResolution {
         bs.interbank_loans_taken.clear(); // Toxic debt removed (HashMap)
         bs.cb_lombard_loans = 0.0; // Toxic debt removed
 
+        // Step 4b: Restore balance-sheet identity (Directive 1).
+        // After cleaning liabilities (uninsured deposits, interbank, Lombard
+        // removed), the bridge bank's assets exceed its liabilities. Set
+        // tier_1_capital to the residual so BFG's 100% ownership has real
+        // equity value and assets == liabilities + equity holds.
+        let post_resolution_equity = (bs.total_assets() - bs.total_liabilities()).max(0.0);
+        bs.tier_1_capital = post_resolution_equity;
+
         // Step 5: Route creditor payments (Money Mass Preservation)
         // 5a: Interbank loans already repaid to specific lenders above
 
@@ -1840,6 +1863,9 @@ impl BankResolution {
         // Step 7: BFG becomes 100% owner of Bridge Bank
         failed_bank.owners.insert("BFG".to_string(), 1.0);
         failed_bank.state_share = 1.0;
+        // Sync company_capital with the post-resolution equity (Directive 1:
+        // company_capital must reflect the real balance-sheet equity).
+        failed_bank.company_capital = post_resolution_equity;
 
         // Step 8: Mark as bridge bank with takeover timestamp
         self.bridge_banks

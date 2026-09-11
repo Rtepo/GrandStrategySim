@@ -354,9 +354,11 @@ impl RegionalMarketSnapshot {
 
 /// Decomposition of global_fiat (M0 base money) at one checkpoint.
 ///
-/// CRITICAL: Corporate cash (available_cash, debit_cash, credit_cash,
-/// brokerage_account.cash) is NOT included here. Those are M1 broad-money
-/// deposit claims on bank reserves, not M0 base money. See plan Â§3.1.3.
+/// Corporate cash (available_cash, brokerage_account.cash) IS included
+/// here as `corporate_cash`. The simulation does not model the banking-side
+/// of cash withdrawals/deposits, so corporate cash is effectively physical
+/// fiat in circulation — it must be tracked in M0 to prevent false
+/// conservation violations from wage payments and B2C consumption.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FiatWalk {
     /// Total M0 base money (sum of all components below).
@@ -374,6 +376,17 @@ pub struct FiatWalk {
     /// Phase 94: Ministry cash pockets — fiat debited from treasury and held
     /// by ministries until spent. This is M0 base money.
     pub ministry_cash: f64,
+    /// Corporate cash: available_cash + brokerage_account.cash across all
+    /// non-banking companies. The simulation does not model bank deposit
+    /// withdrawal/deposit mechanics, so corporate cash is effectively
+    /// physical fiat and must be in M0 (Directive 1: closed-loop).
+    #[serde(default)]
+    pub corporate_cash: f64,
+    /// Arbitration escrow: fiat held by courts for compensation whose
+    /// plaintiff cannot be resolved. Counted in M0 to prevent false
+    /// conservation violations (Directive 1: no void sinks).
+    #[serde(default)]
+    pub arbitration_escrow: f64,
     /// CB injection tracker (the sole permitted delta source).
     pub cumulative_cb_injection: f64,
 }
@@ -394,6 +407,8 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     let mut treasury_cash: f64 = 0.0;
     let mut citizen_cash: f64 = 0.0;
     let mut bank_reserves: f64 = 0.0;
+    let mut corporate_cash: f64 = 0.0;
+    let mut arbitration_escrow: f64 = 0.0;
     let mut cumulative_cb_injection: f64 = 0.0;
 
     let mut ministry_cash: f64 = 0.0;
@@ -446,12 +461,25 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         bank_reserves += country.bfg_fund.reserves;
         bank_reserves += country.sobk_scheme.pool;
 
-        // Bank reserves: sum across all banking-sector companies.
+        // Arbitration escrow: fiat held by courts (Directive 1: no void sinks).
+        arbitration_escrow += country.arbitration_court.unclaimed_arbitration_funds;
+
+        // Bank reserves and corporate cash: sum across all companies.
+        // Corporate cash (available_cash + brokerage_account.cash) is
+        // effectively physical fiat in this simulation — the engine does
+        // not model bank deposit withdrawal mechanics, so corporate cash
+        // must be in M0 to prevent false conservation violations from wage
+        // payments and B2C consumption (Directive 1: closed-loop).
         for company in &task.companies {
             if company.sector == Sector::Banking {
                 if let Some(ref bs) = company.balance_sheet {
                     bank_reserves += bs.reserves_at_central_bank;
                     bank_reserves += bs.cb_deposit_facility_balance;
+                }
+            } else {
+                corporate_cash += company.available_cash.max(0.0);
+                if let Some(ref brokerage) = company.brokerage_account {
+                    corporate_cash += brokerage.cash.max(0.0);
                 }
             }
         }
@@ -464,7 +492,8 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     // B2C purchases are M0-neutral: citizen cash decreases, bank reserves
     // increase. Wage payments require bank reserves to decrease when
     // physical cash is withdrawn â€” this is handled in the wage payment code.
-    let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital + see_charity_pool + ministry_cash;
+    let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital
+        + see_charity_pool + ministry_cash + corporate_cash + arbitration_escrow;
 
     FiatWalk {
         total,
@@ -474,6 +503,8 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         offshore_capital,
         see_charity_pool,
         ministry_cash,
+        corporate_cash,
+        arbitration_escrow,
         cumulative_cb_injection,
     }
 }

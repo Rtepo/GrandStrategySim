@@ -329,6 +329,35 @@ impl Syndic {
         }
         company.available_cash = 0.0;
 
+        // ── STEP 2b: Bank-aware seizure — prevent M0 destruction ──
+        // Banks hold fiat as reserves_at_central_bank + cb_deposit_facility_balance,
+        // NOT as available_cash. The generic Syndic never touches these, so
+        // without this step the reserves vanish when the bank struct is
+        // dropped (audit: -47.36B in turn 1). This seizes them into the
+        // waterfall cash pool so they flow to creditors/treasury (Directive 1).
+        if company.bank_type.is_some() {
+            if let Some(ref mut bs) = company.balance_sheet {
+                let cb_reserves = bs.reserves_at_central_bank.max(0.0);
+                let cb_deposit = bs.cb_deposit_facility_balance.max(0.0);
+                total_seized_cash += cb_reserves + cb_deposit;
+                bs.reserves_at_central_bank = 0.0;
+                bs.cb_deposit_facility_balance = 0.0;
+
+                // Repay CB Lombard loans first (senior claim of the Central
+                // Bank). This contracts M0 by extinguishing the Lombard
+                // loan — the CB's liquidity_injected tracker is reduced 1:1
+                // with the cash returned (Directive 1: double-entry).
+                let lombard_owed = bs.cb_lombard_loans.max(0.0);
+                let lombard_repay = lombard_owed.min(total_seized_cash);
+                if lombard_repay > 0.0 {
+                    total_seized_cash -= lombard_repay;
+                    bs.cb_lombard_loans -= lombard_repay;
+                    country.central_bank.liquidity_injected =
+                        (country.central_bank.liquidity_injected - lombard_repay).max(0.0);
+                }
+            }
+        }
+
         // ── STEP 3a: Reclaim frozen cash from justice system ──
         if let Some(justice_state) = country.politics.justice_state.as_mut() {
             if let Some(frozen) = justice_state.frozen_company_cash.remove(&company.id) {

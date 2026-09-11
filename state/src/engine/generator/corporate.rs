@@ -6754,11 +6754,14 @@ pub fn generate_investment_funds(
         let fund_id = format!("FUND-{}-{}", country.name, i + 1);
         let fund_name = format!("{} {}", manager_name.surname, fund_name_suffix);
 
-        // Seed capital: 1M from treasury.
-        let seed_capital = 1_000_000.0;
-        if country.budget.liquid_reserves >= seed_capital {
-            country.budget.liquid_reserves -= seed_capital;
-        }
+        // Seed capital: dynamic, inflation-proof (Directive 2: no magic
+        // numbers). Scaled by average_wage so it's stable at Turn 1 and
+        // Turn 1,000. Clamped to what the treasury can actually pay — no
+        // phantom credit (Directive 1: treasury_debit == fund_credit).
+        let avg_wage = country.macro_indicators.average_wage.max(1.0);
+        let target_seed = avg_wage * 100.0;
+        let seed_capital = target_seed.min(country.budget.liquid_reserves.max(0.0));
+        country.budget.liquid_reserves -= seed_capital;
 
         // Create fund ledger.
         let ledger = FundLedger {
