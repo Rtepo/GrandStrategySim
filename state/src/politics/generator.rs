@@ -418,7 +418,7 @@ mod tests {
 
     #[test]
     fn test_generate_party_name_not_empty() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let coords = Ideology::SocialDemocracy.compass();
         let name = generate_party_name("TestCountry", "slavic", coords, 1900, &mut rng);
         assert!(!name.is_empty());
@@ -426,7 +426,7 @@ mod tests {
 
     #[test]
     fn test_fallback_mechanism() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         // Test with unknown cultural group
         let coords = Ideology::SocialLiberalism.compass();
         let name = generate_party_name(

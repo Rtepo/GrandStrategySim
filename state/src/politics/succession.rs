@@ -268,7 +268,7 @@ pub fn process_dynasty_turn(
             // Generate a spouse VIP.
             // Phase 92: Select spouse gender FIRST, then generate name with
             // that gender to ensure name-gender consistency.
-            let mut rng = rand::thread_rng();
+            let mut rng = crate::engine::seeded_rng::thread_rng();
             let spouse_gender = if registry
                 .get(&monarch_id)
                 .map(|v| v.gender.as_str())
@@ -412,7 +412,7 @@ pub fn process_dynasty_turn(
 
         if roll < 0.20 {
             // Birth occurs — instantiate a new VIP.
-            let mut rng = rand::thread_rng();
+            let mut rng = crate::engine::seeded_rng::thread_rng();
             let child_name = crate::politics::names::generate_full_vip(culture, &mut rng);
             let child_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
             let (traits, main_trait) = crate::politics::vip_registry::assign_core_traits(&mut rng);
@@ -1237,7 +1237,7 @@ mod tests {
             ..Default::default()
         });
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let (outcome, msgs) = process_succession(
             &mut country,
             &mut registry,
@@ -1313,7 +1313,7 @@ mod tests {
             ..Default::default()
         });
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let (outcome, _msgs) = process_succession(
             &mut country,
             &mut registry,
@@ -1355,7 +1355,7 @@ mod tests {
             ..Default::default()
         });
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let (outcome, _msgs) = process_succession(
             &mut country,
             &mut registry,
@@ -1399,7 +1399,7 @@ mod tests {
             ..Default::default()
         });
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let (outcome, _msgs) = process_succession(
             &mut country,
             &mut registry,
@@ -1446,7 +1446,7 @@ mod tests {
             ..Default::default()
         });
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let (outcome, _msgs) = process_succession(
             &mut country,
             &mut registry,
@@ -1478,7 +1478,7 @@ mod tests {
             ..Default::default()
         });
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let (outcome, _) = process_succession(
             &mut country,
             &mut registry,

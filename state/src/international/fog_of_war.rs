@@ -482,7 +482,7 @@ pub fn process_intel_turn(
     let should_update = intel.intel_level != level || (current_turn - intel.last_intel_turn) >= 5;
 
     if should_update {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         intel.update_from_true_values(
             true_gdp,
             true_military,
@@ -544,7 +544,7 @@ mod tests {
     #[test]
     fn test_foreign_intelligence_update_broad_range() {
         let mut intel = ForeignIntelligence::unknown();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         intel.update_from_true_values(
             1_000_000.0,
             500,
@@ -570,7 +570,7 @@ mod tests {
     #[test]
     fn test_foreign_intelligence_update_exact() {
         let mut intel = ForeignIntelligence::unknown();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         intel.update_from_true_values(1_000_000.0, 500, 50_000.0, IntelLevel::Exact, 10, &mut rng);
 
         assert_eq!(intel.intel_level, IntelLevel::Exact);
@@ -583,7 +583,7 @@ mod tests {
     #[test]
     fn test_foreign_intelligence_update_unknown_strips_data() {
         let mut intel = ForeignIntelligence::unknown();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         // First set to BroadRange
         intel.update_from_true_values(
             1_000_000.0,
@@ -621,7 +621,7 @@ mod tests {
     #[test]
     fn test_apply_fog_of_war_exact() {
         let mut intel = ForeignIntelligence::unknown();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         intel.update_from_true_values(1_000_000.0, 500, 50_000.0, IntelLevel::Exact, 10, &mut rng);
         let result = apply_fog_of_war(1_000_000.0, 500, 50_000.0, &intel);
         assert_eq!(result.gdp, Some((1_000_000.0, 1_000_000.0)));

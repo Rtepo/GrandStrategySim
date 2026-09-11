@@ -853,7 +853,7 @@ mod tests {
 
     #[test]
     fn test_asymmetric_oob_rich_country() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let oob = generate_asymmetric_oob(
             "RichCountry",
             5_000_000_000.0, // High total GDP
@@ -871,7 +871,7 @@ mod tests {
 
     #[test]
     fn test_asymmetric_oob_poor_country() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let oob = generate_asymmetric_oob(
             "PoorCountry",
             30_000_000.0, // Low total GDP

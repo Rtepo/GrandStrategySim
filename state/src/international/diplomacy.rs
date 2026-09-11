@@ -11,7 +11,7 @@ use std::collections::HashMap;
 pub fn generate_diplomacy(
     countries: &[String],
 ) -> HashMap<String, HashMap<String, DiplomaticRelation>> {
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
     let mut diplomacy: HashMap<String, HashMap<String, DiplomaticRelation>> = HashMap::new();
 
     for c1 in countries {
@@ -156,7 +156,7 @@ pub fn process_diplomacy_turn(
     intel_updates: &mut Vec<(String, String, crate::international::fog_of_war::IntelLevel)>,
     expel_actions: &mut Vec<(String, String)>,
 ) {
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
 
     // Collect sorted country names for deterministic iteration
     let mut sorted_names: Vec<&String> = state.countries.keys().collect();

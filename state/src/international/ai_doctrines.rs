@@ -372,7 +372,7 @@ mod tests {
     fn test_execute_doctrine_balanced_no_actions() {
         let state = GameState::default();
         let config = DoctrineConfig::default();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let actions = execute_doctrine(
             &state,
             "Test",
@@ -401,7 +401,7 @@ mod tests {
             expansionist_provocation_chance: 1.0, // Always provoke
             ..DoctrineConfig::default()
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let actions = execute_doctrine(
             &state,
             "Strongland",

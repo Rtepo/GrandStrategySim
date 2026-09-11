@@ -71,6 +71,11 @@ path = "tests/epics/phase94_diagnostic_harness_test.rs"
 required-features = ["epic-tests", "diagnostic"]
 
 [[test]]
+name = "generate_test_world_16"
+path = "tests/epics/generate_test_world_16.rs"
+required-features = ["epic-tests", "diagnostic"]
+
+[[test]]
 name = "banking_integration_test"
 path = "tests/epics/banking_integration_test.rs"
 required-features = ["epic-tests"]

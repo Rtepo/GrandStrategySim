@@ -3145,7 +3145,7 @@ mod tests {
         let mut conflicts = BorderConflictRegistry::default();
         let cert_config = LegalCertaintyConfig::default();
         let cad_config = CadastreConfig::default();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
 
         // Run multiple times to catch the probabilistic trigger.
         // 1000 iterations at ~3.33% per-iteration probability gives >99.99% coverage.
@@ -3184,7 +3184,7 @@ mod tests {
         let mut conflicts = BorderConflictRegistry::default();
         let cert_config = LegalCertaintyConfig::default();
         let cad_config = CadastreConfig::default();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
 
         for _ in 0..100 {
             generate_border_conflicts(
@@ -3521,7 +3521,7 @@ mod tests {
 
     #[test]
     fn test_arbitration_resolution_weak_state() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let config = ArbitrationConfig::default();
         let mut case = ArbitrationCase {
             case_id: "AC_0".to_string(),
@@ -3544,7 +3544,7 @@ mod tests {
 
     #[test]
     fn test_arbitration_resolution_strong_state() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let config = ArbitrationConfig::default();
         let mut case = ArbitrationCase {
             case_id: "AC_0".to_string(),
@@ -3695,7 +3695,7 @@ mod tests {
             climate: Climate::Fertile,
             ..Default::default()
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let cadastre = generate_cadastre("TestLand", &[region], &mut rng, 0);
         // Should have at least one state-owned parcel
         let state_parcels: Vec<_> = cadastre
@@ -3732,7 +3732,7 @@ mod tests {
             climate: Climate::Fertile,
             ..Default::default()
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let cadastre = generate_cadastre("TestLand", &[region], &mut rng, 0);
         let municipal_parcels: Vec<_> = cadastre
             .parcels
@@ -3865,7 +3865,7 @@ mod tests {
             },
             ..Default::default()
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let cadastre = generate_cadastre("TestLand", &[region], &mut rng, 0);
         // With coastline and river, at least some parcels should have water access
         let water_parcels: Vec<_> = cadastre

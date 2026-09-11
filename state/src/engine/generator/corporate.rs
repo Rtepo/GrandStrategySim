@@ -1359,7 +1359,7 @@ fn issue_working_capital_loans(
     }
 
     let xibor = country.central_bank.interest_rates.reference_rate;
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
     let mut _total_loaned = 0.0;
 
     // Phase 92: Per-bank lending cap — 10× Tier 1 capital. This is a standard

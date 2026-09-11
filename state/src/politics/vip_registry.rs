@@ -1109,7 +1109,7 @@ mod tests {
 
     #[test]
     fn test_check_natural_deaths_archives_deceased() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let mut registry = VipRegistry::new();
         let mut vip = make_test_vip("Old Leader", 95);
         vip.health = VipHealth {
@@ -1145,7 +1145,7 @@ mod tests {
 
     #[test]
     fn test_assign_core_traits_returns_2_to_4() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let (traits, main) = assign_core_traits(&mut rng);
         assert!(traits.len() >= 2 && traits.len() <= 4);
         assert!(!main.is_empty());
@@ -1254,7 +1254,7 @@ mod tests {
     fn test_generate_full_vip_uses_cultural_group() {
         // Phase 49: VIPs generated with a specific cultural group should
         // have names drawn from that culture's name pool, not a fallback.
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let vip = crate::politics::names::generate_full_vip("slavic", &mut rng);
         assert!(
             !vip.full_name.is_empty(),
@@ -1264,7 +1264,7 @@ mod tests {
 
     #[test]
     fn test_generate_full_vip_germanic() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let vip = crate::politics::names::generate_full_vip("germanic", &mut rng);
         assert!(
             !vip.full_name.is_empty(),
@@ -1274,7 +1274,7 @@ mod tests {
 
     #[test]
     fn test_generate_full_vip_latin() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let vip = crate::politics::names::generate_full_vip("latin", &mut rng);
         assert!(
             !vip.full_name.is_empty(),

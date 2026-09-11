@@ -29,6 +29,7 @@ mod tests {
         let options = GenerateOptions {
             country_count: 1,
             start_year: StartYear::Y1900,
+            seed: None,
         };
 
         let GeneratedWorld {

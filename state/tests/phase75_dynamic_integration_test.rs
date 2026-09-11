@@ -39,6 +39,7 @@ fn test_24_turn_dynamic_integration() {
     let options = GenerateOptions {
         country_count: 4,
         start_year: StartYear::Y1900,
+        seed: None,
     };
 
     let GeneratedWorld {

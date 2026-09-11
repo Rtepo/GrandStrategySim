@@ -1036,7 +1036,7 @@ pub fn vip_to_leader(vip: VipName, ideology: &str) -> crate::politics::system::L
 
     // Phase 53: Use the weighted core-trait pool instead of hardcoded
     // "Charismatic"/"Diplomatic"/"Lawfulness".
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
     let (traits, main_trait) = crate::politics::vip_registry::assign_core_traits(&mut rng);
 
     Leader {
@@ -1070,7 +1070,7 @@ pub fn vip_to_leader_from_coordinates(
     let (label, _) = crate::politics::ideology::classify(coords, year);
     let views = label.to_string();
 
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
     let (traits, main_trait) = crate::politics::vip_registry::assign_core_traits(&mut rng);
 
     Leader {
@@ -1096,7 +1096,7 @@ mod tests {
 
     #[test]
     fn test_generate_name_not_empty() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let name = generate_person_name("slavic", "M", &mut rng);
         assert!(!name.first_name.is_empty());
         assert!(!name.surname.is_empty());
@@ -1107,7 +1107,7 @@ mod tests {
 
     #[test]
     fn test_female_name_from_female_pool() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let name = generate_person_name("slavic", "F", &mut rng);
         assert_eq!(name.gender, "F");
         assert!(SLAVIC_FEMALE.contains(&name.first_name.as_str()));
@@ -1115,7 +1115,7 @@ mod tests {
 
     #[test]
     fn test_male_name_from_male_pool() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let name = generate_person_name("slavic", "M", &mut rng);
         assert_eq!(name.gender, "M");
         assert!(SLAVIC_MALE.contains(&name.first_name.as_str()));
@@ -1123,7 +1123,7 @@ mod tests {
 
     #[test]
     fn test_germanic_culture() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let name = generate_person_name("germanic", "M", &mut rng);
         assert!(GERMANIC_MALE.contains(&name.first_name.as_str()));
         assert!(GERMANIC_SURNAMES.contains(&name.surname.as_str()));
@@ -1131,35 +1131,35 @@ mod tests {
 
     #[test]
     fn test_latin_culture() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let name = generate_person_name("latin", "M", &mut rng);
         assert!(LATIN_MALE.contains(&name.first_name.as_str()));
     }
 
     #[test]
     fn test_mideast_culture() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let name = generate_person_name("middle_eastern", "M", &mut rng);
         assert!(MIDEAST_MALE.contains(&name.first_name.as_str()));
     }
 
     #[test]
     fn test_balkan_culture() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let name = generate_person_name("balkan", "M", &mut rng);
         assert!(BALKAN_MALE.contains(&name.first_name.as_str()));
     }
 
     #[test]
     fn test_unknown_culture_falls_back_to_slavic() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let name = generate_person_name("UnknownGroup", "M", &mut rng);
         assert!(SLAVIC_MALE.contains(&name.first_name.as_str()));
     }
 
     #[test]
     fn test_generate_full_vip_has_name() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let vip = generate_full_vip("slavic", &mut rng);
         assert!(!vip.full_name.is_empty());
         assert!(vip.gender == "M" || vip.gender == "F");
@@ -1180,7 +1180,7 @@ mod tests {
 
     #[test]
     fn test_vip_to_leader_creates_named_leader() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let vip = generate_full_vip("slavic", &mut rng);
         let leader = vip_to_leader(vip, "Socjalliberalizm");
         assert!(!leader.name.is_empty(), "Leader name should not be empty");

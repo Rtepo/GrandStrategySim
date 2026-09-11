@@ -54,7 +54,7 @@ pub fn process_political_year(
     if let Some(ref mut registry) = country.politics.vip_registry {
         registry.age_all_vips();
         registry.degrade_health_all();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let deaths = registry.check_natural_deaths(&mut rng);
         for (vip_id, cause) in &deaths {
             messages.push(format!(
@@ -328,7 +328,7 @@ pub fn process_political_year(
         } else {
             &country.macro_indicators.cultural_group
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let fallback_ideologies = [
             (Ideology::SocialDemocracy, 25.0),
             (Ideology::SocialLiberalism, 20.0),
@@ -385,7 +385,7 @@ pub fn process_political_year(
         } else {
             &country.macro_indicators.cultural_group
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let fallback_ideologies = [
             Ideology::SocialDemocracy,
             Ideology::SocialLiberalism,
@@ -859,7 +859,7 @@ pub fn process_political_turn(
     } else {
         country.macro_indicators.cultural_group.clone()
     };
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
     let parliament = super::parliament::initialize_parliament(
         &country.politics,
         &cultural_group,
@@ -1020,7 +1020,7 @@ fn regenerate_parties(
 
     let mut new_parties: HashMap<String, Party> = HashMap::new();
     let mut used_ideologies: Vec<Ideology> = Vec::new();
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
 
     // Preserve existing parties when their ideology still has a bid or they
     // already hold parliamentary seats.
@@ -1224,7 +1224,7 @@ pub fn run_election_if_due(
     } else {
         country.macro_indicators.cultural_group.clone()
     };
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
     let parliament = super::parliament::initialize_parliament(
         &country.politics,
         &cultural_group,
@@ -1493,7 +1493,7 @@ pub fn bootstrap_politics(
         } else {
             country.macro_indicators.cultural_group.clone()
         };
-        let mut rng_dedup = rand::thread_rng();
+        let mut rng_dedup = crate::engine::seeded_rng::thread_rng();
         for party in country.politics.active_parties.values_mut() {
             // Check if the leader name (without title prefix) collides.
             let leader_name = &party.leader.name;
@@ -1963,7 +1963,7 @@ pub fn bootstrap_politics(
 
     // For non-democratic regimes, register advisory council members.
     if !form.is_democratic() {
-        let mut rng2 = rand::thread_rng();
+        let mut rng2 = crate::engine::seeded_rng::thread_rng();
         for _ in 0..3 {
             // Phase 91: Use generate_key_vip for advisory council (key political appointees).
             let vip_name = names::generate_key_vip(cultural_group, &mut rng2, &mut used_names);
@@ -2003,7 +2003,7 @@ pub fn bootstrap_politics(
     // `ministry_config.ministries[].minister_name` and never appeared in the
     // VIP registry, making them invisible in the VIP Explorer.
     if let Some(ref mc) = country.politics.ministry_config {
-        let mut rng3 = rand::thread_rng();
+        let mut rng3 = crate::engine::seeded_rng::thread_rng();
         for ministry in &mc.ministries {
             if ministry.minister_name.is_empty() {
                 continue;

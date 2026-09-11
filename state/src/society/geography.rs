@@ -2077,7 +2077,7 @@ pub fn generate_regional_topology(
     dominant_culture: &str,
     ethnic_composition: &BTreeMap<String, f64>,
 ) -> HashMap<String, Region> {
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
     let gdp_pc = gdp / population as f64;
     let count = region_count(population, gdp_pc);
     let mut regions = Vec::new();
@@ -3307,7 +3307,7 @@ pub fn generate_megaregions(
     region_ids: &[String],
     state_structure: crate::politics::state_structure::StateStructure,
 ) -> Vec<Megaregion> {
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
 
     // Small countries: single megaregion
     if region_ids.len() <= 3 {
@@ -3362,7 +3362,7 @@ pub fn generate_megaregions(
 fn generate_megaregion_name(
     country: &str,
     region_count: usize,
-    rng: &mut rand::rngs::ThreadRng,
+    rng: &mut impl rand::Rng,
 ) -> String {
     let geographic_prefixes = [
         "Northern", "Southern", "Eastern", "Western", "Central", "Upper", "Lower", "Greater",

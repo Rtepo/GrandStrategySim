@@ -62,6 +62,7 @@ fn test_baseline_performance_3_turns() {
     let options = GenerateOptions {
         country_count: 4,
         start_year: StartYear::Y1900,
+        seed: None,
     };
 
     let GeneratedWorld {

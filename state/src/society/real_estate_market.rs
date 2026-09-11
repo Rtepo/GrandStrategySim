@@ -1977,7 +1977,7 @@ mod tests {
             ..Default::default()
         };
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let result = execute_agrarian_reform(
             &mut cadastre,
             &mut court,
@@ -2023,7 +2023,7 @@ mod tests {
         };
         let history = LandPriceHistoryRegistry::default();
         let arb_config = ArbitrationConfig::default();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
 
         execute_agrarian_reform(
             &mut cadastre,
@@ -2066,7 +2066,7 @@ mod tests {
         };
         let history = LandPriceHistoryRegistry::default();
         let arb_config = ArbitrationConfig::default();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
 
         let result = execute_agrarian_reform(
             &mut cadastre,
@@ -2150,7 +2150,7 @@ mod tests {
             climate: Climate::Fertile,
             ..Default::default()
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let cadastre =
             crate::society::cadastre::generate_cadastre("TestLand", &[region], &mut rng, 0);
         // All parcels should have at least one adjacent parcel (graph is connected)
@@ -2186,7 +2186,7 @@ mod tests {
             good_faith_duration_turns: 10,
             ..Default::default()
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let result = process_adverse_possession(&mut cadastre, &mut regions, 10, &config, &mut rng);
         assert_eq!(result.transfers_completed, 1);
         let parcel = cadastre.get(pid).unwrap();
@@ -2219,7 +2219,7 @@ mod tests {
             bad_faith_duration_turns: 20,
             ..Default::default()
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         // At turn 19, should NOT transfer yet
         let result = process_adverse_possession(&mut cadastre, &mut regions, 19, &config, &mut rng);
         assert_eq!(result.transfers_completed, 0);
@@ -2251,7 +2251,7 @@ mod tests {
         });
         let mut regions: Vec<crate::society::geography::Region> = vec![];
         let config = AdversePossessionConfig::default();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let result =
             process_adverse_possession(&mut cadastre, &mut regions, 100, &config, &mut rng);
         assert_eq!(
@@ -2403,7 +2403,7 @@ mod tests {
             good_faith_duration_turns: 5,
             ..Default::default()
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         process_adverse_possession(&mut cadastre, &mut regions, 5, &config, &mut rng);
         let parcel = cadastre.get(pid).unwrap();
         assert_eq!(parcel.owner_type, ParcelOwnerType::Cooperative);

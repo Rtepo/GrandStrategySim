@@ -131,6 +131,10 @@ pub struct GenerateOptions {
     pub country_count: usize,
     /// Starting historical scenario.
     pub start_year: StartYear,
+    /// Phase 94: Optional deterministic seed. When set, the generator uses
+    /// a seeded StdRng instead of thread_rng(), producing identical worlds
+    /// across runs. Used by the diagnostic harness for reproducible M0 tests.
+    pub seed: Option<u64>,
 }
 
 /// Result of the world generator.
@@ -167,7 +171,14 @@ pub fn generate_world(
     options: GenerateOptions,
     _registries: &Registries,
 ) -> Result<GeneratedWorld, Box<dyn Error>> {
-    let mut rng = rand::thread_rng();
+    // Phase 94: Use seeded RNG when a seed is provided, for deterministic
+    // test worlds. The seed is set globally via the seeded_rng module so
+    // that all subsequent code (turn loop, corporate generator, etc.) uses
+    // the same seeded RNG.
+    if let Some(seed) = options.seed {
+        crate::engine::seed_propagation::set_seed_global(seed);
+    }
+    let mut rng = crate::engine::seeded_rng::thread_rng();
     let mut state = GameState::new();
 
     // World Generation & Climate Audit (v0.5.3): Populate the climate-season
@@ -474,8 +485,8 @@ fn generate_country(
         rng,
     );
     let tax_rates = build_tax_rates(gdp_total, rng);
-    let currency = build_currency(name, &treasury);
-    let central_bank = build_central_bank(name, &treasury);
+    let currency = build_currency(name, &treasury, rng);
+    let central_bank = build_central_bank(name, &treasury, rng);
 
     let mut country = Country {
         name: name.to_string(),
@@ -632,7 +643,7 @@ fn generate_country(
 
     let mut companies = Vec::new(); // Empty companies for bootstrap
                                     // Add bank companies
-    let bank_companies = build_bank_companies(name, &mut country.budget, &country.central_bank);
+    let bank_companies = build_bank_companies(name, &mut country.budget, &country.central_bank, rng);
     // Phase 37: Populate debt_market with DSPW primary dealers and enable DSPW.
     let dspw_dealers: Vec<String> = bank_companies
         .iter()
@@ -1890,8 +1901,7 @@ fn build_tax_rates(gdp_total: f64, rng: &mut impl Rng) -> TaxRates {
     }
 }
 
-fn build_currency(name: &str, _treasury: &Treasury) -> Currency {
-    let mut rng = rand::thread_rng();
+fn build_currency(name: &str, _treasury: &Treasury, rng: &mut impl Rng) -> Currency {
     let prefix = name[..3.min(name.len())].to_uppercase();
     Currency {
         prefix: prefix.clone(),
@@ -1908,8 +1918,7 @@ fn build_currency(name: &str, _treasury: &Treasury) -> Currency {
     }
 }
 
-fn build_central_bank(name: &str, treasury: &Treasury) -> crate::state::CentralBank {
-    let mut rng = rand::thread_rng();
+fn build_central_bank(name: &str, treasury: &Treasury, rng: &mut impl Rng) -> crate::state::CentralBank {
     let prefix = name[..3.min(name.len())].to_uppercase();
     let fx_reserve_value = treasury.gdp * rng.gen_range(0.05..0.20);
 
@@ -1975,8 +1984,8 @@ fn build_bank_companies(
     name: &str,
     treasury: &mut Treasury,
     central_bank: &crate::state::CentralBank,
+    rng: &mut impl Rng,
 ) -> Vec<Company> {
-    let mut rng = rand::thread_rng();
     let prefix = &name[..3.min(name.len())].to_uppercase();
 
     // Phase 91: Generate multiple banks based on GDP, not population.
@@ -2050,7 +2059,7 @@ fn build_bank_companies(
                 "Becker",
                 "Fernández",
             ];
-            let surname = bank_surnames.choose(&mut rng).copied().unwrap_or("Smith");
+            let surname = bank_surnames.choose(rng).copied().unwrap_or("Smith");
             format!("{surname} Bank of {name}")
         };
 

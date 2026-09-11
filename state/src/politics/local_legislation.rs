@@ -529,7 +529,7 @@ pub fn process_active_mandates(country: &mut Country) {
         return;
     }
 
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
     let mandates = std::mem::take(&mut country.politics.active_mandates);
     let mut remaining_mandates = Vec::new();
 
@@ -642,7 +642,7 @@ mod tests {
 
     #[test]
     fn test_commissary_bond_lock_returns_cut_or_refuse() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let gov = make_test_gov(AdministrativeStatus::CommissaryAdministration);
 
         // Shortfall within cut capacity → CutExpenditures.
@@ -662,7 +662,7 @@ mod tests {
 
     #[test]
     fn test_normal_region_can_issue_bonds() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let gov = make_test_gov(AdministrativeStatus::Normal);
 
         // Run multiple times to check that IssueBonds is possible
@@ -683,7 +683,7 @@ mod tests {
 
     #[test]
     fn test_commissary_bond_lock_never_returns_bonds() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let gov = make_test_gov(AdministrativeStatus::CommissaryAdministration);
 
         for _ in 0..100 {

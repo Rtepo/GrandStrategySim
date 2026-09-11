@@ -213,7 +213,7 @@ fn particular_churches(religion: &str) -> &'static [&'static str] {
 /// - Rural classes (LandlessLaborers, FreePeasants, Serfs) must be stored in RegionalClassDemographics
 /// - This prevents double-counting when calculate_available_unskilled_labor explicitly builds the pool
 pub fn generate_cultural_background(_country_name: &str) -> CulturalBackground {
-    let mut rng = rand::thread_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
 
     let (group_name, group) = CULTURAL_GROUPS.choose(&mut rng).unwrap();
     let nation = *group.nations.choose(&mut rng).unwrap();

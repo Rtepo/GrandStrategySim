@@ -727,7 +727,7 @@ pub fn process_mass_movements_turn(
                 &mut region.class_demographics,
                 &mut country.budget,
                 config,
-                &mut rand::thread_rng(),
+                &mut crate::engine::seeded_rng::thread_rng(),
                 current_turn,
                 None, // military_buildings: not available here
             );

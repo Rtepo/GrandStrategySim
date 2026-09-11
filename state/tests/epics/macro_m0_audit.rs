@@ -186,6 +186,7 @@ fn test_m0_conservation_single_turn() {
     let options = GenerateOptions {
         country_count: 1,
         start_year: StartYear::Y1900,
+        seed: None,
     };
 
     let GeneratedWorld {
@@ -258,6 +259,7 @@ fn test_m0_conservation_six_turns() {
     let options = GenerateOptions {
         country_count: 1,
         start_year: StartYear::Y1900,
+        seed: None,
     };
 
     let GeneratedWorld {

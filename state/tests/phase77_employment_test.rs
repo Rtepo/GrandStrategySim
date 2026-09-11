@@ -20,6 +20,7 @@ fn gen_world_with_ctx() -> (GeneratedWorld, InMemoryTurnContext) {
     let options = GenerateOptions {
         country_count: 4,
         start_year: StartYear::Y1900,
+        seed: None,
     };
     let mut world =
         generate_world(data_dir, options, &registries).expect("world generation failed");

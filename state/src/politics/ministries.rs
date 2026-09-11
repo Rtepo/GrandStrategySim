@@ -566,7 +566,7 @@ pub fn form_government(
             .collect();
 
         let cultural_group = cg;
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         for comp in &remaining_competencies {
             if competency_idx >= num_ministries {
                 break;
@@ -608,7 +608,7 @@ pub fn form_government(
         let pm_party = coalition.first().cloned().unwrap_or_default();
         let pm_name = resolve_minister_name(active_parties, &pm_party, cg);
         let cultural_group = cg;
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         // Phase 45: Use the global used_names set ÔÇö no local HashSet.
         used_names.insert(pm_name.clone());
         for comp in all_competencies.iter() {
@@ -692,7 +692,7 @@ fn resolve_minister_name(
     };
     // Phase 39: If party_id is empty, generate a technocrat name.
     if party_id.is_empty() {
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         return crate::politics::names::generate_full_vip(cg, &mut rng).full_name;
     }
     let name = active_parties
@@ -701,7 +701,7 @@ fn resolve_minister_name(
         .unwrap_or_default();
     if name.is_empty() {
         // Phase 39: Generate a random VIP name instead of "Minister (party_id)".
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         crate::politics::names::generate_full_vip(cg, &mut rng).full_name
     } else {
         name

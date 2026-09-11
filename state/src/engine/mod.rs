@@ -2,6 +2,8 @@
 
 pub mod diagnostic;
 pub mod generator;
+pub mod seed_propagation;
+pub mod seeded_rng;
 pub mod turn;
 pub mod turn_config;
 pub mod turn_context;

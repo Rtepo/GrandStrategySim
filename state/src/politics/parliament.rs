@@ -959,7 +959,7 @@ mod tests {
     #[test]
     fn test_initialize_parliament_two_chambers() {
         let politics = make_test_politics();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         assert_eq!(parliament.chambers.len(), 2); // ParliamentaryDemocracy → 2 chambers
@@ -971,7 +971,7 @@ mod tests {
     fn test_initialize_parliament_zero_chambers() {
         let mut politics = make_test_politics();
         politics.government_form = GovernmentForm::AbsoluteMonarchy;
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         assert_eq!(parliament.chambers.len(), 0);
@@ -981,7 +981,7 @@ mod tests {
     fn test_initialize_parliament_one_chamber() {
         let mut politics = make_test_politics();
         politics.government_form = GovernmentForm::OnePartyState;
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         assert_eq!(parliament.chambers.len(), 1);
@@ -990,7 +990,7 @@ mod tests {
     #[test]
     fn test_clubs_built_from_seats() {
         let politics = make_test_politics();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         assert_eq!(parliament.clubs.len(), 3); // TestParty, OppParty, AllyParty
@@ -1006,7 +1006,7 @@ mod tests {
     #[test]
     fn test_vips_populated() {
         let politics = make_test_politics();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         assert!(!parliament.vips.is_empty());
@@ -1024,7 +1024,7 @@ mod tests {
     #[test]
     fn test_speaker_from_ruling_party() {
         let politics = make_test_politics();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         let lower = parliament.lower_chamber().unwrap();
@@ -1094,7 +1094,7 @@ mod tests {
     #[test]
     fn test_splintering_no_trigger_when_stable() {
         let politics = make_test_politics();
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let mut parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         let events =
@@ -1119,7 +1119,7 @@ mod tests {
             .organization
             .cohesion = 0.2;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let mut parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         let events =
@@ -1147,7 +1147,7 @@ mod tests {
             .organization
             .cohesion = 0.2;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let mut parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         let initial_clubs = parliament.clubs.len();
@@ -1173,7 +1173,7 @@ mod tests {
             .organization
             .cohesion = 0.2;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let mut parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         let initial_test_seats = parliament
@@ -1210,7 +1210,7 @@ mod tests {
             .organization
             .cohesion = 0.2;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
         let mut parliament =
             initialize_parliament(&politics, "slavic", 1, &mut rng, &mut HashSet::new());
         parliament.suspended = true;

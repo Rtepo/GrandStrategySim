@@ -48,8 +48,9 @@ fn test_6_turn_diagnostic_harness() {
 
     let registries = Registries::native_only();
     let options = GenerateOptions {
-        country_count: 4,
+        country_count: 16,
         start_year: StartYear::Y1900,
+        seed: Some(42),
     };
 
     let GeneratedWorld {
