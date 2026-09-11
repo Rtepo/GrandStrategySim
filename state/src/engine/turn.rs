@@ -3484,23 +3484,20 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             task.ctx.country.macro_indicators.average_wage = actual_avg_wage;
 
                     // Phase 28: Accumulate State Employer wages as GDP government spending (G).
-            // The state employer's wage payments represent government consumption
-            // (public-sector payroll). Debit treasury for actual wages paid.
-            // Phase 33: Reduce the debit by the ministry public service pool,
-            // which was already debited from liquid_reserves by
-            // allocate_cash_to_ministries. This avoids double-debiting.
+            // Phase 94: The treasury was already debited at state employer
+            // creation time. Here we only return remaining cash to treasury
+            // and record GDP. No additional treasury debit is needed.
             if let Some(idx) = task.state_employer_idx.take() {
                 if idx < task.companies.len() {
                     let state_wages = task.companies[idx].fulfilled_fte as f64
                         * task.companies[idx].offered_wage_per_fte;
-                    if state_wages > 0.0 {
-                        // The ministry pool portion was already debited.
-                        let ministry_pool = task.ministry_public_service_pool;
-                        let treasury_debit = (state_wages - ministry_pool).max(0.0);
-                        let debit = treasury_debit.min(task.ctx.country.budget.liquid_reserves);
-                        task.ctx.country.budget.liquid_reserves -= debit;
-                        // All state wages (including ministry-funded) flow into G.
-                        task.gdp_acc.government_spending += state_wages;
+                    // All state wages flow into G (GDP government spending).
+                    task.gdp_acc.government_spending += state_wages;
+                    // Phase 94: Return remaining cash to treasury before removal.
+                    let remaining_cash = task.companies[idx].available_cash
+                        + task.companies[idx].brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
+                    if remaining_cash > 0.0 {
+                        task.ctx.country.budget.liquid_reserves += remaining_cash;
                     }
                     // Remove the pseudo-company so it doesn't interfere with
                     // production, B2B, or save logic.
