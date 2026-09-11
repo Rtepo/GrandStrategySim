@@ -885,11 +885,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         building.available_cash = 0.0;
                         if let Some(company) = task.companies.iter_mut().find(|c| &c.id == owner_id)
                         {
-                            company.available_cash += transfer;
-                            // Create or update brokerage account for labor market participation.
-                            // The labor market requires brokerage_account.cash to compute
-                            // max_affordable_fte. Without this, charities can never hire
-                            // even when they have donation income.
+                            // Phase 94: Only credit brokerage_account.cash (NOT
+                            // available_cash) to avoid M0 duplication. The walk
+                            // counts both available_cash + brokerage_account.cash
+                            // for unbanked companies — crediting both creates
+                            // money from nothing (FiatCreation).
                             if let Some(ref mut ba) = company.brokerage_account {
                                 ba.cash += transfer;
                             } else {
