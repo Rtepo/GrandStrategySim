@@ -726,7 +726,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             let walk = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
         }
         // ── DIAGNOSTIC CHECKPOINT: banking_turn_post ──
-        probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
+probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         tasks.par_iter_mut().for_each(|task| {
             update_gdp_shares_from_employment(&mut task.ctx);
         });
@@ -1056,6 +1056,18 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 task.ctx.turn,
                 task.ctx.year,
             );
+            // Phase 94: Encumber escrow for newly published tenders. Without
+            // this, tranche release credits contractor cash (M0) but treasury
+            // is never debited, creating M0 from nothing.
+            for tender in tenders.iter_mut() {
+                if tender.escrowed_amount == 0.0 {
+                    crate::construction::tender_market::encumber_tender_escrow(
+                        tender,
+                        &mut task.companies,
+                        task.ctx.country,
+                    );
+                }
+            }
             task.ctx.country.phase22_tenders = tenders;
         });
 
@@ -7085,7 +7097,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         }
 
         // ── DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ──
-        probe.checkpoint("turn_end", 4, turn, &market, &tasks);
+probe.checkpoint("turn_end", 4, turn, &market, &tasks);
 
         // Collect entities back from tasks into ctx.entities format.
         for task in tasks {
