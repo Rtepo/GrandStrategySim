@@ -963,15 +963,19 @@ pub fn settle_trades_with_tariffs(
             if available_fx < foreign_needed {
                 // Phase 42: Import fails — revert settlement.
                 if let Some(buyer_idx) = companies.iter().position(|c| c.id == trade.buyer_id) {
-                    companies[buyer_idx].available_cash += trade_value;
+                    // Phase 94: Only credit one cash field to avoid M0 duplication.
                     if let Some(ba) = &mut companies[buyer_idx].brokerage_account {
                         ba.cash += trade_value;
+                    } else {
+                        companies[buyer_idx].available_cash += trade_value;
                     }
                 }
                 if let Some(seller_idx) = companies.iter().position(|c| c.id == trade.seller_id) {
-                    companies[seller_idx].available_cash -= trade_value;
+                    // Phase 94: Only debit one cash field to avoid M0 duplication.
                     if let Some(ba) = &mut companies[seller_idx].brokerage_account {
                         ba.cash -= trade_value;
+                    } else {
+                        companies[seller_idx].available_cash -= trade_value;
                     }
                 }
                 if let Some(idx) = buildings.iter().position(|b| b.owner_id == trade.buyer_id) {
@@ -1127,9 +1131,11 @@ pub fn refund_unfilled_bids(
                 let company = &mut companies[idx];
                 let refund = bid.quantity * bid.limit_price;
                 company.debit_cash -= refund;
-                company.available_cash += refund;
+                // Phase 94: Only credit one cash field to avoid M0 duplication.
                 if let Some(ba) = &mut company.brokerage_account {
                     ba.cash += refund;
+                } else {
+                    company.available_cash += refund;
                 }
                 // Phase 45: Track unfilled bid prices for dynamic price feedback.
                 // Store the limit price so next turn's bid can be raised.
