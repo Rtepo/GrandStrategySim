@@ -400,11 +400,12 @@ pub struct FiatWalk {
     /// intelligence operations. This is M0 base money (Directive 1).
     #[serde(default)]
     pub intelligence_budget: f64,
-    /// Encumbered cash: debit_cash across all companies. When companies
-    /// submit B2B buy orders, available_cash is debited and debit_cash
-    /// is credited. Both are M0 base money — debit_cash is encumbered
-    /// fiat awaiting settlement (Directive 1: closed-loop).
+    /// Encumbered cash: debit_cash across all unbanked companies. When
+    /// companies submit B2B buy orders, available_cash is debited and
+    /// debit_cash is credited. Both are M0 base money — debit_cash is
+    /// encumbered fiat awaiting settlement (Directive 1: closed-loop).
     #[serde(default)]
+    pub debit_cash: f64,
     /// CB injection tracker (the sole permitted delta source).
     pub cumulative_cb_injection: f64,
 }
@@ -426,6 +427,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     let mut citizen_cash: f64 = 0.0;
     let mut bank_reserves: f64 = 0.0;
     let mut corporate_cash: f64 = 0.0;
+    let mut debit_cash_total: f64 = 0.0;
     let mut arbitration_escrow: f64 = 0.0;
     let mut black_ops_budget: f64 = 0.0;
     let mut intelligence_budget: f64 = 0.0;
@@ -534,6 +536,11 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
                         .map(|ba| ba.cash)
                         .unwrap_or(0.0);
                 corporate_cash += cash;
+                // Phase 94: debit_cash is encumbered fiat from B2B buy
+                // orders. It is still M0 base money — just earmarked for
+                // a pending bid. Excluding it creates false M0 destruction
+                // between order submission and settlement.
+                debit_cash_total += company.debit_cash;
             }
         }
     }
@@ -554,7 +561,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     // foreign trade inflows.
     let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital
         + foreign_sector_balance + see_charity_pool + ministry_cash + arbitration_escrow
-        + black_ops_budget + intelligence_budget + corporate_cash;
+        + black_ops_budget + intelligence_budget + corporate_cash + debit_cash_total;
     FiatWalk {
         total,
         treasury_cash,
@@ -565,6 +572,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         see_charity_pool,
         ministry_cash,
         corporate_cash,
+        debit_cash: debit_cash_total,
         arbitration_escrow,
         black_ops_budget,
         intelligence_budget,
