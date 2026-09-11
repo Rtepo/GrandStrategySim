@@ -474,6 +474,8 @@ pub fn resolve_regional_labor_market(
     // and scale all class earned_wages by it (Rule 5: proportional).
     let mut total_actual_paid: f64 = 0.0;
     let mut total_wage_obligation: f64 = 0.0;
+    // Phase 94: Track total arrears repayment to credit citizen savings.
+    let mut total_arrears_to_workers: f64 = 0.0;
 
     // 1. Debit companies for their exact gross wage payments
     // Phase 40: Wage arrears — if fulfilled_fte exceeds what the company can
@@ -538,6 +540,10 @@ pub fn resolve_regional_labor_market(
 
         // Phase 40: Repay existing arrears from available cash (30% of cash).
         // This runs after the current turn's payroll, so it uses remaining cash.
+        // Phase 94: Arrears repayment credits citizen savings — the arrears
+        // represent unpaid wages owed to workers. When repaid, the workers
+        // must receive the money (M0 conservation: bank reserves ↓ = citizen
+        // savings ↑). Without this credit, M0 is destroyed.
         if company.wage_arrears > 0.0 {
             let remaining_cash = company
                 .brokerage_account
@@ -552,6 +558,7 @@ pub fn resolve_regional_labor_market(
                     company.available_cash -= repayment;
                 }
                 company.wage_arrears -= repayment;
+                total_arrears_to_workers += repayment;
                 // Phase 43: Accumulate arrears repayment for batch bank sync.
                 if let Some(ref bank_id) = company.primary_bank_id {
                     *bank_debits.entry(bank_id.clone()).or_insert(0.0) += repayment;
@@ -674,6 +681,35 @@ pub fn resolve_regional_labor_market(
             for demo in region.class_demographics.urban_classes.values_mut() {
                 let share = demo.allocated_fte / total_class_fte;
                 demo.savings += total_severance_to_workers * share;
+            }
+        }
+    }
+
+    // Phase 94: Credit arrears repayment to regional class savings
+    // proportionally to their FTE share. Arrears represent unpaid wages owed
+    // to workers — when repaid, the workers must receive the money (M0
+    // conservation: bank reserves ↓ = citizen savings ↑).
+    if total_arrears_to_workers > 0.0 {
+        let total_class_fte: f64 = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .map(|c| c.allocated_fte)
+            .sum::<f64>()
+            + region
+                .class_demographics
+                .urban_classes
+                .values()
+                .map(|c| c.allocated_fte)
+                .sum::<f64>();
+        if total_class_fte > 0.0 {
+            for demo in region.class_demographics.rural_classes.values_mut() {
+                let share = demo.allocated_fte / total_class_fte;
+                demo.savings += total_arrears_to_workers * share;
+            }
+            for demo in region.class_demographics.urban_classes.values_mut() {
+                let share = demo.allocated_fte / total_class_fte;
+                demo.savings += total_arrears_to_workers * share;
             }
         }
     }

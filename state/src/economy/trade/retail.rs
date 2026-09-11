@@ -1226,7 +1226,6 @@ pub fn settle_b2c_clearing(
         // Split revenue into base (company gets this) and VAT (treasury gets this)
         let base_revenue = revenue / (1.0 + blended_vat_rate);
         let vat_amount = revenue - base_revenue;
-        total_vat_collected += vat_amount;
 
         // Distribute base revenue across classes proportionally to their demand share
         for (is_rural, class_key, class_demand) in &class_shares {
@@ -1250,6 +1249,10 @@ pub fn settle_b2c_clearing(
             );
             if let Ok(r) = result {
                 total_settled += r.amount_transferred;
+                // Phase 94: Accumulate ACTUAL VAT collected (clamped to citizen
+                // savings), not theoretical VAT. Theoretical VAT credits
+                // treasury more than citizens actually paid, creating M0.
+                total_vat_collected += r.vat_amount;
             }
         }
     }

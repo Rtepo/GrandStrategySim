@@ -3362,7 +3362,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 }
             };
 
-            // Phase 18B: Compute garnishment rates from justice state BEFORE mutable borrow
+                    // Phase 18B: Compute garnishment rates from justice state BEFORE mutable borrow
             let garnishment_rates = task
                 .ctx
                 .country
@@ -3483,7 +3483,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             // where the top-down model compounds wages each turn.
             task.ctx.country.macro_indicators.average_wage = actual_avg_wage;
 
-            // Phase 28: Accumulate State Employer wages as GDP government spending (G).
+                    // Phase 28: Accumulate State Employer wages as GDP government spending (G).
             // The state employer's wage payments represent government consumption
             // (public-sector payroll). Debit treasury for actual wages paid.
             // Phase 33: Reduce the debit by the ministry public service pool,
@@ -3993,7 +3993,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         tasks.par_iter_mut().for_each(|task| {
-            // R6: Clear B2C markets
+                    // R6: Clear B2C markets
             // Phase 25: Process ALL regions, not just the first. The old code
             // only cleared B2C for regions.iter_mut().next(), leaving all other
             // regions' consumer demand and retail settlement unprocessed.
@@ -4086,7 +4086,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ── DIAGNOSTIC CHECKPOINT: b2c_clearing_post ──
-        probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
+probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {

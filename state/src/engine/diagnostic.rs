@@ -371,6 +371,11 @@ pub struct FiatWalk {
     pub bank_reserves: f64,
     /// Off-system fiat: capital fled to tax havens (includes Phase 95 patent fees).
     pub offshore_capital: f64,
+    /// Phase 94: Foreign sector balance — fiat held by foreign entities.
+    /// Remittances credit this; foreign trade debits it. M0 base money
+    /// that can flow back into the domestic economy.
+    #[serde(default)]
+    pub foreign_sector_balance: f64,
     /// See-held fiat: Apostolic See charity pool.
     pub see_charity_pool: f64,
     /// Phase 94: Ministry cash pockets — fiat debited from treasury and held
@@ -534,15 +539,21 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     }
 
     let offshore_capital = market.offshore_capital;
+    let foreign_sector_balance = market.foreign_sector_balance;
     let see_charity_pool = market.apostolic_see_ledger.global_charity_pool;
 
     // Phase 94: M0 is strictly base money: treasury cash, physical citizen
-    // cash, bank reserves (incl. BFG/SOBK), offshore, charity, ministry
-    // pockets, and arbitration escrow. Banked corporate cash is M1 (backed
-    // by bank reserves already in M0). Unbanked corporate cash is physical
-    // fiat (M0) — included above via the primary_bank_id.is_none() check.
+    // cash, bank reserves (incl. BFG/SOBK), offshore, foreign sector, charity,
+    // ministry pockets, and arbitration escrow. Banked corporate cash is M1
+    // (backed by bank reserves already in M0). Unbanked corporate cash is
+    // physical fiat (M0) — included above via the primary_bank_id.is_none()
+    // check. foreign_sector_balance is included because remittances debit
+    // citizen savings (M0 ↓) and credit it, and foreign trade debits it and
+    // credits domestic entities (M0 ↑). Excluding it creates false
+    // FiatDestruction on remittance outflows and false FiatCreation on
+    // foreign trade inflows.
     let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital
-        + see_charity_pool + ministry_cash + arbitration_escrow
+        + foreign_sector_balance + see_charity_pool + ministry_cash + arbitration_escrow
         + black_ops_budget + intelligence_budget + corporate_cash;
     FiatWalk {
         total,
@@ -550,6 +561,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         citizen_cash,
         bank_reserves,
         offshore_capital,
+        foreign_sector_balance,
         see_charity_pool,
         ministry_cash,
         corporate_cash,
