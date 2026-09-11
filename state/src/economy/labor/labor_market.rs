@@ -658,61 +658,7 @@ pub fn resolve_regional_labor_market(
             }
         }
     }
-    // Credit severance to regional class savings proportionally to their FTE share
-    if total_severance_to_workers > 0.0 {
-        let total_class_fte: f64 = region
-            .class_demographics
-            .rural_classes
-            .values()
-            .map(|c| c.allocated_fte)
-            .sum::<f64>()
-            + region
-                .class_demographics
-                .urban_classes
-                .values()
-                .map(|c| c.allocated_fte)
-                .sum::<f64>();
-        if total_class_fte > 0.0 {
-            // E.6.3: Typed map keys — distribute to rural and urban classes
-            for demo in region.class_demographics.rural_classes.values_mut() {
-                let share = demo.allocated_fte / total_class_fte;
-                demo.savings += total_severance_to_workers * share;
-            }
-            for demo in region.class_demographics.urban_classes.values_mut() {
-                let share = demo.allocated_fte / total_class_fte;
-                demo.savings += total_severance_to_workers * share;
-            }
-        }
-    }
 
-    // Phase 94: Credit arrears repayment to regional class savings
-    // proportionally to their FTE share. Arrears represent unpaid wages owed
-    // to workers — when repaid, the workers must receive the money (M0
-    // conservation: bank reserves ↓ = citizen savings ↑).
-    if total_arrears_to_workers > 0.0 {
-        let total_class_fte: f64 = region
-            .class_demographics
-            .rural_classes
-            .values()
-            .map(|c| c.allocated_fte)
-            .sum::<f64>()
-            + region
-                .class_demographics
-                .urban_classes
-                .values()
-                .map(|c| c.allocated_fte)
-                .sum::<f64>();
-        if total_class_fte > 0.0 {
-            for demo in region.class_demographics.rural_classes.values_mut() {
-                let share = demo.allocated_fte / total_class_fte;
-                demo.savings += total_arrears_to_workers * share;
-            }
-            for demo in region.class_demographics.urban_classes.values_mut() {
-                let share = demo.allocated_fte / total_class_fte;
-                demo.savings += total_arrears_to_workers * share;
-            }
-        }
-    }
 
     // 2. Credit classes with their net earnings (gross - garnishment - PIT - remittances), track withheld amounts
     let mut total_pit_withheld: f64 = 0.0;
@@ -853,6 +799,61 @@ pub fn resolve_regional_labor_market(
     allocation_matrix.remittances_withheld = total_remittances_withheld;
     // Phase 18B: Store total garnishments withheld for caller to route to Treasury
     allocation_matrix.garnishments_withheld = total_garnishments_withheld;
+    // Phase 94: Credit severance and arrears to regional class savings.
+    // MOVED here from before the citizen wage credit phase, because
+    // demo.allocated_fte is set DURING the wage credit phase (line ~720).
+    // On Turn 0, allocated_fte was 0 at the old location, causing
+    // total_class_fte=0 and severance/arrears NOT being distributed —
+    // destroying M0 (bank debits happened but citizen credits didn't).
+    // Now demo.allocated_fte reflects the current turn's allocation.
+    if total_severance_to_workers > 0.0 {
+        let total_class_fte: f64 = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .map(|c| c.allocated_fte)
+            .sum::<f64>()
+            + region
+                .class_demographics
+                .urban_classes
+                .values()
+                .map(|c| c.allocated_fte)
+                .sum::<f64>();
+        if total_class_fte > 0.0 {
+            for demo in region.class_demographics.rural_classes.values_mut() {
+                let share = demo.allocated_fte / total_class_fte;
+                demo.savings += total_severance_to_workers * share;
+            }
+            for demo in region.class_demographics.urban_classes.values_mut() {
+                let share = demo.allocated_fte / total_class_fte;
+                demo.savings += total_severance_to_workers * share;
+            }
+        }
+    }
+    if total_arrears_to_workers > 0.0 {
+        let total_class_fte: f64 = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .map(|c| c.allocated_fte)
+            .sum::<f64>()
+            + region
+                .class_demographics
+                .urban_classes
+                .values()
+                .map(|c| c.allocated_fte)
+                .sum::<f64>();
+        if total_class_fte > 0.0 {
+            for demo in region.class_demographics.rural_classes.values_mut() {
+                let share = demo.allocated_fte / total_class_fte;
+                demo.savings += total_arrears_to_workers * share;
+            }
+            for demo in region.class_demographics.urban_classes.values_mut() {
+                let share = demo.allocated_fte / total_class_fte;
+                demo.savings += total_arrears_to_workers * share;
+            }
+        }
+    }
 
     // Phase 23C: Extract commuter wages and FTE for caller-side remittance.
     // Commuters pay PIT in the host region (already included in
