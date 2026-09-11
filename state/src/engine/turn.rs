@@ -4634,6 +4634,9 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             );
 
             // Phase D: remove tombstoned companies (liquidated/merged) once per turn.
+            // Phase 94: Return liquidated companies' cash to treasury before removal.
+            let liquidated_cash: f64 = task.companies.iter().filter(|c| c.is_liquidated).map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0)).sum();
+            if liquidated_cash > 0.0 { task.ctx.country.budget.liquid_reserves += liquidated_cash; }
             task.companies.retain(|c| !c.is_liquidated);
         });
         // ═══════════════════════════════════════════════════════════
