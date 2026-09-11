@@ -1159,7 +1159,7 @@ pub fn refund_unfilled_bids(
 pub fn settle_defense_trades(
     trades: &[Trade],
     companies: &mut [Company],
-    _country: &mut crate::state::Country,
+    country: &mut crate::state::Country,
 ) {
     for trade in trades {
         if trade.buyer_id != "MIN-DEF" {
@@ -1169,6 +1169,11 @@ pub fn settle_defense_trades(
         if trade_value <= 0.0 {
             continue;
         }
+
+        // Phase 94: Debit treasury (buyer) for the trade value. Previously,
+        // cash was encumbered at bid submission time (previous turn), creating
+        // a cross-turn M0 destruction. Now we debit at settlement time.
+        country.budget.liquid_reserves -= trade_value;
 
         // Credit seller's cash AND sync bank balance sheet atomically
         // via TransferSettler (Black Hole 1.19).
@@ -1214,10 +1219,11 @@ pub fn refund_unfilled_defense_bids_per_country(
         .map(|t| t.quantity * t.execution_price)
         .sum();
 
-    let refund = (total_encumbered - filled_paid).max(0.0);
-    if refund > 0.0 {
-        country.budget.liquid_reserves += refund;
-    }
+    // Phase 94: No refund needed — we no longer encumber cash at bid
+    // submission time. The treasury is debited in settle_defense_trades
+    // only for executed trades. Unfilled bids don't move cash.
+    let _refund = (total_encumbered - filled_paid).max(0.0);
+    let _ = &original_bids; // suppress unused warning
 }
 
 /// Execute production for all buildings after trade settlement.

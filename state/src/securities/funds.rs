@@ -184,6 +184,9 @@ pub fn collect_fund_capital(
     avg_wage: f64,
 ) -> Vec<FundSubscription> {
     let mut subscriptions = Vec::new();
+    // Phase 94: Track total collected per fund for bank-reserve sync (M0).
+    // Citizen savings ↓ (M0) must be offset by bank reserves ↑ (M0).
+    let mut bank_syncs: Vec<(String, f64)> = Vec::new();
 
     for fund in funds.iter_mut() {
         let ft = match &fund.fund_type {
@@ -195,6 +198,8 @@ pub fn collect_fund_capital(
             None => continue,
         };
 
+        // Phase 94: Track total collected for bank-reserve sync (M0).
+        let mut total_collected: f64 = 0.0;
         // Calculate current NAV using AUM (cash + portfolio at market prices)
         let fund_cash = fund
             .brokerage_account
@@ -252,6 +257,7 @@ pub fn collect_fund_capital(
                         if let Some(ref mut acct) = fund.brokerage_account {
                             acct.cash += subscription_amount;
                         }
+                        total_collected += subscription_amount;
 
                         // Double-entry (equity side): issue units
                         let units_issued = if nav_per_share > 0.0 {
@@ -292,6 +298,7 @@ pub fn collect_fund_capital(
                         if let Some(ref mut acct) = fund.brokerage_account {
                             acct.cash += subscription_amount;
                         }
+                        total_collected += subscription_amount;
 
                         // Double-entry (equity side): issue units
                         let units_issued = if nav_per_share > 0.0 {
@@ -341,6 +348,7 @@ pub fn collect_fund_capital(
                     if let Some(ref mut fund_acct) = fund.brokerage_account {
                         fund_acct.cash += subscription_amount;
                     }
+                    total_collected += subscription_amount;
 
                     // Double-entry (equity side): issue units
                     let units_issued = if nav_per_share > 0.0 {
@@ -379,6 +387,16 @@ pub fn collect_fund_capital(
         if ledger.shares_outstanding > 0 {
             ledger.nav_per_share = total_fund_value / ledger.shares_outstanding as f64;
         }
+        // Phase 94: Record total collected for bank-reserve sync (M0).
+        if total_collected > 0.0 {
+            bank_syncs.push((fund.id.clone(), total_collected));
+        }
+    }
+
+    // Phase 94: Second pass — sync bank reserves for fund credits (M0).
+    // Citizen savings ↓ (M0) is offset by bank reserves ↑ (M0).
+    for (fund_id, amount) in &bank_syncs {
+        crate::economy::transfer_settler::sync_bank_credit_by_company_id(funds, fund_id, *amount);
     }
 
     // R8.5: Enroll eligible citizens in tax-advantaged retirement accounts.

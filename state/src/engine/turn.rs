@@ -5425,10 +5425,11 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 market_prices,
                 task.ctx.turn,
             );
-            // Encumber the cash (deduct from liquid_reserves)
-            let total_encumbered: f64 = bids.iter().map(|b| b.quantity * b.limit_price).sum();
-            task.ctx.country.budget.liquid_reserves =
-                (task.ctx.country.budget.liquid_reserves - total_encumbered).max(0.0);
+            // Phase 94: Do NOT encumber cash at submission time. The bids are
+            // just orders — cash moves when trades are settled next turn.
+            // Encumbering now creates a cross-turn M0 destruction (liquid_reserves
+            // ↓ this turn, seller credited next turn). The settlement in
+            // settle_defense_trades debits liquid_reserves when trades execute.
             task.ctx.country.pending_defense_orders = bids;
         });
 
