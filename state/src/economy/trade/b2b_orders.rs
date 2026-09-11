@@ -232,7 +232,7 @@ pub fn submit_company_b2b_orders(
     for company in companies.iter_mut() {
         // Sync available_cash from brokerage account
         let liquid = company.computed_liquid_capital();
-        company.available_cash = liquid;
+        // Phase 94: Do NOT overwrite available_cash (M0 duplication for unbanked companies)
 
         // Phase 94: Use pre-built index map instead of O(B) filter scan.
         let company_building_indices = match owner_to_buildings.get(&company.id) {
@@ -1699,7 +1699,7 @@ pub fn submit_maintenance_service_bids(
     let messages = Vec::new();
     for company in companies.iter_mut() {
         let liquid = company.computed_liquid_capital();
-        company.available_cash = liquid;
+        // Phase 94: Do NOT overwrite available_cash (M0 duplication for unbanked companies)
         let max_encumber = liquid * b2b_config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
 
@@ -1796,7 +1796,7 @@ pub fn submit_fixed_asset_purchase_bids(
     let messages = Vec::new();
     for company in companies.iter_mut() {
         let liquid = company.computed_liquid_capital();
-        company.available_cash = liquid;
+        // Phase 94: Do NOT overwrite available_cash (M0 duplication for unbanked companies)
         let max_encumber = liquid * b2b_config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
 

@@ -516,6 +516,19 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
                     bank_reserves += bs.reserves_at_central_bank;
                     bank_reserves += bs.cb_deposit_facility_balance;
                 }
+            } else if company.primary_bank_id.is_none() {
+                // Phase 94: Unbanked companies hold physical fiat (no bank
+                // deposit). Their cash is M0 base money, not M1. Excluding
+                // it creates false M0 destruction when ministry/defense
+                // transfers cash to unbanked companies (credit_company_by_id
+                // skips bank sync when primary_bank_id is None).
+                let cash = company.available_cash
+                    + company
+                        .brokerage_account
+                        .as_ref()
+                        .map(|ba| ba.cash)
+                        .unwrap_or(0.0);
+                corporate_cash += cash;
             }
         }
     }
@@ -525,18 +538,12 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
 
     // Phase 94: M0 is strictly base money: treasury cash, physical citizen
     // cash, bank reserves (incl. BFG/SOBK), offshore, charity, ministry
-    // pockets, and arbitration escrow. Corporate cash (available_cash +
-    // brokerage_account.cash) and encumbered cash (debit_cash) are M1
-    // deposit claims, NOT M0 base money. The transfer_settler
-    // (transfer_settler.rs:10-19) synchronizes bank reserves on every
-    // non-bank fiat transfer, so wage payments and B2C consumption are
-    // M0-neutral (bank reserves decrease exactly as citizen cash
-    // increases). Including corporate_cash in M0 would falsely flag
-    // endogenous loan issuance/repayment as conservation violations,
-    // because loans create/destroy deposits (M1) without CB action.
+    // pockets, and arbitration escrow. Banked corporate cash is M1 (backed
+    // by bank reserves already in M0). Unbanked corporate cash is physical
+    // fiat (M0) — included above via the primary_bank_id.is_none() check.
     let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital
         + see_charity_pool + ministry_cash + arbitration_escrow
-        + black_ops_budget + intelligence_budget;
+        + black_ops_budget + intelligence_budget + corporate_cash;
     FiatWalk {
         total,
         treasury_cash,
