@@ -714,9 +714,17 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let walk = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         tasks.par_iter_mut().for_each(|task| {
             process_banking_turn(task.ctx.country, &mut task.companies, task.ctx.turn);
         });
+        #[cfg(feature = "diagnostic")]
+        {
+            let walk = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // ── DIAGNOSTIC CHECKPOINT: banking_turn_post ──
         probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         tasks.par_iter_mut().for_each(|task| {
@@ -4756,13 +4764,33 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             // Funds holding MBS/covered bonds receive coupon interest from the
             // Treasury (the issuer). Double-entry: Treasury debited, fund
             // brokerage cash credited.
+            // Phase 94: Collect (bank_id, coupon) pairs first, then sync bank
+            // reserves (M0) in a separate pass to avoid double-mutable-borrow.
+            let mut fund_coupon_syncs: Vec<(String, f64)> = Vec::new();
             for fund in task.companies.iter_mut() {
                 if fund.fund_ledger.is_some() {
-                    crate::securities::funds::process_fund_coupon_payments(
+                    let fund_bank_id = fund.primary_bank_id.clone();
+                    let coupon = crate::securities::funds::process_fund_coupon_payments(
                         fund,
                         task.ctx.country,
                         current_turn,
                     );
+                    // Phase 94: Sync fund's bank reserves (M0). Without this,
+                    // treasury debits M0 but only fund brokerage cash (M1) is
+                    // credited, destroying base money.
+                    if coupon > 0.0 {
+                        if let Some(bid) = fund_bank_id {
+                            fund_coupon_syncs.push((bid, coupon));
+                        }
+                    }
+                }
+            }
+            for (bank_id, coupon) in &fund_coupon_syncs {
+                if let Some(bank) = task.companies.iter_mut().find(|c| c.id == *bank_id) {
+                    if let Some(ref mut bs) = bank.balance_sheet {
+                        bs.deposits += *coupon;
+                        bs.reserves_at_central_bank += *coupon;
+                    }
                 }
             }
 

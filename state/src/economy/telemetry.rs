@@ -1,4 +1,4 @@
-//! Phase 24D: Macroeconomic telemetry — GDP, inflation, and money supply.
+﻿//! Phase 24D: Macroeconomic telemetry — GDP, inflation, and money supply.
 //!
 //! This module implements the P0 indicator fixes identified in the
 //! `resurrection-ui-telemetry-audit.md` audit. Before Phase 24D, GDP,

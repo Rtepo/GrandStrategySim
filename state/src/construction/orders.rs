@@ -129,7 +129,10 @@ pub fn submit_construction_b2b_orders(
 
     for company in companies.iter_mut() {
         let liquid = company.computed_liquid_capital();
-        company.available_cash = liquid;
+        // Phase 94: Do NOT overwrite available_cash — preserves M0 (Directive 1).
+        if liquid > company.available_cash {
+            company.available_cash = liquid;
+        }
 
         // Phase 36: Include 50% of pending tranche value in bidding capacity
         // for State-backed projects. This prevents construction deadlock when

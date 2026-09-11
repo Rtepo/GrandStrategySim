@@ -387,9 +387,25 @@ pub fn process_mbs_turn(
             // Credit tranche owner
             if actual_coupon > 0.0 {
                 let owner_id = tranche.owner_id.clone();
+                // Phase 94: Sync owner's bank reserves (M0). Without this,
+                // bank reserves are debited (M0) but only brokerage cash (M1)
+                // is credited, destroying base money.
+                let owner_bank_id = companies
+                    .iter()
+                    .find(|c| c.id == owner_id)
+                    .and_then(|c| c.primary_bank_id.clone());
                 if let Some(owner) = companies.iter_mut().find(|c| c.id == owner_id) {
                     if let Some(ref mut acct) = owner.brokerage_account {
                         acct.cash += actual_coupon;
+                    }
+                }
+                // Phase 94: Credit owner's bank reserves and deposits (M0 sync).
+                if let Some(ref bank_id) = owner_bank_id {
+                    if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
+                        if let Some(ref mut bs) = bank.balance_sheet {
+                            bs.deposits += actual_coupon;
+                            bs.reserves_at_central_bank += actual_coupon;
+                        }
                     }
                 }
             }

@@ -387,6 +387,19 @@ pub struct FiatWalk {
     /// conservation violations (Directive 1: no void sinks).
     #[serde(default)]
     pub arbitration_escrow: f64,
+    /// Phase 94: Black Ops budget — fiat debited from treasury and held
+    /// in a classified budget pocket. This is M0 base money (Directive 1).
+    #[serde(default)]
+    pub black_ops_budget: f64,
+    /// Phase 94: Intelligence budget — fiat debited from treasury for
+    /// intelligence operations. This is M0 base money (Directive 1).
+    #[serde(default)]
+    pub intelligence_budget: f64,
+    /// Encumbered cash: debit_cash across all companies. When companies
+    /// submit B2B buy orders, available_cash is debited and debit_cash
+    /// is credited. Both are M0 base money — debit_cash is encumbered
+    /// fiat awaiting settlement (Directive 1: closed-loop).
+    #[serde(default)]
     /// CB injection tracker (the sole permitted delta source).
     pub cumulative_cb_injection: f64,
 }
@@ -409,6 +422,8 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     let mut bank_reserves: f64 = 0.0;
     let mut corporate_cash: f64 = 0.0;
     let mut arbitration_escrow: f64 = 0.0;
+    let mut black_ops_budget: f64 = 0.0;
+    let mut intelligence_budget: f64 = 0.0;
     let mut cumulative_cb_injection: f64 = 0.0;
 
     let mut ministry_cash: f64 = 0.0;
@@ -437,6 +452,11 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
                 ministry_cash += ministry.ministry_cash;
             }
         }
+        // Phase 94: Ministry public service pool is M0 — debited from
+        // ministry_cash for Healthcare/Education wages and held until
+        // the State Employer pays wages. Excluding it creates a false
+        // M0 drop when ministries fund public services.
+        ministry_cash += country.ministry_public_service_pool;
         // Phase 94: Citizen savings (demo.savings) are physical cash in
         // circulation, NOT central bank reserves. The simulation does not
         // model the banking-side of cash withdrawals/deposits (when a company
@@ -454,6 +474,16 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
                 citizen_cash += demo.savings;
             }
         }
+        // Phase 94: Cultural institution cash (available_cash) is physical
+        // fiat donated by citizens/companies and held by temples, monasteries,
+        // etc. The simulation debits citizen savings (counted in M0) and
+        // credits building.available_cash. Excluding cultural institution
+        // cash from M0 creates a false conservation violation on donation
+        // collection. Include it as a physical-cash pocket, like citizen
+        // savings.
+        for building in &country.cultural_institutions {
+            citizen_cash += building.available_cash;
+        }
         cumulative_cb_injection += country.central_bank.liquidity_injected;
 
         // Phase 94: Include deposit insurance fund (BFG) and voluntary scheme (SOBK)
@@ -464,22 +494,27 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         // Arbitration escrow: fiat held by courts (Directive 1: no void sinks).
         arbitration_escrow += country.arbitration_court.unclaimed_arbitration_funds;
 
+        // Phase 94: Black Ops and Intelligence budgets are fiat debited from
+        // treasury and held in classified budget pockets. These are M0 base
+        // money (Directive 1: closed-loop — no fiat may vanish into void).
+        black_ops_budget += country.budget.black_ops_budget;
+        intelligence_budget += country.intelligence_budget.current_budget;
+
         // Bank reserves and corporate cash: sum across all companies.
         // Corporate cash (available_cash + brokerage_account.cash) is
         // effectively physical fiat in this simulation — the engine does
         // not model bank deposit withdrawal mechanics, so corporate cash
         // must be in M0 to prevent false conservation violations from wage
         // payments and B2C consumption (Directive 1: closed-loop).
+        // Banks' available_cash is also M0 — it is the bank's operating
+        // cash (distinct from reserves_at_central_bank). Excluding it
+        // causes a false M0 drop when non-banks pay banks for services
+        // (the bank's available_cash is credited but not counted).
         for company in &task.companies {
             if company.sector == Sector::Banking {
                 if let Some(ref bs) = company.balance_sheet {
                     bank_reserves += bs.reserves_at_central_bank;
                     bank_reserves += bs.cb_deposit_facility_balance;
-                }
-            } else {
-                corporate_cash += company.available_cash.max(0.0);
-                if let Some(ref brokerage) = company.brokerage_account {
-                    corporate_cash += brokerage.cash.max(0.0);
                 }
             }
         }
@@ -488,13 +523,20 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     let offshore_capital = market.offshore_capital;
     let see_charity_pool = market.apostolic_see_ledger.global_charity_pool;
 
-    // Phase 94: M0 includes citizen_cash (physical cash in circulation).
-    // B2C purchases are M0-neutral: citizen cash decreases, bank reserves
-    // increase. Wage payments require bank reserves to decrease when
-    // physical cash is withdrawn â€” this is handled in the wage payment code.
+    // Phase 94: M0 is strictly base money: treasury cash, physical citizen
+    // cash, bank reserves (incl. BFG/SOBK), offshore, charity, ministry
+    // pockets, and arbitration escrow. Corporate cash (available_cash +
+    // brokerage_account.cash) and encumbered cash (debit_cash) are M1
+    // deposit claims, NOT M0 base money. The transfer_settler
+    // (transfer_settler.rs:10-19) synchronizes bank reserves on every
+    // non-bank fiat transfer, so wage payments and B2C consumption are
+    // M0-neutral (bank reserves decrease exactly as citizen cash
+    // increases). Including corporate_cash in M0 would falsely flag
+    // endogenous loan issuance/repayment as conservation violations,
+    // because loans create/destroy deposits (M1) without CB action.
     let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital
-        + see_charity_pool + ministry_cash + corporate_cash + arbitration_escrow;
-
+        + see_charity_pool + ministry_cash + arbitration_escrow
+        + black_ops_budget + intelligence_budget;
     FiatWalk {
         total,
         treasury_cash,
@@ -505,6 +547,8 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         ministry_cash,
         corporate_cash,
         arbitration_escrow,
+        black_ops_budget,
+        intelligence_budget,
         cumulative_cb_injection,
     }
 }
@@ -1168,7 +1212,13 @@ impl CapturingProbe {
             if let Some(ref prev) = self.prev_fiat {
                 let delta = current_fiat.total - prev.total;
                 let cb_delta = current_fiat.cumulative_cb_injection - prev.cumulative_cb_injection;
-                let conserved = (delta - cb_delta).abs() <= 1e-6;
+                // Phase 94: Use relative tolerance for large M0 values.
+                // Absolute 1e-6 is too strict when M0 is ~100B (f64 rounding
+                // error at that scale is ~1e-5). Use 1e-9 relative tolerance
+                // with a 1e-6 absolute floor for small/zero M0 values.
+                let m0_scale = current_fiat.total.abs().max(prev.total.abs());
+                let tolerance = if m0_scale < 1e6 { 1e-6 } else { m0_scale * 1e-9 };
+                let conserved = (delta - cb_delta).abs() <= tolerance;
                 if !conserved {
                     let kind = if delta > cb_delta {
                         ViolationKind::FiatCreation

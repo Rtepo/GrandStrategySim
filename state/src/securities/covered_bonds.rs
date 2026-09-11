@@ -1,4 +1,4 @@
-//! Covered bonds module for bank debt securities.
+﻿//! Covered bonds module for bank debt securities.
 //!
 //! This module implements CoveredBond (List Zastawny) for bank-issued
 //! bonds backed by mortgage assets, with proper asset classification.
@@ -270,9 +270,24 @@ pub fn process_covered_bonds_turn(
 
             if actual_coupon > 0.0 {
                 let holder_id = bond.holder_id.clone();
+                // Phase 94: Sync holder's bank reserves (M0). Without this,
+                // bank reserves are debited (M0) but only brokerage cash (M1)
+                // is credited, destroying base money.
+                let holder_bank_id = companies
+                    .iter()
+                    .find(|c| c.id == holder_id)
+                    .and_then(|c| c.primary_bank_id.clone());
                 if let Some(holder) = companies.iter_mut().find(|c| c.id == holder_id) {
                     if let Some(ref mut acct) = holder.brokerage_account {
                         acct.cash += actual_coupon;
+                    }
+                }
+                if let Some(ref bank_id) = holder_bank_id {
+                    if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
+                        if let Some(ref mut bs) = bank.balance_sheet {
+                            bs.deposits += actual_coupon;
+                            bs.reserves_at_central_bank += actual_coupon;
+                        }
                     }
                 }
             }
@@ -293,9 +308,22 @@ pub fn process_covered_bonds_turn(
                     bs.issued_bonds -= actual_repayment;
 
                     if actual_repayment > 0.0 {
+                        let holder_bank_id = companies
+                            .iter()
+                            .find(|c| c.id == holder_id)
+                            .and_then(|c| c.primary_bank_id.clone());
                         if let Some(holder) = companies.iter_mut().find(|c| c.id == holder_id) {
                             if let Some(ref mut acct) = holder.brokerage_account {
                                 acct.cash += actual_repayment;
+                            }
+                        }
+                        // Phase 94: Sync holder's bank reserves (M0).
+                        if let Some(ref bank_id) = holder_bank_id {
+                            if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
+                                if let Some(ref mut bs) = bank.balance_sheet {
+                                    bs.deposits += actual_repayment;
+                                    bs.reserves_at_central_bank += actual_repayment;
+                                }
                             }
                         }
                     }

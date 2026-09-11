@@ -1,4 +1,4 @@
-//! Procedural world generation for creating a new `Turn 0` state.
+﻿//! Procedural world generation for creating a new `Turn 0` state.
 //!
 //! This module ports the Python `engine/world_generator` pipeline: it creates
 //! countries, demographics, economies, currencies, banks, diplomacy, regions
@@ -2125,6 +2125,7 @@ fn build_bank_companies(
             interbank_loans_taken: std::collections::HashMap::new(),
             issued_bonds: 0.0,
             tier_1_capital,
+            consumer_loans_outstanding: 0.0,
             extra: Map::new(),
         };
 

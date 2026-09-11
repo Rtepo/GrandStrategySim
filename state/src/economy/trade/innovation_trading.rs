@@ -1,4 +1,4 @@
-//! Phase 7/E.9: Innovation Points B2B trading.
+﻿//! Phase 7/E.9: Innovation Points B2B trading.
 //!
 //! This module implements the physical commodity trading of domain-specific
 //! Innovation Points between universities (producers) and the State (consumer).

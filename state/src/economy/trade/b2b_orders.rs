@@ -1,4 +1,4 @@
-//! B2B order submission, trade settlement, and production execution.
+﻿//! B2B order submission, trade settlement, and production execution.
 //!
 //! This module implements the core Phase 6.3 (Production Planning),
 //! Phase 6.4a (Double-Entry Settlement), and Phase 6.4b (Production Execution)
@@ -687,14 +687,25 @@ pub fn settle_trades(
                     companies[bi].debit_cash -= trade_value;
                 }
                 if let Some(&si) = company_id_to_idx.get(&trade.seller_id) {
-                    companies[si].available_cash += trade_value;
-                    if let Some(ba) = &mut companies[si].brokerage_account {
-                        ba.cash += trade_value;
-                    }
+                    // Phase 94: Use credit_company_by_id to sync bank reserves
+                    // (M0). When the buyer is a non-company (ministry, cultural
+                    // institution, etc.), the manual credit_company_by_id path
+                    // ensures the seller's bank reserves are adjusted to keep
+                    // M0 neutral (ministry cash ↓ = bank reserves ↑).
+                    let seller_id = companies[si].id.clone();
+                    credit_company_by_id(companies, &seller_id, trade_value);
                 }
             }
         } else if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
             companies[bi].debit_cash -= trade_value;
+        } else {
+            // Phase 94: MIN-DEF or other non-company buyer. The buyer's cash
+            // was already encumbered (deducted from liquid_reserves). Credit
+            // the seller via credit_company_by_id to sync bank reserves (M0).
+            if let Some(&si) = company_id_to_idx.get(&trade.seller_id) {
+                let seller_id = companies[si].id.clone();
+                credit_company_by_id(companies, &seller_id, trade_value);
+            }
         }
 
         // --- Physical Inventory Routing ---

@@ -999,12 +999,21 @@ fn execute_competency_spending_with_parties(
                     if actual > 0.0 {
                         // Phase 35: Debit ministry_cash (the pocket), not liquid_reserves.
                         ministry.ministry_cash -= actual;
-                        companies[*idx].liquid_capital += actual;
+                        // Phase 94: Use credit_company_by_id to sync bank
+                        // reserves (M0). Crediting liquid_capital directly
+                        // bypasses the bank-reserve sync, causing M0 destruction
+                        // (ministry cash ↓ without bank reserves ↑).
+                        let company_id = companies[*idx].id.clone();
+                        crate::economy::transfer_settler::credit_company_by_id(
+                            companies,
+                            &company_id,
+                            actual,
+                        );
                         ministry.spent_cash += actual;
                         ministry
                             .spending_actions
                             .push(MinistrySpendingAction::Subsidy {
-                                target_company_id: companies[*idx].id.clone(),
+                                target_company_id: company_id,
                                 amount: actual,
                             });
                         total_g_spending += actual;
@@ -1017,6 +1026,12 @@ fn execute_competency_spending_with_parties(
             let actual = spend.min(ministry.ministry_cash);
             if actual > 0.0 {
                 ministry.ministry_cash -= actual;
+                // Phase 94: Credit treasury (liquid_reserves) to prevent M0
+                // destruction. The InfrastructureFunding action is a spending
+                // record, but the cash must not vanish (Directive 1: no void
+                // sinks). The actual infrastructure spending is handled by the
+                // State Employer wage path and building construction phases.
+                country.budget.liquid_reserves += actual;
                 ministry.spent_cash += actual;
                 ministry
                     .spending_actions
@@ -1066,6 +1081,10 @@ fn execute_competency_spending_with_parties(
             let actual = spend.min(ministry.ministry_cash);
             if actual > 0.0 {
                 ministry.ministry_cash -= actual;
+                // Phase 94: Credit treasury (liquid_reserves) to prevent M0
+                // destruction. The DirectTransfer action is a spending record,
+                // but the cash must not vanish (Directive 1: no void sinks).
+                country.budget.liquid_reserves += actual;
                 ministry.spent_cash += actual;
                 ministry
                     .spending_actions

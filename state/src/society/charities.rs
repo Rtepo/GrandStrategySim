@@ -60,6 +60,11 @@ pub fn process_charity_fundraising(companies: &mut [Company], country: &mut Coun
     let avg_wage = country.macro_indicators.average_wage.max(1.0);
     let cultural_group = &country.macro_indicators.cultural_group;
 
+    // Phase 94: Collect donations per company ID first, then credit via
+    // credit_company_by_id to sync bank reserves (M0). Without this, citizen
+    // savings ↓ (M0) without bank reserves ↑, creating false M0 destruction.
+    let mut collections: Vec<(String, f64)> = Vec::new();
+
     for company in companies.iter_mut() {
         let is_ngo = company.sector == Sector::NGO;
         let is_religion = company.sector == Sector::Religion;
@@ -149,19 +154,23 @@ pub fn process_charity_fundraising(companies: &mut [Company], country: &mut Coun
             }
         }
 
-        // Credit collected donations to charity's brokerage_account.cash (or available_cash fallback).
-        // Must use brokerage_account.cash so it survives B2B sync overwrites.
-        if let Some(ba) = &mut company.brokerage_account {
-            ba.cash += total_collected;
-        } else {
-            company.available_cash += total_collected;
+        if total_collected > 0.0 {
+            // Phase 94: Record the collection for later bank-reserve sync.
+            collections.push((company.id.clone(), total_collected));
+            // Phase 35: Record this turn's donation in the rolling history.
+            // Keep the last 12 turns (half a year) for smoothing.
+            company.donation_history.push(total_collected);
+            if company.donation_history.len() > 12 {
+                company.donation_history.remove(0);
+            }
         }
-        // Phase 35: Record this turn's donation in the rolling history.
-        // Keep the last 12 turns (half a year) for smoothing.
-        company.donation_history.push(total_collected);
-        if company.donation_history.len() > 12 {
-            company.donation_history.remove(0);
-        }
+    }
+
+    // Phase 94: Second pass — credit collected donations via credit_company_by_id
+    // to sync bank reserves (M0). Citizen savings ↓ (M0) is offset by bank
+    // reserves ↑ (M0), keeping M0 neutral.
+    for (company_id, amount) in &collections {
+        crate::economy::transfer_settler::credit_company_by_id(companies, company_id, *amount);
     }
 }
 
@@ -184,6 +193,10 @@ pub fn process_charity_fundraising(companies: &mut [Company], country: &mut Coun
 ///   standard company processing pipeline — all available_cash is distributable.
 pub fn process_charity_distribution(companies: &mut [Company], country: &mut Country, _turn: u32) {
     let avg_wage = country.macro_indicators.average_wage.max(1.0);
+
+    // Phase 94: Collect distributions per company ID first, then debit via
+    // debit_company_by_id to sync bank reserves (M0).
+    let mut distributions: Vec<(String, f64)> = Vec::new();
 
     for company in companies.iter_mut() {
         let is_ngo = company.sector == Sector::NGO;
@@ -292,12 +305,18 @@ pub fn process_charity_distribution(companies: &mut [Company], country: &mut Cou
             }
         }
 
-        // Debit charity's brokerage_account.cash (or available_cash fallback).
-        if let Some(ba) = &mut company.brokerage_account {
-            ba.cash -= total_distributed;
-        } else {
-            company.available_cash -= total_distributed;
+        // Phase 94: Record the distribution for later bank-reserve sync.
+        // Citizen savings ↑ (M0) must be offset by bank reserves ↓ (M0).
+        if total_distributed > 0.0 {
+            distributions.push((company.id.clone(), total_distributed));
         }
+    }
+
+    // Phase 94: Second pass — debit distributed amounts via debit_company_by_id
+    // to sync bank reserves (M0). Citizen savings ↑ (M0) is offset by bank
+    // reserves ↓ (M0), keeping M0 neutral.
+    for (company_id, amount) in &distributions {
+        crate::economy::transfer_settler::debit_company_by_id(companies, company_id, *amount);
     }
 }
 

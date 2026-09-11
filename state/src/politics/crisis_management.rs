@@ -1,4 +1,4 @@
-//! Phase 31/32: Crisis Management AI ÔÇö Executive Decrees + Fast-Track Legislation.
+﻿//! Phase 31/32: Crisis Management AI ÔÇö Executive Decrees + Fast-Track Legislation.
 //!
 //! This module implements the government's automatic crisis-response system.
 //! When the economy enters a crisis (GDP decline, shadow economy explosion,

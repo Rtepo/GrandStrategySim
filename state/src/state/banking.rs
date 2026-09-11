@@ -1,4 +1,4 @@
-//! Commercial banking state for the grand-strategy economy.
+﻿//! Commercial banking state for the grand-strategy economy.
 //!
 //! This module mirrors the per-country bank dictionaries from the Python
 //! `data/banks.json` file. Each [`Bank`] captures the balance-sheet state of
@@ -211,6 +211,15 @@ pub struct BankBalanceSheet {
     #[serde(default)]
     pub real_estate: f64,
 
+    /// Phase 94: Outstanding consumer loans (B2C credit) issued by the bank.
+    /// This is the total outstanding principal of consumer loans held as
+    /// a bank asset. Tracked separately from `loans_issued` (which are
+    /// corporate loans). Consumer loans are issued to class demographics
+    /// and credit citizen savings (M0). Bank reserves are debited on
+    /// issuance to keep M0 conserved (Directive 1: closed-loop).
+    #[serde(default)]
+    pub consumer_loans_outstanding: f64,
+
     // ========================================================================
     // LIABILITIES (What the bank owes)
     // ========================================================================
@@ -268,6 +277,7 @@ impl BankBalanceSheet {
             + self.interbank_loans_given.values().sum::<f64>()
             + self.securities
             + self.real_estate
+            + self.consumer_loans_outstanding
     }
 
     /// Calculates total liabilities.
@@ -409,7 +419,7 @@ impl InterbankMarket {
     /// * SOBK emergency lending is double-entry: the SOBK pool decreases and
     ///   the borrowing bank's `reserves_at_central_bank` increases by the exact
     ///   loan amount (Directive 1). The SOBK claim (`outstanding_loans`) is not
-    ///   fiat — the fiat now sits in the borrowing bank's reserves, which are
+    ///   fiat â€” the fiat now sits in the borrowing bank's reserves, which are
     ///   counted in the M0 walk.
     /// * SOBK repayment is double-entry: the repaying bank's
     ///   `reserves_at_central_bank` decreases and the SOBK pool increases by
@@ -431,11 +441,14 @@ impl InterbankMarket {
         let mut deficit_banks: Vec<(String, f64)> = Vec::new();
 
         for bank in banks.iter() {
-            if let (
-                Some(BankType::Commercial | BankType::Universal | BankType::Cooperative),
-                Some(bs),
-            ) = (&bank.bank_type, &bank.balance_sheet)
-            {
+            // Phase 94: Include ALL bank types (Commercial, Universal, Cooperative,
+            // AND Investment) in the surplus/deficit calculation. The second loop
+            // (transfer execution) processes all bank types, so the first loop
+            // must also include all types. Previously, Investment banks were
+            // excluded from total_surplus/total_deficit but still lent/borrowed
+            // in the second loop, causing M0 destruction (the ratio
+            // transfer_amount/total_surplus was wrong for Investment banks).
+            if let (Some(_), Some(bs)) = (&bank.bank_type, &bank.balance_sheet) {
                 let position = bs.reserve_position(cb_reserve_ratio);
 
                 if position > 0.0 {
@@ -476,6 +489,7 @@ impl InterbankMarket {
         // Execute transfers using proportional distribution
         let transfer_amount = total_surplus.min(total_deficit);
 
+
         // Update bank balance sheets with proportional allocation
         for bank in banks.iter_mut() {
             if let (Some(_), Some(ref mut bs)) = (&bank.bank_type, &mut bank.balance_sheet) {
@@ -485,7 +499,7 @@ impl InterbankMarket {
                     // This bank lends liquidity proportionally to its surplus
                     let lend_amount = (position * (transfer_amount / total_surplus)).min(position);
                     bs.reserves_at_central_bank -= lend_amount;
-                    // In full implementation: Track specific borrower-bank relationships
+                                    // In full implementation: Track specific borrower-bank relationships
                     // For now, simplified proportional distribution
                     let per_borrower_amount = if deficit_banks.is_empty() {
                         0.0
@@ -502,7 +516,7 @@ impl InterbankMarket {
                     let borrow_amount =
                         (-position * (transfer_amount / total_deficit)).min(-position);
                     bs.reserves_at_central_bank += borrow_amount;
-                    // In full implementation: Track specific lender-bank relationships
+                                    // In full implementation: Track specific lender-bank relationships
                     // For now, simplified proportional distribution
                     let per_lender_amount = if surplus_banks.is_empty() {
                         0.0
@@ -518,19 +532,19 @@ impl InterbankMarket {
             }
         }
 
-        // ── SOBK Emergency Liquidity Pass (M0 Step 8 / F1-F4 fix) ──
+        // â”€â”€ SOBK Emergency Liquidity Pass (M0 Step 8 / F1-F4 fix) â”€â”€
         // After standard interbank clearing, member banks still in deficit
         // draw preferential emergency loans from the SOBK pool before
         // resorting to expensive CB Lombard. Member banks with surplus and
         // outstanding SOBK loans repay them.
         //
         // Double-Entry (Directive 1):
-        // * Emergency loan (F3 fix): SOBK pool ↓, borrowing bank
-        //   `reserves_at_central_bank` ↑ by the exact loan amount. The
-        //   `outstanding_loans` tracker is a claim, not fiat — the fiat now
+        // * Emergency loan (F3 fix): SOBK pool â†“, borrowing bank
+        //   `reserves_at_central_bank` â†‘ by the exact loan amount. The
+        //   `outstanding_loans` tracker is a claim, not fiat â€” the fiat now
         //   sits in the borrowing bank's reserves (counted in the M0 walk).
-        // * Repayment (F4 fix): repaying bank `reserves_at_central_bank` ↓,
-        //   SOBK pool ↑ by the exact repayment amount. Without the bank-side
+        // * Repayment (F4 fix): repaying bank `reserves_at_central_bank` â†“,
+        //   SOBK pool â†‘ by the exact repayment amount. Without the bank-side
         //   debit, M0 would be created (pool up, reserves unchanged).
         let current_xibor = self.xibor;
         for bank in banks.iter_mut() {
@@ -541,7 +555,7 @@ impl InterbankMarket {
                     continue;
                 }
                 if position < 0.0 {
-                    // Member bank still in deficit — draw SOBK emergency loan.
+                    // Member bank still in deficit â€” draw SOBK emergency loan.
                     let needed = -position;
                     let loan = sobk.provide_emergency_loan(&bank.id, needed, current_xibor);
                     if loan > 0.0 {
@@ -556,7 +570,7 @@ impl InterbankMarket {
                             .or_insert(0.0) += loan;
                     }
                 } else if position > 0.0 {
-                    // Member bank with surplus — repay outstanding SOBK loans.
+                    // Member bank with surplus â€” repay outstanding SOBK loans.
                     let outstanding = sobk.outstanding_loans.get(&bank.id).copied().unwrap_or(0.0);
                     if outstanding > 0.0 {
                         let repay = position.min(outstanding);
@@ -644,7 +658,7 @@ pub struct CreditScore {
 /// CreditScore with approval decision, risk assessment, and required equity swap
 ///
 /// # Rules
-/// * LTV (Loan-to-Value): principal <= collateral_value × max_ltv_ratio
+/// * LTV (Loan-to-Value): principal <= collateral_value Ă— max_ltv_ratio
 /// * Cashflow History: Borrower must be profitable in 2 of last 3 turns
 /// * Investment Prospect (Investment loans only): Projected ROI must exceed hurdle rate
 /// * Consolidation Loans: Existing debtor check + Debt-to-Equity Swap requirements
@@ -662,7 +676,7 @@ pub fn calculate_credit_score(
     let mut rejection_reason = None;
     let mut required_equity_swap = None;
 
-    // Phase 25: Creditworthiness gate — do not issue loans to economically
+    // Phase 25: Creditworthiness gate â€” do not issue loans to economically
     // inactive borrowers. If a company has no liquid capital at all (neither
     // stored nor computed), it has no cash flow to service debt. This stops
     // the M3 ventilator from injecting credit into a dead economy.
@@ -685,7 +699,7 @@ pub fn calculate_credit_score(
                 required_equity_swap: None,
             };
         }
-        // Has fixed capital but no cash — penalize heavily but allow
+        // Has fixed capital but no cash â€” penalize heavily but allow
         // (this is a startup/seed case where the company has assets but
         // hasn't generated revenue yet).
         score -= 0.2;
@@ -936,7 +950,7 @@ pub fn issue_loan(
     let interest_rate = xibor + bank_margin + risk_premium;
 
     // Step 3: Simulate balance sheet expansion to check reserve requirement.
-    // Phase 77: Subtract Lombard loans from effective reserves — borrowed
+    // Phase 77: Subtract Lombard loans from effective reserves â€” borrowed
     // reserves from the CB Lombard facility cannot support further credit
     // creation. Only the bank's OWN reserves count toward lending capacity.
     let new_deposits = balance_sheet.deposits + principal;
@@ -1159,14 +1173,14 @@ impl Bank {
 }
 
 // ============================================================================
-// PHASE 77: BANK OPERATIONAL CAPACITY — LABOR & SERVICE CONSTRAINTS
+// PHASE 77: BANK OPERATIONAL CAPACITY â€” LABOR & SERVICE CONSTRAINTS
 // ============================================================================
 
 /// Phase 77: Operational capacity of a bank, derived from its fulfilled labor.
 ///
 /// A bank's ability to manage assets, originate loans, and handle deposits is
 /// directly proportional to its workforce. A bank with 30 employees cannot
-/// manage billions in assets — it needs thousands of clerks, tellers, and
+/// manage billions in assets â€” it needs thousands of clerks, tellers, and
 /// administrative staff.
 ///
 /// The capacity scales with `average_wage` (not a magic nominal constant)
@@ -1189,11 +1203,11 @@ pub struct BankCapacity {
 /// * `average_wage` - The national average wage (scales capacity dynamically).
 ///
 /// # Rules
-/// * Each clerk can manage ~200× their wage in total assets (ongoing portfolio).
-/// * Each clerk can originate ~50× their wage in new loans per turn (origination workload).
-/// * Each clerk can service ~500× their wage in deposits (transaction processing).
+/// * Each clerk can manage ~200Ă— their wage in total assets (ongoing portfolio).
+/// * Each clerk can originate ~50Ă— their wage in new loans per turn (origination workload).
+/// * Each clerk can service ~500Ă— their wage in deposits (transaction processing).
 /// * These are structural economic ratios, not magic nominal constants.
-/// * A bank with 0 FTE has zero capacity — it cannot operate.
+/// * A bank with 0 FTE has zero capacity â€” it cannot operate.
 pub fn bank_operational_capacity(fulfilled_fte: f64, average_wage: f64) -> BankCapacity {
     if fulfilled_fte <= 0.0 || average_wage <= 0.0 {
         return BankCapacity::default();
@@ -1284,7 +1298,7 @@ impl BfgFund {
     /// * Bank: reserves_at_central_bank decreases (Asset debit)
     /// * BFG: reserves increases (Asset credit)
     /// * Money mass preserved: Reserves move from bank to BFG ledger (both at CB)
-    /// * tier_1_capital is NOT debited — the premium is a transfer of reserves,
+    /// * tier_1_capital is NOT debited â€” the premium is a transfer of reserves,
     ///   not a capital destruction. The bank's equity position is unaffected.
     pub fn collect_premiums(
         &mut self,
@@ -1298,13 +1312,13 @@ impl BfgFund {
                     if bt == &BankType::Commercial || bt == &BankType::Universal {
                         let premium = bs.deposits * self.premium_rate;
 
-                        // Phase 94: Double-entry — BFG premium is an expense.
+                        // Phase 94: Double-entry â€” BFG premium is an expense.
                         // Asset decreases (reserves out), Equity decreases (expense recognized).
                         // M0 is preserved because BFG reserves are counted in the M0 walk.
                         // The old comment about "Black Hole 1.9" was about the M0 walk not
-                        // counting BFG reserves — that is now fixed.
+                        // counting BFG reserves â€” that is now fixed.
                         bs.reserves_at_central_bank -= premium; // Asset decreases
-                        // Phase 94: No reserve clamping — negative reserves
+                        // Phase 94: No reserve clamping â€” negative reserves
                         // represent CB Lombard borrowing. Clamping breaks
                         // A=L+E and causes M0 FiatCreation.
                         bs.tier_1_capital -= premium; // Equity decreases (expense)
@@ -1449,7 +1463,7 @@ impl SobkScheme {
                     return;
                 }
 
-                // Phase 94: Double-entry — SOBK contribution is an expense.
+                // Phase 94: Double-entry â€” SOBK contribution is an expense.
                 // Asset decreases (reserves out), Equity decreases (expense recognized).
                 // M0 is preserved because SOBK pool is counted in the M0 walk.
                 bs.reserves_at_central_bank -= contribution;
@@ -1568,7 +1582,7 @@ impl SobkScheme {
         }
     }
 
-    /// Repays Central Bank emergency loan from pool surplus (F7 fix — complete
+    /// Repays Central Bank emergency loan from pool surplus (F7 fix â€” complete
     /// lifecycle for `cb_emergency_loan`). Without this method the CB liquidity
     /// line is an immortal liability, violating Directive 4.
     ///
@@ -1579,7 +1593,7 @@ impl SobkScheme {
     /// # Double-Entry Flow
     /// * SOBK: pool decreases (asset debit), `cb_emergency_loan` decreases
     ///   (liability debit).
-    /// * Central Bank: `liquidity_injected` decreases (M0 contraction — the
+    /// * Central Bank: `liquidity_injected` decreases (M0 contraction â€” the
     ///   CB loan is extinguished, fiat returns to the CB).
     /// * Money mass contracts by the exact repayment amount.
     pub fn repay_cb_liquidity_line(&mut self, central_bank: &mut CentralBank, amount: f64) {
@@ -1687,7 +1701,7 @@ pub struct BankResolution {
     #[serde(default)]
     pub privatization_revenue: f64,
 
-    /// Phase 86.5A: Distressed assets ledger — seized loans and bonds from
+    /// Phase 86.5A: Distressed assets ledger â€” seized loans and bonds from
     /// failed banks at RECOVERY value (not face value).
     ///
     /// These assets are PHYSICALLY ISOLATED from `liquid_reserves` and must
@@ -1766,7 +1780,7 @@ impl BankResolution {
         let insured_deposits = total_deposits * 0.5;
         let uninsured_deposits = total_deposits - insured_deposits;
 
-        // Step 2: Wipe out existing shareholders (Equity → 0)
+        // Step 2: Wipe out existing shareholders (Equity â†’ 0)
         let equity_wiped = failed_bank.company_capital;
         failed_bank.owners.clear();
         failed_bank.state_share = 0.0;
@@ -1838,13 +1852,13 @@ impl BankResolution {
         // 5a: Interbank loans already repaid to specific lenders above
 
         // 5b: Repay CB Lombard loans to Central Bank
-        // CB liquidity_injected decreases — M0 contracts as Lombard loan is extinguished
+        // CB liquidity_injected decreases â€” M0 contracts as Lombard loan is extinguished
         central_bank.liquidity_injected =
             (central_bank.liquidity_injected - toxic_lombard).max(0.0);
 
         // 5c: Uninsured deposits are written off (depositors take haircut)
         // The deposits were already extinguished at line 1460 (bs.deposits = insured_deposits).
-        // BFG does NOT pay for uninsured deposits — no one receives the money,
+        // BFG does NOT pay for uninsured deposits â€” no one receives the money,
         // so debiting BFG reserves would destroy money (Black Hole 1.11).
 
         // Step 6: BFG absorbs interbank and Lombard costs (NOT uninsured)
@@ -2111,7 +2125,7 @@ impl BankResolution {
     /// Phase 86.5A: Check if a bridge bank has exceeded its sunset timer.
     ///
     /// After `max_bridge_duration_turns`, the bridge bank must be liquidated
-    /// or reprivatized — it cannot operate indefinitely.
+    /// or reprivatized â€” it cannot operate indefinitely.
     pub fn check_bridge_sunset(&self, bank_id: &str, current_turn: u32) -> bool {
         if let Some(&takeover_turn) = self.bridge_banks.get(bank_id) {
             current_turn - takeover_turn >= self.max_bridge_duration_turns
@@ -2259,7 +2273,7 @@ impl BankTax {
 
                                 // Now pay tax
                                 bs.reserves_at_central_bank -= tax_amount;
-                                // Phase 94: No reserve clamping — negative
+                                // Phase 94: No reserve clamping â€” negative
                                 // reserves represent CB Lombard borrowing.
                                 bs.tier_1_capital -= tax_amount;
                                 total_tax_collected += tax_amount;
@@ -2271,7 +2285,7 @@ impl BankTax {
                         } else {
                             // Bank has sufficient reserves - pay tax normally
                             bs.reserves_at_central_bank -= tax_amount; // Asset decreases
-                            // Phase 94: No reserve clamping — negative
+                            // Phase 94: No reserve clamping â€” negative
                             // reserves represent CB Lombard borrowing.
                             bs.tier_1_capital -= tax_amount; // Equity decreases
                             total_tax_collected += tax_amount;
@@ -2365,17 +2379,17 @@ pub struct BankingTurnResult {
 /// `BankingTurnResult` with diagnostics.
 ///
 /// # Rules
-/// * **Step 1 — CB Rate Update:** `central_bank.update_reference_rate()` based on inflation and GDP growth.
-/// * **Step 2 — Pre-clearing OMO:** CB buys/sells government bonds from/to banks to adjust aggregate reserves, steering XIBOR toward target rate.
-/// * **Step 3 — Interbank Clearing:** `interbank_market.clear_market()` sets XIBOR and settles surplus/deficit positions.
-/// * **Step 4 — Deposit Facility:** Banks with surplus reserves park them at CB, earning deposit rate interest. Creates physical floor for interbank rate.
-/// * **Step 5 — Lombard Facility:** Banks still in deficit after interbank borrow from CB at penalty rate. Creates physical ceiling for interbank rate.
-/// * **Step 6 — Loan Repayment:** Existing loans accrue interest; borrowers repay from `available_cash`. Double-entry: bank `loans_issued` decreases, `reserves_at_central_bank` increases; borrower `available_cash` decreases.
-/// * **Step 7 — New Loan Issuance:** Non-bank companies seek credit. `issue_loan()` creates deposits (money creation). Rate = XIBOR + bank_margin + risk_premium. Reserve requirement constrains issuance.
-/// * **Step 8 — Deposit Insurance:** `bfg_fund.collect_premiums()` moves reserves from banks to BFG.
-/// * **Step 9 — Bank Tax:** If active, `bank_tax.collect_bank_tax()` levies tax on bank assets.
-/// * **Step 10 — Bank Resolution:** Banks failing reserve requirements after interbank + CB Lombard are resolved via `bank_resolution.execute_bank_resolution()`.
-/// * **Step 11 — SOBK Contributions:** Voluntary scheme members contribute via `sobk_scheme.accept_contribution()`.
+/// * **Step 1 â€” CB Rate Update:** `central_bank.update_reference_rate()` based on inflation and GDP growth.
+/// * **Step 2 â€” Pre-clearing OMO:** CB buys/sells government bonds from/to banks to adjust aggregate reserves, steering XIBOR toward target rate.
+/// * **Step 3 â€” Interbank Clearing:** `interbank_market.clear_market()` sets XIBOR and settles surplus/deficit positions.
+/// * **Step 4 â€” Deposit Facility:** Banks with surplus reserves park them at CB, earning deposit rate interest. Creates physical floor for interbank rate.
+/// * **Step 5 â€” Lombard Facility:** Banks still in deficit after interbank borrow from CB at penalty rate. Creates physical ceiling for interbank rate.
+/// * **Step 6 â€” Loan Repayment:** Existing loans accrue interest; borrowers repay from `available_cash`. Double-entry: bank `loans_issued` decreases, `reserves_at_central_bank` increases; borrower `available_cash` decreases.
+/// * **Step 7 â€” New Loan Issuance:** Non-bank companies seek credit. `issue_loan()` creates deposits (money creation). Rate = XIBOR + bank_margin + risk_premium. Reserve requirement constrains issuance.
+/// * **Step 8 â€” Deposit Insurance:** `bfg_fund.collect_premiums()` moves reserves from banks to BFG.
+/// * **Step 9 â€” Bank Tax:** If active, `bank_tax.collect_bank_tax()` levies tax on bank assets.
+/// * **Step 10 â€” Bank Resolution:** Banks failing reserve requirements after interbank + CB Lombard are resolved via `bank_resolution.execute_bank_resolution()`.
+/// * **Step 11 â€” SOBK Contributions:** Voluntary scheme members contribute via `sobk_scheme.accept_contribution()`.
 pub fn process_banking_turn(
     country: &mut crate::state::Country,
     companies: &mut [crate::entities::Company],
@@ -2407,7 +2421,8 @@ pub fn process_banking_turn(
         .central_bank
         .update_reference_rate(inflation, gdp_growth, current_turn);
 
-    // Step 2: Pre-clearing OMO — CB adjusts aggregate reserves to steer XIBOR toward target.
+    
+// Step 2: Pre-clearing OMO â€” CB adjusts aggregate reserves to steer XIBOR toward target.
     // Calculate total bank reserves and total securities (government bonds) held by banks.
     let (total_bank_reserves, total_bank_securities) = companies
         .iter()
@@ -2459,8 +2474,8 @@ pub fn process_banking_turn(
         // Phase 94: Track M0 creation/destruction via OMO.
         country.central_bank.liquidity_injected += total_omo_executed;
     }
-
-    // Step 3: Interbank Clearing
+    
+// Step 3: Interbank Clearing
     // Collect mutable references to bank companies
     let cb_clone = country.central_bank.clone();
     let mut bank_refs: Vec<&mut crate::entities::Company> = companies
@@ -2471,8 +2486,8 @@ pub fn process_banking_turn(
         .interbank_market
         .clear_market(&mut bank_refs, &cb_clone, &mut country.sobk_scheme, current_turn);
     result.xibor = country.interbank_market.xibor;
-
-    // Step 4: Deposit Facility — banks with surplus reserves park them at CB and earn deposit rate.
+    
+// Step 4: Deposit Facility â€” banks with surplus reserves park them at CB and earn deposit rate.
     // This creates the physical floor for interbank rates.
     let cb_reserve_ratio = country.central_bank.reserve_requirement_ratio;
     for bank in companies.iter_mut() {
@@ -2492,23 +2507,24 @@ pub fn process_banking_turn(
             // asset increases, equity must increase to maintain A = L + E).
             bs.tier_1_capital += interest;
             result.deposit_facility_interest_paid += interest;
-            // Phase 94: Track M0 creation — CB pays interest from void, creating base money.
+            // Phase 94: Track M0 creation â€” CB pays interest from void, creating base money.
             country.central_bank.liquidity_injected += interest;
             result.total_deposit_facility_balance += bs.cb_deposit_facility_balance;
         }
     }
 
-    // Step 5: Lombard Facility — banks still in deficit after interbank borrow from CB at penalty rate.
+    
+// Step 5: Lombard Facility â€” banks still in deficit after interbank borrow from CB at penalty rate.
     // This creates the physical ceiling for interbank rates.
     for bank in companies.iter_mut() {
         if let (Some(_), Some(ref mut bs)) = (&bank.bank_type, &mut bank.balance_sheet) {
             let position = bs.reserve_position(cb_reserve_ratio);
             if position < 0.0 {
-                // Bank is still in deficit — borrow from Lombard facility
+                // Bank is still in deficit â€” borrow from Lombard facility
                 let needed = -position;
                 bs.cb_lombard_loans += needed;
                 bs.reserves_at_central_bank += needed;
-                // Phase 94: Track M0 creation — CB lends new base money to banks.
+                // Phase 94: Track M0 creation â€” CB lends new base money to banks.
                 country.central_bank.liquidity_injected += needed;
             }
             // Accrue interest on existing Lombard loans (paid by bank to CB)
@@ -2516,22 +2532,22 @@ pub fn process_banking_turn(
                 .central_bank
                 .accrue_lombard_facility_interest(bs.cb_lombard_loans);
             bs.reserves_at_central_bank -= interest;
-            // Phase 94: No reserve clamping — negative reserves represent
+            // Phase 94: No reserve clamping â€” negative reserves represent
             // CB Lombard borrowing. Clamping breaks A=L+E and causes M0
             // FiatCreation.
             // Phase 94: Debit interest expense from equity (double-entry:
             // asset decreases, equity must decrease to maintain A = L + E).
             bs.tier_1_capital -= interest;
             result.lombard_facility_interest_received += interest;
-            // Phase 94: Interest paid to CB destroys base money — track it.
+            // Phase 94: Interest paid to CB destroys base money â€” track it.
             country.central_bank.liquidity_injected -= interest;
             result.total_lombard_loans += bs.cb_lombard_loans;
         }
     }
-
-    // Step 6: Loan Repayment
+    
+// Step 6: Loan Repayment
     // Process interest accrual and repayments for existing loans
-    // Phase 24A.2: Fix Black Hole #2 — borrowers must be debited when loans
+    // Phase 24A.2: Fix Black Hole #2 â€” borrowers must be debited when loans
     // are repaid. Previously, the bank's reserves increased but the borrower's
     // cash was never debited, creating money from nothing.
     // Phase 39: Interest income is credited to brokerage_account.cash so banks
@@ -2606,10 +2622,10 @@ pub fn process_banking_turn(
             //   Liabilities: -actual_payment
             //   Equity: +actual_interest
             //   Check: -actual_principal = -actual_payment + actual_interest
-            //   => -actual_principal = -actual_principal - actual_interest + actual_interest  ✓
+            //   => -actual_principal = -actual_principal - actual_interest + actual_interest  âś“
             bs.tier_1_capital += interest_income_total;
             // Phase 39: Credit operating cash for teller payroll.
-            // This is NOT a balance-sheet transaction — brokerage_account.cash
+            // This is NOT a balance-sheet transaction â€” brokerage_account.cash
             // is off-balance-sheet operating cash. The funds come from the
             // borrower's repayment (debit in the loop below). The interest
             // income is backed by equity (credited above). The principal
@@ -2626,19 +2642,18 @@ pub fn process_banking_turn(
             result.total_loan_repayments += repaid_total;
         }
     }
-
-    // Phase 24A.2: Execute borrower debits (deferred to avoid double-borrow).
+    // Phase 24A.2: Execute borrower debits
     // Three cases: (A) company borrower, (B) state/treasury borrower, (C) vanished borrower.
-    // Phase 94: Fixed double-entry — reserves are now adjusted per-loan here,
+    // Phase 94: Fixed double-entry â€” reserves are now adjusted per-loan here,
     // NOT in the loan loop. For intra-bank, deposits are destroyed (no reserve
     // movement). For inter-bank, the lending bank receives reserves from the
     // borrower's bank.
     const STATE_BORROWER_ID: &str = "STATE";
     for (borrower_id, loan_id, bank_idx, amount, _principal_portion) in pending_loan_debits {
         if borrower_id == STATE_BORROWER_ID {
-            // CASE B: State/Treasury borrower — debit liquid_reserves, never Default.
+            // CASE B: State/Treasury borrower â€” debit liquid_reserves, never Default.
             // The lending bank receives reserves from the treasury.
-            // Phase 94: No .max(0.0) clamping — if treasury can't pay the full
+            // Phase 94: No .max(0.0) clamping â€” if treasury can't pay the full
             // amount, the lending bank still gets credited, creating an
             // overdraft that will be reconciled later. Clamping breaks A=L+E.
             country.budget.liquid_reserves -= amount;
@@ -2646,12 +2661,12 @@ pub fn process_banking_turn(
                 bs.reserves_at_central_bank += amount;
             }
         } else if let Some(borrower_idx) = companies.iter().position(|c| c.id == borrower_id) {
-            // CASE A: Company borrower — debit cash and sync borrower's bank.
+            // CASE A: Company borrower â€” debit cash and sync borrower's bank.
             let payer_bank_id = companies[borrower_idx].primary_bank_id.clone();
             let lending_bank_id = companies[bank_idx].id.clone();
 
             // Debit borrower's cash (brokerage first, then available_cash)
-            // Phase 94: No .max(0.0) clamping — negative available_cash
+            // Phase 94: No .max(0.0) clamping â€” negative available_cash
             // represents an overdraft that must be resolved via lending or
             // bankruptcy. Clamping breaks double-entry because the bank's
             // deposit is debited by the full amount regardless.
@@ -2669,7 +2684,7 @@ pub fn process_banking_turn(
             if let Some(ref p_bank_id) = payer_bank_id {
                 if p_bank_id == &lending_bank_id {
                     // Intra-bank: deposit is destroyed, loan asset was already
-                    // reduced in the loan loop. No reserve movement — the
+                    // reduced in the loan loop. No reserve movement â€” the
                     // deposit and loan cancel out within the same bank.
                     if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
                         bs.deposits -= amount;
@@ -2677,7 +2692,7 @@ pub fn process_banking_turn(
                 } else {
                     // Inter-bank: borrower's bank loses deposits + reserves,
                     // lending bank receives reserves.
-                    // Phase 94: No .max(0.0) clamping — negative reserves
+                    // Phase 94: No .max(0.0) clamping â€” negative reserves
                     // represent CB Lombard borrowing. Clamping breaks A=L+E.
                     if let Some(bank) = companies.iter_mut().find(|c| c.id == p_bank_id.as_str()) {
                         if let Some(ref mut bs) = bank.balance_sheet {
@@ -2710,7 +2725,7 @@ pub fn process_banking_turn(
                     .sum();
             }
         } else {
-            // CASE C: Borrower vanished — mark loan as Default (cleaned in bankruptcy)
+            // CASE C: Borrower vanished â€” mark loan as Default (cleaned in bankruptcy)
             if let Some(bank) = companies.get_mut(bank_idx) {
                 if let Some(ref mut bs) = bank.balance_sheet {
                     for loan in &mut bs.loans_issued {
@@ -2722,10 +2737,10 @@ pub fn process_banking_turn(
             }
         }
     }
-
-    // Step 7: New Loan Issuance
+    
+// Step 7: New Loan Issuance
     // Non-bank companies seek working capital loans.
-    // Phase 77: Competitive allocation — banks with the most excess reserves
+    // Phase 77: Competitive allocation â€” banks with the most excess reserves
     // get priority. Also enforce operational capacity (labor-based) caps.
     let cb_for_loans = country.central_bank.clone();
     let avg_wage = country.macro_indicators.average_wage.max(1.0);
@@ -2824,7 +2839,7 @@ pub fn process_banking_turn(
                     .map(|l| l.outstanding_balance)
                     .sum();
                 // Phase 94: Credit the borrower's bank deposit (brokerage_account.cash)
-                // OR available_cash as fallback — NOT both. The loan creates a deposit
+                // OR available_cash as fallback â€” NOT both. The loan creates a deposit
                 // at the bank, which is the borrower's asset. Double-counting both
                 // fields creates money from nothing.
                 if let Some(ref mut ba) = companies[borrower_idx].brokerage_account {
@@ -2841,7 +2856,8 @@ pub fn process_banking_turn(
         }
     }
 
-    // Step 8: Deposit Insurance Premiums
+    
+// Step 8: Deposit Insurance Premiums
     let mut bank_refs_2: Vec<&mut crate::entities::Company> = companies
         .iter_mut()
         .filter(|c| c.bank_type.is_some() && c.balance_sheet.is_some())
@@ -2861,8 +2877,8 @@ pub fn process_banking_turn(
             .bfg_fund
             .repay_cb_liquidity_line(&mut country.central_bank, repayment);
     }
-
-    // Step 9: Bank Tax (if active)
+    
+// Step 9: Bank Tax (if active)
     if country.bank_tax.active_turns_remaining > 0 {
         let mut bank_refs_3: Vec<&mut crate::entities::Company> = companies
             .iter_mut()
@@ -2879,7 +2895,8 @@ pub fn process_banking_turn(
         );
     }
 
-    // Step 10: Bank Resolution
+    
+// Step 10: Bank Resolution
     // Check for banks that still fail reserve requirements after interbank + Lombard
     let mut failed_banks: Vec<String> = Vec::new();
     for bank in companies.iter() {
@@ -2917,14 +2934,14 @@ pub fn process_banking_turn(
         0.0, // XIBOR volatility placeholder
     );
 
-    // Step 11: SOBK Contributions (voluntary)
+    
+// Step 11: SOBK Contributions (voluntary)
     for bank in companies.iter_mut() {
         if bank.bank_type.is_some() && bank.balance_sheet.is_some() {
             country.sobk_scheme.accept_contribution(bank);
         }
     }
-
-    // SOBK repays CB emergency loan from pool surplus (F7 fix — complete
+    // SOBK repays CB emergency loan from pool surplus (F7 fix â€” complete
     // lifecycle for cb_emergency_loan). The pool must retain enough to honor
     // outstanding loan recalls, so only surplus above that buffer is used.
     // This mirrors the BFG repayment pattern (Step 8 above) and contracts M0
@@ -2938,15 +2955,15 @@ pub fn process_banking_turn(
             .sobk_scheme
             .repay_cb_liquidity_line(&mut country.central_bank, repayment);
     }
-
-    // Step 12 (Phase 35 / Phase 77): B2B Micro-Loans — banks issue small
+    
+// Step 12 (Phase 35 / Phase 77): B2B Micro-Loans â€” banks issue small
     // working-capital loans to non-bank companies that have insufficient
     // brokerage cash for operations. This creates actual banking activity and
     // loan interest revenue.
     // Phase 40: Reserve payroll cash BEFORE lending so banks can pay tellers.
     // Phase 77: Route through issue_loan() to enforce fractional reserve
     // requirements. Previously this pushed loans directly to bs.loans_issued
-    // WITHOUT checking reserves — a rogue money-creation path.
+    // WITHOUT checking reserves â€” a rogue money-creation path.
     let cb_ref_rate = country.central_bank.interest_rates.reference_rate;
     let avg_wage_for_reserve = country.macro_indicators.average_wage.max(1.0);
     let n = companies.len();
@@ -3068,7 +3085,8 @@ pub fn process_banking_turn(
         result.total_new_credit += lent_total;
     }
 
-    // Step 13 (Phase 35): B2C Consumer Loans — banks issue small consumer
+    
+// Step 13 (Phase 35): B2C Consumer Loans â€” banks issue small consumer
     // loans to class demographics. On issuance: savings += principal,
     // debt += principal. Every turn, repayment deducts from savings, reduces
     // debt, and credits interest to the bank.
@@ -3130,13 +3148,18 @@ pub fn process_banking_turn(
                 }
             }
         }
-        // Credit interest to bank's brokerage cash (B2C revenue)
-        if repayment_interest > 0.0 {
-            if let Some(ba) = &mut bank.brokerage_account {
-                ba.cash += repayment_interest;
-            }
+        // Credit repayment to bank reserves (double-entry).
+        // Phase 94: Citizen savings (M0) decreased by (principal + interest).
+        // Bank reserves (M0) must increase by the same amount to keep M0
+        // conserved (Directive 1). Previously only interest was credited
+        // to reserves (and double-counted in brokerage cash), destroying
+        // the principal portion from M0 and breaking A=L+E. Now credit
+        // reserves for the full payment and equity for interest income.
+        if repayment_principal + repayment_interest > 0.0 {
             if let Some(bs) = &mut bank.balance_sheet {
-                bs.reserves_at_central_bank += repayment_interest;
+                bs.reserves_at_central_bank += repayment_principal + repayment_interest;
+                bs.tier_1_capital += repayment_interest;
+                bs.consumer_loans_outstanding -= repayment_principal;
             }
         }
         result.total_loan_repayments += repayment_principal + repayment_interest;
@@ -3217,6 +3240,16 @@ pub fn process_banking_turn(
                     issued_turn: current_turn,
                     original_principal: loan_amount,
                 });
+                // Phase 94: Debit bank reserves and track consumer loan asset
+                // (double-entry). Consumer loans credit citizen savings (M0
+                // physical cash). Bank reserves must decrease by the same
+                // amount (cash withdrawal) to keep M0 conserved (Directive 1).
+                // The consumer loan is a bank asset tracked via
+                // consumer_loans_outstanding to maintain A=L+E.
+                if let Some(ref mut bs) = bank.balance_sheet {
+                    bs.reserves_at_central_bank -= loan_amount;
+                    bs.consumer_loans_outstanding += loan_amount;
+                }
                 issued_total += loan_amount;
             }
             if issued_total >= max_consumer_credit {
@@ -3268,13 +3301,20 @@ pub fn process_banking_turn(
                     issued_turn: current_turn,
                     original_principal: loan_amount,
                 });
+                // Phase 94: Debit bank reserves and track consumer loan asset
+                // (double-entry, see rural above).
+                if let Some(ref mut bs) = bank.balance_sheet {
+                    bs.reserves_at_central_bank -= loan_amount;
+                    bs.consumer_loans_outstanding += loan_amount;
+                }
                 issued_total += loan_amount;
             }
         }
         result.total_new_credit += issued_total;
     }
 
-    // Step 14 (Phase 35): QE for Deflation — if CPI inflation < 0%, the
+    
+// Step 14 (Phase 35): QE for Deflation â€” if CPI inflation < 0%, the
     // Central Bank purchases sovereign bonds from DSPW banks on the secondary
     // market, creating fresh M0/reserves. Capped at 5% of GDP per turn.
     let cpi_inflation = country.macro_indicators.inflation; // Already in percent
@@ -3311,7 +3351,8 @@ pub fn process_banking_turn(
         }
     }
 
-    // Step 15 (Phase 35/36/38): Bank Labor Demand — banks set FTE demand AND wages
+    
+// Step 15 (Phase 35/36/38): Bank Labor Demand â€” banks set FTE demand AND wages
     // based on their loan portfolio and activity scale, rather than staying at zero.
     // Phase 36: Also set offered_wage_per_fte so the labor market can actually
     // hire bank employees. Previously, only target_fte_demand was set, but
@@ -3400,7 +3441,7 @@ pub fn process_banking_turn(
     result
 }
 
-/// Phase 38: DSPW Auction Settlement — primary dealer banks pull-purchase
+/// Phase 38: DSPW Auction Settlement â€” primary dealer banks pull-purchase
 /// unpurchased securities from the debt market's auction inventory.
 ///
 /// This function runs AFTER `issue_treasury_securities` in the turn loop.
@@ -3470,7 +3511,7 @@ pub fn dspw_auction_settlement(
             if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
                 // Debit bank reserves.
                 bs.reserves_at_central_bank -= purchase_price;
-                // Phase 94: No reserve clamping — negative reserves
+                // Phase 94: No reserve clamping â€” negative reserves
                 // represent CB Lombard borrowing. Clamping breaks A=L+E
                 // (securities credited by full amount but reserves debited
                 // by less) and causes M0 FiatCreation.
@@ -3481,7 +3522,7 @@ pub fn dspw_auction_settlement(
             // Credit treasury with the purchase price.
             country.budget.liquid_reserves += purchase_price;
             // Phase M0-Audit: This is M0-neutral (bank reserves decreased,
-            // treasury increased — both in walk_global_fiat). No
+            // treasury increased â€” both in walk_global_fiat). No
             // external_financing_injected increment needed.
             // FUTURE: When foreign bond buyers are implemented, their
             // purchases would bring money from outside the tracked M0
@@ -3500,7 +3541,7 @@ pub fn dspw_auction_settlement(
             sec.is_auction_inventory = false;
         }
         // If no buyer found, the security remains as auction inventory.
-        // The treasury doesn't get cash — the deficit isn't funded this turn.
+        // The treasury doesn't get cash â€” the deficit isn't funded this turn.
     }
 
     country.debt_market.recalculate();
@@ -3957,3 +3998,4 @@ mod tests {
         }
     }
 }
+

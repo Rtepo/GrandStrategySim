@@ -1,4 +1,4 @@
-//! Transfer Settler (Phase 16A — Plugging the Black Holes).
+﻿//! Transfer Settler (Phase 16A — Plugging the Black Holes).
 //!
 //! Canonical double-entry settlement for all fiat transfers between entities.
 //! Every deduction from `brokerage_account.cash` that sends money to a non-bank
