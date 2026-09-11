@@ -395,16 +395,31 @@ impl InterbankMarket {
     /// # Arguments
     /// * `banks` - Mutable reference to all banks in the economy
     /// * `central_bank` - Reference to Central Bank for reserve ratio and rates
+    /// * `sobk` - Mutable reference to the SOBK voluntary liquidity scheme.
+    ///   Member banks still in deficit after the standard interbank clearing
+    ///   draw preferential emergency loans here, before resorting to expensive
+    ///   CB Lombard; member banks with surplus repay their outstanding SOBK
+    ///   loans.
     /// * `current_turn` - Current turn number
     ///
     /// # Rules
     /// * XIBOR is bounded by CB Deposit Rate (floor) and CB Lombard Rate (ceiling)
     /// * Banks prefer interbank market over expensive CB Lombard facility
     /// * Market stress widens spreads and increases XIBOR
+    /// * SOBK emergency lending is double-entry: the SOBK pool decreases and
+    ///   the borrowing bank's `reserves_at_central_bank` increases by the exact
+    ///   loan amount (Directive 1). The SOBK claim (`outstanding_loans`) is not
+    ///   fiat — the fiat now sits in the borrowing bank's reserves, which are
+    ///   counted in the M0 walk.
+    /// * SOBK repayment is double-entry: the repaying bank's
+    ///   `reserves_at_central_bank` decreases and the SOBK pool increases by
+    ///   the exact repayment amount (Directive 1). Without the bank-side debit,
+    ///   M0 would be created (pool up, reserves unchanged).
     pub fn clear_market(
         &mut self,
         banks: &mut Vec<&mut crate::entities::Company>,
         central_bank: &CentralBank,
+        sobk: &mut SobkScheme,
         current_turn: u32,
     ) {
         let cb_reserve_ratio = central_bank.reserve_requirement_ratio;
@@ -498,6 +513,47 @@ impl InterbankMarket {
                         *bs.interbank_loans_taken
                             .entry(lender_id.clone())
                             .or_insert(0.0) += per_lender_amount;
+                    }
+                }
+            }
+        }
+
+        // ── SOBK Emergency Liquidity Pass (M0 Step 8 / F1-F4 fix) ──
+        // After standard interbank clearing, member banks still in deficit
+        // draw preferential emergency loans from the SOBK pool before
+        // resorting to expensive CB Lombard. Member banks with surplus and
+        // outstanding SOBK loans repay them.
+        //
+        // Double-Entry (Directive 1):
+        // * Emergency loan (F3 fix): SOBK pool ↓, borrowing bank
+        //   `reserves_at_central_bank` ↑ by the exact loan amount. The
+        //   `outstanding_loans` tracker is a claim, not fiat — the fiat now
+        //   sits in the borrowing bank's reserves (counted in the M0 walk).
+        // * Repayment (F4 fix): repaying bank `reserves_at_central_bank` ↓,
+        //   SOBK pool ↑ by the exact repayment amount. Without the bank-side
+        //   debit, M0 would be created (pool up, reserves unchanged).
+        let current_xibor = self.xibor;
+        for bank in banks.iter_mut() {
+            if let (Some(_), Some(ref mut bs)) = (&bank.bank_type, &mut bank.balance_sheet) {
+                let position = bs.reserve_position(cb_reserve_ratio);
+                let is_member = sobk.members.contains(&bank.id);
+                if !is_member {
+                    continue;
+                }
+                if position < 0.0 {
+                    // Member bank still in deficit — draw SOBK emergency loan.
+                    let needed = -position;
+                    let loan = sobk.provide_emergency_loan(&bank.id, needed, current_xibor);
+                    if loan > 0.0 {
+                        bs.reserves_at_central_bank += loan;
+                    }
+                } else if position > 0.0 {
+                    // Member bank with surplus — repay outstanding SOBK loans.
+                    let outstanding = sobk.outstanding_loans.get(&bank.id).copied().unwrap_or(0.0);
+                    if outstanding > 0.0 {
+                        let repay = position.min(outstanding);
+                        sobk.repay_loan(&bank.id, repay);
+                        bs.reserves_at_central_bank -= repay;
                     }
                 }
             }
@@ -1364,7 +1420,19 @@ impl SobkScheme {
             // Banks contribute excess reserves (above requirement)
             let excess = bs.reserve_position(0.10); // Using 10% reserve ratio
             if excess > 0.0 {
-                let contribution = excess * 0.5; // Contribute 50% of excess
+                let mut contribution = excess * 0.5; // Contribute 50% of excess
+
+                // F6 fix: Cap contribution so tier_1 capital never breaches the
+                // regulatory minimum (Basel III: 6% of risk-weighted assets).
+                // Without this cap, a large contribution can push a bank below
+                // the KNF floor and trigger unnecessary resolution.
+                let rwa: f64 = bs.loans_issued.iter().map(|l| l.outstanding_balance).sum();
+                let regulatory_minimum = rwa * 0.06;
+                let max_safe = (bs.tier_1_capital - regulatory_minimum).max(0.0);
+                contribution = contribution.min(max_safe);
+                if contribution <= 0.0 {
+                    return;
+                }
 
                 // Phase 94: Double-entry — SOBK contribution is an expense.
                 // Asset decreases (reserves out), Equity decreases (expense recognized).
@@ -1483,6 +1551,30 @@ impl SobkScheme {
                 self.outstanding_loans.remove(bank_id);
             }
         }
+    }
+
+    /// Repays Central Bank emergency loan from pool surplus (F7 fix — complete
+    /// lifecycle for `cb_emergency_loan`). Without this method the CB liquidity
+    /// line is an immortal liability, violating Directive 4.
+    ///
+    /// # Arguments
+    /// * `central_bank` - Reference to Central Bank
+    /// * `amount` - Repayment amount
+    ///
+    /// # Double-Entry Flow
+    /// * SOBK: pool decreases (asset debit), `cb_emergency_loan` decreases
+    ///   (liability debit).
+    /// * Central Bank: `liquidity_injected` decreases (M0 contraction — the
+    ///   CB loan is extinguished, fiat returns to the CB).
+    /// * Money mass contracts by the exact repayment amount.
+    pub fn repay_cb_liquidity_line(&mut self, central_bank: &mut CentralBank, amount: f64) {
+        let repayment = amount.min(self.cb_emergency_loan);
+        if repayment <= 0.0 {
+            return;
+        }
+        self.cb_emergency_loan -= repayment;
+        self.pool -= repayment;
+        central_bank.liquidity_injected = (central_bank.liquidity_injected - repayment).max(0.0);
     }
 }
 
@@ -2351,7 +2443,7 @@ pub fn process_banking_turn(
         .collect();
     country
         .interbank_market
-        .clear_market(&mut bank_refs, &cb_clone, current_turn);
+        .clear_market(&mut bank_refs, &cb_clone, &mut country.sobk_scheme, current_turn);
     result.xibor = country.interbank_market.xibor;
 
     // Step 4: Deposit Facility — banks with surplus reserves park them at CB and earn deposit rate.
@@ -2804,6 +2896,21 @@ pub fn process_banking_turn(
         if bank.bank_type.is_some() && bank.balance_sheet.is_some() {
             country.sobk_scheme.accept_contribution(bank);
         }
+    }
+
+    // SOBK repays CB emergency loan from pool surplus (F7 fix — complete
+    // lifecycle for cb_emergency_loan). The pool must retain enough to honor
+    // outstanding loan recalls, so only surplus above that buffer is used.
+    // This mirrors the BFG repayment pattern (Step 8 above) and contracts M0
+    // by extinguishing the CB loan.
+    let sobk_outstanding: f64 = country.sobk_scheme.outstanding_loans.values().sum();
+    let sobk_pool = country.sobk_scheme.pool;
+    let sobk_cb_debt = country.sobk_scheme.cb_emergency_loan;
+    if sobk_cb_debt > 0.0 && sobk_pool > sobk_outstanding {
+        let repayment = (sobk_pool - sobk_outstanding).min(sobk_cb_debt);
+        country
+            .sobk_scheme
+            .repay_cb_liquidity_line(&mut country.central_bank, repayment);
     }
 
     // Step 12 (Phase 35 / Phase 77): B2B Micro-Loans — banks issue small
@@ -3786,8 +3893,9 @@ mod tests {
         central_bank.interest_rates.deposit_rate = 0.02;
         central_bank.interest_rates.lombard_rate = 0.05;
 
+        let mut sobk = SobkScheme::default();
         let mut banks = vec![&mut bank1, &mut bank2];
-        market.clear_market(&mut banks, &central_bank, 1);
+        market.clear_market(&mut banks, &central_bank, &mut sobk, 1);
 
         // Bank 1 has 200k reserves, needs 100k (surplus: 100k)
         // Bank 2 has 150k reserves, needs 150k (deficit: 0k)

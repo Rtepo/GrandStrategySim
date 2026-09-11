@@ -11,7 +11,7 @@ use sim_engine::registries::enums::Sector;
 use sim_engine::state::banking::{calculate_credit_score, issue_loan};
 use sim_engine::state::banking::{InterestType, LoanType};
 use sim_engine::state::{
-    BankBalanceSheet, BankType, CentralBank, InterbankMarket, Loan, LoanStatus,
+    BankBalanceSheet, BankType, CentralBank, InterbankMarket, Loan, LoanStatus, SobkScheme,
 };
 
 #[test]
@@ -161,8 +161,9 @@ fn test_interbank_market_clearing_with_multiple_banks() {
     let mut market = InterbankMarket::default();
 
     // Clear the market
+    let mut sobk = SobkScheme::default();
     let mut banks = vec![&mut bank1, &mut bank2, &mut bank3];
-    market.clear_market(&mut banks, &central_bank, 1);
+    market.clear_market(&mut banks, &central_bank, &mut sobk, 1);
 
     // Verify market state
     // Bank 1: 300k reserves, needs 100k (surplus: 200k)
