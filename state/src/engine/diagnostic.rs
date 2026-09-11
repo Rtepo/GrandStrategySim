@@ -1259,16 +1259,43 @@ impl CapturingProbe {
                     } else {
                         ViolationKind::FiatDestruction
                     };
+                    // Phase 94: Print component breakdown to identify which M0
+                    // reservoir changed, helping localize the accounting leak.
+                    let prev = self.prev_fiat.as_ref().unwrap();
+                    let d_treasury = current_fiat.treasury_cash - prev.treasury_cash;
+                    let d_citizen = current_fiat.citizen_cash - prev.citizen_cash;
+                    let d_bank = current_fiat.bank_reserves - prev.bank_reserves;
+                    let d_offshore = current_fiat.offshore_capital - prev.offshore_capital;
+                    let d_foreign = current_fiat.foreign_sector_balance - prev.foreign_sector_balance;
+                    let d_charity = current_fiat.see_charity_pool - prev.see_charity_pool;
+                    let d_ministry = current_fiat.ministry_cash - prev.ministry_cash;
+                    let d_corp = current_fiat.corporate_cash - prev.corporate_cash;
+                    let d_debit = current_fiat.debit_cash - prev.debit_cash;
+                    let d_arb = current_fiat.arbitration_escrow - prev.arbitration_escrow;
+                    let d_blackops = current_fiat.black_ops_budget - prev.black_ops_budget;
+                    let d_intel = current_fiat.intelligence_budget - prev.intelligence_budget;
                     violations.push(ConservationViolation {
                         kind,
                         commodity: None,
                         magnitude: (delta - cb_delta).abs(),
                         checkpoint: checkpoint_loc.clone(),
                         explanation: format!(
-                            "M0 fiat changed by {} but CB injection only changed by {} (diff={})",
+                            "M0 fiat changed by {} but CB injection only changed by {} (diff={}) | Δtreasury={:.0} Δcitizen={:.0} Δbank_res={:.0} Δoffshore={:.0} Δforeign={:.0} Δcharity={:.0} Δministry={:.0} Δcorp={:.0} Δdebit={:.0} Δarb={:.0} Δblackops={:.0} Δintel={:.0}",
                             delta,
                             cb_delta,
-                            delta - cb_delta
+                            delta - cb_delta,
+                            d_treasury,
+                            d_citizen,
+                            d_bank,
+                            d_offshore,
+                            d_foreign,
+                            d_charity,
+                            d_ministry,
+                            d_corp,
+                            d_debit,
+                            d_arb,
+                            d_blackops,
+                            d_intel
                         ),
                     });
                 }

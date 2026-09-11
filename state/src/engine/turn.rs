@@ -3896,7 +3896,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
-        // Phase 44: Calculate imputed GDP from in-kind deductions.
+
         // Value each deducted commodity at VWAP or base_price and add to GDP.
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
@@ -4649,6 +4649,54 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
                 }
             }
         });
+        // Phase 94: Trace M0 after process_companies to isolate turn_end leak.
+        #[cfg(feature = "diagnostic")]
+        {
+            let mut treasury = 0.0_f64;
+            let mut citizen = 0.0_f64;
+            let mut bank_res = 0.0_f64;
+            let mut corp_cash = 0.0_f64;
+            for task in &tasks {
+                treasury += task.ctx.country.budget.liquid_reserves;
+                for region in &task.ctx.country.regions {
+                    if let Some(ref gov) = region.governance {
+                        treasury += gov.budget.liquid_reserves;
+                    }
+                }
+                for megaregion in &task.ctx.country.megaregions {
+                    if let Some(ref gov) = megaregion.governance {
+                        treasury += gov.budget.liquid_reserves;
+                    }
+                }
+                for region in &task.ctx.country.regions {
+                    for demo in region.class_demographics.rural_classes.values() {
+                        citizen += demo.savings;
+                    }
+                    for demo in region.class_demographics.urban_classes.values() {
+                        citizen += demo.savings;
+                    }
+                }
+                bank_res += task.ctx.country.bfg_fund.reserves;
+                bank_res += task.ctx.country.sobk_scheme.pool;
+                for company in &task.companies {
+                    if company.sector == crate::registries::enums::Sector::Banking {
+                        if let Some(ref bs) = company.balance_sheet {
+                            bank_res += bs.reserves_at_central_bank;
+                            bank_res += bs.cb_deposit_facility_balance;
+                        }
+                    } else if company.primary_bank_id.is_none() {
+                        corp_cash += company.available_cash
+                            + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0)
+                            + company.debit_cash;
+                    }
+                }
+            }
+            eprintln!(
+                "POST_COMPANIES_M0: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp_cash={:.2} offshore={:.2} foreign={:.2} charity={:.2} cb_inj={:.2}",
+                turn, treasury, citizen, bank_res, corp_cash, market.offshore_capital, market.foreign_sector_balance, market.apostolic_see_ledger.global_charity_pool, tasks.iter().map(|t| t.ctx.country.central_bank.liquidity_injected).sum::<f64>()
+            );
+        }
+
         // Phase 4 fix (C6): Process voluntary project abandonment.
         // Companies queue AbandonProject actions via pply_action;
         // the actual abandonment is processed here where buildings are
@@ -7236,6 +7284,54 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
         }
 
         // ── DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ──
+        // Phase 94: Trace M0 just before turn_end checkpoint.
+        #[cfg(feature = "diagnostic")]
+        {
+            let mut treasury = 0.0_f64;
+            let mut citizen = 0.0_f64;
+            let mut bank_res = 0.0_f64;
+            let mut corp_cash = 0.0_f64;
+            for task in &tasks {
+                treasury += task.ctx.country.budget.liquid_reserves;
+                for region in &task.ctx.country.regions {
+                    if let Some(ref gov) = region.governance {
+                        treasury += gov.budget.liquid_reserves;
+                    }
+                }
+                for megaregion in &task.ctx.country.megaregions {
+                    if let Some(ref gov) = megaregion.governance {
+                        treasury += gov.budget.liquid_reserves;
+                    }
+                }
+                for region in &task.ctx.country.regions {
+                    for demo in region.class_demographics.rural_classes.values() {
+                        citizen += demo.savings;
+                    }
+                    for demo in region.class_demographics.urban_classes.values() {
+                        citizen += demo.savings;
+                    }
+                }
+                bank_res += task.ctx.country.bfg_fund.reserves;
+                bank_res += task.ctx.country.sobk_scheme.pool;
+                for company in &task.companies {
+                    if company.sector == crate::registries::enums::Sector::Banking {
+                        if let Some(ref bs) = company.balance_sheet {
+                            bank_res += bs.reserves_at_central_bank;
+                            bank_res += bs.cb_deposit_facility_balance;
+                        }
+                    } else if company.primary_bank_id.is_none() {
+                        corp_cash += company.available_cash
+                            + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0)
+                            + company.debit_cash;
+                    }
+                }
+            }
+            eprintln!(
+                "PRE_TURN_END_M0: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp_cash={:.2} offshore={:.2} foreign={:.2} charity={:.2} cb_inj={:.2}",
+                turn, treasury, citizen, bank_res, corp_cash, market.offshore_capital, market.foreign_sector_balance, market.apostolic_see_ledger.global_charity_pool, tasks.iter().map(|t| t.ctx.country.central_bank.liquidity_injected).sum::<f64>()
+            );
+        }
+
 probe.checkpoint("turn_end", 4, turn, &market, &tasks);
 
         // Collect entities back from tasks into ctx.entities format.
