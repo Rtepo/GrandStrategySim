@@ -46,6 +46,7 @@ impl IdeologyCoordinates {
     }
 
     /// Element-wise addition (for combining drift vectors).
+    #[allow(clippy::should_implement_trait)]
     pub fn add(self, other: IdeologyCoordinates) -> IdeologyCoordinates {
         IdeologyCoordinates {
             economy: self.economy + other.economy,
@@ -55,6 +56,7 @@ impl IdeologyCoordinates {
     }
 
     /// Element-wise subtraction.
+    #[allow(clippy::should_implement_trait)]
     pub fn sub(self, other: IdeologyCoordinates) -> IdeologyCoordinates {
         IdeologyCoordinates {
             economy: self.economy - other.economy,
@@ -104,7 +106,7 @@ pub fn lerp_clamped_nonneg(lo: f64, hi: f64, t: f64) -> f64 {
 /// # Example
 ///   let bands = [(-0.6, "Autarky"), (-0.2, "Protectionism"), (0.4, "Free Trade")];
 ///   band_select(-0.5, &bands) -> "Protectionism"
-pub fn band_select<'a, T: Copy>(t: f64, bands: &'a [(f64, T)]) -> T {
+pub fn band_select<T: Copy>(t: f64, bands: &[(f64, T)]) -> T {
     assert!(
         !bands.is_empty(),
         "band_select called with empty bands"
@@ -917,7 +919,6 @@ pub fn classify(coords: IdeologyCoordinates, year: u32) -> (&'static str, f64) {
         .filter(|c| year >= c.required_year)
         .map(|c| (c.label, coords.distance_to(c.coordinates)))
         .min_by(|(_, d1), (_, d2)| d1.partial_cmp(d2).unwrap_or(std::cmp::Ordering::Equal))
-        .map(|(label, dist)| (label, dist))
         .unwrap_or(("Centrist", 0.0))
 }
 
