@@ -216,10 +216,14 @@ pub fn process_companies(
                             term_turns: lr.loan.term_turns,
                             status: lr.loan.status.clone(),
                         });
-                    // Double-entry: borrower receives principal as cash
-                    companies[i].available_cash += lr.principal_amount;
+                    // Double-entry: borrower receives principal as cash.
+                    // Phase 94: Only credit brokerage_account.cash (if it exists)
+                    // OR available_cash (if not). Crediting both creates M0
+                    // duplication (the walk counts both for unbanked companies).
                     if let Some(ref mut ba) = companies[i].brokerage_account {
                         ba.cash += lr.principal_amount;
+                    } else {
+                        companies[i].available_cash += lr.principal_amount;
                     }
                     loan_issued = true;
                     break;
