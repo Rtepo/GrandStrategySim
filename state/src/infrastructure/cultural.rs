@@ -238,15 +238,24 @@ pub fn collect_cultural_donations(
             }
             CulturalBuildingType::Monastery => {
                 // Endowment income from owned company shares (dividends)
+                // Phase 94: Use debit_company_by_id for bank sync to avoid
+                // M0 leak when banked share-owning companies pay dividends
+                // to unbanked building-owning companies.
                 let shares = building.owned_company_shares.clone();
                 for (company_id, share) in &shares {
-                    if let Some(company) = companies.iter_mut().find(|c| &c.id == company_id) {
-                        // Dividend = share of available cash
-                        let dividend = company.available_cash * share * 0.1;
+                    if let Some(company) = companies.iter().find(|c| &c.id == company_id) {
+                        // Dividend = share of operational cash (available + brokerage)
+                        let dividend = company.operational_cash() * share * 0.1;
                         if dividend > 0.0 {
-                            company.available_cash -= dividend;
-                            building.available_cash += dividend;
-                            building.donations_collected_this_turn += dividend;
+                            let actual = crate::economy::transfer_settler::debit_company_by_id(
+                                companies,
+                                company_id,
+                                dividend,
+                            );
+                            if actual > 0.0 {
+                                building.available_cash += actual;
+                                building.donations_collected_this_turn += actual;
+                            }
                         }
                     }
                 }
@@ -286,16 +295,32 @@ pub fn collect_cultural_donations(
         }
 
         // Corporate philanthropy
-        for company in companies.iter_mut() {
-            if company.available_cash > config.corporate_wealth_threshold
+        // Phase 94: Collect donations first, then apply with bank sync to
+        // avoid M0 leak. When a banked company donates, available_cash is
+        // not in M0 but building.available_cash IS in M0 (citizen_cash).
+        // Without bank sync, the transfer to the unbanked building owner
+        // creates M0 from nothing.
+        let mut corp_donations: Vec<(String, f64)> = Vec::new();
+        for company in companies.iter() {
+            let liquid = company.operational_cash();
+            if liquid > config.corporate_wealth_threshold
                 && company.region_id == building.region_id
             {
-                let donation = company.available_cash * config.corporate_donation_rate;
+                let donation = liquid * config.corporate_donation_rate;
                 if donation > 0.0 {
-                    company.available_cash -= donation;
-                    building.available_cash += donation;
-                    building.donations_collected_this_turn += donation;
+                    corp_donations.push((company.id.clone(), donation));
                 }
+            }
+        }
+        for (company_id, donation) in &corp_donations {
+            let actual = crate::economy::transfer_settler::debit_company_by_id(
+                companies,
+                company_id,
+                *donation,
+            );
+            if actual > 0.0 {
+                building.available_cash += actual;
+                building.donations_collected_this_turn += actual;
             }
         }
     }

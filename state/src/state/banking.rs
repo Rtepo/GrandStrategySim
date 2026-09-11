@@ -3087,7 +3087,22 @@ pub fn process_banking_turn(
                 if let Some(ba) = &mut companies[borrower_idx].brokerage_account {
                     ba.cash += lr.principal_amount;
                 } else {
+                    // Phase 94: Credit available_cash. For unbanked companies
+                    // (no primary_bank_id), available_cash is M0, so we must
+                    // decrease bank reserves to keep M0 neutral. For banked
+                    // companies without brokerage_account, available_cash is
+                    // M1 (backed by bank reserves), so no reserve adjustment
+                    // is needed.
                     companies[borrower_idx].available_cash += lr.principal_amount;
+                    if companies[borrower_idx].primary_bank_id.is_none() {
+                        // Unbanked borrower: reverse the deposit creation from
+                        // issue_loan and decrease reserves (bank "withdraws"
+                        // cash for the unbanked borrower).
+                        if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
+                            bs.deposits -= lr.principal_amount;
+                            bs.reserves_at_central_bank -= lr.principal_amount;
+                        }
+                    }
                 }
                 lent_total += lr.principal_amount;
                 if lent_total >= lending_cap {
