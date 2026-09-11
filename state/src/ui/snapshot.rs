@@ -9,6 +9,7 @@ use crate::economy::market::market_history::MarketHistory;
 use crate::economy::market::GlobalMarket;
 use crate::entities::legal_form::LegalForm;
 use crate::entities::Company;
+use crate::politics::ideology::{classify, IdeologyCoordinates};
 use crate::registries::enums::Commodity;
 use crate::registries::enums::Sector;
 use crate::society::geography::RuralClass;
@@ -17,6 +18,24 @@ use crate::state::macro_data::{
 };
 use crate::state::{Country, GameState};
 use std::collections::BTreeMap;
+
+/// Ideology Step 6: Derive the current simulation year from a `Country` for
+/// `classify()` zeitgeist gating.
+///
+/// `Country` does not carry the calendar (that lives on `GameState`), so we
+/// extract the year from the last telemetry sample. If no telemetry has been
+/// recorded yet (e.g., freshly generated save), we return `u32::MAX` so that
+/// ALL ideology centroids are eligible for classification — this is the
+/// safest display default (no anachronistic filtering).
+fn country_year(country: &Country) -> u32 {
+    country
+        .macro_indicators
+        .telemetry_history
+        .samples
+        .last()
+        .map(|s| s.year)
+        .unwrap_or(u32::MAX)
+}
 
 /// Human-readable display name for a `Sector` enum variant.
 fn sector_display_name(sector: Sector) -> String {
@@ -1673,6 +1692,34 @@ pub fn build_foreign_country_rows(
 // PHASE 32: GOVERNMENT & PARLIAMENT SNAPSHOTS
 // ============================================================================
 
+/// Ideology Step 6: UI projection of `IdeologyCoordinates` for 3-axis radar
+/// chart visualization (Directive 17 — full-stack accountability).
+///
+/// This is a plain DTO with no behavioral methods. It is `Option` on every
+/// consumer struct so the backend can strip it for role-gated fog-of-war
+/// (Directive 11 — the player is not omniscient; classified stats are
+/// obfuscated for non-VIP entities).
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct IdeologyCoordinatesDto {
+    /// -1.0 = total collectivization, +1.0 = laissez-faire capitalism
+    pub economy: f64,
+    /// -1.0 = totalitarian, +1.0 = anarchic liberty
+    pub liberty: f64,
+    /// -1.0 = revolutionary futurism, +1.0 = entrenched traditionalism
+    pub tradition: f64,
+}
+
+impl From<IdeologyCoordinates> for IdeologyCoordinatesDto {
+    fn from(c: IdeologyCoordinates) -> Self {
+        Self {
+            economy: c.economy,
+            liberty: c.liberty,
+            tradition: c.tradition,
+        }
+    }
+}
+
 /// Government tab data.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
@@ -1682,6 +1729,10 @@ pub struct GovernmentSnapshot {
     pub pm_name: String,
     pub pm_party: String,
     pub pm_ideology: String,
+    /// Ideology Step 6: Ruling party's ideological coordinates for 3-axis
+    /// radar chart (Directive 17). `Option` for fog-of-war stripping (Rule 11).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coordinates: Option<IdeologyCoordinatesDto>,
     pub cabinet: Vec<MinisterRow>,
     pub state_of_emergency: Option<EmergencySnapshot>,
     pub political_capital: f64,
@@ -1712,6 +1763,9 @@ pub struct MinisterRow {
     pub minister_name: String,
     pub party: String,
     pub ideology: String,
+    /// Ideology Step 6: Minister's party ideological coordinates (Directive 17).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coordinates: Option<IdeologyCoordinatesDto>,
     pub allocated_cash: f64,
     pub spent_cash: f64,
     /// Phase 35: Current cash pocket available for spending.
@@ -1765,6 +1819,9 @@ pub struct VipRow {
     pub party: String,
     pub role: String,
     pub ideology: String,
+    /// Ideology Step 6: VIP ideological coordinates for radar chart (Directive 17).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coordinates: Option<IdeologyCoordinatesDto>,
     pub age: u32,
 }
 
@@ -1786,6 +1843,11 @@ pub struct ClubRow {
     pub name: String,
     pub seats: u32,
     pub ideology: String,
+    /// Ideology Step 6: Club/party ideological coordinates for radar chart
+    /// (Directive 17). Replaces the planned `PartyRow.coordinates` — `ClubRow`
+    /// is the party representation in the UI snapshot.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coordinates: Option<IdeologyCoordinatesDto>,
     pub is_splinter: bool,
     pub discipline: f64,
     /// Phase 54: Chairperson VIP ID (if assigned).
@@ -3297,8 +3359,8 @@ pub fn build_country_snapshot(
         population: country.budget.population,
         sovereign_default_turns: country.sovereign_default_turns_remaining,
         deltas,
-        government: build_government_snapshot(country),
-        parliament: build_parliament_snapshot(country),
+        government: build_government_snapshot(country, country_year(country)),
+        parliament: build_parliament_snapshot(country, country_year(country)),
         regions,
         finance: build_finance_snapshot(country, companies),
         vips_page: build_vip_page(country, companies, view),
@@ -4599,7 +4661,7 @@ fn build_ministry_expenditure_breakdown(country: &Country) -> Vec<MinistryExpend
 }
 
 /// Phase 32: Build the Government tab snapshot.
-fn build_government_snapshot(country: &Country) -> GovernmentSnapshot {
+fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot {
     let politics = &country.politics;
 
     // Head of State.
@@ -4610,9 +4672,8 @@ fn build_government_snapshot(country: &Country) -> GovernmentSnapshot {
     };
 
     // PM from ruling party leader.
-    let pm_name = politics
-        .active_parties
-        .get(&politics.ruling_party)
+    let ruling_party = politics.active_parties.get(&politics.ruling_party);
+    let pm_name = ruling_party
         .map(|p| {
             if !p.leader.name.is_empty() {
                 p.leader.name.clone()
@@ -4622,11 +4683,15 @@ fn build_government_snapshot(country: &Country) -> GovernmentSnapshot {
             }
         })
         .unwrap_or_else(|| "(vacant)".to_string());
-    let pm_ideology = politics
-        .active_parties
-        .get(&politics.ruling_party)
-        .map(|p| p.ideology.clone())
+
+    // Ideology Step 6: Derive PM ideology label from `classify()` using the
+    // ruling party's authoritative coordinates (not the stored string).
+    let pm_ideology = ruling_party
+        .map(|p| classify(p.coordinates, year).0.to_string())
         .unwrap_or_default();
+
+    // Ideology Step 6: Ruling party coordinates for radar chart (Directive 17).
+    let pm_coordinates = ruling_party.map(|p| IdeologyCoordinatesDto::from(p.coordinates));
 
     // Cabinet from ministry_config.
     let cabinet: Vec<MinisterRow> = if let Some(ref config) = politics.ministry_config {
@@ -4634,11 +4699,15 @@ fn build_government_snapshot(country: &Country) -> GovernmentSnapshot {
             .ministries
             .iter()
             .map(|m| {
-                let ideology = politics
-                    .active_parties
-                    .get(&m.minister_party)
-                    .map(|p| p.ideology.clone())
+                let minister_party = politics.active_parties.get(&m.minister_party);
+                // Ideology Step 6: Derive ideology label from `classify()` using
+                // the minister's party coordinates (not the stored string).
+                let ideology = minister_party
+                    .map(|p| classify(p.coordinates, year).0.to_string())
                     .unwrap_or_default();
+                // Ideology Step 6: Minister party coordinates for radar chart.
+                let minister_coords = minister_party
+                    .map(|p| IdeologyCoordinatesDto::from(p.coordinates));
                 MinisterRow {
                     // Phase 34: Strip "Ministry of " prefix for cleaner UI display.
                     ministry_name: m
@@ -4666,6 +4735,7 @@ fn build_government_snapshot(country: &Country) -> GovernmentSnapshot {
                     },
                     party: m.minister_party.clone(),
                     ideology,
+                    coordinates: minister_coords,
                     allocated_cash: m.allocated_cash,
                     spent_cash: m.spent_cash,
                     ministry_cash: m.ministry_cash,
@@ -4696,11 +4766,12 @@ fn build_government_snapshot(country: &Country) -> GovernmentSnapshot {
         pm_name,
         pm_party: politics.ruling_party.clone(),
         pm_ideology,
+        coordinates: pm_coordinates,
         cabinet,
         state_of_emergency,
         political_capital: politics.political_capital,
         // Phase 41: VIPs moved from Parliament to Government tab.
-        vips: build_vip_rows(country),
+        vips: build_vip_rows(country, year),
         // Phase 54: Government form + royal dynasty for monarchy sub-tab.
         government_form: format!("{:?}", politics.government_form),
         royal_dynasty: build_royal_dynasty_snapshot(country),
@@ -4719,16 +4790,23 @@ fn build_government_snapshot(country: &Country) -> GovernmentSnapshot {
 }
 
 /// Phase 41: Build VIP rows from the parliament struct for the Government tab.
-fn build_vip_rows(country: &Country) -> Vec<VipRow> {
+fn build_vip_rows(country: &Country, year: u32) -> Vec<VipRow> {
     if let Some(ref parl) = country.politics.parliament_struct {
         parl.vips
             .iter()
-            .map(|v| VipRow {
-                full_name: v.full_name.clone(),
-                party: v.party.clone(),
-                role: format!("{:?}", v.role),
-                ideology: v.ideology.clone(),
-                age: v.age,
+            .map(|v| {
+                // Ideology Step 6: Derive ideology label from `classify()` using
+                // the VIP's authoritative coordinates (not the stored string).
+                let ideology = classify(v.coordinates, year).0.to_string();
+                VipRow {
+                    full_name: v.full_name.clone(),
+                    party: v.party.clone(),
+                    role: format!("{:?}", v.role),
+                    ideology,
+                    // Ideology Step 6: VIP coordinates for radar chart (Directive 17).
+                    coordinates: Some(IdeologyCoordinatesDto::from(v.coordinates)),
+                    age: v.age,
+                }
             })
             .collect()
     } else {
@@ -4737,7 +4815,7 @@ fn build_vip_rows(country: &Country) -> Vec<VipRow> {
 }
 
 /// Phase 32: Build the Parliament tab snapshot.
-fn build_parliament_snapshot(country: &Country) -> ParliamentSnapshot {
+fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot {
     let politics = &country.politics;
 
     if let Some(ref parl) = politics.parliament_struct {
@@ -4758,14 +4836,21 @@ fn build_parliament_snapshot(country: &Country) -> ParliamentSnapshot {
         let clubs: Vec<ClubRow> = parl
             .clubs
             .iter()
-            .map(|c| ClubRow {
-                name: c.name.clone(),
-                seats: c.seats,
-                ideology: c.ideology.clone(),
-                is_splinter: c.is_splinter,
-                discipline: c.discipline,
-                chairperson_id: c.chairperson_id.clone(),
-                chairperson_name: c.chairperson_name.clone(),
+            .map(|c| {
+                // Ideology Step 6: Derive ideology label from `classify()` using
+                // the club's authoritative coordinates (not the stored string).
+                let ideology = classify(c.coordinates, year).0.to_string();
+                ClubRow {
+                    name: c.name.clone(),
+                    seats: c.seats,
+                    ideology,
+                    // Ideology Step 6: Club/party coordinates for radar chart (Directive 17).
+                    coordinates: Some(IdeologyCoordinatesDto::from(c.coordinates)),
+                    is_splinter: c.is_splinter,
+                    discipline: c.discipline,
+                    chairperson_id: c.chairperson_id.clone(),
+                    chairperson_name: c.chairperson_name.clone(),
+                }
             })
             .collect();
 
