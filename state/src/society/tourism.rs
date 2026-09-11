@@ -569,13 +569,19 @@ pub fn compute_tourism_demand(
 
     // =====================================================================
     // PASS 1C: Debit domestic savings pro-rata by savings share (Rule 7).
+    // Phase 94: Track actual debited amount — per-class min() capping may
+    // reduce the total below capped_domestic_spend. The destination domestic_spend
+    // must be scaled to match the ACTUAL debit, otherwise settle_tourism_revenue
+    // credits companies more than citizens paid, creating M0 (Directive 1).
     // =====================================================================
+    let mut actual_domestic_debited = 0.0_f64;
     if capped_domestic_spend > 0.0 && total_available_savings > 0.0 {
         for region in &mut country.regions {
             for class in region.class_demographics.rural_classes.values_mut() {
                 let savings_share = class.savings / total_available_savings;
                 let debit = (capped_domestic_spend * savings_share).min(class.savings);
                 class.savings -= debit;
+                actual_domestic_debited += debit;
                 if class.population > 0 {
                     class.savings_per_capita = class.savings / class.population as f64;
                 }
@@ -584,10 +590,20 @@ pub fn compute_tourism_demand(
                 let savings_share = class.savings / total_available_savings;
                 let debit = (capped_domestic_spend * savings_share).min(class.savings);
                 class.savings -= debit;
+                actual_domestic_debited += debit;
                 if class.population > 0 {
                     class.savings_per_capita = class.savings / class.population as f64;
                 }
             }
+        }
+    }
+
+    // Phase 94: Re-scale destination domestic_spend to match actual debit.
+    // Without this, companies receive more than citizens paid (M0 creation).
+    if capped_domestic_spend > 0.0 && actual_domestic_debited < capped_domestic_spend {
+        let actual_ratio = actual_domestic_debited / capped_domestic_spend;
+        for dd in &mut destination_demands {
+            dd.domestic_spend *= actual_ratio;
         }
     }
 
@@ -615,7 +631,7 @@ pub fn compute_tourism_demand(
     TourismDemandResult {
         destinations: destination_demands,
         total_foreign_requested: total_foreign_spend,
-        total_domestic_spend: capped_domestic_spend,
+        total_domestic_spend: actual_domestic_debited,
     }
 }
 
@@ -643,8 +659,18 @@ pub fn settle_tourism_revenue(
     for dd in &demand.destinations {
         let dest_revenue = dd.domestic_spend + dd.foreign_spend * foreign_scaling_ratio;
         for (company_id, share) in &dd.company_shares {
-            if let Some(company) = companies.iter_mut().find(|c| &c.id == company_id) {
-                company.available_cash += dest_revenue * share;
+            // Phase 94: Use credit_company_by_id to sync bank reserves (M0).
+            // Directly crediting available_cash skips the bank reserve sync,
+            // causing false M0 violations when banked companies receive
+            // tourism revenue (citizens ↓ M0, foreign ↓ M0, but bank
+            // reserves not ↑ to compensate).
+            let amount = dest_revenue * share;
+            if amount > 0.0 {
+                crate::economy::trade::transfer_settler::credit_company_by_id(
+                    companies,
+                    company_id,
+                    amount,
+                );
             }
         }
     }
