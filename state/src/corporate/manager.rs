@@ -403,7 +403,7 @@ pub fn process_companies(
         })
         .sum();
 
-    for (owner_id, amount) in &dividend_queue {
+    for (owner_id, amount, payer_bank_id) in &dividend_queue {
         if owner_id == "STATE" || owner_id == "TREASURY" {
             continue; // Already credited in apply_action
         }
@@ -486,6 +486,11 @@ pub fn process_companies(
     if total_withholding_tax > 0.0 {
         country.budget.liquid_reserves += total_withholding_tax;
     }
+
+    // Phase 94: Dividend bank reserve sync was attempted but reverted —
+    // decreasing bank reserves triggers cascading Lombard borrowing and
+    // OMO operations that create more M0 than the sync saves. The dividend
+    // M0 leak is documented for future targeted remediation.
 
     // Phase 24A.7: Process pending IPO queue — execute with real buyer cash.
     let ipo_queue = std::mem::take(&mut country.ipo_queue);
@@ -1445,9 +1450,11 @@ fn apply_action(
                     country.budget.liquid_reserves += dividend_amount;
                 } else {
                     // Other owners: queue for post-pass (withholding tax applied there)
+                    // Phase 94: Include payer's bank_id for M0 bank reserve sync.
+                    let payer_bank_id = company.primary_bank_id.clone().unwrap_or_default();
                     country
                         .dividend_queue
-                        .push((owner_id.clone(), dividend_amount));
+                        .push((owner_id.clone(), dividend_amount, payer_bank_id));
                 }
             }
 

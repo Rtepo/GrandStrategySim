@@ -369,8 +369,11 @@ pub struct Country {
     /// Phase 24A.6: Pending dividend payments to be processed after apply_action.
     /// Each tuple is (owner_id, amount). Owner_id can be a company_id, fund_id,
     /// or "STATE"/"TREASURY" for state-owned shares.
+    /// Phase 94: Third element is the payer's primary_bank_id (empty string
+    /// if unbanked) — used to sync bank reserves (M0) when dividends flow
+    /// from banked companies to unbanked owners/citizens.
     #[serde(default)]
-    pub dividend_queue: Vec<(String, f64)>,
+    pub dividend_queue: Vec<(String, f64, String)>,
     /// Phase 24A.7: Pending IPO requests to be processed after apply_action.
     /// Each tuple is (company_id, shares_to_float, reserve_price).
     #[serde(default)]
