@@ -1559,6 +1559,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
         // ── DIAGNOSTIC CHECKPOINT 3: b2b_settlement_post ──
         probe.checkpoint("b2b_settlement_post", 3, turn, &market, &tasks);
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("PHASE_B2B_SETTLE_POST: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
+        }
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 31: CRISIS MANAGEMENT AI — EXECUTIVE DECREES
@@ -1630,6 +1635,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("PHASE_POST_CRISIS: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
+        }
         // ═══════════════════════════════════════════════════════════
         // PHASE 32: PARLIAMENT BUILDING PAYROLL & PROCUREMENT
         // Pays MP and staff wages from Treasury, credits specific
@@ -1764,6 +1774,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             task.ctx.country.politics.ministry_config = ministry_config;
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("PHASE_POST_MINISTRY: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
+        }
         // ═══════════════════════════════════════════════════════════
         // PHASE 7B: JST PROCUREMENT (Local Government B2B Orders)
         // Phase D.8: Regional governments submit formal Buy Orders for
@@ -1869,6 +1884,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("PHASE_POST_JST: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
+        }
         // ═══════════════════════════════════════════════════════════
         // RESURRECTION PHASE 1: INFRASTRUCTURE POST-CLEARING
         // ═══════════════════════════════════════════════════════════
@@ -2096,6 +2116,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("PHASE_POST_MILITARY: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
+        }
         // ═══════════════════════════════════════════════════════════
         // PHASE 69: WAR ECONOMY
         // 69-A: Conscription (drain demographics → military units)
@@ -2142,6 +2167,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("PHASE_POST_WAR: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
+        }
         // ═══════════════════════════════════════════════════════════
         // PHASE 6.4b-PRE: CONSTRUCTION PROGRESS
         // Consume delivered materials from building inventory into
@@ -2423,6 +2453,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("PHASE_POST_CONSTR: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
+        }
         // ═══════════════════════════════════════════════════════════
         // PHASE 8: WAVE-BASED PRODUCTION EXECUTION
         // Wave 1: Energy sector produces Commodity::Energy/Heat from fuel

@@ -672,21 +672,16 @@ pub fn release_escrow_company_to_contractor(
     }
 
     // Phase 94: The encumbered deposit is moving from the investor's bank to
-    // the contractor's bank. Debit the investor's bank and credit the
-    // contractor's bank. If they share the same bank, skip (intra-bank
-    // transfer — the deposit just moves within the bank's books).
-    let investor_bank_id = companies[investor_idx].primary_bank_id.clone();
+    // the contractor's bank. The investor's bank reserves were already
+    // debited at escrow creation time (via debit_company_by_id). Releasing
+    // the escrow should ONLY:
+    //   1. Decrease debit_cash (M0 ↓) — releasing the encumbrance
+    //   2. Credit the contractor's bank reserves (M0 ↑) — funding the deposit
+    // Debiting the investor's bank again would double-debit and destroy M0.
     let contractor_bank_id = companies[contractor_idx].primary_bank_id.clone();
-    let is_intra_bank = investor_bank_id.is_some()
-        && investor_bank_id == contractor_bank_id;
 
-    if !is_intra_bank {
-        if let Some(ref bank_id) = investor_bank_id {
-            adjust_bank_balance_unmapped(companies, bank_id, -actual_amount, -actual_amount);
-        }
-        if let Some(ref bank_id) = contractor_bank_id {
-            adjust_bank_balance_unmapped(companies, bank_id, actual_amount, actual_amount);
-        }
+    if let Some(ref bank_id) = contractor_bank_id {
+        adjust_bank_balance_unmapped(companies, bank_id, actual_amount, actual_amount);
     }
 
     let _ = country;

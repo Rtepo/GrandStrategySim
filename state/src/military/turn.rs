@@ -60,9 +60,37 @@ pub fn process_military_turn(
     crate::military::degrade_military_equipment(&mut units);
 
     // MIL-1: Process unit upkeep (burn stockpiles, pay wages)
-    let (_wage_cost, upkeep_messages) =
+    let (wage_cost, upkeep_messages) =
         crate::military::process_military_upkeep(&mut units, liquid_reserves, config);
     all_messages.extend(upkeep_messages);
+
+    // Phase 94: Credit military wages to citizen savings (double-entry).
+    // The wages were debited from liquid_reserves but not credited to
+    // anyone, destroying M0. Credit to the first region's urban worker
+    // class as a simplified proxy for soldiers' families.
+    if wage_cost > 0.0 && !regions.is_empty() {
+        use crate::society::geography::UrbanClass;
+        if let Some(demo) = regions[0]
+            .class_demographics
+            .urban_classes
+            .get_mut(&UrbanClass::Worker)
+        {
+            demo.savings += wage_cost;
+            if demo.population > 0 {
+                demo.savings_per_capita = demo.savings / demo.population as f64;
+            }
+        } else if let Some(demo) = regions[0]
+            .class_demographics
+            .urban_classes
+            .values_mut()
+            .next()
+        {
+            demo.savings += wage_cost;
+            if demo.population > 0 {
+                demo.savings_per_capita = demo.savings / demo.population as f64;
+            }
+        }
+    }
 
     // MIL-2: Supply delivery from B2B trades (Phase 45: includes equipment delivery)
     let delivered = crate::military::deliver_military_supplies_and_equipment(

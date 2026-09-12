@@ -1256,13 +1256,17 @@ fn execute_competency_spending(
                     let actual = per_company.min(ministry.ministry_cash);
                     if actual > 0.0 {
                         // Phase 35: Debit ministry_cash (the pocket), not liquid_reserves.
+                        // Phase 94: Use credit_company_by_id for bank reserve sync.
                         ministry.ministry_cash -= actual;
-                        companies[*idx].liquid_capital += actual;
+                        let company_id = companies[*idx].id.clone();
+                        crate::economy::transfer_settler::credit_company_by_id(
+                            companies, &company_id, actual,
+                        );
                         ministry.spent_cash += actual;
                         ministry
                             .spending_actions
                             .push(MinistrySpendingAction::Subsidy {
-                                target_company_id: companies[*idx].id.clone(),
+                                target_company_id: company_id,
                                 amount: actual,
                             });
                     }
@@ -1344,13 +1348,18 @@ fn execute_competency_spending(
                         // Phase 35: Debit ministry_cash (the pocket), not liquid_reserves.
                         // Phase E.7: Credit rd_budget (not liquid_capital) so grants
                         // route into the actual R&D pipeline.
+                        // Phase 94: Use credit_company_by_id for bank reserve sync.
                         ministry.ministry_cash -= actual;
+                        let company_id = companies[*idx].id.clone();
+                        crate::economy::transfer_settler::credit_company_by_id(
+                            companies, &company_id, actual,
+                        );
                         companies[*idx].rd_budget += actual;
                         ministry.spent_cash += actual;
                         ministry
                             .spending_actions
                             .push(MinistrySpendingAction::RAndDGrant {
-                                target_entity: companies[*idx].id.clone(),
+                                target_entity: company_id,
                                 amount: actual,
                             });
                     }
@@ -1434,13 +1443,17 @@ fn execute_competency_spending(
                 for idx in &soe_companies {
                     let actual = per_company.min(ministry.ministry_cash);
                     if actual > 0.0 {
+                        // Phase 94: Use credit_company_by_id for bank reserve sync.
                         ministry.ministry_cash -= actual;
-                        companies[*idx].liquid_capital += actual;
+                        let company_id = companies[*idx].id.clone();
+                        crate::economy::transfer_settler::credit_company_by_id(
+                            companies, &company_id, actual,
+                        );
                         ministry.spent_cash += actual;
                         ministry
                             .spending_actions
                             .push(MinistrySpendingAction::Subsidy {
-                                target_company_id: companies[*idx].id.clone(),
+                                target_company_id: company_id,
                                 amount: actual,
                             });
                     }

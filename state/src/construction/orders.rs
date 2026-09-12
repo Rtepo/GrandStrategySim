@@ -299,13 +299,14 @@ pub fn advance_construction_projects(
                 if is_state {
                     country.budget.liquid_reserves += refund;
                 } else if !investor_id.is_empty() {
+                    // Phase 94: Use credit_company_by_id for proper bank
+                    // reserve sync (M0 conservation). Crediting
+                    // brokerage_account.cash directly bypasses bank sync,
+                    // destroying M0 for banked investors.
+                    let _ = crate::economy::transfer_settler::credit_company_by_id(
+                        companies, &investor_id, refund,
+                    );
                     if let Some(company) = companies.iter_mut().find(|c| c.id == investor_id) {
-                        // Refund to actual cash (brokerage_account or available_cash)
-                        if let Some(ref mut ba) = company.brokerage_account {
-                            ba.cash += refund;
-                        } else {
-                            company.available_cash += refund;
-                        }
                         // Release the encumbrance
                         company.debit_cash = (company.debit_cash - refund).max(0.0);
                         // Also restore liquid_capital (the accounting field

@@ -928,9 +928,13 @@ pub fn issue_crisis_bonds(
 
     let total_raised = actual_amount * issue_price;
 
-    // Step 4: Settle ÔÇö debit bank reserves, credit treasury.
+    // Step 4: Settle — debit bank reserves, credit treasury.
+    // Phase 94: Debit the DISCOUNTED amount (total_raised), not the face
+    // value (actual_amount). The treasury receives total_raised, so banks
+    // and citizens must be debited total_raised too. Debiting actual_amount
+    // while crediting total_raised destroys M0 by the discount.
     // Allocate bond purchases proportionally across banks by excess reserves.
-    let mut remaining = actual_amount;
+    let mut remaining = total_raised;
     for (idx, excess) in &bank_indices {
         if remaining <= 0.0 {
             break;
@@ -948,19 +952,9 @@ pub fn issue_crisis_bonds(
     }
 
     // Step 5: Citizen purchases (deduct from savings, create savings bonds).
-    let citizen_purchase = (actual_amount - (actual_amount - remaining)).max(0.0);
-    let citizen_amount = actual_amount
-        - bank_indices
-            .iter()
-            .map(|(_, e)| *e)
-            .sum::<f64>()
-            .min(actual_amount);
-    let _ = citizen_purchase; // suppress unused warning
-    let _ = citizen_amount;
-
-    // For simplicity, citizens absorb the remainder via the existing retail
-    // savings bond mechanism. We deduct from aggregate savings proportionally.
-    let citizen_share = (actual_amount - (actual_amount - remaining)).max(0.0);
+    // Phase 94: citizen_share is the remaining portion of total_raised after
+    // bank purchases. Debit citizens the discounted price, not face value.
+    let citizen_share = remaining.max(0.0);
     if citizen_share > 0.0 && citizen_capacity > 0.0 {
         for region in &mut country.regions {
             for cd in region
