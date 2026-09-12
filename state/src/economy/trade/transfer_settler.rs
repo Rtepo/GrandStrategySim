@@ -651,15 +651,24 @@ pub fn release_escrow_company_to_contractor(
         return Err("Invalid company index".to_string());
     }
 
+    // Phase 94: Clamp the release amount to the actual debit_cash balance.
+    // If debit_cash < amount (e.g., multiple tranches released in one turn
+    // exceeding the escrow), crediting the contractor with the full amount
+    // while only decreasing debit_cash by the actual balance would create M0.
+    // Use the actual encumbered amount for all downstream operations.
+    let actual_amount = amount.min(companies[investor_idx].debit_cash);
+    if actual_amount <= 0.0 {
+        return Err("No encumbered cash to release".to_string());
+    }
+
     // Release the encumbrance on the investor's side
-    companies[investor_idx].debit_cash =
-        (companies[investor_idx].debit_cash - amount).max(0.0);
+    companies[investor_idx].debit_cash -= actual_amount;
 
     // Credit the contractor's cash
     if let Some(ref mut ba) = companies[contractor_idx].brokerage_account {
-        ba.cash += amount;
+        ba.cash += actual_amount;
     } else {
-        companies[contractor_idx].available_cash += amount;
+        companies[contractor_idx].available_cash += actual_amount;
     }
 
     // Phase 94: The encumbered deposit is moving from the investor's bank to
@@ -673,10 +682,10 @@ pub fn release_escrow_company_to_contractor(
 
     if !is_intra_bank {
         if let Some(ref bank_id) = investor_bank_id {
-            adjust_bank_balance_unmapped(companies, bank_id, -amount, -amount);
+            adjust_bank_balance_unmapped(companies, bank_id, -actual_amount, -actual_amount);
         }
         if let Some(ref bank_id) = contractor_bank_id {
-            adjust_bank_balance_unmapped(companies, bank_id, amount, amount);
+            adjust_bank_balance_unmapped(companies, bank_id, actual_amount, actual_amount);
         }
     }
 
@@ -844,8 +853,9 @@ pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount:
         return false;
     };
     if bank_id.is_none() {
-        #[cfg(feature = "diagnostic")]
-        eprintln!("CREDIT_NO_BANK: company={} amount={:.2} — crediting M1 without M0 bank sync", company_id, amount);
+        // Phase 94: Unbanked company — no bank reserve sync needed.
+        // The company's cash is already tracked in M0 (corp_cash for
+        // unbanked companies). No bank balance sheet to update.
     }
 
     if let Some(company) = companies.iter_mut().find(|c| c.id == company_id) {

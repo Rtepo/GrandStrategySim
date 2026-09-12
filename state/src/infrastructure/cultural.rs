@@ -244,6 +244,12 @@ pub fn collect_cultural_donations(
                 let shares = building.owned_company_shares.clone();
                 for (company_id, share) in &shares {
                     if let Some(company) = companies.iter().find(|c| &c.id == company_id) {
+                        // Phase 94: Skip banks — their available_cash is not in M0
+                        // (off-balance-sheet operating cash), so debiting it to
+                        // credit a tracked building creates FiatCreation.
+                        if company.sector == crate::registries::enums::Sector::Banking {
+                            continue;
+                        }
                         // Dividend = share of operational cash (available + brokerage)
                         let dividend = company.operational_cash() * share * 0.1;
                         if dividend > 0.0 {
@@ -304,6 +310,12 @@ pub fn collect_cultural_donations(
         // creates M0 from nothing.
         let mut corp_donations: Vec<(String, f64)> = Vec::new();
         for company in companies.iter() {
+            // Phase 94: Skip banks — their available_cash is not in M0
+            // (off-balance-sheet operating cash), so debiting it to credit
+            // a tracked building creates FiatCreation.
+            if company.sector == crate::registries::enums::Sector::Banking {
+                continue;
+            }
             let liquid = company.operational_cash();
             if liquid > config.corporate_wealth_threshold
                 && company.region_id == building.region_id
