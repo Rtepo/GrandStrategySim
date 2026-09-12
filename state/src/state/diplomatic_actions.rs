@@ -137,8 +137,13 @@ pub fn drain_diplomatic_actions(
                 }
 
                 // Credit host country: inject as treasury revenue
+                // Phase 94: Credit the FULL budget (M0 conservation). The
+                // previous 50% split destroyed 50% of the construction cost,
+                // causing FiatDestruction between turns. The host country
+                // receives the full amount as payment for land, permits,
+                // and local construction labor.
                 if let Some(host) = state.countries.get_mut(&host_country) {
-                    host.budget.liquid_reserves += budget * 0.5;
+                    host.budget.liquid_reserves += budget;
                 }
             }
             DiplomaticAction::EmbassyFundingTransfer {
@@ -287,6 +292,14 @@ pub fn drain_diplomatic_actions(
                             }
                         }
                     }
+                }
+
+                // Phase 94: Credit host country treasury (M0 conservation).
+                // The assignment cost represents travel, setup, and
+                // diplomatic fees paid to the host country. This runs after
+                // the home borrow is released to satisfy the borrow checker.
+                if let Some(host) = state.countries.get_mut(&host_country) {
+                    host.budget.liquid_reserves += diplomatic_config.diplomat_assignment_cost;
                 }
             }
             DiplomaticAction::RecallDiplomat {

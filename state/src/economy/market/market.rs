@@ -5,12 +5,13 @@
 
 use crate::registries::enums::{Commodity, Sector};
 use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
 
 /// Hot-path hash map alias for market internals.
 pub type HashMap<K, V> = FxHashMap<K, V>;
 
 /// One side of a market tally: total buy and sell orders for a single good.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
 pub struct MarketOrder {
     /// Total units demanded by producers.
     pub buy: f64,
@@ -31,7 +32,7 @@ impl MarketOrder {
 }
 
 /// Aggregate market orders keyed by commodity.
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct MarketOrders {
     /// Orders per commodity.
     pub orders: HashMap<Commodity, MarketOrder>,
@@ -58,7 +59,7 @@ impl MarketOrders {
 ///
 /// Tracks the base international price and worldwide net surplus/deficit for
 /// Offshore religious capital ledger tracking Apostolic See remittances (Phase 17C).
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct ApostolicSeeLedger {
     /// Total capital received from all countries via remittance.
     pub total_remittances: f64,
@@ -73,7 +74,7 @@ pub struct ApostolicSeeLedger {
 /// Tracks the base international price and worldwide net surplus/deficit for
 /// each commodity. A positive net surplus means the world as a whole produces
 /// more than it consumes; a negative value means the world is short.
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct GlobalMarket {
     /// Base international price for each commodity.
     pub base_prices: HashMap<Commodity, f64>,
@@ -85,6 +86,12 @@ pub struct GlobalMarket {
     pub offshore_capital: f64,
     /// Phase 17C: Apostolic See offshore ledger for religious remittances.
     pub apostolic_see_ledger: ApostolicSeeLedger,
+    /// Phase 94: Total fiat held by international organizations (IO budgets).
+    /// IO fines debit country treasuries and credit IO budgets. Both are M0
+    /// base money, so the IO budget total must be tracked to prevent false
+    /// FiatDestruction when fines are collected between turns.
+    #[serde(default)]
+    pub international_org_budgets: f64,
     /// Phase 43: Total sell order volume per commodity (supply side).
     pub supply_volume: HashMap<Commodity, f64>,
     /// Phase 43: Total buy order volume per commodity (demand side).

@@ -255,6 +255,7 @@ fn load_market(data_dir: &Path) -> Result<GlobalMarket, TurnError> {
         b2c_demand_volume: FxHashMap::default(),
         foreign_patent_fee_ledger: 0.0,
         foreign_sector_balance: parsed.foreign_sector_balance,
+        international_org_budgets: 0.0,
     })
 }
 
@@ -895,6 +896,7 @@ fn default_market() -> GlobalMarket {
         b2c_demand_volume: FxHashMap::default(),
         foreign_patent_fee_ledger: 0.0,
         foreign_sector_balance: 0.0,
+        international_org_budgets: 0.0,
     }
 }
 

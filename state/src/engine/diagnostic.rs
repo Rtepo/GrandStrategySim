@@ -400,6 +400,11 @@ pub struct FiatWalk {
     /// intelligence operations. This is M0 base money (Directive 1).
     #[serde(default)]
     pub intelligence_budget: f64,
+    /// Phase 94: International organization budgets — fiat debited from
+    /// country treasuries via IO directive fines. This is M0 base money
+    /// held by international organizations (Directive 1: no void sinks).
+    #[serde(default)]
+    pub international_org_budgets: f64,
     /// Encumbered cash: debit_cash across all unbanked companies. When
     /// companies submit B2B buy orders, available_cash is debited and
     /// debit_cash is credited. Both are M0 base money — debit_cash is
@@ -432,6 +437,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     let mut black_ops_budget: f64 = 0.0;
     let mut intelligence_budget: f64 = 0.0;
     let mut cumulative_cb_injection: f64 = 0.0;
+    let international_org_budgets = market.international_org_budgets;
 
     let mut ministry_cash: f64 = 0.0;
 
@@ -568,7 +574,8 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     // foreign trade inflows.
     let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital
         + foreign_sector_balance + see_charity_pool + ministry_cash + arbitration_escrow
-        + black_ops_budget + intelligence_budget + corporate_cash + debit_cash_total;
+        + black_ops_budget + intelligence_budget + international_org_budgets
+        + corporate_cash + debit_cash_total;
     FiatWalk {
         total,
         treasury_cash,
@@ -583,6 +590,7 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         arbitration_escrow,
         black_ops_budget,
         intelligence_budget,
+        international_org_budgets,
         cumulative_cb_injection,
     }
 }

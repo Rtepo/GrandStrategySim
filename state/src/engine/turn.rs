@@ -8092,7 +8092,7 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
                 let governance = &mut country.regions[idx].governance;
                 if let Some(gov) = governance {
                     let budget = &mut gov.budget;
-                    cad::fund_cadastral_survey(
+                    let survey_cost = cad::fund_cadastral_survey(
                         &mut country.cadastre,
                         region_id,
                         budget,
@@ -8100,6 +8100,17 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
                         &country.legal_certainty_config,
                         dev_level,
                     );
+                    // Phase 94: Credit Worker savings (M0 conservation).
+                    // Survey labor is wages paid to regional workers.
+                    if survey_cost > 0.0 {
+                        if let Some(worker) = country.regions[idx]
+                            .class_demographics
+                            .urban_classes
+                            .get_mut(&crate::society::geography::UrbanClass::Worker)
+                        {
+                            worker.savings += survey_cost;
+                        }
+                    }
                 }
             }
         }
@@ -8191,16 +8202,28 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
             }
 
             // Advance implementation progress (budget-draining)
+            let mut zoning_cost = 0.0_f64;
             if let Some(gov) = country.regions[region_idx].governance.as_mut() {
                 if let Some(plan) = gov.zoning_plans.active_plan_for_region_mut(&region_id) {
                     let budget = &mut gov.budget;
-                    cad::advance_zoning_implementation(
+                    zoning_cost = cad::advance_zoning_implementation(
                         &mut country.cadastre,
                         plan,
                         budget,
                         &country.cadastre_config,
                         current_turn,
                     );
+                }
+            }
+            // Phase 94: Credit Worker savings (M0 conservation).
+            // Zoning labor is wages paid to regional workers.
+            if zoning_cost > 0.0 {
+                if let Some(worker) = country.regions[region_idx]
+                    .class_demographics
+                    .urban_classes
+                    .get_mut(&crate::society::geography::UrbanClass::Worker)
+                {
+                    worker.savings += zoning_cost;
                 }
             }
 

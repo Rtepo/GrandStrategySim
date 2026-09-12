@@ -2504,6 +2504,7 @@ mod tests {
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
             foreign_patent_fee_ledger: 0.0,
             foreign_sector_balance: 0.0,
+            international_org_budgets: 0.0,
         };
 
         let attempt = CapitalFlightAttempt {
@@ -2553,6 +2554,7 @@ mod tests {
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
             foreign_patent_fee_ledger: 0.0,
             foreign_sector_balance: 0.0,
+            international_org_budgets: 0.0,
         };
 
         let attempt = CapitalFlightAttempt {
@@ -2693,6 +2695,7 @@ mod tests {
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
             foreign_patent_fee_ledger: 0.0,
             foreign_sector_balance: 0.0,
+            international_org_budgets: 0.0,
         };
 
         let fdi_trigger = FdiTrigger {
@@ -2734,6 +2737,7 @@ mod tests {
             b2c_demand_volume: rustc_hash::FxHashMap::default(),
             foreign_patent_fee_ledger: 0.0,
             foreign_sector_balance: 0.0,
+            international_org_budgets: 0.0,
         };
 
         let fdi_trigger = FdiTrigger {
