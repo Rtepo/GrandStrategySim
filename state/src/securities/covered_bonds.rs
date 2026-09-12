@@ -189,8 +189,13 @@ pub fn create_covered_bond(
         }
     }
 
-    // Record liability on balance sheet (double-entry: bond is a liability)
+    // Record liability and corresponding asset on balance sheet (double-entry).
+    // The bond is a liability (issued_bonds); the corresponding asset is the
+    // bond itself held for sale (securities). When the bond is sold on the
+    // exchange, settle_trade credits the bank's brokerage cash and syncs
+    // bank deposits/reserves, converting the securities asset to cash.
     balance_sheet.issued_bonds += principal;
+    balance_sheet.securities += principal;
 
     let bond = CoveredBond {
         id: bond_id.clone(),

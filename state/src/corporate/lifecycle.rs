@@ -208,6 +208,25 @@ impl CompanyLifecycle {
 
         let num_companies = ((investment / 10_000.0) as usize).min(5).max(1);
 
+        // Phase 94: M0 conservation — debit actual citizen savings (in M0 walk)
+        // instead of the private_capital tracking field (NOT in M0 walk).
+        // New company cash is unbanked M0, so the funding source must also be
+        // M0. Pro-rata debit across all class demographics by savings share.
+        let total_citizen_savings: f64 = country
+            .regions
+            .iter()
+            .flat_map(|r| {
+                r.class_demographics
+                    .rural_classes
+                    .values()
+                    .chain(r.class_demographics.urban_classes.values())
+            })
+            .map(|d| d.savings)
+            .sum();
+        if total_citizen_savings < investment {
+            return;
+        }
+
         for i in 0..num_companies {
             let sector = promising_sectors[i % promising_sectors.len()];
             let capital_per_company = investment / num_companies as f64;
@@ -244,6 +263,62 @@ impl CompanyLifecycle {
             buildings.push(new_building);
 
             country.budget.private_capital -= capital_per_company;
+
+            // Phase 94: Pro-rata debit citizen savings to fund the new company.
+            // This preserves M0: citizen savings (M0) → unbanked company cash (M0).
+            // Only debit the liquid portion (50% of capital_per_company) because
+            // only liquid_capital goes to brokerage_account.cash (counted in M0
+            // for unbanked companies). The fixed_capital portion goes to
+            // company_capital, which is NOT in the M0 walk.
+            let liquid_portion = capital_per_company * 0.5;
+            let mut remaining = liquid_portion;
+            for region in &mut country.regions {
+                if remaining <= 0.0 {
+                    break;
+                }
+                let classes: Vec<&mut crate::society::geography::ClassDemographics> = region
+                    .class_demographics
+                    .rural_classes
+                    .values_mut()
+                    .chain(region.class_demographics.urban_classes.values_mut())
+                    .collect();
+                for cls in classes {
+                    if remaining <= 0.0 {
+                        break;
+                    }
+                    let share = cls.savings / total_citizen_savings;
+                    let debit = (liquid_portion * share).min(cls.savings).min(remaining);
+                    if debit > 0.0 {
+                        cls.savings -= debit;
+                        remaining -= debit;
+                    }
+                }
+            }
+            // If any residual remains (rounding), debit from the first class
+            // with sufficient savings.
+            if remaining > 0.0 {
+                for region in &mut country.regions {
+                    if remaining <= 0.0 {
+                        break;
+                    }
+                    let classes: Vec<&mut crate::society::geography::ClassDemographics> = region
+                        .class_demographics
+                        .rural_classes
+                        .values_mut()
+                        .chain(region.class_demographics.urban_classes.values_mut())
+                        .collect();
+                    for cls in classes {
+                        if remaining <= 0.0 {
+                            break;
+                        }
+                        let debit = cls.savings.min(remaining);
+                        if debit > 0.0 {
+                            cls.savings -= debit;
+                            remaining -= debit;
+                        }
+                    }
+                }
+            }
         }
     }
 }

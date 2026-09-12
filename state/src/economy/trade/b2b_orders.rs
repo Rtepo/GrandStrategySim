@@ -664,23 +664,40 @@ pub fn settle_trades(
         let trade_value = trade.quantity * trade.execution_price;
 
         // --- Cash Settlement (Phase 24A.4: via TransferSettler) ---
+        // Phase 94: For unbanked buyers, the cash was already encumbered
+        // (available_cash → debit_cash) at order submission. Calling
+        // settle_transfer_mapped would debit brokerage_account.cash AGAIN,
+        // causing M0 destruction for unbanked companies. For unbanked buyers,
+        // we release the encumbrance and credit the seller directly. For
+        // banked buyers, settle_transfer_mapped handles bank reserve sync.
         if trade.buyer_id != "MIN-DEF" {
             if let (Some(&bi), Some(&si)) = (
                 company_id_to_idx.get(&trade.buyer_id),
                 company_id_to_idx.get(&trade.seller_id),
             ) {
-                let mut dummy_country = crate::state::Country::default();
-                let _ = crate::economy::transfer_settler::settle_transfer_mapped(
-                    companies,
-                    &company_id_to_idx,
-                    bi,
-                    trade_value,
-                    &crate::economy::transfer_settler::TransferRecipient::OtherCompany {
-                        recipient_idx: si,
-                    },
-                    &mut dummy_country,
-                );
-                companies[bi].debit_cash -= trade_value;
+                let buyer_is_banked = companies[bi].primary_bank_id.is_some();
+                if buyer_is_banked {
+                    let mut dummy_country = crate::state::Country::default();
+                    let _ = crate::economy::transfer_settler::settle_transfer_mapped(
+                        companies,
+                        &company_id_to_idx,
+                        bi,
+                        trade_value,
+                        &crate::economy::transfer_settler::TransferRecipient::OtherCompany {
+                            recipient_idx: si,
+                        },
+                        &mut dummy_country,
+                    );
+                    companies[bi].debit_cash -= trade_value;
+                } else {
+                    // Phase 94: Unbanked buyer — cash was already encumbered
+                    // (available_cash → debit_cash). Release encumbrance and
+                    // credit seller directly. This preserves M0: debit_cash
+                    // (M0) → seller cash (M0).
+                    companies[bi].debit_cash -= trade_value;
+                    let seller_id = companies[si].id.clone();
+                    credit_company_by_id(companies, &seller_id, trade_value);
+                }
                 companies[bi].unfilled_bid_prices.remove(&trade.commodity);
             } else {
                 if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
@@ -1043,12 +1060,22 @@ pub fn settle_trades_with_tariffs(
                 // liquid_reserves without debiting real cash. If the buyer is not
                 // found, the tariff is simply not collected (revenue loss) — no fiat.
                 if let Some(buyer_idx) = companies.iter().position(|c| c.id == trade.buyer_id) {
-                    let _ = crate::economy::transfer_settler::settle_transfer_to_treasury(
-                        companies,
-                        buyer_idx,
-                        tariff_amount,
-                        country,
-                    );
+                    // Phase 94: For unbanked buyers, the cash was already
+                    // encumbered (available_cash → debit_cash). Debiting
+                    // brokerage_account.cash via settle_transfer_to_treasury
+                    // would double-debit M0. For unbanked buyers, release
+                    // the encumbrance and credit treasury directly.
+                    let buyer_is_banked = companies[buyer_idx].primary_bank_id.is_some();
+                    if buyer_is_banked {
+                        let _ = crate::economy::transfer_settler::settle_transfer_to_treasury(
+                            companies,
+                            buyer_idx,
+                            tariff_amount,
+                            country,
+                        );
+                    } else {
+                        country.budget.liquid_reserves += tariff_amount;
+                    }
                     // Also release the buyer's encumbered debit_cash for the tariff
                     if let Some(buyer) = companies.get_mut(buyer_idx) {
                         buyer.debit_cash = (buyer.debit_cash - tariff_amount).max(0.0);

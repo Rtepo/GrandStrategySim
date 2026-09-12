@@ -266,10 +266,12 @@ pub fn collect_cultural_donations(
                         lat.serf_population as f64 * lat.serf_labor_cost_multiplier * average_wage;
                     if latifundium_income > 0.0 {
                         if let Some(ri) = region_idx {
-                            debit_serf_savings(&mut regions[ri], latifundium_income);
+                            let actual = debit_serf_savings(&mut regions[ri], latifundium_income);
+                            if actual > 0.0 {
+                                building.available_cash += actual;
+                                building.donations_collected_this_turn += actual;
+                            }
                         }
-                        building.available_cash += latifundium_income;
-                        building.donations_collected_this_turn += latifundium_income;
                     }
                 }
 
@@ -354,10 +356,15 @@ fn collect_class_donations(
 }
 
 /// Debit serf class savings for latifundium surplus extraction.
-fn debit_serf_savings(region: &mut Region, amount: f64) {
+/// Returns the actual amount debited (may be less than requested if serfs
+/// have insufficient savings).
+fn debit_serf_savings(region: &mut Region, amount: f64) -> f64 {
     if let Some(demographics) = region.class_demographics.rural_classes.get_mut(&RuralClass::Serf) {
         let actual = amount.min(demographics.savings.max(0.0));
         demographics.savings -= actual;
+        actual
+    } else {
+        0.0
     }
 }
 

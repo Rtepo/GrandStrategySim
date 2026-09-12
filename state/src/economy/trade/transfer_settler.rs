@@ -662,10 +662,22 @@ pub fn release_escrow_company_to_contractor(
         companies[contractor_idx].available_cash += amount;
     }
 
-    // Sync contractor's bank: deposits and reserves increase
+    // Phase 94: The encumbered deposit is moving from the investor's bank to
+    // the contractor's bank. Debit the investor's bank and credit the
+    // contractor's bank. If they share the same bank, skip (intra-bank
+    // transfer — the deposit just moves within the bank's books).
+    let investor_bank_id = companies[investor_idx].primary_bank_id.clone();
     let contractor_bank_id = companies[contractor_idx].primary_bank_id.clone();
-    if let Some(ref bank_id) = contractor_bank_id {
-        adjust_bank_balance_unmapped(companies, bank_id, amount, amount);
+    let is_intra_bank = investor_bank_id.is_some()
+        && investor_bank_id == contractor_bank_id;
+
+    if !is_intra_bank {
+        if let Some(ref bank_id) = investor_bank_id {
+            adjust_bank_balance_unmapped(companies, bank_id, -amount, -amount);
+        }
+        if let Some(ref bank_id) = contractor_bank_id {
+            adjust_bank_balance_unmapped(companies, bank_id, amount, amount);
+        }
     }
 
     let _ = country;

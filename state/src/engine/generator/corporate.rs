@@ -6897,6 +6897,36 @@ pub fn generate_investment_funds(
         let mut existing = company_store
             .load_sector(&country.name, &sector_name, None)
             .unwrap_or_default();
+
+        // Phase 94: Assign primary banks to funds (M0 conservation).
+        // Without a primary_bank_id, collect_fund_capital's bank-reserve
+        // sync fails silently, destroying M0 when citizen savings are
+        // debited without a matching bank-reserve credit.
+        // assign_primary_banks_to_companies skips Banking-sector entities,
+        // so we assign banks to funds directly here by selecting the
+        // largest-reserve commercial/universal/cooperative bank.
+        let bank_companies_loaded: Vec<&Company> = existing
+            .iter()
+            .filter(|c| {
+                c.sector == Sector::Banking
+                    && c.bank_type.is_some()
+                    && c.balance_sheet.is_some()
+            })
+            .collect();
+        let best_bank_id = bank_companies_loaded
+            .iter()
+            .max_by(|a, b| {
+                let ra = a.balance_sheet.as_ref().map(|bs| bs.reserves_at_central_bank).unwrap_or(0.0);
+                let rb = b.balance_sheet.as_ref().map(|bs| bs.reserves_at_central_bank).unwrap_or(0.0);
+                ra.partial_cmp(&rb).unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .map(|b| b.id.clone());
+        if let Some(bank_id) = &best_bank_id {
+            for fund in &mut fund_companies {
+                fund.primary_bank_id = Some(bank_id.clone());
+            }
+        }
+
         existing.extend(fund_companies);
         let _ = company_store.save_sector(&country.name, &sector_name, None, &existing);
     }

@@ -1030,6 +1030,50 @@ impl StockExchange {
                     bond.holder_id = buyer_id.to_string();
                 }
             }
+            // Phase 94: When a bank sells a covered bond it created, decrease
+            // the securities asset on its balance sheet (the bond is no longer
+            // held). This matches the securities += principal recorded at
+            // creation in create_covered_bond.
+            for company in companies.iter_mut() {
+                if company.id == seller_id {
+                    if let Some(ref mut bs) = company.balance_sheet {
+                        bs.securities -= cost;
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Phase 94: Sync bank reserves (M0) for securities trades.
+        // Without this, brokerage cash (M1) moves but bank deposits/reserves
+        // (M0) are not adjusted, causing bank balance sheet imbalances.
+        // Buyer's bank: deposits ↓ and reserves ↓ by (cost + fee).
+        // Seller's bank: deposits ↑ and reserves ↑ by (cost - fee).
+        // Treasury fee credit (2*fee) is M0 that leaves the banking system.
+        // Net M0: -(cost+fee) + (cost-fee) + 2*fee = 0. Correct.
+        let buyer_bank_id = companies
+            .iter()
+            .find(|c| c.id == buyer_id)
+            .and_then(|c| c.primary_bank_id.clone());
+        let seller_bank_id = companies
+            .iter()
+            .find(|c| c.id == seller_id)
+            .and_then(|c| c.primary_bank_id.clone());
+        if let Some(ref bid) = buyer_bank_id {
+            crate::economy::trade::transfer_settler::adjust_bank_balance_unmapped(
+                companies,
+                bid,
+                -(cost + fee),
+                -(cost + fee),
+            );
+        }
+        if let Some(ref sid) = seller_bank_id {
+            crate::economy::trade::transfer_settler::adjust_bank_balance_unmapped(
+                companies,
+                sid,
+                cost - fee,
+                cost - fee,
+            );
         }
 
         // R4.1/R8.4: Return realized gain for CGT recording (None if tax-exempt)

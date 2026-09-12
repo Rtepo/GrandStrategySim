@@ -348,7 +348,7 @@ NODE_PROMPT_EOF
                 #   --permission-mode dangerous — Auto-approve ALL tools (edits + shell) for headless autonomy
                 #   --respect-workspace-trust false — Skip workspace trust prompt
                 #   -- "<prompt>"               — The constructed prompt
-                echo "[$(date -u +%H:%M:%S)] Auto-wake: Invoking devin -p (timeout 1800s, stdin=/dev/null)..." >> "$HUB_DIR/.devin/integration_log/auto_wake_${AGENT_ID}.log"
+                echo "[$(date -u +%H:%M:%S)] Auto-wake: Invoking devin -p (timeout 2700s, stdin=/dev/null)..." >> "$HUB_DIR/.devin/integration_log/auto_wake_${AGENT_ID}.log"
 
                 # v4.3.1: Unset IDE environment variables that cause the CLI to
                 # use the Windsurf/Enterprise auth path instead of reading
@@ -356,7 +356,7 @@ NODE_PROMPT_EOF
                 # even when the user is authenticated via `devin auth login`.
                 unset WINDSURF_IDE_TYPE ACP_BACKEND WINDSURF_EXT_HOST_PID
 
-                timeout 1800 "$DEVIN_CLI" -p \
+                timeout 2700 "$DEVIN_CLI" -p \
                     --model glm-5.2-high \
                     --permission-mode dangerous \
                     --respect-workspace-trust false \

@@ -358,11 +358,16 @@ pub fn process_knf_compliance(
             let severity = ((total_liabilities / equity - 10.0) * 2.0).min(10.0) as u8;
             let fine = severity as f64 * total_assets * config.knf_penalty_multiplier * 0.5;
 
-            let available_reserves = balance_sheet.reserves_at_central_bank;
+            let available_reserves = balance_sheet.reserves_at_central_bank.max(0.0);
             let actual_fine = fine.min(available_reserves);
             // Phase 94: Double-entry — fine is an expense: asset (reserves)
             // decreases AND equity (tier_1) decreases. Without the equity
             // debit, A < L+E by the fine amount.
+            // Phase 94: Clamp available_reserves to 0.0 — negative reserves
+            // (CB Lombard borrowing) must not produce a negative actual_fine,
+            // which would INCREASE bank_res and DECREASE treasury (the
+            // opposite of a fine). The fine is simply not collected when
+            // the bank has no positive reserves.
             balance_sheet.reserves_at_central_bank -= actual_fine;
             balance_sheet.tier_1_capital -= actual_fine;
             treasury.liquid_reserves += actual_fine;
