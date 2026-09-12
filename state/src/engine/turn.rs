@@ -722,20 +722,14 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
         });
 
-        #[cfg(feature = "diagnostic")]
-        {
-            let walk = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
-        }
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             process_banking_turn(task.ctx.country, &mut task.companies, task.ctx.turn);
         });
-        #[cfg(feature = "diagnostic")]
-        {
-            let walk = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
-        }
+
         // ── DIAGNOSTIC CHECKPOINT: banking_turn_post ──
 probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
+
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             update_gdp_shares_from_employment(&mut task.ctx);
@@ -827,55 +821,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
         // ── DIAGNOSTIC CHECKPOINT 1: building_cycle_post ──
         probe.checkpoint("building_cycle_post", 1, turn, &market, &tasks);
-        // Phase 94: Trace M0 just after building_cycle_post checkpoint.
-        #[cfg(feature = "diagnostic")]
-        {
-            let mut treasury = 0.0_f64;
-            let mut citizen = 0.0_f64;
-            let mut bank_res = 0.0_f64;
-            let mut corp_cash = 0.0_f64;
-            let mut debit_cash = 0.0_f64;
-            for task in &tasks {
-                treasury += task.ctx.country.budget.liquid_reserves;
-                for region in &task.ctx.country.regions {
-                    if let Some(ref gov) = region.governance {
-                        treasury += gov.budget.liquid_reserves;
-                    }
-                }
-                for megaregion in &task.ctx.country.megaregions {
-                    if let Some(ref gov) = megaregion.governance {
-                        treasury += gov.budget.liquid_reserves;
-                    }
-                }
-                for region in &task.ctx.country.regions {
-                    for demo in region.class_demographics.rural_classes.values() {
-                        citizen += demo.savings;
-                    }
-                    for demo in region.class_demographics.urban_classes.values() {
-                        citizen += demo.savings;
-                    }
-                }
-                bank_res += task.ctx.country.bfg_fund.reserves;
-                bank_res += task.ctx.country.sobk_scheme.pool;
-                for company in &task.companies {
-                    if company.sector == crate::registries::enums::Sector::Banking {
-                        if let Some(ref bs) = company.balance_sheet {
-                            bank_res += bs.reserves_at_central_bank;
-                            bank_res += bs.cb_deposit_facility_balance;
-                        }
-                    } else if company.primary_bank_id.is_none() {
-                        corp_cash += company.available_cash
-                            + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
-                        debit_cash += company.debit_cash;
-                    }
-                }
-            }
-            eprintln!(
-                "POST_BUILDING_CYCLE_M0: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp_cash={:.2} debit_cash={:.2} offshore={:.2} foreign={:.2} charity={:.2} cb_inj={:.2}",
-                turn, treasury, citizen, bank_res, corp_cash, debit_cash, market.offshore_capital, market.foreign_sector_balance, market.apostolic_see_ledger.global_charity_pool, tasks.iter().map(|t| t.ctx.country.central_bank.liquidity_injected).sum::<f64>()
-            );
-        }
-
 
         // Emergency Stabilization: Clone the immutable base prices (set once at
         // world generation in market_history.global_base_prices) so the clearing
@@ -1021,25 +966,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // Phase 94: Trace M0 after See remittance + cash relief.
-        #[cfg(feature = "diagnostic")]
-        {
-            let mut corp_cash = 0.0_f64;
-            let mut debit_cash = 0.0_f64;
-            for task in &tasks {
-                for company in &task.companies {
-                    if company.sector != crate::registries::enums::Sector::Banking && company.primary_bank_id.is_none() {
-                        corp_cash += company.available_cash
-                            + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
-                        debit_cash += company.debit_cash;
-                    }
-                }
-            }
-            eprintln!(
-                "POST_SEE_RELIEF: turn={} corp_cash={:.2} debit_cash={:.2} charity={:.2}",
-                turn, corp_cash, debit_cash, market.apostolic_see_ledger.global_charity_pool
-            );
-        }
-
         // 3.6: Submit relief B2B buy orders (before market clearing)
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
@@ -1370,55 +1296,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         let all_trades = global_order_book.trades.clone();
 
         // ── DIAGNOSTIC CHECKPOINT 2: b2b_orders_post ──
-        // Phase 94: Trace M0 just before b2b_orders_post checkpoint.
-        #[cfg(feature = "diagnostic")]
-        {
-            let mut treasury = 0.0_f64;
-            let mut citizen = 0.0_f64;
-            let mut bank_res = 0.0_f64;
-            let mut corp_cash = 0.0_f64;
-            let mut debit_cash = 0.0_f64;
-            for task in &tasks {
-                treasury += task.ctx.country.budget.liquid_reserves;
-                for region in &task.ctx.country.regions {
-                    if let Some(ref gov) = region.governance {
-                        treasury += gov.budget.liquid_reserves;
-                    }
-                }
-                for megaregion in &task.ctx.country.megaregions {
-                    if let Some(ref gov) = megaregion.governance {
-                        treasury += gov.budget.liquid_reserves;
-                    }
-                }
-                for region in &task.ctx.country.regions {
-                    for demo in region.class_demographics.rural_classes.values() {
-                        citizen += demo.savings;
-                    }
-                    for demo in region.class_demographics.urban_classes.values() {
-                        citizen += demo.savings;
-                    }
-                }
-                bank_res += task.ctx.country.bfg_fund.reserves;
-                bank_res += task.ctx.country.sobk_scheme.pool;
-                for company in &task.companies {
-                    if company.sector == crate::registries::enums::Sector::Banking {
-                        if let Some(ref bs) = company.balance_sheet {
-                            bank_res += bs.reserves_at_central_bank;
-                            bank_res += bs.cb_deposit_facility_balance;
-                        }
-                    } else if company.primary_bank_id.is_none() {
-                        corp_cash += company.available_cash
-                            + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
-                        debit_cash += company.debit_cash;
-                    }
-                }
-            }
-            eprintln!(
-                "PRE_B2B_ORDERS_M0: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp_cash={:.2} debit_cash={:.2} offshore={:.2} foreign={:.2} charity={:.2} cb_inj={:.2}",
-                turn, treasury, citizen, bank_res, corp_cash, debit_cash, market.offshore_capital, market.foreign_sector_balance, market.apostolic_see_ledger.global_charity_pool, tasks.iter().map(|t| t.ctx.country.central_bank.liquidity_injected).sum::<f64>()
-            );
-        }
-
         probe.checkpoint("b2b_orders_post", 2, turn, &market, &tasks);
 
         // Phase 24A.1: Redistribute unfilled bids from global_order_book back to
@@ -1559,12 +1436,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
         // ── DIAGNOSTIC CHECKPOINT 3: b2b_settlement_post ──
         probe.checkpoint("b2b_settlement_post", 3, turn, &market, &tasks);
-        #[cfg(feature = "diagnostic")]
-        {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
-            eprintln!("PHASE_B2B_SETTLE_POST: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
-        }
-
         // ═══════════════════════════════════════════════════════════
         // PHASE 31: CRISIS MANAGEMENT AI — EXECUTIVE DECREES
         // Runs BEFORE ministry procurement so that tax adjustments, bond
@@ -1635,11 +1506,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
-        #[cfg(feature = "diagnostic")]
-        {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
-            eprintln!("PHASE_POST_CRISIS: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
-        }
         // ═══════════════════════════════════════════════════════════
         // PHASE 32: PARLIAMENT BUILDING PAYROLL & PROCUREMENT
         // Pays MP and staff wages from Treasury, credits specific
@@ -1774,11 +1640,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             task.ctx.country.politics.ministry_config = ministry_config;
         });
 
-        #[cfg(feature = "diagnostic")]
-        {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
-            eprintln!("PHASE_POST_MINISTRY: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
-        }
         // ═══════════════════════════════════════════════════════════
         // PHASE 7B: JST PROCUREMENT (Local Government B2B Orders)
         // Phase D.8: Regional governments submit formal Buy Orders for
@@ -1884,11 +1745,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         });
 
-        #[cfg(feature = "diagnostic")]
-        {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
-            eprintln!("PHASE_POST_JST: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
-        }
         // ═══════════════════════════════════════════════════════════
         // RESURRECTION PHASE 1: INFRASTRUCTURE POST-CLEARING
         // ═══════════════════════════════════════════════════════════
@@ -2116,11 +1972,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
-        #[cfg(feature = "diagnostic")]
-        {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
-            eprintln!("PHASE_POST_MILITARY: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
-        }
         // ═══════════════════════════════════════════════════════════
         // PHASE 69: WAR ECONOMY
         // 69-A: Conscription (drain demographics → military units)
@@ -2167,11 +2018,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
-        #[cfg(feature = "diagnostic")]
-        {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
-            eprintln!("PHASE_POST_WAR: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
-        }
         // ═══════════════════════════════════════════════════════════
         // PHASE 6.4b-PRE: CONSTRUCTION PROGRESS
         // Consume delivered materials from building inventory into
@@ -2453,11 +2299,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         });
 
-        #[cfg(feature = "diagnostic")]
-        {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
-            eprintln!("PHASE_POST_CONSTR: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp={:.2} debit={:.2} ministry={:.2}", turn, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.debit_cash, _w.ministry_cash);
-        }
         // ═══════════════════════════════════════════════════════════
         // PHASE 8: WAVE-BASED PRODUCTION EXECUTION
         // Wave 1: Energy sector produces Commodity::Energy/Heat from fuel
@@ -4326,36 +4167,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // ── DIAGNOSTIC CHECKPOINT: b2c_clearing_post ──
 probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
-        #[cfg(feature = "diagnostic")]
-        {
-            let total_bank_res: f64 = tasks.iter().flat_map(|t| {
-                std::iter::once(t.ctx.country.bfg_fund.reserves)
-                .chain(std::iter::once(t.ctx.country.sobk_scheme.pool))
-                .chain(t.companies.iter()
-                    .filter(|c| c.sector == crate::registries::enums::Sector::Banking)
-                    .filter_map(|c| c.balance_sheet.as_ref())
-                    .flat_map(|bs| [bs.reserves_at_central_bank, bs.cb_deposit_facility_balance]))
-            }).sum();
-            let total_treasury: f64 = tasks.iter().flat_map(|t| {
-                std::iter::once(t.ctx.country.budget.liquid_reserves)
-                .chain(t.ctx.country.regions.iter().filter_map(|r| r.governance.as_ref().map(|g| g.budget.liquid_reserves)))
-                .chain(t.ctx.country.megaregions.iter().filter_map(|m| m.governance.as_ref().map(|g| g.budget.liquid_reserves)))
-            }).sum();
-            let total_ministry: f64 = tasks.iter().flat_map(|t| {
-                t.ctx.country.politics.ministry_config.iter()
-                    .flat_map(|c| c.ministries.iter())
-                    .map(|m| m.ministry_cash)
-                    .chain(t.ctx.country.pending_defense_orders.iter().map(|b| b.quantity * b.limit_price))
-            }).sum();
-            let total_citizen: f64 = tasks.iter().flat_map(|t| {
-                t.ctx.country.regions.iter().flat_map(|r| {
-                    r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values())
-                }).map(|d| d.savings)
-            }).sum();
-            eprintln!("POST_B2C_CHK: turn={} bank_res={:.2} treasury={:.2} ministry={:.2} citizen={:.2} offshore={:.2} charity={:.2}",
-                turn, total_bank_res, total_treasury, total_ministry, total_citizen, market.offshore_capital, market.apostolic_see_ledger.global_charity_pool);
-        }
-
         // Phase 47: Degrade household durable cohorts by one turn.
         // Runs after B2C clearing, before telemetry. Durable goods
         // (Furniture, Cars, Televisions, Clothing, etc.) slowly wear out
@@ -4805,54 +4616,6 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
                 }
             }
         });
-        // Phase 94: Trace M0 after process_companies to isolate turn_end leak.
-        #[cfg(feature = "diagnostic")]
-        {
-            let mut treasury = 0.0_f64;
-            let mut citizen = 0.0_f64;
-            let mut bank_res = 0.0_f64;
-            let mut corp_cash = 0.0_f64;
-            for task in &tasks {
-                treasury += task.ctx.country.budget.liquid_reserves;
-                for region in &task.ctx.country.regions {
-                    if let Some(ref gov) = region.governance {
-                        treasury += gov.budget.liquid_reserves;
-                    }
-                }
-                for megaregion in &task.ctx.country.megaregions {
-                    if let Some(ref gov) = megaregion.governance {
-                        treasury += gov.budget.liquid_reserves;
-                    }
-                }
-                for region in &task.ctx.country.regions {
-                    for demo in region.class_demographics.rural_classes.values() {
-                        citizen += demo.savings;
-                    }
-                    for demo in region.class_demographics.urban_classes.values() {
-                        citizen += demo.savings;
-                    }
-                }
-                bank_res += task.ctx.country.bfg_fund.reserves;
-                bank_res += task.ctx.country.sobk_scheme.pool;
-                for company in &task.companies {
-                    if company.sector == crate::registries::enums::Sector::Banking {
-                        if let Some(ref bs) = company.balance_sheet {
-                            bank_res += bs.reserves_at_central_bank;
-                            bank_res += bs.cb_deposit_facility_balance;
-                        }
-                    } else if company.primary_bank_id.is_none() {
-                        corp_cash += company.available_cash
-                            + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0)
-                            + company.debit_cash;
-                    }
-                }
-            }
-            eprintln!(
-                "POST_COMPANIES_M0: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp_cash={:.2} offshore={:.2} foreign={:.2} charity={:.2} cb_inj={:.2}",
-                turn, treasury, citizen, bank_res, corp_cash, market.offshore_capital, market.foreign_sector_balance, market.apostolic_see_ledger.global_charity_pool, tasks.iter().map(|t| t.ctx.country.central_bank.liquidity_injected).sum::<f64>()
-            );
-        }
-
         // Phase 4 fix (C6): Process voluntary project abandonment.
         // Companies queue AbandonProject actions via pply_action;
         // the actual abandonment is processed here where buildings are
@@ -7440,54 +7203,6 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
         }
 
         // ── DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ──
-        // Phase 94: Trace M0 just before turn_end checkpoint.
-        #[cfg(feature = "diagnostic")]
-        {
-            let mut treasury = 0.0_f64;
-            let mut citizen = 0.0_f64;
-            let mut bank_res = 0.0_f64;
-            let mut corp_cash = 0.0_f64;
-            for task in &tasks {
-                treasury += task.ctx.country.budget.liquid_reserves;
-                for region in &task.ctx.country.regions {
-                    if let Some(ref gov) = region.governance {
-                        treasury += gov.budget.liquid_reserves;
-                    }
-                }
-                for megaregion in &task.ctx.country.megaregions {
-                    if let Some(ref gov) = megaregion.governance {
-                        treasury += gov.budget.liquid_reserves;
-                    }
-                }
-                for region in &task.ctx.country.regions {
-                    for demo in region.class_demographics.rural_classes.values() {
-                        citizen += demo.savings;
-                    }
-                    for demo in region.class_demographics.urban_classes.values() {
-                        citizen += demo.savings;
-                    }
-                }
-                bank_res += task.ctx.country.bfg_fund.reserves;
-                bank_res += task.ctx.country.sobk_scheme.pool;
-                for company in &task.companies {
-                    if company.sector == crate::registries::enums::Sector::Banking {
-                        if let Some(ref bs) = company.balance_sheet {
-                            bank_res += bs.reserves_at_central_bank;
-                            bank_res += bs.cb_deposit_facility_balance;
-                        }
-                    } else if company.primary_bank_id.is_none() {
-                        corp_cash += company.available_cash
-                            + company.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0)
-                            + company.debit_cash;
-                    }
-                }
-            }
-            eprintln!(
-                "PRE_TURN_END_M0: turn={} treasury={:.2} citizen={:.2} bank_res={:.2} corp_cash={:.2} offshore={:.2} foreign={:.2} charity={:.2} cb_inj={:.2}",
-                turn, treasury, citizen, bank_res, corp_cash, market.offshore_capital, market.foreign_sector_balance, market.apostolic_see_ledger.global_charity_pool, tasks.iter().map(|t| t.ctx.country.central_bank.liquidity_injected).sum::<f64>()
-            );
-        }
-
 probe.checkpoint("turn_end", 4, turn, &market, &tasks);
 
         // Collect entities back from tasks into ctx.entities format.
