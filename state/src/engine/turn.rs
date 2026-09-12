@@ -2348,17 +2348,20 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 );
                 // Phase 25: Credit the first Construction-sector company for
                 // the repair work (double-entry: treasury debited, company credited).
+                // Phase 94: Use credit_company_by_id for proper bank reserve
+                // sync (M0 conservation).
                 if spent > 0.0 {
-                    if let Some(construction_co) = task
+                    let construction_co_id = task
                         .companies
-                        .iter_mut()
+                        .iter()
                         .find(|c| c.sector == Sector::Construction)
-                    {
-                        if let Some(ref mut ba) = construction_co.brokerage_account {
-                            ba.cash += spent;
-                        } else {
-                            construction_co.available_cash += spent;
-                        }
+                        .map(|c| c.id.clone());
+                    if let Some(ref co_id) = construction_co_id {
+                        crate::economy::transfer_settler::credit_company_by_id(
+                            &mut task.companies,
+                            co_id,
+                            spent,
+                        );
                     }
                 }
             }

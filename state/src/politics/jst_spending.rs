@@ -255,15 +255,9 @@ pub fn settle_jst_trades(
         let key = (region_id, trade.commodity);
         *procured.entry(key).or_insert(0.0) += trade.quantity;
 
-        // Credit seller via TransferSettler for proper bank balance sheet sync.
-        let trade_value = trade.quantity * trade.execution_price;
-        if trade_value > 0.0 {
-            crate::economy::transfer_settler::credit_company_by_id(
-                companies,
-                &trade.seller_id,
-                trade_value,
-            );
-        }
+        // Phase 94: Seller credit is handled by settle_trades (called before
+        // this function). Do NOT credit the seller again — that would
+        // double-credit and create M0 from nothing.
     }
 
     procured

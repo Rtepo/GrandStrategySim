@@ -1141,9 +1141,11 @@ pub fn allocate_emergency_subsidies(
         if subsidy <= 0.0 {
             continue;
         }
-        // Double-entry: debit treasury, credit company.
+        // Double-entry: debit treasury, credit company via credit_company_by_id
+        // for proper bank reserve sync (M0 conservation).
         country.budget.liquid_reserves -= subsidy;
-        companies[*i].available_cash += subsidy;
+        let company_id = companies[*i].id.clone();
+        crate::economy::transfer_settler::credit_company_by_id(companies, &company_id, subsidy);
         actual_total += subsidy;
     }
 
