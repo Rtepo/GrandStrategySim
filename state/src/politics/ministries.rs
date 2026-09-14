@@ -827,6 +827,10 @@ pub fn allocate_cash_to_ministries(country: &mut Country) {
     let ratio = (available / promised).min(1.0);
 
     for ministry in &mut config.ministries {
+        // Phase 94: Return unspent ministry_cash to treasury before
+        // resetting. Without this, the old ministry_cash (M0) is silently
+        // destroyed when overwritten, causing M0 conservation violations.
+        country.budget.liquid_reserves += ministry.ministry_cash;
         let allocated = ministry.allocated_cash * ratio;
         ministry.allocated_cash = allocated;
         // Phase 35: Credit the ministry's cash pocket. All spending debits
@@ -1502,11 +1506,20 @@ pub fn process_minister_post_clearing(
         }
     }
 
-    // Log executed trades for this ministry
+    // Phase 94: Refund the price difference between limit price and execution
+    // price on filled trades. The ministry encumbered `quantity * limit_price`
+    // at bid submission, but settle_trades credits the seller only
+    // `quantity * execution_price`. Without this refund, the difference is
+    // destroyed (FiatDestruction). The refund credits ministry_cash back so
+    // the net M0 change is zero.
     for trade in &order_book.trades {
         if trade.buyer_id == ministry.id {
-            // The trade was already settled during match_orders ÔÇö cash moved
-            // from encumbrance to seller. The spent_cash already reflects this.
+            let price_diff = trade.bid_limit_price - trade.execution_price;
+            if price_diff > 0.0 {
+                let refund = trade.quantity * price_diff;
+                ministry.ministry_cash += refund;
+                ministry.spent_cash -= refund;
+            }
         }
     }
 }

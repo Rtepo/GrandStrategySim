@@ -591,6 +591,20 @@ pub fn process_prison_labor_turn(
                 let fee_clamped = fee.min(companies[idx].available_cash);
                 companies[idx].available_cash -= fee_clamped;
                 country.budget.liquid_reserves += fee_clamped;
+                // Phase 94: Sync bank reserves for banked companies.
+                if companies[idx].sector == Sector::Banking {
+                    if let Some(ref mut bs) = companies[idx].balance_sheet {
+                        let debit = fee_clamped.min(bs.reserves_at_central_bank.max(0.0));
+                        bs.reserves_at_central_bank -= debit;
+                    }
+                } else if let Some(bank_id) = companies[idx].primary_bank_id.clone() {
+                    if let Some(bank) = companies.iter_mut().find(|c| c.id == bank_id) {
+                        if let Some(ref mut bs) = bank.balance_sheet {
+                            let debit = fee_clamped.min(bs.reserves_at_central_bank.max(0.0));
+                            bs.reserves_at_central_bank -= debit;
+                        }
+                    }
+                }
 
                 allocated_total += injected_fte;
                 fees_total += fee_clamped;

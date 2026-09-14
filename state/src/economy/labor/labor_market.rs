@@ -476,6 +476,18 @@ pub fn resolve_regional_labor_market(
     let mut total_wage_obligation: f64 = 0.0;
     // Phase 94: Track total arrears repayment to credit citizen savings.
     let mut total_arrears_to_workers: f64 = 0.0;
+    let mut total_actual_paid_banked: f64 = 0.0;
+    let mut total_actual_paid_unbanked: f64 = 0.0;
+    let mut total_bank_self_debits: f64 = 0.0;
+
+    // Phase 94: Build a map of company_id → exact earned_wages from the
+    // allocation matrix. This avoids rounding discrepancies between
+    // fulfilled_fte (rounded) and sum(earned_wages) (unrounded), which
+    // would create FiatDestruction when rounding goes UP.
+    let mut company_earned_wages: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
+    for ((company_id, _class), wage) in &allocation_matrix.wages {
+        *company_earned_wages.entry(company_id.clone()).or_insert(0.0) += wage;
+    }
 
     // 1. Debit companies for their exact gross wage payments
     // Phase 40: Wage arrears — if fulfilled_fte exceeds what the company can
@@ -490,19 +502,35 @@ pub fn resolve_regional_labor_market(
             // Strike benefits are paid by the union in process_unions.
             continue;
         }
-        let wage_payment = company.fulfilled_fte as f64 * company.offered_wage_per_fte;
+        // Phase 94: Use exact earned_wages from the allocation matrix instead
+        // of fulfilled_fte (rounded) * offered_wage_per_fte. When rounding
+        // goes UP, the rounded wage_payment exceeds sum(earned_wages),
+        // debiting more from companies than is credited to citizens.
+        let wage_payment = company_earned_wages.get(&company.id).copied().unwrap_or(0.0);
         total_wage_obligation += wage_payment;
 
-        // Compute how much cash is actually available
-        let available_cash = company
-            .brokerage_account
-            .as_ref()
-            .map(|ba| ba.cash.max(0.0))
-            .unwrap_or(company.available_cash.max(0.0));
+        // Phase 94: Banks pay wages from reserves_at_central_bank (M0), not
+        // from brokerage_account.cash (off-balance-sheet, NOT in M0). Debiting
+        // non-M0 cash while crediting citizen savings (M0) creates fiat.
+        let is_bank = company.balance_sheet.is_some();
+        let available_cash = if is_bank {
+            company.balance_sheet.as_ref()
+                .map(|bs| bs.reserves_at_central_bank.max(0.0))
+                .unwrap_or(0.0)
+        } else {
+            company.brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash.max(0.0))
+                .unwrap_or(company.available_cash.max(0.0))
+        };
 
         let actual_paid = if wage_payment <= available_cash {
             // Company can afford full payroll — debit normally
-            if let Some(ba) = &mut company.brokerage_account {
+            if is_bank {
+                if let Some(ref mut bs) = company.balance_sheet {
+                    bs.reserves_at_central_bank -= wage_payment;
+                }
+            } else if let Some(ba) = &mut company.brokerage_account {
                 ba.cash -= wage_payment;
             } else {
                 company.available_cash -= wage_payment;
@@ -517,7 +545,11 @@ pub fn resolve_regional_labor_market(
             let payable = available_cash;
             let arrears_this_turn = wage_payment - payable;
             if payable > 0.0 {
-                if let Some(ba) = &mut company.brokerage_account {
+                if is_bank {
+                    if let Some(ref mut bs) = company.balance_sheet {
+                        bs.reserves_at_central_bank -= payable;
+                    }
+                } else if let Some(ba) = &mut company.brokerage_account {
                     ba.cash -= payable;
                 } else {
                     company.available_cash -= payable;
@@ -532,8 +564,15 @@ pub fn resolve_regional_labor_market(
 
         // Phase 43: Accumulate wage debit for batch bank sync.
         if actual_paid > 0.0 {
-            if let Some(ref bank_id) = company.primary_bank_id {
+            if is_bank {
+                // Banks debit their own reserves directly — no bank_debits entry.
+                total_actual_paid_banked += actual_paid;
+                total_bank_self_debits += actual_paid;
+            } else if let Some(ref bank_id) = company.primary_bank_id {
                 *bank_debits.entry(bank_id.clone()).or_insert(0.0) += actual_paid;
+                total_actual_paid_banked += actual_paid;
+            } else {
+                total_actual_paid_unbanked += actual_paid;
             }
         }
         total_actual_paid += actual_paid;
@@ -545,14 +584,23 @@ pub fn resolve_regional_labor_market(
         // must receive the money (M0 conservation: bank reserves ↓ = citizen
         // savings ↑). Without this credit, M0 is destroyed.
         if company.wage_arrears > 0.0 {
-            let remaining_cash = company
-                .brokerage_account
-                .as_ref()
-                .map(|ba| ba.cash.max(0.0))
-                .unwrap_or(company.available_cash.max(0.0));
+            let remaining_cash = if is_bank {
+                company.balance_sheet.as_ref()
+                    .map(|bs| bs.reserves_at_central_bank.max(0.0))
+                    .unwrap_or(0.0)
+            } else {
+                company.brokerage_account
+                    .as_ref()
+                    .map(|ba| ba.cash.max(0.0))
+                    .unwrap_or(company.available_cash.max(0.0))
+            };
             let repayment = (remaining_cash * 0.30).min(company.wage_arrears);
             if repayment > 0.0 {
-                if let Some(ba) = &mut company.brokerage_account {
+                if is_bank {
+                    if let Some(ref mut bs) = company.balance_sheet {
+                        bs.reserves_at_central_bank -= repayment;
+                    }
+                } else if let Some(ba) = &mut company.brokerage_account {
                     ba.cash -= repayment;
                 } else {
                     company.available_cash -= repayment;
@@ -560,7 +608,9 @@ pub fn resolve_regional_labor_market(
                 company.wage_arrears -= repayment;
                 total_arrears_to_workers += repayment;
                 // Phase 43: Accumulate arrears repayment for batch bank sync.
-                if let Some(ref bank_id) = company.primary_bank_id {
+                if is_bank {
+                    total_bank_self_debits += repayment;
+                } else if let Some(ref bank_id) = company.primary_bank_id {
                     *bank_debits.entry(bank_id.clone()).or_insert(0.0) += repayment;
                 }
             }
@@ -586,24 +636,36 @@ pub fn resolve_regional_labor_market(
             continue;
         }
         let gross_severance = laid_off * company.offered_wage_per_fte * SEVERANCE_MULTIPLIER;
-        let available = company
-            .brokerage_account
-            .as_ref()
-            .map(|ba| ba.cash.max(0.0))
-            .unwrap_or(company.available_cash.max(0.0));
+        let is_bank = company.balance_sheet.is_some();
+        let available = if is_bank {
+            company.balance_sheet.as_ref()
+                .map(|bs| bs.reserves_at_central_bank.max(0.0))
+                .unwrap_or(0.0)
+        } else {
+            company.brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash.max(0.0))
+                .unwrap_or(company.available_cash.max(0.0))
+        };
         let payable = gross_severance.min(available);
         let unpaid = gross_severance - payable;
 
         // Pay what's available
         if payable > 0.0 {
-            if let Some(ba) = &mut company.brokerage_account {
+            if is_bank {
+                if let Some(ref mut bs) = company.balance_sheet {
+                    bs.reserves_at_central_bank -= payable;
+                }
+            } else if let Some(ba) = &mut company.brokerage_account {
                 ba.cash -= payable;
             } else {
                 company.available_cash -= payable;
             }
             total_severance_to_workers += payable;
             // Phase 43: Accumulate severance debit for batch bank sync.
-            if let Some(ref bank_id) = company.primary_bank_id {
+            if is_bank {
+                total_bank_self_debits += payable;
+            } else if let Some(ref bank_id) = company.primary_bank_id {
                 *bank_debits.entry(bank_id.clone()).or_insert(0.0) += payable;
             }
         }
@@ -619,21 +681,33 @@ pub fn resolve_regional_labor_market(
         if company.severance_arrears <= 0.0 {
             continue;
         }
-        let remaining_cash = company
-            .brokerage_account
-            .as_ref()
-            .map(|ba| ba.cash.max(0.0))
-            .unwrap_or(company.available_cash.max(0.0));
+        let is_bank = company.balance_sheet.is_some();
+        let remaining_cash = if is_bank {
+            company.balance_sheet.as_ref()
+                .map(|bs| bs.reserves_at_central_bank.max(0.0))
+                .unwrap_or(0.0)
+        } else {
+            company.brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash.max(0.0))
+                .unwrap_or(company.available_cash.max(0.0))
+        };
         let repayment = (remaining_cash * 0.30).min(company.severance_arrears);
         if repayment > 0.0 {
-            if let Some(ba) = &mut company.brokerage_account {
+            if is_bank {
+                if let Some(ref mut bs) = company.balance_sheet {
+                    bs.reserves_at_central_bank -= repayment;
+                }
+            } else if let Some(ba) = &mut company.brokerage_account {
                 ba.cash -= repayment;
             } else {
                 company.available_cash -= repayment;
             }
             company.severance_arrears -= repayment;
             total_severance_to_workers += repayment;
-            if let Some(ref bank_id) = company.primary_bank_id {
+            if is_bank {
+                total_bank_self_debits += repayment;
+            } else if let Some(ref bank_id) = company.primary_bank_id {
                 *bank_debits.entry(bank_id.clone()).or_insert(0.0) += repayment;
             }
         }
@@ -645,19 +719,28 @@ pub fn resolve_regional_labor_market(
     // When a company pays wages from its brokerage account (bank deposit),
     // the bank's deposits liability and reserves asset must decrease by the
     // same amount to maintain double-entry consistency.
+    let mut _bank_debits_applied: f64 = 0.0;
+    let mut _bank_debits_dropped: f64 = 0.0;
     for (bank_id, total_debit) in &bank_debits {
         if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
             if let Some(ref mut bs) = bank.balance_sheet {
                 bs.deposits -= total_debit;
                 bs.reserves_at_central_bank -= total_debit;
-                // Phase 94: No reserve clamping — negative reserves represent
-                // CB Lombard borrowing. Clamping breaks A=L+E (deposits
-                // debited by full amount but reserves debited by less) and
-                // causes M0 FiatCreation. Bank resolution (Step 10) handles
-                // insolvent banks with negative reserves.
+                _bank_debits_applied += total_debit;
+            } else {
+                _bank_debits_dropped += total_debit;
+                #[cfg(feature = "diagnostic")]
+                eprintln!("BANK_SYNC_DROP: bank_id={} debit={:.0} reason=no_balance_sheet", bank_id, total_debit);
             }
+        } else {
+            _bank_debits_dropped += total_debit;
+            #[cfg(feature = "diagnostic")]
+            eprintln!("BANK_SYNC_DROP: bank_id={} debit={:.0} reason=bank_not_found", bank_id, total_debit);
         }
     }
+    #[cfg(feature = "diagnostic")]
+    eprintln!("BANK_SYNC_SUM: region={} applied={:.0} dropped={:.0} bank_debits_entries={}",
+        region.id, _bank_debits_applied, _bank_debits_dropped, bank_debits.len());
 
 
     // 2. Credit classes with their net earnings (gross - garnishment - PIT - remittances), track withheld amounts
@@ -669,8 +752,19 @@ pub fn resolve_regional_labor_market(
     // If companies couldn't afford full payroll, actual_paid < wage_obligation.
     // Crediting citizens with full gross_wage while only debiting actual_paid
     // creates money. Scale all earned_wages proportionally (Rule 5).
-    let paid_ratio = if total_wage_obligation > 0.0 {
-        (total_actual_paid / total_wage_obligation).min(1.0)
+    //
+    // Phase 94 fix: Use total_earned_wages (unrounded sum of class earned_wages)
+    // as the denominator, NOT total_wage_obligation. The wage_obligation uses
+    // fulfilled_fte which is ROUNDED (total_secured_by_company.round() as u32),
+    // while earned_wages uses the unrounded total_secured_by_company. When
+    // rounding goes down, earned_wages > wage_obligation, and the old formula
+    // paid_ratio = actual_paid / wage_obligation = 1.0 (if companies afford
+    // payroll), leaving earned_wages > actual_paid — creating M0 fiat.
+    // Using total_earned_wages ensures earned_wages * paid_ratio = actual_paid
+    // exactly, sealing the rounding-induced FiatCreation leak.
+    let total_earned_wages: f64 = pool.class_ledgers.values().map(|l| l.earned_wages).sum();
+    let paid_ratio = if total_earned_wages > 0.0 {
+        (total_actual_paid / total_earned_wages).min(1.0)
     } else {
         1.0
     };
@@ -793,6 +887,32 @@ pub fn resolve_regional_labor_market(
         }
     }
 
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_gross_after: f64 = pool.class_ledgers.values().map(|l| l.earned_wages).sum();
+        // Comprehensive reconciliation:
+        // Credits = citizen_savings_increase + PIT + garnishments + remittances + commuter_wages
+        // Debits = actual_paid + severance + arrears
+        // citizen_savings_increase = gross_after - pit - garnishments - remittances (wage credits)
+        //   + severance_credited + arrears_credited
+        // Total credits = gross_after + commuter_wages + severance + arrears (if all credited)
+        // Total debits = actual_paid + severance + arrears
+        // Diff = gross_after + commuter - actual_paid
+        let total_class_fte_check: f64 = region
+            .class_demographics.rural_classes.values().map(|c| c.allocated_fte).sum::<f64>()
+            + region.class_demographics.urban_classes.values().map(|c| c.allocated_fte).sum::<f64>();
+        let severance_credited = if total_class_fte_check > 0.0 { total_severance_to_workers } else { 0.0 };
+        let arrears_credited = if total_class_fte_check > 0.0 { total_arrears_to_workers } else { 0.0 };
+        let total_credits = total_gross_after + allocation_matrix.commuter_wages + severance_credited + arrears_credited;
+        let total_debits = total_actual_paid + total_severance_to_workers + total_arrears_to_workers;
+        eprintln!("LABOR_RECON: region={} debits={:.0} credits={:.0} diff={:.0} | actual_paid={:.0} (banked={:.0} unbanked={:.0}) gross_after={:.0} commuter={:.0} sev_debit={:.0} sev_cred={:.0} arr_debit={:.0} arr_cred={:.0} pit={:.0} garn={:.0} rem={:.0} class_fte={:.0} bank_debits_applied={:.0} bank_self={:.0}",
+            region.id, total_debits, total_credits, total_credits - total_debits,
+            total_actual_paid, total_actual_paid_banked, total_actual_paid_unbanked, total_gross_after, allocation_matrix.commuter_wages,
+            total_severance_to_workers, severance_credited,
+            total_arrears_to_workers, arrears_credited,
+            total_pit_withheld, total_garnishments_withheld, total_remittances_withheld,
+            total_class_fte_check, _bank_debits_applied, total_bank_self_debits);
+    }
     // Fix 1.22: Store total PIT withheld for caller to route to Treasury
     allocation_matrix.pit_withheld = total_pit_withheld;
     // Phase 18A: Store total remittances withheld for caller to route to ForeignEntity
@@ -820,13 +940,31 @@ pub fn resolve_regional_labor_market(
                 .map(|c| c.allocated_fte)
                 .sum::<f64>();
         if total_class_fte > 0.0 {
+            // Phase 94: Track total credited to apply residual correction.
+            // Proportional distribution (share * total) can lose cents due
+            // to f64 rounding, accumulating to ~600K across 180 regions.
+            let mut total_credited = 0.0;
             for demo in region.class_demographics.rural_classes.values_mut() {
                 let share = demo.allocated_fte / total_class_fte;
-                demo.savings += total_severance_to_workers * share;
+                let credit = total_severance_to_workers * share;
+                demo.savings += credit;
+                total_credited += credit;
             }
             for demo in region.class_demographics.urban_classes.values_mut() {
                 let share = demo.allocated_fte / total_class_fte;
-                demo.savings += total_severance_to_workers * share;
+                let credit = total_severance_to_workers * share;
+                demo.savings += credit;
+                total_credited += credit;
+            }
+            // Residual correction: credit any rounding remainder to the
+            // first urban class (or first rural class if no urban classes).
+            let residual = total_severance_to_workers - total_credited;
+            if residual.abs() > 0.0 {
+                if let Some(demo) = region.class_demographics.urban_classes.values_mut().next() {
+                    demo.savings += residual;
+                } else if let Some(demo) = region.class_demographics.rural_classes.values_mut().next() {
+                    demo.savings += residual;
+                }
             }
         }
     }
@@ -844,13 +982,26 @@ pub fn resolve_regional_labor_market(
                 .map(|c| c.allocated_fte)
                 .sum::<f64>();
         if total_class_fte > 0.0 {
+            let mut total_credited = 0.0;
             for demo in region.class_demographics.rural_classes.values_mut() {
                 let share = demo.allocated_fte / total_class_fte;
-                demo.savings += total_arrears_to_workers * share;
+                let credit = total_arrears_to_workers * share;
+                demo.savings += credit;
+                total_credited += credit;
             }
             for demo in region.class_demographics.urban_classes.values_mut() {
                 let share = demo.allocated_fte / total_class_fte;
-                demo.savings += total_arrears_to_workers * share;
+                let credit = total_arrears_to_workers * share;
+                demo.savings += credit;
+                total_credited += credit;
+            }
+            let residual = total_arrears_to_workers - total_credited;
+            if residual.abs() > 0.0 {
+                if let Some(demo) = region.class_demographics.urban_classes.values_mut().next() {
+                    demo.savings += residual;
+                } else if let Some(demo) = region.class_demographics.rural_classes.values_mut().next() {
+                    demo.savings += residual;
+                }
             }
         }
     }

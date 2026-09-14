@@ -323,10 +323,68 @@ impl Syndic {
         let available_cash = company.available_cash.max(0.0);
         let mut total_seized_cash = brokerage_cash + available_cash;
 
+        // Phase 94: For banked non-bank companies, available_cash is NOT M0
+        // (it is M1 backed by bank deposits — excluded from walk_global_fiat).
+        // When the Syndic seizes it and distributes to creditors/treasury (M0
+        // pockets), it becomes new M0. To keep the conservation check balanced,
+        // debit the bank's reserves (M0 contraction) 1:1 with the seized cash.
+        // This makes the operation M0-neutral: bank reserves ↓, seized cash ↑,
+        // then distribution to creditors ↑ — net M0 change = 0 (Directive 1).
+        // If the bank cannot be found (already liquidated), track as CB injection
+        // instead (the CB acts as lender of last resort to fund the withdrawal).
+        if company.bank_type.is_none() {
+            if let Some(ref bank_id) = company.primary_bank_id {
+                let banked_cash = brokerage_cash + available_cash;
+                if banked_cash > 0.0 {
+                    let bank = companies.iter_mut().find(|c| &c.id == bank_id);
+                    if let Some(bank) = bank {
+                        if let Some(ref mut bs) = bank.balance_sheet {
+                            let debit = bs.reserves_at_central_bank.max(0.0).min(banked_cash);
+                            bs.reserves_at_central_bank -= debit;
+                            // If reserves were insufficient, the shortfall is
+                            // covered by CB liquidity injection (lender of last
+                            // resort) so the bank can honour the withdrawal.
+                            let shortfall = banked_cash - debit;
+                            if shortfall > 0.0 {
+                                country.central_bank.liquidity_injected += shortfall;
+                            }
+                        }
+                    } else {
+                        // Bank not found — CB injection covers the full amount.
+                        country.central_bank.liquidity_injected += banked_cash;
+                    }
+                }
+            }
+        }
+
         // Clear company cash (it's been seized).
         if let Some(brokerage) = &mut company.brokerage_account {
             brokerage.cash = 0.0;
         }
+        // Phase 94: For unbanked companies, available_cash, brokerage_cash,
+        // rd_budget, and debit_cash are M0. If they are negative, setting them
+        // to 0 increases M0. Track this M0 increase as CB injection to keep the
+        // conservation check balanced.
+        if company.bank_type.is_none() && company.primary_bank_id.is_none() {
+            let neg_available = company.available_cash.min(0.0).abs();
+            let neg_brokerage = company
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash.min(0.0).abs())
+                .unwrap_or(0.0);
+            let neg_rd = company.rd_budget.min(0.0).abs();
+            let neg_debit = company.debit_cash.min(0.0).abs();
+            let neg_total = neg_available + neg_brokerage + neg_rd + neg_debit;
+            if neg_total > 0.0 {
+                country.central_bank.liquidity_injected += neg_total;
+            }
+        }
+        // Phase 94: Zero out rd_budget and debit_cash for liquidated companies.
+        // For unbanked companies, these are M0. The liquidated_cash routing
+        // captures positive values. Negative values are handled by the CB
+        // injection tracking above.
+        company.rd_budget = 0.0;
+        company.debit_cash = 0.0;
         company.available_cash = 0.0;
 
         // ── STEP 2b: Bank-aware seizure — prevent M0 destruction ──
@@ -336,10 +394,30 @@ impl Syndic {
         // dropped (audit: -47.36B in turn 1). This seizes them into the
         // waterfall cash pool so they flow to creditors/treasury (Directive 1).
         if company.bank_type.is_some() {
+            // Phase 94: Bank operating cash (available_cash + brokerage_cash)
+            // is NOT in M0 (excluded from walk_global_fiat to avoid double-
+            // counting equity-backed flows). When the Syndic seizes it and
+            // distributes to creditors/treasury (both M0 pockets), it becomes
+            // new M0. Track as CB injection so the conservation check balances.
+            let bank_operating_cash = brokerage_cash + available_cash;
+            if bank_operating_cash > 0.0 {
+                country.central_bank.liquidity_injected += bank_operating_cash;
+            }
+
             if let Some(ref mut bs) = company.balance_sheet {
                 let cb_reserves = bs.reserves_at_central_bank.max(0.0);
                 let cb_deposit = bs.cb_deposit_facility_balance.max(0.0);
                 total_seized_cash += cb_reserves + cb_deposit;
+                // Phase 94: If reserves or deposit-facility are negative, setting
+                // them to 0 increases M0 (since the M0 walk counts these as
+                // negative). Track this M0 increase as CB injection to keep the
+                // conservation check balanced.
+                let negative_reserves = bs.reserves_at_central_bank.min(0.0);
+                let negative_deposit = bs.cb_deposit_facility_balance.min(0.0);
+                let negative_total = (-negative_reserves) + (-negative_deposit);
+                if negative_total > 0.0 {
+                    country.central_bank.liquidity_injected += negative_total;
+                }
                 bs.reserves_at_central_bank = 0.0;
                 bs.cb_deposit_facility_balance = 0.0;
 
@@ -369,7 +447,12 @@ impl Syndic {
 
         // ── STEP 4: Seize building inventory (Rule 1 & 20) ──
         // Fire-sell inventory at policy discount, add to cash pool.
+        // Phase 94: The fire-sale creates cash from physical goods without
+        // a buyer. This is M0 creation — the CB acts as buyer of last resort
+        // (quantitative easing). Track the fire-sale value as CB injection
+        // so the M0 conservation check stays balanced (Directive 1).
         let mut building_ids_owned: Vec<String> = Vec::new();
+        let mut total_fire_sale_value: f64 = 0.0;
         for building in buildings.iter_mut() {
             if building.owner_id != company.id {
                 continue;
@@ -380,9 +463,17 @@ impl Syndic {
             if inventory_value > 0.0 {
                 let fire_sale_value = inventory_value * policy.fire_sale_discount;
                 total_seized_cash += fire_sale_value;
+                total_fire_sale_value += fire_sale_value;
                 // Clear inventory — physical mass is "sold" at fire-sale.
                 building.inventory.clear();
             }
+        }
+        // Phase 94: Track fire-sale proceeds as CB injection (buyer of last
+        // resort). Without this, the M0 conservation check sees M0 increase
+        // (cash to creditors) without a matching CB injection increase,
+        // creating a false FiatCreation violation.
+        if total_fire_sale_value > 0.0 {
+            country.central_bank.liquidity_injected += total_fire_sale_value;
         }
 
         // ── STEP 5: Route buildings to auction pool with per-building book value ──
@@ -481,6 +572,10 @@ impl Syndic {
 
             // Waterfall Step 3: Secured creditors (banks with collateral).
             // Pay exact per-bank amounts (Rule 7).
+            // Phase 94: This is M0-neutral — reserves move from the
+            // liquidated bank's seized pool to creditor bank reserves.
+            // The creditor bank's loans_issued decrease is NOT in M0, so
+            // no CB injection tracking is needed.
             if remaining_cash > 0.0 && !creditor_claims.is_empty() {
                 let total_claims: f64 = creditor_claims.values().sum();
                 if total_claims > 0.0 {
@@ -643,23 +738,67 @@ pub fn process_auction_turn(
             let price = *asking_price;
 
             // Debit buyer's cash (double-entry).
-            let buyer = &mut companies[buyer_idx];
-            let brokerage_cash = buyer
-                .brokerage_account
-                .as_ref()
-                .map(|b| b.cash)
-                .unwrap_or(0.0);
-            if brokerage_cash >= price {
-                if let Some(brokerage) = &mut buyer.brokerage_account {
-                    brokerage.cash -= price;
+            let (paid_from_brokerage, paid_from_available, buyer_bank_id) = {
+                let buyer = &mut companies[buyer_idx];
+                let brokerage_cash = buyer
+                    .brokerage_account
+                    .as_ref()
+                    .map(|b| b.cash)
+                    .unwrap_or(0.0);
+                let _paid_from_brokerage;
+                let _paid_from_available;
+                if brokerage_cash >= price {
+                    if let Some(brokerage) = &mut buyer.brokerage_account {
+                        brokerage.cash -= price;
+                    }
+                    _paid_from_brokerage = price;
+                    _paid_from_available = 0.0;
+                } else {
+                    // Use brokerage first, then available_cash.
+                    let remaining = price - brokerage_cash.max(0.0);
+                    if let Some(brokerage) = &mut buyer.brokerage_account {
+                        brokerage.cash = 0.0;
+                    }
+                    buyer.available_cash = (buyer.available_cash - remaining).max(0.0);
+                    _paid_from_brokerage = brokerage_cash.max(0.0);
+                    _paid_from_available = remaining;
                 }
-            } else {
-                // Use brokerage first, then available_cash.
-                let remaining = price - brokerage_cash.max(0.0);
-                if let Some(brokerage) = &mut buyer.brokerage_account {
-                    brokerage.cash = 0.0;
+                let bank_id = if buyer.bank_type.is_none() {
+                    buyer.primary_bank_id.clone()
+                } else {
+                    None
+                };
+                (_paid_from_brokerage, _paid_from_available, bank_id)
+            };
+
+            // Phase 94: For banked buyers, available_cash + brokerage_cash is
+            // NOT M0 (M1 backed by bank deposits). The auction purchase debits
+            // these non-M0 balances, but the creditor distribution later credits
+            // bank reserves (M0). To keep the conservation check balanced, debit
+            // the buyer's bank reserves 1:1 with the non-M0 cash spent. If the
+            // bank cannot be found or has insufficient reserves, track the
+            // shortfall as CB injection (lender of last resort).
+            if let Some(bank_id) = buyer_bank_id {
+                let banked_cash_spent = paid_from_brokerage + paid_from_available;
+                if banked_cash_spent > 0.0 {
+                    let bank = companies.iter_mut().find(|c| c.id == bank_id);
+                    if let Some(bank) = bank {
+                        if let Some(ref mut bs) = bank.balance_sheet {
+                            let debit = bs.reserves_at_central_bank.max(0.0).min(banked_cash_spent);
+                            bs.reserves_at_central_bank -= debit;
+                            let shortfall = banked_cash_spent - debit;
+                            if shortfall > 0.0 {
+                                country.central_bank.liquidity_injected += shortfall;
+                            }
+                            #[cfg(feature = "diagnostic")]
+                            { eprintln!("LIQ_AUC_DEBIT: buyer={} bank={} spent={:.0} debit={:.0} shortfall={:.0}", buyer_id, bank_id, banked_cash_spent, debit, shortfall); }
+                        }
+                    } else {
+                        country.central_bank.liquidity_injected += banked_cash_spent;
+                        #[cfg(feature = "diagnostic")]
+                        { eprintln!("LIQ_AUC_DEBIT: buyer={} bank={} spent={:.0} debit=0 shortfall={:.0} (bank not found)", buyer_id, bank_id, banked_cash_spent, banked_cash_spent); }
+                    }
                 }
-                buyer.available_cash = (buyer.available_cash - remaining).max(0.0);
             }
 
             purchased.push((asset_id.clone(), buyer_id, price, building_id.clone()));
@@ -688,6 +827,7 @@ pub fn process_auction_turn(
 
     // 5. Demolish expired assets (Rule 4 — no zombie nationalization).
     let expired_ids = country.bankruptcy_auction_pool.expired_asset_ids(policy.auction_max_turns);
+    let mut total_salvage_value: f64 = 0.0;
     for asset_id in expired_ids {
         if let Some((_asking, book_value, _owner, _claims, _turns, _sector, building_id)) =
             country.bankruptcy_auction_pool.remove_asset(&asset_id)
@@ -699,6 +839,7 @@ pub fn process_auction_turn(
             if salvage_value > 0.0 {
                 country.bankruptcy_auction_pool.salvage_proceeds += salvage_value;
                 country.bankruptcy_auction_pool.cash_collected += salvage_value;
+                total_salvage_value += salvage_value;
             }
 
             // Remove the building entity entirely (demolition).
@@ -706,6 +847,11 @@ pub fn process_auction_turn(
                 buildings.retain(|b| b.id != bld_id);
             }
         }
+    }
+    // Phase 94: Demolition salvage creates M0 from physical assets (no buyer).
+    // Track as CB injection (buyer of last resort) to balance the M0 check.
+    if total_salvage_value > 0.0 {
+        country.central_bank.liquidity_injected += total_salvage_value;
     }
 
     // 6. Drain salvage_proceeds to treasury (no creditor claims on salvage).

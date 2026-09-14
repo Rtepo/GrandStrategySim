@@ -709,6 +709,7 @@ fn collect_patent_fees(
 
     let mut total_collected = 0.0_f64;
     let mut total_evaded = 0.0_f64;
+    let mut bank_debits: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
 
     for company in companies.iter_mut() {
         if company.licensed_blueprints.is_empty() {
@@ -736,12 +737,30 @@ fn collect_patent_fees(
                 company.available_cash -= actually_paid;
             }
             country.budget.liquid_reserves += actually_paid;
+            // Phase 94: Track bank reserve debits for batch sync.
+            if company.sector == crate::registries::enums::Sector::Banking {
+                if let Some(ref bs) = company.balance_sheet {
+                    *bank_debits.entry(company.id.clone()).or_insert(0.0) += actually_paid;
+                }
+            } else if let Some(ref bank_id) = company.primary_bank_id {
+                *bank_debits.entry(bank_id.clone()).or_insert(0.0) += actually_paid;
+            }
             total_collected += actually_paid;
         }
 
         let evaded = fee_owed - actually_paid;
         if evaded > 0.0 {
             total_evaded += evaded;
+        }
+    }
+
+    // Phase 94: Batch sync bank reserves for patent fee payments.
+    for (bank_id, total_debit) in &bank_debits {
+        if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
+            if let Some(ref mut bs) = bank.balance_sheet {
+                let debit = total_debit.min(bs.reserves_at_central_bank.max(0.0));
+                bs.reserves_at_central_bank -= debit;
+            }
         }
     }
 

@@ -220,6 +220,24 @@ fn execute_acquisition(
     // E.2b: Financial and physical capital aggregation.
     // ------------------------------------------------------------------
     companies[acquirer_idx].available_cash += companies[target_idx].available_cash;
+    // Phase 94: Transfer brokerage_cash to acquirer to prevent M0 leak.
+    // The liquidated_cash routing after lifecycle captures is_liquidated
+    // companies' brokerage_cash and adds it to treasury. For banked companies,
+    // brokerage_cash is NOT M0 (M1 backed by bank deposits). Adding it to
+    // treasury (M0) would create M0 from M1 without CB injection tracking.
+    // Transferring it to the acquirer preserves the M1 classification and
+    // prevents the leak.
+    let target_brokerage_cash = companies[target_idx]
+        .brokerage_account
+        .as_ref()
+        .map(|b| b.cash)
+        .unwrap_or(0.0);
+    if target_brokerage_cash > 0.0 {
+        companies[acquirer_idx].available_cash += target_brokerage_cash;
+        if let Some(brokerage) = &mut companies[target_idx].brokerage_account {
+            brokerage.cash = 0.0;
+        }
+    }
     companies[acquirer_idx].liquid_capital += companies[target_idx].liquid_capital;
     companies[acquirer_idx].fixed_capital += companies[target_idx].fixed_capital;
     companies[acquirer_idx].credit_cash += companies[target_idx].credit_cash;

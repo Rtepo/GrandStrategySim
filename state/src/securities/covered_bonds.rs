@@ -3,6 +3,7 @@
 //! This module implements CoveredBond (List Zastawny) for bank-issued
 //! bonds backed by mortgage assets, with proper asset classification.
 
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -78,10 +79,7 @@ impl CoveredBondExtension for BankBalanceSheet {
             id: format!(
                 "CB-{}-{}",
                 bank_id,
-                std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs()
+                crate::engine::seeded_rng::thread_rng().next_u64()
             ),
             issuer_id: bank_id.to_string(),
             holder_id: String::new(),

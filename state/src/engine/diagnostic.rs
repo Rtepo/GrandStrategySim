@@ -280,8 +280,8 @@ pub struct BankSnapshot {
     pub cb_deposit_facility_balance: f64,
     pub deposits: f64,
     pub cb_lombard_loans: f64,
-    pub interbank_loans_given: HashMap<String, f64>,
-    pub interbank_loans_taken: HashMap<String, f64>,
+    pub interbank_loans_given: std::collections::BTreeMap<String, f64>,
+    pub interbank_loans_taken: std::collections::BTreeMap<String, f64>,
     pub securities: f64,
     pub tier_1_capital: f64,
     pub total_assets: f64,
@@ -411,6 +411,12 @@ pub struct FiatWalk {
     /// encumbered fiat awaiting settlement (Directive 1: closed-loop).
     #[serde(default)]
     pub debit_cash: f64,
+    /// Phase 94: Frozen company cash — fiat seized by courts from
+    /// company.available_cash and held in JusticeSystemState.frozen_company_cash.
+    /// For unbanked companies, available_cash is M0, so frozen cash must be
+    /// tracked to prevent false FiatDestruction (Directive 1: closed-loop).
+    #[serde(default)]
+    pub frozen_cash: f64,
     /// CB injection tracker (the sole permitted delta source).
     pub cumulative_cb_injection: f64,
 }
@@ -436,13 +442,18 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     let mut arbitration_escrow: f64 = 0.0;
     let mut black_ops_budget: f64 = 0.0;
     let mut intelligence_budget: f64 = 0.0;
+    let mut frozen_cash: f64 = 0.0;
     let mut cumulative_cb_injection: f64 = 0.0;
     let international_org_budgets = market.international_org_budgets;
 
     let mut ministry_cash: f64 = 0.0;
 
+    #[cfg(feature = "diagnostic")]
+    { eprintln!("WALK_TASKS: count={}", tasks.len()); }
     for task in tasks {
         let country = &task.ctx.country;
+        #[cfg(feature = "diagnostic")]
+        { eprintln!("WALK_CB: country={} cb_inj={:.0}", task.ctx.country_name, country.central_bank.liquidity_injected); }
         treasury_cash += country.budget.liquid_reserves;
         // Phase 94: Regional and megaregion government budgets are also
         // fiat at the central bank â€” they are M0 base money. Fiscal
@@ -497,6 +508,16 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         for building in &country.cultural_institutions {
             citizen_cash += building.available_cash;
         }
+        // Phase 94: Public building reserves are government cash held by
+        // state-owned buildings (transport, utilities, etc.). These are M0
+        // base money — debited from treasury or citizen savings and held
+        // in building.reserve for operations. Excluding them creates false
+        // FiatDestruction when public B2C services credit building.reserve.
+        for building in &task.ctx.buildings {
+            if building.owner_id.starts_with("STATE_") || building.owner_id.starts_with("LOCAL_") {
+                treasury_cash += building.reserve;
+            }
+        }
         cumulative_cb_injection += country.central_bank.liquidity_injected;
 
         // Phase 94: Include deposit insurance fund (BFG) and voluntary scheme (SOBK)
@@ -512,6 +533,16 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         // money (Directive 1: closed-loop — no fiat may vanish into void).
         black_ops_budget += country.budget.black_ops_budget;
         intelligence_budget += country.intelligence_budget.current_budget;
+
+        // Phase 94: Frozen company cash — fiat seized by courts from
+        // company.available_cash and held in JusticeSystemState. For unbanked
+        // companies, available_cash is M0, so frozen cash must be tracked
+        // to prevent false FiatDestruction (Directive 1: closed-loop).
+        if let Some(ref js) = country.politics.justice_state {
+            for &amount in js.frozen_company_cash.values() {
+                frozen_cash += amount.max(0.0);
+            }
+        }
 
         // Bank reserves and corporate cash: sum across all companies.
         // Corporate cash (available_cash + brokerage_account.cash) is
@@ -547,13 +578,40 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
                         .brokerage_account
                         .as_ref()
                         .map(|ba| ba.cash)
-                        .unwrap_or(0.0);
+                        .unwrap_or(0.0)
+                    + company.rd_budget;
                 corporate_cash += cash;
                 // Phase 94: debit_cash is encumbered fiat from B2B buy
                 // orders. It is still M0 base money — just earmarked for
                 // a pending bid. Excluding it creates false M0 destruction
                 // between order submission and settlement.
                 debit_cash_total += company.debit_cash;
+            }
+        }
+
+        // Phase 94: Private building reserves are company cash held in
+        // buildings for operations (infrastructure funding). When a private
+        // company funds its building, cash moves from available_cash to
+        // building.reserve. Both are M0 for unbanked companies. Excluding
+        // private building.reserve creates false FiatDestruction when
+        // allocate_owner_infrastructure_funding debits unbanked company
+        // cash and credits building.reserve. STATE_/LOCAL_ building
+        // reserves are already in treasury_cash (line 514). Only count
+        // building.reserve for buildings owned by unbanked companies —
+        // banked company building.reserve is M1 (backed by bank deposits).
+        let unbanked_ids: std::collections::HashSet<String> = task
+            .companies
+            .iter()
+            .filter(|c| c.primary_bank_id.is_none() && c.sector != Sector::Banking)
+            .map(|c| c.id.clone())
+            .collect();
+        for building in &task.ctx.buildings {
+            if !building.owner_id.starts_with("STATE_")
+                && !building.owner_id.starts_with("LOCAL_")
+                && building.reserve > 0.0
+                && unbanked_ids.contains(&building.owner_id)
+            {
+                corporate_cash += building.reserve;
             }
         }
     }
@@ -575,8 +633,8 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital
         + foreign_sector_balance + see_charity_pool + ministry_cash + arbitration_escrow
         + black_ops_budget + intelligence_budget + international_org_budgets
-        + corporate_cash + debit_cash_total;
-    FiatWalk {
+        + corporate_cash + debit_cash_total + frozen_cash;
+    let snapshot = FiatWalk {
         total,
         treasury_cash,
         citizen_cash,
@@ -591,8 +649,12 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         black_ops_budget,
         intelligence_budget,
         international_org_budgets,
+        frozen_cash,
         cumulative_cb_injection,
-    }
+    };
+    #[cfg(feature = "diagnostic")]
+    { eprintln!("WALK_TOTAL: cb_inj_sum={:.0}", cumulative_cb_injection); }
+    snapshot
 }
 
 // ============================================================================
@@ -916,6 +978,15 @@ impl MassSinkWhitelist {
         sinks.insert((Commodity::HardCoal, "b2b_settlement_post".to_string()));
         sinks.insert((Commodity::Food, "b2b_settlement_post".to_string()));
         sinks.insert((Commodity::Clothing, "b2b_settlement_post".to_string()));
+        // Defense trades (MIN-DEF buys goods for military consumption).
+        // The buyer has no buildings, so goods are removed from the seller's
+        // inventory but not added to any buyer building. This is a legitimate
+        // mass sink — the military consumes the goods. ALL physical
+        // commodities are registered because the military can procure any
+        // physical good depending on world generation and defense needs.
+        for c in all_physical {
+            sinks.insert((*c, "b2b_settlement_post".to_string()));
+        }
 
         // turn_end sinks: maintenance consumption, physical decay, agricultural
         // inputs consumed, and perished/overflow goods at the end-of-turn
@@ -1587,6 +1658,17 @@ impl TurnProbe for CapturingProbe {
             })
             .unwrap_or_default();
 
+        // Phase 94: Trace targeted bank's balance sheet at each checkpoint.
+        if !bank.id.is_empty() {
+            let ale = bank.total_assets - bank.total_liabilities - bank.total_equity;
+            if ale.abs() > 100.0 {
+                eprintln!("BANKBS_CHK: turn={} phase={} bank={} A={:.4} L={:.4} E={:.4} A-L-E={:.4} res={:.4} dep={:.4} loans={:.4} cl={:.4} t1={:.4}",
+                    turn, phase_name, bank.id, bank.total_assets, bank.total_liabilities, bank.total_equity, ale,
+                    bank.reserves_at_central_bank, bank.deposits,
+                    bank.loans.iter().map(|l| l.outstanding_balance).sum::<f64>(),
+                    0.0, bank.tier_1_capital);
+            }
+        }
         // Snapshot regional market.
         let regional_market = RegionalMarketSnapshot::from_market(&self.targets.region_id, market);
 

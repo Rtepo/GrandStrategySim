@@ -487,6 +487,8 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         // ── DIAGNOSTIC CHECKPOINT 0: turn_start ──
         probe.checkpoint("turn_start", 0, turn, &market, &tasks);
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("TURN_START_M0: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash); }
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 85: FACTIONAL DOMAIN MODIFIERS
@@ -609,123 +611,17 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 welfare_enabled,
             );
         });
-        // Phase 23C: Remit commuter wages back to home regions' class savings.
-        // Commuters earned net wages (after PIT) in the host region; these are
-        // distributed proportionally across all adjacent regions' classes as a
-        // simplified remittance (since we don't track per-home-region FTE yet).
-        // Phase 94: Moved here (before banking_turn_post checkpoint) so that
-        // the citizen savings credit and the bank reserve debit (from the
-        // labor phase wage batch sync) are in the same checkpoint interval.
-        // Previously, this ran between production_cycle_post and
-        // b2c_clearing_post, causing a false FiatCreation violation because
-        // the credit appeared without the matching debit in the same phase.
-        tasks.par_iter_mut().for_each(|task| {
-            crate::engine::seed_propagation::ensure_worker_seeded();
-            if let Some(ref labor_alloc) = task.labor_allocation {
-                if labor_alloc.commuter_wages > 0.0 && labor_alloc.commuter_fte > 0.0 {
-                    let wages = labor_alloc.commuter_wages;
-                    // Find adjacent regions and distribute wages proportionally
-                    // to their available FTE.
-                    if let Some(host_region) = task.ctx.country.regions.first() {
-                        let adjacent_ids: Vec<String> = host_region
-                            .edges
-                            .iter()
-                            .filter(|e| {
-                                e.edge_type == crate::society::geography::EdgeType::LandBorder
-                            })
-                            .map(|e| e.target_node.clone())
-                            .collect();
-                        let mut total_adjacent_fte = 0.0_f64;
-                        for adj_id in &adjacent_ids {
-                            if let Some(adj) =
-                                task.ctx.country.regions.iter().find(|r| &r.id == adj_id)
-                            {
-                                total_adjacent_fte += adj
-                                    .class_demographics
-                                    .rural_classes
-                                    .values()
-                                    .chain(adj.class_demographics.urban_classes.values())
-                                    .map(|d| d.available_fte)
-                                    .sum::<f64>();
-                            }
-                        }
-                        if total_adjacent_fte > 0.0 {
-                            for adj_id in &adjacent_ids {
-                                let adj_fte: f64 = task
-                                    .ctx
-                                    .country
-                                    .regions
-                                    .iter()
-                                    .find(|r| &r.id == adj_id)
-                                    .map(|r| {
-                                        r.class_demographics
-                                            .rural_classes
-                                            .values()
-                                            .chain(r.class_demographics.urban_classes.values())
-                                            .map(|d| d.available_fte)
-                                            .sum()
-                                    })
-                                    .unwrap_or(0.0);
-                                let share = adj_fte / total_adjacent_fte;
-                                let remittance = wages * share;
-                                if remittance > 0.0 {
-                                    if let Some(adj) = task
-                                        .ctx
-                                        .country
-                                        .regions
-                                        .iter_mut()
-                                        .find(|r| &r.id == adj_id)
-                                    {
-                                        // Distribute proportionally across classes by available FTE.
-                                        let classes: Vec<(bool, String, f64)> = adj
-                                            .class_demographics
-                                            .rural_classes
-                                            .iter()
-                                            .map(|(k, v)| (false, k.to_string(), v.available_fte))
-                                            .chain(
-                                                adj.class_demographics.urban_classes.iter().map(
-                                                    |(k, v)| (true, k.to_string(), v.available_fte),
-                                                ),
-                                            )
-                                            .collect();
-                                        let class_total: f64 =
-                                            classes.iter().map(|(_, _, f)| *f).sum();
-                                        if class_total > 0.0 {
-                                            for (is_urban, class_id, fte) in classes {
-                                                let class_share = fte / class_total;
-                                                let class_remittance = remittance * class_share;
-                                                if is_urban {
-                                                    if let Some(d) = UrbanClass::from_str(&class_id).and_then(|k| adj
-                                                        .class_demographics
-                                                        .urban_classes
-                                                        .get_mut(&k))
-                                                    {
-                                                        d.savings += class_remittance;
-                                                    }
-                                                } else {
-                                                    if let Some(d) = RuralClass::from_str(&class_id).and_then(|k| adj
-                                                        .class_demographics
-                                                        .rural_classes
-                                                        .get_mut(&k))
-                                                    {
-                                                        d.savings += class_remittance;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        // Phase 23C: Commuter wage remittance moved to after labor phase (see below).
 
+
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("BANK_PRE: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets); }
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             process_banking_turn(task.ctx.country, &mut task.companies, task.ctx.turn);
         });
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("BANK_POST: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets); }
 
         // ── DIAGNOSTIC CHECKPOINT: banking_turn_post ──
 probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
@@ -1507,6 +1403,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_crisis tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
         // PHASE 32: PARLIAMENT BUILDING PAYROLL & PROCUREMENT
         // Pays MP and staff wages from Treasury, credits specific
         // ClassDemographics in the capital region (Bourgeoisie/Worker).
@@ -1641,6 +1539,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_ministry tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
         // PHASE 7B: JST PROCUREMENT (Local Government B2B Orders)
         // Phase D.8: Regional governments submit formal Buy Orders for
         // ConstructionMachinery and AdministrativeServices. Strict market
@@ -1746,6 +1646,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_jst tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
         // RESURRECTION PHASE 1: INFRASTRUCTURE POST-CLEARING
         // ═══════════════════════════════════════════════════════════
 
@@ -1899,6 +1801,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_infra tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
         // RESURRECTION PHASE 3: MILITARY TURN
         // MIL-1: Upkeep (burn stockpiles, pay wages)
         // MIL-2: Supply delivery (B2B trades → depot → unit stockpiles)
@@ -1973,6 +1877,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_military tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
         // PHASE 69: WAR ECONOMY
         // 69-A: Conscription (drain demographics → military units)
         // 69-B: War bond issuance (if at war and deficit exceeds threshold)
@@ -2019,6 +1925,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_war tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
         // PHASE 6.4b-PRE: CONSTRUCTION PROGRESS
         // Consume delivered materials from building inventory into
         // active construction projects. Must run BEFORE production
@@ -2068,6 +1976,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_tranche tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
         // PHASE 22B: CONSTRUCTION FRAUD & OHS
         // Material substitution fraud and OHS corner-cutting by
         // contractors. Runs after progress so fraud affects ongoing
@@ -2244,6 +2154,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_transport tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
         // PHASE 15A: WEATHER, CONDITION DEGRADATION, OSP VOLUNTEER ALLOCATION
         // Weather events are generated per-region based on climate + season.
         // Building condition degrades each turn (physical, no money).
@@ -2309,6 +2221,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // ═══════════════════════════════════════════════════════════
 
         // Wave 1: Energy production only
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("FM0A t={} pre_prod_cycle tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0}",
+                turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash);
+        }
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let b2b_config = task.ctx.country.b2b_order_config.clone();
@@ -2326,7 +2244,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ── DIAGNOSTIC CHECKPOINT: production_cycle_post ──
-        probe.checkpoint("production_cycle_post", 5, turn, &market, &tasks);
+        probe.checkpoint("production_cycle_post", 5, turn, &market, &tasks);        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUBPHASE_POST_PROD: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+        }
+
 
         // Phase 8.1: Grid Distribution — Phase 81: New energy grid distribution.
         // Replaces the old distribute_utilities for electricity. The new system
@@ -2547,7 +2470,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
-        // PHASE 82/83: MUNICIPAL AI — Heating & Infrastructure Investment
+           #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUBPHASE_PRE_MUNICIPAL: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+        }
+     // PHASE 82/83: MUNICIPAL AI — Heating & Infrastructure Investment
         // Runs AFTER utility pricing, thermal grid degradation, smog/biohazard
         // computation, and water reserve regeneration (Rule 16: Temporal
         // Causality). The AI observes current demand/supply and crises, then
@@ -3088,7 +3016,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
-        // PHASE 84: WASTE EPIC — Solid Waste Management & Circular Economy
+           #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUBPHASE_PRE_WASTE: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+        }
+     // PHASE 84: WASTE EPIC — Solid Waste Management & Circular Economy
         // 10-step waste processing (W.1–W.10), runs after consumption,
         // before mortality. Mass-conserved waste generation from actual
         // consumption receipts. Trash streams B2B-excluded. WtE outputs
@@ -3304,7 +3237,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
-        // PHASE 23C: COMMUTING & PASSENGER TRANSPORT B2C
+           #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUBPHASE_PRE_COMMUTE: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+        }
+     // PHASE 23C: COMMUTING & PASSENGER TRANSPORT B2C
         // Build commute map, clear PassengerTransport B2C for commuters.
         // Public (JST) operators are subsidized; private charge market price.
         // Coverage ratio determines how many workers can commute to
@@ -3348,7 +3286,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             task.ctx.country.accumulated_pit = 0.0;
         });
 
-        // W1: Wage payment (labor market resolution) with PIT withholding (Fix 1.22)
+           #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUB2_PRE_LABOR: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+        }
+     // W1: Wage payment (labor market resolution) with PIT withholding (Fix 1.22)
         // Phase 18B: Compute garnishment rates from community service cohorts
         // Phase 23C: Inject commuter FTE based on PassengerTransport coverage.
         // Phase 25: Set wage offers BEFORE labor clearing (fixes 100% unemployment).
@@ -3394,6 +3337,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     if funded_payroll <= 0.0 {
                         None
                     } else {
+                        // Phase 94: Debit treasury for the portion of funded_payroll
+                        // that comes from treasury (not ministry_pool, which was
+                        // already debited by allocate_cash_to_ministries). Without
+                        // this debit, the state employer's cash is created from
+                        // nothing — a FiatCreation leak of ~funded_payroll per turn.
+                        let treasury_debit = (funded_payroll - ministry_pool).max(0.0);
+                        task.ctx.country.budget.liquid_reserves -= treasury_debit;
                         let funded_fte = funded_payroll / civil_service_wage;
                         // Distribute state FTE across regions proportionally to population
                         let first_region = task
@@ -3502,8 +3452,21 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 );
                 aggregated_allocation.merge(labor_allocation);
             }
+            #[cfg(feature = "diagnostic")]
+            {
+                let la = &aggregated_allocation;
+                eprintln!("LABOR_ALLOC: turn={} pit={:.0} garn={:.0} remit={:.0} commuter_wages={:.0} commuter_fte={:.0}",
+                    turn, la.pit_withheld, la.garnishments_withheld, la.remittances_withheld, la.commuter_wages, la.commuter_fte);
+            }
             task.labor_allocation = Some(aggregated_allocation);
         });
+
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUB2_AFTER_LABOR_MARKET: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0}",
+                turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash);
+        }
 
         // Phase 25: Feed back actual fulfilled FTE and wages from the bottom-up
         // labor clearing into the macro indicators. The top-down model
@@ -3570,6 +3533,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUB2_AFTER_STATE_EMPLOYER_REMOVAL: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0}",
+                turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash);
+        }
+
         // Phase 37/38: Save prev_fulfilled_fte and prev_offered_wage_per_fte
         // for next turn's hiring frictions and sticky wage rigidity.
         // This must run AFTER all labor clearing is complete and AFTER the
@@ -3632,6 +3602,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUB2_POST_LABOR: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+        }
         // Fix 1.22: Credit withheld PIT + garnishments to each country's Treasury
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
@@ -3648,6 +3623,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUB2_POST_PIT: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+        }
         // Phase 18A: Route TemporaryWorker remittances to foreign_sector_balance.
         // Remittances were already deducted from net_wage in labor_market.rs
         // (savings credited with net_wage - remittance). Here we credit the
@@ -3685,6 +3665,127 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             market.foreign_sector_balance += total_remittances;
         }
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUB2_POST_REMIT: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+        }
+        // Phase 23C: Remit commuter wages back to home regions' class savings.
+        // Commuters earned net wages (after PIT) in the host region; these are
+        // distributed proportionally across all adjacent regions' classes as a
+        // simplified remittance (since we don't track per-home-region FTE yet).
+        // Phase 94: Moved here (after labor phase + PIT/remittance routing)
+        // so that commuter wages are credited in the SAME turn they are
+        // earned. Previously this ran before banking_turn_post, using the
+        // PREVIOUS turn labor_allocation. On turn 0, no commuter wages
+        // were credited, causing FiatDestruction of ~500K.
+        tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
+            if let Some(ref labor_alloc) = task.labor_allocation {
+                if labor_alloc.commuter_wages > 0.0 && labor_alloc.commuter_fte > 0.0 {
+                    let wages = labor_alloc.commuter_wages;
+                    // Find adjacent regions and distribute wages proportionally
+                    // to their available FTE.
+                    if let Some(host_region) = task.ctx.country.regions.first() {
+                        let adjacent_ids: Vec<String> = host_region
+                            .edges
+                            .iter()
+                            .filter(|e| {
+                                e.edge_type == crate::society::geography::EdgeType::LandBorder
+                            })
+                            .map(|e| e.target_node.clone())
+                            .collect();
+                        let mut total_adjacent_fte = 0.0_f64;
+                        for adj_id in &adjacent_ids {
+                            if let Some(adj) =
+                                task.ctx.country.regions.iter().find(|r| &r.id == adj_id)
+                            {
+                                total_adjacent_fte += adj
+                                    .class_demographics
+                                    .rural_classes
+                                    .values()
+                                    .chain(adj.class_demographics.urban_classes.values())
+                                    .map(|d| d.available_fte)
+                                    .sum::<f64>();
+                            }
+                        }
+                        if total_adjacent_fte > 0.0 {
+                            for adj_id in &adjacent_ids {
+                                let adj_fte: f64 = task
+                                    .ctx
+                                    .country
+                                    .regions
+                                    .iter()
+                                    .find(|r| &r.id == adj_id)
+                                    .map(|r| {
+                                        r.class_demographics
+                                            .rural_classes
+                                            .values()
+                                            .chain(r.class_demographics.urban_classes.values())
+                                            .map(|d| d.available_fte)
+                                            .sum()
+                                    })
+                                    .unwrap_or(0.0);
+                                let share = adj_fte / total_adjacent_fte;
+                                let remittance = wages * share;
+                                if remittance > 0.0 {
+                                    if let Some(adj) = task
+                                        .ctx
+                                        .country
+                                        .regions
+                                        .iter_mut()
+                                        .find(|r| &r.id == adj_id)
+                                    {
+                                        // Distribute proportionally across classes by available FTE.
+                                        let classes: Vec<(bool, String, f64)> = adj
+                                            .class_demographics
+                                            .rural_classes
+                                            .iter()
+                                            .map(|(k, v)| (false, k.to_string(), v.available_fte))
+                                            .chain(
+                                                adj.class_demographics.urban_classes.iter().map(
+                                                    |(k, v)| (true, k.to_string(), v.available_fte),
+                                                ),
+                                            )
+                                            .collect();
+                                        let class_total: f64 =
+                                            classes.iter().map(|(_, _, f)| *f).sum();
+                                        if class_total > 0.0 {
+                                            for (is_urban, class_id, fte) in classes {
+                                                let class_share = fte / class_total;
+                                                let class_remittance = remittance * class_share;
+                                                if is_urban {
+                                                    if let Some(d) = UrbanClass::from_str(&class_id).and_then(|k| adj
+                                                        .class_demographics
+                                                        .urban_classes
+                                                        .get_mut(&k))
+                                                    {
+                                                        d.savings += class_remittance;
+                                                    }
+                                                } else {
+                                                    if let Some(d) = RuralClass::from_str(&class_id).and_then(|k| adj
+                                                        .class_demographics
+                                                        .rural_classes
+                                                        .get_mut(&k))
+                                                    {
+                                                        d.savings += class_remittance;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUB2_POST_COMMUTER_REMIT: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+        }
         // Phase 18A: Shadow Economy Processing
         // Processes shadow employment: companies in labor-intensive sectors
         // with ShadowEmployment records pay shadow wages (no PIT).
@@ -4040,7 +4141,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 .retain(|c| !task.despawned_company_ids.contains(&c.id));
         });
 
-        // Phase 6.5: B2C Market Phases R1-R7
+           #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+            eprintln!("SUBPHASE_PRE_B2C_MARKET: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+        }
+     // Phase 6.5: B2C Market Phases R1-R7
         // Phase 44: Removed the wasted R1 consumer demand build — it was computed
         // and immediately discarded (`let _consumer_demand = ...`). The demand is
         // rebuilt during R6 clearing where it is actually used.
@@ -4167,6 +4273,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // ── DIAGNOSTIC CHECKPOINT: b2c_clearing_post ──
 probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
+
         // Phase 47: Degrade household durable cohorts by one turn.
         // Runs after B2C clearing, before telemetry. Durable goods
         // (Furniture, Cars, Televisions, Clothing, etc.) slowly wear out
@@ -4183,6 +4294,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             }
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // Phase 25: Update retail VWAP from B2C clearing for CPI calculation.
         let all_retail_prices: Vec<(crate::registries::enums::Commodity, f64, f64)> = tasks
             .iter()
@@ -4190,6 +4305,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             .collect();
         market_history::update_retail_vwap(&mut state.market_history, &all_retail_prices);
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // Bugfix Sprint: Clear supply/demand/b2c volumes ONCE at this point
         // (after B2C clearing has produced task.b2c_demand, but before we
         // aggregate it). This is the single coherent reset point that
@@ -4202,6 +4321,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
         market.b2c_demand_volume.clear();
         market.net_trade.clear();
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // Phase 44: Aggregate B2C consumer demand into market.demand_volume
         // and market.b2c_demand_volume so the Market UI shows total demand
         // (B2B + B2C) per commodity, while keeping a separate B2C-only
@@ -4404,6 +4527,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // RESURRECTION PHASE 10: RATIONING CONSEQUENCES
         // After B2C clearing — mortality and unrest penalties from rationing.
         // ═══════════════════════════════════════════════════════════
@@ -4481,6 +4608,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             );
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase 24C.7: Update information quality tier for each company
@@ -4616,6 +4747,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
                 }
             }
         });
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // Phase 4 fix (C6): Process voluntary project abandonment.
         // Companies queue AbandonProject actions via pply_action;
         // the actual abandonment is processed here where buildings are
@@ -4695,11 +4830,23 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
             // Phase D: remove tombstoned companies (liquidated/merged) once per turn.
             // Phase 94: Return liquidated companies' cash to treasury before removal.
-            let liquidated_cash: f64 = task.companies.iter().filter(|c| c.is_liquidated).map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0)).sum();
-            if liquidated_cash > 0.0 { task.ctx.country.budget.liquid_reserves += liquidated_cash; }
+            let liquidated_cash: f64 = task.companies.iter().filter(|c| c.is_liquidated).map(|c| {
+                let base = c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
+                // Phase 94: Include rd_budget and debit_cash for unbanked companies (M0).
+                if c.bank_type.is_none() && c.primary_bank_id.is_none() { base + c.rd_budget + c.debit_cash } else { base }
+            }).sum();
+            if liquidated_cash > 0.0 { eprintln!("LIQUIDATED_CASH: cash={:.0}", liquidated_cash); task.ctx.country.budget.liquid_reserves += liquidated_cash; }
+            #[cfg(feature = "diagnostic")] { for c in task.companies.iter().filter(|c| c.is_liquidated) { if c.bank_type.is_none() && c.primary_bank_id.is_none() && (c.rd_budget != 0.0 || c.debit_cash != 0.0) { eprintln!("LIQ_RD_DEBIT: id={} rd={:.0} debit={:.0} avail={:.0} brokerage={:.0}", c.id, c.rd_budget, c.debit_cash, c.available_cash, c.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0)); } } }
             task.companies.retain(|c| !c.is_liquidated);
         });
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+            let mut _direct_cb_sum: f64 = 0.0;
+            for _t in &tasks { _direct_cb_sum += _t.ctx.country.central_bank.liquidity_injected; }
+            eprintln!("DIRECT_CB_SUM_POST_LIFECYCLE: turn={} sum={:.0}", turn, _direct_cb_sum);
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // RESURRECTION PHASE 2: SECURITIES MARKET SEQUENCE (SEC-1 to SEC-8)
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
@@ -4920,6 +5067,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
         });
 
         // ═══════════════════════════════════════════════════════════
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // PHASE 7: TAX COLLECTION
         // The Treasury collects all progressive taxes (PIT, CIT, VAT,
         // wealth tax, capital gains), regional taxes, and fiscal transfers
@@ -4967,7 +5118,15 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
                     apply_budget_failure_consequence(task.ctx.country, final_bill);
                 }
             }
+        });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
+
+        tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
             // 2. ALL TAX COLLECTION (NATIONAL + LOCAL + FISCAL TRANSFERS)
             let tax_result = process_tax_collection_turn(
                 task.ctx.country,
@@ -5192,7 +5351,15 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             // 3. ALL DEBT SERVICE (NATIONAL + LOCAL, BEFORE any discretionary spending)
             process_debt_service(task.ctx.country, &mut task.companies, current_turn);
             process_municipal_debt_service(task.ctx.country, &mut task.companies);
+        });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
+
+        tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase 10: State reserve warehouse maintenance (physical upkeep)
             process_state_reserve_maintenance(task.ctx.country, &mut task.companies);
 
@@ -5289,6 +5456,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             task.ctx.country.politics.ministry_config = ministry_config;
         });
 
+
         // Phase 29: State construction of inspectorate buildings.
         // When corruption is high, the Justice/InternalSecurity ministry
         // publishes construction tenders for new inspectorate buildings.
@@ -5370,6 +5538,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             clear_secondary_debt_market(&mut task.ctx.country.debt_market, task.ctx.turn);
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // Phase 35: Gate process_political_year to run only once per year
         // (on the last turn of each year, turn 23/47/71...). Previously this
         // ran every turn, causing the election timer to tick 24× too fast
@@ -5495,6 +5667,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
         // ═══════════════════════════════════════════════════════════
         // RESURRECTION PHASE 3: MoD B2B ORDER SUBMISSION
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // After Phase 8 fiscal sequence, the Ministry of Defense has received
         // its allocated cash. It now submits B2B buy orders for military
         // commodities. These orders are stored in pending_defense_orders
@@ -6139,6 +6315,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             );
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // Phase 19A: Sequential post-parallel crediting of cross-border
         // blueprint royalties. Each country's parallel phase emitted FX outflows
         // (debited licensees); here we credit foreign licensors in their home
@@ -6174,6 +6354,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             task.cross_border_royalty_outbox.clear();
         }
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // Phase 95: Sequential post-parallel crediting of foreign patent fees.
         // Each country's parallel R&D phase emitted FX outflows (debited
         // companies via settle_transfer to ForeignEntity). Here we credit the
@@ -6393,6 +6577,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             );
         });
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _forest_result = crate::economy::state_forests::process_state_forests_turn(
@@ -6638,6 +6826,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
                 &mut task.companies,
             );
         });
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
+
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 78: RELIGIOUS AUTHORITY COMPUTATION
@@ -6685,6 +6877,14 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
                 &edu_needs,
             );
         });
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
+
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
+
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 17C: POGROMS (ETHNIC/RELIGIOUS VIOLENCE)
@@ -6932,6 +7132,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 85A: GUILD SYSTEM CYCLE
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
         // Phase 86.5B: Wire previously-disconnected guild system.
         // - Check guild formation in GuildBurgher domains
         // - Execute production for existing guilds (consumes raw_inventory
@@ -7193,7 +7397,11 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
             );
         });
 
-        // Phase 93: Collect depletion buffers from all tasks before they are
+            #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
+    // Phase 93: Collect depletion buffers from all tasks before they are
         // consumed. These will be applied to state.planet after tasks are dropped
         // (releasing the immutable &state.planet borrow).
         let mut all_depletion_requests: Vec<crate::economy::production::geology::DepletionRequest> =
@@ -7203,6 +7411,10 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
         }
 
         // ── DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ──
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks);
+        }
 probe.checkpoint("turn_end", 4, turn, &market, &tasks);
 
         // Collect entities back from tasks into ctx.entities format.

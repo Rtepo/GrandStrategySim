@@ -8,6 +8,7 @@ use crate::entities::Company;
 use crate::politics::local_council::{calculate_curial_faction_alignment, calculate_seat_count};
 use crate::politics::local_government::AdministrativeStatus;
 use crate::politics::system::FiscalTransferConfig;
+use rand::Rng;
 use crate::society::cadastre::{self, ParcelOwnerType, PropertyTaxConfig};
 use crate::society::geography::{EconomicStatus, RuralClass};
 use crate::state::Country;
@@ -548,7 +549,7 @@ pub fn process_local_elections(country: &mut Country, year: u32) {
 
                     // Trait assignment: most councilors are Loyalist or Undecided,
                     // with a small chance of Maverick or Corrupt.
-                    let trait_roll: f64 = rand::random();
+                    let trait_roll: f64 = crate::engine::seeded_rng::thread_rng().gen();
                     let hidden_trait = if trait_roll < 0.5 {
                         crate::politics::local_council::CouncilorTrait::Loyalist
                     } else if trait_roll < 0.8 {

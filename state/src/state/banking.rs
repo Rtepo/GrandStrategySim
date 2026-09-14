@@ -12,9 +12,10 @@ use crate::securities::mbs::MortgageBackedSecurity;
 use crate::society::geography::{RuralClass, UrbanClass};
 use crate::state::macro_data::annual_to_per_turn_rate;
 use crate::state::CentralBank;
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 /// Trait for entities that can borrow from banks
 pub trait Borrower {
@@ -197,7 +198,7 @@ pub struct BankBalanceSheet {
     /// Liquidity lent to other banks in the interbank market.
     /// Maps borrower_bank_id -> amount lent.
     #[serde(default)]
-    pub interbank_loans_given: HashMap<String, f64>,
+    pub interbank_loans_given: BTreeMap<String, f64>,
 
     /// Government bonds and other liquid securities held.
     #[serde(default)]
@@ -241,7 +242,7 @@ pub struct BankBalanceSheet {
     /// Liquidity borrowed from other banks in the interbank market.
     /// Maps lender_bank_id -> amount borrowed.
     #[serde(default)]
-    pub interbank_loans_taken: HashMap<String, f64>,
+    pub interbank_loans_taken: BTreeMap<String, f64>,
 
     /// Bonds and other debt instruments issued by the bank.
     #[serde(default)]
@@ -967,14 +968,11 @@ pub fn issue_loan(
     }
 
     // Step 4: Create loan record
-    // Use timestamp-based ID instead of uuid to avoid dependency issues
+    // Use deterministic ID from seeded RNG to avoid non-deterministic timestamps.
     let loan_id = format!(
         "LOAN-{}-{}",
         bank_id,
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
+        crate::engine::seeded_rng::thread_rng().next_u64()
     );
     let loan = Loan {
         id: loan_id.clone(),
@@ -1407,7 +1405,7 @@ pub struct SobkScheme {
 
     /// Outstanding SOBK loans (member_id -> amount).
     #[serde(default)]
-    pub outstanding_loans: HashMap<String, f64>,
+    pub outstanding_loans: BTreeMap<String, f64>,
 
     /// Last turn when pool was rebalanced.
     #[serde(default)]
@@ -2396,6 +2394,166 @@ pub fn process_banking_turn(
     current_turn: u32,
 ) -> BankingTurnResult {
     let mut result = BankingTurnResult::default();
+    #[cfg(feature = "diagnostic")]
+    let _diag_turn = current_turn;
+    #[cfg(feature = "diagnostic")]
+    let _diag_cb_inj_start = country.central_bank.liquidity_injected;
+    // Phase 94: Snapshot M0 at start of banking turn for per-country leak detection
+    #[cfg(feature = "diagnostic")]
+    let _diag_m0_start: f64 = {
+        let br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let cit: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + cit + corp
+    };
+    // Phase 94: Per-step M0 leak tracker. Computes (m0 - cb) delta from start.
+    #[cfg(feature = "diagnostic")]
+    let _diag_m0cb_start = _diag_m0_start - country.central_bank.liquidity_injected;
+    #[cfg(feature = "diagnostic")]
+    macro_rules! _diag_m0_step {
+        ($step:expr) => {{
+            let br: f64 = companies.iter()
+                .filter(|c| c.bank_type.is_some())
+                .filter_map(|c| c.balance_sheet.as_ref())
+                .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+                .sum();
+            let cit: f64 = country.regions.iter()
+                .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+                .map(|d| d.savings)
+                .sum::<f64>()
+                + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+            let corp: f64 = companies.iter()
+                .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+                .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+                .sum::<f64>();
+            let m0 = br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + cit + corp;
+            let m0cb = m0 - country.central_bank.liquidity_injected;
+            let leak = m0cb - _diag_m0cb_start;
+            if leak.abs() > 1.0 {
+                eprintln!("M0LEAK[{}]: turn={} country={} leak={:.2} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0} cb={:.0}",
+                    $step, current_turn, &country.name, leak, br, cit, corp,
+                    country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves,
+                    country.central_bank.liquidity_injected);
+            }
+        }};
+    }
+    // Phase 94: Per-step trace of the targeted bank (BANK-ANA-003) to
+    // isolate which banking-turn step creates the M0 leak.
+    #[cfg(feature = "diagnostic")]
+    let _diag_target_bank = "BANK-ANA-003";
+    #[cfg(feature = "diagnostic")]
+    let mut _diag_prev_res: f64 = companies.iter()
+        .find(|c| c.id == _diag_target_bank)
+        .and_then(|c| c.balance_sheet.as_ref())
+        .map(|bs| bs.reserves_at_central_bank)
+        .unwrap_or(0.0);
+    #[cfg(feature = "diagnostic")]
+    let mut _diag_prev_dep: f64 = companies.iter()
+        .find(|c| c.id == _diag_target_bank)
+        .and_then(|c| c.balance_sheet.as_ref())
+        .map(|bs| bs.deposits)
+        .unwrap_or(0.0);
+    #[cfg(feature = "diagnostic")]
+    macro_rules! _diag_step_trace {
+        ($step:expr) => {{
+            let (res, dep, loans, t1, lom, ibl, ibg): (f64, f64, f64, f64, f64, f64, f64) = companies.iter()
+                .find(|c| c.id == _diag_target_bank)
+                .and_then(|c| c.balance_sheet.as_ref())
+                .map(|bs| (
+                    bs.reserves_at_central_bank,
+                    bs.deposits,
+                    bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>(),
+                    bs.tier_1_capital,
+                    bs.cb_lombard_loans,
+                    bs.interbank_loans_taken.values().sum::<f64>(),
+                    bs.interbank_loans_given.values().sum::<f64>(),
+                ))
+                .unwrap_or((0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+            eprintln!("BANKSTEP_DELTA[{}]: turn={} bank={} d_res={:.0} d_dep={:.0} res={:.0} dep={:.0} loans={:.0} t1={:.0} lom={:.0} ibl={:.0} ibg={:.0}",
+                $step, current_turn, _diag_target_bank,
+                res - _diag_prev_res, dep - _diag_prev_dep,
+                res, dep, loans, t1, lom, ibl, ibg);
+            _diag_prev_res = res;
+            _diag_prev_dep = dep;
+        }};
+    }
+    #[cfg(feature = "diagnostic")]
+    {
+        // Phase 94: Trace companies with mismatched bank_type/sector
+        for c in companies.iter() {
+            let has_bank_type = c.bank_type.is_some();
+            let is_banking_sector = c.sector == crate::registries::enums::Sector::Banking;
+            if has_bank_type != is_banking_sector {
+                let cash = c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash;
+                eprintln!("MISMATCH: turn={} country={} id={} bank_type={:?} sector={:?} cash={:.0} primary_bank={:?}", current_turn, &country.name, c.id, c.bank_type, c.sector, cash, c.primary_bank_id);
+            }
+        }
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        // Per-bank balance sheet trace for ALL banks with imbalances
+        for bank in companies.iter() {
+            if bank.bank_type.is_none() { continue; }
+            if let Some(ref bs) = bank.balance_sheet {
+                let a = bs.total_assets();
+                let l = bs.total_liabilities();
+                let e = bs.total_equity();
+                let ale = a - l - e;
+                if ale.abs() > 100.0 {
+                    eprintln!("BANKBS[0_start]: turn={} bank={} A={:.4} L={:.4} E={:.4} A-L-E={:.4} res={:.4} dep={:.4} loans={:.4} ibg={:.4} ibl={:.4} cl={:.4} t1={:.4}",
+                        current_turn, bank.id, a, l, e, ale,
+                        bs.reserves_at_central_bank, bs.deposits,
+                        bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>(),
+                        bs.interbank_loans_given.values().sum::<f64>(),
+                        bs.interbank_loans_taken.values().sum::<f64>(),
+                        bs.consumer_loans_outstanding, bs.tier_1_capital);
+                }
+            }
+        }
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[0_start]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        // Phase 94: Full fiat trace including ALL walk_global_fiat reservoirs
+        {
+            let mut ministry_cash = 0.0_f64;
+            if let Some(ref config) = country.politics.ministry_config {
+                for m in &config.ministries { ministry_cash += m.ministry_cash; }
+            }
+            ministry_cash += country.ministry_public_service_pool;
+            let arb = country.arbitration_court.unclaimed_arbitration_funds;
+            let blackops = country.budget.black_ops_budget;
+            let intel = country.intelligence_budget.current_budget;
+            let mut frozen = 0.0_f64;
+            if let Some(ref js) = country.politics.justice_state {
+                for &v in js.frozen_company_cash.values() { frozen += v.max(0.0); }
+            }
+            let full_m0 = total_m0 + ministry_cash + arb + blackops + intel + frozen;
+            eprintln!("FULLFIAT_PRE: turn={} country={} full_m0={:.0} bankstep_m0={:.0} diff={:.0} min={:.0} arb={:.0} blackops={:.0} intel={:.0} frozen={:.0}", current_turn, &country.name, full_m0, total_m0, full_m0 - total_m0, ministry_cash, arb, blackops, intel, frozen);
+        }
+        _diag_step_trace!("0_start");
+        _diag_m0_step!("0_start");
+    }
 
     // Step 1: CB Rate Update (Phase 36: Taylor Rule with real GDP growth)
     let inflation = country.macro_indicators.inflation / 100.0; // Convert percent to decimal
@@ -2475,6 +2633,27 @@ pub fn process_banking_turn(
         country.central_bank.liquidity_injected += total_omo_executed;
     }
     
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[2_omo]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("2_omo");
+        _diag_m0_step!("2_omo");
+    }
 // Step 3: Interbank Clearing
     // Collect mutable references to bank companies
     let cb_clone = country.central_bank.clone();
@@ -2487,6 +2666,27 @@ pub fn process_banking_turn(
         .clear_market(&mut bank_refs, &cb_clone, &mut country.sobk_scheme, current_turn);
     result.xibor = country.interbank_market.xibor;
     
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[3_interbank]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("3_interbank");
+        _diag_m0_step!("3_interbank");
+    }
 // Step 4: Deposit Facility â€” banks with surplus reserves park them at CB and earn deposit rate.
     // This creates the physical floor for interbank rates.
     let cb_reserve_ratio = country.central_bank.reserve_requirement_ratio;
@@ -2513,6 +2713,27 @@ pub fn process_banking_turn(
         }
     }
 
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[4_depfac]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("4_depfac");
+        _diag_m0_step!("4_depfac");
+    }
     
 // Step 5: Lombard Facility â€” banks still in deficit after interbank borrow from CB at penalty rate.
     // This creates the physical ceiling for interbank rates.
@@ -2545,6 +2766,27 @@ pub fn process_banking_turn(
         }
     }
     
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[5_lombard]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("5_lombard");
+        _diag_m0_step!("5_lombard");
+    }
 // Step 6: Loan Repayment
     // Process interest accrual and repayments for existing loans
     // Phase 24A.2: Fix Black Hole #2 â€” borrowers must be debited when loans
@@ -2642,6 +2884,27 @@ pub fn process_banking_turn(
             result.total_loan_repayments += repaid_total;
         }
     }
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[6_loanrepay]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("6_loanrepay");
+        _diag_m0_step!("6_loanrepay");
+    }
     // Phase 24A.2: Execute borrower debits
     // Three cases: (A) company borrower, (B) state/treasury borrower, (C) vanished borrower.
     // Phase 94: Fixed double-entry â€” reserves are now adjusted per-loan here,
@@ -2704,6 +2967,17 @@ pub fn process_banking_turn(
                         bs.reserves_at_central_bank += amount;
                     }
                 }
+            } else {
+                // Phase 94: Unbanked borrower (no primary_bank_id). The
+                // borrower's cash (brokerage_account.cash and/or
+                // available_cash) is M0 base money. The lending bank's
+                // reserves must be credited by the full repayment amount to
+                // keep M0 neutral (Directive 1). Without this, M0 is
+                // destroyed because borrower cash decreases but bank
+                // reserves don't increase.
+                if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
+                    bs.reserves_at_central_bank += amount;
+                }
             }
 
             // Reduce the matching LoanRef and recompute total liabilities.
@@ -2736,6 +3010,27 @@ pub fn process_banking_turn(
                 }
             }
         }
+    }
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[6b_borrower_debits]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("6b_borrower_debits");
+        _diag_m0_step!("6b_borrower_debits");
     }
     
 // Step 7: New Loan Issuance
@@ -2842,24 +3137,27 @@ pub fn process_banking_turn(
                 // OR available_cash as fallback â€” NOT both. The loan creates a deposit
                 // at the bank, which is the borrower's asset. Double-counting both
                 // fields creates money from nothing.
+                let _had_ba = companies[borrower_idx].brokerage_account.is_some();
+                let _was_unbanked = companies[borrower_idx].primary_bank_id.is_none();
                 if let Some(ref mut ba) = companies[borrower_idx].brokerage_account {
                     ba.cash += lr.principal_amount;
                 } else {
-                    // Phase 94: Credit available_cash. For unbanked companies
-                    // (no primary_bank_id), available_cash is M0, so we must
-                    // decrease bank reserves to keep M0 neutral. For banked
-                    // companies without brokerage_account, available_cash is
-                    // M1 (backed by bank reserves), so no reserve adjustment
-                    // is needed.
                     companies[borrower_idx].available_cash += lr.principal_amount;
-                    if companies[borrower_idx].primary_bank_id.is_none() {
-                        // Unbanked borrower: reverse the deposit creation from
-                        // issue_loan and decrease reserves (bank "withdraws"
-                        // cash for the unbanked borrower).
-                        if let Some(ref mut bs) = companies[bi].balance_sheet {
-                            bs.deposits -= lr.principal_amount;
-                            bs.reserves_at_central_bank -= lr.principal_amount;
-                        }
+                }
+                #[cfg(feature = "diagnostic")]
+                eprintln!("LOANISSUE: turn={} borrower={} bank={} principal={:.2} had_ba={} unbanked={}", current_turn, &companies[borrower_idx].id, &companies[bi].id, lr.principal_amount, _had_ba, _was_unbanked);
+                // Phase 94: For unbanked borrowers (no primary_bank_id), the
+                // credited cash (brokerage_account.cash OR available_cash) is
+                // M0 base money. The deposit created by issue_loan is NOT in
+                // M0. Reverse the deposit creation and debit reserves to keep
+                // M0 neutral (Directive 1). This must apply regardless of
+                // whether the borrower has a brokerage_account â€” both
+                // brokerage_account.cash and available_cash are M0 for
+                // unbanked companies (see walk_global_fiat).
+                if companies[borrower_idx].primary_bank_id.is_none() {
+                    if let Some(ref mut bs) = companies[bi].balance_sheet {
+                        bs.deposits -= lr.principal_amount;
+                        bs.reserves_at_central_bank -= lr.principal_amount;
                     }
                 }
                 result.total_new_credit += lr.principal_amount;
@@ -2872,6 +3170,27 @@ pub fn process_banking_turn(
     }
 
     
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[7_newloans]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("7_newloans");
+        _diag_m0_step!("7_newloans");
+    }
 // Step 8: Deposit Insurance Premiums
     let mut bank_refs_2: Vec<&mut crate::entities::Company> = companies
         .iter_mut()
@@ -2892,6 +3211,27 @@ pub fn process_banking_turn(
             .bfg_fund
             .repay_cb_liquidity_line(&mut country.central_bank, repayment);
     }
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[8_bfg]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("8_bfg");
+        _diag_m0_step!("8_bfg");
+    }
     
 // Step 9: Bank Tax (if active)
     if country.bank_tax.active_turns_remaining > 0 {
@@ -2908,6 +3248,27 @@ pub fn process_banking_turn(
             &mut country.bank_resolution,
             current_turn,
         );
+    }
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[9_tax]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("9_tax");
+        _diag_m0_step!("9_tax");
     }
 
     
@@ -2949,6 +3310,27 @@ pub fn process_banking_turn(
         0.0, // XIBOR volatility placeholder
     );
 
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[10_resolution]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("10_resolution");
+        _diag_m0_step!("10_resolution");
+    }
     
 // Step 11: SOBK Contributions (voluntary)
     for bank in companies.iter_mut() {
@@ -2969,6 +3351,27 @@ pub fn process_banking_turn(
         country
             .sobk_scheme
             .repay_cb_liquidity_line(&mut country.central_bank, repayment);
+    }
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[11_sobk]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("11_sobk");
+        _diag_m0_step!("11_sobk");
     }
     
 // Step 12 (Phase 35 / Phase 77): B2B Micro-Loans â€” banks issue small
@@ -3087,21 +3490,18 @@ pub fn process_banking_turn(
                 if let Some(ba) = &mut companies[borrower_idx].brokerage_account {
                     ba.cash += lr.principal_amount;
                 } else {
-                    // Phase 94: Credit available_cash. For unbanked companies
-                    // (no primary_bank_id), available_cash is M0, so we must
-                    // decrease bank reserves to keep M0 neutral. For banked
-                    // companies without brokerage_account, available_cash is
-                    // M1 (backed by bank reserves), so no reserve adjustment
-                    // is needed.
                     companies[borrower_idx].available_cash += lr.principal_amount;
-                    if companies[borrower_idx].primary_bank_id.is_none() {
-                        // Unbanked borrower: reverse the deposit creation from
-                        // issue_loan and decrease reserves (bank "withdraws"
-                        // cash for the unbanked borrower).
-                        if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
-                            bs.deposits -= lr.principal_amount;
-                            bs.reserves_at_central_bank -= lr.principal_amount;
-                        }
+                }
+                // Phase 94: For unbanked borrowers (no primary_bank_id), the
+                // credited cash (brokerage_account.cash OR available_cash) is
+                // M0 base money. The deposit created by issue_loan is NOT in
+                // M0. Reverse the deposit creation and debit reserves to keep
+                // M0 neutral (Directive 1). This must apply regardless of
+                // whether the borrower has a brokerage_account.
+                if companies[borrower_idx].primary_bank_id.is_none() {
+                    if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
+                        bs.deposits -= lr.principal_amount;
+                        bs.reserves_at_central_bank -= lr.principal_amount;
                     }
                 }
                 lent_total += lr.principal_amount;
@@ -3113,6 +3513,27 @@ pub fn process_banking_turn(
         let _ = cb_ref_rate;
         let _ = bank_id;
         result.total_new_credit += lent_total;
+    }
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[12_microloans]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("12_microloans");
+        _diag_m0_step!("12_microloans");
     }
 
     
@@ -3342,6 +3763,27 @@ pub fn process_banking_turn(
         }
         result.total_new_credit += issued_total;
     }
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[13_consumerloans]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("13_consumerloans");
+        _diag_m0_step!("13_consumerloans");
+    }
 
     
 // Step 14 (Phase 35): QE for Deflation â€” if CPI inflation < 0%, the
@@ -3379,6 +3821,27 @@ pub fn process_banking_turn(
             country.central_bank.omo_last_operation_amount = total_qe;
             result.omo_net_amount += total_qe;
         }
+    }
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        eprintln!("BANKSTEP3[14_qe]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        _diag_step_trace!("14_qe");
+        _diag_m0_step!("14_qe");
     }
 
     
@@ -3466,6 +3929,29 @@ pub fn process_banking_turn(
             result.total_deposits += bs.deposits;
             result.total_reserves += bs.reserves_at_central_bank;
         }
+    }
+
+    #[cfg(feature = "diagnostic")]
+    {
+        let total_br: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+            .sum();
+        let total_citizen: f64 = country.regions.iter()
+            .flat_map(|r| r.class_demographics.rural_classes.values().chain(r.class_demographics.urban_classes.values()))
+            .map(|d| d.savings)
+            .sum::<f64>()
+            + country.cultural_institutions.iter().map(|b| b.available_cash).sum::<f64>();
+        let total_corp: f64 = companies.iter()
+            .filter(|c| c.bank_type.is_none() && c.primary_bank_id.is_none())
+            .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+            .sum::<f64>();
+        let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
+        let delta_m0 = total_m0 - _diag_m0_start;
+        let delta_cb = country.central_bank.liquidity_injected - _diag_cb_inj_start;
+        let leak = delta_m0 - delta_cb;
+        eprintln!("BANKSUMMARY: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0} dm0={:.0} dcb={:.0} leak={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves, delta_m0, delta_cb, leak);
     }
 
     result

@@ -36,15 +36,103 @@ impl CompanyLifecycle {
         year: u32,
         market_signal: &MarketSignal,
     ) {
+        // Phase 94: M0 conservation diagnostic — compute simplified M0 sum
+        // before and after each lifecycle step to identify M0 leaks.
+        #[cfg(feature = "diagnostic")]
+        let m0_before = Self::compute_m0_sum(companies, country);
+
         // 1. Liquidate bankrupt companies via the Syndic.
         Self::liquidate_bankrupt_companies(companies, buildings, country, year);
+        #[cfg(feature = "diagnostic")]
+        {
+            let m0_after = Self::compute_m0_sum(companies, country);
+            eprintln!("LIFECYCLE_POST_LIQ: country={} cb_inj={:.0} m0_delta={:.0}", country.name, country.central_bank.liquidity_injected, m0_after - m0_before);
+        }
 
         // 2. Process the bankruptcy auction market (bidders buy, expired demolish).
         let policy = crate::state::BankruptcyPolicy::with_defaults();
+        #[cfg(feature = "diagnostic")]
+        let m0_pre_auc = Self::compute_m0_sum(companies, country);
         process_auction_turn(companies, buildings, country, &policy);
+        #[cfg(feature = "diagnostic")]
+        {
+            let m0_after = Self::compute_m0_sum(companies, country);
+            eprintln!("LIFECYCLE_POST_AUC: country={} cb_inj={:.0} m0_delta={:.0}", country.name, country.central_bank.liquidity_injected, m0_after - m0_pre_auc);
+        }
 
         // 3. Spawn new companies in promising sectors.
+        #[cfg(feature = "diagnostic")]
+        let m0_pre_spawn = Self::compute_m0_sum(companies, country);
         Self::spawn_new_companies(companies, buildings, country, year, market_signal);
+        #[cfg(feature = "diagnostic")]
+        {
+            let m0_after = Self::compute_m0_sum(companies, country);
+            eprintln!("LIFECYCLE_POST_SPAWN: country={} cb_inj={:.0} m0_delta={:.0}", country.name, country.central_bank.liquidity_injected, m0_after - m0_pre_spawn);
+        }
+    }
+
+    /// Phase 94: Compute a simplified M0 sum for diagnostic tracing.
+    /// Sums treasury, bank reserves, corporate (unbanked), citizen savings,
+    /// and ministry cash. Excludes foreign, charity, etc. for brevity.
+    #[cfg(feature = "diagnostic")]
+    fn compute_m0_sum(companies: &[Company], country: &Country) -> f64 {
+        let mut total: f64 = 0.0;
+        // Treasury
+        total += country.budget.liquid_reserves;
+        for region in &country.regions {
+            if let Some(ref gov) = region.governance {
+                total += gov.budget.liquid_reserves;
+            }
+        }
+        for megaregion in &country.megaregions {
+            if let Some(ref gov) = megaregion.governance {
+                total += gov.budget.liquid_reserves;
+            }
+        }
+        // Bank reserves
+        for c in companies {
+            if c.sector == Sector::Banking {
+                if let Some(ref bs) = c.balance_sheet {
+                    total += bs.reserves_at_central_bank + bs.cb_deposit_facility_balance;
+                }
+            }
+        }
+        total += country.bfg_fund.reserves;
+        total += country.sobk_scheme.pool;
+        // Corporate (unbanked only)
+        for c in companies {
+            if c.sector != Sector::Banking && c.primary_bank_id.is_none() {
+                total += c.available_cash.max(0.0);
+                total += c.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0).max(0.0);
+                total += c.rd_budget;
+                total += c.debit_cash;
+            }
+        }
+        // Citizen savings
+        for region in &country.regions {
+            for d in region.class_demographics.rural_classes.values() {
+                total += d.savings;
+            }
+            for d in region.class_demographics.urban_classes.values() {
+                total += d.savings;
+            }
+        }
+        // Ministry
+        if let Some(ref config) = country.politics.ministry_config {
+            for ministry in &config.ministries {
+                total += ministry.ministry_cash;
+            }
+        }
+        total += country.ministry_public_service_pool;
+        // Arbitration escrow (on country)
+        total += country.arbitration_court.unclaimed_arbitration_funds;
+        // Black-ops budget (on country)
+        total += country.budget.black_ops_budget;
+        // Frozen cash (on country)
+        if let Some(ref justice) = country.politics.justice_state {
+            total += justice.frozen_company_cash.values().sum::<f64>();
+        }
+        total
     }
 
     /// Identify and liquidate bankrupt companies via the Syndic.
@@ -60,6 +148,41 @@ impl CompanyLifecycle {
         country: &mut Country,
         _year: u32,
     ) {
+        // Phase 94: Fix stale primary_bank_id references from banks liquidated
+        // in previous turns (before the lifecycle fix was added). These
+        // companies have primary_bank_id pointing to a non-existent bank.
+        // Their available_cash is M1 (not in M0) but should be M0 (unbanked).
+        // Clear primary_bank_id and create CB injection to cover the deposit.
+        let valid_bank_ids: std::collections::HashSet<String> = companies
+            .iter()
+            .filter(|c| c.sector == Sector::Banking)
+            .map(|c| c.id.clone())
+            .collect();
+        let mut stale_deposit_guarantee: f64 = 0.0;
+        for company in companies.iter_mut() {
+            if company.sector != Sector::Banking {
+                if let Some(ref bid) = company.primary_bank_id {
+                    if !valid_bank_ids.contains(bid) {
+                        let deposit = company.available_cash
+                            + company
+                                .brokerage_account
+                                .as_ref()
+                                .map(|ba| ba.cash)
+                                .unwrap_or(0.0)
+                            + company.rd_budget
+                            + company.debit_cash;
+                        if deposit > 0.0 {
+                            stale_deposit_guarantee += deposit;
+                        }
+                        company.primary_bank_id = None;
+                    }
+                }
+            }
+        }
+        if stale_deposit_guarantee > 0.0 {
+            country.central_bank.liquidity_injected += stale_deposit_guarantee;
+        }
+
         let mut to_remove = Vec::new();
 
         for (idx, company) in companies.iter().enumerate() {
@@ -162,6 +285,44 @@ impl CompanyLifecycle {
                 companies, // remaining companies (including banks)
                 &policy,
             );
+
+            // Phase 94: When a bank is liquidated, clear primary_bank_id for
+            // all remaining companies that used this bank. Their deposits are
+            // no longer backed by bank reserves — they become unbanked and
+            // their available_cash is M0 (physical fiat). Without this,
+            // stale primary_bank_id references cause M0 conservation violations
+            // in justice system freezes, tax collection, and other operations
+            // that skip bank reserve debits for "banked" companies whose bank
+            // no longer exists.
+            // Since the available_cash was M1 (backed by bank reserves, not
+            // in M0) and is now M0 (unbanked, in M0), we must create CB
+            // injection equal to the deposit amount to keep M0 conservation
+            // balanced. The bank's reserves were already seized and
+            // distributed to creditors during liquidation — the deposits
+            // are now backed by CB liquidity (lender of last resort).
+            if company_to_liquidate.sector == crate::registries::enums::Sector::Banking {
+                let liquidated_bank_id = &company_to_liquidate.id;
+                let mut total_deposit_guarantee: f64 = 0.0;
+                for remaining in companies.iter_mut() {
+                    if remaining.primary_bank_id.as_ref() == Some(liquidated_bank_id) {
+                        let deposit = remaining.available_cash
+                            + remaining
+                                .brokerage_account
+                                .as_ref()
+                                .map(|ba| ba.cash)
+                                .unwrap_or(0.0)
+                            + remaining.rd_budget
+                            + remaining.debit_cash;
+                        if deposit > 0.0 {
+                            total_deposit_guarantee += deposit;
+                        }
+                        remaining.primary_bank_id = None;
+                    }
+                }
+                if total_deposit_guarantee > 0.0 {
+                    country.central_bank.liquidity_injected += total_deposit_guarantee;
+                }
+            }
 
             // The Syndic marks is_liquidated = true. The company is already
             // removed from the vector. No need to push it back.

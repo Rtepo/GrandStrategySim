@@ -227,6 +227,34 @@ pub fn refund_unfilled_jst_bids(
     }
 }
 
+/// Phase 94: Refund the price difference between limit price and execution
+/// price on filled JST trades. The JST encumbered `quantity * limit_price`
+/// at bid submission, but settle_trades credits the seller only
+/// `quantity * execution_price`. Without this refund, the difference is
+/// destroyed (FiatDestruction). The refund credits liquid_reserves back so
+/// the net M0 change is zero.
+pub fn refund_jst_price_difference(
+    trades: &[crate::economy::order_book::Trade],
+    country: &mut Country,
+) {
+    for trade in trades {
+        if !trade.buyer_id.starts_with("JST-") {
+            continue;
+        }
+        let price_diff = trade.bid_limit_price - trade.execution_price;
+        if price_diff <= 0.0 {
+            continue;
+        }
+        let refund = trade.quantity * price_diff;
+        let region_id = &trade.buyer_id[4..];
+        if let Some(region) = country.regions.iter_mut().find(|r| r.id == region_id) {
+            if let Some(governance) = region.governance.as_mut() {
+                governance.budget.liquid_reserves += refund;
+            }
+        }
+    }
+}
+
 /// Settle JST procurement trades after order matching.
 ///
 /// For each executed `Trade` where `buyer_id` starts with `"JST-"`:

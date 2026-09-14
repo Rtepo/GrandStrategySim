@@ -9,6 +9,7 @@
 use crate::construction::fraud::MaterialSubstitution;
 use crate::economy::transfer_settler::{settle_company_to_company, settle_transfer_to_treasury};
 use crate::entities::Company;
+use crate::registries::enums::Sector;
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
 
@@ -240,7 +241,44 @@ pub fn process_lawsuit(
     // Unfreeze assets
     if let Some(ref mut js) = country.politics.justice_state {
         let key = format!("lawsuit:{}:{}", lawsuit.id, lawsuit.defendant_id);
-        js.frozen_company_cash.remove(&key);
+        if let Some(frozen_amount) = js.frozen_company_cash.remove(&key) {
+            // Phase 94: Return unfrozen cash to the defendant company and
+            // credit the bank's reserves/deposits. frozen_company_cash is M0;
+            // removing it without crediting the company destroys M0.
+            let bank_id_to_credit: Option<(String, bool)> = {
+                if let Some(company) = companies.iter_mut().find(|c| c.id == lawsuit.defendant_id) {
+                    let has_brokerage = company.brokerage_account.is_some();
+                    company.available_cash += frozen_amount;
+                    if company.sector == Sector::Banking {
+                        if let Some(ref mut bs) = company.balance_sheet {
+                            bs.reserves_at_central_bank += frozen_amount;
+                            if has_brokerage {
+                                bs.tier_1_capital += frozen_amount;
+                            } else {
+                                bs.deposits += frozen_amount;
+                            }
+                        }
+                        None
+                    } else {
+                        company.primary_bank_id.clone().map(|bid| (bid, has_brokerage))
+                    }
+                } else {
+                    None
+                }
+            };
+            if let Some((bank_id, has_brokerage)) = bank_id_to_credit {
+                if let Some(bank) = companies.iter_mut().find(|c| c.id == bank_id) {
+                    if let Some(ref mut bs) = bank.balance_sheet {
+                        bs.reserves_at_central_bank += frozen_amount;
+                        if has_brokerage {
+                            bs.tier_1_capital += frozen_amount;
+                        } else {
+                            bs.deposits += frozen_amount;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     true

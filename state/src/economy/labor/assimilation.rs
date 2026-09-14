@@ -581,17 +581,25 @@ pub fn process_religious_conversion_turn(
         let region = &mut country.regions[tx.region_idx];
 
         // Debit source class: reduce population and savings.
+        // Phase 94: Clamp wealth_to_move to available savings to prevent
+        // negative savings (which would destroy M0). Multiple transactions
+        // can debit the same source class, so the original wealth_per_capita
+        // may overstate remaining savings.
+        let actual_wealth = tx.wealth_to_move.max(0.0);
+        let mut clamped_wealth: f64 = 0.0;
         let source_culture: String = match &tx.source_class {
             ClassRef::Rural(rc) => {
                 let demo = region.class_demographics.rural_classes.get_mut(rc).unwrap();
                 demo.population -= tx.pop_to_move;
-                demo.savings -= tx.wealth_to_move;
+                clamped_wealth = actual_wealth.min(demo.savings.max(0.0));
+                demo.savings -= clamped_wealth;
                 demo.culture.clone()
             }
             ClassRef::Urban(uc) => {
                 let demo = region.class_demographics.urban_classes.get_mut(uc).unwrap();
                 demo.population -= tx.pop_to_move;
-                demo.savings -= tx.wealth_to_move;
+                clamped_wealth = actual_wealth.min(demo.savings.max(0.0));
+                demo.savings -= clamped_wealth;
                 demo.culture.clone()
             }
         };
@@ -633,11 +641,19 @@ pub fn process_religious_conversion_turn(
                 if let Some(trc) = target_rc {
                     if trc == *source_rc {
                         // Source already has target religion — shouldn't happen.
+                        // Phase 94: Credit back to source to preserve conservation.
+                        // The debit was already applied above, so we must reverse it.
+                        let demo = region.class_demographics.rural_classes.get_mut(source_rc).unwrap();
+                        demo.population += tx.pop_to_move;
+                        demo.savings += clamped_wealth;
+                        if demo.population > 0 {
+                            demo.savings_per_capita = demo.savings / demo.population as f64;
+                        }
                         false
                     } else {
                         let demo = region.class_demographics.rural_classes.get_mut(&trc).unwrap();
                         demo.population += tx.pop_to_move;
-                        demo.savings += tx.wealth_to_move;
+                        demo.savings += clamped_wealth;
                         if demo.population > 0 {
                             demo.savings_per_capita = demo.savings / demo.population as f64;
                         }
@@ -655,7 +671,7 @@ pub fn process_religious_conversion_turn(
                     if let Some(tuc) = target_uc {
                         let demo = region.class_demographics.urban_classes.get_mut(&tuc).unwrap();
                         demo.population += tx.pop_to_move;
-                        demo.savings += tx.wealth_to_move;
+                        demo.savings += clamped_wealth;
                         if demo.population > 0 {
                             demo.savings_per_capita = demo.savings / demo.population as f64;
                         }
@@ -672,9 +688,9 @@ pub fn process_religious_conversion_turn(
                         if let Some(new_rc) = unused_rc {
                             let mut new_demo = ClassDemographics::default();
                             new_demo.population = tx.pop_to_move;
-                            new_demo.savings = tx.wealth_to_move;
+                            new_demo.savings = clamped_wealth;
                             new_demo.savings_per_capita = if tx.pop_to_move > 0 {
-                                tx.wealth_to_move / tx.pop_to_move as f64
+                                clamped_wealth / tx.pop_to_move as f64
                             } else {
                                 0.0
                             };
@@ -692,9 +708,9 @@ pub fn process_religious_conversion_turn(
                             if let Some(new_uc) = unused_uc {
                                 let mut new_demo = ClassDemographics::default();
                                 new_demo.population = tx.pop_to_move;
-                                new_demo.savings = tx.wealth_to_move;
+                                new_demo.savings = clamped_wealth;
                                 new_demo.savings_per_capita = if tx.pop_to_move > 0 {
-                                    tx.wealth_to_move / tx.pop_to_move as f64
+                                    clamped_wealth / tx.pop_to_move as f64
                                 } else {
                                     0.0
                                 };
@@ -708,7 +724,7 @@ pub fn process_religious_conversion_turn(
                                 // only if the entire source class is converting.
                                 let demo = region.class_demographics.rural_classes.get_mut(source_rc).unwrap();
                                 demo.population += tx.pop_to_move;
-                                demo.savings += tx.wealth_to_move;
+                                demo.savings += clamped_wealth;
                                 if demo.population > 0 {
                                     demo.savings_per_capita = demo.savings / demo.population as f64;
                                 }
@@ -731,11 +747,18 @@ pub fn process_religious_conversion_turn(
 
                 if let Some(tuc) = target_uc {
                     if tuc == *source_uc {
+                        // Phase 94: Credit back to source to preserve conservation.
+                        let demo = region.class_demographics.urban_classes.get_mut(source_uc).unwrap();
+                        demo.population += tx.pop_to_move;
+                        demo.savings += clamped_wealth;
+                        if demo.population > 0 {
+                            demo.savings_per_capita = demo.savings / demo.population as f64;
+                        }
                         false
                     } else {
                         let demo = region.class_demographics.urban_classes.get_mut(&tuc).unwrap();
                         demo.population += tx.pop_to_move;
-                        demo.savings += tx.wealth_to_move;
+                        demo.savings += clamped_wealth;
                         if demo.population > 0 {
                             demo.savings_per_capita = demo.savings / demo.population as f64;
                         }
@@ -753,7 +776,7 @@ pub fn process_religious_conversion_turn(
                     if let Some(trc) = target_rc {
                         let demo = region.class_demographics.rural_classes.get_mut(&trc).unwrap();
                         demo.population += tx.pop_to_move;
-                        demo.savings += tx.wealth_to_move;
+                        demo.savings += clamped_wealth;
                         if demo.population > 0 {
                             demo.savings_per_capita = demo.savings / demo.population as f64;
                         }
@@ -768,9 +791,9 @@ pub fn process_religious_conversion_turn(
                         if let Some(new_uc) = unused_uc {
                             let mut new_demo = ClassDemographics::default();
                             new_demo.population = tx.pop_to_move;
-                            new_demo.savings = tx.wealth_to_move;
+                            new_demo.savings = clamped_wealth;
                             new_demo.savings_per_capita = if tx.pop_to_move > 0 {
-                                tx.wealth_to_move / tx.pop_to_move as f64
+                                clamped_wealth / tx.pop_to_move as f64
                             } else {
                                 0.0
                             };
@@ -788,9 +811,9 @@ pub fn process_religious_conversion_turn(
                             if let Some(new_rc) = unused_rc {
                                 let mut new_demo = ClassDemographics::default();
                                 new_demo.population = tx.pop_to_move;
-                                new_demo.savings = tx.wealth_to_move;
+                                new_demo.savings = clamped_wealth;
                                 new_demo.savings_per_capita = if tx.pop_to_move > 0 {
-                                    tx.wealth_to_move / tx.pop_to_move as f64
+                                    clamped_wealth / tx.pop_to_move as f64
                                 } else {
                                     0.0
                                 };
@@ -802,7 +825,7 @@ pub fn process_religious_conversion_turn(
                                 // All slots used — credit back to source.
                                 let demo = region.class_demographics.urban_classes.get_mut(source_uc).unwrap();
                                 demo.population += tx.pop_to_move;
-                                demo.savings += tx.wealth_to_move;
+                                demo.savings += clamped_wealth;
                                 if demo.population > 0 {
                                     demo.savings_per_capita = demo.savings / demo.population as f64;
                                 }

@@ -719,9 +719,14 @@ pub fn settle_trades(
             // Phase 94: MIN-DEF or other non-company buyer. The buyer's cash
             // was already encumbered (deducted from liquid_reserves). Credit
             // the seller via credit_company_by_id to sync bank reserves (M0).
-            if let Some(&si) = company_id_to_idx.get(&trade.seller_id) {
-                let seller_id = companies[si].id.clone();
-                credit_company_by_id(companies, &seller_id, trade_value);
+            // Phase 94 fix: For MIN-DEF trades, settle_defense_trades handles
+            // the full settlement (treasury debit + seller credit). Crediting
+            // the seller here would double-credit and create fiat (Rule 1).
+            if trade.buyer_id != "MIN-DEF" {
+                if let Some(&si) = company_id_to_idx.get(&trade.seller_id) {
+                    let seller_id = companies[si].id.clone();
+                    credit_company_by_id(companies, &seller_id, trade_value);
+                }
             }
         }
 

@@ -10,9 +10,51 @@ use crate::entities::{Building, Company};
 use crate::politics::ideology::Ideology;
 use crate::politics::laws::{CourtWaitTime, PardonAuthority};
 use crate::politics::system::JusticeSystemState;
-use crate::registries::enums::Commodity;
+use crate::registries::enums::{Commodity, Sector};
 use crate::society::geography::{ClassDemographics, HealthStatus};
 use crate::state::Country;
+
+/// Phase 94: Debit a bank's reserves and the appropriate counterparty
+/// (deposits for non-brokerage companies, equity for brokerage companies)
+/// to maintain the A=L+E identity.
+///
+/// For companies without brokerage accounts, `available_cash` is a deposit
+/// claim, so debiting it requires debiting bank deposits (liability).
+/// For companies with brokerage accounts, `available_cash` is not a deposit
+/// claim, so debiting it requires debiting bank equity (tier_1_capital).
+fn debit_bank_for_company_action(
+    bank: &mut Company,
+    amount: f64,
+    company_has_brokerage: bool,
+) {
+    if let Some(ref mut bs) = bank.balance_sheet {
+        let debit = amount.min(bs.reserves_at_central_bank.max(0.0));
+        bs.reserves_at_central_bank -= debit;
+        if company_has_brokerage {
+            bs.tier_1_capital -= debit;
+        } else {
+            bs.deposits -= debit;
+        }
+    }
+}
+
+/// Phase 94: Credit a bank's reserves and the appropriate counterparty
+/// (deposits for non-brokerage companies, equity for brokerage companies)
+/// to maintain the A=L+E identity. Used for pardon unfreezing.
+fn credit_bank_for_company_action(
+    bank: &mut Company,
+    amount: f64,
+    company_has_brokerage: bool,
+) {
+    if let Some(ref mut bs) = bank.balance_sheet {
+        bs.reserves_at_central_bank += amount;
+        if company_has_brokerage {
+            bs.tier_1_capital += amount;
+        } else {
+            bs.deposits += amount;
+        }
+    }
+}
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -124,6 +166,21 @@ pub fn levy_fines(
         let step = (companies.len() / num_to_fine).max(1);
         let mut fined = 0_usize;
 
+        // Phase 94: Mutable remaining reserves so multiple companies sharing
+        // the same bank see diminishing reserves (prevents over-clamping that
+        // creates money when total fines exceed bank reserves).
+        let mut bank_reserves_remaining: std::collections::HashMap<String, f64> = {
+            let mut map = std::collections::HashMap::new();
+            for c in companies.iter() {
+                if c.sector == Sector::Banking {
+                    if let Some(ref bs) = c.balance_sheet {
+                        map.insert(c.id.clone(), bs.reserves_at_central_bank.max(0.0));
+                    }
+                }
+            }
+            map
+        };
+
         for i in (0..companies.len()).step_by(step) {
             if fined >= num_to_fine {
                 break;
@@ -149,11 +206,45 @@ pub fn levy_fines(
             };
 
             // STRICT double-entry: actual_fine = min(fine_amount, available_cash)
-            let actual_fine = fine_amount.min(companies[i].available_cash);
+            let mut actual_fine = fine_amount.min(companies[i].available_cash);
+
+            // Phase 94: For banked companies, clamp fine to bank's available
+            // reserves. available_cash is M1 (not in M0), but treasury credit
+            // is M0. If bank reserves < fine, the difference is FiatCreation.
+            let bank_id_for_sync: Option<String> = if companies[i].sector == Sector::Banking {
+                None // Banks debit their own reserves below
+            } else {
+                companies[i].primary_bank_id.clone()
+            };
+            if let Some(ref bid) = bank_id_for_sync {
+                if !bank_reserves_remaining.contains_key(bid) {
+                    // Phase 94: Stale bank reference — skip to prevent FiatCreation.
+                    actual_fine = 0.0;
+                }
+                if let Some(remaining) = bank_reserves_remaining.get_mut(bid) {
+                    actual_fine = actual_fine.min(*remaining);
+                    *remaining -= actual_fine;
+                }
+            } else if companies[i].sector == Sector::Banking {
+                let bid = companies[i].id.clone();
+                if let Some(remaining) = bank_reserves_remaining.get_mut(&bid) {
+                    actual_fine = actual_fine.min(*remaining);
+                    *remaining -= actual_fine;
+                }
+            }
 
             if actual_fine > 0.01 {
+                let has_brokerage = companies[i].brokerage_account.is_some();
                 companies[i].available_cash -= actual_fine;
                 country.budget.liquid_reserves += actual_fine;
+                // Phase 94: Sync bank reserves AND counterparty for banked companies.
+                if companies[i].sector == Sector::Banking {
+                    debit_bank_for_company_action(&mut companies[i], actual_fine, has_brokerage);
+                } else if let Some(bank_id) = bank_id_for_sync {
+                    if let Some(bank) = companies.iter_mut().find(|c| c.id == bank_id) {
+                        debit_bank_for_company_action(bank, actual_fine, has_brokerage);
+                    }
+                }
                 result.total_collected += actual_fine;
                 result.theoretical_fines += fine_amount;
                 fined += 1;
@@ -417,8 +508,28 @@ pub fn process_justice_turn(
                 let reduction = *amount * pardon_reduction;
                 *amount -= reduction;
                 // Return unfrozen cash to company
-                if let Some(company) = companies.iter_mut().find(|c| c.id == key) {
-                    company.available_cash += reduction;
+                // Phase 94: For banked companies, also credit bank reserves
+                // and deposits. frozen_cash is M0; available_cash is M1 for
+                // banked companies. Without crediting bank reserves, the
+                // pardon destroys M0 (Directive 1: double-entry).
+                let bank_id_to_credit: Option<(String, bool)> = {
+                    if let Some(company) = companies.iter_mut().find(|c| c.id == key) {
+                        let has_brokerage = company.brokerage_account.is_some();
+                        company.available_cash += reduction;
+                        if company.sector == Sector::Banking {
+                            credit_bank_for_company_action(company, reduction, has_brokerage);
+                            None
+                        } else {
+                            company.primary_bank_id.clone().map(|bid| (bid, has_brokerage))
+                        }
+                    } else {
+                        None
+                    }
+                };
+                if let Some((bank_id, has_brokerage)) = bank_id_to_credit {
+                    if let Some(bank) = companies.iter_mut().find(|c| c.id == bank_id) {
+                        credit_bank_for_company_action(bank, reduction, has_brokerage);
+                    }
                 }
                 // Remove zero entries
                 if *amount < 0.01 {
@@ -435,9 +546,65 @@ pub fn process_justice_turn(
     let mut companies_frozen = 0_usize;
 
     if freeze_ratio > 0.0 {
+        // Phase 94: Pre-collect bank reserves for banked companies so we can
+        // clamp freeze amounts to available reserves. Without this, freezing
+        // banked company cash creates money (available_cash is M1, not in M0,
+        // but frozen_company_cash is in M0 — if bank reserves < freeze, the
+        // difference is FiatCreation).
+        // The map is mutable: we decrement remaining reserves as each company's
+        // freeze is processed, so multiple companies sharing the same bank
+        // see diminishing reserves (prevents over-clamping that creates money).
+        let mut bank_reserves_remaining: std::collections::HashMap<String, f64> = {
+            let mut map = std::collections::HashMap::new();
+            for c in companies.iter() {
+                if c.sector == Sector::Banking {
+                    if let Some(ref bs) = c.balance_sheet {
+                        map.insert(c.id.clone(), bs.reserves_at_central_bank.max(0.0));
+                    }
+                }
+            }
+            map
+        };
+        // Phase 94: Collect bank reserve debits for batch sync to avoid
+        // mutable aliasing when looking up the bank while iterating companies.
+        // Each entry is (bank_id, amount, company_has_brokerage) so the
+        // counterparty (deposits vs equity) is debited correctly.
+        let mut freeze_bank_debits: Vec<(String, f64, bool)> = Vec::new();
         for company in companies.iter_mut() {
-            let freeze_amount = company.available_cash * freeze_ratio;
+            let mut freeze_amount = company.available_cash * freeze_ratio;
+            // Phase 94: For banked companies, clamp freeze to bank's available
+            // reserves to prevent FiatCreation.
+            let bank_id_for_sync: Option<String> = if company.sector == Sector::Banking {
+                None // Banks debit their own reserves below
+            } else {
+                company.primary_bank_id.clone()
+            };
+            if let Some(ref bid) = bank_id_for_sync {
+                if !bank_reserves_remaining.contains_key(bid) {
+                    // Phase 94: Company has a stale primary_bank_id pointing
+                    // to a non-existent bank (e.g., liquidated/merged).
+                    // The M0 walker treats this company as banked
+                    // (available_cash is M1, excluded from M0), but
+                    // frozen_company_cash is M0. Freezing would create M0
+                    // because no bank reserves are debited. Skip the freeze
+                    // for such companies to prevent FiatCreation.
+                    freeze_amount = 0.0;
+                }
+                if let Some(remaining) = bank_reserves_remaining.get_mut(bid) {
+                    freeze_amount = freeze_amount.min(*remaining);
+                    *remaining -= freeze_amount;
+                }
+            } else if company.sector == Sector::Banking {
+                if let Some(ref _bs) = company.balance_sheet {
+                    let bid = company.id.clone();
+                    if let Some(remaining) = bank_reserves_remaining.get_mut(&bid) {
+                        freeze_amount = freeze_amount.min(*remaining);
+                        *remaining -= freeze_amount;
+                    }
+                }
+            }
             if freeze_amount > 0.01 {
+                let has_brokerage = company.brokerage_account.is_some();
                 company.available_cash -= freeze_amount;
                 *justice_state
                     .frozen_company_cash
@@ -445,6 +612,20 @@ pub fn process_justice_turn(
                     .or_insert(0.0) += freeze_amount;
                 total_frozen += freeze_amount;
                 companies_frozen += 1;
+                // Phase 94: Track bank reserve debits for banked companies.
+                if company.sector == Sector::Banking {
+                    if let Some(ref _bs) = company.balance_sheet {
+                        freeze_bank_debits.push((company.id.clone(), freeze_amount, has_brokerage));
+                    }
+                } else if let Some(bank_id) = bank_id_for_sync {
+                    freeze_bank_debits.push((bank_id, freeze_amount, has_brokerage));
+                }
+            }
+        }
+        // Phase 94: Batch sync bank reserves AND counterparty.
+        for (bank_id, total_debit, has_brokerage) in &freeze_bank_debits {
+            if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
+                debit_bank_for_company_action(bank, *total_debit, *has_brokerage);
             }
         }
     }
@@ -452,11 +633,67 @@ pub fn process_justice_turn(
     // 8. Apply corruption OPEX multiplier
     let corruption_mult = 1.0 + corruption_index * 0.10;
     if corruption_mult > 1.0 {
+        // Phase 94: Mutable remaining reserves so multiple companies sharing
+        // the same bank see diminishing reserves (prevents over-clamping that
+        // creates money when total overhead exceeds bank reserves).
+        let mut bank_reserves_remaining: std::collections::HashMap<String, f64> = {
+            let mut map = std::collections::HashMap::new();
+            for c in companies.iter() {
+                if c.sector == Sector::Banking {
+                    if let Some(ref bs) = c.balance_sheet {
+                        map.insert(c.id.clone(), bs.reserves_at_central_bank.max(0.0));
+                    }
+                }
+            }
+            map
+        };
+        // Phase 94: Collect bank reserve debits for batch sync.
+        let mut overhead_bank_debits: Vec<(String, f64, bool)> = Vec::new();
         for company in companies.iter_mut() {
             // Increase debit_cash as OPEX overhead proxy
-            let overhead = company.available_cash * (corruption_mult - 1.0) * 0.01;
+            let mut overhead = company.available_cash * (corruption_mult - 1.0) * 0.01;
+            // Phase 94: Clamp overhead to bank reserves for banked companies.
+            let bank_id_for_sync: Option<String> = if company.sector == Sector::Banking {
+                None
+            } else {
+                company.primary_bank_id.clone()
+            };
+            if let Some(ref bid) = bank_id_for_sync {
+                if !bank_reserves_remaining.contains_key(bid) {
+                    // Phase 94: Stale bank reference — skip to prevent FiatCreation.
+                    overhead = 0.0;
+                }
+                if let Some(remaining) = bank_reserves_remaining.get_mut(bid) {
+                    overhead = overhead.min(*remaining);
+                    *remaining -= overhead;
+                }
+            } else if company.sector == Sector::Banking {
+                let bid = company.id.clone();
+                if let Some(remaining) = bank_reserves_remaining.get_mut(&bid) {
+                    overhead = overhead.min(*remaining);
+                    *remaining -= overhead;
+                }
+            }
+            if overhead <= 0.0 {
+                continue;
+            }
+            let has_brokerage = company.brokerage_account.is_some();
             company.available_cash -= overhead;
             country.budget.liquid_reserves += overhead;
+            // Phase 94: Track bank reserve debits for batch sync.
+            if company.sector == Sector::Banking {
+                if let Some(ref _bs) = company.balance_sheet {
+                    overhead_bank_debits.push((company.id.clone(), overhead, has_brokerage));
+                }
+            } else if let Some(bank_id) = bank_id_for_sync {
+                overhead_bank_debits.push((bank_id, overhead, has_brokerage));
+            }
+        }
+        // Phase 94: Batch sync bank reserves AND counterparty.
+        for (bank_id, total_debit, has_brokerage) in &overhead_bank_debits {
+            if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
+                debit_bank_for_company_action(bank, *total_debit, *has_brokerage);
+            }
         }
     }
 

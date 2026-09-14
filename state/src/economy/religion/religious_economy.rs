@@ -353,10 +353,24 @@ pub fn process_monastery_production(
         let condition_factor = building.condition;
         let base_output_value = 100.0 * production_scale * condition_factor * labor_efficiency;
 
+        // Phase 94: Fund production from the building's available_cash (donations).
+        // Donations were collected from citizens (M0 destroyed: savings → building
+        // cash, building cash NOT in M0). Production credits the owning company
+        // (M0 created for unbanked companies). Debiting the building's cash makes
+        // the production a transfer from the donation fund to the company,
+        // ensuring M0 conservation (donations destroyed M0, production recreates
+        // it from the fund). Cap by available_cash so the monastery cannot
+        // produce more than its donations can fund.
+        let affordable = base_output_value.min(building.available_cash);
+        if affordable <= 0.0 {
+            continue;
+        }
+        building.available_cash -= affordable;
+
         // Credit the owning company via TransferSettler (simulated B2B revenue).
-        let credited = credit_company_by_id(companies, &owner_id, base_output_value);
+        let credited = credit_company_by_id(companies, &owner_id, affordable);
         if credited {
-            total_value += base_output_value;
+            total_value += affordable;
         }
     }
 

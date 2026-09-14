@@ -530,9 +530,10 @@ fn apply_service_transactions(
         }
 
         // Debit citizen savings from region
+        let mut actual_citizen_payment = 0.0;
         if txn.citizen_payment > 0.0 {
             if let Some(region) = country.regions.iter_mut().find(|r| r.id == txn.region_id) {
-                debit_citizen_savings_region(region, txn.citizen_payment);
+                actual_citizen_payment = debit_citizen_savings_region(region, txn.citizen_payment);
             }
         }
 
@@ -541,8 +542,8 @@ fn apply_service_transactions(
             country.budget.liquid_reserves -= txn.government_subsidy;
         }
 
-        // Credit revenue
-        let total_revenue = txn.citizen_payment + txn.government_subsidy;
+        // Credit revenue (only the actual debited amount + subsidy)
+        let total_revenue = actual_citizen_payment + txn.government_subsidy;
         if total_revenue <= 0.0 {
             continue;
         }
@@ -552,7 +553,11 @@ fn apply_service_transactions(
                 building.reserve += total_revenue;
             }
         } else {
-            credit_company_by_id(companies, &txn.owner_id, total_revenue);
+            // Phase 94: If the private operator company was not found,
+            // credit the treasury to conserve M0.
+            if !credit_company_by_id(companies, &txn.owner_id, total_revenue) {
+                country.budget.liquid_reserves += total_revenue;
+            }
         }
     }
 }
@@ -638,6 +643,16 @@ pub fn clear_passenger_transport_b2c(
     service_needs: &BTreeMap<String, f64>,
     config: &ServicePricingConfig,
 ) -> BTreeMap<String, f64> {
+    #[cfg(feature = "diagnostic")]
+    let mut _diag_public_revenue: f64 = 0.0;
+    #[cfg(feature = "diagnostic")]
+    let mut _diag_private_revenue: f64 = 0.0;
+    #[cfg(feature = "diagnostic")]
+    let mut _diag_private_failed: f64 = 0.0;
+    #[cfg(feature = "diagnostic")]
+    let mut _diag_citizen_debit: f64 = 0.0;
+    #[cfg(feature = "diagnostic")]
+    let mut _diag_treasury_debit: f64 = 0.0;
     let commodity = Commodity::PassengerTransport;
     let mut coverage: BTreeMap<String, f64> = BTreeMap::new();
     // Phase C.2: Dynamic cost-plus pricing (Rule 2/21).
@@ -718,22 +733,53 @@ pub fn clear_passenger_transport_b2c(
                 // Public: Treasury pays the subsidy portion.
                 let subsidy = to_consume * config.default_service_price(average_wage) * 0.8;
                 let citizen_payment = revenue;
+                let mut actual_subsidy = 0.0;
                 if country.budget.liquid_reserves >= subsidy {
                     country.budget.liquid_reserves -= subsidy;
+                    actual_subsidy = subsidy;
                 }
                 // Debit citizen savings proportionally.
+                let mut actual_citizen_payment = 0.0;
                 if let Some(region) = country.regions.iter_mut().find(|r| r.id == *region_id) {
-                    debit_citizen_savings_region(region, citizen_payment);
+                    actual_citizen_payment = debit_citizen_savings_region(region, citizen_payment);
                 }
-                // Credit the public building's reserve.
-                building.reserve += subsidy + citizen_payment;
+                // Credit the public building's reserve (only actual amounts).
+                let total_credit = actual_subsidy + actual_citizen_payment;
+                building.reserve += total_credit;
+                #[cfg(feature = "diagnostic")]
+                {
+                    _diag_public_revenue += total_credit;
+                    _diag_treasury_debit += actual_subsidy;
+                    _diag_citizen_debit += actual_citizen_payment;
+                }
             } else {
                 // Private: citizens pay full price.
+                let mut actual_revenue = 0.0;
                 if let Some(region) = country.regions.iter_mut().find(|r| r.id == *region_id) {
-                    debit_citizen_savings_region(region, revenue);
+                    actual_revenue = debit_citizen_savings_region(region, revenue);
                 }
-                // Credit the private operator company.
-                credit_company_by_id(companies, &building.owner_id, revenue);
+                // Credit the private operator company (only actual debited amount).
+                let _credit_ok = if actual_revenue > 0.0 {
+                    credit_company_by_id(companies, &building.owner_id, actual_revenue)
+                } else {
+                    false
+                };
+                #[cfg(feature = "diagnostic")]
+                {
+                    _diag_private_revenue += actual_revenue;
+                    _diag_citizen_debit += actual_revenue;
+                    if !_credit_ok && actual_revenue > 0.0 {
+                        _diag_private_failed += actual_revenue;
+                    }
+                }
+                // Phase 94: If the private operator company was not found
+                // (e.g. bankrupt, merged, or state-owned with a non-company
+                // owner_id), credit the treasury to conserve M0. Without this,
+                // citizen savings are debited but the revenue vanishes, creating
+                // FiatDestruction of ~150K per turn.
+                if !_credit_ok && actual_revenue > 0.0 {
+                    country.budget.liquid_reserves += actual_revenue;
+                }
             }
 
             remaining_to_consume -= to_consume;
@@ -742,6 +788,9 @@ pub fn clear_passenger_transport_b2c(
         coverage.insert(region_id.clone(), coverage_ratio);
     }
 
+    #[cfg(feature = "diagnostic")]
+    eprintln!("COMMUTE_B2C: public_rev={:.0} private_rev={:.0} private_failed={:.0} citizen_debit={:.0} treasury_debit={:.0}",
+        _diag_public_revenue, _diag_private_revenue, _diag_private_failed, _diag_citizen_debit, _diag_treasury_debit);
     coverage
 }
 
