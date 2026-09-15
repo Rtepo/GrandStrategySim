@@ -46,14 +46,6 @@ pub fn allocate_owner_infrastructure_funding(
         }
     }
 
-    #[cfg(feature = "diagnostic")]
-    let mut _total_private_debit: f64 = 0.0;
-    #[cfg(feature = "diagnostic")]
-    let mut _total_private_credit: f64 = 0.0;
-    #[cfg(feature = "diagnostic")]
-    let mut _total_state_debit: f64 = 0.0;
-    #[cfg(feature = "diagnostic")]
-    let mut _total_state_credit: f64 = 0.0;
     for building in buildings.iter_mut() {
         let owner_id = &building.owner_id;
         let funding_amount = calculate_funding_requirement(building, config, average_wage);
@@ -64,11 +56,6 @@ pub fn allocate_owner_infrastructure_funding(
             if treasury.liquid_reserves >= funding_amount {
                 treasury.liquid_reserves -= funding_amount;
                 building.reserve += funding_amount;
-                #[cfg(feature = "diagnostic")]
-                {
-                    _total_state_debit += funding_amount;
-                    _total_state_credit += funding_amount;
-                }
             }
         } else if owner_id.starts_with("LOCAL_") {
             // Local Government owned
@@ -76,11 +63,6 @@ pub fn allocate_owner_infrastructure_funding(
                 if *local_cash >= funding_amount {
                     *local_cash -= funding_amount;
                     building.reserve += funding_amount;
-                    #[cfg(feature = "diagnostic")]
-                    {
-                        _total_state_debit += funding_amount;
-                        _total_state_credit += funding_amount;
-                    }
                 }
             }
         } else {
@@ -89,17 +71,10 @@ pub fn allocate_owner_infrastructure_funding(
                 if companies[idx].available_cash >= funding_amount {
                     companies[idx].available_cash -= funding_amount;
                     building.reserve += funding_amount;
-                    #[cfg(feature = "diagnostic")]
-                    {
-                        _total_private_debit += funding_amount;
-                        _total_private_credit += funding_amount;
-                    }
                 }
             }
         }
     }
-    #[cfg(feature = "diagnostic")]
-    eprintln!("INFRA_SUMMARY: private_debit={:.0} private_credit={:.0} state_debit={:.0} state_credit={:.0}", _total_private_debit, _total_private_credit, _total_state_debit, _total_state_credit);
 }
 
 /// Calculates funding requirement for a building based on its operating costs.
