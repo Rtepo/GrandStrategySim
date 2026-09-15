@@ -782,31 +782,35 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             // Phase 28: Transfer collected donations from cultural buildings to
             // their owning Church/NGO companies so they can pay wages.
             // This is the organic funding mechanism — no magical seed capital.
-            // Double-entry: DEBIT building.available_cash, CREDIT company.available_cash.
+            // Phase 94: Use credit_company_by_id for proper bank-reserve sync.
+            // The building.available_cash was M0 (citizen_cash). For banked
+            // owner companies, crediting brokerage_account.cash (M1) without
+            // adjusting bank reserves (M0) destroys M0. credit_company_by_id
+            // handles the bank reserve adjustment to keep M0 neutral.
+            let mut pending_cultural_transfers: Vec<(String, f64)> = Vec::new();
             for building in &mut task.ctx.country.cultural_institutions {
                 if building.available_cash > 0.0 {
                     if let Some(ref owner_id) = building.owner_company_id {
                         let transfer = building.available_cash;
                         building.available_cash = 0.0;
-                        if let Some(company) = task.companies.iter_mut().find(|c| &c.id == owner_id)
-                        {
-                            // Phase 94: Only credit brokerage_account.cash (NOT
-                            // available_cash) to avoid M0 duplication. The walk
-                            // counts both available_cash + brokerage_account.cash
-                            // for unbanked companies — crediting both creates
-                            // money from nothing (FiatCreation).
-                            if let Some(ref mut ba) = company.brokerage_account {
-                                ba.cash += transfer;
-                            } else {
-                                company.brokerage_account =
-                                    Some(crate::securities::BrokerageAccount {
-                                        cash: transfer,
-                                        ..Default::default()
-                                    });
-                            }
-                        }
+                        pending_cultural_transfers.push((owner_id.clone(), transfer));
                     }
                 }
+            }
+            for (owner_id, transfer) in pending_cultural_transfers {
+                let credited = crate::economy::transfer_settler::credit_company_by_id(
+                    &mut task.companies,
+                    &owner_id,
+                    transfer,
+                );
+                if !credited {
+                    // Phase 94: Owner company not found — refund the building
+                    // to avoid M0 destruction (building cash was already
+                    // zeroed, so restore it).
+                    if let Some(b) = task.ctx.country.cultural_institutions.iter_mut().find(|b| b.owner_company_id.as_deref() == Some(&owner_id)) {
+                        b.available_cash += transfer;
+                    }
+                    }
             }
         });
 
@@ -1186,6 +1190,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             task.order_book = OrderBook::default();
             let _ = messages;
         }
+
 
         // Match orders (Phase 11: embargo-aware matching)
         match_orders_with_embargoes(&mut global_order_book, &company_country, &diplomacy);
@@ -1719,6 +1724,24 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &task.ctx.country.cultural_institutions,
                 &mut task.ctx.country.regions,
             );
+            // Phase 94: Debit cultural buildings for filled relief trades.
+            // submit_relief_b2b_orders no longer encumbers cash at submission
+            // (to avoid M0 destruction between submission and settlement).
+            // The seller was credited by settle_trades. Now debit the building
+            // for the exact trade value to maintain double-entry M0.
+            // Use all_trades (global) since task.order_book was reset after merge.
+            for trade in &all_trades {
+                if let Some(building) = task
+                    .ctx
+                    .country
+                    .cultural_institutions
+                    .iter_mut()
+                    .find(|b| b.id == trade.buyer_id)
+                {
+                    let trade_value = trade.quantity * trade.execution_price;
+                    building.available_cash -= trade_value;
+                }
+            }
         });
 
         // Post-clearing: Process heritage effects (prestige, tourism)
@@ -2223,7 +2246,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // Wave 1: Energy production only
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T1]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("FM0A t={} pre_prod_cycle tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0}",
                 turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash);
         }
@@ -2246,7 +2269,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // ── DIAGNOSTIC CHECKPOINT: production_cycle_post ──
         probe.checkpoint("production_cycle_post", 5, turn, &market, &tasks);        #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T2]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUBPHASE_POST_PROD: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
 
@@ -2472,7 +2495,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // ═══════════════════════════════════════════════════════════
            #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T3]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUBPHASE_PRE_MUNICIPAL: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
      // PHASE 82/83: MUNICIPAL AI — Heating & Infrastructure Investment
@@ -3018,7 +3041,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // ═══════════════════════════════════════════════════════════
            #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T4]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUBPHASE_PRE_WASTE: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
      // PHASE 84: WASTE EPIC — Solid Waste Management & Circular Economy
@@ -3239,7 +3262,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // ═══════════════════════════════════════════════════════════
            #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T5]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUBPHASE_PRE_COMMUTE: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
      // PHASE 23C: COMMUTING & PASSENGER TRANSPORT B2C
@@ -3288,7 +3311,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
            #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T6]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUB2_PRE_LABOR: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
      // W1: Wage payment (labor market resolution) with PIT withholding (Fix 1.22)
@@ -3463,7 +3486,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T7]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUB2_AFTER_LABOR_MARKET: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0}",
                 turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash);
         }
@@ -3535,7 +3558,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T8]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUB2_AFTER_STATE_EMPLOYER_REMOVAL: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0}",
                 turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash);
         }
@@ -3604,7 +3627,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T9]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUB2_POST_LABOR: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
         // Fix 1.22: Credit withheld PIT + garnishments to each country's Treasury
@@ -3625,7 +3648,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T10]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUB2_POST_PIT: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
         // Phase 18A: Route TemporaryWorker remittances to foreign_sector_balance.
@@ -3667,7 +3690,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T11]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUB2_POST_REMIT: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
         // Phase 23C: Remit commuter wages back to home regions' class savings.
@@ -3783,7 +3806,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T12]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUB2_POST_COMMUTER_REMIT: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
         // Phase 18A: Shadow Economy Processing
@@ -4143,7 +4166,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
            #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T13]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUBPHASE_PRE_B2C_MARKET: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
      // Phase 6.5: B2C Market Phases R1-R7
@@ -4275,7 +4298,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T14]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
 
         // Phase 47: Degrade household durable cohorts by one turn.
@@ -4296,7 +4319,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T15]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         // Phase 25: Update retail VWAP from B2C clearing for CPI calculation.
         let all_retail_prices: Vec<(crate::registries::enums::Commodity, f64, f64)> = tasks
@@ -4307,7 +4330,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T16]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         // Bugfix Sprint: Clear supply/demand/b2c volumes ONCE at this point
         // (after B2C clearing has produced task.b2c_demand, but before we
@@ -4323,7 +4346,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T17]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         // Phase 44: Aggregate B2C consumer demand into market.demand_volume
         // and market.b2c_demand_volume so the Market UI shows total demand
@@ -4529,7 +4552,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T18]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         // RESURRECTION PHASE 10: RATIONING CONSEQUENCES
         // After B2C clearing — mortality and unrest penalties from rationing.
@@ -4610,7 +4633,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T19]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         
         #[cfg(feature = "diagnostic")]
@@ -4754,7 +4777,7 @@ tasks.par_iter_mut().for_each(|task| {
         });
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T20]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         // Phase 4 fix (C6): Process voluntary project abandonment.
         // Companies queue AbandonProject actions via pply_action;
@@ -5147,7 +5170,7 @@ tasks.par_iter_mut().for_each(|task| {
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T21]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         // PHASE 7: TAX COLLECTION
         // The Treasury collects all progressive taxes (PIT, CIT, VAT,
@@ -5455,23 +5478,39 @@ tasks.par_iter_mut().for_each(|task| {
         // ministries, and ministries submit B2B orders and execute
         // spending strategies.
         // ═══════════════════════════════════════════════════════════
+        // Phase 94: Collect foreign credits from debt service to apply to
+        // the global foreign_sector_balance after the parallel loop.
+        // Each country's treasury debits M0 (liquid_reserves) when paying
+        // foreign bondholders. The credit must go to foreign_sector_balance
+        // to preserve M0 conservation (Directive 1: closed-loop).
+        let foreign_credits = std::sync::Mutex::new(Vec::<f64>::with_capacity(tasks.len()));
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let current_turn = task.ctx.turn;
 
             // 3. ALL DEBT SERVICE (NATIONAL + LOCAL, BEFORE any discretionary spending)
-            process_debt_service(task.ctx.country, &mut task.companies, current_turn);
-            process_municipal_debt_service(task.ctx.country, &mut task.companies);
+            let nat_foreign = process_debt_service(task.ctx.country, &mut task.companies, current_turn);
+            let mun_foreign = process_municipal_debt_service(task.ctx.country, &mut task.companies);
+            let total_foreign = nat_foreign + mun_foreign;
+            if total_foreign > 0.0 {
+                foreign_credits.lock().unwrap().push(total_foreign);
+            }
         });
 
-        #[cfg(feature = "diagnostic")]
-        {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+        // Phase 94: Apply foreign credits to the global foreign_sector_balance.
+        let total_foreign_credit: f64 = foreign_credits.into_inner().unwrap().iter().sum();
+        if total_foreign_credit > 0.0 {
+            market.foreign_sector_balance += total_foreign_credit;
         }
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREFISC: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T22]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+        }
+
+        #[cfg(feature = "diagnostic")]
+        {
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREFISC: t={} M0={:.0} cb={:.0} diff={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0} frozen={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets, _w.frozen_cash);
         }
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
@@ -5567,6 +5606,30 @@ tasks.par_iter_mut().for_each(|task| {
                     // Phase 42: Accumulate non-procurement ministry spending into GDP G.
                     task.gdp_acc.government_spending += g_spent;
                 }
+                // Phase 94: Return B2B procurement encumbrance to ministry_cash.
+                // The local_order_book is never submitted to the global market
+                // (it is dropped at the end of this closure), so the encumbered
+                // cash must be returned to prevent M0 destruction (Directive 1).
+                // Also remove B2B actions from spending_actions so the Phase B
+                // post-clearing loop does not double-return the same encumbrance.
+                for ministry in &mut config.ministries {
+                    let mut b2b_return = 0.0_f64;
+                    let mut b2b_count = 0;
+                    for action in &ministry.spending_actions {
+                        if let crate::politics::ministries::MinistrySpendingAction::B2BProcurementOrder { quantity, limit_price, .. } = action {
+                            b2b_return += quantity * limit_price;
+                            b2b_count += 1;
+                        }
+                    }
+                    if b2b_return > 0.0 {
+                        ministry.ministry_cash += b2b_return;
+                        ministry.spent_cash -= b2b_return;
+                        // Remove B2B actions to prevent double-return in Phase B.
+                        ministry.spending_actions.retain(|a| {
+                            !matches!(a, crate::politics::ministries::MinistrySpendingAction::B2BProcurementOrder { .. })
+                        });
+                    }
+                }
             }
             task.ctx.country.politics.ministry_config = ministry_config;
         });
@@ -5574,7 +5637,7 @@ tasks.par_iter_mut().for_each(|task| {
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREINSPEC: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREINSPEC: t={} M0={:.0} cb={:.0} diff={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0} frozen={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets, _w.frozen_cash);
         }
         // Phase 29: State construction of inspectorate buildings.
         // When corruption is high, the Justice/InternalSecurity ministry
@@ -5606,6 +5669,22 @@ tasks.par_iter_mut().for_each(|task| {
                         &mut task.companies,
                         task.ctx.country,
                     );
+                }
+                // Phase 94: Return B2B procurement encumbrance to ministry_cash.
+                // The placeholder order_book is never submitted to the global
+                // market, so the encumbered cash must be returned to prevent
+                // M0 destruction (Directive 1: closed-loop).
+                for ministry in &mut config.ministries {
+                    let mut b2b_return = 0.0_f64;
+                    for action in &ministry.spending_actions {
+                        if let crate::politics::ministries::MinistrySpendingAction::B2BProcurementOrder { quantity, limit_price, .. } = action {
+                            b2b_return += quantity * limit_price;
+                        }
+                    }
+                    if b2b_return > 0.0 {
+                        ministry.ministry_cash += b2b_return;
+                        ministry.spent_cash -= b2b_return;
+                    }
                 }
             }
             task.ctx.country.politics.ministry_config = ministry_config;
@@ -5663,7 +5742,7 @@ tasks.par_iter_mut().for_each(|task| {
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T23]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         #[cfg(feature = "diagnostic")]
         {
@@ -5800,7 +5879,7 @@ tasks.par_iter_mut().for_each(|task| {
         // RESURRECTION PHASE 3: MoD B2B ORDER SUBMISSION
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T24]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         #[cfg(feature = "diagnostic")]
         {
@@ -6472,7 +6551,7 @@ tasks.par_iter_mut().for_each(|task| {
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T25]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         // Phase 19A: Sequential post-parallel crediting of cross-border
         // blueprint royalties. Each country's parallel phase emitted FX outflows
@@ -6511,7 +6590,7 @@ tasks.par_iter_mut().for_each(|task| {
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T26]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         // Phase 95: Sequential post-parallel crediting of foreign patent fees.
         // Each country's parallel R&D phase emitted FX outflows (debited
@@ -6734,7 +6813,7 @@ tasks.par_iter_mut().for_each(|task| {
 
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T27]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
@@ -6982,7 +7061,7 @@ tasks.par_iter_mut().for_each(|task| {
             );
         });
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T28]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
 
 
@@ -7033,11 +7112,11 @@ tasks.par_iter_mut().for_each(|task| {
             );
         });
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T29]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
 
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T30]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
 
 
@@ -7289,7 +7368,7 @@ tasks.par_iter_mut().for_each(|task| {
         // PHASE 85A: GUILD SYSTEM CYCLE
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T31]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         // Phase 86.5B: Wire previously-disconnected guild system.
         // - Check guild formation in GuildBurgher domains
@@ -7578,7 +7657,7 @@ tasks.par_iter_mut().for_each(|task| {
 
             #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T32]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
     // Phase 93: Collect depletion buffers from all tasks before they are
         // consumed. These will be applied to state.planet after tasks are dropped
@@ -7592,7 +7671,7 @@ tasks.par_iter_mut().for_each(|task| {
         // ── DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ──
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T33]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
 probe.checkpoint("turn_end", 4, turn, &market, &tasks);
 

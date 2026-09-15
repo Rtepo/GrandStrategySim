@@ -322,9 +322,7 @@ impl BankSnapshot {
             }
         }
     }
-}
-
-/// Regional market view: prices + order flow for one region's country.
+}/// Regional market view: prices + order flow for one region's country.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct RegionalMarketSnapshot {
     pub region_id: String,
@@ -630,9 +628,14 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
     // credits domestic entities (M0 ↑). Excluding it creates false
     // FiatDestruction on remittance outflows and false FiatCreation on
     // foreign trade inflows.
+    // Phase 94: black_ops_budget is a fiscal REPORTING field that mirrors
+    // intelligence_budget.current_budget (both set to the same `capped` value
+    // in process_black_ops_funding). Counting both double-counts the same M0
+    // pool. Only intelligence_budget.current_budget is the actual spendable
+    // pool; black_ops_budget is kept in the struct for reporting only.
     let total = treasury_cash + citizen_cash + bank_reserves + offshore_capital
         + foreign_sector_balance + see_charity_pool + ministry_cash + arbitration_escrow
-        + black_ops_budget + intelligence_budget + international_org_budgets
+        + intelligence_budget + international_org_budgets
         + corporate_cash + debit_cash_total + frozen_cash;
     let snapshot = FiatWalk {
         total,
@@ -1353,13 +1356,15 @@ impl CapturingProbe {
                     let d_arb = current_fiat.arbitration_escrow - prev.arbitration_escrow;
                     let d_blackops = current_fiat.black_ops_budget - prev.black_ops_budget;
                     let d_intel = current_fiat.intelligence_budget - prev.intelligence_budget;
+                    let d_iob = current_fiat.international_org_budgets - prev.international_org_budgets;
+                    let d_frozen = current_fiat.frozen_cash - prev.frozen_cash;
                     violations.push(ConservationViolation {
                         kind,
                         commodity: None,
                         magnitude: (delta - cb_delta).abs(),
                         checkpoint: checkpoint_loc.clone(),
                         explanation: format!(
-                            "M0 fiat changed by {} but CB injection only changed by {} (diff={}) | Δtreasury={:.0} Δcitizen={:.0} Δbank_res={:.0} Δoffshore={:.0} Δforeign={:.0} Δcharity={:.0} Δministry={:.0} Δcorp={:.0} Δdebit={:.0} Δarb={:.0} Δblackops={:.0} Δintel={:.0}",
+                            "M0 fiat changed by {} but CB injection only changed by {} (diff={}) | Δtreasury={:.0} Δcitizen={:.0} Δbank_res={:.0} Δoffshore={:.0} Δforeign={:.0} Δcharity={:.0} Δministry={:.0} Δcorp={:.0} Δdebit={:.0} Δarb={:.0} Δblackops={:.0} Δintel={:.0} Δiob={:.0} Δfrozen={:.0}",
                             delta,
                             cb_delta,
                             delta - cb_delta,
@@ -1374,7 +1379,9 @@ impl CapturingProbe {
                             d_debit,
                             d_arb,
                             d_blackops,
-                            d_intel
+                            d_intel,
+                            d_iob,
+                            d_frozen
                         ),
                     });
                 }
@@ -1458,6 +1465,17 @@ impl CapturingProbe {
         }
 
         // Bank balance-sheet identity check.
+        #[cfg(feature = "diagnostic")]
+        if bank_snapshot.id == "BANK-ANA-001" {
+            eprintln!("BANK_ANA_ALL: phase={} turn={} res={:.2} cb_dep={:.2} sec={:.2} | dep={:.2} | t1={:.2} | A={:.2} L={:.2} E={:.2} A-L-E={:.2}",
+                phase_name, turn,
+                bank_snapshot.reserves_at_central_bank, bank_snapshot.cb_deposit_facility_balance,
+                bank_snapshot.securities,
+                bank_snapshot.deposits,
+                bank_snapshot.tier_1_capital,
+                bank_snapshot.total_assets, bank_snapshot.total_liabilities, bank_snapshot.total_equity,
+                bank_snapshot.total_assets - bank_snapshot.total_liabilities - bank_snapshot.total_equity);
+        }
         if !bank_snapshot.is_balanced
             && !bank_snapshot.id.is_empty()
             && (bank_snapshot.total_assets
@@ -1466,6 +1484,16 @@ impl CapturingProbe {
                 .abs()
                 > 0.0
         {
+            #[cfg(feature = "diagnostic")]
+            if bank_snapshot.id == "BANK-ANA-001" {
+                eprintln!("BANK_ANA_BREAKDOWN: res={:.2} cb_dep={:.2} ib_given={:.2} sec={:.2} | dep={:.2} cb_lom={:.2} ib_taken={:.2} | t1={:.2} | A={:.2} L={:.2} E={:.2} A-L-E={:.2}",
+                    bank_snapshot.reserves_at_central_bank, bank_snapshot.cb_deposit_facility_balance,
+                    bank_snapshot.interbank_loans_given.values().sum::<f64>(), bank_snapshot.securities,
+                    bank_snapshot.deposits, bank_snapshot.cb_lombard_loans, bank_snapshot.interbank_loans_taken.values().sum::<f64>(),
+                    bank_snapshot.tier_1_capital,
+                    bank_snapshot.total_assets, bank_snapshot.total_liabilities, bank_snapshot.total_equity,
+                    bank_snapshot.total_assets - bank_snapshot.total_liabilities - bank_snapshot.total_equity);
+            }
             violations.push(ConservationViolation {
                 kind: ViolationKind::BankBalanceSheetImbalance,
                 commodity: None,

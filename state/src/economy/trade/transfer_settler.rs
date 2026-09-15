@@ -465,6 +465,7 @@ pub fn settle_b2c_purchase(
     let recipient_bank_id = companies[recipient_company_idx].primary_bank_id.clone();
     if let Some(ref bank_id) = recipient_bank_id {
         adjust_bank_balance_unmapped(companies, bank_id, actual_base, actual_base);
+        
     }
 
     Ok(TransferResult {

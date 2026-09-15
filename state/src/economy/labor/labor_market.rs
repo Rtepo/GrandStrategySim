@@ -529,6 +529,11 @@ pub fn resolve_regional_labor_market(
             if is_bank {
                 if let Some(ref mut bs) = company.balance_sheet {
                     bs.reserves_at_central_bank -= wage_payment;
+                    // Phase 94: Wages are an operating expense — debit equity
+                    // (retained earnings) to maintain A=L+E. Without this,
+                    // reserves decrease but liabilities/equity don't, breaking
+                    // the balance sheet identity.
+                    bs.tier_1_capital -= wage_payment;
                 }
             } else if let Some(ba) = &mut company.brokerage_account {
                 ba.cash -= wage_payment;
@@ -548,6 +553,8 @@ pub fn resolve_regional_labor_market(
                 if is_bank {
                     if let Some(ref mut bs) = company.balance_sheet {
                         bs.reserves_at_central_bank -= payable;
+                        // Phase 94: Wages are an operating expense — debit equity.
+                        bs.tier_1_capital -= payable;
                     }
                 } else if let Some(ba) = &mut company.brokerage_account {
                     ba.cash -= payable;
@@ -599,6 +606,8 @@ pub fn resolve_regional_labor_market(
                 if is_bank {
                     if let Some(ref mut bs) = company.balance_sheet {
                         bs.reserves_at_central_bank -= repayment;
+                        // Phase 94: Wage arrears repayment is an expense — debit equity.
+                        bs.tier_1_capital -= repayment;
                     }
                 } else if let Some(ba) = &mut company.brokerage_account {
                     ba.cash -= repayment;
@@ -655,6 +664,8 @@ pub fn resolve_regional_labor_market(
             if is_bank {
                 if let Some(ref mut bs) = company.balance_sheet {
                     bs.reserves_at_central_bank -= payable;
+                    // Phase 94: Severance is an expense — debit equity.
+                    bs.tier_1_capital -= payable;
                 }
             } else if let Some(ba) = &mut company.brokerage_account {
                 ba.cash -= payable;
@@ -697,6 +708,8 @@ pub fn resolve_regional_labor_market(
             if is_bank {
                 if let Some(ref mut bs) = company.balance_sheet {
                     bs.reserves_at_central_bank -= repayment;
+                    // Phase 94: Severance arrears repayment is an expense — debit equity.
+                    bs.tier_1_capital -= repayment;
                 }
             } else if let Some(ba) = &mut company.brokerage_account {
                 ba.cash -= repayment;

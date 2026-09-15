@@ -480,9 +480,12 @@ pub fn submit_relief_b2b_orders(
                 continue;
             }
 
-            // Encumber cash immediately
-            let encumbrance = quantity * limit_price;
-            building.available_cash -= encumbrance;
+            // Phase 94: Do NOT encumber cash at bid submission. The building's
+            // available_cash is M0 (citizen_cash). Debiting it without crediting
+            // a tracked M0 reservoir destroys M0 between submission and settlement.
+            // Instead, the cash is debited after settlement for filled trades
+            // (see post-clearing cultural settlement in turn.rs).
+            let _encumbrance = quantity * limit_price;
 
             order_book.bids.entry(*commodity).or_default().push(Bid {
                 buyer_id: building.id.clone(),
