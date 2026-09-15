@@ -235,20 +235,30 @@ fn check_region_pogrom(
     );
     if rural_result.triggered {
         // Phase 4: Extract casualty wealth BEFORE reducing population.
-        let casualty_wealth = extract_casualty_wealth(
-            region,
-            &rural_result.minority_class,
-            "rural",
-            rural_result.casualties,
-        );
-        // Phase 3: Extract emigrant wealth BEFORE reducing population.
-        // This wealth travels with emigrants to their destination via migration.
-        let _emigrant_wealth = extract_emigrant_wealth(
-            region,
-            &rural_result.minority_class,
-            "rural",
-            rural_result.emigration,
-        );
+        // Phase 94: Only extract if a dominant-culture class exists to receive
+        // the loot. Otherwise the extracted wealth would be destroyed (M0 leak).
+        let has_dominant_rural = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .any(|d| d.culture == *dominant_culture || d.culture.is_empty());
+        let casualty_wealth = if has_dominant_rural {
+            extract_casualty_wealth(
+                region,
+                &rural_result.minority_class,
+                "rural",
+                rural_result.casualties,
+            )
+        } else {
+            0.0
+        };
+        // Phase 3: Emigrant wealth extraction is NOT performed here.
+        // `create_pogrom_migration_flows` is currently never called, so
+        // pogrom emigrants are never routed to the migration system.
+        // Extracting wealth here would debit class savings (M0) without a
+        // matching credit, destroying M0 (Directive 1 violation).
+        // The wealth stays in the minority class savings until the
+        // migration system is properly wired to handle pogrom flows.
         // Apply survivor wealth transfer (looting of survivors' savings).
         apply_wealth_transfer(
             region,
@@ -299,18 +309,26 @@ fn check_region_pogrom(
         &region.id,
     );
     if urban_result.triggered {
-        let casualty_wealth = extract_casualty_wealth(
-            region,
-            &urban_result.minority_class,
-            "urban",
-            urban_result.casualties,
-        );
-        let _emigrant_wealth = extract_emigrant_wealth(
-            region,
-            &urban_result.minority_class,
-            "urban",
-            urban_result.emigration,
-        );
+        // Phase 94: Only extract if a dominant-culture class exists to receive
+        // the loot. Otherwise the extracted wealth would be destroyed (M0 leak).
+        let has_dominant_urban = region
+            .class_demographics
+            .urban_classes
+            .values()
+            .any(|d| d.culture == *dominant_culture || d.culture.is_empty());
+        let casualty_wealth = if has_dominant_urban {
+            extract_casualty_wealth(
+                region,
+                &urban_result.minority_class,
+                "urban",
+                urban_result.casualties,
+            )
+        } else {
+            0.0
+        };
+        // Phase 3: Emigrant wealth extraction skipped (see rural branch comment).
+        // Extracting wealth here would destroy M0 since pogrom migration
+        // flows are not currently routed to the migration system.
         apply_wealth_transfer(
             region,
             &urban_result.minority_class,
@@ -494,18 +512,24 @@ fn apply_wealth_transfer(
     }
 
     if class_type == "rural" {
+        // Phase 94: Check dominant_pop BEFORE debiting. If no dominant-culture
+        // class exists in this region, there is no counterparty to receive the
+        // looted wealth. Debiting without crediting would destroy M0
+        // (Directive 1: closed-loop double-entry).
+        let dominant_pop: f64 = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .filter(|d| d.culture == *dominant_culture || d.culture.is_empty())
+            .map(|d| d.population as f64)
+            .sum();
+        if dominant_pop <= 0.0 {
+            return;
+        }
         if let Some(rk) = RuralClass::from_str(minority_class) {
             if let Some(minority) = region.class_demographics.rural_classes.get_mut(&rk) {
                 let debit = minority.savings.min(amount);
                 minority.savings -= debit;
-
-                let dominant_pop: f64 = region
-                    .class_demographics
-                    .rural_classes
-                    .values()
-                    .filter(|d| d.culture == *dominant_culture || d.culture.is_empty())
-                    .map(|d| d.population as f64)
-                    .sum();
 
                 if dominant_pop > 0.0 {
                     for demo in region.class_demographics.rural_classes.values_mut() {
@@ -518,18 +542,21 @@ fn apply_wealth_transfer(
             }
         }
     } else {
+        // Phase 94: Check dominant_pop BEFORE debiting (see rural branch).
+        let dominant_pop: f64 = region
+            .class_demographics
+            .urban_classes
+            .values()
+            .filter(|d| d.culture == *dominant_culture || d.culture.is_empty())
+            .map(|d| d.population as f64)
+            .sum();
+        if dominant_pop <= 0.0 {
+            return;
+        }
         if let Some(uk) = UrbanClass::from_str(minority_class) {
             if let Some(minority) = region.class_demographics.urban_classes.get_mut(&uk) {
                 let debit = minority.savings.min(amount);
                 minority.savings -= debit;
-
-                let dominant_pop: f64 = region
-                    .class_demographics
-                    .urban_classes
-                    .values()
-                    .filter(|d| d.culture == *dominant_culture || d.culture.is_empty())
-                    .map(|d| d.population as f64)
-                    .sum();
 
                 if dominant_pop > 0.0 {
                     for demo in region.class_demographics.urban_classes.values_mut() {
