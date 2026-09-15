@@ -5949,7 +5949,7 @@ tasks.par_iter_mut().for_each(|task| {
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PRERD: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PRERD: t={} M0={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} see={:.0} arb={:.0} blackops={:.0} intel={:.0} frozen={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.frozen_cash);
         }
         // RESURRECTION PHASE 4: REAL ECONOMY — Phase 9/9.1/9.2
         // ═══════════════════════════════════════════════════════════
@@ -6149,6 +6149,8 @@ tasks.par_iter_mut().for_each(|task| {
             // a latent gap documented in the plan (Risks section).
         });
 
+        #[cfg(feature = "diagnostic")]
+        { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_POSTRD: t={} M0={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} see={:.0} arb={:.0} blackops={:.0} intel={:.0} frozen={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.frozen_cash); }
         // Phase 9.1: B2C Service Clearing (Education + Healthcare)
         // Moved here per blueprint revision — aligned with consumer budgeting phase
                 #[cfg(feature = "diagnostic")]
@@ -7499,7 +7501,6 @@ tasks.par_iter_mut().for_each(|task| {
                 // The output is stored in the result; revenue is added to liquid_capital
                 company.liquid_capital += result.revenue;
                 // Store profit for dividend distribution
-                company.liquid_capital += result.revenue;
             }
 
             // 85A.3: Distribute dividends for profitable guilds

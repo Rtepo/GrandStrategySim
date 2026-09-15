@@ -298,10 +298,10 @@ pub fn purchase_innovation_points_for_company(
             companies, &id_to_idx, payer_idx, cost, &recipient, country,
         );
 
-        // Credit the building's reserve for non-state owners (revenue).
-        if !is_state {
-            buildings[*b_idx].reserve += cost;
-        }
+        // Phase 94: Do NOT credit building.reserve here — settle_transfer
+        // already credited the university owner's cash. Double-crediting
+        // (company cash + building.reserve) creates M0 from nothing.
+        // building.reserve tracks operational funds, not revenue.
 
         points_acquired += points_from_this;
     }
