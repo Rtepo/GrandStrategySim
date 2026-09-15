@@ -1656,14 +1656,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // RESURRECTION PHASE 1: INFRASTRUCTURE POST-CLEARING
         // ═══════════════════════════════════════════════════════════
 
-        // Post-clearing: Refund unfilled cultural bids
-        tasks.par_iter_mut().for_each(|task| {
-            crate::engine::seed_propagation::ensure_worker_seeded();
-            order_book::refund_unfilled_bids_cultural(
-                &task.order_book,
-                &mut task.ctx.country.cultural_institutions,
-            );
-        });
+//         // Post-clearing: Refund unfilled cultural bids
+//         tasks.par_iter_mut().for_each(|task| {
+//             crate::engine::seed_propagation::ensure_worker_seeded();
+//             order_book::refund_unfilled_bids_cultural(
+//                 &task.order_book,
+//                 &mut task.ctx.country.cultural_institutions,
+//             );
+//         });
 
         // Post-clearing: Refund unfilled shipyard construction bids
         tasks.par_iter_mut().for_each(|task| {
