@@ -970,8 +970,13 @@ pub fn process_company(
     } else {
         0.0
     };
+    // Phase 94: This is an ACCOUNTING CIT that reduces liquid_capital (NOT M0)
+    // for dividend/equity calculations. The actual CASH CIT is collected
+    // separately in Phase 42 (turn.rs), which debits available_cash (M0) and
+    // credits liquid_reserves (M0). Crediting liquid_reserves HERE would
+    // create M0 from nothing (Directive 1: double-entry violation) because
+    // liquid_capital is NOT in M0. Do NOT credit the treasury here.
     company.liquid_capital = (company.liquid_capital - tax).max(0.0);
-    country.budget.liquid_reserves += tax;
 
     // 5. Recalculate equity after the ledger.
     company.company_capital = company.fixed_capital + company.liquid_capital - company.liabilities;
