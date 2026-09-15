@@ -5,10 +5,10 @@
 //! the owner_id's treasury (State, Local Gov, or Private Company).
 
 use crate::economy::infrastructure_config::InfrastructureConfig;
-use crate::entities::Building;
-use crate::registries::enums::Commodity;
+use crate::entities::{Building, Company};
+use crate::registries::enums::{Commodity, Sector};
 use crate::state::treasury::Treasury;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 /// Allocates infrastructure funding from owner to buildings.
 ///
@@ -16,7 +16,7 @@ use std::collections::BTreeMap;
 /// * `buildings` - Slice of buildings requiring funding
 /// * `treasury` - Central State treasury (for State-owned buildings)
 /// * `local_governments` - Map of local government treasuries (for locally-owned buildings)
-/// * `companies` - Map of company treasuries (for privately-owned buildings)
+/// * `companies` - Slice of companies (for privately-owned buildings)
 ///
 /// # Returns
 /// Updated treasuries with funding allocations deducted
@@ -25,14 +25,35 @@ use std::collections::BTreeMap;
 /// * Universal Ownership: Funding comes from owner_id's treasury
 /// * Double-Entry: owner.available_cash decreases, building.reserve increases
 /// * Insolvency Guard: If owner lacks cash, building receives no funding
+/// * Duplicate-Safe: Uses index-based lookup (not ID-keyed map) to handle
+///   companies with duplicate IDs correctly (Directive 7: individual
+///   accountability — each company's cash is debited individually).
 pub fn allocate_owner_infrastructure_funding(
     buildings: &mut [Building],
     treasury: &mut Treasury,
     local_governments: &mut BTreeMap<String, f64>,
-    companies: &mut BTreeMap<String, f64>,
+    companies: &mut [Company],
     config: &InfrastructureConfig,
     average_wage: f64,
 ) {
+    // Build owner_id -> first company index map for O(1) lookup.
+    // For duplicate IDs, the first occurrence is used (consistent with
+    // the building's owner_id matching the first company spawned).
+    let mut owner_to_idx: HashMap<String, usize> = HashMap::new();
+    for (idx, company) in companies.iter().enumerate() {
+        if company.sector != Sector::Banking {
+            owner_to_idx.entry(company.id.clone()).or_insert(idx);
+        }
+    }
+
+    #[cfg(feature = "diagnostic")]
+    let mut _total_private_debit: f64 = 0.0;
+    #[cfg(feature = "diagnostic")]
+    let mut _total_private_credit: f64 = 0.0;
+    #[cfg(feature = "diagnostic")]
+    let mut _total_state_debit: f64 = 0.0;
+    #[cfg(feature = "diagnostic")]
+    let mut _total_state_credit: f64 = 0.0;
     for building in buildings.iter_mut() {
         let owner_id = &building.owner_id;
         let funding_amount = calculate_funding_requirement(building, config, average_wage);
@@ -43,6 +64,11 @@ pub fn allocate_owner_infrastructure_funding(
             if treasury.liquid_reserves >= funding_amount {
                 treasury.liquid_reserves -= funding_amount;
                 building.reserve += funding_amount;
+                #[cfg(feature = "diagnostic")]
+                {
+                    _total_state_debit += funding_amount;
+                    _total_state_credit += funding_amount;
+                }
             }
         } else if owner_id.starts_with("LOCAL_") {
             // Local Government owned
@@ -50,18 +76,30 @@ pub fn allocate_owner_infrastructure_funding(
                 if *local_cash >= funding_amount {
                     *local_cash -= funding_amount;
                     building.reserve += funding_amount;
+                    #[cfg(feature = "diagnostic")]
+                    {
+                        _total_state_debit += funding_amount;
+                        _total_state_credit += funding_amount;
+                    }
                 }
             }
         } else {
-            // Private Company owned
-            if let Some(company_cash) = companies.get_mut(owner_id) {
-                if *company_cash >= funding_amount {
-                    *company_cash -= funding_amount;
+            // Private Company owned — debit directly from the company
+            if let Some(&idx) = owner_to_idx.get(owner_id) {
+                if companies[idx].available_cash >= funding_amount {
+                    companies[idx].available_cash -= funding_amount;
                     building.reserve += funding_amount;
+                    #[cfg(feature = "diagnostic")]
+                    {
+                        _total_private_debit += funding_amount;
+                        _total_private_credit += funding_amount;
+                    }
                 }
             }
         }
     }
+    #[cfg(feature = "diagnostic")]
+    eprintln!("INFRA_SUMMARY: private_debit={:.0} private_credit={:.0} state_debit={:.0} state_credit={:.0}", _total_private_debit, _total_private_credit, _total_state_debit, _total_state_credit);
 }
 
 /// Calculates funding requirement for a building based on its operating costs.
@@ -212,7 +250,7 @@ mod tests {
         };
 
         let mut local_governments = BTreeMap::new();
-        let mut companies = BTreeMap::new();
+        let mut companies: Vec<Company> = Vec::new();
 
         let mut buildings = vec![building];
         allocate_owner_infrastructure_funding(
@@ -241,7 +279,7 @@ mod tests {
         };
 
         let mut local_governments = BTreeMap::new();
-        let mut companies = BTreeMap::new();
+        let mut companies: Vec<Company> = Vec::new();
 
         let mut buildings = vec![building];
         allocate_owner_infrastructure_funding(

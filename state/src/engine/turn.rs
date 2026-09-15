@@ -5959,6 +5959,7 @@ tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // 9.1: Corporate R&D and patent expiration
             let corp_config = task.ctx.country.corporate_tech_config.clone();
+            let _cc_pre: f64 = task.companies.iter().filter(|c| c.primary_bank_id.is_none() && c.sector != crate::registries::enums::Sector::Banking).map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash).sum::<f64>() + task.ctx.buildings.iter().filter(|b| { let o = &b.owner_id; !o.starts_with("STATE_") && !o.starts_with("LOCAL_") && b.reserve > 0.0 && task.companies.iter().any(|c| c.primary_bank_id.is_none() && c.sector != crate::registries::enums::Sector::Banking && &c.id == o) }).map(|b| b.reserve).sum::<f64>();
             let average_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
             crate::economy::corporate_rd::check_patent_expiration(
                 &mut task.companies,
@@ -5995,6 +5996,8 @@ tasks.par_iter_mut().for_each(|task| {
                 &corp_config,
             );
             task.foreign_patent_fee_outbox += foreign_fees;
+            let _cc_post_rd: f64 = task.companies.iter().filter(|c| c.primary_bank_id.is_none() && c.sector != crate::registries::enums::Sector::Banking).map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash).sum::<f64>() + task.ctx.buildings.iter().filter(|b| { let o = &b.owner_id; !o.starts_with("STATE_") && !o.starts_with("LOCAL_") && b.reserve > 0.0 && task.companies.iter().any(|c| c.primary_bank_id.is_none() && c.sector != crate::registries::enums::Sector::Banking && &c.id == o) }).map(|b| b.reserve).sum::<f64>();
+            eprintln!("CC_DELTA: t={} country={} phase=rd pre={:.0} post={:.0} delta={:.0}", turn, task.ctx.country_name, _cc_pre, _cc_post_rd, _cc_post_rd - _cc_pre);
 
             // Sync building inventories back.
             for building in &mut task.ctx.buildings {
@@ -6113,34 +6116,23 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.turn,
             );
 
+            let _cc_post_fish: f64 = task.companies.iter().filter(|c| c.primary_bank_id.is_none() && c.sector != crate::registries::enums::Sector::Banking).map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash).sum::<f64>() + task.ctx.buildings.iter().filter(|b| { let o = &b.owner_id; !o.starts_with("STATE_") && !o.starts_with("LOCAL_") && b.reserve > 0.0 && task.companies.iter().any(|c| c.primary_bank_id.is_none() && c.sector != crate::registries::enums::Sector::Banking && &c.id == o) }).map(|b| b.reserve).sum::<f64>();
+            eprintln!("CC_DELTA: t={} country={} phase=fish pre={:.0} post={:.0} delta={:.0}", turn, task.ctx.country_name, _cc_post_rd, _cc_post_fish, _cc_post_fish - _cc_post_rd);
             // 9.3: Infrastructure funding and production
             let infra_config = task.ctx.country.infrastructure_config.clone();
             let mut local_govs: std::collections::BTreeMap<String, f64> =
                 std::collections::BTreeMap::new();
-            let mut company_cash: std::collections::BTreeMap<String, f64> =
-                std::collections::BTreeMap::new();
-            for company in &task.companies {
-                company_cash.insert(company.id.clone(), company.available_cash);
-            }
             let average_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
             allocate_owner_infrastructure_funding(
                 &mut task.ctx.buildings,
                 &mut task.ctx.country.budget,
                 &mut local_govs,
-                &mut company_cash,
+                &mut task.companies,
                 &infra_config,
                 average_wage,
             );
-            // Phase A.4: Write back the mutated cash maps to their source
-            // entities (Rule 1: double-entry bookkeeping — every debit must
-            // have a counterparty credit, and the debit must actually persist).
-            // Without this write-back, `company_cash` deductions were silently
-            // discarded, creating a money-creation leak (Rule 1 violation).
-            for company in &mut task.companies {
-                if let Some(&cash) = company_cash.get(&company.id) {
-                    company.available_cash = cash;
-                }
-            }
+            let _cc_post_infra: f64 = task.companies.iter().filter(|c| c.primary_bank_id.is_none() && c.sector != crate::registries::enums::Sector::Banking).map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash).sum::<f64>() + task.ctx.buildings.iter().filter(|b| { let o = &b.owner_id; !o.starts_with("STATE_") && !o.starts_with("LOCAL_") && b.reserve > 0.0 && task.companies.iter().any(|c| c.primary_bank_id.is_none() && c.sector != crate::registries::enums::Sector::Banking && &c.id == o) }).map(|b| b.reserve).sum::<f64>();
+            eprintln!("CC_DELTA: t={} country={} phase=infra pre={:.0} post={:.0} delta={:.0}", turn, task.ctx.country_name, _cc_post_fish, _cc_post_infra, _cc_post_infra - _cc_post_fish);
             // Write back local government cash if the country has local govs.
             // NOTE: `Country` does not currently have a `local_governments`
             // field — the `local_govs` map is populated empty and only used
