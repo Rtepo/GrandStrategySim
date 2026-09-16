@@ -1,3 +1,4 @@
+#![allow(unused)]
 //! # `sim_engine` — Rust Migration of the Grand Strategy Simulation Engine
 //!
 //! This crate is the Rust port of a Python grand-strategy economic simulator.

@@ -1,4 +1,4 @@
-//! v4: Snapshot tests for market clearing and banking state serialization.
+﻿//! v4: Snapshot tests for market clearing and banking state serialization.
 //!
 //! These tests use cargo-insta to snapshot complex state outputs, replacing
 //! brittle assert_eq! blocks with reviewable .snap files.
@@ -80,8 +80,8 @@ fn test_snapshot_bank_balance_sheet() {
         cb_deposit_facility_balance: 10_000.0,
         deposits: 240_000.0,
         cb_lombard_loans: 15_000.0,
-        interbank_loans_given: std::collections::HashMap::new(),
-        interbank_loans_taken: std::collections::HashMap::new(),
+        interbank_loans_given: std::collections::BTreeMap::new(),
+        interbank_loans_taken: std::collections::BTreeMap::new(),
         securities: 30_000.0,
         tier_1_capital: 32_000.0,
         loans_issued: Vec::new(),

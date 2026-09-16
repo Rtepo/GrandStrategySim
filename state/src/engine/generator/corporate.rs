@@ -399,12 +399,14 @@ pub fn generate_corporate_entities(
 ) -> Result<(), Box<dyn Error>> {
     // Phase 88: Collect region IDs and clones upfront to avoid borrow conflicts
     // when we later need to mutably borrow `regions` for arable_land_used updates.
-    let country_region_data: Vec<(String, Region)> = regions
+    // Phase 94: Sort by region ID for deterministic RNG consumption.
+    let mut country_region_data: Vec<(String, Region)> = regions
         .values()
         .filter(|r| r.owner_country == country.name)
         .cloned()
         .map(|r| (r.id.clone(), r))
         .collect();
+    country_region_data.sort_by(|a, b| a.0.cmp(&b.0));
     if country_region_data.is_empty() {
         return Ok(());
     }
@@ -493,7 +495,10 @@ pub fn generate_corporate_entities(
         all_buildings.push(building);
     }
 
-    for (&sector, share) in &country.budget.sectors {
+    // Phase 94: Sort sectors by JSON name for deterministic RNG consumption.
+    let mut sorted_sectors: Vec<_> = country.budget.sectors.iter().collect();
+    sorted_sectors.sort_by_key(|a| sector_json_name(*a.0));
+    for (&sector, share) in sorted_sectors {
         if sector == Sector::PublicServices {
             continue;
         }
@@ -1784,8 +1789,11 @@ fn generate_unions(
     }
 
     // Create one sector-wide union per sector
+    // Phase 94: Sort sectors by JSON name for deterministic RNG consumption.
+    let mut sorted_sector_entries: Vec<(Sector, Vec<&Company>)> = companies_by_sector.into_iter().collect();
+    sorted_sector_entries.sort_by_key(|a| sector_json_name(a.0));
     let mut all_unions: Vec<Union> = Vec::new();
-    for (sector, sector_companies) in companies_by_sector {
+    for (sector, sector_companies) in sorted_sector_entries {
         if sector_companies.is_empty() {
             continue;
         }

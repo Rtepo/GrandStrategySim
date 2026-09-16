@@ -1,4 +1,4 @@
-//! Phase 77: Banking Realism Tests
+﻿//! Phase 77: Banking Realism Tests
 //!
 //! Tests for the Phase 77 capital markets and banking realism fixes:
 //! - issue_loan rejects when excess reserves are insufficient
@@ -49,14 +49,15 @@ fn test_balance_sheet(deposits: f64, reserves: f64, lombard: f64) -> BankBalance
     BankBalanceSheet {
         reserves_at_central_bank: reserves,
         loans_issued: Vec::new(),
-        interbank_loans_given: std::collections::HashMap::new(),
+        interbank_loans_given: std::collections::BTreeMap::new(),
         securities: 0.0,
         mbs_holdings: Vec::new(),
         real_estate: 0.0,
+        consumer_loans_outstanding: 0.0,
         deposits,
         cb_lombard_loans: lombard,
         cb_deposit_facility_balance: 0.0,
-        interbank_loans_taken: std::collections::HashMap::new(),
+        interbank_loans_taken: std::collections::BTreeMap::new(),
         issued_bonds: 0.0,
         tier_1_capital: deposits * 0.10,
         extra: serde_json::Map::new(),

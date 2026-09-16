@@ -23,6 +23,7 @@ pub async fn new_game(
     let options = GenerateOptions {
         country_count,
         start_year: year,
+        seed: None,
     };
 
     let registries = state.registries.clone();

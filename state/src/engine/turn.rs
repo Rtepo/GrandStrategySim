@@ -4942,13 +4942,9 @@ tasks.par_iter_mut().for_each(|task| {
         });
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
-            let mut _direct_cb_sum: f64 = 0.0;
-            for _t in &tasks { _direct_cb_sum += _t.ctx.country.central_bank.liquidity_injected; }
-            eprintln!("DIRECT_CB_SUM_POST_LIFECYCLE: turn={} sum={:.0}", turn, _direct_cb_sum);
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_POSTLIFECYCLE: t={} M0={:.0} cb={:.0} diff={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_POSTLIFECYCLE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
-        // RESURRECTION PHASE 2: SECURITIES MARKET SEQUENCE (SEC-1 to SEC-8)
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
@@ -5614,11 +5610,11 @@ tasks.par_iter_mut().for_each(|task| {
                 // post-clearing loop does not double-return the same encumbrance.
                 for ministry in &mut config.ministries {
                     let mut b2b_return = 0.0_f64;
-                    let mut b2b_count = 0;
+                    let mut _b2b_count = 0;
                     for action in &ministry.spending_actions {
                         if let crate::politics::ministries::MinistrySpendingAction::B2BProcurementOrder { quantity, limit_price, .. } = action {
                             b2b_return += quantity * limit_price;
-                            b2b_count += 1;
+                            _b2b_count += 1;
                         }
                     }
                     if b2b_return > 0.0 {

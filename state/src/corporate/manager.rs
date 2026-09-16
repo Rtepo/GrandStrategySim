@@ -403,7 +403,7 @@ pub fn process_companies(
         })
         .sum();
 
-    for (owner_id, amount, payer_bank_id) in &dividend_queue {
+    for (owner_id, amount, _payer_bank_id) in &dividend_queue {
         if owner_id == "STATE" || owner_id == "TREASURY" {
             continue; // Already credited in apply_action
         }

@@ -66,6 +66,7 @@ pub fn is_seeded() -> bool {
 
 /// A wrapper enum that can be either a seeded StdRng or a ThreadRng.
 /// This implements RngCore so it can be used anywhere `impl Rng` is expected.
+#[allow(clippy::large_enum_variant)]
 pub enum SeededThreadRng {
     /// A deterministic StdRng borrowed from the thread-local cell.
     Seeded(StdRng),
