@@ -2254,8 +2254,9 @@ mod tests {
 
         refund_unfilled_defense_bids_per_country(&bids, &trades, &companies, &mut country);
 
-        // Full refund: 100 * 50 = 5000
-        assert_eq!(country.budget.liquid_reserves, initial_reserves + 5_000.0);
+        // Phase 94: No refund — cash is no longer encumbered at bid submission.
+        // Treasury is debited only for executed trades in settle_defense_trades.
+        assert_eq!(country.budget.liquid_reserves, initial_reserves);
     }
 
     #[test]
@@ -2269,10 +2270,8 @@ mod tests {
 
         refund_unfilled_defense_bids_per_country(&bids, &trades, &companies, &mut country);
 
-        // Encumbered: 100 * 50 = 5000
-        // Filled paid: 60 * 40 = 2400
-        // Refund: 5000 - 2400 = 2600
-        assert_eq!(country.budget.liquid_reserves, initial_reserves + 2_600.0);
+        // Phase 94: No refund — cash is no longer encumbered at bid submission.
+        assert_eq!(country.budget.liquid_reserves, initial_reserves);
     }
 
     #[test]
@@ -2316,8 +2315,8 @@ mod tests {
 
         refund_unfilled_defense_bids_per_country(&bids, &trades, &companies, &mut country);
 
-        // Seller not found in this country's companies — full refund
-        assert_eq!(country.budget.liquid_reserves, initial_reserves + 5_000.0);
+        // Phase 94: No refund — cash is no longer encumbered at bid submission.
+        assert_eq!(country.budget.liquid_reserves, initial_reserves);
     }
 
     // --- settle_trades defense skip test ---

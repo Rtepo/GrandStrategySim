@@ -555,7 +555,7 @@ mod tests {
 
     #[test]
     fn test_monastery_production_credits_owner_company() {
-        let mut building = make_test_building(0.0, 0.0, Some("monastery_co_1"));
+        let mut building = make_test_building(500.0, 0.0, Some("monastery_co_1"));
         building.production_method = Some("monastery_scriptorium".to_string());
 
         let mut company = Company::default();

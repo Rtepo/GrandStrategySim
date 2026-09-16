@@ -1020,13 +1020,15 @@ mod tests {
         );
 
         assert_eq!(coverage.get("R1").copied().unwrap_or(0.0), 1.0);
-        // Private: no Treasury subsidy
-        assert_eq!(country.budget.liquid_reserves, 10000.0);
+        // Private: no Treasury subsidy, but Phase 94 M0 conservation credits
+        // the treasury when the private operator company is not found in the
+        // companies slice (prevents FiatDestruction of citizen debits).
+        let expected_payment = 50.0 * config.default_service_price(1000.0);
+        assert_eq!(country.budget.liquid_reserves, 10000.0 + expected_payment);
         // Citizens pay full price
         let region = &country.regions[0];
         let demo = &region.class_demographics.rural_classes[&RuralClass::FreePeasant];
         // citizen_payment = 50 * default_service_price(avg_wage)
-        let expected_payment = 50.0 * config.default_service_price(1000.0);
         assert_eq!(demo.savings, 5000.0 - expected_payment);
     }
 
