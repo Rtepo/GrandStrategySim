@@ -700,10 +700,13 @@ pub fn process_debt_service(
     country: &mut Country,
     companies: &mut [crate::entities::Company],
     current_turn: u32,
-) {
+) -> f64 {
     let inflation_rate = country.macro_indicators.inflation / 100.0;
     let mut total_due = 0.0_f64;
     let mut payments: Vec<(String, f64)> = Vec::new(); // (entity_id, amount)
+    // Track payments to foreign entity holders (not domestic companies, CB, or citizens).
+    // These must be returned so the caller credits foreign_sector_balance (M0 conservation).
+    let mut foreign_payments: f64 = 0.0;
 
     // Process wholesale securities
     let mut matured_indices = Vec::new();
@@ -944,6 +947,7 @@ pub fn process_debt_service(
                     None
                 }
             };
+            let holder_found = companies.iter_mut().find(|c| c.id == *entity_id).is_some();
             if let Some(company) = companies.iter_mut().find(|c| c.id == *entity_id) {
                 if let Some(ref mut bs) = company.balance_sheet {
                     // Bank holder: credit reserves (principal repayment + interest income)
@@ -965,7 +969,13 @@ pub fn process_debt_service(
                     }
                 }
             }
-            // Foreign entity holders: money leaves the system (no credit needed).
+            // Foreign entity holders: the holder was not found in domestic
+            // companies. The treasury already debited liquid_reserves (M0).
+            // To preserve the closed-loop economy (Directive 1), the payment
+            // must be credited to foreign_sector_balance via the caller.
+            if !holder_found {
+                foreign_payments += actual_credit;
+            }
         }
     }
 
@@ -985,6 +995,7 @@ pub fn process_debt_service(
         .retain(|b| b.turns_remaining > 0);
 
     country.debt_market.recalculate();
+    foreign_payments
 }
 
 // ============================================================================

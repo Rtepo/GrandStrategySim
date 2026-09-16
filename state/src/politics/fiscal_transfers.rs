@@ -337,9 +337,12 @@ pub fn check_commissary_administration(country: &mut Country) {
 /// # Arguments
 /// * `country` - Mutable reference to the country
 /// * `companies` - Mutable slice of companies (for corporate bondholder credits)
-pub fn process_municipal_debt_service(country: &mut Country, companies: &mut [Company]) {
+pub fn process_municipal_debt_service(country: &mut Country, companies: &mut [Company]) -> f64 {
     // Collect pending citizen-class credits to avoid double-borrowing country.regions.
     let mut pending_citizen_credits: Vec<(String, RuralClass, f64)> = Vec::new();
+    // Track payments to foreign entity holders (not domestic companies or citizens).
+    // These must be returned so the caller credits foreign_sector_balance (M0 conservation).
+    let mut foreign_payments: f64 = 0.0;
 
     for region in &mut country.regions {
         let region_id = region.id.clone();
@@ -420,10 +423,13 @@ pub fn process_municipal_debt_service(country: &mut Country, companies: &mut [Co
                     if let Some(class) = rural_class {
                         // Defer the credit to after the loop to avoid double borrow.
                         pending_citizen_credits.push((region_id.clone(), class, per_holder));
+                    } else {
+                        // Foreign entity holder: the regional budget already
+                        // debited liquid_reserves (M0). To preserve the closed-loop
+                        // economy (Directive 1), the payment must be credited to
+                        // foreign_sector_balance via the caller.
+                        foreign_payments += per_holder;
                     }
-                    // If neither company nor citizen class found, the interest
-                    // is withheld — no fiat creation. The bondholder ID may
-                    // reference a foreign entity or VIP not tracked here.
                 }
                 // Phase 94: Sync non-bank holder's bank reserves (M0).
                 if let Some(ref bank_id) = holder_bank_id {
@@ -449,6 +455,7 @@ pub fn process_municipal_debt_service(country: &mut Country, companies: &mut [Co
             }
         }
     }
+    foreign_payments
 }
 
 /// Process local elections for all regions

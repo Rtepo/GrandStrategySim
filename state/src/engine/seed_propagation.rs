@@ -61,3 +61,18 @@ pub fn ensure_worker_seeded() {
         }
     }
 }
+
+/// Restore the main thread's RNG state.
+///
+/// Called after parallel sections that may have scheduled tasks on the main
+/// thread. Ensures the main thread's seeded RNG is still active if the global
+/// seed was set. This is a no-op if no seed was set (non-deterministic mode).
+pub fn restore_main_rng() {
+    if SEED_SET.load(Ordering::SeqCst) {
+        let is_main = IS_MAIN_THREAD.with(|flag| flag.get());
+        if is_main {
+            let global_seed = SEED_ATOMIC.load(Ordering::SeqCst);
+            crate::engine::seeded_rng::set_seed(global_seed);
+        }
+    }
+}
