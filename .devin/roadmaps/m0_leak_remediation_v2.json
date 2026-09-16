@@ -1,0 +1,141 @@
+{
+  "roadmap_name": "m0_leak_remediation_v2",
+  "created_by": "agent-5",
+  "created_at": "2026-09-08T22:00:00Z",
+  "target_agent": "agent-1",
+  "branch": "fix/agent-1-m0-root-cause-fix",
+  "source_plan": "state/tests/diagnostic_output/m0_leak_remediation_plan_v2.md",
+  "halt_on_failure": true,
+  "require_cicd": true,
+  "require_commit": true,
+  "max_retries": 3,
+  "steps": [
+    {
+      "step_number": 5,
+      "title": "Lifecycle routing to BankResolution",
+      "event_type": "IMPLEMENTATION_REQUESTED",
+      "payload": {
+        "implementation_type": "m0_step5_lifecycle_routing",
+        "reason": "Step 5 of M0 Leak Remediation: Lifecycle routing to BankResolution.",
+        "message": "Execute Step 5 of the M0 Leak Remediation Plan. Partition bankrupt entities into bank / non-bank in corporate/lifecycle.rs; route banks to BankResolution::execute_bank_resolution (guarded by country.banking_laws.has_bank_guarantee_fund); non-banks stay on the Syndic path. Add country.banking_laws.has_bank_guarantee_fund: bool (derive from local_laws strictness in the country generator). Read state/tests/diagnostic_output/m0_leak_remediation_plan_v2.md for full details.",
+        "target_files": [
+          "state/src/corporate/lifecycle.rs",
+          "state/src/state/banking.rs",
+          "state/src/engine/generator/mod.rs"
+        ],
+        "commit_instruction": "Commit with message: fix: lifecycle routing to BankResolution (M0 Step 5)",
+        "cicd_instruction": "After committing, run run_iron_cicd to verify the build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Do NOT mask leaks with balancing fudge factors (Directive 1).",
+          "Do NOT strip features to hide imbalances (Directive 6).",
+          "Use borrow-checker-compliant Rust (Directive 9).",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "M0 Step 5",
+      "requires_auditor": false,
+      "require_commit": true,
+      "require_cicd": true
+    },
+    {
+      "step_number": 6,
+      "title": "execute_bank_resolution correctness",
+      "event_type": "IMPLEMENTATION_REQUESTED",
+      "payload": {
+        "implementation_type": "m0_step6_bank_resolution_correctness",
+        "reason": "Step 6 of M0 Leak Remediation: execute_bank_resolution correctness.",
+        "message": "Execute Step 6 of the M0 Leak Remediation Plan. In state/banking.rs:1632-1763, replace the 50% magic split with pro-rata insured fraction from calculate_max_insured_amount; guard interbank repayment against over-crediting; record CB liquidity line as BGF liability. Read state/tests/diagnostic_output/m0_leak_remediation_plan_v2.md for full details.",
+        "target_files": [
+          "state/src/state/banking.rs"
+        ],
+        "commit_instruction": "Commit with message: fix: execute_bank_resolution correctness (M0 Step 6)",
+        "cicd_instruction": "After committing, run run_iron_cicd to verify the build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Do NOT use hardcoded percentage splits (Directive 5).",
+          "Do NOT mask leaks with balancing fudge factors (Directive 1).",
+          "Use pro-rata distributions based on capacity, weight, or capital (Directive 5).",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "M0 Step 6",
+      "requires_auditor": false,
+      "require_commit": true,
+      "require_cicd": true
+    },
+    {
+      "step_number": 7,
+      "title": "1M seed-capital fix",
+      "event_type": "IMPLEMENTATION_REQUESTED",
+      "payload": {
+        "implementation_type": "m0_step7_seed_capital_fix",
+        "reason": "Step 7 of M0 Leak Remediation: 1M seed-capital fix.",
+        "message": "Execute Step 7 of the M0 Leak Remediation Plan. In engine/generator/corporate.rs:6718-6722, replace the hardcoded 1M seed capital with dynamic avg_wage * 100.0 seed, clamped to liquid_reserves, as the single source of truth for both debit and credit. Read state/tests/diagnostic_output/m0_leak_remediation_plan_v2.md for full details.",
+        "target_files": [
+          "state/src/engine/generator/corporate.rs"
+        ],
+        "commit_instruction": "Commit with message: fix: 1M seed-capital fix (M0 Step 7)",
+        "cicd_instruction": "After committing, run run_iron_cicd to verify the build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Do NOT use static nominal floats for thresholds or costs (Directive 2).",
+          "Always use dynamic, inflation-proof macroeconomic variables (Directive 2).",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "M0 Step 7",
+      "requires_auditor": false,
+      "require_commit": true,
+      "require_cicd": true
+    },
+    {
+      "step_number": 8,
+      "title": "SOBK wiring + fixes",
+      "event_type": "IMPLEMENTATION_REQUESTED",
+      "payload": {
+        "implementation_type": "m0_step8_sobk_wiring",
+        "reason": "Step 8 of M0 Leak Remediation: SOBK wiring + fixes.",
+        "message": "Execute Step 8 of the M0 Leak Remediation Plan. In state/banking.rs, wire provide_emergency_loan / repay_loan into InterbankMarket::clear_market() with bank-side reserve mutations; cap contributions; add repay_cb_liquidity_line and call from process_banking_turn. Read state/tests/diagnostic_output/m0_leak_remediation_plan_v2.md for full details.",
+        "target_files": [
+          "state/src/state/banking.rs"
+        ],
+        "commit_instruction": "Commit with message: fix: SOBK wiring + fixes (M0 Step 8)",
+        "cicd_instruction": "After committing, run run_iron_cicd to verify the build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Every financial transaction MUST have a strict counterparty (Directive 1).",
+          "Do NOT use pseudo-code or TODO comments (Directive 6).",
+          "Use borrow-checker-compliant Rust (Directive 9).",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "M0 Step 8",
+      "requires_auditor": false,
+      "require_commit": true,
+      "require_cicd": true
+    },
+    {
+      "step_number": 9,
+      "title": "Verification",
+      "event_type": "AUDIT_REQUESTED",
+      "payload": {
+        "implementation_type": "m0_step9_verification",
+        "reason": "Step 9 of M0 Leak Remediation: Final verification.",
+        "message": "Execute Step 9 of the M0 Leak Remediation Plan. Re-run the M0 leak diagnostic harness (audit_dumps.py against a fresh 6-turn dump). Target: 0 M0 conservation failures, 0 bank balance-sheet identity failures. Run Iron CI/CD: cargo build, cargo nextest, cargo clippy, npm build — all green. This step requires auditor review.",
+        "target_files": [],
+        "commit_instruction": "No commit required for this verification step.",
+        "cicd_instruction": "Run run_iron_cicd to verify the full build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Do NOT modify any Rust source files unless explicitly authorized.",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "M0 Step 9",
+      "requires_auditor": true,
+      "require_commit": false,
+      "require_cicd": true
+    }
+  ]
+}

@@ -1,0 +1,193 @@
+{
+  "roadmap_name": "ideology_impl_v1",
+  "created_by": "agent-5",
+  "created_at": "2026-09-09T14:41:26.661Z",
+  "target_agent": "agent-2",
+  "branch": "feat/agent-2-ideology-step6-turn-loop-ui",
+  "source_plan": "state/tests/diagnostic_output/ideology_implementation_plan.md",
+  "halt_on_failure": true,
+  "require_cicd": true,
+  "require_commit": true,
+  "max_retries": 3,
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Core Struct: IdeologyCoordinates + Centroid Table",
+      "event_type": "IMPLEMENTATION_REQUESTED",
+      "payload": {
+        "implementation_type": "ideology_step1_core_struct",
+        "reason": "Step 1: Replace IdeologyCompass with IdeologyCoordinates, add lerp/band_select/classify, and the static centroid registry.",
+        "message": "Execute Parts 1-2 of the Ideology Implementation Plan. In politics/ideology.rs: replace IdeologyCompass with IdeologyCoordinates (3-axis: economic, social, authority), add lerp function, piecewise-linear band selector, classify() function, and the static centroid registry (INTEREST_GROUP_ALIGNMENTS). Read state/tests/diagnostic_output/ideology_implementation_plan.md for full details.",
+        "target_files": [
+          "state/src/politics/ideology.rs"
+        ],
+        "commit_instruction": "Commit with message: feat: IdeologyCoordinates core struct + centroid classifier (Ideology Step 1)",
+        "cicd_instruction": "After committing, run run_iron_cicd to verify the build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Do NOT use pseudo-code or TODO comments (Directive 6).",
+          "Use borrow-checker-compliant Rust (Directive 9).",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "Ideology Step 1",
+      "requires_auditor": false,
+      "require_commit": true,
+      "require_cicd": true
+    },
+    {
+      "step_number": 2,
+      "title": "Policy Resolution (resolve_preferences + all resolve_* functions)",
+      "event_type": "IMPLEMENTATION_REQUESTED",
+      "payload": {
+        "implementation_type": "ideology_step2_policy_resolution",
+        "reason": "Step 2: Replace 15-arm match blocks with coordinate-based policy resolution.",
+        "message": "Execute Part 3 of the Ideology Implementation Plan. In politics/ideology.rs: implement resolve_preferences, crisis_response_profile (for_coordinates), budget_priorities_from_coords. Replace all 15-arm match blocks with coordinate-based policy resolution. Read state/tests/diagnostic_output/ideology_implementation_plan.md for full details.",
+        "target_files": [
+          "state/src/politics/ideology.rs",
+          "state/src/politics/crisis_management.rs",
+          "state/src/politics/ministries.rs"
+        ],
+        "commit_instruction": "Commit with message: feat: coordinate-based policy resolution (Ideology Step 2)",
+        "cicd_instruction": "After committing, run run_iron_cicd to verify the build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Do NOT use hardcoded percentage splits (Directive 5).",
+          "Do NOT use pseudo-code or TODO comments (Directive 6).",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "Ideology Step 2",
+      "requires_auditor": false,
+      "require_commit": true,
+      "require_cicd": true
+    },
+    {
+      "step_number": 3,
+      "title": "Tax Policy with average_wage Scaling",
+      "event_type": "IMPLEMENTATION_REQUESTED",
+      "payload": {
+        "implementation_type": "ideology_step3_tax_policy",
+        "reason": "Step 3: Replace magic number tax rates with average_wage-scaled multipliers from coordinates.",
+        "message": "Execute Part 4 of the Ideology Implementation Plan. In politics/ideology.rs and politics/turn.rs: implement the multiplier formula for tax policy using average_wage scaling, apply_ruling_coordinate_policies, and apply_coordinate_tax_policy. Read state/tests/diagnostic_output/ideology_implementation_plan.md for full details.",
+        "target_files": [
+          "state/src/politics/ideology.rs",
+          "state/src/politics/turn.rs"
+        ],
+        "commit_instruction": "Commit with message: feat: average_wage-scaled tax policy from coordinates (Ideology Step 3)",
+        "cicd_instruction": "After committing, run run_iron_cicd to verify the build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Never use static nominal floats for thresholds or costs (Directive 2).",
+          "Always use dynamic, inflation-proof macroeconomic variables (Directive 2).",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "Ideology Step 3",
+      "requires_auditor": false,
+      "require_commit": true,
+      "require_cicd": true
+    },
+    {
+      "step_number": 4,
+      "title": "Interest Group Alignment Table + Drift Mechanics",
+      "event_type": "IMPLEMENTATION_REQUESTED",
+      "payload": {
+        "implementation_type": "ideology_step4_interest_groups_drift",
+        "reason": "Step 4: Add InterestGroupAlignment struct, static alignment table, coordinate-based base bid, and drift mechanics.",
+        "message": "Execute Parts 5-7 of the Ideology Implementation Plan. In politics/interest_groups.rs: add InterestGroupAlignment struct and INTEREST_GROUP_ALIGNMENTS static table. In politics/ideology.rs: add coordinate_base_bid, organization_from_coords, pro_business_score, and drift functions. Read state/tests/diagnostic_output/ideology_implementation_plan.md for full details.",
+        "target_files": [
+          "state/src/politics/interest_groups.rs",
+          "state/src/politics/ideology.rs"
+        ],
+        "commit_instruction": "Commit with message: feat: interest group alignment + drift mechanics (Ideology Step 4)",
+        "cicd_instruction": "After committing, run run_iron_cicd to verify the build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Every option must have a distinct comparative advantage (Directive 18).",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "Ideology Step 4",
+      "requires_auditor": false,
+      "require_commit": true,
+      "require_cicd": true
+    },
+    {
+      "step_number": 5,
+      "title": "Behavioral Replacements across politics modules",
+      "event_type": "IMPLEMENTATION_REQUESTED",
+      "payload": {
+        "implementation_type": "ideology_step5_behavioral_replacements",
+        "reason": "Step 5: Replace all remaining IdeologyCompass references across politics modules with IdeologyCoordinates.",
+        "message": "Execute Part 8 of the Ideology Implementation Plan. Update politics/system.rs (Party.coordinates), politics/elections.rs (ideological_distance), politics/parliament.rs (NamedVip/ParliamentaryClub coordinates), politics/bill_lifecycle.rs, politics/legislation.rs (Clause.ideological_vector), politics/vip_registry.rs (Vip.coordinates), politics/generator.rs (is_radical/is_centrist), politics/advisory_council.rs, politics/committees.rs, politics/lobbying.rs, politics/names.rs, engine/generator/corporate.rs (ceo_coordinates_from_traits). Read state/tests/diagnostic_output/ideology_implementation_plan.md for full details.",
+        "target_files": [
+          "state/src/politics/system.rs",
+          "state/src/politics/elections.rs",
+          "state/src/politics/parliament.rs",
+          "state/src/politics/vip_registry.rs",
+          "state/src/politics/generator.rs"
+        ],
+        "commit_instruction": "Commit with message: feat: behavioral replacements across politics modules (Ideology Step 5)",
+        "cicd_instruction": "After committing, run run_iron_cicd to verify the build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Atomicity of Structural Changes: update every constructor and literal (Rule 23).",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "Ideology Step 5",
+      "requires_auditor": false,
+      "require_commit": true,
+      "require_cicd": true
+    },
+    {
+      "step_number": 6,
+      "title": "Turn Loop Integration + UI Snapshot DTOs",
+      "event_type": "IMPLEMENTATION_REQUESTED",
+      "payload": {
+        "implementation_type": "ideology_step6_turn_loop_ui",
+        "reason": "Step 6: Wire coordinate-based policies into the turn loop and add UI snapshot DTOs.",
+        "message": "Execute Parts 9-10 of the Ideology Implementation Plan. In engine/turn.rs: replace apply_ruling_ideology_policies with apply_ruling_coordinate_policies, pass average_wage to tax function. In ui/snapshot.rs: add IdeologyCoordinatesDto, add coordinates field to PartyRow/VipRow/MinisterRow/GovernmentSnapshot, derive ideology label from classify(). Read state/tests/diagnostic_output/ideology_implementation_plan.md for full details.",
+        "target_files": [
+          "state/src/engine/turn.rs",
+          "state/src/ui/snapshot.rs"
+        ],
+        "commit_instruction": "Commit with message: feat: turn loop integration + UI snapshot DTOs (Ideology Step 6)",
+        "cicd_instruction": "After committing, run run_iron_cicd to verify the build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Strict Temporal Causality: map data flows between sequential phases (Directive 16).",
+          "Full-Stack Accountability: update UI Snapshot DTOs (Directive 17).",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "Ideology Step 6",
+      "requires_auditor": false,
+      "require_commit": true,
+      "require_cicd": true
+    },
+    {
+      "step_number": 7,
+      "title": "Verification (auditor review)",
+      "event_type": "AUDIT_REQUESTED",
+      "payload": {
+        "implementation_type": "ideology_step7_verification",
+        "reason": "Step 7: Final verification of ideology implementation.",
+        "message": "Execute verification of the Ideology Implementation Plan. Run Iron CI/CD: cargo build, cargo nextest, cargo clippy, npm build — all green. Verify no IdeologyCompass references remain. Verify all party/VIP/government entities have coordinates. This step requires auditor review.",
+        "target_files": [],
+        "commit_instruction": "No commit required for this verification step.",
+        "cicd_instruction": "Run run_iron_cicd to verify the full build passes.",
+        "constraints": [
+          "Follow AGENTS.md rules.",
+          "Do NOT modify any Rust source files unless explicitly authorized.",
+          "After processing this event, move the event file to .devin/events/.archive/."
+        ]
+      },
+      "expected_commit_pattern": "Ideology Step 7",
+      "requires_auditor": true,
+      "require_commit": false,
+      "require_cicd": true
+    }
+  ]
+}
