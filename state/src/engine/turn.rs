@@ -2261,6 +2261,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &b2b_config,
                 Some(Sector::Energy),
                 None,
+                None,
                 &gen_cfg,
                 task.ctx.year,
             );
@@ -3000,6 +3001,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &mut task.companies,
                 &b2b_config,
                 None,
+                Some(Sector::Energy),
                 Some(&merged_penalties),
                 &gen_cfg,
                 task.ctx.year,

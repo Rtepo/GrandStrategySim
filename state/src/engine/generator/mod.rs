@@ -7,7 +7,7 @@
 
 #![allow(missing_docs)]
 
-mod corporate;
+pub(crate) mod corporate;
 
 use crate::engine::generator::corporate::generate_corporate_entities;
 use crate::engine::generator::corporate::generate_investment_funds;

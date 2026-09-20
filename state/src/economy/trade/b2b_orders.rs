@@ -231,7 +231,11 @@ pub fn submit_company_b2b_orders(
 
     for company in companies.iter_mut() {
         // Sync available_cash from brokerage account
-        let liquid = company.computed_liquid_capital();
+        let liquid = company
+            .brokerage_account
+            .as_ref()
+            .map(|ba| ba.cash.max(0.0))
+            .unwrap_or_else(|| company.available_cash.max(0.0));
         // Phase 94: Do NOT overwrite available_cash (M0 duplication for unbanked companies)
 
         // Phase 94: Use pre-built index map instead of O(B) filter scan.
@@ -1289,6 +1293,7 @@ pub fn execute_production_cycle(
     companies: &mut [Company],
     config: &B2bOrderConfig,
     sector_filter: Option<Sector>,
+    exclude_sector: Option<Sector>,
     efficiency_penalties: Option<&std::collections::HashMap<String, f64>>,
     gen_config: &crate::economy::generative_goods_config::GenerativeGoodsConfig,
     frontier_year: u32,
@@ -1310,6 +1315,23 @@ pub fn execute_production_cycle(
             }
         }
 
+        // Fix 1.20-C: Exclude a sector that was already processed in an earlier
+        // wave. The turn loop runs execute_production_cycle twice per country
+        // per turn: wave 1 with sector_filter=Some(Energy), then wave 2 with
+        // sector_filter=None (i.e. "all"). Without an exclusion, wave 2
+        // re-processes every Energy building. Energy buildings that consumed
+        // their inputs in wave 1 have fulfillment_ratio=0 in wave 2, so
+        // outputs_produced is empty and building.last_profit is overwritten to
+        // -write_down, clobbering wave 1's real profit. Passing
+        // exclude_sector=Some(Sector::Energy) on the wave-2 call prevents this
+        // double-processing. (No-input extractive buildings would otherwise
+        // also double-produce.)
+        if let Some(excl_sector) = exclude_sector {
+            if building.sector == excl_sector {
+                continue;
+            }
+        }
+
         let method = &building.active_method;
         let production_scale = building.current_employment as f64 / 1000.0;
         let efficiency = method.efficiency;
@@ -1325,6 +1347,15 @@ pub fn execute_production_cycle(
         for (&commodity, &qty_per_1k) in &method.inputs {
             if commodity.is_fixed_asset() {
                 continue; // Fixed assets provide capacity, not consumable input.
+            }
+            // Phase 94: Skip local utility commodities (Energy, Heat, Water).
+            // Utilities are distributed by the grid and never deposited into
+            // building.inventory; shortage is expressed via efficiency_penalties
+            // (applied below at the fulfillment_ratio clamp). Without this
+            // skip, utility-input methods are permanently starved at ratio=0.
+            // Mirrors the bid-side skip at line 306.
+            if commodity.is_local_utility() {
+                continue;
             }
             let required = qty_per_1k * production_scale;
             if required > 0.0 {
@@ -1364,6 +1395,12 @@ pub fn execute_production_cycle(
         let mut inputs_consumed: HashMap<Commodity, f64> = HashMap::default();
         for (&commodity, &qty_per_1k) in &method.inputs {
             if commodity.is_fixed_asset() {
+                continue;
+            }
+            // Phase 94: Skip local utility commodities (Energy, Heat, Water).
+            // Same rationale as the fulfillment loop above: grids express
+            // shortage via efficiency_penalties, not inventory depletion.
+            if commodity.is_local_utility() {
                 continue;
             }
             let required = qty_per_1k * production_scale * fulfillment_ratio;
@@ -1526,21 +1563,43 @@ pub fn execute_production_cycle(
             building.last_production.insert(commodity, qty);
         }
 
-        // Fix 1.20: Calculate actual financial metrics using unit cost.
-        // The B2B/B2C cash flows are settled separately via settle_trades and
-        // settle_b2c_clearing, but the ProductionResult must reflect the value
-        // of outputs produced and inputs consumed for financial statements.
-        let unit_cost = calculate_unit_cost(building, &HashMap::default(), 0.0);
+        // Fix 1.20 (revised): Calculate actual financial metrics using a real
+        // per-commodity price oracle. The previous implementation called
+        // `calculate_unit_cost(building, &HashMap::default(), 0.0)` — an empty
+        // reference-price map plus a zero base wage yields unit_cost = 0 for
+        // every building, so output_revenue = 0 and input_costs = 0. With
+        // gross_profit = -inventory_write_down <= 0, EVERY building reports a
+        // non-positive last_profit regardless of real production. This made
+        // the "0.00 Income" diagnostic structural (manager.rs writes record
+        // revenue = total_profit + overhead = 0 for all companies).
+        //
+        // The fix values outputs and inputs at `estimated_base_price`, the
+        // same per-commodity base-price table that seeds
+        // `market_history.global_base_prices` at world generation (see
+        // generator/mod.rs Phase 80). It is the canonical stable price
+        // anchor used throughout the clearing engine, so using it here keeps
+        // the ProductionResult consistent with the rest of the accounting path.
+        //
+        // Inputs are valued at 0.5× their base price. Rationale: inputs were
+        // already valued at full base price as outputs by their upstream
+        // producers; valuing them at full price again in the downstream
+        // producer's cost base would double-count the upstream output value
+        // and drive gross_profit negative for genuine value-added
+        // transformation. The 0.5 factor approximates a value-added margin:
+        // gross_profit = Σ(output_qty × base_price) − 0.5 × Σ(input_qty ×
+        // base_price) − write_down, which is positive for any transformation
+        // whose outputs are at least half as valuable (in aggregate) as its
+        // inputs — the normal case for a functioning BOM.
+        let value_price = |c: Commodity| {
+            crate::engine::generator::corporate::estimated_base_price(c)
+        };
         let input_costs: f64 = inputs_consumed
             .iter()
-            .map(|(&_commodity, &qty)| {
-                let price = if unit_cost > 0.0 { unit_cost } else { 0.0 };
-                qty * price * 0.5
-            })
+            .map(|(&commodity, &qty)| qty * value_price(commodity) * 0.5)
             .sum();
         let output_revenue: f64 = outputs_produced
             .iter()
-            .map(|(_, &qty)| qty * unit_cost)
+            .map(|(&commodity, &qty)| qty * value_price(commodity))
             .sum();
 
         // Fix 1.21: Record inventory write-down loss from overflow destruction.
@@ -1736,7 +1795,11 @@ pub fn submit_maintenance_service_bids(
 
     let messages = Vec::new();
     for company in companies.iter_mut() {
-        let liquid = company.computed_liquid_capital();
+        let liquid = company
+            .brokerage_account
+            .as_ref()
+            .map(|ba| ba.cash.max(0.0))
+            .unwrap_or_else(|| company.available_cash.max(0.0));
         // Phase 94: Do NOT overwrite available_cash (M0 duplication for unbanked companies)
         let max_encumber = liquid * b2b_config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
@@ -1833,7 +1896,11 @@ pub fn submit_fixed_asset_purchase_bids(
 ) -> Vec<String> {
     let messages = Vec::new();
     for company in companies.iter_mut() {
-        let liquid = company.computed_liquid_capital();
+        let liquid = company
+            .brokerage_account
+            .as_ref()
+            .map(|ba| ba.cash.max(0.0))
+            .unwrap_or_else(|| company.available_cash.max(0.0));
         // Phase 94: Do NOT overwrite available_cash (M0 duplication for unbanked companies)
         let max_encumber = liquid * b2b_config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
