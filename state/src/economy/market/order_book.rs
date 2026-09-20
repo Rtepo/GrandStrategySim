@@ -219,83 +219,103 @@ pub fn match_orders_with_embargoes(
                 .then_with(|| a.seller_id.cmp(&b.seller_id))
         });
 
-        let mut bid_idx = 0;
+        // Shared cursor: index of the first not-fully-consumed ask. It only
+        // ever advances past asks that were actually filled — an ask skipped
+        // because of an embargoed PAIR stays in the book for later bids.
         let mut ask_idx = 0;
 
-        while bid_idx < bids.len() && ask_idx < asks.len() {
-            let bid = &bids[bid_idx];
-            let ask = &asks[ask_idx];
-
-            if bid.limit_price < ask.limit_price {
+        for bid in bids.iter_mut() {
+            while ask_idx < asks.len() && asks[ask_idx].quantity < 1e-9 {
+                ask_idx += 1;
+            }
+            if ask_idx >= asks.len() {
+                break;
+            }
+            if bid.quantity < 1e-9 {
+                continue;
+            }
+            // Asks are sorted ascending by price — if this bid cannot cross
+            // the cheapest remaining ask, no later (lower-priced) bid can.
+            if bid.limit_price < asks[ask_idx].limit_price {
                 break;
             }
 
-            // Phase 11: Embargo check
-            let buyer_country = company_country.get(&bid.buyer_id);
-            let seller_country = company_country.get(&ask.seller_id);
-            let embargoed = if let (Some(bc), Some(sc)) = (buyer_country, seller_country) {
-                if bc == sc {
-                    false // Same country — no embargo
-                } else {
-                    let blocked = diplomacy
-                        .get(bc)
-                        .and_then(|partners| partners.get(sc))
-                        .map(|rel| rel.ban_import || rel.ban_export)
-                        .unwrap_or(false);
-                    if blocked {
-                        // Also check reverse direction
-                        diplomacy
-                            .get(sc)
-                            .and_then(|partners| partners.get(bc))
-                            .map(|rel| rel.ban_import || rel.ban_export)
-                            .unwrap_or(false)
-                    } else {
-                        false
-                    }
+            // Per-bid cursor: scans all remaining asks. Embargoed asks are
+            // skipped for THIS bid only; a bid embargoed against every
+            // remaining ask simply moves on without consuming the book.
+            let mut cursor = ask_idx;
+            while cursor < asks.len() && bid.quantity >= 1e-9 {
+                if asks[cursor].quantity < 1e-9 {
+                    cursor += 1;
+                    continue;
                 }
-            } else {
-                false // Unknown company (e.g. MoD) — bypass
-            };
+                if bid.limit_price < asks[cursor].limit_price {
+                    break;
+                }
 
-            if embargoed {
-                // Skip this ask — it may match with a different (non-embargoed) bid
-                ask_idx += 1;
-                continue;
-            }
+                // Phase 11: Embargo check
+                let embargoed = {
+                    let ask = &asks[cursor];
+                    let buyer_country = company_country.get(&bid.buyer_id);
+                    let seller_country = company_country.get(&ask.seller_id);
+                    if let (Some(bc), Some(sc)) = (buyer_country, seller_country) {
+                        if bc == sc {
+                            false // Same country — no embargo
+                        } else {
+                            let blocked = diplomacy
+                                .get(bc)
+                                .and_then(|partners| partners.get(sc))
+                                .map(|rel| rel.ban_import || rel.ban_export)
+                                .unwrap_or(false);
+                            if blocked {
+                                // Also check reverse direction
+                                diplomacy
+                                    .get(sc)
+                                    .and_then(|partners| partners.get(bc))
+                                    .map(|rel| rel.ban_import || rel.ban_export)
+                                    .unwrap_or(false)
+                            } else {
+                                false
+                            }
+                        }
+                    } else {
+                        false // Unknown company (e.g. MoD) — bypass
+                    }
+                };
 
-            let execution_price = (bid.limit_price + ask.limit_price) / 2.0;
-            let trade_quantity = bid.quantity.min(ask.quantity);
+                if embargoed {
+                    cursor += 1;
+                    continue;
+                }
 
-            if trade_quantity > 0.0 {
-                order_book.trades.push(Trade {
-                    buyer_id: bid.buyer_id.clone(),
-                    seller_id: ask.seller_id.clone(),
-                    commodity,
-                    quantity: trade_quantity,
-                    execution_price,
-                    bid_limit_price: bid.limit_price,
-                    blueprint_id: bid.blueprint_id.clone().or(ask.blueprint_id.clone()),
-                    quality: ask.quality,
-                    durability: ask.durability,
-                });
+                let execution_price = (bid.limit_price + asks[cursor].limit_price) / 2.0;
+                let trade_quantity = bid.quantity.min(asks[cursor].quantity);
 
-                bids[bid_idx].quantity -= trade_quantity;
-                asks[ask_idx].quantity -= trade_quantity;
-            }
+                if trade_quantity > 0.0 {
+                    order_book.trades.push(Trade {
+                        buyer_id: bid.buyer_id.clone(),
+                        seller_id: asks[cursor].seller_id.clone(),
+                        commodity,
+                        quantity: trade_quantity,
+                        execution_price,
+                        bid_limit_price: bid.limit_price,
+                        blueprint_id: bid
+                            .blueprint_id
+                            .clone()
+                            .or(asks[cursor].blueprint_id.clone()),
+                        quality: asks[cursor].quality,
+                        durability: asks[cursor].durability,
+                    });
 
-            if bids[bid_idx].quantity < 1e-9 {
-                bid_idx += 1;
-            }
-            if asks[ask_idx].quantity < 1e-9 {
-                ask_idx += 1;
+                    bid.quantity -= trade_quantity;
+                    asks[cursor].quantity -= trade_quantity;
+                }
+
+                if asks[cursor].quantity < 1e-9 {
+                    cursor += 1;
+                }
             }
         }
-
-        // Reset ask_idx for each bid? No — the above is a single-pass greedy matcher.
-        // If a bid was skipped because of embargo on all remaining asks, advance bid.
-        // Actually we need to handle: if ask_idx reached end but bid_idx hasn't,
-        // we should try next bid from remaining asks. But the standard match_orders
-        // also breaks when ask_idx reaches end. Keep same behavior for parity.
 
         bids.retain(|b| b.quantity >= 1e-9);
         asks.retain(|a| a.quantity >= 1e-9);
