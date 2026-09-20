@@ -410,20 +410,27 @@ pub fn submit_company_b2b_orders(
                     Some(p) => p * (1.0 + config.buy_premium_ratio),
                     None => continue,
                 };
-                let encumbrance = desired_qty * limit_price;
+                // Phase 25 parity: encumber the freight reserve as well,
+                // matching the main input-bid path above.
+                let commodity_cost = desired_qty * limit_price;
+                let encumbrance =
+                    commodity_cost * (1.0 + config.freight_cost_reserve_ratio);
 
                 if total_encumbered + encumbrance > max_encumber {
                     let remaining = max_encumber - total_encumbered;
                     if remaining <= 0.0 || limit_price <= 0.0 {
                         continue;
                     }
-                    let affordable_qty = remaining / limit_price;
+                    let total_per_unit =
+                        limit_price * (1.0 + config.freight_cost_reserve_ratio);
+                    let affordable_qty = remaining / total_per_unit;
                     if affordable_qty <= 0.0 {
                         continue;
                     }
-                    company.available_cash -= affordable_qty * limit_price;
-                    company.debit_cash += affordable_qty * limit_price;
-                    total_encumbered += affordable_qty * limit_price;
+                    let partial_encumbrance = affordable_qty * total_per_unit;
+                    company.available_cash -= partial_encumbrance;
+                    company.debit_cash += partial_encumbrance;
+                    total_encumbered += partial_encumbrance;
 
                     order_book.bids.entry(commodity).or_default().push(Bid {
                         buyer_id: company.id.clone(),
@@ -546,16 +553,35 @@ pub fn submit_company_b2b_orders(
                     } else {
                         continue;
                     }
-                } else if unit_cost > 0.0 {
-                    unit_cost * (1.0 + markup)
-                } else if let Some(ref_p) = get_reference_price(&commodity, market_history) {
-                    ref_p * (1.0 + markup)
-                } else if let Some(base_p) =
-                    market_history.global_base_prices.get(&commodity).copied()
-                {
-                    base_p * (1.0 + config.min_markup_ratio)
                 } else {
-                    continue;
+                    // Post-bootstrap: anchor the ask to the market reference
+                    // price. Markup scales max(unit_cost, ref) and the ask is
+                    // capped at ref × 1.5 so the +10%/turn unfilled-bid ratchet
+                    // crosses within a few turns instead of ~10. The Rule-8
+                    // unit_cost floor below still applies AFTER this cap (a
+                    // seller whose unit_cost > ref × 1.5 refuses below cost).
+                    let ref_p = get_reference_price(&commodity, market_history)
+                        .or_else(|| {
+                            market_history.global_base_prices.get(&commodity).copied()
+                        });
+                    match ref_p {
+                        Some(rp) => {
+                            if building.current_employment == 0 && inventory_qty > 0.0 {
+                                // Idle producer liquidating stock: fire-sale at
+                                // ref × (1 + min_markup) — a non-producing
+                                // seller must not charge the scarcity premium.
+                                rp * (1.0 + config.min_markup_ratio)
+                            } else {
+                                let base = if unit_cost > 0.0 {
+                                    unit_cost.max(rp)
+                                } else {
+                                    rp
+                                };
+                                (base * (1.0 + markup)).min(rp * 1.5)
+                            }
+                        }
+                        None => continue,
+                    }
                 };
 
                 // Phase 76: Rule 8 — Rational Actor Pricing Floor.
