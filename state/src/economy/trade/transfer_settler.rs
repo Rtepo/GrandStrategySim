@@ -1551,7 +1551,7 @@ mod tests {
     }
 
     #[test]
-    fn test_settle_transfer_rejected_insufficient_bank_reserves() {
+    fn test_settle_transfer_ela_covers_insufficient_bank_reserves() {
         let mut companies = vec![
             make_test_company("comp_0", 10_000.0),
             make_test_bank("bank_0", 100.0, 400_000.0), // Bank has only 100 reserves
@@ -1561,37 +1561,26 @@ mod tests {
         let mut country = make_test_country();
         let initial_cash = companies[0].brokerage_account.as_ref().unwrap().cash;
         let initial_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
-        let initial_reserves = companies[1]
-            .balance_sheet
-            .as_ref()
-            .unwrap()
-            .reserves_at_central_bank;
 
-        // Transfer 1_000 would cause bank reserves to go negative (100 - 1000 = -900)
+        // Transfer 1_000 exceeds bank reserves (100): ELA draws 900 in Lombard
+        // credit so the debit settles with reserves landing exactly at 0.
         let result = settle_transfer_to_treasury(&mut companies, 0, 1_000.0, &mut country);
-        assert!(matches!(result, Err(TransferError::InsufficientReserves)));
+        assert!(result.is_ok());
 
-        // No state mutated (atomicity)
+        let bs = companies[1].balance_sheet.as_ref().unwrap();
+        assert_eq!(bs.reserves_at_central_bank, 0.0);
+        assert_eq!(bs.cb_lombard_loans, 900.0);
+        assert_eq!(bs.deposits, initial_deposits - 1_000.0);
         assert_eq!(
             companies[0].brokerage_account.as_ref().unwrap().cash,
-            initial_cash
+            initial_cash - 1_000.0
         );
-        assert_eq!(
-            companies[1].balance_sheet.as_ref().unwrap().deposits,
-            initial_deposits
-        );
-        assert_eq!(
-            companies[1]
-                .balance_sheet
-                .as_ref()
-                .unwrap()
-                .reserves_at_central_bank,
-            initial_reserves
-        );
+        // ELA injection is tracked as central-bank liquidity creation.
+        assert_eq!(country.central_bank.liquidity_injected, 900.0);
     }
 
     #[test]
-    fn test_no_silent_clamp_on_negative_reserves() {
+    fn test_no_negative_reserves_after_ela_cover() {
         let mut companies = vec![
             make_test_company("comp_0", 10_000.0),
             make_test_bank("bank_0", 50.0, 400_000.0), // Bank has only 50 reserves
@@ -1600,18 +1589,15 @@ mod tests {
 
         let mut country = make_test_country();
 
-        // Transfer 100 would cause bank reserves to go negative (50 - 100 = -50)
+        // Transfer 100 exceeds reserves (50): ELA draws 50, debit settles,
+        // reserves land at exactly 0 — never negative, never silently clamped
+        // (the Lombard loan is a real booked liability).
         let result = settle_transfer_to_treasury(&mut companies, 0, 100.0, &mut country);
-        assert!(matches!(result, Err(TransferError::InsufficientReserves)));
+        assert!(result.is_ok());
 
-        // Verify reserves were NOT silently clamped — they remain at original value
-        assert_eq!(
-            companies[1]
-                .balance_sheet
-                .as_ref()
-                .unwrap()
-                .reserves_at_central_bank,
-            50.0
-        );
+        let bs = companies[1].balance_sheet.as_ref().unwrap();
+        assert_eq!(bs.reserves_at_central_bank, 0.0);
+        assert_eq!(bs.cb_lombard_loans, 50.0);
+        assert_eq!(country.central_bank.liquidity_injected, 50.0);
     }
 }

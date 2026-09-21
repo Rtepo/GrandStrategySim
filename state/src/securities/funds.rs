@@ -265,11 +265,15 @@ pub fn collect_fund_capital(
                         } else {
                             0
                         };
-                        ledger.shares_outstanding += units_issued;
-                        *ledger
-                            .unit_holders
-                            .entry(contributor_id.clone())
-                            .or_insert(0) += units_issued;
+                        ledger.shares_outstanding =
+                            ledger.shares_outstanding.saturating_add(units_issued);
+                        {
+                            let e = ledger
+                                .unit_holders
+                                .entry(contributor_id.clone())
+                                .or_insert(0);
+                            *e = e.saturating_add(units_issued);
+                        }
 
                         subscriptions.push(FundSubscription {
                             fund_id: fund.id.clone(),
@@ -306,11 +310,15 @@ pub fn collect_fund_capital(
                         } else {
                             0
                         };
-                        ledger.shares_outstanding += units_issued;
-                        *ledger
-                            .unit_holders
-                            .entry(contributor_id.clone())
-                            .or_insert(0) += units_issued;
+                        ledger.shares_outstanding =
+                            ledger.shares_outstanding.saturating_add(units_issued);
+                        {
+                            let e = ledger
+                                .unit_holders
+                                .entry(contributor_id.clone())
+                                .or_insert(0);
+                            *e = e.saturating_add(units_issued);
+                        }
 
                         subscriptions.push(FundSubscription {
                             fund_id: fund.id.clone(),
@@ -356,8 +364,15 @@ pub fn collect_fund_capital(
                     } else {
                         0
                     };
-                    ledger.shares_outstanding += units_issued;
-                    *ledger.unit_holders.entry(company.id.clone()).or_insert(0) += units_issued;
+                    ledger.shares_outstanding =
+                        ledger.shares_outstanding.saturating_add(units_issued);
+                    {
+                        let e = ledger
+                            .unit_holders
+                            .entry(company.id.clone())
+                            .or_insert(0);
+                        *e = e.saturating_add(units_issued);
+                    }
 
                     subscriptions.push(FundSubscription {
                         fund_id: fund.id.clone(),
