@@ -1,6 +1,6 @@
 //! Market Gridlock Diagnostic — Epic Test
 //!
-//! Runs a 2-turn simulation with the diagnostic probe enabled and asserts the
+//! Runs a 4-turn simulation with the diagnostic probe enabled and asserts the
 //! economic-flow telemetry needed to diagnose the Turn-2 market gridlock:
 //!
 //! 1. **Wage Transfer Conservation (Probe 3a):** total cash debited from
@@ -14,7 +14,7 @@
 //! 4. **Income summary:** per-company revenue from `financial_history`.
 //! 5. **Furlough state:** per-company FTE / furlough / receivership.
 //! 6. **Headline gridlock assertion:** fraction of companies with zero income
-//!    by Turn 2.
+//!    by Turn 4.
 //!
 //! # Output Artifacts
 //! - `state/tests/diagnostic_output/market_gridlock_diagnostic.json` —
@@ -53,8 +53,8 @@ use tempfile::TempDir;
 /// Output directory for diagnostic artifacts.
 const OUTPUT_DIR: &str = "tests/diagnostic_output";
 
-/// Number of turns to run — the gridlock manifests by Turn 2.
-const TURNS: u32 = 2;
+/// Number of turns to run — the Turn-3 bankruptcy cascade is captured.
+const TURNS: u32 = 4;
 
 /// Per-class savings snapshot for the propensity-to-consume probe.
 #[derive(Debug, Clone, serde::Serialize)]
@@ -136,7 +136,7 @@ struct HeadlineSummary {
     gridlock_detected: bool,
 }
 
-/// The main diagnostic test: run 2 turns, capture telemetry, assert flow
+/// The main diagnostic test: run 4 turns, capture telemetry, assert flow
 /// invariants, and emit a structured dump for root-cause analysis.
 #[test]
 fn test_market_gridlock_diagnostic() {
@@ -301,7 +301,7 @@ fn test_market_gridlock_diagnostic() {
         "No companies found in post-turn state"
     );
 
-    // The headline assertion: by Turn 2, less than 50% of companies should have
+    // The headline assertion: by Turn 4, less than 50% of companies should have
     // zero income. If >= 50%, gridlock is confirmed.
     //
     // NOTE: This test DOCUMENTS the gridlock — it does not hard-fail on
