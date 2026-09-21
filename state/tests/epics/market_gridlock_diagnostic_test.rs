@@ -1,6 +1,6 @@
 //! Market Gridlock Diagnostic — Epic Test
 //!
-//! Runs a 2-turn simulation with the diagnostic probe enabled and asserts the
+//! Runs a 4-turn simulation with the diagnostic probe enabled and asserts the
 //! economic-flow telemetry needed to diagnose the Turn-2 market gridlock:
 //!
 //! 1. **Wage Transfer Conservation (Probe 3a):** total cash debited from
@@ -14,7 +14,7 @@
 //! 4. **Income summary:** per-company revenue from `financial_history`.
 //! 5. **Furlough state:** per-company FTE / furlough / receivership.
 //! 6. **Headline gridlock assertion:** fraction of companies with zero income
-//!    by Turn 2.
+//!    by Turn 4.
 //!
 //! # Output Artifacts
 //! - `state/tests/diagnostic_output/market_gridlock_diagnostic.json` —
@@ -43,8 +43,10 @@ use sim_engine::engine::diagnostic::{
 use sim_engine::engine::turn::run_turn_inner;
 use sim_engine::engine::turn_context::InMemoryTurnContext;
 use sim_engine::engine::{generate_world, GenerateOptions, GeneratedWorld, StartYear};
-use sim_engine::registries::enums::Commodity;
+use sim_engine::entities::{Company, JointStockData, LegalForm};
+use sim_engine::registries::enums::{Commodity, Sector};
 use sim_engine::registries::Registries;
+use sim_engine::state::{BankBalanceSheet, BankType};
 use sim_engine::society::geography::ClassDemographics;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -53,8 +55,8 @@ use tempfile::TempDir;
 /// Output directory for diagnostic artifacts.
 const OUTPUT_DIR: &str = "tests/diagnostic_output";
 
-/// Number of turns to run — the gridlock manifests by Turn 2.
-const TURNS: u32 = 2;
+/// Number of turns to run — the Turn-3 bankruptcy cascade is captured.
+const TURNS: u32 = 4;
 
 /// Per-class savings snapshot for the propensity-to-consume probe.
 #[derive(Debug, Clone, serde::Serialize)]
@@ -130,13 +132,36 @@ struct HeadlineSummary {
     total_companies: usize,
     companies_with_zero_income: usize,
     zero_income_fraction: f64,
+    /// Companies in sectors that sell output through the production
+    /// pipeline (excludes Banking/NGO/Religion/Government/etc., whose
+    /// revenue legitimately arrives via fees, treasury, or grid billing).
+    producing_companies: usize,
+    producing_zero_income: usize,
+    producing_zero_income_fraction: f64,
     companies_furloughed: usize,
     companies_in_receivership: usize,
     companies_liquidated: usize,
     gridlock_detected: bool,
 }
 
-/// The main diagnostic test: run 2 turns, capture telemetry, assert flow
+/// Sectors whose income does NOT flow through `last_output_value`:
+/// they earn via interest/fees (Banking), donations (NGO, Religion),
+/// treasury funding (Government, PublicAdministration, PublicServices),
+/// foreign-trade margins (ExportServices), or grid billing for utility
+/// waste streams (WasteManagement). Counting them as "zero income"
+/// would mask the real production-economy signal.
+const NON_PRODUCING_SECTORS: &[&str] = &[
+    "Banking",
+    "NGO",
+    "Religion",
+    "PublicAdministration",
+    "Government",
+    "PublicServices",
+    "ExportServices",
+    "WasteManagement",
+];
+
+/// The main diagnostic test: run 4 turns, capture telemetry, assert flow
 /// invariants, and emit a structured dump for root-cause analysis.
 #[test]
 fn test_market_gridlock_diagnostic() {
@@ -160,6 +185,60 @@ fn test_market_gridlock_diagnostic() {
 
     let mut state = initial_state;
     let initial_turn = state.calendar.global_turn;
+
+    // --- Phase 95: Guarantee the banking layer is observable ---
+    // Worldgen writes banking.json per country, but a world whose sector file
+    // is missing/empty would run bank-free and the reserve invariants would
+    // be vacuous. Inject a balanced synthetic commercial bank into any
+    // country that lacks one. The CB liquidity_injected bump keeps the M0
+    // walk honest: the new reserves are CB-issued base money, booked against
+    // deposits + tier_1_capital (A = L + E at genesis).
+    for (cname, ents) in ctx.entities.iter_mut() {
+        let has_bank = ents
+            .companies
+            .iter()
+            .any(|c| c.sector == Sector::Banking && c.balance_sheet.is_some());
+        if has_bank {
+            continue;
+        }
+        let gdp = state
+            .countries
+            .get(cname)
+            .map(|c| c.budget.gdp)
+            .unwrap_or(1.0e9);
+        let deposits = gdp * 0.10;
+        let reserves = gdp * 0.15;
+        let tier_1 = (reserves - deposits).max(1.0);
+        let mut bank = Company::new(
+            format!(
+                "BANK-{}-TST",
+                &cname[..3.min(cname.len())].to_uppercase()
+            ),
+            format!("Test Bank of {}", cname),
+            Sector::Banking,
+            LegalForm::JointStockCompany(JointStockData::default()),
+            tier_1,
+            0.0,
+            500,
+        );
+        bank.region_id = state
+            .countries
+            .get(cname)
+            .and_then(|c| c.regions.iter().find(|r| r.is_capital).or_else(|| c.regions.first()))
+            .map(|r| r.id.clone())
+            .unwrap_or_default();
+        bank.bank_type = Some(BankType::Commercial);
+        bank.balance_sheet = Some(BankBalanceSheet {
+            reserves_at_central_bank: reserves,
+            deposits,
+            tier_1_capital: tier_1,
+            ..Default::default()
+        });
+        if let Some(country) = state.countries.get_mut(cname) {
+            country.central_bank.liquidity_injected += reserves;
+        }
+        ents.companies.push(bank);
+    }
 
     // --- Select diagnostic targets (same logic as phase94 harness) ---
     let whitelist = MassSinkWhitelist::canonical();
@@ -195,15 +274,60 @@ fn test_market_gridlock_diagnostic() {
         .expect("failed to write v4 diagnostic dumps");
 
     // ========================================================================
+    // RESERVE FLOOR (Phase 95): no bank may post negative reserves at ANY
+    // checkpoint — ELA covers debits at the point of shortfall and the
+    // per-phase reconciliation sweeps catch unguarded paths.
+    // ========================================================================
+    for rec in &trace.turns {
+        for cp in &rec.checkpoints {
+            if !cp.bank.id.is_empty() {
+                assert!(
+                    cp.bank.reserves_at_central_bank >= -0.01,
+                    "RESERVE FLOOR FAIL [turn {} phase {}]: bank {} reserves={:.4}",
+                    cp.turn,
+                    cp.phase_name,
+                    cp.bank.id,
+                    cp.bank.reserves_at_central_bank
+                );
+            }
+        }
+    }
+    // Post-run scan: every surviving bank must hold non-negative reserves.
+    let mut surviving_banks = 0usize;
+    for ents in ctx.entities.values() {
+        for c in &ents.companies {
+            if c.sector == Sector::Banking {
+                if let Some(ref bs) = c.balance_sheet {
+                    surviving_banks += 1;
+                    assert!(
+                        bs.reserves_at_central_bank >= -0.01,
+                        "RESERVE FLOOR FAIL [final]: bank {} reserves={:.4}",
+                        c.id,
+                        bs.reserves_at_central_bank
+                    );
+                }
+            }
+        }
+    }
+    if surviving_banks == 0 {
+        eprintln!(
+            "BANK-SURVIVAL WARN: zero banks survived {} turns — all were \
+             liquidated or despawned. Reserve-floor assertions were vacuous.",
+            TURNS
+        );
+    }
+
+    // ========================================================================
     // PROBE 3a: Wage Transfer Conservation
     // ========================================================================
     let wage_transfers = compute_wage_transfers(&trace);
 
-    // WAGE-1/2/3: INFORMATIONAL — the turn_start → building_cycle_post window
-    // includes taxes, subsistence debits, and other citizen cash flows beyond
-    // pure wage credits. A negative citizen delta or positive company delta is
-    // a DIAGNOSTIC SIGNAL, not necessarily a bug. Record it in the dump and
-    // print a high-visibility warning, but do not hard-fail.
+    // WAGE-1/2/3: INFORMATIONAL — the production_cycle_post → labor_market_post
+    // window isolates the wage phase, but still includes shadow-economy and
+    // reserve-floor flows beyond pure wage credits. A negative citizen delta
+    // or positive company delta is a DIAGNOSTIC SIGNAL, not necessarily a
+    // bug. Record it in the dump and print a high-visibility warning, but do
+    // not hard-fail.
     for wt in &wage_transfers {
         if !wt.citizens_gained {
             eprintln!(
@@ -301,7 +425,7 @@ fn test_market_gridlock_diagnostic() {
         "No companies found in post-turn state"
     );
 
-    // The headline assertion: by Turn 2, less than 50% of companies should have
+    // The headline assertion: by Turn 4, less than 50% of companies should have
     // zero income. If >= 50%, gridlock is confirmed.
     //
     // NOTE: This test DOCUMENTS the gridlock — it does not hard-fail on
@@ -313,11 +437,15 @@ fn test_market_gridlock_diagnostic() {
     if headline.gridlock_detected {
         eprintln!();
         eprintln!("═══════════════════════════════════════════════════════════════");
-        eprintln!("  MARKET GRIDLOCK DETECTED — {} of {} companies ({:.1}%) have zero income by Turn {}",
+        eprintln!("  MARKET GRIDLOCK DETECTED — {} of {} producing-sector companies ({:.1}%) have zero income by Turn {}",
+            headline.producing_zero_income,
+            headline.producing_companies,
+            headline.producing_zero_income_fraction * 100.0,
+            TURNS);
+        eprintln!("  (all-sector zero-income: {} of {} = {:.1}%)",
             headline.companies_with_zero_income,
             headline.total_companies,
-            headline.zero_income_fraction * 100.0,
-            TURNS);
+            headline.zero_income_fraction * 100.0);
         eprintln!("  Furloughed: {} | Receivership: {} | Liquidated: {}",
             headline.companies_furloughed,
             headline.companies_in_receivership,
@@ -362,6 +490,10 @@ fn test_market_gridlock_diagnostic() {
     println!("  Zero-income companies:  {} ({:.1}%)",
         headline.companies_with_zero_income,
         headline.zero_income_fraction * 100.0);
+    println!("  Producing-sector zero-income: {} of {} ({:.1}%)",
+        headline.producing_zero_income,
+        headline.producing_companies,
+        headline.producing_zero_income_fraction * 100.0);
     println!("  Furloughed:             {}", headline.companies_furloughed);
     println!("  Gridlock detected:      {}", headline.gridlock_detected);
     println!("  Diagnostic dump:        {:?}", dump_path);
@@ -482,26 +614,43 @@ fn snapshot_class_savings(state: &sim_engine::state::GameState) -> Vec<ClassSavi
     entries
 }
 
-/// Compute wage-transfer results for each turn by diffing FiatWalk at
-/// `turn_start` vs `building_cycle_post`.
+/// Compute wage-transfer results for each turn by diffing
+/// `production_cycle_post` vs `labor_market_post` — the window that actually
+/// contains the wage phase (resolve_regional_labor_market + withholding
+/// routing + commuter remittance). The previous `turn_start` →
+/// `building_cycle_post` window predates the wage phase entirely and was
+/// measuring banking-phase flows (loan servicing), not payroll.
+///
+/// Company-side outflow = ΔΣ(available_cash + brokerage_cash) + Δbank_reserves:
+/// unbanked payroll debits `available_cash`, banked payroll debits
+/// `brokerage_account.cash`, and bank self-debits plus the batch sync debit
+/// `reserves_at_central_bank`.
 fn compute_wage_transfers(trace: &TurnTrace) -> Vec<WageTransferResult> {
     let mut results = Vec::new();
     for turn_record in &trace.turns {
-        let turn_start = turn_record
+        let production_post = turn_record
             .checkpoints
             .iter()
-            .find(|cp| cp.phase_name == "turn_start");
-        let building_post = turn_record
+            .find(|cp| cp.phase_name == "production_cycle_post");
+        let labor_post = turn_record
             .checkpoints
             .iter()
-            .find(|cp| cp.phase_name == "building_cycle_post");
+            .find(|cp| cp.phase_name == "labor_market_post");
 
-        if let (Some(start), Some(post)) = (turn_start, building_post) {
-            // Sum company available_cash from the targeted company snapshots.
-            let company_cash_start: f64 =
-                start.companies.iter().map(|c| c.available_cash).sum();
-            let company_cash_post: f64 =
-                post.companies.iter().map(|c| c.available_cash).sum();
+        if let (Some(start), Some(post)) = (production_post, labor_post) {
+            // Sum company cash pockets from the targeted company snapshots.
+            let company_cash_start: f64 = start
+                .companies
+                .iter()
+                .map(|c| c.available_cash + c.brokerage_cash)
+                .sum::<f64>()
+                + start.global_fiat.bank_reserves;
+            let company_cash_post: f64 = post
+                .companies
+                .iter()
+                .map(|c| c.available_cash + c.brokerage_cash)
+                .sum::<f64>()
+                + post.global_fiat.bank_reserves;
             let citizen_cash_start = start.global_fiat.citizen_cash;
             let citizen_cash_post = post.global_fiat.citizen_cash;
 
@@ -689,6 +838,16 @@ fn compute_headline(company_income: &[CompanyIncomeEntry]) -> HeadlineSummary {
         .iter()
         .filter(|c| c.last_revenue <= 0.0)
         .count();
+    let producing: Vec<&CompanyIncomeEntry> = company_income
+        .iter()
+        .filter(|c| !NON_PRODUCING_SECTORS.contains(&c.sector.as_str()))
+        .collect();
+    let producing_zero = producing.iter().filter(|c| c.last_revenue <= 0.0).count();
+    let producing_fraction = if !producing.is_empty() {
+        producing_zero as f64 / producing.len() as f64
+    } else {
+        0.0
+    };
     let furloughed = company_income
         .iter()
         .filter(|c| c.furloughed_workers_count > 0.0)
@@ -704,9 +863,12 @@ fn compute_headline(company_income: &[CompanyIncomeEntry]) -> HeadlineSummary {
         total_companies: total,
         companies_with_zero_income: zero_income,
         zero_income_fraction: fraction,
+        producing_companies: producing.len(),
+        producing_zero_income: producing_zero,
+        producing_zero_income_fraction: producing_fraction,
         companies_furloughed: furloughed,
         companies_in_receivership: receivership,
         companies_liquidated: liquidated,
-        gridlock_detected: fraction >= 0.5,
+        gridlock_detected: producing_fraction >= 0.5,
     }
 }

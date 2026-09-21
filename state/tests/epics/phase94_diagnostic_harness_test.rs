@@ -23,8 +23,7 @@
 #![cfg(feature = "diagnostic")]
 
 use sim_engine::engine::diagnostic::{
-    select_targets, write_turn_summary_csv, write_turn_trace_json, CapturingProbe,
-    MassSinkWhitelist, TurnProbe, TurnTrace,
+    write_turn_summary_csv, write_turn_trace_json, CapturingProbe, MassSinkWhitelist, TurnTrace,
 };
 use sim_engine::engine::turn::run_turn_inner;
 use sim_engine::engine::turn_context::InMemoryTurnContext;

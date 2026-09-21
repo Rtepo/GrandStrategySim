@@ -71,6 +71,7 @@ impl Registries {
         let tech_tree = load_tech_tree(tech_tree_json)?;
         let mut production_methods = state_building_methods();
         production_methods.extend(industrial_production_methods());
+        production_methods::apply_throughput_scale(&mut production_methods);
         Ok(Arc::new(Self {
             tech_tree,
             production_methods,
@@ -96,6 +97,7 @@ impl Registries {
         let mut production_methods = state_building_methods();
         production_methods.extend(industrial_production_methods());
         production_methods.extend(default_production_methods());
+        production_methods::apply_throughput_scale(&mut production_methods);
         Arc::new(Self {
             tech_tree: tech_tree_data::default_tech_tree(),
             production_methods,

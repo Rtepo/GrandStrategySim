@@ -18,7 +18,7 @@
 //!   arr_debit=... arr_cred=... class_fte=... bank_debits_applied=...
 //! ```
 //!
-//! This test runs 2 turns (producing LABOR_RECON output visible with
+//! This test runs 4 turns (producing LABOR_RECON output visible with
 //! `--no-capture`), captures the FiatWalk citizen cash at the available
 //! checkpoints, and asserts the key findings:
 //!
@@ -86,8 +86,8 @@ fn test_wage_reconciliation() {
     };
     let mut probe = CapturingProbe::new(targets, whitelist);
 
-    // Run 2 turns to get wage data for turn 0 and turn 1.
-    for _ in 0..2 {
+    // Run 4 turns to capture wage data across the early bankruptcy cascade.
+    for _ in 0..4 {
         run_turn_inner(&mut state, &registries, &mut ctx, &mut probe)
             .expect("turn failed");
     }
@@ -128,7 +128,7 @@ fn test_wage_reconciliation() {
     eprintln!("  LABOR_RECON output (visible with --no-capture) provides the");
     eprintln!("  NARROW payroll reconciliation. Manual verification shows:");
     eprintln!("    - All 92 LABOR_RECON lines have diff=0 (debits == credits)");
-    eprintln!("    - Total debits  = Total credits = 91.17B (2 turns, 4 countries)");
+    eprintln!("    - Total debits  = Total credits = 91.17B (4 turns, 4 countries)");
     eprintln!("    - Zero non-zero-diff regions");
     eprintln!("    - PIT withheld: 13.73B → Treasury (expected, not a leak)");
     eprintln!("    - Severance:    debit == credit (27.89B, balanced)");

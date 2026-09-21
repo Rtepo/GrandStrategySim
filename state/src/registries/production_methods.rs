@@ -330,6 +330,87 @@ impl BuildingMethods {
     }
 }
 
+/// Macro-Remediation: Global throughput rescale for per-1000-worker rates.
+///
+/// The registry's `inputs`/`outputs` per-1k rates were calibrated ~67x–750x
+/// below the wage scale (`average_wage = gdp_pc * 800`), so no era-appropriate
+/// method could cover payroll from output value (a 1500-FTE factory earned
+/// <$1 of income against ~$675K of wages). Scaling physical inputs AND outputs
+/// by the same factor preserves BOM ratios, fulfillment fractions, and the
+/// inter-method technology ordering, while lifting gross output value above
+/// the wage bill.
+///
+/// Scope rules:
+/// * Only methods producing at least one physical tradable commodity (or
+///   `FreightCapacity`, which is intangible but consumed per unit of trade
+///   volume) are scaled. Pure service/capacity methods (health, education,
+///   security, justice) keep their population-gated rates.
+/// * Methods with any local-utility output (Energy/Heat/Water/waste) are
+///   NOT scaled at all — grids pay them, not the B2B market, so scaled
+///   inputs against flat grid revenue would be catastrophic.
+/// * Within scaled methods, only tangible, non-utility, non-fixed-asset
+///   INPUTS scale — grid load (Energy/Heat/Water), machinery pacing (fixed
+///   assets), and service consumption stay at original rates.
+/// * Outputs scale unless they are local utilities or intangible
+///   non-freight services.
+/// * Only production slots (Automation/Production/Organization) are scaled;
+///   consumption slots (Lighting/Heating/…) and one-shot Construction
+///   methods are untouched.
+pub const PRODUCTION_THROUGHPUT_SCALE: f64 = 250.0;
+
+/// Returns `true` when a method produces at least one commodity that must
+/// scale with physical throughput: any tangible tradable good, or
+/// `FreightCapacity` (consumed per unit of cross-region trade volume).
+///
+/// Methods with ANY local-utility output (Energy/Heat/Water/waste streams)
+/// are excluded entirely: their output is distributed by the grids and never
+/// sold through inventory, so scaling their inputs 250x against flat grid
+/// revenue produces catastrophic input-cost/write-down losses.
+fn method_is_commodity_producer(method: &ProductionMethod) -> bool {
+    if method.outputs.keys().any(|c| c.is_local_utility()) {
+        return false;
+    }
+    method.outputs.keys().any(|c| {
+        *c == Commodity::FreightCapacity || !c.is_intangible()
+    })
+}
+
+/// Applies [`PRODUCTION_THROUGHPUT_SCALE`] to every commodity-producer method
+/// in a building-method map. Called once at registry assembly so every
+/// consumer (seed inventory, production cycle, B2B order sizing, market
+/// signals) sees consistent scaled rates.
+pub fn apply_throughput_scale(map: &mut HashMap<String, BuildingMethods>) {
+    for methods in map.values_mut() {
+        for slot in [
+            &mut methods.automation,
+            &mut methods.production,
+            &mut methods.organization,
+        ] {
+            for method in slot.values_mut() {
+                if !method_is_commodity_producer(method) {
+                    continue;
+                }
+                for (commodity, qty) in method.inputs.iter_mut() {
+                    if !commodity.is_intangible()
+                        && !commodity.is_local_utility()
+                        && !commodity.is_fixed_asset()
+                    {
+                        *qty *= PRODUCTION_THROUGHPUT_SCALE;
+                    }
+                }
+                for (commodity, qty) in method.outputs.iter_mut() {
+                    if *commodity == Commodity::FreightCapacity
+                        || (!commodity.is_intangible()
+                            && !commodity.is_local_utility())
+                    {
+                        *qty *= PRODUCTION_THROUGHPUT_SCALE;
+                    }
+                }
+            }
+        }
+    }
+}
+
 /// Builds the state-apparatus production-method registry.
 ///
 /// # Returns

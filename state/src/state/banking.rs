@@ -360,6 +360,49 @@ impl BankBalanceSheet {
     }
 }
 
+/// Phase 95: Emergency Liquidity Assistance — draw CB Lombard credit so an
+/// upcoming reserve debit cannot push `reserves_at_central_bank` below zero.
+///
+/// The draw covers BOTH the new debit and any pre-existing negative balance:
+/// `draw = max(0, upcoming_debit - reserves)`. Booked as `cb_lombard_loans`
+/// (liability) against new reserves (asset), so A = L + E is preserved and
+/// `central_bank.liquidity_injected` tracks the M0 creation. The Central Bank
+/// is the lender of last resort — ELA is always available (the Lombard rate
+/// prices the loan; it does not gate availability).
+///
+/// Call this BEFORE applying the debit. Returns the amount drawn.
+pub fn ela_cover_debit(
+    bs: &mut BankBalanceSheet,
+    central_bank: &mut CentralBank,
+    upcoming_debit: f64,
+) -> f64 {
+    let shortfall = upcoming_debit - bs.reserves_at_central_bank;
+    if shortfall <= 0.0 {
+        return 0.0;
+    }
+    bs.cb_lombard_loans += shortfall;
+    bs.reserves_at_central_bank += shortfall;
+    central_bank.liquidity_injected += shortfall;
+    shortfall
+}
+
+/// Phase 95: End-of-phase reserve-floor reconciliation. Lifts every bank's
+/// `reserves_at_central_bank` to >= 0 via ELA, repairing debits that bypassed
+/// the guarded settlement paths (batch wage/tax syncs, `debit_company_by_id`,
+/// Lombard interest accrual). Returns total liquidity injected.
+pub fn enforce_reserve_floor(
+    companies: &mut [crate::entities::Company],
+    central_bank: &mut CentralBank,
+) -> f64 {
+    let mut injected = 0.0;
+    for company in companies.iter_mut() {
+        if let Some(ref mut bs) = company.balance_sheet {
+            injected += ela_cover_debit(bs, central_bank, 0.0);
+        }
+    }
+    injected
+}
+
 /// Interbank market for daily liquidity exchange between banks.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct InterbankMarket {
@@ -2752,6 +2795,9 @@ pub fn process_banking_turn(
             let interest = country
                 .central_bank
                 .accrue_lombard_facility_interest(bs.cb_lombard_loans);
+            // Phase 95: Hard reserve floor — ELA covers the interest debit so
+            // reserves never settle below zero (draw booked as cb_lombard_loans).
+            ela_cover_debit(bs, &mut country.central_bank, interest);
             bs.reserves_at_central_bank -= interest;
             // Phase 94: No reserve clamping â€” negative reserves represent
             // CB Lombard borrowing. Clamping breaks A=L+E and causes M0

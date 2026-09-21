@@ -201,6 +201,15 @@ impl CompanyLifecycle {
             if company.financial_history.len() < 2 {
                 continue;
             }
+            // Macro-Remediation: banks are supervised through the reserve
+            // floor + ELA path, not industrial P&L. A bank's interest/fee
+            // income is not booked through `last_profit`, so its recorded
+            // net_profit is structurally negative and the 3-strike rule
+            // would liquidate the entire banking sector every ~3 turns.
+            // Insolvency still applies via the company_capital < 0 check.
+            if company.sector == Sector::Banking {
+                continue;
+            }
             let consecutive_losses = company
                 .financial_history
                 .iter()
