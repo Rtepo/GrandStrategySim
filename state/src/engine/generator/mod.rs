@@ -324,8 +324,12 @@ pub fn generate_world(
         .extra
         .insert("year".to_string(), Value::from(options.start_year as u32));
 
+    let mut produced_by_country: std::collections::BTreeMap<
+        String,
+        std::collections::BTreeSet<crate::registries::enums::Commodity>,
+    > = std::collections::BTreeMap::new();
     for country in state.countries.values_mut() {
-        generate_corporate_entities(
+        let produced = generate_corporate_entities(
             data_dir,
             country,
             &mut regions,
@@ -334,7 +338,21 @@ pub fn generate_world(
             options.start_year as u32,
             &mut rng,
         )?;
+        produced_by_country.insert(country.name.clone(), produced);
     }
+
+    // Phase E1e: world-level producer guarantee — every core input commodity
+    // must have at least one producer somewhere (per-country where endowed).
+    crate::engine::generator::corporate::ensure_global_core_producers(
+        data_dir,
+        &mut state.countries,
+        &regions,
+        &mut state.planet,
+        _registries,
+        options.start_year as u32,
+        &produced_by_country,
+        &mut rng,
+    )?;
 
     // Bugfix Sprint (5B): Initialize power grids AFTER corporate entities are
     // generated, so LV/MV capacities can be derived from actual connected

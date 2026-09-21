@@ -46,7 +46,7 @@ impl RarityTier {
     }
 
     /// Reserve size range for a single vein of this tier (min, max) in tons.
-    fn reserve_range(&self) -> (f64, f64) {
+    pub fn reserve_range(&self) -> (f64, f64) {
         match self {
             RarityTier::UltraRare => (1_000_000.0, 10_000_000.0),
             RarityTier::Rare => (5_000_000.0, 50_000_000.0),
@@ -57,11 +57,23 @@ impl RarityTier {
     }
 
     /// Commodities available at this rarity tier.
-    fn commodities(&self) -> &[Commodity] {
+    /// Phase E1: `pub` so the world-gen producer guarantee can classify
+    /// commodities as vein-bound (minable) vs method-produced.
+    pub fn commodities(&self) -> &[Commodity] {
         match self {
             RarityTier::UltraRare => &[Commodity::Uranium, Commodity::Gold],
             RarityTier::Rare => &[Commodity::Silver, Commodity::Tin],
-            RarityTier::Uncommon => &[Commodity::Copper, Commodity::Zinc, Commodity::Bauxite],
+            RarityTier::Uncommon => &[
+                Commodity::Copper,
+                Commodity::Zinc,
+                Commodity::Bauxite,
+                // Phase E1b: these were in no tier, so their veins never
+                // generated anywhere in the world.
+                Commodity::Lead,
+                Commodity::Oil,
+                Commodity::NaturalGas,
+                Commodity::Sulfur,
+            ],
             RarityTier::AbundantIndustrial => &[
                 Commodity::Iron,
                 Commodity::HardCoal,
@@ -69,7 +81,15 @@ impl RarityTier {
                 Commodity::Stone,
                 Commodity::Sand,
             ],
-            RarityTier::Ubiquitous => &[Commodity::Limestone, Commodity::Peat, Commodity::Gravel],
+            RarityTier::Ubiquitous => &[
+                Commodity::Limestone,
+                Commodity::Peat,
+                Commodity::Gravel,
+                // Phase E1b: construction and food-chain materials,
+                // genuinely widespread.
+                Commodity::Clay,
+                Commodity::Salt,
+            ],
         }
     }
 }
@@ -77,7 +97,7 @@ impl RarityTier {
 /// Phase 88: Generate a deterministic human-readable name for a geological vein.
 /// Uses the commodity name and a geographic descriptor derived from the vein
 /// ID counter (ensuring deterministic names across reloads).
-fn generate_vein_name(commodity: Commodity, id_counter: usize) -> String {
+pub fn generate_vein_name(commodity: Commodity, id_counter: usize) -> String {
     let commodity_str = format!("{:?}", commodity);
     // Deterministic geographic descriptor based on ID counter.
     // This produces stable names like "Northern Iron Range", "Southern Coal Basin".
@@ -402,6 +422,9 @@ impl Planet {
             (Commodity::Limestone, RarityTier::Ubiquitous),
             (Commodity::Peat, RarityTier::Ubiquitous),
             (Commodity::Gravel, RarityTier::Ubiquitous),
+            // Phase E1b: construction and food-chain materials.
+            (Commodity::Clay, RarityTier::Ubiquitous),
+            (Commodity::Salt, RarityTier::Ubiquitous),
         ];
 
         // Industrial commodities: present in ~35% of regions each.
@@ -409,6 +432,12 @@ impl Planet {
             (Commodity::Iron, RarityTier::AbundantIndustrial),
             (Commodity::HardCoal, RarityTier::AbundantIndustrial),
             (Commodity::BrownCoal, RarityTier::AbundantIndustrial),
+            // Phase E1b: energy and ore commodities whose veins were never
+            // generated because no rarity tier contained them.
+            (Commodity::Lead, RarityTier::Uncommon),
+            (Commodity::Oil, RarityTier::Uncommon),
+            (Commodity::NaturalGas, RarityTier::Uncommon),
+            (Commodity::Sulfur, RarityTier::Uncommon),
         ];
 
         for (region_id, lat, lon) in populated_regions {

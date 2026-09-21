@@ -1307,6 +1307,24 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
 
     // -- forest_district (Forest District — commercial building owned by State Forests company) --
     let mut state_forest_methods = BuildingMethods::default();
+    // Phase E1d: pre-industrial logging. Food-only input — Forestry
+    // Management requires Fuels, which cannot exist before Timber/Petroleum
+    // supply chains bootstrap (chicken-and-egg deadlock on turn 0).
+    state_forest_methods.insert(
+        MethodSlot::Production,
+        "Manual Logging".to_string(),
+        ProductionMethod {
+            year: 1700,
+            required_tech: None,
+            experts_ratio: 0.02,
+            skilled_ratio: 0.08,
+            basic_ratio: 0.90,
+            efficiency: 0.4,
+            inputs: HashMap::from([(Commodity::Food, 1.0)]),
+            outputs: HashMap::from([(Commodity::Timber, 5.0)]),
+            ..Default::default()
+        },
+    );
     state_forest_methods.insert(
         MethodSlot::Production,
         "Forestry Management".to_string(),
