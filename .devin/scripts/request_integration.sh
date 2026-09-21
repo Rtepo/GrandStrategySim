@@ -202,8 +202,7 @@ if [ -f Cargo.toml ]; then
     if command -v cargo-nextest &>/dev/null; then
         echo "  (using cargo-nextest with --test-threads=4 for OOM safety, fast mode)"
         if ! cargo nextest run --workspace --all-targets \
-            --skip headless_50_tick_smoke \
-            --profile ci --test-threads=4 2>&1 | tail -n 50; then
+            --profile ci --test-threads=4 -- --skip headless_50_tick_smoke 2>&1 | tail -n 50; then
             echo ""
             echo "=============================================================="
             echo "  PRE-INTEGRATION GUARD: cargo nextest FAILED"

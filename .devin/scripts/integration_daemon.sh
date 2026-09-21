@@ -450,8 +450,7 @@ run_cicd() {
         # v4: No --features epic-tests → [[test]] blocks with required-features
         #     are skipped entirely by Cargo (no empty binaries, no nextest confusion)
         timeout 300 cargo nextest run --workspace --all-targets \
-            --skip headless_50_tick_smoke \
-            --profile ci --test-threads=4 2>&1 | tee "${log_prefix}_test.txt" | tail -n 50
+            --profile ci --test-threads=4 -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -n 50
         local test_rc=${PIPESTATUS[0]}
         if [ $test_rc -ne 0 ]; then
             git checkout main 2>/dev/null
