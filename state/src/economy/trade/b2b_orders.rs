@@ -606,6 +606,7 @@ pub fn submit_company_b2b_orders(
                     }
                 } else {
                     sell_price
+                };
 
                 // Phase 76: Rule 8 — Rational Actor Pricing Floor.
                 // Never sell below actual production cost (except during bootstrap).
