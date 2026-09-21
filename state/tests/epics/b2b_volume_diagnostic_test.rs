@@ -164,8 +164,10 @@ fn test_b2b_volume_clamps() {
         country_name: String::new(),
     };
     let mut probe = CapturingProbe::new(targets, whitelist);
-    run_turn_inner(&mut state, &registries, &mut ctx, &mut probe)
-        .expect("turn 0 failed");
+    for _ in 0..4 {
+        run_turn_inner(&mut state, &registries, &mut ctx, &mut probe)
+            .expect("turn failed");
+    }
     let turn_sampled = state.calendar.global_turn;
 
     // Pick the alphabetically-first country that has entities.
