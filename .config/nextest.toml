@@ -13,3 +13,14 @@ retries = 2
 fail-fast = false
 status-level = "fail"
 final-status-level = "fail"
+
+# ts-rs `#[ts(export)]` tests all read-modify-write the shared
+# src/types/api.ts with no file locking. Parallel execution produces torn
+# reads (missing "\n\n" separator) -> export.rs merge() panic and a
+# truncated api.ts. Serialize them in a dedicated single-threaded group.
+[test-groups.api-ts-export]
+max-threads = 1
+
+[[profile.ci.overrides]]
+filter = 'test(/export_bindings/)'
+test-group = 'api-ts-export'
