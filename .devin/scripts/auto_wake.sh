@@ -334,7 +334,7 @@ NODE_PROMPT_EOF
                 #
                 # v4.3 hardening:
                 #   - < /dev/null forces immediate crash if auth fails (no TUI picker hang)
-                #   - timeout 300 kills the process after 5 minutes if it hangs
+                #   - no timeout: sessions run to natural completion (v4.4)
                 #   - Output written directly to log file (unbuffered, real-time monitoring)
                 #
                 # v4.3.2: Removed --resume because sessions active in the IDE
@@ -348,7 +348,7 @@ NODE_PROMPT_EOF
                 #   --permission-mode dangerous — Auto-approve ALL tools (edits + shell) for headless autonomy
                 #   --respect-workspace-trust false — Skip workspace trust prompt
                 #   -- "<prompt>"               — The constructed prompt
-                echo "[$(date -u +%H:%M:%S)] Auto-wake: Invoking devin -p (timeout 2700s, stdin=/dev/null)..." >> "$HUB_DIR/.devin/integration_log/auto_wake_${AGENT_ID}.log"
+                echo "[$(date -u +%H:%M:%S)] Auto-wake: Invoking devin -p (no timeout, stdin=/dev/null)..." >> "$HUB_DIR/.devin/integration_log/auto_wake_${AGENT_ID}.log"
 
                 # v4.3.1: Unset IDE environment variables that cause the CLI to
                 # use the Windsurf/Enterprise auth path instead of reading
@@ -356,7 +356,7 @@ NODE_PROMPT_EOF
                 # even when the user is authenticated via `devin auth login`.
                 unset WINDSURF_IDE_TYPE ACP_BACKEND WINDSURF_EXT_HOST_PID
 
-                timeout 2700 "$DEVIN_CLI" -p \
+                "$DEVIN_CLI" -p \
                     --model glm-5.2-high \
                     --permission-mode dangerous \
                     --respect-workspace-trust false \
