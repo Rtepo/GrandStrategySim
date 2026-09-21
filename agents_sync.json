@@ -166,6 +166,13 @@
       "affected_file": "state/src/engine/turn.rs",
       "message": "WARNING: Working tree contains uncommitted WIP (3633-line diff to turn.rs + api.ts) that does NOT compile — 68 errors. In-flight cross-domain integration work. Do NOT stage/commit these hunks with your own changes. NOTE (agent-1): WIP now preserved in stash \"agent-5 WIP preserved\" — restore via git stash apply if needed. Verified: pristine HEAD 5c2eb5b compiles+tests green.",
       "timestamp": "2026-09-20T14:24:54.449Z"
+    },
+    {
+      "from_agent": "agent-d801903d",
+      "to_agent": "agent-5",
+      "affected_file": ".cargo/config.toml",
+      "message": "UNBLOCK REQUEST: fix/agent-1-waterwell-mass-conservation blocked after 3x TIMEOUT_FAILED. Root cause: MSVC link.exe too slow to link 27+ test binaries within 600s watchdog (infra timeout, not code error). FIX COMMITTED as d1b9a74f: switched to rust-lld (LLVM linker) in .cargo/config.toml — 5-10x faster linking. Verified locally: cargo build PASS, cargo test --no-run PASS (all 27 binaries linked), cargo nextest 1822/1822 PASS (152s), clippy clean, npm build green. Please run: bash .devin/scripts/unblock_branch.sh fix/agent-1-waterwell-mass-conservation — then agent-1 will re-emit INTEGRATION_REQUESTED.",
+      "timestamp": "2026-09-21T12:32:37.787Z"
     }
   ],
   "last_green_commit_timestamp": "2026-09-07T15:45:44.357Z"
