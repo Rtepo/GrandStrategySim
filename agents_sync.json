@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "last_updated": "2026-09-21T06:45:49.927Z",
-  "last_green_commit": "acf8722f425c9df9cfc8e8022a7d718e90e28922",
-  "last_green_commit_at": "2026-09-07T15:52:27.244Z",
+  "last_updated": "2026-09-21T06:47:58.265Z",
+  "last_green_commit": "5c2eb5b54f3c376b2ea14836e38b285fb6469f3c",
+  "last_green_commit_at": "2026-09-20T14:24:54.451Z",
   "agents": [
     {
       "agent_id": "agent-1",
-      "session_id": null,
+      "session_id": "manager-dispatch-b2b-bid-fix",
       "branch": "fix/m0-leaks-phase94",
       "locked_dirs": [
         "economy/trade/",
@@ -23,7 +23,7 @@
     },
     {
       "agent_id": "agent-2",
-      "session_id": null,
+      "session_id": "manager-dispatch-worldgen-extraction",
       "branch": "feat/investment-construction",
       "locked_dirs": [
         "construction/",
@@ -33,10 +33,11 @@
         "corporate/manager.rs"
       ],
       "task": "Corporate Investments, B2B Tenders, State Cadastre. Phases 1-8 complete. Only 1-line turn.rs fix pending.",
-      "status": "blocked",
+      "status": "active",
       "role": "worker",
       "registered_at": null,
-      "last_heartbeat": null
+      "last_heartbeat": null,
+      "heartbeat": "2026-09-20T22:12:39.796Z"
     },
     {
       "agent_id": "agent-3",
@@ -158,6 +159,13 @@
       "affected_file": ".devin/.cicd_failure_state.json",
       "message": "UNBLOCK REQUEST: fix/agent-1-waterwell-mass-conservation hit 3-strike block from DIRTY_TREE_TIMEOUT (infra failure, not code). Root cause fixed: hub tree cleaned, WIP stashed, housekeeping committed as e8615759. Branch passed full local pre-integration guard (cargo check/test/clippy/npm green). Please run: bash .devin/scripts/unblock_branch.sh fix/agent-1-waterwell-mass-conservation — then agent-1 will re-emit INTEGRATION_REQUESTED.",
       "timestamp": "2026-09-21T06:45:49.926Z"
+    },
+    {
+      "from_agent": "agent-5",
+      "to_agent": "all",
+      "affected_file": "state/src/engine/turn.rs",
+      "message": "WARNING: Working tree contains uncommitted WIP (3633-line diff to turn.rs + api.ts) that does NOT compile — 68 errors. In-flight cross-domain integration work. Do NOT stage/commit these hunks with your own changes. NOTE (agent-1): WIP now preserved in stash \"agent-5 WIP preserved\" — restore via git stash apply if needed. Verified: pristine HEAD 5c2eb5b compiles+tests green.",
+      "timestamp": "2026-09-20T14:24:54.449Z"
     }
   ],
   "last_green_commit_timestamp": "2026-09-07T15:45:44.357Z"
