@@ -14,13 +14,18 @@ fail-fast = false
 status-level = "fail"
 final-status-level = "fail"
 
-# ts-rs `#[ts(export)]` tests all read-modify-write the shared
-# src/types/api.ts with no file locking. Parallel execution produces torn
-# reads (missing "\n\n" separator) -> export.rs merge() panic and a
-# truncated api.ts. Serialize them in a dedicated single-threaded group.
-[test-groups.api-ts-export]
-max-threads = 1
-
-[[profile.ci.overrides]]
-filter = 'test(/export_bindings/)'
-test-group = 'api-ts-export'
+# ts-rs `#[ts(export)]` tests read-modify-write the shared
+# src/types/api.ts via a per-process EXPORT_PATHS registry: the first
+# exporter in a process calls File::create (TRUNCATE), later ones merge.
+# Under `cargo test` all tests share one process so writes accumulate, but
+# nextest runs each test in its OWN process — every export_bindings test
+# truncates api.ts to just its own types, leaving a torn ~700-byte file.
+# Serialization (test-groups max-threads=1) cannot fix this: each process
+# still sees an empty registry and truncates. The torn file then breaks
+# `npm run build` (tsc cannot resolve the missing types) and leaves the
+# working tree dirty, which cascades into DIRTY_TREE_TIMEOUT blocks.
+#
+# Exclude export_bindings tests from the ci profile entirely. Regenerate
+# bindings deterministically in a single process with:
+#   cargo test -p sim_engine --lib export_bindings -- --test-threads=1
+default-filter = 'not test(/export_bindings/)'

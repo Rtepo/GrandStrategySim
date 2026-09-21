@@ -237,7 +237,13 @@ development_level: number, };
 /**
  * A parliamentary club row.
  */
-export type ClubRow = { name: string, seats: number, ideology: string, is_splinter: boolean, discipline: number, 
+export type ClubRow = { name: string, seats: number, ideology: string, 
+/**
+ * Ideology Step 6: Club/party ideological coordinates for radar chart
+ * (Directive 17). Replaces the planned `PartyRow.coordinates` — `ClubRow`
+ * is the party representation in the UI snapshot.
+ */
+coordinates: IdeologyCoordinatesDto | null, is_splinter: boolean, discipline: number, 
 /**
  * Phase 54: Chairperson VIP ID (if assigned).
  */
@@ -780,7 +786,12 @@ export type GovernanceDetail = { company_id: string, company_name: string, is_li
 /**
  * Government tab data.
  */
-export type GovernmentSnapshot = { head_of_state_name: string, head_of_state_role: string, pm_name: string, pm_party: string, pm_ideology: string, cabinet: Array<MinisterRow>, state_of_emergency: EmergencySnapshot | null, political_capital: number, 
+export type GovernmentSnapshot = { head_of_state_name: string, head_of_state_role: string, pm_name: string, pm_party: string, pm_ideology: string, 
+/**
+ * Ideology Step 6: Ruling party's ideological coordinates for 3-axis
+ * radar chart (Directive 17). `Option` for fog-of-war stripping (Rule 11).
+ */
+coordinates: IdeologyCoordinatesDto | null, cabinet: Array<MinisterRow>, state_of_emergency: EmergencySnapshot | null, political_capital: number, 
 /**
  * Phase 41: Named VIPs moved from ParliamentSnapshot to GovernmentSnapshot.
  */
@@ -849,6 +860,29 @@ jurisdiction_domain_id: string, };
  * Phase 85: Guilds snapshot for the GuildsPage.
  */
 export type GuildsSnapshot = { guilds: Array<GuildRow>, };
+
+/**
+ * Ideology Step 6: UI projection of `IdeologyCoordinates` for 3-axis radar
+ * chart visualization (Directive 17 — full-stack accountability).
+ *
+ * This is a plain DTO with no behavioral methods. It is `Option` on every
+ * consumer struct so the backend can strip it for role-gated fog-of-war
+ * (Directive 11 — the player is not omniscient; classified stats are
+ * obfuscated for non-VIP entities).
+ */
+export type IdeologyCoordinatesDto = { 
+/**
+ * -1.0 = total collectivization, +1.0 = laissez-faire capitalism
+ */
+economy: number, 
+/**
+ * -1.0 = totalitarian, +1.0 = anarchic liberty
+ */
+liberty: number, 
+/**
+ * -1.0 = revolutionary futurism, +1.0 = entrenched traditionalism
+ */
+tradition: number, };
 
 /**
  * Infrastructure link summary.
@@ -1052,7 +1086,11 @@ pow_camps: Array<PowCampRow>, };
 /**
  * A minister row for the Government tab.
  */
-export type MinisterRow = { ministry_name: string, minister_name: string, party: string, ideology: string, allocated_cash: number, spent_cash: number, 
+export type MinisterRow = { ministry_name: string, minister_name: string, party: string, ideology: string, 
+/**
+ * Ideology Step 6: Minister's party ideological coordinates (Directive 17).
+ */
+coordinates: IdeologyCoordinatesDto | null, allocated_cash: number, spent_cash: number, 
 /**
  * Phase 35: Current cash pocket available for spending.
  */
@@ -1900,7 +1938,11 @@ export type VipPageResponse = { rows: Array<VipDossierRow>, total_count: number,
 /**
  * Phase 34: A named VIP row for the Parliament tab.
  */
-export type VipRow = { full_name: string, party: string, role: string, ideology: string, age: number, };
+export type VipRow = { full_name: string, party: string, role: string, ideology: string, 
+/**
+ * Ideology Step 6: VIP ideological coordinates for radar chart (Directive 17).
+ */
+coordinates: IdeologyCoordinatesDto | null, age: number, };
 
 /**
  * A recent vote row.
