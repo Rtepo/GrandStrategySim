@@ -16,19 +16,20 @@ use crate::economy::{update_gdp_shares_from_employment, CountryTurnCtx};
 use crate::entities::{
     ActiveProductionMethod, AggregatedStats, Building, ClusterInfo, Company, CooperativeData,
     CropBatch, CropState, FamilyBusinessData, JointStockData, LegalForm, NonProfitData,
-    PurchaseTrigger, ReleaseTrigger, SeasonalProfile, SeasonalState, StrategicReserveData, Union,
-    UnionScale,
+    PurchaseTrigger, ReleaseTrigger, SeasonalProfile, SeasonalState, StateMonopolyData,
+    StrategicReserveData, Union, UnionScale,
 };
 use crate::io::entity_store::{DiskEntityStore, EntityStore};
 use crate::registries::enums::{Commodity, Sector};
 use crate::registries::production_methods::ProductionMethod;
 use crate::registries::Registries;
-use crate::society::geography::{ClimateProfile, Region};
-use crate::society::planet::Planet;
+use crate::society::geography::{ClimateProfile, LandCategory, Region};
+use crate::society::planet::{GeologicalVein, Planet, RarityTier};
 use crate::state::macro_data::TURNS_PER_YEAR;
 use crate::state::{Country, Season};
+use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
-use rand::Rng;
+use rand::{Rng, SeedableRng};
 use serde_json::{Map, Value};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::error::Error;
@@ -396,7 +397,7 @@ pub fn generate_corporate_entities(
     registries: &Registries,
     start_year: u32,
     rng: &mut impl Rng,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<BTreeSet<Commodity>, Box<dyn Error>> {
     // Phase 88: Collect region IDs and clones upfront to avoid borrow conflicts
     // when we later need to mutably borrow `regions` for arable_land_used updates.
     // Phase 94: Sort by region ID for deterministic RNG consumption.
@@ -408,7 +409,7 @@ pub fn generate_corporate_entities(
         .collect();
     country_region_data.sort_by(|a, b| a.0.cmp(&b.0));
     if country_region_data.is_empty() {
-        return Ok(());
+        return Ok(BTreeSet::new());
     }
     let country_regions: Vec<&Region> = country_region_data.iter().map(|(_, r)| r).collect();
 
