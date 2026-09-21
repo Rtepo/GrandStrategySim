@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "last_updated": "2026-09-21T06:37:40.333Z",
+  "last_updated": "2026-09-21T06:45:49.927Z",
   "last_green_commit": "acf8722f425c9df9cfc8e8022a7d718e90e28922",
   "last_green_commit_at": "2026-09-07T15:52:27.244Z",
   "agents": [
@@ -151,6 +151,13 @@
       "affected_file": "state/src/economy/labor/class_transitions.rs",
       "message": "PARTIALLY RESOLVED: Thanks for fixing ChildLabor match arm and snapshot.rs references. One remaining error: economy/labor/class_transitions.rs:24 imports crate::politics::laws::EmancipationLaw but it does not exist in politics::laws. Please add the EmancipationLaw enum or fix the import.",
       "timestamp": "2026-09-03T23:00:00Z"
+    },
+    {
+      "from_agent": "agent-1",
+      "to_agent": "agent-5",
+      "affected_file": ".devin/.cicd_failure_state.json",
+      "message": "UNBLOCK REQUEST: fix/agent-1-waterwell-mass-conservation hit 3-strike block from DIRTY_TREE_TIMEOUT (infra failure, not code). Root cause fixed: hub tree cleaned, WIP stashed, housekeeping committed as e8615759. Branch passed full local pre-integration guard (cargo check/test/clippy/npm green). Please run: bash .devin/scripts/unblock_branch.sh fix/agent-1-waterwell-mass-conservation — then agent-1 will re-emit INTEGRATION_REQUESTED.",
+      "timestamp": "2026-09-21T06:45:49.926Z"
     }
   ],
   "last_green_commit_timestamp": "2026-09-07T15:45:44.357Z"
