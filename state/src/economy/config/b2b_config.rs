@@ -57,6 +57,13 @@ pub struct B2bOrderConfig {
     /// fraction extra to cover freight procurement. Default 0.30 (30% extra).
     #[serde(default = "default_freight_reserve")]
     pub freight_cost_reserve_ratio: f64,
+
+    /// Per-turn decay applied to an ask that went unfilled last turn
+    /// (seller-side counterpart to the unfilled-bid ratchet). The next ask
+    /// for that commodity is capped at last_unfilled × (1 − ratio), floored
+    /// at unit_cost by the Rule-8 pricing floor. Default 0.15 (15% decay).
+    #[serde(default = "default_ask_decay")]
+    pub ask_decay_ratio: f64,
 }
 
 fn default_max_cash_encumbrance() -> f64 {
@@ -99,6 +106,10 @@ fn default_freight_reserve() -> f64 {
     0.15
 }
 
+fn default_ask_decay() -> f64 {
+    0.15
+}
+
 impl Default for B2bOrderConfig {
     fn default() -> Self {
         Self {
@@ -111,6 +122,7 @@ impl Default for B2bOrderConfig {
             warehouse_storage_fee_per_ton: default_warehouse_storage_fee(),
             buy_premium_ratio: default_buy_premium(),
             freight_cost_reserve_ratio: default_freight_reserve(),
+            ask_decay_ratio: default_ask_decay(),
         }
     }
 }
@@ -144,6 +156,7 @@ mod tests {
             warehouse_storage_fee_per_ton: 2.0,
             buy_premium_ratio: 0.1,
             freight_cost_reserve_ratio: 0.3,
+            ask_decay_ratio: 0.15,
         };
         assert_eq!(config.max_cash_encumbrance_ratio, 0.5);
         assert_eq!(config.max_markup_ratio, 3.0);

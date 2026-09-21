@@ -337,8 +337,10 @@ pub fn submit_company_b2b_orders(
                     .copied()
                     .unwrap_or(0.0);
                 let limit_price = if last_unfilled > 0.0 {
-                    // Raise bid by 10% above last unfilled price
-                    (last_unfilled * 1.10).max(base_price * (1.0 + config.buy_premium_ratio))
+                    // Raise bid by 20% above last unfilled price — the spread
+                    // deadlock showed +10%/turn converged too slowly against
+                    // capped asks (~1.43× gap → ~4 turns to cross).
+                    (last_unfilled * 1.20).max(base_price * (1.0 + config.buy_premium_ratio))
                 } else {
                     base_price * (1.0 + config.buy_premium_ratio)
                 };
@@ -556,10 +558,14 @@ pub fn submit_company_b2b_orders(
                 } else {
                     // Post-bootstrap: anchor the ask to the market reference
                     // price. Markup scales max(unit_cost, ref) and the ask is
-                    // capped at ref × 1.5 so the +10%/turn unfilled-bid ratchet
-                    // crosses within a few turns instead of ~10. The Rule-8
-                    // unit_cost floor below still applies AFTER this cap (a
-                    // seller whose unit_cost > ref × 1.5 refuses below cost).
+                    // capped at ref × (1 + buy_premium) — the exact ceiling
+                    // buyers already open at — so cap-bound asks cross bids
+                    // immediately instead of ratcheting for turns. The old
+                    // ref×1.5 cap structurally deadlocked spread crossing
+                    // (bid ceiling ref×1.05 vs ask floor ref×1.5 = 1.43× gap).
+                    // The Rule-8 unit_cost floor below still applies AFTER this
+                    // cap (a seller whose unit_cost exceeds the cap refuses
+                    // below cost).
                     let ref_p = get_reference_price(&commodity, market_history)
                         .or_else(|| {
                             market_history.global_base_prices.get(&commodity).copied()
@@ -577,11 +583,29 @@ pub fn submit_company_b2b_orders(
                                 } else {
                                     rp
                                 };
-                                (base * (1.0 + markup)).min(rp * 1.5)
+                                (base * (1.0 + markup)).min(rp * (1.0 + config.buy_premium_ratio))
                             }
                         }
                         None => continue,
                     }
+                };
+
+                // Unfilled-ask decay: if this seller's ask for the commodity
+                // went unfilled last turn, cap this turn's ask at
+                // last_unfilled × (1 − decay). The Rule-8 floor below still
+                // applies afterwards, so decay converges toward unit_cost but
+                // never below it — clearing the capped-ask deadlock without
+                // violating rational-actor pricing.
+                let sell_price = if let Some(&last_ask) =
+                    company.unfilled_ask_prices.get(&commodity)
+                {
+                    if last_ask > 0.0 {
+                        sell_price.min(last_ask * (1.0 - config.ask_decay_ratio))
+                    } else {
+                        sell_price
+                    }
+                } else {
+                    sell_price
                 };
 
                 // Phase 76: Rule 8 — Rational Actor Pricing Floor.
@@ -729,6 +753,9 @@ pub fn settle_trades(
                     credit_company_by_id(companies, &seller_id, trade_value);
                 }
                 companies[bi].unfilled_bid_prices.remove(&trade.commodity);
+                // Seller filled an ask this turn — clear the decay marker so
+                // next turn's ask isn't capped below the clearing price.
+                companies[si].unfilled_ask_prices.remove(&trade.commodity);
             } else {
                 if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
                     companies[bi].debit_cash -= trade_value;
@@ -741,6 +768,7 @@ pub fn settle_trades(
                     // M0 neutral (ministry cash ↓ = bank reserves ↑).
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
+                    companies[si].unfilled_ask_prices.remove(&trade.commodity);
                 }
             }
         } else if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
@@ -756,6 +784,7 @@ pub fn settle_trades(
                 if let Some(&si) = company_id_to_idx.get(&trade.seller_id) {
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
+                    companies[si].unfilled_ask_prices.remove(&trade.commodity);
                 }
             }
         }
@@ -1204,6 +1233,25 @@ pub fn refund_unfilled_bids(
                 company
                     .unfilled_bid_prices
                     .insert(bid.commodity, bid.limit_price);
+            }
+        }
+    }
+
+    // Unfilled-ask decay bookkeeping (seller-side counterpart to the bid
+    // ratchet): every ask left in the book after matching is unfilled, so the
+    // seller's next ask is capped lower. Near-zero residual quantities mean
+    // the ask filled — skip those so a sold-out ask doesn't spuriously decay.
+    for asks in order_book.asks.values() {
+        for ask in asks {
+            if ask.quantity < 1e-9 {
+                continue;
+            }
+            if let Some(&idx) = company_id_to_idx.get(&ask.seller_id) {
+                companies[idx]
+                    .unfilled_ask_prices
+                    .entry(ask.commodity)
+                    .and_modify(|p| *p = p.min(ask.limit_price))
+                    .or_insert(ask.limit_price);
             }
         }
     }
