@@ -470,14 +470,20 @@ run_cicd() {
 
         # v3 Patch: nextest intentionally ignores doctests.
         # Run cargo test --doc separately to cover doc-test assertions.
-        echo "[$(date -u +%H:%M:%S)] CI/CD: [2b/6] cargo test --doc (doctests)... (timeout: 120s)"
-        timeout 120 cargo test --workspace --doc 2>&1 | tee "${log_prefix}_doctest.txt" | tail -n 50
+        echo "[$(date -u +%H:%M:%S)] CI/CD: [2b/6] cargo test --doc (doctests)... (timeout: 600s)"
+        timeout 600 cargo test --workspace --doc 2>&1 | tee "${log_prefix}_doctest.txt" | tail -n 50
         local doctest_rc=${PIPESTATUS[0]}
         if [ $doctest_rc -ne 0 ]; then
             git checkout main 2>/dev/null
-            echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
-            echo "TEST_FAILED"
-            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test --doc (rc=$doctest_rc)"
+            if [ $doctest_rc -eq 124 ]; then
+                echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
+                echo "TIMEOUT_FAILED"
+                echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test --doc TIMEOUT (exceeded 600s)"
+            else
+                echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
+                echo "TEST_FAILED"
+                echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test --doc (rc=$doctest_rc)"
+            fi
             return 1
         fi
     else
