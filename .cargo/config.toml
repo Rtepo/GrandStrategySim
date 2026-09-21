@@ -1,2 +1,8 @@
 [build]
 target-dir = "C:\\rust-build-tmp"
+
+# Use rust-lld (LLVM linker) instead of MSVC link.exe for dramatically faster
+# linking of test binaries. MSVC link.exe is too slow to link 27+ test binaries
+# within the CI/CD 600s watchdog timeout on Windows.
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld"
