@@ -623,6 +623,14 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         #[cfg(feature = "diagnostic")]
         { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("BANK_POST: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets); }
 
+        // Phase 95: Reserve floor — reconcile any unguarded mid-phase debits
+        // via ELA so no bank posts negative reserves at the checkpoint.
+        for task in &mut tasks {
+            crate::state::banking::enforce_reserve_floor(
+                &mut task.companies,
+                &mut task.ctx.country.central_bank,
+            );
+        }
         // ── DIAGNOSTIC CHECKPOINT: banking_turn_post ──
 probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
@@ -715,6 +723,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 );
             }
         });
+        // Phase 95: Reserve floor — reconcile any unguarded debits via ELA so
+        // no bank posts negative reserves at the checkpoint.
+        for task in &mut tasks {
+            crate::state::banking::enforce_reserve_floor(
+                &mut task.companies,
+                &mut task.ctx.country.central_bank,
+            );
+        }
         // ── DIAGNOSTIC CHECKPOINT 1: building_cycle_post ──
         probe.checkpoint("building_cycle_post", 1, turn, &market, &tasks);
 
@@ -1196,6 +1212,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         match_orders_with_embargoes(&mut global_order_book, &company_country, &diplomacy);
         let all_trades = global_order_book.trades.clone();
 
+        // Phase 95: Reserve floor before the checkpoint.
+        for task in &mut tasks {
+            crate::state::banking::enforce_reserve_floor(
+                &mut task.companies,
+                &mut task.ctx.country.central_bank,
+            );
+        }
         // ── DIAGNOSTIC CHECKPOINT 2: b2b_orders_post ──
         probe.checkpoint("b2b_orders_post", 2, turn, &market, &tasks);
 
@@ -1335,6 +1358,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             task.gdp_acc.investment += investment;
         }
 
+        // Phase 95: Reserve floor — reconcile settlement-path debits via ELA
+        // so no bank posts negative reserves at the checkpoint.
+        for task in &mut tasks {
+            crate::state::banking::enforce_reserve_floor(
+                &mut task.companies,
+                &mut task.ctx.country.central_bank,
+            );
+        }
         // ── DIAGNOSTIC CHECKPOINT 3: b2b_settlement_post ──
         probe.checkpoint("b2b_settlement_post", 3, turn, &market, &tasks);
         // ═══════════════════════════════════════════════════════════
@@ -1520,6 +1551,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     &ministry_trades,
                     &mut task.companies,
                     &mut task.ctx.buildings,
+                    task.ctx.country,
                     task.ctx.turn,
                     &gen_config_clone2,
                 );
@@ -1619,6 +1651,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &jst_trades,
                 &mut task.companies,
                 &mut task.ctx.buildings,
+                task.ctx.country,
                 task.ctx.turn,
                 &gen_config_jst,
             );
@@ -2267,6 +2300,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         });
 
+        // Phase 95: Reserve floor before the checkpoint.
+        for task in &mut tasks {
+            crate::state::banking::enforce_reserve_floor(
+                &mut task.companies,
+                &mut task.ctx.country.central_bank,
+            );
+        }
         // ── DIAGNOSTIC CHECKPOINT: production_cycle_post ──
         probe.checkpoint("production_cycle_post", 5, turn, &market, &tasks);        #[cfg(feature = "diagnostic")]
         {
@@ -3858,6 +3898,21 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T12]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUB2_POST_COMMUTER_REMIT: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
+        // ── DIAGNOSTIC CHECKPOINT: labor_market_post ──
+        // Macro-Remediation: the wage phase (resolve_regional_labor_market +
+        // PIT/garnishment/remittance/commuter routing) ends here. The
+        // wage-transfer conservation check must diff this checkpoint against
+        // production_cycle_post — NOT building_cycle_post, which precedes the
+        // wage phase entirely and misattributes banking-phase flows.
+        // Phase 95: Reserve floor — the labor-market batch bank sync debits
+        // reserves without a guard; reconcile via ELA before the checkpoint.
+        for task in &mut tasks {
+            crate::state::banking::enforce_reserve_floor(
+                &mut task.companies,
+                &mut task.ctx.country.central_bank,
+            );
+        }
+        probe.checkpoint("labor_market_post", 8, turn, &market, &tasks);
         // Phase 18A: Shadow Economy Processing
         // Processes shadow employment: companies in labor-intensive sectors
         // with ShadowEmployment records pay shadow wages (no PIT).
@@ -4342,6 +4397,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
+        // Phase 95: Reserve floor — reconcile B2C-clearing debits via ELA so
+        // no bank posts negative reserves at the checkpoint.
+        for task in &mut tasks {
+            crate::state::banking::enforce_reserve_floor(
+                &mut task.companies,
+                &mut task.ctx.country.central_bank,
+            );
+        }
         // ── DIAGNOSTIC CHECKPOINT: b2c_clearing_post ──
 probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
 
@@ -5333,11 +5396,18 @@ tasks.par_iter_mut().for_each(|task| {
 
             // Phase 94: Batch bank sync for CIT+wealth tax — debit bank
             // deposits and reserves by the exact amounts debited from
-            // companies. No clamping (negative reserves = CB Lombard borrowing).
+            // companies. Phase 95: ELA covers the debit so reserves never
+            // settle below zero (draw booked as cb_lombard_loans, tracked via
+            // liquidity_injected — A=L+E and M0 accounting preserved).
             let _total_bank_debit: f64 = tax_bank_debits.values().sum();
             for (bank_id, total_debit) in &tax_bank_debits {
                 if let Some(bank) = task.companies.iter_mut().find(|c| c.id == *bank_id) {
                     if let Some(ref mut bs) = bank.balance_sheet {
+                        crate::state::banking::ela_cover_debit(
+                            bs,
+                            &mut task.ctx.country.central_bank,
+                            *total_debit,
+                        );
                         bs.deposits -= total_debit;
                         bs.reserves_at_central_bank -= total_debit;
                     }
@@ -7549,30 +7619,47 @@ tasks.par_iter_mut().for_each(|task| {
                         profit,
                         &member_shares,
                     );
-                    // Credit dividends to class savings in the guild's region
+                    // Macro-Remediation: the dividend pool is sized off
+                    // `liquid_capital` (book equity), which routinely exceeds
+                    // real cash by orders of magnitude. Crediting the full
+                    // pool then debiting `available_cash` unconditionally
+                    // drove company cash deeply negative (-379M observed),
+                    // freezing the B2B market (encumbrance = 0). Clamp the
+                    // payout to real cash FIRST and pro-rate the member
+                    // credits so credits == debit exactly (M0-neutral).
                     let total_dividends: f64 = dividends.values().sum();
+                    let payout =
+                        total_dividends.min(company.available_cash.max(0.0));
+                    let payout_ratio = if total_dividends > 0.0 {
+                        payout / total_dividends
+                    } else {
+                        0.0
+                    };
+                    // Credit dividends to class savings in the guild's region
                     let region_id = company.region_id.clone();
-                    if let Some(region) = task
-                        .ctx
-                        .country
-                        .regions
-                        .iter_mut()
-                        .find(|r| r.id == region_id)
-                    {
-                        for (class_id, amount) in &dividends {
-                            if let Some(rk) = RuralClass::from_str(class_id) {
-                                if let Some(demographics) =
-                                    region.class_demographics.rural_classes.get_mut(&rk)
-                                {
-                                    demographics.savings += amount;
+                    if payout > 0.0 {
+                        if let Some(region) = task
+                            .ctx
+                            .country
+                            .regions
+                            .iter_mut()
+                            .find(|r| r.id == region_id)
+                        {
+                            for (class_id, amount) in &dividends {
+                                if let Some(rk) = RuralClass::from_str(class_id) {
+                                    if let Some(demographics) =
+                                        region.class_demographics.rural_classes.get_mut(&rk)
+                                    {
+                                        demographics.savings += amount * payout_ratio;
+                                    }
                                 }
                             }
                         }
+                        // Phase 94: Debit company available_cash for dividends.
+                        // Without this debit, dividends are M0 CREATION (class
+                        // savings increase without a matching M0 decrease).
+                        company.available_cash -= payout;
                     }
-                    // Phase 94: Debit company available_cash for dividends.
-                    // Without this debit, dividends are M0 CREATION (class
-                    // savings increase without a matching M0 decrease).
-                    company.available_cash -= total_dividends;
                 }
             }
 
@@ -7689,6 +7776,15 @@ tasks.par_iter_mut().for_each(|task| {
             all_depletion_requests.append(&mut task.depletion_buffer);
         }
 
+        // Phase 95: Reserve floor — final end-of-turn ELA reconciliation so
+        // no bank enters the next turn with negative reserves (covers tax
+        // batch syncs and any other unguarded debits).
+        for task in &mut tasks {
+            crate::state::banking::enforce_reserve_floor(
+                &mut task.companies,
+                &mut task.ctx.country.central_bank,
+            );
+        }
         // ── DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ──
         #[cfg(feature = "diagnostic")]
         {

@@ -487,6 +487,14 @@ pub fn process_building_cycle(
 
     building.last_production = last_production;
     building.last_profit = result.gross_profit;
+    // Macro-Remediation: persist this turn's estimated wage bill so
+    // `execute_production_cycle` (which runs later and overwrites
+    // `last_profit` with a wage-exclusive value) can subtract it — the
+    // corporate AI must see wage-inclusive profit to detect insolvency.
+    building.extra.insert(
+        "last_wage_bill".to_string(),
+        serde_json::Value::from(wages_paid),
+    );
 
     result
 }
@@ -646,6 +654,14 @@ pub fn process_building_cycle_with_geology(
 
     building.last_production = last_production;
     building.last_profit = result.gross_profit;
+    // Macro-Remediation: persist this turn's estimated wage bill so
+    // `execute_production_cycle` (which runs later and overwrites
+    // `last_profit` with a wage-exclusive value) can subtract it — the
+    // corporate AI must see wage-inclusive profit to detect insolvency.
+    building.extra.insert(
+        "last_wage_bill".to_string(),
+        serde_json::Value::from(wages_paid),
+    );
 
     result
 }

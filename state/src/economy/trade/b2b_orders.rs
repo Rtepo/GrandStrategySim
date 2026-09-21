@@ -695,6 +695,7 @@ pub fn settle_trades(
     trades: &[Trade],
     companies: &mut [Company],
     buildings: &mut [Building],
+    country: &mut crate::state::Country,
     current_turn: u32,
     gen_config: &GenerativeGoodsConfig,
 ) -> Vec<String> {
@@ -731,8 +732,10 @@ pub fn settle_trades(
             ) {
                 let buyer_is_banked = companies[bi].primary_bank_id.is_some();
                 if buyer_is_banked {
-                    let mut dummy_country = crate::state::Country::default();
-                    let _ = crate::economy::transfer_settler::settle_transfer_mapped(
+                    // Phase 95: pass the REAL country so ELA draws inside
+                    // settle_transfer_mapped are tracked on the actual CB's
+                    // liquidity_injected (M0 audit trail stays accurate).
+                    match crate::economy::transfer_settler::settle_transfer_mapped(
                         companies,
                         &company_id_to_idx,
                         bi,
@@ -740,9 +743,22 @@ pub fn settle_trades(
                         &crate::economy::transfer_settler::TransferRecipient::OtherCompany {
                             recipient_idx: si,
                         },
-                        &mut dummy_country,
-                    );
-                    companies[bi].debit_cash -= trade_value;
+                        country,
+                    ) {
+                        Ok(_) => {
+                            companies[bi].debit_cash -= trade_value;
+                        }
+                        Err(_) => {
+                            // Settlement failed (e.g. InsufficientCash) — return
+                            // the encumbrance to the buyer's available cash so
+                            // no M0 is destroyed. The seller is not credited.
+                            companies[bi].debit_cash -= trade_value;
+                            companies[bi].available_cash += trade_value;
+                            #[cfg(feature = "diagnostic")]
+                            eprintln!("B2B_SETTLE_FAIL: buyer={} seller={} value={:.2} — encumbrance refunded",
+                                companies[bi].id, companies[si].id, trade_value);
+                        }
+                    }
                 } else {
                     // Phase 94: Unbanked buyer — cash was already encumbered
                     // (available_cash → debit_cash). Release encumbrance and
@@ -961,7 +977,7 @@ pub fn settle_trades_with_tariffs(
     gen_config: &GenerativeGoodsConfig,
 ) -> Vec<String> {
     // Phase 1: Standard settlement (cash + inventory)
-    let messages = settle_trades(trades, companies, buildings, current_turn, gen_config);
+    let messages = settle_trades(trades, companies, buildings, country, current_turn, gen_config);
 
     // Phase 42: FX Reserves — forced currency conversion and import hard floor.
     // For cross-border trades, the buyer's country Central Bank must:
@@ -1676,9 +1692,30 @@ pub fn execute_production_cycle(
             .map(|(&commodity, &qty)| qty * value_price(commodity))
             .sum();
 
+        // Macro-Remediation: subtract the wage bill so `last_profit` reflects
+        // true insolvency. `process_building_cycle*` (earlier this turn) stored
+        // the estimated wage bill in `building.extra["last_wage_bill"]`; the
+        // previous wage-exclusive profit here masked unprofitable buildings
+        // and delayed furloughs by several turns.
+        let wage_bill = building
+            .extra
+            .get("last_wage_bill")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+
+        // Macro-Remediation: persist the physical-cycle output value so
+        // `process_company` can record true revenue (the history's
+        // "revenue" field was previously total_profit + overhead — a
+        // margin figure that goes negative whenever a company is
+        // unprofitable, making real sales invisible to diagnostics).
+        building.extra.insert(
+            "last_output_value".to_string(),
+            serde_json::Value::from(output_revenue),
+        );
+
         // Fix 1.21: Record inventory write-down loss from overflow destruction.
         // The write_down value was accumulated during overflow handling above.
-        let gross_profit = output_revenue - input_costs - inventory_write_down;
+        let gross_profit = output_revenue - input_costs - inventory_write_down - wage_bill;
 
         // Update building.last_profit for corporate/tax processing
         building.last_profit = gross_profit;
@@ -1686,7 +1723,7 @@ pub fn execute_production_cycle(
         results.push(ProductionResult {
             inputs_consumed,
             outputs_produced,
-            wages_paid: 0.0, // Wages paid in Phase W1, not here
+            wages_paid: wage_bill,
             input_costs,
             output_revenue,
             gross_profit,
@@ -2475,11 +2512,13 @@ mod tests {
 
         let trades = vec![make_defense_trade("seller_0", 100.0, 50.0)];
         let mut buildings: Vec<Building> = vec![];
+        let mut test_country = crate::state::Country::default();
 
         settle_trades(
             &trades,
             &mut companies,
             &mut buildings,
+            &mut test_country,
             0,
             &GenerativeGoodsConfig::default(),
         );

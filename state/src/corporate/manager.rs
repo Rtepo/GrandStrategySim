@@ -88,6 +88,32 @@ pub fn process_companies(
 
         let total_profit: f64 = owned.iter().map(|j| buildings[*j].last_profit).sum();
 
+        // Macro-Remediation: true output value and the wage bill already
+        // booked inside `last_profit` (stored by `execute_production_cycle`
+        // and `process_building_cycle*` in `building.extra`). The history
+        // record uses these to report real revenue and to avoid
+        // double-subtracting wages that are already inside `total_profit`.
+        let total_revenue: f64 = owned
+            .iter()
+            .map(|j| {
+                buildings[*j]
+                    .extra
+                    .get("last_output_value")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0)
+            })
+            .sum();
+        let booked_wages: f64 = owned
+            .iter()
+            .map(|j| {
+                buildings[*j]
+                    .extra
+                    .get("last_wage_bill")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0)
+            })
+            .sum();
+
         // Emergency Stabilization: Compute average fulfillment ratio across
         // owned buildings to detect raw-material distress.
         let avg_fulfillment_ratio: f64 = if owned.is_empty() {
@@ -110,6 +136,8 @@ pub fn process_companies(
             process_company(
                 company,
                 total_profit,
+                total_revenue,
+                booked_wages,
                 country,
                 year,
                 market_signal,
@@ -924,6 +952,8 @@ pub fn manage_strategic_reserves(
 pub fn process_company(
     company: &mut Company,
     total_profit: f64,
+    total_revenue: f64,
+    booked_wages: f64,
     country: &mut Country,
     year: u32,
     market_signal: &MarketSignal,
@@ -1161,10 +1191,17 @@ pub fn process_company(
     // (fulfilled_fte * offered_wage_per_fte) could be zero if the company was
     // furloughed after the labor market, hiding millions in arrears.
     let wage_expense = company.wages_paid_this_turn + company.arrears_accrued_this_turn;
+    // Macro-Remediation: `last_profit` is now wage-inclusive (the production
+    // cycle subtracts the building's wage bill), so `total_profit` and
+    // `net_profit` already reflect building-level wages. Subtract only the
+    // portion of the company wage bill NOT booked through any building
+    // (corporate staff, arrears deltas) — otherwise wages are counted twice
+    // and the history overstates losses into a furlough cascade.
+    let unbooked_wages = (wage_expense - booked_wages).max(0.0);
     let record = Value::Object(
         [
             ("year".to_string(), Value::from(year)),
-            ("revenue".to_string(), Value::from(total_profit + overhead)),
+            ("revenue".to_string(), Value::from(total_revenue)),
             (
                 "operating_costs".to_string(),
                 Value::from(overhead + wage_expense),
@@ -1178,7 +1215,7 @@ pub fn process_company(
             ("taxes".to_string(), Value::from(tax)),
             (
                 "net_profit".to_string(),
-                Value::from(net_profit - wage_expense),
+                Value::from(net_profit - unbooked_wages),
             ),
         ]
         .into_iter()

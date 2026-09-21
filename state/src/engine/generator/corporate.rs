@@ -21,7 +21,9 @@ use crate::entities::{
 };
 use crate::io::entity_store::{DiskEntityStore, EntityStore};
 use crate::registries::enums::{Commodity, Sector};
-use crate::registries::production_methods::ProductionMethod;
+use crate::registries::production_methods::{
+    ProductionMethod, PRODUCTION_THROUGHPUT_SCALE,
+};
 use crate::registries::Registries;
 use crate::society::geography::{ClimateProfile, LandCategory, Region};
 use crate::society::planet::{GeologicalVein, Planet, RarityTier};
@@ -2242,7 +2244,7 @@ fn generate_region_companies(
         // Phase 20C: Seed fixed-asset cohort and one turn of inventory
         let fixed_assets = seed_fixed_assets(sector, start_year, rng);
         let (inventory, seed_cost) = seed_inventory(&method, base_capacity, sector);
-        let inventory_capacity = (base_capacity as f64 * 10.0).max(100.0);
+        let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE).max(100.0);
 
         // Phase 27: Deduct seed inventory cost from company's liquid capital
         // to maintain double-entry accounting. The cost is credited to the
@@ -4737,7 +4739,7 @@ fn create_seed_company_with_explicit_method(
 
     let fixed_assets = seed_fixed_assets(sector, start_year, rng);
     let (inventory, seed_cost) = seed_inventory(method, base_capacity, sector);
-    let inventory_capacity = (base_capacity as f64 * 10.0).max(100.0);
+    let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE).max(100.0);
 
     // Phase 27: Deduct seed inventory cost from company's liquid capital.
     let deductible = seed_cost.min(company.liquid_capital * 0.5);
@@ -5226,7 +5228,7 @@ fn create_seed_company(
 
     let fixed_assets = seed_fixed_assets(sector, start_year, rng);
     let (inventory, seed_cost) = seed_inventory(&method, base_capacity, sector);
-    let inventory_capacity = (base_capacity as f64 * 10.0).max(100.0);
+    let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE).max(100.0);
 
     // Phase 27: Deduct seed inventory cost from company's liquid capital.
     let deductible = seed_cost.min(company.liquid_capital * 0.5);
