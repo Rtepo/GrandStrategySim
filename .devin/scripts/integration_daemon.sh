@@ -398,7 +398,7 @@ run_cicd() {
         if [ $build_rc -eq 124 ]; then
             echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
             echo "TIMEOUT_FAILED"
-            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo build TIMEOUT (exceeded 300s)"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo build TIMEOUT (exceeded 600s)"
         else
             echo "BUILD_FAILED" > "${log_prefix}_FAILED.txt"
             echo "BUILD_FAILED"
@@ -439,17 +439,19 @@ run_cicd() {
         sleep 30
     done
 
-    echo "[$(date -u +%H:%M:%S)] CI/CD: [2b/6] cargo test (executing, skip smoke)... (timeout: 300s)"
+    echo "[$(date -u +%H:%M:%S)] CI/CD: [2b/6] cargo test (executing, skip smoke)... (timeout: 600s)"
     # v3: Use cargo-nextest for parallel test execution with --test-threads=4
     # for OOM prevention. Falls back to cargo test if nextest is not installed.
     # v4.0.1: Export CI=true so cargo-insta fails hard on snapshot mismatches
     #         instead of silently writing .snap.new files or hanging on prompts.
+    # v4.5: timeout raised 300s→600s — nextest recompiles the test profile on a
+    #       fresh staging checkout (~160s) before executing ~180s of tests.
     export CI=true
     if command -v cargo-nextest &>/dev/null; then
         echo "  (using cargo-nextest with --test-threads=4 for OOM safety)"
         # v4: No --features epic-tests → [[test]] blocks with required-features
         #     are skipped entirely by Cargo (no empty binaries, no nextest confusion)
-        timeout 300 cargo nextest run --workspace --all-targets \
+        timeout 600 cargo nextest run --workspace --all-targets \
             --profile ci --test-threads=4 -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -n 50
         local test_rc=${PIPESTATUS[0]}
         if [ $test_rc -ne 0 ]; then
@@ -457,7 +459,7 @@ run_cicd() {
             if [ $test_rc -eq 124 ]; then
                 echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
                 echo "TIMEOUT_FAILED"
-                echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo nextest TIMEOUT (exceeded 300s)"
+                echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo nextest TIMEOUT (exceeded 600s)"
             else
                 echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
                 echo "TEST_FAILED"
@@ -479,14 +481,14 @@ run_cicd() {
             return 1
         fi
     else
-        timeout 300 cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -n 50
+        timeout 600 cargo test --workspace --all-targets -- --skip headless_50_tick_smoke 2>&1 | tee "${log_prefix}_test.txt" | tail -n 50
         local test_rc=${PIPESTATUS[0]}
         if [ $test_rc -ne 0 ]; then
             git checkout main 2>/dev/null
             if [ $test_rc -eq 124 ]; then
                 echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
                 echo "TIMEOUT_FAILED"
-                echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test execution TIMEOUT (exceeded 300s)"
+                echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo test execution TIMEOUT (exceeded 600s)"
             else
                 echo "TEST_FAILED" > "${log_prefix}_FAILED.txt"
                 echo "TEST_FAILED"
@@ -532,7 +534,7 @@ run_cicd() {
         if [ $clippy_rc -eq 124 ]; then
             echo "TIMEOUT_FAILED" > "${log_prefix}_FAILED.txt"
             echo "TIMEOUT_FAILED"
-            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo clippy TIMEOUT (exceeded 300s)"
+            echo "[$(date -u +%H:%M:%S)] CI/CD FAILED: cargo clippy TIMEOUT (exceeded 600s)"
         else
             echo "CLIPPY_FAILED" > "${log_prefix}_FAILED.txt"
             echo "CLIPPY_FAILED"
@@ -1093,7 +1095,7 @@ echo "  Poll interval: ${POLL_INTERVAL}s"
 echo "  SKIP_AUDIT: ${SKIP_AUDIT:-0}"
 echo "  CI/CD path: run_cicd() — 6-stage Iron pipeline with watchdog timeouts + empty branch guard"
 echo "  Deadlock guard: ${MAX_CONSECUTIVE_FAILURES}-strike auto-block"
-echo "  Watchdog: POSIX timeout (build/test-compile/test-exec/clippy/smoke: 600s/600s/300s/600s/600s, npm: 180s)"
+echo "  Watchdog: POSIX timeout (build/test-compile/test-exec/clippy/smoke: 600s/600s/600s/600s/600s, npm: 180s)"
 echo "  Empty branch guard: rejects branches with no commits/diffs ahead of main"
 echo "  Merge verification: git diff main HEAD (tree-vs-tree, not merge-base)"
 echo "  Output streaming: tee + PIPESTATUS for real-time logging + correct exit codes"
