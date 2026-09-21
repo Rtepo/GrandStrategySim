@@ -467,6 +467,12 @@ pub struct Company {
     /// When a bid goes unfilled, the buyer raises its next bid price.
     #[serde(default)]
     pub unfilled_bid_prices: std::collections::HashMap<Commodity, f64>,
+    /// Unfilled ask prices from last turn — the seller-side counterpart to
+    /// `unfilled_bid_prices`. Maps commodity → lowest unfilled ask limit price.
+    /// When an ask goes unfilled, the seller lowers its next ask (decay),
+    /// floored at unit_cost, so spreads converge from both sides.
+    #[serde(default)]
+    pub unfilled_ask_prices: std::collections::HashMap<Commodity, f64>,
     /// Liabilities (was: zobowiazania).
     #[serde(default)]
     pub liabilities: f64,
@@ -858,6 +864,7 @@ extra: HashMap::new(),
             debit_cash: 0.0,
             credit_cash: 0.0,
             unfilled_bid_prices: std::collections::HashMap::new(),
+            unfilled_ask_prices: std::collections::HashMap::new(),
             liabilities: 0.0,
             company_capital,
             shares_count: 0,
