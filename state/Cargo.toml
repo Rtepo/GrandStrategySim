@@ -100,6 +100,21 @@ name = "accounting_invariants_test"
 path = "tests/epics/accounting_invariants_test.rs"
 required-features = ["epic-tests"]
 
+[[test]]
+name = "market_gridlock_diagnostic_test"
+path = "tests/epics/market_gridlock_diagnostic_test.rs"
+required-features = ["epic-tests", "diagnostic"]
+
+[[test]]
+name = "b2b_volume_diagnostic_test"
+path = "tests/epics/b2b_volume_diagnostic_test.rs"
+required-features = ["epic-tests", "diagnostic"]
+
+[[test]]
+name = "wage_reconciliation_test"
+path = "tests/epics/wage_reconciliation_test.rs"
+required-features = ["epic-tests", "diagnostic"]
+
 [profile.release]
 opt-level = 3
 lto = true

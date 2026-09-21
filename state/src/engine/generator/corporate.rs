@@ -27,9 +27,8 @@ use crate::society::geography::{ClimateProfile, LandCategory, Region};
 use crate::society::planet::{GeologicalVein, Planet, RarityTier};
 use crate::state::macro_data::TURNS_PER_YEAR;
 use crate::state::{Country, Season};
-use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
-use rand::{Rng, SeedableRng};
+use rand::Rng;
 use serde_json::{Map, Value};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::error::Error;
@@ -434,7 +433,7 @@ pub fn generate_corporate_entities(
 
     let total_population: i64 = country_regions.iter().map(|r| r.population).sum();
     if total_population <= 0 {
-        return Ok(());
+        return Ok(BTreeSet::new());
     }
 
     // Create Strategic Reserve Agency (Phase 2, Phase 79: physical warehouses + 8 commodities)
@@ -581,6 +580,22 @@ pub fn generate_corporate_entities(
     // already in all_companies (pushed at line 448 via clone), so we just drop
     // the map to prevent stale references.
     seed_by_sector.clear();
+
+    // Phase E1d: State Forests — every country with forested land gets a
+    // StateMonopoly("Forestry") company, a forest_district building per
+    // forested region, and populated state_forest_state.tracts so
+    // process_state_forests_turn can grow/harvest timber from turn 0.
+    if let Some((forestry_company, mut forestry_buildings)) = seed_state_forestry(
+        country,
+        &country_regions,
+        start_year,
+        registries,
+        &mut idgen,
+        rng,
+    ) {
+        all_companies.push(forestry_company);
+        all_buildings.append(&mut forestry_buildings);
+    }
 
     // State-owned public-service buildings.
     // Phase 80: All keys are strict snake_case — no Title Case, no spaces.
@@ -764,21 +779,10 @@ pub fn generate_corporate_entities(
         building_store.save_sector(&country.name, &waste_sector_name, Some(&region), &list)?;
     }
 
-    // Persist private buildings grouped by sector and region.
-    let mut private_by_key: HashMap<(String, String), Vec<Building>> = HashMap::new();
-    for b in &all_buildings {
-        if b.owner_id == "State" {
-            continue;
-        }
-        let sector_name = sector_json_name(b.sector);
-        private_by_key
-            .entry((sector_name, b.region_id.clone()))
-            .or_default()
-            .push(b.clone());
-    }
-    for ((sector, region), list) in private_by_key {
-        building_store.save_sector(&country.name, &sector, Some(&region), &list)?;
-    }
+    // NOTE: private buildings are persisted AFTER consolidation (see below) —
+    // consolidation reassigns `owner_id`, so saving here would orphan every
+    // merged company's buildings on disk (stale owner → company not found at
+    // load → building produces nothing and submits no orders).
 
     // Stabilization Sprint: Activate Agriculture 2.0 by initializing
     // agricultural profiles and linking farms to Cadastre parcels.
@@ -925,6 +929,29 @@ pub fn generate_corporate_entities(
         }
     }
 
+    // Phase 94: Re-save private buildings AFTER consolidation. Consolidation
+    // reassigns `building.owner_id` to the surviving company; if the on-disk
+    // copy kept the absorbed owner's id, the turn engine's owner→buildings
+    // index would never attach them (orphaned buildings produce nothing and
+    // submit no orders). This also persists the B2C retail buffer mutations
+    // applied above.
+    {
+        let mut private_by_key: HashMap<(String, String), Vec<Building>> = HashMap::new();
+        for b in &all_buildings {
+            if b.owner_id == "State" {
+                continue;
+            }
+            let sector_name = sector_json_name(b.sector);
+            private_by_key
+                .entry((sector_name, b.region_id.clone()))
+                .or_default()
+                .push(b.clone());
+        }
+        for ((sector, region), list) in private_by_key {
+            building_store.save_sector(&country.name, &sector, Some(&region), &list)?;
+        }
+    }
+
     // Reconcile private capital and recalculate sector employment / PMI.
     let private_capital: f64 = all_companies
         .iter()
@@ -932,6 +959,28 @@ pub fn generate_corporate_entities(
         .map(|c| c.company_capital)
         .sum();
     country.budget.private_capital = private_capital;
+
+    // Phase E1e: Report the commodities this country can actually produce so
+    // the world-level guarantee pass can patch any gaps. A commodity counts
+    // only when a non-state building outputs it AND — for vein commodities —
+    // the building is bound to a discovered, depth-accessible vein in its own
+    // region (a mine chained to a remote or unreachable deposit produces
+    // nothing and must not suppress the guarantee). Computed here because
+    // `all_buildings` moves into `ctx` below.
+    let mut produced: BTreeSet<Commodity> = BTreeSet::new();
+    for b in &all_buildings {
+        if b.owner_id == "State" {
+            continue;
+        }
+        for &commodity in b.active_method.outputs.keys() {
+            if is_vein_commodity(commodity)
+                && !vein_viable_for(b, commodity, planet, start_year)
+            {
+                continue;
+            }
+            produced.insert(commodity);
+        }
+    }
 
     let mut ctx = CountryTurnCtx {
         country_name: country.name.clone(),
@@ -1287,7 +1336,7 @@ pub fn generate_corporate_entities(
         let _ = company_store.save_sector(&country.name, &sector_name, None, &companies);
     }
 
-    Ok(())
+    Ok(produced)
 }
 
 /// Phase 87+/88/89: Issue Working Capital Loans to heavy CAPEX and physical
@@ -3308,13 +3357,31 @@ fn seed_geology_based_mines(
                 .clamp(1, concessions_for_vein);
 
         let vein_id = vein.composite_id.clone().unwrap_or_else(|| vein.id.clone());
-        let method_name = mining_method_name_for_commodity(vein.commodity);
+
+        // Phase E1c: pick a method that actually OUTPUTS the vein's commodity
+        // (latest era-eligible preferred). The name table is only a fallback —
+        // previously an era-ineligible name silently fell through to
+        // best_registry_method, spawning e.g. a HardCoal mine on a Peat vein.
+        let (mine_building_name, method) = find_mining_method_for_commodity(
+            vein.commodity,
+            start_year,
+            registries,
+        )
+        .unwrap_or_else(|| {
+            find_method_by_name(
+                Sector::Mining,
+                start_year,
+                registries,
+                mining_method_name_for_commodity(vein.commodity),
+            )
+            .unwrap_or_else(|| best_registry_method(Sector::Mining, start_year, registries))
+        });
 
         for _ in 0..economic_mines {
             let min_workers = target_workers.round() as u32;
             let min_workers = min_workers.max(50); // Physical floor
 
-            let (company, mut building) = create_seed_company_with_method_name(
+            let (company, mut building) = create_seed_company_with_explicit_method(
                 Sector::Mining,
                 region,
                 min_workers,
@@ -3322,7 +3389,8 @@ fn seed_geology_based_mines(
                 registries,
                 idgen,
                 rng,
-                method_name,
+                &mine_building_name,
+                &method,
             );
             // Phase 88: Bind to the vein ID (or composite_id if merged).
             building.deposit_id = Some(vein_id.clone());
@@ -3372,62 +3440,46 @@ fn seed_processing_plants_for_region(
         return result;
     }
 
-    // Map mined commodities to processing method names (HeavyIndustry sector).
-    let processing_methods: Vec<(Commodity, &'static str)> = vec![
-        (Commodity::Iron, "Iron Smelting"),
-        (Commodity::Copper, "Copper Smelting"),
-        (Commodity::Bauxite, "Aluminum Smelting"),
-        (Commodity::Tin, "Tin Smelting"),
-        (Commodity::Zinc, "Zinc Smelting"),
-        (Commodity::Lead, "Lead Smelting"),
-        (Commodity::HardCoal, "Coke Production"),
-        (Commodity::Oil, "Oil Refining"),
-        (Commodity::NaturalGas, "Gas Processing"),
-        (Commodity::Limestone, "Cement Production"),
-        (Commodity::Clay, "Brick Production"),
-        (Commodity::Sulfur, "Sulfuric Acid Production"),
-        (Commodity::Stone, "Stone Cutting"),
-        (Commodity::Sand, "Glass Production"),
-    ];
-
+    // Phase E1e: data-driven matching — spawn a plant for the earliest
+    // era-eligible HeavyIndustry method that CONSUMES each mined commodity.
+    // Replaces the hardcoded name table whose stale entries silently failed
+    // lookup (e.g. renamed methods), leaving mined ores unprocessable.
     let sector_key = sector_json_name(Sector::HeavyIndustry);
     let building_methods = match registries.production_methods.get(&sector_key) {
         Some(bm) => bm,
         None => return result,
     };
 
+    // Deterministic candidate order: sorted by (year, name).
+    let mut all_methods: Vec<(&String, &ProductionMethod)> =
+        building_methods.production.iter().collect();
+    all_methods.sort_by(|a, b| a.1.year.cmp(&b.1.year).then(a.0.cmp(b.0)));
+
     let mut spawned = 0;
     let max_plants = 3;
 
-    for (mined_commodity, method_name) in &processing_methods {
+    for mined_commodity in &mined_commodities {
         if spawned >= max_plants {
             break;
         }
-        if !mined_commodities.contains(mined_commodity) {
-            continue;
-        }
 
-        // Find the processing method by name, filtered by era.
-        let pm = building_methods
-            .production
+        // Earliest era-eligible method consuming this commodity.
+        let pm = all_methods
             .iter()
-            .find(|(name, _)| name.to_lowercase() == method_name.to_lowercase())
-            .map(|(_, pm)| pm)
-            .filter(|pm| pm.year <= start_year)
-            .filter(|pm| match &pm.required_tech {
+            .filter(|(_, pm)| pm.inputs.contains_key(mined_commodity))
+            .filter(|(_, pm)| pm.year <= start_year)
+            .filter(|(_, pm)| match &pm.required_tech {
                 None => true,
                 Some(tech_id) => registries
                     .tech_tree
                     .get(tech_id)
                     .map(|node| node.year <= start_year)
                     .unwrap_or(false),
-            });
+            })
+            .map(|(_, pm)| *pm)
+            .next();
 
-        if pm.is_none() {
-            continue;
-        }
-
-        let pm = pm.unwrap();
+        let Some(pm) = pm else { continue };
         let min_workers = 200u32;
 
         let method = method_from_ratios(
@@ -3458,9 +3510,16 @@ fn seed_processing_plants_for_region(
 }
 
 /// Phase 27: Map a commodity to the best mining method name that produces it.
+///
+/// E1a: every vein commodity must map to the mining method that actually
+/// outputs it. Unmapped commodities previously fell through to "Manual Mining"
+/// (HardCoal), so a Peat or BrownCoal vein spawned a coal mine that never
+/// produced its own commodity — one source of the zero-ask supply vacuum.
 fn mining_method_name_for_commodity(commodity: Commodity) -> &'static str {
     match commodity {
         Commodity::HardCoal => "Manual Mining", // Fallback; era-appropriate selected by year filter
+        Commodity::BrownCoal => "Brown Coal Mining",
+        Commodity::Peat => "Peat Cutting",
         Commodity::Iron => "Iron Ore Mining",
         Commodity::Copper => "Copper Ore Mining",
         Commodity::Oil => "Oil Drilling",
@@ -3476,8 +3535,31 @@ fn mining_method_name_for_commodity(commodity: Commodity) -> &'static str {
         Commodity::Salt => "Salt Mining",
         Commodity::Zinc => "Zinc Ore Mining",
         Commodity::Lead => "Lead Ore Mining",
+        Commodity::Silver => "Silver Mining",
+        Commodity::Gold => "Gold Mining",
+        Commodity::Uranium => "Uranium Mining",
+        Commodity::RareEarthElements => "Rare Earth Element Mining",
+        Commodity::Lithium => "Lithium Extraction",
+        Commodity::Magnesium => "Magnesium Refinery",
         _ => "Manual Mining", // Generic fallback
     }
+}
+
+/// Phase E1: True when `commodity` is a geological vein commodity — i.e. it is
+/// assigned to a `RarityTier` and extracted by a Mining-sector building bound
+/// to a `deposit_id`. Used by the world-level producer guarantee to decide
+/// whether a missing commodity needs a vein-backed mine or a regular plant.
+fn is_vein_commodity(commodity: Commodity) -> bool {
+    const TIERS: [RarityTier; 5] = [
+        RarityTier::UltraRare,
+        RarityTier::Rare,
+        RarityTier::Uncommon,
+        RarityTier::AbundantIndustrial,
+        RarityTier::Ubiquitous,
+    ];
+    TIERS
+        .iter()
+        .any(|t| t.commodities().contains(&commodity))
 }
 
 /// Phase 88: Find any vein on the planet for a given commodity (not region-specific).
@@ -3489,6 +3571,942 @@ fn find_any_vein_for_commodity(planet: &Planet, commodity: &Commodity) -> Option
         }
     }
     None
+}
+
+/// Phase E1c: Find a mining method that actually OUTPUTS `commodity`.
+///
+/// Unlike `find_method_by_name` (a name-string lookup that silently falls
+/// back when a method is renamed or era-ineligible), this scans the mining
+/// registry for methods whose `outputs` contain the commodity and prefers
+/// the latest era-eligible one. When no method is era-eligible it returns
+/// the earliest producer so the vein still yields its own commodity.
+fn find_mining_method_for_commodity(
+    commodity: Commodity,
+    start_year: u32,
+    registries: &Registries,
+) -> Option<(String, ActiveProductionMethod)> {
+    let sector_key = sector_json_name(Sector::Mining);
+    let building_methods = registries.production_methods.get(&sector_key)?;
+
+    // Deterministic scan: latest year first, name ascending as tie-break.
+    let mut named: Vec<(&String, &ProductionMethod)> =
+        building_methods.production.iter().collect();
+    named.sort_by(|a, b| b.1.year.cmp(&a.1.year).then(a.0.cmp(b.0)));
+
+    let tech_ok = |pm: &ProductionMethod| match &pm.required_tech {
+        None => true,
+        Some(tech_id) => registries
+            .tech_tree
+            .get(tech_id)
+            .map(|node| node.year <= start_year)
+            .unwrap_or(false),
+    };
+
+    let pm = named
+        .iter()
+        .map(|(_, pm)| *pm)
+        .filter(|pm| pm.outputs.contains_key(&commodity))
+        .find(|pm| pm.year <= start_year && tech_ok(pm))
+        .or_else(|| {
+            named
+                .iter()
+                .map(|(_, pm)| *pm)
+                .filter(|pm| pm.outputs.contains_key(&commodity))
+                .min_by_key(|pm| pm.year)
+        })?;
+
+    let mut method = method_from_ratios(
+        pm.experts_ratio,
+        pm.skilled_ratio,
+        pm.basic_ratio,
+        pm.inputs.iter().map(|(k, v)| (*k, *v)).collect(),
+        pm.outputs.iter().map(|(k, v)| (*k, *v)).collect(),
+        pm.year,
+    );
+    method.seat_type = pm.seat_type;
+    Some((default_building_name(Sector::Mining), method))
+}
+
+/// Phase E1d: Seed the State Forests monopoly for a country.
+///
+/// Creates one `StateMonopoly` company plus a `forest_district` building in
+/// each forested region, and populates `country.state_forest_state.tracts`
+/// so `process_state_forests_turn` can grow and harvest timber from turn 0.
+/// Previously tracts were never created and no forest_district buildings
+/// existed, so Timber had zero producers world-wide.
+///
+/// Returns the monopoly company and its buildings; None when the country
+/// has no forested land worth managing.
+fn seed_state_forestry(
+    country: &mut Country,
+    country_regions: &[&Region],
+    start_year: u32,
+    registries: &Registries,
+    idgen: &mut IdGen,
+    rng: &mut impl Rng,
+) -> Option<(Company, Vec<Building>)> {
+    use crate::economy::state_sector::state_forests::ForestDistrictTract;
+
+    // Forest endowment: hectares per region from the land-use inventory.
+    // 500 ha is the minimum tract worth a dedicated district building.
+    let mut tracts: Vec<ForestDistrictTract> = Vec::new();
+    let mut forested: Vec<&Region> = Vec::new();
+    for region in country_regions {
+        let hectares = region
+            .land_use_inventory
+            .get_category(LandCategory::Forests)
+            .map(|d| d.area_hectares)
+            .unwrap_or(0.0);
+        if hectares >= 500.0 {
+            tracts.push(ForestDistrictTract {
+                region_id: region.id.clone(),
+                hectares,
+                timber_stock: hectares * 100.0,
+                growth_rate: 0.03,
+                harvest_permitted: hectares * 3.0,
+            });
+            forested.push(*region);
+        }
+    }
+    if forested.is_empty() {
+        return None;
+    }
+    country.state_forest_state.total_hectares =
+        tracts.iter().map(|t| t.hectares).sum();
+    country.state_forest_state.tracts = tracts;
+
+    // Era-appropriate forestry method: latest era-eligible in the
+    // forest_district registry block, else the earliest one registered.
+    let forest_methods = registries.production_methods.get("forest_district")?;
+    let mut pms: Vec<&ProductionMethod> = forest_methods.production.values().collect();
+    pms.sort_by_key(|pm| pm.year);
+    let pm = pms
+        .iter()
+        .copied()
+        .rfind(|pm| {
+            pm.year <= start_year
+                && match &pm.required_tech {
+                    None => true,
+                    Some(tech_id) => registries
+                        .tech_tree
+                        .get(tech_id)
+                        .map(|node| node.year <= start_year)
+                        .unwrap_or(false),
+                }
+        })
+        .or_else(|| pms.first().copied())?;
+
+    let mut method = method_from_ratios(
+        pm.experts_ratio,
+        pm.skilled_ratio,
+        pm.basic_ratio,
+        pm.inputs.iter().map(|(k, v)| (*k, *v)).collect(),
+        pm.outputs.iter().map(|(k, v)| (*k, *v)).collect(),
+        pm.year,
+    );
+    method.seat_type = pm.seat_type;
+
+    let base_wage = country.macro_indicators.average_wage.max(1.0);
+    let mut monopoly: Option<Company> = None;
+    let mut buildings = Vec::new();
+    for region in forested {
+        let workers = (target_workers_per_company(
+            Sector::Mining,
+            start_year,
+            region,
+            base_wage,
+            2.0,
+        )
+        .round() as u32)
+            .max(50);
+        let (company, mut building) = create_seed_company_with_explicit_method(
+            Sector::Mining,
+            region,
+            workers,
+            start_year,
+            registries,
+            idgen,
+            rng,
+            "forest_district",
+            &method,
+        );
+        match &mut monopoly {
+            None => monopoly = Some(company),
+            Some(m) => {
+                // Merge the spawned shell into the single monopoly: transfer
+                // building ownership and drop the extra company.
+                building.owner_id = m.id.clone();
+                building.cluster_info.owner_id = m.id.clone();
+                m.building_ids.push(building.id.clone());
+                m.aggregated_stats.total_employment +=
+                    company.aggregated_stats.total_employment;
+            }
+        }
+        buildings.push(building);
+    }
+    let mut company = monopoly?;
+    company.name = format!("State Forests ({})", country.name);
+    company.legal_form = LegalForm::StateMonopoly(StateMonopolyData {
+        managing_ministry: "Ministry of Agriculture".to_string(),
+        controlled_sector: "Forestry".to_string(),
+        managed_land_categories: vec!["Forests".to_string()],
+        direct_treasury_transfer: 25_000.0,
+        political_influence: 40.0,
+        efficiency_rating: 0.6,
+        corruption_level: 0.1,
+        ..Default::default()
+    });
+    company.state_share = 1.0;
+    Some((company, buildings))
+}
+
+/// Phase E1e: Core commodities every economy must be able to source.
+/// Derived from the zero-ask / SUPPLY_SHORTAGE diagnostics: extraction
+/// inputs (vein commodities) plus the first-mile processed goods the
+/// construction and energy chains depend on.
+const CORE_INPUT_COMMODITIES: &[Commodity] = &[
+    Commodity::Timber,
+    Commodity::Peat,
+    Commodity::HardCoal,
+    Commodity::BrownCoal,
+    Commodity::Iron,
+    Commodity::Oil,
+    Commodity::NaturalGas,
+    Commodity::Fuels,
+    Commodity::Planks,
+    Commodity::Chemicals,
+    Commodity::Stone,
+    Commodity::Sand,
+    Commodity::Limestone,
+    Commodity::Gravel,
+    Commodity::Clay,
+    Commodity::Salt,
+    Commodity::Sulfur,
+    Commodity::Lead,
+];
+
+/// Phase E1e: Find any era-eligible production method that outputs
+/// `commodity`, across ALL registered production-method blocks (sector keys
+/// and building-name keys). Returns the registry key (used as the building
+/// name) and the instantiated method. Latest era-eligible year wins; falls
+/// back to the earliest producer so a missing commodity still gets capacity.
+fn find_producer_method(
+    commodity: Commodity,
+    start_year: u32,
+    registries: &Registries,
+) -> Option<(String, ActiveProductionMethod)> {
+    let tech_ok = |pm: &ProductionMethod| match &pm.required_tech {
+        None => true,
+        Some(tech_id) => registries
+            .tech_tree
+            .get(tech_id)
+            .map(|node| node.year <= start_year)
+            .unwrap_or(false),
+    };
+
+    // Deterministic iteration: sort the registry keys.
+    let mut keys: Vec<&String> = registries.production_methods.keys().collect();
+    keys.sort();
+
+    let mut best: Option<(&String, &ProductionMethod)> = None;
+    let mut earliest: Option<(&String, &ProductionMethod)> = None;
+    for key in keys {
+        let bm = &registries.production_methods[key];
+        let mut slots: Vec<(&String, &ProductionMethod)> = bm.production.iter().collect();
+        slots.sort_by(|a, b| a.0.cmp(b.0));
+        for (_, pm) in slots {
+            if !pm.outputs.contains_key(&commodity) {
+                continue;
+            }
+            if pm.year <= start_year && tech_ok(pm) {
+                let better = best
+                    .map(|(_, b)| pm.year > b.year)
+                    .unwrap_or(true);
+                if better {
+                    best = Some((key, pm));
+                }
+            }
+            let earlier = earliest
+                .map(|(_, e)| pm.year < e.year)
+                .unwrap_or(true);
+            if earlier {
+                earliest = Some((key, pm));
+            }
+        }
+    }
+
+    let (key, pm) = best.or(earliest)?;
+    let mut method = method_from_ratios(
+        pm.experts_ratio,
+        pm.skilled_ratio,
+        pm.basic_ratio,
+        pm.inputs.iter().map(|(k, v)| (*k, *v)).collect(),
+        pm.outputs.iter().map(|(k, v)| (*k, *v)).collect(),
+        pm.year,
+    );
+    method.seat_type = pm.seat_type;
+    Some((key.clone(), method))
+}
+
+/// Phase E1e: map a production-methods registry key back to its Sector.
+/// Building-name keys (e.g. "forest_district") fall back to HeavyIndustry —
+/// a physical-production classification for reporting purposes.
+fn sector_for_registry_key(key: &str) -> Sector {
+    const SECTORS: [Sector; 23] = [
+        Sector::Mining,
+        Sector::Agriculture,
+        Sector::HeavyIndustry,
+        Sector::LightIndustry,
+        Sector::ArmamentsIndustry,
+        Sector::LocalServices,
+        Sector::ExportServices,
+        Sector::Construction,
+        Sector::Energy,
+        Sector::PublicServices,
+        Sector::MedicalServices,
+        Sector::EducationalServices,
+        Sector::TransportLogistics,
+        Sector::PublicAdministration,
+        Sector::Banking,
+        Sector::MediaAndEntertainment,
+        Sector::WasteManagement,
+        Sector::Hospitality,
+        Sector::NGO,
+        Sector::Religion,
+        Sector::MaintenanceWorkshops,
+        Sector::Government,
+        Sector::SportsRecreation,
+    ];
+    SECTORS
+        .iter()
+        .copied()
+        .find(|s| sector_json_name(*s) == key)
+        .unwrap_or(Sector::HeavyIndustry)
+}
+
+/// Phase E1e: World-level producer guarantee.
+///
+/// Runs after per-country generation. For each country, patches every core
+/// input commodity the country does not yet produce:
+/// * vein commodities — a mine bound to a discovered, depth-accessible vein
+///   in one of the country's regions (a shallow 80 m deposit is injected if
+///   the country has none, so 1880-era methods can reach it);
+/// * Timber — a forest_district building plus a tract in the most-forested
+///   region;
+/// * other commodities — a building running any era-eligible method that
+///   outputs them.
+///
+/// A global floor then guarantees at least one producer per core commodity
+/// world-wide. Entities are appended via load+append+save to respect
+/// DiskEntityStore overwrite semantics; the "P"-suffixed IdGen prefix keeps
+/// patch-pass IDs disjoint from the main pass. Determinism: countries,
+/// regions, and commodities are all iterated in sorted order and the caller's
+/// seeded RNG is the only entropy source.
+pub fn ensure_global_core_producers(
+    data_dir: &Path,
+    countries: &mut HashMap<String, Country>,
+    regions: &HashMap<String, Region>,
+    planet: &mut Planet,
+    registries: &Registries,
+    start_year: u32,
+    produced_by_country: &BTreeMap<String, BTreeSet<Commodity>>,
+    rng: &mut impl Rng,
+) -> Result<(), Box<dyn Error>> {
+    use crate::economy::production::geology::MiningConcession;
+    use crate::economy::state_sector::state_forests::ForestDistrictTract;
+
+    let company_store = DiskEntityStore::<Company>::new(data_dir);
+    let building_store = DiskEntityStore::<Building>::new(data_dir);
+
+    let mut global: BTreeSet<Commodity> = produced_by_country
+        .values()
+        .flat_map(|s| s.iter().copied())
+        .collect();
+
+    // Deterministic iteration order.
+    let mut country_names: Vec<String> = countries.keys().cloned().collect();
+    country_names.sort();
+
+    // (country_name -> spawned companies/buildings deferred for save)
+    for name in &country_names {
+        let country = match countries.get_mut(name) {
+            Some(c) => c,
+            None => continue,
+        };
+        let mut produced = produced_by_country
+            .get(name)
+            .cloned()
+            .unwrap_or_default();
+
+        let mut country_regions: Vec<&Region> = regions
+            .values()
+            .filter(|r| r.owner_country == country.name)
+            .collect();
+        country_regions.sort_by(|a, b| a.id.cmp(&b.id));
+        if country_regions.is_empty() {
+            continue;
+        }
+
+        let code = country.name[..3.min(country.name.len())].to_uppercase();
+        let mut idgen = IdGen::new(&format!("{code}P"));
+        let base_wage = country.macro_indicators.average_wage.max(1.0);
+
+        let mut spawned: Vec<(Company, Building)> = Vec::new();
+
+        for &commodity in CORE_INPUT_COMMODITIES {
+            if produced.contains(&commodity) {
+                continue;
+            }
+
+            let pair = if is_vein_commodity(commodity) {
+                // Per-country patch only where a discovered, accessible vein
+                // exists — the global floor injects deposits elsewhere.
+                let target = country_regions.iter().find_map(|region| {
+                    planet
+                        .veins_for_region(&region.id)
+                        .into_iter()
+                        .filter(|v| v.commodity == commodity && v.discovered)
+                        .filter(|v| {
+                            crate::economy::production::geology::can_access_depth(
+                                start_year, v.depth,
+                            )
+                        })
+                        .min_by(|a, b| {
+                            a.depth.partial_cmp(&b.depth).unwrap_or(std::cmp::Ordering::Equal)
+                        })
+                        .map(|v| (*region, v.composite_id.clone().unwrap_or_else(|| v.id.clone())))
+                });
+                // No usable deposit? Inject a shallow discovered vein in the
+                // most populated region — the core-commodity guarantee is
+                // meaningless if it only fires where geology cooperated.
+                let (region, vein_id) = match target {
+                    Some(t) => t,
+                    None => {
+                        let region = country_regions
+                            .iter()
+                            .max_by_key(|r| r.population)
+                            .copied()
+                            .unwrap();
+                        let vein_id = inject_guarantee_vein(planet, region, commodity);
+                        (region, vein_id)
+                    }
+                };
+                find_mining_method_for_commodity(commodity, start_year, registries).map(
+                    |(bname, method)| {
+                        let workers = (target_workers_per_company(
+                            Sector::Mining,
+                            start_year,
+                            region,
+                            base_wage,
+                            2.0,
+                        )
+                        .round() as u32)
+                            .max(50);
+                        let (company, mut building) =
+                            create_seed_company_with_explicit_method(
+                                Sector::Mining,
+                                region,
+                                workers,
+                                start_year,
+                                registries,
+                                &mut idgen,
+                                rng,
+                                &bname,
+                                &method,
+                            );
+                        building.deposit_id = Some(vein_id.clone());
+                        country.mining_concessions.add_concession(MiningConcession {
+                            vein_id,
+                            holder_company_id: company.id.clone(),
+                            fee_paid: 0.0,
+                            grandfathered: true,
+                            issued_turn: 0,
+                        });
+                        (company, building)
+                    },
+                )
+            } else if commodity == Commodity::Timber {
+                // Most-forested region; grant a tract if none covers it yet.
+                let best_region = country_regions
+                    .iter()
+                    .max_by(|a, b| {
+                        forest_hectares(a)
+                            .partial_cmp(&forest_hectares(b))
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    })
+                    .copied();
+                best_region.and_then(|region| {
+                    let ha = forest_hectares(region);
+                    if ha < 1.0 {
+                        return None;
+                    }
+                    let forest_methods =
+                        registries.production_methods.get("forest_district")?;
+                    let mut pms: Vec<&ProductionMethod> =
+                        forest_methods.production.values().collect();
+                    pms.sort_by_key(|pm| pm.year);
+                    let pm = pms
+                        .iter()
+                        .copied()
+                        .rfind(|pm| pm.year <= start_year)
+                        .or_else(|| pms.first().copied())?;
+                    let mut method = method_from_ratios(
+                        pm.experts_ratio,
+                        pm.skilled_ratio,
+                        pm.basic_ratio,
+                        pm.inputs.iter().map(|(k, v)| (*k, *v)).collect(),
+                        pm.outputs.iter().map(|(k, v)| (*k, *v)).collect(),
+                        pm.year,
+                    );
+                    method.seat_type = pm.seat_type;
+                    if !country
+                        .state_forest_state
+                        .tracts
+                        .iter()
+                        .any(|t| t.region_id == region.id)
+                    {
+                        country.state_forest_state.tracts.push(ForestDistrictTract {
+                            region_id: region.id.clone(),
+                            hectares: ha,
+                            timber_stock: ha * 100.0,
+                            growth_rate: 0.03,
+                            harvest_permitted: ha * 3.0,
+                        });
+                        country.state_forest_state.total_hectares += ha;
+                    }
+                    let workers = (target_workers_per_company(
+                        Sector::Mining,
+                        start_year,
+                        region,
+                        base_wage,
+                        2.0,
+                    )
+                    .round() as u32)
+                        .max(50);
+                    let (company, building) = create_seed_company_with_explicit_method(
+                        Sector::Mining,
+                        region,
+                        workers,
+                        start_year,
+                        registries,
+                        &mut idgen,
+                        rng,
+                        "forest_district",
+                        &method,
+                    );
+                    Some((company, building))
+                })
+            } else {
+                // Non-vein: spawn a building running any era-eligible method
+                // that outputs the commodity (sawmill, refinery, kiln, …).
+                let region = country_regions
+                    .iter()
+                    .max_by_key(|r| r.population)
+                    .copied();
+                region.and_then(|region| {
+                    find_producer_method(commodity, start_year, registries).map(
+                        |(bname, method)| {
+                            let sector = sector_for_registry_key(&bname);
+                            let workers = (target_workers_per_company(
+                                sector,
+                                start_year,
+                                region,
+                                base_wage,
+                                2.0,
+                            )
+                            .round() as u32)
+                                .max(50);
+                            create_seed_company_with_explicit_method(
+                                sector,
+                                region,
+                                workers,
+                                start_year,
+                                registries,
+                                &mut idgen,
+                                rng,
+                                &bname,
+                                &method,
+                            )
+                        },
+                    )
+                })
+            };
+
+            if let Some((company, building)) = pair {
+                produced.insert(commodity);
+                global.insert(commodity);
+                spawned.push((company, building));
+            }
+        }
+
+        if spawned.is_empty() {
+            continue;
+        }
+
+        // Preload the existing sector files BEFORE loan issuance:
+        // issue_working_capital_loans re-saves the exact slice it is given
+        // (overwriting each touched sector file), so loading after that call
+        // would only ever see the patch companies — the originals would be
+        // lost and the merge below would duplicate the patch list.
+        let mut sectors_touched: BTreeSet<String> = BTreeSet::new();
+        for (company, _) in &spawned {
+            sectors_touched.insert(sector_json_name(company.sector));
+        }
+        let mut preexisting_by_sector: BTreeMap<String, Vec<Company>> = BTreeMap::new();
+        for sector_name in &sectors_touched {
+            let existing = company_store
+                .load_sector(&country.name, sector_name, None)
+                .unwrap_or_default();
+            preexisting_by_sector.insert(sector_name.clone(), existing);
+        }
+
+        // Working capital: patch companies get the same genesis loans as the
+        // main pass so they can pay wages until first revenue clears.
+        let mut spawned_companies: Vec<Company> =
+            spawned.iter().map(|(c, _)| c.clone()).collect();
+        issue_working_capital_loans(
+            data_dir,
+            country,
+            &mut spawned_companies,
+            &format!("{code}P"),
+            start_year,
+        )?;
+
+        // Persist: merge preloaded originals + post-loan patch companies,
+        // dedup by id, then save the complete sector (save_sector overwrites
+        // the whole file).
+        let mut companies_by_sector: BTreeMap<String, Vec<Company>> = BTreeMap::new();
+        for c in spawned_companies {
+            companies_by_sector
+                .entry(sector_json_name(c.sector))
+                .or_default()
+                .push(c);
+        }
+        for (sector_name, list) in companies_by_sector {
+            let mut merged = preexisting_by_sector.remove(&sector_name).unwrap_or_default();
+            merged.extend(list);
+            merged.sort_by(|a, b| a.id.cmp(&b.id));
+            merged.dedup_by(|a, b| a.id == b.id);
+            company_store.save_sector(&country.name, &sector_name, None, &merged)?;
+        }
+
+        let mut buildings_by_key: BTreeMap<(String, String), Vec<Building>> = BTreeMap::new();
+        for (_, building) in spawned {
+            buildings_by_key
+                .entry((sector_json_name(building.sector), building.region_id.clone()))
+                .or_default()
+                .push(building);
+        }
+        for ((sector_name, region_id), list) in buildings_by_key {
+            let mut existing = building_store
+                .load_sector(&country.name, &sector_name, Some(&region_id))
+                .unwrap_or_default();
+            existing.extend(list);
+            existing.sort_by(|a, b| a.id.cmp(&b.id));
+            existing.dedup_by(|a, b| a.id == b.id);
+            building_store.save_sector(&country.name, &sector_name, Some(&region_id), &existing)?;
+        }
+    }
+
+    // Global floor: every core commodity must have at least one producer
+    // somewhere in the world.
+    for &commodity in CORE_INPUT_COMMODITIES {
+        if global.contains(&commodity) {
+            continue;
+        }
+        // Pick the best-endowed country: vein holders for vein commodities,
+        // most forested for Timber, otherwise the first (sorted) country.
+        let chosen: Option<String> = if is_vein_commodity(commodity) {
+            country_names
+                .iter()
+                .find(|name| {
+                    let country = &countries[*name];
+                    regions.values().any(|r| {
+                        r.owner_country == country.name
+                            && planet
+                                .veins_for_region(&r.id)
+                                .iter()
+                                .any(|v| v.commodity == commodity)
+                    })
+                })
+                .cloned()
+                .or_else(|| country_names.first().cloned())
+        } else if commodity == Commodity::Timber {
+            country_names
+                .iter()
+                .max_by(|a, b| {
+                    let fa = countries[*a]
+                        .state_forest_state
+                        .total_hectares;
+                    let fb = countries[*b]
+                        .state_forest_state
+                        .total_hectares;
+                    fa.partial_cmp(&fb).unwrap_or(std::cmp::Ordering::Equal)
+                })
+                .cloned()
+        } else {
+            country_names.first().cloned()
+        };
+        let Some(name) = chosen else { continue };
+        let country = countries.get_mut(&name).unwrap();
+
+        let mut country_regions: Vec<&Region> = regions
+            .values()
+            .filter(|r| r.owner_country == country.name)
+            .collect();
+        country_regions.sort_by(|a, b| b.population.cmp(&a.population).then(a.id.cmp(&b.id)));
+        let Some(&region) = country_regions.first() else {
+            continue;
+        };
+
+        let code = country.name[..3.min(country.name.len())].to_uppercase();
+        let mut idgen = IdGen::new(&format!("{code}G"));
+        let base_wage = country.macro_indicators.average_wage.max(1.0);
+
+        let pair: Option<(Company, Building)> = if is_vein_commodity(commodity) {
+            find_mining_method_for_commodity(commodity, start_year, registries).map(
+                |(bname, method)| {
+                    // Inject a shallow (80 m — reachable by 1880-era methods),
+                    // discovered vein so the guarantee never depends on
+                    // survey luck or deep geology.
+                    let vein_id = inject_guarantee_vein(planet, region, commodity);
+                    let workers = (target_workers_per_company(
+                        Sector::Mining,
+                        start_year,
+                        region,
+                        base_wage,
+                        2.0,
+                    )
+                    .round() as u32)
+                        .max(50);
+                    let (company, mut building) = create_seed_company_with_explicit_method(
+                        Sector::Mining,
+                        region,
+                        workers,
+                        start_year,
+                        registries,
+                        &mut idgen,
+                        rng,
+                        &bname,
+                        &method,
+                    );
+                    building.deposit_id = Some(vein_id.clone());
+                    country.mining_concessions.add_concession(MiningConcession {
+                        vein_id,
+                        holder_company_id: company.id.clone(),
+                        fee_paid: 0.0,
+                        grandfathered: true,
+                        issued_turn: 0,
+                    });
+                    (company, building)
+                },
+            )
+        } else if commodity == Commodity::Timber {
+            let forest_methods = registries.production_methods.get("forest_district");
+            forest_methods.and_then(|fm| {
+                let mut pms: Vec<&ProductionMethod> = fm.production.values().collect();
+                pms.sort_by_key(|pm| pm.year);
+                let pm = pms
+                    .iter()
+                    .copied()
+                    .rfind(|pm| pm.year <= start_year)
+                    .or_else(|| pms.first().copied())?;
+                let mut method = method_from_ratios(
+                    pm.experts_ratio,
+                    pm.skilled_ratio,
+                    pm.basic_ratio,
+                    pm.inputs.iter().map(|(k, v)| (*k, *v)).collect(),
+                    pm.outputs.iter().map(|(k, v)| (*k, *v)).collect(),
+                    pm.year,
+                );
+                method.seat_type = pm.seat_type;
+                let ha = forest_hectares(region).max(1_000.0);
+                if !country
+                    .state_forest_state
+                    .tracts
+                    .iter()
+                    .any(|t| t.region_id == region.id)
+                {
+                    country.state_forest_state.tracts.push(ForestDistrictTract {
+                        region_id: region.id.clone(),
+                        hectares: ha,
+                        timber_stock: ha * 100.0,
+                        growth_rate: 0.3,
+                        harvest_permitted: ha * 3.0,
+                    });
+                    country.state_forest_state.total_hectares += ha;
+                }
+                let workers = (target_workers_per_company(
+                    Sector::Mining,
+                    start_year,
+                    region,
+                    base_wage,
+                    2.0,
+                )
+                .round() as u32)
+                    .max(50);
+                Some(create_seed_company_with_explicit_method(
+                    Sector::Mining,
+                    region,
+                    workers,
+                    start_year,
+                    registries,
+                    &mut idgen,
+                    rng,
+                    "forest_district",
+                    &method,
+                ))
+            })
+        } else {
+            find_producer_method(commodity, start_year, registries).map(|(bname, method)| {
+                let sector = sector_for_registry_key(&bname);
+                let workers = (target_workers_per_company(
+                    sector,
+                    start_year,
+                    region,
+                    base_wage,
+                    2.0,
+                )
+                .round() as u32)
+                    .max(50);
+                create_seed_company_with_explicit_method(
+                    sector,
+                    region,
+                    workers,
+                    start_year,
+                    registries,
+                    &mut idgen,
+                    rng,
+                    &bname,
+                    &method,
+                )
+            })
+        };
+
+        let Some((company, building)) = pair else {
+            continue;
+        };
+        global.insert(commodity);
+
+        // Preload the existing sector file BEFORE loan issuance — the loans
+        // helper re-saves the slice it is given, overwriting the sector file
+        // (see per-country block above).
+        let sector_name = sector_json_name(company.sector);
+        let mut merged = company_store
+            .load_sector(&country.name, &sector_name, None)
+            .unwrap_or_default();
+
+        let mut companies = vec![company];
+        issue_working_capital_loans(
+            data_dir,
+            country,
+            &mut companies,
+            &format!("{code}G"),
+            start_year,
+        )?;
+
+        merged.extend(companies);
+        merged.sort_by(|a, b| a.id.cmp(&b.id));
+        merged.dedup_by(|a, b| a.id == b.id);
+        company_store.save_sector(&country.name, &sector_name, None, &merged)?;
+
+        let sector_name = sector_json_name(building.sector);
+        let region_id = building.region_id.clone();
+        let mut existing = building_store
+            .load_sector(&country.name, &sector_name, Some(&region_id))
+            .unwrap_or_default();
+        existing.push(building);
+        existing.sort_by(|a, b| a.id.cmp(&b.id));
+        existing.dedup_by(|a, b| a.id == b.id);
+        building_store.save_sector(&country.name, &sector_name, Some(&region_id), &existing)?;
+    }
+
+    Ok(())
+}
+
+/// Phase E1e: forest hectares for a region (0.0 when unforested).
+fn forest_hectares(region: &Region) -> f64 {
+    region
+        .land_use_inventory
+        .get_category(LandCategory::Forests)
+        .map(|d| d.area_hectares)
+        .unwrap_or(0.0)
+}
+
+/// Phase E1e: true when `building` is a viable producer of a vein commodity —
+/// bound (`deposit_id`) to a discovered vein of that commodity overlapping the
+/// building's region and shallow enough for `start_year`-era methods.
+fn vein_viable_for(
+    building: &Building,
+    commodity: Commodity,
+    planet: &Planet,
+    start_year: u32,
+) -> bool {
+    let Some(dep) = &building.deposit_id else {
+        return false;
+    };
+    let Some(vein) = planet.vein_by_id(dep) else {
+        return false;
+    };
+    vein.commodity == commodity
+        && vein.discovered
+        && vein
+            .overlapping_regions
+            .iter()
+            .any(|r| r == &building.region_id)
+        && crate::economy::production::geology::can_access_depth(
+            start_year,
+            vein.depth,
+        )
+}
+
+/// Phase E1e: inject a shallow (80 m — reachable by 1880-era methods),
+/// discovered vein of `commodity` into `region`. Returns the new vein ID.
+fn inject_guarantee_vein(
+    planet: &mut Planet,
+    region: &Region,
+    commodity: Commodity,
+) -> String {
+    let vein_id = format!("VEIN-{:04}", planet.veins.len() + 1);
+    let tier = vein_tier_for(commodity);
+    let (min_reserves, max_reserves) = tier.reserve_range();
+    let reserves = (min_reserves + max_reserves) / 2.0;
+    planet.veins.push(GeologicalVein {
+        id: vein_id.clone(),
+        composite_id: None,
+        name: crate::society::planet::generate_vein_name(
+            commodity,
+            planet.veins.len() + 1,
+        ),
+        commodity,
+        rarity_tier: tier,
+        total_reserves: reserves,
+        current_reserves: reserves,
+        cells: vec![(region.coord_y, region.coord_x)],
+        overlapping_regions: vec![region.id.clone()],
+        extraction_cost: 1.2,
+        quality: 0.5,
+        depth: 80.0,
+        discovered: true,
+    });
+    vein_id
+}
+
+/// Phase E1e: the rarity tier a vein commodity belongs to (used for reserve
+/// ranges on injected deposits).
+fn vein_tier_for(commodity: Commodity) -> RarityTier {
+    const TIERS: [RarityTier; 5] = [
+        RarityTier::UltraRare,
+        RarityTier::Rare,
+        RarityTier::Uncommon,
+        RarityTier::AbundantIndustrial,
+        RarityTier::Ubiquitous,
+    ];
+    TIERS
+        .iter()
+        .copied()
+        .find(|t| t.commodities().contains(&commodity))
+        .unwrap_or(RarityTier::Uncommon)
 }
 
 /// Phase 27: Create a seed company with a specific named production method.
