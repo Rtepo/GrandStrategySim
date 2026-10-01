@@ -71,12 +71,16 @@ pub fn sector_capital_intensity(sector: &Sector) -> CapitalIntensity {
 /// * Uses dynamic macro indicators instead of hardcoded floats
 /// * Ensures barriers scale with inflation, wage growth, and country wealth
 pub fn minimum_capital_for_sector(sector: &Sector, average_wage: f64) -> f64 {
+    // Capital requirements are STOCKS sized in annual-wage units.
+    // `average_wage` is a per-turn flow — annualize with TURNS_PER_YEAR so
+    // absolute capital stays constant regardless of the wage time unit.
+    let annual_wage = average_wage * crate::state::macro_data::TURNS_PER_YEAR as f64;
     match sector_capital_intensity(sector) {
-        CapitalIntensity::Micro => average_wage * 10.0,
-        CapitalIntensity::Low => average_wage * 100.0,
-        CapitalIntensity::Medium => average_wage * 1_000.0,
-        CapitalIntensity::High => average_wage * 10_000.0,
-        CapitalIntensity::Massive => average_wage * 100_000.0,
+        CapitalIntensity::Micro => annual_wage * 10.0,
+        CapitalIntensity::Low => annual_wage * 100.0,
+        CapitalIntensity::Medium => annual_wage * 1_000.0,
+        CapitalIntensity::High => annual_wage * 10_000.0,
+        CapitalIntensity::Massive => annual_wage * 100_000.0,
     }
 }
 
@@ -128,13 +132,14 @@ mod tests {
     #[test]
     fn test_minimum_capital_for_sector_low() {
         let min_cap = minimum_capital_for_sector(&Sector::LocalServices, 10.0);
-        assert_eq!(min_cap, 1000.0); // Low intensity = 100x average_wage
+        // Low intensity = 100x ANNUALIZED average_wage (10 * 24 * 100)
+        assert_eq!(min_cap, 24_000.0);
     }
 
     #[test]
     fn test_minimum_capital_for_sector_massive() {
         let min_cap = minimum_capital_for_sector(&Sector::Energy, 10.0);
-        assert_eq!(min_cap, 1_000_000.0);
+        assert_eq!(min_cap, 24_000_000.0);
     }
 
     #[test]

@@ -152,8 +152,10 @@ pub fn check_emancipation_triggers(
         return false;
     }
 
-    // Trigger 3: Institutional capital — liquid reserves > N × average_wage
-    let capital_threshold = config.emancipation_capital_wage_multiple * average_wage;
+    // Trigger 3: Institutional capital — liquid reserves > N × average_wage.
+    // Reserves are a stock measured in annual-wage units — annualize.
+    let annual_wage = average_wage * crate::state::macro_data::TURNS_PER_YEAR as f64;
+    let capital_threshold = config.emancipation_capital_wage_multiple * annual_wage;
     if domain.sub_budget.liquid_reserves <= capital_threshold {
         return false;
     }

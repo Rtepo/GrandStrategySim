@@ -5001,6 +5001,7 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.country,
                 task.ctx.year,
                 &task.market_signal,
+                task.ctx.turn,
             );
         });
         #[cfg(feature = "diagnostic")]

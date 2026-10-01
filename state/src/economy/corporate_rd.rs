@@ -444,12 +444,15 @@ mod tests {
     #[test]
     fn rd_allocation_when_wealthy() {
         let mut company = Company::default();
-        company.available_cash = 500_000.0;
+        // CAPEX is annualized: minimum_capital_for_sector uses
+        // average_wage * TURNS_PER_YEAR, so opex per worker is
+        // (10 * 24) * 10000 * 0.01 = 24000.
+        company.available_cash = 10_000_000.0;
         company.worker_capacity = 100;
         company.sector = Sector::HeavyIndustry;
         // Phase E.8: Set company_capital high enough so max_rd_budget_ratio
         // cap (20% of company_capital) doesn't bind.
-        company.company_capital = 500_000.0;
+        company.company_capital = 10_000_000.0;
 
         let config = CorporateTechConfig::default();
         let average_wage = 10.0;
@@ -457,20 +460,20 @@ mod tests {
         let mut companies = vec![company];
         allocate_corporate_rd_budget(&mut companies, &config, average_wage);
 
-        // Operating expenses: 100 * (10 * 10000 * 0.01) = 100000
-        // Threshold: 100000 * 2.0 = 200000
-        // Excess: 500000 - 200000 = 300000
-        // Allocation: 300000 * 0.10 = 30000
-        // Cap: 500000 * 0.2 = 100000 (doesn't bind, 30000 < 100000)
-        assert_eq!(companies[0].rd_budget, 30000.0);
-        assert_eq!(companies[0].available_cash, 470000.0);
+        // Operating expenses: 100 * (240 * 10000 * 0.01) = 2_400_000
+        // Threshold: 2_400_000 * 2.0 = 4_800_000
+        // Excess: 10_000_000 - 4_800_000 = 5_200_000
+        // Allocation: 5_200_000 * 0.10 = 520_000
+        // Cap: 10_000_000 * 0.2 = 2_000_000 (doesn't bind)
+        assert_eq!(companies[0].rd_budget, 520_000.0);
+        assert_eq!(companies[0].available_cash, 9_480_000.0);
     }
 
     #[test]
     fn rd_allocation_capped_by_max_ratio() {
         // Phase E.8: Verify max_rd_budget_ratio caps total R&D budget.
         let mut company = Company::default();
-        company.available_cash = 500_000.0;
+        company.available_cash = 10_000_000.0;
         company.worker_capacity = 100;
         company.sector = Sector::HeavyIndustry;
         // Low company_capital → cap binds.
@@ -486,9 +489,9 @@ mod tests {
 
         // Cap: 50000 * 0.2 = 10000
         // Headroom: 10000 - 8000 = 2000
-        // Uncapped allocation: 30000, but capped to 2000.
+        // Uncapped allocation: 520_000, but capped to 2000.
         assert_eq!(companies[0].rd_budget, 10_000.0);
-        assert_eq!(companies[0].available_cash, 498_000.0);
+        assert_eq!(companies[0].available_cash, 9_998_000.0);
     }
 
     #[test]

@@ -115,13 +115,15 @@ mod tests {
 
     #[test]
     fn test_emancipation_triggers_all_met() {
-        let domain = make_test_domain(6000, 600_000.0);
+        // Reserves threshold is annualized: 500 × (1000 × TURNS_PER_YEAR) =
+        // 12_000_000, so the domain holds 13M.
+        let domain = make_test_domain(6000, 13_000_000.0);
         let region = make_test_region("parent", 0.6);
         let config = EmancipationConfig::default();
 
         // 6000 people / 10 hectares = 600 people/km² > 500 threshold
         // domain_gdp = 30_000 > 25_000 (25% of 100_000)
-        // liquid_reserves = 600_000 > 500 × 1000 (avg_wage)
+        // liquid_reserves = 13_000_000 > 500 × 1000 × 24 (avg_wage, annualized)
         // guild_count = 3 >= 2
         // development = 0.6 > 0.5
         let result = check_emancipation_triggers(

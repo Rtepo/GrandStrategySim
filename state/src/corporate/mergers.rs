@@ -84,14 +84,18 @@ pub fn process_mergers_and_acquisitions(
             continue;
         }
 
-        // Distress or cash-starvation trigger.
+        // Distress trigger: negative cash (overdrawn) or insolvency
+        // (liquid capital below liabilities). A merely zero-cash company is
+        // illiquid, not distressed — in a thin cash circuit nearly every
+        // solvent firm sits at ~0 between settlement and payroll, so using
+        // `available_cash <= 0` as a trigger mass-consolidates the economy
+        // every turn and destroys the absorbed firms' labor demand.
         let is_distressed =
             target.available_cash < 0.0 || target.liquid_capital < target.liabilities;
         let target_sector = target.sector;
         let target_region = target.region_id.clone();
 
-        // Simple market-driven trigger: fixed overcapacity or negative cash.
-        if !is_distressed && target.available_cash > 0.0 {
+        if !is_distressed {
             continue;
         }
 
@@ -243,6 +247,15 @@ fn execute_acquisition(
     companies[acquirer_idx].credit_cash += companies[target_idx].credit_cash;
     companies[acquirer_idx].debit_cash += companies[target_idx].debit_cash;
     companies[acquirer_idx].worker_capacity += companies[target_idx].worker_capacity;
+    companies[acquirer_idx].scale_factor += companies[target_idx].scale_factor;
+    // Labor demand and employment must follow the absorbed capacity and
+    // buildings — otherwise the merged entity keeps only the acquirer's own
+    // demand and the target's workforce demand is silently destroyed.
+    companies[acquirer_idx].target_fte_demand += companies[target_idx].target_fte_demand;
+    companies[acquirer_idx].physical_fte_demand += companies[target_idx].physical_fte_demand;
+    companies[acquirer_idx].fulfilled_fte += companies[target_idx].fulfilled_fte;
+    companies[acquirer_idx].furloughed_workers_count +=
+        companies[target_idx].furloughed_workers_count;
     companies[acquirer_idx].is_national_champion |= companies[target_idx].is_national_champion;
     companies[acquirer_idx].annual_profit_accumulator +=
         companies[target_idx].annual_profit_accumulator;
@@ -363,6 +376,11 @@ fn execute_acquisition(
     companies[target_idx].is_liquidated = true;
     companies[target_idx].merged_into = Some(companies[acquirer_idx].id.clone());
     companies[target_idx].worker_capacity = 0;
+    companies[target_idx].scale_factor = 0;
+    companies[target_idx].target_fte_demand = 0;
+    companies[target_idx].physical_fte_demand = 0;
+    companies[target_idx].fulfilled_fte = 0;
+    companies[target_idx].furloughed_workers_count = 0.0;
     companies[target_idx].available_cash = 0.0;
     companies[target_idx].liquid_capital = 0.0;
     companies[target_idx].fixed_capital = 0.0;

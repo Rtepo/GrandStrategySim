@@ -52,6 +52,39 @@ impl UtilityDemand {
     /// # Returns
     /// * Utility demand for the building
     pub fn for_housing(building: &HousingBuilding, season: Season) -> Self {
+        let base_demand = Self::for_housing_physical(building, season);
+        // Apply utility connections if available
+        let connections = &building.utility_connections;
+
+        UtilityDemand {
+            surface_water_demand: base_demand
+                .surface_water_demand
+                .min(connections.surface_water_capacity),
+            groundwater_demand: base_demand
+                .groundwater_demand
+                .min(connections.groundwater_capacity),
+            sewage_generation: base_demand.sewage_generation,
+            heating_demand: base_demand
+                .heating_demand
+                .min(connections.district_heating_capacity),
+            electricity_demand: base_demand
+                .electricity_demand
+                .min(connections.electricity_capacity),
+            waste_generation: base_demand.waste_generation,
+            recyclable_fraction: base_demand.recyclable_fraction,
+        }
+    }
+
+    /// Physical utility need for a housing building, WITHOUT clamping to the
+    /// delivered `utility_connections` capacities.
+    ///
+    /// Grid demand collection must use this variant: `for_housing` clamps
+    /// demand to last turn's delivered allocation, which creates a circular
+    /// zero-demand deadlock — interrupted delivery sets `electricity_capacity`
+    /// to 0, demand then reads 0 forever, nothing is ever dispatched again.
+    /// `process_utility_consumption` (billing) keeps the clamped variant:
+    /// consumers are billed only for what was actually delivered.
+    pub fn for_housing_physical(building: &HousingBuilding, season: Season) -> Self {
         let occupied_slots = building.primary_slots.occupied_slots as f64;
         let sublet_occupied = building
             .sublet_slots
@@ -60,7 +93,7 @@ impl UtilityDemand {
             .unwrap_or(0.0);
         let total_occupied = occupied_slots + sublet_occupied;
 
-        let base_demand = match building.housing_type {
+        match building.housing_type {
             HousingType::Hut => UtilityDemand {
                 surface_water_demand: 100.0 * total_occupied,
                 groundwater_demand: 0.0,
@@ -204,8 +237,19 @@ impl UtilityDemand {
                 waste_generation: 0.4 * total_occupied,
                 recyclable_fraction: 0.15,
             },
-        };
+        }
+    }
 
+    /// Calculate demand for a commercial building
+    ///
+    /// # Arguments
+    /// * `building` - The commercial building
+    /// * `season` - Current season for seasonal variations
+    ///
+    /// # Returns
+    /// * Utility demand for the building
+    pub fn for_commercial(building: &CommercialBuilding, season: Season) -> Self {
+        let base_demand = Self::for_commercial_physical(building, season);
         // Apply utility connections if available
         let connections = &building.utility_connections;
 
@@ -228,20 +272,16 @@ impl UtilityDemand {
         }
     }
 
-    /// Calculate demand for a commercial building
-    ///
-    /// # Arguments
-    /// * `building` - The commercial building
-    /// * `season` - Current season for seasonal variations
-    ///
-    /// # Returns
-    /// * Utility demand for the building
-    pub fn for_commercial(building: &CommercialBuilding, season: Season) -> Self {
+    /// Physical utility need for a commercial building, WITHOUT clamping to
+    /// the delivered `utility_connections` capacities. See
+    /// [`Self::for_housing_physical`] for why grid demand collection must use
+    /// the unclamped variant.
+    pub fn for_commercial_physical(building: &CommercialBuilding, season: Season) -> Self {
         let office_sqm = building.office_capacity;
         let retail_sqm = building.retail_capacity;
         let total_sqm = office_sqm + retail_sqm;
 
-        let base_demand = match building.building_type {
+        match building.building_type {
             CommercialBuildingType::Office => UtilityDemand {
                 surface_water_demand: 50.0 * office_sqm / 100.0,
                 groundwater_demand: 20.0 * office_sqm / 100.0,
@@ -448,27 +488,6 @@ impl UtilityDemand {
                 waste_generation: 0.5 * retail_sqm / 100.0,
                 recyclable_fraction: 0.3,
             },
-        };
-
-        // Apply utility connections if available
-        let connections = &building.utility_connections;
-
-        UtilityDemand {
-            surface_water_demand: base_demand
-                .surface_water_demand
-                .min(connections.surface_water_capacity),
-            groundwater_demand: base_demand
-                .groundwater_demand
-                .min(connections.groundwater_capacity),
-            sewage_generation: base_demand.sewage_generation,
-            heating_demand: base_demand
-                .heating_demand
-                .min(connections.district_heating_capacity),
-            electricity_demand: base_demand
-                .electricity_demand
-                .min(connections.electricity_capacity),
-            waste_generation: base_demand.waste_generation,
-            recyclable_fraction: base_demand.recyclable_fraction,
         }
     }
 

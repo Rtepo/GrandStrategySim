@@ -191,7 +191,16 @@ pub fn resolve_regional_labor_market(
 
     // 2. Extract bids with liquidity clamping and minimum wage check
     let mut bids: Vec<LaborBid> = Vec::new();
+    #[cfg(feature = "diagnostic")]
+    let mut _diag_sum_target = 0.0_f64;
+    #[cfg(feature = "diagnostic")]
+    let mut _diag_company_count = 0usize;
     for company in region_companies {
+        #[cfg(feature = "diagnostic")]
+        {
+            _diag_sum_target += company.target_fte_demand as f64;
+            _diag_company_count += 1;
+        }
         // Reset fulfilled_fte
         company.fulfilled_fte = 0;
 
@@ -261,6 +270,48 @@ pub fn resolve_regional_labor_market(
                 sector: company.sector, // Include sector for suitability matching
             });
         }
+    }
+
+    #[cfg(feature = "diagnostic")]
+    {
+        let sum_target: f64 = _diag_sum_target;
+        let sum_bid: f64 = bids.iter().map(|b| b.target_fte_demand).sum();
+        let zero_bid = _diag_company_count - bids.len();
+        let mut prefix_hist: std::collections::BTreeMap<String, (usize, f64)> =
+            std::collections::BTreeMap::new();
+        for b in &bids {
+            let p = b
+                .company_id
+                .split('-')
+                .next()
+                .unwrap_or("")
+                .chars()
+                .take(12)
+                .collect::<String>();
+            let e = prefix_hist.entry(p).or_default();
+            e.0 += 1;
+            e.1 += b.target_fte_demand;
+        }
+        let hist: Vec<String> = prefix_hist
+            .iter()
+            .map(|(k, v)| format!("{}:{}x{:.0}", k, v.0, v.1))
+            .collect();
+        eprintln!(
+            "BIDPROBE[{}]: bids={} sum_bid={:.0} sum_target={:.0} excluded={} pool_pre={:.0} | {}",
+            region.id,
+            bids.len(),
+            sum_bid,
+            sum_target,
+            zero_bid,
+            region
+                .class_demographics
+                .rural_classes
+                .values()
+                .chain(region.class_demographics.urban_classes.values())
+                .map(|d| d.available_fte)
+                .sum::<f64>(),
+            hist.join(" ")
+        );
     }
 
     // 3. Sort bids by wage (descending)
@@ -381,13 +432,57 @@ pub fn resolve_regional_labor_market(
     }
 
     // 5. Clear market (highest wage first) with per-class wage tracking
+    //
+    // Macro-Remediation: under labor scarcity (total demand > pool), allocate
+    // the pool pro-rata weighted by demand×wage instead of winner-take-all.
+    // The old loop filled the top bid 100% before moving on, so when demand
+    // exceeded supply the bottom half of the market hired literally zero
+    // workers — a zero-FTE company cannot produce, bid for inputs, or ever
+    // recover, turning wage competition into a one-turn death lottery for
+    // hundreds of companies. Weighted shares preserve the wage signal (a
+    // 2× wage still draws 2× the workers per unit demand) while every
+    // bidder with a positive offer staffs a nonzero workforce. When the
+    // pool covers total demand the share formula naturally allocates each
+    // bid's full demand — identical to the old behavior.
+    let total_demand_fte: f64 = bids
+        .iter()
+        .map(|b| b.target_fte_demand)
+        .sum();
+    let scarcity = if total_demand_fte > 0.0 {
+        pool.total_available_fte < total_demand_fte
+    } else {
+        false
+    };
+    let pool_at_clear = pool.total_available_fte;
+    let total_weighted: f64 = if scarcity {
+        bids.iter()
+            .map(|b| {
+                b.target_fte_demand * b.offered_wage_per_fte.max(0.0)
+            })
+            .sum()
+    } else {
+        0.0
+    };
+
     let mut remaining_pool = pool.total_available_fte;
     for bid in &bids {
         if remaining_pool <= 0.0 {
             break; // Pool exhausted
         }
 
-        let mut fte_to_distribute = bid.target_fte_demand.min(remaining_pool);
+        let mut fte_to_distribute = if scarcity {
+            let weight =
+                bid.target_fte_demand * bid.offered_wage_per_fte.max(0.0);
+            let share = if total_weighted > 0.0 {
+                weight / total_weighted
+            } else {
+                bid.target_fte_demand / total_demand_fte
+            };
+            (pool_at_clear * share).min(bid.target_fte_demand)
+        } else {
+            bid.target_fte_demand.min(remaining_pool)
+        }
+        .min(remaining_pool);
         let mut total_secured_by_company = 0.0;
         let wage_per_fte = bid.offered_wage_per_fte;
 

@@ -35,6 +35,7 @@ impl CompanyLifecycle {
         country: &mut Country,
         year: u32,
         market_signal: &MarketSignal,
+        current_turn: u32,
     ) {
         // Phase 94: M0 conservation diagnostic — compute simplified M0 sum
         // before and after each lifecycle step to identify M0 leaks.
@@ -42,7 +43,7 @@ impl CompanyLifecycle {
         let m0_before = Self::compute_m0_sum(companies, country);
 
         // 1. Liquidate bankrupt companies via the Syndic.
-        Self::liquidate_bankrupt_companies(companies, buildings, country, year);
+        Self::liquidate_bankrupt_companies(companies, buildings, country, year, current_turn);
         #[cfg(feature = "diagnostic")]
         {
             let m0_after = Self::compute_m0_sum(companies, country);
@@ -63,7 +64,14 @@ impl CompanyLifecycle {
         // 3. Spawn new companies in promising sectors.
         #[cfg(feature = "diagnostic")]
         let m0_pre_spawn = Self::compute_m0_sum(companies, country);
-        Self::spawn_new_companies(companies, buildings, country, year, market_signal);
+        Self::spawn_new_companies(
+            companies,
+            buildings,
+            country,
+            year,
+            market_signal,
+            current_turn,
+        );
         #[cfg(feature = "diagnostic")]
         {
             let m0_after = Self::compute_m0_sum(companies, country);
@@ -147,6 +155,7 @@ impl CompanyLifecycle {
         buildings: &mut Vec<Building>,
         country: &mut Country,
         _year: u32,
+        current_turn: u32,
     ) {
         // Phase 94: Fix stale primary_bank_id references from banks liquidated
         // in previous turns (before the lifecycle fix was added). These
@@ -197,8 +206,18 @@ impl CompanyLifecycle {
             }
 
             // Check for sustained losses (3+ consecutive years).
-            // Phase 33: Grace period for new companies.
-            if company.financial_history.len() < 2 {
+            // Phase 33: Grace period for new companies — a firm must first
+            // operate a full year before a loss streak can liquidate it.
+            // Without this, the per-turn records would execute companies for
+            // ~6 weeks of startup losses during market ramp-up, which
+            // mass-liquidates half the corporate sector and destroys its
+            // labor demand before recovery can occur.
+            const LOSS_STREAK_GRACE_TURNS: u32 =
+                crate::state::macro_data::TURNS_PER_YEAR as u32;
+            if current_turn.saturating_sub(company.founded_turn) < LOSS_STREAK_GRACE_TURNS {
+                continue;
+            }
+            if company.financial_history.len() < 3 {
                 continue;
             }
             // Macro-Remediation: banks are supervised through the reserve
@@ -230,6 +249,50 @@ impl CompanyLifecycle {
             }
         }
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let neg_equity = companies
+                .iter()
+                .filter(|c| c.company_capital < 0.0)
+                .count();
+            eprintln!(
+                "LIQCYCLE: year={} total={} to_remove={} neg_equity={}",
+                _year,
+                companies.len(),
+                to_remove.len(),
+                neg_equity
+            );
+            let mut by_sector: std::collections::BTreeMap<String, (usize, f64, f64, f64, f64)> =
+                std::collections::BTreeMap::new();
+            for &idx in &to_remove {
+                let c = &companies[idx];
+                let e = by_sector
+                    .entry(format!("{:?}", c.sector))
+                    .or_default();
+                e.0 += 1;
+                e.1 += c.target_fte_demand as f64;
+                e.2 += c.fulfilled_fte as f64;
+                e.3 += c
+                    .financial_history
+                    .last()
+                    .and_then(|r| r.get("net_profit"))
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                e.4 += c
+                    .financial_history
+                    .last()
+                    .and_then(|r| r.get("revenue"))
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+            }
+            for (s, (n, d, f, np, rev)) in &by_sector {
+                eprintln!(
+                    "  LIQCYCLE_SECTOR: {} n={} demand={:.0} fulfilled={:.0} last_profit={:.0} last_rev={:.0}",
+                    s, n, d, f, np, rev
+                );
+            }
+        }
+
         // Phase 96: Use the Syndic as the universal liquidation path.
         let domestic_currency = country.macro_indicators.currency.clone();
         let policy = crate::state::BankruptcyPolicy::with_defaults();
@@ -255,8 +318,11 @@ impl CompanyLifecycle {
                     &company_to_liquidate.id,
                     current_turn,
                 );
-                // Create HomelessState entries for each displaced member
-                let avg_wage = country.macro_indicators.average_wage;
+                // Create HomelessState entries for each displaced member.
+                // Liquid asset estimates are stocks sized in annual-wage
+                // units — annualize the per-turn average_wage.
+                let avg_wage = country.macro_indicators.average_wage
+                    * crate::state::macro_data::TURNS_PER_YEAR as f64;
                 for (member_id, wealth_tier) in &displaced {
                     let liquid = match wealth_tier {
                         crate::society::housing::WealthTier::Upper => avg_wage * 100.0,
@@ -345,6 +411,7 @@ impl CompanyLifecycle {
         country: &mut Country,
         year: u32,
         market_signal: &MarketSignal,
+        current_turn: u32,
     ) {
         if market_signal.interest_rate > 0.15 {
             return;
@@ -397,6 +464,30 @@ impl CompanyLifecycle {
             return;
         }
 
+        // Anchor lifecycle startups to the region with the largest idle labor
+        // pool. `Company::new`/`Building::new` leave `region_id` empty, and
+        // labor-market clearing filters strictly on
+        // `company.region_id == region.id` — a regionless company can never
+        // hire and bleeds its capital as a zero-FTE shell.
+        let Some(spawn_region_id) = country
+            .regions
+            .iter()
+            .map(|r| {
+                let idle_fte: f64 = r
+                    .class_demographics
+                    .rural_classes
+                    .values()
+                    .chain(r.class_demographics.urban_classes.values())
+                    .map(|d| (d.available_fte - d.allocated_fte - d.guild_fte_allocated).max(0.0))
+                    .sum();
+                (idle_fte, r.id.clone())
+            })
+            .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal))
+            .map(|(_, id)| id)
+        else {
+            return;
+        };
+
         for i in 0..num_companies {
             let sector = promising_sectors[i % promising_sectors.len()];
             let capital_per_company = investment / num_companies as f64;
@@ -409,6 +500,7 @@ impl CompanyLifecycle {
             }
 
             let company_id = format!("NEW_{}_{}_{}", country.name, year, i);
+            let building_id = format!("BLD_{}_{}_{}", country.name, year, i);
             let legal_form = LegalForm::FamilyBusiness(FamilyBusinessData {
                 dynasty_id: None,
                 successor_generation: 0,
@@ -416,7 +508,7 @@ impl CompanyLifecycle {
                 heir_vip_ids: Vec::new(),
                 succession_crisis: false,
             });
-            let new_company = Company::new(
+            let mut new_company = Company::new(
                 company_id.clone(),
                 format!("New Company {}-{}", year, i),
                 sector,
@@ -425,9 +517,14 @@ impl CompanyLifecycle {
                 capital_per_company * 0.5,
                 100,
             );
+            new_company.region_id = spawn_region_id.clone();
+            new_company.building_ids.push(building_id.clone());
+            new_company.founded_turn = current_turn;
 
-            let building_id = format!("BLD_{}_{}_{}", country.name, year, i);
-            let new_building = Building::new(building_id, company_id, sector, 100);
+            let mut new_building = Building::new(building_id, company_id, sector, 100);
+            new_building.region_id = spawn_region_id.clone();
+            new_building.cluster_info.region_id = spawn_region_id.clone();
+            new_building.year_built = year;
 
             companies.push(new_company);
             buildings.push(new_building);
@@ -530,6 +627,7 @@ mod tests {
             &mut buildings,
             &mut country,
             2024,
+            0,
         );
 
         // Company is removed (liquidated).
@@ -563,6 +661,7 @@ mod tests {
             &mut country,
             2024,
             &market_signal,
+            0,
         );
 
         assert!(companies.is_empty());
@@ -592,8 +691,273 @@ mod tests {
             &mut country,
             2024,
             &market_signal,
+            0,
         );
 
         assert!(companies.is_empty());
+    }
+
+    /// Regression: lifecycle-spawned companies must be anchored to a region.
+    /// `Company::new`/`Building::new` leave `region_id` empty and labor-market
+    /// clearing filters strictly on `company.region_id == region.id`, so a
+    /// regionless startup can never hire. The spawn must pick the region with
+    /// the largest idle labor pool and link building ↔ company both ways.
+    #[test]
+    fn test_spawn_assigns_region_and_links_building() {
+        use crate::society::geography::{
+            ClassDemographics, Region, RegionalClassDemographics, UrbanClass,
+        };
+        use crate::state::treasury::SectorShare;
+        use serde_json::{Map, Value};
+        use std::collections::BTreeMap;
+
+        let mut companies = Vec::new();
+        let mut buildings = Vec::new();
+        let mut country = Country::mock_for_tests();
+        country.name = "Test".to_string();
+        country.budget.private_capital = 1_000_000.0;
+
+        // One promising sector (PMI > 50) so the spawn path proceeds.
+        let mut extra = Map::new();
+        extra.insert("pmi".to_string(), Value::from(55.0));
+        country.budget.sectors.insert(
+            Sector::Agriculture,
+            SectorShare {
+                gdp_share: 0.1,
+                crisis_vulnerability: None,
+                active_method: None,
+                extra,
+            },
+        );
+
+        // Two regions: R-1 nearly fully employed, R-2 mostly idle. Startups
+        // must choose R-2 (the largest idle labor pool).
+        let make_region = |id: &str, idle_fte: f64, savings: f64| Region {
+            id: id.to_string(),
+            owner_country: "Test".to_string(),
+            class_demographics: RegionalClassDemographics {
+                urban_classes: {
+                    let mut m = BTreeMap::new();
+                    m.insert(
+                        UrbanClass::Worker,
+                        ClassDemographics {
+                            population: 1000,
+                            savings,
+                            available_fte: idle_fte,
+                            allocated_fte: 0.0,
+                            ..Default::default()
+                        },
+                    );
+                    m
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        country.regions.push(make_region("R-1", 10.0, 500_000.0));
+        country.regions.push(make_region("R-2", 5_000.0, 500_000.0));
+
+        let market_signal = MarketSignal {
+            interest_rate: 0.05,
+            sector_pmi: HashMap::default(),
+            demand_surplus: HashMap::default(),
+            global_surplus: HashMap::default(),
+            prices: HashMap::default(),
+            stock_confidence: 50.0,
+            stock_index: 1000.0,
+        };
+
+        CompanyLifecycle::spawn_new_companies(
+            &mut companies,
+            &mut buildings,
+            &mut country,
+            2024,
+            &market_signal,
+            0,
+        );
+
+        assert!(!companies.is_empty(), "expected lifecycle spawn");
+        assert_eq!(companies.len(), buildings.len());
+        for company in &companies {
+            assert!(company.id.starts_with("NEW_"));
+            assert_eq!(company.region_id, "R-2");
+            assert_eq!(company.building_ids.len(), 1);
+        }
+        for building in &buildings {
+            assert_eq!(building.region_id, "R-2");
+            assert_eq!(building.cluster_info.region_id, "R-2");
+            assert_eq!(building.year_built, 2024);
+            let owner = companies
+                .iter()
+                .find(|c| c.id == building.owner_id)
+                .unwrap();
+            assert!(owner.building_ids.contains(&building.id));
+        }
+    }
+
+    /// Regression: lifecycle-spawned companies must stamp `founded_turn` with
+    /// the simulation turn, not the calendar `year`. Stamping the year (e.g.
+    /// 1925) makes `current_turn - founded_turn` underflow/saturate and marks
+    /// every spawn as either newborn or impossibly old, defeating the
+    /// loss-streak grace gate.
+    #[test]
+    fn test_spawn_founded_turn_uses_current_turn() {
+        use crate::society::geography::{
+            ClassDemographics, Region, RegionalClassDemographics, UrbanClass,
+        };
+        use crate::state::treasury::SectorShare;
+        use serde_json::{Map, Value};
+        use std::collections::BTreeMap;
+
+        let mut companies = Vec::new();
+        let mut buildings = Vec::new();
+        let mut country = Country::mock_for_tests();
+        country.name = "Test".to_string();
+        country.budget.private_capital = 1_000_000.0;
+
+        let mut extra = Map::new();
+        extra.insert("pmi".to_string(), Value::from(55.0));
+        country.budget.sectors.insert(
+            Sector::Agriculture,
+            SectorShare {
+                gdp_share: 0.1,
+                crisis_vulnerability: None,
+                active_method: None,
+                extra,
+            },
+        );
+
+        country.regions.push(Region {
+            id: "R-1".to_string(),
+            owner_country: "Test".to_string(),
+            class_demographics: RegionalClassDemographics {
+                urban_classes: {
+                    let mut m = BTreeMap::new();
+                    m.insert(
+                        UrbanClass::Worker,
+                        ClassDemographics {
+                            population: 1000,
+                            savings: 500_000.0,
+                            available_fte: 5_000.0,
+                            allocated_fte: 0.0,
+                            ..Default::default()
+                        },
+                    );
+                    m
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
+        let market_signal = MarketSignal {
+            interest_rate: 0.05,
+            sector_pmi: HashMap::default(),
+            demand_surplus: HashMap::default(),
+            global_surplus: HashMap::default(),
+            prices: HashMap::default(),
+            stock_confidence: 50.0,
+            stock_index: 1000.0,
+        };
+
+        let spawn_turn = 7u32;
+        CompanyLifecycle::spawn_new_companies(
+            &mut companies,
+            &mut buildings,
+            &mut country,
+            2024,
+            &market_signal,
+            spawn_turn,
+        );
+
+        assert!(!companies.is_empty(), "expected lifecycle spawn");
+        for company in &companies {
+            assert_eq!(company.founded_turn, spawn_turn);
+        }
+    }
+
+    /// Regression: a young company inside the startup grace window must not be
+    /// liquidated by the sustained-loss rule, even with a full history of
+    /// consecutive losses. Without the age gate the rule fired after ~2-3
+    /// startup turns and mass-liquidated half the corporate sector.
+    #[test]
+    fn test_loss_streak_grace_protects_young_company() {
+        let legal_form = LegalForm::FamilyBusiness(FamilyBusinessData::default());
+        let mut companies = vec![Company::new(
+            "young_loss".to_string(),
+            "Young Loss Co".to_string(),
+            Sector::LocalServices,
+            legal_form,
+            1000.0,
+            0.0,
+            100,
+        )];
+        companies[0].founded_turn = 10;
+        companies[0].company_capital = 500.0;
+        companies[0].financial_history = (0..5)
+            .map(|_| serde_json::json!({"net_profit": -100.0, "revenue": 0.0}))
+            .collect();
+
+        let mut buildings = Vec::new();
+        let mut country = Country::mock_for_tests();
+        country.name = "Test".to_string();
+
+        // Age = 17 turns < TURNS_PER_YEAR: inside the grace window.
+        CompanyLifecycle::liquidate_bankrupt_companies(
+            &mut companies,
+            &mut buildings,
+            &mut country,
+            2024,
+            27,
+        );
+
+        assert_eq!(companies.len(), 1, "young company must survive loss streak");
+    }
+
+    /// Regression: once a company is older than the grace window, three
+    /// consecutive loss records still trigger liquidation.
+    #[test]
+    fn test_loss_streak_liquidates_old_company() {
+        let legal_form = LegalForm::FamilyBusiness(FamilyBusinessData::default());
+        let mut companies = vec![Company::new(
+            "old_loss".to_string(),
+            "Old Loss Co".to_string(),
+            Sector::LocalServices,
+            legal_form,
+            1000.0,
+            0.0,
+            100,
+        )];
+        companies[0].founded_turn = 0;
+        companies[0].company_capital = 500.0;
+        companies[0].financial_history = (0..3)
+            .map(|_| serde_json::json!({"net_profit": -100.0, "revenue": 0.0}))
+            .collect();
+        companies[0].building_ids.push("bld_old".to_string());
+
+        let mut buildings = vec![Building::new(
+            "bld_old".to_string(),
+            "old_loss".to_string(),
+            Sector::LocalServices,
+            100,
+        )];
+        buildings[0].current_employment = 10;
+
+        let mut country = Country::mock_for_tests();
+        country.name = "Test".to_string();
+
+        let grace_turn = crate::state::macro_data::TURNS_PER_YEAR as u32;
+        CompanyLifecycle::liquidate_bankrupt_companies(
+            &mut companies,
+            &mut buildings,
+            &mut country,
+            2024,
+            grace_turn,
+        );
+
+        assert!(
+            companies.is_empty(),
+            "company past grace with 3 loss records must liquidate"
+        );
     }
 }
