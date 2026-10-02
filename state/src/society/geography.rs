@@ -2305,7 +2305,9 @@ pub fn generate_regional_topology(
 }
 
 /// Phase 25: Generate initial class demographics for a region based on its population.
-/// Phase 44: Now era-aware — rural/urban split and class distribution scale by start_year.
+/// Phase 44: Era-aware — rural/urban split and class distribution scale by start_year.
+/// W4: Development-aware — the era tables are the zero-development baseline and
+/// per-region `development_level` urbanizes the mix (see URBAN_DEV_ELASTICITY).
 /// Creates rural and urban classes with reasonable population splits and labor
 /// Phase 47: Seed initial household durables for wealthy classes at Genesis.
 /// `ownership_fraction` controls what fraction of the population owns each durable.
@@ -2372,9 +2374,33 @@ fn seed_initial_durables(demo: &mut ClassDemographics, ownership_fraction: f64, 
     }
 }
 
+/// W4 (macro-viability plan §4.2 D1): strength of development-driven
+/// urbanization. `rural_share = era_baseline × (1 − dev × URBAN_DEV_ELASTICITY)`.
+///
+/// Derivation: within each era anchor, the development frontier ran roughly
+/// 55–65pp lower rural share than agrarian economies (1900: frontier Britain
+/// ~20–25% rural vs agrarian economies ~75–85%; 1950: frontier ~25–30% vs
+/// late-industrializing economies ~60–70%). 0.60 reproduces that spread while
+/// leaving `dev = 0` exactly on the historical era baseline, so the world's
+/// least developed regions still anchor on the documented Phase 44 table.
+const URBAN_DEV_ELASTICITY: f64 = 0.60;
+
+/// W4: subsistence floor on rural share. The food BOM still requires an
+/// agricultural workforce — even at the simulated era's peak mechanization
+/// (≤~1980) frontier economies retained ~5–10% agrarian employment. The floor
+/// guarantees every generated region keeps a food-producing class and can
+/// never urbanize into an impossible 100%-urban demographic.
+const MIN_RURAL_SHARE: f64 = 0.10;
+
 /// participation rates. This is the critical fix for the 100% unemployment bug —
 /// without class demographics, the labor market clearing has no workers to hire.
-fn generate_class_demographics(
+///
+/// W4 (macro-viability plan §4.2): the class mix is now
+/// `f(start_year, development_level)` — the era tables remain the zero-
+/// development baseline and per-region development drives urbanization,
+/// serf emancipation, and the urban Worker/Bourgeoisie split. Pure function:
+/// consumes no RNG, so the shared worldgen rng stream is unchanged.
+pub fn generate_class_demographics(
     region_pop: i64,
     start_year: u32,
     development_level: f64,
@@ -2395,31 +2421,50 @@ fn generate_class_demographics(
     // High development → wealthier citizens (0.5x to 2.0x savings).
     let dev_savings_mult = 0.5 + development_level * 1.5;
 
-    // Phase 44: Era-aware rural/urban split.
+    // Phase 44: Era-aware rural/urban split (baseline at dev = 0).
     // 1900: 80% rural, 20% urban (pre-industrial)
     // 1925: 65% rural, 35% urban (early industrialization)
     // 1950: 50% rural, 50% urban (industrialization)
     // 1975: 40% rural, 60% urban (post-industrial)
-    let rural_share = match start_year {
+    let era_rural_share = match start_year {
         y if y <= 1900 => 0.80,
         y if y <= 1925 => 0.65,
         y if y <= 1950 => 0.50,
         _ => 0.40,
     };
+    // W4: development interpolates the region from the era baseline toward
+    // the urban frontier. Developed regions urbanize; the least developed
+    // stay on the era anchor. Clamped to [food-system floor, era baseline] —
+    // development can only urbanize at worldgen, never re-ruralize.
+    let dev = development_level.clamp(0.0, 1.0);
+    let rural_share = (era_rural_share * (1.0 - dev * URBAN_DEV_ELASTICITY))
+        .clamp(MIN_RURAL_SHARE, era_rural_share);
     let rural_pop = (region_pop as f64 * rural_share) as i64;
     let urban_pop = region_pop - rural_pop;
 
-    // Phase 44: Era-aware rural class distribution.
+    // Phase 44: Era-aware rural class distribution (baseline at dev = 0).
     // 1900: Serfs present (20%), FreePeasants (40%), LandlessLaborers (35%), Aristocracy (5%)
     // 1925: Serfs declining (10%), FreePeasants (50%), LandlessLaborers (35%), Aristocracy (5%)
     // 1950: No serfs, FreePeasants (55%), LandlessLaborers (40%), Aristocracy (5%)
     // 1975: No serfs, FreePeasants (60%), LandlessLaborers (35%), Aristocracy (5%)
-    let (serf_pct, free_peasant_pct, landless_pct, _aristocracy_pct) = match start_year {
-        y if y <= 1900 => (0.20, 0.40, 0.35, 0.05),
-        y if y <= 1925 => (0.10, 0.50, 0.35, 0.05),
-        y if y <= 1950 => (0.00, 0.55, 0.40, 0.05),
-        _ => (0.00, 0.60, 0.35, 0.05),
-    };
+    let (serf_base, free_peasant_base, landless_base, _aristocracy_pct): (f64, f64, f64, f64) =
+        match start_year {
+            y if y <= 1900 => (0.20, 0.40, 0.35, 0.05),
+            y if y <= 1925 => (0.10, 0.50, 0.35, 0.05),
+            y if y <= 1950 => (0.00, 0.55, 0.40, 0.05),
+            _ => (0.00, 0.60, 0.35, 0.05),
+        };
+    // W4: development emancipates — surviving serfdom scales with (1 − dev).
+    // Freed serfs are absorbed by FreePeasant and LandlessLaborer at the era's
+    // own ratio (land-reform generosity is an era property, not a per-region
+    // draw — no RNG consumed). The non-aristocrat rural total stays 95% at
+    // every development level, so Aristocracy continues to absorb rounding.
+    let serf_pct = serf_base * (1.0 - dev);
+    let freed_serfs = serf_base - serf_pct;
+    let peasant_pool = (free_peasant_base + landless_base).max(f64::EPSILON);
+    let free_peasant_pct =
+        free_peasant_base + freed_serfs * (free_peasant_base / peasant_pool);
+    let landless_pct = landless_base + freed_serfs * (landless_base / peasant_pool);
 
     let serf_pop = (rural_pop as f64 * serf_pct) as i64;
     let free_peasant_pop = (rural_pop as f64 * free_peasant_pct) as i64;
@@ -2488,10 +2533,22 @@ fn generate_class_demographics(
         demo
     });
 
-    // Urban classes:
-    // - Workers: 70% of urban population
-    // - Bourgeoisie: 30% of urban population
-    let worker_pop = (urban_pop as f64 * 0.70) as i64;
+    // Urban classes (W4): the Worker share of the urban pool drifts with
+    // development — early-era development industrializes cities (Worker
+    // grows within urban), while the late anchor tertiarizes them
+    // (Bourgeoisie grows within urban). dev = 0 keeps the legacy 70/30
+    // split at every era; combined Worker+Bourgeoisie population always
+    // grows with dev because the urban pool itself urbanizes. Drift
+    // magnitude mirrors the corporate generator's development bias
+    // (`dev_bias` in engine/generator/corporate.rs).
+    let worker_drift = match start_year {
+        y if y <= 1900 => 0.20,
+        y if y <= 1925 => 0.15,
+        y if y <= 1950 => 0.0,
+        _ => -0.15,
+    };
+    let worker_pct = (0.70 + worker_drift * dev).clamp(0.50, 0.90);
+    let worker_pop = (urban_pop as f64 * worker_pct) as i64;
     let middle_pop = urban_pop - worker_pop;
 
     urban_classes.insert(UrbanClass::Worker, {

@@ -120,6 +120,11 @@ name = "grid_distribution_viability_test"
 path = "tests/epics/grid_distribution_viability_test.rs"
 required-features = ["epic-tests", "diagnostic"]
 
+[[test]]
+name = "demographic_dynamics_test"
+path = "tests/epics/demographic_dynamics_test.rs"
+required-features = ["epic-tests", "diagnostic"]
+
 [profile.release]
 opt-level = 3
 lto = true
