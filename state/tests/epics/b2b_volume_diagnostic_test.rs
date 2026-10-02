@@ -371,13 +371,13 @@ fn test_b2b_volume_clamps() {
         if let Some(indices) = owned_indices {
             for &bi in indices {
                 let b = &ents.buildings[bi];
-                for (&commodity, _) in &b.active_method.outputs {
+                for &commodity in b.active_method.outputs.keys() {
                     let name = format!("{:?}", commodity);
                     if seen_out.insert(name.clone()) {
                         output_commodities.push(name);
                     }
                 }
-                for (_commodity, qty) in b.inventory.iter() {
+                for qty in b.inventory.values() {
                     total_inventory += *qty;
                 }
             }

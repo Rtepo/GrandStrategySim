@@ -2603,7 +2603,7 @@ pub fn process_banking_turn(
             let is_banking_sector = c.sector == crate::registries::enums::Sector::Banking;
             if has_bank_type != is_banking_sector {
                 let cash = c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash;
-                eprintln!("MISMATCH: turn={} country={} id={} bank_type={:?} sector={:?} cash={:.0} primary_bank={:?}", current_turn, &country.name, c.id, c.bank_type, c.sector, cash, c.primary_bank_id);
+                eprintln!("MISMATCH: turn={} country={} id={} bank_type={:?} sector={:?} cash={:.0} primary_bank={:?}", current_turn, country.name, c.id, c.bank_type, c.sector, cash, c.primary_bank_id);
             }
         }
         let total_br: f64 = companies.iter()
@@ -2640,7 +2640,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[0_start]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[0_start]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         // Phase 94: Full fiat trace including ALL walk_global_fiat reservoirs
         {
             let mut ministry_cash = 0.0_f64;
@@ -2656,7 +2656,7 @@ pub fn process_banking_turn(
                 for &v in js.frozen_company_cash.values() { frozen += v.max(0.0); }
             }
             let full_m0 = total_m0 + ministry_cash + arb + blackops + intel + frozen;
-            eprintln!("FULLFIAT_PRE: turn={} country={} full_m0={:.0} bankstep_m0={:.0} diff={:.0} min={:.0} arb={:.0} blackops={:.0} intel={:.0} frozen={:.0}", current_turn, &country.name, full_m0, total_m0, full_m0 - total_m0, ministry_cash, arb, blackops, intel, frozen);
+            eprintln!("FULLFIAT_PRE: turn={} country={} full_m0={:.0} bankstep_m0={:.0} diff={:.0} min={:.0} arb={:.0} blackops={:.0} intel={:.0} frozen={:.0}", current_turn, country.name, full_m0, total_m0, full_m0 - total_m0, ministry_cash, arb, blackops, intel, frozen);
         }
         _diag_step_trace!("0_start");
         _diag_m0_step!("0_start");
@@ -2757,7 +2757,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[2_omo]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[2_omo]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("2_omo");
         _diag_m0_step!("2_omo");
     }
@@ -2790,7 +2790,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[3_interbank]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[3_interbank]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("3_interbank");
         _diag_m0_step!("3_interbank");
     }
@@ -2837,7 +2837,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[4_depfac]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[4_depfac]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("4_depfac");
         _diag_m0_step!("4_depfac");
     }
@@ -2893,7 +2893,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[5_lombard]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[5_lombard]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("5_lombard");
         _diag_m0_step!("5_lombard");
     }
@@ -3011,7 +3011,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[6_loanrepay]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[6_loanrepay]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("6_loanrepay");
         _diag_m0_step!("6_loanrepay");
     }
@@ -3151,7 +3151,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[6b_borrower_debits]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[6b_borrower_debits]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("6b_borrower_debits");
         _diag_m0_step!("6b_borrower_debits");
     }
@@ -3284,7 +3284,7 @@ pub fn process_banking_turn(
                     companies[borrower_idx].available_cash += lr.principal_amount;
                 }
                 #[cfg(feature = "diagnostic")]
-                eprintln!("LOANISSUE: turn={} borrower={} bank={} principal={:.2} had_ba={} unbanked={}", current_turn, &companies[borrower_idx].id, &companies[bi].id, lr.principal_amount, _had_ba, _was_unbanked);
+                eprintln!("LOANISSUE: turn={} borrower={} bank={} principal={:.2} had_ba={} unbanked={}", current_turn, companies[borrower_idx].id, companies[bi].id, lr.principal_amount, _had_ba, _was_unbanked);
                 // Phase 94: For unbanked borrowers (no primary_bank_id), the
                 // credited cash (brokerage_account.cash OR available_cash) is
                 // M0 base money. The deposit created by issue_loan is NOT in
@@ -3326,7 +3326,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[7_newloans]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[7_newloans]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("7_newloans");
         _diag_m0_step!("7_newloans");
     }
@@ -3367,7 +3367,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[8_bfg]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[8_bfg]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("8_bfg");
         _diag_m0_step!("8_bfg");
     }
@@ -3405,7 +3405,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[9_tax]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[9_tax]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("9_tax");
         _diag_m0_step!("9_tax");
     }
@@ -3466,7 +3466,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[10_resolution]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[10_resolution]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("10_resolution");
         _diag_m0_step!("10_resolution");
     }
@@ -3508,7 +3508,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[11_sobk]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[11_sobk]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("11_sobk");
         _diag_m0_step!("11_sobk");
     }
@@ -3686,7 +3686,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[12_microloans]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[12_microloans]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("12_microloans");
         _diag_m0_step!("12_microloans");
     }
@@ -3946,7 +3946,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[13_consumerloans]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[13_consumerloans]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("13_consumerloans");
         _diag_m0_step!("13_consumerloans");
     }
@@ -4005,7 +4005,7 @@ pub fn process_banking_turn(
             .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
             .sum::<f64>();
         let total_m0 = total_br + country.bfg_fund.reserves + country.sobk_scheme.pool + country.budget.liquid_reserves + total_citizen + total_corp;
-        eprintln!("BANKSTEP3[14_qe]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
+        eprintln!("BANKSTEP3[14_qe]: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves);
         _diag_step_trace!("14_qe");
         _diag_m0_step!("14_qe");
     }
@@ -4117,7 +4117,7 @@ pub fn process_banking_turn(
         let delta_m0 = total_m0 - _diag_m0_start;
         let delta_cb = country.central_bank.liquidity_injected - _diag_cb_inj_start;
         let leak = delta_m0 - delta_cb;
-        eprintln!("BANKSUMMARY: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0} dm0={:.0} dcb={:.0} leak={:.0}", current_turn, &country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves, delta_m0, delta_cb, leak);
+        eprintln!("BANKSUMMARY: turn={} country={} m0={:.0} cb={:.0} br={:.0} cit={:.0} corp={:.0} bfg={:.0} sobk={:.0} tr={:.0} dm0={:.0} dcb={:.0} leak={:.0}", current_turn, country.name, total_m0, country.central_bank.liquidity_injected, total_br, total_citizen, total_corp, country.bfg_fund.reserves, country.sobk_scheme.pool, country.budget.liquid_reserves, delta_m0, delta_cb, leak);
     }
 
     result

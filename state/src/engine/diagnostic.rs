@@ -1780,7 +1780,7 @@ impl TurnProbe for CapturingProbe {
 #[cfg(feature = "diagnostic")]
 pub fn write_turn_trace_json(trace: &TurnTrace, path: &Path) -> std::io::Result<()> {
     let json = serde_json::to_string_pretty(trace)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+        .map_err(|e| std::io::Error::other(e.to_string()))?;
     std::fs::write(path, json)
 }
 
@@ -2197,17 +2197,17 @@ pub fn write_all_dumps(
     std::fs::write(
         output_dir.join("sector_ledger.json"),
         serde_json::to_string_pretty(&sector)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?,
+            .map_err(|e| std::io::Error::other(e.to_string()))?,
     )?;
     std::fs::write(
         output_dir.join("market_clearing.json"),
         serde_json::to_string_pretty(&clearing)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?,
+            .map_err(|e| std::io::Error::other(e.to_string()))?,
     )?;
     std::fs::write(
         output_dir.join("banking_state.json"),
         serde_json::to_string_pretty(&banking)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?,
+            .map_err(|e| std::io::Error::other(e.to_string()))?,
     )?;
 
     // Manifest
@@ -2223,7 +2223,7 @@ pub fn write_all_dumps(
         manifest_file,
         "{}",
         serde_json::to_string_pretty(&manifest)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+            .map_err(|e| std::io::Error::other(e.to_string()))?
     )?;
 
     Ok(())

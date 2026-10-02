@@ -243,7 +243,7 @@ fn test_market_gridlock_diagnostic() {
         let mut bank = Company::new(
             format!(
                 "BANK-{}-TST",
-                &cname[..3.min(cname.len())].to_uppercase()
+                cname[..3.min(cname.len())].to_uppercase()
             ),
             format!("Test Bank of {}", cname),
             Sector::Banking,
