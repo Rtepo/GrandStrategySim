@@ -13,19 +13,57 @@ use crate::economy::production::weather::get_region_weather_modifier;
 use crate::economy::production::weather::WeatherState;
 use crate::energy::generation::{compute_marginal_cost, weather_output_multiplier};
 use crate::energy::types::*;
-use crate::entities::Building;
+use crate::entities::{Building, Company};
 use crate::registries::enums::{Commodity, Sector};
 use crate::society::geography::{EdgeType, Region};
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use crate::state::{Country, Season};
+use crate::utilities::demand::UtilityDemand;
 
-use rand::Rng;
+use rand::{Rng, SeedableRng};
 use std::collections::HashMap;
 
 /// Base loss rate per km for HV transmission lines.
 /// 5% per 1000 km at perfect condition — physically realistic for ACSR
 /// conductors at 220-400 kV.
 const HV_BASE_LOSS_RATE: f64 = 0.00005;
+
+/// Hours per turn: 8760 h/year ÷ TURNS_PER_YEAR turns (e.g. 365 h at 24).
+/// `electricity_demand`/`electricity_capacity` are kWh of ENERGY per turn;
+/// the grid works in MW of POWER, so conversion requires dividing by
+/// hours-per-turn in addition to the kWh→MWh factor of 1000.
+const HOURS_PER_TURN: f64 = 8760.0 / crate::state::macro_data::TURNS_PER_YEAR as f64;
+
+/// Phase 96: Regulated rate of return on prudent utility operating costs.
+/// Cost-of-service regulation reimburses dispatched generators for fuel and
+/// payroll plus this return — the era-accurate model for monopoly grid
+/// utilities, and the mechanism that lets energy companies cover payrolls
+/// that consumer tariffs (priced per-kWh) cannot reach.
+const UTILITY_REGULATED_RETURN: f64 = 0.05;
+
+/// Engineering headroom factor for LV distribution capacity: 20% safety
+/// margin over measured demand — standard grid design practice.
+const LV_HEADROOM_FACTOR: f64 = 1.2;
+
+/// Minimum LV capacity per region (MW) — a floor for regions with no
+/// connected buildings yet (pre-electrification).
+const MIN_REGION_LV_CAPACITY_MW: f64 = 0.1;
+
+/// MV (sub-transmission) capacity is provisioned at 3× LV — the MV layer
+/// must carry LV load plus inter-substation transfer headroom.
+const MV_TO_LV_RATIO: f64 = 3.0;
+
+/// Labor content of LV/MV distribution buildout, in worker-years of fully
+/// loaded cost (labor + materials) per MW of added network capacity.
+/// Engineering order-of-magnitude for lines, substations, and connection
+/// works; priced in `average_wage` units at use-site (never nominal).
+const LV_BUILD_LABOR_YEARS_PER_MW: f64 = 4.0;
+
+/// Distribution buildout horizon: a region's LV shortfall closes over two
+/// simulation years of turns. A rate limit (not instant construction) —
+/// physical crews need time; derived from TURNS_PER_YEAR, not arbitrary.
+const GRID_BUILD_HORIZON_TURNS: f64 =
+    2.0 * crate::state::macro_data::TURNS_PER_YEAR as f64;
 
 /// Calculate transmission loss for an HV line based on distance and condition.
 ///
@@ -61,10 +99,11 @@ pub fn transmission_loss(line: &GridLine) -> f64 {
 ///   replaces the old `pop * dev * wage / 500_000` magic formula (Rule 2/15).
 pub fn init_power_grid(
     country: &mut Country,
+    regions: &[Region],
     housing_buildings: &[HousingBuilding],
     commercial_buildings: &[CommercialBuilding],
     start_year: u32,
-    rng: &mut impl Rng,
+    _rng: &mut impl Rng,
 ) {
     let grid = &mut country.power_grid_state;
 
@@ -79,49 +118,74 @@ pub fn init_power_grid(
     grid.overproduction_tiers.clear();
 
     // Sort regions by ID for deterministic iteration.
-    let mut sorted_regions: Vec<&Region> = country.regions.iter().collect();
+    // NOTE: `regions` is passed explicitly because `country.regions` is only
+    // assembled at load time (turn_context) — during world generation it is
+    // still empty, which would leave every LV/MV capacity map empty and
+    // clamp `effective_supply` to 0 MW forever (permanent blackout).
+    let mut sorted_regions: Vec<&Region> = regions.iter().collect();
     sorted_regions.sort_by(|a, b| a.id.cmp(&b.id));
 
     // Bugfix Sprint (5B): Aggregate actual connected electricity demand per
     // region from housing + commercial buildings. electricity_capacity is in
-    // kWh/turn; convert to MW (1 MWh = 1000 kWh), matching grid.rs:296.
+    // kWh of energy per turn; convert to average MW of power via hours-per-turn.
+    let kwh_per_turn_to_mw = 1.0 / (1000.0 * HOURS_PER_TURN);
     let mut regional_demand_mw: HashMap<String, f64> = HashMap::new();
     for region in &sorted_regions {
         regional_demand_mw.insert(region.id.clone(), 0.0);
     }
     for hb in housing_buildings {
-        if let Some(rid) = sorted_regions
-            .iter()
-            .find(|r| r.micro_regions.contains_key(&hb.micro_region_id))
-            .map(|r| r.id.clone())
-        {
-            let demand_mw = hb.utility_connections.electricity_capacity / 1000.0;
+        if let Some(rid) = resolve_building_region(&sorted_regions, &hb.micro_region_id) {
+            let demand_mw = hb.utility_connections.electricity_capacity * kwh_per_turn_to_mw;
             *regional_demand_mw.get_mut(&rid).unwrap() += demand_mw;
         }
     }
     for cb in commercial_buildings {
-        if let Some(rid) = sorted_regions
-            .iter()
-            .find(|r| r.micro_regions.contains_key(&cb.micro_region_id))
-            .map(|r| r.id.clone())
-        {
-            let demand_mw = cb.utility_connections.electricity_capacity / 1000.0;
+        if let Some(rid) = resolve_building_region(&sorted_regions, &cb.micro_region_id) {
+            let demand_mw = cb.utility_connections.electricity_capacity * kwh_per_turn_to_mw;
             *regional_demand_mw.get_mut(&rid).unwrap() += demand_mw;
         }
     }
+    // Industrial demand: the runtime collector adds employment × 2 kW per
+    // non-energy building (collect_regional_supply_demand). At worldgen the
+    // workforce is not yet hired, so project the region's labor pool using
+    // the same population × participation formula labor.rs applies per turn
+    // (`available_fte` is still 0 at this stage). Without this term the LV
+    // capacity under-covers industrial load by an order of magnitude.
+    for region in &sorted_regions {
+        let labor_pool_fte: f64 = region
+            .class_demographics
+            .rural_classes
+            .values()
+            .chain(region.class_demographics.urban_classes.values())
+            .map(|d| {
+                let pop = d.population.max(0) as f64;
+                let participation = d.labor_participation.max(0.0).min(1.0);
+                (pop * participation).min(pop * 1.5)
+            })
+            .sum();
+        *regional_demand_mw.get_mut(&region.id).unwrap() += labor_pool_fte * 0.002;
+    }
 
     // Calculate LV/MV capacities for each region from actual demand.
-    // Engineering headroom factor: 1.2 (20% safety margin — standard grid
-    // design practice, not a magic number).
-    const LV_HEADROOM_FACTOR: f64 = 1.2;
     for region in &sorted_regions {
         let actual_demand_mw = regional_demand_mw.get(&region.id).copied().unwrap_or(0.0);
-        // LV capacity = max(actual_demand * headroom, 0.1) — floor of 0.1 MW
-        // for regions with no connected buildings (pre-electrification).
-        let lv_capacity = (actual_demand_mw * LV_HEADROOM_FACTOR).max(0.1);
-        let mv_capacity = lv_capacity * 3.0;
-        let lv_condition = 0.80 + rng.gen_range(0.0..0.20);
-        let mv_condition = 0.80 + rng.gen_range(0.0..0.20);
+        // LV capacity = max(actual_demand * headroom, floor) — the floor
+        // covers regions with no connected buildings (pre-electrification).
+        let lv_capacity =
+            (actual_demand_mw * LV_HEADROOM_FACTOR).max(MIN_REGION_LV_CAPACITY_MW);
+        let mv_capacity = lv_capacity * MV_TO_LV_RATIO;
+        // Region-keyed local RNG: drawing grid conditions from the shared
+        // worldgen stream would shift every downstream consumer's draws and
+        // make unrelated subsystems sensitive to grid iteration order. The
+        // per-region stream is deterministic and stable across worlds.
+        let mut cond_rng = {
+            use std::hash::{Hash, Hasher};
+            let mut h = std::collections::hash_map::DefaultHasher::new();
+            region.id.hash(&mut h);
+            rand::rngs::StdRng::seed_from_u64(h.finish() ^ 0x9E37_79B9_7F4A_7C15)
+        };
+        let lv_condition = 0.80 + cond_rng.gen_range(0.0..0.20);
+        let mv_condition = 0.80 + cond_rng.gen_range(0.0..0.20);
 
         grid.region_lv_capacity
             .insert(region.id.clone(), lv_capacity);
@@ -158,7 +222,7 @@ pub fn init_power_grid(
 
     // Build a lookup of region ID → region for population lookups.
     let region_map: HashMap<String, &Region> =
-        country.regions.iter().map(|r| (r.id.clone(), r)).collect();
+        regions.iter().map(|r| (r.id.clone(), r)).collect();
 
     // Collect candidate edges deterministically (sorted by from_region, to_region).
     let mut candidate_edges: Vec<(String, String, f64)> = Vec::new();
@@ -236,7 +300,16 @@ pub fn init_power_grid(
             .map(|r| r.population.max(1) as f64)
             .unwrap_or(1.0);
         let capacity = from_pop.min(to_pop) / capacity_divisor;
-        let condition = condition_base + rng.gen_range(0.0..0.15);
+        // Edge-keyed local RNG — same isolation rationale as the LV/MV
+        // condition draws above: the shared worldgen stream must not shift
+        // with grid topology.
+        let mut edge_rng = {
+            use std::hash::{Hash, Hasher};
+            let mut h = std::collections::hash_map::DefaultHasher::new();
+            (from_region.as_str(), to_region.as_str()).hash(&mut h);
+            rand::rngs::StdRng::seed_from_u64(h.finish() ^ 0xB529_7A4D_8F79_9FB1)
+        };
+        let condition = condition_base + edge_rng.gen_range(0.0..0.15);
 
         line_counter += 1;
         grid.hv_lines.push(GridLine {
@@ -252,6 +325,28 @@ pub fn init_power_grid(
             current_flow_mw: 0.0,
         });
     }
+}
+
+/// Resolve a building's `micro_region_id` to its parent region ID.
+///
+/// Worldgen writes the bare region ID into `micro_region_id` for housing,
+/// while other generators write a real micro-region key — accept both.
+fn resolve_building_region(regions: &[&Region], micro_region_id: &str) -> Option<String> {
+    regions
+        .iter()
+        .find(|r| {
+            r.micro_regions.contains_key(micro_region_id) || r.id == micro_region_id
+        })
+        .map(|r| r.id.clone())
+}
+
+fn resolve_building_region_slice(regions: &[Region], micro_region_id: &str) -> Option<String> {
+    regions
+        .iter()
+        .find(|r| {
+            r.micro_regions.contains_key(micro_region_id) || r.id == micro_region_id
+        })
+        .map(|r| r.id.clone())
 }
 
 /// HV connectivity mode for era-scaled grid initialization.
@@ -277,6 +372,7 @@ fn collect_regional_supply_demand(
     regions: &[Region],
     _grid: &PowerGridState,
     weather_state: &crate::economy::production::weather::WeatherState,
+    season: Season,
 ) -> (
     HashMap<String, f64>,
     HashMap<String, f64>,
@@ -330,37 +426,47 @@ fn collect_regional_supply_demand(
         // never exceed the plant's physical nameplate, preventing "matter from
         // the void" when inventory exceeds nameplate.
         let weather_adjusted_supply = (energy_in_inventory * weather_multiplier).min(nameplate);
-        *supply_mw.get_mut(region_id).unwrap_or(&mut 0.0) += weather_adjusted_supply;
+        if let Some(slot) = supply_mw.get_mut(region_id) {
+            *slot += weather_adjusted_supply;
+        } else {
+            // A region_id that no Region owns is a keying bug — never drop the
+            // generated MW silently into a discarded temporary.
+            #[cfg(feature = "diagnostic")]
+            eprintln!(
+                "GRIDORPHAN: plant {} region_id='{}' not in region map; {:.1} MW unaccounted",
+                building.id, region_id, weather_adjusted_supply
+            );
+        }
         // Bugfix Sprint (5C): Only count buildings with PowerPlantMetadata
         // toward max_capacity_mw, so regional and national capacity reconcile.
         if has_metadata {
-            *max_capacity_mw.get_mut(region_id).unwrap_or(&mut 0.0) += nameplate;
+            if let Some(slot) = max_capacity_mw.get_mut(region_id) {
+                *slot += nameplate;
+            }
         }
     }
 
     // Collect demand from housing buildings.
     // Housing buildings use micro_region_id, so we need to map them to regions.
+    // Demand is the physical need from UtilityDemand (kWh/turn → MW), NOT the
+    // previous turn's allocated `electricity_capacity` — reading the allocation
+    // back as demand creates a circular collapse when supply is interrupted.
     for hb in housing_buildings {
-        // Find which region contains this micro_region.
-        let region_id = regions
-            .iter()
-            .find(|r| r.micro_regions.contains_key(&hb.micro_region_id))
-            .map(|r| r.id.clone());
+        let region_id = resolve_building_region_slice(regions, &hb.micro_region_id);
         if let Some(rid) = region_id {
-            // Electricity capacity is in kWh per turn. Convert to MW (1 MWh = 1000 kWh).
-            let demand = hb.utility_connections.electricity_capacity / 1000.0;
+            // kWh of energy per turn → average MW of power over the turn.
+            let demand = UtilityDemand::for_housing_physical(hb, season).electricity_demand
+                / (1000.0 * HOURS_PER_TURN);
             *demand_mw.get_mut(&rid).unwrap_or(&mut 0.0) += demand;
         }
     }
 
     // Collect demand from commercial buildings.
     for cb in commercial_buildings {
-        let region_id = regions
-            .iter()
-            .find(|r| r.micro_regions.contains_key(&cb.micro_region_id))
-            .map(|r| r.id.clone());
+        let region_id = resolve_building_region_slice(regions, &cb.micro_region_id);
         if let Some(rid) = region_id {
-            let demand = cb.utility_connections.electricity_capacity / 1000.0;
+            let demand = UtilityDemand::for_commercial_physical(cb, season).electricity_demand
+                / (1000.0 * HOURS_PER_TURN);
             *demand_mw.get_mut(&rid).unwrap_or(&mut 0.0) += demand;
         }
     }
@@ -372,7 +478,10 @@ fn collect_regional_supply_demand(
         }
         let region_id = &building.region_id;
         // Industrial electricity demand is proportional to employment.
-        let demand = building.current_employment as f64 * 0.002; // 2 kW per worker
+        // current_employment is per-plant; all scale_factor plants consume.
+        let demand = building.current_employment as f64
+            * building.scale_factor.max(1) as f64
+            * 0.002; // 2 kW per worker
         *demand_mw.get_mut(region_id).unwrap_or(&mut 0.0) += demand;
     }
 
@@ -500,10 +609,11 @@ fn dc_flow_balancing(
 pub fn distribute_grid_power(
     country: &mut Country,
     buildings: &mut [Building],
-    housing_buildings: &[HousingBuilding],
-    commercial_buildings: &[CommercialBuilding],
-    _season: Season,
+    housing_buildings: &mut [HousingBuilding],
+    commercial_buildings: &mut [CommercialBuilding],
+    season: Season,
     fuel_prices: &HashMap<Commodity, f64>,
+    companies: &mut [Company],
 ) -> GridDistributionResult {
     let mut result = GridDistributionResult::default();
 
@@ -530,6 +640,7 @@ pub fn distribute_grid_power(
         &country.regions,
         &grid,
         &weather_state,
+        season,
     );
 
     // Record initial values.
@@ -576,20 +687,52 @@ pub fn distribute_grid_power(
     let mut sorted_regions: Vec<&Region> = country.regions.iter().collect();
     sorted_regions.sort_by(|a, b| a.id.cmp(&b.id));
 
+    // Phase 96: Deferred regulated-offtake payments — (plant_id, amount due).
+    // Collected per region, applied once after the loop so the treasury
+    // pro-rata is computed against the national total, not region order.
+    let mut pending_settlements: Vec<(String, f64)> = Vec::new();
+
     for region in &sorted_regions {
         let region_id = &region.id;
         let supply = supply_mw.get(region_id).copied().unwrap_or(0.0);
         let demand = demand_mw.get(region_id).copied().unwrap_or(0.0);
-        let lv_cap = grid
-            .region_lv_capacity
-            .get(region_id)
-            .copied()
-            .unwrap_or(0.0);
-        let mv_cap = grid
-            .region_mv_capacity
-            .get(region_id)
-            .copied()
-            .unwrap_or(0.0);
+        // Reconcile missing LV/MV keys: absent entries mean the map was never
+        // seeded (legacy save) or the region appeared post-worldgen — NOT a
+        // real zero-capacity wire. Seed from this turn's measured demand at
+        // the worldgen formula instead of silently clamping to blackout.
+        let lv_cap = match grid.region_lv_capacity.get(region_id).copied() {
+            Some(cap) => cap,
+            None => {
+                // LV serves consumers only — generators inject at MV/HV.
+                // Seed from load, matching the worldgen formula.
+                let seeded =
+                    (demand * LV_HEADROOM_FACTOR).max(MIN_REGION_LV_CAPACITY_MW);
+                #[cfg(feature = "diagnostic")]
+                eprintln!(
+                    "GRID96-RECONCILE[{}]: missing LV cap, seeded {:.2} MW from demand {:.2}",
+                    region_id, seeded, demand
+                );
+                grid.region_lv_capacity.insert(region_id.clone(), seeded);
+                grid.region_lv_condition.entry(region_id.clone()).or_insert(0.9);
+                seeded
+            }
+        };
+        let mv_cap = match grid.region_mv_capacity.get(region_id).copied() {
+            Some(cap) => cap,
+            None => {
+                // MV collects all regional generation AND feeds LV — it must
+                // cover the larger of injection or the LV distribution ring.
+                let seeded = (lv_cap * MV_TO_LV_RATIO).max(supply * LV_HEADROOM_FACTOR);
+                #[cfg(feature = "diagnostic")]
+                eprintln!(
+                    "GRID96-RECONCILE[{}]: missing MV cap, seeded {:.2} MW",
+                    region_id, seeded
+                );
+                grid.region_mv_capacity.insert(region_id.clone(), seeded);
+                grid.region_mv_condition.entry(region_id.clone()).or_insert(0.9);
+                seeded
+            }
+        };
         let storage_abs = storage_absorbed.get(region_id).copied().unwrap_or(0.0);
 
         // LV/MV capacity limit: supply can't exceed grid capacity.
@@ -660,12 +803,19 @@ pub fn distribute_grid_power(
             }
         }
 
-        // Apply load shedding penalties.
+        // Apply load shedding penalties. The unmet fraction scales the
+        // blackout penalty so delivered power still counts as delivered.
         if shed_tier != LoadShedTier::Normal {
+            let unmet_ratio = if demand > 0.0 {
+                (1.0 - effective_supply / demand).clamp(0.0, 1.0)
+            } else {
+                0.0
+            };
             crate::energy::load_shedding::apply_load_shedding(
                 region_id,
                 shed_tier,
                 priority,
+                unmet_ratio,
                 buildings,
                 &country.regions,
                 commercial_buildings,
@@ -683,6 +833,37 @@ pub fn distribute_grid_power(
             &weather_state,
         );
         let (spot_price, dispatch_results) = clear_spot_market(&merit_stack, demand, average_wage);
+        // Store the write-time scarcity ceiling alongside the spot so
+        // post-turn audits compare like-for-like (average_wage drifts
+        // mid-turn — post-hoc readers can't reconstruct the bound).
+        let (_, write_time_ceiling) = spot_price_bounds(average_wage);
+        grid.region_spot_ceiling
+            .insert(region_id.clone(), write_time_ceiling);
+        // Surplus clearing prices track the last dispatched plant's
+        // marginal cost (uncapped path above) — record it as the honest
+        // upper bound for audits.
+        let clearing_marginal = dispatch_results
+            .last()
+            .and_then(|(pid, _)| {
+                merit_stack
+                    .iter()
+                    .find(|(id, _, _)| id == pid)
+                    .map(|(_, mc, _)| *mc)
+            })
+            .unwrap_or(0.0);
+        grid.region_spot_marginal_cost
+            .insert(region_id.clone(), clearing_marginal);
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "GRID96[{}]: supply={:.1} demand={:.1} stack={} dispatched_plants={} spot={:.4} avg_wage={:.2}",
+            region_id,
+            effective_supply,
+            demand,
+            merit_stack.len(),
+            dispatch_results.len(),
+            spot_price,
+            average_wage
+        );
 
         grid.spot_prices.insert(region_id.clone(), spot_price);
         result
@@ -709,14 +890,286 @@ pub fn distribute_grid_power(
                 .insert(plant_id.clone(), revenue);
         }
 
+        // Phase 96: Deliver allocated supply to consumers. The grid is the
+        // single writer of `electricity_capacity` for electricity — the legacy
+        // `distribute_utilities` path no longer touches it. Consumers receive
+        // a pro-rata share of what was actually dispatched (Rule 5).
+        let dispatched_total: f64 = dispatch_results.iter().map(|(_, mw)| *mw).sum();
+        let mut consumer_demand_mw = 0.0;
+        for hb in housing_buildings.iter() {
+            if resolve_building_region(&sorted_regions, &hb.micro_region_id).as_deref()
+                != Some(region.id.as_str())
+            {
+                continue;
+            }
+            consumer_demand_mw +=
+                UtilityDemand::for_housing_physical(hb, season).electricity_demand
+                    / (1000.0 * HOURS_PER_TURN);
+        }
+        for cb in commercial_buildings.iter() {
+            if resolve_building_region(&sorted_regions, &cb.micro_region_id).as_deref()
+                != Some(region.id.as_str())
+            {
+                continue;
+            }
+            consumer_demand_mw +=
+                UtilityDemand::for_commercial_physical(cb, season).electricity_demand
+                    / (1000.0 * HOURS_PER_TURN);
+        }
+        if consumer_demand_mw > 0.0 {
+            let alloc_mw = dispatched_total.min(consumer_demand_mw);
+            for hb in housing_buildings.iter_mut() {
+                if resolve_building_region(&sorted_regions, &hb.micro_region_id).as_deref()
+                    != Some(region.id.as_str())
+                {
+                    continue;
+                }
+                let d = UtilityDemand::for_housing_physical(hb, season).electricity_demand
+                    / (1000.0 * HOURS_PER_TURN);
+                // MW of power delivered → kWh of energy for the whole turn.
+                hb.utility_connections.electricity_capacity =
+                    alloc_mw * (d / consumer_demand_mw) * 1000.0 * HOURS_PER_TURN;
+            }
+            for cb in commercial_buildings.iter_mut() {
+                if resolve_building_region(&sorted_regions, &cb.micro_region_id).as_deref()
+                    != Some(region.id.as_str())
+                {
+                    continue;
+                }
+                let d = UtilityDemand::for_commercial_physical(cb, season).electricity_demand
+                    / (1000.0 * HOURS_PER_TURN);
+                cb.utility_connections.electricity_capacity =
+                    alloc_mw * (d / consumer_demand_mw) * 1000.0 * HOURS_PER_TURN;
+            }
+        }
+
+        // Phase 96: Regulated offtake settlement — deferred application below.
+        // Every plant that offered generation is reimbursed (fuel cost + wage
+        // bill) times a regulated return by the state grid — a take-or-pay
+        // offtake contract, not just dispatch. Electricity is not B2B-traded
+        // and the consumer tariff covers only a fraction of cost — without
+        // this settlement the sector cannot cover payroll and collapses,
+        // taking the grid (and every power-dependent industry) with it.
+        // Settling only dispatched plants left staffed generators burning
+        // payroll whenever a cheaper neighbor covered regional demand —
+        // the undispatched majority bled out and furloughed within 2 turns.
+        for (plant_id, marginal_cost, available_mw) in &merit_stack {
+            if *available_mw <= 0.0 {
+                continue;
+            }
+            let Some(plant) = buildings.iter().find(|b| &b.id == plant_id) else {
+                continue;
+            };
+            let fuel_cost = marginal_cost * available_mw;
+            let wage_multiplier = plant.active_method.experts_ratio * 3.0
+                + plant.active_method.skilled_ratio * 2.0
+                + plant.active_method.basic_ratio;
+            // current_employment is per-plant; the company's payroll spans all
+            // scale_factor virtual plants — settlement must cover the full crew.
+            let wage_bill = plant.current_employment as f64
+                * plant.scale_factor.max(1) as f64
+                * average_wage
+                * wage_multiplier;
+            pending_settlements.push((
+                plant_id.clone(),
+                (wage_bill + fuel_cost) * (1.0 + UTILITY_REGULATED_RETURN),
+            ));
+        }
+
         // Record final supply/demand.
         result
             .region_supply_mw
+            .insert(region_id.clone(), effective_supply);
+        grid.region_net_supply_mw
+            .insert(region_id.clone(), supply);
+        grid.region_wire_cap_mw
+            .insert(region_id.clone(), grid_cap);
+        grid.region_effective_supply_mw
             .insert(region_id.clone(), effective_supply);
         result.region_demand_mw.insert(region_id.clone(), demand);
         result
             .region_storage_absorbed_mw
             .insert(region_id.clone(), storage_abs);
+    }
+
+    // Phase 96: Apply the regulated offtake settlement. The state grid pays
+    // each dispatched generator (wage bill + fuel cost) × (1 + regulated
+    // return), debited from `budget.liquid_reserves` (an ordinary state
+    // procurement outflow — M0-conserved). If the treasury cannot cover the
+    // full amount, payments are pro-rated rather than partially dropped.
+    // Revenue is booked into `last_profit`/`last_output_value` so the company
+    // P&L reflects real offtake income, and credited to `available_cash` so
+    // payroll can actually be met.
+    let total_due: f64 = pending_settlements.iter().map(|(_, a)| *a).sum();
+    let treasury_available = country.budget.liquid_reserves.max(0.0);
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "GRID96-SETTLE[{}]: plants={} total_due={:.2} treasury={:.2}",
+        country.name,
+        pending_settlements.len(),
+        total_due,
+        treasury_available
+    );
+    let pay_scale = if total_due > 0.0 {
+        (treasury_available / total_due).min(1.0)
+    } else {
+        0.0
+    };
+    for (plant_id, due) in pending_settlements {
+        let payment = due * pay_scale;
+        if payment <= 0.0 {
+            continue;
+        }
+        let Some(plant) = buildings.iter_mut().find(|b| b.id == plant_id) else {
+            continue;
+        };
+        plant.last_profit += payment;
+        let prev_output_value = plant
+            .extra
+            .get("last_output_value")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        plant.extra.insert(
+            "last_output_value".to_string(),
+            serde_json::Value::from(prev_output_value + payment),
+        );
+        grid.spot_market
+            .revenue_distribution
+            .insert(plant_id.clone(), payment);
+        let owner_id = plant.owner_id.clone();
+        if let Some(owner) = companies.iter_mut().find(|c| c.id == owner_id) {
+            owner.available_cash += payment;
+        }
+        country.budget.liquid_reserves -= payment;
+    }
+
+    // LV/MV network expansion: distribution capacity tracks this turn's
+    // measured demand × engineering headroom, built out over
+    // GRID_BUILD_HORIZON_TURNS. Expansion is real procurement, not free
+    // infrastructure — the treasury pays the country's construction
+    // companies pro-rata by employed crew (double-entry: debit
+    // liquid_reserves, credit company cash), and the build rate is bounded
+    // by the sector's labor output this turn. A country with no
+    // construction workforce cannot extend its grid.
+    let capex_per_mw = average_wage
+        * crate::state::macro_data::TURNS_PER_YEAR as f64
+        * LV_BUILD_LABOR_YEARS_PER_MW;
+    grid.last_build_budget_mw = 0.0;
+    if capex_per_mw > 0.0 {
+        // One construction FTE produces ≈ average_wage of output per turn;
+        // dividing by the per-MW cost converts the crew to buildable MW.
+        let mut labor_budget_mw = companies
+            .iter()
+            .filter(|c| c.sector == Sector::Construction)
+            .map(|c| c.fulfilled_fte as f64)
+            .sum::<f64>()
+            * average_wage
+            / capex_per_mw;
+        let mut treasury_budget_mw =
+            country.budget.liquid_reserves.max(0.0) / capex_per_mw;
+        grid.last_build_budget_mw = labor_budget_mw.min(treasury_budget_mw);
+        let mut construction_roster: Vec<usize> = companies
+            .iter()
+            .enumerate()
+            .filter(|(_, c)| c.sector == Sector::Construction && c.fulfilled_fte > 0)
+            .map(|(i, _)| i)
+            .collect();
+        construction_roster.sort_by(|&a, &b| companies[a].id.cmp(&companies[b].id));
+        let roster_fte: f64 = construction_roster
+            .iter()
+            .map(|&i| companies[i].fulfilled_fte as f64)
+            .sum();
+
+        // First pass: compute each region's desired build (LV-equivalent MW).
+        // LV carries consumer load only; generation injects upstream at MV,
+        // which must cover the larger of injection or LV feed.
+        let mut desires: Vec<(String, f64, f64, f64, f64)> = Vec::new(); // (id, lv_gap, mv_gap, desired, demand)
+        for region in &sorted_regions {
+            let region_id = &region.id;
+            let demand = demand_mw.get(region_id).copied().unwrap_or(0.0);
+            let supply = supply_mw.get(region_id).copied().unwrap_or(0.0);
+            let lv_target =
+                (demand * LV_HEADROOM_FACTOR).max(MIN_REGION_LV_CAPACITY_MW);
+            let lv_now = grid
+                .region_lv_capacity
+                .get(region_id)
+                .copied()
+                .unwrap_or(0.0);
+            let mv_now = grid
+                .region_mv_capacity
+                .get(region_id)
+                .copied()
+                .unwrap_or(0.0);
+            let mv_target =
+                (lv_target * MV_TO_LV_RATIO).max(supply * LV_HEADROOM_FACTOR);
+            let lv_gap = (lv_target - lv_now).max(0.0);
+            let mv_gap = (mv_target - mv_now).max(0.0);
+            if lv_gap <= 0.0 && mv_gap <= 0.0 {
+                continue;
+            }
+            let desired = lv_gap / GRID_BUILD_HORIZON_TURNS
+                + mv_gap / (GRID_BUILD_HORIZON_TURNS * MV_TO_LV_RATIO);
+            desires.push((region_id.clone(), lv_gap, mv_gap, desired, demand));
+        }
+
+        // Second pass: allocate the national build budget pro-rata to each
+        // region's desired MW, so sorted-order starvation can't freeze
+        // later regions while an earlier one consumes the whole crew.
+        let total_desired: f64 = desires.iter().map(|d| d.3).sum();
+        for (region_id, lv_gap, mv_gap, desired, demand) in desires {
+            let share = if total_desired > 0.0 {
+                desired / total_desired
+            } else {
+                0.0
+            };
+            let built_mw = desired
+                .min(labor_budget_mw * share.max(0.0))
+                .min(treasury_budget_mw * share.max(0.0));
+            // When budgets exceed total desire, every region simply gets its
+            // full desire; the share-scaling above handles the scarce case.
+            let built_mw = if total_desired <= labor_budget_mw.min(treasury_budget_mw) {
+                desired
+            } else {
+                built_mw
+            };
+            if built_mw <= 0.0 {
+                continue;
+            }
+            if lv_gap > 0.0 {
+                let lv_now = grid
+                    .region_lv_capacity
+                    .get(&region_id)
+                    .copied()
+                    .unwrap_or(0.0);
+                grid.region_lv_capacity
+                    .insert(region_id.clone(), lv_now + built_mw.min(lv_gap));
+            }
+            if mv_gap > 0.0 {
+                let mv_now = grid
+                    .region_mv_capacity
+                    .get(&region_id)
+                    .copied()
+                    .unwrap_or(0.0);
+                let mv_target = mv_now + mv_gap;
+                grid.region_mv_capacity.insert(
+                    region_id.clone(),
+                    (mv_now + built_mw * MV_TO_LV_RATIO).min(mv_target),
+                );
+            }
+            let cost = built_mw * capex_per_mw;
+            labor_budget_mw -= built_mw;
+            treasury_budget_mw -= built_mw;
+            country.budget.liquid_reserves -= cost;
+            for &i in &construction_roster {
+                companies[i].available_cash +=
+                    cost * companies[i].fulfilled_fte as f64 / roster_fte;
+            }
+            #[cfg(feature = "diagnostic")]
+            eprintln!(
+                "GRID96-GROWTH[{}]: +{:.2} MW LV-equivalent (demand {:.1}, cost {:.0})",
+                region_id, built_mw, demand, cost
+            );
+        }
     }
 
     // Consume Commodity::Energy from building inventories (it's been distributed).
@@ -959,13 +1412,22 @@ fn build_merit_order_stack(
 ///
 /// Returns `(clearing_price, dispatch_results)` where `dispatch_results` maps
 /// `plant_building_id` to dispatched MW.
+/// Spot-price bounds for merit-order clearing, calibrated on the annual
+/// wage scale (floor ~$0.0024-4.6/MWh, ceiling ~$3-46/MWh across generated
+/// economies). `average_wage` is a per-turn flow, so annualize before
+/// applying the calibrated multipliers. Shared between the clearing
+/// function and the per-region ceiling telemetry.
+pub fn spot_price_bounds(average_wage: f64) -> (f64, f64) {
+    let annual_wage = average_wage * crate::state::macro_data::TURNS_PER_YEAR as f64;
+    (annual_wage * 0.0001, annual_wage * 0.01)
+}
+
 fn clear_spot_market(
     stack: &[(String, f64, f64)],
     demand_mw: f64,
     average_wage: f64,
 ) -> (f64, Vec<(String, f64)>) {
-    let price_floor = average_wage * 0.0001;
-    let scarcity_ceiling = average_wage * 0.01;
+    let (price_floor, scarcity_ceiling) = spot_price_bounds(average_wage);
 
     // Zero demand: no dispatch needed, price at floor.
     if demand_mw <= 0.0 {

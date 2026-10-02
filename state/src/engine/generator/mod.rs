@@ -371,8 +371,17 @@ pub fn generate_world(
         let commercial_buildings = commercial_store
             .load_sector(&country.name, "commercial", None)
             .unwrap_or_default();
+        // `country.regions` is empty during world generation (it is assembled
+        // from `regions.json` at load time in turn_context). Pass the
+        // generated regions directly so LV/MV capacities are seeded.
+        let country_region_list: Vec<Region> = regions
+            .values()
+            .filter(|r| r.owner_country == country.name)
+            .cloned()
+            .collect();
         crate::energy::grid::init_power_grid(
             country,
+            &country_region_list,
             &housing_buildings,
             &commercial_buildings,
             options.start_year as u32,

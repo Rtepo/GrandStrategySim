@@ -83,6 +83,12 @@ struct CompanyIncomeEntry {
     financial_history_len: usize,
     last_revenue: f64,
     last_net_profit: f64,
+    /// Window-summed wage expense + arrears from the financial record —
+    /// decomposes losses so the dump shows WHERE the money went.
+    wage_expense: f64,
+    operating_costs: f64,
+    interest_paid: f64,
+    taxes_paid: f64,
 }
 
 /// The full diagnostic dump written to JSON.
@@ -138,6 +144,17 @@ struct HeadlineSummary {
     producing_companies: usize,
     producing_zero_income: usize,
     producing_zero_income_fraction: f64,
+    /// Producing-sector companies whose last booked `net_profit` is > 0.
+    producing_profitable: usize,
+    producing_profitable_fraction: f64,
+    /// All-sector profitability (informational — banks/NGOs legitimately
+    /// show net_profit <= 0 because their income is not booked through
+    /// the industrial P&L path).
+    all_sector_profitable_fraction: f64,
+    /// Population-weighted unemployment rate (percent) aggregated across
+    /// countries, recomputed with the engine's own formula:
+    /// labor_force = population * labor_force_participation / 100.
+    unemployment_rate: f64,
     companies_furloughed: usize,
     companies_in_receivership: usize,
     companies_liquidated: usize,
@@ -159,6 +176,20 @@ const NON_PRODUCING_SECTORS: &[&str] = &[
     "PublicServices",
     "ExportServices",
     "WasteManagement",
+    // B2C service sectors — `Sector::sector_commodities` returns an empty
+    // list for these, i.e. they produce no tradeable commodity output and
+    // their revenue flows through consumer/contract channels that the
+    // `last_output_value` P&L path does not observe. Counting them as
+    // "producing companies with zero income" misclassifies a healthy
+    // service economy as gridlock.
+    "Hospitality",
+    "LocalServices",
+    // Project-based sector — construction output is a completed building
+    // asset delivered over many turns via `active_project`, not per-turn
+    // commodity output. A 4-turn window from a cold start cannot contain
+    // a project completion, so zero `last_output_value` is structural,
+    // not a failure signal.
+    "Construction",
 ];
 
 /// The main diagnostic test: run 4 turns, capture telemetry, assert flow
@@ -419,7 +450,7 @@ fn test_market_gridlock_diagnostic() {
     // ========================================================================
     // Headline Gridlock Assertion
     // ========================================================================
-    let headline = compute_headline(&company_income);
+    let headline = compute_headline(&company_income, &state);
     assert!(
         headline.total_companies > 0,
         "No companies found in post-turn state"
@@ -494,11 +525,65 @@ fn test_market_gridlock_diagnostic() {
         headline.producing_zero_income,
         headline.producing_companies,
         headline.producing_zero_income_fraction * 100.0);
+    println!("  Producing-sector profitable: {} of {} ({:.1}%)",
+        headline.producing_profitable,
+        headline.producing_companies,
+        headline.producing_profitable_fraction * 100.0);
+    println!("  All-sector profitable:   {:.1}%",
+        headline.all_sector_profitable_fraction * 100.0);
+    println!("  Unemployment rate:       {:.2}%", headline.unemployment_rate);
     println!("  Furloughed:             {}", headline.companies_furloughed);
     println!("  Gridlock detected:      {}", headline.gridlock_detected);
     println!("  Diagnostic dump:        {:?}", dump_path);
     println!("═══════════════════════════════════════════════════════════════");
     println!();
+
+    // ========================================================================
+    // MACRO-HEALTH HARD ASSERTS (Phase 96)
+    // ========================================================================
+    // The engine being "alive" (turns complete, M0 conserved) is not enough:
+    // a simulation that finishes Turn 4 with 90%+ unemployment and every
+    // company insolvent is dead in every economically meaningful sense.
+    // These asserts fire AFTER the dump is written so failures still leave
+    // full telemetry for root-cause analysis.
+    //
+    // MACRO-1: aggregate unemployment must be < 20% by Turn 4. The engine
+    // seeds companies at ~60% of capacity FTE, so a functioning economy
+    // starts well below this bar; only systemic collapse reaches it.
+    assert!(
+        headline.unemployment_rate < 20.0,
+        "MACRO-1 FAIL: aggregate unemployment {:.1}% >= 20% by Turn {} — \
+         companies are not retaining/hiring their workforce ({} unemployed of \
+         {:.0} labor force). The economy is technically alive but socially dead.",
+        headline.unemployment_rate,
+        TURNS,
+        state
+            .countries
+            .values()
+            .map(|c| c.macro_indicators.labor_market.unemployed)
+            .sum::<f64>(),
+        state
+            .countries
+            .values()
+            .map(|c| c.budget.population as f64
+                * c.macro_indicators.labor_market.labor_force_participation
+                / 100.0)
+            .sum::<f64>(),
+    );
+    // MACRO-2: >60% of producing-sector companies must book a positive
+    // net_profit by Turn 4. Structural non-producers (banks, NGOs,
+    // government) are excluded — their income arrives via fees, grants,
+    // and treasury funding, not industrial P&L.
+    assert!(
+        headline.producing_profitable_fraction > 0.6,
+        "MACRO-2 FAIL: only {:.1}% of producing-sector companies are profitable \
+         by Turn {} ({} of {}). Unit economics are broken — companies produce \
+         and pay wages but cannot cover costs.",
+        headline.producing_profitable_fraction * 100.0,
+        TURNS,
+        headline.producing_profitable,
+        headline.producing_companies,
+    );
 }
 
 // ============================================================================
@@ -796,21 +881,27 @@ fn compute_company_income(ctx: &InMemoryTurnContext) -> Vec<CompanyIncomeEntry> 
     let mut entries = Vec::new();
     for ents in ctx.entities.values() {
         for company in &ents.companies {
-            let (last_revenue, last_net_profit) = company
+            // Window metrics, not last-turn snapshots: agriculture is seasonal
+            // (a farm books all revenue in its harvest turns and legitimately
+            // shows $0 between them), and construction books output only at
+            // project completion. A last-turn read misclassifies every
+            // seasonal business as a zombie. Summing the full window answers
+            // the question the diagnostic actually asks — did this company
+            // produce anything / make money during the simulation?
+            let (last_revenue, last_net_profit, wage_expense, operating_costs, interest_paid, taxes_paid) = company
                 .financial_history
-                .last()
-                .and_then(|record| {
-                    let revenue = record
-                        .get("revenue")
-                        .and_then(|v| v.as_f64())
-                        .unwrap_or(0.0);
-                    let net_profit = record
-                        .get("net_profit")
-                        .and_then(|v| v.as_f64())
-                        .unwrap_or(0.0);
-                    Some((revenue, net_profit))
-                })
-                .unwrap_or((0.0, 0.0));
+                .iter()
+                .fold((0.0, 0.0, 0.0, 0.0, 0.0, 0.0), |(rev_acc, profit_acc, w, oc, i, t), record| {
+                    let g = |k: &str| record.get(k).and_then(|v| v.as_f64()).unwrap_or(0.0);
+                    (
+                        rev_acc + g("revenue"),
+                        profit_acc + g("net_profit"),
+                        w + g("wage_expense"),
+                        oc + g("operating_costs"),
+                        i + g("interest"),
+                        t + g("taxes"),
+                    )
+                });
 
             entries.push(CompanyIncomeEntry {
                 id: company.id.clone(),
@@ -825,14 +916,24 @@ fn compute_company_income(ctx: &InMemoryTurnContext) -> Vec<CompanyIncomeEntry> 
                 financial_history_len: company.financial_history.len(),
                 last_revenue,
                 last_net_profit,
+                wage_expense,
+                operating_costs,
+                interest_paid,
+                taxes_paid,
             });
         }
     }
     entries
 }
 
-/// Compute the headline gridlock summary.
-fn compute_headline(company_income: &[CompanyIncomeEntry]) -> HeadlineSummary {
+/// Compute the headline gridlock summary, including the macro-health
+/// metrics the hardened harness asserts on: aggregate unemployment and
+/// the fraction of producing-sector companies posting a positive
+/// `net_profit` in their last financial record.
+fn compute_headline(
+    company_income: &[CompanyIncomeEntry],
+    state: &sim_engine::state::GameState,
+) -> HeadlineSummary {
     let total = company_income.len();
     let zero_income = company_income
         .iter()
@@ -847,6 +948,36 @@ fn compute_headline(company_income: &[CompanyIncomeEntry]) -> HeadlineSummary {
         producing_zero as f64 / producing.len() as f64
     } else {
         0.0
+    };
+    let producing_profitable = producing.iter().filter(|c| c.last_net_profit > 0.0).count();
+    let producing_profitable_fraction = if !producing.is_empty() {
+        producing_profitable as f64 / producing.len() as f64
+    } else {
+        0.0
+    };
+    let all_sector_profitable = company_income
+        .iter()
+        .filter(|c| c.last_net_profit > 0.0)
+        .count();
+    let all_sector_profitable_fraction = if total > 0 {
+        all_sector_profitable as f64 / total as f64
+    } else {
+        0.0
+    };
+    // Aggregate unemployment across countries using the engine's formula:
+    // labor_force = population * participation / 100 (see turn.rs Phase 25).
+    let mut total_labor_force = 0.0;
+    let mut total_unemployed = 0.0;
+    for country in state.countries.values() {
+        let lm = &country.macro_indicators.labor_market;
+        total_labor_force +=
+            country.budget.population as f64 * lm.labor_force_participation / 100.0;
+        total_unemployed += lm.unemployed;
+    }
+    let unemployment_rate = if total_labor_force > 0.0 {
+        (total_unemployed / total_labor_force * 100.0).max(0.0)
+    } else {
+        100.0
     };
     let furloughed = company_income
         .iter()
@@ -866,6 +997,10 @@ fn compute_headline(company_income: &[CompanyIncomeEntry]) -> HeadlineSummary {
         producing_companies: producing.len(),
         producing_zero_income: producing_zero,
         producing_zero_income_fraction: producing_fraction,
+        producing_profitable,
+        producing_profitable_fraction,
+        all_sector_profitable_fraction,
+        unemployment_rate,
         companies_furloughed: furloughed,
         companies_in_receivership: receivership,
         companies_liquidated: liquidated,

@@ -74,6 +74,30 @@ impl InMemoryTurnContext {
         load_regions_into_state(data_dir, state)?;
         load_megaregions_into_state(data_dir, state)?;
         load_market_history_into_state(data_dir, state);
+        // Restore per-country power grid state (LV/MV capacity maps). Only
+        // fills countries whose map is empty — either freshly default-built
+        // by `load_game_state` or legacy saves predating the file — so a
+        // worldgen-populated in-memory grid is never clobbered. Regions left
+        // unseeded are repaired by the runtime reconcile in
+        // `distribute_grid_power`.
+        {
+            let path = data_dir.join("power_grids.json");
+            if path.exists() {
+                if let Ok(text) = fs::read_to_string(&path) {
+                    if let Ok(map) =
+                        serde_json::from_str::<HashMap<String, crate::energy::PowerGridState>>(&text)
+                    {
+                        for (name, grid) in map {
+                            if let Some(country) = state.countries.get_mut(&name) {
+                                if country.power_grid_state.region_lv_capacity.is_empty() {
+                                    country.power_grid_state = grid;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // Capture prev_net_surplus at the START of the turn.
         state.market_history.prev_net_surplus = market.net_surplus.clone();
@@ -187,6 +211,17 @@ impl InMemoryTurnContext {
 
         // Persist market.json.
         save_market(data_dir, &self.market, global_orders, trade_result)?;
+
+        // Persist power grid state — without it, every load wipes LV/MV
+        // capacity maps and the distribution bottleneck clamps all regions
+        // to 0 MW effective supply (permanent blackout).
+        let power_grids: HashMap<String, &crate::energy::PowerGridState> = state
+            .countries
+            .iter()
+            .map(|(name, c)| (name.clone(), &c.power_grid_state))
+            .collect();
+        crate::io::save_named_map(&data_dir.join("power_grids.json"), &power_grids)
+            .map_err(|e| TurnError::Io(std::io::Error::other(e.to_string())))?;
 
         Ok(())
     }
@@ -389,6 +424,10 @@ fn load_companies(data_dir: &Path, country: &str) -> Result<Vec<Company>, TurnEr
             );
         }
     };
+    // Phase 94: read_dir order is filesystem-dependent — sort entries so the
+    // company Vec order (and all downstream iteration) is deterministic.
+    let mut entries: Vec<_> = entries.collect();
+    entries.sort_by_key(|e| e.as_ref().map(|d| d.file_name()).unwrap_or_default());
 
     for entry in entries {
         let entry = match entry {
@@ -458,6 +497,9 @@ fn load_commercial_buildings(
             return Ok(commercial_buildings);
         }
     };
+    // Phase 94: deterministic load order (read_dir is filesystem-dependent).
+    let mut entries: Vec<_> = entries.collect();
+    entries.sort_by_key(|e| e.as_ref().map(|d| d.file_name()).unwrap_or_default());
 
     for entry in entries {
         let entry = match entry {
@@ -514,6 +556,9 @@ fn load_housing_buildings(
             return Ok(housing_buildings);
         }
     };
+    // Phase 94: deterministic load order (read_dir is filesystem-dependent).
+    let mut entries: Vec<_> = entries.collect();
+    entries.sort_by_key(|e| e.as_ref().map(|d| d.file_name()).unwrap_or_default());
 
     for entry in entries {
         let entry = match entry {
@@ -569,6 +614,10 @@ fn load_unions(data_dir: &Path, country: &str) -> Result<Vec<Union>, TurnError> 
 
     let store = DiskEntityStore::<Union>::new(data_dir);
 
+    // Phase 94: deterministic load order (read_dir is filesystem-dependent).
+    let mut entries: Vec<_> = entries.collect();
+    entries.sort_by_key(|e| e.as_ref().map(|d| d.file_name()).unwrap_or_default());
+
     for entry in entries {
         let entry = match entry {
             Ok(e) => e,
@@ -618,6 +667,9 @@ fn load_buildings(data_dir: &Path, country: &str) -> Result<Vec<Building>, TurnE
             return Ok(buildings);
         }
     };
+    // Phase 94: deterministic load order (read_dir is filesystem-dependent).
+    let mut entries: Vec<_> = entries.collect();
+    entries.sort_by_key(|e| e.as_ref().map(|d| d.file_name()).unwrap_or_default());
     for region_entry in entries {
         let region_entry = match region_entry {
             Ok(e) => e,
@@ -649,6 +701,10 @@ fn load_buildings(data_dir: &Path, country: &str) -> Result<Vec<Building>, TurnE
                 continue;
             }
         };
+        // Phase 94: deterministic load order (read_dir is filesystem-dependent).
+        let mut building_entries: Vec<_> = building_entries.collect();
+        building_entries
+            .sort_by_key(|e| e.as_ref().map(|d| d.file_name()).unwrap_or_default());
         for entry in building_entries {
             let entry = match entry {
                 Ok(e) => e,

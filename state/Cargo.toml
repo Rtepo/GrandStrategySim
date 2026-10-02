@@ -115,6 +115,11 @@ name = "wage_reconciliation_test"
 path = "tests/epics/wage_reconciliation_test.rs"
 required-features = ["epic-tests", "diagnostic"]
 
+[[test]]
+name = "grid_distribution_viability_test"
+path = "tests/epics/grid_distribution_viability_test.rs"
+required-features = ["epic-tests", "diagnostic"]
+
 [profile.release]
 opt-level = 3
 lto = true

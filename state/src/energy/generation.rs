@@ -239,11 +239,15 @@ pub fn available_plant_types(
 
 /// Phase 81 Wave 2: Compute the marginal cost per MWh for a power plant.
 ///
-/// Marginal cost = (fuel_price_per_unit * fuel_units_per_mwh) / thermal_efficiency
+/// Marginal cost = fuel_price_per_unit * fuel_units_per_mwh, where
+/// `fuel_units_per_mwh` already accounts for thermal efficiency.
 /// For zero-marginal-cost plants (solar, wind, hydro, geothermal, nuclear),
 /// returns `average_wage * 0.0001` as a tie-breaker (not a magic number —
 /// it's a structurally negligible bid that ensures deterministic dispatch ordering).
 /// For storage plants, returns the round-trip cost (charge_cost / storage_efficiency).
+///
+/// Wage-anchored constants are calibrated on the ANNUAL wage scale, so the
+/// per-turn `average_wage` is multiplied by TURNS_PER_YEAR here.
 ///
 /// # Arguments
 /// * `metadata` - Power plant metadata (type, capacity, efficiency)
@@ -257,8 +261,11 @@ pub fn compute_marginal_cost(
     fuel_prices: &std::collections::HashMap<Commodity, f64>,
     average_wage: f64,
 ) -> f64 {
-    let zero_marginal = average_wage * 0.0001;
-    let storage_marginal = average_wage * 0.001;
+    const TURNS_PER_YEAR_F: f64 = crate::state::macro_data::TURNS_PER_YEAR as f64;
+    let annual_wage = average_wage * TURNS_PER_YEAR_F;
+    let zero_marginal = annual_wage * 0.0001;
+    let storage_marginal = annual_wage * 0.001;
+    let fuel_price_fallback = annual_wage * 0.01;
 
     match metadata.plant_type {
         // Renewables: zero fuel cost, negligible tie-breaker bid.
@@ -272,40 +279,42 @@ pub fn compute_marginal_cost(
         // they need to recover charge cost (round-trip efficiency losses).
         PowerPlantType::PumpedStorage | PowerPlantType::BatteryStorage => storage_marginal,
 
-        // Fuel-burning plants: marginal cost = fuel_price * fuel_units_per_mwh / efficiency.
+        // Fuel-burning plants: marginal cost = fuel_price * fuel_units_per_mwh.
+        // (`fuel_units_per_mwh` already includes the thermal-efficiency
+        // divisor — dividing by efficiency here would apply it twice.)
         PowerPlantType::CoalFired => {
             let fuel_price = fuel_prices
                 .get(&Commodity::HardCoal)
                 .copied()
-                .unwrap_or(average_wage * 0.01);
+                .unwrap_or(fuel_price_fallback);
             let efficiency = default_thermal_efficiency(metadata);
             let fuel_units_per_mwh = fuel_units_per_mwh(Commodity::HardCoal, efficiency);
-            fuel_price * fuel_units_per_mwh / efficiency
+            fuel_price * fuel_units_per_mwh
         }
         PowerPlantType::LigniteFired => {
             let fuel_price = fuel_prices
                 .get(&Commodity::BrownCoal)
                 .copied()
-                .unwrap_or(average_wage * 0.01);
+                .unwrap_or(fuel_price_fallback);
             let efficiency = default_thermal_efficiency(metadata);
             let fuel_units_per_mwh = fuel_units_per_mwh(Commodity::BrownCoal, efficiency);
-            fuel_price * fuel_units_per_mwh / efficiency
+            fuel_price * fuel_units_per_mwh
         }
         PowerPlantType::OilGas => {
             // OilGas plants can burn Oil or NaturalGas — use whichever is cheaper.
             let oil_price = fuel_prices
                 .get(&Commodity::Oil)
                 .copied()
-                .unwrap_or(average_wage * 0.01);
+                .unwrap_or(fuel_price_fallback);
             let gas_price = fuel_prices
                 .get(&Commodity::NaturalGas)
                 .copied()
-                .unwrap_or(average_wage * 0.01);
+                .unwrap_or(fuel_price_fallback);
             let efficiency = default_thermal_efficiency(metadata);
             let oil_units = fuel_units_per_mwh(Commodity::Oil, efficiency);
             let gas_units = fuel_units_per_mwh(Commodity::NaturalGas, efficiency);
-            let oil_cost = oil_price * oil_units / efficiency;
-            let gas_cost = gas_price * gas_units / efficiency;
+            let oil_cost = oil_price * oil_units;
+            let gas_cost = gas_price * gas_units;
             oil_cost.min(gas_cost)
         }
         PowerPlantType::BiomassFired => {
@@ -314,10 +323,10 @@ pub fn compute_marginal_cost(
             let fuel_price = fuel_prices
                 .get(&Commodity::Timber)
                 .copied()
-                .unwrap_or(average_wage * 0.01);
+                .unwrap_or(fuel_price_fallback);
             let efficiency = default_thermal_efficiency(metadata);
             let fuel_units_per_mwh = fuel_units_per_mwh(Commodity::Timber, efficiency);
-            fuel_price * fuel_units_per_mwh / efficiency
+            fuel_price * fuel_units_per_mwh
         }
         PowerPlantType::BiogasPlant => {
             // Biogas plants use CoalGas as the output fuel — marginal cost is
@@ -325,10 +334,10 @@ pub fn compute_marginal_cost(
             let fuel_price = fuel_prices
                 .get(&Commodity::CoalGas)
                 .copied()
-                .unwrap_or(average_wage * 0.01);
+                .unwrap_or(fuel_price_fallback);
             let efficiency = default_thermal_efficiency(metadata);
             let fuel_units_per_mwh = fuel_units_per_mwh(Commodity::CoalGas, efficiency);
-            fuel_price * fuel_units_per_mwh / efficiency
+            fuel_price * fuel_units_per_mwh
         }
     }
 }
@@ -349,7 +358,9 @@ fn default_thermal_efficiency(_metadata: &PowerPlantMetadata) -> f64 {
 ///
 /// Where:
 /// - 3600 MJ = 1 MWh (thermal energy equivalent)
-/// - `calorific_value_mj_per_unit` is the energy density per unit of fuel
+/// - `calorific_value_mj_per_unit` is the energy density per kg of fuel,
+///   while market prices are per tonne-scale trade unit — hence `* 1000`
+///   converts kg to market units.
 /// - `efficiency` is the thermal conversion efficiency (0.0-1.0)
 ///
 /// This is physically derived, not a magic number.
@@ -360,6 +371,6 @@ fn fuel_units_per_mwh(fuel: Commodity, efficiency: f64) -> f64 {
     }
     // 1 MWh = 3600 MJ of electrical energy.
     // Thermal energy needed = 3600 / efficiency MJ.
-    // Fuel units = thermal_energy / calorific_value.
-    3600.0 / (calorific * efficiency)
+    // Fuel units = thermal_energy / calorific_value (per tonne of fuel).
+    3600.0 / (calorific * 1000.0 * efficiency)
 }

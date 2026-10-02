@@ -196,12 +196,42 @@ pub struct PowerGridState {
     /// Phase 81: Region ID → current supply (MW) after grid balancing.
     #[serde(default)]
     pub region_supply_mw: HashMap<String, f64>,
+    /// Region ID → effective supply delivered after the LV/MV bottleneck
+    /// (MW). Divergence from `region_supply_mw` = distribution congestion.
+    #[serde(default)]
+    pub region_effective_supply_mw: HashMap<String, f64>,
+    /// Region ID → net supply (MW) remaining after HV export flows and
+    /// storage absorption — what the LV/MV bottleneck actually sees.
+    /// `region_supply_mw` is gross generation; the difference is exports,
+    /// transmission losses, and pumped-storage charging.
+    #[serde(default)]
+    pub region_net_supply_mw: HashMap<String, f64>,
+    /// Region ID → wire capacity (MW) in force at dispatch time, i.e.
+    /// `min(lv, mv)` BEFORE this turn's buildout increment lands.
+    /// `effective < min(net, wire_cap_at_dispatch)` is never legitimate.
+    #[serde(default)]
+    pub region_wire_cap_mw: HashMap<String, f64>,
+    /// Region ID → scarcity ceiling in force when the spot price was
+    /// written (wage-drift-proof bound for audits/tests).
+    #[serde(default)]
+    pub region_spot_ceiling: HashMap<String, f64>,
+    /// Region ID → marginal cost of the last dispatched plant at write
+    /// time. Surplus clearing prices track marginal cost and may sit
+    /// above the scarcity ceiling — this records the honest bound.
+    #[serde(default)]
+    pub region_spot_marginal_cost: HashMap<String, f64>,
     /// Phase 81: Region ID → current demand (MW).
     #[serde(default)]
     pub region_demand_mw: HashMap<String, f64>,
     /// Phase 81: Region ID → maximum production capacity (MW).
     #[serde(default)]
     pub region_max_capacity_mw: HashMap<String, f64>,
+    /// National build budget (LV-equivalent MW) in force this turn —
+    /// `min(construction-labor bound, treasury bound)` at dispatch time.
+    /// Zero means the state could not fund or crew any wire this turn;
+    /// positive with no capacity growth anywhere is a mechanic failure.
+    #[serde(default)]
+    pub last_build_budget_mw: f64,
     /// Phase 81 Wave 2: Spot market state (merit-order clearing results).
     #[serde(default)]
     pub spot_market: SpotMarketState,

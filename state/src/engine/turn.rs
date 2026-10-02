@@ -2362,10 +2362,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 let grid_result = crate::energy::grid::distribute_grid_power(
                     task.ctx.country,
                     &mut task.ctx.buildings,
-                    &task.housing_buildings,
-                    &task.commercial_buildings,
+                    &mut task.housing_buildings,
+                    &mut task.commercial_buildings,
                     current_season,
                     &fuel_prices,
+                    &mut task.companies,
                 );
                 // Phase 81: Degrade grid condition based on load factor.
                 crate::energy::grid::degrade_grid_condition(

@@ -90,6 +90,12 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
     // empty, making the cooperative lifecycle dead after any save/load cycle).
     let mut cooperative_registries: HashMap<String, crate::society::housing::CooperativeRegistry> =
         load_named_map(&data_dir.join("cooperative_registries.json")).unwrap_or_default();
+    // Power grid state (LV/MV capacities, conditions, spot market) persists
+    // per country — without it every load zeroes the distribution bottleneck
+    // and `effective_supply` collapses to 0 MW nationwide (permanent
+    // blackout cascade). Missing file → default + runtime reconcile.
+    let mut power_grids: HashMap<String, crate::energy::PowerGridState> =
+        load_named_map(&data_dir.join("power_grids.json")).unwrap_or_default();
 
     let mut state = GameState::new();
     state.currencies =
@@ -106,6 +112,7 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
         let politics = politics_map.get(&name).cloned().unwrap_or_default();
         // Rule 4: Remove cooperative registry before `name` is moved into Country.
         let cooperative_registry = cooperative_registries.remove(&name).unwrap_or_default();
+        let power_grid_state = power_grids.remove(&name).unwrap_or_default();
 
         state.countries.insert(
             name.clone(),
@@ -230,7 +237,7 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
                 subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
                 global_reputation: crate::international::reputation::GlobalReputation::default(),
                 geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
-                power_grid_state: crate::energy::PowerGridState::default(),
+                power_grid_state,
                 ppa_registry: crate::energy::types::PpaRegistry::default(),
                 turn_config: crate::engine::turn_config::TurnConfig::default(),
                 market_clearing_config: crate::economy::market::clearing_config::MarketClearingConfig::default(),
@@ -329,9 +336,9 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
 ///
 /// # Returns
 /// `Ok(())` on success, or a [`SaveError`] on I/O or JSON failure.
-pub fn save_named_map<T: Serialize>(
+pub fn save_named_map<M: Serialize>(
     path: &Path,
-    map: &HashMap<String, T>,
+    map: &M,
 ) -> Result<(), SaveError> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
@@ -367,6 +374,7 @@ pub fn save_game_state(data_dir: &Path, state: &GameState) -> Result<(), SaveErr
     > = HashMap::new();
     let mut cooperative_registries: HashMap<String, crate::society::housing::CooperativeRegistry> =
         HashMap::new();
+    let mut power_grids: HashMap<String, crate::energy::PowerGridState> = HashMap::new();
     for (name, country) in &state.countries {
         budgets.insert(name.clone(), country.budget.clone());
         macro_map.insert(name.clone(), country.macro_indicators.clone());
@@ -375,6 +383,7 @@ pub fn save_game_state(data_dir: &Path, state: &GameState) -> Result<(), SaveErr
         geology.insert(name.clone(), country.geological_formations.clone());
         transport.insert(name.clone(), country.transport_networks.clone());
         cooperative_registries.insert(name.clone(), country.cooperative_registry.clone());
+        power_grids.insert(name.clone(), country.power_grid_state.clone());
     }
 
     save_named_map(&data_dir.join("budgets.json"), &budgets)?;
@@ -388,6 +397,7 @@ pub fn save_game_state(data_dir: &Path, state: &GameState) -> Result<(), SaveErr
         &data_dir.join("cooperative_registries.json"),
         &cooperative_registries,
     )?;
+    save_named_map(&data_dir.join("power_grids.json"), &power_grids)?;
 
     let storage = if state.extra.is_empty() {
         serde_json::json!({})

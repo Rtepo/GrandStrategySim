@@ -56,6 +56,11 @@ pub fn calculate_load_shed_tier(
 /// * `region_id` - Region being shed.
 /// * `tier` - Load shedding tier.
 /// * `priority` - Government priority (determines cut order).
+/// * `unmet_ratio` - Fraction of regional demand not served this turn
+///   (1 - effective_supply / demand, clamped to [0,1]). At Blackout tier
+///   priority staging is moot — delivered power still serves its share of
+///   load, so the penalty equals the unmet fraction rather than a flat
+///   100% that would erase actually-delivered supply from production.
 /// * `buildings` - All buildings (filtered by region and sector).
 /// * `regions` - All regions (for mapping micro_region_id to region).
 /// * `commercial_buildings` - Commercial buildings (for commercial shedding).
@@ -64,6 +69,7 @@ pub fn apply_load_shedding(
     region_id: &str,
     tier: LoadShedTier,
     priority: GridPriority,
+    unmet_ratio: f64,
     buildings: &[Building],
     regions: &[Region],
     commercial_buildings: &[CommercialBuilding],
@@ -121,14 +127,17 @@ pub fn apply_load_shedding(
         }
 
         let sector = &building.sector;
-        let penalty = if first_cut.contains(sector) {
+        let penalty = if tier == LoadShedTier::Blackout {
+            // Grid-wide shortfall: every consumer loses the unserved
+            // fraction. Priority staging is moot when shedding exceeds
+            // half of demand.
+            unmet_ratio.clamp(0.0, 1.0)
+        } else if first_cut.contains(sector) {
             reduction
         } else if second_cut.contains(sector) && tier >= LoadShedTier::Tier2 {
             reduction * 0.8
         } else if third_cut.contains(sector) && tier >= LoadShedTier::Tier3 {
             reduction * 0.5
-        } else if tier == LoadShedTier::Blackout {
-            1.0 // Total blackout affects everything.
         } else {
             continue;
         };
@@ -148,7 +157,7 @@ pub fn apply_load_shedding(
             continue;
         }
         let penalty = if tier == LoadShedTier::Blackout {
-            1.0
+            unmet_ratio.clamp(0.0, 1.0)
         } else if first_cut.contains(&Sector::LocalServices) {
             reduction
         } else {
