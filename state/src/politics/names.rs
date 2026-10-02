@@ -1192,6 +1192,9 @@ mod tests {
     fn test_vip_to_leader_ideology_mapping() {
         // Phase 53: Updated to use proper English ideology names via
         // Ideology::from_name instead of the old simplified categories.
+        // Seed the RNG: unseeded, the weighted trait roll can legitimately
+        // land on the old hardcoded pair and flake the assertion below.
+        crate::engine::seeded_rng::set_seed(0x5EED_B135);
         let vip = VipName {
             first_name: "Jan".to_string(),
             surname: "Kowalski".to_string(),
@@ -1220,5 +1223,6 @@ mod tests {
             leader2.traits != vec!["Charismatic".to_string(), "Diplomatic".to_string()],
             "Traits should not be the old hardcoded pair"
         );
+        crate::engine::seeded_rng::clear_seed();
     }
 }
