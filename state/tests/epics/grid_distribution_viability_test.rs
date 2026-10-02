@@ -403,9 +403,12 @@ fn test_grid_distribution_viability() {
                     );
                 }
                 let shortfall_persists = *hist.last().unwrap() < demand * 1.2 * 0.999;
-                if shortfall_persists && build_budget > 0.0 && hist.len() >= 2 {
-                    // A positive budget on the last turn means pro-rata
-                    // allocation delivered wire to every desired region.
+                // A *meaningful* budget means pro-rata allocation delivered
+                // wire to every desired region. Sub-kW budgets (< 1e-3 MW —
+                // the engine's growth-viable epsilon, e.g. a treasury drained
+                // to ~$0 by settlement) produce sub-f64-resolution deltas and
+                // are economically inert, not stalled growth.
+                if shortfall_persists && build_budget > 1e-3 && hist.len() >= 2 {
                     assert!(
                         hist[hist.len() - 1] > hist[hist.len() - 2],
                         "G7 FAIL [{}/{}]: LV did not grow on the last turn ({:.3} → {:.3}) despite shortfall (demand {:.2}) and build budget {:.2} MW",

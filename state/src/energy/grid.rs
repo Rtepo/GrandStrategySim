@@ -62,8 +62,7 @@ const LV_BUILD_LABOR_YEARS_PER_MW: f64 = 4.0;
 /// Distribution buildout horizon: a region's LV shortfall closes over two
 /// simulation years of turns. A rate limit (not instant construction) —
 /// physical crews need time; derived from TURNS_PER_YEAR, not arbitrary.
-const GRID_BUILD_HORIZON_TURNS: f64 =
-    2.0 * crate::state::macro_data::TURNS_PER_YEAR as f64;
+const GRID_BUILD_HORIZON_TURNS: f64 = 2.0 * crate::state::macro_data::TURNS_PER_YEAR as f64;
 
 /// Calculate transmission loss for an HV line based on distance and condition.
 ///
@@ -171,8 +170,7 @@ pub fn init_power_grid(
         let actual_demand_mw = regional_demand_mw.get(&region.id).copied().unwrap_or(0.0);
         // LV capacity = max(actual_demand * headroom, floor) — the floor
         // covers regions with no connected buildings (pre-electrification).
-        let lv_capacity =
-            (actual_demand_mw * LV_HEADROOM_FACTOR).max(MIN_REGION_LV_CAPACITY_MW);
+        let lv_capacity = (actual_demand_mw * LV_HEADROOM_FACTOR).max(MIN_REGION_LV_CAPACITY_MW);
         let mv_capacity = lv_capacity * MV_TO_LV_RATIO;
         // Region-keyed local RNG: drawing grid conditions from the shared
         // worldgen stream would shift every downstream consumer's draws and
@@ -221,8 +219,7 @@ pub fn init_power_grid(
     let mut line_counter = 0u32;
 
     // Build a lookup of region ID → region for population lookups.
-    let region_map: HashMap<String, &Region> =
-        regions.iter().map(|r| (r.id.clone(), r)).collect();
+    let region_map: HashMap<String, &Region> = regions.iter().map(|r| (r.id.clone(), r)).collect();
 
     // Collect candidate edges deterministically (sorted by from_region, to_region).
     let mut candidate_edges: Vec<(String, String, f64)> = Vec::new();
@@ -334,18 +331,14 @@ pub fn init_power_grid(
 fn resolve_building_region(regions: &[&Region], micro_region_id: &str) -> Option<String> {
     regions
         .iter()
-        .find(|r| {
-            r.micro_regions.contains_key(micro_region_id) || r.id == micro_region_id
-        })
+        .find(|r| r.micro_regions.contains_key(micro_region_id) || r.id == micro_region_id)
         .map(|r| r.id.clone())
 }
 
 fn resolve_building_region_slice(regions: &[Region], micro_region_id: &str) -> Option<String> {
     regions
         .iter()
-        .find(|r| {
-            r.micro_regions.contains_key(micro_region_id) || r.id == micro_region_id
-        })
+        .find(|r| r.micro_regions.contains_key(micro_region_id) || r.id == micro_region_id)
         .map(|r| r.id.clone())
 }
 
@@ -479,9 +472,8 @@ fn collect_regional_supply_demand(
         let region_id = &building.region_id;
         // Industrial electricity demand is proportional to employment.
         // current_employment is per-plant; all scale_factor plants consume.
-        let demand = building.current_employment as f64
-            * building.scale_factor.max(1) as f64
-            * 0.002; // 2 kW per worker
+        let demand =
+            building.current_employment as f64 * building.scale_factor.max(1) as f64 * 0.002; // 2 kW per worker
         *demand_mw.get_mut(region_id).unwrap_or(&mut 0.0) += demand;
     }
 
@@ -705,15 +697,16 @@ pub fn distribute_grid_power(
             None => {
                 // LV serves consumers only — generators inject at MV/HV.
                 // Seed from load, matching the worldgen formula.
-                let seeded =
-                    (demand * LV_HEADROOM_FACTOR).max(MIN_REGION_LV_CAPACITY_MW);
+                let seeded = (demand * LV_HEADROOM_FACTOR).max(MIN_REGION_LV_CAPACITY_MW);
                 #[cfg(feature = "diagnostic")]
                 eprintln!(
                     "GRID96-RECONCILE[{}]: missing LV cap, seeded {:.2} MW from demand {:.2}",
                     region_id, seeded, demand
                 );
                 grid.region_lv_capacity.insert(region_id.clone(), seeded);
-                grid.region_lv_condition.entry(region_id.clone()).or_insert(0.9);
+                grid.region_lv_condition
+                    .entry(region_id.clone())
+                    .or_insert(0.9);
                 seeded
             }
         };
@@ -729,7 +722,9 @@ pub fn distribute_grid_power(
                     region_id, seeded
                 );
                 grid.region_mv_capacity.insert(region_id.clone(), seeded);
-                grid.region_mv_condition.entry(region_id.clone()).or_insert(0.9);
+                grid.region_mv_condition
+                    .entry(region_id.clone())
+                    .or_insert(0.9);
                 seeded
             }
         };
@@ -902,9 +897,9 @@ pub fn distribute_grid_power(
             {
                 continue;
             }
-            consumer_demand_mw +=
-                UtilityDemand::for_housing_physical(hb, season).electricity_demand
-                    / (1000.0 * HOURS_PER_TURN);
+            consumer_demand_mw += UtilityDemand::for_housing_physical(hb, season)
+                .electricity_demand
+                / (1000.0 * HOURS_PER_TURN);
         }
         for cb in commercial_buildings.iter() {
             if resolve_building_region(&sorted_regions, &cb.micro_region_id).as_deref()
@@ -912,9 +907,9 @@ pub fn distribute_grid_power(
             {
                 continue;
             }
-            consumer_demand_mw +=
-                UtilityDemand::for_commercial_physical(cb, season).electricity_demand
-                    / (1000.0 * HOURS_PER_TURN);
+            consumer_demand_mw += UtilityDemand::for_commercial_physical(cb, season)
+                .electricity_demand
+                / (1000.0 * HOURS_PER_TURN);
         }
         if consumer_demand_mw > 0.0 {
             let alloc_mw = dispatched_total.min(consumer_demand_mw);
@@ -980,10 +975,8 @@ pub fn distribute_grid_power(
         result
             .region_supply_mw
             .insert(region_id.clone(), effective_supply);
-        grid.region_net_supply_mw
-            .insert(region_id.clone(), supply);
-        grid.region_wire_cap_mw
-            .insert(region_id.clone(), grid_cap);
+        grid.region_net_supply_mw.insert(region_id.clone(), supply);
+        grid.region_wire_cap_mw.insert(region_id.clone(), grid_cap);
         grid.region_effective_supply_mw
             .insert(region_id.clone(), effective_supply);
         result.region_demand_mw.insert(region_id.clone(), demand);
@@ -1065,9 +1058,14 @@ pub fn distribute_grid_power(
             .sum::<f64>()
             * average_wage
             / capex_per_mw;
-        let mut treasury_budget_mw =
-            country.budget.liquid_reserves.max(0.0) / capex_per_mw;
-        grid.last_build_budget_mw = labor_budget_mw.min(treasury_budget_mw);
+        let mut treasury_budget_mw = country.budget.liquid_reserves.max(0.0) / capex_per_mw;
+        let labor_budget0 = labor_budget_mw;
+        let treasury_budget0 = treasury_budget_mw;
+        grid.last_build_budget_mw = labor_budget0.min(treasury_budget0);
+        // A national build budget below ~1 kW cannot procure meaningful wire —
+        // skip the pass rather than emit sub-representable capacity deltas and
+        // fractional-cent payments.
+        let growth_viable = grid.last_build_budget_mw > 1e-3;
         let mut construction_roster: Vec<usize> = companies
             .iter()
             .enumerate()
@@ -1084,91 +1082,95 @@ pub fn distribute_grid_power(
         // LV carries consumer load only; generation injects upstream at MV,
         // which must cover the larger of injection or LV feed.
         let mut desires: Vec<(String, f64, f64, f64, f64)> = Vec::new(); // (id, lv_gap, mv_gap, desired, demand)
-        for region in &sorted_regions {
-            let region_id = &region.id;
-            let demand = demand_mw.get(region_id).copied().unwrap_or(0.0);
-            let supply = supply_mw.get(region_id).copied().unwrap_or(0.0);
-            let lv_target =
-                (demand * LV_HEADROOM_FACTOR).max(MIN_REGION_LV_CAPACITY_MW);
-            let lv_now = grid
-                .region_lv_capacity
-                .get(region_id)
-                .copied()
-                .unwrap_or(0.0);
-            let mv_now = grid
-                .region_mv_capacity
-                .get(region_id)
-                .copied()
-                .unwrap_or(0.0);
-            let mv_target =
-                (lv_target * MV_TO_LV_RATIO).max(supply * LV_HEADROOM_FACTOR);
-            let lv_gap = (lv_target - lv_now).max(0.0);
-            let mv_gap = (mv_target - mv_now).max(0.0);
-            if lv_gap <= 0.0 && mv_gap <= 0.0 {
-                continue;
-            }
-            let desired = lv_gap / GRID_BUILD_HORIZON_TURNS
-                + mv_gap / (GRID_BUILD_HORIZON_TURNS * MV_TO_LV_RATIO);
-            desires.push((region_id.clone(), lv_gap, mv_gap, desired, demand));
-        }
-
-        // Second pass: allocate the national build budget pro-rata to each
-        // region's desired MW, so sorted-order starvation can't freeze
-        // later regions while an earlier one consumes the whole crew.
-        let total_desired: f64 = desires.iter().map(|d| d.3).sum();
-        for (region_id, lv_gap, mv_gap, desired, demand) in desires {
-            let share = if total_desired > 0.0 {
-                desired / total_desired
-            } else {
-                0.0
-            };
-            let built_mw = desired
-                .min(labor_budget_mw * share.max(0.0))
-                .min(treasury_budget_mw * share.max(0.0));
-            // When budgets exceed total desire, every region simply gets its
-            // full desire; the share-scaling above handles the scarce case.
-            let built_mw = if total_desired <= labor_budget_mw.min(treasury_budget_mw) {
-                desired
-            } else {
-                built_mw
-            };
-            if built_mw <= 0.0 {
-                continue;
-            }
-            if lv_gap > 0.0 {
+        if growth_viable {
+            for region in &sorted_regions {
+                let region_id = &region.id;
+                let demand = demand_mw.get(region_id).copied().unwrap_or(0.0);
+                let supply = supply_mw.get(region_id).copied().unwrap_or(0.0);
+                let lv_target = (demand * LV_HEADROOM_FACTOR).max(MIN_REGION_LV_CAPACITY_MW);
                 let lv_now = grid
                     .region_lv_capacity
-                    .get(&region_id)
+                    .get(region_id)
                     .copied()
                     .unwrap_or(0.0);
-                grid.region_lv_capacity
-                    .insert(region_id.clone(), lv_now + built_mw.min(lv_gap));
-            }
-            if mv_gap > 0.0 {
                 let mv_now = grid
                     .region_mv_capacity
-                    .get(&region_id)
+                    .get(region_id)
                     .copied()
                     .unwrap_or(0.0);
-                let mv_target = mv_now + mv_gap;
-                grid.region_mv_capacity.insert(
-                    region_id.clone(),
-                    (mv_now + built_mw * MV_TO_LV_RATIO).min(mv_target),
+                let mv_target = (lv_target * MV_TO_LV_RATIO).max(supply * LV_HEADROOM_FACTOR);
+                let lv_gap = (lv_target - lv_now).max(0.0);
+                let mv_gap = (mv_target - mv_now).max(0.0);
+                if lv_gap <= 0.0 && mv_gap <= 0.0 {
+                    continue;
+                }
+                let desired = lv_gap / GRID_BUILD_HORIZON_TURNS
+                    + mv_gap / (GRID_BUILD_HORIZON_TURNS * MV_TO_LV_RATIO);
+                desires.push((region_id.clone(), lv_gap, mv_gap, desired, demand));
+            }
+
+            // Second pass: allocate the national build budget pro-rata to each
+            // region's desired MW, so sorted-order starvation can't freeze
+            // later regions while an earlier one consumes the whole crew.
+            let total_desired: f64 = desires.iter().map(|d| d.3).sum();
+            let n_regions = desires.len() as f64;
+            for (region_id, lv_gap, mv_gap, desired, demand) in desires {
+                // A non-finite or zero total (e.g. an inf-valued demand reading)
+                // would zero every share; fall back to an equal split.
+                let share = if total_desired.is_finite() && total_desired > 0.0 {
+                    desired / total_desired
+                } else {
+                    1.0 / n_regions
+                };
+                // Shares apply to the *initial* budgets: scaling by the running
+                // remainder would double-discount and starve late-sorted regions.
+                let built_mw = if total_desired <= labor_budget0.min(treasury_budget0)
+                    && total_desired.is_finite()
+                {
+                    desired
+                } else {
+                    desired
+                        .min(labor_budget0 * share.max(0.0))
+                        .min(treasury_budget0 * share.max(0.0))
+                };
+                if built_mw <= 0.0 {
+                    continue;
+                }
+                if lv_gap > 0.0 {
+                    let lv_now = grid
+                        .region_lv_capacity
+                        .get(&region_id)
+                        .copied()
+                        .unwrap_or(0.0);
+                    grid.region_lv_capacity
+                        .insert(region_id.clone(), lv_now + built_mw.min(lv_gap));
+                }
+                if mv_gap > 0.0 {
+                    let mv_now = grid
+                        .region_mv_capacity
+                        .get(&region_id)
+                        .copied()
+                        .unwrap_or(0.0);
+                    let mv_target = mv_now + mv_gap;
+                    grid.region_mv_capacity.insert(
+                        region_id.clone(),
+                        (mv_now + built_mw * MV_TO_LV_RATIO).min(mv_target),
+                    );
+                }
+                let cost = built_mw * capex_per_mw;
+                labor_budget_mw -= built_mw;
+                treasury_budget_mw -= built_mw;
+                country.budget.liquid_reserves -= cost;
+                for &i in &construction_roster {
+                    companies[i].available_cash +=
+                        cost * companies[i].fulfilled_fte as f64 / roster_fte;
+                }
+                #[cfg(feature = "diagnostic")]
+                eprintln!(
+                    "GRID96-GROWTH[{}]: +{:.2} MW LV-equivalent (demand {:.1}, cost {:.0})",
+                    region_id, built_mw, demand, cost
                 );
             }
-            let cost = built_mw * capex_per_mw;
-            labor_budget_mw -= built_mw;
-            treasury_budget_mw -= built_mw;
-            country.budget.liquid_reserves -= cost;
-            for &i in &construction_roster {
-                companies[i].available_cash +=
-                    cost * companies[i].fulfilled_fte as f64 / roster_fte;
-            }
-            #[cfg(feature = "diagnostic")]
-            eprintln!(
-                "GRID96-GROWTH[{}]: +{:.2} MW LV-equivalent (demand {:.1}, cost {:.0})",
-                region_id, built_mw, demand, cost
-            );
         }
     }
 
