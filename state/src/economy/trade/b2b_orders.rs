@@ -691,6 +691,12 @@ pub fn submit_company_b2b_orders(
 /// * Seller building: belongs to `seller_id` company + has commodity in BOM outputs.
 /// * If seller's building has insufficient inventory, trade is clamped to available.
 /// * Double-entry: every debit has a matching credit.
+/// * W3/R3 (`company_country`): global company→country map used to settle
+///   the payer-side bank legs of cross-border trades. When the seller is
+///   foreign, this task cannot credit the seller — but the payer's bank
+///   MUST still surrender deposits + reserves here, otherwise the seller's
+///   country task credits bank reserves with no offsetting debit
+///   (the `b2b_settlement_post` FiatCreation leak).
 pub fn settle_trades(
     trades: &[Trade],
     companies: &mut [Company],
@@ -698,6 +704,7 @@ pub fn settle_trades(
     country: &mut crate::state::Country,
     current_turn: u32,
     gen_config: &GenerativeGoodsConfig,
+    company_country: &std::collections::HashMap<String, String>,
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
@@ -773,8 +780,84 @@ pub fn settle_trades(
                 // next turn's ask isn't capped below the clearing price.
                 companies[si].unfilled_ask_prices.remove(&trade.commodity);
             } else {
+                // W3/R3: Partial-match settlement — exactly one side of the
+                // trade is in this country's company slice (cross-border trade)
+                // or one side is a non-company (phantom seller such as
+                // "fishing_sector"). Both cash legs must still balance.
                 if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
+                    // Release the buyer's encumbered cash (the payer-side
+                    // cash leg — encumbered available_cash → debit_cash at
+                    // bid submission; releasing it completes the payment).
+                    // For UNBANKED buyers this release IS the M0 debit —
+                    // their cash pockets (available + debit + brokerage)
+                    // are all physical fiat in the walk, so no further
+                    // cash-pocket debit may follow (that would destroy
+                    // fiat a second time — the post-fix FiatDestruction).
                     companies[bi].debit_cash -= trade_value;
+                    let buyer_bank_id = companies[bi].primary_bank_id.clone();
+                    let buyer_is_bank = companies[bi].sector
+                        == crate::registries::enums::Sector::Banking;
+                    if buyer_bank_id.is_some() || buyer_is_bank {
+                        // W3/R3: Banked/bank payer — mirror
+                        // settle_transfer_mapped's payer cash debit: the
+                        // real spendable balance (brokerage.cash, else
+                        // available_cash) must fall by the payment amount,
+                        // or the company keeps money its bank already paid
+                        // out. No affordability gate: the seller's own
+                        // country task credits it unconditionally, so a
+                        // rejection here would leak fiat cross-border.
+                        // Negative cash = overdraft (Phase 94 convention).
+                        if let Some(ref mut ba) = companies[bi].brokerage_account {
+                            ba.cash -= trade_value;
+                        } else {
+                            companies[bi].available_cash -= trade_value;
+                        }
+                    }
+                    // W3/R3: If the buyer is banked, the payment leaves the
+                    // payer's bank — deposits AND reserves must fall here,
+                    // mirroring the payer leg of settle_transfer_mapped.
+                    // The seller's own country task credits the seller's bank
+                    // +deposits/+reserves; without this debit the pair
+                    // creates fiat (the b2b_settlement_post M0 leak).
+                    // ELA covers the debit so reserves never go negative.
+                    if let Some(ref bank_id) = buyer_bank_id {
+                        if let Some(&bidx) = company_id_to_idx.get(bank_id) {
+                            if let Some(ref mut bs) = companies[bidx].balance_sheet {
+                                crate::state::banking::ela_cover_debit(
+                                    bs,
+                                    &mut country.central_bank,
+                                    trade_value,
+                                );
+                            }
+                        }
+                        let debited = crate::economy::transfer_settler::adjust_bank_balance(
+                            companies,
+                            &company_id_to_idx,
+                            bank_id,
+                            -trade_value,
+                            -trade_value,
+                        );
+                        #[cfg(feature = "diagnostic")]
+                        if !debited {
+                            eprintln!("XB_NOPAYBANK: buyer={} bank={} value={:.2} — payer bank not in slice",
+                                companies[bi].id, bank_id, trade_value);
+                        }
+                    } else if buyer_is_bank {
+                        // The buyer IS a bank paying from its own reserves —
+                        // debit its own balance sheet (same convention as
+                        // settle_transfer_mapped's Banking-sector payer leg).
+                        if let Some(ref mut bs) = companies[bi].balance_sheet {
+                            crate::state::banking::ela_cover_debit(
+                                bs,
+                                &mut country.central_bank,
+                                trade_value,
+                            );
+                            bs.reserves_at_central_bank -= trade_value;
+                            bs.deposits -= trade_value;
+                        }
+                    }
+                    // else: unbanked buyer — the debit_cash release above
+                    // already moved M0 out of the payer's pockets.
                 }
                 if let Some(&si) = company_id_to_idx.get(&trade.seller_id) {
                     // Phase 94: Use credit_company_by_id to sync bank reserves
@@ -785,6 +868,15 @@ pub fn settle_trades(
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
                     companies[si].unfilled_ask_prices.remove(&trade.commodity);
+                } else if company_id_to_idx.contains_key(&trade.buyer_id)
+                    && !company_country.contains_key(&trade.seller_id)
+                {
+                    // W3: Phantom seller (e.g. the "fishing_sector" aggregate
+                    // ask) — no company exists in ANY country to receive the
+                    // payment. Credit the domestic treasury as the informal/
+                    // state-sector counterparty so the payer's debit has a
+                    // matching credit and M0 stays conserved.
+                    country.budget.liquid_reserves += trade_value;
                 }
             }
         } else if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
@@ -977,7 +1069,15 @@ pub fn settle_trades_with_tariffs(
     gen_config: &GenerativeGoodsConfig,
 ) -> Vec<String> {
     // Phase 1: Standard settlement (cash + inventory)
-    let messages = settle_trades(trades, companies, buildings, country, current_turn, gen_config);
+    let messages = settle_trades(
+        trades,
+        companies,
+        buildings,
+        country,
+        current_turn,
+        gen_config,
+        company_country,
+    );
 
     // Phase 42: FX Reserves — forced currency conversion and import hard floor.
     // For cross-border trades, the buyer's country Central Bank must:
@@ -1065,6 +1165,33 @@ pub fn settle_trades_with_tariffs(
                         ba.cash += trade_value;
                     } else {
                         companies[buyer_idx].available_cash += trade_value;
+                    }
+                    // W3/R3: Reverse the payer-side bank debit applied by
+                    // settle_trades' cross-border leg — otherwise the bank
+                    // loses deposits+reserves while the customer's cash is
+                    // refunded (deposit ledger drifts negative / M0 sink).
+                    let revert_bank_id = companies[buyer_idx].primary_bank_id.clone();
+                    if let Some(ref bank_id) = revert_bank_id {
+                        let id_to_idx: HashMap<String, usize> = companies
+                            .iter()
+                            .enumerate()
+                            .map(|(i, c)| (c.id.clone(), i))
+                            .collect();
+                        crate::economy::transfer_settler::adjust_bank_balance(
+                            companies,
+                            &id_to_idx,
+                            bank_id,
+                            trade_value,
+                            trade_value,
+                        );
+                    } else if companies[buyer_idx].sector
+                        == crate::registries::enums::Sector::Banking
+                    {
+                        // Bank paid from its own reserves — restore them.
+                        if let Some(ref mut bs) = companies[buyer_idx].balance_sheet {
+                            bs.reserves_at_central_bank += trade_value;
+                            bs.deposits += trade_value;
+                        }
                     }
                 }
                 if let Some(seller_idx) = companies.iter().position(|c| c.id == trade.seller_id) {
@@ -2133,21 +2260,21 @@ pub fn submit_fixed_asset_purchase_bids(
     messages
 }
 
-/// Settle MaintenanceServices trades: cash leg via `TransferSettler` (strict
-/// double-entry), condition restoration applied to buyer's cohorts.
+/// Apply the service leg of MaintenanceServices trades: condition
+/// restoration on the buyer's fixed-asset cohorts.
 ///
 /// # Rules
 /// * Filters `trades` for `Commodity::MaintenanceServices` only.
-/// * Cash leg: uses `credit_company_by_id` (TransferSettler helper) to credit
-///   the seller, ensuring bank balance-sheet sync. The buyer's encumbered cash
-///   is released (debit_cash -= trade_value).
+/// * Cash leg: NONE — `settle_trades` already settled the cash for every
+///   trade (encumbrance release + seller credit + bank sync). Crediting the
+///   seller here a second time paid double and created fiat (W3 fix).
 /// * Physical leg: NONE — MaintenanceServices is a service, consumed on delivery.
 ///   The buyer's cohort condition is restored proportionally to the quantity
 ///   bought.
 /// * Returns the list of settled trades (for audit/logging).
 pub fn settle_maintenance_service_trades(
     trades: &[Trade],
-    companies: &mut [Company],
+    _companies: &mut [Company],
     buildings: &mut [Building],
     gen_config: &crate::economy::generative_goods_config::GenerativeGoodsConfig,
 ) -> Vec<String> {
@@ -2159,26 +2286,15 @@ pub fn settle_maintenance_service_trades(
         .iter()
         .filter(|t| t.commodity == Commodity::MaintenanceServices)
     {
-        let trade_value = trade.quantity * trade.execution_price;
+        // W3: NO cash legs here — `settle_trades` (called by
+        // `settle_trades_with_tariffs` before this function) already performs
+        // the full cash settlement for every trade, including
+        // MaintenanceServices: encumbrance release + seller credit via
+        // settle_transfer_mapped / credit_company_by_id. Crediting the
+        // seller AGAIN paid it twice per trade — creating bank reserves
+        // (M0) from nothing (FiatCreation). This function's job is the
+        // service leg only: restoring fixed-asset cohort condition.
 
-        // Release buyer's encumbered cash.
-        if let Some(buyer) = companies.iter_mut().find(|c| c.id == trade.buyer_id) {
-            buyer.debit_cash = (buyer.debit_cash - trade_value).max(0.0);
-        }
-
-        // Credit seller via TransferSettler helper (strict double-entry).
-        // This syncs the seller's bank balance sheet — unlike the legacy
-        // `settle_trades` which directly mutates `available_cash`/`brokerage_account.cash`.
-        let credited =
-            crate::economy::credit_company_by_id(companies, &trade.seller_id, trade_value);
-        if !credited {
-            messages.push(format!(
-                "Maintenance service trade: seller {} not found for trade value {}",
-                trade.seller_id, trade_value
-            ));
-        }
-
-        // Restore cohort condition on the buyer's buildings.
         // Find all buildings owned by the buyer with fixed assets and distribute
         // the service quantity proportionally (restore_cohort_condition handles
         // the proportional distribution across cohorts within each building).
@@ -2521,6 +2637,7 @@ mod tests {
             &mut test_country,
             0,
             &GenerativeGoodsConfig::default(),
+            &std::collections::HashMap::new(),
         );
 
         // Seller cash NOT credited by settle_trades for defense trades

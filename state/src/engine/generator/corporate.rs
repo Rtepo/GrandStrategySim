@@ -1433,6 +1433,35 @@ fn issue_working_capital_loans(
                 .unwrap_or(0.0)
         })
         .collect();
+    // W3/R1: Per-bank deposit base snapshot for the LDR cap. Genesis loans
+    // create deposits 1:1 (`deposits += principal`), so a bank is eligible
+    // only while `lent + P ≤ (deposits + lent + P) × (1 − rr)` — the same
+    // hard gate `issue_loan` enforces at runtime.
+    let bank_seed_deposits: Vec<f64> = bank_companies
+        .iter()
+        .map(|b| {
+            b.balance_sheet
+                .as_ref()
+                .map(|bs| bs.deposits)
+                .unwrap_or(0.0)
+        })
+        .collect();
+    // W3/R1: Pre-existing loan book (corporate + consumer). This function is
+    // invoked multiple times per country (main pass, patch pass, gap pass) and
+    // reloads banks from disk each call, so `bank_seed_deposits` already
+    // includes the deposit legs of earlier loans — but `bank_total_lent`
+    // restarts at zero. Without counting the existing book, later calls treat
+    // prior loans as free headroom and can push the bank over the LDR cap.
+    let bank_existing_loans: Vec<f64> = bank_companies
+        .iter()
+        .map(|b| {
+            b.balance_sheet
+                .as_ref()
+                .map(|bs| bs.total_loans_outstanding())
+                .unwrap_or(0.0)
+        })
+        .collect();
+    let ldr_reserve_ratio = country.central_bank.reserve_requirement_ratio;
 
     for company in all_companies.iter_mut() {
         // Phase 89/91: Determine per-sector risk premium.
@@ -1520,10 +1549,23 @@ fn issue_working_capital_loans(
 
         // Phase 88/92: Randomly assign this company to an eligible bank that
         // hasn't hit its lending cap (10× Tier 1). Filter out capped banks.
+        // W3/R1: Also filter out banks whose loan book would breach the LDR
+        // cap — total credit ≤ deposits × (1 − reserve_requirement_ratio).
+        // Genesis loans create deposits 1:1, so the post-issuance deposit
+        // base is `deposits + lent + principal` and the post-issuance loan
+        // book is `existing_loans + lent + principal`.
         let available_bank_indices: Vec<usize> = eligible_bank_indices
             .iter()
             .copied()
-            .filter(|&i| bank_tier1[i] > 0.0 && bank_total_lent[i] < bank_tier1[i] * 10.0)
+            .filter(|&i| {
+                bank_tier1[i] > 0.0
+                    && bank_existing_loans[i] + bank_total_lent[i] < bank_tier1[i] * 10.0
+                    && bank_existing_loans[i] + bank_total_lent[i] + principal
+                        <= crate::state::banking::BankBalanceSheet::ldr_cap(
+                            bank_seed_deposits[i] + bank_total_lent[i] + principal,
+                            ldr_reserve_ratio,
+                        )
+            })
             .collect();
         if available_bank_indices.is_empty() {
             // All banks have hit their lending cap — skip this company.
@@ -1798,8 +1840,19 @@ fn assign_primary_banks_to_companies(
             company.primary_bank_id = Some(bank_id.clone());
 
             // Create pre-funded deposit liability backed by reserves.
-            // Only for companies with available_cash > 0 (Rule 7: no phantom overdrafts).
-            let cash = company.available_cash.max(0.0);
+            // Only for companies with cash > 0 (Rule 7: no phantom overdrafts).
+            // W3: Back ALL liquid cash pockets — available_cash AND
+            // brokerage_account.cash. Some generated entities hold their
+            // seed capital in the brokerage account; booking only
+            // available_cash leaves that spendable cash unbacked, so later
+            // settlement debits drive `deposits` negative.
+            let cash = (company.available_cash
+                + company
+                    .brokerage_account
+                    .as_ref()
+                    .map(|ba| ba.cash)
+                    .unwrap_or(0.0))
+            .max(0.0);
             if cash > 0.0 {
                 if let Some(ref mut bs) = bank_companies[bank_idx].balance_sheet {
                     bs.deposits += cash;
@@ -7959,8 +8012,33 @@ pub fn generate_investment_funds(
             })
             .map(|b| b.id.clone());
         if let Some(bank_id) = &best_bank_id {
+            // W3: The fund's seed cash was debited from the treasury
+            // (`liquid_reserves -= seed_capital` above) and sits in the
+            // fund's brokerage account. Funds are Banking-sector entities,
+            // so their cash is excluded from the M0 walk — it MUST be
+            // backed by a real deposit at the fund's bank, otherwise every
+            // fund payment creates fiat (bank reserves sync with no
+            // deposit leg behind them) and the bank's `deposits` drifts
+            // negative. Book the deposit + reserves here. This is a
+            // treasury→bank transfer of existing M0, not new money, so
+            // `liquidity_injected` is untouched.
+            let fund_bank_pos = existing.iter().position(|c| c.id == *bank_id);
             for fund in &mut fund_companies {
                 fund.primary_bank_id = Some(bank_id.clone());
+                let fund_cash = fund
+                    .brokerage_account
+                    .as_ref()
+                    .map(|ba| ba.cash)
+                    .unwrap_or(0.0)
+                    + fund.available_cash;
+                if fund_cash > 0.0 {
+                    if let Some(pos) = fund_bank_pos {
+                        if let Some(ref mut bs) = existing[pos].balance_sheet {
+                            bs.deposits += fund_cash;
+                            bs.reserves_at_central_bank += fund_cash;
+                        }
+                    }
+                }
             }
         }
 

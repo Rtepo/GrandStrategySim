@@ -614,6 +614,40 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         }
     }
 
+    // DIAG: per-bank balance-sheet drift snapshot at each walk point.
+    // Interleaves with M0_TRACE markers so a drift can be attributed to the
+    // phase that created it (prints only banks already past 1M drift).
+    #[cfg(feature = "diagnostic")]
+    for task in tasks {
+        for company in &task.companies {
+            if company.bank_type.is_some() {
+                if let Some(ref bs) = company.balance_sheet {
+                    let drift =
+                        bs.total_assets() - bs.total_liabilities() - bs.total_equity();
+                    if drift.abs() > 1_000_000.0 {
+                        eprintln!(
+                            "SHEETWALK: bank={} drift={:.0} res={:.0} depfac={:.0} loans={:.0} ibg={:.0} sec={:.0} re={:.0} cons={:.0} dep={:.0} lomb={:.0} ibt={:.0} bonds={:.0} t1={:.0}",
+                            company.id,
+                            drift,
+                            bs.reserves_at_central_bank,
+                            bs.cb_deposit_facility_balance,
+                            bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>(),
+                            bs.interbank_loans_given.values().sum::<f64>(),
+                            bs.securities,
+                            bs.real_estate,
+                            bs.consumer_loans_outstanding,
+                            bs.deposits,
+                            bs.cb_lombard_loans,
+                            bs.interbank_loans_taken.values().sum::<f64>(),
+                            bs.issued_bonds,
+                            bs.tier_1_capital,
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     let offshore_capital = market.offshore_capital;
     let foreign_sector_balance = market.foreign_sector_balance;
     let see_charity_pool = market.apostolic_see_ledger.global_charity_pool;

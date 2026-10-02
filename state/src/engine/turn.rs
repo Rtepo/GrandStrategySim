@@ -1291,6 +1291,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             // Merge deferred trades into the country's deferred list.
             task.ctx.country.deferred_trades.extend(new_deferred);
 
+            #[cfg(feature = "diagnostic")]
+            let _res_pre: f64 = task
+                .companies
+                .iter()
+                .filter_map(|c| c.balance_sheet.as_ref())
+                .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+                .sum();
             let gen_config_clone = task.ctx.country.generative_goods_config.clone();
             let _msgs = settle_trades_with_tariffs(
                 &secured_trades,
@@ -1336,6 +1343,24 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 settle_defense_trades(&defense_trades, &mut task.companies, task.ctx.country);
             }
 
+            #[cfg(feature = "diagnostic")]
+            {
+                let res_post: f64 = task
+                    .companies
+                    .iter()
+                    .filter_map(|c| c.balance_sheet.as_ref())
+                    .map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance)
+                    .sum();
+                let d = res_post - _res_pre;
+                if d.abs() > 1.0 {
+                    eprintln!(
+                        "P3_RES: c={} trades={} d_res={:.0}",
+                        task.ctx.country_name,
+                        secured_trades.len(),
+                        d
+                    );
+                }
+            }
             // Phase 19B: Settle maintenance-service trades.
             // Cash leg uses TransferSettler (strict double-entry); the service
             // is consumed on delivery (no physical inventory routing); cohort
@@ -1554,6 +1579,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     task.ctx.country,
                     task.ctx.turn,
                     &gen_config_clone2,
+                    &company_country,
                 );
                 // Phase 24D: Accumulate ministry procurement as GDP government spending (G).
                 let ministry_spend: f64 = ministry_trades
@@ -1654,6 +1680,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 task.ctx.country,
                 task.ctx.turn,
                 &gen_config_jst,
+                &company_country,
             );
 
             // Step 5: Record procured quantities and credit sellers via TransferSettler.

@@ -1030,10 +1030,21 @@ pub fn distribute_grid_power(
             .revenue_distribution
             .insert(plant_id.clone(), payment);
         let owner_id = plant.owner_id.clone();
-        if let Some(owner) = companies.iter_mut().find(|c| c.id == owner_id) {
-            owner.available_cash += payment;
+        // Phase 94 double-entry: route the offtake payment through
+        // credit_company_by_id so a banked owner's deposit AND its bank's
+        // deposits+reserves rise together (raw available_cash credits are
+        // M1-only for banked companies — the reserves leg never lands and
+        // the M0 walk measures pure destruction). If the owner is not a
+        // company in this country's slice (state-owned or foreign plant),
+        // skip the treasury debit entirely — treasury paying itself is a
+        // no-op and paying a void would leak fiat.
+        if crate::economy::trade::transfer_settler::credit_company_by_id(
+            companies,
+            &owner_id,
+            payment,
+        ) {
+            country.budget.liquid_reserves -= payment;
         }
-        country.budget.liquid_reserves -= payment;
     }
 
     // LV/MV network expansion: distribution capacity tracks this turn's
@@ -1161,9 +1172,18 @@ pub fn distribute_grid_power(
                 labor_budget_mw -= built_mw;
                 treasury_budget_mw -= built_mw;
                 country.budget.liquid_reserves -= cost;
+                // Phase 94 double-entry: credit each construction company via
+                // credit_company_by_id so banked recipients' deposits+reserves
+                // move with the pocket (raw available_cash credits are M1-only
+                // for banked companies — the M0 walk would count the treasury
+                // debit but not the offsetting reserve credit).
                 for &i in &construction_roster {
-                    companies[i].available_cash +=
+                    let share_cost =
                         cost * companies[i].fulfilled_fte as f64 / roster_fte;
+                    let cid = companies[i].id.clone();
+                    crate::economy::trade::transfer_settler::credit_company_by_id(
+                        companies, &cid, share_cost,
+                    );
                 }
                 #[cfg(feature = "diagnostic")]
                 eprintln!(

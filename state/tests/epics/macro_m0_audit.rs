@@ -205,6 +205,31 @@ fn test_m0_conservation_single_turn() {
     let cb_injected_before = compute_cb_injected(&country_before);
     let treasury_ext_before = compute_treasury_external(&country_before);
 
+    // DIAG: snapshot bank sheets pre-turn for field-level drift analysis
+    let mut bank_sheets_before: std::collections::HashMap<
+        String,
+        (f64, f64, f64, f64, f64, f64, f64, f64, f64, f64),
+    > = std::collections::HashMap::new();
+    for c in &companies_before {
+        if let Some(ref bs) = c.balance_sheet {
+            bank_sheets_before.insert(
+                c.id.clone(),
+                (
+                    bs.reserves_at_central_bank,
+                    bs.cb_deposit_facility_balance,
+                    bs.loans_issued.iter().map(|l| l.outstanding_balance).sum(),
+                    bs.interbank_loans_given.values().sum(),
+                    bs.securities,
+                    bs.real_estate,
+                    bs.consumer_loans_outstanding,
+                    bs.deposits,
+                    bs.cb_lombard_loans,
+                    bs.tier_1_capital,
+                ),
+            );
+        }
+    }
+
     // Run exactly 1 turn
     let mut probe = sim_engine::engine::diagnostic::NoopProbe;
     let result = run_turn_inner(&mut state, &registries, &mut ctx, &mut probe);
@@ -237,6 +262,34 @@ fn test_m0_conservation_single_turn() {
 
     // Verify bank balance-sheet identity
     if let Err(e) = verify_bank_balance_sheets(&companies_after) {
+        // DIAG: dump field deltas for every drifted bank
+        for c in &companies_after {
+            if c.bank_type.is_none() {
+                continue;
+            }
+            if let (Some(ref bs), Some(b)) = (&c.balance_sheet, bank_sheets_before.get(&c.id)) {
+                let a = bs.total_assets();
+                let le = bs.total_liabilities() + bs.total_equity();
+                if (a - le).abs() > (a.abs() * 0.01).max(2_000_000.0) {
+                    eprintln!(
+                        "SHEETDIAG {}: d_res={:.0} d_depfac={:.0} d_loans={:.0} d_ibg={:.0} d_sec={:.0} d_re={:.0} d_cons={:.0} | d_dep={:.0} d_lomb={:.0} d_ibt={:.0} d_bonds={:.0} d_t1={:.0}",
+                        c.id,
+                        bs.reserves_at_central_bank - b.0,
+                        bs.cb_deposit_facility_balance - b.1,
+                        bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>() - b.2,
+                        bs.interbank_loans_given.values().sum::<f64>() - b.3,
+                        bs.securities - b.4,
+                        bs.real_estate - b.5,
+                        bs.consumer_loans_outstanding - b.6,
+                        bs.deposits - b.7,
+                        bs.cb_lombard_loans - b.8,
+                        bs.interbank_loans_taken.values().sum::<f64>(),
+                        bs.issued_bonds,
+                        bs.tier_1_capital - b.9,
+                    );
+                }
+            }
+        }
         panic!("{}", e);
     }
 }

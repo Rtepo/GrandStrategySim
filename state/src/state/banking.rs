@@ -358,6 +358,48 @@ impl BankBalanceSheet {
         let required_reserves = self.deposits * cb_reserve_ratio;
         self.reserves_at_central_bank - required_reserves
     }
+
+    /// W3/R1: Total outstanding credit extended by this bank.
+    ///
+    /// Sums every loan asset on the book: corporate `loans_issued` plus
+    /// `consumer_loans_outstanding` (B2C credit is a real loan asset and
+    /// counts toward the regulatory Loan-to-Deposit cap). Interbank loans
+    /// are excluded — they are reserve re-lending between banks, not
+    /// deposit-funded credit creation.
+    pub fn total_loans_outstanding(&self) -> f64 {
+        self.loans_issued
+            .iter()
+            .map(|l| l.outstanding_balance)
+            .sum::<f64>()
+            + self.consumer_loans_outstanding
+    }
+
+    /// W3/R1: Regulatory Loan-to-Deposit cap — maximum total credit this
+    /// bank may carry: `deposits × (1 − reserve_requirement_ratio)`.
+    ///
+    /// The cap is derived from the reserve requirement (the classic
+    /// fractional-reserve bound: banks lend deposits net of required
+    /// reserves), not a magic number. `deposits` is the post-issuance
+    /// deposit base — callers pass `bs.deposits + principal` because loan
+    /// issuance creates a deposit liability 1:1.
+    pub fn ldr_cap(deposits: f64, reserve_requirement_ratio: f64) -> f64 {
+        deposits * (1.0 - reserve_requirement_ratio)
+    }
+
+    /// W3/R1: Loan-to-Deposit headroom — how much additional loan asset this
+    /// bank can hold without the deposit leg counting toward the cap.
+    ///
+    /// Returns `deposits × (1 − rr) − total_loans` clamped at zero. For
+    /// issuance paths that do NOT create a deposit (unbanked cash loans,
+    /// consumer loans), the headroom must cover the full new principal.
+    /// For `issue_loan` the deposit created by the loan itself is added to
+    /// the deposit base, so only `principal × rr` of headroom is required —
+    /// that check lives inside `issue_loan`.
+    pub fn ldr_headroom(&self, reserve_requirement_ratio: f64) -> f64 {
+        (Self::ldr_cap(self.deposits, reserve_requirement_ratio)
+            - self.total_loans_outstanding())
+        .max(0.0)
+    }
 }
 
 /// Phase 95: Emergency Liquidity Assistance — draw CB Lombard credit so an
@@ -1007,6 +1049,28 @@ pub fn issue_loan(
             "Reserve requirement violation: need {} reserves, have {} effective ({} raw - {} lombard)",
             required_reserves, effective_reserves,
             balance_sheet.reserves_at_central_bank, balance_sheet.cb_lombard_loans
+        ));
+    }
+
+    // Step 3b (W3/R1): Hard LDR gate — total outstanding credit may not
+    // exceed `deposits × (1 − reserve_requirement_ratio)` after issuance.
+    // This is the classic fractional-reserve bound: banks lend deposits net
+    // of required reserves, so LDR can never exceed 1 − rr. The loan creates
+    // its own deposit (+principal on both sides), so the post-issuance
+    // deposit base is `deposits + principal`. Banks already above the cap
+    // are barred from new issuance — existing loans amortize down through
+    // normal repayment (no instant recall, no silent write-off).
+    //
+    // A rejection here leaves ZERO ledger trace: no loan record, no deposit,
+    // no borrower liability, no M0 change (C3).
+    let loans_after = balance_sheet.total_loans_outstanding() + principal;
+    let deposits_after = balance_sheet.deposits + principal;
+    let ldr_cap =
+        BankBalanceSheet::ldr_cap(deposits_after, central_bank.reserve_requirement_ratio);
+    if loans_after > ldr_cap + 1e-9 * ldr_cap.abs().max(1.0) {
+        return Err(format!(
+            "LDR cap violation: loans_after={:.2} exceeds cap={:.2} (deposits_after={:.2} × (1 − rr={:.4}))",
+            loans_after, ldr_cap, deposits_after, central_bank.reserve_requirement_ratio
         ));
     }
 
@@ -3049,7 +3113,20 @@ pub fn process_banking_turn(
             if let Some(bank) = companies.get_mut(bank_idx) {
                 if let Some(ref mut bs) = bank.balance_sheet {
                     for loan in &mut bs.loans_issued {
-                        if loan.borrower_id == borrower_id && loan.status != LoanStatus::Repaid {
+                        // The queued repayment is fictitious for a vanished
+                        // borrower: the loan loop already reduced
+                        // `outstanding_balance` by `amount` and credited
+                        // `tier_1_capital` by the interest component, but no
+                        // deposit/cash debit can run. Restore the deducted
+                        // balance so the accrued-interest asset remains,
+                        // matching the equity credit (keeps A = L + E),
+                        // then mark Default for the bankruptcy waterfall.
+                        if loan.id == loan_id {
+                            loan.outstanding_balance += amount;
+                            loan.status = LoanStatus::Default;
+                        } else if loan.borrower_id == borrower_id
+                            && loan.status != LoanStatus::Repaid
+                        {
                             loan.status = LoanStatus::Default;
                         }
                     }
@@ -3148,6 +3225,22 @@ pub fn process_banking_turn(
                 .unwrap_or(0.0);
             if current_assets + principal > capacity.max_asset_under_management {
                 continue;
+            }
+
+            // W3/R1: For unbanked borrowers the created deposit is reversed
+            // after issue_loan returns (reserve-funded cash loan), so the
+            // effective post-state is loans+P ≤ deposits×(1−rr) — stricter
+            // than the in-function check which credits the new deposit.
+            // Enforce it here so issuance never breaches the cap.
+            if borrower_clone.primary_bank_id.is_none() {
+                let headroom = companies[bi]
+                    .balance_sheet
+                    .as_ref()
+                    .map(|bs| bs.ldr_headroom(cb_for_loans.reserve_requirement_ratio))
+                    .unwrap_or(0.0);
+                if principal > headroom {
+                    continue;
+                }
             }
 
             let loan_result = issue_loan(
@@ -3517,6 +3610,22 @@ pub fn process_banking_turn(
             if loan_amount < 100.0 {
                 continue;
             }
+            // W3/R1: For unbanked borrowers the created deposit is reversed
+            // after issue_loan returns (reserve-funded cash loan), so the
+            // effective post-state is loans+P ≤ deposits×(1−rr) — stricter
+            // than the in-function check which credits the new deposit.
+            if companies[borrower_idx].primary_bank_id.is_none() {
+                let headroom = companies[bank_idx]
+                    .balance_sheet
+                    .as_ref()
+                    .map(|bs| bs.ldr_headroom(
+                        country.central_bank.reserve_requirement_ratio,
+                    ))
+                    .unwrap_or(0.0);
+                if loan_amount > headroom {
+                    continue;
+                }
+            }
             // Phase 77: Route through issue_loan() for reserve check
             let borrower_clone = companies[borrower_idx].clone();
             let loan_result = issue_loan(
@@ -3683,6 +3792,17 @@ pub fn process_banking_turn(
             .unwrap_or(bank.available_cash);
         let cash_avail_for_cons = (bank_cash_cons - payroll_reserve_cons).max(0.0);
         let max_consumer_credit = (bs_cap * 0.2).min(cash_avail_for_cons);
+        // W3/R1: Consumer loans create a credit asset with NO deposit leg
+        // (citizen savings are M0 cash, reserves leave the bank). The full
+        // new principal therefore consumes LDR headroom — cap consumer
+        // issuance by `deposits×(1−rr) − total_loans`. Banks above the cap
+        // (headroom = 0) stop issuing and let the book amortize down.
+        let ldr_headroom = bank
+            .balance_sheet
+            .as_ref()
+            .map(|bs| bs.ldr_headroom(country.central_bank.reserve_requirement_ratio))
+            .unwrap_or(0.0);
+        let max_consumer_credit = max_consumer_credit.min(ldr_headroom);
         if max_consumer_credit < 500.0 {
             continue;
         }

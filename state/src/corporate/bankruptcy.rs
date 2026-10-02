@@ -339,15 +339,21 @@ impl Syndic {
                     let bank = companies.iter_mut().find(|c| &c.id == bank_id);
                     if let Some(bank) = bank {
                         if let Some(ref mut bs) = bank.balance_sheet {
-                            let debit = bs.reserves_at_central_bank.max(0.0).min(banked_cash);
-                            bs.reserves_at_central_bank -= debit;
-                            // If reserves were insufficient, the shortfall is
-                            // covered by CB liquidity injection (lender of last
-                            // resort) so the bank can honour the withdrawal.
-                            let shortfall = banked_cash - debit;
-                            if shortfall > 0.0 {
-                                country.central_bank.liquidity_injected += shortfall;
-                            }
+                            // Double-entry: the seized deposit claim is
+                            // extinguished — deposits (liability) fall 1:1
+                            // with reserves (asset). ELA covers any reserve
+                            // shortfall as CB Lombard credit (keeps both the
+                            // M0 walk and A = L + E intact; the old code
+                            // dropped reserves without the deposits leg AND
+                            // booked the shortfall as a liability-free CB
+                            // injection — both broke the sheet identity).
+                            crate::state::banking::ela_cover_debit(
+                                bs,
+                                &mut country.central_bank,
+                                banked_cash,
+                            );
+                            bs.reserves_at_central_bank -= banked_cash;
+                            bs.deposits -= banked_cash;
                         }
                     } else {
                         // Bank not found — CB injection covers the full amount.

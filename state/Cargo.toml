@@ -125,6 +125,11 @@ name = "demographic_dynamics_test"
 path = "tests/epics/demographic_dynamics_test.rs"
 required-features = ["epic-tests", "diagnostic"]
 
+[[test]]
+name = "banking_ldr_viability_test"
+path = "tests/epics/banking_ldr_viability_test.rs"
+required-features = ["epic-tests", "diagnostic"]
+
 [profile.release]
 opt-level = 3
 lto = true

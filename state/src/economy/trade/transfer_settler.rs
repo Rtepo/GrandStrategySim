@@ -93,7 +93,7 @@ pub struct TransferResult {
 /// settlement call sites, so this helper no longer needs a pre-check guard.
 /// Internal helper: find a bank company by ID and adjust its balance sheet.
 /// Mapped version: uses a pre-computed `id -> idx` table for O(1) lookup.
-fn adjust_bank_balance<S: std::hash::BuildHasher>(
+pub(crate) fn adjust_bank_balance<S: std::hash::BuildHasher>(
     companies: &mut [Company],
     id_to_idx: &HashMap<String, usize, S>,
     bank_id: &str,
