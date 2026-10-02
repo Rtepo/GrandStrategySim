@@ -435,8 +435,11 @@ pub fn process_building_cycle(
 
             // Outputs: use the method's output quantities (the blueprint doesn't
             // change output quantity — it changes quality/durability via the BOM).
+            // Audit §5.2: apply `efficiency` — the physical path
+            // (execute_production_cycle) scales output by it, so the
+            // market-order signal must match.
             for (&output_name, amount_per_1k) in &method.outputs {
-                let mut amount = amount_per_1k * production_scale;
+                let mut amount = amount_per_1k * production_scale * method.efficiency;
                 // Phase A.3: Clamp EducationSlots to physical seat budget.
                 if output_name == Commodity::EducationSlots {
                     if let Some(budget) = seat_budget {
@@ -465,7 +468,8 @@ pub fn process_building_cycle(
             }
 
             for (&output_name, amount_per_1k) in &method.outputs {
-                let mut amount = amount_per_1k * production_scale;
+                // Audit §5.2: apply `efficiency` to match the physical path.
+                let mut amount = amount_per_1k * production_scale * method.efficiency;
                 // Phase A.3: Clamp EducationSlots to physical seat budget.
                 if output_name == Commodity::EducationSlots {
                     if let Some(budget) = seat_budget {
@@ -626,7 +630,9 @@ pub fn process_building_cycle_with_geology(
     let mut last_production = BTreeMap::new();
     for (&output_name, amount_per_1k) in &method.outputs {
         // Apply deposit quality/depth multiplier to output.
-        let amount = amount_per_1k * production_scale * output_multiplier;
+        // Audit §5.2: apply `efficiency` to match the physical path.
+        let amount =
+            amount_per_1k * production_scale * output_multiplier * method.efficiency;
 
         if amount > 0.0 && depth_accessible {
             if let Some(ref mut buf) = depletion_buffer {

@@ -10,7 +10,46 @@ use crate::registries::enums::Commodity;
 use crate::registries::production_methods::{BuildingMethods, MethodSlot, ProductionMethod};
 use std::collections::HashMap;
 
+/// Production-scale rebalance (audit `production_scale_audit.md` Option A):
+/// target gross output value per 1000 workers at `efficiency = 1.0`. The raw
+/// `amount_per_1k` registry rates were 67x-750x too low relative to the wage
+/// scale (~$450/FTE/turn), so no fully-staffed building could cover payroll.
+/// `pm()` rescales each method's input/output quantities so that
+/// `sum(qty_per_1k * base_price) == TARGET_OUTPUT_VALUE_PER_1K`; downstream the
+/// `efficiency` multiplier then differentiates eras (eff 1.0 -> ~2.2x wage
+/// coverage at scale 1.5, eff 6.5 -> ~14x). BOM input/output ratios and
+/// multi-output mixes are preserved because inputs and all outputs share the
+/// same factor.
+const TARGET_OUTPUT_VALUE_PER_1K: f64 = 1_000_000.0;
+
+fn scaled_io(
+    inputs: &[(Commodity, f64)],
+    outputs: &[(Commodity, f64)],
+) -> (HashMap<Commodity, f64>, HashMap<Commodity, f64>) {
+    use crate::engine::generator::corporate::estimated_base_price;
+    let out_value: f64 = outputs
+        .iter()
+        .map(|(c, q)| q * estimated_base_price(*c))
+        .sum();
+    let mut inputs_map: HashMap<Commodity, f64> = inputs.iter().copied().collect();
+    let mut outputs_map: HashMap<Commodity, f64> = outputs.iter().copied().collect();
+    if out_value > 0.0 {
+        let factor = TARGET_OUTPUT_VALUE_PER_1K / out_value;
+        if (factor - 1.0).abs() > 1e-9 {
+            for v in inputs_map.values_mut() {
+                *v *= factor;
+            }
+            for v in outputs_map.values_mut() {
+                *v *= factor;
+            }
+        }
+    }
+    (inputs_map, outputs_map)
+}
+
 /// Helper: create a `ProductionMethod` with sensible defaults.
+/// RAW variant — quantities are used as written. Use `pm_scaled()` for
+/// goods-producing methods whose output must cover the wage bill.
 #[allow(clippy::too_many_arguments)]
 fn pm(
     year: u32,
@@ -31,6 +70,46 @@ fn pm(
         efficiency: eff,
         inputs: inputs.iter().copied().collect(),
         outputs: outputs.iter().copied().collect(),
+        thermal_efficiency: 0.0,
+        storage_efficiency: 0.0,
+        capex: HashMap::new(),
+        emission_factor: 0.0,
+        biohazard_factor: 0.0,
+        output_water_quality: 0.0,
+        discharge_quality: 0.0,
+        waste_generation_factor: 0.0,
+        seat_type: None,
+    }
+}
+
+/// Scaled variant of `pm()` for goods-producing sector registries
+/// (mining, agriculture, heavy/light industry, armaments). Input and output
+/// quantities are value-normalized to `TARGET_OUTPUT_VALUE_PER_1K` so a fully
+/// staffed building's gross output covers its wage bill. Do NOT use for
+/// capacity/service/utility methods (energy, water, education, healthcare,
+/// consumption upgrades) — their outputs are per-occupant/grid effects, not
+/// saleable throughput.
+#[allow(clippy::too_many_arguments)]
+fn pm_scaled(
+    year: u32,
+    tech: Option<&str>,
+    experts: f64,
+    skilled: f64,
+    basic: f64,
+    eff: f64,
+    inputs: &[(Commodity, f64)],
+    outputs: &[(Commodity, f64)],
+) -> ProductionMethod {
+    let (inputs, outputs) = scaled_io(inputs, outputs);
+    ProductionMethod {
+        year,
+        required_tech: tech.map(|s| s.to_string()),
+        experts_ratio: experts,
+        skilled_ratio: skilled,
+        basic_ratio: basic,
+        efficiency: eff,
+        inputs,
+        outputs,
         thermal_efficiency: 0.0,
         storage_efficiency: 0.0,
         capex: HashMap::new(),
@@ -153,6 +232,9 @@ fn pm_capex(
     outputs: &[(Commodity, f64)],
     capex: &[(Commodity, f64)],
 ) -> ProductionMethod {
+    // NOTE: consumption/capex methods are NOT rescaled — their outputs are
+    // per-occupant household effects (microgeneration, services), not
+    // per-1000-worker industrial throughput.
     ProductionMethod {
         year,
         required_tech: tech.map(|s| s.to_string()),
@@ -3523,7 +3605,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Manual Mining".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -3537,7 +3619,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Pneumatic Drilling".into(),
-        pm(
+        pm_scaled(
             1885,
             Some("mining_002"),
             0.10,
@@ -3555,7 +3637,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Electric Mine Pumps".into(),
-        pm(
+        pm_scaled(
             1890,
             Some("mining_004"),
             0.10,
@@ -3569,7 +3651,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Longwall Mining".into(),
-        pm(
+        pm_scaled(
             1895,
             Some("mining_006"),
             0.15,
@@ -3587,7 +3669,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Froth Flotation".into(),
-        pm(
+        pm_scaled(
             1900,
             Some("mining_007"),
             0.20,
@@ -3601,7 +3683,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Open-Pit Mining".into(),
-        pm(
+        pm_scaled(
             1905,
             Some("mining_008"),
             0.15,
@@ -3615,7 +3697,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Mechanized Longwall".into(),
-        pm(
+        pm_scaled(
             1950,
             Some("auto3_001"),
             0.20,
@@ -3633,7 +3715,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "CNC Mining".into(),
-        pm(
+        pm_scaled(
             1970,
             Some("auto3_004"),
             0.25,
@@ -3652,7 +3734,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Iron Ore Mining".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -3666,7 +3748,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Copper Ore Mining".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -3680,7 +3762,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Oil Drilling".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.08,
@@ -3698,7 +3780,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Natural Gas Extraction".into(),
-        pm(
+        pm_scaled(
             1900,
             None,
             0.08,
@@ -3712,7 +3794,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Bauxite Mining".into(),
-        pm(
+        pm_scaled(
             1890,
             None,
             0.05,
@@ -3726,7 +3808,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Sand And Gravel Quarry".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.03,
@@ -3740,7 +3822,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Stone Quarrying".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.03,
@@ -3754,7 +3836,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Clay Mining".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.03,
@@ -3768,7 +3850,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Limestone Quarrying".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.03,
@@ -3782,7 +3864,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Sulfur Mining".into(),
-        pm(
+        pm_scaled(
             1890,
             None,
             0.05,
@@ -3796,7 +3878,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Salt Mining".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.03,
@@ -3810,7 +3892,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Tin Ore Mining".into(),
-        pm(
+        pm_scaled(
             1890,
             None,
             0.05,
@@ -3824,7 +3906,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Zinc Ore Mining".into(),
-        pm(
+        pm_scaled(
             1890,
             None,
             0.05,
@@ -3838,7 +3920,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Lead Ore Mining".into(),
-        pm(
+        pm_scaled(
             1890,
             None,
             0.05,
@@ -3852,7 +3934,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Silver Mining".into(),
-        pm(
+        pm_scaled(
             1890,
             None,
             0.08,
@@ -3870,7 +3952,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Gold Mining".into(),
-        pm(
+        pm_scaled(
             1890,
             None,
             0.08,
@@ -3888,7 +3970,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Peat Cutting".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.02,
@@ -3902,7 +3984,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Brown Coal Mining".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -3916,7 +3998,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Rare Earth Element Mining".into(),
-        pm(
+        pm_scaled(
             1965,
             Some("rare_001"),
             0.15,
@@ -3934,7 +4016,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Lithium Extraction".into(),
-        pm(
+        pm_scaled(
             1970,
             Some("lithium_001"),
             0.12,
@@ -3953,7 +4035,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Magnesium Refinery".into(),
-        pm(
+        pm_scaled(
             1900,
             None,
             0.10,
@@ -3972,7 +4054,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Uranium Mining".into(),
-        pm(
+        pm_scaled(
             1945,
             Some("nuc_001"),
             0.15,
@@ -3990,7 +4072,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Manual Labor".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -4004,7 +4086,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Mechanical Ventilation".into(),
-        pm(
+        pm_scaled(
             1880,
             Some("mining_001"),
             0.10,
@@ -4018,7 +4100,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Electric Pumping".into(),
-        pm(
+        pm_scaled(
             1890,
             Some("mining_004"),
             0.15,
@@ -4032,7 +4114,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Automated Conveyor".into(),
-        pm(
+        pm_scaled(
             1915,
             Some("elecf_002"),
             0.20,
@@ -4049,7 +4131,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Diesel-Electric Drills".into(),
-        pm(
+        pm_scaled(
             1950,
             Some("auto_002"),
             0.25,
@@ -4063,7 +4145,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Robotic Extraction".into(),
-        pm(
+        pm_scaled(
             1975,
             Some("auto3_007"),
             0.30,
@@ -4080,7 +4162,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Piece Work".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -4094,7 +4176,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Shift System".into(),
-        pm(
+        pm_scaled(
             1890,
             Some("mech_008"),
             0.10,
@@ -4108,7 +4190,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Scientific Management".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("mech_008"),
             0.15,
@@ -4122,7 +4204,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Mechanized Operations".into(),
-        pm(
+        pm_scaled(
             1945,
             Some("elecf_005"),
             0.20,
@@ -4136,7 +4218,7 @@ fn mining_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Lean Mining".into(),
-        pm(
+        pm_scaled(
             1985,
             Some("advman_002"),
             0.25,
@@ -4156,7 +4238,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Manual Farming".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.02,
@@ -4174,7 +4256,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Horse-Drawn Machinery".into(),
-        pm(
+        pm_scaled(
             1885,
             Some("mech_002"),
             0.05,
@@ -4192,7 +4274,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Steam Tractors".into(),
-        pm(
+        pm_scaled(
             1895,
             Some("steam_001"),
             0.08,
@@ -4206,7 +4288,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Hybrid Seeds".into(),
-        pm(
+        pm_scaled(
             1960,
             Some("bio_005"),
             0.15,
@@ -4220,7 +4302,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Mechanized Harvesting".into(),
-        pm(
+        pm_scaled(
             1950,
             Some("auto3_001"),
             0.15,
@@ -4238,7 +4320,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "GM Crops".into(),
-        pm(
+        pm_scaled(
             1995,
             Some("precag_004"),
             0.25,
@@ -4256,7 +4338,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Precision Farming".into(),
-        pm(
+        pm_scaled(
             1995,
             Some("precag_005"),
             0.30,
@@ -4274,7 +4356,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Hydroponics".into(),
-        pm(
+        pm_scaled(
             1985,
             Some("precag_007"),
             0.30,
@@ -4293,7 +4375,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Vegetable Farming".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.02,
@@ -4311,7 +4393,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Pulse & Legume Farming".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.03,
@@ -4329,7 +4411,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Orchard Cultivation".into(),
-        pm(
+        pm_scaled(
             1885,
             None,
             0.03,
@@ -4347,7 +4429,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Livestock Ranching".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.03,
@@ -4365,7 +4447,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Industrial Fiber Farming".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.03,
@@ -4379,7 +4461,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Luxury Crop Plantation".into(),
-        pm(
+        pm_scaled(
             1885,
             None,
             0.05,
@@ -4397,7 +4479,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Seed Production".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -4415,7 +4497,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Fodder Production".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.03,
@@ -4429,7 +4511,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Timber Plantation".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.02,
@@ -4443,7 +4525,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Hand Harvesting".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.02,
@@ -4457,7 +4539,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Mechanical Reapers".into(),
-        pm(
+        pm_scaled(
             1885,
             Some("mech_002"),
             0.05,
@@ -4474,7 +4556,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Tractor Automation".into(),
-        pm(
+        pm_scaled(
             1920,
             Some("auto_001"),
             0.10,
@@ -4491,7 +4573,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Combine Harvesters".into(),
-        pm(
+        pm_scaled(
             1955,
             Some("auto3_001"),
             0.15,
@@ -4508,7 +4590,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "GPS-Guided Machinery".into(),
-        pm(
+        pm_scaled(
             1990,
             Some("precag_001"),
             0.25,
@@ -4526,7 +4608,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Agricultural Drones".into(),
-        pm(
+        pm_scaled(
             1998,
             Some("precag_006"),
             0.30,
@@ -4543,7 +4625,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Subsistence Farming".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.02,
@@ -4557,7 +4639,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Crop Rotation".into(),
-        pm(
+        pm_scaled(
             1890,
             Some("chem_001"),
             0.05,
@@ -4571,7 +4653,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Industrial Farming".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("mech_008"),
             0.10,
@@ -4585,7 +4667,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Agribusiness Scale".into(),
-        pm(
+        pm_scaled(
             1960,
             Some("bio_005"),
             0.20,
@@ -4601,7 +4683,7 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Draft Animal Breeding".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -4687,7 +4769,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Bessemer Converters".into(),
-        pm(
+        pm_scaled(
             1880,
             Some("steel_001"),
             0.15,
@@ -4705,7 +4787,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Open-Hearth Furnaces".into(),
-        pm(
+        pm_scaled(
             1885,
             Some("steel_002"),
             0.20,
@@ -4723,7 +4805,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Electric Arc Furnaces".into(),
-        pm(
+        pm_scaled(
             1905,
             Some("steel_008"),
             0.25,
@@ -4737,7 +4819,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Basic Oxygen Process".into(),
-        pm(
+        pm_scaled(
             1955,
             Some("auto3_002"),
             0.25,
@@ -4751,7 +4833,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Continuous Casting".into(),
-        pm(
+        pm_scaled(
             1965,
             Some("auto3_005"),
             0.30,
@@ -4769,7 +4851,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Mini-Mill Production".into(),
-        pm(
+        pm_scaled(
             1975,
             Some("auto3_007"),
             0.30,
@@ -4786,7 +4868,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Electrified Factories".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("elecf_001"),
             0.20,
@@ -4800,7 +4882,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "CNC Manufacturing".into(),
-        pm(
+        pm_scaled(
             1970,
             Some("auto3_004"),
             0.30,
@@ -4819,7 +4901,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Coke Production".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.08,
@@ -4833,7 +4915,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Cement Production".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.08,
@@ -4851,7 +4933,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Brick Making".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -4865,7 +4947,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Glass Making".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -4884,7 +4966,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Aluminum Smelting".into(),
-        pm(
+        pm_scaled(
             1900,
             Some("metall_006"),
             0.15,
@@ -4902,7 +4984,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Silicon Purification".into(),
-        pm(
+        pm_scaled(
             1950,
             Some("semi_001"),
             0.20,
@@ -4921,7 +5003,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Basic Chemical Production".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.10,
@@ -4940,7 +5022,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Solvay Process".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.12,
@@ -4959,7 +5041,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Haber-Bosch Process".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("chem_002"),
             0.15,
@@ -4977,7 +5059,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Fertilizer Production".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.10,
@@ -4995,7 +5077,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Oil Refining".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.10,
@@ -5013,7 +5095,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Advanced Refining".into(),
-        pm(
+        pm_scaled(
             1920,
             Some("petro_002"),
             0.12,
@@ -5035,7 +5117,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Plastics Production".into(),
-        pm(
+        pm_scaled(
             1935,
             Some("petro_005"),
             0.15,
@@ -5053,7 +5135,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Asphalt Production".into(),
-        pm(
+        pm_scaled(
             1900,
             None,
             0.05,
@@ -5072,7 +5154,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Catalyst Production".into(),
-        pm(
+        pm_scaled(
             1900,
             None,
             0.12,
@@ -5090,7 +5172,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Hydrogen Production".into(),
-        pm(
+        pm_scaled(
             1970,
             Some("hydro_001"),
             0.15,
@@ -5105,7 +5187,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Mechanical Components Workshop".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.10,
@@ -5123,7 +5205,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Precision Machining".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("mech_008"),
             0.15,
@@ -5141,7 +5223,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Electronic Components Assembly".into(),
-        pm(
+        pm_scaled(
             1920,
             Some("elecf_001"),
             0.15,
@@ -5160,7 +5242,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Semiconductor Fabrication".into(),
-        pm(
+        pm_scaled(
             1970,
             Some("semi_003"),
             0.25,
@@ -5179,7 +5261,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Advanced Electronics".into(),
-        pm(
+        pm_scaled(
             1980,
             Some("semi_005"),
             0.25,
@@ -5198,7 +5280,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Software Development".into(),
-        pm(
+        pm_scaled(
             1980,
             Some("cs_005"),
             0.35,
@@ -5216,7 +5298,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Battery Production".into(),
-        pm(
+        pm_scaled(
             1990,
             Some("batt_001"),
             0.20,
@@ -5236,7 +5318,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Pharmaceutical Production".into(),
-        pm(
+        pm_scaled(
             1890,
             None,
             0.15,
@@ -5256,7 +5338,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Machine Shop".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.12,
@@ -5274,7 +5356,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Smart Manufacturing".into(),
-        pm(
+        pm_scaled(
             1995,
             Some("advman_006"),
             0.30,
@@ -5295,7 +5377,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Blacksmith Workshop".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.10,
@@ -5313,7 +5395,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Machine Factory".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("mech_008"),
             0.15,
@@ -5331,7 +5413,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Heavy Equipment Plant".into(),
-        pm(
+        pm_scaled(
             1950,
             Some("auto3_001"),
             0.20,
@@ -5350,7 +5432,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Automated Equipment Plant".into(),
-        pm(
+        pm_scaled(
             1990,
             Some("advman_004"),
             0.25,
@@ -5371,7 +5453,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Implement Workshop".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.10,
@@ -5389,7 +5471,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Implement Factory".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("mech_008"),
             0.15,
@@ -5407,7 +5489,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Tractor Plant".into(),
-        pm(
+        pm_scaled(
             1950,
             Some("auto3_001"),
             0.20,
@@ -5426,7 +5508,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Precision Ag Equipment".into(),
-        pm(
+        pm_scaled(
             1990,
             Some("advman_004"),
             0.25,
@@ -5447,7 +5529,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Typewriter Workshop".into(),
-        pm(
+        pm_scaled(
             1890,
             Some("mech_008"),
             0.15,
@@ -5465,7 +5547,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Office Equipment Factory".into(),
-        pm(
+        pm_scaled(
             1950,
             Some("auto3_001"),
             0.20,
@@ -5484,7 +5566,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Computer Factory".into(),
-        pm(
+        pm_scaled(
             1980,
             Some("auto3_004"),
             0.25,
@@ -5505,7 +5587,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Wagon Workshop".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.10,
@@ -5524,7 +5606,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Truck Assembly".into(),
-        pm(
+        pm_scaled(
             1920,
             Some("auto_001"),
             0.15,
@@ -5543,7 +5625,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Modern Truck Plant".into(),
-        pm(
+        pm_scaled(
             1960,
             Some("auto3_002"),
             0.20,
@@ -5564,7 +5646,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Electric Truck Plant".into(),
-        pm(
+        pm_scaled(
             2000,
             Some("advman_006"),
             0.25,
@@ -5585,7 +5667,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Coachbuilder".into(),
-        pm(
+        pm_scaled(
             1900,
             Some("mech_008"),
             0.12,
@@ -5604,7 +5686,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Assembly Line".into(),
-        pm(
+        pm_scaled(
             1913,
             Some("auto_001"),
             0.10,
@@ -5623,7 +5705,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Modern Auto Plant".into(),
-        pm(
+        pm_scaled(
             1960,
             Some("auto3_003"),
             0.20,
@@ -5645,7 +5727,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "EV Factory".into(),
-        pm(
+        pm_scaled(
             2010,
             Some("advman_006"),
             0.25,
@@ -5668,7 +5750,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Prefabricates Plant".into(),
-        pm(
+        pm_scaled(
             1900,
             None,
             0.10,
@@ -5686,7 +5768,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Locomotive Works".into(),
-        pm(
+        pm_scaled(
             1890,
             Some("steam_002"),
             0.15,
@@ -5704,7 +5786,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Steam Power Drive".into(),
-        pm(
+        pm_scaled(
             1880,
             Some("steam_001"),
             0.10,
@@ -5718,7 +5800,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Electrified Factories".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("elecf_001"),
             0.15,
@@ -5732,7 +5814,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Turbo-Generator Plant".into(),
-        pm(
+        pm_scaled(
             1888,
             Some("steam_003"),
             0.15,
@@ -5749,7 +5831,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Automated Machinery".into(),
-        pm(
+        pm_scaled(
             1930,
             Some("elecf_005"),
             0.20,
@@ -5766,7 +5848,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Robotic Welding".into(),
-        pm(
+        pm_scaled(
             1965,
             Some("auto3_003"),
             0.30,
@@ -5783,7 +5865,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Flexible Manufacturing".into(),
-        pm(
+        pm_scaled(
             1995,
             Some("advman_006"),
             0.35,
@@ -5801,7 +5883,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Craft Production".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.20,
@@ -5815,7 +5897,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Taylorism".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("mech_008"),
             0.15,
@@ -5829,7 +5911,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Assembly Line".into(),
-        pm(
+        pm_scaled(
             1913,
             Some("auto_001"),
             0.10,
@@ -5846,7 +5928,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Continuous Flow Manufacturing".into(),
-        pm(
+        pm_scaled(
             1950,
             Some("elecf_005"),
             0.15,
@@ -5860,7 +5942,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Just-in-Time".into(),
-        pm(
+        pm_scaled(
             1985,
             Some("advman_002"),
             0.20,
@@ -5874,7 +5956,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Six Sigma".into(),
-        pm(
+        pm_scaled(
             1990,
             Some("advman_005"),
             0.25,
@@ -5892,7 +5974,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Military Truck Conversion".into(),
-        pm(
+        pm_scaled(
             1916,
             None,
             0.20,
@@ -5911,7 +5993,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Light Tank Conversion".into(),
-        pm(
+        pm_scaled(
             1935,
             None,
             0.22,
@@ -5930,7 +6012,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Artillery Conversion".into(),
-        pm(
+        pm_scaled(
             1916,
             None,
             0.20,
@@ -5948,7 +6030,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Ammunition Surge Production".into(),
-        pm(
+        pm_scaled(
             1916,
             None,
             0.18,
@@ -5967,7 +6049,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Gunpowder Conversion".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.15,
@@ -5987,7 +6069,7 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Coal Carbonization".into(),
-        pm(
+        pm_scaled(
             1850,
             None,
             0.15,
@@ -6012,7 +6094,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Handloom Weaving".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -6026,7 +6108,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Power Looms".into(),
-        pm(
+        pm_scaled(
             1885,
             Some("steam_001"),
             0.10,
@@ -6040,7 +6122,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Electric Looms".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("elecf_001"),
             0.15,
@@ -6054,7 +6136,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Synthetic Fibers".into(),
-        pm(
+        pm_scaled(
             1935,
             Some("synth_006"),
             0.20,
@@ -6068,7 +6150,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Automated Textile Mills".into(),
-        pm(
+        pm_scaled(
             1965,
             Some("auto3_003"),
             0.25,
@@ -6086,7 +6168,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Fast Fashion".into(),
-        pm(
+        pm_scaled(
             1990,
             Some("advman_002"),
             0.20,
@@ -6105,7 +6187,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Sawmill".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -6119,7 +6201,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Furniture Workshop".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.08,
@@ -6137,7 +6219,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Luxury Furniture Workshop".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.12,
@@ -6157,7 +6239,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Paper Mill".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.08,
@@ -6176,7 +6258,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Appliance Assembly".into(),
-        pm(
+        pm_scaled(
             1935,
             Some("elecf_005"),
             0.15,
@@ -6195,7 +6277,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Food Processing".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -6215,7 +6297,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Textile Mill".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -6229,7 +6311,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Synthetic Fiber Production".into(),
-        pm(
+        pm_scaled(
             1935,
             Some("synth_006"),
             0.15,
@@ -6248,7 +6330,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Luxury Clothing Atelier".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.12,
@@ -6268,7 +6350,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Medical Equipment Workshop".into(),
-        pm(
+        pm_scaled(
             1890,
             None,
             0.15,
@@ -6287,7 +6369,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Hand Spinning".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -6301,7 +6383,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Spinning Mules".into(),
-        pm(
+        pm_scaled(
             1885,
             Some("steam_001"),
             0.10,
@@ -6315,7 +6397,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Electric Spinning".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("elecf_001"),
             0.15,
@@ -6329,7 +6411,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Synthetic Fiber Looms".into(),
-        pm(
+        pm_scaled(
             1945,
             Some("chem_003"),
             0.20,
@@ -6343,7 +6425,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Computerized Knitting".into(),
-        pm(
+        pm_scaled(
             1980,
             Some("auto3_008"),
             0.25,
@@ -6360,7 +6442,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Cottage Industry".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.05,
@@ -6374,7 +6456,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Factory System".into(),
-        pm(
+        pm_scaled(
             1890,
             Some("mech_008"),
             0.10,
@@ -6388,7 +6470,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Mass Production".into(),
-        pm(
+        pm_scaled(
             1930,
             Some("auto_001"),
             0.15,
@@ -6402,7 +6484,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Quality Circles".into(),
-        pm(
+        pm_scaled(
             1960,
             Some("elecf_005"),
             0.18,
@@ -6416,7 +6498,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Lean Manufacturing".into(),
-        pm(
+        pm_scaled(
             1985,
             Some("advman_002"),
             0.20,
@@ -6433,7 +6515,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Military Uniform Conversion".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.10,
@@ -6452,7 +6534,7 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Support Equipment Conversion".into(),
-        pm(
+        pm_scaled(
             1916,
             None,
             0.15,
@@ -6477,7 +6559,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Artillery Workshop".into(),
-        pm(
+        pm_scaled(
             1880,
             Some("arm_001"),
             0.20,
@@ -6498,7 +6580,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Cartridge Manufacturing".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.15,
@@ -6517,7 +6599,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Tank Production".into(),
-        pm(
+        pm_scaled(
             1916,
             Some("arm_002"),
             0.25,
@@ -6535,7 +6617,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Small Arms Automation".into(),
-        pm(
+        pm_scaled(
             1920,
             Some("arm_003"),
             0.20,
@@ -6549,7 +6631,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Aircraft Cannon Production".into(),
-        pm(
+        pm_scaled(
             1930,
             Some("arm_005"),
             0.25,
@@ -6566,7 +6648,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Mass Bomb Production".into(),
-        pm(
+        pm_scaled(
             1940,
             Some("arm_008"),
             0.20,
@@ -6584,7 +6666,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Guided Munitions".into(),
-        pm(
+        pm_scaled(
             1965,
             Some("auto3_003"),
             0.30,
@@ -6605,7 +6687,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Precision Munitions".into(),
-        pm(
+        pm_scaled(
             1990,
             Some("advman_003"),
             0.35,
@@ -6627,7 +6709,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Medium Tank Production".into(),
-        pm(
+        pm_scaled(
             1935,
             Some("arm_002"),
             0.22,
@@ -6645,7 +6727,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Heavy Tank Production".into(),
-        pm(
+        pm_scaled(
             1942,
             Some("arm_002"),
             0.25,
@@ -6664,7 +6746,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Fighter Production".into(),
-        pm(
+        pm_scaled(
             1940,
             Some("arm_004"),
             0.25,
@@ -6683,7 +6765,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Bomber Production".into(),
-        pm(
+        pm_scaled(
             1942,
             Some("arm_004"),
             0.28,
@@ -6702,7 +6784,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Helicopter Production".into(),
-        pm(
+        pm_scaled(
             1960,
             Some("auto3_003"),
             0.30,
@@ -6722,7 +6804,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Production,
         "Submarine Production".into(),
-        pm(
+        pm_scaled(
             1935,
             Some("arm_002"),
             0.25,
@@ -6741,7 +6823,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Hand Fitting".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.20,
@@ -6755,7 +6837,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Interchangeable Parts".into(),
-        pm(
+        pm_scaled(
             1910,
             Some("auto_003"),
             0.15,
@@ -6772,7 +6854,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "CNC Machining".into(),
-        pm(
+        pm_scaled(
             1960,
             Some("auto3_002"),
             0.25,
@@ -6789,7 +6871,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Automation,
         "Robotic Assembly".into(),
-        pm(
+        pm_scaled(
             1980,
             Some("auto3_007"),
             0.35,
@@ -6806,7 +6888,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Arsenal System".into(),
-        pm(
+        pm_scaled(
             1880,
             None,
             0.20,
@@ -6820,7 +6902,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "War Production Board".into(),
-        pm(
+        pm_scaled(
             1916,
             Some("arm_002"),
             0.15,
@@ -6834,7 +6916,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Cold War Procurement".into(),
-        pm(
+        pm_scaled(
             1950,
             Some("arm_002"),
             0.20,
@@ -6848,7 +6930,7 @@ fn armaments_methods() -> BuildingMethods {
     m.insert(
         MethodSlot::Organization,
         "Lean Arsenal".into(),
-        pm(
+        pm_scaled(
             1985,
             Some("advman_002"),
             0.25,
