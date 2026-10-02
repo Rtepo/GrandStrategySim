@@ -2485,23 +2485,38 @@ pub fn process_furlough_reinstatement(companies: &mut [Company], buildings: &[Bu
             continue; // Raw materials still scarce — don't re-instate yet
         }
 
-        // Check if company can cover full payroll for re-instated workers
+        // Re-instate as many workers as this turn's payroll cash can cover.
+        // All-or-nothing was a ratchet: a company whose roster was slashed by
+        // distress furlough needed cash for the ENTIRE furloughed workforce
+        // before recalling anyone — million-FTE plants could never recover.
         let available = company
             .brokerage_account
             .as_ref()
             .map(|ba| ba.cash.max(0.0))
             .unwrap_or(company.available_cash.max(0.0));
-        let re_instate_count = company.furloughed_workers_count.round() as u32;
-        let payroll_cost = re_instate_count as f64 * company.offered_wage_per_fte;
+        let furloughed = company.furloughed_workers_count.round() as u32;
+        let re_instate_count = if company.offered_wage_per_fte > 0.0 {
+            (available / company.offered_wage_per_fte) as u32
+        } else {
+            furloughed
+        }
+        .min(furloughed);
 
-        if available < payroll_cost {
+        if re_instate_count == 0 {
             continue; // Can't afford to re-instate yet
         }
 
-        // Re-instate: transfer furloughed workers back to fulfilled_fte
-        company.fulfilled_fte += re_instate_count;
-        company.furloughed_workers_count = 0.0;
-        company.furlough_turns_accumulated = 0; // Reset duration counter
+        // Re-instate by raising prev_fulfilled_fte — the retention floor and
+        // hiring-growth cap in labor clearing both read prev_fulfilled_fte,
+        // while fulfilled_fte itself is reset to 0 at clearing and re-derived
+        // from bids. Writing fulfilled_fte here was therefore a silent no-op
+        // that left recovery strangled at 1.15x of the post-furlough base.
+        company.prev_fulfilled_fte += re_instate_count;
+        company.furloughed_workers_count -= re_instate_count as f64;
+        if company.furloughed_workers_count <= 0.0 {
+            company.furloughed_workers_count = 0.0;
+            company.furlough_turns_accumulated = 0; // Reset duration counter
+        }
     }
 }
 

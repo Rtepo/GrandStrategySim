@@ -1277,10 +1277,17 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
         ((target - already_sidelined).max(0.0).ceil() as u32)
             .min(ctx.company.fulfilled_fte)
     } else {
-        // Cash shortage: furlough down to the affordable payroll level.
-        // (fulfilled − affordable) is identical under the cumulative form
-        // since crew = fulfilled + furloughed.
-        let affordable_fte = (ctx.company.operational_cash() / wage_per_fte).floor();
+        // Cash shortage: furlough down to the sustainable payroll level.
+        // Use the same payroll-backing bound as the M3 material-shortage
+        // floor above — operational cash plus nonnegative equity, which backs
+        // wage arrears (a liability, not fabricated money). Bare
+        // operational_cash as the bound meant every firm below ~2 turns of
+        // payroll liquidity — at macro scale nearly all of them — shed its
+        // roster toward zero, collapsing prev_fulfilled_fte and strangling
+        // re-hiring at the 15%/turn cap (a structural unemployment trap).
+        let payroll_backing =
+            ctx.company.operational_cash() + ctx.company.company_capital.max(0.0);
+        let affordable_fte = (payroll_backing / wage_per_fte).floor();
         let target = (total_crew - affordable_fte).max(0.0);
         ((target - already_sidelined).max(0.0).ceil() as u32)
             .min(ctx.company.fulfilled_fte)
@@ -1306,6 +1313,19 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
 
     // wage_fraction = 0.0 (no pay during furlough — era-appropriate, no UI).
     // Future labor law mechanics can increase this.
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "FURLOUGH_CAUSE[{}]: sector={:?} cause={} fte={} fulfilled={} furl={:.0} avg_ratio={:.3} cash={:.0} cap={:.0}",
+        ctx.company.id,
+        ctx.company.sector,
+        if material_shortage { "material" } else { "cash" },
+        furlough_count,
+        ctx.company.fulfilled_fte,
+        ctx.company.furloughed_workers_count,
+        ctx.avg_fulfillment_ratio,
+        ctx.company.operational_cash(),
+        ctx.company.company_capital
+    );
     Some(CorporateAction::Furlough {
         fte_count: furlough_count,
         wage_fraction: 0.0,
