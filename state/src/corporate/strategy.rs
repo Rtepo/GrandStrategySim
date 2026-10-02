@@ -17,6 +17,29 @@ use crate::state::treasury::{SectorShare, StockMarket};
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+/// W2 diagnostic toggle: when `false`, `evaluate_furlough` falls back to the
+/// pre-W2 company-average material-shortage formula and the manager's
+/// adaptive method-switch pass is skipped entirely.
+///
+/// This exists so the adaptive-production epic test can measure a
+/// counterfactual baseline (legacy behavior) against the adaptive behavior on
+/// an identical seeded world. Production code paths leave it `true`; the flag
+/// is process-global and only intended to be flipped between sequential runs
+/// inside a single test process — never mid-turn.
+pub static ADAPTIVE_PRODUCTION_ENABLED: AtomicBool = AtomicBool::new(true);
+
+/// Enable/disable the W2 adaptive-production behavior (see
+/// [`ADAPTIVE_PRODUCTION_ENABLED`]). Test/diagnostic use only.
+pub fn set_adaptive_production_enabled(enabled: bool) {
+    ADAPTIVE_PRODUCTION_ENABLED.store(enabled, Ordering::SeqCst);
+}
+
+/// Whether the W2 adaptive-production behavior is currently enabled.
+pub fn adaptive_production_enabled() -> bool {
+    ADAPTIVE_PRODUCTION_ENABLED.load(Ordering::SeqCst)
+}
 
 /// Phase 7 fix (M3): Corporate investment fractions, replacing hardcoded
 /// magic-number reinvestment ratios with configurable values.
@@ -953,6 +976,53 @@ fn evaluate_cooperative_ipo(
     .evaluate(ctx)
 }
 
+/// W2 (M1): A building counts as starved when its own fulfillment ratio is
+/// below this threshold — the same 10% cutoff the company-average gate used,
+/// now applied per plant so a partial shortage sheds only a partial crew.
+pub(crate) const MATERIAL_SHORTAGE_FULFILLMENT: f64 = 0.1;
+
+/// W2 (M3): Smallest viable crew fraction a starved building retains while it
+/// can still produce — one operating shift of four. Applied inside
+/// `evaluate_furlough` only when the company can cover the retained payroll;
+/// it never creates labor or money.
+pub(crate) const MIN_OPERATING_SHIFT: f64 = 0.25;
+
+/// W2 (M2): A building becomes a method-switch candidate once its fulfillment
+/// ratio drops below this share — partial scarcity triggers adaptation, not
+/// only the total-input-failure case the legacy pass handled.
+pub(crate) const METHOD_SWITCH_FULFILLMENT: f64 = 0.5;
+
+/// W2 marker: `Building.extra` key recording the turn a building last
+/// switched production methods via the adaptive pass (manager.rs). Read by
+/// `adapted_this_turn` so the furlough evaluator grants the adapted plant one
+/// procurement cycle of grace.
+pub(crate) const ADAPTIVE_SWITCH_TURN_KEY: &str = "w2_adaptive_switch_turn";
+
+/// W2 marker: `Building.extra` key recording the turn a building last
+/// performed an in-place input substitution (BOM rewrite to a
+/// `substitution_groups` member). Same grace semantics as the switch marker.
+pub(crate) const ADAPTIVE_SUBSTITUTION_TURN_KEY: &str = "w2_adaptive_substitution_turn";
+
+/// W2 marker: `Building.extra` key recording the previous production-method
+/// name before an adaptive switch — diagnostic/telemetry only.
+pub(crate) const ADAPTIVE_PREV_METHOD_KEY: &str = "w2_adaptive_prev_method";
+
+/// W2 (M2): True when the building adapted its production method (switch or
+/// input substitution) during `current_turn`. Adapted buildings are exempt
+/// from this turn's material-shortage furlough — the new method needs one
+/// B2B procurement cycle before its real fulfillment is known.
+fn adapted_this_turn(building: &crate::entities::Building, current_turn: u32) -> bool {
+    let stamped = |key: &str| {
+        building
+            .extra
+            .get(key)
+            .and_then(|v| v.as_u64())
+            .map(|t| t == current_turn as u64)
+            .unwrap_or(false)
+    };
+    stamped(ADAPTIVE_SWITCH_TURN_KEY) || stamped(ADAPTIVE_SUBSTITUTION_TURN_KEY)
+}
+
 fn is_distressed(ctx: &CorporateDecisionCtx) -> bool {
     // AI & Stability Audit (Pillar 1C + 4A): Broadened distress detection to
     // include raw-material shortage and payroll-coverage threshold. Uses a
@@ -960,11 +1030,19 @@ fn is_distressed(ctx: &CorporateDecisionCtx) -> bool {
     // prevent 1-turn panic firings.
     // Phase 87+: Uses operational_cash() (actual payroll cash source) instead
     // of liquid_capital (capital reserve reduced by seed-inventory deductions).
+    // W2 (M1): the ENTRY gate is deliberately unchanged — broadening distress
+    // to "any starved building" is a measured regression: in a scarcity
+    // economy nearly every company has at least one dead plant, so the wider
+    // trigger converted labor-hoarding firms (avg >= 0.1 keeps the full crew
+    // under legacy) into proportional shedders and *raised* unemployment.
+    // The per-building decomposition instead governs the MAGNITUDE of the
+    // furlough once the company is already distressed — W2 can only ever
+    // retain >= as many workers as the legacy formula on the same firm.
     let avg_profit = ctx.company.moving_avg_net_profit(3);
     let payroll = ctx.company.offered_wage_per_fte * ctx.company.fulfilled_fte as f64;
     ctx.company.company_capital < 0.0
         || (avg_profit < 0.0 && ctx.company.operational_cash() < payroll * 2.0)
-        || ctx.avg_fulfillment_ratio < 0.1
+        || ctx.avg_fulfillment_ratio < MATERIAL_SHORTAGE_FULFILLMENT
 }
 
 /// Phase 88: Determines whether a company is within its material-shortage
@@ -1054,41 +1132,175 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
     }
 
     // Determine the nature of the distress:
-    // - Raw-material shortage: fulfillment_ratio < 0.1 (can't produce)
-    //   Phase 88: Grace period is now revenue-and-hardcap-aware. For agriculture
-    //   companies, grace remains active until the first non-zero revenue is
-    //   recorded (first harvest sold) OR 24 turns (1 year) since founding.
-    //   This prevents premature furloughs when crops are still growing.
-    //   For non-agriculture: Turn 1 grace (no financial history yet).
+    // - Raw-material shortage: at least one owned building below
+    //   MATERIAL_SHORTAGE_FULFILLMENT (per-building check, M1).
+    //   Phase 88: Grace period is revenue-and-hardcap-aware — agriculture
+    //   stays graceful until the first non-zero revenue (first harvest sold)
+    //   or a 24-turn hardcap; heavy CAPEX sectors get a 12-turn hardcap.
     // - Cash-flow distress: can't cover 2 turns of payroll
     //   Phase 87+: Uses operational_cash() (actual payroll cash source).
     let wage_per_fte = ctx.company.offered_wage_per_fte.max(1.0);
     let total_payroll = ctx.company.fulfilled_fte as f64 * wage_per_fte;
     let cash_shortage = ctx.company.operational_cash() < total_payroll * 2.0;
-    let material_shortage = ctx.avg_fulfillment_ratio < 0.1
-        && !is_within_material_shortage_grace(ctx.company, ctx.current_turn);
+    let in_grace = is_within_material_shortage_grace(ctx.company, ctx.current_turn);
+
+    // ── Legacy counterfactual path (diagnostic toggle) ─────────────────────
+    // When the W2 flag is off, reproduce the pre-W2 behavior exactly: a
+    // company-average material-shortage trigger and a proportional furlough
+    // of the ACTIVE crew (no per-building decomposition, no shift floor, no
+    // cumulative level target). Kept so the epic test can measure the
+    // baseline-vs-adaptive delta on an identical world.
+    if !adaptive_production_enabled() {
+        let material_shortage =
+            ctx.avg_fulfillment_ratio < MATERIAL_SHORTAGE_FULFILLMENT && !in_grace;
+        if !cash_shortage && !material_shortage {
+            return None;
+        }
+        let furlough_count = if material_shortage {
+            let shortage_fraction = 1.0 - ctx.avg_fulfillment_ratio;
+            ((ctx.company.fulfilled_fte as f64) * shortage_fraction).ceil() as u32
+        } else {
+            let affordable_fte =
+                (ctx.company.operational_cash() / wage_per_fte).floor() as u32;
+            ctx.company.fulfilled_fte.saturating_sub(affordable_fte)
+        };
+        let furlough_count = furlough_count.min(ctx.company.fulfilled_fte).max(1);
+        return Some(CorporateAction::Furlough {
+            fte_count: furlough_count,
+            wage_fraction: 0.0,
+        });
+    }
+
+    // ── W2 (M1): Per-building shortage decomposition ────────────────────────
+    // Collapsing `last_fulfillment_ratio` into a company average let one
+    // starved plant idle the whole company (a firm with a 0%-fulfilled plant
+    // and a 100%-fulfilled plant furloughed ~half its workforce under the
+    // average). Instead, accumulate the crew deficit plant-by-plant:
+    //   deficit_i = employment_i × (1 − ratio_i)   for starved plants only.
+    // A plant at 40% fulfillment keeps a 40% crew; a plant that already
+    // adapted (M2 method switch / input substitution this turn) is exempt
+    // while the new method spins up.
+    let mut total_building_fte = 0.0f64;
+    let mut deficit_no_floor = 0.0f64;
+    let mut deficit_with_floor = 0.0f64;
+    let mut any_starved = false;
+    for building in ctx.buildings {
+        if building.owner_id != ctx.company.id {
+            continue;
+        }
+        if !ctx.company.building_ids.is_empty()
+            && !ctx.company.building_ids.contains(&building.id)
+        {
+            continue;
+        }
+        let employment = building.current_employment as f64;
+        if employment <= 0.0 {
+            continue;
+        }
+        total_building_fte += employment;
+        let ratio = building.last_fulfillment_ratio.clamp(0.0, 1.0);
+        if ratio >= MATERIAL_SHORTAGE_FULFILLMENT {
+            continue; // This plant is producing at or above the cutoff.
+        }
+        if adapted_this_turn(building, ctx.current_turn) {
+            continue; // M2 adapted it this turn — hold the crew.
+        }
+        any_starved = true;
+        deficit_no_floor += employment * (1.0 - ratio);
+        // W2 (M3): a plant with ANY producible output keeps a minimum
+        // operating shift (25% of its crew) while wages are payable.
+        deficit_with_floor += employment * (1.0 - ratio.max(MIN_OPERATING_SHIFT));
+    }
+
+    // Material shortage keeps the legacy company-average trigger — the
+    // per-building data below governs the furlough MAGNITUDE, not whether
+    // the company counts as distressed at all (see is_distressed).
+    let material_shortage = !in_grace
+        && ctx.avg_fulfillment_ratio < MATERIAL_SHORTAGE_FULFILLMENT;
 
     if !cash_shortage && !material_shortage {
+        // In-grace companies with starved plants ride the shortage out —
+        // idling beats shedding the crew they need for ramp-up.
+        if in_grace
+            && (any_starved || ctx.avg_fulfillment_ratio < MATERIAL_SHORTAGE_FULFILLMENT)
+        {
+            return Some(CorporateAction::Idle);
+        }
         return None;
     }
 
-    // Calculate furlough count:
-    // - If material shortage: furlough proportionally to the shortage
-    //   (e.g., 90% shortage → furlough 90% of workers)
-    // - If cash shortage: furlough enough to bring payroll within cash budget
-    let furlough_count = if material_shortage {
-        let shortage_fraction = 1.0 - ctx.avg_fulfillment_ratio;
-        ((ctx.company.fulfilled_fte as f64) * shortage_fraction).ceil() as u32
-    } else {
-        // Cash shortage: furlough enough to bring payroll within budget
-        let affordable_fte = (ctx.company.operational_cash() / wage_per_fte).floor() as u32;
-        ctx.company.fulfilled_fte.saturating_sub(affordable_fte)
+    // Furlough is a LEVEL target on the full roster (active + already
+    // furloughed), not a per-turn haircut on the active crew — computing the
+    // delta against `fulfilled + furloughed` and subtracting workers already
+    // sidelined makes the policy converge instead of compounding turn-over-
+    // turn toward zero employment.
+    let total_crew =
+        ctx.company.fulfilled_fte as f64 + ctx.company.furloughed_workers_count;
+    let already_sidelined = ctx.company.furloughed_workers_count;
+    let deficit_to_furlough = |deficit: f64| -> u32 {
+        if total_building_fte <= 0.0 {
+            return 0;
+        }
+        let share = (deficit / total_building_fte).clamp(0.0, 1.0);
+        let target = total_crew * share;
+        ((target - already_sidelined).max(0.0).ceil() as u32)
+            .min(ctx.company.fulfilled_fte)
     };
 
-    // Clamp: can't furlough more than we have, and furlough at least 1.
-    let furlough_count = furlough_count.min(ctx.company.fulfilled_fte).max(1);
+    let furlough_count = if material_shortage && total_building_fte > 0.0 {
+        let delta_no_floor = deficit_to_furlough(deficit_no_floor);
+        let delta_with_floor = deficit_to_furlough(deficit_with_floor);
+        // M3 floor gate: apply the 25% shift floor only while the company can
+        // carry the retained crew's payroll — either in liquid cash or backed
+        // by its (nonnegative) equity base via wage arrears. The labor market
+        // itself retains up to 90% of `prev_fulfilled_fte` on arrears when
+        // cash runs out (see `economy/labor/labor_market.rs` Phase 40), so a
+        // solvent-but-illiquid firm keeping a skeleton shift on arrears is
+        // consistent with existing mechanics — no payroll is fabricated.
+        // Structurally insolvent companies never reach this point (they fall
+        // through to restructuring above).
+        let retained_with_floor =
+            ctx.company.fulfilled_fte.saturating_sub(delta_with_floor);
+        let payroll_backing =
+            ctx.company.operational_cash() + ctx.company.company_capital.max(0.0);
+        let floor_affordable =
+            payroll_backing >= retained_with_floor as f64 * wage_per_fte;
+        if floor_affordable {
+            delta_with_floor
+        } else {
+            delta_no_floor
+        }
+    } else if material_shortage {
+        // No per-building data — legacy proportional furlough on the roster.
+        let share = 1.0 - ctx.avg_fulfillment_ratio.clamp(0.0, 1.0);
+        let target = total_crew * share;
+        ((target - already_sidelined).max(0.0).ceil() as u32)
+            .min(ctx.company.fulfilled_fte)
+    } else {
+        // Cash shortage: furlough down to the affordable payroll level.
+        // (fulfilled − affordable) is identical under the cumulative form
+        // since crew = fulfilled + furloughed.
+        let affordable_fte = (ctx.company.operational_cash() / wage_per_fte).floor();
+        let target = (total_crew - affordable_fte).max(0.0);
+        ((target - already_sidelined).max(0.0).ceil() as u32)
+            .min(ctx.company.fulfilled_fte)
+    };
 
     if furlough_count == 0 {
+        // Material-shortage companies already at the target level idle rather
+        // than restructure — they are producing, just below capacity.
+        if material_shortage {
+            return Some(CorporateAction::Idle);
+        }
+        // Cash path: preserve the legacy "at least one" signal so a company
+        // that can't cover payroll still marks distress instead of falling
+        // through to restructuring.
+        if cash_shortage {
+            return Some(CorporateAction::Furlough {
+                fte_count: 1,
+                wage_fraction: 0.0,
+            });
+        }
         return None;
     }
 
@@ -1500,4 +1712,221 @@ pub fn try_apply_ipo(
         .clone()
         .try_transition(transition, &transition_ctx)
         .ok()
+}
+
+#[cfg(test)]
+mod tests {
+    //! W2 unit tests for `evaluate_furlough` — the per-building shortage
+    //! decomposition (M1) and the 25% operating-shift floor (M3). These run
+    //! the REAL evaluator on synthetic decision contexts, so the arithmetic
+    //! that the epic test observes indirectly is pinned here deterministically.
+    use super::*;
+    use crate::entities::Building;
+    use crate::securities::BrokerageAccount;
+
+    /// `SectorShare` has no `Default` impl — construct the minimal record.
+    fn sector_share_fixture() -> SectorShare {
+        SectorShare {
+            gdp_share: 0.0,
+            crisis_vulnerability: None,
+            active_method: None,
+            extra: serde_json::Map::new(),
+        }
+    }
+
+    fn owned_building(owner: &str, id: &str, employment: u32, ratio: f64) -> Building {
+        let mut b = Building::default();
+        b.id = id.to_string();
+        b.owner_id = owner.to_string();
+        b.current_employment = employment;
+        b.worker_capacity = employment;
+        b.last_fulfillment_ratio = ratio;
+        b
+    }
+
+    fn distressed_company(id: &str, fulfilled: u32, cash: f64, capital: f64) -> Company {
+        let mut c = Company::default();
+        c.id = id.to_string();
+        c.sector = Sector::LightIndustry;
+        // Past the 12-turn industrial grace hardcap regardless of revenue.
+        c.founded_turn = 0;
+        c.fulfilled_fte = fulfilled;
+        c.company_capital = capital;
+        c.available_cash = cash;
+        c.offered_wage_per_fte = 10.0;
+        c.brokerage_account = Some(BrokerageAccount {
+            cash,
+            ..Default::default()
+        });
+        c
+    }
+
+    fn ctx_of<'a>(
+        company: &'a Company,
+        country: &'a Country,
+        sector_share: &'a SectorShare,
+        signal: &'a MarketSignal,
+        stock: &'a StockMarket,
+        labor: &'a LaborMarket,
+        buildings: &'a [Building],
+        avg_ratio: f64,
+        turn: u32,
+    ) -> CorporateDecisionCtx<'a> {
+        CorporateDecisionCtx {
+            company,
+            country,
+            sector: company.sector,
+            sector_share,
+            market_signal: signal,
+            bank_credit_rate: 0.05,
+            stock_market: stock,
+            labor_market: labor,
+            year: 1925,
+            gross_profit: -1.0,
+            net_profit: -1.0,
+            behavior_modifiers: MarketBehaviorModifiers::default(),
+            avg_fulfillment_ratio: avg_ratio,
+            current_turn: turn,
+            buildings,
+        }
+    }
+
+    fn furlough_of(action: Option<CorporateAction>) -> u32 {
+        match action {
+            Some(CorporateAction::Furlough { fte_count, .. }) => fte_count,
+            Some(CorporateAction::Idle) => 0,
+            other => panic!("expected Furlough/Idle, got {:?}", other),
+        }
+    }
+
+    /// M1: one dead plant among otherwise-healthy ones sheds only the dead
+    /// plant's share — the legacy average would furlough ~94% of the crew.
+    #[test]
+    fn test_furlough_decomposes_shortage_per_building() {
+        let country = Country::default();
+        let share = sector_share_fixture();
+        let signal = MarketSignal::default();
+        let stock = StockMarket::default();
+        let labor = LaborMarket::default();
+        let company = distressed_company("C1", 460, 1.0e9, 1.0e9);
+        // 6 dead small plants (60 workers) + 4 big plants at 15% (400 workers).
+        // avg = 0.06 < 0.1 → material shortage; deficit = only the dead 60.
+        let mut buildings: Vec<Building> = (0..6)
+            .map(|i| owned_building("C1", &format!("dead-{i}"), 10, 0.0))
+            .collect();
+        buildings.extend(
+            (0..4).map(|i| owned_building("C1", &format!("ok-{i}"), 100, 0.15)),
+        );
+        let ctx = ctx_of(
+            &company, &country, &share, &signal, &stock, &labor, &buildings,
+            0.06, 20,
+        );
+        let furloughed = furlough_of(evaluate_furlough(&ctx));
+        // With the shift floor: deficit = 60×0.75 = 45 → 45 of 460 (~10%).
+        // Legacy would have furloughed 460×0.94 ≈ 432.
+        assert!(
+            furloughed <= 60 && furloughed > 0,
+            "expected a small proportional furlough (~45), got {}",
+            furloughed
+        );
+        assert!(
+            furloughed < 200,
+            "per-building decomposition must not collapse the whole crew"
+        );
+    }
+
+    /// M3: a fully starved company keeps the 25% operating shift while its
+    /// equity can back the skeleton payroll (arrears-consistent).
+    #[test]
+    fn test_furlough_shift_floor_keeps_quarter_crew() {
+        let country = Country::default();
+        let share = sector_share_fixture();
+        let signal = MarketSignal::default();
+        let stock = StockMarket::default();
+        let labor = LaborMarket::default();
+        let company = distressed_company("C2", 400, 0.0, 1.0e9);
+        let buildings: Vec<Building> = (0..4)
+            .map(|i| owned_building("C2", &format!("dead-{i}"), 100, 0.0))
+            .collect();
+        let ctx = ctx_of(
+            &company, &country, &share, &signal, &stock, &labor, &buildings,
+            0.0, 20,
+        );
+        let furloughed = furlough_of(evaluate_furlough(&ctx));
+        // deficit_with_floor = 400×0.75 = 300 → retains exactly 100 = 25%.
+        assert_eq!(furloughed, 300, "floor should retain 25% of the roster");
+    }
+
+    /// M3 guard: with neither cash nor equity to cover the skeleton payroll,
+    /// the floor does not apply (no fabricated wages) — full deficit furlough.
+    #[test]
+    fn test_furlough_no_floor_when_insolvent_backing() {
+        let country = Country::default();
+        let share = sector_share_fixture();
+        let signal = MarketSignal::default();
+        let stock = StockMarket::default();
+        let labor = LaborMarket::default();
+        // capital=1 < retained×wage (100×10=1000) → floor unaffordable.
+        let company = distressed_company("C3", 400, 0.0, 1.0);
+        let buildings: Vec<Building> = (0..4)
+            .map(|i| owned_building("C3", &format!("dead-{i}"), 100, 0.0))
+            .collect();
+        let ctx = ctx_of(
+            &company, &country, &share, &signal, &stock, &labor, &buildings,
+            0.0, 20,
+        );
+        let furloughed = furlough_of(evaluate_furlough(&ctx));
+        assert_eq!(furloughed, 400, "no payroll backing → full deficit shed");
+    }
+
+    /// M2 grace: a building that adapted this turn contributes no deficit.
+    #[test]
+    fn test_furlough_grace_for_just_adapted_building() {
+        let country = Country::default();
+        let share = sector_share_fixture();
+        let signal = MarketSignal::default();
+        let stock = StockMarket::default();
+        let labor = LaborMarket::default();
+        let company = distressed_company("C4", 500, 0.0, 1.0e9);
+        let mut buildings: Vec<Building> = (0..4)
+            .map(|i| owned_building("C4", &format!("dead-{i}"), 100, 0.0))
+            .collect();
+        let mut adapted = owned_building("C4", "adapted-0", 100, 0.0);
+        adapted.extra.insert(
+            ADAPTIVE_SWITCH_TURN_KEY.to_string(),
+            serde_json::Value::from(20u64),
+        );
+        buildings.push(adapted);
+        let ctx = ctx_of(
+            &company, &country, &share, &signal, &stock, &labor, &buildings,
+            0.0, 20,
+        );
+        let furloughed = furlough_of(evaluate_furlough(&ctx));
+        // deficit_with_floor = 4 starved × 75 + adapted × 0 = 300 → 60% of 500.
+        assert_eq!(furloughed, 300, "adapted building must be exempt");
+    }
+
+    /// Legacy counterfactual: with the toggle off, the same distressed
+    /// company furloughs the full proportional share (pre-W2 behavior).
+    #[test]
+    fn test_furlough_legacy_mode_when_disabled() {
+        let country = Country::default();
+        let share = sector_share_fixture();
+        let signal = MarketSignal::default();
+        let stock = StockMarket::default();
+        let labor = LaborMarket::default();
+        let company = distressed_company("C5", 400, 0.0, 1.0e9);
+        let buildings: Vec<Building> = (0..4)
+            .map(|i| owned_building("C5", &format!("dead-{i}"), 100, 0.0))
+            .collect();
+        let ctx = ctx_of(
+            &company, &country, &share, &signal, &stock, &labor, &buildings,
+            0.0, 20,
+        );
+        set_adaptive_production_enabled(false);
+        let furloughed = furlough_of(evaluate_furlough(&ctx));
+        set_adaptive_production_enabled(true); // restore for other tests
+        // Legacy: fulfilled × (1 − 0.0) = all 400.
+        assert_eq!(furloughed, 400);
+    }
 }

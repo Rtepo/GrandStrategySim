@@ -4806,6 +4806,8 @@ tasks.par_iter_mut().for_each(|task| {
                 &task.market_signal,
                 task.ctx.turn,
                 task.labor_allocation.as_ref(),
+                task.ctx.registries,
+                &state.market_history,
             );
 
             // Phase E.10: Process pending IP theft actions.

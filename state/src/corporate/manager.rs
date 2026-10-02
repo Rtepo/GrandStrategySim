@@ -8,13 +8,16 @@
 use crate::economy::market::{GlobalMarket, MarketOrders, MarketSignal};
 use crate::entities::{Building, Company, LegalForm, SeasonalState};
 use crate::entities::legal_form::LegalFormTransition;
+use crate::registries::enums::Commodity;
 use crate::state::treasury::SectorShare;
 use crate::state::Country;
 use serde_json::{Map, Value};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use super::strategy::{
     try_apply_ipo, CorporateAction, CorporateDecisionCtx, CorporateStrategy, FinanceSource,
+    ADAPTIVE_PREV_METHOD_KEY, ADAPTIVE_SUBSTITUTION_TURN_KEY, ADAPTIVE_SWITCH_TURN_KEY,
+    METHOD_SWITCH_FULFILLMENT,
 };
 
 /// Emergency Stabilization: Recruitment cost multiplier — 4 weeks of wages
@@ -52,6 +55,8 @@ pub fn process_companies(
     market_signal: &MarketSignal,
     current_turn: u32,
     labor_allocation: Option<&crate::economy::labor_market::LaborAllocationMatrix>,
+    registries: &crate::registries::Registries,
+    market_history: &crate::economy::market::market_history::MarketHistory,
 ) {
     // Build an owner -> building indices map once, eliminating the O(N*M) nested
     // lookup that scaled with the number of companies and buildings.
@@ -71,6 +76,26 @@ pub fn process_companies(
         .collect();
 
     let mut per_company_interest: Vec<f64> = vec![0.0; companies.len()];
+
+    // ── W2 (M2): Adaptive production — substitution-aware method switching ──
+    // Runs BEFORE the strategy loop so `evaluate_furlough` (M1) observes the
+    // post-adaptation state through the per-building markers written into
+    // `Building.extra`: an adapted building is exempt from this turn's
+    // material-shortage furlough while its new method spins up.
+    // Skipped entirely when the W2 diagnostic toggle is off (legacy baseline).
+    if super::strategy::adaptive_production_enabled() {
+        evaluate_adaptive_method_switches(
+        companies,
+        buildings,
+        country,
+        market_signal,
+            year,
+            current_turn,
+            registries,
+            market_history,
+            &by_owner,
+        );
+    }
 
     for i in 0..companies.len() {
         let company_id = companies[i].id.clone();
@@ -715,99 +740,506 @@ pub fn process_companies(
         }
     }
 
-    // Phase 28: Real production method switching.
-    // If a company's building has an active method whose inputs are unavailable
-    // (no inventory of any required input), try to switch to a simpler method
-    // from the registry that produces the same outputs with fewer inputs.
-    // This is the corporate AI's supply-chain resilience mechanism.
-    let mut registry = crate::registries::production_methods::industrial_production_methods();
-    registry.extend(crate::registries::production_methods::state_building_methods());
-    registry.extend(crate::registries::production_methods::retail_production_methods());
-    for company in &*companies {
-        let company_id = company.id.clone();
-        for &building_idx in by_owner.get(&company_id).into_iter().flatten() {
-            let building = &mut buildings[building_idx];
-            // Skip buildings with no active method
-            let current_method_name = building.active_method.active_methods.production.clone();
-            if current_method_name.is_empty() {
-                continue;
-            }
-            // Check if current method's inputs are available
-            let has_inputs = building.active_method.inputs.iter().any(|(commodity, _)| {
-                building.inventory.get(commodity).copied().unwrap_or(0.0) > 0.0
-            });
-            let needs_inputs = !building.active_method.inputs.is_empty();
-            if has_inputs || !needs_inputs {
-                continue; // Method is working fine
-            }
-            // Find alternative methods from the registry
-            let current_outputs: Vec<_> = building.active_method.outputs.keys().cloned().collect();
-            if current_outputs.is_empty() {
-                continue;
-            }
-            let mut best_alt: Option<(
-                &str,
-                &crate::registries::production_methods::ProductionMethod,
-            )> = None;
-            for (method_name, building_methods) in &registry {
-                if method_name == &current_method_name {
-                    continue;
-                }
-                // Iterate over all production methods in this BuildingMethods
-                for (pm_name, prod_method) in &building_methods.production {
-                    let _full_name = format!("{}::{}", method_name, pm_name);
-                    // Check if this method produces any of the same outputs
-                    if !prod_method
-                        .outputs
-                        .keys()
-                        .any(|k| current_outputs.contains(k))
-                    {
-                        continue;
-                    }
-                    // Check year availability
-                    if prod_method.year > year {
-                        continue;
-                    }
-                    // Prefer methods with fewer inputs (simpler)
-                    let current_input_count = building.active_method.inputs.len();
-                    let alt_input_count = prod_method.inputs.len();
-                    if alt_input_count < current_input_count {
-                        // Use the registry key as the method name
-                        best_alt = Some((method_name.as_str(), prod_method));
-                    }
-                }
-            }
-            if let Some((method_name, prod_method)) = best_alt {
-                // Switch to the alternative method
-                building.active_method = crate::entities::ActiveProductionMethod {
-                    year: prod_method.year.max(year),
-                    inputs: prod_method.inputs.iter().map(|(k, v)| (*k, *v)).collect(),
-                    outputs: prod_method.outputs.iter().map(|(k, v)| (*k, *v)).collect(),
-                    experts_ratio: prod_method.experts_ratio,
-                    skilled_ratio: prod_method.skilled_ratio,
-                    basic_ratio: prod_method.basic_ratio,
-                    efficiency: prod_method.efficiency,
-                    seat_type: prod_method.seat_type,
-                    active_methods: crate::state::treasury::ProductionMethodChoice {
-                        automation: String::new(),
-                        production: method_name.to_string(),
-                        organization: String::new(),
-                        ..Default::default()
-                    },
-                    active_blueprint: None,
-                    extra: serde_json::Map::new(),
-                    ..Default::default()
-                };
-            }
-        }
-    }
-
     let private_capital: f64 = companies
         .iter()
         .filter(|c| c.state_share < 1.0)
         .map(|c| c.company_capital)
         .sum();
     country.budget.private_capital = private_capital;
+}
+
+// ============================================================================
+// W2 / ADAPTIVE PRODUCTION (M2): substitution-aware method switching
+// ============================================================================
+
+/// Outcome of evaluating one building's method feasibility under scarcity.
+enum AdaptiveChange {
+    /// Same method, but some input keys rewritten to `substitution_groups`
+    /// members (a material-tier downgrade, e.g. HardCoal → BrownCoal).
+    SubstituteInputs(BTreeMap<Commodity, f64>),
+    /// Switch to a different registry method; `resolved_inputs` is the
+    /// candidate BOM after substitution resolution. Boxed: the method
+    /// definition dwarfs the `SubstituteInputs` variant (clippy
+    /// `large_enum_variant`).
+    SwitchMethod(Box<SwitchMethodData>),
+}
+
+/// Payload for [`AdaptiveChange::SwitchMethod`].
+struct SwitchMethodData {
+    /// Registry outer key (building kind / sector).
+    kind: String,
+    /// Production-slot method name inside that key.
+    name: String,
+    /// The method definition cloned from the registry.
+    method: crate::registries::production_methods::ProductionMethod,
+    /// Inputs post-substitution (may differ from the registry BOM).
+    resolved_inputs: BTreeMap<Commodity, f64>,
+}
+
+/// W2 (M2): Pre-strategy adaptive pass over every company's buildings.
+///
+/// Legacy behavior (Phase 28) only reacted when a method had *zero* inputs in
+/// inventory and only scanned the kind-keyed industrial/state/retail
+/// registries. This pass generalizes it:
+///
+/// * Trigger on **partial** scarcity (`last_fulfillment_ratio` <
+///   [`METHOD_SWITCH_FULFILLMENT`]), so a plant running a fractional shift
+///   adapts before it flatlines.
+/// * First try **in-place substitution**: swap an unavailable input for an
+///   equivalent member of
+///   [`crate::registries::production_methods::substitution_groups`] that is in
+///   inventory or purchasable on the market. The substitute is physically
+///   delivered/consumed through the normal B2B path, so mass and money stay
+///   conserved — substitution never fabricates supply.
+/// * If substitution cannot restore feasibility, switch to the best
+///   *feasible* era-eligible registry method producing overlapping outputs,
+///   ranked by expected output margin (Σ outputs×price − Σ inputs×price) at
+///   current market prices.
+/// * Adapted buildings are stamped in `extra` (`ADAPTIVE_SWITCH_TURN_KEY` /
+///   `ADAPTIVE_SUBSTITUTION_TURN_KEY`) so the same-turn furlough evaluation
+///   grants them one procurement cycle of grace (see `strategy.rs`).
+///
+/// Determinism: all map scans iterate sorted keys; ties break on the
+/// (kind, method) key pair. No RNG draws.
+#[allow(clippy::too_many_arguments)]
+fn evaluate_adaptive_method_switches(
+    companies: &[Company],
+    buildings: &mut [Building],
+    country: &Country,
+    market_signal: &MarketSignal,
+    year: u32,
+    current_turn: u32,
+    registries: &crate::registries::Registries,
+    market_history: &crate::economy::market::market_history::MarketHistory,
+    by_owner: &HashMap<String, Vec<usize>>,
+) {
+    let groups = crate::registries::production_methods::substitution_groups();
+    let buy_premium = country.b2b_order_config.buy_premium_ratio;
+    let shed = &country.power_grid_state.load_shed_tiers;
+
+    // Deterministic company order: the input slice order is already stable,
+    // but iterate the sorted company ids inside by_owner anyway — companies
+    // arrive in entity-file order which is stable across turns.
+    for company in companies {
+        let Some(indices) = by_owner.get(&company.id) else {
+            continue;
+        };
+        for &building_idx in indices {
+            // ── Read phase: decide what (if anything) changes ──────────
+            let change: Option<AdaptiveChange> = {
+                let building = &buildings[building_idx];
+                evaluate_building_adaptation(
+                    building,
+                    market_signal,
+                    market_history,
+                    registries,
+                    groups,
+                    year,
+                    buy_premium,
+                    shed,
+                )
+            };
+            // ── Write phase: materialize the decision ──────────────────
+            let building = &mut buildings[building_idx];
+            match change {
+                Some(AdaptiveChange::SubstituteInputs(inputs)) => {
+                    building.active_method.inputs = inputs;
+                    building.extra.insert(
+                        ADAPTIVE_SUBSTITUTION_TURN_KEY.to_string(),
+                        Value::from(current_turn),
+                    );
+                }
+                Some(AdaptiveChange::SwitchMethod(data)) => {
+                    let SwitchMethodData {
+                        kind,
+                        name,
+                        method,
+                        resolved_inputs,
+                    } = *data;
+                    let prev_method =
+                        building.active_method.active_methods.production.clone();
+                    building.active_method = crate::entities::ActiveProductionMethod {
+                        year: method.year.max(year),
+                        inputs: resolved_inputs,
+                        outputs: method
+                            .outputs
+                            .iter()
+                            .map(|(k, v)| (*k, *v))
+                            .collect(),
+                        experts_ratio: method.experts_ratio,
+                        skilled_ratio: method.skilled_ratio,
+                        basic_ratio: method.basic_ratio,
+                        efficiency: method.efficiency,
+                        // Preserve the physics fields — thermal/storage
+                        // efficiency drive dynamic fuel consumption and
+                        // emission/waste factors feed the environment model.
+                        thermal_efficiency: method.thermal_efficiency,
+                        storage_efficiency: method.storage_efficiency,
+                        emission_factor: method.emission_factor,
+                        biohazard_factor: method.biohazard_factor,
+                        output_water_quality: method.output_water_quality,
+                        discharge_quality: method.discharge_quality,
+                        seat_type: method.seat_type,
+                        active_methods: crate::state::treasury::ProductionMethodChoice {
+                            automation: String::new(),
+                            // The production slot stores the production-slot
+                            // method name (same convention as worldgen's
+                            // `find_storage_method_by_name`).
+                            production: name,
+                            organization: String::new(),
+                            ..Default::default()
+                        },
+                        active_blueprint: None,
+                        extra: serde_json::Map::new(),
+                    };
+                    building.extra.insert(
+                        ADAPTIVE_SWITCH_TURN_KEY.to_string(),
+                        Value::from(current_turn),
+                    );
+                    building.extra.insert(
+                        ADAPTIVE_PREV_METHOD_KEY.to_string(),
+                        Value::from(format!("{kind}::{prev_method}")),
+                    );
+                }
+                None => {}
+            }
+        }
+    }
+}
+
+/// Evaluate whether `building` should adapt this turn, and how.
+///
+/// Returns `None` when the current method is healthy, `SubstituteInputs`
+/// when the same method can run on substitution-group members, or
+/// `SwitchMethod` when only a different registry method is feasible
+/// (or strictly more profitable under partial scarcity).
+#[allow(clippy::too_many_arguments)]
+fn evaluate_building_adaptation(
+    building: &Building,
+    signal: &MarketSignal,
+    history: &crate::economy::market::market_history::MarketHistory,
+    registries: &crate::registries::Registries,
+    groups: &[&[Commodity]],
+    year: u32,
+    buy_premium: f64,
+    shed: &HashMap<String, crate::energy::types::LoadShedTier>,
+) -> Option<AdaptiveChange> {
+    let current_name = building.active_method.active_methods.production.clone();
+    if current_name.is_empty() {
+        return None; // No production method — nothing to adapt (service building).
+    }
+
+    // Trigger: legacy full-input-starvation OR the new partial-scarcity floor.
+    let consumable_inputs = building
+        .active_method
+        .inputs
+        .keys()
+        .filter(|c| !c.is_fixed_asset() && !c.is_local_utility())
+        .count();
+    let has_inputs_in_stock = building.active_method.inputs.iter().any(|(c, _)| {
+        !c.is_fixed_asset()
+            && !c.is_local_utility()
+            && building.inventory.get(c).copied().unwrap_or(0.0) > 0.0
+    });
+    let legacy_starved = consumable_inputs > 0 && !has_inputs_in_stock;
+    let partial_shortage = building.last_fulfillment_ratio < METHOD_SWITCH_FULFILLMENT;
+    if !legacy_starved && !partial_shortage {
+        return None; // Method is working fine.
+    }
+
+    let blackout = matches!(
+        shed.get(&building.region_id),
+        Some(crate::energy::types::LoadShedTier::Blackout)
+    );
+
+    // Resolve the CURRENT method's inputs through substitution.
+    let mut resolved: BTreeMap<Commodity, f64> = BTreeMap::new();
+    let mut current_feasible = true;
+    let mut any_substitution = false;
+    for (&commodity, &qty) in &building.active_method.inputs {
+        match resolve_adaptive_input(
+            commodity,
+            building,
+            signal,
+            history,
+            groups,
+            blackout,
+            buy_premium,
+        ) {
+            Some(resolved_c) => {
+                if resolved_c != commodity {
+                    any_substitution = true;
+                }
+                *resolved.entry(resolved_c).or_insert(0.0) += qty;
+            }
+            None => {
+                current_feasible = false;
+                break;
+            }
+        }
+    }
+
+    if current_feasible && !partial_shortage {
+        // Feasible and not starved — only an in-place substitution applies.
+        return if any_substitution {
+            Some(AdaptiveChange::SubstituteInputs(resolved))
+        } else {
+            None
+        };
+    }
+
+    // Scan the live registry for era-eligible alternatives producing at
+    // least one shared output. Sorted keys keep the scan deterministic.
+    let current_outputs: Vec<Commodity> =
+        building.active_method.outputs.keys().copied().collect();
+    if current_outputs.is_empty() {
+        // No tradeable output to preserve — in-place substitution is the
+        // only available adaptation.
+        return if current_feasible && any_substitution {
+            Some(AdaptiveChange::SubstituteInputs(resolved))
+        } else {
+            None
+        };
+    }
+
+    let current_margin = if current_feasible {
+        method_margin(
+            &resolved,
+            &building.active_method.outputs,
+            building.active_method.efficiency,
+            signal,
+            history,
+        )
+    } else {
+        f64::NEG_INFINITY
+    };
+
+    let mut kind_keys: Vec<&String> = registries.production_methods.keys().collect();
+    kind_keys.sort();
+    let mut best: Option<(f64, &String, &String, &crate::registries::production_methods::ProductionMethod, BTreeMap<Commodity, f64>)> =
+        None;
+    for kind in kind_keys {
+        let bm = &registries.production_methods[kind];
+        let mut names: Vec<&String> = bm.production.keys().collect();
+        names.sort();
+        for name in names {
+            let pm = &bm.production[name];
+            if pm.year > year {
+                continue;
+            }
+            if let Some(tech) = &pm.required_tech {
+                let unlocked = registries
+                    .tech_tree
+                    .get(tech)
+                    .map(|node| node.year <= year)
+                    .unwrap_or(false);
+                if !unlocked {
+                    continue;
+                }
+            }
+            // Must produce at least one of the building's current outputs.
+            if !pm.outputs.keys().any(|o| current_outputs.contains(o)) {
+                continue;
+            }
+            // Skip a no-op candidate: identical input AND output maps.
+            let pm_inputs: BTreeMap<Commodity, f64> =
+                pm.inputs.iter().map(|(k, v)| (*k, *v)).collect();
+            let pm_outputs: BTreeMap<Commodity, f64> =
+                pm.outputs.iter().map(|(k, v)| (*k, *v)).collect();
+            if pm_inputs == building.active_method.inputs
+                && pm_outputs == building.active_method.outputs
+            {
+                continue;
+            }
+            // Feasibility: every input must resolve (direct or substitute).
+            let mut resolved_alt: BTreeMap<Commodity, f64> = BTreeMap::new();
+            let mut feasible = true;
+            for (&c, &q) in &pm.inputs {
+                match resolve_adaptive_input(
+                    c, building, signal, history, groups, blackout, buy_premium,
+                ) {
+                    Some(rc) => *resolved_alt.entry(rc).or_insert(0.0) += q,
+                    None => {
+                        feasible = false;
+                        break;
+                    }
+                }
+            }
+            if !feasible {
+                continue;
+            }
+            let margin =
+                method_margin(&resolved_alt, &pm_outputs, pm.efficiency, signal, history);
+            let better = best
+                .as_ref()
+                .map(|(m, _, _, _, _)| margin > *m + 1e-9)
+                .unwrap_or(true);
+            if better {
+                best = Some((margin, kind, name, pm, resolved_alt));
+            }
+        }
+    }
+
+    match best {
+        Some((margin, kind, name, pm, resolved_alt))
+            if !current_feasible || margin > current_margin + 1e-9 =>
+        {
+            Some(AdaptiveChange::SwitchMethod(Box::new(SwitchMethodData {
+                kind: kind.clone(),
+                name: name.clone(),
+                method: pm.clone(),
+                resolved_inputs: resolved_alt,
+            })))
+        }
+        // No better method — keep the current one, applying any in-place
+        // substitution that made it feasible.
+        _ if current_feasible && any_substitution => {
+            Some(AdaptiveChange::SubstituteInputs(resolved))
+        }
+        _ => None,
+    }
+}
+
+/// Resolve a required input to a physically available commodity: the input
+/// itself when in inventory or procurable, else the first procurable member
+/// of any `substitution_groups` class containing it (preference order).
+/// Returns `None` when nothing can satisfy the input.
+///
+/// Conservation: the returned commodity is what the production cycle will
+/// physically consume next turn — substitution only relabels WHICH real
+/// good is burned, never how much (`qty` is preserved by the caller).
+#[allow(clippy::too_many_arguments)]
+fn resolve_adaptive_input(
+    required: Commodity,
+    building: &Building,
+    signal: &MarketSignal,
+    history: &crate::economy::market::market_history::MarketHistory,
+    groups: &[&[Commodity]],
+    blackout: bool,
+    buy_premium: f64,
+) -> Option<Commodity> {
+    if required.is_fixed_asset() {
+        // Installed-cohort CAPEX channel — not a per-turn consumable gate.
+        return Some(required);
+    }
+    if required.is_local_utility() {
+        // Grid-delivered (Energy/Heat/Water) — infeasible only when the
+        // region sits in a blackout tier; partial shedding is already priced
+        // into `last_fulfillment_ratio`.
+        return (!blackout).then_some(required);
+    }
+    if building
+        .inventory
+        .get(&required)
+        .copied()
+        .unwrap_or(0.0)
+        > 0.0
+    {
+        return Some(required);
+    }
+    // Physically-held substitutes beat a merely-procurable primary: a
+    // substitute already in the silo is consumed THIS turn, whereas a
+    // "procurable" primary still has to survive a B2B procurement cycle the
+    // building demonstrably failed last turn (that's why we're here).
+    for group in groups.iter().filter(|g| g.contains(&required)) {
+        for &member in group.iter() {
+            if member == required || member.is_fixed_asset() || member.is_local_utility()
+            {
+                continue;
+            }
+            if building
+                .inventory
+                .get(&member)
+                .copied()
+                .unwrap_or(0.0)
+                > 0.0
+            {
+                return Some(member);
+            }
+        }
+    }
+    if input_procurable(required, signal, history, buy_premium) {
+        return Some(required);
+    }
+    // Last resort: a procurable (but not yet delivered) substitute member.
+    for group in groups.iter().filter(|g| g.contains(&required)) {
+        for &member in group.iter() {
+            if member == required || member.is_fixed_asset() || member.is_local_utility()
+            {
+                continue;
+            }
+            if input_procurable(member, signal, history, buy_premium) {
+                return Some(member);
+            }
+        }
+    }
+    None
+}
+
+/// Is `commodity` purchasable on the B2B market right now? Requires the
+/// domestic order book to show supply covering demand (non-positive excess
+/// demand) and the cleared price to sit within the buyer bid ceiling
+/// (`reference × (1 + buy_premium_ratio)`) — the same bound
+/// `submit_company_b2b_orders` opens bids at, so a "procurable" verdict here
+/// matches what procurement can actually pay.
+fn input_procurable(
+    commodity: Commodity,
+    signal: &MarketSignal,
+    history: &crate::economy::market::market_history::MarketHistory,
+    buy_premium: f64,
+) -> bool {
+    // Order book contention: positive excess demand = bids outnumbered asks.
+    if let Some(&ds) = signal.demand_surplus.get(&commodity) {
+        if ds > 0.0 {
+            return false;
+        }
+    }
+    // Price sanity vs the reference (VWAP → last trade → global base) chain.
+    match signal.prices.get(&commodity) {
+        Some(&p) if p > 0.0 => {
+            if let Some(reference) =
+                crate::economy::market::market_history::get_reference_price(&commodity, history)
+            {
+                if reference > 0.0 && p > reference * (1.0 + buy_premium) {
+                    return false;
+                }
+            }
+            true
+        }
+        // No cleared price — a commodity with a price reference still counts
+        // as procurable (existing market, just no trades this turn).
+        _ => crate::economy::market::market_history::get_reference_price(&commodity, history)
+            .is_some(),
+    }
+}
+
+/// Expected per-turn margin of a method at current market prices:
+/// `Σ outputs × price × efficiency − Σ inputs × price`. Used only to RANK
+/// candidates — it never books money.
+fn method_margin(
+    inputs: &BTreeMap<Commodity, f64>,
+    outputs: &BTreeMap<Commodity, f64>,
+    efficiency: f64,
+    signal: &MarketSignal,
+    history: &crate::economy::market::market_history::MarketHistory,
+) -> f64 {
+    let price_of = |c: &Commodity| -> f64 {
+        signal
+            .prices
+            .get(c)
+            .copied()
+            .or_else(|| {
+                crate::economy::market::market_history::get_reference_price(c, history)
+            })
+            .unwrap_or(0.0)
+    };
+    let out_value: f64 = outputs
+        .iter()
+        .map(|(c, q)| price_of(c) * q)
+        .sum::<f64>()
+        * efficiency.max(0.0);
+    let in_cost: f64 = inputs.iter().map(|(c, q)| price_of(c) * q).sum();
+    out_value - in_cost
 }
 
 /// Manages strategic reserves for the Strategic Reserve Agency.
@@ -2783,5 +3215,202 @@ mod tests {
             "No excess to furlough"
         );
         assert_eq!(company.fulfilled_fte, 20, "Should remain at standby");
+    }
+
+    // ── W2 adaptive-production resolver tests ────────────────────────────
+    // `resolve_adaptive_input` preference order (after the fixed-asset /
+    // utility short-circuits): held primary → held substitute → procurable
+    // primary → procurable substitute → infeasible. The "held substitute
+    // beats procurable primary" case is the ordering that rescues a starved
+    // plant THIS turn instead of betting on next turn's procurement.
+
+    fn starved_building(
+        inputs: &[(Commodity, f64)],
+        inventory: &[(Commodity, f64)],
+    ) -> Building {
+        let mut b = Building::default();
+        b.active_method.active_methods.production = "UnitTestMethod".to_string();
+        for (c, q) in inputs {
+            b.active_method.inputs.insert(*c, *q);
+        }
+        for (c, q) in inventory {
+            b.inventory.insert(*c, *q);
+        }
+        b.last_fulfillment_ratio = 0.0; // starved → triggers the adaptive pass
+        b
+    }
+
+    #[test]
+    fn test_resolver_prefers_held_substitute_over_procurable_primary() {
+        let groups = crate::registries::production_methods::substitution_groups();
+        let mut signal = MarketSignal::default();
+        // Fuels carries a cleared price (would count as "procurable")...
+        signal.prices.insert(Commodity::Fuels, 10.0);
+        let history = crate::economy::market::market_history::MarketHistory::default();
+        let b = starved_building(
+            &[(Commodity::Fuels, 10.0)],
+            &[(Commodity::RefinedFuel, 5.0)],
+        );
+        // ...but RefinedFuel is physically in the silo, so it is consumed.
+        assert_eq!(
+            resolve_adaptive_input(
+                Commodity::Fuels,
+                &b,
+                &signal,
+                &history,
+                groups,
+                false,
+                0.0,
+            ),
+            Some(Commodity::RefinedFuel)
+        );
+    }
+
+    #[test]
+    fn test_resolver_keeps_procurable_primary_when_no_stock() {
+        let groups = crate::registries::production_methods::substitution_groups();
+        let mut signal = MarketSignal::default();
+        signal.prices.insert(Commodity::Fuels, 10.0);
+        let history = crate::economy::market::market_history::MarketHistory::default();
+        let b = starved_building(&[(Commodity::Fuels, 10.0)], &[]);
+        assert_eq!(
+            resolve_adaptive_input(
+                Commodity::Fuels,
+                &b,
+                &signal,
+                &history,
+                groups,
+                false,
+                0.0,
+            ),
+            Some(Commodity::Fuels)
+        );
+    }
+
+    #[test]
+    fn test_resolver_falls_back_to_procurable_substitute_under_excess_demand() {
+        let groups = crate::registries::production_methods::substitution_groups();
+        let mut signal = MarketSignal::default();
+        // Excess demand on Fuels → not procurable; RefinedFuel is priced.
+        signal.demand_surplus.insert(Commodity::Fuels, 5.0);
+        signal.prices.insert(Commodity::RefinedFuel, 12.0);
+        let history = crate::economy::market::market_history::MarketHistory::default();
+        let b = starved_building(&[(Commodity::Fuels, 10.0)], &[]);
+        assert_eq!(
+            resolve_adaptive_input(
+                Commodity::Fuels,
+                &b,
+                &signal,
+                &history,
+                groups,
+                false,
+                0.0,
+            ),
+            Some(Commodity::RefinedFuel)
+        );
+    }
+
+    #[test]
+    fn test_resolver_none_when_nothing_available() {
+        let groups = crate::registries::production_methods::substitution_groups();
+        // No prices, no history, no surplus entry, empty inventory.
+        let signal = MarketSignal::default();
+        let history = crate::economy::market::market_history::MarketHistory::default();
+        let b = starved_building(&[(Commodity::Fuels, 10.0)], &[]);
+        assert_eq!(
+            resolve_adaptive_input(
+                Commodity::Fuels,
+                &b,
+                &signal,
+                &history,
+                groups,
+                false,
+                0.0,
+            ),
+            None
+        );
+    }
+
+    #[test]
+    fn test_resolver_utility_blocked_only_by_blackout() {
+        let groups = crate::registries::production_methods::substitution_groups();
+        let signal = MarketSignal::default();
+        let history = crate::economy::market::market_history::MarketHistory::default();
+        let b = starved_building(&[(Commodity::Energy, 10.0)], &[]);
+        assert_eq!(
+            resolve_adaptive_input(
+                Commodity::Energy,
+                &b,
+                &signal,
+                &history,
+                groups,
+                false,
+                0.0,
+            ),
+            Some(Commodity::Energy),
+            "grid utility is feasible outside a blackout"
+        );
+        assert_eq!(
+            resolve_adaptive_input(
+                Commodity::Energy,
+                &b,
+                &signal,
+                &history,
+                groups,
+                true,
+                0.0,
+            ),
+            None,
+            "blackout makes the grid-delivered input infeasible"
+        );
+    }
+
+    #[test]
+    fn test_evaluate_building_adaptation_substitutes_held_member() {
+        let groups = crate::registries::production_methods::substitution_groups();
+        let mut signal = MarketSignal::default();
+        signal.prices.insert(Commodity::Fuels, 10.0);
+        let history = crate::economy::market::market_history::MarketHistory::default();
+        // Empty outputs → the method-switch scan is skipped, isolating the
+        // in-place substitution decision.
+        let b = starved_building(
+            &[(Commodity::Fuels, 10.0)],
+            &[(Commodity::RefinedFuel, 5.0)],
+        );
+        let registries = crate::registries::Registries::native_only();
+        let shed: HashMap<String, crate::energy::types::LoadShedTier> = HashMap::new();
+        match evaluate_building_adaptation(
+            &b, &signal, &history, &registries, groups, 1925, 0.0, &shed,
+        ) {
+            Some(AdaptiveChange::SubstituteInputs(resolved)) => {
+                assert!(
+                    resolved.contains_key(&Commodity::RefinedFuel),
+                    "BOM must be rewritten to the held substitute"
+                );
+                assert!(!resolved.contains_key(&Commodity::Fuels));
+            }
+            other => panic!("expected SubstituteInputs, got {:?}", {
+                match other {
+                    Some(AdaptiveChange::SwitchMethod(_)) => "SwitchMethod",
+                    Some(AdaptiveChange::SubstituteInputs(_)) => "SubstituteInputs",
+                    None => "None",
+                }
+            }),
+        }
+    }
+
+    #[test]
+    fn test_evaluate_building_adaptation_none_when_healthy() {
+        let groups = crate::registries::production_methods::substitution_groups();
+        let signal = MarketSignal::default();
+        let history = crate::economy::market::market_history::MarketHistory::default();
+        let mut b = starved_building(&[(Commodity::Fuels, 10.0)], &[(Commodity::Fuels, 500.0)]);
+        b.last_fulfillment_ratio = 0.9; // healthy → no trigger
+        let registries = crate::registries::Registries::native_only();
+        let shed: HashMap<String, crate::energy::types::LoadShedTier> = HashMap::new();
+        assert!(evaluate_building_adaptation(
+            &b, &signal, &history, &registries, groups, 1925, 0.0, &shed,
+        )
+        .is_none());
     }
 }

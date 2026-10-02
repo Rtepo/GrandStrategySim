@@ -2341,6 +2341,69 @@ pub fn osp_building_methods() -> HashMap<String, BuildingMethods> {
     registry
 }
 
+/// W2 / Adaptive Production (M2): Substitution groups — equivalence classes
+/// of input commodities that a production method may consume interchangeably
+/// when its registry-specified input is scarce.
+///
+/// # Semantics
+/// * Membership is **quantity-equivalent** by construction: one unit of a
+///   member replaces one unit of the required input (same `qty_per_1k`). This
+///   keeps the BOM's physical mass requirement invariant — substitution never
+///   creates or destroys matter.
+/// * Substitutes are only *feasible* when physically procurable: they must be
+///   in the building's inventory or purchasable on the B2B market. Delivery
+///   and consumption flow through the normal `execute_production_cycle` /
+///   `submit_company_b2b_orders` path — freight costs and cash encumbrance
+///   still apply, so no goods or money are fabricated (M0 + mass conserved).
+/// * Ordering inside a group is the preference order (earlier = preferred,
+///   e.g. higher calorific density first), which gives the substitution scan
+///   a deterministic, sorted iteration order — no RNG.
+/// * Groups never contain fixed assets or local utilities: installed cohorts
+///   are not consumable inputs, and Energy/Heat/Water move through the grid
+///   (`is_local_utility`), not the order book.
+///
+/// Used by `corporate::manager::evaluate_adaptive_method_switches`.
+pub fn substitution_groups() -> &'static [&'static [Commodity]] {
+    SUBSTITUTION_GROUPS
+}
+
+/// The substitution-group table. Kept as a static sorted-by-construction
+/// table so both the adaptive-production pass and any future UI/tooling read
+/// the same data without a registry clone.
+const SUBSTITUTION_GROUPS: &[&[Commodity]] = &[
+    // Solid fuels — combustible inputs for furnaces, boilers and kilns.
+    // Ordered by calorific density; Timber covers the firewood/charcoal
+    // class (pre-industrial fallback fuel).
+    &[
+        Commodity::HardCoal,
+        Commodity::BrownCoal,
+        Commodity::Peat,
+        Commodity::Timber,
+    ],
+    // Fluid/gas fuels — oil-derived and gaseous combustibles.
+    &[
+        Commodity::Fuels,
+        Commodity::RefinedFuel,
+        Commodity::Oil,
+        Commodity::NaturalGas,
+        Commodity::CoalGas,
+    ],
+    // Lumber class — raw timber vs sawn planks as a binder/structural input.
+    &[Commodity::Planks, Commodity::Timber],
+    // Bulk fill / ballast aggregates.
+    &[Commodity::Gravel, Commodity::Stone, Commodity::Sand],
+    // Staple field crops — bulk carbohydrate feedstock for mills/feedlots.
+    &[Commodity::Cereal, Commodity::Fodder],
+    // Protein inputs for food processing.
+    &[Commodity::Meat, Commodity::Fish],
+    // General chemical feedstocks.
+    &[Commodity::Chemicals, Commodity::SodaAsh],
+    // Textile fibers — virgin vs industrial-grade fiber inputs.
+    &[Commodity::Fibers, Commodity::IndustrialFiber],
+    // Iron feedstock — primary metal vs sorted secondary scrap.
+    &[Commodity::Iron, Commodity::MetalWaste],
+];
+
 #[cfg(test)]
 mod tests {
     use super::*;
