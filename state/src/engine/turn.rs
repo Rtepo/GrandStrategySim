@@ -3941,6 +3941,26 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         }
         probe.checkpoint("labor_market_post", 8, turn, &market, &tasks);
+
+        // ═══════════════════════════════════════════════════════════
+        // RURAL→URBAN CLASS TRANSITIONS (W4 wiring)
+        // Must run AFTER labor clearing (FTE/wages known — labor_market_post)
+        // and BEFORE next turn's process_demographics_and_labor
+        // reconciliation (Rule 16: temporal causality). Interbank settlement
+        // runs earlier (banking_turn_post), so bank legs are final before
+        // savings move between class buckets. Deterministic — pure
+        // config-driven rates, no RNG. The urban-unemployment gate keeps it
+        // inert while labor demand is saturated.
+        // ═══════════════════════════════════════════════════════════
+        tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
+            let _class_transition_result =
+                crate::economy::labor::process_rural_urban_class_transitions(
+                    task.ctx.country,
+                    &crate::economy::labor::class_transitions::ClassTransitionConfig::default(),
+                );
+        });
+
         // Phase 18A: Shadow Economy Processing
         // Processes shadow employment: companies in labor-intensive sectors
         // with ShadowEmployment records pay shadow wages (no PIT).
