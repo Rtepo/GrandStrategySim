@@ -3629,22 +3629,54 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 // This prevents PIT from collapsing to 0 when labor clearing fails.
                 task.ctx.country.macro_indicators.average_wage
             };
-            let labor_market = &mut task.ctx.country.macro_indicators.labor_market;
-            let labor_force = (task.ctx.country.budget.population as f64
-                * labor_market.labor_force_participation
-                / 100.0)
+            // Macro-Remediation: The labor force is the class-based labor
+            // supply (Σ available_fte = Σ class population × per-class
+            // participation), NOT population × cultural activity_rate. The
+            // cultural rate is a random 55–85% draw applied to the whole
+            // population; when it exceeds the class-weighted participation
+            // (~55–60%) it manufactures a phantom unemployment floor of
+            // workers who can never enter the clearing pool.
+            let labor_force: f64 = task
+                .ctx
+                .country
+                .regions
+                .iter()
+                .flat_map(|r| {
+                    r.class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(r.class_demographics.urban_classes.values())
+                })
+                .map(|d| d.available_fte)
+                .sum::<f64>()
                 .max(1.0);
-            labor_market.employed_total = total_fulfilled;
-            let unemployed = (labor_force - total_fulfilled).max(0.0);
-            labor_market.unemployed = unemployed;
-            labor_market.unemployment_rate = (unemployed / labor_force * 100.0).max(0.0);
+            let population = task.ctx.country.budget.population as f64;
             // Emergency Stabilization: Aggregate total furloughed workers
             // across all companies for the macro dashboard.
-            labor_market.furloughed_total = task
+            let furloughed_total: f64 = task
                 .companies
                 .iter()
                 .map(|c| c.furloughed_workers_count)
                 .sum();
+            let labor_market = &mut task.ctx.country.macro_indicators.labor_market;
+            // Keep the participation stat consistent with the class model so
+            // the top-down wage model and external consumers read the same
+            // labor force the clearing actually sees.
+            if population > 0.0 {
+                labor_market.labor_force_participation =
+                    labor_force / population * 100.0;
+            }
+            // Furloughed workers are NOT counted as employed here:
+            // `furloughed_workers_count` is transient — distress furloughs
+            // at non-seasonal companies are released to the labor pool by
+            // the next turn's seasonal sweep, and seasonal standby decays
+            // geometrically. They are reported separately via
+            // `furloughed_total`.
+            labor_market.employed_total = total_fulfilled;
+            let unemployed = (labor_force - total_fulfilled).max(0.0);
+            labor_market.unemployed = unemployed;
+            labor_market.unemployment_rate = (unemployed / labor_force * 100.0).max(0.0);
+            labor_market.furloughed_total = furloughed_total;
             // Phase 25: Overwrite the top-down average_wage with the actual
             // market-cleared wage. This prevents the divergent feedback loop
             // where the top-down model compounds wages each turn.
@@ -4240,6 +4272,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         region,
                         &mut task.ctx.country.budget,
                         &mut task.commercial_buildings,
+                        &mut task.ctx.buildings,
                         turn,
                     );
                 }

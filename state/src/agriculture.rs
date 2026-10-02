@@ -457,6 +457,7 @@ pub fn calculate_harvest_yield_and_rot(
     region: &Region,
     _country_budget: &mut Treasury,
     commercial_buildings: &mut [CommercialBuilding],
+    buildings: &mut [crate::entities::Building],
     current_turn: u32,
 ) {
     let Some(agri_profile) = &mut company.agricultural_profile else {
@@ -542,8 +543,34 @@ pub fn calculate_harvest_yield_and_rot(
                 let actual_yield = final_yield.max(guaranteed_yield);
                 let commodity_key = commodity.inventory_key();
 
-                // Find company's owned warehouse buildings and deposit using encapsulated methods
+                // W6 fix: route harvest yield to the farm's own
+                // `Building.inventory` FIRST, up to its `inventory_capacity`.
+                // Goods in Building.inventory are visible to
+                // `submit_company_b2b_orders` asks and `settle_trades`
+                // delivery — the previous warehouse-only deposit made the
+                // harvest permanently unsellable (food/cereal/meat posted
+                // zero supply while warehoused stock decayed in place).
                 let mut remaining_yield = actual_yield;
+                for farm in buildings.iter_mut() {
+                    if remaining_yield <= 0.0 {
+                        break;
+                    }
+                    if farm.owner_id != company.id
+                        || farm.sector != crate::registries::enums::Sector::Agriculture
+                    {
+                        continue;
+                    }
+                    let headroom =
+                        (farm.inventory_capacity - farm.inventory.values().sum::<f64>())
+                            .max(0.0);
+                    let deposit = remaining_yield.min(headroom);
+                    if deposit > 0.0 {
+                        *farm.inventory.entry(*commodity).or_insert(0.0) += deposit;
+                        remaining_yield -= deposit;
+                    }
+                }
+
+                // Find company's owned warehouse buildings and deposit using encapsulated methods
                 for building_id in &company.building_ids {
                     if let Some(building) = commercial_buildings
                         .iter_mut()

@@ -139,6 +139,26 @@ pub fn process_companies(
             })
             .sum();
 
+        // W5: `last_wage_bill` is a building-cycle ESTIMATE — headcount ×
+        // wage-tier multipliers × `macro_indicators.average_wage`, which at
+        // genesis is annual-scale (gdp_pc × 800) and stays inflated by
+        // scale_factor/tier multipliers afterward. For million-FTE plants it
+        // exceeds real payroll by ~400×, and since `last_profit` subtracts it
+        // (b2b_orders.rs:1845), the phantom flows into `total_profit`, then
+        // negative `liquid_capital` is converted into `liabilities` at
+        // process_company step 1 — manufacturing ~$1T-scale structural
+        // bankruptcy from an accounting artifact alone. Replace the estimate
+        // with the actual settled wage obligation (paid cash + accrued
+        // arrears, set by resolve_regional_labor_market). Pure accrual
+        // correction — no cash movement, M0-neutral.
+        let actual_wage_expense =
+            companies[i].wages_paid_this_turn + companies[i].arrears_accrued_this_turn;
+        let total_profit = total_profit + booked_wages - actual_wage_expense;
+        // With the true wage expense now inside total_profit, the booked
+        // figure equals actuals — `unbooked_wages` in the history record
+        // correctly computes to zero instead of clamping at the estimate.
+        let booked_wages = actual_wage_expense;
+
         // Emergency Stabilization: Compute average fulfillment ratio across
         // owned buildings to detect raw-material distress.
         let avg_fulfillment_ratio: f64 = if owned.is_empty() {

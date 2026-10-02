@@ -584,6 +584,36 @@ fn test_market_gridlock_diagnostic() {
         headline.producing_profitable,
         headline.producing_companies,
     );
+
+    // MACRO-3: no company's windowed net_profit may be more negative than
+    // ~50× its windowed wage expense (plus a $1B noise cushion). The wage
+    // bill is the dominant cost term; a loss hundreds of times larger than
+    // payroll can only come from a bookkeeping artifact — e.g., the
+    // building-cycle wage ESTIMATE (headcount × tier multipliers ×
+    // genesis-scale average_wage) flowing into `last_profit` and becoming
+    // liabilities, which reached ~−$1.26T for a single energy plant while
+    // real payroll was ~$2.8B (ratio ≈ 450×). 50× leaves real input-cost
+    // losses headroom but makes that class of bug impossible.
+    if let Some(worst) = diagnostic
+        .company_income
+        .iter()
+        .filter(|c| c.last_net_profit < -(50.0 * c.wage_expense + 1.0e9))
+        .max_by(|a, b| {
+            (a.last_net_profit.abs())
+                .partial_cmp(&b.last_net_profit.abs())
+                .unwrap()
+        })
+    {
+        panic!(
+            "MACRO-3 FAIL: {} ({}) reports windowed net_profit {:.2}B vs \
+             wage_expense {:.2}B — losses at >>50× payroll scale are a \
+             phantom accounting artifact, not economics",
+            worst.id,
+            worst.sector,
+            worst.last_net_profit / 1e9,
+            worst.wage_expense / 1e9,
+        );
+    }
 }
 
 // ============================================================================
