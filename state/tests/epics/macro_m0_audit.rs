@@ -186,6 +186,12 @@ fn test_m0_conservation_single_turn() {
     let options = GenerateOptions {
         country_count: 1,
         start_year: StartYear::Y1900,
+        // NOTE: `seed: None` draws worldgen entropy from thread_rng, making
+        // this gate nondeterministic — the latent payroll/settlement reserve
+        // gap can land on either side of the 5% tolerance depending on the
+        // generated world (observed drift −21B to +21B across runs on both
+        // main and feature branches). The M0_BUCKETS dump below identifies
+        // which bucket drives each failure.
         seed: None,
     };
 
@@ -201,6 +207,37 @@ fn test_m0_conservation_single_turn() {
     // Compute M0 BEFORE the turn
     let country_before = get_primary_country(&state).clone();
     let companies_before = get_primary_companies(&ctx, &state);
+    let bucket_deltas = |a: &Country, b: &Country, ca: &[Company], cb: &[Company], ma: &sim_engine::economy::market::GlobalMarket, mb: &sim_engine::economy::market::GlobalMarket| {
+        let t = |c: &Country| -> (f64, f64, f64) {
+            let mut tre = c.budget.liquid_reserves;
+            let mut cit = 0.0;
+            for r in &c.regions {
+                if let Some(ref g) = r.governance { tre += g.budget.liquid_reserves; }
+                for d in r.class_demographics.rural_classes.values() { cit += d.savings; }
+                for d in r.class_demographics.urban_classes.values() { cit += d.savings; }
+            }
+            for m in &c.megaregions {
+                if let Some(ref g) = m.governance { tre += g.budget.liquid_reserves; }
+            }
+            let mut min = 0.0;
+            if let Some(ref cfg) = c.politics.ministry_config {
+                for x in &cfg.ministries { min += x.ministry_cash; }
+            }
+            for bid in &c.pending_defense_orders { min += bid.quantity * bid.limit_price; }
+            (tre, cit, min)
+        };
+        let res = |cs: &[Company]| -> f64 {
+            cs.iter().filter(|c| c.bank_type.is_some()).filter_map(|c| c.balance_sheet.as_ref()).map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance).sum()
+        };
+        let (ta, ca_, ma_) = t(a); let (tb, cb_, mb_) = t(b);
+        eprintln!("M0_BUCKETS: treasury={:+.0} citizen={:+.0} ministry={:+.0} bankres={:+.0} bfg={:+.0} sobk={:+.0} offshore={:+.0} charity={:+.0}",
+            tb - ta, cb_ - ca_, mb_ - ma_,
+            res(cb) - res(ca),
+            b.bfg_fund.reserves - a.bfg_fund.reserves,
+            b.sobk_scheme.pool - a.sobk_scheme.pool,
+            mb.offshore_capital - ma.offshore_capital,
+            mb.apostolic_see_ledger.global_charity_pool - ma.apostolic_see_ledger.global_charity_pool);
+    };
     let fiat_before = compute_m0(&country_before, &companies_before, &ctx.market);
     let cb_injected_before = compute_cb_injected(&country_before);
     let treasury_ext_before = compute_treasury_external(&country_before);
@@ -239,6 +276,10 @@ fn test_m0_conservation_single_turn() {
     let country_after = get_primary_country(&state).clone();
     let companies_after = get_primary_companies(&ctx, &state);
     let fiat_after = compute_m0(&country_after, &companies_after, &ctx.market);
+    bucket_deltas(
+        &country_before, &country_after, &companies_before, &companies_after,
+        &ctx.market, &ctx.market,
+    );
     let cb_injected_after = compute_cb_injected(&country_after);
     let treasury_ext_after = compute_treasury_external(&country_after);
 
