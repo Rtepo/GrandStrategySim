@@ -283,11 +283,14 @@ mod tests {
             wheat.harvest_schedule.end_turn, 3,
             "Wheat harvest ends at turn 3"
         );
-        // Yield: 4.5 tons Cereal per hectare
+        // Yield: 4.5 tons Cereal per hectare, scaled by
+        // PRODUCTION_THROUGHPUT_SCALE (W7 harmonization — crop yields are
+        // denominated in the same units as rescaled method outputs).
         let cereal_yield = wheat.yields.get(&Commodity::Cereal).copied().unwrap_or(0.0);
         assert_eq!(
-            cereal_yield, 4.5,
-            "Wheat should yield 4.5 tons Cereal per hectare"
+            cereal_yield,
+            4.5 * sim_engine::registries::production_methods::PRODUCTION_THROUGHPUT_SCALE,
+            "Wheat should yield 4.5xSCALE tons Cereal per hectare"
         );
     }
 

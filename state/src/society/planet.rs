@@ -46,13 +46,20 @@ impl RarityTier {
     }
 
     /// Reserve size range for a single vein of this tier (min, max) in tons.
+    ///
+    /// W7 scale harmonization: extraction methods carry
+    /// `PRODUCTION_THROUGHPUT_SCALE` on their output quantities, so vein
+    /// reserves are seeded in the same scaled units — otherwise deposits
+    /// would deplete ~250x faster than designed (an unscaled 100M-ton vein
+    /// against scaled extraction rates drains in months, not decades).
     pub fn reserve_range(&self) -> (f64, f64) {
+        const S: f64 = crate::registries::production_methods::PRODUCTION_THROUGHPUT_SCALE;
         match self {
-            RarityTier::UltraRare => (1_000_000.0, 10_000_000.0),
-            RarityTier::Rare => (5_000_000.0, 50_000_000.0),
-            RarityTier::Uncommon => (20_000_000.0, 200_000_000.0),
-            RarityTier::AbundantIndustrial => (100_000_000.0, 1_000_000_000.0),
-            RarityTier::Ubiquitous => (500_000_000.0, 5_000_000_000.0),
+            RarityTier::UltraRare => (1_000_000.0 * S, 10_000_000.0 * S),
+            RarityTier::Rare => (5_000_000.0 * S, 50_000_000.0 * S),
+            RarityTier::Uncommon => (20_000_000.0 * S, 200_000_000.0 * S),
+            RarityTier::AbundantIndustrial => (100_000_000.0 * S, 1_000_000_000.0 * S),
+            RarityTier::Ubiquitous => (500_000_000.0 * S, 5_000_000_000.0 * S),
         }
     }
 

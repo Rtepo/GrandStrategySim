@@ -1209,8 +1209,67 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
 
         // Match orders (Phase 11: embargo-aware matching)
+        #[cfg(feature = "diagnostic")]
+        {
+            let bid_qty: f64 = global_order_book
+                .bids
+                .values()
+                .flat_map(|v| v.iter().map(|b| b.quantity))
+                .sum();
+            let ask_qty: f64 = global_order_book
+                .asks
+                .values()
+                .flat_map(|v| v.iter().map(|a| a.quantity))
+                .sum();
+            let mut bid_by_c: std::collections::BTreeMap<String, f64> = Default::default();
+            for (c, bids) in &global_order_book.bids {
+                *bid_by_c.entry(format!("{:?}", c)).or_default() +=
+                    bids.iter().map(|b| b.quantity).sum::<f64>();
+            }
+            let mut ask_by_c: std::collections::BTreeMap<String, f64> = Default::default();
+            for (c, asks) in &global_order_book.asks {
+                *ask_by_c.entry(format!("{:?}", c)).or_default() +=
+                    asks.iter().map(|a| a.quantity).sum::<f64>();
+            }
+            eprintln!(
+                "OBVOL: t={} bids_qty={:.3e} asks_qty={:.3e}",
+                turn, bid_qty, ask_qty
+            );
+            for k in ["Cereal", "Seeds", "Fodder", "Food", "HardCoal", "Fuels", "Steel", "Timber"] {
+                eprintln!(
+                    "OBVOL_C[{}]: bid={:.3e} ask={:.3e}",
+                    k,
+                    bid_by_c.get(k).copied().unwrap_or(0.0),
+                    ask_by_c.get(k).copied().unwrap_or(0.0)
+                );
+            }
+        }
         match_orders_with_embargoes(&mut global_order_book, &company_country, &diplomacy);
         let all_trades = global_order_book.trades.clone();
+        #[cfg(feature = "diagnostic")]
+        {
+            let trade_qty: f64 = all_trades.iter().map(|t| t.quantity).sum();
+            eprintln!(
+                "MATCHVOL: t={} trades={} qty={:.3e}",
+                turn,
+                all_trades.len(),
+                trade_qty
+            );
+            let mut match_by_c: std::collections::BTreeMap<String, (f64, f64)> =
+                Default::default();
+            for t in &all_trades {
+                let e = match_by_c
+                    .entry(format!("{:?}", t.commodity))
+                    .or_default();
+                e.0 += t.quantity;
+                e.1 += t.quantity * t.execution_price;
+            }
+            for k in ["Cereal", "Seeds", "Fodder", "Food", "HardCoal", "Fuels", "Steel", "Timber"] {
+                if let Some(&(q, v)) = match_by_c.get(k) {
+                    eprintln!("MATCHVOL_C[{}]: t={} qty={:.3e} val={:.3e}", k, turn, q, v);
+                }
+            }
+        }
 
         // Phase 95: Reserve floor before the checkpoint.
         for task in &mut tasks {
@@ -1286,6 +1345,21 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     &diplomacy,
                     &company_country,
                 );
+            #[cfg(feature = "diagnostic")]
+            {
+                let def_qty: f64 = new_deferred.iter().map(|d| d.trade.quantity).sum();
+                let sec_qty: f64 = secured_trades.iter().map(|t| t.quantity).sum();
+                eprintln!(
+                    "FREIGHTGATE: t={} c={} matched={} secured={} deferred={} def_qty={:.3e} sec_qty={:.3e}",
+                    turn,
+                    task.ctx.country_name,
+                    country_trades.len(),
+                    secured_trades.len(),
+                    new_deferred.len(),
+                    def_qty,
+                    sec_qty
+                );
+            }
             // Phase 30: Update the country's network overlay with congestion changes.
             task.ctx.country.transport_networks = network_overlay;
             // Merge deferred trades into the country's deferred list.
@@ -5085,6 +5159,7 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.year,
                 &task.market_signal,
                 task.ctx.turn,
+                task.ctx.registries,
             );
         });
         #[cfg(feature = "diagnostic")]

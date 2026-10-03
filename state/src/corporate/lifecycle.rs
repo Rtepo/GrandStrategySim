@@ -36,6 +36,7 @@ impl CompanyLifecycle {
         year: u32,
         market_signal: &MarketSignal,
         current_turn: u32,
+        registries: &crate::registries::Registries,
     ) {
         // Phase 94: M0 conservation diagnostic — compute simplified M0 sum
         // before and after each lifecycle step to identify M0 leaks.
@@ -71,6 +72,7 @@ impl CompanyLifecycle {
             year,
             market_signal,
             current_turn,
+            registries,
         );
         #[cfg(feature = "diagnostic")]
         {
@@ -412,6 +414,7 @@ impl CompanyLifecycle {
         year: u32,
         market_signal: &MarketSignal,
         current_turn: u32,
+        registries: &crate::registries::Registries,
     ) {
         if market_signal.interest_rate > 0.15 {
             return;
@@ -525,6 +528,57 @@ impl CompanyLifecycle {
             new_building.region_id = spawn_region_id.clone();
             new_building.cluster_info.region_id = spawn_region_id.clone();
             new_building.year_built = year;
+
+            // W7: A lifecycle spawn is born with `Building::new`'s empty
+            // active_method — resolve_active_method assigns one lazily at the
+            // first production pass, but nothing ever stocks the inputs, so
+            // the plant binds at ratio 0 and immediately furloughs the
+            // workers it just hired. Resolve the era-legal sector method and
+            // seed the standard input buffer here so the building is viable
+            // from birth (formation capital, same convention as worldgen).
+            let sector_key =
+                crate::engine::generator::corporate::sector_json_name(sector);
+            if let Some(pm) = registries
+                .production_methods
+                .get(&sector_key)
+                .and_then(|m| {
+                    m.iter_production_slots()
+                        .filter(|pm| pm.year <= year)
+                        .max_by_key(|pm| pm.year)
+                })
+            {
+                new_building.active_method.year = pm.year;
+                new_building.active_method.experts_ratio = pm.experts_ratio;
+                new_building.active_method.skilled_ratio = pm.skilled_ratio;
+                new_building.active_method.basic_ratio = pm.basic_ratio;
+                new_building.active_method.efficiency = pm.efficiency;
+                new_building.active_method.inputs =
+                    pm.inputs.iter().map(|(&k, &v)| (k, v)).collect();
+                new_building.active_method.outputs =
+                    pm.outputs.iter().map(|(&k, &v)| (k, v)).collect();
+                new_building.active_method.thermal_efficiency = pm.thermal_efficiency;
+                new_building.active_method.storage_efficiency = pm.storage_efficiency;
+                new_building.active_method.emission_factor = pm.emission_factor;
+                new_building.active_method.biohazard_factor = pm.biohazard_factor;
+                new_building.active_method.output_water_quality = pm.output_water_quality;
+                new_building.active_method.discharge_quality = pm.discharge_quality;
+                new_building.active_method.seat_type = pm.seat_type;
+                let (seeded, _cost) =
+                    crate::engine::generator::corporate::seed_inventory(
+                        &new_building.active_method,
+                        new_building.worker_capacity,
+                        sector,
+                    );
+                let mut seed_total = 0.0;
+                for (commodity, qty) in seeded {
+                    seed_total += qty;
+                    *new_building.inventory.entry(commodity).or_insert(0.0) += qty;
+                }
+                // The seed must fit — otherwise the hard-cap overflow
+                // fallback destroys it on the first production pass.
+                new_building.inventory_capacity =
+                    new_building.inventory_capacity.max(seed_total * 2.0);
+            }
 
             companies.push(new_company);
             buildings.push(new_building);
@@ -662,6 +716,7 @@ mod tests {
             2024,
             &market_signal,
             0,
+            &crate::registries::Registries::native_only(),
         );
 
         assert!(companies.is_empty());
@@ -692,6 +747,7 @@ mod tests {
             2024,
             &market_signal,
             0,
+            &crate::registries::Registries::native_only(),
         );
 
         assert!(companies.is_empty());
@@ -774,6 +830,7 @@ mod tests {
             2024,
             &market_signal,
             0,
+            &crate::registries::Registries::native_only(),
         );
 
         assert!(!companies.is_empty(), "expected lifecycle spawn");
@@ -868,6 +925,7 @@ mod tests {
             2024,
             &market_signal,
             spawn_turn,
+            &crate::registries::Registries::native_only(),
         );
 
         assert!(!companies.is_empty(), "expected lifecycle spawn");

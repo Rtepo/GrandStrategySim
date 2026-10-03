@@ -618,6 +618,26 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
             },
         );
 
+        // W7 scale harmonization: crop yields are denominated in the same
+        // market units as production-method outputs, so they must carry
+        // PRODUCTION_THROUGHPUT_SCALE. The 4-turn diagnostic measured total
+        // harvest deposits of ~1.2e7 units against ~8.4e9 units of cereal
+        // demand (~700x short) because method quantities were rescaled while
+        // the physical crop model was not. Scaling `yields` propagates to
+        // worldgen `accumulated_yield` pre-seeding and the harvest deposit
+        // path automatically. `seed_quantity_per_hectare` and the
+        // FTE-per-hectare labor demand deliberately stay unscaled: seed
+        // demand must remain trivially satisfiable from the genesis input
+        // buffer so sowing never gates harvest, and labor is not a scaled
+        // quantity.
+        let throughput_scale =
+            crate::registries::production_methods::PRODUCTION_THROUGHPUT_SCALE;
+        for def in crops.values_mut() {
+            for v in def.yields.values_mut() {
+                *v *= throughput_scale;
+            }
+        }
+
         crops
     })
 }

@@ -1743,6 +1743,12 @@ mod tests {
     use super::*;
     use crate::entities::Building;
     use crate::securities::BrokerageAccount;
+    use std::sync::Mutex;
+
+    /// Serializes tests that read `ADAPTIVE_PRODUCTION_ENABLED` — the legacy
+    /// mode test flips the global atomic, which races with concurrent tests
+    /// calling `evaluate_furlough` unless they share a lock.
+    static FLAG_LOCK: Mutex<()> = Mutex::new(());
 
     /// `SectorShare` has no `Default` impl — construct the minimal record.
     fn sector_share_fixture() -> SectorShare {
@@ -1823,6 +1829,7 @@ mod tests {
     /// plant's share — the legacy average would furlough ~94% of the crew.
     #[test]
     fn test_furlough_decomposes_shortage_per_building() {
+        let _guard = FLAG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let country = Country::default();
         let share = sector_share_fixture();
         let signal = MarketSignal::default();
@@ -1859,6 +1866,7 @@ mod tests {
     /// equity can back the skeleton payroll (arrears-consistent).
     #[test]
     fn test_furlough_shift_floor_keeps_quarter_crew() {
+        let _guard = FLAG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let country = Country::default();
         let share = sector_share_fixture();
         let signal = MarketSignal::default();
@@ -1881,6 +1889,7 @@ mod tests {
     /// the floor does not apply (no fabricated wages) — full deficit furlough.
     #[test]
     fn test_furlough_no_floor_when_insolvent_backing() {
+        let _guard = FLAG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let country = Country::default();
         let share = sector_share_fixture();
         let signal = MarketSignal::default();
@@ -1902,6 +1911,7 @@ mod tests {
     /// M2 grace: a building that adapted this turn contributes no deficit.
     #[test]
     fn test_furlough_grace_for_just_adapted_building() {
+        let _guard = FLAG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let country = Country::default();
         let share = sector_share_fixture();
         let signal = MarketSignal::default();
@@ -1930,6 +1940,7 @@ mod tests {
     /// company furloughs the full proportional share (pre-W2 behavior).
     #[test]
     fn test_furlough_legacy_mode_when_disabled() {
+        let _guard = FLAG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let country = Country::default();
         let share = sector_share_fixture();
         let signal = MarketSignal::default();

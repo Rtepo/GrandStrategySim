@@ -408,8 +408,18 @@ pub fn process_companies(
                 let building = &mut buildings[j];
                 let scale = building.scale_factor.max(1);
                 let new_base = (new_worker_capacity / scale / owned.len() as u32).max(1);
-                building.current_employment = building.current_employment.min(new_base);
-                building.worker_capacity = new_base;
+                // W7: shrink-only. Physical seats are created exclusively by
+                // ConstructionProject completion; the company labor pool
+                // (which absorbs merged companies' capacity at genesis and in
+                // acquisitions) can legitimately exceed a building's built
+                // seats, so syncing UP fabricates phantom capacity — labor
+                // then staffs seats that don't exist and per-1k input demand
+                // outruns a seed sized for the real plant.
+                if new_base < building.worker_capacity {
+                    building.current_employment =
+                        building.current_employment.min(new_base);
+                    building.worker_capacity = new_base;
+                }
             }
         }
 
@@ -1071,13 +1081,20 @@ fn evaluate_building_adaptation(
             {
                 continue;
             }
-            // Feasibility: every input must resolve (direct or substitute).
+            // Feasibility: every input must resolve to stock the building
+            // physically holds (primary or substitute group member). A full
+            // method switch is a rescue only if the plant can run the new
+            // BOM this turn — `resolve_adaptive_input`'s procurable fallback
+            // merely proves an ask exists, and procurement is exactly what
+            // demonstrably failed (that's why the plant is adapting).
+            // Switching onto an unstocked BOM also reclassifies the old
+            // input buffer as sellable surplus: the building fire-sells its
+            // seed corn, then starves on the new inputs — churn, not
+            // adaptation.
             let mut resolved_alt: BTreeMap<Commodity, f64> = BTreeMap::new();
             let mut feasible = true;
             for (&c, &q) in &pm.inputs {
-                match resolve_adaptive_input(
-                    c, building, signal, history, groups, blackout, buy_premium,
-                ) {
+                match resolve_stocked_input(c, building, groups, blackout) {
                     Some(rc) => *resolved_alt.entry(rc).or_insert(0.0) += q,
                     None => {
                         feasible = false;
@@ -1129,6 +1146,54 @@ fn evaluate_building_adaptation(
 /// physically consume next turn — substitution only relabels WHICH real
 /// good is burned, never how much (`qty` is preserved by the caller).
 #[allow(clippy::too_many_arguments)]
+/// W7: In-stock-only input resolution for method-switch candidacy.
+///
+/// Unlike [`resolve_adaptive_input`], this never treats a merely *procurable*
+/// commodity as resolved: an ask on the order book does not put tonnage in
+/// the silo, and a starving plant that switches onto an unstocked BOM just
+/// starves again on the new inputs (while its old buffer is reclassified as
+/// surplus and sold). Substitution members count only when physically held.
+fn resolve_stocked_input(
+    required: Commodity,
+    building: &Building,
+    groups: &[&[Commodity]],
+    blackout: bool,
+) -> Option<Commodity> {
+    if required.is_fixed_asset() {
+        return Some(required);
+    }
+    if required.is_local_utility() {
+        return (!blackout).then_some(required);
+    }
+    if building
+        .inventory
+        .get(&required)
+        .copied()
+        .unwrap_or(0.0)
+        > 0.0
+    {
+        return Some(required);
+    }
+    for group in groups.iter().filter(|g| g.contains(&required)) {
+        for &member in group.iter() {
+            if member == required || member.is_fixed_asset() || member.is_local_utility()
+            {
+                continue;
+            }
+            if building
+                .inventory
+                .get(&member)
+                .copied()
+                .unwrap_or(0.0)
+                > 0.0
+            {
+                return Some(member);
+            }
+        }
+    }
+    None
+}
+
 fn resolve_adaptive_input(
     required: Commodity,
     building: &Building,

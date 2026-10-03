@@ -190,6 +190,22 @@ pub fn calculate_unit_cost(
     }
 }
 
+/// W7: Encumber bid cash from the pocket that actually holds the company's
+/// spendable money. For banked companies the funds live in
+/// `brokerage_account.cash` (mirrored by the primary-bank deposit liability);
+/// `available_cash` is a phantom pocket there. Draining it drove every banked
+/// buyer's spendable balance permanently negative — refunds returned escrow
+/// to brokerage.cash while available_cash kept the deficit, so each bid cycle
+/// silently moved the encumbrance into a dead ledger line.
+fn encumber_cash(company: &mut Company, amount: f64) {
+    if let Some(ba) = &mut company.brokerage_account {
+        ba.cash -= amount;
+    } else {
+        company.available_cash -= amount;
+    }
+    company.debit_cash += amount;
+}
+
 /// Submit B2B Buy Bids and Sell Asks for all companies based on their buildings' BOMs.
 ///
 /// # Arguments
@@ -296,7 +312,13 @@ pub fn submit_company_b2b_orders(
         // Submit Buy Bids for inputs
         for building in &company_buildings {
             let method = &building.active_method;
-            let production_scale = building.current_employment as f64 / 1000.0;
+            // W9: procure against physical capacity, not current employment.
+            // A furloughed building (employment→0) would otherwise bid zero —
+            // its buffer then sells/drains unprotected and it can never
+            // restock to restart, a permanent-furlough ratchet. Capacity is
+            // also the genesis seed basis, keeping bid cover symmetric with
+            // the endowment it replaces.
+            let production_scale = building.worker_capacity as f64 / 1000.0;
 
             for (&commodity, &qty_per_1k) in &method.inputs {
                 // Phase 19B: Fixed-asset commodities (machinery/vehicles) are no
@@ -311,7 +333,15 @@ pub fn submit_company_b2b_orders(
                     continue;
                 }
 
-                let desired_qty = qty_per_1k * production_scale;
+                // W7: bid the shortfall against on-hand stock, not the full
+                // per-turn requirement. A building already holding a 2-turn
+                // buffer bids nothing; one below cover tops up. Previously
+                // every building encumbered cash for its full BOM each turn,
+                // so the encumbrance cap fragmented the wallet across inputs
+                // it didn't need and the genuinely scarce ones went unfilled.
+                let per_turn_need = qty_per_1k * production_scale;
+                let on_hand = building.inventory.get(&commodity).copied().unwrap_or(0.0);
+                let desired_qty = (per_turn_need * 2.0 - on_hand).max(0.0);
                 if desired_qty <= 0.0 {
                     continue;
                 }
@@ -366,8 +396,7 @@ pub fn submit_company_b2b_orders(
                     }
                     // Submit partial bid (encumber commodity cost + freight reserve)
                     let partial_encumbrance = affordable_qty * total_per_unit;
-                    company.available_cash -= partial_encumbrance;
-                    company.debit_cash += partial_encumbrance;
+                    encumber_cash(company, partial_encumbrance);
                     total_encumbered += partial_encumbrance;
 
                     order_book.bids.entry(commodity).or_default().push(Bid {
@@ -379,8 +408,7 @@ pub fn submit_company_b2b_orders(
                         min_quality: None,
                     });
                 } else {
-                    company.available_cash -= encumbrance;
-                    company.debit_cash += encumbrance;
+                    encumber_cash(company, encumbrance);
                     total_encumbered += encumbrance;
 
                     order_book.bids.entry(commodity).or_default().push(Bid {
@@ -430,8 +458,7 @@ pub fn submit_company_b2b_orders(
                         continue;
                     }
                     let partial_encumbrance = affordable_qty * total_per_unit;
-                    company.available_cash -= partial_encumbrance;
-                    company.debit_cash += partial_encumbrance;
+                    encumber_cash(company, partial_encumbrance);
                     total_encumbered += partial_encumbrance;
 
                     order_book.bids.entry(commodity).or_default().push(Bid {
@@ -443,8 +470,7 @@ pub fn submit_company_b2b_orders(
                         min_quality: None,
                     });
                 } else {
-                    company.available_cash -= encumbrance;
-                    company.debit_cash += encumbrance;
+                    encumber_cash(company, encumbrance);
                     total_encumbered += encumbrance;
 
                     order_book.bids.entry(commodity).or_default().push(Bid {
@@ -486,9 +512,29 @@ pub fn submit_company_b2b_orders(
                 //
                 // sell_fraction = 0.5 (base) + price_signal * 0.3 + distress_signal * 0.2
                 // clamped to [0.2, 1.0] — never floods nor starves the market.
-                let production_qty = qty_per_1k * production_scale;
+                let production_qty =
+                    qty_per_1k * production_scale * building.last_fulfillment_ratio;
                 let inventory_qty = building.inventory.get(&commodity).copied().unwrap_or(0.0);
-                let total_available = (inventory_qty + production_qty).max(0.0);
+                // W7: reserve the seeded production buffer for dual-use
+                // commodities — a coal mine that sells its whole HardCoal
+                // stock cannot produce next turn (self-consumption loop).
+                // Selling seed corn is how the extraction economy died.
+                // Scale by worker_capacity (the genesis seed basis), not
+                // current_employment: a furloughed building must retain its
+                // restart buffer instead of fire-selling it into the ask.
+                // W9: reserve 6 turns while SEED_INVENTORY_TURNS is 8 —
+                // buildings keep more than the full 4-turn bootstrap window
+                // covered yet still post the outer ~2 turns of seed as
+                // marketable surplus, seeding Turn-0 order books.
+                let input_reserve = method
+                    .inputs
+                    .get(&commodity)
+                    .copied()
+                    .unwrap_or(0.0)
+                    * (building.worker_capacity as f64 / 1000.0)
+                    * 6.0;
+                let total_available =
+                    (inventory_qty + production_qty - input_reserve).max(0.0);
                 if total_available <= 0.0 {
                     continue;
                 }
@@ -642,6 +688,46 @@ pub fn submit_company_b2b_orders(
                     durability: bp_durability,
                 });
             }
+
+            // W7: Surplus-stock asks — sell inventory commodities that the
+            // active method neither produces nor consumes. The outputs loop
+            // above can only see BOM outputs, so harvest by-products (Fodder
+            // from a wheat crop, Fruit from an orchard) and physically
+            // delivered goods outside the BOM sat in Building.inventory
+            // forever — agricultural supply posted exactly 0 asks despite
+            // billions of units harvested. Settlement already resolves any
+            // seller building holding the stock (inventory fallback), so
+            // these asks are physically deliverable.
+            for (&commodity, &qty) in &building.inventory {
+                if qty <= 0.0
+                    || method.outputs.contains_key(&commodity)
+                    || method.inputs.contains_key(&commodity)
+                    || commodity.is_local_utility()
+                    || commodity.is_fixed_asset()
+                {
+                    continue;
+                }
+                let ref_price = match get_reference_price(&commodity, market_history) {
+                    Some(p) => p,
+                    None => market_history
+                        .global_base_prices
+                        .get(&commodity)
+                        .copied()
+                        .unwrap_or(0.0),
+                };
+                if ref_price <= 0.0 {
+                    continue;
+                }
+                order_book.asks.entry(commodity).or_default().push(Ask {
+                    seller_id: company.id.clone(),
+                    commodity,
+                    quantity: qty * 0.8,
+                    limit_price: ref_price * (1.0 + config.min_markup_ratio),
+                    blueprint_id: None,
+                    quality: None,
+                    durability: None,
+                });
+            }
         }
 
         // Also submit Sell Asks for excess inventory (fire sale if utilization is high)
@@ -739,33 +825,38 @@ pub fn settle_trades(
             ) {
                 let buyer_is_banked = companies[bi].primary_bank_id.is_some();
                 if buyer_is_banked {
-                    // Phase 95: pass the REAL country so ELA draws inside
-                    // settle_transfer_mapped are tracked on the actual CB's
-                    // liquidity_injected (M0 audit trail stays accurate).
-                    match crate::economy::transfer_settler::settle_transfer_mapped(
-                        companies,
-                        &company_id_to_idx,
-                        bi,
-                        trade_value,
-                        &crate::economy::transfer_settler::TransferRecipient::OtherCompany {
-                            recipient_idx: si,
-                        },
-                        country,
-                    ) {
-                        Ok(_) => {
-                            companies[bi].debit_cash -= trade_value;
+                    // W7: The bid encumbrance already moved the payment into
+                    // escrow (available_cash → debit_cash). Releasing the
+                    // escrow IS the cash leg — calling settle_transfer_mapped
+                    // here would debit the spendable pocket a SECOND time
+                    // (M0 destruction on success; InsufficientCash refund +
+                    // cancelled trade on depleted pockets). Consume the
+                    // escrow, then apply the payer-bank legs (deposits and
+                    // reserves fall as the liability moves to the seller's
+                    // bank; ELA covers so reserves never go negative) — the
+                    // same structure as the cross-border path below.
+                    companies[bi].debit_cash -= trade_value;
+                    let buyer_bank_id = companies[bi].primary_bank_id.clone();
+                    if let Some(ref bank_id) = buyer_bank_id {
+                        if let Some(&bidx) = company_id_to_idx.get(bank_id) {
+                            if let Some(ref mut bs) = companies[bidx].balance_sheet {
+                                crate::state::banking::ela_cover_debit(
+                                    bs,
+                                    &mut country.central_bank,
+                                    trade_value,
+                                );
+                            }
                         }
-                        Err(_) => {
-                            // Settlement failed (e.g. InsufficientCash) — return
-                            // the encumbrance to the buyer's available cash so
-                            // no M0 is destroyed. The seller is not credited.
-                            companies[bi].debit_cash -= trade_value;
-                            companies[bi].available_cash += trade_value;
-                            #[cfg(feature = "diagnostic")]
-                            eprintln!("B2B_SETTLE_FAIL: buyer={} seller={} value={:.2} — encumbrance refunded",
-                                companies[bi].id, companies[si].id, trade_value);
-                        }
+                        crate::economy::transfer_settler::adjust_bank_balance(
+                            companies,
+                            &company_id_to_idx,
+                            bank_id,
+                            -trade_value,
+                            -trade_value,
+                        );
                     }
+                    let seller_id = companies[si].id.clone();
+                    credit_company_by_id(companies, &seller_id, trade_value);
                 } else {
                     // Phase 94: Unbanked buyer — cash was already encumbered
                     // (available_cash → debit_cash). Release encumbrance and
@@ -797,22 +888,13 @@ pub fn settle_trades(
                     let buyer_bank_id = companies[bi].primary_bank_id.clone();
                     let buyer_is_bank = companies[bi].sector
                         == crate::registries::enums::Sector::Banking;
-                    if buyer_bank_id.is_some() || buyer_is_bank {
-                        // W3/R3: Banked/bank payer — mirror
-                        // settle_transfer_mapped's payer cash debit: the
-                        // real spendable balance (brokerage.cash, else
-                        // available_cash) must fall by the payment amount,
-                        // or the company keeps money its bank already paid
-                        // out. No affordability gate: the seller's own
-                        // country task credits it unconditionally, so a
-                        // rejection here would leak fiat cross-border.
-                        // Negative cash = overdraft (Phase 94 convention).
-                        if let Some(ref mut ba) = companies[bi].brokerage_account {
-                            ba.cash -= trade_value;
-                        } else {
-                            companies[bi].available_cash -= trade_value;
-                        }
-                    }
+                    // W7: No spendable-pocket debit here — the bid encumbrance
+                    // already moved the payment into debit_cash, and the
+                    // release above IS the cash leg. Re-debiting
+                    // brokerage/available_cash would charge banked buyers
+                    // twice (M0 destruction). Only the bank balance-sheet
+                    // legs below remain: the deposit liability backing the
+                    // escrowed cash moves to the seller's bank.
                     // W3/R3: If the buyer is banked, the payment leaves the
                     // payer's bank — deposits AND reserves must fall here,
                     // mirroring the payer leg of settle_transfer_mapped.
@@ -968,43 +1050,68 @@ pub fn settle_trades(
             .get(&trade.seller_id)
             .map(|v| v.as_slice())
             .unwrap_or(&[]);
-        let mut seller_b_idx = None;
-        for &i in seller_buildings {
+        // W7: Company-level asks aggregate per-building offers, but a single
+        // trade's decrement must not silently eat another building's INPUT
+        // stock. Draw down in preference order: (1) buildings whose method
+        // outputs the commodity, (2) buildings where it is surplus stock,
+        // (3) input-holding buildings only above their next-turn requirement
+        // — selling a sibling's production buffer is eating seed corn.
+        let mut seller_candidates: Vec<usize> = seller_buildings.to_vec();
+        seller_candidates.sort_by_key(|&i| {
             let b = &buildings[i];
-            if b.active_method.outputs.contains_key(&trade.commodity)
-                && b.inventory.get(&trade.commodity).copied().unwrap_or(0.0) >= trade.quantity
-            {
-                seller_b_idx = Some(i);
+            if b.active_method.outputs.contains_key(&trade.commodity) {
+                0
+            } else if b.active_method.inputs.contains_key(&trade.commodity) {
+                2
+            } else {
+                1
+            }
+        });
+        let mut remaining_to_ship = trade.quantity;
+        for &idx in &seller_candidates {
+            if remaining_to_ship <= 0.0 {
                 break;
             }
-        }
-        if seller_b_idx.is_none() {
-            for &i in seller_buildings {
-                if buildings[i]
-                    .inventory
-                    .get(&trade.commodity)
-                    .copied()
-                    .unwrap_or(0.0)
-                    >= trade.quantity
-                {
-                    seller_b_idx = Some(i);
-                    break;
-                }
-            }
-        }
-        if let Some(idx) = seller_b_idx {
-            let building = &mut buildings[idx];
-            let current = building
+            let b = &buildings[idx];
+            let held = b
                 .inventory
                 .get(&trade.commodity)
                 .copied()
                 .unwrap_or(0.0);
-            let new_qty = (current - trade.quantity).max(0.0);
+            // Input-holding buildings ship only stock above the seeded
+            // production horizon (4 turns of input need) — anything less is
+            // production capital, and draining it is eating seed corn. The
+            // reserve scales with worker_capacity (the genesis seed basis),
+            // NOT current_employment: a furloughed building must keep its
+            // restart buffer, otherwise one bad turn permanently liquidates
+            // its inputs through sibling asks and it can never reopen.
+            let shippable = if b.active_method.outputs.contains_key(&trade.commodity)
+                || !b.active_method.inputs.contains_key(&trade.commodity)
+            {
+                held
+            } else {
+                let reserve = b
+                    .active_method
+                    .inputs
+                    .get(&trade.commodity)
+                    .copied()
+                    .unwrap_or(0.0)
+                    * (b.worker_capacity as f64 / 1000.0)
+                    * 4.0;
+                (held - reserve).max(0.0)
+            };
+            let ship = shippable.min(remaining_to_ship);
+            if ship <= 0.0 {
+                continue;
+            }
+            let building = &mut buildings[idx];
+            let new_qty = held - ship;
             if new_qty > 0.0 {
                 building.inventory.insert(trade.commodity, new_qty);
             } else {
                 building.inventory.remove(&trade.commodity);
             }
+            remaining_to_ship -= ship;
 
             // Phase 95: Consume from inventory cohorts (FIFO — oldest first).
             // This tracks the actual physical goods sold, preserving blueprint
@@ -1013,13 +1120,14 @@ pub fn settle_trades(
                 consume_inventory_cohorts(
                     &mut building.inventory_cohorts,
                     trade.commodity,
-                    trade.quantity,
+                    ship,
                 );
             }
-        } else {
+        }
+        if remaining_to_ship > 0.0 {
             messages.push(format!(
-                "WARNING: Seller {} has no building with {:?} inventory for trade of {}",
-                trade.seller_id, trade.commodity, trade.quantity
+                "WARNING: Seller {} short-shipped {:.1} of {} {:?} (no building held the stock)",
+                trade.seller_id, remaining_to_ship, trade.quantity, trade.commodity
             ));
         }
     }
@@ -1561,6 +1669,8 @@ pub fn execute_production_cycle(
         // Calculate required inputs and available inputs.
         // Phase 19B: Skip fixed-asset commodities — they're not consumed per-turn.
         let mut fulfillment_ratio = 1.0;
+        #[cfg(feature = "diagnostic")]
+        let mut binding_input: Option<Commodity> = None;
         for (&commodity, &qty_per_1k) in &method.inputs {
             if commodity.is_fixed_asset() {
                 continue; // Fixed assets provide capacity, not consumable input.
@@ -1580,8 +1690,47 @@ pub fn execute_production_cycle(
                 let ratio = available / required;
                 if ratio < fulfillment_ratio {
                     fulfillment_ratio = ratio;
+                    #[cfg(feature = "diagnostic")]
+                    {
+                        binding_input = Some(commodity);
+                    }
                 }
             }
+        }
+        #[cfg(feature = "diagnostic")]
+        if fulfillment_ratio < 0.1 {
+            let inv_qty = binding_input
+                .and_then(|c| building.inventory.get(&c).copied())
+                .unwrap_or(0.0);
+            let req_qty = binding_input
+                .and_then(|c| method.inputs.get(&c).copied())
+                .unwrap_or(0.0)
+                * production_scale;
+            let inv_total: f64 = building.inventory.values().sum();
+            let mut top: Vec<(&Commodity, &f64)> = building.inventory.iter().collect();
+            top.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap_or(std::cmp::Ordering::Equal));
+            let top3: Vec<String> = top
+                .iter()
+                .take(3)
+                .map(|(c, q)| format!("{:?}={:.0}", c, q))
+                .collect();
+            eprintln!(
+                "BINDING_INPUT[{}]: sector={:?} year={} fy={} built={} mname={} input={:?} inv={:.1} req={:.1} emp={} cap={} invtot={:.0} top={} ratio={:.3}",
+                building.id,
+                building.sector,
+                method.year,
+                frontier_year,
+                building.year_built,
+                building.active_method.active_methods.production,
+                binding_input,
+                inv_qty,
+                req_qty,
+                building.current_employment,
+                building.worker_capacity,
+                inv_total,
+                top3.join(","),
+                fulfillment_ratio
+            );
         }
 
         // Clamp fulfillment ratio to [0, 1]
@@ -1652,6 +1801,20 @@ pub fn execute_production_cycle(
         // for ROI-driven warehouse construction decisions.
         let mut overflow_costs_this_turn: f64 = 0.0;
 
+        // W7: Overflow must not eat the production buffer. Proportional
+        // shed/destroy treats every commodity alike — a producer whose
+        // output floods past capacity loses its seeded INPUTS in the same
+        // ratio, then starves next turn despite posting huge asks. Method
+        // inputs are NEVER shed by overflow: spoilage applies to outputs and
+        // surplus stock only; whether to sell inputs is the ask loop's
+        // decision, not the rot mechanic's.
+        let movable_share = |commodity: Commodity, qty: f64, share: f64| {
+            if method.inputs.contains_key(&commodity) && !commodity.is_local_utility() {
+                return 0.0;
+            }
+            qty * share
+        };
+
         // Handle inventory overflow
         let total_inventory: f64 = building.inventory.values().sum();
         if total_inventory > building.inventory_capacity {
@@ -1673,10 +1836,11 @@ pub fn execute_production_cycle(
                         credit_company_by_id(companies, owner_id, _debited);
                     }
                 }
-                // Move overflow commodities to warehouse (proportionally)
+                // Move overflow commodities to warehouse (proportionally,
+                // protected by the input reserve).
                 let ratio = overflow / total_inventory;
                 for (&commodity, &qty) in &building.inventory.clone() {
-                    let moved = qty * ratio;
+                    let moved = movable_share(commodity, qty, ratio);
                     if moved > 0.0 {
                         let remaining = (qty - moved).max(0.0);
                         if remaining > 0.0 {
@@ -1709,7 +1873,7 @@ pub fn execute_production_cycle(
                 }
                 let inv_ratio = storable / total_inventory;
                 for (&commodity, &qty) in &building.inventory.clone() {
-                    let moved = qty * inv_ratio;
+                    let moved = movable_share(commodity, qty, inv_ratio);
                     if moved > 0.0 {
                         let remaining = (qty - moved).max(0.0);
                         if remaining > 0.0 {
@@ -1725,7 +1889,9 @@ pub fn execute_production_cycle(
                         );
                     }
                 }
-                // Remaining overflow perishes — destroy excess
+                // Remaining overflow perishes — destroy excess (surplus first;
+                // input reserve is touched only if unprotected stock cannot
+                // cover the excess — a hard physical capacity limit).
                 let new_total: f64 = building.inventory.values().sum();
                 if new_total > building.inventory_capacity {
                     let excess = new_total - building.inventory_capacity;
@@ -1734,7 +1900,7 @@ pub fn execute_production_cycle(
                     inventory_write_down += excess * unit_cost_for_writeoff;
                     overflow_costs_this_turn += excess * unit_cost_for_writeoff;
                     for (&commodity, &qty) in &building.inventory.clone() {
-                        let destroyed = qty * destroy_ratio;
+                        let destroyed = movable_share(commodity, qty, destroy_ratio);
                         let remaining = (qty - destroyed).max(0.0);
                         if remaining > 0.0 {
                             building.inventory.insert(commodity, remaining);
@@ -1744,11 +1910,32 @@ pub fn execute_production_cycle(
                     }
                 }
             } else {
-                // No warehouse capacity — all overflow perishes immediately
+                // No warehouse capacity — all overflow perishes immediately,
+                // surplus first (input reserve protected; hard-cap fallback below).
                 let destroy_ratio = overflow / total_inventory;
                 // Fix 1.21: Record the financial write-down for destroyed inventory
                 inventory_write_down += overflow * unit_cost_for_writeoff;
                 overflow_costs_this_turn += overflow * unit_cost_for_writeoff;
+                for (&commodity, &qty) in &building.inventory.clone() {
+                    let destroyed = movable_share(commodity, qty, destroy_ratio);
+                    let remaining = (qty - destroyed).max(0.0);
+                    if remaining > 0.0 {
+                        building.inventory.insert(commodity, remaining);
+                    } else {
+                        building.inventory.remove(&commodity);
+                    }
+                }
+            }
+
+            // W7: Hard-cap fallback — if the input reserve itself exceeds
+            // physical capacity, the surplus-first passes cannot shed enough.
+            // Destroy proportionally across everything that remains.
+            let post_total: f64 = building.inventory.values().sum();
+            if post_total > building.inventory_capacity {
+                let excess = post_total - building.inventory_capacity;
+                let destroy_ratio = excess / post_total;
+                inventory_write_down += excess * unit_cost_for_writeoff;
+                overflow_costs_this_turn += excess * unit_cost_for_writeoff;
                 for (&commodity, &qty) in &building.inventory.clone() {
                     let destroyed = qty * destroy_ratio;
                     let remaining = (qty - destroyed).max(0.0);
@@ -2070,8 +2257,7 @@ pub fn submit_maintenance_service_bids(
                 if affordable_qty <= 0.0 {
                     continue;
                 }
-                company.available_cash -= affordable_qty * limit_price;
-                company.debit_cash += affordable_qty * limit_price;
+                encumber_cash(company, affordable_qty * limit_price);
                 total_encumbered += affordable_qty * limit_price;
                 order_book
                     .bids
@@ -2086,8 +2272,7 @@ pub fn submit_maintenance_service_bids(
                         min_quality: None,
                     });
             } else {
-                company.available_cash -= encumbrance;
-                company.debit_cash += encumbrance;
+                encumber_cash(company, encumbrance);
                 total_encumbered += encumbrance;
                 order_book
                     .bids
@@ -2192,8 +2377,7 @@ pub fn submit_fixed_asset_purchase_bids(
                 }
 
                 let encumbrance = desired_qty * limit_price;
-                company.available_cash -= encumbrance;
-                company.debit_cash += encumbrance;
+                encumber_cash(company, encumbrance);
                 total_encumbered += encumbrance;
 
                 order_book.bids.entry(commodity).or_default().push(Bid {
@@ -2243,8 +2427,7 @@ pub fn submit_fixed_asset_purchase_bids(
                     continue;
                 }
                 let encumbrance = qty * limit_price;
-                company.available_cash -= encumbrance;
-                company.debit_cash += encumbrance;
+                encumber_cash(company, encumbrance);
                 total_encumbered += encumbrance;
                 order_book.bids.entry(commodity).or_default().push(Bid {
                     buyer_id: company.id.clone(),

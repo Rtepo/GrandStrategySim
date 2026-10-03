@@ -226,14 +226,19 @@ pub fn create_default_state_forests(
     region_ids: &[String],
     hectares_per_region: f64,
 ) -> ForestDistrictState {
+    // W7 scale harmonization: timber stock, growth, and harvest caps are
+    // commodity-denominated quantities traded against production methods
+    // rescaled by PRODUCTION_THROUGHPUT_SCALE — physical tracts must carry
+    // the same scale or forestry supplies ~1/250 of industrial demand.
+    let s = crate::registries::production_methods::PRODUCTION_THROUGHPUT_SCALE;
     let tracts: Vec<ForestDistrictTract> = region_ids
         .iter()
         .map(|rid| ForestDistrictTract {
             region_id: rid.clone(),
             hectares: hectares_per_region,
-            timber_stock: hectares_per_region * 100.0, // Initial stock
-            growth_rate: 0.03,                         // 3% per year
-            harvest_permitted: hectares_per_region * 3.0, // 3 m³/ha/turn
+            timber_stock: hectares_per_region * 100.0 * s, // Initial stock
+            growth_rate: 0.03 * s,                         // 3% per year
+            harvest_permitted: hectares_per_region * 3.0 * s, // 3 m³/ha/turn
         })
         .collect();
 
@@ -416,6 +421,7 @@ mod tests {
         let state = create_default_state_forests(&["R1".to_string(), "R2".to_string()], 500.0);
         assert_eq!(state.tracts.len(), 2);
         assert!((state.total_hectares - 1000.0).abs() < 0.01);
-        assert!((state.tracts[0].timber_stock - 50000.0).abs() < 0.01);
+        let s = crate::registries::production_methods::PRODUCTION_THROUGHPUT_SCALE;
+        assert!((state.tracts[0].timber_stock - 50000.0 * s).abs() < 0.01);
     }
 }
