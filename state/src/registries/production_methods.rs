@@ -304,6 +304,18 @@ impl BuildingMethods {
             .chain(self.organization.values())
     }
 
+    /// Named variant of [`Self::iter_production_slots`] for resolvers that
+    /// must distinguish methods by registry name (e.g. skipping wartime
+    /// "* Conversion" decree targets during default-method selection).
+    pub fn iter_production_slots_named(
+        &self,
+    ) -> impl Iterator<Item = (&String, &ProductionMethod)> {
+        self.automation
+            .iter()
+            .chain(self.production.iter())
+            .chain(self.organization.iter())
+    }
+
     /// Iterate consumption-slot methods (Lighting + Heating + Ventilation +
     /// PowerGeneration + WaterSupply + Sanitation + WasteDisposal + EmissionControl).
     /// Future-proofed slots (WaterSupply, Sanitation, WasteDisposal) are
@@ -375,6 +387,16 @@ fn method_is_commodity_producer(method: &ProductionMethod) -> bool {
     })
 }
 
+/// W8: Wartime "* Conversion" methods are Production Decree retool targets
+/// (driven via `military::war_economy::find_military_conversion` from its own
+/// method table), not peacetime genesis/default production lines. A civilian
+/// factory assigned one produces goods nobody buys at civilian prices, earns
+/// ~$0, and starves once its seed buffer runs out. All default-method
+/// selectors must skip these.
+pub fn is_decree_conversion_method(name: &str) -> bool {
+    name.ends_with(" Conversion")
+}
+
 /// Applies [`PRODUCTION_THROUGHPUT_SCALE`] to every commodity-producer method
 /// in a building-method map. Called once at registry assembly so every
 /// consumer (seed inventory, production cycle, B2B order sizing, market
@@ -391,9 +413,12 @@ pub fn apply_throughput_scale(map: &mut HashMap<String, BuildingMethods>) {
                     continue;
                 }
                 for (commodity, qty) in method.inputs.iter_mut() {
+                    // W9: Food inputs are worker rations — they scale with
+                    // headcount (the per_1k denominator), not throughput.
                     if !commodity.is_intangible()
                         && !commodity.is_local_utility()
                         && !commodity.is_fixed_asset()
+                        && *commodity != Commodity::Food
                     {
                         *qty *= PRODUCTION_THROUGHPUT_SCALE;
                     }
@@ -440,7 +465,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             inputs: HashMap::from([
                 (Commodity::Rifles, 5.0),
                 (Commodity::Ammunition, 10.0),
-                (Commodity::Fuels, 15.0),
+                (Commodity::HardCoal, 20.4),
                 (Commodity::Food, 20.0),
                 (Commodity::Clothing, 5.0),
             ]),
@@ -461,7 +486,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             inputs: HashMap::from([
                 (Commodity::Rifles, 8.0),
                 (Commodity::Ammunition, 15.0),
-                (Commodity::Fuels, 20.0),
+                (Commodity::HardCoal, 27.2),
                 (Commodity::Food, 18.0),
                 (Commodity::Clothing, 5.0),
                 (Commodity::Cars, 2.0),

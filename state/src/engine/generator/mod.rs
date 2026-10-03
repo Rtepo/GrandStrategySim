@@ -1395,7 +1395,15 @@ fn build_treasury(
         extra: Map::new(),
     };
 
-    let average_wage = gdp_pc * 800.0;
+    // Macro-Remediation: `800` was an ANNUAL wage figure (≈80% labor share of
+    // `gdp_pc × 1000`) mistakenly used as a per-turn wage — a ~24× unit
+    // inflation (TURNS_PER_YEAR = 24). `average_wage` is consumed everywhere
+    // as a per-turn flow (labor clearing, wage offers, `last_wage_bill`
+    // estimates, `minimum_capital_for_sector` which explicitly re-annualizes
+    // via `average_wage * TURNS_PER_YEAR`). The inflated value made payroll
+    // exceed marginal revenue ~20-50×, draining company cash on Turn 0 and
+    // driving the mass-furlough/unemployment collapse.
+    let average_wage = gdp_pc * 800.0 / crate::state::macro_data::TURNS_PER_YEAR as f64;
 
     let mut sectors = HashMap::new();
     sectors.insert(

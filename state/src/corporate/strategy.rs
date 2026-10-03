@@ -1277,10 +1277,17 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
         ((target - already_sidelined).max(0.0).ceil() as u32)
             .min(ctx.company.fulfilled_fte)
     } else {
-        // Cash shortage: furlough down to the affordable payroll level.
-        // (fulfilled − affordable) is identical under the cumulative form
-        // since crew = fulfilled + furloughed.
-        let affordable_fte = (ctx.company.operational_cash() / wage_per_fte).floor();
+        // Cash shortage: furlough down to the sustainable payroll level.
+        // Use the same payroll-backing bound as the M3 material-shortage
+        // floor above — operational cash plus nonnegative equity, which backs
+        // wage arrears (a liability, not fabricated money). Bare
+        // operational_cash as the bound meant every firm below ~2 turns of
+        // payroll liquidity — at macro scale nearly all of them — shed its
+        // roster toward zero, collapsing prev_fulfilled_fte and strangling
+        // re-hiring at the 15%/turn cap (a structural unemployment trap).
+        let payroll_backing =
+            ctx.company.operational_cash() + ctx.company.company_capital.max(0.0);
+        let affordable_fte = (payroll_backing / wage_per_fte).floor();
         let target = (total_crew - affordable_fte).max(0.0);
         ((target - already_sidelined).max(0.0).ceil() as u32)
             .min(ctx.company.fulfilled_fte)
@@ -1306,6 +1313,19 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
 
     // wage_fraction = 0.0 (no pay during furlough — era-appropriate, no UI).
     // Future labor law mechanics can increase this.
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "FURLOUGH_CAUSE[{}]: sector={:?} cause={} fte={} fulfilled={} furl={:.0} avg_ratio={:.3} cash={:.0} cap={:.0}",
+        ctx.company.id,
+        ctx.company.sector,
+        if material_shortage { "material" } else { "cash" },
+        furlough_count,
+        ctx.company.fulfilled_fte,
+        ctx.company.furloughed_workers_count,
+        ctx.avg_fulfillment_ratio,
+        ctx.company.operational_cash(),
+        ctx.company.company_capital
+    );
     Some(CorporateAction::Furlough {
         fte_count: furlough_count,
         wage_fraction: 0.0,
@@ -1723,6 +1743,12 @@ mod tests {
     use super::*;
     use crate::entities::Building;
     use crate::securities::BrokerageAccount;
+    use std::sync::Mutex;
+
+    /// Serializes tests that read `ADAPTIVE_PRODUCTION_ENABLED` — the legacy
+    /// mode test flips the global atomic, which races with concurrent tests
+    /// calling `evaluate_furlough` unless they share a lock.
+    static FLAG_LOCK: Mutex<()> = Mutex::new(());
 
     /// `SectorShare` has no `Default` impl — construct the minimal record.
     fn sector_share_fixture() -> SectorShare {
@@ -1803,6 +1829,7 @@ mod tests {
     /// plant's share — the legacy average would furlough ~94% of the crew.
     #[test]
     fn test_furlough_decomposes_shortage_per_building() {
+        let _guard = FLAG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let country = Country::default();
         let share = sector_share_fixture();
         let signal = MarketSignal::default();
@@ -1839,6 +1866,7 @@ mod tests {
     /// equity can back the skeleton payroll (arrears-consistent).
     #[test]
     fn test_furlough_shift_floor_keeps_quarter_crew() {
+        let _guard = FLAG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let country = Country::default();
         let share = sector_share_fixture();
         let signal = MarketSignal::default();
@@ -1861,6 +1889,7 @@ mod tests {
     /// the floor does not apply (no fabricated wages) — full deficit furlough.
     #[test]
     fn test_furlough_no_floor_when_insolvent_backing() {
+        let _guard = FLAG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let country = Country::default();
         let share = sector_share_fixture();
         let signal = MarketSignal::default();
@@ -1882,6 +1911,7 @@ mod tests {
     /// M2 grace: a building that adapted this turn contributes no deficit.
     #[test]
     fn test_furlough_grace_for_just_adapted_building() {
+        let _guard = FLAG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let country = Country::default();
         let share = sector_share_fixture();
         let signal = MarketSignal::default();
@@ -1910,6 +1940,7 @@ mod tests {
     /// company furloughs the full proportional share (pre-W2 behavior).
     #[test]
     fn test_furlough_legacy_mode_when_disabled() {
+        let _guard = FLAG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let country = Country::default();
         let share = sector_share_fixture();
         let signal = MarketSignal::default();

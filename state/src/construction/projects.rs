@@ -324,11 +324,18 @@ impl ConstructionProject {
     ///   `available * productivity` (weather slows construction).
     /// * Updates `progress` and `cost_spent` after consumption.
     /// * Returns true if any materials were consumed this call.
+    ///
+    /// `input_reserve` is the building's production reserve: quantities of the
+    /// active method's inputs that construction must NOT cannibalize. Without
+    /// it an expansion tender silently eats the seeded input buffer — Steel,
+    /// Planks and Cement vanish into `delivered_materials` in one turn and the
+    /// plant starves with `fulfillment_ratio = 0` despite full genesis stock.
     pub fn consume_delivered_materials(
         &mut self,
         inventory: &mut BTreeMap<Commodity, f64>,
         unit_costs: &BTreeMap<Commodity, f64>,
         productivity: f64,
+        input_reserve: &BTreeMap<Commodity, f64>,
     ) -> bool {
         let mut any_consumed = false;
         let p = productivity.clamp(0.0, 1.0);
@@ -346,7 +353,9 @@ impl ConstructionProject {
             if remaining_needed <= 0.0 {
                 continue;
             }
-            let available = inventory.get(&commodity).copied().unwrap_or(0.0);
+            let held = inventory.get(&commodity).copied().unwrap_or(0.0);
+            let reserve = input_reserve.get(&commodity).copied().unwrap_or(0.0);
+            let available = (held - reserve).max(0.0);
             if available <= 0.0 {
                 continue;
             }
@@ -358,8 +367,9 @@ impl ConstructionProject {
             if to_consume <= 0.0 {
                 continue;
             }
-            // Remove from building inventory
-            let new_qty = (available - to_consume).max(0.0);
+            // Remove from building inventory — subtract from `held`, not the
+            // reserve-adjusted `available`, so the protected reserve remains.
+            let new_qty = (held - to_consume).max(0.0);
             if new_qty > 0.0 {
                 inventory.insert(commodity, new_qty);
             } else {

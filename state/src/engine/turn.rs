@@ -1209,8 +1209,67 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
 
         // Match orders (Phase 11: embargo-aware matching)
+        #[cfg(feature = "diagnostic")]
+        {
+            let bid_qty: f64 = global_order_book
+                .bids
+                .values()
+                .flat_map(|v| v.iter().map(|b| b.quantity))
+                .sum();
+            let ask_qty: f64 = global_order_book
+                .asks
+                .values()
+                .flat_map(|v| v.iter().map(|a| a.quantity))
+                .sum();
+            let mut bid_by_c: std::collections::BTreeMap<String, f64> = Default::default();
+            for (c, bids) in &global_order_book.bids {
+                *bid_by_c.entry(format!("{:?}", c)).or_default() +=
+                    bids.iter().map(|b| b.quantity).sum::<f64>();
+            }
+            let mut ask_by_c: std::collections::BTreeMap<String, f64> = Default::default();
+            for (c, asks) in &global_order_book.asks {
+                *ask_by_c.entry(format!("{:?}", c)).or_default() +=
+                    asks.iter().map(|a| a.quantity).sum::<f64>();
+            }
+            eprintln!(
+                "OBVOL: t={} bids_qty={:.3e} asks_qty={:.3e}",
+                turn, bid_qty, ask_qty
+            );
+            for k in ["Cereal", "Seeds", "Fodder", "Food", "HardCoal", "Fuels", "Steel", "Timber"] {
+                eprintln!(
+                    "OBVOL_C[{}]: bid={:.3e} ask={:.3e}",
+                    k,
+                    bid_by_c.get(k).copied().unwrap_or(0.0),
+                    ask_by_c.get(k).copied().unwrap_or(0.0)
+                );
+            }
+        }
         match_orders_with_embargoes(&mut global_order_book, &company_country, &diplomacy);
         let all_trades = global_order_book.trades.clone();
+        #[cfg(feature = "diagnostic")]
+        {
+            let trade_qty: f64 = all_trades.iter().map(|t| t.quantity).sum();
+            eprintln!(
+                "MATCHVOL: t={} trades={} qty={:.3e}",
+                turn,
+                all_trades.len(),
+                trade_qty
+            );
+            let mut match_by_c: std::collections::BTreeMap<String, (f64, f64)> =
+                Default::default();
+            for t in &all_trades {
+                let e = match_by_c
+                    .entry(format!("{:?}", t.commodity))
+                    .or_default();
+                e.0 += t.quantity;
+                e.1 += t.quantity * t.execution_price;
+            }
+            for k in ["Cereal", "Seeds", "Fodder", "Food", "HardCoal", "Fuels", "Steel", "Timber"] {
+                if let Some(&(q, v)) = match_by_c.get(k) {
+                    eprintln!("MATCHVOL_C[{}]: t={} qty={:.3e} val={:.3e}", k, turn, q, v);
+                }
+            }
+        }
 
         // Phase 95: Reserve floor before the checkpoint.
         for task in &mut tasks {
@@ -1286,6 +1345,21 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     &diplomacy,
                     &company_country,
                 );
+            #[cfg(feature = "diagnostic")]
+            {
+                let def_qty: f64 = new_deferred.iter().map(|d| d.trade.quantity).sum();
+                let sec_qty: f64 = secured_trades.iter().map(|t| t.quantity).sum();
+                eprintln!(
+                    "FREIGHTGATE: t={} c={} matched={} secured={} deferred={} def_qty={:.3e} sec_qty={:.3e}",
+                    turn,
+                    task.ctx.country_name,
+                    country_trades.len(),
+                    secured_trades.len(),
+                    new_deferred.len(),
+                    def_qty,
+                    sec_qty
+                );
+            }
             // Phase 30: Update the country's network overlay with congestion changes.
             task.ctx.country.transport_networks = network_overlay;
             // Merge deferred trades into the country's deferred list.
@@ -3629,22 +3703,54 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 // This prevents PIT from collapsing to 0 when labor clearing fails.
                 task.ctx.country.macro_indicators.average_wage
             };
-            let labor_market = &mut task.ctx.country.macro_indicators.labor_market;
-            let labor_force = (task.ctx.country.budget.population as f64
-                * labor_market.labor_force_participation
-                / 100.0)
+            // Macro-Remediation: The labor force is the class-based labor
+            // supply (Σ available_fte = Σ class population × per-class
+            // participation), NOT population × cultural activity_rate. The
+            // cultural rate is a random 55–85% draw applied to the whole
+            // population; when it exceeds the class-weighted participation
+            // (~55–60%) it manufactures a phantom unemployment floor of
+            // workers who can never enter the clearing pool.
+            let labor_force: f64 = task
+                .ctx
+                .country
+                .regions
+                .iter()
+                .flat_map(|r| {
+                    r.class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(r.class_demographics.urban_classes.values())
+                })
+                .map(|d| d.available_fte)
+                .sum::<f64>()
                 .max(1.0);
-            labor_market.employed_total = total_fulfilled;
-            let unemployed = (labor_force - total_fulfilled).max(0.0);
-            labor_market.unemployed = unemployed;
-            labor_market.unemployment_rate = (unemployed / labor_force * 100.0).max(0.0);
+            let population = task.ctx.country.budget.population as f64;
             // Emergency Stabilization: Aggregate total furloughed workers
             // across all companies for the macro dashboard.
-            labor_market.furloughed_total = task
+            let furloughed_total: f64 = task
                 .companies
                 .iter()
                 .map(|c| c.furloughed_workers_count)
                 .sum();
+            let labor_market = &mut task.ctx.country.macro_indicators.labor_market;
+            // Keep the participation stat consistent with the class model so
+            // the top-down wage model and external consumers read the same
+            // labor force the clearing actually sees.
+            if population > 0.0 {
+                labor_market.labor_force_participation =
+                    labor_force / population * 100.0;
+            }
+            // Furloughed workers are NOT counted as employed here:
+            // `furloughed_workers_count` is transient — distress furloughs
+            // at non-seasonal companies are released to the labor pool by
+            // the next turn's seasonal sweep, and seasonal standby decays
+            // geometrically. They are reported separately via
+            // `furloughed_total`.
+            labor_market.employed_total = total_fulfilled;
+            let unemployed = (labor_force - total_fulfilled).max(0.0);
+            labor_market.unemployed = unemployed;
+            labor_market.unemployment_rate = (unemployed / labor_force * 100.0).max(0.0);
+            labor_market.furloughed_total = furloughed_total;
             // Phase 25: Overwrite the top-down average_wage with the actual
             // market-cleared wage. This prevents the divergent feedback loop
             // where the top-down model compounds wages each turn.
@@ -3941,6 +4047,26 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         }
         probe.checkpoint("labor_market_post", 8, turn, &market, &tasks);
+
+        // ═══════════════════════════════════════════════════════════
+        // RURAL→URBAN CLASS TRANSITIONS (W4 wiring)
+        // Must run AFTER labor clearing (FTE/wages known — labor_market_post)
+        // and BEFORE next turn's process_demographics_and_labor
+        // reconciliation (Rule 16: temporal causality). Interbank settlement
+        // runs earlier (banking_turn_post), so bank legs are final before
+        // savings move between class buckets. Deterministic — pure
+        // config-driven rates, no RNG. The urban-unemployment gate keeps it
+        // inert while labor demand is saturated.
+        // ═══════════════════════════════════════════════════════════
+        tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
+            let _class_transition_result =
+                crate::economy::labor::process_rural_urban_class_transitions(
+                    task.ctx.country,
+                    &crate::economy::labor::class_transitions::ClassTransitionConfig::default(),
+                );
+        });
+
         // Phase 18A: Shadow Economy Processing
         // Processes shadow employment: companies in labor-intensive sectors
         // with ShadowEmployment records pay shadow wages (no PIT).
@@ -4220,6 +4346,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         region,
                         &mut task.ctx.country.budget,
                         &mut task.commercial_buildings,
+                        &mut task.ctx.buildings,
                         turn,
                     );
                 }
@@ -5032,6 +5159,7 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.year,
                 &task.market_signal,
                 task.ctx.turn,
+                task.ctx.registries,
             );
         });
         #[cfg(feature = "diagnostic")]

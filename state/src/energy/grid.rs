@@ -374,6 +374,7 @@ fn collect_regional_supply_demand(
     let mut supply_mw: HashMap<String, f64> = HashMap::new();
     let mut demand_mw: HashMap<String, f64> = HashMap::new();
     let mut max_capacity_mw: HashMap<String, f64> = HashMap::new();
+    let mut demand_parts: HashMap<String, (f64, f64, f64)> = HashMap::new();
 
     // Initialize all regions.
     for region in regions {
@@ -451,6 +452,7 @@ fn collect_regional_supply_demand(
             let demand = UtilityDemand::for_housing_physical(hb, season).electricity_demand
                 / (1000.0 * HOURS_PER_TURN);
             *demand_mw.get_mut(&rid).unwrap_or(&mut 0.0) += demand;
+            demand_parts.entry(rid.clone()).or_default().0 += demand;
         }
     }
 
@@ -461,6 +463,7 @@ fn collect_regional_supply_demand(
             let demand = UtilityDemand::for_commercial_physical(cb, season).electricity_demand
                 / (1000.0 * HOURS_PER_TURN);
             *demand_mw.get_mut(&rid).unwrap_or(&mut 0.0) += demand;
+            demand_parts.entry(rid.clone()).or_default().1 += demand;
         }
     }
 
@@ -475,6 +478,15 @@ fn collect_regional_supply_demand(
         let demand =
             building.current_employment as f64 * building.scale_factor.max(1) as f64 * 0.002; // 2 kW per worker
         *demand_mw.get_mut(region_id).unwrap_or(&mut 0.0) += demand;
+        demand_parts.entry(region_id.clone()).or_default().2 += demand;
+    }
+
+    #[cfg(feature = "diagnostic")]
+    for (rid, (h, c, i)) in &demand_parts {
+        eprintln!(
+            "GRID_DEM[{}]: housing={:.1} commercial={:.1} industrial={:.1}",
+            rid, h, c, i
+        );
     }
 
     (supply_mw, demand_mw, max_capacity_mw)
@@ -749,6 +761,18 @@ pub fn distribute_grid_power(
             grid_cap,
             priority,
         );
+        #[cfg(feature = "diagnostic")]
+        if shed_tier != crate::energy::LoadShedTier::Normal {
+            eprintln!(
+                "GRID_BAL[{}]: supply={:.1} demand={:.1} cap={:.1} maxcap={:.1} tier={:?}",
+                region_id,
+                effective_supply,
+                demand,
+                grid_cap,
+                max_capacity_mw.get(region_id).copied().unwrap_or(0.0),
+                shed_tier
+            );
+        }
         result
             .region_load_shed_tiers
             .insert(region_id.clone(), shed_tier);

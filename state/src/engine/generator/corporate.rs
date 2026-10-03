@@ -22,7 +22,7 @@ use crate::entities::{
 use crate::io::entity_store::{DiskEntityStore, EntityStore};
 use crate::registries::enums::{Commodity, Sector};
 use crate::registries::production_methods::{
-    ProductionMethod, PRODUCTION_THROUGHPUT_SCALE,
+    is_decree_conversion_method, ProductionMethod, PRODUCTION_THROUGHPUT_SCALE,
 };
 use crate::registries::Registries;
 use crate::society::geography::{ClimateProfile, LandCategory, Region};
@@ -805,6 +805,119 @@ pub fn generate_corporate_entities(
         regions,
     );
 
+    // W7: Land-scaled farm inventory. A farm's per-turn harvest volume is
+    // hectares x (scaled tons/ha) — millions of units — which dwarfs the
+    // worker-scaled default inventory_capacity (base_capacity x 10 x 250).
+    // Without headroom the W6 harvest routing deposits ~0 into
+    // Building.inventory and everything falls through to the warehouse
+    // sink, leaving zero ask-visible supply. Capacity covers two full
+    // seasons per building so a full harvest always fits.
+    for company in &all_companies {
+        let Some(profile) = &company.agricultural_profile else {
+            continue;
+        };
+        let total_ha = profile.arable_land_hectares + profile.plantation_hectares;
+        if total_ha <= 0.0 {
+            continue;
+        }
+        let needed = total_ha * 20.0 * PRODUCTION_THROUGHPUT_SCALE * 2.0;
+        for b in all_buildings.iter_mut() {
+            if b.owner_id == company.id && b.sector == Sector::Agriculture {
+                b.inventory_capacity = b.inventory_capacity.max(needed);
+            }
+        }
+    }
+
+    // W7: Lazy-method seeding. Buildings created with an empty active_method
+    // (reserve warehouses, storage plants) have their method resolved lazily
+    // by process_building_cycle/resolve_active_method on Turn 0 — but no seed
+    // inventory was generated for that method, so they starve from the first
+    // production pass (BINDING_INPUT at t=0). Resolve and seed here, with the
+    // same name-first / sector-key fallback the runtime resolver uses, so the
+    // genesis stock matches the genesis method.
+    for b in all_buildings.iter_mut() {
+        if !b.active_method.inputs.is_empty() || !b.active_method.outputs.is_empty() {
+            // Populated method — may still be unstocked. The state-apparatus
+            // path (military_base, police_station, …) pairs a concrete method
+            // with an empty inventory map, so those buildings starve from
+            // Turn 0. Top up any seed component below target level; already-
+            // seeded company buildings are unaffected (held >= seed).
+            let (seeded, _cost) =
+                seed_inventory(&b.active_method, b.worker_capacity, b.sector);
+            let mut added = 0.0;
+            for (commodity, seed_qty) in seeded {
+                let held = b.inventory.get(&commodity).copied().unwrap_or(0.0);
+                if held < seed_qty {
+                    added += seed_qty - held;
+                    b.inventory.insert(commodity, seed_qty);
+                }
+            }
+            if added > 0.0 {
+                let total: f64 = b.inventory.values().sum();
+                b.inventory_capacity = b.inventory_capacity.max(total * 2.0);
+            }
+            continue;
+        }
+        let methods = registries.production_methods.get(&b.name).or_else(|| {
+            let sector_key = serde_json::to_value(b.sector)
+                .ok()
+                .and_then(|v| v.as_str().map(|s| s.to_string()))
+                .unwrap_or_else(|| format!("{:?}", b.sector));
+            registries.production_methods.get(&sector_key)
+        });
+        let Some(methods) = methods else { continue };
+        // W8: skip wartime "* Conversion" decree targets — mirrors
+        // resolve_active_method in economy/production/production.rs.
+        let Some(pm) = methods
+            .iter_production_slots_named()
+            .filter(|(name, _)| !is_decree_conversion_method(name))
+            .map(|(_, pm)| pm)
+            .filter(|pm| pm.year <= start_year)
+            .max_by_key(|pm| pm.year)
+            .or_else(|| {
+                methods
+                    .iter_production_slots()
+                    .filter(|pm| pm.year <= start_year)
+                    .max_by_key(|pm| pm.year)
+            })
+        else {
+            continue;
+        };
+        if pm.inputs.is_empty() && pm.outputs.is_empty() {
+            continue;
+        }
+        let method = ActiveProductionMethod {
+            year: pm.year,
+            experts_ratio: pm.experts_ratio,
+            skilled_ratio: pm.skilled_ratio,
+            basic_ratio: pm.basic_ratio,
+            efficiency: pm.efficiency,
+            inputs: pm.inputs.iter().map(|(&k, &v)| (k, v)).collect(),
+            outputs: pm.outputs.iter().map(|(&k, &v)| (k, v)).collect(),
+            active_methods: Default::default(),
+            active_blueprint: None,
+            thermal_efficiency: pm.thermal_efficiency,
+            storage_efficiency: pm.storage_efficiency,
+            emission_factor: pm.emission_factor,
+            biohazard_factor: pm.biohazard_factor,
+            output_water_quality: pm.output_water_quality,
+            discharge_quality: pm.discharge_quality,
+            seat_type: pm.seat_type,
+            extra: Default::default(),
+        };
+        let (seeded, _cost) = seed_inventory(&method, b.worker_capacity, b.sector);
+        let mut seed_total = 0.0;
+        for (commodity, qty) in seeded {
+            seed_total += qty;
+            *b.inventory.entry(commodity).or_insert(0.0) += qty;
+        }
+        // The seed must fit: warehouses/state buildings spawn with
+        // inventory_capacity=0 or the small default, which would trigger the
+        // hard-cap overflow destroy on Turn 0 and shred the buffer.
+        b.inventory_capacity = b.inventory_capacity.max(seed_total * 2.0);
+        b.active_method = method;
+    }
+
     // Emergency Stabilization: The 12-month Strategic Reserve Agency food
     // seed has been REMOVED. The game now starts in September (autumn harvest
     // season), and crop batches are pre-seeded in Growing state, so the
@@ -835,6 +948,71 @@ pub fn generate_corporate_entities(
                     .entry(Commodity::Food)
                     .or_insert(0.0) += food_buffer / n;
             }
+        }
+    }
+
+    #[cfg(feature = "diagnostic")]
+    {
+        let mut unseeded = 0usize;
+        let mut seeded_but_short = 0usize;
+        for b in &all_buildings {
+            if b.owner_id == "State" {
+                continue;
+            }
+            let scale = b.worker_capacity as f64 / 1000.0;
+            let mut needs = 0usize;
+            let mut held_ok = 0usize;
+            for (&c, &q) in &b.active_method.inputs {
+                if c.is_fixed_asset() || c.is_local_utility() {
+                    continue;
+                }
+                let req = q * scale;
+                if req <= 0.0 {
+                    continue;
+                }
+                needs += 1;
+                let held = b.inventory.get(&c).copied().unwrap_or(0.0);
+                if held >= req {
+                    held_ok += 1;
+                }
+            }
+            if needs > 0 && held_ok == 0 {
+                unseeded += 1;
+            } else if needs > 0 && held_ok < needs {
+                seeded_but_short += 1;
+            }
+        }
+        eprintln!(
+            "GENESIS_SEED_AUDIT[{}]: unseeded={} partial={} total_bld={}",
+            country.name,
+            unseeded,
+            seeded_but_short,
+            all_buildings.len()
+        );
+        // W7 trace: per-building post-seed snapshot. When a building later
+        // shows BINDING_INPUT at inv=0, this line proves the buffer existed
+        // at genesis (drain happened mid-run) or didn't (seed gap).
+        for b in &all_buildings {
+            if b.owner_id == "State" || b.active_method.inputs.is_empty() {
+                continue;
+            }
+            let invtot: f64 = b.inventory.values().sum();
+            let scale = b.worker_capacity as f64 / 1000.0;
+            let worst = b
+                .active_method
+                .inputs
+                .iter()
+                .filter(|(c, q)| {
+                    !c.is_fixed_asset() && !c.is_local_utility() && **q > 0.0
+                })
+                .map(|(c, q)| {
+                    b.inventory.get(c).copied().unwrap_or(0.0) / (q * scale)
+                })
+                .fold(f64::INFINITY, |a, r| a.min(r));
+            eprintln!(
+                "SEEDED[{}]: invtot={:.0} min_turns={:.1} cap={}",
+                b.id, invtot, worst, b.inventory_capacity
+            );
         }
     }
 
@@ -1067,15 +1245,10 @@ pub fn generate_corporate_entities(
         rng,
     )?;
 
-    // Phase 27: Credit total seed inventory cost to country's treasury.
-    // The State acts as the initial importer/provider of seed materials.
-    // This maintains double-entry accounting Ă˘â‚¬â€ť the cost was deducted from
-    // each company's liquid_capital, and is credited to the treasury.
-    let total_seed_cost: f64 = all_companies
-        .iter()
-        .filter_map(|c| c.extra.get("seed_inventory_cost").and_then(|v| v.as_f64()))
-        .sum();
-    country.budget.liquid_reserves += total_seed_cost;
+    // W7: No treasury credit for seed inventory — the stock is formation
+    // capital endowed at genesis (companies are not debited for it), so there
+    // is no payment to book. Crediting liquid_reserves here would mint fiat
+    // with no offsetting debit (M0 violation).
 
     // Phase 53: Generate and assign CEOs for major companies.
     // Major companies are the top 30% by worker_capacity (or company_capital).
@@ -1516,16 +1689,14 @@ fn issue_working_capital_loans(
         //
         // New formula:
         //   payroll_principal = initial_fte * initial_wage * 4 turns
-        //   seed_cost = deducted seed inventory cost
         //   debt_service_reserve = 3 turns of (interest + 1/24 principal)
         //   overhead_reserve = 3 turns of 5% of payroll (proxy for overhead)
+        //
+        // W7: seed inventory cost is NO LONGER added — the stock is formation
+        // capital endowed at genesis, never a cash purchase, so it creates no
+        // cash-flow obligation to refinance.
         let initial_fte = company.fulfilled_fte as f64;
         let initial_wage = company.offered_wage_per_fte.max(50.0);
-        let seed_cost = company
-            .extra
-            .get("seed_inventory_cost")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
 
         // Estimate debt service: 24-turn amortization, annual rate = xibor + margin + premium
         // We need the bank's margin to compute this, but bank assignment hasn't
@@ -1535,7 +1706,7 @@ fn issue_working_capital_loans(
         let payroll_principal = initial_fte * initial_wage * 4.0;
         // First estimate principal without debt service reserve to compute
         // the debt service itself (avoid circular dependency).
-        let base_principal = payroll_principal + seed_cost;
+        let base_principal = payroll_principal;
         let per_turn_debt_service = base_principal * (estimated_annual_rate / 24.0 + 1.0 / 24.0);
         let debt_service_reserve = per_turn_debt_service * 3.0;
         // Overhead is 5% of revenue in process_company; use payroll as proxy
@@ -2297,17 +2468,28 @@ fn generate_region_companies(
         // Phase 20C: Seed fixed-asset cohort and one turn of inventory
         let fixed_assets = seed_fixed_assets(sector, start_year, rng);
         let (inventory, seed_cost) = seed_inventory(&method, base_capacity, sector);
-        let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE).max(100.0);
+        // W7: The capacity formula must cover the seeded buffer, not just
+        // output headroom — input-heavy methods seed 4 turns of BOM inputs
+        // that can exceed base_capacity x 10 x SCALE. Otherwise the
+        // hard-cap overflow fallback destroys the seed on Turn 0-1 and the
+        // building starves at t2-3 despite having been fully stocked.
+        let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE)
+            .max(100.0)
+            .max(inventory.values().sum::<f64>() * 2.0);
 
-        // Phase 27: Deduct seed inventory cost from company's liquid capital
-        // to maintain double-entry accounting. The cost is credited to the
-        // country's treasury in generate_corporate_entities.
-        let deductible = seed_cost.min(company.liquid_capital * 0.5);
-        company.liquid_capital -= deductible;
-        company.available_cash -= deductible;
+        // W7: Seed inventory is FORMATION CAPITAL, not a turn-0 cash purchase.
+        // The company is capitalized with cash (`available_cash`) AND starting
+        // stock; `liquid_capital` represents the endowed total (cash + stock).
+        // Charging the seed value against available_cash at PRODUCTION_
+        // THROUGHPUT_SCALE quantities drains the transaction pool into the
+        // treasury (which cannot spend it back within the bootstrap window),
+        // leaving every company unable to bid on inputs once buffers drain.
+        // No cash leg, no treasury credit — the stock is part of the
+        // endowment, so `company_capital = fixed + liquid` remains balanced
+        // (assets: cash + inventory; equity with the same endowment).
         company
             .extra
-            .insert("seed_inventory_cost".to_string(), Value::from(deductible));
+            .insert("seed_inventory_cost".to_string(), Value::from(seed_cost));
 
         let building = Building {
             id: building_id.clone(),
@@ -2412,7 +2594,7 @@ impl IdGen {
     }
 }
 
-fn sector_json_name(sector: Sector) -> String {
+pub(crate) fn sector_json_name(sector: Sector) -> String {
     serde_json::to_value(sector)
         .ok()
         .and_then(|v| v.as_str().map(|s| s.to_string()))
@@ -2970,9 +3152,14 @@ fn best_registry_method(
 
     match registries.production_methods.get(&sector_key) {
         Some(building_methods) => {
+            // W8: Exclude wartime "* Conversion" methods — they are Production
+            // Decree retool targets, not genesis defaults (see
+            // diversified_registry_methods).
             let best = building_methods
                 .production
-                .values()
+                .iter()
+                .filter(|(name, _)| !is_decree_conversion_method(name))
+                .map(|(_, pm)| pm)
                 .filter(|pm| pm.year <= start_year)
                 .filter(|pm| match &pm.required_tech {
                     None => true,
@@ -2983,6 +3170,14 @@ fn best_registry_method(
                         .unwrap_or(false),
                 })
                 .max_by_key(|pm| pm.year)
+                .or_else(|| {
+                    building_methods
+                        .production
+                        .iter()
+                        .filter(|(name, _)| !is_decree_conversion_method(name))
+                        .map(|(_, pm)| pm)
+                        .min_by_key(|pm| pm.year)
+                })
                 .or_else(|| {
                     building_methods
                         .production
@@ -3049,10 +3244,16 @@ fn diversified_registry_methods(
 
     match registries.production_methods.get(&sector_key) {
         Some(building_methods) => {
-            // Collect all era-eligible methods.
+            // W8: Exclude wartime "* Conversion" methods from genesis
+            // defaults. They are Production Decree retool targets (see
+            // "Phase 69" markers and military/war_economy.rs) — a peacetime
+            // factory assigned one produces goods nobody buys, earns ~$0,
+            // and starves the moment its seed buffer runs out.
             let mut eligible: Vec<&ProductionMethod> = building_methods
                 .production
-                .values()
+                .iter()
+                .filter(|(name, _)| !is_decree_conversion_method(name))
+                .map(|(_, pm)| pm)
                 .filter(|pm| pm.year <= start_year)
                 .filter(|pm| match &pm.required_tech {
                     None => true,
@@ -3071,8 +3272,16 @@ fn diversified_registry_methods(
                 // Fallback: use the earliest method if no era-eligible one exists.
                 let earliest = building_methods
                     .production
-                    .values()
-                    .min_by_key(|pm| pm.year);
+                    .iter()
+                    .filter(|(name, _)| !is_decree_conversion_method(name))
+                    .map(|(_, pm)| pm)
+                    .min_by_key(|pm| pm.year)
+                    .or_else(|| {
+                        building_methods
+                            .production
+                            .values()
+                            .min_by_key(|pm| pm.year)
+                    });
                 match earliest {
                     Some(pm) => {
                         let mut method = method_from_ratios(
@@ -3384,7 +3593,12 @@ fn seed_geology_based_mines(
         &Sector::Mining,
         average_wage,
     );
-    let reserve_per_mine_target = (min_capital / average_wage) * 100.0; // Tons per mine
+    // W7 scale harmonization: reserve_range() is PRODUCTION_THROUGHPUT_SCALE-
+    // scaled, so the per-mine target scales by the same factor to keep the
+    // concessions-per-vein count unchanged.
+    let reserve_per_mine_target = (min_capital / average_wage)
+        * 100.0
+        * crate::registries::production_methods::PRODUCTION_THROUGHPUT_SCALE; // Tons per mine
 
     // Estimate regional mining workforce (fraction of population in mining).
     let regional_workforce = (region.population as f64 * 0.02).max(50.0);
@@ -3714,12 +3928,16 @@ fn seed_state_forestry(
             .map(|d| d.area_hectares)
             .unwrap_or(0.0);
         if hectares >= 500.0 {
+            // W7 scale harmonization: tract stock/growth/harvest-cap carry
+            // PRODUCTION_THROUGHPUT_SCALE so forestry output matches the
+            // rescaled industrial economy (see crop_registry).
+            let s = crate::registries::production_methods::PRODUCTION_THROUGHPUT_SCALE;
             tracts.push(ForestDistrictTract {
                 region_id: region.id.clone(),
                 hectares,
-                timber_stock: hectares * 100.0,
-                growth_rate: 0.03,
-                harvest_permitted: hectares * 3.0,
+                timber_stock: hectares * 100.0 * s,
+                growth_rate: 0.03 * s,
+                harvest_permitted: hectares * 3.0 * s,
             });
             forested.push(*region);
         }
@@ -3839,6 +4057,30 @@ const CORE_INPUT_COMMODITIES: &[Commodity] = &[
     Commodity::Salt,
     Commodity::Sulfur,
     Commodity::Lead,
+    // W7: food-chain core inputs. Without per-country producer coverage the
+    // Seeds<->Cereal circular dependency deadlocks genesis (farms need Seeds
+    // to sow, seed mills need Cereal — neither exists before turn 1). Patch
+    // producers spawn via the method-driven branch with the 4-turn
+    // Agriculture input buffer, so the chain bootstraps from genesis stock.
+    Commodity::Seeds,
+    Commodity::Cereal,
+    Commodity::Fodder,
+    Commodity::Food,
+    Commodity::Vegetable,
+    Commodity::Meat,
+    Commodity::Livestock,
+    Commodity::Fruit,
+    Commodity::DraftAnimals,
+    // W7: downstream fuel/refinery chain anchors. Oil Refining needs Catalysts;
+    // Catalyst Production needs RareEarthElements (whose only declared method
+    // is 1965 — the earliest-producer fallback still spawns capacity). Steel
+    // and MechanicalComponents sit mid-chain between mining and every
+    // industrial consumer, so a country without them deadlocks the whole
+    // capital-goods sector.
+    Commodity::Catalysts,
+    Commodity::RareEarthElements,
+    Commodity::Steel,
+    Commodity::MechanicalComponents,
 ];
 
 /// Phase E1e: Find any era-eligible production method that outputs
@@ -4121,12 +4363,14 @@ pub fn ensure_global_core_producers(
                         .iter()
                         .any(|t| t.region_id == region.id)
                     {
+                        let s =
+                            crate::registries::production_methods::PRODUCTION_THROUGHPUT_SCALE;
                         country.state_forest_state.tracts.push(ForestDistrictTract {
                             region_id: region.id.clone(),
                             hectares: ha,
-                            timber_stock: ha * 100.0,
-                            growth_rate: 0.03,
-                            harvest_permitted: ha * 3.0,
+                            timber_stock: ha * 100.0 * s,
+                            growth_rate: 0.03 * s,
+                            harvest_permitted: ha * 3.0 * s,
                         });
                         country.state_forest_state.total_hectares += ha;
                     }
@@ -4383,12 +4627,14 @@ pub fn ensure_global_core_producers(
                     .iter()
                     .any(|t| t.region_id == region.id)
                 {
+                    let s =
+                        crate::registries::production_methods::PRODUCTION_THROUGHPUT_SCALE;
                     country.state_forest_state.tracts.push(ForestDistrictTract {
                         region_id: region.id.clone(),
                         hectares: ha,
-                        timber_stock: ha * 100.0,
-                        growth_rate: 0.3,
-                        harvest_permitted: ha * 3.0,
+                        timber_stock: ha * 100.0 * s,
+                        growth_rate: 0.3 * s,
+                        harvest_permitted: ha * 3.0 * s,
                     });
                     country.state_forest_state.total_hectares += ha;
                 }
@@ -4773,7 +5019,15 @@ fn create_seed_company_with_explicit_method(
 
     // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
     let initial_wage = (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0);
-    let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
+    // W10: Power plants are critical infrastructure — a grid that starts at
+    // 60% staffing delivers ~60% of nameplate and sheds load economy-wide.
+    // Energy spawns fully staffed; other sectors keep the 60% baseline.
+    let staffing_ratio = if sector == Sector::Energy {
+        1.0
+    } else {
+        0.6
+    };
+    let initial_fte = (actual_capacity as f64 * staffing_ratio).round().max(2.0); // Phase 43: min 2.0 FTE floor
     company.fulfilled_fte = initial_fte as u32;
     company.prev_fulfilled_fte = initial_fte as u32;
     // Phase 90: Loan-eligible sectors start with company_liquid as cash
@@ -4792,15 +5046,19 @@ fn create_seed_company_with_explicit_method(
 
     let fixed_assets = seed_fixed_assets(sector, start_year, rng);
     let (inventory, seed_cost) = seed_inventory(method, base_capacity, sector);
-    let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE).max(100.0);
+    // W7: Cover the seeded buffer — input-heavy methods seed 4 turns of BOM
+    // inputs that can exceed base_capacity x 10 x SCALE. See the matching
+    // note in generate_diversified_companies.
+    let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE)
+        .max(100.0)
+        .max(inventory.values().sum::<f64>() * 2.0);
 
-    // Phase 27: Deduct seed inventory cost from company's liquid capital.
-    let deductible = seed_cost.min(company.liquid_capital * 0.5);
-    company.liquid_capital -= deductible;
-    company.available_cash -= deductible;
+    // W7: Formation-capital endowment — see the call site in
+    // generate_diversified_companies for the rationale. The stock is endowed
+    // alongside cash; no cash debit, no treasury credit.
     company
         .extra
-        .insert("seed_inventory_cost".to_string(), Value::from(deductible));
+        .insert("seed_inventory_cost".to_string(), Value::from(seed_cost));
 
     let building = Building {
         id: building_id.clone(),
@@ -4938,8 +5196,7 @@ fn create_specialized_power_plant(
     rng: &mut impl Rng,
 ) -> (Company, Building) {
     use crate::energy::generation::{
-        available_plant_types, nameplate_per_plant, plant_count, target_regional_capacity_mw,
-        workers_per_plant,
+        available_plant_types, nameplate_per_plant, plant_count, workers_per_plant,
     };
     use crate::energy::types::{CoolingType, PowerPlantMetadata, PowerPlantType};
 
@@ -5003,12 +5260,29 @@ fn create_specialized_power_plant(
     // Bugfix Sprint: Use the real average_wage passed from the caller (with
     // .max(1.0) floor applied at the call site), not the hardcoded 500.0.
     let nameplate = nameplate_per_plant(start_year);
-    let target_mw = target_regional_capacity_mw(
-        region.population as f64,
-        region.development_level,
-        average_wage,
-        start_year,
-    );
+    // W10: Size generation to the demand the runtime grid actually measures.
+    // collect_regional_supply_demand counts industrial load as
+    // employment x 2 kW, plus housing/commercial physical demand. The old
+    // wage-proxy formula (pop x elec x dev x wage / 200k) produced ~10% of
+    // measured demand — every region sat in permanent Blackout and the
+    // resulting efficiency penalties mass-furloughed the workforce. The
+    // labor-pool term mirrors init_power_grid's projection (housing and
+    // commercial buildings do not exist yet at this stage); the population
+    // term proxies residential+commercial load at ~100 W per capita.
+    let labor_pool_fte: f64 = region
+        .class_demographics
+        .rural_classes
+        .values()
+        .chain(region.class_demographics.urban_classes.values())
+        .map(|d| {
+            let pop = d.population.max(0) as f64;
+            let participation = d.labor_participation.max(0.0).min(1.0);
+            (pop * participation).min(pop * 1.5)
+        })
+        .sum();
+    let projected_demand_mw =
+        labor_pool_fte * 0.002 + region.population as f64 * 0.0001;
+    let target_mw = (projected_demand_mw * 1.25).max(nameplate);
     let plant_count = plant_count(target_mw, start_year);
 
     // Select the best available production method for this plant type.
@@ -5032,9 +5306,13 @@ fn create_specialized_power_plant(
                 .max_by_key(|pm| pm.year)
         });
 
+    // W10: Nameplate is the deliverable — scale by plant_count up front so the
+    // method calibration below can target the full nameplate MW.
+    let total_nameplate = nameplate * plant_count as f64;
+
     let (company, mut building) = match method {
         Some(pm) => {
-            let method = method_from_ratios(
+            let mut method = method_from_ratios(
                 pm.experts_ratio,
                 pm.skilled_ratio,
                 pm.basic_ratio,
@@ -5042,6 +5320,7 @@ fn create_specialized_power_plant(
                 pm.outputs.iter().map(|(k, v)| (*k, *v)).collect(),
                 pm.year,
             );
+
             let building_name = match selected_type {
                 PowerPlantType::CoalFired => "Coal-Fired Power Plant",
                 PowerPlantType::LigniteFired => "Lignite Power Plant",
@@ -5056,12 +5335,52 @@ fn create_specialized_power_plant(
                 PowerPlantType::BiomassFired => "Biomass Power Plant",
                 PowerPlantType::BiogasPlant => "Biogas Plant",
             };
+            // W10: Calibrate Energy output to the nameplate — registry rates
+            // (~30 Energy/1k) deliver only ~20% of the 50 MW/plant nameplate,
+            // so a correctly-sized plant still generated a fifth of its
+            // capacity. outputs[Energy] is per-1k-workers; a fully staffed
+            // plant should deliver its nameplate. The divisor carries the
+            // plant type's EXPECTED weather multiplier plus slack: grid
+            // supply is min(inventory x weather_mult, nameplate), so output
+            // must overbuild by 1/wm_typ to still deliver nameplate on an
+            // average-weather turn (clamped at nameplate on clear days).
+            //
+            // target_workers is the region's total energy-sector allocation;
+            // x plant_count intentionally over-sizes: energy companies are
+            // the economy's employment sink.
+            let planned_workers = (target_workers.max(workers_per_plant(start_year)))
+                * (plant_count as u32).max(1);
+            // Output calibrates against the physical staffing floor
+            // (per-plant crew x count), NOT planned_workers: the labor
+            // market fills only a fraction of the allocation, and
+            // production scales with ACTUAL employment — calibrating to
+            // planned_workers stranded supply at ~actual/planned (~5%) of
+            // nameplate. The grid clamps at nameplate, so overshoot at
+            // full staffing is harmless; under-staffed plants degrade
+            // proportionally instead of collapsing.
+            let calibration_workers = (workers_per_plant(start_year)
+                * (plant_count.max(1) as u32))
+                .max(1);
+            let expected_weather_mult = match selected_type {
+                PowerPlantType::Solar => 0.45,
+                PowerPlantType::Wind => 0.50,
+                PowerPlantType::Hydro => 0.70,
+                PowerPlantType::PumpedStorage | PowerPlantType::BatteryStorage => 1.0,
+                _ => 0.85, // thermal: cooling-water derates
+            };
+            if let Some(out) = method.outputs.get_mut(&crate::registries::enums::Commodity::Energy)
+            {
+                *out = total_nameplate * 1000.0
+                    / (calibration_workers as f64 * method.efficiency.max(0.01))
+                    / expected_weather_mult
+                    * 1.15;
+            }
             create_seed_company_with_explicit_method(
                 Sector::Energy,
                 region,
                 // Bugfix Sprint: Scale workers by plant_count so larger regions
                 // get proportionally more workers (Rule 15).
-                (target_workers.max(workers_per_plant(start_year))) * (plant_count as u32).max(1),
+                planned_workers,
                 start_year,
                 registries,
                 idgen,
@@ -5088,7 +5407,6 @@ fn create_specialized_power_plant(
     // Store PowerPlantMetadata in the building's extra map.
     // Bugfix Sprint: Scale nameplate by plant_count so larger regions get
     // proportionally more capacity (Rule 15 — Universal Physical Scaling).
-    let total_nameplate = nameplate * plant_count as f64;
     let metadata = PowerPlantMetadata {
         plant_type: selected_type,
         cooling_type,
@@ -5281,15 +5599,19 @@ fn create_seed_company(
 
     let fixed_assets = seed_fixed_assets(sector, start_year, rng);
     let (inventory, seed_cost) = seed_inventory(&method, base_capacity, sector);
-    let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE).max(100.0);
+    // W7: Cover the seeded buffer — input-heavy methods seed 4 turns of BOM
+    // inputs that can exceed base_capacity x 10 x SCALE. See the matching
+    // note in generate_diversified_companies.
+    let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE)
+        .max(100.0)
+        .max(inventory.values().sum::<f64>() * 2.0);
 
-    // Phase 27: Deduct seed inventory cost from company's liquid capital.
-    let deductible = seed_cost.min(company.liquid_capital * 0.5);
-    company.liquid_capital -= deductible;
-    company.available_cash -= deductible;
+    // W7: Formation-capital endowment — see the call site in
+    // generate_diversified_companies for the rationale. The stock is endowed
+    // alongside cash; no cash debit, no treasury credit.
     company
         .extra
-        .insert("seed_inventory_cost".to_string(), Value::from(deductible));
+        .insert("seed_inventory_cost".to_string(), Value::from(seed_cost));
 
     let building = Building {
         id: building_id.clone(),
@@ -5411,10 +5733,20 @@ fn seed_fixed_assets(sector: Sector, start_year: u32, rng: &mut impl Rng) -> Vec
 /// generation. Reduced from 5.0 to 2.0 (1 month) because the September harvest
 /// start provides organic food supply and B2B trade establishes within 2 turns.
 /// Oversupplying raw materials at start distorts early market prices.
-const SEED_INVENTORY_TURNS: f64 = 2.0;
-const AGRICULTURE_SEED_INVENTORY_TURNS: f64 = 4.0;
+// W7: All sectors get a deep input buffer, not just Agriculture. The
+// Turn-0 market is structurally frozen (no VWAP, no price history), and the
+// upstream chains are several layers deep (Steel needs Iron+Coke; Clay,
+// Paper, Sand are themselves produced goods). The cash circuit also cannot
+// restock producers inside the window — working-capital loans cover payroll,
+// while a 250x-scaled input bill is ~10-50x the spendable pool, so bids post
+// at a few percent of need. 4-turn seeds exhausted exactly at the window
+// edge (t3), producing the material-furlough wave the 1.15x hiring ratchet
+// cannot undo. 8 turns of endowed stock lets every producer run through the
+// bootstrap window with surplus headroom while prices discover.
+const SEED_INVENTORY_TURNS: f64 = 8.0;
+const AGRICULTURE_SEED_INVENTORY_TURNS: f64 = 8.0;
 
-fn seed_inventory(
+pub(crate) fn seed_inventory(
     method: &ActiveProductionMethod,
     building_capacity: u32,
     sector: Sector,

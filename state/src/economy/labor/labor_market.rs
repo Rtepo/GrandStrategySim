@@ -193,6 +193,8 @@ pub fn resolve_regional_labor_market(
     let mut bids: Vec<LaborBid> = Vec::new();
     #[cfg(feature = "diagnostic")]
     let mut _diag_sum_target = 0.0_f64;
+    let mut _diag_sum_affordable = 0.0_f64;
+    let mut _diag_sum_cap = 0.0_f64;
     #[cfg(feature = "diagnostic")]
     let mut _diag_company_count = 0usize;
     for company in region_companies {
@@ -217,6 +219,10 @@ pub fn resolve_regional_labor_market(
         } else {
             0.0
         };
+        #[cfg(feature = "diagnostic")]
+        {
+            _diag_sum_affordable += max_affordable_fte;
+        }
 
         let mut clamped_demand = (company.target_fte_demand as f64).min(max_affordable_fte);
 
@@ -254,6 +260,10 @@ pub fn resolve_regional_labor_market(
         if company.prev_fulfilled_fte as f64 >= SMALL_COMPANY_FTE_THRESHOLD {
             let max_hireable = company.prev_fulfilled_fte as f64 * (1.0 + MAX_HIRING_GROWTH_RATE);
             clamped_demand = clamped_demand.min(max_hireable);
+        }
+        #[cfg(feature = "diagnostic")]
+        {
+            _diag_sum_cap += clamped_demand;
         }
 
         // Minimum wage check (only if Some)
@@ -297,11 +307,13 @@ pub fn resolve_regional_labor_market(
             .map(|(k, v)| format!("{}:{}x{:.0}", k, v.0, v.1))
             .collect();
         eprintln!(
-            "BIDPROBE[{}]: bids={} sum_bid={:.0} sum_target={:.0} excluded={} pool_pre={:.0} | {}",
+            "BIDPROBE[{}]: bids={} sum_bid={:.0} sum_target={:.0} sum_afford={:.0} sum_postcap={:.0} excluded={} pool_pre={:.0} | {}",
             region.id,
             bids.len(),
             sum_bid,
             sum_target,
+            _diag_sum_affordable,
+            _diag_sum_cap,
             zero_bid,
             region
                 .class_demographics

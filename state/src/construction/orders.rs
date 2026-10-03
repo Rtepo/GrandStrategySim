@@ -260,9 +260,27 @@ pub fn advance_construction_projects(
         // Phase 34: Capture cost_spent before consumption to compute the delta.
         let cost_before = project.cost_spent;
 
-        // Consume delivered materials from building inventory
-        let consumed =
-            project.consume_delivered_materials(&mut building.inventory, unit_costs, productivity);
+        // Consume delivered materials from building inventory. Reserve the
+        // active method's seeded input buffer first — an expansion tender
+        // must not cannibalize the stock production needs over the genesis
+        // horizon (4 turns of input, matching SEED_INVENTORY_TURNS). Stock
+        // above that is surplus the project may legitimately install.
+        // Reserve scales with worker_capacity (the genesis seed basis), not
+        // current_employment — a furloughed building must keep its restart
+        // buffer out of reach of its own construction project.
+        let capacity_scale = building.worker_capacity as f64 / 1000.0;
+        let input_reserve: BTreeMap<Commodity, f64> = building
+            .active_method
+            .inputs
+            .iter()
+            .map(|(&c, &q)| (c, q * capacity_scale * 4.0))
+            .collect();
+        let consumed = project.consume_delivered_materials(
+            &mut building.inventory,
+            unit_costs,
+            productivity,
+            &input_reserve,
+        );
         project.turns_elapsed += 1;
 
         // Phase 34: Accumulate the cost_spent delta (materials consumed value).

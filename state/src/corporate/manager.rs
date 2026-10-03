@@ -139,6 +139,26 @@ pub fn process_companies(
             })
             .sum();
 
+        // W5: `last_wage_bill` is a building-cycle ESTIMATE — headcount ×
+        // wage-tier multipliers × `macro_indicators.average_wage`, which at
+        // genesis is annual-scale (gdp_pc × 800) and stays inflated by
+        // scale_factor/tier multipliers afterward. For million-FTE plants it
+        // exceeds real payroll by ~400×, and since `last_profit` subtracts it
+        // (b2b_orders.rs:1845), the phantom flows into `total_profit`, then
+        // negative `liquid_capital` is converted into `liabilities` at
+        // process_company step 1 — manufacturing ~$1T-scale structural
+        // bankruptcy from an accounting artifact alone. Replace the estimate
+        // with the actual settled wage obligation (paid cash + accrued
+        // arrears, set by resolve_regional_labor_market). Pure accrual
+        // correction — no cash movement, M0-neutral.
+        let actual_wage_expense =
+            companies[i].wages_paid_this_turn + companies[i].arrears_accrued_this_turn;
+        let total_profit = total_profit + booked_wages - actual_wage_expense;
+        // With the true wage expense now inside total_profit, the booked
+        // figure equals actuals — `unbooked_wages` in the history record
+        // correctly computes to zero instead of clamping at the estimate.
+        let booked_wages = actual_wage_expense;
+
         // Emergency Stabilization: Compute average fulfillment ratio across
         // owned buildings to detect raw-material distress.
         let avg_fulfillment_ratio: f64 = if owned.is_empty() {
@@ -388,8 +408,18 @@ pub fn process_companies(
                 let building = &mut buildings[j];
                 let scale = building.scale_factor.max(1);
                 let new_base = (new_worker_capacity / scale / owned.len() as u32).max(1);
-                building.current_employment = building.current_employment.min(new_base);
-                building.worker_capacity = new_base;
+                // W7: shrink-only. Physical seats are created exclusively by
+                // ConstructionProject completion; the company labor pool
+                // (which absorbs merged companies' capacity at genesis and in
+                // acquisitions) can legitimately exceed a building's built
+                // seats, so syncing UP fabricates phantom capacity — labor
+                // then staffs seats that don't exist and per-1k input demand
+                // outruns a seed sized for the real plant.
+                if new_base < building.worker_capacity {
+                    building.current_employment =
+                        building.current_employment.min(new_base);
+                    building.worker_capacity = new_base;
+                }
             }
         }
 
@@ -1051,13 +1081,20 @@ fn evaluate_building_adaptation(
             {
                 continue;
             }
-            // Feasibility: every input must resolve (direct or substitute).
+            // Feasibility: every input must resolve to stock the building
+            // physically holds (primary or substitute group member). A full
+            // method switch is a rescue only if the plant can run the new
+            // BOM this turn — `resolve_adaptive_input`'s procurable fallback
+            // merely proves an ask exists, and procurement is exactly what
+            // demonstrably failed (that's why the plant is adapting).
+            // Switching onto an unstocked BOM also reclassifies the old
+            // input buffer as sellable surplus: the building fire-sells its
+            // seed corn, then starves on the new inputs — churn, not
+            // adaptation.
             let mut resolved_alt: BTreeMap<Commodity, f64> = BTreeMap::new();
             let mut feasible = true;
             for (&c, &q) in &pm.inputs {
-                match resolve_adaptive_input(
-                    c, building, signal, history, groups, blackout, buy_premium,
-                ) {
+                match resolve_stocked_input(c, building, groups, blackout) {
                     Some(rc) => *resolved_alt.entry(rc).or_insert(0.0) += q,
                     None => {
                         feasible = false;
@@ -1109,6 +1146,54 @@ fn evaluate_building_adaptation(
 /// physically consume next turn — substitution only relabels WHICH real
 /// good is burned, never how much (`qty` is preserved by the caller).
 #[allow(clippy::too_many_arguments)]
+/// W7: In-stock-only input resolution for method-switch candidacy.
+///
+/// Unlike [`resolve_adaptive_input`], this never treats a merely *procurable*
+/// commodity as resolved: an ask on the order book does not put tonnage in
+/// the silo, and a starving plant that switches onto an unstocked BOM just
+/// starves again on the new inputs (while its old buffer is reclassified as
+/// surplus and sold). Substitution members count only when physically held.
+fn resolve_stocked_input(
+    required: Commodity,
+    building: &Building,
+    groups: &[&[Commodity]],
+    blackout: bool,
+) -> Option<Commodity> {
+    if required.is_fixed_asset() {
+        return Some(required);
+    }
+    if required.is_local_utility() {
+        return (!blackout).then_some(required);
+    }
+    if building
+        .inventory
+        .get(&required)
+        .copied()
+        .unwrap_or(0.0)
+        > 0.0
+    {
+        return Some(required);
+    }
+    for group in groups.iter().filter(|g| g.contains(&required)) {
+        for &member in group.iter() {
+            if member == required || member.is_fixed_asset() || member.is_local_utility()
+            {
+                continue;
+            }
+            if building
+                .inventory
+                .get(&member)
+                .copied()
+                .unwrap_or(0.0)
+                > 0.0
+            {
+                return Some(member);
+            }
+        }
+    }
+    None
+}
+
 fn resolve_adaptive_input(
     required: Commodity,
     building: &Building,
@@ -2465,23 +2550,38 @@ pub fn process_furlough_reinstatement(companies: &mut [Company], buildings: &[Bu
             continue; // Raw materials still scarce — don't re-instate yet
         }
 
-        // Check if company can cover full payroll for re-instated workers
+        // Re-instate as many workers as this turn's payroll cash can cover.
+        // All-or-nothing was a ratchet: a company whose roster was slashed by
+        // distress furlough needed cash for the ENTIRE furloughed workforce
+        // before recalling anyone — million-FTE plants could never recover.
         let available = company
             .brokerage_account
             .as_ref()
             .map(|ba| ba.cash.max(0.0))
             .unwrap_or(company.available_cash.max(0.0));
-        let re_instate_count = company.furloughed_workers_count.round() as u32;
-        let payroll_cost = re_instate_count as f64 * company.offered_wage_per_fte;
+        let furloughed = company.furloughed_workers_count.round() as u32;
+        let re_instate_count = if company.offered_wage_per_fte > 0.0 {
+            (available / company.offered_wage_per_fte) as u32
+        } else {
+            furloughed
+        }
+        .min(furloughed);
 
-        if available < payroll_cost {
+        if re_instate_count == 0 {
             continue; // Can't afford to re-instate yet
         }
 
-        // Re-instate: transfer furloughed workers back to fulfilled_fte
-        company.fulfilled_fte += re_instate_count;
-        company.furloughed_workers_count = 0.0;
-        company.furlough_turns_accumulated = 0; // Reset duration counter
+        // Re-instate by raising prev_fulfilled_fte — the retention floor and
+        // hiring-growth cap in labor clearing both read prev_fulfilled_fte,
+        // while fulfilled_fte itself is reset to 0 at clearing and re-derived
+        // from bids. Writing fulfilled_fte here was therefore a silent no-op
+        // that left recovery strangled at 1.15x of the post-furlough base.
+        company.prev_fulfilled_fte += re_instate_count;
+        company.furloughed_workers_count -= re_instate_count as f64;
+        if company.furloughed_workers_count <= 0.0 {
+            company.furloughed_workers_count = 0.0;
+            company.furlough_turns_accumulated = 0; // Reset duration counter
+        }
     }
 }
 

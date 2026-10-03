@@ -81,12 +81,31 @@ fn resolve_active_method(
             registries.production_methods.get(&sector_key)
         });
     if let Some(methods) = methods {
+        // W8: skip wartime "* Conversion" decree-retool targets — they produce
+        // goods nobody buys at civilian prices. Mirrors the genesis lazy-seed
+        // pass in engine/generator/corporate.rs so the resolved method matches
+        // the seeded inputs.
         let mut best: Option<&crate::registries::production_methods::ProductionMethod> = None;
         let mut best_year = 0u32;
-        for pm in methods.iter_production_slots() {
-            if pm.year <= current_year && pm.year >= best_year {
+        let mut best_is_conversion = true;
+        for (name, pm) in methods.iter_production_slots_named() {
+            if pm.year > current_year {
+                continue;
+            }
+            let is_conversion =
+                crate::registries::production_methods::is_decree_conversion_method(name);
+            // Prefer non-conversion methods at any year; among same class take
+            // the latest year. `>=` keeps last on ties, matching the previous
+            // iteration order semantics.
+            let better = match (best_is_conversion, is_conversion) {
+                (true, false) => true,
+                (false, true) => false,
+                _ => pm.year >= best_year,
+            };
+            if better {
                 best = Some(pm);
                 best_year = pm.year;
+                best_is_conversion = is_conversion;
             }
         }
         if let Some(pm) = best {

@@ -22,6 +22,44 @@ use std::collections::HashMap;
 /// same factor.
 const TARGET_OUTPUT_VALUE_PER_1K: f64 = 1_000_000.0;
 
+/// Era fuel substitution cutoff. Before the refined-fuel economy (post-1930),
+/// industrial "Fuels" inputs were physically satisfied by solid fuels — coal,
+/// wood, peat — not petroleum distillates. Every pre-1930 registry method
+/// listing `Commodity::Fuels` (mine pumps, steam tractors, furnaces, drill
+/// rigs) is a combustion use. Without this substitution the fossil chain is a
+/// bootstrap deadlock at genesis: Oil Drilling needs Fuels, Fuels come only
+/// from Oil Refining which needs Oil. Mapping declared Fuels inputs to
+/// HardCoal at calorific parity (34 MJ/u -> 25 MJ/u = x1.36) lets coal mines
+/// bootstrap the energy economy by burning their own output.
+const REFINED_FUEL_ERA_YEAR: u32 = 1930;
+const MJ_PER_UNIT_FUELS: f64 = 34.0;
+const MJ_PER_UNIT_HARDCOAL: f64 = 25.0;
+
+fn era_fuel_substitute(year: u32, inputs: &[(Commodity, f64)]) -> Vec<(Commodity, f64)> {
+    if year > REFINED_FUEL_ERA_YEAR
+        || !inputs.iter().any(|(c, _)| *c == Commodity::Fuels)
+    {
+        return inputs.to_vec();
+    }
+    let mut merged: Vec<(Commodity, f64)> = Vec::with_capacity(inputs.len());
+    for &(commodity, qty) in inputs {
+        let (commodity, qty) = if commodity == Commodity::Fuels {
+            (
+                Commodity::HardCoal,
+                qty * MJ_PER_UNIT_FUELS / MJ_PER_UNIT_HARDCOAL,
+            )
+        } else {
+            (commodity, qty)
+        };
+        if let Some(entry) = merged.iter_mut().find(|(mc, _)| *mc == commodity) {
+            entry.1 += qty;
+        } else {
+            merged.push((commodity, qty));
+        }
+    }
+    merged
+}
+
 fn scaled_io(
     inputs: &[(Commodity, f64)],
     outputs: &[(Commodity, f64)],
@@ -36,8 +74,17 @@ fn scaled_io(
     if out_value > 0.0 {
         let factor = TARGET_OUTPUT_VALUE_PER_1K / out_value;
         if (factor - 1.0).abs() > 1e-9 {
-            for v in inputs_map.values_mut() {
-                *v *= factor;
+            for (commodity, v) in inputs_map.iter_mut() {
+                // W9: Food in a production BOM is worker sustenance — it scales
+                // with headcount (qty_per_1k), not with throughput. Scaling
+                // rations by the output-value factor makes "feed the workers"
+                // the dominant cost of every industrial method (~$35M/1k
+                // workers on mining BOMs vs $450K payroll), starving the whole
+                // economy. Outputs stay scaled — Food produced FOR SALE is a
+                // throughput good.
+                if *commodity != Commodity::Food {
+                    *v *= factor;
+                }
             }
             for v in outputs_map.values_mut() {
                 *v *= factor;
@@ -68,7 +115,7 @@ fn pm(
         skilled_ratio: skilled,
         basic_ratio: basic,
         efficiency: eff,
-        inputs: inputs.iter().copied().collect(),
+        inputs: era_fuel_substitute(year, inputs).into_iter().collect(),
         outputs: outputs.iter().copied().collect(),
         thermal_efficiency: 0.0,
         storage_efficiency: 0.0,
@@ -100,7 +147,8 @@ fn pm_scaled(
     inputs: &[(Commodity, f64)],
     outputs: &[(Commodity, f64)],
 ) -> ProductionMethod {
-    let (inputs, outputs) = scaled_io(inputs, outputs);
+    let substituted_inputs = era_fuel_substitute(year, inputs);
+    let (inputs, outputs) = scaled_io(&substituted_inputs, outputs);
     ProductionMethod {
         year,
         required_tech: tech.map(|s| s.to_string()),
@@ -3993,6 +4041,31 @@ fn mining_methods() -> BuildingMethods {
             1.0,
             &[(Commodity::Fuels, 2.0), (Commodity::Food, 5.0)],
             &[(Commodity::BrownCoal, 18.0)],
+        ),
+    );
+    m.insert(
+        MethodSlot::Production,
+        "Monazite Sand Extraction".into(),
+        // W7: era-legal REE source. The only other REE method is a 1965
+        // solvent-extraction process needing Fuels + Chemicals, so every
+        // pre-1930 economy had zero REE supply — which silently broke the
+        // Catalyst Production → Oil Refining → Fuels chain. Monazite sand
+        // mining for thorium/rare earths is historically accurate from the
+        // 1890s (Brazil, India, Carolina placers) and bootstraps off the
+        // same primitive inputs as other mines.
+        pm_scaled(
+            1890,
+            None,
+            0.05,
+            0.25,
+            0.70,
+            1.0,
+            &[
+                (Commodity::HardCoal, 3.0),
+                (Commodity::Food, 5.0),
+                (Commodity::MechanicalComponents, 0.2),
+            ],
+            &[(Commodity::RareEarthElements, 2.0)],
         ),
     );
     m.insert(
