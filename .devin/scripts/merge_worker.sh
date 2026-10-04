@@ -122,7 +122,7 @@ if [ $NPM_RC -ne 0 ]; then
 fi
 
 echo "[5/9] Stage 2: M0 Conservation Audit..."
-cargo test --test macro_m0_audit -- --nocapture 2>&1 | tail -10
+cargo test -p sim_engine --test macro_m0_audit --features epic-tests -- --nocapture 2>&1 | tail -10
 M0_RC=$?
 if [ $M0_RC -ne 0 ]; then
     echo "✗ M0 conservation audit FAILED. Aborting merge." >&2
