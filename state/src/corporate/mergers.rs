@@ -299,6 +299,11 @@ fn execute_acquisition(
     companies[target_idx].fixed_capital = 0.0;
     companies[target_idx].company_capital = 0.0;
     companies[target_idx].liabilities = 0.0;
+    // W11: credit_cash and debit_cash were aggregated onto the acquirer
+    // above — the tombstone must surrender them or the same encumbrance is
+    // counted twice (debit_cash is M0 for unbanked targets: fiat creation).
+    companies[target_idx].credit_cash = 0.0;
+    companies[target_idx].debit_cash = 0.0;
     companies[target_idx].outstanding_loans.clear();
 
     companies[acquirer_idx].company_capital = (companies[acquirer_idx].fixed_capital

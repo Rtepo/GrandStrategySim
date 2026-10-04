@@ -814,6 +814,18 @@ pub fn settle_trades(
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
+    // W12-DIAG: attribute settled value by payer-leg outcome. Printed once
+    // per task under the diagnostic feature to explain b2b_settlement_post
+    // fiat deltas.
+    #[cfg(feature = "diagnostic")]
+    let mut leg_ledger: std::collections::BTreeMap<String, f64> = std::collections::BTreeMap::new();
+    #[cfg(feature = "diagnostic")]
+    macro_rules! leg {
+        ($k:expr, $v:expr) => {
+            *leg_ledger.entry($k.to_string()).or_insert(0.0) += $v;
+        };
+    }
+
     // Phase C: O(1) lookup maps. Built once per batch instead of O(N*M) scans.
     let company_id_to_idx: HashMap<String, usize> = companies
         .iter()
@@ -843,7 +855,11 @@ pub fn settle_trades(
                 company_id_to_idx.get(&trade.buyer_id),
                 company_id_to_idx.get(&trade.seller_id),
             ) {
+                #[cfg(feature = "diagnostic")]
+                leg!("BOTH_IN_SLICE", trade_value);
                 let buyer_is_banked = companies[bi].primary_bank_id.is_some();
+                let buyer_is_bank = companies[bi].sector
+                    == crate::registries::enums::Sector::Banking;
                 if buyer_is_banked {
                     // W7: The bid encumbrance already moved the payment into
                     // escrow (available_cash → debit_cash). Releasing the
@@ -877,6 +893,27 @@ pub fn settle_trades(
                     }
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
+                } else if buyer_is_bank {
+                    // W11: The buyer IS a bank paying from its own reserves
+                    // (banks hold no primary_bank_id — the unbanked branch
+                    // would release only the uncounted debit_cash memo and
+                    // never surrender reserves, while the seller's bank is
+                    // still credited: pure M0 creation — the
+                    // b2b_settlement_post FiatCreation leak). Debit the
+                    // buyer-bank's own sheet like the cross-border path
+                    // below; ELA covers so reserves never go negative.
+                    companies[bi].debit_cash -= trade_value;
+                    if let Some(ref mut bs) = companies[bi].balance_sheet {
+                        crate::state::banking::ela_cover_debit(
+                            bs,
+                            &mut country.central_bank,
+                            trade_value,
+                        );
+                        bs.reserves_at_central_bank -= trade_value;
+                        bs.deposits -= trade_value;
+                    }
+                    let seller_id = companies[si].id.clone();
+                    credit_company_by_id(companies, &seller_id, trade_value);
                 } else {
                     // Phase 94: Unbanked buyer — cash was already encumbered
                     // (available_cash → debit_cash). Release encumbrance and
@@ -896,6 +933,14 @@ pub fn settle_trades(
                 // or one side is a non-company (phantom seller such as
                 // "fishing_sector"). Both cash legs must still balance.
                 if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
+                    #[cfg(feature = "diagnostic")]
+                    {
+                        if company_country.contains_key(&trade.seller_id) {
+                            leg!("PAYER_domestic_foreign_seller", trade_value);
+                        } else {
+                            leg!("PAYER_domestic_phantom_seller", trade_value);
+                        }
+                    }
                     // Release the buyer's encumbered cash (the payer-side
                     // cash leg — encumbered available_cash → debit_cash at
                     // bid submission; releasing it completes the payment).
@@ -970,6 +1015,14 @@ pub fn settle_trades(
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
                     companies[si].unfilled_ask_prices.remove(&trade.commodity);
+                    #[cfg(feature = "diagnostic")]
+                    {
+                        if company_country.contains_key(&trade.buyer_id) {
+                            leg!("SELLER_LEG_foreign_buyer", trade_value);
+                        } else {
+                            leg!("SELLER_LEG_nonco", trade_value);
+                        }
+                    }
                 } else if company_id_to_idx.contains_key(&trade.buyer_id)
                     && !company_country.contains_key(&trade.seller_id)
                 {
@@ -1201,6 +1254,11 @@ pub fn settle_trades(
         }
     }
 
+    #[cfg(feature = "diagnostic")]
+    if !leg_ledger.is_empty() {
+        eprintln!("SETTLE_LEGS: {:?}", leg_ledger);
+    }
+
     messages
 }
 
@@ -1240,8 +1298,8 @@ pub fn settle_trades_with_tariffs(
         String,
         std::collections::HashMap<String, crate::international::DiplomaticRelation>,
     >,
-    country_to_currency: &std::collections::HashMap<String, String>,
-    currency_rates: &std::collections::HashMap<String, f64>,
+    _country_to_currency: &std::collections::HashMap<String, String>,
+    _currency_rates: &std::collections::HashMap<String, f64>,
     current_turn: u32,
     gen_config: &GenerativeGoodsConfig,
 ) -> Vec<String> {
@@ -1304,104 +1362,12 @@ pub fn settle_trades_with_tariffs(
             // to domestic → credits exporter). This requires refactoring
             // settle_trades to not handle cross-border cash directly. Deferred
             // to a future phase to avoid breaking the settlement pipeline.
-        } else if is_import {
-            // Import: check FX reserves for the seller's currency.
-            // Phase 43: Use the seller's real currency code, not fake "IEU".
-            let seller_ccy = country_to_currency
-                .get(&seller_country)
-                .cloned()
-                .unwrap_or_else(|| "???".to_string());
-            // Agent 4 — Phase 3: Use the real exchange rate from state.currencies.
-            // The rate converts domestic currency to foreign currency.
-            // A rate of 1.0 means 1:1 parity; a rate of 0.5 means 1 domestic
-            // = 2 foreign (strong domestic currency).
-            let domestic_ccy = country_to_currency
-                .get(&country.name)
-                .cloned()
-                .unwrap_or_else(|| "???".to_string());
-            let domestic_rate = currency_rates.get(&domestic_ccy).copied().unwrap_or(1.0);
-            let foreign_rate = currency_rates.get(&seller_ccy).copied().unwrap_or(1.0);
-            // Cross rate: how much foreign currency per unit domestic.
-            let cross_rate = if foreign_rate > 0.0 {
-                domestic_rate / foreign_rate
-            } else {
-                1.0
-            };
-            let foreign_needed = trade_value * cross_rate;
-            let available_fx = country
-                .central_bank
-                .fx_reserves
-                .get(&seller_ccy)
-                .copied()
-                .unwrap_or(0.0);
-            if available_fx < foreign_needed {
-                // Phase 42: Import fails — revert settlement.
-                if let Some(buyer_idx) = companies.iter().position(|c| c.id == trade.buyer_id) {
-                    // Phase 94: Only credit one cash field to avoid M0 duplication.
-                    if let Some(ba) = &mut companies[buyer_idx].brokerage_account {
-                        ba.cash += trade_value;
-                    } else {
-                        companies[buyer_idx].available_cash += trade_value;
-                    }
-                    // W3/R3: Reverse the payer-side bank debit applied by
-                    // settle_trades' cross-border leg — otherwise the bank
-                    // loses deposits+reserves while the customer's cash is
-                    // refunded (deposit ledger drifts negative / M0 sink).
-                    let revert_bank_id = companies[buyer_idx].primary_bank_id.clone();
-                    if let Some(ref bank_id) = revert_bank_id {
-                        let id_to_idx: HashMap<String, usize> = companies
-                            .iter()
-                            .enumerate()
-                            .map(|(i, c)| (c.id.clone(), i))
-                            .collect();
-                        crate::economy::transfer_settler::adjust_bank_balance(
-                            companies,
-                            &id_to_idx,
-                            bank_id,
-                            trade_value,
-                            trade_value,
-                        );
-                    } else if companies[buyer_idx].sector
-                        == crate::registries::enums::Sector::Banking
-                    {
-                        // Bank paid from its own reserves — restore them.
-                        if let Some(ref mut bs) = companies[buyer_idx].balance_sheet {
-                            bs.reserves_at_central_bank += trade_value;
-                            bs.deposits += trade_value;
-                        }
-                    }
-                }
-                if let Some(seller_idx) = companies.iter().position(|c| c.id == trade.seller_id) {
-                    // Phase 94: Only debit one cash field to avoid M0 duplication.
-                    if let Some(ba) = &mut companies[seller_idx].brokerage_account {
-                        ba.cash -= trade_value;
-                    } else {
-                        companies[seller_idx].available_cash -= trade_value;
-                    }
-                }
-                if let Some(idx) = buildings.iter().position(|b| b.owner_id == trade.buyer_id) {
-                    if let Some(qty) = buildings[idx].inventory.get_mut(&trade.commodity) {
-                        *qty = (*qty - trade.quantity).max(0.0);
-                    }
-                }
-                // Agent 4: Restore goods to seller's inventory (asymmetric revert fix).
-                // Previously, the goods vanished — the buyer lost them but the
-                // seller didn't get them back (Rule 1 violation).
-                if let Some(idx) = buildings.iter().position(|b| b.owner_id == trade.seller_id) {
-                    *buildings[idx]
-                        .inventory
-                        .entry(trade.commodity)
-                        .or_insert(0.0) += trade.quantity;
-                }
-                continue; // Skip tariff collection for failed trade
-            }
-            // Sufficient FX: debit reserves.
-            *country
-                .central_bank
-                .fx_reserves
-                .entry(seller_ccy.clone())
-                .or_insert(0.0) -= foreign_needed;
         }
+        // W12: Import FX feasibility is vetted pre-settlement in turn.rs —
+        // infeasible trades are dropped from every task's view and feasible
+        // ones already debited the importer's fx_reserves there. The old
+        // post-settlement revert was removed: it refunded the domestic buyer
+        // but could not claw back the foreign seller's credit (M0 creation).
 
         // Phase 29: Import tariff collection (only when the current country
         // is the importer — buyer is domestic).

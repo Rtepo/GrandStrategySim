@@ -385,8 +385,13 @@ pub fn submit_shipyard_construction_orders(
                     if affordable <= 0.0 {
                         continue;
                     }
-                    let encumbrance = affordable * limit_price;
-                    maritime.available_cash -= encumbrance;
+                    // W12: No encumbrance here — `maritime.available_cash` is an
+                    // uncounted pocket outside the M0 walk, so pre-debiting it
+                    // created fiat at settlement (seller credited with no
+                    // counted payer leg). Shipyard construction is a state
+                    // program: treasury pays at settlement in the post-clearing
+                    // pass, the same convention as MIN-DEF defense bids and
+                    // cultural relief orders.
 
                     order_book.bids.entry(*commodity).or_default().push(Bid {
                         buyer_id: format!("shipyard_{}", shipyard.id),
@@ -431,18 +436,15 @@ pub fn advance_shipyard_projects(maritime: &mut MaritimeInfrastructure, order_bo
 }
 
 /// Post-clearing: Refund unfilled shipyard construction bids.
+///
+/// W12: No-op retained for API compatibility. Shipyard bids no longer
+/// encumber `maritime.available_cash` at submission (treasury pays at
+/// settlement), so there is nothing to refund — crediting the uncounted
+/// maritime purse here would mint fiat.
 pub fn refund_unfilled_shipyard_bids(
-    order_book: &OrderBook,
-    maritime: &mut MaritimeInfrastructure,
+    _order_book: &OrderBook,
+    _maritime: &mut MaritimeInfrastructure,
 ) {
-    for bids in order_book.bids.values() {
-        for bid in bids {
-            if bid.buyer_id.starts_with("shipyard_") {
-                let refund = bid.quantity * bid.limit_price;
-                maritime.available_cash += refund;
-            }
-        }
-    }
 }
 
 /// Calculate total effective port throughput for a country.
@@ -467,13 +469,24 @@ pub fn process_ports_turn(maritime: &mut MaritimeInfrastructure, config: &Mariti
 }
 
 /// Process shipyard maintenance: deduct cash for upkeep and credit a Construction contractor.
+///
+/// W12: `maritime.available_cash` is not part of the M0 walk, so spending it
+/// directly credits contractors with no counted debit (M0 creation). Fund the
+/// purse from `liquid_reserves` first — a counted treasury→purse draw — so the
+/// contractor payment has a real counterparty.
 pub fn process_shipyard_maintenance(
     maritime: &mut MaritimeInfrastructure,
     config: &MaritimeConfig,
     companies: &mut [crate::entities::Company],
+    liquid_reserves: &mut f64,
 ) {
     let total_maintenance = maritime.shipyards.len() as f64 * config.shipyard_maintenance_cost
         + maritime.ports.len() as f64 * config.port_maintenance_cost;
+    let draw = (total_maintenance - maritime.available_cash)
+        .max(0.0)
+        .min(liquid_reserves.max(0.0));
+    *liquid_reserves -= draw;
+    maritime.available_cash += draw;
     let affordable = total_maintenance.min(maritime.available_cash);
     maritime.available_cash -= affordable;
     if affordable > 0.0 {

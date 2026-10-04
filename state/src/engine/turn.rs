@@ -1310,6 +1310,108 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         }
 
+        // W12: FX feasibility pre-pass for cross-border imports. Settlement
+        // credits the seller in ITS country task, so an import that fails the
+        // FX check must be dropped BEFORE any task settles — the old design
+        // ran the check after settlement inside the buyer's task, refunded
+        // the buyer, and could not claw back the foreign seller's credit
+        // (`position` returns None for foreign companies): pure M0 creation
+        // per failed import — the b2b_settlement_post FiatCreation leak.
+        // Vet imports against each importer's fx_reserves here, debit them
+        // for feasible trades, refund infeasible buyers' encumbrance, and
+        // exclude failed trades from every task's settlement view below.
+        type FxTradeKey = (String, String, Commodity, u64, u64);
+        let trade_key = |t: &Trade| -> FxTradeKey {
+            (
+                t.buyer_id.clone(),
+                t.seller_id.clone(),
+                t.commodity,
+                t.quantity.to_bits(),
+                t.execution_price.to_bits(),
+            )
+        };
+        let mut fx_failed: std::collections::HashSet<FxTradeKey> =
+            std::collections::HashSet::new();
+        for task in &mut tasks {
+            let country_name = task.ctx.country_name.clone();
+            for trade in &all_trades {
+                // Only imports into this task's country are vetted here.
+                if company_country
+                    .get(&trade.buyer_id)
+                    .map(String::as_str)
+                    != Some(country_name.as_str())
+                {
+                    continue;
+                }
+                let seller_country = match company_country.get(&trade.seller_id) {
+                    Some(sc) => sc,
+                    None => continue,
+                };
+                if *seller_country == country_name {
+                    continue;
+                }
+                let seller_ccy = country_to_currency
+                    .get(seller_country)
+                    .cloned()
+                    .unwrap_or_else(|| "???".to_string());
+                let domestic_ccy = country_to_currency
+                    .get(&country_name)
+                    .cloned()
+                    .unwrap_or_else(|| "???".to_string());
+                let domestic_rate =
+                    currency_rates.get(&domestic_ccy).copied().unwrap_or(1.0);
+                let foreign_rate =
+                    currency_rates.get(&seller_ccy).copied().unwrap_or(1.0);
+                let cross_rate = if foreign_rate > 0.0 {
+                    domestic_rate / foreign_rate
+                } else {
+                    1.0
+                };
+                let foreign_needed = trade.quantity * trade.execution_price * cross_rate;
+                let available_fx = task
+                    .ctx
+                    .country
+                    .central_bank
+                    .fx_reserves
+                    .get(&seller_ccy)
+                    .copied()
+                    .unwrap_or(0.0);
+                if available_fx >= foreign_needed {
+                    *task
+                        .ctx
+                        .country
+                        .central_bank
+                        .fx_reserves
+                        .entry(seller_ccy)
+                        .or_insert(0.0) -= foreign_needed;
+                } else {
+                    fx_failed.insert(trade_key(trade));
+                    // Refund the encumbered bid cash — the trade will never
+                    // settle, so its encumbrance would otherwise stay frozen.
+                    if let Some(buyer) = task
+                        .companies
+                        .iter_mut()
+                        .find(|c| c.id == trade.buyer_id)
+                    {
+                        let enc = trade.quantity * trade.bid_limit_price;
+                        buyer.debit_cash = (buyer.debit_cash - enc).max(0.0);
+                        if let Some(ba) = &mut buyer.brokerage_account {
+                            ba.cash += enc;
+                        } else {
+                            buyer.available_cash += enc;
+                        }
+                    }
+                    #[cfg(feature = "diagnostic")]
+                    eprintln!(
+                        "FXFAIL: t={} c={} buyer={} seller={} val={:.2} need={:.2} avail={:.2}",
+                        turn, country_name, trade.buyer_id, trade.seller_id,
+                        trade.quantity * trade.execution_price, foreign_needed,
+                        available_fx
+                    );
+                }
+            }
+        }
+
         // Settle trades (peer-to-peer with double-entry accounting)
         // Phase 6.4a: Cash settlement + physical inventory routing to Building.inventory
         // Phase 23A: Freight procurement gate — cross-region trades must secure
@@ -1319,9 +1421,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             let country_trades: Vec<Trade> = all_trades
                 .iter()
                 .filter(|t| {
-                    task.companies
-                        .iter()
-                        .any(|c| c.id == t.buyer_id || c.id == t.seller_id)
+                    !fx_failed.contains(&trade_key(t))
+                        && task
+                            .companies
+                            .iter()
+                            .any(|c| c.id == t.buyer_id || c.id == t.seller_id)
                 })
                 .cloned()
                 .collect();
@@ -1806,13 +1910,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 //         });
 
         // Post-clearing: Refund unfilled shipyard construction bids
-        tasks.par_iter_mut().for_each(|task| {
-            crate::engine::seed_propagation::ensure_worker_seeded();
-            order_book::refund_unfilled_bids_maritime(
-                &task.order_book,
-                &mut task.ctx.country.maritime_infrastructure,
-            );
-        });
+        // W12: No-op — shipyard bids no longer encumber maritime cash at
+        // submission (treasury pays at settlement below), so there is no
+        // encumbrance to refund. The call is kept for the API surface.
 
         // Post-clearing: Refund unfilled company bids
         // Phase 24A.1: Use the CORRECT refund function from b2b_orders, which
@@ -1880,6 +1980,27 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // Post-clearing: Advance shipyard construction projects
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
+            // W12: Shipyard construction is a state program — treasury pays
+            // at settlement (same convention as MIN-DEF defense trades).
+            // settle_trades credited the seller; the maritime purse is not
+            // part of the M0 walk, so debit liquid_reserves here to give
+            // the payment a counted payer leg. Match only this task's
+            // shipyards so cross-border trades debit the right treasury.
+            for trade in &all_trades {
+                if let Some(shipyard_id) = trade.buyer_id.strip_prefix("shipyard_") {
+                    if task
+                        .ctx
+                        .country
+                        .maritime_infrastructure
+                        .shipyards
+                        .iter()
+                        .any(|s| s.id == shipyard_id)
+                    {
+                        task.ctx.country.budget.liquid_reserves -=
+                            trade.quantity * trade.execution_price;
+                    }
+                }
+            }
             crate::infrastructure::maritime::advance_shipyard_projects(
                 &mut task.ctx.country.maritime_infrastructure,
                 &task.order_book,
@@ -1945,6 +2066,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &mut task.ctx.country.maritime_infrastructure,
                 &config,
                 &mut task.companies,
+                &mut task.ctx.country.budget.liquid_reserves,
             );
         });
 
