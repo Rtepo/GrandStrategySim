@@ -210,12 +210,17 @@ pub fn resolve_regional_labor_market(
         // Phase 33: Fall back to available_cash if no brokerage_account.
         // This prevents companies loaded from old saves (without brokerage_account)
         // from being clamped to 0 FTE and mass-bankrupting.
+        // 12-turn mandate: use the same solvency basis as the distress/furlough
+        // and reinstatement checks (`operational_cash + company_capital`), not
+        // spendable cash alone. Under a pure-cash gate a company that burned
+        // its genesis payroll float during the input-starvation window could
+        // never bid above the 90% retention floor again — a one-way ratchet
+        // that geometrically decays employment ~10%/turn. Unpaid wages already
+        // accrue as arrears, and `company_capital` erodes with them, so the
+        // bound self-limits as genuine insolvency approaches.
         let max_affordable_fte = if company.offered_wage_per_fte > 0.0 {
-            company
-                .brokerage_account
-                .as_ref()
-                .map(|ba| ba.cash / company.offered_wage_per_fte)
-                .unwrap_or(company.available_cash / company.offered_wage_per_fte)
+            (company.operational_cash() + company.company_capital.max(0.0))
+                / company.offered_wage_per_fte
         } else {
             0.0
         };
@@ -255,11 +260,23 @@ pub fn resolve_regional_labor_market(
         // Phase 37: Hiring friction — cap growth to 15% per turn.
         // Small companies (<10 FTE) are exempt so they can scale up from zero.
         // This prevents the ±100% employment swings that destabilize GDP.
+        // 12-turn mandate: a company restoring seats it already owns (bid <=
+        // target) may close 40% of the gap to target per turn. The pure
+        // prev-relative cap turns any collapse into a ~30-turn recovery —
+        // after an input-starvation wave crushed prev_fulfilled, companies
+        // re-bid ~0.75x of target for the whole window and aggregate
+        // unemployment never clears 20%. Gap-closing still bounds the swing
+        // (max +40% of missing crew, decelerating near target) while letting
+        // a distressed economy re-staff its existing capital stock.
         const MAX_HIRING_GROWTH_RATE: f64 = 0.15;
+        const RECOVERY_GAP_CLOSE_RATE: f64 = 0.40;
         const SMALL_COMPANY_FTE_THRESHOLD: f64 = 10.0;
         if company.prev_fulfilled_fte as f64 >= SMALL_COMPANY_FTE_THRESHOLD {
-            let max_hireable = company.prev_fulfilled_fte as f64 * (1.0 + MAX_HIRING_GROWTH_RATE);
-            clamped_demand = clamped_demand.min(max_hireable);
+            let prev = company.prev_fulfilled_fte as f64;
+            let growth_cap = prev * (1.0 + MAX_HIRING_GROWTH_RATE);
+            let gap_close =
+                prev + (company.target_fte_demand as f64 - prev).max(0.0) * RECOVERY_GAP_CLOSE_RATE;
+            clamped_demand = clamped_demand.min(growth_cap.max(gap_close));
         }
         #[cfg(feature = "diagnostic")]
         {

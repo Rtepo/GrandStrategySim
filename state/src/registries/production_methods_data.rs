@@ -1498,6 +1498,8 @@ pub fn default_production_methods() -> HashMap<String, BuildingMethods> {
     registry.insert("educational_services".to_string(), education_methods());
     registry.insert("sports_recreation".to_string(), sports_recreation_methods());
     registry.insert("public_services".to_string(), public_services_methods());
+    registry.insert("local_services".to_string(), local_services_methods());
+    registry.insert("banking".to_string(), banking_methods());
     registry.insert(
         "maintenance_workshops".to_string(),
         maintenance_workshops_methods(),
@@ -10990,6 +10992,85 @@ fn public_services_methods() -> BuildingMethods {
             &[],
         ),
     );
+    m
+}
+
+// === LOCAL SERVICES (12-turn mandate) ===
+// `Sector::LocalServices` serializes to "local_services" — without a registry
+// entry under that key, service shops resolve to the empty default method and
+// can never produce `LocalServicesCommodity`. Registered separately from
+// `public_services` so the max-year resolution can't pick administrative
+// methods whose output the sector does not sell.
+fn local_services_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(
+        MethodSlot::Production,
+        "Local Services Shop".into(),
+        pm(
+            1880,
+            None,
+            0.15,
+            0.35,
+            0.50,
+            1.0,
+            &[
+                (Commodity::Fuels, 5.0),
+                (Commodity::Food, 4.0),
+                (Commodity::Clothing, 2.0),
+            ],
+            &[(Commodity::LocalServicesCommodity, 20.0)],
+        ),
+    );
+    // NOTE: Production slot only. `iter_production_slots_named` chains
+    // automation+production+organization, so a same-year org/automation
+    // entry would win the resolver's `>=` tie-break and resolve a
+    // zero-output method on every service building.
+    m
+}
+
+// === BANKING (12-turn mandate) ===
+// `Sector::Banking` serializes to "banking" — previously no registry entry
+// existed under that key, so bank buildings resolved to the empty default
+// method and could never produce `BankingServices`.
+fn banking_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(
+        MethodSlot::Production,
+        "Banking Office".into(),
+        pm(
+            1880,
+            None,
+            0.30,
+            0.40,
+            0.30,
+            1.0,
+            &[
+                (Commodity::Paper, 5.0),
+                (Commodity::OfficeMachinery, 2.0),
+                (Commodity::Energy, 3.0),
+            ],
+            &[(Commodity::BankingServices, 15.0)],
+        ),
+    );
+    m.insert(
+        MethodSlot::Production,
+        "Electronic Banking".into(),
+        pm(
+            1990,
+            Some("cs_005"),
+            0.35,
+            0.40,
+            0.25,
+            2.5,
+            &[
+                (Commodity::ElectronicComponents, 5.0),
+                (Commodity::Software, 8.0),
+                (Commodity::Energy, 5.0),
+            ],
+            &[(Commodity::BankingServices, 50.0)],
+        ),
+    );
+    // NOTE: Production slot only (see local_services_methods).
     m
 }
 

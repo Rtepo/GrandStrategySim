@@ -2,29 +2,16 @@
 //!
 //! This module implements organic, market-driven M&A with the following invariants:
 //! - Every cash movement routes through `settle_transfer` / `settle_transfer_mapped`.
-//! - Physical inventory is moved one commodity at a time to an acquirer building.
-//! - Cross-region moves consume `Commodity::FreightCapacity` from the acquirer.
-//! - Overflow is first fire-sold at `FIRE_SALE_DISCOUNT_RATIO`; any unsold portion
-//!   is written off as a real loss.
+//! - Physical inventory and staffing stay inside the transferred building —
+//!   they are part of the going-concern asset the acquirer paid for.
 //! - `LoanRef`s and bank `loans_issued.borrower_id` are updated to the acquirer.
 
 use crate::economy::market::MarketSignal;
 use crate::economy::transfer_settler::{settle_transfer_mapped, TransferRecipient};
 use crate::entities::{Building, Company};
-use crate::registries::enums::Commodity;
 use crate::state::banking::LoanStatus;
 use crate::state::Country;
-use std::collections::BTreeMap;
 use std::collections::HashMap;
-
-/// Discount applied to the reference market price when an acquirer must liquidate
-/// overflow inventory that does not physically fit into its warehouses.
-pub const FIRE_SALE_DISCOUNT_RATIO: f64 = 0.35;
-
-/// Freight consumption ratio: one unit of `Commodity::FreightCapacity` is required
-/// per unit of cargo for cross-region physical transfers. Within the same region
-/// no freight is consumed.
-pub const FREIGHT_PER_UNIT: f64 = 1.0;
 
 /// A planned acquisition used for the first (planning) pass.
 #[derive(Debug)]
@@ -267,100 +254,26 @@ fn execute_acquisition(
         .append(&mut target_building_ids);
 
     // ------------------------------------------------------------------
-    // E.2c: Freight-aware inventory integration with fire-sale fallback.
+    // E.2c: Inventory and staffing transfer with the building itself.
+    // An acquisition changes the owner_id on the title, not the physical
+    // contents: on-site inputs, output stock and the employed crew are part
+    // of the going-concern asset the acquirer just paid for. The previous
+    // implementation drained every building's inventory and attempted to
+    // redistribute it into the acquirer's OTHER buildings — the acquired
+    // building was excluded from the destination list, so any stock that did
+    // not fit elsewhere was written off (or fire-sold) and the crew was
+    // zeroed. Bootstrap-cash M&A cascades therefore annihilated each
+    // transferred plant's fuel buffer and staffing in a single turn, and
+    // serial acquisitions (A→B→C→D) repeated the destruction every hop.
+    // Buildings that continue operating under the new owner keep their
+    // stock and their staff; the labor-clearing sync and the ask/posting
+    // loop manage them from the next turn.
     // ------------------------------------------------------------------
-    let acquirer_buildings = owner_to_buildings
-        .get(&acquirer_id)
-        .cloned()
-        .unwrap_or_default();
-    let same_region = companies[target_idx].region_id == companies[acquirer_idx].region_id;
-
     for &b_idx in &plan.target_buildings {
         if b_idx >= buildings.len() {
             continue;
         }
-
-        let source_inventory: BTreeMap<Commodity, f64> =
-            std::mem::take(&mut buildings[b_idx].inventory);
-        for (commodity, quantity) in source_inventory {
-            if quantity <= 0.0 {
-                continue;
-            }
-
-            let freight_needed = if same_region {
-                0.0
-            } else {
-                quantity * FREIGHT_PER_UNIT
-            };
-
-            // Try to consume freight capacity from the acquirer for cross-region loads.
-            if freight_needed > 0.0
-                && !consume_freight_from_buildings(buildings, &acquirer_buildings, freight_needed)
-            {
-                // Insufficient logistics — write off the goods and their book value.
-                write_off_inventory(companies, acquirer_idx, commodity, quantity, market_signal);
-                continue;
-            }
-
-            // Find a destination building with spare inventory capacity.
-            let mut placed = false;
-            for &dest_idx in &acquirer_buildings {
-                if dest_idx >= buildings.len() || dest_idx == b_idx {
-                    continue;
-                }
-                let used: f64 = buildings[dest_idx].inventory.values().sum();
-                let free = buildings[dest_idx].inventory_capacity - used;
-                if free >= quantity {
-                    *buildings[dest_idx]
-                        .inventory
-                        .entry(commodity)
-                        .or_insert(0.0) += quantity;
-                    placed = true;
-                    break;
-                }
-            }
-
-            if placed {
-                continue;
-            }
-
-            // No warehouse capacity — attempt a fire-sale to any other company
-            // in the same region that has enough cash.
-            let price = market_signal.prices.get(&commodity).copied().unwrap_or(0.0);
-            let book_value = quantity * price;
-            let recoverable = book_value * (1.0 - FIRE_SALE_DISCOUNT_RATIO);
-
-            if let Some(buyer_idx) = find_fire_sale_buyer(
-                companies,
-                &acquirer_id,
-                &target_id,
-                acquirer_idx,
-                recoverable,
-            ) {
-                let mut dummy_country = Country::default();
-                if recoverable > 0.0
-                    && settle_transfer_mapped(
-                        companies,
-                        id_to_idx,
-                        buyer_idx,
-                        recoverable,
-                        &TransferRecipient::OtherCompany {
-                            recipient_idx: acquirer_idx,
-                        },
-                        &mut dummy_country,
-                    )
-                    .is_ok()
-                {
-                    continue;
-                }
-            }
-
-            // No buyer: physical destruction with a real write-off.
-            write_off_inventory(companies, acquirer_idx, commodity, quantity, market_signal);
-        }
-
         buildings[b_idx].owner_id = acquirer_id.clone();
-        buildings[b_idx].current_employment = 0;
     }
 
     // Update ownership map: target buildings now belong to the acquirer.
@@ -397,93 +310,4 @@ fn execute_acquisition(
     }
 }
 
-/// Consume `Commodity::FreightCapacity` from `candiate_buildings` until `amount` is satisfied.
-/// Returns `true` if the full amount was consumed.
-fn consume_freight_from_buildings(
-    buildings: &mut [Building],
-    candidate_buildings: &[usize],
-    amount: f64,
-) -> bool {
-    if amount <= 0.0 {
-        return true;
-    }
-    let mut remaining = amount;
-    for &b_idx in candidate_buildings {
-        if b_idx >= buildings.len() {
-            continue;
-        }
-        let available = buildings[b_idx]
-            .inventory
-            .get(&Commodity::FreightCapacity)
-            .copied()
-            .unwrap_or(0.0);
-        if available <= 0.0 {
-            continue;
-        }
-        let consumed = remaining.min(available);
-        let new_qty = (available - consumed).max(0.0);
-        if new_qty > 0.0 {
-            buildings[b_idx]
-                .inventory
-                .insert(Commodity::FreightCapacity, new_qty);
-        } else {
-            buildings[b_idx]
-                .inventory
-                .remove(&Commodity::FreightCapacity);
-        }
-        remaining -= consumed;
-        if remaining <= 0.0 {
-            return true;
-        }
-    }
-    false
-}
 
-/// Find a non-distressed company (other than acquirer and target) in the same
-/// region as the acquirer that can pay `recoverable` cash.
-fn find_fire_sale_buyer(
-    companies: &[Company],
-    acquirer_id: &str,
-    target_id: &str,
-    acquirer_idx: usize,
-    recoverable: f64,
-) -> Option<usize> {
-    if recoverable <= 0.0 {
-        return None;
-    }
-    let acquirer = &companies[acquirer_idx];
-    companies.iter().enumerate().find_map(|(i, c)| {
-        if c.id == acquirer_id || c.id == target_id {
-            return None;
-        }
-        if c.is_liquidated || c.merged_into.is_some() || c.bank_type.is_some() {
-            return None;
-        }
-        if c.region_id != acquirer.region_id {
-            return None;
-        }
-        if c.available_cash >= recoverable {
-            Some(i)
-        } else {
-            None
-        }
-    })
-}
-
-/// Write off the book value of physically destroyed inventory.
-/// The loss is taken from `liquid_capital` because the asset side of the
-/// balance sheet is permanently reduced.
-fn write_off_inventory(
-    companies: &mut [Company],
-    acquirer_idx: usize,
-    commodity: Commodity,
-    quantity: f64,
-    market_signal: &MarketSignal,
-) {
-    let price = market_signal.prices.get(&commodity).copied().unwrap_or(0.0);
-    let book_value = quantity * price;
-    if book_value > 0.0 {
-        companies[acquirer_idx].liquid_capital -= book_value;
-        companies[acquirer_idx].liquid_capital = companies[acquirer_idx].liquid_capital.max(0.0);
-    }
-}

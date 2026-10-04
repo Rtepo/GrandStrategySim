@@ -268,7 +268,11 @@ pub fn advance_construction_projects(
         // Reserve scales with worker_capacity (the genesis seed basis), not
         // current_employment — a furloughed building must keep its restart
         // buffer out of reach of its own construction project.
-        let capacity_scale = building.worker_capacity as f64 / 1000.0;
+        // worker_capacity is per-virtual-plant — the entity's restart buffer
+        // covers all scale_factor plants.
+        let capacity_scale = building.worker_capacity as f64
+            * building.scale_factor.max(1) as f64
+            / 1000.0;
         let input_reserve: BTreeMap<Commodity, f64> = building
             .active_method
             .inputs

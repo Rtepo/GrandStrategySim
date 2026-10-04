@@ -387,6 +387,23 @@ fn method_is_commodity_producer(method: &ProductionMethod) -> bool {
     })
 }
 
+/// 12-turn mandate: B2C service commodities whose outputs must scale with
+/// throughput even though `method_is_commodity_producer` correctly excludes
+/// them from the goods path. Their demand is per-capita population-scaled
+/// (health ~0.4 units/person, education ~0.2-0.25) and they sell through the
+/// `clear_*_b2c` channels at cost-plus service prices — a 40/1k unscaled
+/// rate yields ~0.04 units/worker against ~8 units/worker break-even on the
+/// rescaled wage bill, so every service employer is structurally bankrupt by
+/// ~200x. Outputs scale; inputs stay at per-1k rates (they are staff
+/// provisions — Food/Fuels — consumed with headcount, not patient/client
+/// throughput).
+fn is_b2c_service_output(commodity: &Commodity) -> bool {
+    matches!(
+        commodity,
+        Commodity::HealthCapacity | Commodity::EducationSlots | Commodity::SportsCapacity
+    )
+}
+
 /// W8: Wartime "* Conversion" methods are Production Decree retool targets
 /// (driven via `military::war_economy::find_military_conversion` from its own
 /// method table), not peacetime genesis/default production lines. A civilian
@@ -410,6 +427,14 @@ pub fn apply_throughput_scale(map: &mut HashMap<String, BuildingMethods>) {
         ] {
             for method in slot.values_mut() {
                 if !method_is_commodity_producer(method) {
+                    // 12-turn mandate: scale B2C service outputs even on
+                    // non-commodity-producer methods (output only — inputs
+                    // are per-headcount staff provisions).
+                    for (commodity, qty) in method.outputs.iter_mut() {
+                        if is_b2c_service_output(commodity) {
+                            *qty *= PRODUCTION_THROUGHPUT_SCALE;
+                        }
+                    }
                     continue;
                 }
                 for (commodity, qty) in method.inputs.iter_mut() {
@@ -425,6 +450,7 @@ pub fn apply_throughput_scale(map: &mut HashMap<String, BuildingMethods>) {
                 }
                 for (commodity, qty) in method.outputs.iter_mut() {
                     if *commodity == Commodity::FreightCapacity
+                        || is_b2c_service_output(commodity)
                         || (!commodity.is_intangible()
                             && !commodity.is_local_utility())
                     {

@@ -122,7 +122,11 @@ pub fn submit_infrastructure_procurement_orders(
         let inputs = &building.active_method.inputs;
 
         for (commodity, quantity_per_1000) in inputs.iter() {
-            let required_quantity = quantity_per_1000 * (building.worker_capacity as f64 / 1000.0);
+            // Entity-scale requirement: per-plant seats x scale_factor.
+            let required_quantity = quantity_per_1000
+                * (building.worker_capacity as f64
+                    * building.scale_factor.max(1) as f64
+                    / 1000.0);
             let max_price = building.reserve / required_quantity;
 
             if max_price > 0.0 {

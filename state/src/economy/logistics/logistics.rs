@@ -909,6 +909,15 @@ pub fn procure_freight_and_split_trades(
                     Ok(_) => {
                         // Phase 30: Settle maritime transit fees to territorial owners.
                         settle_maritime_transit_fees(companies, buyer_idx, &transit_fees, country);
+                        // 12-turn mandate: revenue recognition for the freight
+                        // fee. `settle_company_to_company` moved the cash but
+                        // the producer's P&L never sees it — the same accrual
+                        // gap the GRID96 offtake patch fixed for energy. Book
+                        // the fee across the producer's capacity-holding
+                        // buildings so `last_profit`/`last_output_value`
+                        // reflect real contract income.
+                        let producer_id = companies[producer_idx].id.clone();
+                        accrue_freight_revenue(buildings, &producer_id, total_cost);
                         FreightProcurementResult {
                             secured: true,
                             freight_producer_idx: Some(producer_idx),
@@ -1148,6 +1157,52 @@ fn find_freight_producer(
         }
     }
     None
+}
+
+/// 12-turn mandate: accrue a settled freight payment into the producer's
+/// building P&L. Distributes the fee across the company's buildings
+/// proportionally to the FreightCapacity they hold — the depots providing
+/// the service book the income in `last_profit` and `last_output_value`,
+/// matching the GRID96 offtake revenue-recognition pattern.
+fn accrue_freight_revenue(buildings: &mut [Building], producer_id: &str, amount: f64) {
+    if amount <= 0.0 {
+        return;
+    }
+    let total_capacity: f64 = buildings
+        .iter()
+        .filter(|b| b.owner_id == producer_id)
+        .map(|b| {
+            b.inventory
+                .get(&Commodity::FreightCapacity)
+                .copied()
+                .unwrap_or(0.0)
+        })
+        .sum();
+    for b in buildings.iter_mut().filter(|b| b.owner_id == producer_id) {
+        let cap = b
+            .inventory
+            .get(&Commodity::FreightCapacity)
+            .copied()
+            .unwrap_or(0.0);
+        let share = if total_capacity > 0.0 {
+            amount * (cap / total_capacity)
+        } else {
+            amount
+        };
+        if share <= 0.0 {
+            continue;
+        }
+        b.last_profit += share;
+        let prev = b
+            .extra
+            .get("last_output_value")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        b.extra.insert(
+            "last_output_value".to_string(),
+            serde_json::Value::from(prev + share),
+        );
+    }
 }
 
 /// Decrement FreightCapacity from a producer company's buildings.

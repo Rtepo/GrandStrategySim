@@ -196,6 +196,15 @@ impl CompanyLifecycle {
 
         let mut to_remove = Vec::new();
 
+        // Phase 33: Grace period for new companies — a firm must first
+        // operate a full year before a loss streak can liquidate it.
+        // Without this, the per-turn records would execute companies for
+        // ~6 weeks of startup losses during market ramp-up, which
+        // mass-liquidates half the corporate sector and destroys its
+        // labor demand before recovery can occur.
+        const LOSS_STREAK_GRACE_TURNS: u32 =
+            crate::state::macro_data::TURNS_PER_YEAR as u32;
+
         for (idx, company) in companies.iter().enumerate() {
             // Check for negative equity.
             if company.company_capital < 0.0 {
@@ -203,19 +212,23 @@ impl CompanyLifecycle {
                 if company.sector == Sector::Energy && !company.is_in_receivership {
                     continue;
                 }
+                // Newborn firms get the same grace as the loss-streak rule:
+                // startup burn during the market bootstrap window pushes
+                // thin-capitalized seed companies into transient negative
+                // equity before demand reaches them. Executing them at
+                // birth fire-sales their seed inventory and cascades into
+                // serial liquidation churn (asset resold → new owner also
+                // negative-equity → resold → …).
+                if current_turn.saturating_sub(company.founded_turn)
+                    < LOSS_STREAK_GRACE_TURNS
+                {
+                    continue;
+                }
                 to_remove.push(idx);
                 continue;
             }
 
             // Check for sustained losses (3+ consecutive years).
-            // Phase 33: Grace period for new companies — a firm must first
-            // operate a full year before a loss streak can liquidate it.
-            // Without this, the per-turn records would execute companies for
-            // ~6 weeks of startup losses during market ramp-up, which
-            // mass-liquidates half the corporate sector and destroys its
-            // labor demand before recovery can occur.
-            const LOSS_STREAK_GRACE_TURNS: u32 =
-                crate::state::macro_data::TURNS_PER_YEAR as u32;
             if current_turn.saturating_sub(company.founded_turn) < LOSS_STREAK_GRACE_TURNS {
                 continue;
             }
@@ -676,12 +689,15 @@ mod tests {
         let mut country = Country::mock_for_tests();
         country.name = "Test".to_string();
 
+        // Negative-equity liquidation only applies past the startup grace
+        // window — run at TURNS_PER_YEAR so the check is live.
+        let grace_turn = crate::state::macro_data::TURNS_PER_YEAR as u32;
         CompanyLifecycle::liquidate_bankrupt_companies(
             &mut companies,
             &mut buildings,
             &mut country,
             2024,
-            0,
+            grace_turn,
         );
 
         // Company is removed (liquidated).

@@ -1163,7 +1163,14 @@ fn resolve_stocked_input(
         return Some(required);
     }
     if required.is_local_utility() {
-        return (!blackout).then_some(required);
+        // Only grid-electric utilities are shed in a blackout; water and
+        // waste services are not dispatched by `load_shed_tiers`, so they
+        // remain resolvable (a blacked-out biomass plant can still adapt
+        // onto stocked fuel while its process water stays available).
+        if matches!(required, Commodity::Energy | Commodity::Heat) {
+            return (!blackout).then_some(required);
+        }
+        return Some(required);
     }
     if building
         .inventory
@@ -1208,10 +1215,14 @@ fn resolve_adaptive_input(
         return Some(required);
     }
     if required.is_local_utility() {
-        // Grid-delivered (Energy/Heat/Water) — infeasible only when the
-        // region sits in a blackout tier; partial shedding is already priced
-        // into `last_fulfillment_ratio`.
-        return (!blackout).then_some(required);
+        // Grid-delivered electric power (Energy/Heat) — infeasible only when
+        // the region sits in a blackout tier; partial shedding is already
+        // priced into `last_fulfillment_ratio`. Water and waste utilities
+        // are not shed by the power grid and stay resolvable.
+        if matches!(required, Commodity::Energy | Commodity::Heat) {
+            return (!blackout).then_some(required);
+        }
+        return Some(required);
     }
     if building
         .inventory
@@ -2546,19 +2557,30 @@ pub fn process_furlough_reinstatement(companies: &mut [Company], buildings: &[Bu
             })
             .unwrap_or(1.0);
 
-        if avg_ratio < 0.5 {
+        // 12-turn mandate: 0.25 rather than 0.5. Requiring half fulfillment
+        // during a material-recovery window deadlocks — workers stay benched
+        // because inputs are scarce, and output stays low partly because the
+        // crew is benched. A company seeing even quarter fulfillment has a
+        // live supply line worth re-staffing.
+        if avg_ratio < 0.25 {
             continue; // Raw materials still scarce — don't re-instate yet
         }
 
-        // Re-instate as many workers as this turn's payroll cash can cover.
+        // Re-instate as many workers as this turn's payroll can cover.
         // All-or-nothing was a ratchet: a company whose roster was slashed by
         // distress furlough needed cash for the ENTIRE furloughed workforce
         // before recalling anyone — million-FTE plants could never recover.
+        // 12-turn mandate: cover uses the same solvency basis as the furlough
+        // formula (`operational_cash + company_capital`), not spendable cash
+        // alone — under a pure-cash gate no company with cash <= 0 could ever
+        // recall its crew, so every furlough became a one-way ratchet to
+        // permanent unemployment. Payroll itself already runs on arrears.
         let available = company
             .brokerage_account
             .as_ref()
             .map(|ba| ba.cash.max(0.0))
-            .unwrap_or(company.available_cash.max(0.0));
+            .unwrap_or(company.available_cash.max(0.0))
+            + company.company_capital.max(0.0);
         let furloughed = company.furloughed_workers_count.round() as u32;
         let re_instate_count = if company.offered_wage_per_fte > 0.0 {
             (available / company.offered_wage_per_fte) as u32
@@ -2617,10 +2639,15 @@ pub fn process_furlough_attrition(companies: &mut [Company]) {
         company.furlough_turns_accumulated += 1;
 
         // Compute quit rate (wage_fraction = 0.0 for current era — no UI)
+        // 12-turn mandate: base 5% → 10%, duration accel 10% → 15%/turn. One
+        // turn is ~2 weeks; a crew on 0% pay for ~2 months does not wait for a
+        // maybe-recovering supply line while other employers are bidding. The
+        // old schedule kept >2M workers company-locked on starved benches,
+        // inflating measured unemployment while the pool starved of labor.
         let wage_fraction = 0.0; // Future labor laws can increase this
         let wage_gap = 1.0 - wage_fraction;
-        let base_quit_rate = 0.05;
-        let duration_factor = 1.0 + (company.furlough_turns_accumulated as f64 * 0.10);
+        let base_quit_rate = 0.10;
+        let duration_factor = 1.0 + (company.furlough_turns_accumulated as f64 * 0.15);
         let quit_rate = (base_quit_rate * wage_gap * duration_factor).min(0.50);
 
         let quit_count = (company.furloughed_workers_count * quit_rate).ceil() as u32;

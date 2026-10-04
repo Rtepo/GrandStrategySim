@@ -451,11 +451,15 @@ pub fn generate_world(
     // commodity-specific prices from estimated_base_price(). The flat 100.0
     // used previously caused B2B spread deadlock for manufactured goods
     // (unit_cost >> 105.0 buy bid → spread never crosses → no trades).
+    // W11: Seed from the cost-plus fixpoint — every produced good is worth
+    // at least its consumable input bundle — and install the same table for
+    // `anchored_base_price` so the production P&L oracle agrees.
+    let cost_plus_prices = corporate::install_cost_plus_base_prices(_registries);
     for commodity in Commodity::all() {
         state
             .market_history
             .global_base_prices
-            .insert(commodity, corporate::estimated_base_price(commodity));
+            .insert(commodity, cost_plus_prices[&commodity]);
     }
 
     Ok(GeneratedWorld {

@@ -18,9 +18,10 @@ use crate::economy::{
     apply_payment_in_kind, apply_rationing_to_demand, build_consumer_demand,
     calculate_diversity_bonus, check_terrorism_triggers, clear_b2c_markets,
     clear_education_slots_b2c, clear_health_capacity_b2c, clear_information_b2c,
-    clear_sports_capacity_b2c, compute_propaganda_subsidy_rate, execute_production_cycle, generate_store_offers,
+    clear_local_services_b2c, clear_sports_capacity_b2c, compute_propaganda_subsidy_rate, execute_production_cycle, generate_store_offers,
     market_history, order_book, populate_education_service_needs, populate_health_service_needs,
-    populate_information_service_needs, populate_sports_service_needs, process_all_royalty_payments,
+    populate_information_service_needs, populate_local_services_needs,
+    populate_sports_service_needs, process_all_royalty_payments,
     process_blueprint_royalty_payments, process_building_cycle_with_geology,
     process_cross_border_royalty_queue, process_demographics_and_labor, process_fishing_turn,
     process_justice_turn, process_prison_labor_turn, process_propaganda_turn,
@@ -1294,6 +1295,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             .iter()
             .map(|(c, bids)| (*c, bids.clone()))
             .collect();
+        let unfilled_asks: Vec<(Commodity, Vec<Ask>)> = global_order_book
+            .asks
+            .iter()
+            .map(|(c, asks)| (*c, asks.clone()))
+            .collect();
         for task in &mut tasks {
             for (commodity, bids) in &unfilled_bids {
                 task.order_book
@@ -1822,6 +1828,36 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &mut task.companies,
                 &task.company_id_to_idx,
             );
+            // W11: Record unfilled prices so the convergence ratchets in
+            // post_b2b_orders actually fire. Both maps were read (buyer
+            // limit = last_unfilled × 1.20; seller cap = last_unfilled ×
+            // (1 − decay)) but NEVER written — a read-only ratchet pinned
+            // bids at ref×1.05 while scarcity asks priced at
+            // unit_cost×(1+markup) above them, so spreads on scarce inputs
+            // never crossed and the whole input chain starved at
+            // fulfillment_ratio=0.
+            // Runs post-settlement: entries for company+commodity pairs
+            // that traded were already removed by settlement, so a
+            // partially-filled order keeps its residual's ratchet instead
+            // of being clobbered back to base price.
+            for (commodity, bids) in &unfilled_bids {
+                for bid in bids {
+                    if let Some(&ci) = task.company_id_to_idx.get(&bid.buyer_id) {
+                        task.companies[ci]
+                            .unfilled_bid_prices
+                            .insert(*commodity, bid.limit_price);
+                    }
+                }
+            }
+            for (commodity, asks) in &unfilled_asks {
+                for ask in asks {
+                    if let Some(&ci) = task.company_id_to_idx.get(&ask.seller_id) {
+                        task.companies[ci]
+                            .unfilled_ask_prices
+                            .insert(*commodity, ask.limit_price);
+                    }
+                }
+            }
         });
 
         // Black Hole 1.19: Refund unfilled defense bids back to Treasury.
@@ -3324,7 +3360,47 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
                 for &(building_idx, commodity, qty) in surpluses {
                     // Transfer 30% of surplus to the retail store
-                    let transfer_qty = (qty * 0.3).min(qty);
+                    let offer_qty = (qty * 0.3).min(qty);
+                    if offer_qty <= 0.0 {
+                        continue;
+                    }
+
+                    // Wholesale settlement — restock is a PAID transfer at
+                    // reference price. Previously the 30% surplus pull was a
+                    // free inventory grant: consumer spending dead-ended in
+                    // retail companies while producers never saw it, starving
+                    // B2B bid volume (cashless buyers post no demand) and
+                    // collapsing the producer economy. Debit the store's
+                    // owner, credit the producer's owner, and size the
+                    // transfer to what was actually paid for.
+                    let ref_price =
+                        market_history::get_reference_price(&commodity, &restock_market_history)
+                            .unwrap_or(100.0);
+                    let producer_owner = task.ctx.buildings[building_idx].owner_id.clone();
+                    let producer_is_company = !producer_owner.is_empty()
+                        && producer_owner != store.owner_id
+                        && task.companies.iter().any(|c| c.id == producer_owner);
+                    let transfer_qty = if producer_is_company {
+                        let due = offer_qty * ref_price;
+                        let paid =
+                            crate::economy::trade::transfer_settler::debit_company_by_id(
+                                &mut task.companies,
+                                &store.owner_id,
+                                due,
+                            );
+                        if paid > 0.0 {
+                            crate::economy::trade::transfer_settler::credit_company_by_id(
+                                &mut task.companies,
+                                &producer_owner,
+                                paid,
+                            );
+                            offer_qty * (paid / due)
+                        } else {
+                            0.0
+                        }
+                    } else {
+                        offer_qty
+                    };
                     if transfer_qty <= 0.0 {
                         continue;
                     }
@@ -3343,12 +3419,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
                     // Add to retail store inventory
                     let key: String = commodity.into();
-                    // Phase 76: Use dynamic reference price instead of hardcoded 100.0.
-                    // Falls back to 100.0 only if no market history exists (should not
-                    // happen after Phase 76 generator fix that seeds global_base_prices).
-                    let ref_price =
-                        market_history::get_reference_price(&commodity, &restock_market_history)
-                            .unwrap_or(100.0);
                     let batch = InventoryBatch {
                         quantity: transfer_qty,
                         storage_turn: turn,
@@ -3832,18 +3902,33 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     }
                     continue;
                 }
-                let total_capacity: u32 = building_indices
+                // Entity-level seats = per-plant worker_capacity ×
+                // scale_factor (virtual plants per building entity).
+                let total_capacity: f64 = building_indices
                     .iter()
-                    .map(|&i| task.ctx.buildings[i].worker_capacity)
+                    .map(|&i| {
+                        let b = &task.ctx.buildings[i];
+                        b.worker_capacity as f64 * b.scale_factor.max(1) as f64
+                    })
                     .sum();
-                if total_capacity == 0 {
+                if total_capacity <= 0.0 {
                     continue;
                 }
                 for &i in building_indices {
                     let b = &task.ctx.buildings[i];
-                    let share = b.worker_capacity as f64 / total_capacity as f64;
+                    let entity_seats =
+                        b.worker_capacity as f64 * b.scale_factor.max(1) as f64;
+                    let share = entity_seats / total_capacity;
                     let employed = (total_fulfilled * share) as u32;
-                    task.ctx.buildings[i].current_employment = employed.min(b.worker_capacity);
+                    // current_employment is per-virtual-plant (genesis stores
+                    // initial_fte / scale_factor; the grid demand model and
+                    // aggregated_stats both multiply it back by scale_factor).
+                    // Writing the entity-total share here multiplied demand
+                    // by scale_factor a second time — 14GW phantom load in a
+                    // 3M-population country.
+                    let per_plant = (employed as f64 / b.scale_factor.max(1) as f64) as u32;
+                    task.ctx.buildings[i].current_employment =
+                        per_plant.min(b.worker_capacity);
                 }
             }
         });
@@ -6522,6 +6607,21 @@ tasks.par_iter_mut().for_each(|task| {
             let _propaganda_result =
                 process_propaganda_turn(task.ctx.country, info_result.consumption_ratio);
 
+            // 12-turn mandate: Local Services B2C clearing — the sector was
+            // generating supply with no consumer demand stream, forcing
+            // zero-revenue furloughs. Citizens now spend savings on
+            // LocalServicesCommodity through the standard service pipeline.
+            let local_services_needs =
+                populate_local_services_needs(task.ctx.country);
+            let _local_services_consumption = clear_local_services_b2c(
+                &mut task.ctx.buildings,
+                &mut task.companies,
+                task.ctx.country,
+                &local_services_needs,
+                &mut building_inventories,
+                &service_config,
+            );
+
             // Sync building inventories back from the temporary map
             for building in &mut task.ctx.buildings {
                 if let Some(inv) = building_inventories.get(&building.id) {
@@ -6750,7 +6850,10 @@ tasks.par_iter_mut().for_each(|task| {
             let mut company_output_commodities: std::collections::HashMap<String, Commodity> =
                 std::collections::HashMap::new();
             for building in &task.ctx.buildings {
-                let scale = building.current_employment as f64 / 1000.0;
+                // Per-virtual-plant employment x scale_factor = entity scale.
+                let scale = building.current_employment as f64
+                    * building.scale_factor.max(1) as f64
+                    / 1000.0;
                 let total_output: f64 =
                     building.active_method.outputs.values().sum::<f64>() * scale;
                 if total_output > 0.0 {

@@ -168,7 +168,12 @@ pub fn calculate_unit_cost(
     base_wage: f64,
 ) -> f64 {
     let method = &building.active_method;
-    let production_scale = building.current_employment as f64 / 1000.0;
+    // `current_employment` is per-virtual-plant; per-1k rates apply to the
+    // entity's total workforce (per-plant x scale_factor). Using the raw
+    // value under-costs every multi-plant entity by scale_factor.
+    let entity_employment =
+        building.current_employment as f64 * building.scale_factor.max(1) as f64;
+    let production_scale = entity_employment / 1000.0;
 
     let mut input_cost = 0.0;
     for (&commodity, &qty_per_1k) in &method.inputs {
@@ -176,7 +181,7 @@ pub fn calculate_unit_cost(
         input_cost += qty_per_1k * price * production_scale;
     }
 
-    let wage_cost = building.current_employment as f64 * base_wage;
+    let wage_cost = entity_employment * base_wage;
 
     let mut output_volume = 0.0;
     for (&_commodity, &qty_per_1k) in &method.outputs {
@@ -280,8 +285,23 @@ pub fn submit_company_b2b_orders(
             dynamic_markup
         };
 
-        // Maximum cash to encumber for input purchases
-        let max_encumber = liquid * config.max_cash_encumbrance_ratio;
+        // Maximum cash to encumber for input purchases.
+        // 12-turn mandate: procurement is solvency-bounded, not
+        // spendable-cash-bounded. Payroll and arrears drain `liquid` to ≤0
+        // economy-wide while companies still hold positive equity — under a
+        // pure cash gate, bids collapse to zero, sellers never get paid, and
+        // the input chain freezes permanently. Treat a bounded share of
+        // `company_capital` (fixed+liquid−liabilities) as a working-capital
+        // facility: the deficit lands in `available_cash` as implicit trade
+        // credit (same pattern as wage arrears) and is expensed into
+        // `liquid_capital` when the stock is consumed — insolvent firms
+        // still post nothing.
+        // `desired_qty` (2-turn input cover − on-hand) already bounds the
+        // bid volume to actual need, so the facility can extend to full net
+        // worth without over-procuring — the solvency bound is the real
+        // safety limit.
+        let working_capital_facility = liquid + company.company_capital.max(0.0);
+        let max_encumber = working_capital_facility * config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
 
         // Phase 94: Use pre-looked-up building indices instead of O(B) filter.
@@ -309,7 +329,16 @@ pub fn submit_company_b2b_orders(
             m
         };
 
-        // Submit Buy Bids for inputs
+        // Submit Buy Bids for inputs.
+        // 12-turn mandate: collect every input requirement first, then post
+        // all bids at a uniform coverage fraction of the facility. The naive
+        // in-order loop funded early BOM entries to 2-turn cover and starved
+        // later ones entirely — but fulfillment_ratio is the MINIMUM input
+        // ratio, so a single missing input pins production at 0 even when
+        // 90% of the BOM arrived. Covering every input at `coverage`
+        // fraction keeps the min ratio > 0 and production alive.
+        let mut input_requirements: Vec<(Commodity, f64, f64, f64)> = Vec::new();
+        let mut total_desired_encumbrance = 0.0_f64;
         for building in &company_buildings {
             let method = &building.active_method;
             // W9: procure against physical capacity, not current employment.
@@ -318,7 +347,12 @@ pub fn submit_company_b2b_orders(
             // restock to restart, a permanent-furlough ratchet. Capacity is
             // also the genesis seed basis, keeping bid cover symmetric with
             // the endowment it replaces.
-            let production_scale = building.worker_capacity as f64 / 1000.0;
+            // `worker_capacity` is per-virtual-plant — entity procurement
+            // needs the full seat count (x scale_factor), else a multi-plant
+            // entity bids for one plant while consuming at entity scale.
+            let production_scale = building.worker_capacity as f64
+                * building.scale_factor.max(1) as f64
+                / 1000.0;
 
             for (&commodity, &qty_per_1k) in &method.inputs {
                 // Phase 19B: Fixed-asset commodities (machinery/vehicles) are no
@@ -335,10 +369,7 @@ pub fn submit_company_b2b_orders(
 
                 // W7: bid the shortfall against on-hand stock, not the full
                 // per-turn requirement. A building already holding a 2-turn
-                // buffer bids nothing; one below cover tops up. Previously
-                // every building encumbered cash for its full BOM each turn,
-                // so the encumbrance cap fragmented the wallet across inputs
-                // it didn't need and the genuinely scarce ones went unfilled.
+                // buffer bids nothing; one below cover tops up.
                 let per_turn_need = qty_per_1k * production_scale;
                 let on_hand = building.inventory.get(&commodity).copied().unwrap_or(0.0);
                 let desired_qty = (per_turn_need * 2.0 - on_hand).max(0.0);
@@ -357,7 +388,7 @@ pub fn submit_company_b2b_orders(
 
                 // Phase 45: Dynamic buyer pricing with unfilled-order feedback.
                 // If this commodity had an unfilled bid last turn, raise the bid
-                // price by 10% above the last unfilled price. The ONLY ceiling
+                // price by 20% above the last unfilled price. The ONLY ceiling
                 // is the buyer's max_affordable_budget (cash encumbrance limit).
                 // NO profitability ceiling is applied.
                 let base_price = ref_price.unwrap();
@@ -367,60 +398,45 @@ pub fn submit_company_b2b_orders(
                     .copied()
                     .unwrap_or(0.0);
                 let limit_price = if last_unfilled > 0.0 {
-                    // Raise bid by 20% above last unfilled price — the spread
-                    // deadlock showed +10%/turn converged too slowly against
-                    // capped asks (~1.43× gap → ~4 turns to cross).
                     (last_unfilled * 1.20).max(base_price * (1.0 + config.buy_premium_ratio))
                 } else {
                     base_price * (1.0 + config.buy_premium_ratio)
                 };
                 // Phase 25: Include a freight cost reserve in the encumbrance so
                 // buyers have enough cash to pay for transport when the trade settles.
-                // Without this, buyers encumber only the commodity cost and then
-                // can't afford freight, causing trades to fail with UnaffordableFreight.
                 let commodity_cost = desired_qty * limit_price;
                 let freight_reserve = commodity_cost * config.freight_cost_reserve_ratio;
                 let encumbrance = commodity_cost + freight_reserve;
 
-                // Check if we can afford this bid
-                if total_encumbered + encumbrance > max_encumber {
-                    let remaining = max_encumber - total_encumbered;
-                    if remaining <= 0.0 || limit_price <= 0.0 {
-                        continue;
-                    }
-                    // Phase 25: affordable_qty must account for the freight reserve too.
-                    let total_per_unit = limit_price * (1.0 + config.freight_cost_reserve_ratio);
-                    let affordable_qty = remaining / total_per_unit;
-                    if affordable_qty <= 0.0 {
-                        continue;
-                    }
-                    // Submit partial bid (encumber commodity cost + freight reserve)
-                    let partial_encumbrance = affordable_qty * total_per_unit;
-                    encumber_cash(company, partial_encumbrance);
-                    total_encumbered += partial_encumbrance;
-
-                    order_book.bids.entry(commodity).or_default().push(Bid {
-                        buyer_id: company.id.clone(),
-                        commodity,
-                        quantity: affordable_qty,
-                        limit_price,
-                        blueprint_id: None,
-                        min_quality: None,
-                    });
-                } else {
-                    encumber_cash(company, encumbrance);
-                    total_encumbered += encumbrance;
-
-                    order_book.bids.entry(commodity).or_default().push(Bid {
-                        buyer_id: company.id.clone(),
-                        commodity,
-                        quantity: desired_qty,
-                        limit_price,
-                        blueprint_id: None,
-                        min_quality: None,
-                    });
-                }
+                input_requirements.push((commodity, desired_qty, limit_price, encumbrance));
+                total_desired_encumbrance += encumbrance;
             }
+        }
+
+        let coverage = if total_desired_encumbrance > max_encumber
+            && total_desired_encumbrance > 0.0
+        {
+            (max_encumber / total_desired_encumbrance).max(0.0)
+        } else {
+            1.0
+        };
+        for &(commodity, desired_qty, limit_price, encumbrance) in &input_requirements {
+            let bid_qty = desired_qty * coverage;
+            let bid_encumbrance = encumbrance * coverage;
+            if bid_qty <= 0.0 || bid_encumbrance <= 0.0 {
+                continue;
+            }
+            encumber_cash(company, bid_encumbrance);
+            total_encumbered += bid_encumbrance;
+
+            order_book.bids.entry(commodity).or_default().push(Bid {
+                buyer_id: company.id.clone(),
+                commodity,
+                quantity: bid_qty,
+                limit_price,
+                blueprint_id: None,
+                min_quality: None,
+            });
         }
 
         // Phase 23A: Submit Buy Bids for Draft Animal maintenance (Fodder + Water).
@@ -488,7 +504,9 @@ pub fn submit_company_b2b_orders(
         // Submit Sell Asks for outputs
         for building in &company_buildings {
             let method = &building.active_method;
-            let production_scale = building.current_employment as f64 / 1000.0;
+            let production_scale = building.current_employment as f64
+                * building.scale_factor.max(1) as f64
+                / 1000.0;
 
             // Calculate unit cost for this building's output
             let mut ref_prices: HashMap<Commodity, f64> = HashMap::default();
@@ -531,7 +549,9 @@ pub fn submit_company_b2b_orders(
                     .get(&commodity)
                     .copied()
                     .unwrap_or(0.0)
-                    * (building.worker_capacity as f64 / 1000.0)
+                    * (building.worker_capacity as f64
+                        * building.scale_factor.max(1) as f64
+                        / 1000.0)
                     * 6.0;
                 let total_available =
                     (inventory_qty + production_qty - input_reserve).max(0.0);
@@ -984,30 +1004,67 @@ pub fn settle_trades(
             .get(&trade.buyer_id)
             .map(|v| v.as_slice())
             .unwrap_or(&[]);
-        let mut buyer_b_idx = None;
+        // W11: Company-level bids aggregate every consuming building's need,
+        // so a filled trade must be SPLIT across those buildings. Routing the
+        // whole quantity to the first match concentrated all purchased inputs
+        // in one building while its siblings starved at fulfillment_ratio=0 —
+        // multi-building companies ended up with one producing plant and N
+        // payroll-only clones. Weight each consumer's share by its remaining
+        // input deficit (the same need×2 − on_hand basis the bid was sized
+        // on); a stocked building steps aside until its deficit reopens.
+        // (idx, deficit, gross_need)
+        let mut recipients: Vec<(usize, f64, f64)> = Vec::new();
         for &i in buyer_buildings {
             let b = &buildings[i];
-            if b.active_method.inputs.contains_key(&trade.commodity)
-                || b.active_project
-                    .as_ref()
-                    .map(|p| p.required_materials.contains_key(&trade.commodity))
-                    .unwrap_or(false)
-            {
-                buyer_b_idx = Some(i);
-                break;
+            let in_method = b.active_method.inputs.contains_key(&trade.commodity);
+            let in_project = b
+                .active_project
+                .as_ref()
+                .map(|p| p.required_materials.contains_key(&trade.commodity))
+                .unwrap_or(false);
+            if !in_method && !in_project {
+                continue;
+            }
+            let need = b
+                .active_method
+                .inputs
+                .get(&trade.commodity)
+                .copied()
+                .unwrap_or(0.0)
+                * (b.worker_capacity as f64 * b.scale_factor.max(1) as f64 / 1000.0);
+            let on_hand = b
+                .inventory
+                .get(&trade.commodity)
+                .copied()
+                .unwrap_or(0.0);
+            let deficit = (need * 2.0 - on_hand).max(0.0);
+            recipients.push((i, deficit, need));
+        }
+        if recipients.is_empty() {
+            // No building consumes it — legacy fallback: first building.
+            if let Some(&i) = buyer_buildings.first() {
+                recipients.push((i, 1.0, 1.0));
+            }
+        } else if recipients.iter().all(|r| r.1 <= 0.0) {
+            // Every consumer is stocked past its buffer — split by gross need
+            // so the largest plants still take the largest share.
+            for r in &mut recipients {
+                r.1 = r.2.max(1.0);
             }
         }
-        if buyer_b_idx.is_none() {
-            buyer_b_idx = buyer_buildings.first().copied();
-        }
-        if let Some(idx) = buyer_b_idx {
-            let building = &mut buildings[idx];
 
-            // Phase 95: If the commodity is a fixed asset, install it as a
-            // FixedAssetCohort with the trade's blueprint/quality metadata.
-            // This ensures physical asset capacity is increased only by
-            // delivered goods with known provenance (Rule 15, Rule 4).
-            if trade.commodity.is_fixed_asset() {
+        // Phase 95: If the commodity is a fixed asset, install it as a
+        // FixedAssetCohort with the trade's blueprint/quality metadata.
+        // This ensures physical asset capacity is increased only by
+        // delivered goods with known provenance (Rule 15, Rule 4).
+        // Discrete asset units are not fractionally splittable — deliver the
+        // whole cohort to the largest-deficit consumer.
+        if trade.commodity.is_fixed_asset() {
+            if let Some(&(idx, _, _)) = recipients
+                .iter()
+                .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+            {
+                let building = &mut buildings[idx];
                 let blueprint_id = trade.blueprint_id.clone().unwrap_or_default();
                 let quality = trade.quality.unwrap_or(0.0);
                 let durability = trade.durability.unwrap_or(0.0);
@@ -1027,16 +1084,28 @@ pub fn settle_trades(
                     cohort,
                     gen_config,
                 );
-            } else {
+            }
+        } else {
+            let total_w: f64 = recipients.iter().map(|r| r.1).sum();
+            for &(idx, w, _) in &recipients {
+                let share = if total_w > 0.0 {
+                    trade.quantity * w / total_w
+                } else {
+                    0.0
+                };
+                if share <= 0.0 {
+                    continue;
+                }
+                let building = &mut buildings[idx];
                 // Non-fixed-asset: add to flat inventory.
-                *building.inventory.entry(trade.commodity).or_insert(0.0) += trade.quantity;
+                *building.inventory.entry(trade.commodity).or_insert(0.0) += share;
 
                 // Phase 95: If blueprint-eligible, also add to inventory cohorts.
                 if trade.commodity.is_blueprint_eligible() {
                     let cohort = crate::economy::fixed_assets::InventoryCohort::new(
                         trade.blueprint_id.clone().unwrap_or_default(),
                         trade.commodity,
-                        trade.quantity,
+                        share,
                         trade.quality.unwrap_or(0.0),
                         trade.durability.unwrap_or(0.0),
                         current_turn,
@@ -1096,7 +1165,7 @@ pub fn settle_trades(
                     .get(&trade.commodity)
                     .copied()
                     .unwrap_or(0.0)
-                    * (b.worker_capacity as f64 / 1000.0)
+                    * (b.worker_capacity as f64 * b.scale_factor.max(1) as f64 / 1000.0)
                     * 4.0;
                 (held - reserve).max(0.0)
             };
@@ -1658,7 +1727,12 @@ pub fn execute_production_cycle(
         }
 
         let method = &building.active_method;
-        let production_scale = building.current_employment as f64 / 1000.0;
+        // `current_employment` is per-virtual-plant; per-1k BOM rates (and
+        // genesis output calibrations) target the entity's total workforce,
+        // so scale must be per-plant x scale_factor / 1000.
+        let production_scale = building.current_employment as f64
+            * building.scale_factor.max(1) as f64
+            / 1000.0;
         let efficiency = method.efficiency;
 
         // Phase 19B: Fixed-asset cohorts provide a capacity multiplier.
@@ -1995,7 +2069,7 @@ pub fn execute_production_cycle(
         // whose outputs are at least half as valuable (in aggregate) as its
         // inputs — the normal case for a functioning BOM.
         let value_price = |c: Commodity| {
-            crate::engine::generator::corporate::estimated_base_price(c)
+            crate::engine::generator::corporate::anchored_base_price(c)
         };
         let input_costs: f64 = inputs_consumed
             .iter()
@@ -2337,7 +2411,9 @@ pub fn submit_fixed_asset_purchase_bids(
         for &i in company_building_indices {
             let building = &buildings[i];
             let method = &building.active_method;
-            let production_scale = building.current_employment as f64 / 1000.0;
+            let production_scale = building.current_employment as f64
+                * building.scale_factor.max(1) as f64
+                / 1000.0;
 
             for (&commodity, &qty_per_1k) in &method.inputs {
                 // Only fixed-asset commodities (skipped by the normal bid loop).
