@@ -56,7 +56,10 @@ use tempfile::TempDir;
 const OUTPUT_DIR: &str = "tests/diagnostic_output";
 
 /// Number of turns to run — the Turn-3 bankruptcy cascade is captured.
-const TURNS: u32 = 4;
+// 12-turn mandate: the 4-turn horizon was a band-aid — real-world simulation
+// showed catastrophic structural collapse by Turn 6 (1B-FTE labor bug,
+// 320% grid overproduction, service-sector starvation, bank extinction).
+const TURNS: u32 = 12;
 
 /// Per-class savings snapshot for the propensity-to-consume probe.
 #[derive(Debug, Clone, serde::Serialize)]
@@ -340,13 +343,15 @@ fn test_market_gridlock_diagnostic() {
             }
         }
     }
-    if surviving_banks == 0 {
-        eprintln!(
-            "BANK-SURVIVAL WARN: zero banks survived {} turns — all were \
-             liquidated or despawned. Reserve-floor assertions were vacuous.",
-            TURNS
-        );
-    }
+    // 12-turn mandate (BANK-1): commercial banking must remain an active
+    // sector — zero survivors means reserve drains/liquidation cascades
+    // exterminated the credit system.
+    assert!(
+        surviving_banks > 0,
+        "BANK-1 FAIL: zero commercial banks survived {} turns — all were \
+         liquidated or despawned. The credit system is extinct.",
+        TURNS
+    );
 
     // ========================================================================
     // PROBE 3a: Wage Transfer Conservation
@@ -537,6 +542,86 @@ fn test_market_gridlock_diagnostic() {
     println!("  Diagnostic dump:        {:?}", dump_path);
     println!("═══════════════════════════════════════════════════════════════");
     println!();
+
+    // ========================================================================
+    // 12-TURN CRUCIBLE ASSERTS
+    // ========================================================================
+    // Turn-6 real-world simulation exposed: Energy companies spawned at
+    // 65M+ FTE against a 3M-population country, the grid ran 320% supply/
+    // demand into GridDamage, Local Services booked zero revenue, and
+    // commercial banks went extinct. These asserts make each failure mode
+    // impossible rather than diagnostic-only.
+    //
+    // LABOR-0: no company may employ people who do not exist. The genesis
+    // caps in corporate.rs bound fulfilled_fte to real demographics; this
+    // assert is the backstop proving no path resurrects the overflow.
+    let total_population: f64 = state
+        .countries
+        .values()
+        .map(|c| c.budget.population as f64)
+        .sum();
+    let total_employment: f64 = ctx
+        .entities
+        .values()
+        .flat_map(|ents| ents.companies.iter())
+        .map(|c| c.fulfilled_fte as f64)
+        .sum();
+    assert!(
+        total_employment <= total_population,
+        "LABOR-0 FAIL: total employment {:.0} exceeds total population {:.0} \
+         — world-gen minted workers who do not exist.",
+        total_employment,
+        total_population
+    );
+
+    // GRID-0: effective supply must stay under 1.5x demand in EVERY region.
+    // The load-following throttle caps dispatch at demand x 1.15; >1.5 means
+    // plants dumped nameplate onto the wire into GridDamage territory.
+    let mut worst_grid_ratio = 0.0_f64;
+    let mut worst_grid_region = String::new();
+    for country in state.countries.values() {
+        for (region_id, &demand) in &country.power_grid_state.region_demand_mw {
+            if demand <= 0.0 {
+                continue;
+            }
+            let supply = country
+                .power_grid_state
+                .region_effective_supply_mw
+                .get(region_id)
+                .copied()
+                .unwrap_or(0.0);
+            let ratio = supply / demand;
+            if ratio > worst_grid_ratio {
+                worst_grid_ratio = ratio;
+                worst_grid_region = region_id.clone();
+            }
+        }
+    }
+    assert!(
+        worst_grid_ratio < 1.5,
+        "GRID-0 FAIL: worst regional supply/demand ratio {:.2}x >= 1.5 \
+         (region {}) — load-following throttle is not preventing \
+         grid-damaging overproduction.",
+        worst_grid_ratio,
+        worst_grid_region
+    );
+
+    // SERVICES-0: Local Services must book actual revenue — the consumer
+    // basket demand stream (clear_local_services_b2c) is wired, so a zero
+    // means citizens are not paying for services at all.
+    let services_sector_revenue: f64 = diagnostic
+        .company_income
+        .iter()
+        .filter(|c| c.sector == "LocalServices")
+        .map(|c| c.last_revenue)
+        .sum();
+    assert!(
+        services_sector_revenue > 0.0,
+        "SERVICES-0 FAIL: Local Services booked $0 revenue over {} turns — \
+         the B2C consumer-basket wiring is dead; sector survives only on \
+         fire-sales and furloughs.",
+        TURNS
+    );
 
     // ========================================================================
     // MACRO-HEALTH HARD ASSERTS (Phase 96)

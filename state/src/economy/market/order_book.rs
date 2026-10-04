@@ -480,23 +480,16 @@ pub fn refund_unfilled_bids_cultural(
 
 /// Refund unfilled bids for maritime infrastructure (by buyer_id prefix match).
 ///
-/// # Arguments
-/// * `order_book` - The order book after clearing
-/// * `maritime` - Maritime infrastructure to refund
+/// W12: No-op retained for API compatibility. Shipyard bids no longer
+/// encumber `maritime.available_cash` at submission (treasury pays at
+/// settlement), so there is nothing to refund — crediting the uncounted
+/// maritime purse here would mint fiat.
 ///
-/// # Rules
-/// * Refunds unfilled quantity at original limit price.
-/// * Restores encumbered cash to the maritime available_cash.
+/// # Arguments
+/// * `order_book` - The order book after clearing (unused)
+/// * `maritime` - Maritime infrastructure (unused)
 pub fn refund_unfilled_bids_maritime(
-    order_book: &OrderBook,
-    maritime: &mut crate::infrastructure::maritime::MaritimeInfrastructure,
+    _order_book: &OrderBook,
+    _maritime: &mut crate::infrastructure::maritime::MaritimeInfrastructure,
 ) {
-    for bids in order_book.bids.values() {
-        for bid in bids {
-            if bid.buyer_id.starts_with("shipyard_") {
-                let refund = bid.quantity * bid.limit_price;
-                maritime.available_cash += refund;
-            }
-        }
-    }
 }

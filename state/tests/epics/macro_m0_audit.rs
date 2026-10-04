@@ -48,27 +48,45 @@ use sim_engine::registries::Registries;
 use sim_engine::state::Country;
 use tempfile::TempDir;
 
-/// Compute M0 base money from a Country, its companies, and the global market.
+/// Compute M0 base money from a Country, its entities, and the global market.
 ///
-/// Matches the canonical `walk_global_fiat` computation from diagnostic.rs:
+/// Mirrors the canonical `walk_global_fiat` total from diagnostic.rs exactly —
+/// every physical-fiat pocket must be counted or flows into it register as
+/// phantom destruction:
 /// M0 = treasury_cash + citizen_cash + bank_reserves + offshore_capital
-///      + see_charity_pool + ministry_cash
+///      + foreign_sector_balance + see_charity_pool + ministry_cash
+///      + arbitration_escrow + intelligence_budget + international_org_budgets
+///      + corporate_cash (unbanked only) + debit_cash (unbanked only)
+///      + frozen_cash
 ///
 /// where:
 /// - treasury_cash = budget.liquid_reserves + regional/megaregion budgets
-/// - citizen_cash = sum of all demo.savings (physical cash in circulation)
+///   + STATE_/LOCAL_ building.reserve (public-building cash)
+///   + maritime_infrastructure.available_cash (W12: state maritime purse)
+/// - citizen_cash = demo.savings + cultural_institutions.available_cash
 /// - bank_reserves = bank reserves_at_central_bank + cb_deposit_facility
 ///   + BFG reserves + SOBK pool
-/// - ministry_cash = sum of ministry.ministry_cash
+/// - corporate_cash = unbanked companies' available_cash + brokerage cash
+///   + rd_budget + building.reserve owned by unbanked companies
+/// - ministry_cash = ministry.ministry_cash + ministry_public_service_pool
+///
+/// Banked corporate cash is M1 (backed by bank deposits — already counted in
+/// reserves). `black_ops_budget` is intentionally excluded: it is a reporting
+/// mirror of `intelligence_budget.current_budget`, so counting both would
+/// double-count the same fiat pool (see diagnostic.rs:665).
 fn compute_m0(
     country: &Country,
     companies: &[Company],
+    buildings: &[sim_engine::entities::Building],
     market: &sim_engine::economy::market::GlobalMarket,
 ) -> f64 {
     let mut treasury_cash: f64 = 0.0;
     let mut citizen_cash: f64 = 0.0;
     let mut bank_reserves: f64 = 0.0;
+    let mut corporate_cash: f64 = 0.0;
+    let mut debit_cash: f64 = 0.0;
     let mut ministry_cash: f64 = 0.0;
+    let mut frozen_cash: f64 = 0.0;
 
     // Treasury liquid reserves
     treasury_cash += country.budget.liquid_reserves;
@@ -92,34 +110,91 @@ fn compute_m0(
         }
     }
 
-    // Ministry cash pockets + pending defense orders (encumbered treasury cash)
+    // Cultural institution cash is physical fiat (citizen bucket, like the walk)
+    for building in &country.cultural_institutions {
+        citizen_cash += building.available_cash;
+    }
+
+    // STATE_/LOCAL_ public building reserves are government cash (treasury bucket)
+    let unbanked_ids: std::collections::HashSet<String> = companies
+        .iter()
+        .filter(|c| {
+            c.primary_bank_id.is_none()
+                && c.sector != sim_engine::registries::enums::Sector::Banking
+        })
+        .map(|c| c.id.clone())
+        .collect();
+    for building in buildings {
+        if building.owner_id.starts_with("STATE_") || building.owner_id.starts_with("LOCAL_") {
+            treasury_cash += building.reserve;
+        } else if building.reserve > 0.0 && unbanked_ids.contains(&building.owner_id) {
+            corporate_cash += building.reserve;
+        }
+    }
+
+    // Ministry cash pockets + the public-service wage pool
     if let Some(ref config) = country.politics.ministry_config {
         for ministry in &config.ministries {
             ministry_cash += ministry.ministry_cash;
         }
     }
-    // Pending defense orders are M0 — treasury debited at encumbrance time
-    for bid in &country.pending_defense_orders {
-        ministry_cash += bid.quantity * bid.limit_price;
-    }
+    ministry_cash += country.ministry_public_service_pool;
 
-    // Bank reserves + BFG + SOBK
+    // W12: Maritime infrastructure purse is state cash (matches the walk).
+    treasury_cash += country.maritime_infrastructure.available_cash;
+
+    // Bank reserves + BFG + SOBK; unbanked corporate cash is physical fiat (M0),
+    // banked corporate cash is M1 (uncounted — backed by counted reserves).
     bank_reserves += country.bfg_fund.reserves;
     bank_reserves += country.sobk_scheme.pool;
     for company in companies {
-        if company.bank_type.is_some() {
+        if company.sector == sim_engine::registries::enums::Sector::Banking {
             if let Some(ref bs) = company.balance_sheet {
                 bank_reserves += bs.reserves_at_central_bank;
                 bank_reserves += bs.cb_deposit_facility_balance;
             }
         }
+        if company.sector != sim_engine::registries::enums::Sector::Banking
+            && company.primary_bank_id.is_none()
+        {
+            corporate_cash += company.available_cash
+                + company
+                    .brokerage_account
+                    .as_ref()
+                    .map(|ba| ba.cash)
+                    .unwrap_or(0.0)
+                + company.rd_budget;
+            debit_cash += company.debit_cash;
+        }
     }
 
-    // Offshore + charity
-    let offshore_capital = market.offshore_capital;
-    let see_charity_pool = market.apostolic_see_ledger.global_charity_pool;
+    // Justice-frozen company cash stays fiat until courts release it
+    if let Some(ref js) = country.politics.justice_state {
+        for &amount in js.frozen_company_cash.values() {
+            frozen_cash += amount.max(0.0);
+        }
+    }
 
-    treasury_cash + citizen_cash + bank_reserves + offshore_capital + see_charity_pool + ministry_cash
+    let offshore_capital = market.offshore_capital;
+    let foreign_sector_balance = market.foreign_sector_balance;
+    let see_charity_pool = market.apostolic_see_ledger.global_charity_pool;
+    let international_org_budgets = market.international_org_budgets;
+    let arbitration_escrow = country.arbitration_court.unclaimed_arbitration_funds;
+    let intelligence_budget = country.intelligence_budget.current_budget;
+
+    treasury_cash
+        + citizen_cash
+        + bank_reserves
+        + offshore_capital
+        + foreign_sector_balance
+        + see_charity_pool
+        + ministry_cash
+        + arbitration_escrow
+        + intelligence_budget
+        + international_org_budgets
+        + corporate_cash
+        + debit_cash
+        + frozen_cash
 }
 
 /// Compute total central bank liquidity injected.
@@ -176,6 +251,18 @@ fn get_primary_companies(ctx: &InMemoryTurnContext, state: &sim_engine::state::G
         .unwrap_or_default()
 }
 
+/// Extract buildings for the primary country from the turn context.
+fn get_primary_buildings(
+    ctx: &InMemoryTurnContext,
+    state: &sim_engine::state::GameState,
+) -> Vec<sim_engine::entities::Building> {
+    let country_name = state.countries.keys().next().expect("expected country");
+    ctx.entities
+        .get(country_name)
+        .map(|e| e.buildings.clone())
+        .unwrap_or_default()
+}
+
 /// Run a 1-turn simulation and verify M0 conservation.
 #[test]
 fn test_m0_conservation_single_turn() {
@@ -207,7 +294,7 @@ fn test_m0_conservation_single_turn() {
     // Compute M0 BEFORE the turn
     let country_before = get_primary_country(&state).clone();
     let companies_before = get_primary_companies(&ctx, &state);
-    let bucket_deltas = |a: &Country, b: &Country, ca: &[Company], cb: &[Company], ma: &sim_engine::economy::market::GlobalMarket, mb: &sim_engine::economy::market::GlobalMarket| {
+    let bucket_deltas = |a: &Country, b: &Country, ca: &[Company], cb: &[Company], _ma: &sim_engine::economy::market::GlobalMarket, mb: &sim_engine::economy::market::GlobalMarket| {
         let t = |c: &Country| -> (f64, f64, f64) {
             let mut tre = c.budget.liquid_reserves;
             let mut cit = 0.0;
@@ -219,26 +306,39 @@ fn test_m0_conservation_single_turn() {
             for m in &c.megaregions {
                 if let Some(ref g) = m.governance { tre += g.budget.liquid_reserves; }
             }
+            for b_ in &c.cultural_institutions { cit += b_.available_cash; }
+            tre += c.maritime_infrastructure.available_cash;
             let mut min = 0.0;
             if let Some(ref cfg) = c.politics.ministry_config {
                 for x in &cfg.ministries { min += x.ministry_cash; }
             }
-            for bid in &c.pending_defense_orders { min += bid.quantity * bid.limit_price; }
+            min += c.ministry_public_service_pool;
             (tre, cit, min)
         };
         let res = |cs: &[Company]| -> f64 {
-            cs.iter().filter(|c| c.bank_type.is_some()).filter_map(|c| c.balance_sheet.as_ref()).map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance).sum()
+            cs.iter().filter(|c| c.sector == sim_engine::registries::enums::Sector::Banking).filter_map(|c| c.balance_sheet.as_ref()).map(|bs| bs.reserves_at_central_bank + bs.cb_deposit_facility_balance).sum()
+        };
+        let corp = |cs: &[Company]| -> f64 {
+            cs.iter()
+                .filter(|c| c.sector != sim_engine::registries::enums::Sector::Banking && c.primary_bank_id.is_none())
+                .map(|c| c.available_cash + c.brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0) + c.rd_budget + c.debit_cash)
+                .sum()
         };
         let (ta, ca_, ma_) = t(a); let (tb, cb_, mb_) = t(b);
-        eprintln!("M0_BUCKETS: treasury={:+.0} citizen={:+.0} ministry={:+.0} bankres={:+.0} bfg={:+.0} sobk={:+.0} offshore={:+.0} charity={:+.0}",
+        eprintln!("M0_BUCKETS: treasury={:+.0} citizen={:+.0} ministry={:+.0} bankres={:+.0} bfg={:+.0} sobk={:+.0} offshore={:+.0} charity={:+.0} corp={:+.0} foreign={:+.0} intel={:+.0} iob={:+.0}",
             tb - ta, cb_ - ca_, mb_ - ma_,
             res(cb) - res(ca),
             b.bfg_fund.reserves - a.bfg_fund.reserves,
             b.sobk_scheme.pool - a.sobk_scheme.pool,
-            mb.offshore_capital - ma.offshore_capital,
-            mb.apostolic_see_ledger.global_charity_pool - ma.apostolic_see_ledger.global_charity_pool);
+            mb.offshore_capital - _ma.offshore_capital,
+            mb.apostolic_see_ledger.global_charity_pool - _ma.apostolic_see_ledger.global_charity_pool,
+            corp(cb) - corp(ca),
+            mb.foreign_sector_balance - _ma.foreign_sector_balance,
+            b.intelligence_budget.current_budget - a.intelligence_budget.current_budget,
+            mb.international_org_budgets - _ma.international_org_budgets);
     };
-    let fiat_before = compute_m0(&country_before, &companies_before, &ctx.market);
+    let buildings_before = get_primary_buildings(&ctx, &state);
+    let fiat_before = compute_m0(&country_before, &companies_before, &buildings_before, &ctx.market);
     let cb_injected_before = compute_cb_injected(&country_before);
     let treasury_ext_before = compute_treasury_external(&country_before);
 
@@ -275,7 +375,8 @@ fn test_m0_conservation_single_turn() {
     // Compute M0 AFTER the turn
     let country_after = get_primary_country(&state).clone();
     let companies_after = get_primary_companies(&ctx, &state);
-    let fiat_after = compute_m0(&country_after, &companies_after, &ctx.market);
+    let buildings_after = get_primary_buildings(&ctx, &state);
+    let fiat_after = compute_m0(&country_after, &companies_after, &buildings_after, &ctx.market);
     bucket_deltas(
         &country_before, &country_after, &companies_before, &companies_after,
         &ctx.market, &ctx.market,
@@ -372,7 +473,8 @@ fn test_m0_conservation_six_turns() {
         // Compute M0 BEFORE this turn
         let country_before = get_primary_country(&state).clone();
         let companies_before = get_primary_companies(&ctx, &state);
-        let fiat_before = compute_m0(&country_before, &companies_before, &ctx.market);
+        let buildings_before = get_primary_buildings(&ctx, &state);
+        let fiat_before = compute_m0(&country_before, &companies_before, &buildings_before, &ctx.market);
         let cb_before = compute_cb_injected(&country_before);
         let ext_before = compute_treasury_external(&country_before);
 
@@ -388,7 +490,8 @@ fn test_m0_conservation_six_turns() {
         // Compute M0 AFTER this turn
         let country_after = get_primary_country(&state).clone();
         let companies_after = get_primary_companies(&ctx, &state);
-        let fiat_after = compute_m0(&country_after, &companies_after, &ctx.market);
+        let buildings_after = get_primary_buildings(&ctx, &state);
+        let fiat_after = compute_m0(&country_after, &companies_after, &buildings_after, &ctx.market);
         let cb_after = compute_cb_injected(&country_after);
         let ext_after = compute_treasury_external(&country_after);
 

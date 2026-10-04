@@ -168,7 +168,12 @@ pub fn calculate_unit_cost(
     base_wage: f64,
 ) -> f64 {
     let method = &building.active_method;
-    let production_scale = building.current_employment as f64 / 1000.0;
+    // `current_employment` is per-virtual-plant; per-1k rates apply to the
+    // entity's total workforce (per-plant x scale_factor). Using the raw
+    // value under-costs every multi-plant entity by scale_factor.
+    let entity_employment =
+        building.current_employment as f64 * building.scale_factor.max(1) as f64;
+    let production_scale = entity_employment / 1000.0;
 
     let mut input_cost = 0.0;
     for (&commodity, &qty_per_1k) in &method.inputs {
@@ -176,7 +181,7 @@ pub fn calculate_unit_cost(
         input_cost += qty_per_1k * price * production_scale;
     }
 
-    let wage_cost = building.current_employment as f64 * base_wage;
+    let wage_cost = entity_employment * base_wage;
 
     let mut output_volume = 0.0;
     for (&_commodity, &qty_per_1k) in &method.outputs {
@@ -280,8 +285,23 @@ pub fn submit_company_b2b_orders(
             dynamic_markup
         };
 
-        // Maximum cash to encumber for input purchases
-        let max_encumber = liquid * config.max_cash_encumbrance_ratio;
+        // Maximum cash to encumber for input purchases.
+        // 12-turn mandate: procurement is solvency-bounded, not
+        // spendable-cash-bounded. Payroll and arrears drain `liquid` to ≤0
+        // economy-wide while companies still hold positive equity — under a
+        // pure cash gate, bids collapse to zero, sellers never get paid, and
+        // the input chain freezes permanently. Treat a bounded share of
+        // `company_capital` (fixed+liquid−liabilities) as a working-capital
+        // facility: the deficit lands in `available_cash` as implicit trade
+        // credit (same pattern as wage arrears) and is expensed into
+        // `liquid_capital` when the stock is consumed — insolvent firms
+        // still post nothing.
+        // `desired_qty` (2-turn input cover − on-hand) already bounds the
+        // bid volume to actual need, so the facility can extend to full net
+        // worth without over-procuring — the solvency bound is the real
+        // safety limit.
+        let working_capital_facility = liquid + company.company_capital.max(0.0);
+        let max_encumber = working_capital_facility * config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
 
         // Phase 94: Use pre-looked-up building indices instead of O(B) filter.
@@ -309,7 +329,16 @@ pub fn submit_company_b2b_orders(
             m
         };
 
-        // Submit Buy Bids for inputs
+        // Submit Buy Bids for inputs.
+        // 12-turn mandate: collect every input requirement first, then post
+        // all bids at a uniform coverage fraction of the facility. The naive
+        // in-order loop funded early BOM entries to 2-turn cover and starved
+        // later ones entirely — but fulfillment_ratio is the MINIMUM input
+        // ratio, so a single missing input pins production at 0 even when
+        // 90% of the BOM arrived. Covering every input at `coverage`
+        // fraction keeps the min ratio > 0 and production alive.
+        let mut input_requirements: Vec<(Commodity, f64, f64, f64)> = Vec::new();
+        let mut total_desired_encumbrance = 0.0_f64;
         for building in &company_buildings {
             let method = &building.active_method;
             // W9: procure against physical capacity, not current employment.
@@ -318,7 +347,12 @@ pub fn submit_company_b2b_orders(
             // restock to restart, a permanent-furlough ratchet. Capacity is
             // also the genesis seed basis, keeping bid cover symmetric with
             // the endowment it replaces.
-            let production_scale = building.worker_capacity as f64 / 1000.0;
+            // `worker_capacity` is per-virtual-plant — entity procurement
+            // needs the full seat count (x scale_factor), else a multi-plant
+            // entity bids for one plant while consuming at entity scale.
+            let production_scale = building.worker_capacity as f64
+                * building.scale_factor.max(1) as f64
+                / 1000.0;
 
             for (&commodity, &qty_per_1k) in &method.inputs {
                 // Phase 19B: Fixed-asset commodities (machinery/vehicles) are no
@@ -335,10 +369,7 @@ pub fn submit_company_b2b_orders(
 
                 // W7: bid the shortfall against on-hand stock, not the full
                 // per-turn requirement. A building already holding a 2-turn
-                // buffer bids nothing; one below cover tops up. Previously
-                // every building encumbered cash for its full BOM each turn,
-                // so the encumbrance cap fragmented the wallet across inputs
-                // it didn't need and the genuinely scarce ones went unfilled.
+                // buffer bids nothing; one below cover tops up.
                 let per_turn_need = qty_per_1k * production_scale;
                 let on_hand = building.inventory.get(&commodity).copied().unwrap_or(0.0);
                 let desired_qty = (per_turn_need * 2.0 - on_hand).max(0.0);
@@ -357,7 +388,7 @@ pub fn submit_company_b2b_orders(
 
                 // Phase 45: Dynamic buyer pricing with unfilled-order feedback.
                 // If this commodity had an unfilled bid last turn, raise the bid
-                // price by 10% above the last unfilled price. The ONLY ceiling
+                // price by 20% above the last unfilled price. The ONLY ceiling
                 // is the buyer's max_affordable_budget (cash encumbrance limit).
                 // NO profitability ceiling is applied.
                 let base_price = ref_price.unwrap();
@@ -367,60 +398,45 @@ pub fn submit_company_b2b_orders(
                     .copied()
                     .unwrap_or(0.0);
                 let limit_price = if last_unfilled > 0.0 {
-                    // Raise bid by 20% above last unfilled price — the spread
-                    // deadlock showed +10%/turn converged too slowly against
-                    // capped asks (~1.43× gap → ~4 turns to cross).
                     (last_unfilled * 1.20).max(base_price * (1.0 + config.buy_premium_ratio))
                 } else {
                     base_price * (1.0 + config.buy_premium_ratio)
                 };
                 // Phase 25: Include a freight cost reserve in the encumbrance so
                 // buyers have enough cash to pay for transport when the trade settles.
-                // Without this, buyers encumber only the commodity cost and then
-                // can't afford freight, causing trades to fail with UnaffordableFreight.
                 let commodity_cost = desired_qty * limit_price;
                 let freight_reserve = commodity_cost * config.freight_cost_reserve_ratio;
                 let encumbrance = commodity_cost + freight_reserve;
 
-                // Check if we can afford this bid
-                if total_encumbered + encumbrance > max_encumber {
-                    let remaining = max_encumber - total_encumbered;
-                    if remaining <= 0.0 || limit_price <= 0.0 {
-                        continue;
-                    }
-                    // Phase 25: affordable_qty must account for the freight reserve too.
-                    let total_per_unit = limit_price * (1.0 + config.freight_cost_reserve_ratio);
-                    let affordable_qty = remaining / total_per_unit;
-                    if affordable_qty <= 0.0 {
-                        continue;
-                    }
-                    // Submit partial bid (encumber commodity cost + freight reserve)
-                    let partial_encumbrance = affordable_qty * total_per_unit;
-                    encumber_cash(company, partial_encumbrance);
-                    total_encumbered += partial_encumbrance;
-
-                    order_book.bids.entry(commodity).or_default().push(Bid {
-                        buyer_id: company.id.clone(),
-                        commodity,
-                        quantity: affordable_qty,
-                        limit_price,
-                        blueprint_id: None,
-                        min_quality: None,
-                    });
-                } else {
-                    encumber_cash(company, encumbrance);
-                    total_encumbered += encumbrance;
-
-                    order_book.bids.entry(commodity).or_default().push(Bid {
-                        buyer_id: company.id.clone(),
-                        commodity,
-                        quantity: desired_qty,
-                        limit_price,
-                        blueprint_id: None,
-                        min_quality: None,
-                    });
-                }
+                input_requirements.push((commodity, desired_qty, limit_price, encumbrance));
+                total_desired_encumbrance += encumbrance;
             }
+        }
+
+        let coverage = if total_desired_encumbrance > max_encumber
+            && total_desired_encumbrance > 0.0
+        {
+            (max_encumber / total_desired_encumbrance).max(0.0)
+        } else {
+            1.0
+        };
+        for &(commodity, desired_qty, limit_price, encumbrance) in &input_requirements {
+            let bid_qty = desired_qty * coverage;
+            let bid_encumbrance = encumbrance * coverage;
+            if bid_qty <= 0.0 || bid_encumbrance <= 0.0 {
+                continue;
+            }
+            encumber_cash(company, bid_encumbrance);
+            total_encumbered += bid_encumbrance;
+
+            order_book.bids.entry(commodity).or_default().push(Bid {
+                buyer_id: company.id.clone(),
+                commodity,
+                quantity: bid_qty,
+                limit_price,
+                blueprint_id: None,
+                min_quality: None,
+            });
         }
 
         // Phase 23A: Submit Buy Bids for Draft Animal maintenance (Fodder + Water).
@@ -488,7 +504,9 @@ pub fn submit_company_b2b_orders(
         // Submit Sell Asks for outputs
         for building in &company_buildings {
             let method = &building.active_method;
-            let production_scale = building.current_employment as f64 / 1000.0;
+            let production_scale = building.current_employment as f64
+                * building.scale_factor.max(1) as f64
+                / 1000.0;
 
             // Calculate unit cost for this building's output
             let mut ref_prices: HashMap<Commodity, f64> = HashMap::default();
@@ -531,7 +549,9 @@ pub fn submit_company_b2b_orders(
                     .get(&commodity)
                     .copied()
                     .unwrap_or(0.0)
-                    * (building.worker_capacity as f64 / 1000.0)
+                    * (building.worker_capacity as f64
+                        * building.scale_factor.max(1) as f64
+                        / 1000.0)
                     * 6.0;
                 let total_available =
                     (inventory_qty + production_qty - input_reserve).max(0.0);
@@ -794,6 +814,18 @@ pub fn settle_trades(
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
+    // W12-DIAG: attribute settled value by payer-leg outcome. Printed once
+    // per task under the diagnostic feature to explain b2b_settlement_post
+    // fiat deltas.
+    #[cfg(feature = "diagnostic")]
+    let mut leg_ledger: std::collections::BTreeMap<String, f64> = std::collections::BTreeMap::new();
+    #[cfg(feature = "diagnostic")]
+    macro_rules! leg {
+        ($k:expr, $v:expr) => {
+            *leg_ledger.entry($k.to_string()).or_insert(0.0) += $v;
+        };
+    }
+
     // Phase C: O(1) lookup maps. Built once per batch instead of O(N*M) scans.
     let company_id_to_idx: HashMap<String, usize> = companies
         .iter()
@@ -823,7 +855,11 @@ pub fn settle_trades(
                 company_id_to_idx.get(&trade.buyer_id),
                 company_id_to_idx.get(&trade.seller_id),
             ) {
+                #[cfg(feature = "diagnostic")]
+                leg!("BOTH_IN_SLICE", trade_value);
                 let buyer_is_banked = companies[bi].primary_bank_id.is_some();
+                let buyer_is_bank = companies[bi].sector
+                    == crate::registries::enums::Sector::Banking;
                 if buyer_is_banked {
                     // W7: The bid encumbrance already moved the payment into
                     // escrow (available_cash → debit_cash). Releasing the
@@ -857,6 +893,27 @@ pub fn settle_trades(
                     }
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
+                } else if buyer_is_bank {
+                    // W11: The buyer IS a bank paying from its own reserves
+                    // (banks hold no primary_bank_id — the unbanked branch
+                    // would release only the uncounted debit_cash memo and
+                    // never surrender reserves, while the seller's bank is
+                    // still credited: pure M0 creation — the
+                    // b2b_settlement_post FiatCreation leak). Debit the
+                    // buyer-bank's own sheet like the cross-border path
+                    // below; ELA covers so reserves never go negative.
+                    companies[bi].debit_cash -= trade_value;
+                    if let Some(ref mut bs) = companies[bi].balance_sheet {
+                        crate::state::banking::ela_cover_debit(
+                            bs,
+                            &mut country.central_bank,
+                            trade_value,
+                        );
+                        bs.reserves_at_central_bank -= trade_value;
+                        bs.deposits -= trade_value;
+                    }
+                    let seller_id = companies[si].id.clone();
+                    credit_company_by_id(companies, &seller_id, trade_value);
                 } else {
                     // Phase 94: Unbanked buyer — cash was already encumbered
                     // (available_cash → debit_cash). Release encumbrance and
@@ -876,6 +933,14 @@ pub fn settle_trades(
                 // or one side is a non-company (phantom seller such as
                 // "fishing_sector"). Both cash legs must still balance.
                 if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
+                    #[cfg(feature = "diagnostic")]
+                    {
+                        if company_country.contains_key(&trade.seller_id) {
+                            leg!("PAYER_domestic_foreign_seller", trade_value);
+                        } else {
+                            leg!("PAYER_domestic_phantom_seller", trade_value);
+                        }
+                    }
                     // Release the buyer's encumbered cash (the payer-side
                     // cash leg — encumbered available_cash → debit_cash at
                     // bid submission; releasing it completes the payment).
@@ -950,6 +1015,14 @@ pub fn settle_trades(
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
                     companies[si].unfilled_ask_prices.remove(&trade.commodity);
+                    #[cfg(feature = "diagnostic")]
+                    {
+                        if company_country.contains_key(&trade.buyer_id) {
+                            leg!("SELLER_LEG_foreign_buyer", trade_value);
+                        } else {
+                            leg!("SELLER_LEG_nonco", trade_value);
+                        }
+                    }
                 } else if company_id_to_idx.contains_key(&trade.buyer_id)
                     && !company_country.contains_key(&trade.seller_id)
                 {
@@ -984,30 +1057,67 @@ pub fn settle_trades(
             .get(&trade.buyer_id)
             .map(|v| v.as_slice())
             .unwrap_or(&[]);
-        let mut buyer_b_idx = None;
+        // W11: Company-level bids aggregate every consuming building's need,
+        // so a filled trade must be SPLIT across those buildings. Routing the
+        // whole quantity to the first match concentrated all purchased inputs
+        // in one building while its siblings starved at fulfillment_ratio=0 —
+        // multi-building companies ended up with one producing plant and N
+        // payroll-only clones. Weight each consumer's share by its remaining
+        // input deficit (the same need×2 − on_hand basis the bid was sized
+        // on); a stocked building steps aside until its deficit reopens.
+        // (idx, deficit, gross_need)
+        let mut recipients: Vec<(usize, f64, f64)> = Vec::new();
         for &i in buyer_buildings {
             let b = &buildings[i];
-            if b.active_method.inputs.contains_key(&trade.commodity)
-                || b.active_project
-                    .as_ref()
-                    .map(|p| p.required_materials.contains_key(&trade.commodity))
-                    .unwrap_or(false)
-            {
-                buyer_b_idx = Some(i);
-                break;
+            let in_method = b.active_method.inputs.contains_key(&trade.commodity);
+            let in_project = b
+                .active_project
+                .as_ref()
+                .map(|p| p.required_materials.contains_key(&trade.commodity))
+                .unwrap_or(false);
+            if !in_method && !in_project {
+                continue;
+            }
+            let need = b
+                .active_method
+                .inputs
+                .get(&trade.commodity)
+                .copied()
+                .unwrap_or(0.0)
+                * (b.worker_capacity as f64 * b.scale_factor.max(1) as f64 / 1000.0);
+            let on_hand = b
+                .inventory
+                .get(&trade.commodity)
+                .copied()
+                .unwrap_or(0.0);
+            let deficit = (need * 2.0 - on_hand).max(0.0);
+            recipients.push((i, deficit, need));
+        }
+        if recipients.is_empty() {
+            // No building consumes it — legacy fallback: first building.
+            if let Some(&i) = buyer_buildings.first() {
+                recipients.push((i, 1.0, 1.0));
+            }
+        } else if recipients.iter().all(|r| r.1 <= 0.0) {
+            // Every consumer is stocked past its buffer — split by gross need
+            // so the largest plants still take the largest share.
+            for r in &mut recipients {
+                r.1 = r.2.max(1.0);
             }
         }
-        if buyer_b_idx.is_none() {
-            buyer_b_idx = buyer_buildings.first().copied();
-        }
-        if let Some(idx) = buyer_b_idx {
-            let building = &mut buildings[idx];
 
-            // Phase 95: If the commodity is a fixed asset, install it as a
-            // FixedAssetCohort with the trade's blueprint/quality metadata.
-            // This ensures physical asset capacity is increased only by
-            // delivered goods with known provenance (Rule 15, Rule 4).
-            if trade.commodity.is_fixed_asset() {
+        // Phase 95: If the commodity is a fixed asset, install it as a
+        // FixedAssetCohort with the trade's blueprint/quality metadata.
+        // This ensures physical asset capacity is increased only by
+        // delivered goods with known provenance (Rule 15, Rule 4).
+        // Discrete asset units are not fractionally splittable — deliver the
+        // whole cohort to the largest-deficit consumer.
+        if trade.commodity.is_fixed_asset() {
+            if let Some(&(idx, _, _)) = recipients
+                .iter()
+                .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+            {
+                let building = &mut buildings[idx];
                 let blueprint_id = trade.blueprint_id.clone().unwrap_or_default();
                 let quality = trade.quality.unwrap_or(0.0);
                 let durability = trade.durability.unwrap_or(0.0);
@@ -1027,16 +1137,28 @@ pub fn settle_trades(
                     cohort,
                     gen_config,
                 );
-            } else {
+            }
+        } else {
+            let total_w: f64 = recipients.iter().map(|r| r.1).sum();
+            for &(idx, w, _) in &recipients {
+                let share = if total_w > 0.0 {
+                    trade.quantity * w / total_w
+                } else {
+                    0.0
+                };
+                if share <= 0.0 {
+                    continue;
+                }
+                let building = &mut buildings[idx];
                 // Non-fixed-asset: add to flat inventory.
-                *building.inventory.entry(trade.commodity).or_insert(0.0) += trade.quantity;
+                *building.inventory.entry(trade.commodity).or_insert(0.0) += share;
 
                 // Phase 95: If blueprint-eligible, also add to inventory cohorts.
                 if trade.commodity.is_blueprint_eligible() {
                     let cohort = crate::economy::fixed_assets::InventoryCohort::new(
                         trade.blueprint_id.clone().unwrap_or_default(),
                         trade.commodity,
-                        trade.quantity,
+                        share,
                         trade.quality.unwrap_or(0.0),
                         trade.durability.unwrap_or(0.0),
                         current_turn,
@@ -1096,7 +1218,7 @@ pub fn settle_trades(
                     .get(&trade.commodity)
                     .copied()
                     .unwrap_or(0.0)
-                    * (b.worker_capacity as f64 / 1000.0)
+                    * (b.worker_capacity as f64 * b.scale_factor.max(1) as f64 / 1000.0)
                     * 4.0;
                 (held - reserve).max(0.0)
             };
@@ -1130,6 +1252,11 @@ pub fn settle_trades(
                 trade.seller_id, remaining_to_ship, trade.quantity, trade.commodity
             ));
         }
+    }
+
+    #[cfg(feature = "diagnostic")]
+    if !leg_ledger.is_empty() {
+        eprintln!("SETTLE_LEGS: {:?}", leg_ledger);
     }
 
     messages
@@ -1171,8 +1298,8 @@ pub fn settle_trades_with_tariffs(
         String,
         std::collections::HashMap<String, crate::international::DiplomaticRelation>,
     >,
-    country_to_currency: &std::collections::HashMap<String, String>,
-    currency_rates: &std::collections::HashMap<String, f64>,
+    _country_to_currency: &std::collections::HashMap<String, String>,
+    _currency_rates: &std::collections::HashMap<String, f64>,
     current_turn: u32,
     gen_config: &GenerativeGoodsConfig,
 ) -> Vec<String> {
@@ -1235,104 +1362,12 @@ pub fn settle_trades_with_tariffs(
             // to domestic → credits exporter). This requires refactoring
             // settle_trades to not handle cross-border cash directly. Deferred
             // to a future phase to avoid breaking the settlement pipeline.
-        } else if is_import {
-            // Import: check FX reserves for the seller's currency.
-            // Phase 43: Use the seller's real currency code, not fake "IEU".
-            let seller_ccy = country_to_currency
-                .get(&seller_country)
-                .cloned()
-                .unwrap_or_else(|| "???".to_string());
-            // Agent 4 — Phase 3: Use the real exchange rate from state.currencies.
-            // The rate converts domestic currency to foreign currency.
-            // A rate of 1.0 means 1:1 parity; a rate of 0.5 means 1 domestic
-            // = 2 foreign (strong domestic currency).
-            let domestic_ccy = country_to_currency
-                .get(&country.name)
-                .cloned()
-                .unwrap_or_else(|| "???".to_string());
-            let domestic_rate = currency_rates.get(&domestic_ccy).copied().unwrap_or(1.0);
-            let foreign_rate = currency_rates.get(&seller_ccy).copied().unwrap_or(1.0);
-            // Cross rate: how much foreign currency per unit domestic.
-            let cross_rate = if foreign_rate > 0.0 {
-                domestic_rate / foreign_rate
-            } else {
-                1.0
-            };
-            let foreign_needed = trade_value * cross_rate;
-            let available_fx = country
-                .central_bank
-                .fx_reserves
-                .get(&seller_ccy)
-                .copied()
-                .unwrap_or(0.0);
-            if available_fx < foreign_needed {
-                // Phase 42: Import fails — revert settlement.
-                if let Some(buyer_idx) = companies.iter().position(|c| c.id == trade.buyer_id) {
-                    // Phase 94: Only credit one cash field to avoid M0 duplication.
-                    if let Some(ba) = &mut companies[buyer_idx].brokerage_account {
-                        ba.cash += trade_value;
-                    } else {
-                        companies[buyer_idx].available_cash += trade_value;
-                    }
-                    // W3/R3: Reverse the payer-side bank debit applied by
-                    // settle_trades' cross-border leg — otherwise the bank
-                    // loses deposits+reserves while the customer's cash is
-                    // refunded (deposit ledger drifts negative / M0 sink).
-                    let revert_bank_id = companies[buyer_idx].primary_bank_id.clone();
-                    if let Some(ref bank_id) = revert_bank_id {
-                        let id_to_idx: HashMap<String, usize> = companies
-                            .iter()
-                            .enumerate()
-                            .map(|(i, c)| (c.id.clone(), i))
-                            .collect();
-                        crate::economy::transfer_settler::adjust_bank_balance(
-                            companies,
-                            &id_to_idx,
-                            bank_id,
-                            trade_value,
-                            trade_value,
-                        );
-                    } else if companies[buyer_idx].sector
-                        == crate::registries::enums::Sector::Banking
-                    {
-                        // Bank paid from its own reserves — restore them.
-                        if let Some(ref mut bs) = companies[buyer_idx].balance_sheet {
-                            bs.reserves_at_central_bank += trade_value;
-                            bs.deposits += trade_value;
-                        }
-                    }
-                }
-                if let Some(seller_idx) = companies.iter().position(|c| c.id == trade.seller_id) {
-                    // Phase 94: Only debit one cash field to avoid M0 duplication.
-                    if let Some(ba) = &mut companies[seller_idx].brokerage_account {
-                        ba.cash -= trade_value;
-                    } else {
-                        companies[seller_idx].available_cash -= trade_value;
-                    }
-                }
-                if let Some(idx) = buildings.iter().position(|b| b.owner_id == trade.buyer_id) {
-                    if let Some(qty) = buildings[idx].inventory.get_mut(&trade.commodity) {
-                        *qty = (*qty - trade.quantity).max(0.0);
-                    }
-                }
-                // Agent 4: Restore goods to seller's inventory (asymmetric revert fix).
-                // Previously, the goods vanished — the buyer lost them but the
-                // seller didn't get them back (Rule 1 violation).
-                if let Some(idx) = buildings.iter().position(|b| b.owner_id == trade.seller_id) {
-                    *buildings[idx]
-                        .inventory
-                        .entry(trade.commodity)
-                        .or_insert(0.0) += trade.quantity;
-                }
-                continue; // Skip tariff collection for failed trade
-            }
-            // Sufficient FX: debit reserves.
-            *country
-                .central_bank
-                .fx_reserves
-                .entry(seller_ccy.clone())
-                .or_insert(0.0) -= foreign_needed;
         }
+        // W12: Import FX feasibility is vetted pre-settlement in turn.rs —
+        // infeasible trades are dropped from every task's view and feasible
+        // ones already debited the importer's fx_reserves there. The old
+        // post-settlement revert was removed: it refunded the domestic buyer
+        // but could not claw back the foreign seller's credit (M0 creation).
 
         // Phase 29: Import tariff collection (only when the current country
         // is the importer — buyer is domestic).
@@ -1658,7 +1693,12 @@ pub fn execute_production_cycle(
         }
 
         let method = &building.active_method;
-        let production_scale = building.current_employment as f64 / 1000.0;
+        // `current_employment` is per-virtual-plant; per-1k BOM rates (and
+        // genesis output calibrations) target the entity's total workforce,
+        // so scale must be per-plant x scale_factor / 1000.
+        let production_scale = building.current_employment as f64
+            * building.scale_factor.max(1) as f64
+            / 1000.0;
         let efficiency = method.efficiency;
 
         // Phase 19B: Fixed-asset cohorts provide a capacity multiplier.
@@ -1995,7 +2035,7 @@ pub fn execute_production_cycle(
         // whose outputs are at least half as valuable (in aggregate) as its
         // inputs — the normal case for a functioning BOM.
         let value_price = |c: Commodity| {
-            crate::engine::generator::corporate::estimated_base_price(c)
+            crate::engine::generator::corporate::anchored_base_price(c)
         };
         let input_costs: f64 = inputs_consumed
             .iter()
@@ -2337,7 +2377,9 @@ pub fn submit_fixed_asset_purchase_bids(
         for &i in company_building_indices {
             let building = &buildings[i];
             let method = &building.active_method;
-            let production_scale = building.current_employment as f64 / 1000.0;
+            let production_scale = building.current_employment as f64
+                * building.scale_factor.max(1) as f64
+                / 1000.0;
 
             for (&commodity, &qty_per_1k) in &method.inputs {
                 // Only fixed-asset commodities (skipped by the normal bid loop).

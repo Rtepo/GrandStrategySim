@@ -210,6 +210,81 @@ pub fn clear_health_capacity_b2c(
     );
 }
 
+/// 12-turn mandate: Populate Local Services demand from regional demographics.
+///
+/// Local Services (repair shops, eateries, laundries, personal services) are
+/// the everyday-service backbone of the consumer basket. Without this demand
+/// stream, `Sector::LocalServices` companies produced `LocalServicesCommodity`
+/// into a void — zero revenue, forced furloughs, and survival only via
+/// inventory fire-sales.
+///
+/// # Rules
+/// * Each person generates 0.15 service-units of demand per turn
+///   (everyday services are consumed frequently).
+/// * Urban populations consume at 1.4x (denser service economies).
+/// * Demand is NOT filtered by savings — private clearing naturally gates
+///   unmet demand through `compute_service_transactions`.
+pub fn populate_local_services_needs(country: &Country) -> BTreeMap<String, f64> {
+    let mut needs = BTreeMap::new();
+    for region in &country.regions {
+        let mut services_need = 0.0_f64;
+        for class in region.class_demographics.rural_classes.values() {
+            services_need += class.population as f64 * 0.15;
+        }
+        for class in region.class_demographics.urban_classes.values() {
+            services_need += class.population as f64 * 0.15 * 1.4;
+        }
+        needs.insert(region.id.clone(), services_need);
+    }
+    needs
+}
+
+/// 12-turn mandate: Executes B2C clearing for LocalServicesCommodity.
+///
+/// Wires `Sector::LocalServices` supply into the consumer basket: citizens
+/// spend savings on everyday services, private providers earn actual revenue
+/// via `apply_service_transactions` → `credit_company_by_id`.
+///
+/// # Arguments — identical contract to `clear_education_slots_b2c`.
+///
+/// # Returns
+/// Map of region_id → service units consumed (diagnostics + epic assertion).
+pub fn clear_local_services_b2c(
+    buildings: &mut [Building],
+    companies: &mut [Company],
+    country: &mut Country,
+    service_needs: &BTreeMap<String, f64>,
+    building_inventories: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
+    config: &ServicePricingConfig,
+) -> BTreeMap<String, f64> {
+    let commodity = Commodity::LocalServicesCommodity;
+    let txns = compute_service_transactions(
+        buildings,
+        country,
+        service_needs,
+        building_inventories,
+        config,
+        commodity,
+    );
+    let mut region_consumption: BTreeMap<String, f64> = BTreeMap::new();
+    for txn in &txns {
+        if txn.units_consumed > 0.0 {
+            *region_consumption
+                .entry(txn.region_id.clone())
+                .or_insert(0.0) += txn.units_consumed;
+        }
+    }
+    apply_service_transactions(
+        txns,
+        buildings,
+        companies,
+        country,
+        building_inventories,
+        commodity,
+    );
+    region_consumption
+}
+
 /// Phase 18S: Populate sports/recreation service needs from regional demographics.
 ///
 /// # Rules
@@ -546,6 +621,32 @@ fn apply_service_transactions(
         let total_revenue = actual_citizen_payment + txn.government_subsidy;
         if total_revenue <= 0.0 {
             continue;
+        }
+
+        // 12-turn mandate: revenue recognition for service sales. The B2C
+        // sale is real income — settle the accrual onto the building's P&L
+        // the same way `grid.rs` books the GRID96 offtake payment. The
+        // production cycle already booked `units × base_price` into
+        // `last_output_value`/`last_profit`; service units sell at the
+        // cost-plus *service* price, so accrue only the delta — sold units
+        // get recognized at sale value, unsold capacity keeps its
+        // production-value booking.
+        let sale_adjustment = total_revenue
+            - txn.units_consumed
+                * crate::engine::generator::corporate::estimated_base_price(commodity);
+        if sale_adjustment != 0.0 {
+            if let Some(building) = buildings.iter_mut().find(|b| b.id == txn.building_id) {
+                building.last_profit += sale_adjustment;
+                let prev_output_value = building
+                    .extra
+                    .get("last_output_value")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                building.extra.insert(
+                    "last_output_value".to_string(),
+                    serde_json::Value::from(prev_output_value + sale_adjustment),
+                );
+            }
         }
 
         if txn.is_public {

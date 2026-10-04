@@ -451,36 +451,13 @@ impl Syndic {
             }
         }
 
-        // ── STEP 4: Seize building inventory (Rule 1 & 20) ──
-        // Fire-sell inventory at policy discount, add to cash pool.
-        // Phase 94: The fire-sale creates cash from physical goods without
-        // a buyer. This is M0 creation — the CB acts as buyer of last resort
-        // (quantitative easing). Track the fire-sale value as CB injection
-        // so the M0 conservation check stays balanced (Directive 1).
-        let mut building_ids_owned: Vec<String> = Vec::new();
-        let mut total_fire_sale_value: f64 = 0.0;
-        for building in buildings.iter_mut() {
-            if building.owner_id != company.id {
-                continue;
-            }
-            building_ids_owned.push(building.id.clone());
-
-            let inventory_value: f64 = building.inventory.values().sum();
-            if inventory_value > 0.0 {
-                let fire_sale_value = inventory_value * policy.fire_sale_discount;
-                total_seized_cash += fire_sale_value;
-                total_fire_sale_value += fire_sale_value;
-                // Clear inventory — physical mass is "sold" at fire-sale.
-                building.inventory.clear();
-            }
-        }
-        // Phase 94: Track fire-sale proceeds as CB injection (buyer of last
-        // resort). Without this, the M0 conservation check sees M0 increase
-        // (cash to creditors) without a matching CB injection increase,
-        // creating a false FiatCreation violation.
-        if total_fire_sale_value > 0.0 {
-            country.central_bank.liquidity_injected += total_fire_sale_value;
-        }
+        // ── STEP 4: Building inventory rides with the asset ──
+        // A bankrupt firm's stock is part of the going concern: it stays in
+        // each building and transfers to the auction buyer (or is demolished
+        // with the structure if the asset expires unsold). The previous
+        // fire-sale liquidation destroyed physical mass against a CB cash
+        // injection — seed input buffers were annihilated on liquidation, so
+        // every re-sold plant restarted with an empty BOM and starved.
 
         // ── STEP 5: Route buildings to auction pool with per-building book value ──
         for building in buildings.iter() {
@@ -822,10 +799,12 @@ pub fn process_auction_turn(
         if let Some(bld_id) = transferred_bld.or(building_id) {
             if let Some(building) = buildings.iter_mut().find(|b| b.id == bld_id) {
                 building.owner_id = buyer_id.clone();
-                // Restore capacity (was zeroed when added to pool).
-                // Use a reasonable default based on sector.
+                // Restore capacity (was zeroed en route to the pool).
+                // Restore the building's physically constructed seats — a
+                // flat 100 fabricated phantom capacity on small plants whose
+                // seed inventory was sized for the real seat count.
                 if building.worker_capacity == 0 {
-                    building.worker_capacity = 100;
+                    building.worker_capacity = building.building_capacity.max(1);
                 }
             }
         }

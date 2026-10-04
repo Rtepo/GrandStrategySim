@@ -76,9 +76,10 @@ pub use b2b_orders::{
     submit_company_b2b_orders, submit_fixed_asset_purchase_bids, submit_maintenance_service_bids,
 };
 pub use b2c_services::{
-    clear_education_slots_b2c, clear_health_capacity_b2c, clear_passenger_transport_b2c,
-    clear_sports_capacity_b2c, populate_commute_service_needs,
-    populate_education_service_needs, populate_health_service_needs,
+    clear_education_slots_b2c, clear_health_capacity_b2c, clear_local_services_b2c,
+    clear_passenger_transport_b2c, clear_sports_capacity_b2c,
+    populate_commute_service_needs, populate_education_service_needs,
+    populate_health_service_needs, populate_local_services_needs,
     populate_sports_service_needs,
 };
 pub use blueprints::{

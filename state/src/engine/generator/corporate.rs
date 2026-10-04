@@ -842,8 +842,11 @@ pub fn generate_corporate_entities(
             // with an empty inventory map, so those buildings starve from
             // Turn 0. Top up any seed component below target level; already-
             // seeded company buildings are unaffected (held >= seed).
-            let (seeded, _cost) =
-                seed_inventory(&b.active_method, b.worker_capacity, b.sector);
+            let (seeded, _cost) = seed_inventory(
+                &b.active_method,
+                b.worker_capacity.saturating_mul(b.scale_factor.max(1)),
+                b.sector,
+            );
             let mut added = 0.0;
             for (commodity, seed_qty) in seeded {
                 let held = b.inventory.get(&commodity).copied().unwrap_or(0.0);
@@ -905,7 +908,11 @@ pub fn generate_corporate_entities(
             seat_type: pm.seat_type,
             extra: Default::default(),
         };
-        let (seeded, _cost) = seed_inventory(&method, b.worker_capacity, b.sector);
+        let (seeded, _cost) = seed_inventory(
+            &method,
+            b.worker_capacity.saturating_mul(b.scale_factor.max(1)),
+            b.sector,
+        );
         let mut seed_total = 0.0;
         for (commodity, qty) in seeded {
             seed_total += qty;
@@ -959,7 +966,7 @@ pub fn generate_corporate_entities(
             if b.owner_id == "State" {
                 continue;
             }
-            let scale = b.worker_capacity as f64 / 1000.0;
+            let scale = b.worker_capacity as f64 * b.scale_factor.max(1) as f64 / 1000.0;
             let mut needs = 0usize;
             let mut held_ok = 0usize;
             for (&c, &q) in &b.active_method.inputs {
@@ -989,31 +996,6 @@ pub fn generate_corporate_entities(
             seeded_but_short,
             all_buildings.len()
         );
-        // W7 trace: per-building post-seed snapshot. When a building later
-        // shows BINDING_INPUT at inv=0, this line proves the buffer existed
-        // at genesis (drain happened mid-run) or didn't (seed gap).
-        for b in &all_buildings {
-            if b.owner_id == "State" || b.active_method.inputs.is_empty() {
-                continue;
-            }
-            let invtot: f64 = b.inventory.values().sum();
-            let scale = b.worker_capacity as f64 / 1000.0;
-            let worst = b
-                .active_method
-                .inputs
-                .iter()
-                .filter(|(c, q)| {
-                    !c.is_fixed_asset() && !c.is_local_utility() && **q > 0.0
-                })
-                .map(|(c, q)| {
-                    b.inventory.get(c).copied().unwrap_or(0.0) / (q * scale)
-                })
-                .fold(f64::INFINITY, |a, r| a.min(r));
-            eprintln!(
-                "SEEDED[{}]: invtot={:.0} min_turns={:.1} cap={}",
-                b.id, invtot, worst, b.inventory_capacity
-            );
-        }
     }
 
     // Re-save agriculture companies with initialized agricultural profiles.
@@ -1172,6 +1154,14 @@ pub fn generate_corporate_entities(
         market_prices: rustc_hash::FxHashMap::default(),
     };
     update_gdp_shares_from_employment(&mut ctx);
+    // Re-acquire `all_buildings`: `ctx` borrowed `&mut country`, so holding
+    // it open would conflict with every `country` use below. Destructuring
+    // ends the borrow and restores the owned vector for the Phase 92
+    // labor-pool rescale.
+    let CountryTurnCtx {
+        buildings: mut all_buildings,
+        ..
+    } = ctx;
 
     // Generate unions for each sector
     generate_unions(data_dir, country, &all_companies, &code, start_year, rng)?;
@@ -1460,7 +1450,16 @@ pub fn generate_corporate_entities(
                     .values()
                     .chain(r.class_demographics.urban_classes.values())
             })
-            .map(|d| d.available_fte)
+            .map(|d| {
+                // `available_fte` is serde-defaulted at genesis (populated by
+                // the runtime labor pool) — fall back to
+                // population × labor_participation so the 95% labor-supply
+                // rescale actually fires instead of being skipped by the
+                // `> 0.0` guard.
+                let pop = d.population.max(0) as f64;
+                let derived = pop * d.labor_participation.max(0.0).min(1.0);
+                d.available_fte.max(derived)
+            })
             .sum();
         let total_corporate_fte_demand: u64 = all_companies
             .iter()
@@ -1479,6 +1478,38 @@ pub fn generate_corporate_entities(
                     company.physical_fte_demand = new_physical.max(1);
                     company.fulfilled_fte = new_fulfilled;
                     company.prev_fulfilled_fte = new_prev;
+                    // 12-turn mandate: also shrink worker_capacity — the
+                    // runtime regenerates target_fte_demand from capacity,
+                    // so a demand-only rescale is undone next turn.
+                    company.worker_capacity =
+                        ((company.worker_capacity as f64 * scale).round() as u32).max(1);
+                }
+                // Scale building seats in lockstep — `current_employment`
+                // cannot exceed the seats a structure physically holds.
+                for building in all_buildings.iter_mut() {
+                    building.worker_capacity =
+                        ((building.worker_capacity as f64 * scale).round() as u32).max(1);
+                    building.current_employment = building
+                        .current_employment
+                        .min(building.worker_capacity);
+                }
+                // Persist the rescale: `all_buildings` only feeds a transient
+                // ctx here — the runtime loads buildings from building_store.
+                // Same (sector, region) grouping as the Phase-94 re-save.
+                let mut scaled_by_key: HashMap<(String, String), Vec<Building>> =
+                    HashMap::new();
+                for b in &all_buildings {
+                    if b.owner_id == "State" {
+                        continue;
+                    }
+                    scaled_by_key
+                        .entry((sector_json_name(b.sector), b.region_id.clone()))
+                        .or_default()
+                        .push(b.clone());
+                }
+                for ((sector, region), list) in scaled_by_key {
+                    let _ = building_store
+                        .save_sector(&country.name, &sector, Some(&region), &list);
                 }
             }
         }
@@ -2145,7 +2176,32 @@ fn target_workers_per_company(
     let min_capital = minimum_capital_for_sector(&sector, safe_wage) * genesis_multiplier;
     let era = ((start_year.saturating_sub(1900) as f64) / 75.0).clamp(0.0, 1.0);
     let development_scaling = 1.0 + 0.5 * region.development_level * era;
-    (min_capital / safe_wage) / TURNS_PER_YEAR as f64 * development_scaling
+    let raw = (min_capital / safe_wage) / TURNS_PER_YEAR as f64 * development_scaling;
+    // 12-turn mandate: a single company can never claim more FTE than the
+    // region's entire labor pool. The capital-to-headcount conversion above
+    // is unbounded — heavy-CAPEX sectors (Energy) produced 65M-worker
+    // companies in regions with <1M workers, and the runtime labor clearing
+    // honors `target_fte_demand`/`worker_capacity` without a population
+    // check, minting phantom employment.
+    let regional_labor_cap: f64 = region
+        .class_demographics
+        .rural_classes
+        .values()
+        .chain(region.class_demographics.urban_classes.values())
+        .map(|d| {
+            // `available_fte` is serde-defaulted and only populated by the
+            // runtime labor pool — at genesis it reads 0 even in populated
+            // regions, collapsing the cap to 1 and minting 1-seat
+            // (wc=1, sf=N) companies that can never staff. Fall back to
+            // population × labor_participation, the same basis the runtime
+            // pool and init_power_grid sizing use.
+            let pop = d.population.max(0) as f64;
+            let derived = pop * d.labor_participation.max(0.0).min(1.0);
+            d.available_fte.max(derived)
+        })
+        .sum::<f64>()
+        .max(1.0);
+    raw.min(regional_labor_cap)
 }
 
 /// Generate a competitive, power-law distributed set of companies for one
@@ -2467,13 +2523,16 @@ fn generate_region_companies(
 
         // Phase 20C: Seed fixed-asset cohort and one turn of inventory
         let fixed_assets = seed_fixed_assets(sector, start_year, rng);
-        let (inventory, seed_cost) = seed_inventory(&method, base_capacity, sector);
+        // Seed at entity capacity (per-plant base x scale_factor): the
+        // entity consumes BOM inputs at its total workforce scale, so a
+        // per-plant seed lasts only 1/scale_factor of the intended horizon.
+        let (inventory, seed_cost) = seed_inventory(&method, actual_capacity, sector);
         // W7: The capacity formula must cover the seeded buffer, not just
         // output headroom — input-heavy methods seed 4 turns of BOM inputs
         // that can exceed base_capacity x 10 x SCALE. Otherwise the
         // hard-cap overflow fallback destroys the seed on Turn 0-1 and the
         // building starves at t2-3 despite having been fully stocked.
-        let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE)
+        let inventory_capacity = (actual_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE)
             .max(100.0)
             .max(inventory.values().sum::<f64>() * 2.0);
 
@@ -5045,11 +5104,13 @@ fn create_seed_company_with_explicit_method(
     let building_id = idgen.next_building();
 
     let fixed_assets = seed_fixed_assets(sector, start_year, rng);
-    let (inventory, seed_cost) = seed_inventory(method, base_capacity, sector);
+    // Seed at entity capacity — see the matching note in
+    // generate_diversified_companies.
+    let (inventory, seed_cost) = seed_inventory(method, actual_capacity, sector);
     // W7: Cover the seeded buffer — input-heavy methods seed 4 turns of BOM
     // inputs that can exceed base_capacity x 10 x SCALE. See the matching
     // note in generate_diversified_companies.
-    let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE)
+    let inventory_capacity = (actual_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE)
         .max(100.0)
         .max(inventory.values().sum::<f64>() * 2.0);
 
@@ -5282,7 +5343,13 @@ fn create_specialized_power_plant(
         .sum();
     let projected_demand_mw =
         labor_pool_fte * 0.002 + region.population as f64 * 0.0001;
-    let target_mw = (projected_demand_mw * 1.25).max(nameplate);
+    // 12-turn mandate: infrastructure scales with population AND development
+    // tier — a low-development region electrifies a smaller share of its
+    // workforce. `dev_factor` stays >=0.8 so the 1.25 headroom still covers
+    // projected load (the runtime demand model applies no dev discount);
+    // deeper under-building reintroduces the blackout cascade.
+    let dev_factor = 0.8 + 0.2 * region.development_level.clamp(0.0, 1.0);
+    let target_mw = (projected_demand_mw * dev_factor * 1.25).max(nameplate);
     let plant_count = plant_count(target_mw, start_year);
 
     // Select the best available production method for this plant type.
@@ -5345,22 +5412,20 @@ fn create_specialized_power_plant(
             // must overbuild by 1/wm_typ to still deliver nameplate on an
             // average-weather turn (clamped at nameplate on clear days).
             //
-            // target_workers is the region's total energy-sector allocation;
-            // x plant_count intentionally over-sizes: energy companies are
-            // the economy's employment sink.
-            let planned_workers = (target_workers.max(workers_per_plant(start_year)))
-                * (plant_count as u32).max(1);
-            // Output calibrates against the physical staffing floor
-            // (per-plant crew x count), NOT planned_workers: the labor
-            // market fills only a fraction of the allocation, and
-            // production scales with ACTUAL employment — calibrating to
-            // planned_workers stranded supply at ~actual/planned (~5%) of
-            // nameplate. The grid clamps at nameplate, so overshoot at
-            // full staffing is harmless; under-staffed plants degrade
-            // proportionally instead of collapsing.
-            let calibration_workers = (workers_per_plant(start_year)
+            // 12-turn mandate: a plant company's workforce is the physical
+            // crew its plants need — workers_per_plant x plant_count (~350
+            // x 15 ≈ 5K), NOT the capital-derived target x plant_count that
+            // minted 65M-FTE companies against a 3M-person labor pool.
+            let planned_workers = (workers_per_plant(start_year)
                 * (plant_count.max(1) as u32))
                 .max(1);
+            // Output calibrates against the same physical staffing floor:
+            // production scales with ACTUAL employment — calibrating to an
+            // inflated headcount stranded supply at ~actual/planned (~5%)
+            // of nameplate. The grid clamps at nameplate, so overshoot at
+            // full staffing is harmless; under-staffed plants degrade
+            // proportionally instead of collapsing.
+            let calibration_workers = planned_workers;
             let expected_weather_mult = match selected_type {
                 PowerPlantType::Solar => 0.45,
                 PowerPlantType::Wind => 0.50,
@@ -5424,6 +5489,17 @@ fn create_specialized_power_plant(
         PowerPlantMetadata::EXTRA_KEY.to_string(),
         metadata.to_json(),
     );
+
+    // 12-turn mandate: genesis energy buffer — the grid drains Energy
+    // inventory every turn, so a plant born empty produces its first MW
+    // only AFTER Turn 0's dispatch: a universal blackout on turn 0 that
+    // furloughs the economy (including the plants themselves) before
+    // generation can ever begin. One turn of nameplate output seeded at
+    // birth keeps the grid alive through the bootstrap turn; the
+    // load-following throttle caps what actually gets dispatched.
+    building
+        .inventory
+        .insert(crate::registries::enums::Commodity::Energy, total_nameplate);
 
     (company, building)
 }
@@ -5598,11 +5674,13 @@ fn create_seed_company(
     let building_id = idgen.next_building();
 
     let fixed_assets = seed_fixed_assets(sector, start_year, rng);
-    let (inventory, seed_cost) = seed_inventory(&method, base_capacity, sector);
+    // Seed at entity capacity — see the matching note in
+    // generate_diversified_companies.
+    let (inventory, seed_cost) = seed_inventory(&method, actual_capacity, sector);
     // W7: Cover the seeded buffer — input-heavy methods seed 4 turns of BOM
     // inputs that can exceed base_capacity x 10 x SCALE. See the matching
     // note in generate_diversified_companies.
-    let inventory_capacity = (base_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE)
+    let inventory_capacity = (actual_capacity as f64 * 10.0 * PRODUCTION_THROUGHPUT_SCALE)
         .max(100.0)
         .max(inventory.values().sum::<f64>() * 2.0);
 
@@ -5843,6 +5921,105 @@ pub fn estimated_base_price(commodity: Commodity) -> f64 {
         Commodity::FreightCapacity => 50.0,
         _ => 100.0, // Generic fallback
     }
+}
+
+/// W11: Cost-plus base-price table, installed once at world generation by
+/// [`install_cost_plus_base_prices`]. When populated, `estimated_base_price`
+/// returns these values so the production P&L oracle, the clearing-engine
+/// PRICE_CAP/FLOOR anchor, and `global_base_prices` all agree on
+/// BOM-coherent prices instead of the flat $100 manufactured-good fallback.
+static COST_PLUS_BASE_PRICES: std::sync::OnceLock<HashMap<Commodity, f64>> =
+    std::sync::OnceLock::new();
+
+/// Read the base price the economy actually anchors to: the cost-plus
+/// fixpoint table when installed (always post-generation), else the static
+/// table (registry construction runs before world generation, so
+/// `scaled_io` normalization still sees the static table deterministically).
+pub fn anchored_base_price(commodity: Commodity) -> f64 {
+    COST_PLUS_BASE_PRICES
+        .get()
+        .and_then(|m| m.get(&commodity).copied())
+        .unwrap_or_else(|| estimated_base_price(commodity))
+}
+
+/// Compute and install the cost-plus base-price table from the production
+/// registry. Returns the table for `global_base_prices` seeding.
+///
+/// Why this exists: the static table prices every unlisted manufactured
+/// good at $100 while its consumable inputs (Steel $300, ElectronicComponents
+/// $400, Gold, Luxury…) cost more. A method whose input bundle exceeds its
+/// output value is a structural loss at *any* scale — the MACRO-3
+/// "phantom loss" artifact. No functioning economy sustains a good priced
+/// below its input bundle, so raise each output's price until
+/// `Σ(out × price) ≥ MARGIN × Σ(in × price)` for every method producing it.
+/// Iteration propagates the floor up multi-stage chains (ore → metal →
+/// parts → goods); prices only move upward, so the pass converges.
+/// Fixed-asset and local-utility inputs are excluded — installed cohorts
+/// are capacity, and grid utilities are priced via `efficiency_penalties`,
+/// not inventory.
+///
+/// Quantities come from the post-`apply_throughput_scale` registry — the
+/// in/out ratio is what constrains prices, and it is scale-invariant.
+pub fn install_cost_plus_base_prices(registries: &Registries) -> HashMap<Commodity, f64> {
+    /// Outputs must clear their consumable input bundle by this markup.
+    /// With the P&L oracle booking inputs at 0.5× base, a 1.25 margin keeps
+    /// value-adding methods profitable at the oracle while leaving the
+    /// wage bill as the real constraint.
+    const MARGIN: f64 = 1.25;
+    /// Absolute sanity cap — bounds divergence in input cycles
+    /// (e.g. Tools → Steel → Tools) without distorting ship/vehicle prices.
+    const PRICE_CAP: f64 = 250_000.0;
+
+    let mut prices: HashMap<Commodity, f64> = Commodity::all()
+        .iter()
+        .map(|&c| (c, estimated_base_price(c)))
+        .collect();
+
+    for _ in 0..10 {
+        let mut changed = false;
+        // Deterministic scan: sorted kind keys.
+        let mut kinds: Vec<&String> = registries.production_methods.keys().collect();
+        kinds.sort();
+        for kind in kinds {
+            for pm in registries.production_methods[kind].production.values() {
+                let in_cost: f64 = pm
+                    .inputs
+                    .iter()
+                    .filter(|(c, _)| !c.is_fixed_asset() && !c.is_local_utility())
+                    .map(|(c, q)| prices.get(c).copied().unwrap_or(0.0) * q)
+                    .sum();
+                if in_cost <= 0.0 {
+                    continue;
+                }
+                let out_value: f64 = pm
+                    .outputs
+                    .iter()
+                    .map(|(c, q)| prices.get(c).copied().unwrap_or(0.0) * q)
+                    .sum();
+                if out_value <= 0.0 || out_value >= in_cost * MARGIN {
+                    continue;
+                }
+                // Raise all outputs proportionally — preserves the method's
+                // multi-output price mix while lifting the bundle to the
+                // cost-plus floor.
+                let bump = (in_cost * MARGIN / out_value).min(4.0);
+                for c in pm.outputs.keys() {
+                    if let Some(p) = prices.get_mut(c) {
+                        let np = (*p * bump).min(PRICE_CAP);
+                        if np > *p + 1e-9 {
+                            *p = np;
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    let _ = COST_PLUS_BASE_PRICES.set(prices.clone());
+    prices
 }
 
 // ============================================================================

@@ -744,7 +744,15 @@ pub fn distribute_grid_power(
 
         // LV/MV capacity limit: supply can't exceed grid capacity.
         let grid_cap = lv_cap.min(mv_cap);
-        let effective_supply = supply.min(grid_cap);
+        // Load-following dispatch (12-turn mandate): plants throttle to
+        // demand x headroom rather than dumping nameplate onto the wire.
+        // Without it, any region whose generation outgrew a shrinking
+        // demand base ran >25% surplus and took GridDamage every turn —
+        // self-destruction by design. 1.15 keeps the IndustrialBuff tier
+        // reachable while capping surplus below the GridDamage threshold
+        // (excess Energy inventory is curtailed, matching apply_curtailment).
+        const LOAD_FOLLOW_HEADROOM: f64 = 1.15;
+        let effective_supply = supply.min(grid_cap).min(demand * LOAD_FOLLOW_HEADROOM);
 
         // Calculate overproduction tier.
         let overprod_tier = calculate_overproduction_tier(effective_supply, demand, storage_abs);

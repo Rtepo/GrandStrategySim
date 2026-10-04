@@ -8,7 +8,7 @@
 
 use crate::energy::types::*;
 use crate::entities::Building;
-use crate::registries::enums::Sector;
+use crate::registries::enums::{Commodity, Sector};
 use crate::society::geography::Region;
 use crate::society::housing::CommercialBuilding;
 
@@ -123,6 +123,21 @@ pub fn apply_load_shedding(
     // Apply penalties to buildings in the region.
     for building in buildings {
         if building.region_id != region_id {
+            continue;
+        }
+
+        // Buildings that consume no grid power are unaffected by load
+        // shedding: a coal forge, horse-drawn carrier, peat digger or
+        // biomass boiler does not need electricity to run. Exempting them
+        // keeps pre-industrial sectors alive — the bootstrap path out of
+        // an otherwise absorbing blackout (fuel and freight keep moving,
+        // letting generators restore supply).
+        let consumes_grid = building
+            .active_method
+            .inputs
+            .keys()
+            .any(|c| matches!(c, Commodity::Energy | Commodity::Heat));
+        if !consumes_grid {
             continue;
         }
 

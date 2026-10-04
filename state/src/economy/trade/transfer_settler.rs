@@ -845,12 +845,16 @@ pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount:
     // warning is logged for production tracing. The credit succeeds because
     // rejecting it would break callers that legitimately operate without a
     // bank (e.g. test setups, cultural buildings, See charity).
-    let bank_id = if let Some(company) = companies.iter().find(|c| c.id == company_id) {
-        company.primary_bank_id.clone()
-    } else {
-        return false;
-    };
-    if bank_id.is_none() {
+    let (bank_id, recipient_is_bank) =
+        if let Some(company) = companies.iter().find(|c| c.id == company_id) {
+            (
+                company.primary_bank_id.clone(),
+                company.sector == crate::registries::enums::Sector::Banking,
+            )
+        } else {
+            return false;
+        };
+    if bank_id.is_none() && !recipient_is_bank {
         // Phase 94: Unbanked company — no bank reserve sync needed.
         // The company's cash is already tracked in M0 (corp_cash for
         // unbanked companies). No bank balance sheet to update.
@@ -868,6 +872,21 @@ pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount:
 
     if let Some(ref bank_id) = bank_id {
         adjust_bank_balance_unmapped(companies, bank_id, amount, amount);
+    } else if recipient_is_bank {
+        // W11: The recipient IS a bank — it holds no primary_bank_id, so the
+        // deposit-liability sync above cannot run. The payment lands as
+        // reserves on the bank's own balance sheet (M0 ↑) with tier_1_capital
+        // as the equity counterparty (revenue → retained earnings, matching
+        // the interest-income convention in state/banking.rs). Without this,
+        // every trade with a bank seller credits the seller's cash memo while
+        // no counted pocket receives the funds — the payer's debit is
+        // unopposed (FiatDestruction).
+        if let Some(bank) = companies.iter_mut().find(|c| c.id == company_id) {
+            if let Some(ref mut bs) = bank.balance_sheet {
+                bs.reserves_at_central_bank += amount;
+                bs.tier_1_capital += amount;
+            }
+        }
     }
     true
 }
@@ -880,24 +899,45 @@ pub fn debit_company_by_id(companies: &mut [Company], company_id: &str, amount: 
         return 0.0;
     }
 
-    let (actual, bank_id) = if let Some(company) = companies.iter_mut().find(|c| c.id == company_id)
-    {
-        if let Some(ba) = &mut company.brokerage_account {
-            let affordable = amount.min(ba.cash);
-            ba.cash -= affordable;
-            (affordable, company.primary_bank_id.clone())
+    let (actual, bank_id, payer_is_bank) =
+        if let Some(company) = companies.iter_mut().find(|c| c.id == company_id) {
+            if let Some(ba) = &mut company.brokerage_account {
+                let affordable = amount.min(ba.cash);
+                ba.cash -= affordable;
+                (
+                    affordable,
+                    company.primary_bank_id.clone(),
+                    company.sector == crate::registries::enums::Sector::Banking,
+                )
+            } else {
+                let affordable = amount.min(company.available_cash);
+                company.available_cash -= affordable;
+                (
+                    affordable,
+                    company.primary_bank_id.clone(),
+                    company.sector == crate::registries::enums::Sector::Banking,
+                )
+            }
         } else {
-            let affordable = amount.min(company.available_cash);
-            company.available_cash -= affordable;
-            (affordable, company.primary_bank_id.clone())
-        }
-    } else {
-        return 0.0;
-    };
+            return 0.0;
+        };
 
     if actual > 0.0 {
         if let Some(ref bank_id) = bank_id {
             adjust_bank_balance_unmapped(companies, bank_id, -actual, -actual);
+        } else if payer_is_bank {
+            // W11: The payer IS a bank — no primary_bank_id, so its own
+            // balance sheet must surrender the reserves (mirroring the
+            // Banking-sector payer leg in settle_transfer_mapped). Without
+            // this, the bank's cash memo is debited while its reserves stay
+            // and the recipient's counted credit has no counterparty debit
+            // (FiatCreation).
+            if let Some(bank) = companies.iter_mut().find(|c| c.id == company_id) {
+                if let Some(ref mut bs) = bank.balance_sheet {
+                    bs.reserves_at_central_bank -= actual;
+                    bs.deposits -= actual;
+                }
+            }
         }
     }
     actual

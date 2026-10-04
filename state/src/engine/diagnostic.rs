@@ -479,6 +479,11 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
         // the State Employer pays wages. Excluding it creates a false
         // M0 drop when ministries fund public services.
         ministry_cash += country.ministry_public_service_pool;
+        // W12: Maritime infrastructure purse is state cash — shipyard/port
+        // spending from it must have a counted counterparty. It is funded
+        // by treasury draws and pays contractors, so it belongs in M0 like
+        // ministry cash. Excluding it minted fiat at shipyard settlement.
+        treasury_cash += country.maritime_infrastructure.available_cash;
         // Phase 94: Citizen savings (demo.savings) are physical cash in
         // circulation, NOT central bank reserves. The simulation does not
         // model the banking-side of cash withdrawals/deposits (when a company
