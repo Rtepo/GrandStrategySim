@@ -4669,7 +4669,10 @@ mod tests {
         let mut balance_sheet = BankBalanceSheet::default();
         balance_sheet.reserves_at_central_bank = 200_000.0;
         balance_sheet.deposits = 1_000_000.0;
-        balance_sheet.tier_1_capital = 100_000.0;
+        // 10x leverage (1M/100K) would trip the 9.5x prudential gate on any
+        // deposit-minting loan — the fixture uses compliant equity so the
+        // double-entry mechanics under test can execute.
+        balance_sheet.tier_1_capital = 500_000.0;
 
         let borrower = Company::new(
             "COMP-1".to_string(),

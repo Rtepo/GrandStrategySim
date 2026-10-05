@@ -6107,9 +6107,6 @@ pub(crate) fn seed_inventory(
     (inventory, total_cost)
 }
 
-/// Phase 27: Estimated base price for a commodity, used for seed inventory
-/// cost calculation. Returns a rough unit price Ă˘â‚¬â€ť not the actual market price.
-
 /// 24-turn fix: ceiling for genesis wage offers/targets. The legacy formula
 /// `cash × 0.6 / capacity` paid wages out of seed capital — a company seeded
 /// with ~$200B offered ~$40M/FTE, and the sticky-wage floor (−3%/turn) meant
@@ -6126,6 +6123,8 @@ pub fn genesis_wage_offer_ceiling(average_wage: f64) -> f64 {
     average_wage.max(1.0) * 1.2
 }
 
+/// Phase 27: Estimated base price for a commodity, used for seed inventory
+/// cost calculation. Returns a rough unit price — not the actual market price.
 pub fn estimated_base_price(commodity: Commodity) -> f64 {
     match commodity {
         Commodity::Food => 50.0,

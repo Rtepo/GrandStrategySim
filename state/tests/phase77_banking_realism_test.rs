@@ -59,7 +59,10 @@ fn test_balance_sheet(deposits: f64, reserves: f64, lombard: f64) -> BankBalance
         cb_deposit_facility_balance: 0.0,
         interbank_loans_taken: std::collections::BTreeMap::new(),
         issued_bonds: 0.0,
-        tier_1_capital: deposits * 0.10,
+        // 10x leverage (deposits*0.10) trips the 9.5x prudential gate on any
+        // deposit-minting loan — fixtures carry compliant equity so the
+        // reserve checks under test, not the leverage cap, decide the call.
+        tier_1_capital: deposits * 0.20,
         extra: serde_json::Map::new(),
     }
 }
