@@ -1321,9 +1321,17 @@ pub fn process_tax_collection_turn(
     // A tax office with 0 employees counts the same as one with 500 if we use
     // building count. Sum current_employment from buildings whose IDs are in
     // tax_office_ids.
+    // 24-turn fix: `tax_office_ids` is never populated anywhere in worldgen —
+    // keying on it alone produced 0 enforcement workers → 100% evasion → all
+    // assessed taxes (CIT, wealth) collected $0.00 forever. Public
+    // administration buildings ARE the tax apparatus (STAGE C); count their
+    // employment plus any explicitly registered office IDs.
     let tax_office_workers: f64 = buildings
         .iter()
-        .filter(|b| country.budget.tax_office_ids.contains(&b.id))
+        .filter(|b| {
+            b.sector == crate::registries::enums::Sector::PublicAdministration
+                || country.budget.tax_office_ids.contains(&b.id)
+        })
         .map(|b| b.current_employment as f64)
         .sum();
     // D.3.2: Use the defined constant, not a hardcoded 0.1 (which is 2x the
@@ -1354,12 +1362,35 @@ pub fn process_tax_collection_turn(
             continue;
         }
 
-        // Aggregate profit from company's buildings
-        let company_profit: f64 = buildings
-            .iter()
-            .filter(|b| b.owner_id == company.id)
-            .map(|b| b.last_profit.max(0.0))
-            .sum();
+        // 24-turn fix: CIT base = the company's REALIZED profit (settled
+        // sales − consumed inputs − wages), set by process_company this turn.
+        // The old base summed `building.last_profit` — output valued at
+        // oracle base prices regardless of sale — which taxed phantom profit
+        // and drained real cash from companies that never earned it.
+        // Sectors that keep accrual accounting (banks, treasury-funded
+        // entities, project-based construction) fall back to the building
+        // sum so their tax base is unchanged.
+        let realized = company.realized_profit_this_turn;
+        let company_profit: f64 = if !matches!(
+            company.sector,
+            crate::registries::enums::Sector::Banking
+                | crate::registries::enums::Sector::NGO
+                | crate::registries::enums::Sector::Religion
+                | crate::registries::enums::Sector::PublicAdministration
+                | crate::registries::enums::Sector::Government
+                | crate::registries::enums::Sector::PublicServices
+                | crate::registries::enums::Sector::ExportServices
+                | crate::registries::enums::Sector::WasteManagement
+                | crate::registries::enums::Sector::Construction
+        ) {
+            realized
+        } else {
+            buildings
+                .iter()
+                .filter(|b| b.owner_id == company.id)
+                .map(|b| b.last_profit.max(0.0))
+                .sum()
+        };
 
         if company_profit <= 0.0 {
             continue;
@@ -1393,7 +1424,12 @@ pub fn process_tax_collection_turn(
                 .as_ref()
                 .map(|ba| ba.cash)
                 .unwrap_or(0.0);
-        let actual_cit = cit_collected.min(company_liquid);
+        // Clamp to liquid cash, floored at 0 — `available_cash` may be
+        // legitimately negative (solvency-bounded B2B procurement books the
+        // deficit as implicit trade credit); without `.max(0.0)` the clamp
+        // returns the negative cash and `cit_collected` accumulates a phantom
+        // "refund" that corrupts tax history and total_revenue.
+        let actual_cit = cit_collected.min(company_liquid.max(0.0)).max(0.0);
         result.cit_collected += actual_cit;
         result.taxes_evaded += cit_collected - actual_cit;
 
@@ -1452,7 +1488,11 @@ pub fn process_tax_collection_turn(
                     .as_ref()
                     .map(|ba| ba.cash)
                     .unwrap_or(0.0);
-            let actually_collected = wealth_collected.min(company_liquid);
+            // Same negative-cash guard as CIT above — a profitable-on-paper
+            // company with negative liquid cash owes nothing this turn; the
+            // unclamped min() reported its deficit as negative tax collected.
+            let actually_collected =
+                wealth_collected.min(company_liquid.max(0.0)).max(0.0);
             result.taxes_evaded += wealth_collected - actually_collected;
             result.wealth_tax_collected += actually_collected;
 

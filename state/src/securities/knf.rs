@@ -359,7 +359,16 @@ pub fn process_knf_compliance(
             let fine = severity as f64 * total_assets * config.knf_penalty_multiplier * 0.5;
 
             let available_reserves = balance_sheet.reserves_at_central_bank.max(0.0);
-            let actual_fine = fine.min(available_reserves);
+            // 24-turn fix: at Sev-10 `fine` ≈ 5× total assets — wiping ALL
+            // reserves (forcing bigger Lombard draws → more liabilities) AND
+            // debiting equity (raising the ratio) made the fine deepen the
+            // breach it punishes: a permanent Sev-10 ratchet. Cap the fine
+            // at 2% of equity per turn — punitive but bounded — so leverage
+            // can recover via retained earnings instead of spiralling.
+            let actual_fine = fine
+                .min(available_reserves)
+                .min(equity * 0.02)
+                .max(0.0);
             // Phase 94: Double-entry — fine is an expense: asset (reserves)
             // decreases AND equity (tier_1) decreases. Without the equity
             // debit, A < L+E by the fine amount.

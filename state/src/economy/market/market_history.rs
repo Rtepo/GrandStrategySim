@@ -39,6 +39,14 @@ pub struct MarketHistory {
     /// Updated after `update_vwap()` each turn via `update_vwap_history()`.
     #[serde(default)]
     pub vwap_history: HashMap<Commodity, VecDeque<f64>>,
+    /// The wage numéraire the installed `global_base_prices` cost-plus stack
+    /// was calibrated against at world generation (the dearest labor
+    /// market's wage). Foreign-sector export pricing scales the base price
+    /// by current-max-wage / this anchor — world prices track marginal
+    /// producer labor cost instead of staying stuck at the genesis level
+    /// while domestic wages inflate.
+    #[serde(default)]
+    pub numeraire_wage: f64,
 }
 
 /// Get reference price using fallback chain.

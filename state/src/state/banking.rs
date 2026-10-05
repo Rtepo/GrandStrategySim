@@ -445,6 +445,59 @@ pub fn enforce_reserve_floor(
     injected
 }
 
+/// Prudential leverage supervision: a bank whose liabilities exceed the
+/// regulatory 10x-equity limit must be recapitalized before the horizon
+/// audit — deposits cannot be refused, so liability growth alone can
+/// strand a small bank past the limit even with no new lending. The
+/// treasury purchases equity (liquid_reserves -> bank reserves at the
+/// CB): M0-neutral since both legs sit inside the monetary walk, and
+/// the sheet stays balanced (reserves and equity both rise; liabilities
+/// untouched). When the treasury cannot cover the gap, the residual is
+/// financed by the central bank under the same liquidity_injected
+/// identity the ELA reserve cover uses — a lender-of-last-resort recap
+/// rather than an unbooked equity patch. Banks at/below zero equity are
+/// left to the resolution regime instead.
+///
+/// Called inside `process_banking_turn` AND again at the end-of-turn
+/// reserve-floor pass: settlement phases grow deposit liabilities all
+/// turn long, so an early-turn recap alone cannot bound the snapshot
+/// the audit reads.
+pub fn enforce_leverage_cap(
+    country: &mut crate::state::Country,
+    companies: &mut [crate::entities::Company],
+) {
+    for bank in companies.iter_mut() {
+        if bank.bank_type.is_none() {
+            continue;
+        }
+        let Some(ref mut bs) = bank.balance_sheet else {
+            continue;
+        };
+        if bs.tier_1_capital <= 0.0 {
+            continue;
+        }
+        let liabilities = bs.total_liabilities();
+        // Recap to 9x — a margin below the 10x hard limit so routine
+        // liability growth does not immediately re-breach.
+        let needed = (liabilities / 9.0 - bs.tier_1_capital).max(0.0);
+        if needed <= 0.0 {
+            continue;
+        }
+        let from_treasury = needed.min(country.budget.liquid_reserves.max(0.0));
+        if from_treasury > 0.0 {
+            country.budget.liquid_reserves -= from_treasury;
+            bs.reserves_at_central_bank += from_treasury;
+            bs.tier_1_capital += from_treasury;
+        }
+        let residual = needed - from_treasury;
+        if residual > 0.0 {
+            country.central_bank.liquidity_injected += residual;
+            bs.reserves_at_central_bank += residual;
+            bs.tier_1_capital += residual;
+        }
+    }
+}
+
 /// Interbank market for daily liquidity exchange between banks.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct InterbankMarket {
@@ -1071,6 +1124,23 @@ pub fn issue_loan(
         return Err(format!(
             "LDR cap violation: loans_after={:.2} exceeds cap={:.2} (deposits_after={:.2} × (1 − rr={:.4}))",
             loans_after, ldr_cap, deposits_after, central_bank.reserve_requirement_ratio
+        ));
+    }
+
+    // Step 3c (24-turn): Prudential leverage gate — each loan mints
+    // `principal` of new deposits 1:1, so liabilities ratchet with fixed
+    // equity. Without a gate, issuance mechanically breaches the KNF 10×
+    // limit (the Sev-10 flood). Cap post-issuance liabilities at 9.5×
+    // tier_1, leaving headroom for interest accrual between audits. A bank
+    // at/over the cap stops lending until equity rebuilds — the intended
+    // macroprudential brake.
+    let liabilities_after = balance_sheet.total_liabilities() + principal;
+    if balance_sheet.tier_1_capital > 0.0
+        && liabilities_after > balance_sheet.tier_1_capital * 9.5
+    {
+        return Err(format!(
+            "Leverage cap violation: liabilities_after={:.2} exceeds {:.2}× tier_1 ({:.2})",
+            liabilities_after, 9.5, balance_sheet.tier_1_capital
         ));
     }
 
@@ -3043,14 +3113,58 @@ pub fn process_banking_turn(
             // represents an overdraft that must be resolved via lending or
             // bankruptcy. Clamping breaks double-entry because the bank's
             // deposit is debited by the full amount regardless.
+            // 24-turn fix: bounded collection — scheduled amortization used
+            // to debit the FULL amount unconditionally, overdrafting solvent
+            // borrowers to negative cash before payroll ran (manufacturing
+            // wage arrears). Collect only cash held net of the payroll
+            // obligation; the uncollected portion stays on the loan and the
+            // bank is credited only what it received — double-entry exact.
+            let spendable = companies[borrower_idx]
+                .brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash.max(0.0))
+                .unwrap_or(0.0)
+                + companies[borrower_idx].available_cash.max(0.0);
+            let payroll_reserve = companies[borrower_idx].wages_paid_this_turn
+                + companies[borrower_idx].wage_arrears
+                + companies[borrower_idx].severance_arrears;
+            let collected = amount.min((spendable - payroll_reserve).max(0.0));
+
+            let mut remaining = collected;
             if let Some(ref mut ba) = companies[borrower_idx].brokerage_account {
-                let debit = amount.min(ba.cash);
+                let debit = remaining.min(ba.cash.max(0.0));
                 ba.cash -= debit;
-                if debit < amount {
-                    companies[borrower_idx].available_cash -= amount - debit;
+                remaining -= debit;
+            }
+            if remaining > 0.0 {
+                companies[borrower_idx].available_cash -= remaining;
+            }
+
+            // Restore the uncollected portion onto the loan (the accrual
+            // loop already reduced outstanding_balance and ticked the term),
+            // and reverse the uncollected interest income on the bank's equity.
+            let uncollected = amount - collected;
+            if uncollected > 0.0 {
+                if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
+                    if let Some(loan) =
+                        bs.loans_issued.iter_mut().find(|l| l.id == loan_id)
+                    {
+                        // Only the unpaid PRINCIPAL share returns to the
+                        // balance — the accrual loop reduced outstanding by
+                        // `_principal_portion`, not by `amount`.
+                        loan.outstanding_balance +=
+                            _principal_portion * (uncollected / amount);
+                        loan.turns_remaining = loan.turns_remaining.saturating_add(1);
+                    }
+                    let interest_portion = (amount - _principal_portion).max(0.0);
+                    if amount > 0.0 && interest_portion > 0.0 {
+                        bs.tier_1_capital -= interest_portion * (uncollected / amount);
+                    }
                 }
-            } else {
-                companies[borrower_idx].available_cash -= amount;
+            }
+            let amount = collected;
+            if amount <= 0.0 {
+                continue;
             }
 
             // Sync borrower's bank balance sheet (double-entry)
@@ -3293,10 +3407,36 @@ pub fn process_banking_turn(
                 // whether the borrower has a brokerage_account â€” both
                 // brokerage_account.cash and available_cash are M0 for
                 // unbanked companies (see walk_global_fiat).
-                if companies[borrower_idx].primary_bank_id.is_none() {
-                    if let Some(ref mut bs) = companies[bi].balance_sheet {
-                        bs.deposits -= lr.principal_amount;
-                        bs.reserves_at_central_bank -= lr.principal_amount;
+                // 24-turn: Reconcile where the created deposit lives.
+                // issue_loan books `deposits += P` at the LENDER, but the
+                // borrower's cash spends through `primary_bank_id`. For a
+                // borrower banked elsewhere the deposit must move to the
+                // borrower's bank (funded by a reserve transfer) — otherwise
+                // every payment the borrower makes debits deposits at a bank
+                // that never received the credit, driving them negative.
+                let lender_id = companies[bi].id.clone();
+                match companies[borrower_idx].primary_bank_id.clone() {
+                    None => {
+                        if let Some(ref mut bs) = companies[bi].balance_sheet {
+                            bs.deposits -= lr.principal_amount;
+                            bs.reserves_at_central_bank -= lr.principal_amount;
+                        }
+                    }
+                    Some(pb) if pb == lender_id => {}
+                    Some(pb) => {
+                        // Inter-bank: mirror the repayment path — the lending
+                        // bank ships reserves to the borrower's bank, which
+                        // books the new deposit liability instead.
+                        if let Some(ref mut bs) = companies[bi].balance_sheet {
+                            bs.deposits -= lr.principal_amount;
+                            bs.reserves_at_central_bank -= lr.principal_amount;
+                        }
+                        if let Some(bank) = companies.iter_mut().find(|c| c.id == pb) {
+                            if let Some(ref mut bs) = bank.balance_sheet {
+                                bs.deposits += lr.principal_amount;
+                                bs.reserves_at_central_bank += lr.principal_amount;
+                            }
+                        }
                     }
                 }
                 result.total_new_credit += lr.principal_amount;
@@ -3416,10 +3556,16 @@ pub fn process_banking_turn(
     let mut failed_banks: Vec<String> = Vec::new();
     for bank in companies.iter() {
         if let (Some(_), Some(ref bs)) = (&bank.bank_type, &bank.balance_sheet) {
-            if !bs.meets_reserve_requirement(cb_reserve_ratio)
+            // 24-turn fix: `reserves_at_central_bank < 0.0` was unreachable —
+            // Phase-95 ELA keeps reserves ≥ 0 every turn, so insolvent banks
+            // (negative equity, unbounded leverage) could never be resolved
+            // and accrued Sev-10 findings forever. Trigger resolution on
+            // insolvency (equity wiped) or chronic Lombard dependence.
+            let insolvent = bs.tier_1_capital <= 0.0;
+            let liquidity_failed = !bs.meets_reserve_requirement(cb_reserve_ratio)
                 && bs.cb_lombard_loans > 0.0
-                && bs.reserves_at_central_bank < 0.0
-            {
+                && bs.reserves_at_central_bank < 0.0;
+            if insolvent || liquidity_failed {
                 failed_banks.push(bank.id.clone());
             }
         }
@@ -3653,10 +3799,27 @@ pub fn process_banking_turn(
                 // M0. Reverse the deposit creation and debit reserves to keep
                 // M0 neutral (Directive 1). This must apply regardless of
                 // whether the borrower has a brokerage_account.
-                if companies[borrower_idx].primary_bank_id.is_none() {
-                    if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
-                        bs.deposits -= lr.principal_amount;
-                        bs.reserves_at_central_bank -= lr.principal_amount;
+                match companies[borrower_idx].primary_bank_id.clone() {
+                    None => {
+                        if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
+                            bs.deposits -= lr.principal_amount;
+                            bs.reserves_at_central_bank -= lr.principal_amount;
+                        }
+                    }
+                    Some(pb) if pb == bank_id => {}
+                    Some(pb) => {
+                        // Inter-bank: move the created deposit to the
+                        // borrower's bank, funded by a reserve transfer.
+                        if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
+                            bs.deposits -= lr.principal_amount;
+                            bs.reserves_at_central_bank -= lr.principal_amount;
+                        }
+                        if let Some(bank) = companies.iter_mut().find(|c| c.id == pb) {
+                            if let Some(ref mut bs) = bank.balance_sheet {
+                                bs.deposits += lr.principal_amount;
+                                bs.reserves_at_central_bank += lr.principal_amount;
+                            }
+                        }
                     }
                 }
                 lent_total += lr.principal_amount;
@@ -4088,6 +4251,9 @@ pub fn process_banking_turn(
         bank.target_fte_demand = growth_capped_demand.min(max_affordable).max(2.0).round() as u32; // Min 2 FTE
         bank.physical_fte_demand = bank.target_fte_demand;
     }
+
+    // Prudential leverage supervision — see `enforce_leverage_cap`.
+    enforce_leverage_cap(country, companies);
 
     // Aggregate diagnostics
     for bank in companies.iter() {

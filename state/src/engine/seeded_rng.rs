@@ -66,57 +66,76 @@ pub fn is_seeded() -> bool {
 
 /// A wrapper enum that can be either a seeded StdRng or a ThreadRng.
 /// This implements RngCore so it can be used anywhere `impl Rng` is expected.
-#[allow(clippy::large_enum_variant)]
+///
+/// The `Seeded` variant holds a raw pointer INTO the thread-local cell rather
+/// than the StdRng itself. Taking the RNG out of the cell (the old design)
+/// meant any nested `thread_rng()` call while a guard was alive observed an
+/// empty cell and silently fell back to OS entropy — making every function
+/// that created its own guard (`generate_regional_topology`, name
+/// generators, `assign_regional_heads`, …) nondeterministic whenever a
+/// caller also held a guard. Pointing into the cell lets nested guards share
+/// the same advancing stream: re-entrant draws are deterministic.
 pub enum SeededThreadRng {
-    /// A deterministic StdRng borrowed from the thread-local cell.
-    Seeded(StdRng),
+    /// A deterministic StdRng shared via pointer into the thread-local cell.
+    Seeded(*mut StdRng),
     /// A true thread-local RNG (non-deterministic).
     Thread(ThreadRng),
 }
 
+/// Global counter of seeded RNG draws. Diagnostic-only: lets stage-level
+/// fingerprints pinpoint exactly where two runs' streams diverge.
+static DRAW_COUNT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Total seeded draws since process start (or last `reset_draw_count`).
+pub fn draw_count() -> u64 {
+    DRAW_COUNT.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// Reset the draw counter (e.g., at generation start).
+pub fn reset_draw_count() {
+    DRAW_COUNT.store(0, std::sync::atomic::Ordering::Relaxed);
+}
+
+#[inline]
+fn bump_draw() {
+    DRAW_COUNT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+}
+
 impl RngCore for SeededThreadRng {
     fn next_u32(&mut self) -> u32 {
+        bump_draw();
         match self {
-            SeededThreadRng::Seeded(r) => r.next_u32(),
+            // SAFETY: The pointer references the StdRng inside the
+            // thread-local `UnsafeCell<Option<StdRng>>`. Each call creates a
+            // transient &mut that ends before returning, so nested guards
+            // never hold overlapping live &mut borrows — the same interior-
+            // mutability pattern the cell was introduced for.
+            SeededThreadRng::Seeded(ptr) => unsafe { (**ptr).next_u32() },
             SeededThreadRng::Thread(r) => r.next_u32(),
         }
     }
 
     fn next_u64(&mut self) -> u64 {
+        bump_draw();
         match self {
-            SeededThreadRng::Seeded(r) => r.next_u64(),
+            SeededThreadRng::Seeded(ptr) => unsafe { (**ptr).next_u64() },
             SeededThreadRng::Thread(r) => r.next_u64(),
         }
     }
 
     fn fill_bytes(&mut self, dest: &mut [u8]) {
+        bump_draw();
         match self {
-            SeededThreadRng::Seeded(r) => r.fill_bytes(dest),
+            SeededThreadRng::Seeded(ptr) => unsafe { (**ptr).fill_bytes(dest) },
             SeededThreadRng::Thread(r) => r.fill_bytes(dest),
         }
     }
 
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand::Error> {
+        bump_draw();
         match self {
-            SeededThreadRng::Seeded(r) => r.try_fill_bytes(dest),
+            SeededThreadRng::Seeded(ptr) => unsafe { (**ptr).try_fill_bytes(dest) },
             SeededThreadRng::Thread(r) => r.try_fill_bytes(dest),
-        }
-    }
-}
-
-impl Drop for SeededThreadRng {
-    fn drop(&mut self) {
-        // When the Seeded variant is dropped, put the RNG state back into
-        // the thread-local cell so the next call to `thread_rng()` continues
-        // from where this one left off.
-        if let SeededThreadRng::Seeded(ref mut rng) = self {
-            SEEDED_RNG.with(|cell| unsafe {
-                // SAFETY: We're putting the RNG back into the thread-local cell.
-                // This is safe because we took it out in `thread_rng()` and no
-                // other code has access to it while we hold it.
-                // Use ptr::write to move the RNG without cloning.
-                *cell.get() = Some(std::ptr::read(rng as *mut StdRng));
-            });
         }
     }
 }
@@ -126,12 +145,17 @@ impl Drop for SeededThreadRng {
 ///
 /// This function should be used instead of `rand::thread_rng()` in all
 /// engine code that needs to be deterministic in tests.
+///
+/// Re-entrant by design: multiple live guards all point at the same
+/// thread-local StdRng and advance the shared stream — the caller that
+/// happens to draw next gets the next stream value, deterministically.
 pub fn thread_rng() -> SeededThreadRng {
     SEEDED_RNG.with(|cell| unsafe {
-        // Take the RNG out of the cell. It will be put back when the
-        // SeededThreadRng is dropped.
-        match (*cell.get()).take() {
-            Some(seeded) => SeededThreadRng::Seeded(seeded),
+        // Borrow the RNG in-place inside the cell. Do NOT take() it out —
+        // see the `SeededThreadRng` doc comment for why take-out silently
+        // produced OS entropy on nested calls.
+        match &mut *cell.get() {
+            Some(seeded) => SeededThreadRng::Seeded(seeded as *mut StdRng),
             None => SeededThreadRng::Thread(rand::thread_rng()),
         }
     })

@@ -459,7 +459,19 @@ extra: std::collections::HashMap::new(),
     }
 
     // Collect dues and donations
-    for party in country.politics.active_parties.values_mut() {
+    // Determinism: iterate parties in sorted order. Each party subtracts a
+    // distinct dues amount from every company's available_cash — HashMap
+    // iteration order would vary the subtraction order, drifting company
+    // cash by ~1 ulp run-to-run (f64 subtraction is non-associative).
+    let mut sorted_party_ids: Vec<String> =
+        country.politics.active_parties.keys().cloned().collect();
+    sorted_party_ids.sort();
+    for party_id in &sorted_party_ids {
+        let party = country
+            .politics
+            .active_parties
+            .get_mut(party_id)
+            .expect("party id from keys");
         let party_support = party.support;
         let party_base = party.base.clone();
 
@@ -1043,7 +1055,13 @@ fn regenerate_parties(
 
     // Preserve existing parties when their ideology still has a bid or they
     // already hold parliamentary seats.
-    for (name, party) in old_parties {
+    // Phase 96: canonical order — `old_parties` is a HashMap; the name-backfill
+    // below consumes RNG conditionally, so map order would randomize the
+    // draw sequence and party-to-draw assignment.
+    let mut old_party_names: Vec<&String> = old_parties.keys().collect();
+    old_party_names.sort();
+    for name in old_party_names {
+        let party = &old_parties[name];
         if let Some(ideo) = Ideology::from_name(&party.ideology) {
             if let Some(&bid) = bids.get(&ideo) {
                 if bid > threshold || parliament.contains_key(name) {
@@ -1066,7 +1084,12 @@ fn regenerate_parties(
 
     // Create deterministic new parties for ideologies that crossed the threshold
     // but are not represented by an existing party.
-    for (ideo, bid) in bids {
+    // Phase 96: canonical order — `bids` is a HashMap; iterating it directly
+    // consumed a different number of RNG draws per run (dedup retries at the
+    // `contains_key` check below depend on which parties already exist).
+    let mut bid_list: Vec<(Ideology, f64)> = bids.into_iter().collect();
+    bid_list.sort_by(|a, b| a.0.as_str().cmp(b.0.as_str()));
+    for (ideo, bid) in bid_list {
         if bid > threshold && !used_ideologies.contains(&ideo) {
             // Use procedural name generator
             let name = generator::generate_party_name(country_name, cultural_group, ideo.compass(), year, &mut rng);
@@ -1513,7 +1536,17 @@ pub fn bootstrap_politics(
             country.macro_indicators.cultural_group.clone()
         };
         let mut rng_dedup = crate::engine::seeded_rng::thread_rng();
-        for party in country.politics.active_parties.values_mut() {
+        // Phase 96: canonical order — `active_parties` is a HashMap (random
+        // iteration order); collision-dedup draws a different number of RNG
+        // values per party order otherwise.
+        let mut party_ids: Vec<String> = country.politics.active_parties.keys().cloned().collect();
+        party_ids.sort();
+        for party_id in party_ids {
+            let party = country
+                .politics
+                .active_parties
+                .get_mut(&party_id)
+                .expect("party missing");
             // Check if the leader name (without title prefix) collides.
             let leader_name = &party.leader.name;
             // Strip title prefix (e.g., "King John Smith" -> "John Smith")
@@ -2069,6 +2102,7 @@ pub fn bootstrap_politics(
             a.1.support
                 .partial_cmp(&b.1.support)
                 .unwrap_or(std::cmp::Ordering::Equal)
+                .then(b.0.cmp(a.0))
         }) {
             let ruling = name.clone();
             country.politics.ruling_party = ruling;
@@ -2115,7 +2149,10 @@ pub fn assign_regional_heads(
     };
 
     // Name and register mayors (regional heads).
-    for region in regions.values_mut() {
+    let mut region_ids: Vec<String> = regions.keys().cloned().collect();
+    region_ids.sort();
+    for region_id in region_ids {
+        let region = regions.get_mut(&region_id).expect("region key missing");
         if let Some(ref mut gov) = region.governance {
             if gov.head.name.is_empty() {
                 let vip_name = names::generate_full_vip(cultural_group, rng);

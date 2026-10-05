@@ -1,5 +1,6 @@
 //! Rebellion proto-state system for civil war mechanics
 
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -418,7 +419,7 @@ pub fn process_rebellion_spawning(
 
     for region in at_risk_regions {
         // 10% chance per at-risk region to actually spawn rebellion
-        if rand::random::<f64>() < 0.1 {
+        if crate::engine::seeded_rng::thread_rng().gen::<f64>() < 0.1 {
             let rebellion_type = trigger.determine_rebellion_type(&region, &country.politics);
             let goals = vec![match rebellion_type {
                 RebellionType::PeasantUprising => "Agrarian Reform".to_string(),

@@ -414,7 +414,14 @@ impl CentralBank {
         if balance <= 0.0 {
             return 0.0;
         }
-        let interest = balance * self.interest_rates.deposit_rate;
+        // 24-turn fix: `deposit_rate` is an ANNUAL rate — charging it whole
+        // every turn (TURNS_PER_YEAR=24) paid ~24× intended interest,
+        // inflating bank reserves/equity early then reversing when funding
+        // dried up. Convert to the per-turn rate like loan interest does.
+        let interest = balance
+            * crate::state::macro_data::annual_to_per_turn_rate(
+                self.interest_rates.deposit_rate,
+            );
         self.deposit_facility_interest_paid += interest;
         interest
     }
@@ -433,7 +440,12 @@ impl CentralBank {
         if loan_amount <= 0.0 {
             return 0.0;
         }
-        let interest = loan_amount * self.interest_rates.lombard_rate;
+        // 24-turn fix: same annual-rate-per-turn bug — the Lombard penalty
+        // was debited at ~24× intended, shredding borrower equity each turn.
+        let interest = loan_amount
+            * crate::state::macro_data::annual_to_per_turn_rate(
+                self.interest_rates.lombard_rate,
+            );
         self.lombard_facility_interest_received += interest;
         interest
     }

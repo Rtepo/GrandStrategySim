@@ -56,6 +56,9 @@ pub fn calculate_seats(
         .filter(|(_, p)| p.support >= threshold)
         .map(|(n, p)| (n.clone(), p.support))
         .collect();
+    // Determinism: sort so total_support accumulates in a fixed order —
+    // f64 summation over HashMap order drifts by ~1 ulp run-to-run.
+    valid.sort_by(|a, b| a.0.cmp(&b.0));
 
     if valid.is_empty() {
         if let Some(strongest) = strongest_party(parties) {

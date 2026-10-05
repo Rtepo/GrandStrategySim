@@ -407,7 +407,11 @@ pub fn settle_b2c_purchase(
                 .rural_classes
                 .get_mut(&rural)
                 .map(|demo| {
-                    let affordable = total_debit.min(demo.savings);
+                    // 24-turn fix: clamp savings at 0 — a negative class
+                    // balance made `affordable` negative, and `savings -=
+                    // negative` then INCREASED class savings (unbacked
+                    // write-off) while skipping the purchase.
+                    let affordable = total_debit.min(demo.savings.max(0.0));
                     demo.savings -= affordable;
                     affordable
                 })
@@ -418,7 +422,7 @@ pub fn settle_b2c_purchase(
                 .urban_classes
                 .get_mut(&urban)
                 .map(|demo| {
-                    let affordable = total_debit.min(demo.savings);
+                    let affordable = total_debit.min(demo.savings.max(0.0));
                     demo.savings -= affordable;
                     affordable
                 })
@@ -866,6 +870,22 @@ pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount:
         } else {
             company.available_cash += amount;
         }
+        // ARREARS-1: payroll-trust garnish — while the company owes wages,
+        // inbound money first fills the wage trust (`debit_cash` doubles as
+        // the trust ledger: it is M0-counted for unbanked firms and
+        // deposit-backed for banked ones). The labor market sweeps the
+        // trust to workers before procurement, debt service, or any other
+        // drain can claim the inflow. Moving pocket→debit_cash is a pure
+        // ledger earmark — no M0 event.
+        if company.wage_arrears > 0.0 {
+            let garnish = company.wage_arrears.min(amount);
+            if let Some(ba) = &mut company.brokerage_account {
+                ba.cash -= garnish;
+            } else {
+                company.available_cash -= garnish;
+            }
+            company.debit_cash += garnish;
+        }
     } else {
         return false;
     }
@@ -902,7 +922,12 @@ pub fn debit_company_by_id(companies: &mut [Company], company_id: &str, amount: 
     let (actual, bank_id, payer_is_bank) =
         if let Some(company) = companies.iter_mut().find(|c| c.id == company_id) {
             if let Some(ba) = &mut company.brokerage_account {
-                let affordable = amount.min(ba.cash);
+                // Clamp at 0: on a negative pocket `min` returns a negative
+                // "affordable", snap-resets the balance toward 0, skips the
+                // bank sync below (actual <= 0), and corrupts callers that
+                // compute `shortfall = requested - returned` (the freight
+                // overdraft path ratcheted pockets to -1e10 this way).
+                let affordable = amount.min(ba.cash.max(0.0));
                 ba.cash -= affordable;
                 (
                     affordable,
@@ -910,7 +935,7 @@ pub fn debit_company_by_id(companies: &mut [Company], company_id: &str, amount: 
                     company.sector == crate::registries::enums::Sector::Banking,
                 )
             } else {
-                let affordable = amount.min(company.available_cash);
+                let affordable = amount.min(company.available_cash.max(0.0));
                 company.available_cash -= affordable;
                 (
                     affordable,

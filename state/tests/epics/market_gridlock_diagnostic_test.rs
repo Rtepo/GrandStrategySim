@@ -56,10 +56,11 @@ use tempfile::TempDir;
 const OUTPUT_DIR: &str = "tests/diagnostic_output";
 
 /// Number of turns to run — the Turn-3 bankruptcy cascade is captured.
-// 12-turn mandate: the 4-turn horizon was a band-aid — real-world simulation
-// showed catastrophic structural collapse by Turn 6 (1B-FTE labor bug,
-// 320% grid overproduction, service-sector starvation, bank extinction).
-const TURNS: u32 = 12;
+// 24-turn mandate: the 12-turn horizon masked a delayed collapse — real-world
+// simulation to Turn 25 showed GDP spiking ~Turn 3 then collapsing to ~0,
+// negative wealth tax, profitable companies drained to $0.00 cash with wage
+// arrears, energy supply crashing to 0 MW, and KNF Sev-10 leverage floods.
+const TURNS: u32 = 24;
 
 /// Per-class savings snapshot for the propensity-to-consume probe.
 #[derive(Debug, Clone, serde::Serialize)]
@@ -92,6 +93,9 @@ struct CompanyIncomeEntry {
     operating_costs: f64,
     interest_paid: f64,
     taxes_paid: f64,
+    /// Cumulative lifetime export revenue credited by the foreign-sector
+    /// sweep (not windowed) — correlates the purse's reach with P&L.
+    export_revenue: f64,
 }
 
 /// The full diagnostic dump written to JSON.
@@ -217,6 +221,98 @@ fn test_market_gridlock_diagnostic() {
     let mut ctx = InMemoryTurnContext::load_from_disk(data_dir, &mut initial_state)
         .expect("failed to load turn context from generated world");
 
+    // Phase 96 determinism probe: fingerprint the loaded world. Two runs of
+    // this binary must produce identical fingerprints; divergence means
+    // worldgen still consumes per-process entropy somewhere.
+    {
+        let mut total_companies = 0usize;
+        let mut total_buildings = 0usize;
+        let mut cash_values: Vec<u64> = Vec::new();
+        let mut capital_values: Vec<u64> = Vec::new();
+        let mut total_pop: i64 = 0;
+        let mut country_summaries: Vec<String> = Vec::new();
+        let mut cnames: Vec<&String> = ctx.entities.keys().collect();
+        cnames.sort();
+        for cname in cnames {
+            let ents = &ctx.entities[cname];
+            total_companies += ents.companies.len();
+            total_buildings += ents.buildings.len();
+            // Sort the per-company values before summing: identical multisets
+            // produce identical sums regardless of map iteration order, while
+            // real content divergence still shows up.
+            cash_values.extend(ents.companies.iter().map(|c| c.available_cash.to_bits()));
+            capital_values.extend(ents.companies.iter().map(|c| c.company_capital.to_bits()));
+            if let Some(country) = initial_state.countries.get(cname.as_str()) {
+                let cpop: i64 = country.regions.iter().map(|r| r.population).sum();
+                total_pop += cpop;
+                let mut ccash: Vec<u64> = ents
+                    .companies
+                    .iter()
+                    .map(|c| c.available_cash.to_bits())
+                    .collect();
+                ccash.sort_unstable();
+                let ccash_hash = ccash
+                    .iter()
+                    .fold(0u64, |acc, v| {
+                        acc.wrapping_mul(0x9E3779B97F4A7C15).wrapping_add(*v)
+                    });
+                country_summaries.push(format!(
+                    "{}:r{}:p{}:c{}:h{:016x}",
+                    cname,
+                    country.regions.len(),
+                    cpop,
+                    ents.companies.len(),
+                    ccash_hash
+                ));
+            }
+        }
+        country_summaries.sort();
+        // Hash the sorted bit-patterns — order-independent, exact-value.
+        cash_values.sort_unstable();
+        capital_values.sort_unstable();
+        let cash_hash = cash_values
+            .iter()
+            .fold(0u64, |acc, v| acc.wrapping_mul(0x9E3779B97F4A7C15).wrapping_add(*v));
+        let capital_hash = capital_values
+            .iter()
+            .fold(0u64, |acc, v| acc.wrapping_mul(0x9E3779B97F4A7C15).wrapping_add(*v));
+        eprintln!(
+            "GENESIS_FP: companies={} buildings={} cash_hash={:016x} capital_hash={:016x} pop={}",
+            total_companies, total_buildings, cash_hash, capital_hash, total_pop
+        );
+        eprintln!("GENESIS_FP_DETAIL: {}", country_summaries.join(" | "));
+
+        // Phase 96: optional per-entity dump — set SES_DUMP_ENTITIES to a
+        // file path to write every (country, company id, sector, cash, capital)
+        // row sorted canonically. Diffing two runs' dumps pinpoints exactly
+        // which entities diverge.
+        if let Ok(dump_path) = std::env::var("SES_DUMP_ENTITIES") {
+            let mut rows: Vec<String> = Vec::new();
+            let mut cnames: Vec<&String> = ctx.entities.keys().collect();
+            cnames.sort();
+            for cname in cnames {
+                let ents = &ctx.entities[cname];
+                let mut crows: Vec<String> = ents
+                    .companies
+                    .iter()
+                    .map(|c| {
+                        format!(
+                            "{}\t{}\t{:?}\t{:.4}\t{:.4}",
+                            cname,
+                            c.id,
+                            c.sector,
+                            c.available_cash,
+                            c.company_capital
+                        )
+                    })
+                    .collect();
+                crows.sort();
+                rows.extend(crows);
+            }
+            std::fs::write(&dump_path, rows.join("\n")).ok();
+        }
+    }
+
     let mut state = initial_state;
     let initial_turn = state.calendar.global_turn;
 
@@ -283,7 +379,10 @@ fn test_market_gridlock_diagnostic() {
     let _pre_turn_savings = snapshot_class_savings(&state);
 
     // --- Run TURNS turns with probe instrumentation ---
+    // 24-turn mandate: capture a per-turn GDP series so the GDP-1 collapse
+    // gate can compare Turn-24 output against the Turn-4 peak.
     let mut years: Vec<u32> = Vec::new();
+    let mut gdp_series: Vec<f64> = Vec::new();
     for turn_num in 0..TURNS {
         years.push(state.calendar.current_year);
         let result = run_turn_inner(&mut state, &registries, &mut ctx, &mut probe);
@@ -291,6 +390,30 @@ fn test_market_gridlock_diagnostic() {
             panic!(
                 "Turn {} (global {}) failed: {:?}",
                 turn_num, state.calendar.global_turn, e
+            );
+        }
+        gdp_series.push(
+            state
+                .countries
+                .values()
+                .map(|c| c.budget.gdp)
+                .sum::<f64>(),
+        );
+        #[cfg(feature = "diagnostic")]
+        {
+            let (mut c, mut g, mut i, mut nx, mut imp) = (0.0, 0.0, 0.0, 0.0, 0.0);
+            for country in state.countries.values() {
+                let bd = &country.macro_indicators.gdp_breakdown;
+                c += bd.consumption;
+                g += bd.government_spending;
+                i += bd.investment;
+                nx += bd.net_exports;
+                imp += bd.imputed_consumption;
+            }
+            eprintln!(
+                "GDPSER t={}: c={:.2}B g={:.2}B i={:.2}B nx={:.2}B imp={:.2}B total={:.2}B",
+                turn_num, c / 1e9, g / 1e9, i / 1e9, nx / 1e9, imp / 1e9,
+                gdp_series.last().unwrap() / 1e9
             );
         }
     }
@@ -699,6 +822,183 @@ fn test_market_gridlock_diagnostic() {
             worst.wage_expense / 1e9,
         );
     }
+
+    // ========================================================================
+    // 24-TURN YEARLING CRUCIBLE ASSERTS (post-v4.13.0 mandate)
+    // ========================================================================
+    // The 12-turn horizon masked a delayed collapse: real-world simulation to
+    // Turn 25 showed GDP spiking ~Turn 3 then crashing ~99%, wealth tax
+    // collecting -$1.09B while PIT/CIT/VAT collected $0.00, profitable
+    // companies drained to $0.00 cash with $23M+ wage arrears, national
+    // energy supply collapsing to 0 MW, and a Sev-10 leverage flood on the
+    // KNF feed. These gates make each anomaly structurally impossible.
+
+    // TAX-1: wealth tax can never be negative — a tax collector returning
+    // money is either treasury leakage or unbacked fiat mint.
+    for (cname, country) in &state.countries {
+        for entry in &country.budget.tax_history {
+            assert!(
+                entry.wealth_tax_collected >= 0.0,
+                "TAX-1 FAIL: country {} recorded NEGATIVE wealth tax {:.2} at \
+                 turn {} — tax collector is paying out, not collecting",
+                cname,
+                entry.wealth_tax_collected,
+                entry.turn
+            );
+        }
+    }
+
+    // TAX-2: core taxes must collect real revenue — PIT+CIT+VAT+wealth+CGT
+    // summed over the whole horizon. All-zero means the debit pipeline is
+    // dead (liabilities computed but never enforced, or zero base).
+    let total_tax_revenue: f64 = state
+        .countries
+        .values()
+        .flat_map(|c| c.budget.tax_history.iter())
+        .map(|e| {
+            e.pit_collected
+                + e.cit_collected
+                + e.vat_collected
+                + e.wealth_tax_collected
+                + e.capital_gains_collected
+        })
+        .sum();
+    assert!(
+        total_tax_revenue > 0.0,
+        "TAX-2 FAIL: cumulative tax revenue = {:.2} over {} turns — the \
+         treasury collected nothing; PIT/CIT/VAT pipeline is dead",
+        total_tax_revenue,
+        TURNS
+    );
+
+    // ARREARS-1: a company that booked positive net_profit cannot owe wage
+    // arrears — profit must cover payroll before any other cash drain
+    // (dividends, debt service, capex). epsilon 0.01 covers f64 residue.
+    let profit_by_id: std::collections::HashMap<&str, f64> = diagnostic
+        .company_income
+        .iter()
+        .map(|e| (e.id.as_str(), e.last_net_profit))
+        .collect();
+    let mut worst_arrears: Option<(&Company, f64)> = None;
+    let mut arrears_violators: Vec<(&Company, f64)> = Vec::new();
+    for ents in ctx.entities.values() {
+        for c in &ents.companies {
+            let profit = profit_by_id.get(c.id.as_str()).copied().unwrap_or(0.0);
+            if profit > 0.0 && c.wage_arrears > 0.01 {
+                arrears_violators.push((c, profit));
+                if worst_arrears.map_or(true, |(_, a)| c.wage_arrears > a) {
+                    worst_arrears = Some((c, profit));
+                }
+            }
+        }
+    }
+    arrears_violators
+        .sort_by(|a, b| b.0.wage_arrears.partial_cmp(&a.0.wage_arrears).unwrap());
+    eprintln!(
+        "ARREARS-DBG: {} profitable companies carry wage_arrears; top:",
+        arrears_violators.len()
+    );
+    for (c, p) in arrears_violators.iter().take(12) {
+        eprintln!(
+            "  {} {:?} profit={:.2}M arrears={:.2}M cash={:.2}M ba={:.2}M dc={:.2}M sev={:.2}M rev={:.2}M",
+            c.id,
+            c.sector,
+            p / 1e6,
+            c.wage_arrears / 1e6,
+            c.available_cash / 1e6,
+            c.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0) / 1e6,
+            c.debit_cash / 1e6,
+            c.severance_arrears / 1e6,
+            c.turn_settled_sales / 1e6,
+        );
+    }
+    if let Some((c, profit)) = worst_arrears {
+        panic!(
+            "ARREARS-1 FAIL: {} ({:?}) booked net_profit {:.2}M but carries \
+             wage_arrears {:.2}M with cash {:.2} — non-payroll drains \
+             (dividends/debt/capex) are gutting payroll",
+            c.id,
+            c.sector,
+            profit / 1e6,
+            c.wage_arrears / 1e6,
+            c.available_cash,
+        );
+    }
+
+    // ENERGY-1: national effective energy supply must be non-zero at the
+    // horizon — the blackout absorbing state is forbidden at Turn 24.
+    let national_energy_supply: f64 = state
+        .countries
+        .values()
+        .flat_map(|c| c.power_grid_state.region_effective_supply_mw.values())
+        .sum();
+    assert!(
+        national_energy_supply > 0.0,
+        "ENERGY-1 FAIL: national energy supply = {:.2} MW at Turn {} — the \
+         energy death spiral consumed the grid (wage-arrears furloughs → \
+         fuel starvation → blackout → deeper arrears)",
+        national_energy_supply,
+        TURNS
+    );
+
+    // LEVERAGE-1: no bank may breach the KNF 10x-equity leverage limit at the
+    // horizon (the Sev-10 flood indicates liability accretion or equity
+    // erosion that the prudential layer failed to contain).
+    const MAX_REGULATORY_LEVERAGE: f64 = 10.0;
+    for ents in ctx.entities.values() {
+        for c in &ents.companies {
+            if c.sector != Sector::Banking {
+                continue;
+            }
+            if let Some(ref bs) = c.balance_sheet {
+                if bs.tier_1_capital > 0.0 {
+                    let leverage = bs.total_liabilities() / bs.tier_1_capital;
+                    assert!(
+                        leverage < MAX_REGULATORY_LEVERAGE,
+                        "LEVERAGE-1 FAIL: bank {} leverage {:.2}x >= {}x \
+                         (liabilities {:.2}B / tier_1 {:.2}B) — Sev-10 \
+                         excessive leverage at Turn {}",
+                        c.id,
+                        leverage,
+                        MAX_REGULATORY_LEVERAGE,
+                        bs.total_liabilities() / 1e9,
+                        bs.tier_1_capital / 1e9,
+                        TURNS
+                    );
+                }
+            }
+        }
+    }
+
+    // GDP-1: horizon GDP must retain at least 20% of the early-run level —
+    // the observed real-world pattern was a ~99% collapse after a Turn-3
+    // spike. Index 3/23 = GDP after turn 4 / turn 24.
+    let gdp_turn_4 = gdp_series.get(3).copied().unwrap_or(0.0);
+    let gdp_turn_24 = gdp_series.get(23).copied().unwrap_or(0.0);
+    // GDP-DBG: decompose the horizon GDP by country so a collapse can be
+    // attributed to a component (C/G/I/NX).
+    for (name, country) in &state.countries {
+        let bd = &country.macro_indicators.gdp_breakdown;
+        eprintln!(
+            "GDP-DBG[{}]: c={:.2}B g={:.2}B i={:.2}B nx={:.2}B total={:.2}B",
+            name,
+            bd.consumption / 1e9,
+            bd.government_spending / 1e9,
+            bd.investment / 1e9,
+            bd.net_exports / 1e9,
+            bd.official_gdp / 1e9,
+        );
+    }
+    assert!(
+        gdp_turn_24 >= gdp_turn_4 * 0.2,
+        "GDP-1 FAIL: GDP collapsed {:.1}% — Turn-24 GDP {:.2}B vs Turn-4 \
+         GDP {:.2}B (required >= {:.2}B). Series: {:?}",
+        (1.0 - gdp_turn_24 / gdp_turn_4.max(1e-9)) * 100.0,
+        gdp_turn_24 / 1e9,
+        gdp_turn_4 / 1e9,
+        gdp_turn_4 * 0.2 / 1e9,
+        gdp_series.iter().map(|g| (g / 1e9 * 10.0).round() / 10.0).collect::<Vec<_>>(),
+    );
 }
 
 // ============================================================================
@@ -1024,6 +1324,11 @@ fn compute_company_income(ctx: &InMemoryTurnContext) -> Vec<CompanyIncomeEntry> 
                 available_cash: company.available_cash,
                 liquid_capital: company.liquid_capital,
                 company_capital: company.company_capital,
+                export_revenue: company
+                    .extra
+                    .get("export_revenue_earned")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0),
                 fulfilled_fte: company.fulfilled_fte,
                 furloughed_workers_count: company.furloughed_workers_count,
                 is_in_receivership: company.is_in_receivership,

@@ -19,6 +19,7 @@ use crate::economy::order_book::{Ask, Bid, OrderBook, Trade};
 use crate::economy::production::ProductionResult;
 use crate::economy::transfer_settler::{credit_company_by_id, debit_company_by_id};
 use crate::entities::{Building, Company};
+use crate::entities::legal_form::LegalForm;
 use crate::registries::enums::{Commodity, Sector};
 use rustc_hash::FxHashMap;
 use std::collections::BTreeMap;
@@ -177,6 +178,11 @@ pub fn calculate_unit_cost(
 
     let mut input_cost = 0.0;
     for (&commodity, &qty_per_1k) in &method.inputs {
+        // Worker sustenance is covered by wages (workers buy food B2C) —
+        // Food in a BOM is not a production cost borne by the firm.
+        if commodity == Commodity::Food {
+            continue;
+        }
         let price = reference_prices.get(&commodity).copied().unwrap_or(0.0);
         input_cost += qty_per_1k * price * production_scale;
     }
@@ -250,7 +256,53 @@ pub fn submit_company_b2b_orders(
         .map(|bp| (bp.id.clone(), (bp.quality, bp.durability)))
         .collect();
 
+    #[cfg(feature = "diagnostic")]
+    {
+        // HC probe: how much HardCoal demand SHOULD post (capacity basis).
+        let mut consumers = 0usize;
+        let mut want_units = 0.0f64;
+        let mut orphan_bldg = 0usize;
+        for b in buildings {
+            if let Some(&q1k) = b.active_method.inputs.get(&Commodity::HardCoal) {
+                consumers += 1;
+                let ps = b.worker_capacity as f64 * b.scale_factor.max(1) as f64 / 1000.0;
+                let want = q1k * ps * 2.0
+                    - b.inventory
+                        .get(&Commodity::HardCoal)
+                        .copied()
+                        .unwrap_or(0.0);
+                if want > 0.0 {
+                    want_units += want;
+                }
+            }
+        }
+        for b in buildings {
+            let owned = owner_to_buildings
+                .get(&b.owner_id)
+                .map(|v| !v.is_empty())
+                .unwrap_or(false);
+            if !owned {
+                orphan_bldg += 1;
+            }
+        }
+        eprintln!(
+            "HC_WANT: consumers={} want_units={:.3e} orphan_bldg={}/{}",
+            consumers,
+            want_units,
+            orphan_bldg,
+            buildings.len()
+        );
+    }
+    #[cfg(feature = "diagnostic")]
+    let mut diag_companies_total = 0usize;
+    #[cfg(feature = "diagnostic")]
+    let mut diag_companies_no_bldg = 0usize;
+
     for company in companies.iter_mut() {
+        #[cfg(feature = "diagnostic")]
+        {
+            diag_companies_total += 1;
+        }
         // Sync available_cash from brokerage account
         let liquid = company
             .brokerage_account
@@ -262,7 +314,13 @@ pub fn submit_company_b2b_orders(
         // Phase 94: Use pre-built index map instead of O(B) filter scan.
         let company_building_indices = match owner_to_buildings.get(&company.id) {
             Some(indices) if !indices.is_empty() => indices.clone(),
-            _ => continue,
+            _ => {
+                #[cfg(feature = "diagnostic")]
+                {
+                    diag_companies_no_bldg += 1;
+                }
+                continue;
+            }
         };
 
         // Compute inventory utilization for dynamic pricing (index-based)
@@ -301,7 +359,43 @@ pub fn submit_company_b2b_orders(
         // worth without over-procuring — the solvency bound is the real
         // safety limit.
         let working_capital_facility = liquid + company.company_capital.max(0.0);
-        let max_encumber = working_capital_facility * config.max_cash_encumbrance_ratio;
+        // 24-turn fix: reserve the payroll before procurement — the facility
+        // extends to net worth, which let restock bids consume the cash (and
+        // implicit credit) needed to cover this turn's wage bill plus the
+        // outstanding arrears backlog. Wages come first.
+        // The reserve is capped at spendable liquidity: wage bills can exceed
+        // total cash by orders of magnitude, and an uncapped obligation would
+        // zero the facility entirely (no inputs → no production → no sales →
+        // wages never get paid anyway). We protect the cash that exists;
+        // implicit credit still covers procurement against net worth.
+        // The reserve must cover TWO payrolls, not one: `evaluate_furlough`
+        // triggers cash-flow distress at operational_cash < 2× payroll. A
+        // 1× reserve let procurement encumber the cash cushion that keeps a
+        // company out of the furlough check — the bids that were meant to
+        // restart demand instead induced the furlough they replaced.
+        // The obligation is reserved against the WHOLE facility base, not
+        // just spendable liquid: capping at `liquid` collapsed the reserve
+        // to zero precisely when arrears were largest, letting procurement
+        // draw the full net-worth facility while payroll went unpaid
+        // (ARREARS-1). A firm whose arrears exceed its facility base is
+        // balance-sheet insolvent — it must not keep buying inputs on
+        // credit while its workers starve.
+        let payroll_reserve = (company.wages_paid_this_turn * 2.0
+            + company.wage_arrears
+            + company.severance_arrears)
+            .min(working_capital_facility.max(0.0));
+        let mut max_encumber =
+            (working_capital_facility - payroll_reserve).max(0.0)
+                * config.max_cash_encumbrance_ratio;
+        // ARREARS-1: a company carrying unpaid wages may not encumber beyond
+        // the cash it actually holds. Implicit procurement credit against net
+        // worth pre-commits revenue before payroll ever sees it — the pocket
+        // ratchets negative while the books show profit. While arrears exist,
+        // procurement is cash-only; inflows then refill the pocket and the
+        // payroll sweep retires the arrears.
+        if company.wage_arrears > 0.01 || company.severance_arrears > 0.01 {
+            max_encumber = max_encumber.min(liquid.max(0.0));
+        }
         let mut total_encumbered = 0.0;
 
         // Phase 94: Use pre-looked-up building indices instead of O(B) filter.
@@ -337,8 +431,9 @@ pub fn submit_company_b2b_orders(
         // ratio, so a single missing input pins production at 0 even when
         // 90% of the BOM arrived. Covering every input at `coverage`
         // fraction keeps the min ratio > 0 and production alive.
-        let mut input_requirements: Vec<(Commodity, f64, f64, f64)> = Vec::new();
-        let mut total_desired_encumbrance = 0.0_f64;
+        // (commodity, desired_qty, limit_price, unit_price_with_freight)
+        let mut input_requirements: Vec<(Commodity, f64, f64, f64)> =
+            Vec::new();
         for building in &company_buildings {
             let method = &building.active_method;
             // W9: procure against physical capacity, not current employment.
@@ -366,13 +461,26 @@ pub fn submit_company_b2b_orders(
                 if commodity.is_local_utility() {
                     continue;
                 }
+                // Food is worker sustenance bought B2C from wages, not a
+                // firm-procured input — never bid for it.
+                if commodity == Commodity::Food {
+                    continue;
+                }
 
                 // W7: bid the shortfall against on-hand stock, not the full
                 // per-turn requirement. A building already holding a 2-turn
                 // buffer bids nothing; one below cover tops up.
                 let per_turn_need = qty_per_1k * production_scale;
                 let on_hand = building.inventory.get(&commodity).copied().unwrap_or(0.0);
-                let desired_qty = (per_turn_need * 2.0 - on_hand).max(0.0);
+                // Deficit-only restock bidding (two-turn stock cover).
+                // Fulfillment-scaled consumption replenishment was tested
+                // and reverted: bidding at consumption rate while revenue
+                // is zero burns working capital into insolvency — controlled
+                // A/B runs cost ~40 points of aggregate unemployment
+                // (11.9% → 51.4%). The economy is income-demand
+                // constrained, not inventory-signaling constrained.
+                let restock_deficit = (per_turn_need * 2.0 - on_hand).max(0.0);
+                let desired_qty = restock_deficit;
                 if desired_qty <= 0.0 {
                     continue;
                 }
@@ -404,15 +512,30 @@ pub fn submit_company_b2b_orders(
                 };
                 // Phase 25: Include a freight cost reserve in the encumbrance so
                 // buyers have enough cash to pay for transport when the trade settles.
-                let commodity_cost = desired_qty * limit_price;
-                let freight_reserve = commodity_cost * config.freight_cost_reserve_ratio;
-                let encumbrance = commodity_cost + freight_reserve;
-
-                input_requirements.push((commodity, desired_qty, limit_price, encumbrance));
-                total_desired_encumbrance += encumbrance;
+                let unit_price_with_freight =
+                    limit_price * (1.0 + config.freight_cost_reserve_ratio);
+                input_requirements.push((
+                    commodity,
+                    desired_qty,
+                    limit_price,
+                    unit_price_with_freight,
+                ));
+                #[cfg(feature = "diagnostic")]
+                if commodity == Commodity::HardCoal {
+                    eprintln!(
+                        "HC_REQ: buyer={} bldg={} desired={:.1} px={:.1} fac={:.3e} enc={:.3e}",
+                        company.id, building.id, desired_qty, limit_price,
+                        working_capital_facility,
+                        desired_qty * unit_price_with_freight
+                    );
+                }
             }
         }
 
+        let total_desired_encumbrance: f64 = input_requirements
+            .iter()
+            .map(|&(_, qty, _, upf)| qty * upf)
+            .sum();
         let coverage = if total_desired_encumbrance > max_encumber
             && total_desired_encumbrance > 0.0
         {
@@ -420,9 +543,11 @@ pub fn submit_company_b2b_orders(
         } else {
             1.0
         };
-        for &(commodity, desired_qty, limit_price, encumbrance) in &input_requirements {
+        for &(commodity, desired_qty, limit_price, unit_price_with_freight)
+            in &input_requirements
+        {
             let bid_qty = desired_qty * coverage;
-            let bid_encumbrance = encumbrance * coverage;
+            let bid_encumbrance = bid_qty * unit_price_with_freight;
             if bid_qty <= 0.0 || bid_encumbrance <= 0.0 {
                 continue;
             }
@@ -777,6 +902,12 @@ pub fn submit_company_b2b_orders(
         }
     }
 
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "HC_CO: companies={} no_buildings={}",
+        diag_companies_total, diag_companies_no_bldg
+    );
+
     messages
 }
 
@@ -893,6 +1024,7 @@ pub fn settle_trades(
                     }
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
+                    companies[si].turn_settled_sales += trade_value;
                 } else if buyer_is_bank {
                     // W11: The buyer IS a bank paying from its own reserves
                     // (banks hold no primary_bank_id — the unbanked branch
@@ -914,6 +1046,7 @@ pub fn settle_trades(
                     }
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
+                    companies[si].turn_settled_sales += trade_value;
                 } else {
                     // Phase 94: Unbanked buyer — cash was already encumbered
                     // (available_cash → debit_cash). Release encumbrance and
@@ -922,6 +1055,7 @@ pub fn settle_trades(
                     companies[bi].debit_cash -= trade_value;
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
+                    companies[si].turn_settled_sales += trade_value;
                 }
                 companies[bi].unfilled_bid_prices.remove(&trade.commodity);
                 // Seller filled an ask this turn — clear the decay marker so
@@ -1014,7 +1148,43 @@ pub fn settle_trades(
                     // M0 neutral (ministry cash ↓ = bank reserves ↑).
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
+                    companies[si].turn_settled_sales += trade_value;
                     companies[si].unfilled_ask_prices.remove(&trade.commodity);
+                    if trade.buyer_id == "FOREIGN-SECTOR" {
+                        let prev = companies[si]
+                            .extra
+                            .get("export_revenue_earned")
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(0.0);
+                        companies[si].extra.insert(
+                            "export_revenue_earned".to_string(),
+                            serde_json::Value::from(prev + trade_value),
+                        );
+                    }
+                    // Export-earnings repatriation: a payer outside this
+                    // country (the unmodeled FOREIGN-SECTOR, or a company in
+                    // another country) settles the trade in numeraire, and
+                    // the seller's central bank accumulates the trade value
+                    // as FX reserves — the CB converts the exporter's foreign
+                    // receipts. This is the only inflow channel for
+                    // fx_reserves: the pool otherwise drains monotonically on
+                    // import settlement until every cross-border trade vetoes.
+                    // Vehicle-settlement drains all buckets pro-rata, so a
+                    // single USD reserve bucket is sufficient. Reserves are
+                    // foreign-currency assets, not domestic M0 — outside the
+                    // fiat walk.
+                    let buyer_abroad = trade.buyer_id == "FOREIGN-SECTOR"
+                        || company_country
+                            .get(&trade.buyer_id)
+                            .map(|bc| bc != &country.name)
+                            .unwrap_or(false);
+                    if buyer_abroad {
+                        *country
+                            .central_bank
+                            .fx_reserves
+                            .entry("USD".to_string())
+                            .or_insert(0.0) += trade_value;
+                    }
                     #[cfg(feature = "diagnostic")]
                     {
                         if company_country.contains_key(&trade.buyer_id) {
@@ -1047,6 +1217,7 @@ pub fn settle_trades(
                 if let Some(&si) = company_id_to_idx.get(&trade.seller_id) {
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
+                    companies[si].turn_settled_sales += trade_value;
                     companies[si].unfilled_ask_prices.remove(&trade.commodity);
                 }
             }
@@ -1168,6 +1339,23 @@ pub fn settle_trades(
             }
         }
 
+        // SRA physical reserves: Strategic Reserve Agency purchases deliver
+        // into its warehouses above; mirror the settled quantity into
+        // `commodity_reserves` so purchase/release triggers and capacity
+        // clamps see real stock. The map was previously credited at order
+        // time on forecast-layer orders that never settled — a phantom
+        // reserve that also violated physical conservation.
+        if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
+            if let LegalForm::StrategicReserveAgency(data) =
+                &mut companies[bi].legal_form
+            {
+                *data
+                    .commodity_reserves
+                    .entry(trade.commodity.to_string())
+                    .or_insert(0.0) += trade.quantity;
+            }
+        }
+
         let seller_buildings = owner_to_buildings
             .get(&trade.seller_id)
             .map(|v| v.as_slice())
@@ -1251,6 +1439,27 @@ pub fn settle_trades(
                 "WARNING: Seller {} short-shipped {:.1} of {} {:?} (no building held the stock)",
                 trade.seller_id, remaining_to_ship, trade.quantity, trade.commodity
             ));
+        }
+
+        // SRA physical reserves: decrement the reserve mirror by the quantity
+        // that actually shipped from the agency's warehouses. Unfilled asks
+        // ship nothing and leave the mirror untouched.
+        let shipped = (trade.quantity - remaining_to_ship).max(0.0);
+        if shipped > 0.0 {
+            if let Some(&si) = company_id_to_idx.get(&trade.seller_id) {
+                if let LegalForm::StrategicReserveAgency(data) =
+                    &mut companies[si].legal_form
+                {
+                    let key = trade.commodity.to_string();
+                    let cur = data
+                        .commodity_reserves
+                        .get(&key)
+                        .copied()
+                        .unwrap_or(0.0);
+                    data.commodity_reserves
+                        .insert(key, (cur - shipped).max(0.0));
+                }
+            }
         }
     }
 
@@ -1579,11 +1788,17 @@ pub fn settle_defense_trades(
 
         // Credit seller's cash AND sync bank balance sheet atomically
         // via TransferSettler (Black Hole 1.19).
-        crate::economy::transfer_settler::credit_company_by_id(
+        if crate::economy::transfer_settler::credit_company_by_id(
             companies,
             &trade.seller_id,
             trade_value,
-        );
+        ) {
+            // Revenue recognition for realized-profit accounting: a defense
+            // sale is settled revenue the same as a B2B goods sale.
+            if let Some(c) = companies.iter_mut().find(|c| c.id == trade.seller_id) {
+                c.turn_settled_sales += trade_value;
+            }
+        }
     }
 }
 
@@ -1724,6 +1939,24 @@ pub fn execute_production_cycle(
             if commodity.is_local_utility() {
                 continue;
             }
+            // Food is worker sustenance purchased B2C from wages, not a
+            // firm-held production factor. Gating extraction on it creates
+            // a circular deadlock: food requires harvest+processing, but
+            // mines/forests cannot run without it.
+            if commodity == Commodity::Food {
+                continue;
+            }
+            // 24-turn crucible W12: for pm_thermal methods, fuel inputs are
+            // OR-ed capacity slots (max fuel the plant can accept), not a
+            // Leontief AND-list — Coal-Fired Boilers burn HardCoal OR
+            // BrownCoal OR Peat. The forecast path (process_building_cycle)
+            // already picks the cheapest available mix, but this physical
+            // gate required EVERY listed fuel, so plants holding two of
+            // three fuels starved at ratio=0 — the mass Energy-sector
+            // stall. Fuel coverage is folded in below as aggregate MJ.
+            if method.thermal_efficiency > 0.0 && commodity.is_fuel() {
+                continue;
+            }
             let required = qty_per_1k * production_scale;
             if required > 0.0 {
                 let available = building.inventory.get(&commodity).copied().unwrap_or(0.0);
@@ -1733,6 +1966,46 @@ pub fn execute_production_cycle(
                     #[cfg(feature = "diagnostic")]
                     {
                         binding_input = Some(commodity);
+                    }
+                }
+            }
+        }
+
+        // W12: thermal fuel coverage — each slot contributes up to its
+        // listed capacity (the plant's max acceptance rate for that fuel),
+        // counted as calorific MJ. The fuel-side fulfillment ratio is the
+        // achievable MJ fraction of the full-load requirement, mirroring
+        // process_building_cycle's required_mj = target_energy / eta.
+        if method.thermal_efficiency > 0.0 {
+            let target_energy = method
+                .outputs
+                .get(&Commodity::Energy)
+                .copied()
+                .unwrap_or(0.0)
+                * production_scale;
+            let required_mj = target_energy / method.thermal_efficiency;
+            if required_mj > 0.0 {
+                let mut provided_mj = 0.0;
+                let mut scarcest: Option<Commodity> = None;
+                for (fuel, slot_per_1k) in method.inputs.iter().filter(|(c, _)| c.is_fuel()) {
+                    let slot_cap = *slot_per_1k * production_scale;
+                    let on_hand = building
+                        .inventory
+                        .get(fuel)
+                        .copied()
+                        .unwrap_or(0.0)
+                        .min(slot_cap);
+                    provided_mj += on_hand * fuel.calorific_value_mj_per_unit();
+                    if on_hand < slot_cap && scarcest.is_none() {
+                        scarcest = Some(*fuel);
+                    }
+                }
+                let fuel_ratio = (provided_mj / required_mj).min(1.0);
+                if fuel_ratio < fulfillment_ratio {
+                    fulfillment_ratio = fuel_ratio;
+                    #[cfg(feature = "diagnostic")]
+                    {
+                        binding_input = scarcest.or(binding_input);
                     }
                 }
             }
@@ -1792,6 +2065,42 @@ pub fn execute_production_cycle(
         // which would allow output beyond physical input availability.
         fulfillment_ratio = fulfillment_ratio.clamp(0.0, 1.0);
 
+        // 24-turn fix: demand-side stock-cover throttle. Physical inventory
+        // is capacity-bounded — a building already holding ≥ COVER_TURNS of
+        // unsold output has nowhere to put more. Producing into a full
+        // warehouse feeds only the overflow-destroy path: inputs burn, output
+        // is written off, and `inventory_write_down ≈ output value` hits the
+        // P&L every turn (the −trillion sector losses). Throttling the run
+        // stops input consumption AND overflow destruction at the source;
+        // the building reports material distress (`last_fulfillment_ratio`)
+        // so the corporate AI furloughs surplus labor rather than producing
+        // into the void. Local-utility outputs (grid-dispatched, never
+        // inventoried) and fixed-asset outputs are excluded from the cover.
+        {
+            const OUTPUT_STOCK_COVER_TURNS: f64 = 2.0;
+            let per_turn_output: f64 = method
+                .outputs
+                .iter()
+                .filter(|(c, _)| !c.is_local_utility() && !c.is_fixed_asset())
+                .map(|(_, q)| *q)
+                .sum::<f64>()
+                * production_scale;
+            if per_turn_output > 0.0 {
+                let on_hand_output: f64 = method
+                    .outputs
+                    .keys()
+                    .filter(|c| !c.is_local_utility() && !c.is_fixed_asset())
+                    .map(|c| building.inventory.get(c).copied().unwrap_or(0.0))
+                    .sum();
+                let cover = on_hand_output / per_turn_output;
+                let throttle =
+                    (1.0 - cover / OUTPUT_STOCK_COVER_TURNS).clamp(0.0, 1.0);
+                if throttle < fulfillment_ratio {
+                    fulfillment_ratio = throttle;
+                }
+            }
+        }
+
         // Emergency Stabilization: Store the fulfillment ratio on the building
         // so the corporate AI can detect raw-material distress and choose
         // furlough over permanent layoffs.
@@ -1809,6 +2118,17 @@ pub fn execute_production_cycle(
             if commodity.is_local_utility() {
                 continue;
             }
+            // Food is worker sustenance (wage-funded B2C), not consumed
+            // from building inventory — mirrors the fulfillment-gate skip.
+            if commodity == Commodity::Food {
+                continue;
+            }
+            // W12: thermal fuel slots are burned via the allocated mix
+            // below — deducting every listed fuel at the fixed rate would
+            // triple-charge plants for fuels they never combust.
+            if method.thermal_efficiency > 0.0 && commodity.is_fuel() {
+                continue;
+            }
             let required = qty_per_1k * production_scale * fulfillment_ratio;
             if required > 0.0 {
                 let available = building.inventory.get(&commodity).copied().unwrap_or(0.0);
@@ -1820,6 +2140,57 @@ pub fn execute_production_cycle(
                     building.inventory.remove(&commodity);
                 }
                 inputs_consumed.insert(commodity, consumed);
+            }
+        }
+
+        // W12: physical fuel burn for thermal methods — allocate the
+        // required MJ (scaled by fulfillment) across the plant's fuel
+        // slots, highest calorific density first. Mirrors
+        // process_building_cycle's cheapest-first allocation; without
+        // price access here, calorific density is the deterministic
+        // efficiency ordering. Each slot contributes up to its listed
+        // per-cycle capacity.
+        if method.thermal_efficiency > 0.0 {
+            let target_energy = method
+                .outputs
+                .get(&Commodity::Energy)
+                .copied()
+                .unwrap_or(0.0)
+                * production_scale;
+            let mut remaining_mj =
+                target_energy / method.thermal_efficiency * fulfillment_ratio;
+            if remaining_mj > 0.0 {
+                let mut slots: Vec<(Commodity, f64, f64)> = method
+                    .inputs
+                    .iter()
+                    .filter(|(c, _)| c.is_fuel())
+                    .map(|(c, q)| {
+                        (*c, *q * production_scale, c.calorific_value_mj_per_unit())
+                    })
+                    .collect();
+                slots.sort_by(|a, b| {
+                    b.2.partial_cmp(&a.2)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                        .then(a.0.cmp(&b.0))
+                });
+                for (fuel, slot_cap, cv) in slots {
+                    if remaining_mj <= 0.0 {
+                        break;
+                    }
+                    let on_hand = building.inventory.get(&fuel).copied().unwrap_or(0.0);
+                    let burn = on_hand.min(slot_cap).min(remaining_mj / cv);
+                    if burn <= 0.0 {
+                        continue;
+                    }
+                    let leftover = on_hand - burn;
+                    if leftover > 0.0 {
+                        building.inventory.insert(fuel, leftover);
+                    } else {
+                        building.inventory.remove(&fuel);
+                    }
+                    *inputs_consumed.entry(fuel).or_insert(0.0) += burn;
+                    remaining_mj -= burn * cv;
+                }
             }
         }
 
@@ -1849,7 +2220,12 @@ pub fn execute_production_cycle(
         // surplus stock only; whether to sell inputs is the ask loop's
         // decision, not the rot mechanic's.
         let movable_share = |commodity: Commodity, qty: f64, share: f64| {
-            if method.inputs.contains_key(&commodity) && !commodity.is_local_utility() {
+            // Food is not an effective input (sustenance is wage-funded),
+            // so seeded food stock may be shed like surplus.
+            if method.inputs.contains_key(&commodity)
+                && !commodity.is_local_utility()
+                && commodity != Commodity::Food
+            {
                 return 0.0;
             }
             qty * share
@@ -2065,6 +2441,13 @@ pub fn execute_production_cycle(
         building.extra.insert(
             "last_output_value".to_string(),
             serde_json::Value::from(output_revenue),
+        );
+
+        // 24-turn fix: persist consumed-input cost so process_company can
+        // compute realized (settled-sales) profit instead of oracle accrual.
+        building.extra.insert(
+            "last_input_cost".to_string(),
+            serde_json::Value::from(input_costs),
         );
 
         // Fix 1.21: Record inventory write-down loss from overflow destruction.

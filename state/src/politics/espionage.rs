@@ -1,5 +1,6 @@
 //! Espionage system for uncovering corrupt politicians and conducting covert operations
 
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -95,7 +96,7 @@ impl EspionageState {
         let (completion_turn, base_success) = match operation_type {
             EspionageType::Surveillance => {
                 // 1-2 turns for surveillance
-                let turns = if rand::random::<f64>() < 0.5 { 1 } else { 2 };
+                let turns = if crate::engine::seeded_rng::thread_rng().gen::<f64>() < 0.5 { 1 } else { 2 };
                 (current_turn + turns, budget / 100.0)
             }
             EspionageType::Bribery => {
@@ -152,7 +153,7 @@ impl EspionageState {
             if operation.completion_turn == current_turn {
                 completed_operations.push(id.clone());
 
-                let success = rand::random::<f64>() < operation.success_probability;
+                let success = crate::engine::seeded_rng::thread_rng().gen::<f64>() < operation.success_probability;
 
                 if success {
                     self.successful_operations += 1;

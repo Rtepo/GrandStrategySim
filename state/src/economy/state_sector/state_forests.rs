@@ -135,6 +135,17 @@ pub fn process_state_forests_turn(
         .map(|(i, _)| i)
         .collect();
 
+    #[cfg(feature = "diagnostic")]
+    if total_harvested > 0.0 || !country.state_forest_state.tracts.is_empty() {
+        eprintln!(
+            "FORESTRY_TURN: {} tracts={} harvested={:.3e} districts={}",
+            country.name,
+            country.state_forest_state.tracts.len(),
+            total_harvested,
+            state_forest_buildings.len()
+        );
+    }
+
     if !state_forest_buildings.is_empty() && total_harvested > 0.0 {
         let per_building = total_harvested / state_forest_buildings.len() as f64;
         for &idx in &state_forest_buildings {

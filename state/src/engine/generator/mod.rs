@@ -178,6 +178,8 @@ pub fn generate_world(
     if let Some(seed) = options.seed {
         crate::engine::seed_propagation::set_seed_global(seed);
     }
+    #[cfg(feature = "diagnostic")]
+    crate::engine::seeded_rng::reset_draw_count();
     let mut rng = crate::engine::seeded_rng::thread_rng();
     let mut state = GameState::new();
 
@@ -210,7 +212,20 @@ pub fn generate_world(
     for name in &selected {
         let (mut country, currency, mut country_regions, bank_companies) =
             generate_country(name, options.start_year, &mut rng);
-        let region_ids: Vec<String> = country_regions.keys().cloned().collect();
+        #[cfg(feature = "diagnostic")]
+        {
+            let pop: i64 = country_regions.values().map(|r| r.population).sum();
+            eprintln!(
+                "GEN_STAGE: country={} regions={} pop={} gdp={:.0} draws={}",
+                name,
+                country_regions.len(),
+                pop,
+                country.budget.gdp,
+                crate::engine::seeded_rng::draw_count()
+            );
+        }
+        let mut region_ids: Vec<String> = country_regions.keys().cloned().collect();
+        region_ids.sort();
         let mut megaregion_list =
             generate_megaregions(name, &region_ids, country.politics.state_structure);
 
@@ -248,10 +263,11 @@ pub fn generate_world(
     // Phase 87+: Generate the global Planet with geological veins.
     // Map all world regions to (id, lat, lon) tuples for vein placement.
     // coord_x → lon, coord_y → lat (already in approximate geographic units).
-    let planet_regions: Vec<(String, f64, f64)> = regions
+    let mut planet_regions: Vec<(String, f64, f64)> = regions
         .values()
         .map(|r| (r.id.clone(), r.coord_y, r.coord_x))
         .collect();
+    planet_regions.sort_by(|a, b| a.0.cmp(&b.0));
     state.planet = crate::society::planet::generate_planet(&planet_regions, &mut rng);
 
     // Phase 90: Ensure each populated region has diverse base industrial veins.
@@ -259,11 +275,12 @@ pub fn generate_world(
     // resulting in Limestone monoculture. This guarantees each populated
     // region has at least one vein for each AbundantIndustrial and Ubiquitous
     // commodity (Iron, HardCoal, BrownCoal, Stone, Sand, Limestone, Peat, Gravel).
-    let populated_region_coords: Vec<(String, f64, f64)> = regions
+    let mut populated_region_coords: Vec<(String, f64, f64)> = regions
         .values()
         .filter(|r| r.population > 0)
         .map(|r| (r.id.clone(), r.coord_y, r.coord_x))
         .collect();
+    populated_region_coords.sort_by(|a, b| a.0.cmp(&b.0));
     state
         .planet
         .ensure_base_industrial_veins_per_region(&populated_region_coords, &mut rng);
@@ -328,7 +345,18 @@ pub fn generate_world(
         String,
         std::collections::BTreeSet<crate::registries::enums::Commodity>,
     > = std::collections::BTreeMap::new();
-    for country in state.countries.values_mut() {
+    // Phase 96: canonical country order — `state.countries` is a HashMap
+    // (random iteration order per process). `generate_corporate_entities`
+    // draws heavily from the seeded RNG, so whichever country runs first
+    // consumes the stream first; without sorting, each run gives each
+    // country a different world.
+    let mut country_names: Vec<String> = state.countries.keys().cloned().collect();
+    country_names.sort();
+    for country_name in country_names {
+        let country = state
+            .countries
+            .get_mut(&country_name)
+            .expect("country missing");
         let produced = generate_corporate_entities(
             data_dir,
             country,
@@ -339,6 +367,12 @@ pub fn generate_world(
             &mut rng,
         )?;
         produced_by_country.insert(country.name.clone(), produced);
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "GEN_STAGE: corporate={} draws={}",
+            country_name,
+            crate::engine::seeded_rng::draw_count()
+        );
     }
 
     // Phase E1e: world-level producer guarantee — every core input commodity
@@ -358,7 +392,14 @@ pub fn generate_world(
     // generated, so LV/MV capacities can be derived from actual connected
     // housing/commercial electricity demand (Rule 15 — no magic numbers).
     use crate::io::entity_store::EntityStore;
-    for country in state.countries.values_mut() {
+    // Phase 96: canonical country order — see the corporate-entities loop.
+    let mut grid_country_names: Vec<String> = state.countries.keys().cloned().collect();
+    grid_country_names.sort();
+    for country_name in grid_country_names {
+        let country = state
+            .countries
+            .get_mut(&country_name)
+            .expect("country missing");
         let housing_store = crate::io::entity_store::DiskEntityStore::<
             crate::society::housing::HousingBuilding,
         >::new(data_dir);
@@ -374,11 +415,12 @@ pub fn generate_world(
         // `country.regions` is empty during world generation (it is assembled
         // from `regions.json` at load time in turn_context). Pass the
         // generated regions directly so LV/MV capacities are seeded.
-        let country_region_list: Vec<Region> = regions
+        let mut country_region_list: Vec<Region> = regions
             .values()
             .filter(|r| r.owner_country == country.name)
             .cloned()
             .collect();
+        country_region_list.sort_by(|a, b| a.id.cmp(&b.id));
         crate::energy::grid::init_power_grid(
             country,
             &country_region_list,
@@ -393,7 +435,14 @@ pub fn generate_world(
     // are generated, so parcel ownership and building data are available for
     // faction type assignment (Rule 4 — complete lifecycle from world gen).
     let domain_config = crate::society::factional_domains::FactionalDomainConfig::default();
-    for country in state.countries.values_mut() {
+    // Phase 96: canonical country order — see the corporate-entities loop.
+    let mut domain_country_names: Vec<String> = state.countries.keys().cloned().collect();
+    domain_country_names.sort();
+    for country_name in domain_country_names {
+        let country = state
+            .countries
+            .get_mut(&country_name)
+            .expect("country missing");
         crate::society::factional_domains::generate_factional_domains(
             country,
             &domain_config,
@@ -402,7 +451,13 @@ pub fn generate_world(
     }
 
     // Phase 57: Generate investment funds for each country.
-    for country in state.countries.values_mut() {
+    let mut fund_country_names: Vec<String> = state.countries.keys().cloned().collect();
+    fund_country_names.sort();
+    for country_name in fund_country_names {
+        let country = state
+            .countries
+            .get_mut(&country_name)
+            .expect("country missing");
         let cultural_group = if country.macro_indicators.cultural_group.is_empty() {
             "slavic".to_string()
         } else {
@@ -430,12 +485,15 @@ pub fn generate_world(
     }
 
     // Seed the foreign sector balance from aggregate simulated GDP.
-    // Represents the rest-of-world economy at half the simulated GDP
-    // (conservative: simulated countries are the major economies).
+    // Represents the rest-of-world economy at twice the simulated bloc —
+    // four small states are a minor share of the world economy, and the
+    // pool must fund a full horizon of export demand plus tourism inflow
+    // before it depletes. A half-GDP seed exhausted in ~22 turns under the
+    // flat export budget, collapsing net exports at the 24-turn horizon.
     // This is a one-time genesis allocation that scales with the actual
     // generated world — not a magic number.
     let total_world_gdp: f64 = state.countries.values().map(|c| c.budget.gdp).sum();
-    let foreign_sector_balance = total_world_gdp * 0.5;
+    let foreign_sector_balance = total_world_gdp * 2.0;
 
     let market = serde_json::json!({
         "prices": prices,
@@ -454,13 +512,28 @@ pub fn generate_world(
     // W11: Seed from the cost-plus fixpoint — every produced good is worth
     // at least its consumable input bundle — and install the same table for
     // `anchored_base_price` so the production P&L oracle agrees.
-    let cost_plus_prices = corporate::install_cost_plus_base_prices(_registries);
+    // 24-turn fix: labor enters the cost stack at a fixed numéraire — the
+    // highest seeded average wage across countries, so prices clear payroll
+    // even in the dearest labor market (lower-wage countries just get extra
+    // margin). A fixed wage is required for convergence; a basket priced at
+    // the iterating map is self-referential and diverges to PRICE_CAP.
+    let numeraire_wage = state
+        .countries
+        .values()
+        .map(|c| c.macro_indicators.average_wage)
+        .fold(0.0_f64, f64::max)
+        .max(1.0);
+    let cost_plus_prices =
+        corporate::install_cost_plus_base_prices(_registries, numeraire_wage);
     for commodity in Commodity::all() {
         state
             .market_history
             .global_base_prices
             .insert(commodity, cost_plus_prices[&commodity]);
     }
+    // Record the numéraire so the export sweep can scale world prices by
+    // subsequent wage inflation (base prices are a genesis-time anchor).
+    state.market_history.numeraire_wage = numeraire_wage;
 
     Ok(GeneratedWorld {
         state,
@@ -487,6 +560,12 @@ fn generate_country(
 
     let population = rng.gen_range(2_000_000..=50_000_000) as u64;
     let gdp_total = population as f64 * gdp_pc * 1000.0;
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CS: {} params draws={}",
+        name,
+        crate::engine::seeded_rng::draw_count()
+    );
 
     let cultural = generate_cultural_background(name);
     let demographics = build_demographics(&cultural, population, gdp_pc);
@@ -518,6 +597,12 @@ fn generate_country(
     let tax_rates = build_tax_rates(gdp_total, rng);
     let currency = build_currency(name, &treasury, rng);
     let central_bank = build_central_bank(name, &treasury, rng);
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CS: {} fiscal draws={}",
+        name,
+        crate::engine::seeded_rng::draw_count()
+    );
 
     let mut country = Country {
         name: name.to_string(),
@@ -685,8 +770,24 @@ fn generate_country(
         country.debt_market.dspw_enabled = true;
         country.debt_market.primary_dealers = dspw_dealers;
     }
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CS: {} banks draws={} bank_cash={:?}",
+        name,
+        crate::engine::seeded_rng::draw_count(),
+        bank_companies
+            .iter()
+            .map(|b| (b.available_cash * 1000.0).round() as i64)
+            .collect::<Vec<_>>()
+    );
     companies.extend(bank_companies);
     crate::politics::bootstrap_politics(&mut country, &mut companies, start_year as u32, rng);
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CS: {} politics draws={}",
+        name,
+        crate::engine::seeded_rng::draw_count()
+    );
 
     let mut country_regions = generate_regional_topology(
         name,
@@ -696,9 +797,19 @@ fn generate_country(
         &cultural.demonym,
         &cultural.ethnic_composition,
     );
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CS: {} topology draws={}",
+        name,
+        crate::engine::seeded_rng::draw_count()
+    );
 
     // Phase 21A: Generate geological formations with finite, depletable deposits.
-    let region_ids: Vec<String> = country_regions.keys().cloned().collect();
+    // Phase 96: sort region IDs — `generate_geological_formations` picks
+    // overlap regions by index, so HashMap order would assign different
+    // deposits to different regions every run.
+    let mut region_ids: Vec<String> = country_regions.keys().cloned().collect();
+    region_ids.sort();
     let formations = crate::society::geography::generate_geological_formations(&region_ids, rng);
 
     // World Generation & Climate Audit (v0.5.3): Re-seed region resources
@@ -712,10 +823,23 @@ fn generate_country(
         &formations,
         rng,
     );
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CS: {} reseed draws={}",
+        name,
+        crate::engine::seeded_rng::draw_count()
+    );
 
     // Phase 58: Generate topological cadastre with slotmap-backed ParcelChunks.
-    let region_list: Vec<Region> = country_regions.values().cloned().collect();
+    let mut region_list: Vec<Region> = country_regions.values().cloned().collect();
+    region_list.sort_by(|a, b| a.id.cmp(&b.id));
     let cadastre = generate_cadastre(name, &region_list, rng, 0);
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CS: {} cadastre draws={}",
+        name,
+        crate::engine::seeded_rng::draw_count()
+    );
 
     // Populate parcel_ids on each region based on the generated cadastre.
     for region in country_regions.values_mut() {
@@ -736,10 +860,16 @@ fn generate_country(
     // Highways) must be built organically via Phase 22 ConstructionTenders
     // funded by Ministries. No magical infrastructure spawning.
     country.transport_networks = generate_baseline_transport_networks(&country_regions, rng);
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CS: {} transport draws={}",
+        name,
+        crate::engine::seeded_rng::draw_count()
+    );
 
     // Phase 28: Assign bank companies to the first region so they participate
     // in the regional labor market. Banks need a region_id for labor clearing.
-    if let Some(first_region_id) = country_regions.keys().next() {
+    if let Some(first_region_id) = country_regions.keys().min() {
         for company in &mut companies {
             if company.sector == EntitySector::Banking && company.region_id.is_empty() {
                 company.region_id = first_region_id.clone();
@@ -750,6 +880,12 @@ fn generate_country(
     // Phase 70: Generate the Order of Battle natively (no flat list, no shim).
     country.order_of_battle =
         spawn_standing_oob(&country, &country_regions, start_year.as_year(), rng);
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CS: {} oob draws={}",
+        name,
+        crate::engine::seeded_rng::draw_count()
+    );
 
     // Phase 74: Seed initial military stockpile with 3 turns of upkeep worth
     // of Ammunition and Rifles so armies don't immediately starve on Turn 1.
@@ -1004,7 +1140,9 @@ fn spawn_standing_oob(
     let average_wage = country.macro_indicators.average_wage.max(1.0);
 
     // Collect home regions for army basing.
-    let home_regions: Vec<String> = regions.keys().take(8).cloned().collect();
+    let mut home_regions: Vec<String> = regions.keys().cloned().collect();
+    home_regions.sort();
+    home_regions.truncate(8);
     if home_regions.is_empty() {
         return OrderOfBattle::default();
     }
@@ -1196,7 +1334,10 @@ fn generate_baseline_transport_networks(
 
     let mut overlay = TransportNetworkOverlay::default();
 
-    for (region_id, region) in regions {
+    let mut sorted_regions: Vec<(&String, &crate::society::geography::Region)> =
+        regions.iter().collect();
+    sorted_regions.sort_by(|a, b| a.0.cmp(b.0));
+    for (region_id, region) in sorted_regions {
         for edge in &region.edges {
             // Only create links for land borders (not sea lanes or coastlines).
             if !matches!(edge.edge_type, EdgeType::LandBorder) {
@@ -1735,14 +1876,22 @@ fn build_macro_data(
     // The labor_intensity_ratio maps GDP share → employment share. Values >1.0
     // mean the sector employs more workers per unit of GDP than average (labor-
     // intensive). Values <1.0 mean the sector is capital-intensive.
-    let total_weighted: f64 = treasury
-        .sectors
+    // Phase 96: canonical order — `sectors` is a HashMap; summing in random
+    // order perturbs `total_weighted` at the ulp level, and the `as i64`
+    // truncation below amplifies that into whole-integer employment
+    // differences (different `region_emp` → different company counts per run).
+    let mut sector_keys: Vec<Sector> = treasury.sectors.keys().copied().collect();
+    sector_keys.sort_by_key(|s| corporate::sector_json_name(*s));
+    let total_weighted: f64 = sector_keys
         .iter()
-        .map(|(sector, s)| s.gdp_share * labor_intensity_ratio(*sector, start_year))
+        .map(|sector| {
+            treasury.sectors[sector].gdp_share * labor_intensity_ratio(*sector, start_year)
+        })
         .sum();
     if total_weighted > 0.0 {
-        for (sector, share) in treasury.sectors.iter_mut() {
-            let weight = share.gdp_share * labor_intensity_ratio(*sector, start_year);
+        for sector in sector_keys {
+            let share = treasury.sectors.get_mut(&sector).expect("sector missing");
+            let weight = share.gdp_share * labor_intensity_ratio(sector, start_year);
             let share_emp = (employed_total * (weight / total_weighted)) as i64;
             share
                 .extra

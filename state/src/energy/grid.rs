@@ -1076,6 +1076,12 @@ pub fn distribute_grid_power(
             payment,
         ) {
             country.budget.liquid_reserves -= payment;
+            // 24-turn fix: the offtake payment is the generator's realized
+            // revenue — without it, energy P&L shows phantom margin while
+            // real offtake cash never registers as sales.
+            if let Some(c) = companies.iter_mut().find(|c| c.id == owner_id) {
+                c.turn_settled_sales += payment;
+            }
         }
     }
 

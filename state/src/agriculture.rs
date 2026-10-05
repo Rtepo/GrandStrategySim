@@ -128,6 +128,66 @@ fn transition_arable_crop(
                         seeds_remaining -= taken;
                     }
                 }
+
+                // Saved-seed fallback: when packaged Seeds are unavailable,
+                // a farm sows part of its own harvest (seed grain, tubers,
+                // breeding stock). Without this, the Seeds <-> harvest
+                // circular dependency deadlocks the first sowing cycle:
+                // seed mills need Cereal, which needs a harvest, which
+                // needs sowing, which needs Seeds. The fallback commodity is
+                // the crop's primary yield — wheat reseeds from Cereal,
+                // potatoes from tubers, cattle from Livestock.
+                if seeds_remaining > 0.0 {
+                    // Preferred saved-seed commodity in physical order:
+                    // livestock breed from Livestock, grain from Cereal,
+                    // tubers from Vegetable, orchards from Fruit. Falls
+                    // back to the largest yield for exotic crops.
+                    let preferred = [
+                        Commodity::Livestock,
+                        Commodity::Cereal,
+                        Commodity::Vegetable,
+                        Commodity::Fruit,
+                    ];
+                    let fallback_commodity = preferred
+                        .iter()
+                        .find(|c| {
+                            crop_def
+                                .yields
+                                .get(*c)
+                                .map(|&v| v > 0.0)
+                                .unwrap_or(false)
+                        })
+                        .copied()
+                        .or_else(|| {
+                            crop_def
+                                .yields
+                                .iter()
+                                .filter(|(_, &v)| v > 0.0)
+                                .max_by(|(ca, qa), (cb, qb)| {
+                                    qa.partial_cmp(qb)
+                                        .unwrap_or(std::cmp::Ordering::Equal)
+                                        .then_with(|| {
+                                            format!("{:?}", cb).cmp(&format!("{:?}", ca))
+                                        })
+                                })
+                                .map(|(&c, _)| c)
+                        });
+                    if let Some(fallback) = fallback_commodity {
+                        for building in buildings.iter_mut() {
+                            if building.owner_id != company_id {
+                                continue;
+                            }
+                            if seeds_remaining <= 0.0 {
+                                break;
+                            }
+                            if let Some(stored) = building.inventory.get_mut(&fallback) {
+                                let taken = seeds_remaining.min(*stored);
+                                *stored = (*stored - taken).max(0.0);
+                                seeds_remaining -= taken;
+                            }
+                        }
+                    }
+                }
                 let total_seeds_withdrawn = seed_needed - seeds_remaining;
 
                 // Calculate actual sown hectares based on available seeds

@@ -13,6 +13,7 @@
 //! * Capacity utilization tracking (for UI/telemetry)
 
 use crate::infrastructure::CapacityType;
+use rand::Rng;
 use crate::society::geography::{DependencyLevel, HealthStatus, RuralClass};
 
 /// Apply infrastructure capacity effects to population.
@@ -180,28 +181,28 @@ fn degrade_health(demographics: &mut crate::society::geography::ClassDemographic
     let degradation = demographics.health_degradation_rate;
     demographics.health_status = match demographics.health_status {
         HealthStatus::Excellent => {
-            if rand::random::<f64>() < degradation {
+            if crate::engine::seeded_rng::thread_rng().gen::<f64>() < degradation {
                 HealthStatus::Good
             } else {
                 HealthStatus::Excellent
             }
         }
         HealthStatus::Good => {
-            if rand::random::<f64>() < degradation * 1.5 {
+            if crate::engine::seeded_rng::thread_rng().gen::<f64>() < degradation * 1.5 {
                 HealthStatus::Fair
             } else {
                 HealthStatus::Good
             }
         }
         HealthStatus::Fair => {
-            if rand::random::<f64>() < degradation * 2.0 {
+            if crate::engine::seeded_rng::thread_rng().gen::<f64>() < degradation * 2.0 {
                 HealthStatus::Poor
             } else {
                 HealthStatus::Fair
             }
         }
         HealthStatus::Poor => {
-            if rand::random::<f64>() < degradation * 2.5 {
+            if crate::engine::seeded_rng::thread_rng().gen::<f64>() < degradation * 2.5 {
                 HealthStatus::Critical
             } else {
                 HealthStatus::Poor
@@ -219,19 +220,19 @@ fn update_dependency_from_health(demographics: &mut crate::society::geography::C
         }
         HealthStatus::Fair => {
             // 30% chance of becoming partially dependent
-            if rand::random::<f64>() < 0.3 {
+            if crate::engine::seeded_rng::thread_rng().gen::<f64>() < 0.3 {
                 demographics.dependency_level = DependencyLevel::PartiallyDependent;
             }
         }
         HealthStatus::Poor => {
             // 70% chance of becoming partially dependent
-            if rand::random::<f64>() < 0.7 {
+            if crate::engine::seeded_rng::thread_rng().gen::<f64>() < 0.7 {
                 demographics.dependency_level = DependencyLevel::PartiallyDependent;
             }
         }
         HealthStatus::Critical => {
             // 90% chance of becoming fully dependent
-            if rand::random::<f64>() < 0.9 {
+            if crate::engine::seeded_rng::thread_rng().gen::<f64>() < 0.9 {
                 demographics.dependency_level = DependencyLevel::FullyDependent;
             }
         }

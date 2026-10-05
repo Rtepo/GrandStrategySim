@@ -1,5 +1,6 @@
 //! Local council structures and election systems for regional governance
 
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
@@ -348,7 +349,7 @@ pub fn calculate_curial_faction_alignment(
 fn update_councilor_factions(council: &mut LocalCouncil, defection_rate: f64) {
     for councilor in &mut council.councilors {
         // Random chance to switch faction based on defection rate
-        if rand::random::<f64>() < defection_rate {
+        if crate::engine::seeded_rng::thread_rng().gen::<f64>() < defection_rate {
             match councilor.faction {
                 Faction::Optimates => {
                     councilor.faction = Faction::Populares;
@@ -358,7 +359,7 @@ fn update_councilor_factions(council: &mut LocalCouncil, defection_rate: f64) {
                 }
                 Faction::Populares => {
                     // Rarely switch back to Moderates if conditions improve
-                    if rand::random::<f64>() < 0.1 {
+                    if crate::engine::seeded_rng::thread_rng().gen::<f64>() < 0.1 {
                         councilor.faction = Faction::Moderates;
                     }
                 }
@@ -418,7 +419,7 @@ pub fn calculate_vote_probability(
         CouncilorTrait::Loyalist => {
             // Loyalists are naturally bound to the party line
             // Discipline has minimal effect on them
-            let base_probability = 0.9 + rand::random::<f64>() * 0.1;
+            let base_probability = 0.9 + crate::engine::seeded_rng::thread_rng().gen::<f64>() * 0.1;
             base_probability + (party_discipline * 0.05) // Small discipline boost
         }
         CouncilorTrait::Undecided => {
@@ -448,7 +449,7 @@ pub fn calculate_vote_probability(
         }
         CouncilorTrait::Maverick => {
             // Votes based on ideological alignment with randomness
-            ideological_alignment + (rand::random::<f64>() - 0.5) * 0.3
+            ideological_alignment + (crate::engine::seeded_rng::thread_rng().gen::<f64>() - 0.5) * 0.3
         }
     }
 }

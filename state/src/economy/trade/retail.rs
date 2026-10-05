@@ -1253,6 +1253,10 @@ pub fn settle_b2c_clearing(
                 // savings), not theoretical VAT. Theoretical VAT credits
                 // treasury more than citizens actually paid, creating M0.
                 total_vat_collected += r.vat_amount;
+                // 24-turn fix: realized sales = the company's base revenue
+                // (VAT portion goes to treasury, not the seller).
+                companies[company_idx].turn_settled_sales +=
+                    r.amount_transferred - r.vat_amount;
             }
         }
     }

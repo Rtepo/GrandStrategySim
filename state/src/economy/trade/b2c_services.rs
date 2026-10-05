@@ -658,6 +658,14 @@ fn apply_service_transactions(
             // credit the treasury to conserve M0.
             if !credit_company_by_id(companies, &txn.owner_id, total_revenue) {
                 country.budget.liquid_reserves += total_revenue;
+            } else if let Some(c) = companies
+                .iter_mut()
+                .find(|c| c.id == txn.owner_id)
+            {
+                // Revenue recognition: realized-profit accounting reads
+                // `turn_settled_sales` — a private service sale is settled
+                // revenue the same way a B2B goods sale is.
+                c.turn_settled_sales += total_revenue;
             }
         }
     }

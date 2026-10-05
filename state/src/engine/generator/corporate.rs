@@ -520,6 +520,21 @@ pub fn generate_corporate_entities(
 
         let mut sector_companies: Vec<Company> = Vec::new();
 
+        // 24-turn crucible W11: cumulative method cursor. The diversified
+        // round-robin picks `methods[idx % len]` where idx was `rank - 1`
+        // (0..5) — identical in every region because methods sort by
+        // (year, name). Every region therefore seeded the SAME five oldest
+        // methods, and any commodity whose only producer sat at index >= 5
+        // was produced NOWHERE: Seeds (ag idx 6) starved every farm, Paper
+        // (idx 5), Planks (6), Fibers (7), MedicalEquipment (9), Cement,
+        // Glass, Fertilizers, MechanicalComponents (11) and most of
+        // heavy_industry/mining's mid-era methods never existed in-world —
+        // the ~97% producing-sector unprofitability. Advancing the cursor by
+        // each region's actual company count walks coverage across the whole
+        // era-eligible registry as regions stack up (Dacia 15, Illyria 10,
+        // Lechia/Venedia 4 regions each).
+        let mut sector_method_cursor = 0usize;
+
         for region in &country_regions {
             let region_population = region.population.max(1);
             let region_share = region_population as f64 / total_population as f64;
@@ -558,7 +573,9 @@ pub fn generate_corporate_entities(
                 &mut idgen,
                 &cultural_group,
                 rng,
+                sector_method_cursor,
             );
+            sector_method_cursor += region_companies.len();
 
             for (company, building) in region_companies {
                 all_companies.push(company.clone());
@@ -686,7 +703,11 @@ pub fn generate_corporate_entities(
                 .push(b.clone());
         }
     }
-    for (region, list) in by_region {
+    // Phase 96: canonical save order — `by_region` is a HashMap; file write
+    // order propagates into load order and per-turn iteration.
+    let mut by_region_sorted: Vec<(String, Vec<Building>)> = by_region.into_iter().collect();
+    by_region_sorted.sort_by(|a, b| a.0.cmp(&b.0));
+    for (region, list) in by_region_sorted {
         building_store.save_sector(&country.name, &public_sector, Some(&region), &list)?;
     }
 
@@ -971,6 +992,11 @@ pub fn generate_corporate_entities(
             let mut held_ok = 0usize;
             for (&c, &q) in &b.active_method.inputs {
                 if c.is_fixed_asset() || c.is_local_utility() {
+                    continue;
+                }
+                // Food is worker sustenance (wage-funded B2C), not a
+                // firm-procured input — excluded from the seed audit.
+                if c == Commodity::Food {
                     continue;
                 }
                 let req = q * scale;
@@ -1905,6 +1931,30 @@ fn issue_working_capital_loans(
     // Loans through issue_loan() before paying wages.
     assign_primary_banks_to_companies(all_companies, &mut bank_companies, &mut country.central_bank);
 
+    // 24-turn fix: genesis leverage normalization. `assign_primary_banks` and
+    // the working-capital loan pass create deposits AFTER tier_1 was sized —
+    // banks could spawn at/over the 10× KNF leverage limit and flood the
+    // Sev-10 feed from Turn 0. A final equity top-up from the treasury brings
+    // every bank under 8× liabilities-to-equity (double-entry: treasury pays,
+    // reserves AND tier_1 rise together, deposits unchanged → A=L+E holds).
+    for bank in bank_companies.iter_mut() {
+        if let Some(ref mut bs) = bank.balance_sheet {
+            let liabilities = bs.total_liabilities();
+            let target_max = bs.tier_1_capital * 8.0;
+            if liabilities > target_max {
+                // Solve for injection: L ≤ (E + x) × 8 → x ≥ L/8 − E.
+                let needed = (liabilities / 8.0 - bs.tier_1_capital).max(0.0);
+                let injection =
+                    needed.min(country.budget.liquid_reserves.max(0.0) * 0.05);
+                if injection > 0.0 {
+                    bs.reserves_at_central_bank += injection;
+                    bs.tier_1_capital += injection;
+                    country.budget.liquid_reserves -= injection;
+                }
+            }
+        }
+    }
+
     // Save ALL banks back to disk (multiple banks may have been modified).
     // Phase 94: Always save now — assign_primary_banks_to_companies modifies
     // bank balance sheets even when no loans were issued or injected.
@@ -2228,6 +2278,7 @@ fn generate_region_companies(
     idgen: &mut IdGen,
     cultural_group: &str,
     rng: &mut impl Rng,
+    method_offset: usize,
 ) -> Vec<(Company, Building)> {
     // Phase 44: Strict Zero Agriculture — if arable land is zero, spawn NO
     // agricultural companies. The region must rely on imported food.
@@ -2445,9 +2496,11 @@ fn generate_region_companies(
             fund_ledger: None,
             temporary_disruption_modifier: 0.0,
             target_fte_demand: actual_capacity,
-            offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+            offered_wage_per_fte: ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage)))
                 .max(1.0),
-            prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+            prev_offered_wage_per_fte: ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage)))
                 .max(1.0)
                 .max(50.0),
             wage_arrears: 0.0,
@@ -2456,7 +2509,10 @@ fn generate_region_companies(
             severance_arrears: 0.0,
             furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,
-            target_wage: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0),
+            turn_settled_sales: 0.0,
+            realized_profit_this_turn: 0.0,
+            target_wage: ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(50.0),
             is_striking: false,
             fulfilled_fte: 0,
             prev_fulfilled_fte: 0,
@@ -2496,7 +2552,8 @@ fn generate_region_companies(
         };
 
         // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
-        let initial_wage = (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0);
+        let initial_wage = ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(50.0);
         let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
         company.fulfilled_fte = initial_fte as u32;
         company.prev_fulfilled_fte = initial_fte as u32;
@@ -2516,7 +2573,10 @@ fn generate_region_companies(
             best_registry_method(sector, start_year, registries)
         } else {
             // Phase 44: Use diversified method selection (round-robin by rank).
-            select_diversified_method(&diversified_methods, rank - 1)
+            // W11: + method_offset — the cumulative cursor walks each region's
+            // picks through the sorted registry so coverage spans all
+            // era-eligible methods instead of the same first five.
+            select_diversified_method(&diversified_methods, method_offset + rank - 1)
         };
         let current_employment = (initial_fte / scale_factor as f64) as u32;
         let building_id = idgen.next_building();
@@ -3214,13 +3274,14 @@ fn best_registry_method(
             // W8: Exclude wartime "* Conversion" methods — they are Production
             // Decree retool targets, not genesis defaults (see
             // diversified_registry_methods).
+            // Phase 96: (year, name) ordering — `production` is a HashMap and
+            // max/min_by_key return order-dependent results on year ties.
             let best = building_methods
                 .production
                 .iter()
                 .filter(|(name, _)| !is_decree_conversion_method(name))
-                .map(|(_, pm)| pm)
-                .filter(|pm| pm.year <= start_year)
-                .filter(|pm| match &pm.required_tech {
+                .filter(|(_, pm)| pm.year <= start_year)
+                .filter(|(_, pm)| match &pm.required_tech {
                     None => true,
                     Some(tech_id) => registries
                         .tech_tree
@@ -3228,20 +3289,26 @@ fn best_registry_method(
                         .map(|node| node.year <= start_year)
                         .unwrap_or(false),
                 })
-                .max_by_key(|pm| pm.year)
+                .max_by(|(an, a), (bn, b)| a.year.cmp(&b.year).then(an.cmp(bn)))
+                .map(|(_, pm)| pm)
                 .or_else(|| {
                     building_methods
                         .production
                         .iter()
                         .filter(|(name, _)| !is_decree_conversion_method(name))
+                        .min_by(|(an, a), (bn, b)| {
+                            a.year.cmp(&b.year).then(an.cmp(bn))
+                        })
                         .map(|(_, pm)| pm)
-                        .min_by_key(|pm| pm.year)
                 })
                 .or_else(|| {
                     building_methods
                         .production
-                        .values()
-                        .min_by_key(|pm| pm.year)
+                        .iter()
+                        .min_by(|(an, a), (bn, b)| {
+                            a.year.cmp(&b.year).then(an.cmp(bn))
+                        })
+                        .map(|(_, pm)| pm)
                 });
 
             match best {
@@ -3285,6 +3352,51 @@ fn best_registry_method(
     }
 }
 
+/// Freight-critical selector: like `best_registry_method` but restricted to
+/// methods that output `Commodity::FreightCapacity`. The generic max-year
+/// selector resolves transport seeds to the latest *passenger* method
+/// (Electric Trams etc.), leaving zero freight producers in the generated
+/// world — `pool_cap=0` at the freight gate and ~90% of cross-region trades
+/// deferred to expiry. Returns None if no era-eligible freight method exists,
+/// so the caller can fall back to the generic selector.
+fn best_freight_method(
+    sector: Sector,
+    start_year: u32,
+    registries: &Registries,
+) -> Option<(String, ActiveProductionMethod)> {
+    let sector_key = sector_json_name(sector);
+    let building_name = default_building_name(sector);
+    let building_methods = registries.production_methods.get(&sector_key)?;
+    // Phase 96: (year, name) ordering — same HashMap tie-break hazard as
+    // `best_registry_method` (two freight methods may share a year).
+    let best = building_methods
+        .production
+        .iter()
+        .filter(|(name, _)| !is_decree_conversion_method(name))
+        .filter(|(_, pm)| pm.year <= start_year)
+        .filter(|(_, pm)| pm.outputs.iter().any(|(c, _)| *c == Commodity::FreightCapacity))
+        .filter(|(_, pm)| match &pm.required_tech {
+            None => true,
+            Some(tech_id) => registries
+                .tech_tree
+                .get(tech_id)
+                .map(|node| node.year <= start_year)
+                .unwrap_or(false),
+        })
+        .max_by(|(an, a), (bn, b)| a.year.cmp(&b.year).then(an.cmp(bn)))
+        .map(|(_, pm)| pm)?;
+    let mut method = method_from_ratios(
+        best.experts_ratio,
+        best.skilled_ratio,
+        best.basic_ratio,
+        best.inputs.iter().map(|(c, q)| (*c, *q)).collect(),
+        best.outputs.iter().map(|(c, q)| (*c, *q)).collect(),
+        best.year,
+    );
+    method.seat_type = best.seat_type;
+    Some((building_name, method))
+}
+
 /// Phase 44: Diversified production method selector.
 ///
 /// Instead of picking the single highest-year method for an entire sector
@@ -3308,13 +3420,12 @@ fn diversified_registry_methods(
             // "Phase 69" markers and military/war_economy.rs) — a peacetime
             // factory assigned one produces goods nobody buys, earns ~$0,
             // and starves the moment its seed buffer runs out.
-            let mut eligible: Vec<&ProductionMethod> = building_methods
+            let mut eligible: Vec<(&String, &ProductionMethod)> = building_methods
                 .production
                 .iter()
                 .filter(|(name, _)| !is_decree_conversion_method(name))
-                .map(|(_, pm)| pm)
-                .filter(|pm| pm.year <= start_year)
-                .filter(|pm| match &pm.required_tech {
+                .filter(|(_, pm)| pm.year <= start_year)
+                .filter(|(_, pm)| match &pm.required_tech {
                     None => true,
                     Some(tech_id) => registries
                         .tech_tree
@@ -3324,22 +3435,30 @@ fn diversified_registry_methods(
                 })
                 .collect();
 
-            // Sort by year (ascending) for deterministic ordering.
-            eligible.sort_by_key(|pm| pm.year);
+            // Phase 96: sort by (year, name) — `production` is a HashMap, so a
+            // year-only stable sort preserves random iteration order among
+            // same-year methods and `select_diversified_method(rank % len)`
+            // attaches different methods to each rank per run.
+            eligible.sort_by(|(an, a), (bn, b)| a.year.cmp(&b.year).then(an.cmp(bn)));
 
             if eligible.is_empty() {
                 // Fallback: use the earliest method if no era-eligible one exists.
+                // Phase 96: tie-break on name — `min_by_key` returns the first
+                // minimum in HashMap order otherwise.
                 let earliest = building_methods
                     .production
                     .iter()
                     .filter(|(name, _)| !is_decree_conversion_method(name))
+                    .min_by(|(an, a), (bn, b)| a.year.cmp(&b.year).then(an.cmp(bn)))
                     .map(|(_, pm)| pm)
-                    .min_by_key(|pm| pm.year)
                     .or_else(|| {
                         building_methods
                             .production
-                            .values()
-                            .min_by_key(|pm| pm.year)
+                            .iter()
+                            .min_by(|(an, a), (bn, b)| {
+                                a.year.cmp(&b.year).then(an.cmp(bn))
+                            })
+                            .map(|(_, pm)| pm)
                     });
                 match earliest {
                     Some(pm) => {
@@ -3370,7 +3489,7 @@ fn diversified_registry_methods(
             } else {
                 eligible
                     .iter()
-                    .map(|pm| {
+                    .map(|(_, pm)| {
                         let mut method = method_from_ratios(
                             pm.experts_ratio,
                             pm.skilled_ratio,
@@ -3623,6 +3742,7 @@ fn seed_geology_based_mines(
             region,
             150,
             start_year,
+            average_wage,
             registries,
             idgen,
             rng,
@@ -3715,6 +3835,7 @@ fn seed_geology_based_mines(
                 region,
                 min_workers,
                 start_year,
+                average_wage,
                 registries,
                 idgen,
                 rng,
@@ -3825,6 +3946,7 @@ fn seed_processing_plants_for_region(
             region,
             min_workers,
             start_year,
+            _country.macro_indicators.average_wage,
             registries,
             idgen,
             rng,
@@ -4002,21 +4124,58 @@ fn seed_state_forestry(
         }
     }
     if forested.is_empty() {
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "FORESTRY_SEED: {} — NO forested regions ≥500ha ({} regions checked)",
+            country.name,
+            country_regions.len()
+        );
         return None;
     }
     country.state_forest_state.total_hectares =
         tracts.iter().map(|t| t.hectares).sum();
+    // Per-district harvest share: `process_state_forests_turn` injects
+    // total_harvested / district_count into each forest_district building.
+    // District inventory must hold several turns of that share or the
+    // overflow-destroy path rots ~99% of the harvest before it can be
+    // sold — observed as 445x timber undersupply with full tracts.
+    let per_district_permitted: f64 = tracts
+        .iter()
+        .map(|t| t.harvest_permitted)
+        .sum::<f64>()
+        / tracts.len().max(1) as f64;
     country.state_forest_state.tracts = tracts;
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "FORESTRY_SEED: {} tracts={} ha={:.0} stock={:.3e} cap={:.3e}",
+        country.name,
+        country.state_forest_state.tracts.len(),
+        country.state_forest_state.total_hectares,
+        country
+            .state_forest_state
+            .tracts
+            .iter()
+            .map(|t| t.timber_stock)
+            .sum::<f64>(),
+        country
+            .state_forest_state
+            .tracts
+            .iter()
+            .map(|t| t.harvest_permitted)
+            .sum::<f64>()
+    );
 
     // Era-appropriate forestry method: latest era-eligible in the
     // forest_district registry block, else the earliest one registered.
     let forest_methods = registries.production_methods.get("forest_district")?;
-    let mut pms: Vec<&ProductionMethod> = forest_methods.production.values().collect();
-    pms.sort_by_key(|pm| pm.year);
+    // Phase 96: (year, name) order — HashMap values() on a year-only stable
+    // sort leaves same-year methods in random order.
+    let mut pms: Vec<(&String, &ProductionMethod)> =
+        forest_methods.production.iter().collect();
+    pms.sort_by(|(an, a), (bn, b)| a.year.cmp(&b.year).then(an.cmp(bn)));
     let pm = pms
         .iter()
-        .copied()
-        .rfind(|pm| {
+        .rfind(|(_, pm)| {
             pm.year <= start_year
                 && match &pm.required_tech {
                     None => true,
@@ -4027,7 +4186,8 @@ fn seed_state_forestry(
                         .unwrap_or(false),
                 }
         })
-        .or_else(|| pms.first().copied())?;
+        .or_else(|| pms.first())
+        .map(|(_, pm)| *pm)?;
 
     let mut method = method_from_ratios(
         pm.experts_ratio,
@@ -4057,12 +4217,19 @@ fn seed_state_forestry(
             region,
             workers,
             start_year,
+            base_wage,
             registries,
             idgen,
             rng,
             "forest_district",
             &method,
         );
+        // Tract-scaled storage: hold ~4 turns of this district's harvest
+        // share so the injected timber survives to market instead of
+        // perishing in the overflow pass.
+        building.inventory_capacity = building
+            .inventory_capacity
+            .max(per_district_permitted * 4.0);
         match &mut monopoly {
             None => monopoly = Some(company),
             Some(m) => {
@@ -4365,6 +4532,7 @@ pub fn ensure_global_core_producers(
                                 region,
                                 workers,
                                 start_year,
+                                country.macro_indicators.average_wage,
                                 registries,
                                 &mut idgen,
                                 rng,
@@ -4399,14 +4567,14 @@ pub fn ensure_global_core_producers(
                     }
                     let forest_methods =
                         registries.production_methods.get("forest_district")?;
-                    let mut pms: Vec<&ProductionMethod> =
-                        forest_methods.production.values().collect();
-                    pms.sort_by_key(|pm| pm.year);
+                    let mut pms: Vec<(&String, &ProductionMethod)> =
+                        forest_methods.production.iter().collect();
+                    pms.sort_by(|(an, a), (bn, b)| a.year.cmp(&b.year).then(an.cmp(bn)));
                     let pm = pms
                         .iter()
-                        .copied()
-                        .rfind(|pm| pm.year <= start_year)
-                        .or_else(|| pms.first().copied())?;
+                        .rfind(|(_, pm)| pm.year <= start_year)
+                        .or_else(|| pms.first())
+                        .map(|(_, pm)| *pm)?;
                     let mut method = method_from_ratios(
                         pm.experts_ratio,
                         pm.skilled_ratio,
@@ -4447,6 +4615,7 @@ pub fn ensure_global_core_producers(
                         region,
                         workers,
                         start_year,
+                        country.macro_indicators.average_wage,
                         registries,
                         &mut idgen,
                         rng,
@@ -4480,6 +4649,7 @@ pub fn ensure_global_core_producers(
                                 region,
                                 workers,
                                 start_year,
+                                country.macro_indicators.average_wage,
                                 registries,
                                 &mut idgen,
                                 rng,
@@ -4643,6 +4813,7 @@ pub fn ensure_global_core_producers(
                         region,
                         workers,
                         start_year,
+                        country.macro_indicators.average_wage,
                         registries,
                         &mut idgen,
                         rng,
@@ -4663,13 +4834,14 @@ pub fn ensure_global_core_producers(
         } else if commodity == Commodity::Timber {
             let forest_methods = registries.production_methods.get("forest_district");
             forest_methods.and_then(|fm| {
-                let mut pms: Vec<&ProductionMethod> = fm.production.values().collect();
-                pms.sort_by_key(|pm| pm.year);
+                let mut pms: Vec<(&String, &ProductionMethod)> =
+                    fm.production.iter().collect();
+                pms.sort_by(|(an, a), (bn, b)| a.year.cmp(&b.year).then(an.cmp(bn)));
                 let pm = pms
                     .iter()
-                    .copied()
-                    .rfind(|pm| pm.year <= start_year)
-                    .or_else(|| pms.first().copied())?;
+                    .rfind(|(_, pm)| pm.year <= start_year)
+                    .or_else(|| pms.first())
+                    .map(|(_, pm)| *pm)?;
                 let mut method = method_from_ratios(
                     pm.experts_ratio,
                     pm.skilled_ratio,
@@ -4711,6 +4883,7 @@ pub fn ensure_global_core_producers(
                     region,
                     workers,
                     start_year,
+                    country.macro_indicators.average_wage,
                     registries,
                     &mut idgen,
                     rng,
@@ -4735,6 +4908,7 @@ pub fn ensure_global_core_producers(
                     region,
                     workers,
                     start_year,
+                    country.macro_indicators.average_wage,
                     registries,
                     &mut idgen,
                     rng,
@@ -4879,6 +5053,7 @@ fn create_seed_company_with_method_name(
     region: &Region,
     target_workers: u32,
     start_year: u32,
+    average_wage: f64,
     registries: &Registries,
     idgen: &mut IdGen,
     rng: &mut impl Rng,
@@ -4893,6 +5068,7 @@ fn create_seed_company_with_method_name(
         region,
         target_workers,
         start_year,
+        average_wage,
         registries,
         idgen,
         rng,
@@ -4919,12 +5095,16 @@ fn find_method_by_name(
         .iter()
         .find(|(name, _)| name.to_lowercase() == method_name.to_lowercase())
         .map(|(_, pm)| pm)
-        // Fallback: contains match.
+        // Fallback: contains match — multiple keys may contain the substring;
+        // pick the lexicographically smallest so the result is deterministic.
         .or_else(|| {
             building_methods
                 .production
                 .iter()
-                .find(|(name, _)| name.to_lowercase().contains(&method_name.to_lowercase()))
+                .filter(|(name, _)| {
+                    name.to_lowercase().contains(&method_name.to_lowercase())
+                })
+                .min_by(|(an, _), (bn, _)| an.cmp(bn))
                 .map(|(_, pm)| pm)
         })
         .filter(|pm| pm.year <= start_year)
@@ -4954,6 +5134,7 @@ fn create_seed_company_with_explicit_method(
     region: &Region,
     target_workers: u32,
     start_year: u32,
+    average_wage: f64,
     _registries: &Registries,
     idgen: &mut IdGen,
     rng: &mut impl Rng,
@@ -5027,8 +5208,10 @@ fn create_seed_company_with_explicit_method(
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
         target_fte_demand: actual_capacity,
-        offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
-        prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+        offered_wage_per_fte: ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(1.0),
+        prev_offered_wage_per_fte: ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage)))
             .max(1.0)
             .max(50.0),
         wage_arrears: 0.0,
@@ -5037,7 +5220,10 @@ fn create_seed_company_with_explicit_method(
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
-        target_wage: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0),
+        turn_settled_sales: 0.0,
+        realized_profit_this_turn: 0.0,
+        target_wage: ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(50.0),
         is_striking: false,
         fulfilled_fte: 0,
         prev_fulfilled_fte: 0,
@@ -5077,7 +5263,8 @@ fn create_seed_company_with_explicit_method(
     };
 
     // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
-    let initial_wage = (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0);
+    let initial_wage = ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(50.0);
     // W10: Power plants are critical infrastructure — a grid that starts at
     // 60% staffing delivers ~60% of nameplate and sheds load economy-wide.
     // Energy spawns fully staffed; other sectors keep the 60% baseline.
@@ -5447,6 +5634,7 @@ fn create_specialized_power_plant(
                 // get proportionally more workers (Rule 15).
                 planned_workers,
                 start_year,
+                average_wage,
                 registries,
                 idgen,
                 rng,
@@ -5580,8 +5768,10 @@ fn create_seed_company(
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
         target_fte_demand: actual_capacity,
-        offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
-        prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+        offered_wage_per_fte: ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(1.0),
+        prev_offered_wage_per_fte: ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage)))
             .max(1.0)
             .max(50.0),
         wage_arrears: 0.0,
@@ -5590,7 +5780,10 @@ fn create_seed_company(
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
-        target_wage: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0),
+        turn_settled_sales: 0.0,
+        realized_profit_this_turn: 0.0,
+        target_wage: ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(50.0),
         is_striking: false,
         fulfilled_fte: 0,
         prev_fulfilled_fte: 0,
@@ -5652,11 +5845,18 @@ fn create_seed_company(
             best_simple_steel_method(start_year, registries)
                 .unwrap_or_else(|| best_registry_method(sector, start_year, registries))
         }
+    } else if sector == Sector::TransportLogistics {
+        // Freight-critical seed: the max-year generic selector picks the
+        // newest *passenger* method, which leaves zero FreightCapacity
+        // producers and starves the cross-region freight gate.
+        best_freight_method(sector, start_year, registries)
+            .unwrap_or_else(|| best_registry_method(sector, start_year, registries))
     } else {
         best_registry_method(sector, start_year, registries)
     };
     // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
-    let initial_wage = (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0);
+    let initial_wage = ((company_liquid * 0.6 / (actual_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(50.0);
     let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
     company.fulfilled_fte = initial_fte as u32;
     company.prev_fulfilled_fte = initial_fte as u32;
@@ -5821,7 +6021,17 @@ fn seed_fixed_assets(sector: Sector, start_year: u32, rng: &mut impl Rng) -> Vec
 // edge (t3), producing the material-furlough wave the 1.15x hiring ratchet
 // cannot undo. 8 turns of endowed stock lets every producer run through the
 // bootstrap window with surplus headroom while prices discover.
-const SEED_INVENTORY_TURNS: f64 = 8.0;
+// 24-turn crucible W10: seed depth reduced 8 -> 3 turns. The 8-turn endowment
+// was sized while the supply chain was dead — every building held 8 turns of
+// every BOM input, so restock bids posted ~zero demand for the first ~6 turns
+// (restock_deficit = 2*need - on_hand), and Leontief-stalled buildings never
+// drained their buffers at all. The order book degenerated to 96.5B asks vs
+// 75K bids; sellers booked zero realized revenue and 97% of producing
+// companies failed the profitability gate. With extraction and processing
+// supply now physically present (asks flood the book), a 3-turn seed lets
+// deficits post from ~t3 and the market carry continuous volume — sellers
+// earn revenue inside the 24-turn window instead of waiting out the seed.
+const SEED_INVENTORY_TURNS: f64 = 3.0;
 const AGRICULTURE_SEED_INVENTORY_TURNS: f64 = 8.0;
 
 pub(crate) fn seed_inventory(
@@ -5853,6 +6063,12 @@ pub(crate) fn seed_inventory(
         // Water, WasteUtility) -- these are delivered by physical grids, not
         // stored in building inventory.
         if commodity.is_local_utility() {
+            continue;
+        }
+        // Food is wage-funded worker sustenance, never consumed from
+        // building inventory — seeding it would strand capacity (and the
+        // seed cost is phantom spend).
+        if commodity == Commodity::Food {
             continue;
         }
         let seed_qty = qty_per_1k * production_scale * seed_turns;
@@ -5893,6 +6109,23 @@ pub(crate) fn seed_inventory(
 
 /// Phase 27: Estimated base price for a commodity, used for seed inventory
 /// cost calculation. Returns a rough unit price Ă˘â‚¬â€ť not the actual market price.
+
+/// 24-turn fix: ceiling for genesis wage offers/targets. The legacy formula
+/// `cash × 0.6 / capacity` paid wages out of seed capital — a company seeded
+/// with ~$200B offered ~$40M/FTE, and the sticky-wage floor (−3%/turn) meant
+/// it stayed insane for hundreds of turns. The genesis payroll grant was
+/// sized off the same number, minting the capital that justified it.
+/// Cap near 1× the country's seed average wage: the cost-plus price stack
+/// embeds labor at that numeraire, so every turn a company pays more than
+/// ~1.05× average it sells below cost. The sticky floor only decays ~3%/turn —
+/// a 3× seed needs ~36 turns to reach the priced wage, outlasting the whole
+/// crucible window and leaving a permanent −30% margin hole in every P&L.
+/// 1.2× leaves a small premium band for hiring competition while keeping
+/// offers inside the priced labor stack.
+pub fn genesis_wage_offer_ceiling(average_wage: f64) -> f64 {
+    average_wage.max(1.0) * 1.2
+}
+
 pub fn estimated_base_price(commodity: Commodity) -> f64 {
     match commodity {
         Commodity::Food => 50.0,
@@ -5960,11 +6193,13 @@ pub fn anchored_base_price(commodity: Commodity) -> f64 {
 ///
 /// Quantities come from the post-`apply_throughput_scale` registry — the
 /// in/out ratio is what constrains prices, and it is scale-invariant.
-pub fn install_cost_plus_base_prices(registries: &Registries) -> HashMap<Commodity, f64> {
-    /// Outputs must clear their consumable input bundle by this markup.
-    /// With the P&L oracle booking inputs at 0.5× base, a 1.25 margin keeps
-    /// value-adding methods profitable at the oracle while leaving the
-    /// wage bill as the real constraint.
+pub fn install_cost_plus_base_prices(
+    registries: &Registries,
+    numeraire_wage: f64,
+) -> HashMap<Commodity, f64> {
+    /// Outputs must clear their consumable input bundle (labor included)
+    /// by this markup. With the P&L oracle booking inputs at 0.5× base, a
+    /// 1.25 margin keeps value-adding methods profitable at the oracle.
     const MARGIN: f64 = 1.25;
     /// Absolute sanity cap — bounds divergence in input cycles
     /// (e.g. Tools → Steel → Tools) without distorting ship/vehicle prices.
@@ -5975,19 +6210,44 @@ pub fn install_cost_plus_base_prices(registries: &Registries) -> HashMap<Commodi
         .map(|&c| (c, estimated_base_price(c)))
         .collect();
 
+    // 24-turn fix: the cost stack MUST include labor. Inputs/outputs are
+    // per-1000-worker rates, so one batch consumes `wage_multiplier × 1000`
+    // worker-turns priced at `numeraire_wage` — the world's reference wage
+    // (max seeded `average_wage`). The wage is a FIXED numéraire, not an
+    // iterate of this map: pricing labor at a basket that itself contains
+    // the iterating goods makes each basket-good's constraint
+    // `p ≥ α·(…+ k·p)` self-referential — for high labor-intensity goods
+    // (food staples) it has no finite fixed point and runs to PRICE_CAP,
+    // repricing bread at $200K/unit and starving demand at any wage.
+    // Previously `in_cost` excluded wages entirely (and methods with zero
+    // consumable inputs — pure extraction — were skipped wholesale), so
+    // revenue could never cover payroll at any clearing volume.
+    let labor_wage = numeraire_wage.max(1.0);
+
     for _ in 0..10 {
         let mut changed = false;
         // Deterministic scan: sorted kind keys.
         let mut kinds: Vec<&String> = registries.production_methods.keys().collect();
         kinds.sort();
         for kind in kinds {
-            for pm in registries.production_methods[kind].production.values() {
+            // Phase 96: sort per-kind methods too — this is a Gauss-Seidel
+            // fixed-point pass, so update order perturbs the converged prices.
+            let mut slots: Vec<(&String, &ProductionMethod)> =
+                registries.production_methods[kind].production.iter().collect();
+            slots.sort_by(|a, b| a.0.cmp(b.0));
+            for (_, pm) in slots {
+                let labor_cost = (pm.experts_ratio * 3.0
+                    + pm.skilled_ratio * 2.0
+                    + pm.basic_ratio)
+                    * 1000.0
+                    * labor_wage;
                 let in_cost: f64 = pm
                     .inputs
                     .iter()
                     .filter(|(c, _)| !c.is_fixed_asset() && !c.is_local_utility())
                     .map(|(c, q)| prices.get(c).copied().unwrap_or(0.0) * q)
-                    .sum();
+                    .sum::<f64>()
+                    + labor_cost;
                 if in_cost <= 0.0 {
                     continue;
                 }
@@ -6526,7 +6786,11 @@ fn create_strategic_reserve_agency(
         state_share: 1.0,
         fixed_capital: 0.0,
         liquid_capital: budget_alloc,
-        available_cash: 0.0,
+        // 24-turn mandate: the agency must hold spendable cash equal to its
+        // liquid capital — SRA buy bids are now PHYSICAL order-book orders
+        // that encumber available_cash at submission. Starting at zero meant
+        // the reserve could never actually purchase anything.
+        available_cash: budget_alloc,
         debit_cash: 0.0,
         credit_cash: 0.0,
         unfilled_bid_prices: std::collections::HashMap::new(),
@@ -6569,6 +6833,8 @@ fn create_strategic_reserve_agency(
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
+        turn_settled_sales: 0.0,
+        realized_profit_this_turn: 0.0,
         target_wage: 0.0,
         is_striking: false,
         fulfilled_fte: 0,
@@ -6768,6 +7034,10 @@ fn generate_retail_stores(
         CommercialBuilding, InventoryBatch, RetailProfile, StorageType, UtilityConnections,
     };
 
+    // 24-turn fix: genesis wage seeds cap at 1.2× the country average wage
+    // (see `genesis_wage_offer_ceiling`); bound once for the call sites below.
+    let average_wage = country.macro_indicators.average_wage.max(1.0);
+
     if country_regions.is_empty() {
         return Ok(());
     }
@@ -6897,8 +7167,10 @@ fn generate_retail_stores(
             fund_ledger: None,
             temporary_disruption_modifier: 0.0,
             target_fte_demand: base_capacity,
-            offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(1.0),
-            prev_offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0))
+            offered_wage_per_fte: ((company_liquid * 0.6 / (base_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(1.0),
+            prev_offered_wage_per_fte: ((company_liquid * 0.6 / (base_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage)))
                 .max(1.0)
                 .max(50.0),
             wage_arrears: 0.0,
@@ -6907,7 +7179,10 @@ fn generate_retail_stores(
             severance_arrears: 0.0,
             furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,
-            target_wage: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(50.0),
+            turn_settled_sales: 0.0,
+            realized_profit_this_turn: 0.0,
+            target_wage: ((company_liquid * 0.6 / (base_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(50.0),
             is_striking: false,
             fulfilled_fte: 0,
             prev_fulfilled_fte: 0,
@@ -6947,7 +7222,8 @@ fn generate_retail_stores(
         };
 
         // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
-        let initial_wage = (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(50.0);
+        let initial_wage = ((company_liquid * 0.6 / (base_capacity as f64).max(1.0))
+    .min(genesis_wage_offer_ceiling(average_wage))).max(50.0);
         let initial_fte = (base_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
         company.fulfilled_fte = initial_fte as u32;
         company.prev_fulfilled_fte = initial_fte as u32;
@@ -7287,6 +7563,8 @@ fn generate_tourism_entities(
                 severance_arrears: 0.0,
                 furlough_turns_accumulated: 0,
                 productivity_penalty: 0.0,
+            turn_settled_sales: 0.0,
+            realized_profit_this_turn: 0.0,
                 target_wage: (base_wage * 0.5).max(50.0),
                 is_striking: false,
                 fulfilled_fte: 0,
@@ -8174,6 +8452,8 @@ fn create_charity_company(
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
+        turn_settled_sales: 0.0,
+        realized_profit_this_turn: 0.0,
         target_wage: subsistence_wage.max(50.0),
         is_striking: false,
         // Phase 80: Pre-populate 70% of workforce so NGOs can operate from turn 1.
@@ -8445,6 +8725,8 @@ pub fn generate_investment_funds(
             severance_arrears: 0.0,
             furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,
+            turn_settled_sales: 0.0,
+            realized_profit_this_turn: 0.0,
             target_wage: country.macro_indicators.average_wage.max(1.0),
             is_striking: false,
             fulfilled_fte: 0,

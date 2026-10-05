@@ -260,7 +260,7 @@ impl Planet {
                 let extraction_cost = 1.0 + (depth / 1000.0) + (1.0 - quality) * 0.5;
 
                 // Find overlapping regions (within ~10 degrees lat/lon).
-                let overlapping_regions: Vec<String> = regions
+                let mut overlapping_regions: Vec<String> = regions
                     .iter()
                     .filter(|(_, r_lat, r_lon)| {
                         let dlat = (r_lat - lat).abs();
@@ -269,6 +269,7 @@ impl Planet {
                     })
                     .map(|(id, _, _)| id.clone())
                     .collect();
+                overlapping_regions.sort();
 
                 let vein_id = format!("VEIN-{:04}", vein_id_counter);
                 let vein_name = generate_vein_name(commodity, vein_id_counter);
@@ -315,14 +316,20 @@ impl Planet {
         // For groups with more than one vein, assign composite IDs.
         // The veins remain separate structs but share a composite_id for
         // reference. Reserve summation happens at query time.
+        // Phase 96: iterate groups in a canonical order — `merge_groups` is a
+        // HashMap (random iteration order per process), so without sorting the
+        // same COMPOSITE-#### id lands on a different vein group every run.
+        // Sort by the group's smallest vein index — a content-derived key.
+        let mut groups: Vec<Vec<usize>> = merge_groups.into_values().collect();
+        groups.sort_by_key(|indices| *indices.iter().min().unwrap_or(&usize::MAX));
         let mut composite_counter = 1;
-        for indices in merge_groups.values() {
+        for indices in groups {
             if indices.len() < 2 {
                 continue;
             }
             let composite_id = format!("COMPOSITE-{:04}", composite_counter);
             composite_counter += 1;
-            for &idx in indices {
+            for &idx in &indices {
                 self.veins[idx].composite_id = Some(composite_id.clone());
             }
         }

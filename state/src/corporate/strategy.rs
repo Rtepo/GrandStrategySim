@@ -1141,7 +1141,25 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
     //   Phase 87+: Uses operational_cash() (actual payroll cash source).
     let wage_per_fte = ctx.company.offered_wage_per_fte.max(1.0);
     let total_payroll = ctx.company.fulfilled_fte as f64 * wage_per_fte;
-    let cash_shortage = ctx.company.operational_cash() < total_payroll * 2.0;
+    // Credit parity: payroll can draw the same equity-bounded working-
+    // capital facility that B2B procurement uses — distress means cash +
+    // credit headroom can't cover 2 payrolls, not merely low cash. Without
+    // the headroom term, every company procuring on credit shows
+    // operational_cash≈0 and furloughs its workforce while still solvent.
+    let negative_cash = (-ctx.company.available_cash.min(0.0))
+        + (-ctx
+            .company
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash.min(0.0))
+            .unwrap_or(0.0))
+        .max(0.0);
+    let credit_headroom = (ctx.company.company_capital
+        - ctx.company.liabilities
+        - negative_cash)
+        .max(0.0);
+    let cash_shortage =
+        ctx.company.operational_cash() + credit_headroom < total_payroll * 2.0;
     let in_grace = is_within_material_shortage_grace(ctx.company, ctx.current_turn);
 
     // ── Legacy counterfactual path (diagnostic toggle) ─────────────────────

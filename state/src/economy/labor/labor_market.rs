@@ -637,7 +637,13 @@ pub fn resolve_regional_labor_market(
         // from brokerage_account.cash (off-balance-sheet, NOT in M0). Debiting
         // non-M0 cash while crediting citizen savings (M0) creates fiat.
         let is_bank = company.balance_sheet.is_some();
-        let available_cash = if is_bank {
+        // ARREARS-1: the wage trust (`debit_cash`) holds settlement revenue
+        // garnished for workers — it funds payroll ahead of general cash.
+        // For banked firms it is deposit-backed escrow; for unbanked firms
+        // it is M0-counted fiat. Either way it is the company's own money
+        // earmarked for workers.
+        let trust_cash = company.debit_cash.max(0.0);
+        let pocket_cash = if is_bank {
             company.balance_sheet.as_ref()
                 .map(|bs| bs.reserves_at_central_bank.max(0.0))
                 .unwrap_or(0.0)
@@ -647,51 +653,45 @@ pub fn resolve_regional_labor_market(
                 .map(|ba| ba.cash.max(0.0))
                 .unwrap_or(company.available_cash.max(0.0))
         };
+        let available_cash = pocket_cash + trust_cash;
 
-        let actual_paid = if wage_payment <= available_cash {
-            // Company can afford full payroll — debit normally
-            if is_bank {
-                if let Some(ref mut bs) = company.balance_sheet {
-                    bs.reserves_at_central_bank -= wage_payment;
-                    // Phase 94: Wages are an operating expense — debit equity
-                    // (retained earnings) to maintain A=L+E. Without this,
-                    // reserves decrease but liabilities/equity don't, breaking
-                    // the balance sheet identity.
-                    bs.tier_1_capital -= wage_payment;
-                }
-            } else if let Some(ba) = &mut company.brokerage_account {
-                ba.cash -= wage_payment;
-            } else {
-                company.available_cash -= wage_payment;
-            }
-            // Phase 92: Track transient wage flow for financial history.
-            company.wages_paid_this_turn = wage_payment;
-            company.arrears_accrued_this_turn = 0.0;
-            wage_payment
-        } else {
-            // Company cannot afford full payroll — pay what's available,
-            // accrue the rest as wage arrears (liability).
-            let payable = available_cash;
-            let arrears_this_turn = wage_payment - payable;
-            if payable > 0.0 {
+        // Draw the wage payment: trust (earmarked wages) first, then the
+        // general pocket. Any unmet remainder accrues as wage arrears.
+        // Wage overdraft remains permanently disabled: paying wages on
+        // implicit credit cost ~10+ points of unemployment in
+        // controlled A/B runs — for unbanked firms it poisons the
+        // cash pocket (every later payment fails → production
+        // dies), and for banked firms the growing `liabilities`
+        // shrinks credit headroom into earlier cash-shortage
+        // furloughs. Arrears are the designed payroll-credit
+        // channel; the mandate's arrears gate only constrains
+        // profitable companies, which pay full payroll anyway.
+        let actual_paid = wage_payment.min(available_cash);
+        if actual_paid > 0.0 {
+            let from_trust = actual_paid.min(trust_cash);
+            company.debit_cash -= from_trust;
+            let from_pocket = actual_paid - from_trust;
+            if from_pocket > 0.0 {
                 if is_bank {
                     if let Some(ref mut bs) = company.balance_sheet {
-                        bs.reserves_at_central_bank -= payable;
-                        // Phase 94: Wages are an operating expense — debit equity.
-                        bs.tier_1_capital -= payable;
+                        bs.reserves_at_central_bank -= from_pocket;
+                        // Phase 94: Wages are an operating expense — debit equity
+                        // (retained earnings) to maintain A=L+E. Without this,
+                        // reserves decrease but liabilities/equity don't, breaking
+                        // the balance sheet identity.
+                        bs.tier_1_capital -= from_pocket;
                     }
                 } else if let Some(ba) = &mut company.brokerage_account {
-                    ba.cash -= payable;
+                    ba.cash -= from_pocket;
                 } else {
-                    company.available_cash -= payable;
+                    company.available_cash -= from_pocket;
                 }
             }
-            company.wage_arrears += arrears_this_turn;
-            // Phase 92: Track transient wage flow for financial history.
-            company.wages_paid_this_turn = payable;
-            company.arrears_accrued_this_turn = arrears_this_turn;
-            payable
-        };
+        }
+        // Phase 92: Track transient wage flow for financial history.
+        company.wages_paid_this_turn = actual_paid;
+        company.arrears_accrued_this_turn = wage_payment - actual_paid;
+        company.wage_arrears += wage_payment - actual_paid;
 
         // Phase 43: Accumulate wage debit for batch bank sync.
         if actual_paid > 0.0 {
@@ -715,7 +715,10 @@ pub fn resolve_regional_labor_market(
         // must receive the money (M0 conservation: bank reserves ↓ = citizen
         // savings ↑). Without this credit, M0 is destroyed.
         if company.wage_arrears > 0.0 {
-            let remaining_cash = if is_bank {
+            // The wage trust (`debit_cash`) holds revenue garnished for
+            // workers at settlement — it repays arrears ahead of the pocket.
+            let trust = company.debit_cash.max(0.0);
+            let pocket = if is_bank {
                 company.balance_sheet.as_ref()
                     .map(|bs| bs.reserves_at_central_bank.max(0.0))
                     .unwrap_or(0.0)
@@ -725,18 +728,32 @@ pub fn resolve_regional_labor_market(
                     .map(|ba| ba.cash.max(0.0))
                     .unwrap_or(company.available_cash.max(0.0))
             };
-            let repayment = (remaining_cash * 0.30).min(company.wage_arrears);
+            let remaining_cash = pocket + trust;
+            // 24-turn fix: a company whose recent books are in the black must
+            // retire wage arrears in full from cash on hand — profit covers
+            // payroll before any other drain (ARREARS-1). Unprofitable firms
+            // keep the gradual 30%-of-crawl repayment.
+            let repayment = if company.moving_avg_net_profit(3) > 0.0 {
+                company.wage_arrears.min(remaining_cash)
+            } else {
+                (remaining_cash * 0.30).min(company.wage_arrears)
+            };
             if repayment > 0.0 {
-                if is_bank {
-                    if let Some(ref mut bs) = company.balance_sheet {
-                        bs.reserves_at_central_bank -= repayment;
-                        // Phase 94: Wage arrears repayment is an expense — debit equity.
-                        bs.tier_1_capital -= repayment;
+                let from_trust = repayment.min(trust);
+                company.debit_cash -= from_trust;
+                let from_pocket = repayment - from_trust;
+                if from_pocket > 0.0 {
+                    if is_bank {
+                        if let Some(ref mut bs) = company.balance_sheet {
+                            bs.reserves_at_central_bank -= from_pocket;
+                            // Phase 94: Wage arrears repayment is an expense — debit equity.
+                            bs.tier_1_capital -= from_pocket;
+                        }
+                    } else if let Some(ba) = &mut company.brokerage_account {
+                        ba.cash -= from_pocket;
+                    } else {
+                        company.available_cash -= from_pocket;
                     }
-                } else if let Some(ba) = &mut company.brokerage_account {
-                    ba.cash -= repayment;
-                } else {
-                    company.available_cash -= repayment;
                 }
                 company.wage_arrears -= repayment;
                 total_arrears_to_workers += repayment;

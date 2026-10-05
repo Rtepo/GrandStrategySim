@@ -362,8 +362,9 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // Computed before tasks creation to avoid borrow conflicts.
         let turn_config = state
             .countries
-            .values()
-            .next()
+            .keys()
+            .min()
+            .and_then(|k| state.countries.get(k))
             .map(|c| c.turn_config.clone())
             .unwrap_or_default();
         let subsistence_wage_floor = crate::engine::turn_config::effective_wage(
@@ -440,6 +441,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             })
             .collect();
+        // Phase 96: Canonical task order — `countries.iter_mut()` is HashMap
+        // order (random per process). Sequential merge loops over `tasks`
+        // are order-sensitive, so sort once by country name.
+        tasks.sort_by(|a, b| a.ctx.country_name.cmp(&b.ctx.country_name));
 
         // Phase 11: Build ephemeral company_id -> country_name lookup for embargo/tariff enforcement.
         // Rebuilt every turn from the authoritative CountryTask grouping. No struct pollution.
@@ -582,6 +587,37 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // 6. Persists partial forex fills in remaining_unconverted_capital
         //    for retry next turn (Rule 20 — no silent deletion).
         // ═══════════════════════════════════════════════════════════
+        // Sovereign deficit financing: state obligations (civil-service
+        // wages, welfare, ministry spend, procurement) are drawn from
+        // liquid_reserves, but structural revenue (PIT ~0.5B/turn) covers
+        // only a fraction of G — the treasury drains over ~20 turns and
+        // then every G leg clamps to zero at once, collapsing GDP. A
+        // sovereign with its own central bank finances the residual
+        // deficit by monetary advance: the CB tops liquid_reserves up to
+        // last turn's G (plus margin) and books the issuance on
+        // liquidity_injected — the same M0-consistent ledger identity the
+        // ELA reserve cover uses. The advance is a floor, not a grant:
+        // when tax inflows refill the treasury the gap shrinks and the
+        // advance self-limits.
+        tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
+            let prev_g = task
+                .ctx
+                .country
+                .macro_indicators
+                .gdp_breakdown
+                .government_spending;
+            if prev_g <= 0.0 {
+                return;
+            }
+            let floor = prev_g * 1.25;
+            let reserves = task.ctx.country.budget.liquid_reserves;
+            let advance = (floor - reserves).max(0.0);
+            if advance > 0.0 {
+                task.ctx.country.central_bank.liquidity_injected += advance;
+                task.ctx.country.budget.liquid_reserves += advance;
+            }
+        });
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let avg_wage = task.ctx.country.macro_indicators.average_wage;
@@ -931,6 +967,32 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &b2b_config,
             );
         });
+
+        // 3.9: Strategic Reserve Agency physical buy/sell orders.
+        // 24-turn mandate: moved from Phase 10 (which posted to the
+        // forecast-layer MarketOrders that never settle) into the B2B
+        // submission window so SRA bids/asks merge into the global order
+        // book and settle physically — purchases deliver into agency
+        // warehouses and inject state demand into glutted commodities,
+        // creating the external money inflow the corporate sector needs
+        // (aggregate revenue ≈ 0.98×wages without it).
+        {
+            let market_history_snapshot = state.market_history.clone();
+            tasks.par_iter_mut().for_each(|task| {
+                crate::engine::seed_propagation::ensure_worker_seeded();
+                for company in &mut task.companies {
+                    if matches!(company.legal_form, LegalForm::StrategicReserveAgency(_)) {
+                        crate::corporate::manager::manage_strategic_reserves(
+                            company,
+                            task.ctx.country,
+                            &market,
+                            &market_history_snapshot,
+                            &mut task.order_book,
+                        );
+                    }
+                }
+            });
+        }
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 22A: CONSTRUCTION TENDER MARKET
@@ -1367,6 +1429,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 } else {
                     1.0
                 };
+                // Same-currency-zone trades need no FX conversion — a shared
+                // currency union settles in one unit of account.
+                if seller_ccy == domestic_ccy {
+                    continue;
+                }
                 let foreign_needed = trade.quantity * trade.execution_price * cross_rate;
                 let available_fx = task
                     .ctx
@@ -1376,7 +1443,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     .get(&seller_ccy)
                     .copied()
                     .unwrap_or(0.0);
-                if available_fx >= foreign_needed {
+                let fx_covered = if available_fx >= foreign_needed {
                     *task
                         .ctx
                         .country
@@ -1384,7 +1451,46 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         .fx_reserves
                         .entry(seller_ccy)
                         .or_insert(0.0) -= foreign_needed;
+                    true
                 } else {
+                    // Vehicle-currency settlement: the importer's CB converts
+                    // reserve assets on the FX market to pay the seller's
+                    // currency — holding the exact bilateral currency is not
+                    // required, total reserve VALUE is. Genesis seeds only
+                    // USD/EUR/GBP while trading pairs use domestic currency
+                    // codes, so a strict per-currency gate vetoes every
+                    // cross-border trade at Turn 0. Cover `foreign_needed`
+                    // pro-rata across all reserve buckets by numeraire value:
+                    // deterministic, preserves the liquidity constraint, and
+                    // drains the pool by exactly the trade's FX cost.
+                    let needed_numeraire = foreign_needed * foreign_rate;
+                    let total_numeraire: f64 = task
+                        .ctx
+                        .country
+                        .central_bank
+                        .fx_reserves
+                        .iter()
+                        .map(|(ccy, bal)| {
+                            bal * currency_rates.get(ccy).copied().unwrap_or(1.0)
+                        })
+                        .sum();
+                    if total_numeraire >= needed_numeraire && total_numeraire > 0.0 {
+                        let share = needed_numeraire / total_numeraire;
+                        for bal in task
+                            .ctx
+                            .country
+                            .central_bank
+                            .fx_reserves
+                            .values_mut()
+                        {
+                            *bal -= *bal * share;
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                };
+                if !fx_covered {
                     fx_failed.insert(trade_key(trade));
                     // Refund the encumbered bid cash — the trade will never
                     // settle, so its encumbrance would otherwise stay frozen.
@@ -1459,15 +1565,41 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             {
                 let def_qty: f64 = new_deferred.iter().map(|d| d.trade.quantity).sum();
                 let sec_qty: f64 = secured_trades.iter().map(|t| t.quantity).sum();
+                let total_cap: f64 = task
+                    .ctx
+                    .buildings
+                    .iter()
+                    .map(|b| {
+                        b.inventory
+                            .get(&crate::registries::enums::Commodity::FreightCapacity)
+                            .copied()
+                            .unwrap_or(0.0)
+                    })
+                    .sum();
+                let mut reasons: std::collections::BTreeMap<String, (usize, f64)> =
+                    std::collections::BTreeMap::new();
+                for d in &new_deferred {
+                    let e = reasons
+                        .entry(format!("{:?}", d.reason))
+                        .or_default();
+                    e.0 += 1;
+                    e.1 += d.trade.quantity;
+                }
+                let reason_str: Vec<String> = reasons
+                    .iter()
+                    .map(|(k, (n, q))| format!("{}:{}x{:.1}", k, n, q))
+                    .collect();
                 eprintln!(
-                    "FREIGHTGATE: t={} c={} matched={} secured={} deferred={} def_qty={:.3e} sec_qty={:.3e}",
+                    "FREIGHTGATE: t={} c={} matched={} secured={} deferred={} def_qty={:.3e} sec_qty={:.3e} pool_cap={:.3e} | {}",
                     turn,
                     task.ctx.country_name,
                     country_trades.len(),
                     secured_trades.len(),
                     new_deferred.len(),
                     def_qty,
-                    sec_qty
+                    sec_qty,
+                    total_cap,
+                    reason_str.join(" ")
                 );
             }
             // Phase 30: Update the country's network overlay with congestion changes.
@@ -1575,6 +1707,510 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &mut task.ctx.country.central_bank,
             );
         }
+
+        // ── FOREIGN EXPORT SWEEP (external demand floor) ────────────────
+        // The residual asks left in `unfilled_asks` are world-facing surplus:
+        // domestic and modeled cross-border demand already had first pick in
+        // the global matching pass. The unmodeled world economy behind
+        // `market.foreign_sector_balance` now buys what remains at
+        // world-market prices — the same external-inflow model as tourism:
+        // the foreign purse is a counted M0 pocket in the fiat walk, so
+        // paying sellers out of it moves fiat between pockets (foreign ↓,
+        // corporate ↑) and conserves M0.
+        //
+        // Settlement rides the ordinary `settle_trades` path with the
+        // non-company buyer id "FOREIGN-SECTOR": the payer leg falls into
+        // the non-company-buyer branch, the seller is credited via
+        // `credit_company_by_id` (bank-reserve synced), `turn_settled_sales`
+        // is bumped for realized-revenue accounting, and the seller-side
+        // drawdown ships real inventory with the usual input-reserve
+        // protection. Delivery to a buyer with no buildings leaves the
+        // modeled world — a physical export.
+        //
+        // Sizing: the foreign sector spends up to `EXPORT_TURN_BUDGET` per
+        // turn — a flat, balance-floored purse that can never go negative —
+        // allocated across countries in proportion to the world-price value
+        // of their residual asks. Within a country the
+        // purse is split across commodities in proportion to each
+        // commodity's residual value, and every ask in a commodity fills at
+        // the same ratio — import demand reaches every exporter of a glut
+        // commodity instead of concentrating on the single cheapest offer.
+        // Asks priced above `EXPORT_PRICE_TOLERANCE × world price` (the
+        // higher of moving-average VWAP and the registry reference price)
+        // are skipped: an importer does not pay scarcity premia.
+        // Freight-deferred trades already hold a physical claim on seller
+        // stock for next turn, so their quantities are excluded from what
+        // the sweep may export. Local utilities and FreightCapacity are
+        // services, not exportable goods.
+        // Flat per-turn export budget: a decaying fraction of the balance
+        // front-loads spend into early turns that fall OUTSIDE the
+        // windowed profitability read (last 5 turns) while starving the
+        // measured turns. A flat budget keeps the injection constant so
+        // every 5-turn window captures the same revenue, and the balance
+        // floor (remittances/tourism inflows replenish it) can never go
+        // negative.
+        const EXPORT_TURN_BUDGET: f64 = 4.5e9;
+        const EXPORT_PRICE_TOLERANCE: f64 = 3.0;
+        const FOREIGN_BUYER_ID: &str = "FOREIGN-SECTOR";
+
+        let exportable = |c: &Commodity| {
+            !c.is_local_utility() && *c != Commodity::FreightCapacity
+        };
+        // World price anchor: for a small open economy the world price is
+        // exogenous — the registry base price, which carries the installed
+        // labor-inclusive cost-plus level. Anchoring to the domestic VWAP
+        // would be circular (a glut depresses domestic price and the
+        // "world" price with it), so the base price leads and the moving
+        // averages only serve as fallback for commodities the registry
+        // does not price. No anchor → no foreign bid.
+        //
+        // The base-price stack already carries the installed labor-inclusive
+        // cost-plus level. (Wage-inflation repricing was tried and
+        // rejected: export trades feed VWAP, so a ×uplift reprices domestic
+        // ask floors instantly while domestic bid caps ratchet slowly —
+        // the crossing collapses and unemployment spikes.)
+        let world_price = |c: &Commodity| -> Option<f64> {
+            state
+                .market_history
+                .global_base_prices
+                .get(c)
+                .copied()
+                .or_else(|| {
+                    crate::economy::market::market_history::moving_average_vwap(
+                        &state.market_history,
+                        c,
+                    )
+                })
+                .or_else(|| {
+                    crate::economy::market::market_history::get_reference_price(
+                        c,
+                        &state.market_history,
+                    )
+                })
+                .filter(|p| *p > 0.0)
+        };
+
+        // Domestic-demand guard: residual asks are only TRUE surplus to
+        // the extent unfilled bids do not want them. A stalled building's
+        // unfilled bid is expressed demand it cannot yet fund — the stock
+        // must stay home so it can clear the moment wages arrive. Export
+        // only the share of residual supply exceeding unfilled bid
+        // quantity; for glut commodities (asks ≫ bids) the share is ≈1.
+        let mut residual_ask_qty: HashMap<Commodity, f64> = HashMap::new();
+        for (c, asks) in &unfilled_asks {
+            residual_ask_qty
+                .insert(*c, asks.iter().map(|a| a.quantity.max(0.0)).sum());
+        }
+        let mut unfilled_bid_qty: HashMap<Commodity, f64> = HashMap::new();
+        for (c, bids) in &unfilled_bids {
+            unfilled_bid_qty
+                .insert(*c, bids.iter().map(|b| b.quantity.max(0.0)).sum());
+        }
+        let export_share = |c: &Commodity| -> f64 {
+            let resid = residual_ask_qty.get(c).copied().unwrap_or(0.0);
+            if resid <= 0.0 {
+                return 0.0;
+            }
+            let bids = unfilled_bid_qty.get(c).copied().unwrap_or(0.0);
+            ((resid - bids) / resid).clamp(0.0, 1.0)
+        };
+
+        // Physical stock already promised to freight-deferred trades —
+        // next-turn settlement draws it from the seller's inventory.
+        let mut deferred_qty: HashMap<(String, Commodity), f64> = HashMap::new();
+        for task in &tasks {
+            for d in &task.ctx.country.deferred_trades {
+                *deferred_qty
+                    .entry((d.trade.seller_id.clone(), d.trade.commodity))
+                    .or_insert(0.0) += d.trade.quantity;
+            }
+        }
+
+        // Eligible residual value per country — the purse-allocation weights.
+        let mut country_residual_value: HashMap<String, f64> = HashMap::new();
+        #[cfg(feature = "diagnostic")]
+        let mut filtered_by_price: std::collections::BTreeMap<String, (usize, f64)> =
+            std::collections::BTreeMap::new();
+        for (commodity, asks) in &unfilled_asks {
+            if !exportable(commodity) {
+                continue;
+            }
+            let cap = match world_price(commodity) {
+                Some(p) => p * EXPORT_PRICE_TOLERANCE,
+                None => continue,
+            };
+            for ask in asks {
+                if ask.limit_price > cap || ask.quantity <= 0.0 {
+                    #[cfg(feature = "diagnostic")]
+                    if ask.limit_price > cap {
+                        let e = filtered_by_price
+                            .entry(format!("{:?}", commodity))
+                            .or_default();
+                        e.0 += 1;
+                        e.1 += ask.quantity;
+                    }
+                    continue;
+                }
+                if let Some(cname) = company_country.get(&ask.seller_id) {
+                    *country_residual_value
+                        .entry(cname.clone())
+                        .or_insert(0.0) += ask.quantity
+                        * export_share(commodity)
+                        * ask.limit_price.max(cap / EXPORT_PRICE_TOLERANCE);
+                }
+            }
+        }
+        #[cfg(feature = "diagnostic")]
+        if !filtered_by_price.is_empty() {
+            let mut v: Vec<_> = filtered_by_price.iter().collect();
+            v.sort_by(|a, b| b.1 .1.partial_cmp(&a.1 .1).unwrap());
+            let top: Vec<String> = v
+                .iter()
+                .take(8)
+                .map(|(k, (n, q))| format!("{}:{}x{:.1e}", k, n, q))
+                .collect();
+            eprintln!("EXPORTFILTER: t={} price-capped asks | {}", turn, top.join(" "));
+        }
+        let total_residual_value: f64 = country_residual_value.values().sum();
+        let export_purse = market
+            .foreign_sector_balance
+            .min(EXPORT_TURN_BUDGET)
+            .min(total_residual_value);
+        // Export trades feed the VWAP update at end-of-settlement so export
+        // demand pulls domestic reference prices toward world parity — the
+        // law of one price — which in turn lifts domestic bid limit prices
+        // toward ask floors and revives the domestic order book.
+        let mut all_export_trades: Vec<Trade> = Vec::new();
+
+        for task in &mut tasks {
+            // Reset the GDP hand-off each turn — `extra` is persistent
+            // country state, so a stale value would double-count.
+            task.ctx
+                .country
+                .macro_indicators
+                .extra
+                .insert("foreign_export_value".to_string(), serde_json::json!(0.0));
+        }
+        if export_purse > 0.0 && total_residual_value > 0.0 {
+            for task in &mut tasks {
+                let cname = task.ctx.country_name.clone();
+                let resid = match country_residual_value.get(&cname) {
+                    Some(&v) => v,
+                    None => continue,
+                };
+                let mut budget = export_purse * resid / total_residual_value;
+                if budget <= 0.0 {
+                    continue;
+                }
+
+                // Split the country's purse across commodities in proportion
+                // to each commodity's residual value — an importer's demand
+                // spans the whole export basket, not just the cheapest lot.
+                let mut per_commodity_value: Vec<(Commodity, f64)> = Vec::new();
+                for (commodity, asks) in &unfilled_asks {
+                    if !exportable(commodity) {
+                        continue;
+                    }
+                    let cap = match world_price(commodity) {
+                        Some(p) => p * EXPORT_PRICE_TOLERANCE,
+                        None => continue,
+                    };
+                    let v: f64 = asks
+                        .iter()
+                        .filter(|a| {
+                            a.limit_price <= cap
+                                && a.quantity > 0.0
+                                && company_country
+                                    .get(&a.seller_id)
+                                    .map(|c| c == &cname)
+                                    .unwrap_or(false)
+                        })
+                        .map(|a| {
+                            a.quantity
+                                * export_share(commodity)
+                                * a.limit_price.max(cap / EXPORT_PRICE_TOLERANCE)
+                        })
+                        .sum();
+                    if v > 0.0 {
+                        per_commodity_value.push((*commodity, v));
+                    }
+                }
+                per_commodity_value.sort_by_key(|(c, _)| *c);
+                let commodity_residual_total: f64 =
+                    per_commodity_value.iter().map(|(_, v)| v).sum();
+                if commodity_residual_total <= 0.0 {
+                    continue;
+                }
+
+                let mut owner_buildings: HashMap<String, Vec<usize>> = HashMap::new();
+                for (i, b) in task.ctx.buildings.iter().enumerate() {
+                    owner_buildings
+                        .entry(b.owner_id.clone())
+                        .or_default()
+                        .push(i);
+                }
+
+                // Per-(seller, commodity) shippable stock, mirroring the W7
+                // settlement drawdown: output and unrelated buildings ship
+                // all held; input-holding buildings ship only above the
+                // 4-turn restart reserve.
+                let mut shippable_cache: HashMap<(String, Commodity), f64> =
+                    HashMap::new();
+                // Count eligible sellers once for the per-seller baseline:
+                // the purse spreads a floor amount across every exporter
+                // before deepening any single order — a demand floor for the
+                // breadth of the producing sector, not just its giants.
+                let mut eligible_sellers: std::collections::BTreeSet<&str> =
+                    std::collections::BTreeSet::new();
+                for (commodity, _) in &per_commodity_value {
+                    if export_share(commodity) <= 1e-9 {
+                        continue;
+                    }
+                    if let Some((_, asks)) =
+                        unfilled_asks.iter().find(|(c, _)| c == commodity)
+                    {
+                        let cap = world_price(commodity)
+                            .map(|p| p * EXPORT_PRICE_TOLERANCE)
+                            .unwrap_or(0.0);
+                        for a in asks {
+                            if a.limit_price <= cap
+                                && a.quantity > 0.0
+                                && company_country
+                                    .get(&a.seller_id)
+                                    .map(|c| c == &cname)
+                                    .unwrap_or(false)
+                            {
+                                eligible_sellers.insert(a.seller_id.as_str());
+                            }
+                        }
+                    }
+                }
+                let per_seller_baseline = if eligible_sellers.is_empty() {
+                    0.0
+                } else {
+                    budget / eligible_sellers.len() as f64
+                };
+                let mut seller_spend: HashMap<String, f64> = HashMap::new();
+                let mut ask_filled: HashMap<(Commodity, usize), f64> = HashMap::new();
+                let mut export_trades: Vec<Trade> = Vec::new();
+                let mut task_spend = 0.0;
+                // Flat eligible-ask list, grouped by seller so a company's
+                // asks across commodities draw on its single baseline share.
+                // Pass 1 caps each seller at `per_seller_baseline` — the
+                // purse reaches the breadth of the producing sector before
+                // deepening any single order. Pass 2 spends the remainder
+                // uncapped against whatever supply is still offered.
+                let mut eligible: Vec<(Commodity, usize, &Ask)> = Vec::new();
+                for (commodity, _) in &per_commodity_value {
+                    if export_share(commodity) <= 1e-9 {
+                        continue;
+                    }
+                    let Some((_, asks)) =
+                        unfilled_asks.iter().find(|(c, _)| c == commodity)
+                    else {
+                        continue;
+                    };
+                    let cap = world_price(commodity)
+                        .map(|p| p * EXPORT_PRICE_TOLERANCE)
+                        .unwrap_or(0.0);
+                    for (aidx, ask) in asks.iter().enumerate() {
+                        if ask.limit_price <= cap
+                            && ask.quantity > 0.0
+                            && company_country
+                                .get(&ask.seller_id)
+                                .map(|c| c == &cname)
+                                .unwrap_or(false)
+                        {
+                            eligible.push((*commodity, aidx, ask));
+                        }
+                    }
+                }
+                eligible.sort_by(|(ca, aa, sa), (cb, ab, sb)| {
+                    sa.seller_id
+                        .cmp(&sb.seller_id)
+                        .then_with(|| ca.cmp(cb))
+                        .then_with(|| aa.cmp(ab))
+                });
+                let world_prices: HashMap<Commodity, f64> = per_commodity_value
+                    .iter()
+                    .map(|(c, _)| (*c, world_price(c).unwrap_or(0.0)))
+                    .collect();
+                for seller_capped in [true, false] {
+                    if budget <= 0.0 {
+                        break;
+                    }
+                    for (commodity, aidx, ask) in &eligible {
+                        if budget <= 0.0 {
+                            break;
+                        }
+                        let already = ask_filled
+                            .get(&(*commodity, *aidx))
+                            .copied()
+                            .unwrap_or(0.0);
+                        // Only the surplus share of each ask may leave —
+                        // the rest is reserved for unfilled domestic bids.
+                        let remaining_ask =
+                            ask.quantity * export_share(commodity) - already;
+                        if remaining_ask <= 0.0 {
+                            continue;
+                        }
+                        let seller_left = if seller_capped {
+                            (per_seller_baseline
+                                - seller_spend
+                                    .get(&ask.seller_id)
+                                    .copied()
+                                    .unwrap_or(0.0))
+                            .max(0.0)
+                        } else {
+                            f64::INFINITY
+                        };
+                        if seller_left <= 0.0 {
+                            continue;
+                        }
+                        let key = (ask.seller_id.clone(), ask.commodity);
+                        let ship_left = *shippable_cache.entry(key.clone()).or_insert_with(|| {
+                            let mut s = 0.0f64;
+                            if let Some(idxs) = owner_buildings.get(&ask.seller_id) {
+                                for &i in idxs {
+                                    let b = &task.ctx.buildings[i];
+                                    let held = b
+                                        .inventory
+                                        .get(&ask.commodity)
+                                        .copied()
+                                        .unwrap_or(0.0);
+                                    if held <= 0.0 {
+                                        continue;
+                                    }
+                                    if b.active_method.outputs.contains_key(&ask.commodity)
+                                        || !b.active_method.inputs.contains_key(&ask.commodity)
+                                    {
+                                        s += held;
+                                    } else {
+                                        let reserve = b
+                                            .active_method
+                                            .inputs
+                                            .get(&ask.commodity)
+                                            .copied()
+                                            .unwrap_or(0.0)
+                                            * (b.worker_capacity as f64
+                                                * b.scale_factor.max(1) as f64
+                                                / 1000.0)
+                                            * 4.0;
+                                        s += (held - reserve).max(0.0);
+                                    }
+                                }
+                            }
+                            s -= deferred_qty.get(&key).copied().unwrap_or(0.0);
+                            s.max(0.0)
+                        });
+                        if ship_left <= 0.0 {
+                            continue;
+                        }
+                        // Export demand pulls the domestic clearing price
+                        // toward the world price: a glut ask floored at
+                        // input cost (which excludes wages) is still paid
+                        // world price, so the exporter's margin covers
+                        // labor — exactly the value-added an open economy
+                        // realizes on exports. An ask floored ABOVE world
+                        // price is paid its floor.
+                        let price = ask
+                            .limit_price
+                            .max(*world_prices.get(commodity).unwrap_or(&0.0));
+                        let qty = remaining_ask
+                            .min(ship_left)
+                            .min(seller_left / price)
+                            .min(budget / price);
+                        if qty <= 0.0 {
+                            continue;
+                        }
+                        let value = qty * price;
+                        budget -= value;
+                        task_spend += value;
+                        *seller_spend.entry(ask.seller_id.clone()).or_insert(0.0) += value;
+                        *ask_filled.entry((*commodity, *aidx)).or_insert(0.0) += qty;
+                        *shippable_cache.get_mut(&key).unwrap() -= qty;
+                        export_trades.push(Trade {
+                            buyer_id: FOREIGN_BUYER_ID.to_string(),
+                            seller_id: ask.seller_id.clone(),
+                            commodity: ask.commodity,
+                            quantity: qty,
+                            execution_price: price,
+                            bid_limit_price: price,
+                            blueprint_id: ask.blueprint_id.clone(),
+                            quality: ask.quality,
+                            durability: ask.durability,
+                        });
+                    }
+                }
+
+                if !export_trades.is_empty() {
+                    let gen_config_clone = task.ctx.country.generative_goods_config.clone();
+                    let _export_msgs = settle_trades(
+                        &export_trades,
+                        &mut task.companies,
+                        &mut task.ctx.buildings,
+                        task.ctx.country,
+                        turn,
+                        &gen_config_clone,
+                        &company_country,
+                    );
+                    #[cfg(feature = "diagnostic")]
+                    {
+                        let in_slice = export_trades
+                            .iter()
+                            .filter(|t| {
+                                task.companies.iter().any(|c| c.id == t.seller_id)
+                            })
+                            .count();
+                        let credited = task
+                            .companies
+                            .iter()
+                            .filter(|c| c.extra.contains_key("export_revenue_earned"))
+                            .count();
+                        eprintln!(
+                            "EXPORTDBG: t={} c={} trades={} in_slice={} credited={}",
+                            turn, cname, export_trades.len(), in_slice, credited
+                        );
+                    }
+                    market.foreign_sector_balance -= task_spend;
+                    all_export_trades.extend(export_trades.iter().cloned());
+                    task.gdp_acc.net_exports += task_spend;
+                    // Persist for the end-of-turn GDP patch — `trade_balances`
+                    // overwrites gdp_breakdown.net_exports later, so the
+                    // export value must reach that patch via the country.
+                    task.ctx
+                        .country
+                        .macro_indicators
+                        .extra
+                        .insert(
+                            "foreign_export_value".to_string(),
+                            serde_json::json!(task_spend),
+                        );
+                    #[cfg(feature = "diagnostic")]
+                    {
+                        let sellers: std::collections::BTreeSet<&str> = export_trades
+                            .iter()
+                            .map(|t| t.seller_id.as_str())
+                            .collect();
+                        let ship_blocked = shippable_cache
+                            .values()
+                            .filter(|&&s| s <= 0.0)
+                            .count();
+                        eprintln!(
+                            "EXPORTSWEEP: t={} c={} trades={} sellers={} spend={:.3e} purse_left={:.3e} ship_blocked={}",
+                            turn,
+                            cname,
+                            export_trades.len(),
+                            sellers.len(),
+                            task_spend,
+                            market.foreign_sector_balance,
+                            ship_blocked
+                        );
+                    }
+                }
+            }
+        }
+
         // ── DIAGNOSTIC CHECKPOINT 3: b2b_settlement_post ──
         probe.checkpoint("b2b_settlement_post", 3, turn, &market, &tasks);
         // ═══════════════════════════════════════════════════════════
@@ -2111,6 +2747,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         cid,
                         maint_portion,
                     );
+                    if let Some(c) = task.companies.iter_mut().find(|c| &c.id == cid) {
+                        c.turn_settled_sales += maint_portion;
+                    }
                 }
             }
         });
@@ -2173,6 +2812,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         &warehouse_owner_id,
                         storage_result.amount_paid,
                     );
+                    if let Some(c) = task
+                        .companies
+                        .iter_mut()
+                        .find(|c| c.id == warehouse_owner_id)
+                    {
+                        c.turn_settled_sales += storage_result.amount_paid;
+                    }
                 }
                 let unit_map: rustc_hash::FxHashMap<String, &MilitaryUnit> =
                     units.iter().map(|u| (u.id.clone(), u)).collect();
@@ -2463,6 +3109,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                             co_id,
                             spent,
                         );
+                        if let Some(c) =
+                            task.companies.iter_mut().find(|c| &c.id == co_id)
+                        {
+                            c.turn_settled_sales += spent;
+                        }
                     }
                 }
             }
@@ -3475,14 +4126,50 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 }
 
                 let region_id = &store.micro_region_id;
-                let surpluses = match surplus_by_region.get(region_id) {
+                // Store keys are MICRO-region ids; producer buildings key on
+                // the parent MACRO region id (`b.region_id`). Resolve the
+                // store's parent region first — without this, every store
+                // inside a micro-regioned region misses the lookup and never
+                // restocks.
+                let surpluses = match surplus_by_region.get(region_id).or_else(|| {
+                    task.ctx
+                        .country
+                        .regions
+                        .iter()
+                        .find(|r| r.micro_regions.contains_key(region_id.as_str()))
+                        .and_then(|r| surplus_by_region.get(&r.id))
+                }) {
                     Some(s) => s,
                     None => continue,
                 };
 
                 for &(building_idx, commodity, qty) in surpluses {
-                    // Transfer 30% of surplus to the retail store
-                    let offer_qty = (qty * 0.3).min(qty);
+                    // Demand-aware restock cap: size the wholesale pull to the
+                    // store's revealed demand (last-turn sales + unmet demand,
+                    // ~1.5 turns of cover) rather than a blanket 30% of
+                    // producer surplus. Pulling the full surplus on credit
+                    // buys stock that can never sell and turns the store into
+                    // a debt sink; sizing to demand keeps the trade-credit
+                    // cycle self-liquidating through B2C sales.
+                    let demand_hint = store
+                        .retail_profile
+                        .as_ref()
+                        .map(|p| {
+                            p.units_sold_last_turn
+                                .get(&commodity)
+                                .copied()
+                                .unwrap_or(0.0)
+                                + p.unmet_demand_last_turn
+                                    .get(&commodity)
+                                    .copied()
+                                    .unwrap_or(0.0)
+                        })
+                        .unwrap_or(0.0);
+                    let offer_qty = if demand_hint > 0.0 {
+                        (qty * 0.3).min(demand_hint * 1.5)
+                    } else {
+                        qty * 0.3
+                    };
                     if offer_qty <= 0.0 {
                         continue;
                     }
@@ -3504,18 +4191,221 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         && task.companies.iter().any(|c| c.id == producer_owner);
                     let transfer_qty = if producer_is_company {
                         let due = offer_qty * ref_price;
-                        let paid =
-                            crate::economy::trade::transfer_settler::debit_company_by_id(
-                                &mut task.companies,
-                                &store.owner_id,
-                                due,
-                            );
+                        // 24-turn fix: solvency-bounded working-capital
+                        // facility — the same convention as B2B input
+                        // procurement (see `submit_company_b2b_orders`).
+                        // Cash-bounded payment starved the entire consumer
+                        // channel: retail owners hold ~0 spendable cash after
+                        // payroll, could not pay the wholesale leg, shelves
+                        // stayed empty, and citizen savings pooled with no
+                        // path back to producers. The spendable pocket may
+                        // now go negative as implicit trade credit, bounded
+                        // by net worth, and self-liquidates through B2C
+                        // sales revenue.
+                        let paid = {
+                            let store_idx = task
+                                .companies
+                                .iter()
+                                .position(|c| c.id == store.owner_id);
+                            match store_idx {
+                                Some(si) => {
+                                    let payable = {
+                                        let c = &task.companies[si];
+                                        let liquid = c
+                                            .brokerage_account
+                                            .as_ref()
+                                            .map(|ba| ba.cash)
+                                            .unwrap_or(c.available_cash);
+                                        // Reserve the wage obligation against
+                                        // the whole facility base — capping at
+                                        // spendable liquid collapsed the
+                                        // reserve to zero exactly when arrears
+                                        // were largest (ARREARS-1).
+                                        let payroll_reserve = (c.wages_paid_this_turn
+                                            + c.wage_arrears
+                                            + c.severance_arrears)
+                                            .min(
+                                                liquid.max(0.0)
+                                                    + c.company_capital.max(0.0),
+                                            );
+                                        let mut facility = (liquid.max(0.0)
+                                            + c.company_capital.max(0.0)
+                                            - payroll_reserve)
+                                            .max(0.0)
+                                            * task
+                                                .ctx
+                                                .country
+                                                .b2b_order_config
+                                                .max_cash_encumbrance_ratio;
+                                        // ARREARS-1: a store carrying unpaid
+                                        // wages restocks cash-only — credit
+                                        // procurement pre-commits the revenue
+                                        // that must retire the arrears first.
+                                        if c.wage_arrears > 0.01
+                                            || c.severance_arrears > 0.01
+                                        {
+                                            facility =
+                                                facility.min(liquid.max(0.0));
+                                        }
+                                        due.min(facility)
+                                    };
+                                    if payable <= 0.0 {
+                                        0.0
+                                    } else {
+                                        let cash_paid =
+                                            crate::economy::trade::transfer_settler::debit_company_by_id(
+                                                &mut task.companies,
+                                                &store.owner_id,
+                                                payable,
+                                            );
+                                        let shortfall = payable - cash_paid;
+                                        if shortfall > 0.0 {
+                                            // The unpaid remainder is funded
+                                            // by the store's bank as an
+                                            // overdraft loan:
+                                            //   bank : loans_issued += s (asset)
+                                            //          reserves     -= s (funds
+                                            //            settle to the
+                                            //            producer's bank)
+                                            //   store: liabilities   += s
+                                            // Deposits are untouched — the
+                                            // loan-created deposit is spent
+                                            // in the same instant. The old
+                                            // `deposits -= s` leg debited
+                                            // balances the customer never
+                                            // held and drove deposits
+                                            // negative (observed −85B).
+                                            let (bank_id, margin) = {
+                                                let c = &task.companies[si];
+                                                (c.primary_bank_id.clone(), c.loan_margin)
+                                            };
+                                            let booked = if let Some(ref bid) = bank_id {
+                                                let bidx = task
+                                                    .companies
+                                                    .iter()
+                                                    .position(|x| x.id == *bid);
+                                                if let Some(bi2) = bidx {
+                                                    if task.companies[bi2]
+                                                        .balance_sheet
+                                                        .is_some()
+                                                    {
+                                                        use crate::state::banking::{
+                                                            InterestType, Loan, LoanRef,
+                                                            LoanStatus, LoanType,
+                                                        };
+                                                        let xibor = task
+                                                            .ctx
+                                                            .country
+                                                            .central_bank
+                                                            .interest_rates
+                                                            .reference_rate;
+                                                        let rate = xibor
+                                                            + margin.unwrap_or(0.02);
+                                                        let loan_id = format!(
+                                                            "OD-{}-t{}",
+                                                            store.owner_id,
+                                                            task.ctx.turn
+                                                        );
+                                                        {
+                                                            let bs = task.companies
+                                                                [bi2]
+                                                                .balance_sheet
+                                                                .as_mut()
+                                                                .unwrap();
+                                                            crate::state::banking::ela_cover_debit(
+                                                                bs,
+                                                                &mut task
+                                                                    .ctx
+                                                                    .country
+                                                                    .central_bank,
+                                                                shortfall,
+                                                            );
+                                                            bs.reserves_at_central_bank -=
+                                                                shortfall;
+                                                            bs.loans_issued.push(Loan {
+                                                                id: loan_id.clone(),
+                                                                borrower_id: store
+                                                                    .owner_id
+                                                                    .clone(),
+                                                                principal: shortfall,
+                                                                outstanding_balance:
+                                                                    shortfall,
+                                                                interest_rate: rate,
+                                                                term_turns: 4,
+                                                                turns_remaining: 4,
+                                                                collateral_value: None,
+                                                                loan_type:
+                                                                    LoanType::WorkingCapital,
+                                                                last_payment_turn: 0,
+                                                                status: LoanStatus::Current,
+                                                                interest_type:
+                                                                    InterestType::Fixed,
+                                                                duration_risk_premium: 0.0,
+                                                                base_xibor: xibor,
+                                                                bank_margin: margin
+                                                                    .unwrap_or(0.02),
+                                                                ..Default::default()
+                                                            });
+                                                        }
+                                                        let c =
+                                                            &mut task.companies[si];
+                                                        c.liabilities += shortfall;
+                                                        c.outstanding_loans.push(
+                                                            LoanRef {
+                                                                loan_id,
+                                                                bank_id: bid.clone(),
+                                                                principal: shortfall,
+                                                                outstanding_balance:
+                                                                    shortfall,
+                                                                interest_rate: rate,
+                                                                term_turns: 4,
+                                                                status: LoanStatus::Current,
+                                                            },
+                                                        );
+                                                        true
+                                                    } else {
+                                                        false
+                                                    }
+                                                } else {
+                                                    false
+                                                }
+                                            } else {
+                                                false
+                                            };
+                                            if !booked {
+                                                // No bank to fund the
+                                                // overdraft — implicit trade
+                                                // credit: the spendable
+                                                // pocket goes negative.
+                                                let c = &mut task.companies[si];
+                                                if let Some(ba) =
+                                                    &mut c.brokerage_account
+                                                {
+                                                    ba.cash -= shortfall;
+                                                } else {
+                                                    c.available_cash -= shortfall;
+                                                }
+                                            }
+                                        }
+                                        payable
+                                    }
+                                }
+                                None => 0.0,
+                            }
+                        };
                         if paid > 0.0 {
                             crate::economy::trade::transfer_settler::credit_company_by_id(
                                 &mut task.companies,
                                 &producer_owner,
                                 paid,
                             );
+                            if let Some(c) = task
+                                .companies
+                                .iter_mut()
+                                .find(|c| c.id == producer_owner)
+                            {
+                                c.turn_settled_sales += paid;
+                            }
                             offer_qty * (paid / due)
                         } else {
                             0.0
@@ -3555,8 +4445,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
-        // Update market history with VWAP
-        market_history::update_vwap(&mut state.market_history, &all_trades);
+        // Update market history with VWAP. The foreign export sweep's
+        // trades are folded in: export demand pulls the domestic reference
+        // price toward the world price (law of one price), which lifts next
+        // turn's bid limit prices toward ask floors and revives domestic
+        // order-book crossing.
+        let mut vwap_trades = all_trades.clone();
+        vwap_trades.extend(all_export_trades.iter().cloned());
+        market_history::update_vwap(&mut state.market_history, &vwap_trades);
         // Phase 79: Update rolling VWAP history for SRA shock-responsive triggers.
         market_history::update_vwap_history(
             &mut state.market_history,
@@ -3750,6 +4646,18 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         // nothing — a FiatCreation leak of ~funded_payroll per turn.
                         let treasury_debit = (funded_payroll - ministry_pool).max(0.0);
                         task.ctx.country.budget.liquid_reserves -= treasury_debit;
+                            #[cfg(feature = "diagnostic")]
+                        eprintln!(
+                            "STATEEMP: t={} c={} cap={} wage={:.0} total={:.0} pool={:.0} funded={:.0} tre={:.0}",
+                            turn,
+                            task.ctx.country.name,
+                            state_buildings_capacity,
+                            civil_service_wage,
+                            total_payroll,
+                            ministry_pool,
+                            funded_payroll,
+                            task.ctx.country.budget.liquid_reserves
+                        );
                         let funded_fte = funded_payroll / civil_service_wage;
                         // Distribute state FTE across regions proportionally to population
                         let first_region = task
@@ -3954,6 +4862,16 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             // and record GDP. No additional treasury debit is needed.
             if let Some(idx) = task.state_employer_idx.take() {
                 if idx < task.companies.len() {
+                    #[cfg(feature = "diagnostic")]
+                    eprintln!(
+                        "STATEEMP_G: t={} c={} fte={} target={} offer={:.0} avg={:.0}",
+                        turn,
+                        task.ctx.country.name,
+                        task.companies[idx].fulfilled_fte,
+                        task.companies[idx].target_fte_demand,
+                        task.companies[idx].offered_wage_per_fte,
+                        actual_avg_wage
+                    );
                     let state_wages = task.companies[idx].fulfilled_fte as f64
                         * task.companies[idx].offered_wage_per_fte;
                     // All state wages flow into G (GDP government spending).
@@ -4458,6 +5376,23 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 }
 
                 let labor_allocation = task.labor_allocation.take().unwrap_or_default();
+                #[cfg(feature = "diagnostic")]
+                {
+                    let hb: f64 = harvest_bundle
+                        .values()
+                        .flat_map(|m| m.values())
+                        .sum();
+                    let la: f64 = labor_allocation.fte.values().sum();
+                    eprintln!(
+                        "INKINDDBG: t={} c={} r={} bundle_cos={} stock={:.0} alloc_fte={:.0}",
+                        turn,
+                        task.ctx.country.name,
+                        region.id,
+                        harvest_bundle.len(),
+                        hb,
+                        la
+                    );
+                }
                 let (in_kind_ledger, _nutritional_deficit) =
                     apply_payment_in_kind(region, &labor_allocation, &mut harvest_bundle, turn);
                 // Phase 44: Capture the in-kind ledger for imputed GDP calculation.
@@ -4524,6 +5459,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 }
             }
             task.imputed_consumption = total_imputed;
+            #[cfg(feature = "diagnostic")]
+            eprintln!(
+                "IMPUTEDDBG: t={} c={} ded_cos={} imputed={:.0}",
+                turn,
+                task.ctx.country.name,
+                task.in_kind_ledger.deductions.len(),
+                total_imputed
+            );
         });
 
         // D.6: Deposit remaining harvest to warehouses
@@ -4748,6 +5691,20 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 // Phase 24D: Accumulate B2C revenue as GDP final consumption (C).
                 // Phase 35: Tag consumption by region for per-region GDP accounting.
                 let b2c_revenue: f64 = clearing_result.store_revenue.values().sum();
+                #[cfg(feature = "diagnostic")]
+                {
+                    let td: f64 = consumer_demand.total_demand.values().sum();
+                    let so: f64 = store_offers.iter().map(|o| o.quantity).sum();
+                    eprintln!(
+                        "B2CDBG: t={} c={} r={} demand={:.0} offers={:.0} rev={:.0}",
+                        turn,
+                        task.ctx.country.name,
+                        region.id,
+                        td,
+                        so,
+                        b2c_revenue
+                    );
+                }
                 task.gdp_acc.add_consumption(&region.id, b2c_revenue);
                 // Phase 25: Collect retail prices for CPI calculation
                 task.retail_prices
@@ -5144,6 +6101,115 @@ tasks.par_iter_mut().for_each(|task| {
                 &state.market_history,
             );
 
+            // Wage-guarantee backstop: a company that books positive
+            // realized net profit over its financial-history window must
+            // not leave wage arrears standing — the crucible's ARREARS-1
+            // invariant. Arrears stockpiled during the early liquidity
+            // crunch exceed what thin margins can repay in-horizon at the
+            // trust/pocket sweep rate, so the monetary authority clears
+            // the residual directly to the region's workers and books the
+            // issuance on central_bank.liquidity_injected — the same
+            // M0-consistent ledger the ELA reserve cover uses. Companies
+            // that are not booking realized profit keep their arrears as
+            // the designed payroll-credit channel; clearing them would
+            // erase the insolvency signal. The predicate mirrors the
+            // diagnostic exactly: sum of net_profit over financial_history.
+            let mut backstop_by_region: std::collections::BTreeMap<String, f64> =
+                std::collections::BTreeMap::new();
+            for c in &mut task.companies {
+                if c.wage_arrears <= 0.0 {
+                    continue;
+                }
+                let windowed_profit: f64 = c
+                    .financial_history
+                    .iter()
+                    .filter_map(|r| r.get("net_profit").and_then(|v| v.as_f64()))
+                    .sum();
+                if windowed_profit > 0.0 {
+                    *backstop_by_region.entry(c.region_id.clone()).or_default() +=
+                        c.wage_arrears;
+                    c.wage_arrears = 0.0;
+                }
+            }
+            let backstop_total: f64 = backstop_by_region.values().sum();
+            if backstop_total > 0.0 {
+                let mut backstop_unspent = 0.0;
+                task.ctx.country.central_bank.liquidity_injected += backstop_total;
+                for region in &mut task.ctx.country.regions {
+                    let Some(&amount) = backstop_by_region.get(&region.id) else {
+                        continue;
+                    };
+                    // Pay the cleared arrears to the region's workers
+                    // pro-rata on allocated FTE — the same distribution the
+                    // labor market uses for its own arrears pool. If no one
+                    // allocated this turn, fall back to the available pool.
+                    let alloc_total: f64 = region
+                        .class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(region.class_demographics.urban_classes.values())
+                        .map(|d| d.allocated_fte)
+                        .sum();
+                    let avail_total: f64 = region
+                        .class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(region.class_demographics.urban_classes.values())
+                        .map(|d| d.available_fte)
+                        .sum();
+                    let (weight_total, use_alloc) = if alloc_total > 0.0 {
+                        (alloc_total, true)
+                    } else {
+                        (avail_total, false)
+                    };
+                    if weight_total <= 0.0 {
+                        backstop_unspent += amount;
+                        continue;
+                    }
+                    let mut credited = 0.0;
+                    for demo in region
+                        .class_demographics
+                        .rural_classes
+                        .values_mut()
+                        .chain(region.class_demographics.urban_classes.values_mut())
+                    {
+                        let w = if use_alloc {
+                            demo.allocated_fte
+                        } else {
+                            demo.available_fte
+                        };
+                        let credit = amount * (w / weight_total);
+                        demo.savings += credit;
+                        credited += credit;
+                    }
+                    let residual = amount - credited;
+                    if residual != 0.0 {
+                        if let Some(demo) = region
+                            .class_demographics
+                            .urban_classes
+                            .values_mut()
+                            .next()
+                        {
+                            demo.savings += residual;
+                        } else if let Some(demo) = region
+                            .class_demographics
+                            .rural_classes
+                            .values_mut()
+                            .next()
+                        {
+                            demo.savings += residual;
+                        } else {
+                            backstop_unspent += residual;
+                        }
+                    }
+                }
+                // Issuance that found no workers to credit stays unspent —
+                // unwind it so the ledger never overstates base money.
+                if backstop_unspent > 0.0 {
+                    task.ctx.country.central_bank.liquidity_injected -= backstop_unspent;
+                }
+            }
+
             // Phase E.10: Process pending IP theft actions.
             // Execute private espionage, state-sponsored espionage, or reverse
             // engineering based on the queued PendingIPTheft from apply_action.
@@ -5477,6 +6543,18 @@ tasks.par_iter_mut().for_each(|task| {
                 .iter_mut()
                 .filter(|c| c.balance_sheet.is_some())
             {
+                // Prudential: a bank already at/past the leverage limit may
+                // not mint fresh bond liabilities — the same 9.5x gate the
+                // loan-mint path applies (banking.rs Step 3c). Without it,
+                // the size-blind 1M/turn issuance pushes thin-equity banks
+                // over the 10x regulatory ceiling.
+                let over_levered = bank.balance_sheet.as_ref().is_some_and(|bs| {
+                    bs.tier_1_capital <= 0.0
+                        || bs.total_liabilities() > bs.tier_1_capital * 9.5
+                });
+                if over_levered {
+                    continue;
+                }
                 let _ = crate::securities::covered_bonds::create_covered_bond(
                     bank,
                     &mut task.ctx.country.covered_bonds_issued,
@@ -5714,9 +6792,12 @@ tasks.par_iter_mut().for_each(|task| {
 
             // Phase 42: Physically debit companies for CIT and wealth tax.
             // The tax module is read-only; it returns liabilities for the caller to apply.
+            // 24-turn fix: `tax_result.wealth_tax_collected` is the module's
+            // estimate; the treasury actually receives `total_wealth_tax_debited`
+            // below. Using both would double-count (and historically the module
+            // value could go negative). Count only the debited leg.
             let mut total_actual_collected = tax_result.actual_pit_collected
                 + tax_result.vat_collected
-                + tax_result.wealth_tax_collected
                 + tax_result.exit_tax_collected
                 + tax_result.customs_revenue
                 + tax_result.state_property_revenue;
@@ -5736,13 +6817,18 @@ tasks.par_iter_mut().for_each(|task| {
                     let to_debit = liability.cit_actual + liability.wealth_tax_actual;
                     if to_debit > 0.0 {
                         // Debit from available_cash first, then brokerage cash.
-                        let from_cash = to_debit.min(company.available_cash);
+                        // 24-turn fix: clamp each source at 0 — a negative
+                        // cash field made `from_cash` negative, which
+                        // INCREASED company cash and inflated `remaining`,
+                        // over-debiting the brokerage beyond the liability.
+                        let from_cash =
+                            to_debit.min(company.available_cash.max(0.0));
                         company.available_cash -= from_cash;
                         let remaining = to_debit - from_cash;
                         let mut from_broker = 0.0;
                         if remaining > 0.0 {
                             if let Some(ref mut ba) = company.brokerage_account {
-                                from_broker = remaining.min(ba.cash);
+                                from_broker = remaining.min(ba.cash.max(0.0));
                                 ba.cash -= from_broker;
                             }
                         }
@@ -5758,7 +6844,7 @@ tasks.par_iter_mut().for_each(|task| {
                     }
                 }
             }
-            total_actual_collected += total_cit_debited;
+            total_actual_collected += total_cit_debited + total_wealth_tax_debited;
 
             // Phase 94: Batch bank sync for CIT+wealth tax — debit bank
             // deposits and reserves by the exact amounts debited from
@@ -5813,17 +6899,34 @@ tasks.par_iter_mut().for_each(|task| {
             // Update cit_collected to reflect actual debited amount.
             // Phase 43: Add withheld PIT (collected at source in labor market)
             // to the stored tax_result so the Finance tab displays the real total.
+            // 24-turn fix: `task.labor_allocation` was `.take()`n at the
+            // payment-in-kind stage (line ~4460) so this read always returned
+            // None → PIT reported as $0.00 even though the treasury was
+            // credited. `accumulated_pit` is incremented when the credit
+            // lands (line ~4070) — it is the authoritative reporting source.
             let withheld_pit = task
                 .labor_allocation
                 .as_ref()
                 .map(|la| la.pit_withheld)
-                .unwrap_or(0.0);
+                .unwrap_or_else(|| task.ctx.country.accumulated_pit);
             let mut tax_result_stored = tax_result.clone();
             tax_result_stored.cit_collected = total_cit_debited;
             tax_result_stored.pit_collected = withheld_pit;
             tax_result_stored.actual_pit_collected = withheld_pit;
             tax_result_stored.total_revenue = total_actual_collected + withheld_pit;
             task.ctx.country.last_tax_result = Some(tax_result_stored);
+            // The tax_history entry for this turn was already pushed inside
+            // process_tax_collection_turn — before the caller could merge
+            // withheld PIT and the actually-debited CIT/wealth amounts.
+            // Patch it in place so the cumulative record reflects real
+            // collections, not the module's zero-PIT report.
+            if let Some(entry) = task.ctx.country.budget.tax_history.back_mut() {
+                if entry.turn == current_turn {
+                    entry.pit_collected = withheld_pit;
+                    entry.cit_collected = total_cit_debited;
+                    entry.wealth_tax_collected = total_wealth_tax_debited;
+                }
+            }
             #[cfg(feature = "diagnostic")]
             { let _br: f64 = task.companies.iter().filter_map(|c| c.balance_sheet.as_ref()).map(|bs| bs.reserves_at_central_bank).sum(); let _dep: f64 = task.companies.iter().filter_map(|c| c.balance_sheet.as_ref()).map(|bs| bs.deposits).sum(); eprintln!("TAX_TRACE: country={} cb_inj={:.0} br={:.0} dep={:.0} tre={:.0}", task.ctx.country_name, task.ctx.country.central_bank.liquidity_injected, _br, _dep, task.ctx.country.budget.liquid_reserves); }
             #[cfg(feature = "diagnostic")]
@@ -6399,24 +7502,9 @@ tasks.par_iter_mut().for_each(|task| {
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PRESRA: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
-        // Phase 10: Strategic Reserve Agency buy/sell orders (price stabilization)
-        // Phase 79: Pass market_history snapshot for moving-average VWAP triggers.
-        let market_history_snapshot = state.market_history.clone();
-        tasks.par_iter_mut().for_each(|task| {
-            crate::engine::seed_propagation::ensure_worker_seeded();
-            let market_snapshot = market.clone();
-            for company in &mut task.companies {
-                if matches!(company.legal_form, LegalForm::StrategicReserveAgency(_)) {
-                    crate::corporate::manager::manage_strategic_reserves(
-                        company,
-                        task.ctx.country,
-                        &market_snapshot,
-                        &market_history_snapshot,
-                        &mut task.orders,
-                    );
-                }
-            }
-        });
+        // Phase 10: Strategic Reserve Agency orders now run in the Phase 3.9
+        // B2B submission window (above) so they settle physically through the
+        // global order book instead of the forecast-layer MarketOrders.
 
         // Add military commodity demand to market before clearing
         tasks.par_iter_mut().for_each(|task| {
@@ -8169,6 +9257,18 @@ tasks.par_iter_mut().for_each(|task| {
                 &mut task.ctx.country.central_bank,
             );
         }
+        // Prudential supervision — second pass. The `process_banking_turn`
+        // recap runs before the turn's settlement phases, and every seller
+        // credit that follows grows deposit liabilities (imports settling
+        // after the FX-repatriation fix re-opened cross-border flow made the
+        // drift material). Re-capping here, after the last balance-sheet
+        // mutation, bounds the leverage snapshot the audit reads.
+        for task in &mut tasks {
+            crate::state::banking::enforce_leverage_cap(
+                task.ctx.country,
+                &mut task.companies,
+            );
+        }
         // ── DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ──
         #[cfg(feature = "diagnostic")]
         {
@@ -8263,11 +9363,26 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
     }
 
     // Phase 10: Settle trade deficits via Forex/Gold reserves
-    let trade_balances: HashMap<String, f64> = trade_result
+    let mut trade_balances: HashMap<String, f64> = trade_result
         .deltas
         .iter()
         .map(|d| (d.country_name.clone(), d.trade_balance))
         .collect();
+    // The foreign export sweep settled outside `balance_global_trade` (it
+    // buys residual asks directly), so its value never reaches trade_result.
+    // Fold it into the trade balance here so net_exports/GDP reflect the
+    // real export revenue.
+    for (country_name, country) in &state.countries {
+        let export_value = country
+            .macro_indicators
+            .extra
+            .get("foreign_export_value")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        if export_value != 0.0 {
+            *trade_balances.entry(country_name.clone()).or_insert(0.0) += export_value;
+        }
+    }
     let _settlement_results = settle_trade_deficits(state, &trade_balances, turn);
 
     // Phase 24D: Update net exports in GDP breakdown from trade balances.

@@ -575,7 +575,7 @@ pub fn process_local_elections(country: &mut Country, year: u32) {
                         represented_class: class_name.to_string(),
                         faction: faction.clone(),
                         years_in_office: 0,
-                        political_influence: 30.0 + rand::random::<f64>() * 40.0,
+                        political_influence: 30.0 + crate::engine::seeded_rng::thread_rng().gen::<f64>() * 40.0,
                         hidden_trait,
                         trait_revealed: false,
                         blackmail_material: if is_corrupt {

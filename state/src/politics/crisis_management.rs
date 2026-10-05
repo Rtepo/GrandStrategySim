@@ -1545,13 +1545,19 @@ pub fn counter_cyclical_response(country: &mut Country, _current_turn: u32) -> V
 
     let unemployment_rate = country.macro_indicators.labor_market.unemployment_rate;
     let prev_unemployment = country.macro_indicators.labor_market.prev_unemployment_rate;
-    let gdp = country.budget.gdp.max(1.0);
+    let avg_wage = country.macro_indicators.average_wage.max(1.0);
 
     // Store current unemployment as previous for next turn's comparison.
     country.macro_indicators.labor_market.prev_unemployment_rate = unemployment_rate;
 
-    // Fiscal stimulus: only when unemployment is high AND rising.
-    if unemployment_rate > 8.0 && unemployment_rate > prev_unemployment {
+    // Fiscal stimulus: fires on the LEVEL of unemployment, not just while it
+    // is rising. The old gate (`unemployment > prev`) stopped injecting at a
+    // depressed plateau — precisely when the economy is stuck — and scaled
+    // off GDP, which is ~0 in the collapse the stimulus exists to prevent
+    // (pro-cyclical failure). 24-turn fix: size the benefit as a real dole —
+    // unemployed FTE × wage replacement ratio — bounded by the treasury
+    // balance so the state recycles its surplus instead of hoarding it.
+    if unemployment_rate > 8.0 {
         // Step 1: Calculate national total unemployed FTE (single pass, no duplication).
         let mut national_total_unemployed_fte: f64 = 0.0;
         for region in &country.regions {
@@ -1566,9 +1572,13 @@ pub fn counter_cyclical_response(country: &mut Country, _current_turn: u32) -> V
         }
 
         if national_total_unemployed_fte > 0.0 {
-            // Stimulus capped at 5% of liquid reserves.
-            let raw_stimulus = (unemployment_rate - 8.0).min(10.0) * 0.01 * gdp;
-            let stimulus = raw_stimulus.min(country.budget.liquid_reserves * 0.05);
+            // Dole at 40% wage replacement per unemployed FTE — scales with
+            // the actual problem rather than the collapsed GDP — capped at
+            // 8% of liquid reserves so the treasury recycles its hoard into
+            // consumer demand instead of letting it pool out of circulation.
+            let raw_stimulus = national_total_unemployed_fte * avg_wage * 0.4;
+            let stimulus =
+                raw_stimulus.min(country.budget.liquid_reserves * 0.08);
 
             if stimulus > 0.0 {
                 country.budget.liquid_reserves -= stimulus;

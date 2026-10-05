@@ -515,8 +515,15 @@ impl CompanyLifecycle {
                 continue;
             }
 
-            let company_id = format!("NEW_{}_{}_{}", country.name, year, i);
-            let building_id = format!("BLD_{}_{}_{}", country.name, year, i);
+            // IDs must be unique across every spawn call, not just within
+            // one batch — `NEW_{country}_{year}_{i}` collides whenever two
+            // calls land in the same year, and id-keyed lookups (profit
+            // maps, bank borrowers, settle paths) then silently alias the
+            // duplicates. current_turn is monotonic for the whole sim.
+            let company_id =
+                format!("NEW_{}_{}_{}_{}", country.name, year, current_turn, i);
+            let building_id =
+                format!("BLD_{}_{}_{}_{}", country.name, year, current_turn, i);
             let legal_form = LegalForm::FamilyBusiness(FamilyBusinessData {
                 dynasty_id: None,
                 successor_generation: 0,

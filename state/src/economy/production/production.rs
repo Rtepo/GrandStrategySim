@@ -384,6 +384,11 @@ pub fn process_building_cycle(
                 result.inputs_consumed.insert(input_name, energy_input);
                 market_orders.add_buy(input_name, energy_input);
             } else {
+                // Food is wage-funded sustenance, not a firm input (see
+                // execute_production_cycle's fulfillment-gate skip).
+                if input_name == Commodity::Food {
+                    continue;
+                }
                 // Non-energy inputs: fixed-rate consumption
                 let amount = amount_per_1k * production_scale;
                 let price = price_for(input_name, market_prices, base_wage, true);
@@ -419,6 +424,11 @@ pub fn process_building_cycle(
             if input_name.is_local_utility() {
                 continue;
             }
+            // Food is wage-funded sustenance, not a firm input (see
+            // execute_production_cycle's fulfillment-gate skip).
+            if input_name == Commodity::Food {
+                continue;
+            }
             let amount = amount_per_1k * production_scale;
             let price = price_for(input_name, market_prices, base_wage, true);
             input_costs += amount * price;
@@ -445,6 +455,10 @@ pub fn process_building_cycle(
         if let Some(bp) = bp {
             // Use the blueprint's BOM instead of the method's default inputs.
             for (&input_name, amount_per_1k) in &bp.inputs {
+                // Food is wage-funded sustenance, not a firm input.
+                if input_name == Commodity::Food {
+                    continue;
+                }
                 let amount = amount_per_1k * production_scale;
                 let price = price_for(input_name, market_prices, base_wage, true);
                 input_costs += amount * price;
@@ -479,6 +493,10 @@ pub fn process_building_cycle(
         } else {
             // No blueprint: legacy fixed-rate production.
             for (&input_name, amount_per_1k) in &method.inputs {
+                // Food is wage-funded sustenance, not a firm input.
+                if input_name == Commodity::Food {
+                    continue;
+                }
                 let amount = amount_per_1k * production_scale;
                 let price = price_for(input_name, market_prices, base_wage, true);
                 input_costs += amount * price;

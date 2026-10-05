@@ -1887,7 +1887,10 @@ pub fn reseed_resources_from_formations(
         (Commodity::Limestone, 100.0),
     ];
 
-    for region in regions.values_mut() {
+    let mut region_ids: Vec<String> = regions.keys().cloned().collect();
+    region_ids.sort();
+    for region_id in region_ids {
+        let region = regions.get_mut(&region_id).expect("region key missing");
         let region_id = &region.id;
         let region_gdp = region.gdp;
 

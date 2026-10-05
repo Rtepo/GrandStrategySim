@@ -918,6 +918,9 @@ pub fn procure_freight_and_split_trades(
                         // reflect real contract income.
                         let producer_id = companies[producer_idx].id.clone();
                         accrue_freight_revenue(buildings, &producer_id, total_cost);
+                        // Realized-profit accounting reads turn_settled_sales —
+                        // the freight fee is settled service revenue.
+                        companies[producer_idx].turn_settled_sales += total_cost;
                         FreightProcurementResult {
                             secured: true,
                             freight_producer_idx: Some(producer_idx),
@@ -925,12 +928,215 @@ pub fn procure_freight_and_split_trades(
                             failure_reason: None,
                         }
                     }
-                    Err(TransferError::InsufficientCash) => FreightProcurementResult {
-                        secured: false,
-                        freight_producer_idx: Some(producer_idx),
-                        capacity_consumed: 0.0,
-                        failure_reason: Some(DeferredReason::UnaffordableFreight),
-                    },
+                    Err(TransferError::InsufficientCash) => {
+                        // 24-turn fix: the goods leg is encumbrance-funded at
+                        // bid time, but the ~5% freight fee is not — a buyer
+                        // that can afford the cargo still defers on the
+                        // carriage margin. Extend the same solvency-bounded
+                        // working-capital facility used by B2B procurement
+                        // and retail restock: settle what cash exists, then
+                        // draw implicit trade credit up to the facility
+                        // bound so freight-secured volume doesn't die on a
+                        // liquidity technicality while net worth is ample.
+                        let paid = if let Some(b_idx) = buyer_idx {
+                            let producer_id = companies[producer_idx].id.clone();
+                            let (liquid, payroll_reserve, net_worth, payer_bank, payer_is_bank) = {
+                                let c = &companies[b_idx];
+                                let liquid = c
+                                    .brokerage_account
+                                    .as_ref()
+                                    .map(|ba| ba.cash)
+                                    .unwrap_or(c.available_cash);
+                                (
+                                    liquid,
+                                    // Reserve the wage obligation against the
+                                    // whole facility base (liquid + net worth)
+                                    // — capping at liquid collapsed the
+                                    // reserve to zero exactly when arrears
+                                    // were largest (ARREARS-1).
+                                    (c.wages_paid_this_turn
+                                        + c.wage_arrears
+                                        + c.severance_arrears)
+                                        .min(
+                                            liquid.max(0.0) + c.company_capital.max(0.0),
+                                        ),
+                                    c.company_capital.max(0.0),
+                                    c.primary_bank_id.clone(),
+                                    c.sector == crate::registries::enums::Sector::Banking,
+                                )
+                            };
+                            let facility = (liquid.max(0.0) + net_worth - payroll_reserve)
+                                .max(0.0)
+                                * country.b2b_order_config.max_cash_encumbrance_ratio;
+                            let payable = total_cost.min(facility);
+                            if payable <= 0.0 {
+                                0.0
+                            } else {
+                                let cash_paid = crate::economy::trade::transfer_settler::debit_company_by_id(
+                                    companies,
+                                    &trade.buyer_id,
+                                    payable,
+                                );
+                                let shortfall = payable - cash_paid;
+                                if shortfall > 0.0 {
+                                    // The unpaid remainder is funded by the
+                                    // buyer's bank as an overdraft loan:
+                                    //   bank : loans_issued += s (asset)
+                                    //          reserves     -= s (funds the
+                                    //            settlement to the producer)
+                                    //   buyer: liabilities   += s
+                                    // Deposits are untouched — the
+                                    // loan-created deposit is spent in the
+                                    // same instant. The old `deposits -= s`
+                                    // leg debited balances the customer never
+                                    // held and drove deposits negative.
+                                    let margin = companies[b_idx].loan_margin;
+                                    let booked = if let Some(ref bid) = payer_bank {
+                                        let bidx = companies
+                                            .iter()
+                                            .position(|x| x.id == *bid);
+                                        if let Some(bi2) = bidx {
+                                            if companies[bi2].balance_sheet.is_some() {
+                                                use crate::state::banking::{
+                                                    InterestType, Loan, LoanRef, LoanStatus,
+                                                    LoanType,
+                                                };
+                                                let xibor = country
+                                                    .central_bank
+                                                    .interest_rates
+                                                    .reference_rate;
+                                                let rate = xibor + margin.unwrap_or(0.02);
+                                                let loan_id = format!(
+                                                    "OD-{}-fr",
+                                                    trade.buyer_id
+                                                );
+                                                {
+                                                    let bs = companies[bi2]
+                                                        .balance_sheet
+                                                        .as_mut()
+                                                        .unwrap();
+                                                    crate::state::banking::ela_cover_debit(
+                                                        bs,
+                                                        &mut country.central_bank,
+                                                        shortfall,
+                                                    );
+                                                    bs.reserves_at_central_bank -=
+                                                        shortfall;
+                                                    bs.loans_issued.push(Loan {
+                                                        id: loan_id.clone(),
+                                                        borrower_id: trade
+                                                            .buyer_id
+                                                            .clone(),
+                                                        principal: shortfall,
+                                                        outstanding_balance: shortfall,
+                                                        interest_rate: rate,
+                                                        term_turns: 4,
+                                                        turns_remaining: 4,
+                                                        collateral_value: None,
+                                                        loan_type: LoanType::WorkingCapital,
+                                                        last_payment_turn: 0,
+                                                        status: LoanStatus::Current,
+                                                        interest_type: InterestType::Fixed,
+                                                        duration_risk_premium: 0.0,
+                                                        base_xibor: xibor,
+                                                        bank_margin: margin
+                                                            .unwrap_or(0.02),
+                                                        ..Default::default()
+                                                    });
+                                                }
+                                                let c = &mut companies[b_idx];
+                                                c.liabilities += shortfall;
+                                                c.outstanding_loans.push(LoanRef {
+                                                    loan_id,
+                                                    bank_id: bid.clone(),
+                                                    principal: shortfall,
+                                                    outstanding_balance: shortfall,
+                                                    interest_rate: rate,
+                                                    term_turns: 4,
+                                                    status: LoanStatus::Current,
+                                                });
+                                                true
+                                            } else {
+                                                false
+                                            }
+                                        } else {
+                                            false
+                                        }
+                                    } else {
+                                        false
+                                    };
+                                    if !booked {
+                                        let c = &mut companies[b_idx];
+                                        if payer_is_bank {
+                                            // A bank paying its own freight
+                                            // surrenders reserves directly
+                                            // (the reserve floor lifts any
+                                            // overdraft via ELA at phase end).
+                                            if let Some(ref mut bs) = c.balance_sheet {
+                                                bs.reserves_at_central_bank -= shortfall;
+                                                bs.deposits -= shortfall;
+                                            }
+                                        } else {
+                                            // No commercial bank to underwrite
+                                            // the overdraft — the central bank
+                                            // extends the liquidity directly:
+                                            // `liquidity_injected` books the
+                                            // new base money on the CB ledger
+                                            // (same identity as
+                                            // ela_cover_debit / the test's own
+                                            // genesis bank injection), while
+                                            // the obligation lands in
+                                            // `liabilities` where it erodes
+                                            // company_capital — shrinking
+                                            // future facilities instead of
+                                            // ratcheting a phantom negative
+                                            // pocket that starves payroll.
+                                            c.liabilities += shortfall;
+                                            country
+                                                .central_bank
+                                                .liquidity_injected += shortfall;
+                                        }
+                                    }
+                                }
+                                if crate::economy::trade::transfer_settler::credit_company_by_id(
+                                    companies,
+                                    &producer_id,
+                                    payable,
+                                ) {
+                                    if let Some(pc) = companies
+                                        .iter_mut()
+                                        .find(|c| c.id == producer_id)
+                                    {
+                                        pc.turn_settled_sales += payable;
+                                    }
+                                }
+                                payable
+                            }
+                        } else {
+                            0.0
+                        };
+                        if paid >= total_cost * 0.5 {
+                            // Covered (fully or mostly) — secure the trade;
+                            // producer books only what was actually paid.
+                            // Phase 30: Settle maritime transit fees to territorial owners.
+                            settle_maritime_transit_fees(companies, buyer_idx, &transit_fees, country);
+                            let producer_id = companies[producer_idx].id.clone();
+                            accrue_freight_revenue(buildings, &producer_id, paid);
+                            FreightProcurementResult {
+                                secured: true,
+                                freight_producer_idx: Some(producer_idx),
+                                capacity_consumed: capacity_needed,
+                                failure_reason: None,
+                            }
+                        } else {
+                            FreightProcurementResult {
+                                secured: false,
+                                freight_producer_idx: Some(producer_idx),
+                                capacity_consumed: 0.0,
+                                failure_reason: Some(DeferredReason::UnaffordableFreight),
+                            }
+                        }
+                    }
                     Err(_) => FreightProcurementResult {
                         secured: false,
                         freight_producer_idx: Some(producer_idx),

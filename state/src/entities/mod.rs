@@ -600,6 +600,20 @@ pub struct Company {
     /// this gives the true wage expense for the financial history.
     #[serde(skip)]
     pub arrears_accrued_this_turn: f64,
+    /// 24-turn fix: Transient — cash revenue actually SETTLED this turn (B2B
+    /// sales + B2C clearing + grid offtake + service contracts). The legacy
+    /// P&L booked `produced_qty × base_price` as revenue on production with
+    /// no sale required, so "profit" routinely exceeded real cash receipts
+    /// and legitimized dividends/taxes/debt-service that drained payroll.
+    /// Consumed by `process_company` for realized-profit accounting.
+    #[serde(skip)]
+    pub turn_settled_sales: f64,
+    /// 24-turn fix: Transient — realized net profit computed by
+    /// `process_company` (settled sales − consumed inputs − wage expense −
+    /// interest − taxes). Read by CIT assessment and dividend gating so both
+    /// act on cash-backed profit, not production-oracle accruals.
+    #[serde(skip)]
+    pub realized_profit_this_turn: f64,
     /// Phase 40: Accumulated unpaid wages owed to workers (wage arrears).
     /// When a company cannot afford full payroll, the FTE retention floor
     /// keeps workers employed but unpaid wages accrue here as a liability.
@@ -900,6 +914,8 @@ extra: HashMap::new(),
             wage_arrears: 0.0,
             wages_paid_this_turn: 0.0,
             arrears_accrued_this_turn: 0.0,
+            turn_settled_sales: 0.0,
+            realized_profit_this_turn: 0.0,
             severance_arrears: 0.0,
             furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,

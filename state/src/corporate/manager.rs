@@ -8,7 +8,7 @@
 use crate::economy::market::{GlobalMarket, MarketOrders, MarketSignal};
 use crate::entities::{Building, Company, LegalForm, SeasonalState};
 use crate::entities::legal_form::LegalFormTransition;
-use crate::registries::enums::Commodity;
+use crate::registries::enums::{Commodity, Sector};
 use crate::state::treasury::SectorShare;
 use crate::state::Country;
 use serde_json::{Map, Value};
@@ -159,6 +159,100 @@ pub fn process_companies(
         // correctly computes to zero instead of clamping at the estimate.
         let booked_wages = actual_wage_expense;
 
+        // 24-turn fix (cash/arrears paradox): `total_profit` values output at
+        // oracle base prices on PRODUCTION — a company can book a large
+        // profit having sold nothing, which then legitimizes dividends, CIT,
+        // and debt service against an empty cash purse (the $0-cash/$23M-
+        // arrears paradox). Realized profit = settled sales this turn −
+        // consumed input cost − actual wage expense. Non-producing sectors
+        // keep accrual — their income is donations/fees/treasury transfers,
+        // not commodity sales (and banks account on the balance sheet).
+        let realized_sector = !matches!(
+            companies[i].sector,
+            Sector::Banking
+                | Sector::NGO
+                | Sector::Religion
+                | Sector::PublicAdministration
+                | Sector::Government
+                | Sector::PublicServices
+                | Sector::ExportServices
+                | Sector::WasteManagement
+                | Sector::Construction
+        );
+        let input_cogs: f64 = owned
+            .iter()
+            .map(|j| {
+                buildings[*j]
+                    .extra
+                    .get("last_input_cost")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0)
+            })
+            .sum();
+        let settled_sales = companies[i].turn_settled_sales;
+        companies[i].turn_settled_sales = 0.0;
+        // Inventory-asset accounting: `input_cogs` is the cost of inputs
+        // CONSUMED this turn, but `settled_sales` only recognizes SOLD output.
+        // Expensing the full input burn against settled sales books the
+        // material content of stockpiled production as an immediate loss —
+        // a company producing into inventory shows catastrophic profit while
+        // physically holding the (real, sellable) goods. Prorate COGS to the
+        // share of this turn's output value actually sold; defer the rest into
+        // a `deferred_cogs` balance that releases as stock sells down —
+        // the standard matching principle, M0-neutral reporting only.
+        // `total_revenue` is the anchor-priced value of this turn's output.
+        let produced_value = total_revenue;
+        let sold_frac = if produced_value > 0.0 {
+            (settled_sales / produced_value).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+        let cogs_now = input_cogs * sold_frac;
+        let cogs_defer = input_cogs - cogs_now;
+        let prev_deferred = companies[i]
+            .extra
+            .get("deferred_cogs")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        // Selling beyond this turn's output means drawing stock down; release
+        // deferred COGS proportional to the basis drawn (inputs carry at the
+        // 0.5×anchor convention used by `input_costs`).
+        let sold_from_stock = (settled_sales - produced_value).max(0.0) * 0.5;
+        let stock_value: f64 = owned
+            .iter()
+            .flat_map(|j| buildings[*j].inventory.iter())
+            .map(|(c, q)| {
+                q * crate::engine::generator::corporate::anchored_base_price(*c) * 0.5
+            })
+            .sum();
+        let release = if sold_from_stock > 0.0 && prev_deferred > 0.0 {
+            let pre_stock = stock_value + sold_from_stock;
+            if pre_stock > 0.0 {
+                prev_deferred * (sold_from_stock / pre_stock).min(1.0)
+            } else {
+                0.0
+            }
+        } else {
+            0.0
+        };
+        let deferred = (prev_deferred + cogs_defer - release).max(0.0);
+        companies[i]
+            .extra
+            .insert("deferred_cogs".to_string(), serde_json::Value::from(deferred));
+        let cogs_recognized = cogs_now + release;
+        let realized_profit = if realized_sector {
+            settled_sales - cogs_recognized - actual_wage_expense
+        } else {
+            total_profit
+        };
+        companies[i].realized_profit_this_turn = realized_profit;
+        let total_profit = realized_profit;
+        let total_revenue = if realized_sector {
+            settled_sales
+        } else {
+            total_revenue
+        };
+
         // Emergency Stabilization: Compute average fulfillment ratio across
         // owned buildings to detect raw-material distress.
         let avg_fulfillment_ratio: f64 = if owned.is_empty() {
@@ -297,6 +391,37 @@ pub fn process_companies(
                         ba.cash += lr.principal_amount;
                     } else {
                         companies[i].available_cash += lr.principal_amount;
+                    }
+                    // 24-turn: issue_loan books `deposits += P` at the lender,
+                    // but the borrower's cash spends through their
+                    // primary_bank_id. For cross-bank borrowers, move the
+                    // created deposit to the borrower's bank (funded by a
+                    // reserve transfer); for unbanked borrowers, reverse the
+                    // deposit and fund the cash from lender reserves so M0
+                    // stays neutral (Directive 1).
+                    let lender_id = companies[bi].id.clone();
+                    match companies[i].primary_bank_id.clone() {
+                        None => {
+                            if let Some(ref mut bs) = companies[bi].balance_sheet {
+                                bs.deposits -= lr.principal_amount;
+                                bs.reserves_at_central_bank -= lr.principal_amount;
+                            }
+                        }
+                        Some(pb) if pb == lender_id => {}
+                        Some(pb) => {
+                            if let Some(ref mut bs) = companies[bi].balance_sheet {
+                                bs.deposits -= lr.principal_amount;
+                                bs.reserves_at_central_bank -= lr.principal_amount;
+                            }
+                            if let Some(bank) =
+                                companies.iter_mut().find(|c| c.id == pb)
+                            {
+                                if let Some(ref mut bs) = bank.balance_sheet {
+                                    bs.deposits += lr.principal_amount;
+                                    bs.reserves_at_central_bank += lr.principal_amount;
+                                }
+                            }
+                        }
                     }
                     loan_issued = true;
                     break;
@@ -964,11 +1089,14 @@ fn evaluate_building_adaptation(
         .active_method
         .inputs
         .keys()
-        .filter(|c| !c.is_fixed_asset() && !c.is_local_utility())
+        .filter(|c| {
+            !c.is_fixed_asset() && !c.is_local_utility() && *c != &Commodity::Food
+        })
         .count();
     let has_inputs_in_stock = building.active_method.inputs.iter().any(|(c, _)| {
         !c.is_fixed_asset()
             && !c.is_local_utility()
+            && *c != Commodity::Food
             && building.inventory.get(c).copied().unwrap_or(0.0) > 0.0
     });
     let legacy_starved = consumable_inputs > 0 && !has_inputs_in_stock;
@@ -1214,6 +1342,12 @@ fn resolve_adaptive_input(
         // Installed-cohort CAPEX channel — not a per-turn consumable gate.
         return Some(required);
     }
+    if required == Commodity::Food {
+        // Food is worker sustenance funded by wages (B2C), never consumed
+        // from building inventory — always resolvable so it cannot mark a
+        // method infeasible or trigger substitution churn.
+        return Some(required);
+    }
     if required.is_local_utility() {
         // Grid-delivered electric power (Energy/Heat) — infeasible only when
         // the region sits in a blackout tier; partial shedding is already
@@ -1362,10 +1496,31 @@ pub fn manage_strategic_reserves(
     country: &mut Country,
     global_market: &GlobalMarket,
     market_history: &crate::economy::market::market_history::MarketHistory,
-    market_orders: &mut MarketOrders,
+    order_book: &mut crate::economy::order_book::OrderBook,
 ) {
     if let LegalForm::StrategicReserveAgency(data) = &mut agency.legal_form {
-        // Purchase phase
+        // Treasury funding: the agency buys with its own company cash, so
+        // keep it provisioned up to budget_allocation. The transfer is
+        // M0-neutral (treasury liquid_reserves → company available_cash,
+        // both inside the fiat walk) and bounded per turn so the SRA can
+        // never drain the treasury in one pass.
+        let funding_gap = (data.budget_allocation - agency.available_cash).max(0.0);
+        if funding_gap > 0.0 {
+            let top_up = funding_gap.min(country.budget.liquid_reserves.max(0.0) * 0.10);
+            if top_up > 0.0 {
+                country.budget.liquid_reserves -= top_up;
+                agency.available_cash += top_up;
+            }
+        }
+
+        // Purchase phase — PHYSICAL bids in the settlement order book.
+        // 24-turn mandate: these orders previously went to `MarketOrders`
+        // (the forecast/local-price layer) which never settles, while
+        // `commodity_reserves` was credited immediately — a phantom reserve
+        // created ex nihilo with no cash leg and no physical delivery.
+        // Now the bid encumbers the agency's cash like any company buyer;
+        // the settled quantity is delivered into its warehouses and mirrored
+        // into `commodity_reserves` inside `settle_trades`.
         for (commodity_str, trigger) in &data.purchase_triggers {
             // Parse commodity string to Commodity enum (Phase 79: snake_case keys)
             if let Ok(commodity) = commodity_str.parse::<crate::registries::enums::Commodity>() {
@@ -1384,44 +1539,143 @@ pub fn manage_strategic_reserves(
 
                 if current_price < buy_threshold || surplus_triggered {
                     let budget = data.budget_allocation * trigger.budget_fraction;
-                    let purchase_amount = budget / current_price.max(0.01);
+                    // Price at the moving-average VWAP, not the registry base
+                    // price — glutted commodities settle at ~1% of base, so a
+                    // base-anchored bid would pay ~100x market for a sliver of
+                    // stock instead of clearing volume at the real price.
+                    let bid_price = moving_avg.max(0.01);
+                    let purchase_amount = budget / bid_price;
 
-                    if country.budget.liquid_reserves >= budget {
-                        // Update reserves (respect physical max_capacity)
-                        let current = data
-                            .commodity_reserves
-                            .get(commodity_str)
-                            .copied()
-                            .unwrap_or(0.0);
-                        let max_capacity = data
-                            .max_capacity
-                            .get(commodity_str)
-                            .copied()
-                            .unwrap_or(f64::MAX);
-                        let actual_purchase = purchase_amount.min(max_capacity - current).max(0.0);
+                    // Update reserves (respect physical max_capacity)
+                    let current = data
+                        .commodity_reserves
+                        .get(commodity_str)
+                        .copied()
+                        .unwrap_or(0.0);
+                    let max_capacity = data
+                        .max_capacity
+                        .get(commodity_str)
+                        .copied()
+                        .unwrap_or(f64::MAX);
+                    let actual_purchase =
+                        purchase_amount.min(max_capacity - current).max(0.0);
 
-                        if actual_purchase > 0.0 {
-                            // Phase 94: Do NOT debit the treasury here. The
-                            // SRA places buy orders using its own available_cash
-                            // (M1, not tracked in M0). When the orders settle
-                            // in the B2B phase, the SRA's cash is debited and
-                            // the seller is credited — M0 neutral because
-                            // company cash is M1. Previously the treasury was
-                            // debited but the SRA never received the funds,
-                            // destroying money from M0. Also, when capacity
-                            // clamped actual_purchase < purchase_amount, the
-                            // unspent budget was lost.
-
-                            data.commodity_reserves
-                                .insert(commodity_str.clone(), current + actual_purchase);
-                            market_orders.add_buy(commodity, actual_purchase);
+                    if actual_purchase > 0.0 {
+                        // Bid a small premium over the (glut-depressed) market
+                        // price so the state reliably crosses decayed seller
+                        // asks — a standing demand floor for surplus stock.
+                        let limit_price = bid_price * 1.10;
+                        let encumbrance = actual_purchase * limit_price;
+                        if agency.available_cash >= encumbrance {
+                            agency.available_cash -= encumbrance;
+                            agency.debit_cash += encumbrance;
+                            order_book
+                                .bids
+                                .entry(commodity)
+                                .or_default()
+                                .push(crate::economy::order_book::Bid {
+                                    buyer_id: agency.id.clone(),
+                                    commodity,
+                                    quantity: actual_purchase,
+                                    limit_price,
+                                    blueprint_id: None,
+                                    min_quality: None,
+                                });
                         }
                     }
                 }
             }
         }
 
-        // Release phase
+        // Surplus-absorption desk: the 8-commodity strategic basket misses
+        // most of the glut (Timber, Paper, Seeds, Fibers, Planks...), whose
+        // stalled sellers post asks nobody ever crosses. For every commodity
+        // with a global surplus above the generic trigger scale, absorb a
+        // small physical share at VWAP — a standing demand floor that routes
+        // state cash into the least-sellable stock in the book.
+        {
+            let absorb_budget = (data.budget_allocation * 0.10)
+                .min(agency.available_cash)
+                .max(0.0);
+            if absorb_budget > 0.0 {
+                let mut spent = 0.0;
+                for commodity in crate::registries::enums::Commodity::all() {
+                    if spent >= absorb_budget {
+                        break;
+                    }
+                    if commodity.is_local_utility()
+                        || commodity.is_fixed_asset()
+                        || commodity == Commodity::Food
+                    {
+                        continue;
+                    }
+                    let commodity_str = commodity.to_string();
+                    if data.purchase_triggers.contains_key(&commodity_str) {
+                        continue; // handled by the strategic-basket pass above
+                    }
+                    let global_surplus = global_market.surplus(commodity);
+                    let generic_threshold = data
+                        .purchase_triggers
+                        .values()
+                        .map(|t| t.surplus_threshold)
+                        .fold(0.0, f64::max)
+                        * 0.1;
+                    if global_surplus <= generic_threshold {
+                        continue;
+                    }
+                    let moving_avg =
+                        crate::economy::market::market_history::moving_average_vwap(
+                            market_history,
+                            &commodity,
+                        )
+                        .unwrap_or_else(|| global_market.base_price(commodity, 100.0));
+                    let bid_price = moving_avg.max(0.01);
+                    let current = data
+                        .commodity_reserves
+                        .get(&commodity_str)
+                        .copied()
+                        .unwrap_or(0.0);
+                    let max_capacity = data
+                        .max_capacity
+                        .get(&commodity_str)
+                        .copied()
+                        .unwrap_or(f64::MAX);
+                    let room = (max_capacity - current).max(0.0);
+                    if room <= 0.0 {
+                        continue;
+                    }
+                    let desired = (global_surplus * 0.005)
+                        .min(room)
+                        .min((absorb_budget - spent) / (bid_price * 1.10))
+                        .max(0.0);
+                    if desired <= 0.0 {
+                        continue;
+                    }
+                    let limit_price = bid_price * 1.10;
+                    let encumbrance = desired * limit_price;
+                    agency.available_cash -= encumbrance;
+                    agency.debit_cash += encumbrance;
+                    spent += encumbrance;
+                    order_book
+                        .bids
+                        .entry(commodity)
+                        .or_default()
+                        .push(crate::economy::order_book::Bid {
+                            buyer_id: agency.id.clone(),
+                            commodity,
+                            quantity: desired,
+                            limit_price,
+                            blueprint_id: None,
+                            min_quality: None,
+                        });
+                }
+            }
+        }
+
+        // Release phase — PHYSICAL asks drawn from delivered reserve stock.
+        // Previously credited the forecast layer and debited the (phantom)
+        // reserve map; now the ask ships real warehouse stock at settlement
+        // and the mirror is decremented by what physically leaves.
         for (commodity_str, trigger) in &data.release_triggers {
             if let Ok(commodity) = commodity_str.parse::<crate::registries::enums::Commodity>() {
                 let current_price = global_market.base_price(commodity, 100.0);
@@ -1446,9 +1700,22 @@ pub fn manage_strategic_reserves(
                         .min(global_deficit.max(available * 0.1));
 
                     if release_amount > 0.0 {
-                        data.commodity_reserves
-                            .insert(commodity_str.clone(), available - release_amount);
-                        market_orders.add_sell(commodity, release_amount);
+                        // Price releases at the moving-average VWAP — the
+                        // registry base price sits ~100x above glutted-market
+                        // clears, so a base-anchored ask would never fill.
+                        order_book
+                            .asks
+                            .entry(commodity)
+                            .or_default()
+                            .push(crate::economy::order_book::Ask {
+                                seller_id: agency.id.clone(),
+                                commodity,
+                                quantity: release_amount,
+                                limit_price: moving_avg.max(0.01),
+                                blueprint_id: None,
+                                quality: None,
+                                durability: None,
+                            });
                     }
                 }
             }
@@ -1875,6 +2142,14 @@ fn apply_action(
             // dividend entirely. Cash stays in the bank as retained earnings to
             // rebuild Tier 1 capital. Do NOT redirect to treasury (confiscation).
             if !country.knf.can_pay_dividends(&company.id) {
+                return;
+            }
+
+            // 24-turn fix: workers before shareholders — a company carrying
+            // unpaid wage/severance arrears may not distribute cash. Combined
+            // with realized-profit accounting this ends the "profitable on
+            // paper, payroll unpaid" anomaly.
+            if company.wage_arrears > 0.01 || company.severance_arrears > 0.01 {
                 return;
             }
 

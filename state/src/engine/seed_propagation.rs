@@ -46,19 +46,18 @@ pub fn clear_seed_global() {
 /// rayon worker thread executes it or how many prior tasks ran on
 /// that thread.
 ///
-/// IMPORTANT: The main thread is skipped because its RNG is managed by
-/// `set_seed_global` and advanced by main-thread code between parallel
-/// sections. Resetting it here (when rayon schedules a task on the main
-/// thread) would corrupt the deterministic sequence for subsequent
-/// main-thread code.
+/// IMPORTANT: Do NOT skip the main thread here. Rayon co-schedules tasks on
+/// the main thread via work-stealing; a skipped main thread would draw from
+/// one shared advancing stream whose position depends on how many elements
+/// it already processed — i.e., on scheduling order — producing a different
+/// world every run. Re-seeding per element on every thread (including main)
+/// makes each task's RNG stream a pure function of the global seed,
+/// independent of which thread executes it. `restore_main_rng` already
+/// re-seeds the main thread after each parallel section for sequential code.
 pub fn ensure_worker_seeded() {
     if SEED_SET.load(Ordering::SeqCst) {
-        // Skip the main thread — its RNG is managed separately.
-        let is_main = IS_MAIN_THREAD.with(|flag| flag.get());
-        if !is_main {
-            let global_seed = SEED_ATOMIC.load(Ordering::SeqCst);
-            crate::engine::seeded_rng::set_seed(global_seed);
-        }
+        let global_seed = SEED_ATOMIC.load(Ordering::SeqCst);
+        crate::engine::seeded_rng::set_seed(global_seed);
     }
 }
 
