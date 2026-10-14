@@ -1378,11 +1378,19 @@ pub struct BankCapacity {
 /// * `average_wage` - The national average wage (scales capacity dynamically).
 ///
 /// # Rules
-/// * Each clerk can manage ~200Ă— their wage in total assets (ongoing portfolio).
-/// * Each clerk can originate ~50Ă— their wage in new loans per turn (origination workload).
-/// * Each clerk can service ~500Ă— their wage in deposits (transaction processing).
+/// * Each clerk can manage ~20,000Ă— their wage in total assets (~$9M book
+///   per relationship banker — a commercial banker runs a multi-million
+///   portfolio, not a ledger of pocket change).
+/// * Each clerk can originate ~2,000Ă— their wage in new loans per turn
+///   (~$900K per banker-turn; a loan officer closes million-dollar credit,
+///   not $22K microloans — the old 50Ă— multiplier capped sector origination
+///   near $27M/turn and extinguished the working-capital channel).
+/// * Each clerk can service ~20,000Ă— their wage in deposits.
 /// * These are structural economic ratios, not magic nominal constants.
 /// * A bank with 0 FTE has zero capacity â€” it cannot operate.
+/// * Prudential bounds still apply downstream: reserve requirement, the
+///   hard LDR cap, and the 9.5Ă— leverage gate in `issue_loan` bound total
+///   credit — this capacity is a staffing throttle, not the solvency check.
 pub fn bank_operational_capacity(fulfilled_fte: f64, average_wage: f64) -> BankCapacity {
     if fulfilled_fte <= 0.0 || average_wage <= 0.0 {
         return BankCapacity::default();
@@ -1390,9 +1398,9 @@ pub fn bank_operational_capacity(fulfilled_fte: f64, average_wage: f64) -> BankC
     let fte = fulfilled_fte;
     let wage = average_wage.max(1.0);
     BankCapacity {
-        max_asset_under_management: fte * wage * 200.0,
-        max_new_loans_per_turn: fte * wage * 50.0,
-        max_deposit_handling: fte * wage * 500.0,
+        max_asset_under_management: fte * wage * 20_000.0,
+        max_new_loans_per_turn: fte * wage * 2_000.0,
+        max_deposit_handling: fte * wage * 20_000.0,
     }
 }
 
@@ -3300,13 +3308,17 @@ pub fn process_banking_turn(
             continue;
         }
 
-        let needed = (companies[borrower_idx].worker_capacity as f64 * 1000.0)
+        // Working-capital need ≈ payroll + input restock for ~3 turns. At
+        // ~$450+/FTE wages plus materials the seat×$1000 rule covered less
+        // than one payroll — borrowed liquidity evaporated before it could
+        // finance a production cycle. ×$2500 is still conservative.
+        let needed = (companies[borrower_idx].worker_capacity as f64 * 2500.0)
             - companies[borrower_idx].available_cash;
         if needed <= 0.0 {
             continue;
         }
 
-        let principal = needed.min(500_000.0); // Cap per-loan
+        let principal = needed.min(5_000_000.0); // Cap per-loan
         let borrower_clone = companies[borrower_idx].clone();
 
         // Try each bank in order of excess reserves until one can issue the loan

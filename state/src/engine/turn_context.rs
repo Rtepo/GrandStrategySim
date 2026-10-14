@@ -399,6 +399,7 @@ fn load_market_history_into_state(data_dir: &Path, state: &mut GameState) {
 
 fn load_companies(data_dir: &Path, country: &str) -> Result<Vec<Company>, TurnError> {
     let mut companies = Vec::new();
+    let mut origin_stems: Vec<String> = Vec::new();
     let companies_dir = data_dir.join("entities").join(country).join("companies");
 
     if !companies_dir.exists() {
@@ -459,7 +460,60 @@ fn load_companies(data_dir: &Path, country: &str) -> Result<Vec<Company>, TurnEr
                 );
             }
         };
+        origin_stems.extend(std::iter::repeat_n(sector.clone(), loaded.len()));
         companies.extend(loaded);
+    }
+
+    // The loader concatenates every file under entities/<country>/companies/.
+    // A company saved under the wrong file stem (e.g. an entity with a custom
+    // `file_stem` re-written into its sector file by a merge-save) would load
+    // twice — two live objects sharing one id, so every id-keyed index
+    // (`company_id_to_idx`, settlement legs, labor maps) resolves to the last
+    // instance while both accrue bids and encumbrances. Keep the copy loaded
+    // from the file `save_companies` would target (file_stem, else sector),
+    // and warn loudly rather than silently twinning the entity.
+    {
+        let canonical_stem = |c: &Company| -> String {
+            if c.file_stem.is_empty() {
+                sector_name(&c.sector)
+            } else {
+                c.file_stem.clone()
+            }
+        };
+        let mut seen: std::collections::HashMap<String, usize> =
+            std::collections::HashMap::new();
+        let mut drop_idx: std::collections::HashSet<usize> =
+            std::collections::HashSet::new();
+        for (i, c) in companies.iter().enumerate() {
+            if let Some(&prev) = seen.get(&c.id) {
+                eprintln!(
+                    "CRITICAL DATA WARNING: duplicate company id '{}' in entities/{}/companies \
+                     (files '{}' and '{}') — dropping one copy. A writer saved the same entity \
+                     under two file stems; fix the writer.",
+                    c.id,
+                    country,
+                    origin_stems[prev],
+                    origin_stems[i]
+                );
+                // Prefer the copy sitting in its canonical file.
+                if canonical_stem(c) == origin_stems[i]
+                    && canonical_stem(&companies[prev]) != origin_stems[prev]
+                {
+                    drop_idx.insert(prev);
+                    seen.insert(c.id.clone(), i);
+                } else {
+                    drop_idx.insert(i);
+                }
+            } else {
+                seen.insert(c.id.clone(), i);
+            }
+        }
+        let mut idx = 0usize;
+        companies.retain(|_| {
+            let k = !drop_idx.contains(&idx);
+            idx += 1;
+            k
+        });
     }
 
     if companies.is_empty() {

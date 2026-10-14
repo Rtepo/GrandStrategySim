@@ -502,88 +502,186 @@ pub fn get_plant_metadata(building: &Building) -> Option<PowerPlantMetadata> {
 
 /// Perform DC flow balancing over HV lines.
 ///
-/// Iteratively transfers power from surplus regions to deficit regions via
-/// HV lines. Uses sorted iteration for determinism.
+/// Multi-hop augmenting-path flow: each deficit region BFS-searches the HV
+/// network for the shortest path to any region holding surplus, then draws
+/// `min(surplus, deficit, bottleneck residual)` along it — wheeling power
+/// through intermediate regions. The previous single-hop greedy could only
+/// serve directly-adjacent deficit neighbors and starved later-sorted
+/// regions via a one-transfer-per-iteration `break`: national oversupply
+/// coexisted with permanent blackouts (945% supply vs regional Blackout).
 ///
-/// Returns a map of (from_region, to_region) → actual flow in MW.
+/// Line capacity is enforced per TURN as a cumulative residual (not
+/// per-transfer), losses compound per hop, and `current_flow_mw` is
+/// updated on each line for telemetry.
+///
+/// Returns a map of (from_region, to_region) → actual directed flow in MW.
 fn dc_flow_balancing(
     supply: &mut HashMap<String, f64>,
     demand: &HashMap<String, f64>,
-    hv_lines: &[GridLine],
+    hv_lines: &mut [GridLine],
 ) -> HashMap<(String, String), f64> {
     let mut flows: HashMap<(String, String), f64> = HashMap::new();
 
-    // Sort HV lines deterministically by (from_region, to_region).
-    let mut sorted_lines: Vec<&GridLine> = hv_lines.iter().collect();
-    sorted_lines
-        .sort_by(|a, b| (&a.from_region, &a.to_region).cmp(&(&b.from_region, &b.to_region)));
+    // Undirected adjacency: (line_idx, neighbor) per region endpoint.
+    let mut adjacency: HashMap<&str, Vec<(usize, &str)>> = HashMap::new();
+    for (idx, line) in hv_lines.iter().enumerate() {
+        adjacency
+            .entry(line.from_region.as_str())
+            .or_default()
+            .push((idx, line.to_region.as_str()));
+        adjacency
+            .entry(line.to_region.as_str())
+            .or_default()
+            .push((idx, line.from_region.as_str()));
+    }
+    // Deterministic neighbor order.
+    for edges in adjacency.values_mut() {
+        edges.sort_by(|a, b| {
+            (&hv_lines[a.0].from_region, &hv_lines[a.0].to_region, a.1).cmp(&(
+                &hv_lines[b.0].from_region,
+                &hv_lines[b.0].to_region,
+                b.1,
+            ))
+        });
+    }
 
-    // Sort region IDs for deterministic iteration.
+    // Per-turn cumulative usage residual on each line.
+    let mut used: Vec<f64> = vec![0.0; hv_lines.len()];
+
+    // Sorted region IDs for deterministic processing.
     let mut sorted_region_ids: Vec<String> = supply.keys().cloned().collect();
     sorted_region_ids.sort();
 
-    // Iterate until convergence (max iterations = number of regions).
-    let max_iterations = sorted_region_ids.len().max(1);
-    for _ in 0..max_iterations {
+    // Augmenting-path rounds: each round gives every deficit region one
+    // chance to pull from the nearest reachable surplus region. Bounded by
+    // region count — every successful path consumes residual capacity or
+    // surplus/deficit, so convergence is guaranteed.
+    for _ in 0..sorted_region_ids.len().max(1) * 2 {
         let mut any_transfer = false;
 
         for region_id in &sorted_region_ids {
-            let &local_supply = supply.get(region_id).unwrap_or(&0.0);
-            let &local_demand = demand.get(region_id).unwrap_or(&0.0);
-            let surplus = local_supply - local_demand;
-
-            if surplus <= 0.0 {
-                continue; // No surplus to export.
+            let deficit = demand.get(region_id).copied().unwrap_or(0.0)
+                - supply.get(region_id).copied().unwrap_or(0.0);
+            if deficit <= 0.0 {
+                continue;
             }
 
-            // Find HV lines from this region to deficit neighbors.
-            for line in &sorted_lines {
-                let (from, to) = if line.from_region == *region_id {
-                    (&line.from_region, &line.to_region)
-                } else if line.to_region == *region_id {
-                    (&line.to_region, &line.from_region)
-                } else {
-                    continue;
-                };
+            // BFS from the deficit region to the nearest surplus region,
+            // using only lines with residual capacity.
+            let mut parent: HashMap<&str, (usize, &str)> = HashMap::new();
+            let mut visited: std::collections::HashSet<&str> =
+                std::collections::HashSet::new();
+            let mut queue: std::collections::VecDeque<&str> =
+                std::collections::VecDeque::new();
+            visited.insert(region_id.as_str());
+            queue.push_back(region_id.as_str());
+            let mut source: Option<&str> = None;
 
-                let _ = from; // Already confirmed == region_id.
-
-                let &neighbor_supply = supply.get(to).unwrap_or(&0.0);
-                let &neighbor_demand = demand.get(to).unwrap_or(&0.0);
-                let neighbor_deficit = neighbor_demand - neighbor_supply;
-
-                if neighbor_deficit <= 0.0 {
-                    continue; // Neighbor also has surplus — no transfer (HV Black Hole prevention).
+            while let Some(node) = queue.pop_front() {
+                let surplus = supply.get(node).copied().unwrap_or(0.0)
+                    - demand.get(node).copied().unwrap_or(0.0);
+                if surplus > 0.0 {
+                    source = Some(node);
+                    break;
                 }
-
-                let loss = transmission_loss(line);
-                let max_transfer = surplus.min(neighbor_deficit).min(line.capacity_mw);
-                let transfer = max_transfer;
-                let received = transfer * (1.0 - loss);
-
-                // Update supply: sender loses transfer, receiver gains received.
-                *supply.get_mut(region_id).unwrap() -= transfer;
-                *supply.get_mut(to).unwrap_or(&mut 0.0) += received;
-
-                // Record flow.
-                let flow_key = (line.from_region.clone(), line.to_region.clone());
-                let current = flows.get(&flow_key).copied().unwrap_or(0.0);
-                // Flow direction: positive = from_region → to_region.
-                let directed_flow = if line.from_region == *region_id {
-                    current + transfer
-                } else {
-                    current - transfer // Reverse direction.
-                };
-                flows.insert(flow_key, directed_flow);
-
-                any_transfer = true;
-                break; // Move to next surplus region after one transfer.
+                if let Some(edges) = adjacency.get(node) {
+                    for &(line_idx, neighbor) in edges {
+                        let residual =
+                            hv_lines[line_idx].capacity_mw - used[line_idx];
+                        if residual <= 0.0 || visited.contains(neighbor) {
+                            continue;
+                        }
+                        visited.insert(neighbor);
+                        parent.insert(neighbor, (line_idx, node));
+                        queue.push_back(neighbor);
+                    }
+                }
             }
+
+            let Some(source_id) = source else {
+                continue; // No reachable surplus on the grid — islanded deficit.
+            };
+
+            // Walk the BFS predecessor chain back from the surplus source
+            // to the deficit region — `parent[x]` is the node x was reached
+            // FROM, so the chain source→deficit is already in power-flow
+            // order (each hop: from=node, to=predecessor).
+            let mut path: Vec<(usize, String, String)> = Vec::new(); // (line, from, to)
+            let mut node = source_id;
+            while node != region_id.as_str() {
+                let (line_idx, prev) = parent[node];
+                path.push((line_idx, node.to_string(), prev.to_string()));
+                node = prev;
+            }
+
+            // received_fraction = Π(1 − loss_hop); push is sized so the
+            // delivered energy covers the deficit without exceeding the
+            // source surplus or any line's residual capacity.
+            let received_fraction: f64 = path
+                .iter()
+                .map(|(idx, _, _)| 1.0 - transmission_loss(&hv_lines[*idx]))
+                .product();
+            if received_fraction <= 0.0 {
+                continue;
+            }
+            let source_surplus = supply.get(source_id).copied().unwrap_or(0.0)
+                - demand.get(source_id).copied().unwrap_or(0.0);
+            let bottleneck = path
+                .iter()
+                .map(|(idx, _, _)| hv_lines[*idx].capacity_mw - used[*idx])
+                .fold(f64::INFINITY, f64::min);
+            let push = source_surplus
+                .min(deficit / received_fraction)
+                .min(bottleneck);
+            if push <= 0.0 {
+                continue;
+            }
+
+            // Apply the path: the source is debited `push`; each line
+            // consumes residual capacity and dissipates its loss; only the
+            // FINAL destination is credited — intermediate regions wheel
+            // the power through (receive and forward the same amount, net
+            // change 0).
+            *supply.get_mut(source_id).unwrap() -= push;
+            let mut carried = push;
+            for (line_idx, from, to) in path {
+                used[line_idx] += carried;
+                let received = carried
+                    * (1.0 - transmission_loss(&hv_lines[line_idx]));
+                let key = (
+                    hv_lines[line_idx].from_region.clone(),
+                    hv_lines[line_idx].to_region.clone(),
+                );
+                let current = flows.get(&key).copied().unwrap_or(0.0);
+                flows.insert(
+                    key,
+                    if hv_lines[line_idx].from_region == from {
+                        current + carried
+                    } else {
+                        current - carried
+                    },
+                );
+                let _ = from;
+                if to == *region_id {
+                    if let Some(dst) = supply.get_mut(region_id) {
+                        *dst += received;
+                    }
+                }
+                carried = received;
+            }
+
+            any_transfer = true;
         }
 
         if !any_transfer {
-            break; // Converged.
+            break;
         }
+    }
+
+    // Write per-line flow telemetry.
+    for line in hv_lines.iter_mut() {
+        let key = (line.from_region.clone(), line.to_region.clone());
+        line.current_flow_mw = flows.get(&key).copied().unwrap_or(0.0).abs();
     }
 
     flows
@@ -660,7 +758,7 @@ pub fn distribute_grid_power(
     }
 
     // Step 3: DC flow balancing over HV lines.
-    let flows = dc_flow_balancing(&mut supply_mw, &demand_mw, &grid.hv_lines);
+    let flows = dc_flow_balancing(&mut supply_mw, &demand_mw, &mut grid.hv_lines);
     result.interconnector_flows = flows;
 
     // Step 4: Calculate storage absorption (pumped storage + batteries).

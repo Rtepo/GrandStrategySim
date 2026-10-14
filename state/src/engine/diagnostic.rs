@@ -584,6 +584,14 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
                         .unwrap_or(0.0)
                     + company.rd_budget;
                 corporate_cash += cash;
+                // Procurement trade credit: encumbrance drawn beyond the
+                // spendable pocket is booked as this explicit liability
+                // (pockets floor at 0). For unbanked firms the escrow it
+                // funds is counted in `debit_cash_total`, so the liability
+                // is the contra-bucket keeping the walk conserved — inside
+                // credit nets to zero across the buyer (debt) and seller
+                // (cash received).
+                corporate_cash -= company.procurement_credit;
                 // Phase 94: debit_cash is encumbered fiat from B2B buy
                 // orders. It is still M0 base money — just earmarked for
                 // a pending bid. Excluding it creates false M0 destruction
@@ -1686,6 +1694,37 @@ impl TurnProbe for CapturingProbe {
             self.current_turn = turn;
             self.freight_consumed_this_turn = 0.0;
             self.prev_freight_consumed = 0.0;
+        }
+
+        #[cfg(feature = "diagnostic")]
+        {
+            for t in tasks {
+                let sum_target: f64 = t
+                    .companies
+                    .iter()
+                    .map(|c| c.target_fte_demand as f64)
+                    .sum();
+                let sum_phys: f64 = t
+                    .companies
+                    .iter()
+                    .map(|c| c.physical_fte_demand as f64)
+                    .sum();
+                let krs_zero = t
+                    .companies
+                    .iter()
+                    .filter(|c| c.id.starts_with("KRS") && c.target_fte_demand == 0)
+                    .count();
+                eprintln!(
+                    "TGTWATCH t={} ph={} c={} n={} tgt={:.0} phys={:.0} krs0={}",
+                    turn,
+                    phase_name,
+                    t.ctx.country_name,
+                    t.companies.len(),
+                    sum_target,
+                    sum_phys,
+                    krs_zero
+                );
+            }
         }
 
         // Compute fiat walk.

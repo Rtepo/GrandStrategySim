@@ -588,7 +588,7 @@ pub fn process_prison_labor_turn(
 
                 // Company pays transfer fee to Treasury
                 let fee = injected_fte * law.private_transfer_fee;
-                let fee_clamped = fee.min(companies[idx].available_cash);
+                let fee_clamped = fee.min(companies[idx].available_cash.max(0.0));
                 companies[idx].available_cash -= fee_clamped;
                 country.budget.liquid_reserves += fee_clamped;
                 // Phase 94: Sync bank reserves for banked companies.

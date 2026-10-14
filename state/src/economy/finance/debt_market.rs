@@ -1022,7 +1022,16 @@ pub fn clear_arrears(country: &mut Country) {
         return;
     }
 
-    let payment = available.min(country.debt_market.total_arrears);
+    // Protect a fiscal float for this turn's ministry operations: senior
+    // arrears are still paid first, but the sweep may not zero the treasury
+    // and starve the pending ministry pass (the $0.00 expenditure cascade
+    // seen when the state fell into permanent arrears).
+    let float = crate::politics::ministries::sum_ministry_allocations(
+        &country.politics.ministry_config,
+    ) * 0.25;
+    let payment = (available - float)
+        .max(0.0)
+        .min(country.debt_market.total_arrears);
     country.budget.liquid_reserves -= payment;
     country.debt_market.total_arrears -= payment;
 

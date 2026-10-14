@@ -212,6 +212,17 @@ impl CompanyLifecycle {
                 if company.sector == Sector::Energy && !company.is_in_receivership {
                     continue;
                 }
+                // Banking entities never reach the Syndic: an insolvent bank
+                // is resolved by the supervisor (execute_bank_resolution at
+                // Step 10 of process_banking_turn), which preserves the loan
+                // book, pays interbank creditors, and keeps the entity alive
+                // as a BFG-owned bridge bank. The Syndic path annihilates
+                // the credit stock, converts deposits to CB-printed cash,
+                // and leaves phantom interbank assets — the Turn-48
+                // commercial-bank extinction.
+                if company.bank_type.is_some() {
+                    continue;
+                }
                 // Newborn firms get the same grace as the loss-streak rule:
                 // startup burn during the market bootstrap window pushes
                 // thin-capitalized seed companies into transient negative
@@ -232,9 +243,6 @@ impl CompanyLifecycle {
             if current_turn.saturating_sub(company.founded_turn) < LOSS_STREAK_GRACE_TURNS {
                 continue;
             }
-            if company.financial_history.len() < 3 {
-                continue;
-            }
             // Macro-Remediation: banks are supervised through the reserve
             // floor + ELA path, not industrial P&L. A bank's interest/fee
             // income is not booked through `last_profit`, so its recorded
@@ -244,17 +252,24 @@ impl CompanyLifecycle {
             if company.sector == Sector::Banking {
                 continue;
             }
-            let consecutive_losses = company
-                .financial_history
-                .iter()
-                .rev()
-                .take(3)
-                .all(|record| {
-                    record
-                        .get("net_profit")
-                        .and_then(|v| v.as_f64())
-                        .is_some_and(|profit| profit < 0.0)
-                });
+            // Macro-Remediation: `financial_history` records one entry per
+            // TURN (24/year), so the old take(3) streak fired after ~6
+            // weeks of losses — not the 3 consecutive years the rule
+            // intends. When every genesis company's grace expired at t24
+            // it liquidated ~40% of the corporate sector in one turn,
+            // destroying their labor demand permanently. Wind-down now
+            // requires a full year of unbroken losses
+            // (`consecutive_loss_turns >= TURNS_PER_YEAR`, maintained by
+            // `process_company`) AND an inactive operation (no active or
+            // furloughed workers — a distressed firm that still pays
+            // payroll keeps its jobs; insolvency is handled by the
+            // negative-equity check above).
+            let fully_inactive = company.fulfilled_fte == 0
+                && company.prev_fulfilled_fte == 0
+                && company.furloughed_workers_count <= 0.0;
+            let consecutive_losses = fully_inactive
+                && company.consecutive_loss_turns
+                    >= crate::state::macro_data::TURNS_PER_YEAR as u32;
 
             if consecutive_losses {
                 if company.sector == Sector::Energy && !company.is_in_receivership {
@@ -995,8 +1010,9 @@ mod tests {
         assert_eq!(companies.len(), 1, "young company must survive loss streak");
     }
 
-    /// Regression: once a company is older than the grace window, three
-    /// consecutive loss records still trigger liquidation.
+    /// Regression: once a company is older than the grace window, a full
+    /// year of consecutive loss turns with no active or furloughed
+    /// workforce still triggers liquidation.
     #[test]
     fn test_loss_streak_liquidates_old_company() {
         let legal_form = LegalForm::FamilyBusiness(FamilyBusinessData::default());
@@ -1011,9 +1027,10 @@ mod tests {
         )];
         companies[0].founded_turn = 0;
         companies[0].company_capital = 500.0;
-        companies[0].financial_history = (0..3)
-            .map(|_| serde_json::json!({"net_profit": -100.0, "revenue": 0.0}))
-            .collect();
+        companies[0].consecutive_loss_turns = crate::state::macro_data::TURNS_PER_YEAR as u32;
+        companies[0].fulfilled_fte = 0;
+        companies[0].prev_fulfilled_fte = 0;
+        companies[0].furloughed_workers_count = 0.0;
         companies[0].building_ids.push("bld_old".to_string());
 
         let mut buildings = vec![Building::new(
@@ -1038,7 +1055,49 @@ mod tests {
 
         assert!(
             companies.is_empty(),
-            "company past grace with 3 loss records must liquidate"
+            "company past grace with a full year of losses and no workforce must liquidate"
+        );
+    }
+
+    /// Regression for the Turn-24 decapitation: a distressed company that
+    /// still employs workers must NOT be wound down by the loss-streak
+    /// rule — liquidation there destroys labor demand permanently and
+    /// collapses the economy. Insolvency is the negative-equity path's job.
+    #[test]
+    fn test_loss_streak_preserves_employed_company() {
+        let legal_form = LegalForm::FamilyBusiness(FamilyBusinessData::default());
+        let mut companies = vec![Company::new(
+            "employed_loss".to_string(),
+            "Employed Loss Co".to_string(),
+            Sector::LocalServices,
+            legal_form,
+            1000.0,
+            0.0,
+            100,
+        )];
+        companies[0].founded_turn = 0;
+        companies[0].company_capital = 500.0;
+        companies[0].consecutive_loss_turns = crate::state::macro_data::TURNS_PER_YEAR as u32 * 2;
+        companies[0].fulfilled_fte = 500;
+        companies[0].prev_fulfilled_fte = 500;
+
+        let mut buildings = Vec::new();
+        let mut country = Country::mock_for_tests();
+        country.name = "Test".to_string();
+
+        let grace_turn = crate::state::macro_data::TURNS_PER_YEAR as u32;
+        CompanyLifecycle::liquidate_bankrupt_companies(
+            &mut companies,
+            &mut buildings,
+            &mut country,
+            2024,
+            grace_turn * 3,
+        );
+
+        assert_eq!(
+            companies.len(),
+            1,
+            "company with active workers must survive the loss-streak rule"
         );
     }
 }

@@ -456,6 +456,11 @@ pub fn settle_b2c_purchase(
     } else {
         companies[recipient_company_idx].available_cash += actual_base;
     }
+    // B2C sales are realized revenue — `process_company` reads
+    // `turn_settled_sales` into `financial_history`. Without this the retail
+    // owner books $0 revenue on every sale and reads as permanently
+    // unprofitable regardless of actual throughput.
+    companies[recipient_company_idx].turn_settled_sales += actual_base;
 
     // Sync recipient's bank: deposits and reserves increase by base amount only
     // (VAT goes to treasury, not bank deposits)
@@ -471,6 +476,63 @@ pub fn settle_b2c_purchase(
         recipient_bank_id,
         ..Default::default()
     })
+}
+
+/// Debit a citizen class's savings for a B2C purchase whose recipient is not
+/// a company (municipal market for orphaned stores).
+///
+/// Mirrors the debit arm of `settle_b2c_purchase`: clamps to available savings
+/// and never pushes a class balance below zero. Credits nothing — the caller
+/// routes the returned amount (e.g. to the national treasury, matching the
+/// wholesale leg which is funded from `country.budget.liquid_reserves`).
+///
+/// # Returns
+/// The amount actually debited (clamped to available savings).
+pub fn debit_b2c_class_savings(
+    region: &mut Region,
+    is_rural: bool,
+    class_key: &str,
+    amount: f64,
+) -> f64 {
+    if amount <= 0.0 {
+        return 0.0;
+    }
+
+    let demo_class = if is_rural {
+        RuralClass::from_str(class_key).map(DemographicClass::from)
+    } else {
+        UrbanClass::from_str(class_key).map(DemographicClass::from)
+    };
+
+    if let Some(class) = demo_class {
+        if let Some(rural) = class.to_rural() {
+            region
+                .class_demographics
+                .rural_classes
+                .get_mut(&rural)
+                .map(|demo| {
+                    let affordable = amount.min(demo.savings.max(0.0));
+                    demo.savings -= affordable;
+                    affordable
+                })
+                .unwrap_or(0.0)
+        } else if let Some(urban) = class.to_urban() {
+            region
+                .class_demographics
+                .urban_classes
+                .get_mut(&urban)
+                .map(|demo| {
+                    let affordable = amount.min(demo.savings.max(0.0));
+                    demo.savings -= affordable;
+                    affordable
+                })
+                .unwrap_or(0.0)
+        } else {
+            0.0
+        }
+    } else {
+        0.0
+    }
 }
 
 /// Convenience: settle a transfer from a company to the Treasury (taxes, fines, remittances).
@@ -885,6 +947,26 @@ pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount:
                 company.available_cash -= garnish;
             }
             company.debit_cash += garnish;
+        }
+        // Trade-credit retirement: after workers, inbound money retires
+        // outstanding procurement_credit — pocket −x, liability −x keeps
+        // the M0 walk conserved (the credit contra-bucket unwinds against
+        // the destroyed cash).
+        if company.procurement_credit > 0.0 {
+            let pocket = company
+                .brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash.max(0.0))
+                .unwrap_or(company.available_cash.max(0.0));
+            let retire = company.procurement_credit.min(pocket);
+            if retire > 0.0 {
+                if let Some(ba) = &mut company.brokerage_account {
+                    ba.cash -= retire;
+                } else {
+                    company.available_cash -= retire;
+                }
+                company.procurement_credit -= retire;
+            }
         }
     } else {
         return false;

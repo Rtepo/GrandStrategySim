@@ -1085,11 +1085,16 @@ pub fn clear_b2c_markets(
             entry.0 += revenue; // total_value
             entry.1 += allocated; // total_volume
 
-            // Update store sales tracking
+            // Update store sales tracking and consume the physical units
+            // sold — without this the same batches resell every turn
+            // (physical-conservation violation: goods reach households while
+            // remaining on the shelf).
             if let Some(store) = stores.iter_mut().find(|s| s.id == offer.store_id) {
                 if let Some(profile) = &mut store.retail_profile {
-                    *profile.units_sold_last_turn.entry(commodity).or_insert(0.0) += allocated;
+                    *profile.units_sold_pending.entry(commodity).or_insert(0.0) += allocated;
                 }
+                let key: String = commodity.into();
+                store.consume_sale(&key, allocated);
             }
         }
 
@@ -1099,9 +1104,9 @@ pub fn clear_b2c_markets(
             // Record unmet demand on stores that sold this commodity this turn.
             for store in stores.iter_mut() {
                 if let Some(profile) = &mut store.retail_profile {
-                    if profile.units_sold_last_turn.contains_key(&commodity) {
+                    if profile.units_sold_pending.contains_key(&commodity) {
                         *profile
-                            .unmet_demand_last_turn
+                            .unmet_demand_pending
                             .entry(commodity)
                             .or_insert(0.0) = remaining_demand;
                     }
@@ -1111,8 +1116,8 @@ pub fn clear_b2c_markets(
             // No unmet demand — clear the tracking for this commodity
             for store in stores.iter_mut() {
                 if let Some(profile) = &mut store.retail_profile {
-                    if profile.units_sold_last_turn.contains_key(&commodity) {
-                        profile.unmet_demand_last_turn.insert(commodity, 0.0);
+                    if profile.units_sold_pending.contains_key(&commodity) {
+                        profile.unmet_demand_pending.insert(commodity, 0.0);
                     }
                 }
             }
@@ -1122,7 +1127,7 @@ pub fn clear_b2c_markets(
     // Update market shares for next turn
     for store in stores {
         if let Some(profile) = &mut store.retail_profile {
-            for (commodity, sold) in &profile.units_sold_last_turn {
+            for (commodity, sold) in &profile.units_sold_pending {
                 let total_sold = units_sold.get(commodity).copied().unwrap_or(0.0);
                 if total_sold > 0.0 {
                     *profile
@@ -1165,7 +1170,13 @@ pub fn clear_b2c_markets(
 /// # Rules
 /// * Revenue is distributed across citizen classes proportionally to their demand share.
 /// * Each class's debit is clamped to available savings by `settle_b2c_purchase`.
-/// * Stores with no `owner_id` or whose owner is not found in `companies` are skipped.
+/// * Orphaned stores (no `owner_id` or owner missing from `companies`) operate
+///   as municipal markets: citizens are debited and the base revenue returns
+///   to the treasury as the third tuple element.
+///
+/// # Returns
+/// `(total_settled, total_vat_collected, municipal_revenue)` — the caller adds
+/// `municipal_revenue` to `country.budget.liquid_reserves`.
 pub fn settle_b2c_clearing(
     store_revenue: &BTreeMap<String, f64>,
     consumer_demand: &ConsumerDemand,
@@ -1175,7 +1186,7 @@ pub fn settle_b2c_clearing(
     vat_rates: &std::collections::HashMap<String, crate::state::tax::VatBracket>,
     store_id_to_owner: &rustc_hash::FxHashMap<String, String>,
     company_id_to_idx: &rustc_hash::FxHashMap<String, usize>,
-) -> (f64, f64) {
+) -> (f64, f64, f64) {
     // Build class demand shares: (is_rural, DemographicClass) → total demand across all commodities
     // E.6.3: typed DemographicClass key
     let mut class_shares: Vec<(bool, DemographicClass, f64)> = Vec::new();
@@ -1190,11 +1201,20 @@ pub fn settle_b2c_clearing(
     }
 
     if total_class_demand <= 0.0 {
-        return (0.0, 0.0);
+        return (0.0, 0.0, 0.0);
     }
 
     let mut total_settled: f64 = 0.0;
     let mut total_vat_collected: f64 = 0.0;
+    // Revenue collected by stores whose owner company is gone (liquidated or
+    // merged away). These stores operate as municipal markets — the treasury
+    // funded their wholesale restock, so the sales revenue returns to it.
+    let mut municipal_revenue: f64 = 0.0;
+
+    // Phase 41: Compute VAT for this region's consumer demand mix once —
+    // it does not depend on the store. DYNAMIC RATE LOOKUP via
+    // `country.tax_rates.vat` for each commodity's VAT category.
+    let blended_vat_rate = compute_blended_vat_rate(consumer_demand, vat_rates);
 
     for (store_id, revenue) in store_revenue {
         if *revenue <= 0.0 {
@@ -1202,30 +1222,44 @@ pub fn settle_b2c_clearing(
         }
 
         // Phase 94: O(1) lookups via pre-built index maps.
-        let owner_id = match store_id_to_owner.get(store_id) {
-            Some(id) if !id.is_empty() => id.clone(),
-            _ => continue,
-        };
+        // Stores with no owner_id, or whose owner company was liquidated or
+        // merged away, are orphaned: citizens still pay, but the base revenue
+        // goes to the treasury (municipal market) instead of a company.
+        let company_idx = store_id_to_owner
+            .get(store_id)
+            .filter(|id| !id.is_empty())
+            .and_then(|id| company_id_to_idx.get(id).copied());
 
-        let company_idx = match company_id_to_idx.get(&owner_id) {
-            Some(&idx) => idx,
-            None => continue,
-        };
-
-        // Phase 41: Compute VAT for this store's revenue.
-        // The store_revenue is the total (base + VAT inclusive) amount.
-        // We need to determine the blended VAT rate for this store based on
-        // the commodities it sells. Since we don't have per-store commodity
-        // breakdown here, we use a weighted average VAT rate based on the
-        // consumer demand commodity mix.
-        //
-        // DYNAMIC RATE LOOKUP: Look up the active VAT rate from country.tax_rates.vat
-        // for each commodity's VAT category. No hardcoding.
-        let blended_vat_rate = compute_blended_vat_rate(consumer_demand, vat_rates);
-
-        // Split revenue into base (company gets this) and VAT (treasury gets this)
+        // Split revenue into base (seller gets this) and VAT (treasury gets this)
         let base_revenue = revenue / (1.0 + blended_vat_rate);
         let vat_amount = revenue - base_revenue;
+
+        let company_idx = match company_idx {
+            Some(idx) => idx,
+            None => {
+                for (is_rural, class_key, class_demand) in &class_shares {
+                    let share = class_demand / total_class_demand;
+                    let class_total = revenue * share;
+                    if class_total <= 0.0 {
+                        continue;
+                    }
+                    let class_key_str = class_key.to_string();
+                    let actual = crate::economy::transfer_settler::debit_b2c_class_savings(
+                        region,
+                        *is_rural,
+                        &class_key_str,
+                        class_total,
+                    );
+                    if actual > 0.0 {
+                        let actual_vat = actual * blended_vat_rate / (1.0 + blended_vat_rate);
+                        municipal_revenue += actual - actual_vat;
+                        total_vat_collected += actual_vat;
+                        total_settled += actual;
+                    }
+                }
+                continue;
+            }
+        };
 
         // Distribute base revenue across classes proportionally to their demand share
         for (is_rural, class_key, class_demand) in &class_shares {
@@ -1261,7 +1295,7 @@ pub fn settle_b2c_clearing(
         }
     }
 
-    (total_settled, total_vat_collected)
+    (total_settled, total_vat_collected, municipal_revenue)
 }
 
 /// Phase 41: Compute a blended VAT rate from consumer demand and active VAT rates.

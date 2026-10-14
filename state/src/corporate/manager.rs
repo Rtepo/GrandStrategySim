@@ -1568,6 +1568,12 @@ pub fn manage_strategic_reserves(
                         let encumbrance = actual_purchase * limit_price;
                         if agency.available_cash >= encumbrance {
                             agency.available_cash -= encumbrance;
+                            #[cfg(feature = "diagnostic")]
+                            eprintln!(
+                                "SRA_ENCUMB: buyer={} com={:?} qty={:.3e} limit={:.4} enc={:.3e} debit_pre={:.3e}",
+                                agency.id, commodity, actual_purchase,
+                                limit_price, encumbrance, agency.debit_cash
+                            );
                             agency.debit_cash += encumbrance;
                             order_book
                                 .bids
@@ -1654,6 +1660,12 @@ pub fn manage_strategic_reserves(
                     let limit_price = bid_price * 1.10;
                     let encumbrance = desired * limit_price;
                     agency.available_cash -= encumbrance;
+                    #[cfg(feature = "diagnostic")]
+                    eprintln!(
+                        "SRA_ENCUMB_ABS: buyer={} com={:?} qty={:.3e} limit={:.4} enc={:.3e} debit_pre={:.3e}",
+                        agency.id, commodity, desired,
+                        limit_price, encumbrance, agency.debit_cash
+                    );
                     agency.debit_cash += encumbrance;
                     spent += encumbrance;
                     order_book
@@ -1723,6 +1735,37 @@ pub fn manage_strategic_reserves(
     }
 }
 
+/// Corporate solvency measure feeding the lifecycle death-clock, credit
+/// headroom, and the B2B working-capital facility.
+///
+/// Banks accrue profit on `BankBalanceSheet.tier_1_capital`, not the
+/// entity-ledger `liquid_capital` — syncing `company_capital` to tier_1
+/// stops the phantom `-wage_bill` liabilities drain that liquidated every
+/// commercial bank ~Turn 48. Non-banks subtract `procurement_credit`
+/// (explicit trade credit drawn by `encumber_cash`) so equity shrinks as
+/// credit is drawn and the facility self-limits at net worth.
+fn compute_company_capital(company: &Company) -> f64 {
+    if company.bank_type.is_some() {
+        if let Some(ref bs) = company.balance_sheet {
+            return bs.tier_1_capital;
+        }
+    }
+    // Stock held in company-owned commercial buildings is a real asset
+    // (sellable goods at wholesale cost) published by the restock phase —
+    // without it, credit-financed retail restocking reads as insolvency
+    // because only the liability side of the trade ever reaches the balance
+    // sheet.
+    let store_inventory_value = company
+        .extra
+        .get("store_inventory_value")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
+    company.fixed_capital + company.liquid_capital
+        + store_inventory_value
+        - company.liabilities
+        - company.procurement_credit
+}
+
 /// Processes a single company given its aggregated building profit.
 ///
 /// # Arguments
@@ -1763,12 +1806,12 @@ pub fn process_company(
     // 1. Add building-level profits to the company.
     company.liquid_capital += total_profit;
 
-    if company.liquid_capital < 0.0 {
+    if company.bank_type.is_none() && company.liquid_capital < 0.0 {
         company.liabilities += -company.liquid_capital;
         company.liquid_capital = 0.0;
     }
 
-    company.company_capital = company.fixed_capital + company.liquid_capital - company.liabilities;
+    company.company_capital = compute_company_capital(company);
 
     // 2. Corporate overhead.
     let overhead = (total_profit * 0.05).max(0.0);
@@ -1804,7 +1847,7 @@ pub fn process_company(
     company.liquid_capital = (company.liquid_capital - tax).max(0.0);
 
     // 5. Recalculate equity after the ledger.
-    company.company_capital = company.fixed_capital + company.liquid_capital - company.liabilities;
+    company.company_capital = compute_company_capital(company);
 
     let net_profit = total_profit - overhead - interest - tax;
 
@@ -1963,7 +2006,7 @@ pub fn process_company(
     );
 
     // 8. Recalculate equity after the action.
-    company.company_capital = company.fixed_capital + company.liquid_capital - company.liabilities;
+    company.company_capital = compute_company_capital(company);
 
     // R5.2: Update board independence dynamically based on CEO performance.
     if let crate::entities::LegalForm::JointStockCompany(ref mut data) = company.legal_form {
@@ -2019,6 +2062,14 @@ pub fn process_company(
     company.financial_history.push(record);
     if company.financial_history.len() > 5 {
         company.financial_history.remove(0);
+    }
+    // Macro-Remediation: track the losing-turn streak for the lifecycle
+    // wind-down rule (which requires a full year of unbroken losses plus
+    // an inactive operation — see `liquidate_bankrupt_companies`).
+    if net_profit - unbooked_wages < 0.0 {
+        company.consecutive_loss_turns = company.consecutive_loss_turns.saturating_add(1);
+    } else {
+        company.consecutive_loss_turns = 0;
     }
 
     // Phase 55: Compute EPS, P/E ratio, and dividend yield for listed companies.
@@ -2933,6 +2984,31 @@ pub fn process_furlough_attrition(companies: &mut [Company]) {
                 (company.furloughed_workers_count - quit_count as f64).max(0.0);
             // Workers return to the general labor pool automatically via
             // the available_fte recompute in labor.rs (population × participation)
+        }
+
+        // Macro-Remediation: hard release for DISTRESS furloughs. A worker
+        // parked on a starved bench is churned: attrition releases them to
+        // the pool, the same company's bid recaptures them, material
+        // shortage re-furloughs them — the stock sits at ~4.6M while
+        // deficit regions post ~11M of unfilled demand. Non-seasonal
+        // distress furlough beyond ~8 turns is a dead attachment: release
+        // the remainder outright so migration can move them to real
+        // demand. Seasonal standby (profile.state == Furloughed) keeps the
+        // slow attrition path — winter crews legitimately wait out the
+        // season.
+        const DISTRESS_FURLOUGH_HARD_RELEASE_TURNS: u32 = 8;
+        let is_seasonal_standby = company
+            .seasonal_profile
+            .as_ref()
+            .map(|p| {
+                p.current_state == crate::entities::SeasonalState::Furloughed
+            })
+            .unwrap_or(false);
+        if !is_seasonal_standby
+            && company.furlough_turns_accumulated >= DISTRESS_FURLOUGH_HARD_RELEASE_TURNS
+            && company.furloughed_workers_count > 0.0
+        {
+            company.furloughed_workers_count = 0.0;
         }
     }
 }

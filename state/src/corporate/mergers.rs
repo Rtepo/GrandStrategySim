@@ -9,6 +9,7 @@
 use crate::economy::market::MarketSignal;
 use crate::economy::transfer_settler::{settle_transfer_mapped, TransferRecipient};
 use crate::entities::{Building, Company};
+use crate::society::housing::CommercialBuilding;
 use crate::state::banking::LoanStatus;
 use crate::state::Country;
 use std::collections::HashMap;
@@ -31,6 +32,7 @@ struct AcquisitionPlan {
 pub fn process_mergers_and_acquisitions(
     companies: &mut [Company],
     buildings: &mut [Building],
+    commercial_buildings: &mut [CommercialBuilding],
     country: &mut Country,
     _year: u32,
     market_signal: &MarketSignal,
@@ -57,6 +59,28 @@ pub fn process_mergers_and_acquisitions(
             .push(i);
     }
 
+    // Inventory-asset recognition for the distress test: a retail chain that
+    // restocked on trade credit holds the goods as a real asset (sellable
+    // stock at wholesale cost), but `liquid_capital`/`company_capital` only
+    // register the liabilities side. Without this offset, the first big
+    // wholesale pull reads as insolvency and cascades the entire retail
+    // sector into forced consolidation within ten turns.
+    let mut owner_inventory_value: HashMap<String, f64> = HashMap::default();
+    for cb in commercial_buildings.iter() {
+        if cb.owner_id.is_empty() {
+            continue;
+        }
+        let v: f64 = cb
+            .current_inventory
+            .values()
+            .flat_map(|batches| batches.iter())
+            .map(|b| b.quantity * b.acquisition_cost_per_unit.max(0.0))
+            .sum();
+        if v > 0.0 {
+            *owner_inventory_value.entry(cb.owner_id.clone()).or_default() += v;
+        }
+    }
+
     // ------------------------------------------------------------------
     // Phase E.1: Planning pass — never mutates `companies` here.
     // ------------------------------------------------------------------
@@ -77,13 +101,45 @@ pub fn process_mergers_and_acquisitions(
         // solvent firm sits at ~0 between settlement and payroll, so using
         // `available_cash <= 0` as a trigger mass-consolidates the economy
         // every turn and destroys the absorbed firms' labor demand.
-        let is_distressed =
-            target.available_cash < 0.0 || target.liquid_capital < target.liabilities;
+        let net_liquid_worth = target.liquid_capital
+            + owner_inventory_value
+                .get(&target.id)
+                .copied()
+                .unwrap_or(0.0);
+        // `procurement_credit` is debt too — trade-credit restock books it
+        // when the buyer has no bank to issue the overdraft (it flows
+        // through `compute_company_capital` as a liability already). A
+        // store carrying supplier credit is as leveraged as one carrying a
+        // loan; omitting it lets insolvent firms dodge the distress check.
+        let is_distressed = target.available_cash < 0.0
+            || net_liquid_worth < target.liabilities + target.procurement_credit;
         let target_sector = target.sector;
         let target_region = target.region_id.clone();
 
         if !is_distressed {
             continue;
+        }
+
+        #[cfg(feature = "diagnostic")]
+        if target.sector == crate::registries::enums::Sector::LocalServices {
+            eprintln!(
+                "LS_DISTRESS: id={} cash={:.0} liquid={:.0} inv={:.0} liab={:.0} fte={}/{} rev_last={:.0}",
+                target.id,
+                target.available_cash,
+                target.liquid_capital,
+                owner_inventory_value
+                    .get(&target.id)
+                    .copied()
+                    .unwrap_or(0.0),
+                target.liabilities,
+                target.fulfilled_fte,
+                target.target_fte_demand,
+                target
+                    .financial_history
+                    .last()
+                    .and_then(|h| h.get("revenue").and_then(|v| v.as_f64()))
+                    .unwrap_or(0.0)
+            );
         }
 
         // Find the most liquid same-sector acquirer in the same region.
@@ -145,6 +201,57 @@ pub fn process_mergers_and_acquisitions(
             &mut owner_to_buildings,
             market_signal,
         );
+    }
+
+    // ------------------------------------------------------------------
+    // E.2e: Commercial-building titles follow the same going-concern rule
+    // as industrial plants — an acquired retail chain's stores belong to the
+    // acquirer. The tombstoned targets still carry `merged_into` until the
+    // caller's `retain` drops them, so this single sweep can re-point every
+    // orphaned store before the owner ids go dangling (which would leave the
+    // restock/settlement paths unable to resolve the owner).
+    // ------------------------------------------------------------------
+    if !commercial_buildings.is_empty() {
+        let tombstone_map: HashMap<String, String> = companies
+            .iter()
+            .filter_map(|c| c.merged_into.clone().map(|acq| (c.id.clone(), acq)))
+            .collect();
+        if !tombstone_map.is_empty() {
+            // Resolve to the live root of each acquisition chain — an
+            // acquirer may itself be tombstoned by a later plan in the same
+            // sweep, and a single hop would leave the title dangling on a
+            // dead company.
+            let resolve_root = |start: &str| -> Option<String> {
+                let mut cur = start.to_string();
+                for _ in 0..8 {
+                    match tombstone_map.get(&cur) {
+                        Some(next) => cur = next.clone(),
+                        None => return Some(cur),
+                    }
+                }
+                None
+            };
+            for store in commercial_buildings.iter_mut() {
+                if tombstone_map.contains_key(&store.owner_id) {
+                    if let Some(root) = resolve_root(&store.owner_id) {
+                        store.owner_id = root;
+                    }
+                }
+                // Stock batches keep the going-concern rule too — goods owned
+                // by a tombstoned company retitle to that company's acquirer
+                // (usually the store's new owner; consigned stock follows its
+                // own owner's acquisition chain).
+                for batches in store.current_inventory.values_mut() {
+                    for batch in batches.iter_mut() {
+                        if tombstone_map.contains_key(&batch.owner_id) {
+                            if let Some(root) = resolve_root(&batch.owner_id) {
+                                batch.owner_id = root;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Reconcile any country-level aggregates that were touched.

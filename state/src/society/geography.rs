@@ -739,6 +739,24 @@ pub struct Region {
     /// water quality. Set from geological generation.
     #[serde(default = "default_aquifer_quality")]
     pub aquifer_quality: f64,
+
+    /// Macro-Remediation: REVEALED labor state from last turn's clearing.
+    /// `labor_unfilled_last_turn` = bids that found no workers
+    /// (sum_bid − allocated); `labor_allocated_last_turn` = workers the
+    /// region's companies actually hired. The commuter router pulls
+    /// neighbors' idle workers into unfilled demand — structural
+    /// `target_fte_demand` cannot serve as the gap signal because M&A
+    /// consolidates targets far beyond any region's real hiring.
+    #[serde(default)]
+    pub labor_unfilled_last_turn: f64,
+    #[serde(default)]
+    pub labor_allocated_last_turn: f64,
+    /// Allocation excluding transient pseudo-employers (PWORKS-*,
+    /// STATE-EMPLOYER-*). Their hires evaporate at teardown each turn, so
+    /// counting them as "allocated" would hide the true idle pool that
+    /// next turn's works program and commuter routing must see.
+    #[serde(default)]
+    pub labor_private_allocated_last_turn: f64,
 }
 
 /// Phase 47: Default development level for old saves (conservative mid-low).
@@ -2254,6 +2272,9 @@ pub fn generate_regional_topology(
             city_metadata: None,
             aquifer_capacity_liters: 0.0,
             aquifer_quality: default_aquifer_quality(),
+            labor_unfilled_last_turn: 0.0,
+            labor_allocated_last_turn: 0.0,
+            labor_private_allocated_last_turn: 0.0,
         });
     }
 
@@ -2715,6 +2736,9 @@ pub fn generate_maritime_nodes(
         city_metadata: None,
         aquifer_capacity_liters: 0.0,
         aquifer_quality: default_aquifer_quality(),
+            labor_unfilled_last_turn: 0.0,
+            labor_allocated_last_turn: 0.0,
+            labor_private_allocated_last_turn: 0.0,
     };
     maritime_nodes.insert(sea_node_id, sea_node);
 
@@ -2768,6 +2792,9 @@ pub fn generate_maritime_nodes(
         city_metadata: None,
         aquifer_capacity_liters: 0.0,
         aquifer_quality: default_aquifer_quality(),
+            labor_unfilled_last_turn: 0.0,
+            labor_allocated_last_turn: 0.0,
+            labor_private_allocated_last_turn: 0.0,
     };
     maritime_nodes.insert(ocean_node_id, ocean_node);
 
@@ -3807,6 +3834,9 @@ mod phase30_tests {
             city_metadata: None,
             aquifer_capacity_liters: 0.0,
             aquifer_quality: default_aquifer_quality(),
+            labor_unfilled_last_turn: 0.0,
+            labor_allocated_last_turn: 0.0,
+            labor_private_allocated_last_turn: 0.0,
         }
     }
 

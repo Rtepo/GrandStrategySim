@@ -174,8 +174,22 @@ pub fn submit_construction_b2b_orders(
                 continue;
             }
 
-            // Encumber cash (double-entry)
-            company.available_cash -= encumbrance;
+            // Encumber cash (double-entry): debit the pocket that actually
+            // holds the company's money (brokerage for banked firms, not
+            // `available_cash` — debiting it unconditionally drove banked
+            // buyers to −5B), floor it at 0, and book the uncovered share
+            // as explicit procurement_credit.
+            let pocket = if let Some(ba) = &mut company.brokerage_account {
+                &mut ba.cash
+            } else {
+                &mut company.available_cash
+            };
+            let paid = encumbrance.min((*pocket).max(0.0));
+            *pocket -= paid;
+            let credit = encumbrance - paid;
+            if credit > 0.0 {
+                company.procurement_credit += credit;
+            }
             company.debit_cash += encumbrance;
             total_encumbered += encumbrance;
 
