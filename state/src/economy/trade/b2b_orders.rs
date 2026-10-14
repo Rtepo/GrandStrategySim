@@ -1002,7 +1002,7 @@ pub fn settle_trades(
                     // reserves fall as the liability moves to the seller's
                     // bank; ELA covers so reserves never go negative) — the
                     // same structure as the cross-border path below.
-                    companies[bi].debit_cash -= trade_value;
+                    companies[bi].debit_cash = (companies[bi].debit_cash - trade_value).max(0.0);
                     let buyer_bank_id = companies[bi].primary_bank_id.clone();
                     if let Some(ref bank_id) = buyer_bank_id {
                         if let Some(&bidx) = company_id_to_idx.get(bank_id) {
@@ -1034,7 +1034,7 @@ pub fn settle_trades(
                     // b2b_settlement_post FiatCreation leak). Debit the
                     // buyer-bank's own sheet like the cross-border path
                     // below; ELA covers so reserves never go negative.
-                    companies[bi].debit_cash -= trade_value;
+                    companies[bi].debit_cash = (companies[bi].debit_cash - trade_value).max(0.0);
                     if let Some(ref mut bs) = companies[bi].balance_sheet {
                         crate::state::banking::ela_cover_debit(
                             bs,
@@ -1052,7 +1052,7 @@ pub fn settle_trades(
                     // (available_cash → debit_cash). Release encumbrance and
                     // credit seller directly. This preserves M0: debit_cash
                     // (M0) → seller cash (M0).
-                    companies[bi].debit_cash -= trade_value;
+                    companies[bi].debit_cash = (companies[bi].debit_cash - trade_value).max(0.0);
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
                     companies[si].turn_settled_sales += trade_value;
@@ -1083,7 +1083,7 @@ pub fn settle_trades(
                     // are all physical fiat in the walk, so no further
                     // cash-pocket debit may follow (that would destroy
                     // fiat a second time — the post-fix FiatDestruction).
-                    companies[bi].debit_cash -= trade_value;
+                    companies[bi].debit_cash = (companies[bi].debit_cash - trade_value).max(0.0);
                     let buyer_bank_id = companies[bi].primary_bank_id.clone();
                     let buyer_is_bank = companies[bi].sector
                         == crate::registries::enums::Sector::Banking;
@@ -1205,7 +1205,7 @@ pub fn settle_trades(
                 }
             }
         } else if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
-            companies[bi].debit_cash -= trade_value;
+            companies[bi].debit_cash = (companies[bi].debit_cash - trade_value).max(0.0);
         } else {
             // Phase 94: MIN-DEF or other non-company buyer. The buyer's cash
             // was already encumbered (deducted from liquid_reserves). Credit
@@ -1716,12 +1716,18 @@ pub fn refund_unfilled_bids(
             if let Some(&idx) = company_id_to_idx.get(&bid.buyer_id) {
                 let company = &mut companies[idx];
                 let refund = bid.quantity * bid.limit_price;
-                company.debit_cash -= refund;
+                // Release only the escrow still outstanding for this bid —
+                // settlement legs (incl. freight/transit fees) may already
+                // have consumed part of it. Releasing more than the pocket
+                // holds drives `debit_cash` negative (CASH-1 violation) while
+                // crediting fiat that was never encumbered (M0 creation).
+                let released = refund.min(company.debit_cash.max(0.0));
+                company.debit_cash -= released;
                 // Phase 94: Only credit one cash field to avoid M0 duplication.
                 if let Some(ba) = &mut company.brokerage_account {
-                    ba.cash += refund;
+                    ba.cash += released;
                 } else {
-                    company.available_cash += refund;
+                    company.available_cash += released;
                 }
                 // Phase 45: Track unfilled bid prices for dynamic price feedback.
                 // Store the limit price so next turn's bid can be raised.
