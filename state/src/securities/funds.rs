@@ -215,7 +215,14 @@ pub fn collect_fund_capital(
             .sum();
         let portfolio_value = calculate_portfolio_value(&fund.brokerage_account, companies, &None)
             + bond_holdings_value;
-        let total_fund_value = fund_cash + portfolio_value;
+        // Frozen cash is still the fund's money (encumbered by open bids) —
+        // excluding it understates AUM and drives NAV artificially low.
+        let frozen_cash = fund
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.frozen_cash)
+            .unwrap_or(0.0);
+        let total_fund_value = fund_cash + frozen_cash + portfolio_value;
 
         let nav_per_share = if ledger.shares_outstanding > 0 {
             total_fund_value / ledger.shares_outstanding as f64
@@ -259,9 +266,19 @@ pub fn collect_fund_capital(
                         }
                         total_collected += subscription_amount;
 
-                        // Double-entry (equity side): issue units
-                        let units_issued = if nav_per_share > 0.0 {
-                            (subscription_amount / nav_per_share) as u64
+                        // Double-entry (equity side): issue units.
+                        // Guard the f64→u64 cast: `as` saturates to u64::MAX
+                        // on huge quotients (a collapsed NAV divides cash by
+                        // a near-zero number), which is exactly the
+                        // "1.8e19 shares outstanding" defect. Clamp to a
+                        // finite, non-negative value first.
+                        let units_issued = if nav_per_share.is_finite() && nav_per_share > 0.0 {
+                            let raw = subscription_amount / nav_per_share;
+                            if raw.is_finite() && raw > 0.0 {
+                                raw.min(u64::MAX as f64) as u64
+                            } else {
+                                0
+                            }
                         } else {
                             0
                         };
@@ -304,9 +321,19 @@ pub fn collect_fund_capital(
                         }
                         total_collected += subscription_amount;
 
-                        // Double-entry (equity side): issue units
-                        let units_issued = if nav_per_share > 0.0 {
-                            (subscription_amount / nav_per_share) as u64
+                        // Double-entry (equity side): issue units.
+                        // Guard the f64→u64 cast: `as` saturates to u64::MAX
+                        // on huge quotients (a collapsed NAV divides cash by
+                        // a near-zero number), which is exactly the
+                        // "1.8e19 shares outstanding" defect. Clamp to a
+                        // finite, non-negative value first.
+                        let units_issued = if nav_per_share.is_finite() && nav_per_share > 0.0 {
+                            let raw = subscription_amount / nav_per_share;
+                            if raw.is_finite() && raw > 0.0 {
+                                raw.min(u64::MAX as f64) as u64
+                            } else {
+                                0
+                            }
                         } else {
                             0
                         };
@@ -358,9 +385,16 @@ pub fn collect_fund_capital(
                     }
                     total_collected += subscription_amount;
 
-                    // Double-entry (equity side): issue units
-                    let units_issued = if nav_per_share > 0.0 {
-                        (subscription_amount / nav_per_share) as u64
+                    // Double-entry (equity side): issue units.
+                    // Same f64→u64 guard as the retail classes above —
+                    // a near-zero NAV otherwise saturates to u64::MAX.
+                    let units_issued = if nav_per_share.is_finite() && nav_per_share > 0.0 {
+                        let raw = subscription_amount / nav_per_share;
+                        if raw.is_finite() && raw > 0.0 {
+                            raw.min(u64::MAX as f64) as u64
+                        } else {
+                            0
+                        }
                     } else {
                         0
                     };
@@ -398,9 +432,17 @@ pub fn collect_fund_capital(
             .sum();
         let portfolio_value = calculate_portfolio_value(&fund.brokerage_account, companies, &None)
             + bond_holdings_value;
-        let total_fund_value = fund_cash + portfolio_value;
+        let frozen_cash = fund
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.frozen_cash)
+            .unwrap_or(0.0);
+        let total_fund_value = fund_cash + frozen_cash + portfolio_value;
         if ledger.shares_outstanding > 0 {
-            ledger.nav_per_share = total_fund_value / ledger.shares_outstanding as f64;
+            let nav = total_fund_value / ledger.shares_outstanding as f64;
+            if nav.is_finite() {
+                ledger.nav_per_share = nav;
+            }
         }
         // Phase 94: Record total collected for bank-reserve sync (M0).
         if total_collected > 0.0 {
@@ -713,7 +755,14 @@ pub fn submit_fund_orders(
             if company.id == fund_id {
                 continue;
             }
-            if !company.is_listed || company.shares_count == 0 || company.share_price <= 0.0 {
+            // Use the authoritative listing predicate (legal_form.is_listed() —
+            // JSC with free_float > 0) rather than the denormalized
+            // company.is_listed field, which can drift out of sync when the
+            // legal form transitions mid-run.
+            if !company.legal_form.is_listed()
+                || company.shares_count == 0
+                || company.share_price <= 0.0
+            {
                 continue;
             }
 
@@ -751,8 +800,15 @@ pub fn submit_fund_orders(
                 .fund_max_pe_threshold
                 .max(modifiers.pe_sell_threshold);
 
-            // Valuation Score logic — uses P/E ratio, not P/B
-            if pe_ratio < buy_pe_threshold && dividend_yield > config.fund_min_dividend_yield {
+            // Valuation Score logic — uses P/E ratio, not P/B.
+            // A profitable company with no dividend track record
+            // (dividend_yield <= 0 but eps > 0) is still buyable under the
+            // value gate — otherwise funds can only ever pass the yield
+            // screen on a handful of dividend payers and end up holding
+            // nothing but identical covered bonds.
+            let dividend_ok = dividend_yield > config.fund_min_dividend_yield
+                || (company.eps > 0.0 && dividend_yield <= 0.0);
+            if pe_ratio < buy_pe_threshold && dividend_ok {
                 // Undervalued: submit Buy order
                 // Phase 57: Use trait-driven max_position_pct instead of hardcoded 0.1.
                 let max_investment = investable_cash * modifiers.max_position_pct;
@@ -961,10 +1017,11 @@ pub fn charge_fund_fees(
             continue;
         }
 
+        // Frozen cash is still the fund's money — include it in AUM.
         let fund_cash = fund
             .brokerage_account
             .as_ref()
-            .map(|b| b.cash)
+            .map(|b| b.cash + b.frozen_cash)
             .unwrap_or(0.0);
         let portfolio_value =
             calculate_portfolio_value(&fund.brokerage_account, companies, &fund.fund_ledger);
@@ -977,10 +1034,26 @@ pub fn charge_fund_fees(
         // Management fee
         let mgmt_fee = aum * config.fund_management_fee_rate;
 
-        // Performance fee (simplified: if fund cash growth > benchmark rate)
-        let _ledger = fund.fund_ledger.as_ref().unwrap();
-        let benchmark_return = aum * config.fund_benchmark_rate;
-        let excess_return = (aum - benchmark_return).max(0.0);
+        // Performance fee — charged on the REAL period return since the last
+        // NAV strike, not on AUM itself. The previous formula computed
+        // `excess_return = (aum - aum*benchmark).max(0)` ≈ 96% of AUM, so the
+        // fund paid ~20% of its entire assets as a "performance" fee every
+        // turn. That drained brokerage cash to zero, collapsed NAV, and the
+        // next subscription then divided by a near-zero NAV — saturating
+        // `shares_outstanding` to u64::MAX.
+        //
+        // prev_aum is reconstructed from the stored NAV strike
+        // (nav_per_share × shares_outstanding = AUM at the last
+        // collect_fund_capital valuation). period_return is therefore the
+        // genuine intra-turn mark-to-market gain (coupons, trades) and
+        // excludes new subscriptions, which are dilution-neutral.
+        let ledger = fund.fund_ledger.as_ref().unwrap();
+        let prev_aum = ledger.nav_per_share * ledger.shares_outstanding as f64;
+        let period_return = (aum - prev_aum).max(0.0);
+        // Benchmark hurdle: the annual benchmark rate prorated to one turn
+        // (24 turns per year, the same convention as coupon accrual).
+        let benchmark_return = prev_aum * config.fund_benchmark_rate / 24.0;
+        let excess_return = (period_return - benchmark_return).max(0.0);
         let perf_fee = excess_return * config.fund_performance_fee_rate;
 
         let total_fee = mgmt_fee + perf_fee;
@@ -1067,11 +1140,18 @@ pub fn try_create_fund_from_vip(
     // Create the fund.
     let fund_id = format!("FUND-DYN-{}-{}", country.name, current_turn);
     let initial_capital = vip_cash;
+    // Units at par (1.0): clamp the f64→u64 cast so a corrupt/non-finite
+    // capital can never saturate to u64::MAX.
+    let seed_units = if initial_capital.is_finite() && initial_capital > 0.0 {
+        initial_capital.min(u64::MAX as f64) as u64
+    } else {
+        0
+    };
 
     // Create fund ledger.
     let ledger = crate::securities::FundLedger {
         nav_per_share: 1.0,
-        shares_outstanding: (initial_capital / 1.0) as u64,
+        shares_outstanding: seed_units,
         management_fee: 0.02,
         performance_fee: 0.20,
         leverage_ratio: 2.0, // Hedge funds start with 2x leverage
@@ -1079,7 +1159,7 @@ pub fn try_create_fund_from_vip(
         liquidity_provision: std::collections::BTreeMap::new(),
         unit_holders: {
             let mut m = std::collections::BTreeMap::new();
-            m.insert(vip.full_name.clone(), (initial_capital / 1.0) as u64);
+            m.insert(vip.full_name.clone(), seed_units);
             m
         },
         bond_holdings: Vec::new(),
@@ -1099,7 +1179,7 @@ pub fn try_create_fund_from_vip(
             .unwrap_or_default(),
         legal_form: crate::entities::LegalForm::JointStockCompany(
             crate::entities::JointStockData {
-                shares_issued: (initial_capital / 1.0) as u64,
+                shares_issued: seed_units,
                 free_float: 0.0,
                 dividend_per_share: 0.0,
                 board_independence: 0.5,
@@ -1111,7 +1191,7 @@ pub fn try_create_fund_from_vip(
         liquid_capital: 0.0,
         available_cash: 0.0,
         company_capital: initial_capital,
-        shares_count: (initial_capital / 1.0) as u64,
+        shares_count: seed_units,
         share_price: 1.0,
         brokerage_account: Some(crate::securities::BrokerageAccount {
             cash: initial_capital,

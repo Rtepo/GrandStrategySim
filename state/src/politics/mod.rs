@@ -57,13 +57,14 @@ pub use advisory_council::{
 };
 pub use attendance::{calculate_attendance, AttendanceModel, AttendanceResult, QuorumType};
 pub use bill_lifecycle::{
-    deterministic_roll, process_bicameral_review, process_bill_lifecycle, process_committee_stage,
+    deterministic_roll, introduce_bill_to_session, introduce_budget_bill_if_due,
+    process_bicameral_review, process_bill_lifecycle, process_committee_stage,
     process_executive_review, process_floor_vote, process_legislation_turn,
 };
 pub use budget_lifecycle::{
-    apply_budget_failure_consequence, draft_budget_bill, process_budget_amendments,
-    process_budget_lifecycle, BudgetAmendment, BudgetBill, BudgetBillStage,
-    BudgetFailureConsequence,
+    apply_budget_failure_consequence, budget_bill_to_legislative_bill, draft_budget_bill,
+    process_budget_amendments, process_budget_lifecycle, BudgetAmendment, BudgetBill,
+    BudgetBillStage, BudgetFailureConsequence,
 };
 pub use campaign::{
     execute_digital_campaign, execute_national_ad_campaign, execute_regional_rally,

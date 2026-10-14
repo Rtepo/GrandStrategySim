@@ -2041,6 +2041,185 @@ pub fn reseed_resources_from_planet(
     }
 }
 
+/// Resources-tab remediation: Propagate authoritative `Planet::veins` state
+/// into each region's `resources` mirror.
+///
+/// [`reseed_resources_from_planet`] writes the mirror once at worldgen; the
+/// extraction path then depletes `Planet::veins` via
+/// `crate::economy::production::geology::apply_depletion_batch` but never
+/// wrote back here — so `current_reserves` stayed frozen at the initial
+/// estimate and the UI read a permanently-zero `extraction_rate` /
+/// `utilization_rate`. Call once per turn after depletion is applied.
+///
+/// For every resource entry keyed by a vein ID (or `composite_id`):
+/// * `geological_reserves` ← `vein.total_reserves` (the original estimate —
+///   the stable denominator behind the depletion/utilization fraction).
+/// * `current_reserves`   ← `vein.current_reserves` (post-depletion).
+/// * `extraction_rate`    ← tons extracted this turn by mines located in
+///   THIS region (`extraction[region_id][vein_key]`); veins overlapping
+///   several regions only show extraction where a mine physically sits.
+/// * `discovered`         ← `vein.discovered` (propagates survey fog-of-war
+///   reveals so newly discovered deposits appear in the UI).
+///
+/// Non-geological entries (freshwater, forests, pollution) and keys that do
+/// not resolve to a vein (legacy commodity-string keys from pre-Phase-88
+/// saves) are left untouched.
+pub fn sync_region_resources_from_planet(
+    regions: &mut [Region],
+    planet: &crate::society::planet::Planet,
+    extraction: &rustc_hash::FxHashMap<String, rustc_hash::FxHashMap<String, f64>>,
+) {
+    for region in regions.iter_mut() {
+        let region_extraction = extraction.get(&region.id);
+        for (resource_key, entry) in region.resources.iter_mut() {
+            let Some(obj) = entry.as_object_mut() else {
+                continue;
+            };
+            // Geological resource entries carry a "commodity" field; skip
+            // anything else (freshwater, forests, pollution scalars, ...).
+            if !obj.contains_key("commodity") {
+                continue;
+            }
+            let Some(vein) = planet.vein_by_id(resource_key) else {
+                continue;
+            };
+            // The depletion request carries `Building::deposit_id`, which may
+            // be either the vein's `id` or its `composite_id` — while this
+            // resource entry is keyed by whichever form worldgen chose.
+            // Try every key form so attribution never silently misses.
+            let extracted = region_extraction
+                .map(|m| {
+                    let mut total = 0.0_f64;
+                    total += m.get(resource_key).copied().unwrap_or(0.0);
+                    if vein.id != *resource_key {
+                        total += m.get(&vein.id).copied().unwrap_or(0.0);
+                    }
+                    if let Some(cid) = vein.composite_id.as_ref() {
+                        if cid != resource_key {
+                            total += m.get(cid).copied().unwrap_or(0.0);
+                        }
+                    }
+                    total
+                })
+                .unwrap_or(0.0)
+                .max(0.0);
+            obj.insert(
+                "geological_reserves".to_string(),
+                Value::from(vein.total_reserves.max(0.0)),
+            );
+            obj.insert(
+                "current_reserves".to_string(),
+                Value::from(vein.current_reserves.max(0.0)),
+            );
+            obj.insert("extraction_rate".to_string(), Value::from(extracted));
+            // Same quantity under the worldgen-seeded key so both reader
+            // paths stay consistent.
+            obj.insert("annual_extraction".to_string(), Value::from(extracted));
+            obj.insert("discovered".to_string(), Value::from(vein.discovered));
+        }
+    }
+}
+
+// ============================================================================
+// Regional GDP — bottom-up value added (replaces population-share pro-rating)
+// ============================================================================
+
+/// Compute each region's gross value added (GVA) from REAL economic
+/// activity — the production side of regional GDP.
+///
+/// Two components, never double-counted:
+/// * **Buildings** (attributed by physical `Building::region_id`):
+///   `GVA_b = Σ_c last_production[c] × anchored_base_price(c) − last_input_cost`
+///   where `last_input_cost` is the intermediate-consumption value persisted
+///   by `execute_production_cycle` under the engine's 0.5×anchor input-price
+///   convention. `last_production` is cleared and rewritten with this turn's
+///   actual (inventory-gated) output each production wave, so the measure
+///   tracks real physical output — never a national-GDP pro-rating.
+/// * **Buildingless companies** (attributed by `Company::region_id`):
+///   income-side value added `wages_paid_this_turn +
+///   arrears_accrued_this_turn + realized_profit_this_turn` — covers pure
+///   financial/service entities (banks, funds) that own no buildings.
+///   Companies WITH buildings are excluded because their activity is already
+///   captured per-building.
+///
+/// # Returns
+/// `region_id → GVA` covering every region in `regions` (0.0 where no
+/// activity was recorded — a genuinely subsistence-only region).
+pub fn regional_value_added(
+    regions: &[Region],
+    companies: &[crate::entities::Company],
+    buildings: &[crate::entities::Building],
+) -> HashMap<String, f64> {
+    let region_ids: HashSet<&str> = regions.iter().map(|r| r.id.as_str()).collect();
+    let mut va: HashMap<String, f64> =
+        regions.iter().map(|r| (r.id.clone(), 0.0)).collect();
+
+    for b in buildings {
+        if !region_ids.contains(b.region_id.as_str()) {
+            continue;
+        }
+        // Skip construction sites that never ran a production cycle —
+        // `execute_production_cycle` skips them too, so their `last_production`
+        // would be a stale leftover from an earlier turn.
+        if b.active_project.is_some() && b.worker_capacity == 0 {
+            continue;
+        }
+        let output_value: f64 = b
+            .last_production
+            .iter()
+            .map(|(&commodity, &qty)| {
+                qty * crate::engine::generator::corporate::anchored_base_price(commodity)
+            })
+            .sum();
+        let input_cost = b
+            .extra
+            .get("last_input_cost")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        *va.entry(b.region_id.clone()).or_insert(0.0) += output_value - input_cost;
+    }
+
+    for c in companies {
+        // Buildingless companies only — firms with buildings already had
+        // their value added counted per-building above.
+        if c.is_liquidated || !c.building_ids.is_empty() {
+            continue;
+        }
+        if !region_ids.contains(c.region_id.as_str()) {
+            continue;
+        }
+        *va.entry(c.region_id.clone()).or_insert(0.0) += c.wages_paid_this_turn
+            + c.arrears_accrued_this_turn
+            + c.realized_profit_this_turn;
+    }
+
+    va
+}
+
+/// Overwrite `Region::gdp` and `Region::gdp_pc` with the bottom-up value
+/// added from [`regional_value_added`].
+///
+/// Replaces the end-of-turn national-GDP × population-share pro-rating that
+/// assigned every region an identical GDP per capita. Regional GDP is now
+/// derived from where production and income physically occur, so regions
+/// genuinely differ.
+pub fn reconcile_regional_gdp(
+    regions: &mut [Region],
+    companies: &[crate::entities::Company],
+    buildings: &[crate::entities::Building],
+) {
+    let va = regional_value_added(regions, companies, buildings);
+    for r in regions.iter_mut() {
+        let g = va.get(&r.id).copied().unwrap_or(0.0).max(0.0);
+        r.gdp = g;
+        r.gdp_pc = if r.population > 0 {
+            g / r.population as f64
+        } else {
+            0.0
+        };
+    }
+}
+
 /// Serde helper: returns true if the f64 is zero (for `skip_serializing_if`).
 fn is_zero_f64(v: &f64) -> bool {
     *v == 0.0

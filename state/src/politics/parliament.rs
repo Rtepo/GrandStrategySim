@@ -259,6 +259,11 @@ impl Parliament {
         self.chambers.first_mut()
     }
 
+    /// Get mutable upper chamber.
+    pub fn upper_chamber_mut(&mut self) -> Option<&mut Chamber> {
+        self.chambers.get_mut(1)
+    }
+
     /// Get the total seats in the lower chamber.
     pub fn lower_seats(&self) -> u32 {
         self.lower_chamber().map(|c| c.total_seats).unwrap_or(0)
@@ -275,6 +280,17 @@ impl Parliament {
     /// Record a vote in the lower chamber's recent votes (keeps last 20).
     pub fn record_vote(&mut self, record: VoteRecord) {
         if let Some(chamber) = self.lower_chamber_mut() {
+            chamber.recent_votes.insert(0, record);
+            chamber.recent_votes.truncate(20);
+        }
+    }
+
+    /// Record a vote in the upper chamber's recent votes (keeps last 20).
+    /// Used by the bicameral-review stage so the upper house keeps its own
+    /// voting record instead of the bill's outcome only living in the lower
+    /// chamber's log.
+    pub fn record_upper_vote(&mut self, record: VoteRecord) {
+        if let Some(chamber) = self.upper_chamber_mut() {
             chamber.recent_votes.insert(0, record);
             chamber.recent_votes.truncate(20);
         }

@@ -5,6 +5,73 @@ use sim_engine::ui::snapshot::{
     MarketIndexSnapshot, SectorIndexSnapshot, StockExchangeResponse, TradeRow,
 };
 
+/// Display label for a fund's type — avoids leaking Rust `Option` debug
+/// formatting (`Some(ClosedEndInvestmentFund)`) into the UI.
+fn fund_type_label(fund_type: &Option<sim_engine::securities::FundType>) -> &'static str {
+    match fund_type {
+        Some(sim_engine::securities::FundType::OpenEndInvestmentFund) => {
+            "Open-End Investment Fund"
+        }
+        Some(sim_engine::securities::FundType::ClosedEndInvestmentFund) => {
+            "Closed-End Investment Fund"
+        }
+        Some(sim_engine::securities::FundType::HedgeFund) => "Hedge Fund",
+        Some(sim_engine::securities::FundType::ExchangeTradedFund) => "ETF",
+        Some(sim_engine::securities::FundType::MutualFund) => "Mutual Fund",
+        None => "Unknown",
+    }
+}
+
+/// Market value of a fund's brokerage portfolio holdings: equities at the
+/// issuer's current share price, covered bonds at principal per unit, MBS
+/// tranche units at outstanding balance, plus the fund ledger's unredeemed
+/// sovereign-bond holdings at face value.
+fn fund_holdings_value(
+    acct: &sim_engine::securities::BrokerageAccount,
+    ledger: &sim_engine::securities::FundLedger,
+    entities: &[sim_engine::entities::Company],
+    country_ref: &sim_engine::state::Country,
+) -> f64 {
+    let mut total = 0.0;
+    for (inst, lots) in &acct.portfolio {
+        let qty: u64 = lots.iter().map(|l| l.quantity).sum();
+        if qty == 0 {
+            continue;
+        }
+        if let Some(company_id) = inst.strip_prefix("EQUITY:") {
+            if let Some(c) = entities.iter().find(|c| c.id == company_id) {
+                total += c.share_price * qty as f64;
+            }
+        } else if let Some(bond_id) = inst.strip_prefix("BOND:") {
+            if let Some(b) = country_ref
+                .covered_bonds_issued
+                .iter()
+                .find(|b| b.id == bond_id)
+            {
+                total += b.principal * qty as f64;
+            }
+        } else if inst.starts_with("MBS:") {
+            let parts: Vec<&str> = inst.splitn(3, ':').collect();
+            if parts.len() == 3 {
+                if let Some(mbs) = country_ref.mbs_pool.iter().find(|m| m.id == parts[1]) {
+                    if let Some(t) = mbs.tranches.iter().find(|t| {
+                        format!("{:?}", t.priority).to_lowercase() == parts[2]
+                    }) {
+                        total += t.outstanding_balance * qty as f64;
+                    }
+                }
+            }
+        }
+    }
+    total
+        + ledger
+            .bond_holdings
+            .iter()
+            .filter(|h| !h.redeemed)
+            .map(|h| h.face_value)
+            .sum::<f64>()
+}
+
 /// Phase 56: Get the full stock exchange snapshot for a country.
 #[tauri::command]
 pub async fn get_stock_exchange(
@@ -176,10 +243,14 @@ pub async fn get_listed_companies(
     country: String,
     offset: usize,
     limit: usize,
-    sector_filter: String,
+    sector_filter: Option<String>,
 ) -> Result<ListedCompanyPageResponse, String> {
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
+        // The frontend sends `undefined` (→ null) for "all sectors"; a
+        // required-String parameter would fail arg deserialization and the
+        // Listed Companies table renders empty despite live listings.
+        let sector_filter = sector_filter.unwrap_or_default();
         let engine_guard = state_clone.engine.blocking_read();
         let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
@@ -411,28 +482,18 @@ pub async fn get_funds(
                     Vec::new()
                 };
 
+                // Real AUM = cash + frozen cash + holdings marked to market —
+                // the old code priced every holding at the FUND's own
+                // share_price, producing a wrong (often near-zero) AUM.
                 let total_aum = if let Some(ref acct) = c.brokerage_account {
                     acct.cash
-                        + top_holdings
-                            .iter()
-                            .map(|(_, w)| *w * c.share_price)
-                            .sum::<f64>()
+                        + acct.frozen_cash
+                        + fund_holdings_value(acct, ledger, entities, country_ref)
                 } else {
                     0.0
                 };
 
-                let fund_type_str = match c.fund_type {
-                    Some(sim_engine::securities::FundType::OpenEndInvestmentFund) => {
-                        "Open-End Investment Fund"
-                    }
-                    Some(sim_engine::securities::FundType::ClosedEndInvestmentFund) => {
-                        "Closed-End Investment Fund"
-                    }
-                    Some(sim_engine::securities::FundType::HedgeFund) => "Hedge Fund",
-                    Some(sim_engine::securities::FundType::ExchangeTradedFund) => "ETF",
-                    Some(sim_engine::securities::FundType::MutualFund) => "Mutual Fund",
-                    None => "Unknown",
-                };
+                let fund_type_str = fund_type_label(&c.fund_type);
 
                 FundRow {
                     fund_id: c.id.clone(),
@@ -514,8 +575,14 @@ pub async fn get_fund_detail(
                     .iter()
                     .map(|(inst, lots)| {
                         let qty: u64 = lots.iter().map(|l| l.quantity).sum();
-                        let avg_cost =
-                            lots.iter().map(|l| l.cost_basis).sum::<f64>() / (qty as f64).max(1.0);
+                        // Quantity-weighted average cost basis (the old
+                        // unweighted mean of per-lot prices overstated cost
+                        // for lumpy books).
+                        let avg_cost = lots
+                            .iter()
+                            .map(|l| l.cost_basis * l.quantity as f64)
+                            .sum::<f64>()
+                            / (qty as f64).max(1.0);
                         (inst.clone(), qty, avg_cost)
                     })
                     .filter(|(_, qty, _)| *qty > 0)
@@ -530,8 +597,11 @@ pub async fn get_fund_detail(
             .take(10)
             .collect();
 
+        // Real AUM = cash + frozen cash + holdings marked to market (was
+        // cash-only, which showed ~0 for fully invested funds and made the
+        // detail view inconsistent with the engine's own NAV math).
         let total_aum = if let Some(ref acct) = fund.brokerage_account {
-            acct.cash
+            acct.cash + acct.frozen_cash + fund_holdings_value(acct, ledger, entities, country_ref)
         } else {
             0.0
         };
@@ -539,7 +609,7 @@ pub async fn get_fund_detail(
         Ok(Some(FundDetail {
             fund_id: fund.id.clone(),
             name: fund.name.clone(),
-            fund_type: format!("{:?}", fund.fund_type),
+            fund_type: fund_type_label(&fund.fund_type).to_string(),
             nav_per_share: ledger.nav_per_share,
             total_aum,
             manager_name,

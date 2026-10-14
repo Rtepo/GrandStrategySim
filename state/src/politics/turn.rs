@@ -891,13 +891,25 @@ pub fn process_political_turn(
         country.macro_indicators.cultural_group.clone()
     };
     let mut rng = crate::engine::seeded_rng::thread_rng();
-    let parliament = super::parliament::initialize_parliament(
+    let mut parliament = super::parliament::initialize_parliament(
         &country.politics,
         &cultural_group,
         current_turn,
         &mut rng,
         &mut used_vip_names,
     );
+    // Phase 96: Carry over recorded votes and the pending legislative queue —
+    // the per-turn rebuild above constructs fresh chambers with empty
+    // `recent_votes`/`legislative_queue`, which would otherwise wipe the
+    // Parliament tab every turn even though votes were being recorded.
+    if let Some(ref old) = country.politics.parliament_struct {
+        for chamber in &mut parliament.chambers {
+            if let Some(old_chamber) = old.chambers.iter().find(|c| c.id == chamber.id) {
+                chamber.recent_votes = old_chamber.recent_votes.clone();
+                chamber.legislative_queue = old_chamber.legislative_queue.clone();
+            }
+        }
+    }
     country.politics.parliament_struct = Some(parliament);
 
     // Phase 54: Assign chairperson VIPs to each parliamentary club.
@@ -981,6 +993,20 @@ pub fn process_political_turn(
     // Restore parties
     country.politics.active_parties = active_parties;
 
+    // Phase 96: Ensure the legislative session and committee system exist.
+    // Both were previously only initialized inside run_election_if_due (or
+    // never at all), so process_legislation_turn early-returned every turn.
+    ensure_legislative_infrastructure(country, current_turn);
+
+    // Phase 96: Introduce the periodic budget bill into the real legislative
+    // queue so Parliament actually votes on it and `recent_votes` populates.
+    // Same cadence as the engine's budget lifecycle (every 4 turns).
+    if let Some(msg) =
+        super::bill_lifecycle::introduce_budget_bill_if_due(country, current_turn)
+    {
+        messages.push(msg);
+    }
+
     // Phase 11f: Legislation (needs country + councilors + parties)
     let active_parties_ref = country.politics.active_parties.clone();
     let legislation_msgs = super::bill_lifecycle::process_legislation_turn(
@@ -1005,6 +1031,34 @@ pub fn process_political_turn(
     messages.extend(trait_msgs);
 
     messages
+}
+
+/// Ensure the legislative session and committee system exist when the country
+/// has a functioning parliament (≥1 chamber and a non-empty seat map).
+///
+/// `legislative_session` was previously never initialized and
+/// `committee_system` was only built inside `run_election_if_due`, so the
+/// legislation pipeline was dead for parliaments seated at genesis or between
+/// elections. This lazy init mirrors the election-time wiring.
+fn ensure_legislative_infrastructure(country: &mut Country, current_turn: u32) {
+    let parliament_exists = country.politics.government_form.chambers() > 0
+        && country.politics.parliament_struct.is_some()
+        && country.politics.parliament.values().sum::<u32>() > 0;
+    if !parliament_exists {
+        return;
+    }
+
+    if country.politics.legislative_session.is_none() {
+        country.politics.legislative_session = Some(
+            super::legislation::LegislativeSession::new(current_turn / 24),
+        );
+    }
+
+    if country.politics.committee_system.is_none() {
+        let mut cs = super::committees::CommitteeSystem::default();
+        cs.initialize_committees(&country.politics.parliament, &country.politics.coalition);
+        country.politics.committee_system = Some(cs);
+    }
 }
 
 /// Regenerates party support from ideology bids and the existing party roster.
@@ -1267,13 +1321,25 @@ pub fn run_election_if_due(
         country.macro_indicators.cultural_group.clone()
     };
     let mut rng = crate::engine::seeded_rng::thread_rng();
-    let parliament = super::parliament::initialize_parliament(
+    let mut parliament = super::parliament::initialize_parliament(
         &country.politics,
         &cultural_group,
         current_turn,
         &mut rng,
         &mut used_vip_names,
     );
+    // Phase 96: Preserve recorded votes and the pending legislative queue
+    // across the post-election rebuild — initialize_parliament creates fresh
+    // chambers with empty recent_votes/legislative_queue, which would wipe the
+    // parliamentary record every time a government is re-formed.
+    if let Some(ref old) = country.politics.parliament_struct {
+        for chamber in &mut parliament.chambers {
+            if let Some(old_chamber) = old.chambers.iter().find(|c| c.id == chamber.id) {
+                chamber.recent_votes = old_chamber.recent_votes.clone();
+                chamber.legislative_queue = old_chamber.legislative_queue.clone();
+            }
+        }
+    }
     country.politics.parliament_struct = Some(parliament);
 
     // Phase 54: Assign chairperson VIPs to each parliamentary club.

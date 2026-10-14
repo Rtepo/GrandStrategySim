@@ -375,6 +375,11 @@ pub struct DepletionRequest {
     pub vein_id: String,
     /// The requested extraction amount (tons).
     pub requested_amount: f64,
+    /// Region hosting the extracting mine (`Building::region_id`).
+    /// Attributed by [`extraction_by_region`] so each region's `resources`
+    /// mirror records the extraction physically occurring in that region
+    /// (Land & Cadastre → Resources tab telemetry).
+    pub region_id: String,
 }
 
 /// Phase 93: Apply a batch of depletion requests to `Planet.veins` with
@@ -448,6 +453,46 @@ pub fn apply_depletion_batch(
     }
 
     results
+}
+
+/// Phase 21D (Resources-tab remediation): Aggregate actual (post-clamp)
+/// extraction per (region, vein).
+///
+/// Combines the depletion request log — which carries the extracting mine's
+/// `region_id` — with the per-request actual amounts returned by
+/// [`apply_depletion_batch`]. Iterates `requests` in submission order so the
+/// aggregation is deterministic (the `actuals` map itself has random
+/// iteration order, so it is only ever indexed, never iterated).
+///
+/// # Arguments
+/// * `requests` - The depletion requests submitted this turn.
+/// * `actuals` - `(vein_id, request_index) → actual_amount` as returned by
+///   [`apply_depletion_batch`].
+///
+/// # Returns
+/// `region_id → (vein_id → tons actually extracted this turn)`. Feeds
+/// `crate::society::geography::sync_region_resources_from_planet`, which
+/// writes the per-region extraction telemetry into `Region::resources`.
+pub fn extraction_by_region(
+    requests: &[DepletionRequest],
+    actuals: &rustc_hash::FxHashMap<(String, usize), f64>,
+) -> rustc_hash::FxHashMap<String, rustc_hash::FxHashMap<String, f64>> {
+    let mut out: rustc_hash::FxHashMap<String, rustc_hash::FxHashMap<String, f64>> =
+        rustc_hash::FxHashMap::default();
+    for (idx, req) in requests.iter().enumerate() {
+        let actual = actuals
+            .get(&(req.vein_id.clone(), idx))
+            .copied()
+            .unwrap_or(0.0);
+        if actual <= 0.0 || req.region_id.is_empty() {
+            continue;
+        }
+        *out.entry(req.region_id.clone())
+            .or_default()
+            .entry(req.vein_id.clone())
+            .or_insert(0.0) += actual;
+    }
+    out
 }
 
 /// Phase 93: Resolve completed geological surveys. Called in a turn phase

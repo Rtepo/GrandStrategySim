@@ -432,7 +432,15 @@ pub fn process_legislation_turn(
     let ruling_party = country.politics.ruling_party.clone();
     let upper_house_composition: HashMap<String, u32> = country.politics.upper_house.clone();
     let coalition = country.politics.coalition.clone();
-    let lower_seats = country.politics.parliament.clone();
+    // Prefer the chamber's live seat map (it reflects mid-term splinter clubs);
+    // fall back to the legacy flat parliament map when no struct exists.
+    let lower_seats = country
+        .politics
+        .parliament_struct
+        .as_ref()
+        .map(|p| p.lower_seat_map())
+        .filter(|m| !m.is_empty())
+        .unwrap_or_else(|| country.politics.parliament.clone());
     let total_lower_seats: u32 = lower_seats.values().sum();
     let _coalition_seats: u32 = coalition
         .iter()
@@ -446,7 +454,11 @@ pub fn process_legislation_turn(
     let committee_system = country.politics.committee_system.take();
 
     if let Some(ref mut sess) = session {
-        let bill_ids: Vec<String> = sess.active_bills.keys().cloned().collect();
+        // Determinism: iterate active bills in sorted id order — HashMap
+        // iteration order is arbitrary and enactment order can matter when
+        // two bills pass on the same turn.
+        let mut bill_ids: Vec<String> = sess.active_bills.keys().cloned().collect();
+        bill_ids.sort();
 
         for bill_id in &bill_ids {
             // Get the bill (we need to remove it, process it, then reinsert or move to enacted/rejected).
@@ -583,6 +595,18 @@ pub fn process_legislation_turn(
                     if let Some(ref mut parl) = country.politics.parliament_struct {
                         parl.record_vote(vote_record.clone());
                     }
+                    // Real legislative telemetry — the parliamentary record the
+                    // UI reads, not a synthetic history string.
+                    country.politics.history.push(serde_json::json!({
+                        "event": "floor_vote",
+                        "bill_id": bill_id,
+                        "title": bill_title,
+                        "votes_for": votes_for,
+                        "votes_against": votes_against,
+                        "abstentions": abstentions,
+                        "passed": passed,
+                        "turn": current_turn,
+                    }));
 
                     if passed {
                         // Check if bicameral.
@@ -626,7 +650,7 @@ pub fn process_legislation_turn(
                             crate::politics::laws::UniversalityLevel::Limited => 0.3,
                         })
                         .unwrap_or(0.5);
-                    let (votes_for, votes_against, _abstentions, upper_quorum_met) =
+                    let (votes_for, votes_against, abstentions, upper_quorum_met) =
                         calculate_upper_house_vote(
                             &bill,
                             &upper_house_composition,
@@ -672,6 +696,23 @@ pub fn process_legislation_turn(
                     } else {
                         true // No upper house → auto-pass.
                     };
+
+                    // Record the upper-house vote in the upper chamber's own
+                    // recent_votes log when a second chamber exists.
+                    if total_upper > 0 {
+                        let upper_record = super::parliament::VoteRecord {
+                            bill_id: bill_id.clone(),
+                            bill_title: bill_title.clone(),
+                            votes_for,
+                            votes_against,
+                            abstentions,
+                            passed,
+                            turn: current_turn,
+                        };
+                        if let Some(ref mut parl) = country.politics.parliament_struct {
+                            parl.record_upper_vote(upper_record);
+                        }
+                    }
 
                     if passed {
                         bill.stage = LegislativeStage::Executive;
@@ -727,6 +768,18 @@ pub fn process_legislation_turn(
         }
     }
 
+    // Prune chamber legislative queues of bill IDs that are no longer active
+    // (enacted, rejected, or vetoed bills were removed from active_bills above).
+    if let (Some(ref mut parl), Some(ref sess)) =
+        (&mut country.politics.parliament_struct, &session)
+    {
+        for chamber in &mut parl.chambers {
+            chamber
+                .legislative_queue
+                .retain(|id| sess.active_bills.contains_key(id));
+        }
+    }
+
     // Restore session and committee system.
     country.politics.legislative_session = session;
     country.politics.committee_system = committee_system;
@@ -751,13 +804,28 @@ impl FastTrackBill for Bill {
 }
 
 /// Assign a committee to a bill based on its type/clauses.
-fn assign_committee(_bill: &Bill, cs: &CommitteeSystem) -> String {
-    // Simple heuristic: use the first committee that matches.
-    if let Some(first_committee) = cs.committees.keys().next() {
-        first_committee.clone()
+///
+/// Deterministic: routes through `bill_type_assignments` when populated,
+/// otherwise falls back to the lexicographically smallest committee id —
+/// `HashMap::keys().next()` iteration order is arbitrary and would assign
+/// different committees run-to-run.
+fn assign_committee(bill: &Bill, cs: &CommitteeSystem) -> String {
+    let title = bill.title.to_lowercase();
+    // Fiscal measures (budget, crisis fiscal responses, bond authorisations)
+    // all belong to the budget committee; everything else is general.
+    let bill_type = if title.contains("budget")
+        || title.contains("crisis")
+        || title.contains("emergency")
+        || title.contains("bond")
+    {
+        "budget"
     } else {
-        "Budget".to_string()
-    }
+        "general"
+    };
+    cs.get_committee_for_bill(bill_type)
+        .cloned()
+        .or_else(|| cs.committees.keys().min().cloned())
+        .unwrap_or_else(|| "budget_committee".to_string())
 }
 
 /// Process committee stage for Phase 32 — calculate recommendation modifier.
@@ -911,6 +979,127 @@ fn calculate_executive_sign_probability(
 
     // Opposition bill — low sign probability.
     0.3
+}
+
+// ============================================================================
+// PHASE 96: BILL INTAKE — introduction into the parliamentary queue
+// ============================================================================
+
+/// Introduce a bill into the country's legislative session and queue it in the
+/// lower chamber of `parliament_struct`.
+///
+/// This is the missing intake half of the Phase 32 pipeline: previously
+/// `LegislativeSession::introduce_bill` had no call sites and
+/// `politics.legislative_session` was never initialized, so
+/// `process_legislation_turn` early-returned on every turn and no chamber ever
+/// recorded a `VoteRecord`.
+///
+/// # Rules
+/// * Countries with `GovernmentForm::chambers() == 0` (absolutist/dictatorial
+///   regimes) cannot introduce bills — returns `false`.
+/// * `legislative_session` is lazily initialized on first introduction.
+/// * Only bills in `LegislativeStage::Introduced` are accepted (mirrors
+///   `LegislativeSession::introduce_bill`).
+/// * Duplicate bill IDs already in flight are skipped.
+///
+/// # Returns
+/// `true` when the bill was added to `active_bills` (and queued on the lower
+/// chamber when a parliament struct exists).
+pub fn introduce_bill_to_session(country: &mut crate::state::Country, bill: Bill) -> bool {
+    if country.politics.government_form.chambers() == 0 {
+        return false; // No parliament exists to vote on legislation.
+    }
+    // No seated MPs → a bill would only produce a degenerate 0-0 rejection.
+    // Check both the live chamber seat map and the legacy flat map.
+    let seated = country
+        .politics
+        .parliament_struct
+        .as_ref()
+        .map(|p| p.lower_seats())
+        .unwrap_or(0)
+        .max(country.politics.parliament.values().sum::<u32>());
+    if seated == 0 {
+        return false;
+    }
+    if !matches!(bill.stage, LegislativeStage::Introduced) {
+        return false;
+    }
+    let bill_id = bill.id.clone();
+    let introduction_turn = bill.introduction_turn;
+    let session = country
+        .politics
+        .legislative_session
+        .get_or_insert_with(|| {
+            super::legislation::LegislativeSession::new(introduction_turn / 24)
+        });
+    if session.active_bills.contains_key(&bill_id) {
+        return false; // Already introduced — do not double-queue.
+    }
+    session.introduce_bill(bill);
+    if let Some(ref mut parl) = country.politics.parliament_struct {
+        parl.queue_bill(bill_id);
+    }
+    true
+}
+
+/// Introduce the periodic budget bill into the real parliamentary queue.
+///
+/// Runs on the same cadence as the engine's budget lifecycle block
+/// (`current_turn % 4 == 0`). The drafted `BudgetBill` is converted into a
+/// legislative `Bill` (via `budget_bill_to_legislative_bill`) and introduced
+/// into the session, so the budget progresses through committee → floor vote
+/// → bicameral → executive inside `process_legislation_turn` and produces a
+/// real `VoteRecord` in the chamber's `recent_votes`.
+///
+/// The engine's synchronous `process_budget_lifecycle` remains the economic
+/// authority (it writes ministry allocations back and applies failure
+/// consequences); the session bill carries descriptive clauses only.
+///
+/// # Returns
+/// `Some(message)` when a bill was introduced this turn, `None` otherwise.
+pub fn introduce_budget_bill_if_due(
+    country: &mut crate::state::Country,
+    current_turn: u32,
+) -> Option<String> {
+    if current_turn % 4 != 0 {
+        return None;
+    }
+    // No parliament at all → nothing to vote on.
+    if country.politics.government_form.chambers() == 0 {
+        return None;
+    }
+    let parliament_suspended = country
+        .politics
+        .parliament_struct
+        .as_ref()
+        .map(|p| p.suspended)
+        .unwrap_or(true) // No parliament struct → no queue to feed.
+        || country
+            .politics
+            .state_of_emergency
+            .as_ref()
+            .map(|soe| soe.can_bypass_parliament())
+            .unwrap_or(false);
+    if parliament_suspended {
+        return None;
+    }
+    // No seated MPs yet (e.g., pre-first-election authoritarian legislature).
+    let total_seats: u32 = country.politics.parliament.values().sum();
+    if total_seats == 0 {
+        return None;
+    }
+
+    let budget_bill = super::budget_lifecycle::draft_budget_bill(country, current_turn);
+    let bill = super::budget_lifecycle::budget_bill_to_legislative_bill(country, &budget_bill);
+    let bill_id = bill.id.clone();
+    if introduce_bill_to_session(country, bill) {
+        Some(format!(
+            "[LEGISLATION] Bill '{}' introduced to Parliament.",
+            bill_id
+        ))
+    } else {
+        None
+    }
 }
 
 // ============================================================================

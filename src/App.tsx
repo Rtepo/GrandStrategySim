@@ -187,7 +187,12 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
     try {
       resetStore();
       queryClient.clear();
-      localStorage.removeItem("gdp_history");
+      // GDP chart history is stored per-country (`gdp_history:<country>`);
+      // clear every matching key (plus the legacy shared key) for the new game.
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("gdp_history")) localStorage.removeItem(k);
+      }
       await newGame(countryCount, startYear);
       await refreshStatus();
       onStart();

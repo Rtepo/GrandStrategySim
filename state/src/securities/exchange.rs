@@ -315,6 +315,13 @@ pub struct MarketIndex {
     /// Total market capitalization of all listed companies.
     #[serde(default)]
     pub total_market_cap: f64,
+    /// Previous turn's market capitalization per sector, used to scale each
+    /// sector index by the genuine sector-cap delta. (The old code
+    /// reconstructed "prev" from the stored index value and multiplied by
+    /// cap/cap.max(1.0) — always ×1.0 — so sector indices were frozen at the
+    /// 1000.0 base forever.)
+    #[serde(default)]
+    pub prev_sector_market_caps: BTreeMap<String, f64>,
     /// Total trading volume this turn.
     #[serde(default)]
     pub total_volume: u64,
@@ -406,15 +413,26 @@ impl MarketIndex {
             .map(|c| c.share_price * c.shares_count as f64)
             .sum();
 
+        // Per-turn trading volume: only trades from the most recent trading
+        // turn count (trade_history is append-ordered, so the back entry is
+        // the newest turn with actual executions). The old code summed the
+        // ALL-TIME history every turn — a cumulative counter masquerading as
+        // a per-turn volume figure.
+        let last_trade_turn = exchange
+            .trade_history
+            .back()
+            .map(|t| t.turn)
+            .unwrap_or(0);
         let total_volume: u64 = listed
             .iter()
             .map(|c| {
-                // Sum trade volumes from the exchange for this company's instrument.
                 let instrument_id = format!("EQUITY:{}", c.id);
                 exchange
                     .trade_history
                     .iter()
-                    .filter(|t| t.instrument_id == instrument_id)
+                    .filter(|t| {
+                        t.instrument_id == instrument_id && t.turn == last_trade_turn
+                    })
                     .map(|t| t.quantity)
                     .sum::<u64>()
             })
@@ -474,47 +492,43 @@ impl MarketIndex {
             self.volatility = variance.sqrt();
         }
 
-        // Compute sector indices.
-        let mut sectors_seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+        // Compute sector indices. Each sector index is scaled by the genuine
+        // ratio between this turn's and last turn's sector market cap,
+        // tracked in `prev_sector_market_caps`. The old formula multiplied
+        // the stored index by `cap / cap.max(1.0)` ≡ ×1.0 every turn, so all
+        // sector indices stayed frozen at the 1000.0 base.
+        // A BTreeMap accumulation keeps iteration order deterministic.
+        let mut sector_caps: BTreeMap<String, f64> = BTreeMap::new();
         for c in &listed {
             let sector_name = format!("{:?}", c.sector);
-            sectors_seen.insert(sector_name);
+            *sector_caps.entry(sector_name).or_insert(0.0) +=
+                c.share_price * c.shares_count as f64;
         }
 
-        for sector_name in &sectors_seen {
-            let sector_companies: Vec<&Company> = listed
-                .iter()
-                .copied()
-                .filter(|c| format!("{:?}", c.sector) == *sector_name)
-                .collect();
-            let sector_market_cap: f64 = sector_companies
-                .iter()
-                .map(|c| c.share_price * c.shares_count as f64)
-                .sum();
+        for (sector_name, sector_market_cap) in &sector_caps {
+            let prev_index = self.sector_indices.get(sector_name).copied();
+            let prev_cap = self
+                .prev_sector_market_caps
+                .get(sector_name)
+                .copied();
 
-            let prev_sector_cap = self.sector_indices.get(sector_name).and_then(|prev_val| {
-                // Reconstruct previous sector cap from previous index value
-                if *prev_val > 0.0 && self.total_market_cap > 0.0 {
-                    Some(*prev_val)
-                } else {
-                    None
+            let sector_index = match (prev_index, prev_cap) {
+                (Some(pi), Some(pc)) if pi > 0.0 && pc > 0.0 => {
+                    pi * (*sector_market_cap / pc)
                 }
-            });
-
-            let sector_index = if let Some(prev) = prev_sector_cap {
-                if prev > 0.0 && sector_market_cap > 0.0 {
-                    prev * (sector_market_cap / sector_market_cap.max(1.0))
-                } else {
-                    1000.0
+                _ => {
+                    if *sector_market_cap > 0.0 {
+                        1000.0
+                    } else {
+                        0.0
+                    }
                 }
-            } else if sector_market_cap > 0.0 {
-                1000.0
-            } else {
-                0.0
             };
 
             self.sector_indices
                 .insert(sector_name.clone(), sector_index);
+            self.prev_sector_market_caps
+                .insert(sector_name.clone(), *sector_market_cap);
             let hist = self
                 .sector_index_history
                 .entry(sector_name.clone())
@@ -743,10 +757,22 @@ impl StockExchange {
         let instrument_ids: Vec<String> = self.order_book.keys().cloned().collect();
 
         for instrument_id in &instrument_ids {
-            // Remove expired orders first
+            // Remove expired orders first. Expired BUY orders must release
+            // the cash frozen at submission (submit_fund_orders moves the
+            // pledged cost into `frozen_cash`); without this release the
+            // frozen balance is a one-way ratchet that permanently traps
+            // fund money and bleeds AUM.
+            let mut expired_bids: Vec<Order> = Vec::new();
             if let Some(book) = self.order_book.get_mut(instrument_id) {
                 for (_, orders) in book.bids.iter_mut() {
-                    orders.retain(|o| o.expiry_turn() >= current_turn);
+                    let mut i = 0;
+                    while i < orders.len() {
+                        if orders[i].expiry_turn() < current_turn {
+                            expired_bids.push(orders.remove(i));
+                        } else {
+                            i += 1;
+                        }
+                    }
                 }
                 book.bids.retain(|(_, orders)| !orders.is_empty());
                 for (_, orders) in book.asks.iter_mut() {
@@ -755,6 +781,24 @@ impl StockExchange {
                 book.asks.retain(|(_, orders)| !orders.is_empty());
                 book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
                 book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
+            }
+
+            // Return the still-frozen pledge (remaining qty × limit price)
+            // to each expired bidder's free cash.
+            for order in &expired_bids {
+                let release = order.quantity() as f64 * order.limit_price();
+                if release <= 0.0 {
+                    continue;
+                }
+                if let Some(investor) =
+                    companies.iter_mut().find(|c| c.id == order.investor_id())
+                {
+                    if let Some(ref mut acct) = investor.brokerage_account {
+                        let freed = release.min(acct.frozen_cash.max(0.0));
+                        acct.frozen_cash -= freed;
+                        acct.cash += freed;
+                    }
+                }
             }
 
             // Match loop for this instrument
@@ -831,6 +875,7 @@ impl StockExchange {
                     fill_qty,
                     cost,
                     fee,
+                    bid_order.limit_price(),
                     companies,
                     mbs_pool,
                     covered_bonds,
@@ -909,6 +954,10 @@ impl StockExchange {
     /// * Treasury: liquid_reserves += 2 * fee
     /// * For MBS tranches: update tranche owner_id
     /// * For covered bonds: update bond owner_id
+    /// * `buyer_frozen_per_unit` is the bid's limit price — the per-unit
+    ///   amount the buyer froze at order submission. Settlement consumes that
+    ///   frozen pledge first and debits only the shortfall (fee + any price
+    ///   improvement is refunded) from free cash.
     fn settle_trade(
         buyer_id: &str,
         seller_id: &str,
@@ -916,6 +965,7 @@ impl StockExchange {
         quantity: u64,
         cost: f64,
         fee: f64,
+        buyer_frozen_per_unit: f64,
         companies: &mut [Company],
         mbs_pool: &mut [crate::securities::MortgageBackedSecurity],
         covered_bonds: &mut [crate::securities::CoveredBond],
@@ -941,7 +991,15 @@ impl StockExchange {
             for company in companies.iter_mut() {
                 if company.id == buyer_id {
                     if let Some(ref mut acct) = company.brokerage_account {
-                        acct.cash -= cost + fee;
+                        // Consume the cash the buyer froze at order
+                        // submission (qty × bid limit) before debiting free
+                        // cash — previously the order froze cash AND the
+                        // settlement debited cash again, double-charging the
+                        // buyer while the frozen pledge was never released.
+                        let frozen_consumed = (quantity as f64 * buyer_frozen_per_unit)
+                            .min(acct.frozen_cash.max(0.0));
+                        acct.frozen_cash -= frozen_consumed;
+                        acct.cash -= (cost + fee) - frozen_consumed;
                         acct.add_lot(instrument_id, quantity, price_per_share, 0);
                     }
                 }
@@ -965,7 +1023,15 @@ impl StockExchange {
             for company in companies.iter_mut() {
                 if company.id == buyer_id {
                     if let Some(ref mut acct) = company.brokerage_account {
-                        acct.cash -= cost + fee;
+                        // Consume the cash the buyer froze at order
+                        // submission (qty × bid limit) before debiting free
+                        // cash — previously the order froze cash AND the
+                        // settlement debited cash again, double-charging the
+                        // buyer while the frozen pledge was never released.
+                        let frozen_consumed = (quantity as f64 * buyer_frozen_per_unit)
+                            .min(acct.frozen_cash.max(0.0));
+                        acct.frozen_cash -= frozen_consumed;
+                        acct.cash -= (cost + fee) - frozen_consumed;
                         acct.add_lot(instrument_id, quantity, price_per_share, 0);
                     }
                 }
@@ -1005,7 +1071,15 @@ impl StockExchange {
             for company in companies.iter_mut() {
                 if company.id == buyer_id {
                     if let Some(ref mut acct) = company.brokerage_account {
-                        acct.cash -= cost + fee;
+                        // Consume the cash the buyer froze at order
+                        // submission (qty × bid limit) before debiting free
+                        // cash — previously the order froze cash AND the
+                        // settlement debited cash again, double-charging the
+                        // buyer while the frozen pledge was never released.
+                        let frozen_consumed = (quantity as f64 * buyer_frozen_per_unit)
+                            .min(acct.frozen_cash.max(0.0));
+                        acct.frozen_cash -= frozen_consumed;
+                        acct.cash -= (cost + fee) - frozen_consumed;
                         acct.add_lot(instrument_id, quantity, price_per_share, 0);
                     }
                 }
@@ -1042,6 +1116,16 @@ impl StockExchange {
                     break;
                 }
             }
+        }
+
+        // Underwritten sell orders ("TREASURY:<id>" sellers — IPO floats and
+        // leftover issuance asks) have no Company brokerage account to
+        // credit. Route their proceeds to the national treasury so the
+        // buyer's debit stays conserved; the state does not owe CGT to
+        // itself.
+        if seller_id == "TREASURY" || seller_id.starts_with("TREASURY:") {
+            treasury.liquid_reserves += cost - fee;
+            seller_tax_exempt = true;
         }
 
         // Phase 94: Sync bank reserves (M0) for securities trades.

@@ -48,6 +48,7 @@ export function MacroPage() {
             </CardHeader>
             <CardContent>
               <GdpChart
+                country={selectedCountry}
                 gdp={macro.gdp}
                 cpi={macro.cpi}
                 ppi={macro.ppi}

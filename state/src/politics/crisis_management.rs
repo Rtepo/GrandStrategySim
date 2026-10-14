@@ -1323,6 +1323,74 @@ pub fn apply_starvation_mortality(country: &mut Country) -> i64 {
 // HELPERS
 // ============================================================================
 
+/// Phase 96: Introduce a fast-track crisis bill into the legislative session.
+///
+/// This completes the Phase 32 "Step 7" wiring: the FastTrack classification
+/// previously only logged a message, so no bill ever reached a chamber. The
+/// bill carries a descriptive `Custom` provision — the economic response is
+/// executed by the decree path in the same turn — so enactment via
+/// `enact_bill` applies nothing twice while the floor vote is recorded for
+/// real (seats, discipline, thresholds).
+///
+/// `scope_key` namespaces the bill id (`"FISCAL"` → `CRISIS-FISCAL-{turn}`).
+/// A scope that is already in flight is not re-introduced, bounding the queue
+/// during multi-turn crises.
+fn introduce_crisis_fast_track_bill(
+    country: &mut Country,
+    scope_key: &str,
+    title: &str,
+    current_turn: u32,
+    messages: &mut Vec<String>,
+) {
+    use crate::politics::legislation::{Bill, BillProvision, Clause};
+
+    let id_prefix = format!("CRISIS-{}-", scope_key);
+    let already_queued = country
+        .politics
+        .legislative_session
+        .as_ref()
+        .map(|s| s.active_bills.keys().any(|id| id.starts_with(&id_prefix)))
+        .unwrap_or(false);
+    if already_queued {
+        return;
+    }
+
+    let initiator = country.politics.ruling_party.clone();
+    let initiator_coords = country
+        .politics
+        .active_parties
+        .get(&initiator)
+        .map(|p| p.coordinates)
+        .unwrap_or_default();
+
+    let bill = Bill::new(
+        format!("{}{}", id_prefix, current_turn),
+        format!("{} — Turn {}", title, current_turn),
+        initiator,
+        vec![Clause {
+            description: format!("{} (fast-track crisis authorisation)", title),
+            ideological_vector: initiator_coords,
+            budget_impact: 0.0,
+            provision: Some(BillProvision::Custom {
+                description: title.to_string(),
+                effect_key: format!("crisis_{}", scope_key.to_lowercase()),
+                effect_value: 0.0,
+            }),
+            sunset_turn: None,
+            mutated: false,
+            mutation_notes: Vec::new(),
+        }],
+        current_turn,
+    );
+
+    if super::bill_lifecycle::introduce_bill_to_session(country, bill) {
+        messages.push(format!(
+            "[LEGISLATION] Fast-track crisis bill '{}' introduced to Parliament.",
+            title
+        ));
+    }
+}
+
 /// Get the ideology of the ruling party.
 pub fn get_ruling_ideology(politics: &Politics) -> Ideology {
     if politics.ruling_party.is_empty() {
@@ -1437,15 +1505,22 @@ pub fn execute_crisis_response(
     match fiscal_action_type {
         CrisisActionType::FastTrack => {
             // Fast-track: fiscal changes go through Parliament.
-            // For now, we still execute the fiscal response directly but log
-            // that it should go through fast-track legislation.
-            // The actual fast-track bill creation will be wired in Step 7.
+            // Phase 96: the bill is actually introduced into the legislative
+            // session now — it travels the real queue (committee → floor vote)
+            // and produces a VoteRecord in the chamber's recent_votes.
             messages.push(
                 "[CRISIS FAST-TRACK] Fiscal response routed through Parliament (fast-track)."
                     .to_string(),
             );
             let fiscal_msgs = execute_fiscal_response(country, &indicators, &profile);
             messages.extend(fiscal_msgs);
+            introduce_crisis_fast_track_bill(
+                country,
+                "FISCAL",
+                "Emergency Fiscal Response Act",
+                current_turn,
+                &mut messages,
+            );
         }
         CrisisActionType::Decree => {
             // Executive decree (parliament suspended or no parliament).
@@ -1461,6 +1536,13 @@ pub fn execute_crisis_response(
     if bond_action_type == CrisisActionType::FastTrack {
         messages
             .push("[CRISIS FAST-TRACK] Bond issuance authorized through Parliament.".to_string());
+        introduce_crisis_fast_track_bill(
+            country,
+            "BONDS",
+            "Emergency Bond Authorization Act",
+            current_turn,
+            &mut messages,
+        );
     }
     let bond_msgs = issue_crisis_bonds_if_needed(country, companies, current_turn);
     messages.extend(bond_msgs);

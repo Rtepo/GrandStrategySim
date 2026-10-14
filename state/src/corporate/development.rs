@@ -675,14 +675,21 @@ pub fn publish_developer_tenders(
                 .unwrap_or(InformationQuality::Blind);
             let estimated_cost = apply_estimation_error(true_cost, quality);
 
-            let down_payment = estimated_cost * developer.down_payment_percentage;
-            if company.available_cash < down_payment {
+            // Affordability gate: `encumber_tender_escrow` (turn loop) moves
+            // the FULL estimated_cost into the escrow pocket, so the investor
+            // must be able to cover the whole amount — not just a nominal
+            // down payment. (The former 20% pre-debit was a pure double
+            // charge: escrowed_amount stayed 0, so the encumber demanded a
+            // second full cost — ~120% of cost in cash — and the stray 20%
+            // sat in debit_cash as dead encumbrance forever.)
+            let escrowable = company
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash)
+                .unwrap_or(company.available_cash);
+            if escrowable < estimated_cost {
                 continue;
             }
-
-            // Debit the down payment from the company
-            company.available_cash -= down_payment;
-            company.debit_cash += down_payment;
 
             let target_building_type =
                 target_building_type_opt.unwrap_or_else(|| format!("{:?}", project_type));
@@ -733,6 +740,7 @@ pub fn publish_state_tenders(
     micro_region_id: &str,
     current_turn: u32,
     start_year: u32,
+    construction_company_count: usize,
 ) {
     use crate::construction::tender_market::publish_tender;
     use crate::construction::tenders::{TenderInvestorType, TenderStatus};
@@ -748,12 +756,10 @@ pub fn publish_state_tenders(
     let min_cash = tender_config.min_ministry_cash_wage_multiple * avg_wage;
     let max_cost = tender_config.max_tender_cost_wage_multiple * avg_wage;
 
-    // Cap concurrent state tenders based on construction company count.
-    let construction_company_count = country
-        .phase22_tenders
-        .iter()
-        .filter(|t| t.investor_type == TenderInvestorType::State)
-        .count(); // Approximate; real count would need companies slice
+    // Cap concurrent state tenders by real construction-sector capacity —
+    // the caller counts live `Sector::Construction` companies (the old
+    // probe read `phase22_tenders`, which the turn loop mem::take's before
+    // this runs, so it always saw 0 and capped the state at one tender).
     let max_tenders = (tender_config.max_tenders_per_construction_company
         * construction_company_count as f64)
         .round() as usize;

@@ -66,9 +66,13 @@ pub fn submit_construction_b2b_orders(
             building.owner_id.clone()
         };
 
-        // Phase 36: For State-backed projects, accumulate pending tranche value
-        // so the contractor can bid against guaranteed escrow.
-        if project.investor_id.starts_with("STATE:") {
+        // Phase 36: Accumulate pending tranche value for escrow-backed
+        // projects so the contractor can bid against guaranteed escrow.
+        // Extended beyond `STATE:` investors — corporate expansion projects
+        // escrow the investor's cash identically (`investor_cash_debited`),
+        // so their pending tranches are just as reliable a capacity source.
+        // Unescrowed projects (unfunded tenders) contribute nothing.
+        if project.investor_cash_debited > 0.0 {
             let pending: f64 = project
                 .tranches
                 .iter()
@@ -128,11 +132,17 @@ pub fn submit_construction_b2b_orders(
     }
 
     for company in companies.iter_mut() {
-        let liquid = company.computed_liquid_capital();
-        // Phase 94: Do NOT overwrite available_cash — this would duplicate
+        // `computed_liquid_capital` returns only brokerage cash — 0.0 for
+        // unbanked contractors, so they could never bid for materials even on
+        // fully escrowed projects. `operational_cash()` is the actual cash
+        // source (brokerage + available_cash), the same basis payroll and
+        // distress checks use.
+        // Phase 94: Do NOT overwrite available_cash — that would duplicate
         // brokerage_account.cash into available_cash, creating M0 for unbanked
-        // companies (both fields are in the M0 walk). Use liquid directly for
-        // bidding capacity below.
+        // companies (both fields are in the M0 walk). The liquid figure below
+        // only sizes bid capacity; the encumbrance itself debits whichever
+        // pocket actually holds the money.
+        let liquid = company.operational_cash();
         let pending = pending_tranche_value
             .get(&company.id)
             .copied()
@@ -293,9 +303,42 @@ pub fn advance_construction_projects(
             .iter()
             .map(|(&c, &q)| (c, q * capacity_scale * 4.0))
             .collect();
+        // Effective unit costs: prefer the caller-supplied map, but the turn
+        // loop passes an empty BTreeMap (turn.rs ~line 3145), which left every
+        // consumed material valued at 0 — `cost_spent` never moved and the
+        // construction leg of GDP-I was structurally 0 no matter how much was
+        // built. Fill gaps from the economy's own numéraire:
+        // `anchored_base_price` (the cost-plus table installed at world
+        // generation — the same basis `global_base_prices` and the clearing
+        // engine's price anchor use) scaled by the PPI level relative to its
+        // world-gen base of 100 so the valuation tracks wholesale inflation.
+        // Fixed-asset materials are deliberately left unvalued: their purchase
+        // already counted as investment in the fixed-asset trade leg —
+        // valuing them again here would double-count.
+        let ppi_scale = (country
+            .macro_indicators
+            .inflation_indices
+            .ppi_index
+            / 100.0)
+            .clamp(0.25, f64::MAX);
+        let mut effective_unit_costs: BTreeMap<Commodity, f64> = BTreeMap::new();
+        for &commodity in project.required_materials.keys() {
+            if let Some(&price) = unit_costs.get(&commodity) {
+                effective_unit_costs.insert(commodity, price);
+                continue;
+            }
+            if commodity.is_fixed_asset() {
+                continue;
+            }
+            let price = crate::engine::generator::corporate::anchored_base_price(commodity)
+                * ppi_scale;
+            if price > 0.0 {
+                effective_unit_costs.insert(commodity, price);
+            }
+        }
         let consumed = project.consume_delivered_materials(
             &mut building.inventory,
-            unit_costs,
+            &effective_unit_costs,
             productivity,
             &input_reserve,
         );
@@ -484,7 +527,16 @@ pub fn release_construction_tranches(
                 continue;
             }
 
-            let amount = tranche.amount;
+            // Clamp the release to the unspent escrow. Winning bids can price
+            // above the tender's estimated cost, but only `escrowed_amount`
+            // (= investor_cash_debited) was actually debited — paying tranches
+            // past that credits the contractor without a matching debit.
+            let escrow_remaining =
+                (project.investor_cash_debited - project.tranches_paid).max(0.0);
+            let amount = tranche.amount.min(escrow_remaining);
+            if amount <= 0.0 {
+                continue;
+            }
             let payment_ok = if is_state_investor {
                 // State escrow: Treasury was already debited at publication.
                 // Just credit the contractor.

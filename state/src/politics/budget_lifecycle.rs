@@ -6,6 +6,7 @@
 //! trigger (snap elections, provisional budget, or dictatorial decree).
 
 use crate::politics::ideology::Ideology;
+use crate::politics::legislation::{Bill, Clause};
 use crate::politics::ministries::{IdeologyBudgetPriorities, MinistryAllocation};
 use crate::politics::system::{Constitution, Party};
 use crate::state::Country;
@@ -145,6 +146,66 @@ pub fn draft_budget_bill(country: &Country, current_turn: u32) -> BudgetBill {
         committee_modifier: 1.0,
         messages: Vec::new(),
     }
+}
+
+/// Convert a `BudgetBill` into a legislative `Bill` so the budget travels the
+/// real parliamentary pipeline — legislative session → chamber queue →
+/// committee → floor vote (`VoteRecord` in `recent_votes`) → bicameral →
+/// executive.
+///
+/// # Rules
+/// * One descriptive clause per proposed ministry allocation; `budget_impact`
+///   carries the allocated cash so bill complexity reflects budget size.
+/// * Clauses carry `provision: None` — the engine's synchronous
+///   `process_budget_lifecycle` remains the economic authority that writes
+///   ministry allocations back, so enactment through `enact_bill` must not
+///   double-apply anything.
+/// * Clause ideology vectors mirror the initiator party's coordinates so
+///   committee recommendations and chair actions see the real sponsor's
+///   position.
+pub fn budget_bill_to_legislative_bill(country: &Country, bill: &BudgetBill) -> Bill {
+    let initiator_coords = country
+        .politics
+        .active_parties
+        .get(&bill.initiator)
+        .map(|p| p.coordinates)
+        .unwrap_or_default();
+
+    let mut core_clauses: Vec<Clause> = bill
+        .proposed_ministries
+        .iter()
+        .map(|m| Clause {
+            description: format!("{} allocation: {:.0}", m.ministry_name, m.allocated_cash),
+            ideological_vector: initiator_coords,
+            budget_impact: m.allocated_cash,
+            provision: None,
+            sunset_turn: None,
+            mutated: false,
+            mutation_notes: Vec::new(),
+        })
+        .collect();
+
+    if core_clauses.is_empty() {
+        // No ministry config yet — the budget bill is still a valid bill with
+        // a single consolidated appropriations clause.
+        core_clauses.push(Clause {
+            description: "Consolidated state appropriations".to_string(),
+            ideological_vector: initiator_coords,
+            budget_impact: 0.0,
+            provision: None,
+            sunset_turn: None,
+            mutated: false,
+            mutation_notes: Vec::new(),
+        });
+    }
+
+    Bill::new(
+        bill.id.clone(),
+        bill.title.clone(),
+        bill.initiator.clone(),
+        core_clauses,
+        bill.turn_introduced,
+    )
 }
 
 // ============================================================================

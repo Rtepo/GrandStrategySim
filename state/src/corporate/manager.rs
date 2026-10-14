@@ -31,6 +31,98 @@ const RECRUITMENT_MULTIPLIER: f64 = 4.0;
 /// the state/treasury.
 const DIVIDEND_WITHHOLDING_TAX_RATE: f64 = 0.19;
 
+/// Free-float fraction used when an unlisted JSC is auto-listed — 25% of the
+/// post-float share count, matching the genesis convention (20–40% floated).
+const AUTO_LIST_FREE_FLOAT: f64 = 0.25;
+
+/// List large, already-incorporated JointStockCompanies that were never
+/// floated (`free_float == 0`) on the stock exchange by queueing a real
+/// float for the Phase 24A.7 IPO machinery in `process_companies`.
+///
+/// Without this, only genesis listings and strategy-driven cooperative IPOs
+/// ever reach the exchange: JSCs created mid-run (lifecycle startups,
+/// legal-form transitions) keep `free_float == 0`, so
+/// `LegalForm::is_listed()` — the predicate used by `MarketIndex::compute`,
+/// the DTO builders, and `update_share_prices` — never turns true for them
+/// and the Listed Companies table stays empty.
+///
+/// # Eligibility
+/// * `LegalForm::JointStockCompany` with `shares_issued > 0` and
+///   `free_float <= 0.0` (not yet listed).
+/// * Not a fund, not liquidated, not merged away.
+/// * `company_capital >= average_wage * 1000.0` — the same wage-scaled size
+///   gate `evaluate_cooperative_ipo` uses, so listing is inflation-proof.
+///
+/// # Effects
+/// * Issues `shares_issued / 3` new shares so the float is exactly
+///   `AUTO_LIST_FREE_FLOAT` (25%) of the post-float total — the same shape
+///   as a strategy IPO (`apply_action` increments shares_count the same
+///   way).
+/// * Sets `legal_form`/`company` `free_float`, `is_listed`, `share_price`
+///   and `open_price`/`close_price` consistently via `sync_listing_flags`.
+/// * Pushes `(company_id, shares_to_float, reserve_price)` onto
+///   `country.ipo_queue`; the existing queue handler debits real fund cash,
+///   credits the issuer, and places any unsold remainder as a standing ask.
+pub fn auto_list_unlisted_jscs(companies: &mut [Company], country: &mut Country) {
+    let avg_wage = country.macro_indicators.average_wage.max(1.0);
+    let min_capital = avg_wage * 1000.0;
+    for company in companies.iter_mut() {
+        if company.fund_type.is_some()
+            || company.is_liquidated
+            || company.merged_into.is_some()
+        {
+            continue;
+        }
+        let shares_issued = match company.legal_form {
+            LegalForm::JointStockCompany(ref data) if data.free_float <= 0.0 => {
+                // Some entity paths populate shares_count but not
+                // shares_issued — use whichever ledger is non-zero.
+                data.shares_issued.max(company.shares_count)
+            }
+            _ => continue,
+        };
+        if shares_issued == 0 || company.company_capital < min_capital {
+            continue;
+        }
+        // Primary float: issue shares_issued/3 new shares so the float is
+        // 25% of the post-float total ((S/3) / (S + S/3) = 0.25).
+        let shares_to_float = (shares_issued / 3).max(1);
+        if company.shares_count < shares_issued {
+            company.shares_count = shares_issued;
+        }
+        company.shares_count = company.shares_count.saturating_add(shares_to_float);
+        if let LegalForm::JointStockCompany(ref mut data) = company.legal_form {
+            data.shares_issued = company.shares_count;
+            data.free_float = (shares_to_float as f64 / company.shares_count as f64)
+                .clamp(0.0, 1.0);
+        }
+        let reserve_price = if company.share_price > 0.0 {
+            company.share_price
+        } else {
+            (company.company_capital / company.shares_count as f64).max(1.0)
+        };
+        if company.share_price <= 0.0 {
+            company.share_price = reserve_price;
+        }
+        if company.open_price <= 0.0 {
+            company.open_price = reserve_price;
+        }
+        if company.close_price <= 0.0 {
+            company.close_price = reserve_price;
+        }
+        // Founder retains the non-floated balance.
+        if company.owners.is_empty() {
+            company
+                .owners
+                .insert(format!("FOUNDER:{}", company.id), 1.0 - AUTO_LIST_FREE_FLOAT);
+        }
+        company.sync_listing_flags();
+        country
+            .ipo_queue
+            .push((company.id.clone(), shares_to_float, reserve_price));
+    }
+}
+
 /// Processes every company in the country after the production phase.
 ///
 /// # Arguments
@@ -450,22 +542,53 @@ pub fn process_companies(
                     let building_id = buildings[j].id.clone();
                     let building_name = buildings[j].name.clone();
                     let region_id = buildings[j].region_id.clone();
-                    let tender = crate::construction::tender_market::publish_expansion_tender(
-                        company_id.clone(),
-                        crate::construction::tenders::TenderInvestorType::Corporation,
-                        crate::construction::ConstructionProjectType::Factory,
-                        region_id,
-                        building_name,
-                        expansion.new_workers,
-                        expansion.investment,
-                        expansion.investment,
-                        2, // 2-turn bidding window
-                        current_turn,
-                        building_id,
-                        crate::registries::enums::Sector::HeavyIndustry,
-                        1925 + (current_turn / 24),
-                    );
-                    country.phase22_tenders.push(tender);
+                    // Cap the tender at what the investor can actually escrow:
+                    // `encumber_tender_escrow` requires the full estimated
+                    // cost in real cash, so a tender sized above cash never
+                    // funds — and awarded regardless it produces a zombie
+                    // project that can never pay a tranche. Keep a payroll
+                    // buffer so the commitment can't starve wages — the same
+                    // 2-turn horizon the distress gate uses (strategy.rs).
+                    let payroll = companies[i].offered_wage_per_fte
+                        * companies[i].fulfilled_fte as f64;
+                    let cash = companies[i]
+                        .brokerage_account
+                        .as_ref()
+                        .map(|ba| ba.cash)
+                        .unwrap_or(companies[i].available_cash)
+                        .max(0.0);
+                    let fundable =
+                        expansion.investment.min((cash - payroll * 2.0).max(0.0));
+                    // apply_action already debited liquid_capital by the full
+                    // `investment`; return the uncommitted share to the
+                    // capital account so the books match what is escrowed.
+                    companies[i].liquid_capital +=
+                        (expansion.investment - fundable).max(0.0);
+                    if fundable > 0.0 {
+                        // Scale the promised capacity proportionally to the
+                        // funded share so the tender stays internally
+                        // consistent (you get the capacity you paid for).
+                        let scale = (fundable / expansion.investment.max(1.0)).min(1.0);
+                        let new_workers = ((expansion.new_workers as f64 * scale).round()
+                            as u32)
+                            .max(1);
+                        let tender = crate::construction::tender_market::publish_expansion_tender(
+                            company_id.clone(),
+                            crate::construction::tenders::TenderInvestorType::Corporation,
+                            crate::construction::ConstructionProjectType::Factory,
+                            region_id,
+                            building_name,
+                            new_workers,
+                            fundable,
+                            fundable,
+                            2, // 2-turn bidding window
+                            current_turn,
+                            building_id,
+                            crate::registries::enums::Sector::HeavyIndustry,
+                            1925 + (current_turn / 24),
+                        );
+                        country.phase22_tenders.push(tender);
+                    }
                 }
             }
         }
@@ -701,29 +824,43 @@ pub fn process_companies(
     // M0 leak is documented for future targeted remediation.
 
     // Phase 24A.7: Process pending IPO queue — execute with real buyer cash.
+    //
+    // First, auto-list large incorporated JSCs that were never floated
+    // (free_float == 0). JSCs created mid-run — lifecycle startups,
+    // legal-form transitions, dynamic funds' targets — otherwise never reach
+    // the exchange: LegalForm::is_listed() stays false, MarketIndex ignores
+    // them, and the Listed Companies table stays empty.
+    auto_list_unlisted_jscs(companies, country);
     let ipo_queue = std::mem::take(&mut country.ipo_queue);
     for (company_id, shares_to_float, reserve_price) in &ipo_queue {
-        // Find fund buyers with brokerage accounts and sufficient cash
+        // Find fund buyers with brokerage accounts and sufficient cash.
+        // Each fund takes ~1/3 of the float, capped at the remaining
+        // unsubscribed balance — cumulative allocation can never oversell
+        // the float (the old code could allocate 1/3 to EVERY eligible
+        // fund, overselling N×).
         let mut buyers: Vec<(String, u64)> = Vec::new();
-        let total_proceeds = *shares_to_float as f64 * reserve_price;
-        let _ = total_proceeds;
+        let mut allocated: u64 = 0;
 
         // Find funds (companies with fund_type) that have brokerage cash
         for buyer in companies.iter() {
+            if allocated >= *shares_to_float {
+                break;
+            }
             if buyer.fund_type.is_some() {
                 if let Some(ref ba) = buyer.brokerage_account {
-                    if ba.cash >= reserve_price * (*shares_to_float as f64 / 3.0) {
-                        // Allocate ~1/3 of the IPO to each eligible fund
-                        let allocation = (*shares_to_float / 3).max(1);
-                        let cost = allocation as f64 * reserve_price;
-                        if ba.cash >= cost {
-                            buyers.push((buyer.id.clone(), allocation));
-                        }
+                    let allocation = (*shares_to_float / 3)
+                        .max(1)
+                        .min(*shares_to_float - allocated);
+                    let cost = allocation as f64 * reserve_price;
+                    if allocation > 0 && ba.cash >= cost {
+                        buyers.push((buyer.id.clone(), allocation));
+                        allocated += allocation;
                     }
                 }
             }
         }
 
+        let mut executed_qty: u64 = 0;
         if !buyers.is_empty() {
             // Execute the IPO: debit buyers first, then credit issuer
             let mut total_collected = 0.0_f64;
@@ -740,6 +877,7 @@ pub fn process_companies(
                                 year,
                             );
                             total_collected += cost;
+                            executed_qty += *allocation;
                         }
                     }
                 }
@@ -751,9 +889,45 @@ pub fn process_companies(
                 }
             }
         }
-        // If no buyers found, the IPO fails silently — no proceeds credited.
-        // The shares_count was already increased in apply_action, but without
-        // buyer allocation, the free_float absorbs them.
+
+        // Unsold float: place a standing treasury-underwritten ask so the
+        // shares reach the secondary market (same convention as the genesis
+        // leftover-IPO supply). Fills credit TREASURY proceeds via
+        // settle_trade's TREASURY: seller branch — real cash for real
+        // shares, never phantom proceeds.
+        let unsold = shares_to_float.saturating_sub(executed_qty);
+        if unsold > 0 && *reserve_price > 0.0 {
+            let instrument_id = format!("EQUITY:{}", company_id);
+            let order = crate::securities::exchange::Order::new_sell(
+                format!("IPO-ASK-{}-{}", company_id, current_turn),
+                format!("TREASURY:{}", company_id),
+                instrument_id.clone(),
+                crate::securities::exchange::InstrumentType::Equity,
+                unsold,
+                *reserve_price,
+                u32::MAX,
+            );
+            let book = country
+                .stock_exchange
+                .order_book
+                .entry(instrument_id)
+                .or_default();
+            if let Some(pos) = book
+                .asks
+                .iter()
+                .position(|(p, _)| (*p - *reserve_price).abs() < 0.001)
+            {
+                book.asks[pos].1.push(order);
+            } else {
+                book.asks.push((*reserve_price, vec![order]));
+                book.asks.sort_by(|a, b| {
+                    a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
+                });
+            }
+            if book.best_ask <= 0.0 || *reserve_price < book.best_ask {
+                book.best_ask = *reserve_price;
+            }
+        }
     }
 
     // Phase 24A.9: Process demolition queue — demolish buildings with land conservation.
@@ -2490,6 +2664,9 @@ fn apply_action(
                     data.free_float =
                         (shares_to_float as f64 / company.shares_count as f64).clamp(0.0, 1.0);
                 }
+                // Keep the denormalized is_listed/free_float fields in sync
+                // with the new listed legal form.
+                company.sync_listing_flags();
             }
         }
         CorporateAction::SwitchMethod { .. }
@@ -2570,6 +2747,11 @@ fn apply_action(
                         }
                     }
                     company.legal_form = new_form;
+                    // Listing-related: legal-form transitions can change
+                    // listing status (e.g., JSC → Consortium delists,
+                    // Family → JSC may become listable). Keep the
+                    // denormalized flags consistent.
+                    company.sync_listing_flags();
                 }
                 Err(err) => {
                     // Transition rejected — restore the old form.

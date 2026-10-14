@@ -784,6 +784,21 @@ fn generate_country(
     );
     companies.extend(bank_companies);
     crate::politics::bootstrap_politics(&mut country, &mut companies, start_year as u32, rng);
+    // Phase 32: Seat the Parliament at genesis — chambers must exist from
+    // turn 0 so the legislative queue and recent_votes are live before the
+    // first political turn lazily initializes them otherwise.
+    if country.politics.parliament_struct.is_none()
+        && country.politics.government_form.chambers() > 0
+    {
+        let parl = crate::politics::parliament::initialize_parliament(
+            &country.politics,
+            &country.macro_indicators.cultural_group,
+            0,
+            rng,
+            &mut std::collections::HashSet::new(),
+        );
+        country.politics.parliament_struct = Some(parl);
+    }
     #[cfg(feature = "diagnostic")]
     eprintln!(
         "CS: {} politics draws={}",

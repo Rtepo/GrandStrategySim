@@ -2899,13 +2899,23 @@ pub fn submit_maintenance_service_bids(
 /// # Rules (affordability segmentation)
 /// * Companies derive a `desired_wtp` from the reference price scaled by a
 ///   quality/durability premium (premium assets cost more but last longer).
-/// * The actual `limit_price` is clamped by:
-///   `affordable_wtp = min(desired_wtp, liquid_capital × max_cash_encumbrance_ratio / quantity)`.
-/// * Cash-poor companies are forced toward cheaper, lower-quality substitutes:
-///   they submit bids at a lower limit price, which only matches low-priced asks
-///   (typically from lower-quality blueprints).
-/// * If the company cannot afford even the baseline reference price, no bid is
-///   submitted (the company goes without new machinery this turn).
+/// * The bid QUANTITY is the missing complement of the building's installed
+///   machine fleet: `target = method inputs × worker_capacity`, and installed
+///   (non-scrapped) cohorts already count against it. Previously the full
+///   complement was re-bid every turn — each cash-flush turn repurchased the
+///   entire fleet (the sparse multi-billion `I` spikes) while installed
+///   machinery went uncounted.
+/// * The fleet target is scaled by `worker_capacity`, not
+///   `current_employment`: a furloughed plant still needs its machine
+///   complement to restart, and demand that collapses with the crew is what
+///   produced the permanent-furlough ratchet (same basis the seeded input
+///   buffer and construction reserve use).
+/// * Cash-poor companies buy a partial fleet: `bid_qty` shrinks to what the
+///   remaining encumbrance covers at the junk-price floor
+///   (`ref × asset_purchase_starvation_ratio`), and `limit_price` degrades
+///   smoothly from `desired_wtp` toward that floor. The old all-or-nothing
+///   gate skipped the entire fleet whenever `remaining/desired` fell below
+///   the floor — zero bid instead of a small one.
 /// * Bids carry `blueprint_id: None` and `min_quality: None` — the matching
 ///   engine fills the cheapest compatible ask first (price-time priority), so
 ///   cash-poor buyers naturally receive lower-quality assets.
@@ -2938,7 +2948,11 @@ pub fn submit_fixed_asset_purchase_bids(
         for &i in company_building_indices {
             let building = &buildings[i];
             let method = &building.active_method;
-            let production_scale = building.current_employment as f64
+            // Fleet demand scales with installed capacity (`worker_capacity`),
+            // not this turn's crew: a furloughed plant still needs its machine
+            // complement to restart. Keying on `current_employment` made CapEx
+            // collapse exactly when the economy needs it (the furlough ratchet).
+            let production_scale = building.worker_capacity as f64
                 * building.scale_factor.max(1) as f64
                 / 1000.0;
 
@@ -2947,7 +2961,16 @@ pub fn submit_fixed_asset_purchase_bids(
                 if !commodity.is_fixed_asset() {
                     continue;
                 }
-                let desired_qty = qty_per_1k * production_scale;
+                let target_qty = qty_per_1k * production_scale;
+                // Buy only the missing complement — installed non-scrapped
+                // cohorts already supply this commodity's capacity.
+                let installed: f64 = building
+                    .fixed_assets
+                    .iter()
+                    .filter(|c| c.commodity == commodity && !c.is_scrapped())
+                    .map(|c| c.count)
+                    .sum();
+                let desired_qty = (target_qty - installed).max(0.0);
                 if desired_qty <= 0.0 {
                     continue;
                 }
@@ -2962,31 +2985,41 @@ pub fn submit_fixed_asset_purchase_bids(
                 // but can only afford what their cash allows.
                 let quality_premium = gen_config.asset_quality_wtp_multiplier;
                 let desired_wtp = ref_price * quality_premium;
+                // Below the starvation floor the asset is junk not worth buying.
+                let floor_price = ref_price * gen_config.asset_purchase_starvation_ratio;
+                if floor_price <= 0.0 {
+                    continue;
+                }
 
-                // Cash-bottlenecked limit: the most the company can pay per unit
-                // given its remaining encumbrance headroom.
+                // Cash-bottlenecked quantity: a cash-tight company buys as many
+                // units as its remaining encumbrance covers at the floor price
+                // instead of skipping the whole fleet (old all-or-nothing gate).
                 let remaining_encumbrance = (max_encumber - total_encumbered).max(0.0);
                 if remaining_encumbrance <= 0.0 {
                     break; // No budget left for asset purchases.
                 }
-                let affordable_wtp = remaining_encumbrance / desired_qty;
-                let limit_price = desired_wtp.min(affordable_wtp);
-
-                // If the affordable WTP is below the baseline reference price,
-                // the company can only buy cheaper (lower-quality) substitutes.
-                // If it's below a starvation threshold, skip (go without).
-                if limit_price < ref_price * gen_config.asset_purchase_starvation_ratio {
+                let bid_qty = desired_qty.min(remaining_encumbrance / floor_price);
+                // Skip dust lots: a company that can't fund even one machine
+                // (or its whole small deficit) goes without this turn.
+                let min_lot = desired_qty.min(1.0);
+                if bid_qty < min_lot {
                     continue;
                 }
+                // WTP: the full premium while the deficit is fully affordable at
+                // it; otherwise the per-unit price the headroom supports,
+                // floored at the junk threshold.
+                let limit_price = desired_wtp
+                    .min(remaining_encumbrance / bid_qty)
+                    .max(floor_price);
 
-                let encumbrance = desired_qty * limit_price;
+                let encumbrance = bid_qty * limit_price;
                 encumber_cash(company, encumbrance);
                 total_encumbered += encumbrance;
 
                 order_book.bids.entry(commodity).or_default().push(Bid {
                     buyer_id: company.id.clone(),
                     commodity,
-                    quantity: desired_qty,
+                    quantity: bid_qty,
                     limit_price,
                     blueprint_id: None,
                     min_quality: None,
@@ -3024,18 +3057,28 @@ pub fn submit_fixed_asset_purchase_bids(
                 }
                 let quality_premium = gen_config.asset_quality_wtp_multiplier;
                 let desired_wtp = ref_price * quality_premium;
-                let affordable_wtp = remaining_encumbrance / qty;
-                let limit_price = desired_wtp.min(affordable_wtp);
-                if limit_price < ref_price * gen_config.asset_purchase_starvation_ratio {
+                let floor_price = ref_price * gen_config.asset_purchase_starvation_ratio;
+                if floor_price <= 0.0 {
                     continue;
                 }
-                let encumbrance = qty * limit_price;
+                // Same partial-fill affordability as the complement loop:
+                // shrink the quantity to what headroom covers at the floor
+                // price rather than skipping the purchase entirely.
+                let bid_qty = qty.min(remaining_encumbrance / floor_price);
+                let min_lot = qty.min(1.0);
+                if bid_qty < min_lot {
+                    continue;
+                }
+                let limit_price = desired_wtp
+                    .min(remaining_encumbrance / bid_qty)
+                    .max(floor_price);
+                let encumbrance = bid_qty * limit_price;
                 encumber_cash(company, encumbrance);
                 total_encumbered += encumbrance;
                 order_book.bids.entry(commodity).or_default().push(Bid {
                     buyer_id: company.id.clone(),
                     commodity,
-                    quantity: qty,
+                    quantity: bid_qty,
                     limit_price,
                     blueprint_id: None,
                     min_quality: None,

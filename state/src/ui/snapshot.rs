@@ -3112,11 +3112,15 @@ pub fn build_country_snapshot(
                 DepositRow {
                     formation: formation_name.clone(),
                     deposit_id: dep_id.clone(),
-                    current_reserves: dep.current_reserves,
+                    current_reserves: dep.current_reserves.max(0.0),
                     estimated_reserves: dep.estimated_reserves,
                     quality: dep.quality,
+                    // Depletion % of the original estimate, clamped so a
+                    // malformed deposit can never render <0% or >100%.
                     depletion_pct: if dep.estimated_reserves > 0.0 {
-                        (1.0 - dep.current_reserves / dep.estimated_reserves) * 100.0
+                        ((1.0 - dep.current_reserves / dep.estimated_reserves)
+                            * 100.0)
+                            .clamp(0.0, 100.0)
                     } else {
                         0.0
                     },
@@ -3292,6 +3296,17 @@ pub fn build_country_snapshot(
     let sectors = aggregate_sectors(companies, country);
 
     // Phase 34: Build region rows for the [8] Regions tab.
+    // Regional GDP remediation: value added is aggregated bottom-up from the
+    // buildings physically located in each region (this turn's actual output
+    // minus intermediate inputs) plus the wage/profit income of buildingless
+    // companies registered there. `Region::gdp` was previously overwritten
+    // each turn with national GDP × population share, so every region in a
+    // country displayed an identical GDP/capita.
+    let regional_va = crate::society::geography::regional_value_added(
+        &country.regions,
+        companies,
+        buildings,
+    );
     let regions: Vec<RegionRow> = country
         .regions
         .iter()
@@ -3303,8 +3318,9 @@ pub fn build_country_snapshot(
                 .find(|mg| mg.regions.contains(&r.id))
                 .map(|mg| (mg.name.clone(), mg.id.clone()))
                 .unwrap_or_else(|| ("Unassigned".to_string(), String::new()));
+            let regional_gdp = regional_va.get(&r.id).copied().unwrap_or(0.0);
             let gdp_per_capita = if r.population > 0 {
-                r.gdp / r.population as f64
+                regional_gdp / r.population as f64
             } else {
                 0.0
             };
@@ -3318,7 +3334,7 @@ pub fn build_country_snapshot(
                 megaregion: megaregion_info.0,
                 megaregion_id: megaregion_info.1,
                 population: r.population,
-                regional_gdp: r.gdp,
+                regional_gdp,
                 gdp_per_capita,
                 has_governance: r.governance.is_some(),
                 liquid_reserves: r
@@ -4130,13 +4146,17 @@ fn build_geological_deposit_rows(
             let current = map
                 .get("current_reserves")
                 .and_then(|v| v.as_f64())
-                .unwrap_or(reserves);
+                .unwrap_or(reserves)
+                .clamp(0.0, reserves);
             let extraction_rate = map
                 .get("extraction_rate")
                 .and_then(|v| v.as_f64())
-                .unwrap_or(0.0);
+                .unwrap_or(0.0)
+                .max(0.0);
+            // Depletion fraction of the original estimated reserves,
+            // clamped to [0,1] so malformed mirrors can't render negatives.
             let utilization = if reserves > 0.0 {
-                ((reserves - current) / reserves).min(1.0)
+                ((reserves - current) / reserves).clamp(0.0, 1.0)
             } else {
                 0.0
             };

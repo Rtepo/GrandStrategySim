@@ -39,7 +39,9 @@ export function StockExchangePage() {
 
   const { data: companiesData, isLoading: compLoading } = useQuery({
     queryKey: ["listed-companies", selectedCountry, offset, PAGE_SIZE, sectorFilter],
-    queryFn: () => getListedCompanies(selectedCountry!, offset, PAGE_SIZE, sectorFilter || undefined),
+    // Always pass a defined string ("" = all sectors). `undefined` serializes
+    // to a missing/null arg and previously broke the table's data fetch.
+    queryFn: () => getListedCompanies(selectedCountry!, offset, PAGE_SIZE, sectorFilter),
     enabled: !!selectedCountry,
     staleTime: 30_000,
   });

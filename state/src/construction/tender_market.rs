@@ -163,6 +163,27 @@ pub fn refund_tender_escrow(
     companies: &mut [Company],
     country: &mut Country,
 ) {
+    // Expansion tenders only: `apply_action` debited the investor's
+    // `liquid_capital` by the committed investment up front. On cancellation
+    // the commitment is void — restore the accounting capital so the firm's
+    // capital book isn't permanently shrunk by a tender that never produced
+    // a project. `escrowed_amount` equals the published estimated_cost for
+    // funded tenders; for unfunded ones the committed `estimated_cost` is
+    // restored (no cash ever moved). State tenders and developer tenders do
+    // not debit liquid_capital, so they are untouched.
+    if tender.expansion_target_building_id.is_some()
+        && !tender.investor_id.starts_with("STATE:")
+    {
+        if let Some(idx) = companies.iter().position(|c| c.id == tender.investor_id) {
+            let restore = if tender.escrowed_amount > 0.0 {
+                tender.escrowed_amount
+            } else {
+                tender.estimated_cost
+            };
+            companies[idx].liquid_capital += restore;
+        }
+    }
+
     let refund = tender.escrowed_amount;
     if refund <= 0.0 {
         return;
@@ -396,6 +417,15 @@ pub fn award_tender(
         return None;
     }
 
+    // A tender whose escrow never funded can never pay a tranche —
+    // `release_escrow_*` clamps to the encumbered balance, which is 0.
+    // Awarding it would create a zombie project that starves the contractor
+    // and dies stalled after 5 hold turns. Treat it as unawardable so the
+    // caller cancels (and refunds) it instead.
+    if tender.estimated_cost > 0.0 && tender.escrowed_amount <= 0.0 {
+        return None;
+    }
+
     // Filter eligible bids (above blacklist threshold)
     let eligible: Vec<&Bid> = tender
         .bids
@@ -422,19 +452,14 @@ pub fn award_tender(
     let contract_price = winner.bid_price;
     let contractor_margin = winner.bid_margin;
 
-    let mut tranches = default_tranches(contract_price);
-
-    // Phase 36: State-backed projects receive a mobilization advance at award time.
-    // The first tranche (trigger_progress 0.0) is released immediately so the
-    // contractor has cash to bid for materials. Without this, the contractor
-    // has no cash and cannot bid, deadlocking the project.
-    let is_state_backed = tender.investor_id.starts_with("STATE:");
-    if is_state_backed {
-        if let Some(first_tranche) = tranches.first_mut() {
-            first_tranche.released = true;
-            first_tranche.released_turn = current_turn;
-        }
-    }
+    // NOTE: the first tranche (trigger_progress 0.0) is the mobilization
+    // advance — it is paid by `release_construction_tranches` on the next
+    // tranche pass (same turn as the award, post-progress stage), which
+    // performs the real escrow→contractor transfer. The old code pre-marked
+    // it `released` here WITHOUT moving cash: the release pass then skipped
+    // it forever, so the mobilization never arrived and the tranche was also
+    // excluded from the contractor's pending-tranche bidding capacity.
+    let tranches = default_tranches(contract_price);
 
     let project = ConstructionProject {
         id: format!("proj_{}", tender.id),
@@ -695,6 +720,10 @@ mod tests {
             crate::registries::enums::Sector::HeavyIndustry,
             1900,
         );
+        // Model the real pipeline: the escrow encumbrance runs before award
+        // (turn.rs), so a fundable tender carries escrowed_amount > 0. An
+        // unfunded tender is now unawardable (zombie-project guard).
+        tender.escrowed_amount = tender.estimated_cost;
         let c1 = make_construction_company("c1");
         let c2 = make_construction_company("c2");
         submit_bid(&mut tender, &c1, 400_000.0, 0.15, Vec::new(), 10).unwrap();

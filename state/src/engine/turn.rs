@@ -1106,12 +1106,21 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             // Phase 40: Publish State-funded tenders from ministries with cash.
             // This fixes the root cause of the tender deadlock: the State never
             // published tenders, so only private developer tenders existed.
+            let construction_company_count = task
+                .companies
+                .iter()
+                .filter(|c| {
+                    c.sector == crate::registries::enums::Sector::Construction
+                        && !c.is_liquidated
+                })
+                .count();
             crate::corporate::development::publish_state_tenders(
                 task.ctx.country,
                 &mut tenders,
                 &micro_region_id,
                 task.ctx.turn,
                 task.ctx.year,
+                construction_company_count,
             );
             // Phase 94: Encumber escrow for newly published tenders. Without
             // this, tranche release credits contractor cash (M0) but treasury
@@ -7753,6 +7762,13 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.turn,
                 task.ctx.registries,
             );
+            // List any JSCs spawned by lifecycle transitions (births, legal-form
+            // changes) the same turn — process_companies ran earlier, so this
+            // closes the one-turn listing lag for lifecycle-created JSCs.
+            crate::corporate::manager::auto_list_unlisted_jscs(
+                &mut task.companies,
+                task.ctx.country,
+            );
         });
         #[cfg(feature = "diagnostic")]
         {
@@ -10688,12 +10704,20 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
         // This runs after tasks are dropped, releasing the &state.planet borrow.
         // When multiple mines share a vein and total extraction > current_reserves,
         // remaining ore is distributed proportionally (Rule 5 & 20).
-        if !all_depletion_requests.is_empty() {
-            crate::economy::production::geology::apply_depletion_batch(
+        // Phase 21D: capture the post-clamp actuals so per-region extraction
+        // telemetry can be attributed to the extracting mine's region.
+        let region_extraction = if !all_depletion_requests.is_empty() {
+            let actuals = crate::economy::production::geology::apply_depletion_batch(
                 &mut state.planet,
                 &all_depletion_requests,
             );
-        }
+            crate::economy::production::geology::extraction_by_region(
+                &all_depletion_requests,
+                &actuals,
+            )
+        } else {
+            Default::default()
+        };
 
         // Phase 93: Resolve completed geological surveys.
         // Runs after tasks are dropped (releasing &state.planet) so we can
@@ -10707,6 +10731,17 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
                 planet,
                 &mut country.geological_survey_ledger,
                 year,
+            );
+        }
+        // Phase 21D: Mirror planet-side vein state into each region's
+        // `resources` map — reserves, this turn's extracted tonnage, and
+        // survey-discovery visibility for the Land & Cadastre UI. Runs
+        // after survey resolution so same-turn discoveries appear.
+        for country in state.countries.values_mut() {
+            crate::society::geography::sync_region_resources_from_planet(
+                &mut country.regions,
+                planet,
+                &region_extraction,
             );
         }
     }
@@ -10804,29 +10839,21 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
         }
     }
 
-    // Phase 35: Reconcile regional GDP from the national GDP breakdown.
-    // National GDP is strictly derived as sum(region.gdp). All four GDP
-    // components (C, G, I, NX) are distributed proportionally by population
-    // share. This ensures sum(region.gdp) == budget.gdp after every turn.
-    for (_country_name, net_exports) in &trade_balances {
-        if let Some(country) = state.countries.get_mut(_country_name) {
-            let total_pop: i64 = country.regions.iter().map(|r| r.population).sum();
-            let total_pop_f = total_pop.max(1) as f64;
-            let bd = &country.macro_indicators.gdp_breakdown;
-            let national_c = bd.consumption;
-            let national_g = bd.government_spending;
-            let national_i = bd.investment;
-            let national_nx = *net_exports;
-
-            for region in &mut country.regions {
-                let pop_share = region.population as f64 / total_pop_f;
-                region.gdp = (national_c + national_g + national_i + national_nx) * pop_share;
-            }
-
-            // Strict derivation: national GDP = sum(regional GDP)
-            let regional_gdp_sum: f64 = country.regions.iter().map(|r| r.gdp).sum();
-            country.budget.gdp = regional_gdp_sum;
-            country.macro_indicators.gdp_breakdown.official_gdp = regional_gdp_sum;
+    // Phase 35 (v4.16.0): Regional GDP is aggregated bottom-up — per-region
+    // gross value added from real building output and company-level income
+    // (see `geography::reconcile_regional_gdp`). This replaces the former
+    // national-GDP × population-share pro-rating, which assigned every
+    // region in a country an identical GDP per capita. The national
+    // headline stays expenditure-based (C+G+I+NX, finalized in the Phase-24D
+    // block above); the regional accounts are the production-side measure
+    // and are not required to sum to it.
+    for (country_name, ents) in &entities {
+        if let Some(country) = state.countries.get_mut(country_name) {
+            crate::society::geography::reconcile_regional_gdp(
+                &mut country.regions,
+                &ents.companies,
+                &ents.buildings,
+            );
         }
     }
 

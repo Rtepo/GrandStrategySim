@@ -674,9 +674,13 @@ pub fn process_building_cycle_with_geology(
         if amount > 0.0 && depth_accessible {
             if let Some(ref mut buf) = depletion_buffer {
                 // Phase 93: Collect depletion request for batch pro-rata application.
+                // `region_id` attributes the extraction to the region hosting
+                // this mine so the Land & Cadastre → Resources tab can show
+                // real per-region extraction telemetry.
                 buf.push(crate::economy::production::geology::DepletionRequest {
                     vein_id: deposit_id.clone(),
                     requested_amount: amount,
+                    region_id: building.region_id.clone(),
                 });
             } else if planet.is_none() {
                 // Legacy fallback: deplete synchronously in-place.

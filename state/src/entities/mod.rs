@@ -863,6 +863,10 @@ impl Company {
     ) -> Self {
         let company_capital = fixed_capital + liquid_capital;
         let is_listed = legal_form.is_listed();
+        // JSC-related: keep the denormalized free_float field consistent with
+        // the authoritative legal_form at construction (previously it was
+        // hard-coded to 0.0 even for already-listed JSCs).
+        let free_float = legal_form.free_float();
 
         // Create brokerage account and transfer liquid capital
         let brokerage_account = if liquid_capital > 0.0 {
@@ -914,7 +918,7 @@ extra: HashMap::new(),
             is_national_champion: false,
             is_listed,
             owners: BTreeMap::new(),
-            free_float: 0.0,
+            free_float,
             aggregated_stats: AggregatedStats::default(),
             bank_type: None,
             balance_sheet: None,
@@ -991,6 +995,19 @@ extra: HashMap::new(),
             .as_ref()
             .map(|b| b.cash)
             .unwrap_or(0.0)
+    }
+
+    /// JSC-related: synchronize the denormalized `is_listed`/`free_float`
+    /// fields with the authoritative `legal_form` (the single source of
+    /// truth for exchange listing — `LegalForm::is_listed()` returns true
+    /// only for JointStockCompany with free_float > 0).
+    ///
+    /// Call after ANY `legal_form` mutation (IPO application, legal-form
+    /// transition, auto-listing) so the market index, DTO builders, and fund
+    /// order gates never observe a stale listing flag.
+    pub fn sync_listing_flags(&mut self) {
+        self.is_listed = self.legal_form.is_listed();
+        self.free_float = self.legal_form.free_float();
     }
 
     /// Phase 87+: Operational cash available for payroll and short-term obligations.

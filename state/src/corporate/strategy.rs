@@ -1361,65 +1361,79 @@ fn cap_new_workers(company: &Company, raw: u32) -> u32 {
 fn family_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
     // Phase 29: GDP thresholds eradicated. A profitable company invests
     // based on its own gross_profit and company_capital, not national GDP.
-    if ctx.gross_profit > 0.0 && ctx.company.company_capital > 0.0 {
-        // AI & Stability Audit (Pillar 4B): Apply proto-learning penalty weight.
-        // If past expansions led to declining ROI, reduce investment accordingly.
-        // If weight > 0.8, skip expansion entirely (the company has "learned"
-        // that expansion is counterproductive in current conditions).
-        let expansion_weight = ctx.company.action_ledger.weight_for("Expand");
-        if expansion_weight > 0.8 {
-            return CorporateAction::Idle;
-        }
-        let investment = ctx.gross_profit * CorporateInvestmentConfig::default().family_reinvestment_fraction * (1.0 - expansion_weight);
-        let new_workers =
-            cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
-        CorporateAction::Expand {
-            investment,
-            new_workers,
-            finance: FinanceSource::Internal,
-        }
-    } else {
-        CorporateAction::Idle
+    // Replacement/modernization capex doesn't stop when one turn's gross
+    // profit is ≤ 0: `desired_investment` already encodes an outlook-scaled
+    // floor (~2% of capital per turn, Phase 29). A solvent company — the
+    // distress gate ran upstream — keeps at least that floor of investment
+    // going; the publish-time escrow clamp limits it to what cash allows.
+    if ctx.company.company_capital <= 0.0 {
+        return CorporateAction::Idle;
+    }
+    // AI & Stability Audit (Pillar 4B): Apply proto-learning penalty weight.
+    // If past expansions led to declining ROI, reduce investment accordingly.
+    // If weight > 0.8, skip expansion entirely (the company has "learned"
+    // that expansion is counterproductive in current conditions).
+    let expansion_weight = ctx.company.action_ledger.weight_for("Expand");
+    if expansion_weight > 0.8 {
+        return CorporateAction::Idle;
+    }
+    let fraction = CorporateInvestmentConfig::default().family_reinvestment_fraction;
+    let investment = (ctx.gross_profit.max(0.0) * fraction)
+        .max(ctx.company.desired_investment(ctx.market_signal) * fraction)
+        * (1.0 - expansion_weight);
+    let new_workers = cap_new_workers(ctx.company, (investment / 1_000.0).max(1.0) as u32);
+    CorporateAction::Expand {
+        investment,
+        new_workers,
+        finance: FinanceSource::Internal,
     }
 }
 
 fn cooperative_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
     // Phase 29: GDP thresholds eradicated. A profitable cooperative invests
     // based on its own gross_profit and company_capital, not national GDP.
-    if ctx.gross_profit > 0.0 && ctx.company.company_capital > 0.0 {
-        let expansion_weight = ctx.company.action_ledger.weight_for("Expand");
-        if expansion_weight > 0.8 {
-            return CorporateAction::Idle;
-        }
-        let investment = ctx.gross_profit * CorporateInvestmentConfig::default().cooperative_reinvestment_fraction * (1.0 - expansion_weight);
-        let new_workers =
-            cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
-        CorporateAction::Expand {
-            investment,
-            new_workers,
-            finance: FinanceSource::Internal,
-        }
-    } else {
-        CorporateAction::Idle
+    // Same downturn floor as family businesses: `desired_investment`
+    // (outlook-scaled, ~2% of capital per turn) keeps replacement capex alive
+    // for solvent cooperatives even when this turn's gross profit is ≤ 0.
+    if ctx.company.company_capital <= 0.0 {
+        return CorporateAction::Idle;
+    }
+    let expansion_weight = ctx.company.action_ledger.weight_for("Expand");
+    if expansion_weight > 0.8 {
+        return CorporateAction::Idle;
+    }
+    let fraction =
+        CorporateInvestmentConfig::default().cooperative_reinvestment_fraction;
+    let investment = (ctx.gross_profit.max(0.0) * fraction)
+        .max(ctx.company.desired_investment(ctx.market_signal) * fraction)
+        * (1.0 - expansion_weight);
+    let new_workers = cap_new_workers(ctx.company, (investment / 1_000.0).max(1.0) as u32);
+    CorporateAction::Expand {
+        investment,
+        new_workers,
+        finance: FinanceSource::Internal,
     }
 }
 
 fn mutual_aid_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
-    if ctx.company.company_capital > 0.0 && ctx.gross_profit > 0.0 {
-        let expansion_weight = ctx.company.action_ledger.weight_for("Expand");
-        if expansion_weight > 0.8 {
-            return CorporateAction::Idle;
-        }
-        let investment = ctx.gross_profit * 0.10 * (1.0 - expansion_weight); // Conservative: 10% retained
-        let new_workers =
-            cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
-        CorporateAction::Expand {
-            investment,
-            new_workers,
-            finance: FinanceSource::Internal,
-        }
-    } else {
-        CorporateAction::Idle
+    // Same solvent-floor rule: replacement capex continues at the
+    // `desired_investment` floor when gross profit is ≤ 0.
+    if ctx.company.company_capital <= 0.0 {
+        return CorporateAction::Idle;
+    }
+    let expansion_weight = ctx.company.action_ledger.weight_for("Expand");
+    if expansion_weight > 0.8 {
+        return CorporateAction::Idle;
+    }
+    let fraction = 0.10; // Conservative: 10% retained
+    let investment = (ctx.gross_profit.max(0.0) * fraction)
+        .max(ctx.company.desired_investment(ctx.market_signal) * fraction)
+        * (1.0 - expansion_weight);
+    let new_workers = cap_new_workers(ctx.company, (investment / 1_000.0).max(1.0) as u32);
+    CorporateAction::Expand {
+        investment,
+        new_workers,
+        finance: FinanceSource::Internal,
     }
 }
 
