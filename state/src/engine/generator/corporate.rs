@@ -1446,10 +1446,21 @@ pub fn generate_corporate_entities(
     super::list_jsc_companies_on_exchange(country, &mut all_companies, &country_regions_map, rng);
 
     // Re-save companies with CEO assignments so they persist to disk.
-    // Group by sector for the save call.
+    // Group by file_stem (with sector_json_name fallback) to mirror the
+    // canonical save above — grouping by sector would re-write entities with
+    // custom file_stems (e.g. STRATEGIC_RESERVE → sector PublicServices) into
+    // a SECOND file, and load_companies concatenates all files → the entity
+    // would load twice, corrupting every id-keyed index downstream.
     let mut by_sector: HashMap<String, Vec<Company>> = HashMap::new();
     for c in &all_companies {
-        let sname = sector_json_name(c.sector);
+        if c.is_liquidated {
+            continue;
+        }
+        let sname = if c.file_stem.is_empty() {
+            sector_json_name(c.sector)
+        } else {
+            c.file_stem.clone()
+        };
         by_sector.entry(sname).or_default().push(c.clone());
     }
     for (sector_name, companies) in by_sector {
@@ -1558,7 +1569,14 @@ pub fn generate_corporate_entities(
     // deduction), triggering immediate furlough panic on Turn 0.
     let mut by_sector_post_loan: HashMap<String, Vec<Company>> = HashMap::new();
     for c in &all_companies {
-        let sname = sector_json_name(c.sector);
+        if c.is_liquidated {
+            continue;
+        }
+        let sname = if c.file_stem.is_empty() {
+            sector_json_name(c.sector)
+        } else {
+            c.file_stem.clone()
+        };
         by_sector_post_loan
             .entry(sname)
             .or_default()
