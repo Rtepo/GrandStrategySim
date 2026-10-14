@@ -485,15 +485,17 @@ pub fn generate_world(
     }
 
     // Seed the foreign sector balance from aggregate simulated GDP.
-    // Represents the rest-of-world economy at twice the simulated bloc —
-    // four small states are a minor share of the world economy, and the
-    // pool must fund a full horizon of export demand plus tourism inflow
-    // before it depletes. A half-GDP seed exhausted in ~22 turns under the
-    // flat export budget, collapsing net exports at the 24-turn horizon.
+    // Represents the rest-of-world economy at four times the simulated
+    // bloc — four small states are a minor share of the world economy,
+    // and the pool must fund a full horizon of export demand plus
+    // tourism inflow before it depletes. The export sweep drains a flat
+    // `EXPORT_TURN_BUDGET` (4.5e9/turn), so the 120-turn crucible draws
+    // ~540e9; a 2.0× seed (~412e9) exhausted at t92 and a 0.5× seed at
+    // ~t22, collapsing net exports and starving corporate revenue.
     // This is a one-time genesis allocation that scales with the actual
     // generated world — not a magic number.
     let total_world_gdp: f64 = state.countries.values().map(|c| c.budget.gdp).sum();
-    let foreign_sector_balance = total_world_gdp * 2.0;
+    let foreign_sector_balance = total_world_gdp * 4.0;
 
     let market = serde_json::json!({
         "prices": prices,
@@ -1431,6 +1433,7 @@ fn build_demographics(
     Demographics {
         birth_rate: cultural.birth_rate,
         death_rate: cultural.mortality,
+        baseline_death_rate: cultural.mortality,
         net_migration: 0.0,
         age_groups: AgeGroups {
             children: age.children,

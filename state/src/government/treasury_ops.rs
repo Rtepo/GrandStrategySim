@@ -145,8 +145,52 @@ fn count_critical_shortages(market_surplus: &HashMap<Commodity, f64>) -> u32 {
 /// * Essential goods: Food, HardCoal, Fuels, Pharmaceuticals.
 /// * Non-essential goods (Steel, Cement, Machinery) increase capitalist/aristocrat discontent instead.
 pub fn apply_rationing_consequences(country: &mut crate::state::Country) {
+    // Lazily anchor the baseline mortality rate for legacy saves that were
+    // serialized before the field existed.
+    {
+        let dem = &mut country.macro_indicators.demographics;
+        if dem.baseline_death_rate <= 0.0 {
+            dem.baseline_death_rate = dem.death_rate.max(0.0);
+        }
+    }
+
     if !country.rationing_system.active {
+        // Shortage over — restore the baseline mortality rate. The previous
+        // implementation multiplied `death_rate` in place every turn with no
+        // reset, so a sustained shortage ratcheted mortality geometrically
+        // (capped at 100%/yr) and never released it once goods returned.
+        country.macro_indicators.demographics.death_rate =
+            country.macro_indicators.demographics.baseline_death_rate;
         return;
+    }
+
+    // Compute the shortage uplift ONCE per turn from the worst essential-good
+    // rationing level — the uplift applies to the immutable baseline, so the
+    // mortality penalty is "while rationed", not "forever compounding".
+    let mut worst_uplift = 0.0f64;
+    let mut emergency_essential = false;
+    for (commodity_str, level) in &country.rationing_system.rationed_goods {
+        let is_essential = matches!(
+            commodity_str.as_str(),
+            "food" | "hard_coal" | "brown_coal" | "peat" | "fuels" | "pharmaceuticals"
+        );
+        if is_essential {
+            let uplift = match level {
+                crate::state::RationingLevel::Critical => 0.15,
+                crate::state::RationingLevel::Emergency => {
+                    emergency_essential = true;
+                    0.35
+                }
+                crate::state::RationingLevel::Reduced => 0.05,
+                crate::state::RationingLevel::None => 0.0,
+            };
+            worst_uplift = worst_uplift.max(uplift);
+        }
+    }
+    let dem = &mut country.macro_indicators.demographics;
+    dem.death_rate = (dem.baseline_death_rate * (1.0 + worst_uplift)).min(100.0);
+    if emergency_essential {
+        check_rationing_rebellion_trigger(country);
     }
 
     // Clone rationed_goods to avoid borrow checker issues
@@ -162,20 +206,12 @@ pub fn apply_rationing_consequences(country: &mut crate::state::Country) {
         if is_essential {
             match level {
                 crate::state::RationingLevel::Critical => {
-                    // 25% normal consumption - significant health impact
-                    increase_mortality_from_shortage(country, 0.15); // +15% mortality
                     increase_social_unrest_from_shortage(country, 20.0); // +20 unrest
                 }
                 crate::state::RationingLevel::Emergency => {
-                    // 10% normal consumption - severe health impact
-                    increase_mortality_from_shortage(country, 0.35); // +35% mortality
                     increase_social_unrest_from_shortage(country, 40.0); // +40 unrest
-                                                                         // Emergency rationing on food/heat triggers rebellion risk
-                    check_rationing_rebellion_trigger(country);
                 }
                 crate::state::RationingLevel::Reduced => {
-                    // 50% normal consumption - moderate health impact
-                    increase_mortality_from_shortage(country, 0.05); // +5% mortality
                     increase_social_unrest_from_shortage(country, 10.0); // +10 unrest
                 }
                 crate::state::RationingLevel::None => {
@@ -204,19 +240,6 @@ pub fn apply_rationing_consequences(country: &mut crate::state::Country) {
             }
         }
     }
-}
-
-/// Increases mortality rate based on essential good shortage (Stage 3 integration).
-///
-/// # Arguments
-/// * `country` - Mutable country state
-/// * `multiplier` - Mortality increase multiplier (0.0-1.0)
-fn increase_mortality_from_shortage(country: &mut crate::state::Country, multiplier: f64) {
-    // Interface with Stage 3 Health/Mortality system
-    // Increase macro_indicators.mortality_rate based on essential good shortage
-    let base_mortality = country.macro_indicators.demographics.death_rate / 100.0;
-    country.macro_indicators.demographics.death_rate =
-        (base_mortality * (1.0 + multiplier) * 100.0).min(100.0);
 }
 
 /// Increases social unrest based on essential good shortage (Stage 4 integration).

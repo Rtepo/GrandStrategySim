@@ -1225,6 +1225,7 @@ pub fn generate_corporate_entities(
         start_year,
         &mut idgen,
         rng,
+        &mut all_companies,
     )?;
 
     // Phase 44: Generate genesis housing (Mega-Estates with ownership).
@@ -1446,16 +1447,24 @@ pub fn generate_corporate_entities(
     super::list_jsc_companies_on_exchange(country, &mut all_companies, &country_regions_map, rng);
 
     // Re-save companies with CEO assignments so they persist to disk.
-    // Group by file_stem (with sector_json_name fallback) to mirror the
-    // canonical save above — grouping by sector would re-write entities with
-    // custom file_stems (e.g. STRATEGIC_RESERVE → sector PublicServices) into
-    // a SECOND file, and load_companies concatenates all files → the entity
-    // would load twice, corrupting every id-keyed index downstream.
+    // Group by sector for the save call.
+    // Merge with whatever is already on disk: save_sector overwrites the
+    // whole file, and sub-generators that ran earlier (retail stores,
+    // tourism, cooperatives) persist their own companies into the same
+    // sector files — overwriting here orphans every entity they own
+    // (observed: all retail stores lost their owner companies, leaving
+    // B2C shelves permanently empty and dropping settled revenue).
     let mut by_sector: HashMap<String, Vec<Company>> = HashMap::new();
     for c in &all_companies {
         if c.is_liquidated {
             continue;
         }
+        // Group by the canonical file_stem (sector_json_name fallback) —
+        // NOT bare sector_json_name. Entities with a custom stem
+        // (e.g. StrategicReserveAgency → "strategic_reserve") were already
+        // written to that file by the deferred save above; bucketing them
+        // by sector here would persist the same id into a second file and
+        // `load_companies` would resurrect it twice per turn.
         let sname = if c.file_stem.is_empty() {
             sector_json_name(c.sector)
         } else {
@@ -1464,7 +1473,13 @@ pub fn generate_corporate_entities(
         by_sector.entry(sname).or_default().push(c.clone());
     }
     for (sector_name, companies) in by_sector {
-        let _ = company_store.save_sector(&country.name, &sector_name, None, &companies);
+        let mut merged = company_store
+            .load_sector(&country.name, &sector_name, None)
+            .unwrap_or_default();
+        merged.extend(companies);
+        merged.sort_by(|a, b| a.id.cmp(&b.id));
+        merged.dedup_by(|a, b| a.id == b.id);
+        let _ = company_store.save_sector(&country.name, &sector_name, None, &merged);
     }
 
     // Phase 92: Labor Pool Balance — ensure total corporate FTE demand does not
@@ -1572,6 +1587,9 @@ pub fn generate_corporate_entities(
         if c.is_liquidated {
             continue;
         }
+        // Canonical file_stem bucketing (sector_json_name fallback) — see the
+        // JSC re-save above; bare sector_json_name would duplicate custom-stem
+        // entities (e.g. StrategicReserveAgency) into a second file.
         let sname = if c.file_stem.is_empty() {
             sector_json_name(c.sector)
         } else {
@@ -1583,7 +1601,17 @@ pub fn generate_corporate_entities(
             .push(c.clone());
     }
     for (sector_name, companies) in by_sector_post_loan {
-        let _ = company_store.save_sector(&country.name, &sector_name, None, &companies);
+        // Merge with on-disk contents — save_sector overwrites the whole
+        // file, and sub-generator companies (retail stores, tourism,
+        // cooperatives) live in the same sector files but are not in
+        // `all_companies`. Blind overwrite orphans their buildings.
+        let mut merged = company_store
+            .load_sector(&country.name, &sector_name, None)
+            .unwrap_or_default();
+        merged.extend(companies);
+        merged.sort_by(|a, b| a.id.cmp(&b.id));
+        merged.dedup_by(|a, b| a.id == b.id);
+        let _ = company_store.save_sector(&country.name, &sector_name, None, &merged);
     }
 
     Ok(produced)
@@ -2485,6 +2513,8 @@ fn generate_region_companies(
             unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
             liabilities: 0.0,
+            procurement_credit: 0.0,
+            consecutive_loss_turns: 0,
             company_capital,
             shares_count,
             share_price,
@@ -5197,6 +5227,8 @@ fn create_seed_company_with_explicit_method(
         unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
         liabilities: 0.0,
+        procurement_credit: 0.0,
+        consecutive_loss_turns: 0,
         company_capital,
         shares_count: 0,
         share_price: 0.0,
@@ -5757,6 +5789,8 @@ fn create_seed_company(
         unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
         liabilities: 0.0,
+        procurement_credit: 0.0,
+        consecutive_loss_turns: 0,
         company_capital,
         shares_count: 0,
         share_price: 0.0,
@@ -6813,6 +6847,8 @@ fn create_strategic_reserve_agency(
         unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
         liabilities: 0.0,
+        procurement_credit: 0.0,
+        consecutive_loss_turns: 0,
         company_capital: budget_alloc,
         shares_count: 0,
         share_price: 0.0,
@@ -7045,6 +7081,7 @@ fn generate_retail_stores(
     start_year: u32,
     idgen: &mut IdGen,
     _rng: &mut impl Rng,
+    all_companies: &mut Vec<Company>,
 ) -> Result<(), Box<dyn Error>> {
     use crate::registries::enums::Commodity;
     use crate::society::housing::{
@@ -7060,7 +7097,6 @@ fn generate_retail_stores(
     }
 
     let mut retail_buildings: Vec<CommercialBuilding> = Vec::new();
-    let mut retail_companies: Vec<Company> = Vec::new();
 
     // Era-appropriate consumption method defaults
     let default_lighting = if start_year >= 2000 {
@@ -7135,7 +7171,19 @@ fn generate_retail_stores(
         let company_name = format!("Retail Co {} ({})", company_id, region.id);
         let company_fixed = region_pop * 10.0 * format_spec.upkeep_mult;
         let company_liquid = region_pop * 5.0 * format_spec.upkeep_mult;
-        let base_capacity = (region_pop / 1000.0 * format_spec.capacity_mult).max(10.0) as u32;
+        // Labor sizing must fit inside the store's gross margin: a worker is
+        // only viable if the sales throughput they enable covers their wage.
+        // Retail margin is ~20-30% (markup 1.2-1.5 on reference price), so one
+        // FTE needs to move several hundred units of retail capacity to pay
+        // for itself. Sizing demand to retail_capacity/100 keeps the wage
+        // bill at ~a quarter of plausible turnover instead of 15x revenue,
+        // which was driving every retail company into distress acquisition
+        // within the first ten turns and orphaning its stores.
+        let retail_capacity = (region_pop * 0.01 * format_spec.capacity_mult).max(100.0);
+        let base_capacity = (retail_capacity / 100.0).max(10.0) as u32;
+        // The building's physical headcount limit stays ~5x the opening
+        // roster so a viable chain can expand payroll if demand grows.
+        let staff_capacity = (retail_capacity / 20.0).max(10.0) as u32;
 
         let mut company = Company {
             id: company_id.clone(),
@@ -7155,6 +7203,8 @@ fn generate_retail_stores(
             unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
             liabilities: 0.0,
+            procurement_credit: 0.0,
+            consecutive_loss_turns: 0,
             company_capital: company_fixed + company_liquid,
             shares_count: 1000,
             share_price: (company_fixed + company_liquid) / 1000.0,
@@ -7166,7 +7216,7 @@ fn generate_retail_stores(
             union_id: None,
             building_ids: vec![building_id.clone()],
             scale_factor: 1,
-            worker_capacity: base_capacity,
+            worker_capacity: staff_capacity,
             is_national_champion: false,
             is_listed: false,
             owners: BTreeMap::new(),
@@ -7287,11 +7337,12 @@ fn generate_retail_stores(
             leased_sqm: 0.0,
             units_sold_last_turn: std::collections::BTreeMap::new(),
             unmet_demand_last_turn: std::collections::BTreeMap::new(),
+            units_sold_pending: std::collections::BTreeMap::new(),
+            unmet_demand_pending: std::collections::BTreeMap::new(),
             market_share_last_turn: std::collections::BTreeMap::new(),
             first_active_turn: 0,
         };
 
-        let retail_capacity = (region_pop * 0.01 * format_spec.capacity_mult).max(100.0);
         let storage_capacity = retail_capacity * 10.0;
 
         let commercial_building = CommercialBuilding {
@@ -7323,12 +7374,16 @@ fn generate_retail_stores(
         };
 
         retail_buildings.push(commercial_building);
-        retail_companies.push(company);
+        // Retail companies join `all_companies` so they receive bank
+        // assignment, loans, and persistence through the canonical sector
+        // saves — a side-channel save here gets overwritten by the later
+        // grouped saves and orphans every store (observed: ownerless
+        // stores with permanently empty shelves).
+        all_companies.push(company);
     }
 
-    // Save retail companies
-    let company_store = DiskEntityStore::<Company>::new(data_dir);
-    company_store.save_sector(&country.name, "local_services", None, &retail_companies)?;
+    // Save retail commercial buildings only — the owning companies now
+    // persist through `all_companies` sector saves.
 
     // Save retail commercial buildings
     let commercial_store = DiskEntityStore::<CommercialBuilding>::new(data_dir);
@@ -7543,6 +7598,8 @@ fn generate_tourism_entities(
                 unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
                 liabilities: 0.0,
+                procurement_credit: 0.0,
+                consecutive_loss_turns: 0,
                 company_capital,
                 shares_count: 0,
                 share_price: 0.0,
@@ -8429,6 +8486,8 @@ fn create_charity_company(
         unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
         liabilities: 0.0,
+        procurement_credit: 0.0,
+        consecutive_loss_turns: 0,
         company_capital: 1000.0,
         shares_count: 0, // Non-profits don't issue shares
         share_price: 0.0,
@@ -8702,6 +8761,8 @@ pub fn generate_investment_funds(
             unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
             liabilities: 0.0,
+            procurement_credit: 0.0,
+            consecutive_loss_turns: 0,
             company_capital: seed_capital,
             shares_count: (seed_capital / 1.0) as u64,
             share_price: 1.0, // NAV per share

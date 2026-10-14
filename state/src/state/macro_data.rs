@@ -181,6 +181,15 @@ pub struct Demographics {
     /// Mortality rate, percent.
     #[serde(default)]
     pub death_rate: f64,
+    /// Baseline (pre-shortage) mortality rate, percent. Rationing uplifts are
+    /// recomputed from this anchor each turn instead of compounding into
+    /// `death_rate` — the previous code multiplied the stored rate every
+    /// turn, so a multi-turn shortage produced a geometric mortality spiral
+    /// (pinned at 100%/yr) that never decayed after the shortage cleared.
+    /// Zero means "uninitialized" — lazily anchored to `death_rate` on first
+    /// use so legacy saves keep their current rate.
+    #[serde(default)]
+    pub baseline_death_rate: f64,
     /// Net migration rate as a fraction of population.
     #[serde(default)]
     pub net_migration: f64,

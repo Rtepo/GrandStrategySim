@@ -60,7 +60,13 @@ const OUTPUT_DIR: &str = "tests/diagnostic_output";
 // simulation to Turn 25 showed GDP spiking ~Turn 3 then collapsing to ~0,
 // negative wealth tax, profitable companies drained to $0.00 cash with wage
 // arrears, energy supply crashing to 0 MW, and KNF Sev-10 leverage floods.
-const TURNS: u32 = 24;
+// 120-turn survival mandate: real-world Turn-48 runs revealed a slow-burn
+// collapse the yearling window missed — GDP flatlining, 93.79% unemployment,
+// mass bank liquidations, companies holding −5.1B in base cash (a
+// double-entry violation), ministry expenditure at $0.00, and regional
+// blackouts coexisting with 945% oversupply. The horizon extends to a full
+// five years to catch slow drains.
+const TURNS: u32 = 120;
 
 /// Per-class savings snapshot for the propensity-to-consume probe.
 #[derive(Debug, Clone, serde::Serialize)]
@@ -282,6 +288,30 @@ fn test_market_gridlock_diagnostic() {
         );
         eprintln!("GENESIS_FP_DETAIL: {}", country_summaries.join(" | "));
 
+        // CASH-1 guard (genesis): the per-country company list must hold each
+        // entity exactly once. A worldgen merge-save that buckets by bare
+        // `sector_json_name` wrote custom-`file_stem` entities (e.g.
+        // STRATEGIC_RESERVE_*) into a second file, so `load_companies`
+        // resurrected two live objects sharing one id — every id-keyed settle
+        // index then resolved to the last instance, double-decrementing its
+        // `debit_cash` below zero while the twin's encumbrance stayed stuck.
+        {
+            let mut dupes: Vec<String> = Vec::new();
+            for (cname, ents) in &ctx.entities {
+                let mut seen: std::collections::HashSet<&str> = std::collections::HashSet::new();
+                for c in &ents.companies {
+                    if !seen.insert(c.id.as_str()) {
+                        dupes.push(format!("{}:{}", cname, c.id));
+                    }
+                }
+            }
+            assert!(
+                dupes.is_empty(),
+                "Duplicate company ids in loaded entities: {:?}",
+                dupes
+            );
+        }
+
         // Phase 96: optional per-entity dump — set SES_DUMP_ENTITIES to a
         // file path to write every (country, company id, sector, cash, capital)
         // row sorted canonically. Diffing two runs' dumps pinpoints exactly
@@ -315,6 +345,13 @@ fn test_market_gridlock_diagnostic() {
 
     let mut state = initial_state;
     let initial_turn = state.calendar.global_turn;
+    // POP-1 baseline: genesis census before any turn runs.
+    let genesis_population: i64 = state
+        .countries
+        .values()
+        .flat_map(|c| c.regions.iter())
+        .map(|r| r.population)
+        .sum();
 
     // --- Phase 95: Guarantee the banking layer is observable ---
     // Worldgen writes banking.json per country, but a world whose sector file
@@ -399,9 +436,16 @@ fn test_market_gridlock_diagnostic() {
                 .map(|c| c.budget.gdp)
                 .sum::<f64>(),
         );
+        let turn_pop: i64 = state
+            .countries
+            .values()
+            .flat_map(|c| c.regions.iter())
+            .map(|r| r.population)
+            .sum();
         #[cfg(feature = "diagnostic")]
         {
             let (mut c, mut g, mut i, mut nx, mut imp) = (0.0, 0.0, 0.0, 0.0, 0.0);
+            let (mut births, mut deaths, mut mig) = (0.0, 0.0, 0.0);
             for country in state.countries.values() {
                 let bd = &country.macro_indicators.gdp_breakdown;
                 c += bd.consumption;
@@ -409,11 +453,19 @@ fn test_market_gridlock_diagnostic() {
                 i += bd.investment;
                 nx += bd.net_exports;
                 imp += bd.imputed_consumption;
+                let dem = &country.macro_indicators.demographics;
+                births += dem.last_births;
+                deaths += dem.last_deaths;
+                mig += dem.last_migration;
             }
             eprintln!(
                 "GDPSER t={}: c={:.2}B g={:.2}B i={:.2}B nx={:.2}B imp={:.2}B total={:.2}B",
                 turn_num, c / 1e9, g / 1e9, i / 1e9, nx / 1e9, imp / 1e9,
                 gdp_series.last().unwrap() / 1e9
+            );
+            eprintln!(
+                "POPSER t={}: pop={} births={:.0} deaths={:.0} mig={:.0}",
+                turn_num, turn_pop, births, deaths, mig
             );
         }
     }
@@ -503,11 +555,15 @@ fn test_market_gridlock_diagnostic() {
                 wt.turn, wt.company_cash_delta
             );
         }
-        if wt.transfer_balance < -1e6 {
+        if wt.transfer_balance.abs() > 1e6 {
             eprintln!(
-                "WAGE-3 WARN [turn {}]: transfer balance={:.2} — companies debited {:.2} \
-                 but citizens only credited {:.2}. Potential money leak.",
-                wt.turn, wt.transfer_balance, wt.company_cash_delta.abs(), wt.citizen_cash_delta
+                "WAGE-3 WARN [turn {}]: M0 drift={:.2} inside wage window — money {}. \
+                 Employer pockets debited {:.2}, citizens credited {:.2}.",
+                wt.turn,
+                wt.transfer_balance,
+                if wt.transfer_balance < 0.0 { "vanished" } else { "was created" },
+                wt.company_cash_delta.abs(),
+                wt.citizen_cash_delta
             );
         }
     }
@@ -972,9 +1028,9 @@ fn test_market_gridlock_diagnostic() {
 
     // GDP-1: horizon GDP must retain at least 20% of the early-run level —
     // the observed real-world pattern was a ~99% collapse after a Turn-3
-    // spike. Index 3/23 = GDP after turn 4 / turn 24.
+    // spike. Index 3 = GDP after turn 4; last entry = the horizon turn.
     let gdp_turn_4 = gdp_series.get(3).copied().unwrap_or(0.0);
-    let gdp_turn_24 = gdp_series.get(23).copied().unwrap_or(0.0);
+    let gdp_turn_24 = gdp_series.last().copied().unwrap_or(0.0);
     // GDP-DBG: decompose the horizon GDP by country so a collapse can be
     // attributed to a component (C/G/I/NX).
     for (name, country) in &state.countries {
@@ -999,6 +1055,247 @@ fn test_market_gridlock_diagnostic() {
         gdp_turn_4 * 0.2 / 1e9,
         gdp_series.iter().map(|g| (g / 1e9 * 10.0).round() / 10.0).collect::<Vec<_>>(),
     );
+
+    // ========================================================================
+    // GROWTH & GOVERNANCE HARD ASSERTS (v4.15.0 mandate)
+    // ========================================================================
+    // Survival is necessary but not sufficient — a released simulation must
+    // demonstrate the economy growing and the state governing.
+    //
+    // GROWTH-1: horizon GDP must exceed the post-genesis baseline. Index 0
+    // is GDP after the first turn — the realized production baseline the
+    // generated estimate settles into. Five years of healthy production,
+    // trade, and investment must leave output higher than it started.
+    let gdp_turn_0 = gdp_series.first().copied().unwrap_or(0.0);
+    let gdp_turn_horizon = gdp_series.last().copied().unwrap_or(0.0);
+    assert!(
+        gdp_turn_horizon > gdp_turn_0,
+        "GROWTH-1 FAIL: GDP did not grow over {} turns — horizon {:.2}B vs \
+         post-genesis {:.2}B (Δ={:+.1}%). The economy must thrive, not just \
+         survive. Series: {:?}",
+        TURNS,
+        gdp_turn_horizon / 1e9,
+        gdp_turn_0 / 1e9,
+        (gdp_turn_horizon / gdp_turn_0.max(1e-9) - 1.0) * 100.0,
+        gdp_series.iter().map(|g| (g / 1e9 * 10.0).round() / 10.0).collect::<Vec<_>>(),
+    );
+
+    // POP-1: births + migration must outpace deaths — the horizon census
+    // must exceed the genesis census. A shrinking population means the
+    // demographic engine is entropic, not living.
+    let pop_turn_horizon: i64 = state
+        .countries
+        .values()
+        .flat_map(|c| c.regions.iter())
+        .map(|r| r.population)
+        .sum();
+    if pop_turn_horizon <= genesis_population {
+        // POP-DBG: decompose the collapse by country and class so the drain
+        // channel (deaths vs deportation vs emigration vs transition loss)
+        // can be identified from the failure output alone.
+        for (name, country) in &state.countries {
+            let rpop: i64 = country.regions.iter().map(|r| r.population).sum();
+            let dem = &country.macro_indicators.demographics;
+            eprintln!(
+                "POP-DBG[{}]: regions={} budget={} births={:.0} deaths={:.0} \
+                 mig={:.0} br={:.3} dr={:.3} illegal={:.0}",
+                name,
+                rpop,
+                country.budget.population,
+                dem.last_births,
+                dem.last_deaths,
+                dem.last_migration,
+                dem.birth_rate,
+                dem.death_rate,
+                dem.illegal_immigrants,
+            );
+            let mut by_class: std::collections::BTreeMap<String, i64> =
+                std::collections::BTreeMap::new();
+            for r in &country.regions {
+                for (k, d) in &r.class_demographics.rural_classes {
+                    *by_class.entry(format!("R:{:?}", k)).or_default() += d.population;
+                }
+                for (k, d) in &r.class_demographics.urban_classes {
+                    *by_class.entry(format!("U:{:?}", k)).or_default() += d.population;
+                }
+            }
+            eprintln!("  POP-DBG-classes[{}]: {:?}", name, by_class);
+        }
+    }
+    assert!(
+        pop_turn_horizon > genesis_population,
+        "POP-1 FAIL: population shrank over {} turns — horizon {} vs genesis \
+         {} (Δ={}). Demographics are not regenerating the labor force.",
+        TURNS,
+        pop_turn_horizon,
+        genesis_population,
+        pop_turn_horizon - genesis_population
+    );
+
+    // GOV-1: the political engine must not be deadlocked — over five years,
+    // at least one legislative instrument must move: an enacted law, an
+    // executive crisis decree, an enacted budget bill, or a parliament that
+    // actually sat (budget sessions are recorded in politics.history).
+    let mut passed_decrees_count = 0usize;
+    let mut parliamentary_sessions = 0usize;
+    for country in state.countries.values() {
+        if let Some(sess) = &country.politics.legislative_session {
+            passed_decrees_count += sess.enacted_laws.len();
+            if sess.session_year > 0
+                || !sess.active_bills.is_empty()
+                || !sess.enacted_laws.is_empty()
+                || !sess.rejected_bills.is_empty()
+            {
+                parliamentary_sessions += 1;
+            }
+        }
+        if let Some(arr) = country
+            .macro_indicators
+            .extra
+            .get("crisis_decrees")
+            .and_then(|v| v.as_array())
+        {
+            passed_decrees_count += arr.len();
+        }
+        let sessions = country
+            .politics
+            .history
+            .iter()
+            .filter(|v| v.get("event").and_then(|e| e.as_str()) == Some("budget_bill"))
+            .count();
+        parliamentary_sessions += sessions;
+        passed_decrees_count += country
+            .politics
+            .history
+            .iter()
+            .filter(|v| {
+                v.get("event").and_then(|e| e.as_str()) == Some("budget_bill")
+                    && v.get("enacted").and_then(|e| e.as_bool()) == Some(true)
+            })
+            .count();
+    }
+    println!(
+        "  Legislative activity:   {} sessions held, {} decrees/laws enacted",
+        parliamentary_sessions, passed_decrees_count
+    );
+    assert!(
+        passed_decrees_count > 0 || parliamentary_sessions > 0,
+        "GOV-1 FAIL: zero legislative activity over {} turns — no budget \
+         sessions sat, no decrees issued, no laws enacted. The political \
+         and legislative engine is deadlocked.",
+        TURNS
+    );
+
+    // CASH-1: base cash may never be negative — a company that cannot pay
+    // must accrue tracked debt or default, never hold negative M0. The
+    // −5.10B void seen in 48-turn runs is a double-entry violation: three
+    // money pockets are audited (spendable, brokerage, escrow).
+    let mut neg_cash: Vec<(&Company, f64)> = Vec::new();
+    for ents in ctx.entities.values() {
+        for c in &ents.companies {
+            let worst = [
+                c.available_cash,
+                c.brokerage_account
+                    .as_ref()
+                    .map(|b| b.cash)
+                    .unwrap_or(0.0),
+                c.debit_cash,
+            ]
+            .iter()
+            .cloned()
+            .fold(0.0, f64::min);
+            if worst < -0.01 {
+                neg_cash.push((c, worst));
+            }
+        }
+    }
+    neg_cash.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+    eprintln!(
+        "CASH-DBG: {} companies hold negative base cash",
+        neg_cash.len()
+    );
+    for (c, v) in neg_cash.iter().take(10) {
+        eprintln!(
+            "  CASH-DBG {} {:?} avail={:.2}M broker={:.2}M debit={:.2}M",
+            c.id,
+            c.sector,
+            c.available_cash / 1e6,
+            c.brokerage_account
+                .as_ref()
+                .map(|b| b.cash)
+                .unwrap_or(0.0)
+                / 1e6,
+            c.debit_cash / 1e6,
+        );
+        let _ = v;
+    }
+    assert!(
+        neg_cash.is_empty(),
+        "CASH-1 FAIL: {} companies hold negative base cash (worst {:.3}B in {}) — \
+         inability to pay must book tracked debt/default, not void money",
+        neg_cash.len(),
+        neg_cash.first().map(|(_, v)| v / 1e9).unwrap_or(0.0),
+        neg_cash.first().map(|(c, _)| c.id.as_str()).unwrap_or("?"),
+    );
+
+    // BANKS-1: the commercial-banking sector must survive the horizon —
+    // mass KNF leverage liquidations that leave only empty investment banks
+    // freeze the entire credit supply.
+    let commercial_banks = ctx
+        .entities
+        .values()
+        .flat_map(|e| &e.companies)
+        .filter(|c| matches!(c.bank_type, Some(BankType::Commercial)))
+        .count();
+    assert!(
+        commercial_banks > 0,
+        "BANKS-1 FAIL: zero commercial banks alive at Turn {} — leverage \
+         liquidations wiped out the credit sector; ELA and supervised \
+         deleveraging must let banks shrink safely instead of dying",
+        TURNS
+    );
+
+    // GRID-1: when national supply exceeds national demand, no region may
+    // sit in a supply deficit — unmet load amid oversupply means the
+    // HV/interconnector routing failed to move surplus power to deficit
+    // regions (945% oversupply with blackouts was observed at Turn 48).
+    let mut nat_supply = 0.0;
+    let mut nat_demand = 0.0;
+    let mut deficit_regions: Vec<String> = Vec::new();
+    for (name, country) in &state.countries {
+        let gs = &country.power_grid_state;
+        nat_supply += gs.region_effective_supply_mw.values().sum::<f64>();
+        nat_demand += gs.region_demand_mw.values().sum::<f64>();
+        for (region, &demand) in &gs.region_demand_mw {
+            let eff = gs
+                .region_effective_supply_mw
+                .get(region)
+                .copied()
+                .unwrap_or(0.0);
+            if demand > 1.0 && eff < demand * 0.95 {
+                deficit_regions.push(format!(
+                    "{}/{} eff={:.0}MW dem={:.0}MW",
+                    name, region, eff, demand
+                ));
+            }
+        }
+    }
+    eprintln!(
+        "GRID-DBG: national supply={:.0}MW demand={:.0}MW deficit_regions={:?}",
+        nat_supply, nat_demand, deficit_regions
+    );
+    if nat_supply > nat_demand * 1.05 {
+        assert!(
+            deficit_regions.is_empty(),
+            "GRID-1 FAIL: {} regions in deficit despite national oversupply \
+             ({:.0} MW supply vs {:.0} MW demand): {:?} — distribute_grid_power \
+             failed to route surplus to deficit regions",
+            deficit_regions.len(),
+            nat_supply,
+            nat_demand,
+            deficit_regions.iter().take(8).collect::<Vec<_>>(),
+        );
+    }
 }
 
 // ============================================================================
@@ -1115,51 +1412,65 @@ fn snapshot_class_savings(state: &sim_engine::state::GameState) -> Vec<ClassSavi
 }
 
 /// Compute wage-transfer results for each turn by diffing
-/// `production_cycle_post` vs `labor_market_post` — the window that actually
-/// contains the wage phase (resolve_regional_labor_market + withholding
-/// routing + commuter remittance). The previous `turn_start` →
-/// `building_cycle_post` window predates the wage phase entirely and was
-/// measuring banking-phase flows (loan servicing), not payroll.
+/// `wage_clearing_pre` vs `wage_clearing_post` — the narrow window that
+/// encloses ONLY the payroll leg: works-program/state-employer funding,
+/// regional labor clearing, PIT/garnishment/remittance routing, and the
+/// commuter remittance. The previous `production_cycle_post` →
+/// `labor_market_post` window also enclosed utility settlement, rent
+/// collection, retail restock, and municipal-AI budgeting — legitimate
+/// non-wage flows whose treasury→banked-sector legs made the measured
+/// "company cash" rise every turn (the WAGE-2 artifact: aggregate deltas
+/// of +0.3B…+48B while payroll itself was conserved).
 ///
-/// Company-side outflow = ΔΣ(available_cash + brokerage_cash) + Δbank_reserves:
-/// unbanked payroll debits `available_cash`, banked payroll debits
-/// `brokerage_account.cash`, and bank self-debits plus the batch sync debit
-/// `reserves_at_central_bank`.
+/// Employer-side outflow = ΔΣ(corporate_cash + debit_cash + bank_reserves
+/// + ministry_cash + treasury_cash) − Δcumulative_cb_injection:
+/// unbanked payroll debits corporate cash, the wage trust spends from
+/// debit_cash, the banked batch sync debits reserves, ministries pay from
+/// their cash pools, and the State Employer funds wages from treasury.
+/// Central-bank injections (ELA top-ups inside the window) are policy
+/// flows, not payroll — subtracted. `transfer_balance` measures the
+/// window's total M0 drift (ΔM0 − Δcb): ~0 when every withheld leg is
+/// routed to its destination.
 fn compute_wage_transfers(trace: &TurnTrace) -> Vec<WageTransferResult> {
     let mut results = Vec::new();
     for turn_record in &trace.turns {
-        let production_post = turn_record
+        let pre = turn_record
             .checkpoints
             .iter()
-            .find(|cp| cp.phase_name == "production_cycle_post");
-        let labor_post = turn_record
+            .find(|cp| cp.phase_name == "wage_clearing_pre");
+        let post = turn_record
             .checkpoints
             .iter()
-            .find(|cp| cp.phase_name == "labor_market_post");
+            .find(|cp| cp.phase_name == "wage_clearing_post");
 
-        if let (Some(start), Some(post)) = (production_post, labor_post) {
-            // Sum company cash pockets from the targeted company snapshots.
-            let company_cash_start: f64 = start
-                .companies
-                .iter()
-                .map(|c| c.available_cash + c.brokerage_cash)
-                .sum::<f64>()
-                + start.global_fiat.bank_reserves;
-            let company_cash_post: f64 = post
-                .companies
-                .iter()
-                .map(|c| c.available_cash + c.brokerage_cash)
-                .sum::<f64>()
-                + post.global_fiat.bank_reserves;
+        if let (Some(start), Some(post)) = (pre, post) {
+            // Employer pockets across ALL companies — not the targeted
+            // subset. The old probe summed targeted-company cash plus
+            // global bank_reserves, so any settlement into the banked
+            // sector (or a targeted receipt) read as a wage-phase gain.
+            let company_cash_start: f64 = start.global_fiat.corporate_cash
+                + start.global_fiat.debit_cash
+                + start.global_fiat.bank_reserves
+                + start.global_fiat.ministry_cash
+                + start.global_fiat.treasury_cash;
+            let company_cash_post: f64 = post.global_fiat.corporate_cash
+                + post.global_fiat.debit_cash
+                + post.global_fiat.bank_reserves
+                + post.global_fiat.ministry_cash
+                + post.global_fiat.treasury_cash;
+            let cb_delta = post.global_fiat.cumulative_cb_injection
+                - start.global_fiat.cumulative_cb_injection;
             let citizen_cash_start = start.global_fiat.citizen_cash;
             let citizen_cash_post = post.global_fiat.citizen_cash;
+            let m0_drift = (post.global_fiat.total - start.global_fiat.total) - cb_delta;
 
             results.push(check_wage_transfer(
                 turn_record.turn,
                 company_cash_start,
-                company_cash_post,
+                company_cash_post - cb_delta,
                 citizen_cash_start,
                 citizen_cash_post,
+                m0_drift,
             ));
         }
     }

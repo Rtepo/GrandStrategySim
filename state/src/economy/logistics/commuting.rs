@@ -230,6 +230,9 @@ mod tests {
             city_metadata: None,
             aquifer_capacity_liters: 0.0,
             aquifer_quality: crate::society::geography::default_aquifer_quality(),
+            labor_unfilled_last_turn: 0.0,
+            labor_allocated_last_turn: 0.0,
+            labor_private_allocated_last_turn: 0.0,
         }
     }
 

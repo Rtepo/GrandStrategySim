@@ -72,6 +72,12 @@ pub struct LaborAllocationMatrix {
     /// Phase 23C: FTE secured by commuters (for caller-side remittance
     /// proportional allocation across home regions).
     pub commuter_fte: f64,
+    /// Total FTE demanded by bids this clearing (pre-allocation). The
+    /// caller uses `sum_bid_fte − allocated` as the region's revealed
+    /// unfilled labor demand for next turn's commuter routing — structural
+    /// `target_fte_demand` overstates demand because M&A consolidates
+    /// targets while the work never scales.
+    pub sum_bid_fte: f64,
 }
 
 impl LaborAllocationMatrix {
@@ -84,6 +90,7 @@ impl LaborAllocationMatrix {
         self.garnishments_withheld += other.garnishments_withheld;
         self.commuter_wages += other.commuter_wages;
         self.commuter_fte += other.commuter_fte;
+        self.sum_bid_fte += other.sum_bid_fte;
         for (k, v) in other.fte {
             *self.fte.entry(k).or_insert(0.0) += v;
         }
@@ -151,6 +158,7 @@ fn get_suitability_multiplier(class: DemographicClass, sector: &Sector, config: 
 pub fn resolve_regional_labor_market(
     region: &mut Region,
     companies: &mut [Company],
+    buildings: &[crate::entities::Building],
     minimum_wage: Option<f64>,
     _calendar: &Calendar,
     config: &LaborConfig,
@@ -169,6 +177,7 @@ pub fn resolve_regional_labor_market(
         garnishments_withheld: 0.0,
         commuter_wages: 0.0,
         commuter_fte: 0.0,
+        sum_bid_fte: 0.0,
     };
 
     // Phase 92: Reset transient wage tracking fields for all companies in this
@@ -191,6 +200,25 @@ pub fn resolve_regional_labor_market(
 
     // 2. Extract bids with liquidity clamping and minimum wage check
     let mut bids: Vec<LaborBid> = Vec::new();
+
+    // Macro-Remediation: per-company realized utilization — the mean
+    // `last_fulfillment_ratio` across owned buildings (last turn's
+    // production outcome). A plant that could not run cannot honestly
+    // recruit at nameplate capacity: its bid vacuums released workers out
+    // of the pool and straight back onto the furlough bench while deficit
+    // companies with working supply lines go unstaffed. Scaling labor
+    // demand by utilization breaks that churn cycle; a small restart
+    // floor keeps a skeleton bid so a restocking plant ramps back up as
+    // inputs land (fulfillment rises → next turn's bid follows).
+    let mut utilization_by_owner: std::collections::BTreeMap<String, (f64, usize)> =
+        std::collections::BTreeMap::new();
+    for b in buildings {
+        let e = utilization_by_owner
+            .entry(b.owner_id.clone())
+            .or_insert((0.0, 0));
+        e.0 += b.last_fulfillment_ratio;
+        e.1 += 1;
+    }
     #[cfg(feature = "diagnostic")]
     let mut _diag_sum_target = 0.0_f64;
     let mut _diag_sum_affordable = 0.0_f64;
@@ -240,22 +268,62 @@ pub fn resolve_regional_labor_market(
         // Note: fulfilled_fte is already at standby level (set by apply_seasonal_furlough),
         // so the wage payment = fulfilled_fte * offered_wage is correct.
         const FTE_RETENTION_FLOOR: f64 = 0.90; // 10% max layoff per turn
-        let retention_base = if company
+        // Macro-Remediation: a plant that could not run cannot honestly
+        // recruit — or retain — a crew it cannot feed. `sustainable` is the
+        // labor demand last turn's input fulfillment could actually use;
+        // the restart floor keeps a skeleton bid so restocking ramps back.
+        // The retention floor decays toward `sustainable` at the usual
+        // 10%/turn rather than holding the whole roster on arrears —
+        // without this, a starved company's bid recaptures its own released
+        // workers straight back onto the furlough bench (the churn cycle
+        // that parked ~4.6M workers while deficit regions went unstaffed).
+        const RESTART_UTILIZATION_FLOOR: f64 = 0.15;
+        // Only a CHRONICALLY starved company sheds toward its sustainable
+        // crew — a transient input hiccup must not vaporize employment.
+        // The clock is the same `furlough_turns_accumulated` the hard
+        // release uses, so a company holding a bench it cannot feed bleeds
+        // workers to real demand instead of recapturing them each turn.
+        const CHRONIC_STARVATION_TURNS: u32 = 8;
+        let is_seasonal_standby = company
             .seasonal_profile
             .as_ref()
             .map(|p| p.current_state == crate::entities::SeasonalState::Furloughed)
-            .unwrap_or(false)
-        {
-            company.target_fte_demand as f64 // standby level
+            .unwrap_or(false);
+        let chronically_starved = !is_seasonal_standby
+            && company.furlough_turns_accumulated >= CHRONIC_STARVATION_TURNS;
+        let (retention_floor, demand_ceiling) = if is_seasonal_standby {
+            (
+                company.target_fte_demand as f64 * FTE_RETENTION_FLOOR,
+                f64::MAX,
+            )
+        } else if chronically_starved {
+            let utilization = utilization_by_owner
+                .get(&company.id)
+                .map(|(sum, n)| sum / *n as f64)
+                .unwrap_or(1.0);
+            let sustainable = company.target_fte_demand as f64
+                * utilization.max(RESTART_UTILIZATION_FLOOR);
+            // The bid must collapse to the crew the input line can feed.
+            // `sustainable.max(prev)` let a bloated roster bid its full
+            // previous headcount, so released workers were recaptured out
+            // of the pool each turn, paid via arrears, and re-furloughed —
+            // the churn bench that parked millions while deficit regions
+            // posted unfilled demand. A chronically starved firm sheds to
+            // `sustainable` outright; recovery still works because the
+            // ceiling rises automatically when input fulfillment does.
+            (sustainable, sustainable)
         } else {
-            company.prev_fulfilled_fte as f64 // normal: 90% of last turn's workforce
+            (
+                company.prev_fulfilled_fte as f64 * FTE_RETENTION_FLOOR,
+                f64::MAX,
+            )
         };
-        let retention_floor = retention_base * FTE_RETENTION_FLOOR;
         if max_affordable_fte < retention_floor && retention_floor > 0.0 {
             // Company can't afford full payroll — retain at retention_floor,
             // the unpaid wages will accrue as arrears after clearing.
             clamped_demand = clamped_demand.max(retention_floor);
         }
+        clamped_demand = clamped_demand.min(demand_ceiling);
 
         // Phase 37: Hiring friction — cap growth to 15% per turn.
         // Small companies (<10 FTE) are exempt so they can scale up from zero.
@@ -342,6 +410,8 @@ pub fn resolve_regional_labor_market(
             hist.join(" ")
         );
     }
+
+    allocation_matrix.sum_bid_fte = bids.iter().map(|b| b.target_fte_demand).sum();
 
     // 3. Sort bids by wage (descending)
     bids.sort_by(|a, b| {
@@ -1231,6 +1301,7 @@ mod tests {
         let alloc = resolve_regional_labor_market(
             &mut region,
             &mut companies,
+            &[],
             None,
             &calendar,
             &config,
@@ -1272,6 +1343,7 @@ mod tests {
         let alloc = resolve_regional_labor_market(
             &mut region,
             &mut companies,
+            &[],
             None,
             &calendar,
             &config,

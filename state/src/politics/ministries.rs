@@ -813,7 +813,7 @@ pub fn calculate_budget_needs(country: &mut Country) {
 ///   proportionally reduced to match physical cash on hand.
 /// * `sum(allocated) <= liquid_reserves` ÔÇö no negative cash ever.
 /// * `treasury.liquid_reserves` is decremented by the total allocated.
-pub fn allocate_cash_to_ministries(country: &mut Country) {
+pub fn allocate_cash_to_ministries(country: &mut Country, preserve_turn_spend: bool) {
     let Some(ref mut config) = country.politics.ministry_config else {
         return;
     };
@@ -824,7 +824,11 @@ pub fn allocate_cash_to_ministries(country: &mut Country) {
     }
 
     let available = country.budget.liquid_reserves;
-    let ratio = (available / promised).min(1.0);
+    // Clamp at 0: a negative treasury previously wrote NEGATIVE allocated /
+    // ministry_cash pockets (and the `-= total_allocated` then REFUNDED the
+    // treasury — pockets and treasury swapped signs). A bankrupt state
+    // allocates nothing; it does not mint negative pockets.
+    let ratio = (available / promised).clamp(0.0, 1.0);
 
     for ministry in &mut config.ministries {
         // Phase 94: Return unspent ministry_cash to treasury before
@@ -838,8 +842,13 @@ pub fn allocate_cash_to_ministries(country: &mut Country) {
         // double-debit bug where liquid_reserves was hit at allocation AND
         // again at spending time.
         ministry.ministry_cash = allocated;
-        ministry.spent_cash = 0.0;
-        ministry.spending_actions.clear();
+        // The turn's SECOND allocation (post-tax, ALLOC#2) preserves the
+        // pass-1 spend accumulator — resetting here hid all pass-1
+        // procurement from the ministry-expenditure metric ($0.00 card).
+        if !preserve_turn_spend {
+            ministry.spent_cash = 0.0;
+            ministry.spending_actions.clear();
+        }
     }
 
     let total_allocated: f64 = config.ministries.iter().map(|m| m.allocated_cash).sum();
@@ -1577,7 +1586,7 @@ mod tests {
             pm_party: "P1".into(),
         });
 
-        allocate_cash_to_ministries(&mut country);
+        allocate_cash_to_ministries(&mut country, false);
 
         let config = country.politics.ministry_config.as_ref().unwrap();
         // ratio = 500/1000 = 0.5
@@ -1606,7 +1615,7 @@ mod tests {
             pm_party: "P1".into(),
         });
 
-        allocate_cash_to_ministries(&mut country);
+        allocate_cash_to_ministries(&mut country, false);
 
         let config = country.politics.ministry_config.as_ref().unwrap();
         assert!((config.ministries[0].allocated_cash - 500.0).abs() < 1e-6);

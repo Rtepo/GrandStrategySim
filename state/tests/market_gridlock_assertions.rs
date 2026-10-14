@@ -186,50 +186,54 @@ pub fn consumption_commodities() -> &'static [Commodity] {
 pub struct WageTransferResult {
     /// Turn number this result applies to.
     pub turn: u32,
-    /// ΔΣcompany.available_cash from turn_start → building_cycle_post
-    /// (negative = companies paid out cash).
+    /// Δ employer-pocket cash (corporate + escrow + reserves + ministry +
+    /// treasury, net of CB injections) across the wage-clearing window
+    /// (negative = employers paid out cash).
     pub company_cash_delta: f64,
-    /// Δcitizen_cash from turn_start → building_cycle_post
-    /// (positive = citizens received cash).
+    /// Δcitizen_cash across the window (positive = citizens received cash).
     pub citizen_cash_delta: f64,
-    /// `citizen_cash_delta + company_cash_delta` — the net transfer.
-    /// For a pure wage transfer this is ~0 (money moves company→citizen).
-    /// A large negative value means money vanished; a large positive value
-    /// means money was created (e.g., government subsidies).
+    /// Total M0 drift inside the window (ΔM0 − Δcb_injection). For a fully
+    /// conserved payroll this is ~0 — every withheld leg (PIT, garnishments,
+    /// remittances, commuter wages) lands in its destination pocket. A large
+    /// negative means money vanished; a large positive means money was
+    /// created without an injection record.
     pub transfer_balance: f64,
     /// True if citizen cash increased (wages reached citizens).
     pub citizens_gained: bool,
-    /// True if company cash decreased (companies paid wages).
+    /// True if employer pockets decreased (companies paid wages).
     pub companies_paid: bool,
 }
 
 /// Check wage-transfer conservation across the wage phase.
 ///
-/// Given the company-cash and citizen-cash totals at `turn_start` and
-/// `building_cycle_post`, compute whether wages flowed from companies to
-/// citizens without vanishing.
+/// Given the employer-pocket and citizen-cash totals at the wage-clearing
+/// window edges plus the window's M0 drift, compute whether wages flowed
+/// from employers to citizens without vanishing or appearing from nowhere.
 ///
 /// # Arguments
 /// - `turn`: The turn number.
-/// - `company_cash_start`: Σcompany.available_cash at `turn_start`.
-/// - `company_cash_post`: Σcompany.available_cash at `building_cycle_post`.
-/// - `citizen_cash_start`: FiatWalk.citizen_cash at `turn_start`.
-/// - `citizen_cash_post`: FiatWalk.citizen_cash at `building_cycle_post`.
+/// - `company_cash_start`: Σ employer pockets at `wage_clearing_pre`.
+/// - `company_cash_post`: Σ employer pockets at `wage_clearing_post`, minus
+///   the in-window central-bank injection delta.
+/// - `citizen_cash_start`: FiatWalk.citizen_cash at `wage_clearing_pre`.
+/// - `citizen_cash_post`: FiatWalk.citizen_cash at `wage_clearing_post`.
+/// - `m0_drift`: (ΔFiatWalk.total) − (Δcumulative_cb_injection) across the
+///   window — the true money-leak measure.
 pub fn check_wage_transfer(
     turn: u32,
     company_cash_start: f64,
     company_cash_post: f64,
     citizen_cash_start: f64,
     citizen_cash_post: f64,
+    m0_drift: f64,
 ) -> WageTransferResult {
     let company_cash_delta = company_cash_post - company_cash_start;
     let citizen_cash_delta = citizen_cash_post - citizen_cash_start;
-    let transfer_balance = citizen_cash_delta + company_cash_delta;
     WageTransferResult {
         turn,
         company_cash_delta,
         citizen_cash_delta,
-        transfer_balance,
+        transfer_balance: m0_drift,
         citizens_gained: citizen_cash_delta > 0.0,
         companies_paid: company_cash_delta < 0.0,
     }
@@ -308,8 +312,8 @@ mod tests {
 
     #[test]
     fn test_wage_transfer_clean() {
-        // Companies pay 1000 in wages, citizens receive 1000.
-        let r = check_wage_transfer(1, 10_000.0, 9_000.0, 5_000.0, 6_000.0);
+        // Companies pay 1000 in wages, citizens receive 1000 — no M0 drift.
+        let r = check_wage_transfer(1, 10_000.0, 9_000.0, 5_000.0, 6_000.0, 0.0);
         assert!(r.companies_paid, "companies should have paid");
         assert!(r.citizens_gained, "citizens should have gained");
         assert!(
@@ -322,7 +326,7 @@ mod tests {
     #[test]
     fn test_wage_transfer_leak() {
         // Companies pay 1000 but citizens receive nothing — money vanished.
-        let r = check_wage_transfer(1, 10_000.0, 9_000.0, 5_000.0, 5_000.0);
+        let r = check_wage_transfer(1, 10_000.0, 9_000.0, 5_000.0, 5_000.0, -1_000.0);
         assert!(r.companies_paid);
         assert!(!r.citizens_gained, "citizens gained nothing — leak detected");
         assert!(
@@ -335,7 +339,7 @@ mod tests {
     #[test]
     fn test_wage_transfer_no_wages_paid() {
         // Companies don't pay, citizens don't gain — no wage activity.
-        let r = check_wage_transfer(1, 10_000.0, 10_000.0, 5_000.0, 5_000.0);
+        let r = check_wage_transfer(1, 10_000.0, 10_000.0, 5_000.0, 5_000.0, 0.0);
         assert!(!r.companies_paid, "no wages paid");
         assert!(!r.citizens_gained, "no wages received");
         assert!(r.transfer_balance.abs() < 1e-6);

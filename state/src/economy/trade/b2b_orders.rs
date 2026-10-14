@@ -209,10 +209,21 @@ pub fn calculate_unit_cost(
 /// to brokerage.cash while available_cash kept the deficit, so each bid cycle
 /// silently moved the encumbrance into a dead ledger line.
 fn encumber_cash(company: &mut Company, amount: f64) {
-    if let Some(ba) = &mut company.brokerage_account {
-        ba.cash -= amount;
+    // Cash pockets floor at 0.0 — base cash may never go negative (the
+    // −5.10B void). The encumbrance portion that exceeds spendable cash is
+    // booked as explicit `procurement_credit`: solvency-bounded trade
+    // credit that shrinks `company_capital`, is contra-counted in the M0
+    // walk for unbanked firms, and is retired by revenue garnish.
+    let pocket = if let Some(ba) = &mut company.brokerage_account {
+        &mut ba.cash
     } else {
-        company.available_cash -= amount;
+        &mut company.available_cash
+    };
+    let paid = amount.min((*pocket).max(0.0));
+    *pocket -= paid;
+    let credit = amount - paid;
+    if credit > 0.0 {
+        company.procurement_credit += credit;
     }
     company.debit_cash += amount;
 }
@@ -297,6 +308,20 @@ pub fn submit_company_b2b_orders(
     let mut diag_companies_total = 0usize;
     #[cfg(feature = "diagnostic")]
     let mut diag_companies_no_bldg = 0usize;
+    #[cfg(feature = "diagnostic")]
+    let (
+        mut diag_desired,
+        mut diag_maxenc,
+        mut diag_posted,
+        mut diag_liquid,
+        mut diag_facility,
+        mut diag_payroll_reserve,
+    ) = (0.0f64, 0.0f64, 0.0f64, 0.0f64, 0.0f64, 0.0f64);
+    #[cfg(feature = "diagnostic")]
+    let (mut diag_budget_limited, mut diag_need_limited, mut diag_arrears_cos) =
+        (0usize, 0usize, 0usize);
+    #[cfg(feature = "diagnostic")]
+    let mut diag_top_desire: Vec<(f64, f64, String, String)> = Vec::new();
 
     for company in companies.iter_mut() {
         #[cfg(feature = "diagnostic")]
@@ -393,8 +418,26 @@ pub fn submit_company_b2b_orders(
         // ratchets negative while the books show profit. While arrears exist,
         // procurement is cash-only; inflows then refill the pocket and the
         // payroll sweep retires the arrears.
+        // Macro-Remediation: ...except a bounded restart tranche. An
+        // arrears-drowned firm under pure cash-only procurement can never
+        // buy inputs, so it can never produce, earn, or repay — the state
+        // is absorbing (the 4.1M-worker furlough trap: material-starved
+        // plants with zero cash and unpaid crews, unable to bid at all).
+        // A small equity-bounded tranche lets the plant partially restock
+        // and restart; the payroll sweep routes the resulting revenue to
+        // the arrears first, so the tranche accelerates repayment instead
+        // of pre-committing it. Bounded by net worth — an insolvent firm
+        // (facility <= 0) still posts nothing.
         if company.wage_arrears > 0.01 || company.severance_arrears > 0.01 {
-            max_encumber = max_encumber.min(liquid.max(0.0));
+            // 0.15 left trapped firms at ~6% BOM cover — enough to bid, never
+            // enough to clear the min-input pin, so the tranche funded slivers
+            // of inventory while the plant stayed throttled. 0.40 gives a real
+            // restart draw while remaining inside the net-worth facility.
+            const ARREARS_RESTART_FRACTION: f64 = 0.40;
+            let restart_tranche = working_capital_facility.max(0.0)
+                * config.max_cash_encumbrance_ratio
+                * ARREARS_RESTART_FRACTION;
+            max_encumber = max_encumber.min(liquid.max(0.0)).max(restart_tranche);
         }
         let mut total_encumbered = 0.0;
 
@@ -543,6 +586,37 @@ pub fn submit_company_b2b_orders(
         } else {
             1.0
         };
+        #[cfg(feature = "diagnostic")]
+        {
+            diag_desired += total_desired_encumbrance;
+            diag_maxenc += max_encumber;
+            diag_posted += total_desired_encumbrance * coverage;
+            if total_desired_encumbrance > 1.0 {
+                if coverage < 0.999 {
+                    diag_budget_limited += 1;
+                } else {
+                    diag_need_limited += 1;
+                }
+            }
+            if company.wage_arrears > 0.01 || company.severance_arrears > 0.01 {
+                diag_arrears_cos += 1;
+            }
+            diag_liquid += liquid.max(0.0);
+            diag_facility += working_capital_facility.max(0.0);
+            diag_payroll_reserve += payroll_reserve;
+            if total_desired_encumbrance > 1.0 {
+                diag_top_desire.push((
+                    total_desired_encumbrance,
+                    coverage,
+                    company.id.clone(),
+                    input_requirements
+                        .iter()
+                        .map(|&(c, q, lp, _)| format!("{:?}:{:.0}@{:.0}", c, q, lp))
+                        .collect::<Vec<_>>()
+                        .join(","),
+                ));
+            }
+        }
         for &(commodity, desired_qty, limit_price, unit_price_with_freight)
             in &input_requirements
         {
@@ -907,6 +981,29 @@ pub fn submit_company_b2b_orders(
         "HC_CO: companies={} no_buildings={}",
         diag_companies_total, diag_companies_no_bldg
     );
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "ENCPROBE: desired={:.3e} maxenc={:.3e} posted={:.3e} liquid={:.3e} facility={:.3e} payroll_res={:.3e} budget_ltd={} need_ltd={} arrears_cos={}",
+        diag_desired,
+        diag_maxenc,
+        diag_posted,
+        diag_liquid,
+        diag_facility,
+        diag_payroll_reserve,
+        diag_budget_limited,
+        diag_need_limited,
+        diag_arrears_cos
+    );
+    #[cfg(feature = "diagnostic")]
+    {
+        diag_top_desire.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+        for (d, cov, id, bom) in diag_top_desire.iter().take(5) {
+            eprintln!(
+                "TOPDESIRE: co={} desired={:.3e} cov={:.4} bom={}",
+                id, d, cov, bom
+            );
+        }
+    }
 
     messages
 }
@@ -1002,7 +1099,16 @@ pub fn settle_trades(
                     // reserves fall as the liability moves to the seller's
                     // bank; ELA covers so reserves never go negative) — the
                     // same structure as the cross-border path below.
-                    companies[bi].debit_cash = (companies[bi].debit_cash - trade_value).max(0.0);
+                    #[cfg(feature = "diagnostic")]
+                    if companies[bi].debit_cash - trade_value < -0.01 {
+                        eprintln!(
+                            "NEGSET[BANKED]: buyer={} com={:?} qty={:.3e} exec={:.4} val={:.3e} debit_pre={:.3e}",
+                            trade.buyer_id, trade.commodity, trade.quantity,
+                            trade.execution_price, trade_value, companies[bi].debit_cash
+                        );
+                    }
+                    companies[bi].debit_cash =
+                        (companies[bi].debit_cash - trade_value).max(0.0);
                     let buyer_bank_id = companies[bi].primary_bank_id.clone();
                     if let Some(ref bank_id) = buyer_bank_id {
                         if let Some(&bidx) = company_id_to_idx.get(bank_id) {
@@ -1034,7 +1140,16 @@ pub fn settle_trades(
                     // b2b_settlement_post FiatCreation leak). Debit the
                     // buyer-bank's own sheet like the cross-border path
                     // below; ELA covers so reserves never go negative.
-                    companies[bi].debit_cash = (companies[bi].debit_cash - trade_value).max(0.0);
+                    #[cfg(feature = "diagnostic")]
+                    if companies[bi].debit_cash - trade_value < -0.01 {
+                        eprintln!(
+                            "NEGSET[BANKBUYER]: buyer={} com={:?} qty={:.3e} exec={:.4} val={:.3e} debit_pre={:.3e}",
+                            trade.buyer_id, trade.commodity, trade.quantity,
+                            trade.execution_price, trade_value, companies[bi].debit_cash
+                        );
+                    }
+                    companies[bi].debit_cash =
+                        (companies[bi].debit_cash - trade_value).max(0.0);
                     if let Some(ref mut bs) = companies[bi].balance_sheet {
                         crate::state::banking::ela_cover_debit(
                             bs,
@@ -1052,7 +1167,24 @@ pub fn settle_trades(
                     // (available_cash → debit_cash). Release encumbrance and
                     // credit seller directly. This preserves M0: debit_cash
                     // (M0) → seller cash (M0).
-                    companies[bi].debit_cash = (companies[bi].debit_cash - trade_value).max(0.0);
+                    #[cfg(feature = "diagnostic")]
+                    if trade.buyer_id.starts_with("STRATEGIC_RESERVE") {
+                        eprintln!(
+                            "SRA_SETTLE: buyer={} com={:?} qty={:.3e} exec={:.4} val={:.3e} debit_pre={:.3e}",
+                            trade.buyer_id, trade.commodity, trade.quantity,
+                            trade.execution_price, trade_value, companies[bi].debit_cash
+                        );
+                    }
+                    #[cfg(feature = "diagnostic")]
+                    if companies[bi].debit_cash - trade_value < -0.01 {
+                        eprintln!(
+                            "NEGSET[UNBANKED]: buyer={} com={:?} qty={:.3e} exec={:.4} val={:.3e} debit_pre={:.3e}",
+                            trade.buyer_id, trade.commodity, trade.quantity,
+                            trade.execution_price, trade_value, companies[bi].debit_cash
+                        );
+                    }
+                    companies[bi].debit_cash =
+                        (companies[bi].debit_cash - trade_value).max(0.0);
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
                     companies[si].turn_settled_sales += trade_value;
@@ -1083,7 +1215,24 @@ pub fn settle_trades(
                     // are all physical fiat in the walk, so no further
                     // cash-pocket debit may follow (that would destroy
                     // fiat a second time — the post-fix FiatDestruction).
-                    companies[bi].debit_cash = (companies[bi].debit_cash - trade_value).max(0.0);
+                    #[cfg(feature = "diagnostic")]
+                    if trade.buyer_id.starts_with("STRATEGIC_RESERVE") {
+                        eprintln!(
+                            "SRA_SETTLE_XB: buyer={} com={:?} qty={:.3e} exec={:.4} val={:.3e} debit_pre={:.3e}",
+                            trade.buyer_id, trade.commodity, trade.quantity,
+                            trade.execution_price, trade_value, companies[bi].debit_cash
+                        );
+                    }
+                    #[cfg(feature = "diagnostic")]
+                    if companies[bi].debit_cash - trade_value < -0.01 {
+                        eprintln!(
+                            "NEGSET[XB]: buyer={} com={:?} qty={:.3e} exec={:.4} val={:.3e} debit_pre={:.3e}",
+                            trade.buyer_id, trade.commodity, trade.quantity,
+                            trade.execution_price, trade_value, companies[bi].debit_cash
+                        );
+                    }
+                    companies[bi].debit_cash =
+                        (companies[bi].debit_cash - trade_value).max(0.0);
                     let buyer_bank_id = companies[bi].primary_bank_id.clone();
                     let buyer_is_bank = companies[bi].sector
                         == crate::registries::enums::Sector::Banking;
@@ -1201,11 +1350,19 @@ pub fn settle_trades(
                     // payment. Credit the domestic treasury as the informal/
                     // state-sector counterparty so the payer's debit has a
                     // matching credit and M0 stays conserved.
-                    country.budget.liquid_reserves += trade_value;
+                    // Macro-Remediation: FOREIGN-SECTOR imports settle
+                    // against the foreign purse, not the treasury — the
+                    // caller credits `market.foreign_sector_balance` with
+                    // the spend; crediting the treasury here as well
+                    // would double-count the inflow.
+                    if trade.seller_id != "FOREIGN-SECTOR" {
+                        country.budget.liquid_reserves += trade_value;
+                    }
                 }
             }
         } else if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
-            companies[bi].debit_cash = (companies[bi].debit_cash - trade_value).max(0.0);
+            companies[bi].debit_cash =
+                (companies[bi].debit_cash - trade_value).max(0.0);
         } else {
             // Phase 94: MIN-DEF or other non-company buyer. The buyer's cash
             // was already encumbered (deducted from liquid_reserves). Credit
@@ -1434,7 +1591,7 @@ pub fn settle_trades(
                 );
             }
         }
-        if remaining_to_ship > 0.0 {
+        if remaining_to_ship > 0.0 && company_id_to_idx.contains_key(&trade.seller_id) {
             messages.push(format!(
                 "WARNING: Seller {} short-shipped {:.1} of {} {:?} (no building held the stock)",
                 trade.seller_id, remaining_to_ship, trade.quantity, trade.commodity
@@ -1716,11 +1873,26 @@ pub fn refund_unfilled_bids(
             if let Some(&idx) = company_id_to_idx.get(&bid.buyer_id) {
                 let company = &mut companies[idx];
                 let refund = bid.quantity * bid.limit_price;
-                // Release only the escrow still outstanding for this bid —
-                // settlement legs (incl. freight/transit fees) may already
-                // have consumed part of it. Releasing more than the pocket
-                // holds drives `debit_cash` negative (CASH-1 violation) while
-                // crediting fiat that was never encumbered (M0 creation).
+                #[cfg(feature = "diagnostic")]
+                if bid.buyer_id.starts_with("STRATEGIC_RESERVE") {
+                    eprintln!(
+                        "SRA_REFUND: buyer={} com={:?} qty={:.3e} limit={:.4} refund={:.3e} debit_pre={:.3e}",
+                        bid.buyer_id, bid.commodity, bid.quantity,
+                        bid.limit_price, refund, company.debit_cash
+                    );
+                }
+                #[cfg(feature = "diagnostic")]
+                if company.debit_cash - refund < -0.01 {
+                    eprintln!(
+                        "NEGSET[REFUND]: buyer={} com={:?} qty={:.3e} limit={:.4} refund={:.3e} debit_pre={:.3e}",
+                        bid.buyer_id, bid.commodity, bid.quantity,
+                        bid.limit_price, refund, company.debit_cash
+                    );
+                }
+                // Release only what is still encumbered — a refund larger than
+                // the outstanding escrow must not push debit_cash negative or
+                // credit cash that was never locked (double-release voids M0
+                // conservation). The diagnostic above still flags the mismatch.
                 let released = refund.min(company.debit_cash.max(0.0));
                 company.debit_cash -= released;
                 // Phase 94: Only credit one cash field to avoid M0 duplication.

@@ -476,6 +476,23 @@ pub struct Company {
     /// Liabilities (was: zobowiazania).
     #[serde(default)]
     pub liabilities: f64,
+    /// Trade-credit principal outstanding against B2B procurement. Drawn by
+    /// `encumber_cash` when a solvency-bounded bid exceeds the spendable
+    /// pocket: the pocket floors at 0.0 and the uncovered encumbrance is
+    /// booked HERE instead of driving cash negative (the −5.10B void).
+    /// Counted contra-M0 for unbanked companies in `walk_global_fiat` and
+    /// subtracted from `company_capital`, so the working-capital facility
+    /// self-limits at net worth and insolvency still reaches default.
+    #[serde(default)]
+    pub procurement_credit: f64,
+    /// Macro-Remediation: consecutive turns with negative `net_profit`,
+    /// maintained by `process_company`. The lifecycle wind-down rule
+    /// requires this to reach `TURNS_PER_YEAR` (a full year of losses)
+    /// plus a fully inactive operation — the previous 3-record
+    /// `financial_history` streak read per-TURN records as per-YEAR and
+    //  executed ~40% of the corporate sector when genesis grace expired.
+    #[serde(default)]
+    pub consecutive_loss_turns: u32,
     /// Company capital (was: kapital_firmy).
     #[serde(default)]
     pub company_capital: f64,
@@ -880,6 +897,8 @@ extra: HashMap::new(),
             unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
             liabilities: 0.0,
+            procurement_credit: 0.0,
+            consecutive_loss_turns: 0,
             company_capital,
             shares_count: 0,
             share_price: 0.0,

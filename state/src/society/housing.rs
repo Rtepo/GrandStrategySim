@@ -559,13 +559,31 @@ pub struct RetailProfile {
     #[serde(default)]
     pub leased_sqm: f64,
 
-    /// Units sold last turn per commodity
+    /// Units sold last turn per commodity — rolled from
+    /// `units_sold_pending` once per turn at restock time. Reads (dynamic
+    /// pricing, restock demand hints) hit this map; clearing writes to
+    /// `units_sold_pending` so a full turn of sales accumulates before it
+    /// becomes the reference window.
     #[serde(default)]
     pub units_sold_last_turn: std::collections::BTreeMap<Commodity, f64>,
 
     /// Unmet demand last turn per commodity
     #[serde(default)]
     pub unmet_demand_last_turn: std::collections::BTreeMap<Commodity, f64>,
+
+    /// Units sold during the in-flight turn per commodity — the write
+    /// target for `clear_b2c_markets`. Rolled into `units_sold_last_turn`
+    /// at the next restock pass. Keeping writes separate is what makes
+    /// `*_last_turn` actually mean "last turn": without a pending buffer
+    /// the map accumulated across every region and every turn, so demand
+    /// hints scaled to lifetime sales and stores credit-funded
+    /// exponentially oversized wholesale pulls.
+    #[serde(default)]
+    pub units_sold_pending: std::collections::BTreeMap<Commodity, f64>,
+
+    /// Unmet demand during the in-flight turn per commodity.
+    #[serde(default)]
+    pub unmet_demand_pending: std::collections::BTreeMap<Commodity, f64>,
 
     /// Phase 6.5: Market share last turn per commodity (for consumer inertia)
     #[serde(default)]
@@ -1028,6 +1046,50 @@ impl CommercialBuilding {
         }
 
         total_withdrawn
+    }
+
+    /// Consume inventory units sold in a retail (B2C) transaction.
+    ///
+    /// Unlike `withdraw_inventory`, a retail sale consumes whatever is on the
+    /// shelf regardless of which company owns the batch — the store is the
+    /// seller of record for everything it stocks (restock pushes batches under
+    /// `self.owner_id`, but consigned or municipal stock may carry other ids).
+    ///
+    /// Uses FEFO ordering (oldest `storage_turn` first), removes empty batches
+    /// and empty commodity entries, and returns the quantity actually consumed.
+    ///
+    /// # Arguments
+    /// * `commodity_key` - Commodity identifier (e.g., "Cereal", "Vegetable")
+    /// * `quantity` - Units sold to consumers
+    pub fn consume_sale(&mut self, commodity_key: &str, quantity: f64) -> f64 {
+        if quantity <= 0.0 {
+            return 0.0;
+        }
+
+        let Some(batches) = self.current_inventory.get_mut(commodity_key) else {
+            return 0.0;
+        };
+
+        let mut remaining = quantity;
+        let mut consumed = 0.0;
+
+        batches.sort_by_key(|b| b.storage_turn);
+        for batch in batches.iter_mut() {
+            if remaining <= 0.0 {
+                break;
+            }
+            let take = remaining.min(batch.quantity);
+            batch.quantity -= take;
+            consumed += take;
+            remaining -= take;
+        }
+
+        batches.retain(|b| b.quantity > 0.0);
+        if batches.is_empty() {
+            self.current_inventory.remove(commodity_key);
+        }
+
+        consumed
     }
 
     /// Apply perishability to stored goods with batch-based FEFO logic (Phase 5.5).
