@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
-import { getMacroIndicators, getSectors } from "../hooks/useTauriCommand";
+import { getMacroIndicators, getMacroHistory, getSectors } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from "../components/ui";
 import { GdpChart } from "../components/charts/GdpChart";
 import { fmt, pct, num } from "../lib/format";
@@ -17,6 +17,14 @@ export function MacroPage() {
   const { data: sectors } = useQuery({
     queryKey: ["sectors", selectedCountry],
     queryFn: () => getSectors(selectedCountry!),
+    enabled: !!selectedCountry,
+  });
+
+  // The engine's own per-country telemetry history — keyed by
+  // selectedCountry so a country switch always loads that country's series.
+  const { data: macroHistory } = useQuery({
+    queryKey: ["macro_history", selectedCountry],
+    queryFn: () => getMacroHistory(selectedCountry!),
     enabled: !!selectedCountry,
   });
 
@@ -54,6 +62,7 @@ export function MacroPage() {
                 ppi={macro.ppi}
                 deltas={macro.deltas}
                 turn={gameStatus?.turn ?? 0}
+                backendHistory={macroHistory}
               />
             </CardContent>
           </Card>

@@ -1041,9 +1041,20 @@ pub fn process_political_turn(
 /// legislation pipeline was dead for parliaments seated at genesis or between
 /// elections. This lazy init mirrors the election-time wiring.
 fn ensure_legislative_infrastructure(country: &mut Country, current_turn: u32) {
+    // Seat check reads the live chamber map first (appointed/consultative
+    // chambers seated at genesis or restored mid-run), falling back to the
+    // legacy flat map — the two must agree but only the legacy map is
+    // populated by elections.
+    let seat_map = country
+        .politics
+        .parliament_struct
+        .as_ref()
+        .map(|p| p.lower_seat_map())
+        .filter(|m| !m.is_empty())
+        .unwrap_or_else(|| country.politics.parliament.clone());
     let parliament_exists = country.politics.government_form.chambers() > 0
         && country.politics.parliament_struct.is_some()
-        && country.politics.parliament.values().sum::<u32>() > 0;
+        && seat_map.values().sum::<u32>() > 0;
     if !parliament_exists {
         return;
     }
@@ -1056,7 +1067,7 @@ fn ensure_legislative_infrastructure(country: &mut Country, current_turn: u32) {
 
     if country.politics.committee_system.is_none() {
         let mut cs = super::committees::CommitteeSystem::default();
-        cs.initialize_committees(&country.politics.parliament, &country.politics.coalition);
+        cs.initialize_committees(&seat_map, &country.politics.coalition);
         country.politics.committee_system = Some(cs);
     }
 }

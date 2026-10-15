@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { EChart } from "./EChart";
-import type { TelemetryDeltas } from "../../types/api";
+import type { MacroHistoryPoint, TelemetryDeltas } from "../../types/api";
 import type { EChartsOption } from "echarts";
 
 interface GdpChartProps {
@@ -10,6 +10,8 @@ interface GdpChartProps {
   ppi: number;
   deltas: TelemetryDeltas;
   turn: number;
+  /** Engine-side telemetry ring buffer for this country (authoritative). */
+  backendHistory?: MacroHistoryPoint[];
 }
 
 interface HistoryPoint {
@@ -36,14 +38,23 @@ function readHistory(country: string): HistoryPoint[] {
   }
 }
 
-export function GdpChart({ country, gdp, cpi, ppi, deltas, turn }: GdpChartProps) {
+export function GdpChart({ country, gdp, cpi, ppi, deltas, turn, backendHistory }: GdpChartProps) {
   const [history, setHistory] = useState<HistoryPoint[]>(() => readHistory(country));
 
-  // Country switched: reset the series from the newly selected country's own
-  // stored history — never keep the previous country's points.
+  // Country switched or backend series refreshed: prefer the engine's own
+  // telemetry history (authoritative, survives restarts); fall back to the
+  // per-country localStorage series when the backend buffer is empty (e.g.
+  // saves predating telemetry_history). Never keep the previous country's
+  // points.
   useEffect(() => {
-    setHistory(readHistory(country));
-  }, [country]);
+    const backend: HistoryPoint[] = (backendHistory ?? []).map((p) => ({
+      turn: p.turn,
+      gdp: p.gdp,
+      cpi: p.cpi,
+      ppi: p.ppi,
+    }));
+    setHistory(backend.length > 0 ? backend : readHistory(country));
+  }, [country, backendHistory]);
 
   // Append the latest snapshot to the current country's series only. The
   // storage key is derived from this render's `country`, and the functional

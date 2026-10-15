@@ -787,17 +787,43 @@ fn generate_country(
     // Phase 32: Seat the Parliament at genesis — chambers must exist from
     // turn 0 so the legislative queue and recent_votes are live before the
     // first political turn lazily initializes them otherwise.
-    if country.politics.parliament_struct.is_none()
-        && country.politics.government_form.chambers() > 0
-    {
-        let parl = crate::politics::parliament::initialize_parliament(
-            &country.politics,
-            &country.macro_indicators.cultural_group,
-            0,
-            rng,
-            &mut std::collections::HashSet::new(),
-        );
-        country.politics.parliament_struct = Some(parl);
+    if country.politics.government_form.chambers() > 0 {
+        // Non-democratic legislatures never run elections, so their seat
+        // map stays empty forever — an unseated chamber cannot receive
+        // bills (`introduce_bill_to_session` refuses `seated == 0`). Seat
+        // the initial body proportional to party support: appointed and
+        // consultative chambers likewise reflect the ruling coalition's
+        // influence shares. Democracies get the same treatment (their
+        // turn-0 election would have seated an identical map anyway).
+        if country.politics.parliament.values().sum::<u32>() == 0 {
+            let eligible: std::collections::HashMap<String, crate::politics::system::Party> =
+                country
+                    .politics
+                    .active_parties
+                    .iter()
+                    .filter(|(_, p)| p.support > 0.0)
+                    .map(|(n, p)| (n.clone(), p.clone()))
+                    .collect();
+            let seats = crate::politics::elections::calculate_seats(
+                &eligible,
+                "D'Hondt",
+                country.politics.election_threshold,
+                100,
+            );
+            if !seats.is_empty() {
+                country.politics.parliament = seats;
+            }
+        }
+        if country.politics.parliament_struct.is_none() {
+            let parl = crate::politics::parliament::initialize_parliament(
+                &country.politics,
+                &country.macro_indicators.cultural_group,
+                0,
+                rng,
+                &mut std::collections::HashSet::new(),
+            );
+            country.politics.parliament_struct = Some(parl);
+        }
     }
     #[cfg(feature = "diagnostic")]
     eprintln!(

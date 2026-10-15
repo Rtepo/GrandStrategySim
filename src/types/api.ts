@@ -1009,6 +1009,15 @@ export type ListedCompanyPageResponse = { rows: Array<ListedCompanyRow>, total_c
 export type ListedCompanyRow = { company_id: string, name: string, sector: string, share_price: number, change_pct: number, market_cap: number, pe_ratio: number, dividend_yield: number, volume: bigint, open_price: number, close_price: number, spread: number, ceo_name: string | null, ceo_vip_id: string | null, };
 
 /**
+ * Phase 24F: One point of the per-country macro history ring buffer,
+ * projected for the frontend macro chart. Sourced from
+ * `MacroData::telemetry_history` — the authoritative per-country series,
+ * so country switches render that country's own history rather than
+ * accumulating cross-country points client-side.
+ */
+export type MacroHistoryPoint = { turn: number, year: number, gdp: number, cpi: number, ppi: number, };
+
+/**
  * Response for the get_macro_indicators command.
  */
 export type MacroIndicatorsResponse = { gdp: number, gdp_per_capita: number, population: bigint, unemployment_rate: number, inflation_rate: number, average_wage: number, money_supply_m0: number, money_supply_m3: number, consumption: number, investment: number, government_spending: number, net_exports: number, cpi: number, ppi: number, deltas: TelemetryDeltas, 

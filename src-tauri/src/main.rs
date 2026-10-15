@@ -31,6 +31,7 @@ fn main() {
             commands::actions::list_saves,
             commands::actions::get_game_status,
             commands::macro_queries::get_macro_indicators,
+            commands::macro_queries::get_macro_history,
             commands::macro_queries::get_treasury,
             commands::macro_queries::get_finance,
             commands::macro_queries::get_commodities,

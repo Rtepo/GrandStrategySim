@@ -2197,7 +2197,10 @@ pub fn regional_value_added(
 }
 
 /// Overwrite `Region::gdp` and `Region::gdp_pc` with the bottom-up value
-/// added from [`regional_value_added`].
+/// added from [`regional_value_added`], plus any `extra_regional_va`
+/// carried in from callers — currently the public-works/state-employer
+/// wage bill, whose pseudo-companies are removed before end-of-turn
+/// reconciliation but whose payroll is real regional household income.
 ///
 /// Replaces the end-of-turn national-GDP × population-share pro-rating that
 /// assigned every region an identical GDP per capita. Regional GDP is now
@@ -2207,10 +2210,13 @@ pub fn reconcile_regional_gdp(
     regions: &mut [Region],
     companies: &[crate::entities::Company],
     buildings: &[crate::entities::Building],
+    extra_regional_va: &HashMap<String, f64>,
 ) {
     let va = regional_value_added(regions, companies, buildings);
     for r in regions.iter_mut() {
-        let g = va.get(&r.id).copied().unwrap_or(0.0).max(0.0);
+        let g = (va.get(&r.id).copied().unwrap_or(0.0)
+            + extra_regional_va.get(&r.id).copied().unwrap_or(0.0))
+        .max(0.0);
         r.gdp = g;
         r.gdp_pc = if r.population > 0 {
             g / r.population as f64

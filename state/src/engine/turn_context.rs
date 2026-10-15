@@ -53,6 +53,11 @@ pub struct CountryEntities {
     pub commercial_buildings: Vec<CommercialBuilding>,
     /// Housing buildings.
     pub housing_buildings: Vec<HousingBuilding>,
+    /// Per-region wage bill of transient state-sector employers (public
+    /// works, state employer) removed during payroll clearing. Their
+    /// payroll is real regional household income that bottom-up regional
+    /// GDP must still see (income-side GVA).
+    pub state_sector_wages_by_region: HashMap<String, f64>,
 }
 
 impl InMemoryTurnContext {
@@ -148,6 +153,7 @@ impl InMemoryTurnContext {
                     unions,
                     commercial_buildings,
                     housing_buildings,
+                    state_sector_wages_by_region: HashMap::new(),
                 },
             );
         }

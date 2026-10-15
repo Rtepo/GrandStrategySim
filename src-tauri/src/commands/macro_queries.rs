@@ -1,7 +1,7 @@
 use crate::state::AppState;
 use sim_engine::ui::snapshot::{
-    build_country_snapshot, CommodityRow, FinanceSnapshot, MacroIndicatorsResponse, SectorRow,
-    TreasurySummary, ViewQuery,
+    build_country_snapshot, CommodityRow, FinanceSnapshot, MacroHistoryPoint,
+    MacroIndicatorsResponse, SectorRow, TreasurySummary, ViewQuery,
 };
 
 fn get_country_and_build(
@@ -69,6 +69,42 @@ pub async fn get_macro_indicators(
             peasant_population: md.labor.peasant_population,
             peasant_pct: md.labor.peasant_pct,
         })
+    })
+    .await
+    .map_err(|e| format!("Task join error: {e}"))?
+}
+
+/// Per-country macro history for the GDP/CPI/PPI chart — the engine's own
+/// telemetry ring buffer (up to one year + current turn), keyed by country
+/// so a country switch returns that country's series, never a continuation
+/// of the previously viewed one.
+#[tauri::command]
+pub async fn get_macro_history(
+    state: tauri::State<'_, AppState>,
+    country: String,
+) -> Result<Vec<MacroHistoryPoint>, String> {
+    let state_clone = state.inner().clone();
+    tokio::task::spawn_blocking(move || {
+        let engine_guard = state_clone.engine.blocking_read();
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
+        let country_ref = engine_state
+            .game_state
+            .countries
+            .get(&country)
+            .ok_or(format!("Country '{}' not found", country))?;
+        Ok(country_ref
+            .macro_indicators
+            .telemetry_history
+            .samples
+            .iter()
+            .map(|s| MacroHistoryPoint {
+                turn: s.turn,
+                year: s.year,
+                gdp: s.official_gdp,
+                cpi: s.cpi_index,
+                ppi: s.ppi_index,
+            })
+            .collect())
     })
     .await
     .map_err(|e| format!("Task join error: {e}"))?

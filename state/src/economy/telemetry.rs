@@ -95,9 +95,20 @@ pub struct GdpAccumulator {
     pub imputed_consumption: f64,
     /// Phase 35: Per-region GDP breakdown for strict national = sum(regional) reconciliation.
     pub regional: HashMap<String, RegionalGdpAccumulator>,
+    /// v4.16.0: Government-spending attribution by source channel. Purely
+    /// diagnostic — lets tests and UI audit *why* G is what it is (ministry
+    /// subsidies vs procurement vs works wages vs church fund) instead of
+    /// trusting a single opaque aggregate.
+    pub gov_detail: BTreeMap<&'static str, f64>,
 }
 
 impl GdpAccumulator {
+    /// Record government spending tagged by source channel.
+    pub fn add_government_spending_tagged(&mut self, tag: &'static str, amount: f64) {
+        self.government_spending += amount;
+        *self.gov_detail.entry(tag).or_insert(0.0) += amount;
+    }
+
     /// Phase 35: Record consumption in a specific region.
     pub fn add_consumption(&mut self, region_id: &str, amount: f64) {
         self.consumption += amount;
@@ -614,6 +625,7 @@ mod tests {
             shadow_gdp: 50_000.0,
             imputed_consumption: 0.0,
             regional: std::collections::HashMap::default(),
+            gov_detail: std::collections::BTreeMap::default(),
         };
         let gdp = compute_gdp(&acc, 1_500_000.0);
         assert!((gdp.official_gdp - 1_600_000.0).abs() < 1e-6);

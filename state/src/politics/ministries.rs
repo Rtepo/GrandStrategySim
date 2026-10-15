@@ -1052,7 +1052,13 @@ fn execute_competency_spending_with_parties(
                         target_building_id: "STATE_INFRA".to_string(),
                         amount: actual,
                     });
-                total_g_spending += actual;
+                // v4.16.0: NOT counted in GDP G — this is an intra-government
+                // transfer (ministry pocket → consolidated treasury), not a
+                // final purchase. Expenditure-approach G counts only real
+                // outflows: the same funds book G when they actually pay
+                // state-employer wages, works wages, or procurement trades.
+                // Counting the transfer here AND the wage later double-counted
+                // the same money (gov share ballooned past 50% of GDP).
             }
         }
         GovernmentCompetency::Healthcare | GovernmentCompetency::Education => {
@@ -1105,7 +1111,12 @@ fn execute_competency_spending_with_parties(
                         target: format!("{:?}", comp),
                         amount: actual,
                     });
-                total_g_spending += actual;
+                // v4.16.0: NOT counted in GDP G — intra-government transfer
+                // (ministry pocket → consolidated treasury), not a final
+                // purchase of goods/services. These competencies have no
+                // modeled delivery mechanism yet; booking the pocket shuffle
+                // as expenditure created phantom government consumption and
+                // re-counted the same cash when it later funded real wages.
             }
         }
     }

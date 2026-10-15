@@ -1449,6 +1449,21 @@ pub fn settle_trades(
                 let blueprint_id = trade.blueprint_id.clone().unwrap_or_default();
                 let quality = trade.quality.unwrap_or(0.0);
                 let durability = trade.durability.unwrap_or(0.0);
+                // Desynchronize fleet end-of-life: every cohort installed
+                // with identical durability scraps on the same turn, and
+                // because the genesis fleet is built in one wave the entire
+                // economy repurchases in a single synchronized burst
+                // (observed: I=0 for 100+ turns then a 313B spike).
+                // A deterministic per-(building, blueprint, lot) jitter of
+                // ±20% spreads the scrap window without consuming RNG draws.
+                let durability = {
+                    use std::hash::{Hash, Hasher};
+                    let mut h = std::collections::hash_map::DefaultHasher::new();
+                    building.id.hash(&mut h);
+                    blueprint_id.hash(&mut h);
+                    trade.quantity.to_bits().hash(&mut h);
+                    durability * (0.8 + 0.4 * (h.finish() % 1000) as f64 / 1000.0)
+                };
                 let cohort = crate::economy::fixed_assets::FixedAssetCohort::new(
                     blueprint_id,
                     trade.commodity,

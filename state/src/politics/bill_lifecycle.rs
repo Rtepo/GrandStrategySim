@@ -1061,7 +1061,7 @@ pub fn introduce_budget_bill_if_due(
     country: &mut crate::state::Country,
     current_turn: u32,
 ) -> Option<String> {
-    if current_turn % 4 != 0 {
+    if !current_turn.is_multiple_of(4) {
         return None;
     }
     // No parliament at all → nothing to vote on.
@@ -1084,7 +1084,15 @@ pub fn introduce_budget_bill_if_due(
         return None;
     }
     // No seated MPs yet (e.g., pre-first-election authoritarian legislature).
-    let total_seats: u32 = country.politics.parliament.values().sum();
+    // Read the live chamber map first (appointed chambers seated at genesis),
+    // falling back to the legacy flat map populated by elections.
+    let total_seats: u32 = country
+        .politics
+        .parliament_struct
+        .as_ref()
+        .map(|p| p.lower_seats())
+        .unwrap_or(0)
+        .max(country.politics.parliament.values().sum::<u32>());
     if total_seats == 0 {
         return None;
     }

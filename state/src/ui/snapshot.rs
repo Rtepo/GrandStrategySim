@@ -2891,6 +2891,21 @@ pub struct MacroIndicatorsResponse {
     pub peasant_pct: f64,
 }
 
+/// Phase 24F: One point of the per-country macro history ring buffer,
+/// projected for the frontend macro chart. Sourced from
+/// `MacroData::telemetry_history` — the authoritative per-country series,
+/// so country switches render that country's own history rather than
+/// accumulating cross-country points client-side.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MacroHistoryPoint {
+    pub turn: u32,
+    pub year: u32,
+    pub gdp: f64,
+    pub cpi: f64,
+    pub ppi: f64,
+}
+
 /// Response for the get_banking_aggregates command.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]

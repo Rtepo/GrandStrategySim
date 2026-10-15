@@ -220,6 +220,12 @@ pub(crate) struct CountryTask<'a> {
     /// outrank them. Removed after clearing — same lifecycle as the
     /// legacy single state employer.
     pub(crate) public_works_idxs: Vec<usize>,
+    /// Per-region wage bill of the removed public-works/state-employer
+    /// pseudo-companies. The companies are dropped from `task.companies`
+    /// right after payroll, so bottom-up regional GDP never sees their
+    /// wage income — which is real household compensation and must land
+    /// in the region where the program ran (income-side GVA).
+    pub(crate) state_sector_wages_by_region: HashMap<String, f64>,
     /// Phase 33: Ministry public service wage pool routed to the State Employer.
     /// This amount was already debited from liquid_reserves by allocate_cash_to_ministries,
     /// so the State Employer post-clearing debit must be reduced by this amount
@@ -445,6 +451,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     imputed_consumption: 0.0,
                     state_employer_idx: None,
                     public_works_idxs: Vec::new(),
+                    state_sector_wages_by_region: HashMap::new(),
                     ministry_public_service_pool: 0.0,
                     planet: planet_ref,
                     depletion_buffer: Vec::new(),
@@ -2585,7 +2592,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         task.ctx.country,
                     );
                     // Phase 42: Accumulate non-procurement ministry spending into GDP G.
-                    task.gdp_acc.government_spending += g_spent;
+                    task.gdp_acc
+                        .add_government_spending_tagged("ministry_nonproc", g_spent);
                 }
                 // Phase 26: Populate the local order book with sell orders (asks)
                 // from companies that have inventory of the commodities ministries
@@ -2651,7 +2659,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     .iter()
                     .map(|t| t.quantity * t.execution_price)
                     .sum();
-                task.gdp_acc.government_spending += ministry_spend;
+                task.gdp_acc
+                    .add_government_spending_tagged("ministry_procurement", ministry_spend);
                 // Process post-clearing refunds for unfilled ministry bids
                 for ministry in &mut config.ministries {
                     process_minister_post_clearing(
@@ -5501,9 +5510,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                                 &gen_config_wm,
                                 &company_country,
                             );
-                            // Public procurement is government spending (G).
-                            task.gdp_acc.government_spending +=
-                                works_materials_spend;
+                            // Works materials are GROSS CAPITAL FORMATION,
+                            // not government consumption: the basket is
+                            // machinery, vehicles and construction inputs
+                            // physically consumed to build infrastructure —
+                            // public capital formation books to I under the
+                            // expenditure identity (G = consumption only).
+                            task.gdp_acc.investment += works_materials_spend;
                             // Return the unspent tranche — reserves were
                             // debited `funded` up front, so only the
                             // settled spend may stay out.
@@ -5851,8 +5864,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 if widx >= task.companies.len() {
                     continue;
                 }
-                works_wage_total += task.companies[widx].fulfilled_fte as f64
+                let w_wages = task.companies[widx].fulfilled_fte as f64
                     * task.companies[widx].offered_wage_per_fte;
+                works_wage_total += w_wages;
+                *task.state_sector_wages_by_region
+                    .entry(task.companies[widx].region_id.clone())
+                    .or_insert(0.0) += w_wages;
                 let remaining_cash = task.companies[widx].available_cash
                     + task.companies[widx]
                         .brokerage_account
@@ -5864,7 +5881,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 }
                 task.companies.remove(widx);
             }
-            task.gdp_acc.government_spending += works_wage_total;
+            task.gdp_acc
+                .add_government_spending_tagged("works_wages", works_wage_total);
             #[cfg(feature = "diagnostic")]
             if works_wage_total > 0.0 {
                 eprintln!(
@@ -5886,8 +5904,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     );
                     let state_wages = task.companies[idx].fulfilled_fte as f64
                         * task.companies[idx].offered_wage_per_fte;
+                    *task.state_sector_wages_by_region
+                        .entry(task.companies[idx].region_id.clone())
+                        .or_insert(0.0) += state_wages;
                     // All state wages flow into G (GDP government spending).
-                    task.gdp_acc.government_spending += state_wages;
+                    task.gdp_acc
+                        .add_government_spending_tagged("state_wages", state_wages);
                     // Phase 94: Return remaining cash to treasury before removal.
                     let remaining_cash = task.companies[idx].available_cash
                         + task.companies[idx].brokerage_account.as_ref().map(|ba| ba.cash).unwrap_or(0.0);
@@ -8597,7 +8619,8 @@ tasks.par_iter_mut().for_each(|task| {
                         task.ctx.country,
                     );
                     // Phase 42: Accumulate non-procurement ministry spending into GDP G.
-                    task.gdp_acc.government_spending += g_spent;
+                    task.gdp_acc
+                        .add_government_spending_tagged("ministry_nonproc", g_spent);
                 }
                 // Phase 94: Return B2B procurement encumbrance to ministry_cash.
                 // The local_order_book is never submitted to the global market
@@ -10016,7 +10039,8 @@ tasks.par_iter_mut().for_each(|task| {
             );
             // Phase 28: Church fund is a State expenditure (treasury → church).
             // It counts as government spending (G) in GDP.
-            task.gdp_acc.government_spending += church_fund_result.total_paid;
+            task.gdp_acc
+                .add_government_spending_tagged("church_fund", church_fund_result.total_paid);
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -10331,6 +10355,28 @@ tasks.par_iter_mut().for_each(|task| {
             task.ctx.country.macro_indicators.gdp_breakdown = gdp_breakdown;
             task.ctx.country.macro_indicators.inflation_indices = inflation_indices;
             task.ctx.country.macro_indicators.money_supply = money_supply;
+
+            // v4.16.0: Publish the G-source attribution so tests/UI can audit
+            // what government spending actually consists of (Full-Stack
+            // Accountability — no opaque aggregates).
+            let g_src: serde_json::Map<String, serde_json::Value> = task
+                .gdp_acc
+                .gov_detail
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        (*k).to_string(),
+                        serde_json::Value::from(serde_json::Number::from_f64(*v).unwrap_or_else(|| {
+                            serde_json::Number::from(0)
+                        })),
+                    )
+                })
+                .collect();
+            task.ctx
+                .country
+                .macro_indicators
+                .extra
+                .insert("gdp_g_sources".to_string(), serde_json::Value::Object(g_src));
 
             // Also update Treasury.gdp for downstream consumers (CB rate setter, etc.)
             task.ctx.country.budget.gdp =
@@ -10696,6 +10742,7 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
                     unions: task.unions,
                     commercial_buildings: task.commercial_buildings,
                     housing_buildings: task.housing_buildings,
+                    state_sector_wages_by_region: task.state_sector_wages_by_region,
                 },
             );
         }
@@ -10853,6 +10900,7 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
                 &mut country.regions,
                 &ents.companies,
                 &ents.buildings,
+                &ents.state_sector_wages_by_region,
             );
         }
     }

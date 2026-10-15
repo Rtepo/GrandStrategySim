@@ -3,6 +3,7 @@ import type {
   GameStatus,
   TurnResult,
   MacroIndicatorsResponse,
+  MacroHistoryPoint,
   TreasurySummary,
   FinanceSnapshot,
   CommodityRow,
@@ -62,6 +63,12 @@ export async function listSaves(): Promise<string[]> {
 
 export async function getMacroIndicators(country: string): Promise<MacroIndicatorsResponse> {
   return invoke<MacroIndicatorsResponse>("get_macro_indicators", { country });
+}
+
+/// Per-country macro history from the engine's own telemetry ring buffer —
+/// authoritative series for the GDP chart, keyed strictly by country.
+export async function getMacroHistory(country: string): Promise<MacroHistoryPoint[]> {
+  return invoke<MacroHistoryPoint[]>("get_macro_history", { country });
 }
 
 export async function getTreasury(country: string): Promise<TreasurySummary> {
