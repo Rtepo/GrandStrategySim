@@ -645,6 +645,33 @@ pub fn form_government(
         }
     }
 
+    // Preserve fiscal ledgers across re-formation. Elections used to replace
+    // the whole config, which (a) destroyed the pocket cash that
+    // `allocate_cash_to_ministries` had already debited from
+    // `liquid_reserves` into each ministry — fiat destruction — and (b)
+    // silently reset `spent_cash`/`spending_actions`, making the Finance
+    // tab's expenditure metric flash to 0.00 whenever a government
+    // re-formed (e.g., every budget-crisis snap election). Ministries are
+    // matched by their first competency — the portfolio is the office's
+    // identity, not the person holding it.
+    if let Some(ref old_config) = country.politics.ministry_config {
+        let mut old_ministries = old_config.ministries.clone();
+        for ministry in &mut ministries {
+            if let Some(first_comp) = ministry.competencies.first() {
+                if let Some(pos) = old_ministries
+                    .iter()
+                    .position(|m| m.competencies.first() == Some(first_comp))
+                {
+                    let old = old_ministries.remove(pos);
+                    ministry.ministry_cash = old.ministry_cash;
+                    ministry.spent_cash = old.spent_cash;
+                    ministry.spending_actions = old.spending_actions;
+                    ministry.allocated_cash = old.allocated_cash;
+                }
+            }
+        }
+    }
+
     MinistryConfig {
         ministries,
         formation_turn: current_turn,
@@ -814,6 +841,43 @@ pub fn calculate_budget_needs(country: &mut Country) {
 /// * `sum(allocated) <= liquid_reserves` ÔÇö no negative cash ever.
 /// * `treasury.liquid_reserves` is decremented by the total allocated.
 pub fn allocate_cash_to_ministries(country: &mut Country, preserve_turn_spend: bool) {
+    // A state always has ministries. `form_government` is only invoked from
+    // the democratic election path (`run_election_if_due`), which leaves the
+    // six non-democratic GovernmentForms — and any democratic country before
+    // its first in-run election — with `ministry_config = None` forever: no
+    // allocation, no spending ledger, and the Finance tab permanently reads
+    // "No expenditure data" while state wages still flow via the
+    // treasury-funded state employer. Form a default government on first
+    // allocation so the ministry pipeline exists for every regime.
+    if country.politics.ministry_config.is_none() {
+        let coalition = if country.politics.coalition.is_empty() {
+            vec![country.politics.ruling_party.clone()]
+        } else {
+            country.politics.coalition.clone()
+        };
+        let parties = country.politics.active_parties.clone();
+        // `formation_turn` is display metadata; derive the best proxy the
+        // country itself carries (last recorded fiscal turn + 1).
+        let formation_turn = country
+            .budget
+            .tax_history
+            .back()
+            .map(|e| e.turn + 1)
+            .unwrap_or(0);
+        let mut used_names: HashSet<String> = HashSet::new();
+        let config = form_government(
+            country,
+            &coalition,
+            &parties,
+            formation_turn,
+            &mut used_names,
+        );
+        country.politics.ministry_config = Some(config);
+        // Populate allocated_cash targets immediately so this very pass can
+        // move real cash instead of waiting a turn for `calculate_budget_needs`.
+        calculate_budget_needs(country);
+    }
+
     let Some(ref mut config) = country.politics.ministry_config else {
         return;
     };
@@ -853,6 +917,26 @@ pub fn allocate_cash_to_ministries(country: &mut Country, preserve_turn_spend: b
 
     let total_allocated: f64 = config.ministries.iter().map(|m| m.allocated_cash).sum();
     country.budget.liquid_reserves -= total_allocated;
+
+    #[cfg(feature = "diagnostic")]
+    {
+        let (spent, cash): (f64, f64) = config
+            .ministries
+            .iter()
+            .fold((0.0, 0.0), |(s, c), m| {
+                (s + m.spent_cash, c + m.ministry_cash)
+            });
+        eprintln!(
+            "TAXDBG minalloc c={} promised={:.0} allocated={:.0} reserves={:.0} spent={:.0} cash={:.0} preserve={}",
+            country.name,
+            promised,
+            total_allocated,
+            country.budget.liquid_reserves,
+            spent,
+            cash,
+            preserve_turn_spend,
+        );
+    }
 }
 
 /// Sums the promised allocations from a ministry config.

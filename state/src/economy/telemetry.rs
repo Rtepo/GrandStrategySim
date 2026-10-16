@@ -136,6 +136,22 @@ impl GdpAccumulator {
             .government_spending += amount;
     }
 
+    /// v4.17.0: Record government spending tagged by source channel AND
+    /// attributed to a specific region in a single call — the regional
+    /// complement of [`Self::add_government_spending_tagged`].
+    pub fn add_government_spending_tagged_regional(
+        &mut self,
+        tag: &'static str,
+        region_id: &str,
+        amount: f64,
+    ) {
+        self.add_government_spending_tagged(tag, amount);
+        self.regional
+            .entry(region_id.to_string())
+            .or_default()
+            .government_spending += amount;
+    }
+
     /// Phase 35: Record investment in a specific region.
     pub fn add_investment(&mut self, region_id: &str, amount: f64) {
         self.investment += amount;

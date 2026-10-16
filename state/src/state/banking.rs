@@ -2877,11 +2877,54 @@ pub fn process_banking_turn(
     let cb_reserve_ratio = country.central_bank.reserve_requirement_ratio;
     for bank in companies.iter_mut() {
         if let (Some(_), Some(ref mut bs)) = (&bank.bank_type, &mut bank.balance_sheet) {
-            let position = bs.reserve_position(cb_reserve_ratio);
+            let mut position = bs.reserve_position(cb_reserve_ratio);
+            if position < 0.0 {
+                // Withdraw deposit-facility balances to cover a deficit
+                // before resorting to Lombard credit in Step 5 — a bank's
+                // own CB deposit is always cheaper than penalty-rate
+                // borrowing.
+                let withdraw =
+                    (-position).min(bs.cb_deposit_facility_balance.max(0.0));
+                if withdraw > 0.0 {
+                    bs.cb_deposit_facility_balance -= withdraw;
+                    bs.reserves_at_central_bank += withdraw;
+                    position += withdraw;
+                }
+            }
             if position > 0.0 {
-                // Move surplus to deposit facility (earns interest)
-                bs.cb_deposit_facility_balance += position;
-                bs.reserves_at_central_bank -= position;
+                // Repay outstanding CB Lombard credit before parking the
+                // surplus — ELA draws are intraday liquidity that must
+                // extinguish once offsetting credits arrive. Repayment
+                // destroys the base money the draw created, keeping the
+                // money stock anchored to net structural deficits rather
+                // than accumulating gross settlement timing gaps.
+                let repay = position.min(bs.cb_lombard_loans.max(0.0));
+                if repay > 0.0 {
+                    bs.cb_lombard_loans -= repay;
+                    bs.reserves_at_central_bank -= repay;
+                    country.central_bank.liquidity_injected =
+                        (country.central_bank.liquidity_injected - repay).max(0.0);
+                    position -= repay;
+                }
+                // The Lombard penalty rate exceeds the deposit-facility
+                // rate, so residual Lombard debt is also repaid from the
+                // depfac balance — carrying both sides simultaneously is a
+                // pure spread loss no solvent bank would hold.
+                let depfac_repay = bs
+                    .cb_lombard_loans
+                    .max(0.0)
+                    .min(bs.cb_deposit_facility_balance.max(0.0));
+                if depfac_repay > 0.0 {
+                    bs.cb_lombard_loans -= depfac_repay;
+                    bs.cb_deposit_facility_balance -= depfac_repay;
+                    country.central_bank.liquidity_injected =
+                        (country.central_bank.liquidity_injected - depfac_repay).max(0.0);
+                }
+                if position > 0.0 {
+                    // Move remaining surplus to deposit facility (earns interest)
+                    bs.cb_deposit_facility_balance += position;
+                    bs.reserves_at_central_bank -= position;
+                }
             }
             // Accrue interest on existing deposit facility balance
             let interest = country
@@ -3034,6 +3077,13 @@ pub fn process_banking_turn(
                     ));
                 }
             }
+            // v4.17: drop fully-repaid loans from the book — they carry
+            // outstanding_balance=0 (no asset contribution), can never emit
+            // another lifecycle event, and accumulate ~one OD line per
+            // shortfall-store per turn forever (unbounded Vec growth).
+            // Borrower-side LoanRefs keep their own Repaid marker.
+            bs.loans_issued
+                .retain(|l| l.status != LoanStatus::Repaid);
             // Phase 94: Interest income accounting.
             // The interest accrual (line 2438) increased the loan asset by
             // `interest`. The repayment reduces the loan by `actual_payment`
@@ -3254,6 +3304,16 @@ pub fn process_banking_turn(
                     }
                 }
             }
+        }
+    }
+    // v4.17: drop repaid borrower-side LoanRefs — every OD draw leaves a
+    // permanent entry otherwise (~6k/turn runaway state growth). Repaid refs
+    // carry outstanding_balance=0 so removal doesn't change `liabilities`
+    // (recomputed above from remaining entries) or any payable.
+    for c in companies.iter_mut() {
+        if !c.outstanding_loans.is_empty() {
+            c.outstanding_loans
+                .retain(|l| l.status != LoanStatus::Repaid);
         }
     }
     #[cfg(feature = "diagnostic")]
@@ -4228,10 +4288,21 @@ pub fn process_banking_turn(
             current_portfolio
         };
         bank.temporary_disruption_modifier = smoothed_portfolio; // store for next turn
-                                                                 // 1 FTE per 100,000 currency units of loans (tellers, loan officers, etc.)
-        let fte_demand = (smoothed_portfolio / 100_000.0).ceil();
+        // 1 FTE per `20_000 × avg_wage` of loan-book assets — the staffing
+        // inverse of `bank_operational_capacity` (an FTE administers
+        // ~20k×wage of assets under management, ~$10M/book at wage ~500).
+        // The old 1-per-100_000 rule demanded ~250k staff for a 25B book —
+        // ~50 bank clerks per real banker — and was the root cause of the
+        // Banking-sector employment/GDP-share explosion. Using `avg_wage`
+        // keeps this the exact fixed point of the capacity model: when the
+        // bank is fully staffed, `capacity.max_asset_under_management`
+        // covers its actual book.
+        let portfolio_per_fte = 20_000.0 * avg_wage;
+        let fte_demand = (smoothed_portfolio / portfolio_per_fte).ceil();
         // Phase 38: Cap FTE growth at 10% per turn relative to prev_fulfilled_fte.
         // Banks start small and scale conservatively. Min 2 FTE for basic operations.
+        // The cap is upward-only: when `fte_demand` falls below the cap the
+        // target follows the portfolio down immediately — no downward ratchet.
         let prev_fte = (bank.prev_fulfilled_fte as f64).max(2.0);
         let max_growth_fte = prev_fte * (1.0 + BANK_FTE_GROWTH_CAP);
         let growth_capped_demand = fte_demand.min(max_growth_fte);
@@ -4262,6 +4333,12 @@ pub fn process_banking_turn(
         };
         bank.target_fte_demand = growth_capped_demand.min(max_affordable).max(2.0).round() as u32; // Min 2 FTE
         bank.physical_fte_demand = bank.target_fte_demand;
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "BANKFTE_DBG: turn={} bank={} portfolio={:.0} fte_raw={:.0} growth_cap={:.0} affordable={:.0} target={} fulfilled={}",
+            current_turn, bank.id, smoothed_portfolio, fte_demand, growth_capped_demand,
+            max_affordable, bank.target_fte_demand, bank.fulfilled_fte
+        );
     }
 
     // Prudential leverage supervision — see `enforce_leverage_cap`.

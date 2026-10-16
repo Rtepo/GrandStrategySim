@@ -246,8 +246,24 @@ pub fn resolve_regional_labor_market(
         // that geometrically decays employment ~10%/turn. Unpaid wages already
         // accrue as arrears, and `company_capital` erodes with them, so the
         // bound self-limits as genuine insolvency approaches.
+        // v4.17 FS-7: construction contractors also staff against contract
+        // receivables — unreleased escrowed tranches already debited from
+        // the investor, contractually theirs on completion (real-world
+        // progress-payment/mobilization financing). Published each turn by
+        // `update_construction_labor_demand` under
+        // `extra["contract_receivables"]`; counted at the same 50% haircut
+        // the material-bid capacity path applies to pending tranches, so
+        // milestone slippage still self-limits via wage arrears.
+        let contract_receivables = company
+            .extra
+            .get("contract_receivables")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0)
+            .max(0.0);
         let max_affordable_fte = if company.offered_wage_per_fte > 0.0 {
-            (company.operational_cash() + company.company_capital.max(0.0))
+            (company.operational_cash()
+                + company.company_capital.max(0.0)
+                + contract_receivables * 0.5)
                 / company.offered_wage_per_fte
         } else {
             0.0
@@ -296,7 +312,17 @@ pub fn resolve_regional_labor_market(
                 company.target_fte_demand as f64 * FTE_RETENTION_FLOOR,
                 f64::MAX,
             )
-        } else if chronically_starved {
+        // v4.17 FS-7: construction firms are exempt from the
+        // input-utilization collapse — their work happens on INVESTOR-owned
+        // sites, so `utilization_by_owner` sees only their own yards'
+        // production inputs and systematically under-measures them (the
+        // observed exactly-25% fills). Their demand is already paced by
+        // contract value and pay-cycle capacity in
+        // `update_construction_labor_demand`; the 90% retention floor then
+        // governs decay like any cash-short-but-working firm.
+        } else if chronically_starved
+            && company.sector != crate::registries::enums::Sector::Construction
+        {
             let utilization = utilization_by_owner
                 .get(&company.id)
                 .map(|(sum, n)| sum / *n as f64)

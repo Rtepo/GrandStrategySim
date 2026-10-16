@@ -19,7 +19,7 @@ use crate::infrastructure::cultural::CulturalBuilding;
 use crate::politics::laws::ReligiousLaw;
 use crate::society::culture_registry::registry as culture_registry;
 use crate::state::Country;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 /// Configuration for Apostolic See remittance and reinvestment (no magic numbers).
 #[derive(Debug, Clone, PartialEq)]
@@ -128,6 +128,11 @@ pub struct ChurchFundResult {
     pub buildings_funded: usize,
     /// Number of buildings that could not be funded (Treasury insufficient).
     pub buildings_unfunded: usize,
+    /// v4.17.0: Payments by region of the funded building — the regional
+    /// G attribution of church maintenance spending for regional GDP.
+    /// `values().sum() == total_paid` when every funded building has a
+    /// `region_id` set.
+    pub paid_by_region: HashMap<String, f64>,
 }
 
 /// Process Church Fund payment for a country with state religion.
@@ -187,6 +192,13 @@ pub fn process_church_fund(
                 if credited {
                     result.total_paid += affordable;
                     result.buildings_funded += 1;
+                    // v4.17.0: the transfer lands at the funded building's
+                    // region (its clerical staff draw the wage income
+                    // this maintenance money services).
+                    *result
+                        .paid_by_region
+                        .entry(building.region_id.clone())
+                        .or_insert(0.0) += affordable;
                 } else {
                     country.budget.liquid_reserves += affordable;
                     result.buildings_unfunded += 1;

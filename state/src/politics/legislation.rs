@@ -6,6 +6,93 @@ use std::collections::HashMap;
 use super::ideology::IdeologyCoordinates;
 use super::legislative_weight::LegislativeWeight;
 
+/// Classification of a bill — what kind of legislation it is.
+///
+/// Recorded on the `Bill` at introduction and copied onto every
+/// [`crate::politics::parliament::VoteRecord`] the bill produces, so tests
+/// and telemetry can count distinct bill types in `Chamber::recent_votes`
+/// without parsing titles.
+///
+/// The same value keys the per-type cooldown ledger
+/// (`LegislativeSession::last_introduced_by_type`) via [`BillType::as_str`].
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum BillType {
+    /// Periodic budget appropriations bill (GOV-1 budget session).
+    Budget,
+    /// Fast-track emergency fiscal response (crisis tax/spending authority).
+    EmergencyFiscal,
+    /// Fast-track emergency bond issuance authorization.
+    EmergencyBonds,
+    /// Labor & employment standards (child labor, labor market rules).
+    Labor,
+    /// Infrastructure investment mandate.
+    Infrastructure,
+    /// Tax code reform (rate adjustments).
+    TaxReform,
+    /// Healthcare system legislation.
+    Healthcare,
+    /// Education system legislation.
+    Education,
+    /// Judiciary / justice-system reform.
+    Justice,
+    /// Sentencing & penal policy.
+    Sentencing,
+    /// Free speech / assembly / press legislation.
+    FreeSpeech,
+    /// Transport ownership & subsidy policy.
+    Transport,
+    /// Migration & border policy.
+    Migration,
+    /// Legacy or uncategorized bill.
+    #[default]
+    Other,
+}
+
+impl BillType {
+    /// Stable snake_case identifier — also the cooldown-ledger key.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            BillType::Budget => "budget",
+            BillType::EmergencyFiscal => "emergency_fiscal",
+            BillType::EmergencyBonds => "emergency_bonds",
+            BillType::Labor => "labor",
+            BillType::Infrastructure => "infrastructure",
+            BillType::TaxReform => "tax_reform",
+            BillType::Healthcare => "healthcare",
+            BillType::Education => "education",
+            BillType::Justice => "justice",
+            BillType::Sentencing => "sentencing",
+            BillType::FreeSpeech => "free_speech",
+            BillType::Transport => "transport",
+            BillType::Migration => "migration",
+            BillType::Other => "other",
+        }
+    }
+
+    /// `true` for fast-track crisis authorisation bills.
+    pub fn is_emergency(&self) -> bool {
+        matches!(self, BillType::EmergencyFiscal | BillType::EmergencyBonds)
+    }
+
+    /// `true` for routine policy legislation (not budget, not emergency).
+    pub fn is_policy(&self) -> bool {
+        matches!(
+            self,
+            BillType::Labor
+                | BillType::Infrastructure
+                | BillType::TaxReform
+                | BillType::Healthcare
+                | BillType::Education
+                | BillType::Justice
+                | BillType::Sentencing
+                | BillType::FreeSpeech
+                | BillType::Transport
+                | BillType::Migration
+        )
+    }
+}
+
 /// Legislative bill with modular clauses and concessions
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Bill {
@@ -53,6 +140,11 @@ pub struct Bill {
     /// Derived from the bill's provisions via `derive_weight_from_provisions()`.
     #[serde(default)]
     pub weight: LegislativeWeight,
+
+    /// Bill classification — copied onto every `VoteRecord` this bill
+    /// produces and used as the cooldown-ledger key for recurring triggers.
+    #[serde(default)]
+    pub bill_type: BillType,
 }
 
 /// Individual clause within a bill
@@ -186,7 +278,16 @@ impl Bill {
             introduction_turn: current_turn,
             committee_completion_turn: None,
             weight,
+            bill_type: BillType::Other,
         }
+    }
+
+    /// Set the bill's [`BillType`] classification (builder style, so existing
+    /// `Bill::new` call sites stay valid). The type is copied onto every
+    /// `VoteRecord` the bill produces and keys the cooldown ledger.
+    pub fn with_bill_type(mut self, bill_type: BillType) -> Self {
+        self.bill_type = bill_type;
+        self
     }
 
     /// Add a concession to the bill
@@ -321,6 +422,15 @@ pub struct LegislativeSession {
     /// Current session year
     #[serde(default)]
     pub session_year: u32,
+
+    /// Per-bill-type introduction ledger: `BillType::as_str()` → the last
+    /// turn a bill of that type was introduced. Written by
+    /// `introduce_bill_to_session` on every successful introduction and read
+    /// by `check_bill_type_cooldown` to bound recurring triggers (crisis
+    /// fast-track authorisations, routine agenda bills) so a persistent
+    /// condition cannot flood the queue with identical bills.
+    #[serde(default)]
+    pub last_introduced_by_type: HashMap<String, u32>,
 }
 
 impl LegislativeSession {
@@ -337,6 +447,7 @@ impl LegislativeSession {
             enacted_laws: Vec::new(),
             rejected_bills: Vec::new(),
             session_year: year,
+            last_introduced_by_type: HashMap::new(),
         }
     }
 
@@ -448,6 +559,9 @@ pub enum BillProvision {
     SentencingLaw(crate::economy::sentencing::SentencingLaw),
     /// Migration law change.
     MigrationLawChange(crate::politics::laws::MigrationLaw),
+    /// Phase D5: Child labor law change — the labor-standards actuator used
+    /// by routine labor bills.
+    ChildLaborLaw(crate::politics::laws::ChildLaborLaw),
     /// Custom provision (for modding/extensibility).
     Custom {
         description: String,
@@ -502,6 +616,9 @@ impl BillProvision {
             }
             BillProvision::SentencingLaw(law) => {
                 Some(crate::politics::laws::LawType::Sentencing(law.clone()))
+            }
+            BillProvision::ChildLaborLaw(law) => {
+                Some(crate::politics::laws::LawType::ChildLabor(law.clone()))
             }
             // Provisions without a direct LawType mapping return None.
             // These are handled by specialized application logic.

@@ -2196,33 +2196,186 @@ pub fn regional_value_added(
     va
 }
 
-/// Overwrite `Region::gdp` and `Region::gdp_pc` with the bottom-up value
-/// added from [`regional_value_added`], plus any `extra_regional_va`
-/// carried in from callers — currently the public-works/state-employer
-/// wage bill, whose pseudo-companies are removed before end-of-turn
-/// reconciliation but whose payroll is real regional household income.
+/// Overwrite `Region::gdp` and `Region::gdp_pc` so that Σ region.gdp
+/// equals the national expenditure GDP (C + imputed-C + G + I + NX)
+/// **by construction** — no population pro-rating, no scaling factors.
 ///
-/// Replaces the end-of-turn national-GDP × population-share pro-rating that
-/// assigned every region an identical GDP per capita. Regional GDP is now
-/// derived from where production and income physically occur, so regions
-/// genuinely differ.
+/// v4.17.0: regional GDP is expenditure-side — the regional complement
+/// of the national accounts, replacing the v4.16.0 production-side GVA
+/// basis (see [`regional_value_added`], retained for diagnostics/UI).
+/// The production measure structurally undercounts expenditure GDP
+/// (a region of 3.7M bedroom-community households booked ~0.05/cap
+/// because it hosts few buildings), so each expenditure leg the turn
+/// loop accumulates into `gdp_acc` is now tagged with the region where
+/// it lands:
+///
+/// * **C** — the consuming households' region. B2C clearing is keyed by
+///   the demand region and store offers clear country-wide, so a
+///   region's residents book their spend at home wherever the shelf was
+///   (incl. commuter-remitted wages, which land in home-region savings).
+/// * **imputed C** — in-kind/subsistence consumption at the paying
+///   company's region.
+/// * **G** — procurement legs at the seller's region; ministry subsidies
+///   at the recipient company's region; church-fund maintenance at the
+///   funded building's region; state-sector payroll (public-works /
+///   state-employer wage bills) via `extra_regional_va` at the region
+///   where the program ran.
+/// * **I** — fixed-asset legs at the investing buyer's region (legs
+///   bought by non-domestic buyers book to the domestic seller's
+///   region); construction materials at the site's region; works
+///   materials at the seller's region.
+/// * **NX** — physically settled foreign-sweep legs at the exporter's
+///   region (+) / importer's region (−).
+///
+/// Whatever the national account books but no leg placed on a region —
+/// chiefly the country-level *modeled* trade balance produced by
+/// `balance_global_trade` (a GDP-share statistical allocation, not
+/// physical legs), plus legs whose counterparty resolved to no region —
+/// is a national residual distributed pro-rata to each region's measured
+/// gross cross-border engagement (`residual_weights`: settled export +
+/// import leg value). With zero measured engagement the residual lands
+/// in the capital region — seat of the treasury that settles the trade
+/// balance via `settle_trade_deficits`. This is an allocation of a real
+/// national flow by measured participation, not a population share.
+///
+/// A region may legitimately run negative (imports outweigh its other
+/// booked expenditure); `Region::gdp` floors at 0 and the clipped mass
+/// returns to the capital region so `Σ region.gdp == national_gdp`
+/// holds to floating-point exactness.
+///
+/// # Arguments
+/// * `regions` - The country's regions (mutated: `gdp`, `gdp_pc`).
+/// * `companies` - Post-turn company list (diagnostic GVA only).
+/// * `buildings` - Post-turn building list (diagnostic GVA only).
+/// * `extra_regional_va` - Per-region state-sector wage bills carried
+///   through `CountryEntities::state_sector_wages_by_region` — the
+///   regional G of pseudo-employers removed from `companies` before
+///   end-of-turn.
+/// * `regional_flows` - Per-region expenditure legs accumulated by
+///   `GdpAccumulator::regional` during the turn (C, imputed-C, G, I, NX).
+/// * `national_gdp` - The country's official GDP after the end-of-turn
+///   net-exports patch (the value the region sum must reconcile to).
+/// * `residual_weights` - Gross cross-border engagement per region, used
+///   to place the national residual.
 pub fn reconcile_regional_gdp(
     regions: &mut [Region],
     companies: &[crate::entities::Company],
     buildings: &[crate::entities::Building],
     extra_regional_va: &HashMap<String, f64>,
+    regional_flows: &HashMap<String, crate::economy::telemetry::RegionalGdpAccumulator>,
+    national_gdp: f64,
+    residual_weights: &HashMap<String, f64>,
 ) {
-    let va = regional_value_added(regions, companies, buildings);
-    for r in regions.iter_mut() {
-        let g = (va.get(&r.id).copied().unwrap_or(0.0)
-            + extra_regional_va.get(&r.id).copied().unwrap_or(0.0))
-        .max(0.0);
+    // Under non-diagnostic builds the entity slices are only needed by
+    // the production-GVA probe at the bottom.
+    #[cfg(not(feature = "diagnostic"))]
+    let _ = (companies, buildings);
+
+    // 1. Attributed expenditure per region — real legs only.
+    let mut base: Vec<f64> = regions
+        .iter()
+        .map(|r| {
+            let legs = regional_flows
+                .get(&r.id)
+                .map(|f| {
+                    f.consumption
+                        + f.imputed_consumption
+                        + f.government_spending
+                        + f.investment
+                        + f.net_exports
+                })
+                .unwrap_or(0.0);
+            legs + extra_regional_va.get(&r.id).copied().unwrap_or(0.0)
+        })
+        .collect();
+
+    // 2. National residual: expenditure the national account books but no
+    //    leg placed on a valid region (modeled trade balance, orphan
+    //    region ids, any missed channel).
+    let residual = national_gdp - base.iter().sum::<f64>();
+
+    // 3. Place the residual where external trade physically happens
+    //    (∝ gross cross-border engagement); none anywhere → capital.
+    if residual != 0.0 {
+        let w_sum: f64 = regions
+            .iter()
+            .map(|r| {
+                residual_weights
+                    .get(&r.id)
+                    .copied()
+                    .unwrap_or(0.0)
+                    .max(0.0)
+            })
+            .sum();
+        if w_sum > 0.0 {
+            for (i, r) in regions.iter().enumerate() {
+                let w = residual_weights
+                    .get(&r.id)
+                    .copied()
+                    .unwrap_or(0.0)
+                    .max(0.0);
+                if w > 0.0 {
+                    base[i] += residual * (w / w_sum);
+                }
+            }
+        } else if let Some(idx) = regions
+            .iter()
+            .position(|r| r.is_capital)
+            .or_else(|| (!regions.is_empty()).then_some(0))
+        {
+            base[idx] += residual;
+        }
+    }
+
+    // 4. Floor at 0; the clipped mass returns to the capital so the
+    //    identity is preserved exactly.
+    let mut gdps: Vec<f64> = base.iter().map(|v| v.max(0.0)).collect();
+    let clipped = national_gdp - gdps.iter().sum::<f64>();
+    if clipped != 0.0 {
+        if let Some(idx) = regions
+            .iter()
+            .position(|r| r.is_capital)
+            .or_else(|| (!regions.is_empty()).then_some(0))
+        {
+            gdps[idx] = (gdps[idx] + clipped).max(0.0);
+        }
+    }
+
+    for (r, g) in regions.iter_mut().zip(gdps.iter().copied()) {
         r.gdp = g;
         r.gdp_pc = if r.population > 0 {
             g / r.population as f64
         } else {
             0.0
         };
+    }
+
+    #[cfg(feature = "diagnostic")]
+    {
+        let gva = regional_value_added(regions, companies, buildings);
+        let gva_sum: f64 = gva.values().sum();
+        let sum: f64 = regions.iter().map(|r| r.gdp).sum();
+        let min_pc = regions
+            .iter()
+            .filter(|r| r.population > 0)
+            .map(|r| r.gdp_pc)
+            .fold(f64::MAX, f64::min);
+        eprintln!(
+            "REGDBG: regions={} sum_regional={:.0} national={:.0} gap_pct={:.4} residual={:.0} clipped={:.0} xb_wsum={:.0} prod_gva={:.0} min_gdppc={:.2}",
+            regions.len(),
+            sum,
+            national_gdp,
+            if national_gdp.abs() > 0.0 {
+                (sum - national_gdp).abs() / national_gdp.abs() * 100.0
+            } else {
+                0.0
+            },
+            residual,
+            clipped,
+            residual_weights.values().sum::<f64>(),
+            gva_sum,
+            if min_pc == f64::MAX { 0.0 } else { min_pc },
+        );
     }
 }
 

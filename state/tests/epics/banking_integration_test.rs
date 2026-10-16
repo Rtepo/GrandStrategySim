@@ -20,7 +20,9 @@ fn test_full_loan_issuance_workflow() {
     let mut bank_balance_sheet = BankBalanceSheet::default();
     bank_balance_sheet.reserves_at_central_bank = 500_000.0;
     bank_balance_sheet.deposits = 2_000_000.0;
-    bank_balance_sheet.tier_1_capital = 200_000.0;
+    // Fixture must clear the 9.5× prudential leverage gate: issuing a loan
+    // grows liabilities, so tier_1 ≥ (deposits + principal) / 9.5.
+    bank_balance_sheet.tier_1_capital = 300_000.0;
 
     // Create a borrower company
     let borrower = Company::new(
@@ -279,7 +281,9 @@ fn test_consolidation_loan_with_equity_swap() {
     let mut balance_sheet = BankBalanceSheet::default();
     balance_sheet.reserves_at_central_bank = 500_000.0;
     balance_sheet.deposits = 2_000_000.0;
-    balance_sheet.tier_1_capital = 200_000.0;
+    // Fixture must clear the 9.5× prudential leverage gate: issuing a loan
+    // grows liabilities, so tier_1 ≥ (deposits + principal) / 9.5.
+    balance_sheet.tier_1_capital = 300_000.0;
 
     // Create an existing debtor
     let mut borrower = Company::new(

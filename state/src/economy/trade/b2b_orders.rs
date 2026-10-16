@@ -1061,11 +1061,35 @@ pub fn settle_trades(
         .map(|(i, c)| (c.id.clone(), i))
         .collect();
     let mut owner_to_buildings: HashMap<String, Vec<usize>> = HashMap::default();
+    // v4.17 FS-7: contractor/subcontractor → project-site buildings. A
+    // construction bid names the company as buyer, but the goods are
+    // bought FOR a specific site's laydown — without direct routing they
+    // pool in the bidder's own plants, where the plant's 4-turn production
+    // reserve absorbs them before `deploy_project_materials` can forward
+    // them (the stalled-cancellation root cause: 1,601 projects cancelled
+    // at progress 0.00 despite matched bids and deep asks).
+    let mut buyer_to_sites: HashMap<String, Vec<usize>> = HashMap::default();
     for (i, b) in buildings.iter().enumerate() {
         owner_to_buildings
             .entry(b.owner_id.clone())
             .or_default()
             .push(i);
+        if let Some(p) = &b.active_project {
+            if !p.main_contractor_id.is_empty() {
+                buyer_to_sites
+                    .entry(p.main_contractor_id.clone())
+                    .or_default()
+                    .push(i);
+            }
+            for sub in &p.subcontractors {
+                if !sub.subcontractor_id.is_empty() && !sub.completed {
+                    buyer_to_sites
+                        .entry(sub.subcontractor_id.clone())
+                        .or_default()
+                        .push(i);
+                }
+            }
+        }
     }
 
     for trade in trades {
@@ -1395,42 +1419,93 @@ pub fn settle_trades(
         // on); a stocked building steps aside until its deficit reopens.
         // (idx, deficit, gross_need)
         let mut recipients: Vec<(usize, f64, f64)> = Vec::new();
-        for &i in buyer_buildings {
+        // v4.17 FS-7: site-committed delivery takes precedence. When the
+        // buyer is a project's main contractor or subcontractor, materials
+        // deliver straight to that site's laydown inventory (weighted by
+        // outstanding BOM need) rather than pooling in the bidder's own
+        // plants where its production reserves absorb them.
+        let mut site_committed = false;
+        for &i in buyer_to_sites
+            .get(&trade.buyer_id)
+            .map(|v| v.as_slice())
+            .unwrap_or(&[])
+        {
             let b = &buildings[i];
-            let in_method = b.active_method.inputs.contains_key(&trade.commodity);
-            let in_project = b
-                .active_project
-                .as_ref()
-                .map(|p| p.required_materials.contains_key(&trade.commodity))
-                .unwrap_or(false);
-            if !in_method && !in_project {
-                continue;
-            }
-            let need = b
+            let project = match &b.active_project {
+                Some(p) => p,
+                None => continue,
+            };
+            let required = project
+                .required_materials
+                .get(&trade.commodity)
+                .copied()
+                .unwrap_or(0.0);
+            let delivered = project
+                .delivered_materials
+                .get(&trade.commodity)
+                .copied()
+                .unwrap_or(0.0);
+            let site_scale =
+                b.worker_capacity as f64 * b.scale_factor.max(1) as f64 / 1000.0;
+            let site_reserve = b
                 .active_method
                 .inputs
                 .get(&trade.commodity)
                 .copied()
                 .unwrap_or(0.0)
-                * (b.worker_capacity as f64 * b.scale_factor.max(1) as f64 / 1000.0);
-            let on_hand = b
+                * site_scale
+                * 4.0;
+            let staged = (b
                 .inventory
                 .get(&trade.commodity)
                 .copied()
-                .unwrap_or(0.0);
-            let deficit = (need * 2.0 - on_hand).max(0.0);
-            recipients.push((i, deficit, need));
+                .unwrap_or(0.0)
+                - site_reserve)
+                .max(0.0);
+            let want = (required - delivered - staged).max(0.0);
+            if want > 0.0 {
+                site_committed = true;
+                recipients.push((i, want, want));
+            }
         }
         if recipients.is_empty() {
-            // No building consumes it — legacy fallback: first building.
-            if let Some(&i) = buyer_buildings.first() {
-                recipients.push((i, 1.0, 1.0));
+            for &i in buyer_buildings {
+                let b = &buildings[i];
+                let in_method = b.active_method.inputs.contains_key(&trade.commodity);
+                let in_project = b
+                    .active_project
+                    .as_ref()
+                    .map(|p| p.required_materials.contains_key(&trade.commodity))
+                    .unwrap_or(false);
+                if !in_method && !in_project {
+                    continue;
+                }
+                let need = b
+                    .active_method
+                    .inputs
+                    .get(&trade.commodity)
+                    .copied()
+                    .unwrap_or(0.0)
+                    * (b.worker_capacity as f64 * b.scale_factor.max(1) as f64 / 1000.0);
+                let on_hand = b
+                    .inventory
+                    .get(&trade.commodity)
+                    .copied()
+                    .unwrap_or(0.0);
+                let deficit = (need * 2.0 - on_hand).max(0.0);
+                recipients.push((i, deficit, need));
             }
-        } else if recipients.iter().all(|r| r.1 <= 0.0) {
-            // Every consumer is stocked past its buffer — split by gross need
-            // so the largest plants still take the largest share.
-            for r in &mut recipients {
-                r.1 = r.2.max(1.0);
+            if recipients.is_empty() {
+                // No building consumes it — legacy fallback: first building.
+                if let Some(&i) = buyer_buildings.first() {
+                    recipients.push((i, 1.0, 1.0));
+                }
+            } else if recipients.iter().all(|r| r.1 <= 0.0) {
+                // Every consumer is stocked past its buffer — split by gross need
+                // so the largest plants still take the largest share.
+                for r in &mut recipients {
+                    r.1 = r.2.max(1.0);
+                }
             }
         }
 
@@ -1440,7 +1515,10 @@ pub fn settle_trades(
         // delivered goods with known provenance (Rule 15, Rule 4).
         // Discrete asset units are not fractionally splittable — deliver the
         // whole cohort to the largest-deficit consumer.
-        if trade.commodity.is_fixed_asset() {
+        // v4.17 FS-7: site-committed deliveries stay in flat `inventory` —
+        // `consume_delivered_materials` installs from the laydown map and
+        // cannot see asset cohorts.
+        if trade.commodity.is_fixed_asset() && !site_committed {
             if let Some(&(idx, _, _)) = recipients
                 .iter()
                 .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
@@ -1506,7 +1584,23 @@ pub fn settle_trades(
                         trade.durability.unwrap_or(0.0),
                         current_turn,
                     );
-                    building.inventory_cohorts.push(cohort);
+                    // v4.17: merge into a compatible existing cohort rather
+                    // than pushing unconditionally — deliveries arrive every
+                    // turn and `compact_inventory_cohorts` is never invoked,
+                    // so the vec grew ~×1.8/turn on hot sites (2,400+ entries
+                    // by t=7 → building-state OOM). Merging preserves
+                    // quantity and the earliest produced_turn for FIFO.
+                    if let Some(existing) = building
+                        .inventory_cohorts
+                        .iter_mut()
+                        .find(|c| c.is_mergeable_with(&cohort))
+                    {
+                        existing.quantity += cohort.quantity;
+                        existing.produced_turn =
+                            existing.produced_turn.min(cohort.produced_turn);
+                    } else {
+                        building.inventory_cohorts.push(cohort);
+                    }
                 }
             }
         }
@@ -1703,7 +1797,19 @@ pub fn settle_trades_with_tariffs(
     //   if insufficient, the trade fails (revert settlement).
     let _domestic_ccy = country.macro_indicators.currency.clone();
 
-    // Phase 2: Tariff collection on cross-border trades + FX conversion
+    // Phase 2: Tariff collection on cross-border trades + FX conversion.
+    // v4.17.0: the customs ledger is the per-turn revenue record the tax
+    // module reads — reset it here, then increment on each settlement
+    // below. Generated countries start with `customs_state = None`
+    // (tax.rs lazily creates it on the first fiscal turn); the writer
+    // must exist before then or every collection is silently dropped.
+    {
+        let customs = country
+            .politics
+            .customs_state
+            .get_or_insert_with(crate::politics::CustomsState::default);
+        customs.tariff_revenue_collected = 0.0;
+    }
     for trade in trades {
         let trade_value = trade.quantity * trade.execution_price;
 
@@ -1811,6 +1917,12 @@ pub fn settle_trades_with_tariffs(
                     if let Some(buyer) = companies.get_mut(buyer_idx) {
                         buyer.debit_cash = (buyer.debit_cash - tariff_amount).max(0.0);
                     }
+                    // v4.17.0: record the import tariff on the customs ledger
+                    // — the money moved above; this is the reporting leg the
+                    // Finance tab and tax module read.
+                    if let Some(ref mut customs) = country.politics.customs_state {
+                        customs.tariff_revenue_collected += tariff_amount;
+                    }
                 }
                 // Agent 4: No else branch — if buyer not found, no tariff collected.
                 // Previously, the fallback created fiat by crediting liquid_reserves
@@ -1858,6 +1970,10 @@ pub fn settle_trades_with_tariffs(
                     // Release the seller's encumbered debit_cash for the tax amount.
                     if let Some(seller) = companies.get_mut(seller_idx) {
                         seller.debit_cash = (seller.debit_cash - export_tax_amount).max(0.0);
+                    }
+                    // v4.17.0: record export duty on the same customs ledger.
+                    if let Some(ref mut customs) = country.politics.customs_state {
+                        customs.tariff_revenue_collected += export_tax_amount;
                     }
                 }
                 // If seller not found, no tax collected — no fiat creation.

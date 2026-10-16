@@ -641,6 +641,7 @@ mod phase48_tests {
             introduction_turn: 0,
             committee_completion_turn: None,
             weight: crate::politics::legislative_weight::LegislativeWeight::Ordinary,
+            bill_type: crate::politics::legislation::BillType::Other,
         }
     }
 

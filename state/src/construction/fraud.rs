@@ -260,6 +260,7 @@ mod tests {
             cost_spent: 0.0,
             investor_cash_debited: 500_000.0,
             tranches_paid: 0.0,
+            investor_capital_committed: 0.0,
             duration_turns: 10,
             turns_elapsed: 0,
             progress: 0.0,

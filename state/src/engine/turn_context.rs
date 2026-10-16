@@ -58,6 +58,18 @@ pub struct CountryEntities {
     /// payroll is real regional household income that bottom-up regional
     /// GDP must still see (income-side GVA).
     pub state_sector_wages_by_region: HashMap<String, f64>,
+    /// v4.17.0: Per-region expenditure legs accumulated by
+    /// `GdpAccumulator::regional` during the turn — the expenditure-side
+    /// regional GDP basis consumed by `reconcile_regional_gdp`
+    /// (consumption, imputed consumption, government spending,
+    /// investment, net exports per region).
+    pub gdp_flows_by_region:
+        HashMap<String, crate::economy::telemetry::RegionalGdpAccumulator>,
+    /// v4.17.0: Gross cross-border trade engagement per region (settled
+    /// export + import leg value of trades with exactly one domestic
+    /// endpoint). `reconcile_regional_gdp` distributes the country-level
+    /// modeled trade residual over this measured-participation map.
+    pub cross_border_gross_by_region: HashMap<String, f64>,
 }
 
 impl InMemoryTurnContext {
@@ -154,6 +166,8 @@ impl InMemoryTurnContext {
                     commercial_buildings,
                     housing_buildings,
                     state_sector_wages_by_region: HashMap::new(),
+                    gdp_flows_by_region: HashMap::new(),
+                    cross_border_gross_by_region: HashMap::new(),
                 },
             );
         }

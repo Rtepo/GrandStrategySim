@@ -1405,6 +1405,252 @@ fn test_market_gridlock_diagnostic() {
         parliaments_checked,
     );
 
+    // ── v4.17.0 anti-sleight gates: mechanical behavior, not aggregates ──
+
+    // FS-7: Construction is a real operating sector — firms must earn
+    // revenue (contract billings) and employ workers, not sit at
+    // Income/Expenses/Wages = 0 forever. `turn_settled_sales` is a scratch
+    // field consumed by `process_company` every turn, so the durable
+    // revenue lives in `financial_history` — the same last-turn record the
+    // UI renders as company "Income".
+    let (mut constr_revenue, mut constr_fte) = (0.0f64, 0u64);
+    let mut fs7_census: Vec<String> = Vec::new();
+    for ents in ctx.entities.values() {
+        for c in &ents.companies {
+            if c.sector == Sector::Construction {
+                fs7_census.push(format!(
+                    "{} fte={} tgt={} furl={:.0} cash={:.0} recv={:.0} liq={} rev_hist={:.0}",
+                    c.id,
+                    c.fulfilled_fte,
+                    c.target_fte_demand,
+                    c.furloughed_workers_count,
+                    c.available_cash,
+                    c.extra
+                        .get("contract_receivables")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.0),
+                    c.is_liquidated,
+                    c.financial_history
+                        .iter()
+                        .map(|r| r.get("revenue").and_then(|v| v.as_f64()).unwrap_or(0.0))
+                        .sum::<f64>(),
+                ));
+            }
+            if c.sector == Sector::Construction && !c.is_liquidated
+            {
+                // Sum the retained financial-history window (≤5 turns of
+                // real P&L) — a live contracting sector books tranche
+                // revenue across any such window even if one turn had no
+                // milestone release.
+                for r in &c.financial_history {
+                    constr_revenue += r
+                        .get("revenue")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.0);
+                }
+                constr_fte += c.fulfilled_fte as u64;
+            }
+        }
+    }
+    eprintln!(
+        "FS-DBG: construction revenue={:.2} fte={} companies={}",
+        constr_revenue,
+        constr_fte,
+        fs7_census.len()
+    );
+    fs7_census.sort();
+    for line in &fs7_census {
+        eprintln!("FS7CENSUS: {}", line);
+    }
+    assert!(
+        constr_revenue > 0.0 && constr_fte > 10_000,
+        "FS-7 FAIL: construction sector dead — revenue={:.2}, fte={} \
+         (need >0 and >10_000)",
+        constr_revenue,
+        constr_fte,
+    );
+
+    // FS-8: Banking must not be the whole economy — banking VA share of
+    // GDP < 25% and banking FTE < 10% of total employment. Income-side VA:
+    // wages + realized profit of banking entities.
+    for (name, country) in &state.countries {
+        let Some(ents) = ctx.entities.get(name) else { continue };
+        let gdp = country.macro_indicators.gdp_breakdown.official_gdp.max(1.0);
+        let mut bank_va = 0.0f64;
+        let mut bank_fte = 0.0f64;
+        let mut total_fte = 0.0f64;
+        for c in &ents.companies {
+            if c.is_liquidated {
+                continue;
+            }
+            total_fte += c.fulfilled_fte as f64;
+            if c.bank_type.is_some() || c.sector == Sector::Banking {
+                bank_va += c.wages_paid_this_turn + c.realized_profit_this_turn;
+                bank_fte += c.fulfilled_fte as f64;
+            }
+        }
+        eprintln!(
+            "FS-DBG[{}]: bank_va_share={:.1}% bank_fte={:.0}/{:.0} ({:.1}%)",
+            name,
+            bank_va / gdp * 100.0,
+            bank_fte,
+            total_fte,
+            bank_fte / total_fte.max(1.0) * 100.0
+        );
+        assert!(
+            bank_va / gdp < 0.25 && bank_fte < total_fte * 0.10,
+            "FS-8 FAIL[{}]: banking bloat — va_share={:.1}% (need <25%), \
+             fte={:.0}/{:.0} (need <10%)",
+            name,
+            bank_va / gdp * 100.0,
+            bank_fte,
+            total_fte,
+        );
+    }
+
+    // FS-9: Regional accounts must reconcile with national GDP — the sum
+    // of regional GDPs within ±10% of national, and no populated region
+    // may sit at starvation-level per-capita GDP.
+    for (name, country) in &state.countries {
+        let national = country.macro_indicators.gdp_breakdown.official_gdp;
+        if national <= 0.0 {
+            continue;
+        }
+        let regional_sum: f64 = country.regions.iter().map(|r| r.gdp).sum();
+        let gap = (regional_sum - national).abs() / national;
+        let min_pc = country
+            .regions
+            .iter()
+            .filter(|r| r.population > 1_000)
+            .map(|r| r.gdp_pc)
+            .fold(f64::INFINITY, f64::min);
+        eprintln!(
+            "FS-DBG[{}]: Σregional={:.2}B national={:.2}B gap={:.1}% min_pc={:.2}",
+            name,
+            regional_sum / 1e9,
+            national / 1e9,
+            gap * 100.0,
+            min_pc
+        );
+        assert!(
+            gap < 0.10,
+            "FS-9 FAIL[{}]: Σregional={:.2}B vs national={:.2}B — gap {:.1}% \
+             exceeds 10% (regional accounts undercount real flows)",
+            name,
+            regional_sum / 1e9,
+            national / 1e9,
+            gap * 100.0,
+        );
+        assert!(
+            min_pc > 10.0,
+            "FS-9 FAIL[{}]: min regional GDP/cap={:.2} <= 10 — a region of \
+             thousands has no measurable economy",
+            name,
+            min_pc,
+        );
+    }
+
+    // FS-10: Real secondary-market activity — the exchange must clear
+    // actual share trades (volume > 0) and funds must hold equities, not
+    // only CB bonds.
+    let total_volume: u64 = state
+        .countries
+        .values()
+        .map(|c| c.stock_exchange.market_index.total_volume)
+        .sum();
+    let mut fund_equity_positions = 0usize;
+    for ents in ctx.entities.values() {
+        for c in &ents.companies {
+            if let Some(fl) = &c.fund_ledger {
+                fund_equity_positions += fl.equity_holdings.len();
+            }
+        }
+    }
+    eprintln!(
+        "FS-DBG: exchange total_volume={} fund_equity_positions={}",
+        total_volume, fund_equity_positions
+    );
+    assert!(
+        total_volume > 0 && fund_equity_positions > 0,
+        "FS-10 FAIL: exchange volume={} fund equity positions={} — \
+         secondary market is dead (funds hold bonds only)",
+        total_volume,
+        fund_equity_positions,
+    );
+
+    // FS-11: Fiscal channels must carry real revenue — CIT on profitable
+    // firms, customs on cross-border flows, and ministry budgets must be
+    // allocated AND spent (not frozen at 0.00).
+    for (name, country) in &state.countries {
+        let last = country.budget.tax_history.back();
+        let (cit, customs) = last
+            .map(|e| {
+                (
+                    e.cit_collected,
+                    e.extra
+                        .get("customs_revenue")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.0),
+                )
+            })
+            .unwrap_or((0.0, 0.0));
+        let ministry_spent: f64 = country
+            .politics
+            .ministry_config
+            .as_ref()
+            .map(|cfg| cfg.ministries.iter().map(|m| m.spent_cash).sum())
+            .unwrap_or(0.0);
+        eprintln!(
+            "FS-DBG[{}]: cit={:.0} customs={:.0} ministry_spent={:.0}",
+            name, cit, customs, ministry_spent
+        );
+        assert!(
+            cit > 0.0 && customs > 0.0 && ministry_spent > 0.0,
+            "FS-11 FAIL[{}]: fiscal channels dead — cit={:.0} customs={:.0} \
+             ministry_spent={:.0} (all must be >0)",
+            name,
+            cit,
+            customs,
+            ministry_spent,
+        );
+    }
+
+    // FS-12: Legislative diversity — recent floor votes must include at
+    // least 3 DISTINCT non-emergency bill types. An emergency-only cycle
+    // means the fiscal-crisis trigger is spamming the queue and starving
+    // real legislation.
+    {
+        use sim_engine::politics::legislation::BillType;
+        const EMERGENCY_TYPES: &[BillType] = &[
+            BillType::Budget,
+            BillType::EmergencyBonds,
+            BillType::EmergencyFiscal,
+        ];
+        let mut distinct: std::collections::HashSet<BillType> =
+            std::collections::HashSet::new();
+        for country in state.countries.values() {
+            if let Some(parl) = &country.politics.parliament_struct {
+                for ch in &parl.chambers {
+                    for v in &ch.recent_votes {
+                        if !EMERGENCY_TYPES.contains(&v.bill_type) {
+                            distinct.insert(v.bill_type);
+                        }
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "FS-DBG: distinct non-emergency bill types voted: {:?}",
+            distinct
+        );
+        assert!(
+            distinct.len() >= 3,
+            "FS-12 FAIL: only {} distinct non-emergency bill types voted — \
+             the emergency-bill loop still crowds out real legislation",
+            distinct.len(),
+        );
+    }
+
     // CASH-1: base cash may never be negative — a company that cannot pay
     // must accrue tracked debt or default, never hold negative M0. The
     // −5.10B void seen in 48-turn runs is a double-entry violation: three

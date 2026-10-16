@@ -81,6 +81,7 @@ fn provision_weight(provision: &BillProvision) -> LegislativeWeight {
         | BillProvision::FreeSpeechLaw(_)
         | BillProvision::TransportLaw(_)
         | BillProvision::SentencingLaw(_)
+        | BillProvision::ChildLaborLaw(_)
         | BillProvision::MigrationLawChange(_) => LegislativeWeight::Organic,
 
         // Routine adjustments use Ordinary majority

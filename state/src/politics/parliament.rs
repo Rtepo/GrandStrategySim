@@ -69,6 +69,11 @@ pub struct ChamberPresidium {
 pub struct VoteRecord {
     pub bill_id: String,
     pub bill_title: String,
+    /// Classification of the bill that was voted on — lets tests and
+    /// telemetry count distinct bill types without parsing titles.
+    /// `Other` for votes recorded before the field existed.
+    #[serde(default)]
+    pub bill_type: super::legislation::BillType,
     pub votes_for: u32,
     pub votes_against: u32,
     pub abstentions: u32,

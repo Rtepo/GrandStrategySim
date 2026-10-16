@@ -139,8 +139,14 @@ pub fn match_orders(order_book: &mut OrderBook) {
                 break;
             }
 
-            // Execution price: midpoint of spread (fair equilibrium)
-            let execution_price = (bid.limit_price + ask.limit_price) / 2.0;
+            // Execution price: the resting ask's limit (standard LOB
+            // semantics — a marketable bid lifts the offer at the offer's
+            // own price). Midpoint pricing let an unfilled-order bid
+            // ratchet permanently lift the reference price: each turn the
+            // midpoint printed above the ask, VWAP/last-trade followed,
+            // and seller floors re-anchored upward — a structural
+            // inflation engine with no counterpart brake.
+            let execution_price = ask.limit_price;
             let trade_quantity = bid.quantity.min(ask.quantity);
 
             if trade_quantity > 0.0 {
@@ -288,7 +294,10 @@ pub fn match_orders_with_embargoes(
                     continue;
                 }
 
-                let execution_price = (bid.limit_price + asks[cursor].limit_price) / 2.0;
+                // Execution at the resting ask's limit (see the parallel
+                // comment in `match_orders`): the bid-side unfilled
+                // ratchet must not lift prints above the ask.
+                let execution_price = asks[cursor].limit_price;
                 let trade_quantity = bid.quantity.min(asks[cursor].quantity);
 
                 if trade_quantity > 0.0 {

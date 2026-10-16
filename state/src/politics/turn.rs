@@ -1007,6 +1007,17 @@ pub fn process_political_turn(
         messages.push(msg);
     }
 
+    // Routine agenda legislation: on the off-budget phase of the legislative
+    // cycle (turn % 4 == 2) the chamber takes up one policy domain — picked
+    // by a seat-share × platform-affinity weighted draw scaled by macro
+    // urgency — so `recent_votes` carries real policy legislation, not only
+    // budget and emergency bills. Per-domain cooldown forces rotation.
+    if let Some(msg) =
+        super::bill_lifecycle::introduce_policy_bill_if_due(country, current_turn)
+    {
+        messages.push(msg);
+    }
+
     // Phase 11f: Legislation (needs country + councilors + parties)
     let active_parties_ref = country.politics.active_parties.clone();
     let legislation_msgs = super::bill_lifecycle::process_legislation_turn(
