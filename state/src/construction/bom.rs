@@ -140,8 +140,9 @@ pub fn get_construction_bom_for_kind(
 }
 
 /// Phase 45: Best-effort mapping from a building kind string to a Sector.
-/// Used only by the legacy compatibility wrapper.
-fn sector_from_building_kind(kind: &str) -> Sector {
+/// Used by the legacy compatibility wrapper and by construction-project
+/// completion to stamp the finished building's sector.
+pub fn sector_from_building_kind(kind: &str) -> Sector {
     let k = kind.to_lowercase();
     if k.contains("steelworks")
         || k.contains("steel")

@@ -10,6 +10,21 @@ use super::ideology::IdeologyCoordinates;
 use super::legislation::{Bill, LegislativeStage};
 use super::local_council::{calculate_vote_probability, Councilor};
 
+/// Deterministic pseudo-random uniform value in `[0, 1)` from a seed string.
+///
+/// # Arguments
+/// * `seed` - Unique seed string (e.g. country name + bill ID + turn)
+///
+/// # Rules
+/// * Uses DefaultHasher for deterministic, reproducible results
+/// * Same seed always yields the same value
+pub fn deterministic_uniform(seed: &str) -> f64 {
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    seed.hash(&mut hasher);
+    let hash_val = hasher.finish();
+    (hash_val as f64) / (u64::MAX as f64)
+}
+
 /// Deterministic pseudo-random roll based on a seed string and probability.
 ///
 /// # Arguments
@@ -23,11 +38,7 @@ use super::local_council::{calculate_vote_probability, Councilor};
 /// * Uses DefaultHasher for deterministic, reproducible results
 /// * Same seed + probability always yields the same result
 pub fn deterministic_roll(seed: &str, probability: f64) -> bool {
-    let mut hasher = std::collections::hash_map::DefaultHasher::new();
-    seed.hash(&mut hasher);
-    let hash_val = hasher.finish();
-    let normalized = (hash_val as f64) / (u64::MAX as f64);
-    normalized < probability
+    deterministic_uniform(seed) < probability
 }
 
 /// Process bill through committee stage
@@ -584,6 +595,7 @@ pub fn process_legislation_turn(
                     let vote_record = super::parliament::VoteRecord {
                         bill_id: bill_id.clone(),
                         bill_title: bill_title.clone(),
+                        bill_type: bill.bill_type,
                         votes_for,
                         votes_against,
                         abstentions,
@@ -601,6 +613,7 @@ pub fn process_legislation_turn(
                         "event": "floor_vote",
                         "bill_id": bill_id,
                         "title": bill_title,
+                        "bill_type": bill.bill_type.as_str(),
                         "votes_for": votes_for,
                         "votes_against": votes_against,
                         "abstentions": abstentions,
@@ -703,6 +716,7 @@ pub fn process_legislation_turn(
                         let upper_record = super::parliament::VoteRecord {
                             bill_id: bill_id.clone(),
                             bill_title: bill_title.clone(),
+                            bill_type: bill.bill_type,
                             votes_for,
                             votes_against,
                             abstentions,
@@ -1025,6 +1039,7 @@ pub fn introduce_bill_to_session(country: &mut crate::state::Country, bill: Bill
         return false;
     }
     let bill_id = bill.id.clone();
+    let bill_type_key = bill.bill_type.as_str().to_string();
     let introduction_turn = bill.introduction_turn;
     let session = country
         .politics
@@ -1036,10 +1051,117 @@ pub fn introduce_bill_to_session(country: &mut crate::state::Country, bill: Bill
         return false; // Already introduced — do not double-queue.
     }
     session.introduce_bill(bill);
+    // Per-bill-type cooldown ledger: every successful introduction records
+    // its type so recurring triggers (crisis fast-track, routine agenda
+    // bills) can be throttled by `check_bill_type_cooldown`.
+    session
+        .last_introduced_by_type
+        .insert(bill_type_key.clone(), introduction_turn);
     if let Some(ref mut parl) = country.politics.parliament_struct {
-        parl.queue_bill(bill_id);
+        parl.queue_bill(bill_id.clone());
     }
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "PARLDBG introduced+queued bill_id={} type={} turn={}",
+        bill_id, bill_type_key, introduction_turn
+    );
     true
+}
+
+// ============================================================================
+// PER-TYPE INTRODUCTION COOLDOWNS
+// ============================================================================
+
+/// The legislative cycle cadence in turns — the periodic budget bill runs on
+/// `turn % LEGISLATIVE_CYCLE_TURNS == 0`, so one cycle is 4 turns.
+pub const LEGISLATIVE_CYCLE_TURNS: u32 = 4;
+
+/// Minimum turns between two introductions of the same emergency bill type
+/// (crisis fast-track authorisations such as the Emergency Fiscal Response
+/// Act or Emergency Bond Authorization Act).
+///
+/// Set to three legislative cycles (12 turns): a fast-track bill clears the
+/// pipeline in ~3–5 turns (1-turn committee → floor vote → optional upper
+/// house → executive), so the cooldown leaves roughly two full pipeline
+/// lengths of slack before re-introduction while still permitting repeated
+/// authorisation in a sustained crisis. The trigger condition (debt/deficit)
+/// stays hot — it just stops spawning a bill every cycle.
+pub const EMERGENCY_BILL_COOLDOWN_TURNS: u32 = LEGISLATIVE_CYCLE_TURNS * 3;
+
+/// Minimum turns between two introductions of the same routine policy
+/// domain. Same three-cycle spacing as the emergency cooldown — forces the
+/// chamber agenda to rotate across policy domains instead of fixating on
+/// whichever domain currently carries the highest platform weight.
+pub const POLICY_DOMAIN_COOLDOWN_TURNS: u32 = LEGISLATIVE_CYCLE_TURNS * 3;
+
+/// Phase offset inside the legislative cycle on which routine policy bills
+/// are introduced. Budget bills occupy offset 0 (`turn % 4 == 0`); policy
+/// bills use offset 2 so the two intake streams interleave and at most one
+/// routine intake event happens per turn.
+pub const POLICY_BILL_PHASE_OFFSET: u32 = LEGISLATIVE_CYCLE_TURNS / 2;
+
+/// Cap on concurrently active session bills — about two full committee
+/// batches. Prevents queue flooding while floor votes stall on repeated
+/// quorum failures (bills held at FloorVote otherwise accumulate forever).
+const MAX_ACTIVE_BILLS: usize = 8;
+
+/// Check the per-bill-type cooldown ledger on the legislative session.
+///
+/// # Returns
+/// `Err(last_turn)` when a bill of `bill_type` was introduced fewer than
+/// `cooldown_turns` ago, `Ok(())` otherwise — including when no session
+/// exists yet (nothing has ever been introduced, so nothing is on cooldown).
+pub fn check_bill_type_cooldown(
+    country: &crate::state::Country,
+    bill_type: super::legislation::BillType,
+    cooldown_turns: u32,
+    current_turn: u32,
+) -> Result<(), u32> {
+    if cooldown_turns == 0 {
+        return Ok(());
+    }
+    let last = country
+        .politics
+        .legislative_session
+        .as_ref()
+        .and_then(|s| s.last_introduced_by_type.get(bill_type.as_str()))
+        .copied();
+    match last {
+        Some(t) if current_turn.saturating_sub(t) < cooldown_turns => Err(t),
+        _ => Ok(()),
+    }
+}
+
+/// Whether the parliament currently accepts new bills: at least one chamber,
+/// a seated body, and not suspended / bypassed by a State of Emergency.
+/// Shared gate for the budget, crisis, and routine-policy intake paths.
+fn parliament_can_legislate(country: &crate::state::Country) -> bool {
+    if country.politics.government_form.chambers() == 0 {
+        return false;
+    }
+    let parliament_suspended = country
+        .politics
+        .parliament_struct
+        .as_ref()
+        .map(|p| p.suspended)
+        .unwrap_or(true) // No parliament struct → no queue to feed.
+        || country
+            .politics
+            .state_of_emergency
+            .as_ref()
+            .map(|soe| soe.can_bypass_parliament())
+            .unwrap_or(false);
+    if parliament_suspended {
+        return false;
+    }
+    let total_seats: u32 = country
+        .politics
+        .parliament_struct
+        .as_ref()
+        .map(|p| p.lower_seats())
+        .unwrap_or(0)
+        .max(country.politics.parliament.values().sum::<u32>());
+    total_seats > 0
 }
 
 /// Introduce the periodic budget bill into the real parliamentary queue.
@@ -1064,36 +1186,9 @@ pub fn introduce_budget_bill_if_due(
     if !current_turn.is_multiple_of(4) {
         return None;
     }
-    // No parliament at all → nothing to vote on.
-    if country.politics.government_form.chambers() == 0 {
-        return None;
-    }
-    let parliament_suspended = country
-        .politics
-        .parliament_struct
-        .as_ref()
-        .map(|p| p.suspended)
-        .unwrap_or(true) // No parliament struct → no queue to feed.
-        || country
-            .politics
-            .state_of_emergency
-            .as_ref()
-            .map(|soe| soe.can_bypass_parliament())
-            .unwrap_or(false);
-    if parliament_suspended {
-        return None;
-    }
-    // No seated MPs yet (e.g., pre-first-election authoritarian legislature).
-    // Read the live chamber map first (appointed chambers seated at genesis),
-    // falling back to the legacy flat map populated by elections.
-    let total_seats: u32 = country
-        .politics
-        .parliament_struct
-        .as_ref()
-        .map(|p| p.lower_seats())
-        .unwrap_or(0)
-        .max(country.politics.parliament.values().sum::<u32>());
-    if total_seats == 0 {
+    // Shared intake gate: needs chambers, a seated body, and a parliament
+    // that is neither suspended nor bypassed by a State of Emergency.
+    if !parliament_can_legislate(country) {
         return None;
     }
 
@@ -1106,6 +1201,788 @@ pub fn introduce_budget_bill_if_due(
             bill_id
         ))
     } else {
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "PARLDBG budget bill {} blocked at intake (turn {})",
+            bill_id, current_turn
+        );
+        None
+    }
+}
+
+// ============================================================================
+// ROUTINE POLICY LEGISLATION — chamber agenda generator
+// ============================================================================
+//
+// Between budget sessions and emergency fast-tracks, a functioning
+// legislature also debates ordinary policy. Each cycle the lower chamber
+// takes up one policy domain, picked by a deterministic weighted draw over
+// seat-share × platform affinity, scaled by a per-domain macro-urgency
+// multiplier (unemployment boosts labor bills, low treasury coverage boosts
+// tax reform, unrest boosts justice/sentencing, missing or minimal service
+// laws boost healthcare/education, ...). A per-domain cooldown forces the
+// agenda to rotate instead of fixating.
+//
+// These bills travel the SAME pipeline as budget and crisis bills —
+// committee → floor vote (real `VoteRecord`) → bicameral → executive — and
+// carry typed provisions that map onto real `LawType` actuators, so an
+// enacted labor act changes `politics.child_labor_law`, a transport act
+// rewrites `commuting_config`, etc.
+
+/// A policy domain the chamber can take up, together with its ideological
+/// signature vector. The signature doubles as the clause's
+/// `ideological_vector`, so the same affinity that places a domain on the
+/// agenda also drives councilor/committee alignment when it is voted.
+#[derive(Debug, Clone, Copy)]
+struct PolicyDomainSpec {
+    bill_type: super::legislation::BillType,
+    /// Base title of the bill ("{} — Turn {turn}" suffix is appended).
+    title: &'static str,
+    signature: IdeologyCoordinates,
+    /// Interest groups whose platform backing boosts this domain — matched
+    /// against `Party::base` (the party's supporting-group platform).
+    base_groups: &'static [&'static str],
+}
+
+/// The routine agenda: one entry per policy domain. Order is fixed for
+/// determinism (weighted draw iterates this array).
+const POLICY_DOMAINS: &[PolicyDomainSpec] = &[
+    PolicyDomainSpec {
+        bill_type: super::legislation::BillType::Labor,
+        title: "Labor Standards Act",
+        signature: IdeologyCoordinates {
+            economy: -0.5,
+            liberty: 0.1,
+            tradition: -0.1,
+        },
+        base_groups: &["Trade Unions", "Worker"],
+    },
+    PolicyDomainSpec {
+        bill_type: super::legislation::BillType::Infrastructure,
+        title: "Infrastructure Investment Act",
+        signature: IdeologyCoordinates {
+            economy: -0.2,
+            liberty: 0.0,
+            tradition: 0.1,
+        },
+        base_groups: &["Bureaucrats", "Capitalists"],
+    },
+    PolicyDomainSpec {
+        bill_type: super::legislation::BillType::TaxReform,
+        title: "Fiscal Reform Act",
+        signature: IdeologyCoordinates {
+            economy: 0.3,
+            liberty: 0.1,
+            tradition: 0.0,
+        },
+        base_groups: &["Capitalists", "Petty Bourgeoisie"],
+    },
+    PolicyDomainSpec {
+        bill_type: super::legislation::BillType::Healthcare,
+        title: "Healthcare Coverage Act",
+        signature: IdeologyCoordinates {
+            economy: -0.4,
+            liberty: 0.1,
+            tradition: 0.0,
+        },
+        base_groups: &["Trade Unions", "Intelligentsia"],
+    },
+    PolicyDomainSpec {
+        bill_type: super::legislation::BillType::Education,
+        title: "Education Access Act",
+        signature: IdeologyCoordinates {
+            economy: -0.2,
+            liberty: 0.3,
+            tradition: -0.1,
+        },
+        base_groups: &["Intelligentsia", "Specialists"],
+    },
+    PolicyDomainSpec {
+        bill_type: super::legislation::BillType::Justice,
+        title: "Judicial Reform Act",
+        signature: IdeologyCoordinates {
+            economy: 0.0,
+            liberty: 0.4,
+            tradition: -0.2,
+        },
+        base_groups: &["Intelligentsia"],
+    },
+    PolicyDomainSpec {
+        bill_type: super::legislation::BillType::Sentencing,
+        title: "Penal Code Reform Act",
+        signature: IdeologyCoordinates {
+            economy: 0.0,
+            liberty: -0.3,
+            tradition: 0.5,
+        },
+        base_groups: &["Aristocracy", "Bureaucrats"],
+    },
+    PolicyDomainSpec {
+        bill_type: super::legislation::BillType::FreeSpeech,
+        title: "Speech & Assembly Act",
+        signature: IdeologyCoordinates {
+            economy: 0.0,
+            liberty: 0.6,
+            tradition: -0.2,
+        },
+        base_groups: &["Intelligentsia", "Specialists"],
+    },
+    PolicyDomainSpec {
+        bill_type: super::legislation::BillType::Transport,
+        title: "Public Transport Act",
+        signature: IdeologyCoordinates {
+            economy: -0.3,
+            liberty: 0.0,
+            tradition: 0.0,
+        },
+        base_groups: &["Trade Unions", "Petty Bourgeoisie"],
+    },
+];
+
+/// Macro urgency multiplier for a policy domain — continuous functions of
+/// real indicators, so an active crisis channel pushes the matching domain
+/// up the agenda without any threshold table.
+fn policy_domain_urgency(
+    bill_type: super::legislation::BillType,
+    country: &crate::state::Country,
+) -> f64 {
+    use super::legislation::BillType as BT;
+    let unemployment = country.macro_indicators.labor_market.unemployment_rate;
+    let unrest = country.macro_indicators.social_unrest;
+    let growth = country.macro_indicators.gdp_breakdown.growth_rate();
+    let monthly_spending = country.budget.nominal_budget / 12.0;
+    // Same treasury-coverage metric `detect_crisis` uses.
+    let treasury_coverage = if monthly_spending > 0.0 {
+        country.budget.liquid_reserves / monthly_spending
+    } else {
+        f64::MAX
+    };
+    match bill_type {
+        // The engine's established unemployment-action level is 8%
+        // (counter_cyclical_response); each 8 points of unemployment
+        // doubles labor urgency.
+        BT::Labor => 1.0 + unemployment / 8.0,
+        // Recession → counter-cyclical public works pressure.
+        BT::Infrastructure => 1.0 + (-growth).max(0.0) * 10.0,
+        // Treasury coverage below the 2-month crisis line → fiscal repair.
+        BT::TaxReform => 1.0 + (2.0 - treasury_coverage).clamp(0.0, 2.0),
+        // Coverage deficit: no law or a Limited system pressures expansion.
+        BT::Healthcare => {
+            let deficit = match country.politics.healthcare_law.as_ref().map(|l| l.universality) {
+                None => 1.0,
+                Some(crate::politics::laws::UniversalityLevel::Limited) => 0.75,
+                Some(crate::politics::laws::UniversalityLevel::Categorical) => 0.5,
+                Some(crate::politics::laws::UniversalityLevel::MeansTested) => 0.25,
+                Some(crate::politics::laws::UniversalityLevel::Universal) => 0.0,
+            };
+            1.0 + deficit
+        }
+        // Missing education law → double urgency; short compulsory
+        // schooling adds a small push.
+        BT::Education => match country.politics.education_law.as_ref() {
+            None => 2.0,
+            Some(law) => 1.0 + (12.0 - law.compulsory_education.compulsory_years as f64).max(0.0) / 24.0,
+        },
+        // Unrest pressures institutional reform (justice) and order
+        // legislation (sentencing) — 40 points of unrest doubles urgency.
+        BT::Justice => 1.0 + unrest / 40.0,
+        BT::Sentencing => 1.0 + unrest / 60.0,
+        // Unrest also pushes speech/assembly questions onto the agenda.
+        BT::FreeSpeech => 1.0 + unrest / 80.0,
+        // Missing transport law → mild pressure to codify ownership.
+        BT::Transport if country.politics.transport_law.is_none() => 1.5,
+        _ => 1.0,
+    }
+}
+
+/// Affinity of a parliamentary club/party to a policy domain signature —
+/// same coordinate axes the floor-vote alignment uses, so agenda placement
+/// foreshadows (but does not guarantee) the vote.
+fn policy_domain_affinity(coords: &IdeologyCoordinates, signature: &IdeologyCoordinates) -> f64 {
+    let dot = coords.economy * signature.economy
+        + coords.liberty * signature.liberty
+        + coords.tradition * signature.tradition;
+    (0.5 + dot * 0.5).clamp(0.05, 1.0)
+}
+
+/// Seat-share-weighted platform support for every domain: each lower-house
+/// club contributes `seats × affinity`, with a platform bonus when the
+/// club's parent party lists a domain-relevant interest group in `base`.
+/// Both coalition and opposition clubs contribute — the agenda reflects the
+/// whole chamber, while the initiator is chosen separately below.
+fn policy_domain_weights(country: &crate::state::Country) -> Vec<(usize, f64)> {
+    // (club coordinates, seats, parent/party name for base lookup)
+    let mut seat_blocks: Vec<(IdeologyCoordinates, u32, String)> = Vec::new();
+    if let Some(ref parl) = country.politics.parliament_struct {
+        for club in &parl.clubs {
+            if club.seats > 0 {
+                seat_blocks.push((
+                    club.coordinates,
+                    club.seats,
+                    club.parent_party.clone().unwrap_or_else(|| club.id.clone()),
+                ));
+            }
+        }
+    }
+    // Fallback: appointed/legacy chambers without clubs — weight active
+    // parties by their seat-map or support share.
+    if seat_blocks.is_empty() {
+        let seat_map = &country.politics.parliament;
+        for (name, party) in &country.politics.active_parties {
+            let seats = seat_map.get(name).copied().unwrap_or(0);
+            let weight = if seats > 0 {
+                seats as f64
+            } else {
+                party.support
+            };
+            if weight > 0.0 {
+                seat_blocks.push((
+                    party.coordinates,
+                    weight.max(1.0) as u32,
+                    name.clone(),
+                ));
+            }
+        }
+    }
+
+    POLICY_DOMAINS
+        .iter()
+        .enumerate()
+        .map(|(idx, spec)| {
+            let mut weight = 0.0;
+            for (coords, seats, party_name) in &seat_blocks {
+                let mut affinity = policy_domain_affinity(coords, &spec.signature);
+                // Platform bonus: the party's declared interest-group base
+                // backs this domain → +25% affinity (bounded platform boost).
+                if let Some(party) = country.politics.active_parties.get(party_name) {
+                    if party
+                        .base
+                        .iter()
+                        .any(|g| spec.base_groups.contains(&g.as_str()))
+                    {
+                        affinity = (affinity * 1.25).min(1.0);
+                    }
+                }
+                weight += *seats as f64 * affinity;
+            }
+            (idx, weight * policy_domain_urgency(spec.bill_type, country))
+        })
+        .collect()
+}
+
+/// Deterministic weighted draw over `(index, weight)` pairs. Seed-mixing by
+/// country + turn keeps the pick reproducible.
+fn weighted_domain_pick(weights: &[(usize, f64)], seed: &str) -> Option<usize> {
+    let total: f64 = weights.iter().map(|(_, w)| w).sum();
+    if total <= 0.0 {
+        return None;
+    }
+    let u = deterministic_uniform(seed) * total;
+    let mut acc = 0.0;
+    for (idx, w) in weights {
+        acc += *w;
+        if u < acc {
+            return Some(*idx);
+        }
+    }
+    weights.last().map(|(idx, _)| *idx)
+}
+
+/// Pick the bill's sponsor: the lower-house club with the highest
+/// `seats × affinity` for the chosen domain (ties break lexicographically
+/// for determinism). Falls back to the ruling party when no clubs exist.
+fn pick_policy_bill_sponsor(
+    country: &crate::state::Country,
+    signature: &IdeologyCoordinates,
+) -> String {
+    let mut sponsor: Option<(f64, String)> = None;
+    if let Some(ref parl) = country.politics.parliament_struct {
+        // Sort by id first so argmax is deterministic regardless of Vec order.
+        let mut clubs: Vec<&super::parliament::ParliamentaryClub> = parl.clubs.iter().collect();
+        clubs.sort_by(|a, b| a.id.cmp(&b.id));
+        for club in clubs {
+            if club.seats == 0 {
+                continue;
+            }
+            let score = club.seats as f64 * policy_domain_affinity(&club.coordinates, signature);
+            let better = match &sponsor {
+                None => true,
+                Some((best, _)) => score > *best,
+            };
+            if better {
+                sponsor = Some((
+                    score,
+                    club.parent_party.clone().unwrap_or_else(|| club.id.clone()),
+                ));
+            }
+        }
+    }
+    sponsor
+        .map(|(_, name)| name)
+        .unwrap_or_else(|| country.politics.ruling_party.clone())
+}
+
+/// Universality ladder step: expand coverage one notch (left/statist
+/// initiators) or retrench one notch (market initiators).
+fn step_universality(
+    current: crate::politics::laws::UniversalityLevel,
+    expand: bool,
+) -> crate::politics::laws::UniversalityLevel {
+    use crate::politics::laws::UniversalityLevel::*;
+    match (current, expand) {
+        (Limited, true) => Categorical,
+        (Categorical, true) => MeansTested,
+        (MeansTested, true) => Universal,
+        (Universal, true) => Universal,
+        (Universal, false) => MeansTested,
+        (MeansTested, false) => Categorical,
+        (Categorical, false) => Limited,
+        (Limited, false) => Limited,
+    }
+}
+
+/// Build the provision, clause description, and title for a policy bill.
+/// Every domain maps onto a real `LawType` actuator — amendment parameters
+/// are derived from the country's current law state and macro indicators,
+/// never hardcoded snapshots.
+fn build_policy_provision(
+    domain: &PolicyDomainSpec,
+    country: &crate::state::Country,
+    ruling_coords: &IdeologyCoordinates,
+) -> (super::legislation::BillProvision, String) {
+    use super::legislation::BillProvision;
+    match domain.bill_type {
+        super::legislation::BillType::Labor => {
+            // Labor-supply intervention: high unemployment → pull children
+            // out of the workforce (Prohibited); otherwise codify Restricted.
+            let unemployment = country.macro_indicators.labor_market.unemployment_rate;
+            let law = if unemployment >= 8.0 {
+                crate::politics::laws::ChildLaborLaw::Prohibited
+            } else {
+                crate::politics::laws::ChildLaborLaw::Restricted
+            };
+            (
+                BillProvision::ChildLaborLaw(law.clone()),
+                format!(
+                    "Labor standards: child labor {:?} (unemployment {:.1}%)",
+                    law, unemployment
+                ),
+            )
+        }
+        super::legislation::BillType::Infrastructure => {
+            // Counter-cyclical sizing: deeper recession → larger mandate.
+            let growth = country.macro_indicators.gdp_breakdown.growth_rate();
+            let allocation_pct = (0.05 + (-growth).max(0.0)).clamp(0.02, 0.25);
+            (
+                BillProvision::InfrastructureMandate { allocation_pct },
+                format!(
+                    "Infrastructure mandate: +{:.0}% allocation (growth {:+.1}%)",
+                    allocation_pct * 100.0,
+                    growth * 100.0
+                ),
+            )
+        }
+        super::legislation::BillType::TaxReform => {
+            let monthly_spending = country.budget.nominal_budget / 12.0;
+            let coverage = if monthly_spending > 0.0 {
+                country.budget.liquid_reserves / monthly_spending
+            } else {
+                f64::MAX
+            };
+            let pit = country.tax_rates.income_tax.rate;
+            let cit = country.tax_rates.corporate_tax;
+            if coverage < 2.0 {
+                // Revenue repair: +2pp PIT, capped at 60%.
+                let new_pit = (pit + 0.02).min(0.60);
+                (
+                    BillProvision::TaxRateChange {
+                        income_tax: Some(new_pit),
+                        vat: None,
+                        corporate_tax: None,
+                    },
+                    format!(
+                        "Revenue repair: income tax {:.1}% → {:.1}% (treasury {:.1} mo)",
+                        pit * 100.0,
+                        new_pit * 100.0,
+                        coverage
+                    ),
+                )
+            } else if ruling_coords.economy > 0.0 {
+                // Market-leaning government: 1pp corporate tax cut.
+                let new_cit = (cit - 0.01).max(0.02);
+                (
+                    BillProvision::TaxRateChange {
+                        income_tax: None,
+                        vat: None,
+                        corporate_tax: Some(new_cit),
+                    },
+                    format!(
+                        "Tax relief: corporate tax {:.1}% → {:.1}%",
+                        cit * 100.0,
+                        new_cit * 100.0
+                    ),
+                )
+            } else {
+                // Statist government with a healthy treasury: modest VAT bump.
+                let vat_now = country
+                    .tax_rates
+                    .vat
+                    .get("services")
+                    .map(|b| b.rate)
+                    .unwrap_or(0.0);
+                let new_vat = (vat_now + 0.01).min(0.30);
+                (
+                    BillProvision::TaxRateChange {
+                        income_tax: None,
+                        vat: Some(new_vat),
+                        corporate_tax: None,
+                    },
+                    format!(
+                        "VAT adjustment: services {:.1}% → {:.1}%",
+                        vat_now * 100.0,
+                        new_vat * 100.0
+                    ),
+                )
+            }
+        }
+        super::legislation::BillType::Healthcare => {
+            // Amend the existing law (one universality step) or codify a
+            // baseline system when none exists.
+            let expand = ruling_coords.economy <= 0.0;
+            let current = country.politics.healthcare_law.clone();
+            let universality = step_universality(
+                current
+                    .as_ref()
+                    .map(|l| l.universality)
+                    .unwrap_or(crate::politics::laws::UniversalityLevel::Limited),
+                expand,
+            );
+            let law = crate::politics::laws::HealthcareLaw {
+                healthcare_system: current
+                    .as_ref()
+                    .map(|l| l.healthcare_system)
+                    .unwrap_or(if expand {
+                        crate::politics::laws::HealthcareSystem::Budgetary
+                    } else {
+                        crate::politics::laws::HealthcareSystem::InsuranceBased
+                    }),
+                funding: current
+                    .as_ref()
+                    .map(|l| l.funding.clone())
+                    .unwrap_or(crate::politics::funding::ServiceFundingConfig {
+                        funding_model: crate::politics::funding::FundingModel::Public,
+                        budget_source: crate::politics::funding::BudgetSource::Central,
+                        per_capita_funding: 0.0,
+                        student_loans: None,
+                    }),
+                universality,
+                priorities: current
+                    .as_ref()
+                    .map(|l| l.priorities.clone())
+                    .unwrap_or(crate::politics::laws::HealthcarePriorities {
+                        emergency_priority: true,
+                        elderly_priority: true,
+                        children_priority: true,
+                        chronic_priority: true,
+                    }),
+            };
+            (
+                BillProvision::HealthcareLaw(law),
+                format!("Healthcare coverage: universality {:?}", universality),
+            )
+        }
+        super::legislation::BillType::Education => {
+            // Extend compulsory schooling by one year (cap 12); choose the
+            // delivery model from the sponsor's coordinates when no law exists.
+            let current = country.politics.education_law.clone();
+            let years = current
+                .as_ref()
+                .map(|l| l.compulsory_education.compulsory_years)
+                .unwrap_or(9);
+            let new_years = (years + 1).min(12);
+            let law = crate::politics::laws::EducationLaw {
+                education_model: current
+                    .as_ref()
+                    .map(|l| l.education_model)
+                    .unwrap_or(if ruling_coords.economy < 0.0 {
+                        crate::politics::laws::EducationModel::StateRun
+                    } else {
+                        crate::politics::laws::EducationModel::Mixed
+                    }),
+                school_system: current
+                    .as_ref()
+                    .map(|l| l.school_system)
+                    .unwrap_or(crate::politics::laws::SchoolSystem::SixPlusThreePlusThree),
+                funding: current
+                    .as_ref()
+                    .map(|l| l.funding.clone())
+                    .unwrap_or(crate::politics::funding::ServiceFundingConfig {
+                        funding_model: crate::politics::funding::FundingModel::Public,
+                        budget_source: crate::politics::funding::BudgetSource::Central,
+                        per_capita_funding: 0.0,
+                        student_loans: None,
+                    }),
+                compulsory_education: crate::politics::laws::CompulsoryEducationConfig {
+                    compulsory_years: new_years,
+                    end_age: current
+                        .as_ref()
+                        .map(|l| l.compulsory_education.end_age)
+                        .unwrap_or(15)
+                        .max(6 + new_years),
+                    enforcement: current
+                        .as_ref()
+                        .map(|l| l.compulsory_education.enforcement)
+                        .unwrap_or(crate::politics::laws::EnforcementLevel::Moderate),
+                },
+                financing: current.as_ref().and_then(|l| l.financing.clone()),
+            };
+            (
+                BillProvision::EducationLaw(law),
+                format!("Education access: compulsory schooling {} years", new_years),
+            )
+        }
+        super::legislation::BillType::Justice => {
+            // Institutional reform: independent judiciary council under
+            // liberty-leaning sponsors; anti-corruption drive either way.
+            let current = country.politics.justice_law.clone().unwrap_or_default();
+            let law = crate::politics::laws::JusticeLaw {
+                krs_separated: if ruling_coords.liberty >= 0.0 {
+                    true
+                } else {
+                    current.krs_separated
+                },
+                prosecutor_general_separated: current.prosecutor_general_separated,
+                court_wait_time_target: if country.macro_indicators.social_unrest > 40.0 {
+                    crate::politics::laws::CourtWaitTime::Expedited
+                } else {
+                    current.court_wait_time_target
+                },
+                pardon_authority: current.pardon_authority,
+                corruption_index: (current.corruption_index.max(0.5) - 0.05).clamp(0.0, 1.0),
+            };
+            (
+                BillProvision::JusticeLaw(law.clone()),
+                format!(
+                    "Judicial reform: corruption index {:.2} → {:.2}, KRS separated={}",
+                    current.corruption_index, law.corruption_index, law.krs_separated
+                ),
+            )
+        }
+        super::legislation::BillType::Sentencing => {
+            // Penal reform around the documented default ranges; community
+            // service for liberty-leaning sponsors, tougher penalties under
+            // authoritarian/traditionalist ones.
+            let base = country
+                .politics
+                .sentencing_law
+                .clone()
+                .unwrap_or(crate::economy::sentencing::SentencingLaw {
+                    misdemeanor_range_months: (1, 6),
+                    felony_range_months: (5, 20),
+                    capital_methods: Vec::new(),
+                    death_penalty_enabled: false,
+                    life_imprisonment_enabled: false,
+                    community_service_enabled: true,
+                    legal_dualism_enabled: false,
+                    minority_sentence_multiplier: 2.0,
+                    resident_sentence_multiplier: 1.5,
+                    illegal_sentence_multiplier: 3.0,
+                });
+            let punitive = ruling_coords.tradition > 0.2 && ruling_coords.liberty < -0.2;
+            let law = crate::economy::sentencing::SentencingLaw {
+                death_penalty_enabled: punitive && ruling_coords.tradition > 0.5,
+                life_imprisonment_enabled: base.life_imprisonment_enabled || punitive,
+                community_service_enabled: ruling_coords.liberty >= 0.0,
+                // Routine legislation never introduces legal dualism.
+                legal_dualism_enabled: false,
+                ..base
+            };
+            (
+                BillProvision::SentencingLaw(law.clone()),
+                format!(
+                    "Penal reform: community_service={}, life_imprisonment={}, death_penalty={}",
+                    law.community_service_enabled,
+                    law.life_imprisonment_enabled,
+                    law.death_penalty_enabled
+                ),
+            )
+        }
+        super::legislation::BillType::FreeSpeech => {
+            use crate::politics::free_speech::{AssemblyRights, FreeSpeechLevel, PressFreedom};
+            // Speech regime follows the sponsor's liberty axis: libertarian
+            // sponsors expand to Full, authoritarians tighten to Suppressed.
+            let (level, assembly, press) = if ruling_coords.liberty >= -0.1 {
+                (FreeSpeechLevel::Full, AssemblyRights::Free, PressFreedom::Independent)
+            } else if ruling_coords.liberty >= -0.4 {
+                (
+                    FreeSpeechLevel::Restricted,
+                    AssemblyRights::Restricted,
+                    PressFreedom::Mixed,
+                )
+            } else {
+                (
+                    FreeSpeechLevel::Suppressed,
+                    AssemblyRights::Banned,
+                    PressFreedom::StateControlled,
+                )
+            };
+            let law = crate::politics::free_speech::FreeSpeechLaw {
+                free_speech_level: level,
+                assembly_rights: assembly,
+                press_freedom: press,
+            };
+            (
+                BillProvision::FreeSpeechLaw(law),
+                format!("Speech & assembly regime: {:?}/{:?}/{:?}", level, assembly, press),
+            )
+        }
+        super::legislation::BillType::Transport => {
+            // Ownership question: market sponsors privatise; others keep the
+            // public operator with at least a 50% ticket subsidy floor.
+            let privatize = ruling_coords.economy > 0.3;
+            let law = crate::economy::commuting::TransportLaw {
+                ownership: if privatize {
+                    crate::economy::commuting::TransportOwnership::Privatized
+                } else {
+                    crate::economy::commuting::TransportOwnership::Public
+                },
+                public_subsidy_fraction: if privatize {
+                    0.0
+                } else {
+                    country.commuting_config.public_subsidy_fraction.max(0.5)
+                },
+            };
+            (
+                BillProvision::TransportLaw(law.clone()),
+                format!(
+                    "Transport: {:?}, subsidy {:.0}%",
+                    law.ownership,
+                    law.public_subsidy_fraction * 100.0
+                ),
+            )
+        }
+        _ => (
+            BillProvision::Custom {
+                description: domain.title.to_string(),
+                effect_key: format!("policy_{}", domain.bill_type.as_str()),
+                effect_value: 0.0,
+            },
+            domain.title.to_string(),
+        ),
+    }
+}
+
+/// Introduce a routine (non-emergency) policy bill on the off-budget phase
+/// of the legislative cycle (`turn % 4 == 2`).
+///
+/// The domain is a deterministic weighted draw: seat-share-weighted
+/// ideological affinity of every lower-house club (coalition AND
+/// opposition — the whole chamber sets the agenda) times the domain's
+/// macro-urgency multiplier. Domains inside their
+/// [`POLICY_DOMAIN_COOLDOWN_TURNS`] window are excluded, forcing rotation.
+///
+/// The bill travels the normal pipeline — committee → floor vote
+/// (`VoteRecord` in `recent_votes`) → bicameral → executive — and carries a
+/// typed provision with a real `LawType` actuator.
+///
+/// # Returns
+/// `Some(message)` when a bill was introduced this turn, `None` otherwise.
+pub fn introduce_policy_bill_if_due(
+    country: &mut crate::state::Country,
+    current_turn: u32,
+) -> Option<String> {
+    if current_turn % LEGISLATIVE_CYCLE_TURNS != POLICY_BILL_PHASE_OFFSET {
+        return None;
+    }
+    if !parliament_can_legislate(country) {
+        return None;
+    }
+    // Backpressure: a chamber jammed on quorum failures shouldn't keep
+    // stacking new bills.
+    let active_count = country
+        .politics
+        .legislative_session
+        .as_ref()
+        .map(|s| s.active_bills.len())
+        .unwrap_or(0);
+    if active_count >= MAX_ACTIVE_BILLS {
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "PARLDBG policy intake skipped: {} bills already active (turn {})",
+            active_count, current_turn
+        );
+        return None;
+    }
+
+    // Domain weights, then drop domains still inside their cooldown window.
+    let weights = policy_domain_weights(country);
+    let eligible: Vec<(usize, f64)> = weights
+        .into_iter()
+        .filter(|(idx, _)| {
+            check_bill_type_cooldown(
+                country,
+                POLICY_DOMAINS[*idx].bill_type,
+                POLICY_DOMAIN_COOLDOWN_TURNS,
+                current_turn,
+            )
+            .is_ok()
+        })
+        .collect();
+    let seed = format!("policy_pick:{}:{}", country.name, current_turn);
+    let domain_idx = match weighted_domain_pick(&eligible, &seed) {
+        Some(idx) => idx,
+        None => {
+            #[cfg(feature = "diagnostic")]
+            eprintln!(
+                "PARLDBG policy intake skipped: all domains on cooldown (turn {})",
+                current_turn
+            );
+            return None;
+        }
+    };
+    let spec = &POLICY_DOMAINS[domain_idx];
+
+    // Sponsor: the club with the strongest seats × affinity for this domain.
+    let initiator = pick_policy_bill_sponsor(country, &spec.signature);
+    let sponsor_coords = country
+        .politics
+        .active_parties
+        .get(&initiator)
+        .map(|p| p.coordinates)
+        .unwrap_or(spec.signature);
+    let (provision, description) = build_policy_provision(spec, country, &sponsor_coords);
+
+    let bill = Bill::new(
+        format!("POLICY-{}-{}", spec.bill_type.as_str(), current_turn),
+        format!("{} — Turn {}", spec.title, current_turn),
+        initiator.clone(),
+        vec![super::legislation::Clause {
+            description,
+            ideological_vector: spec.signature,
+            budget_impact: 0.0,
+            provision: Some(provision),
+            sunset_turn: None,
+            mutated: false,
+            mutation_notes: Vec::new(),
+        }],
+        current_turn,
+    )
+    .with_bill_type(spec.bill_type);
+    let bill_id = bill.id.clone();
+
+    if introduce_bill_to_session(country, bill) {
+        Some(format!(
+            "[LEGISLATION] Bill '{}' ({}) introduced to Parliament by {}.",
+            bill_id,
+            spec.bill_type.as_str(),
+            initiator,
+        ))
+    } else {
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "PARLDBG policy bill {} blocked at intake (turn {})",
+            bill_id, current_turn
+        );
         None
     }
 }
@@ -1349,5 +2226,161 @@ mod tests {
 
         // Should have no offers (can't afford any).
         assert!(offers.is_empty());
+    }
+
+    // ====================================================================
+    // Cooldown ledger & routine policy intake
+    // ====================================================================
+
+    /// Minimal country with a seated (appointed-style) lower chamber:
+    /// two clubs, 100 seats, no upper house.
+    fn country_with_seated_parliament() -> crate::state::Country {
+        use crate::politics::ideology::IdeologyCoordinates;
+        use crate::politics::parliament::{Chamber, Parliament, ParliamentaryClub};
+
+        let mut country = crate::state::Country::default();
+        country.politics.parliament.insert("Alpha".to_string(), 60);
+        country.politics.parliament.insert("Beta".to_string(), 40);
+
+        let mut chamber = Chamber::default();
+        chamber.id = "lower".to_string();
+        chamber.total_seats = 100;
+        chamber.seats = country.politics.parliament.clone();
+
+        let mut parl = Parliament::default();
+        parl.chambers.push(chamber);
+
+        let coords_a = IdeologyCoordinates::new(-0.6, 0.4, -0.3);
+        let coords_b = IdeologyCoordinates::new(0.7, 0.2, 0.5);
+        for (name, seats, coords) in
+            [("Alpha", 60u32, coords_a), ("Beta", 40u32, coords_b)]
+        {
+            parl.clubs.push(ParliamentaryClub {
+                id: name.to_string(),
+                name: name.to_string(),
+                parent_party: Some(name.to_string()),
+                seats,
+                ideology: String::new(),
+                coordinates: coords,
+                discipline: 0.7,
+                is_splinter: false,
+                formation_turn: 0,
+                chairperson_id: None,
+                chairperson_name: String::new(),
+            });
+            country.politics.active_parties.insert(
+                name.to_string(),
+                crate::politics::system::Party {
+                    coordinates: coords,
+                    ..Default::default()
+                },
+            );
+        }
+        country.politics.parliament_struct = Some(parl);
+        country.politics.ruling_party = "Alpha".to_string();
+        country.politics.coalition = vec!["Alpha".to_string()];
+        country
+    }
+
+    #[test]
+    fn test_policy_bills_rotate_across_domains() {
+        let mut country = country_with_seated_parliament();
+        // Policy intake phase is turn % 4 == 2.
+        for turn in [2u32, 6, 10] {
+            assert!(
+                introduce_policy_bill_if_due(&mut country, turn).is_some(),
+                "policy bill should be introduced at turn {}",
+                turn
+            );
+        }
+        let sess = country.politics.legislative_session.as_ref().unwrap();
+        let types: std::collections::HashSet<crate::politics::legislation::BillType> = sess
+            .active_bills
+            .values()
+            .map(|b| b.bill_type)
+            .collect();
+        // The per-domain cooldown forbids re-picking a domain within 12
+        // turns, so three introductions must yield three distinct types.
+        assert_eq!(types.len(), 3);
+        assert!(types.iter().all(|t| t.is_policy()));
+    }
+
+    #[test]
+    fn test_bill_type_cooldown_blocks_repeat_introduction() {
+        let mut country = country_with_seated_parliament();
+        assert!(introduce_policy_bill_if_due(&mut country, 2).is_some());
+        let picked = country
+            .politics
+            .legislative_session
+            .as_ref()
+            .unwrap()
+            .active_bills
+            .values()
+            .next()
+            .unwrap()
+            .bill_type;
+        assert_eq!(
+            check_bill_type_cooldown(&country, picked, POLICY_DOMAIN_COOLDOWN_TURNS, 6),
+            Err(2)
+        );
+        // Cooldown is elapsed once the full window has passed.
+        assert!(
+            check_bill_type_cooldown(&country, picked, POLICY_DOMAIN_COOLDOWN_TURNS, 14).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_emergency_bill_cooldown_ledger() {
+        // Mirrors what introduce_crisis_fast_track_bill does: a typed bill
+        // writes the shared per-type ledger on introduction.
+        let mut country = country_with_seated_parliament();
+        let bill = Bill::new(
+            "CRISIS-FISCAL-4".to_string(),
+            "Emergency Fiscal Response Act — Turn 4".to_string(),
+            "Alpha".to_string(),
+            Vec::new(),
+            4,
+        )
+        .with_bill_type(crate::politics::legislation::BillType::EmergencyFiscal);
+        assert!(introduce_bill_to_session(&mut country, bill));
+        // Same emergency type inside the window → still on cooldown.
+        assert_eq!(
+            check_bill_type_cooldown(
+                &country,
+                crate::politics::legislation::BillType::EmergencyFiscal,
+                EMERGENCY_BILL_COOLDOWN_TURNS,
+                8,
+            ),
+            Err(4)
+        );
+        // A different emergency type has its own ledger entry.
+        assert!(
+            check_bill_type_cooldown(
+                &country,
+                crate::politics::legislation::BillType::EmergencyBonds,
+                EMERGENCY_BILL_COOLDOWN_TURNS,
+                8,
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
+    fn test_policy_bill_reaches_floor_vote_with_type() {
+        let mut country = country_with_seated_parliament();
+        let parties = country.politics.active_parties.clone();
+        assert!(introduce_policy_bill_if_due(&mut country, 2).is_some());
+        // Advance the pipeline; the bill must travel committee → floor vote
+        // and produce a typed VoteRecord (pass OR reject — both record).
+        for turn in 2..20 {
+            process_legislation_turn(&mut country, &[], &parties, turn);
+        }
+        let parl = country.politics.parliament_struct.as_ref().unwrap();
+        let votes = &parl.chambers[0].recent_votes;
+        assert!(
+            !votes.is_empty(),
+            "policy bill should reach a floor vote within the window"
+        );
+        assert!(votes[0].bill_type.is_policy());
     }
 }

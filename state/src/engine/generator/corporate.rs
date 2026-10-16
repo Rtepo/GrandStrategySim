@@ -8736,6 +8736,7 @@ pub fn generate_investment_funds(
                 m
             },
             bond_holdings: Vec::new(),
+            equity_holdings: BTreeMap::new(),
             fund_manager_vip_id: Some(manager_id.clone()),
         };
 

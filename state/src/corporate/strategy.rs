@@ -1038,11 +1038,20 @@ fn is_distressed(ctx: &CorporateDecisionCtx) -> bool {
     // The per-building decomposition instead governs the MAGNITUDE of the
     // furlough once the company is already distressed — W2 can only ever
     // retain >= as many workers as the legacy formula on the same firm.
+    // v4.17 FS-7: the owned-building fulfillment ratio is not a distress
+    // signal for construction contractors — their crew works investor-owned
+    // project sites paced by contract demand, so a starved yard reads
+    // ratio≈0 while the company holds paying work. Without the exemption
+    // the company enters distress → material furlough/restructure sheds the
+    // very contract crew the sector gate measures (the observed exactly-25%
+    // MIN_OPERATING_SHIFT residue). Genuine insolvency and cash-flow
+    // distress still catch it via the other two terms.
     let avg_profit = ctx.company.moving_avg_net_profit(3);
     let payroll = ctx.company.offered_wage_per_fte * ctx.company.fulfilled_fte as f64;
     ctx.company.company_capital < 0.0
         || (avg_profit < 0.0 && ctx.company.operational_cash() < payroll * 2.0)
-        || ctx.avg_fulfillment_ratio < MATERIAL_SHORTAGE_FULFILLMENT
+        || (ctx.company.sector != crate::registries::enums::Sector::Construction
+            && ctx.avg_fulfillment_ratio < MATERIAL_SHORTAGE_FULFILLMENT)
 }
 
 /// Phase 88: Determines whether a company is within its material-shortage
@@ -1169,8 +1178,18 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
     // cumulative level target). Kept so the epic test can measure the
     // baseline-vs-adaptive delta on an identical world.
     if !adaptive_production_enabled() {
-        let material_shortage =
-            ctx.avg_fulfillment_ratio < MATERIAL_SHORTAGE_FULFILLMENT && !in_grace;
+        // v4.17 FS-7: construction contractors are exempt from the
+        // material-shortage trigger — their crew works on INVESTOR-owned
+        // project sites, so `avg_fulfillment_ratio` only measures their
+        // own yards' input lines and systematically reads ~0 (observed:
+        // cause=material furloughs shedding exactly 75% of contract crews
+        // to the MIN_OPERATING_SHIFT floor every turn). Contract demand
+        // is already paced to escrowed work by
+        // `update_construction_labor_demand`; cash-flow distress below
+        // still applies.
+        let material_shortage = ctx.company.sector != crate::registries::enums::Sector::Construction
+            && ctx.avg_fulfillment_ratio < MATERIAL_SHORTAGE_FULFILLMENT
+            && !in_grace;
         if !cash_shortage && !material_shortage {
             return None;
         }
@@ -1233,7 +1252,11 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
     // Material shortage keeps the legacy company-average trigger — the
     // per-building data below governs the furlough MAGNITUDE, not whether
     // the company counts as distressed at all (see is_distressed).
+    // v4.17 FS-7: construction contractors exempt — the crew being shed is
+    // contract labor paced by `update_construction_labor_demand`, not the
+    // starved yard's production workers the ratio actually measures.
     let material_shortage = !in_grace
+        && ctx.company.sector != crate::registries::enums::Sector::Construction
         && ctx.avg_fulfillment_ratio < MATERIAL_SHORTAGE_FULFILLMENT;
 
     if !cash_shortage && !material_shortage {

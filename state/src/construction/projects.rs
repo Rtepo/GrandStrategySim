@@ -84,6 +84,45 @@ pub enum ConstructionProjectType {
     CivicAmenitySite,
 }
 
+/// v4.17 FS-7: Scheduled duration (in turns) for a project type. This is
+/// the single source of truth — `corporate::development` previously held a
+/// private copy used only for planning, while `award_tender` left
+/// `ConstructionProject.duration_turns` at 0, so the labor-demand pacer had
+/// no schedule to crew against. Residential jobs run ~5 turns, megaprojects
+/// up to 20.
+pub fn project_type_duration_turns(project_type: ConstructionProjectType) -> u32 {
+    match project_type {
+        ConstructionProjectType::Residential => 5,
+        ConstructionProjectType::Commercial => 8,
+        ConstructionProjectType::UtilityNetwork => 12,
+        ConstructionProjectType::Infrastructure => 15,
+        ConstructionProjectType::SocialHousing => 6,
+        ConstructionProjectType::Factory => 10,
+        ConstructionProjectType::TransportNetwork => 20,
+        ConstructionProjectType::Court => 8,
+        ConstructionProjectType::CustomsOffice => 6,
+        ConstructionProjectType::Embassy => 10,
+        ConstructionProjectType::ResearchInstitute => 12,
+        ConstructionProjectType::LaborInspectorate => 7,
+        ConstructionProjectType::PublicWorksSite => 5,
+        ConstructionProjectType::NationalTheater => 10,
+        ConstructionProjectType::NationalLibrary => 9,
+        ConstructionProjectType::TransportDepot => 8,
+        ConstructionProjectType::ThermalGridPipe => 10,
+        ConstructionProjectType::ThermalHeatingPlant => 15,
+        ConstructionProjectType::CHPRetrofit => 8,
+        ConstructionProjectType::WaterMainPipe => 8,
+        ConstructionProjectType::SewerMainPipe => 10,
+        ConstructionProjectType::WaterTreatmentPlant => 12,
+        ConstructionProjectType::WastewaterTreatmentPlant => 14,
+        ConstructionProjectType::Landfill => 10,
+        ConstructionProjectType::WasteSeparationPlant => 12,
+        ConstructionProjectType::RecyclingFacility => 14,
+        ConstructionProjectType::WasteToEnergyPlant => 18,
+        ConstructionProjectType::CivicAmenitySite => 8,
+    }
+}
+
 /// Multi-turn construction project tied to a physical building site.
 ///
 /// The project lives on `Building.active_project`. The building's `owner_id`
@@ -148,6 +187,17 @@ pub struct ConstructionProject {
     /// on cancellation = `investor_cash_debited - tranches_paid`.
     #[serde(default)]
     pub tranches_paid: f64,
+
+    /// v4.17: For expansion-tender projects, the investor's `liquid_capital`
+    /// committed at publish time (`apply_action` debited the full planned
+    /// investment; the uncommitted share was already returned). Under
+    /// progress financing the escrow is only the mobilization share, so
+    /// this commitment — not the escrow balance — is what cancellation or
+    /// completion must release back to the capital book:
+    /// `max(committed − tranches_paid, 0)`. Zero for non-expansion
+    /// investors, which never debit `liquid_capital`.
+    #[serde(default)]
+    pub investor_capital_committed: f64,
 
     /// Estimated duration in turns (for planning only; actual completion
     /// depends on material delivery).

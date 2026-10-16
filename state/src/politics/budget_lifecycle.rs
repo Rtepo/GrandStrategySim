@@ -206,6 +206,7 @@ pub fn budget_bill_to_legislative_bill(country: &Country, bill: &BudgetBill) -> 
         core_clauses,
         bill.turn_introduced,
     )
+    .with_bill_type(crate::politics::legislation::BillType::Budget)
 }
 
 // ============================================================================

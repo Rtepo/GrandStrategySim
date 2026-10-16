@@ -952,13 +952,24 @@ pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount:
         // outstanding procurement_credit — pocket −x, liability −x keeps
         // the M0 walk conserved (the credit contra-bucket unwinds against
         // the destroyed cash).
+        // v4.17 FS-7: wages are senior to supplier debt. Retiring the
+        // WHOLE balance on each inbound payment let a contractor's
+        // tranche income vanish into supplier credit before this turn's
+        // payroll could clear — the observed ~25% wage coverage behind
+        // the hire→arrears→furlough churn. Retirement now draws only the
+        // surplus above one pay period's wage bill — the same seniority
+        // the bid-side payroll reserve holds.
         if company.procurement_credit > 0.0 {
             let pocket = company
                 .brokerage_account
                 .as_ref()
                 .map(|ba| ba.cash.max(0.0))
                 .unwrap_or(company.available_cash.max(0.0));
-            let retire = company.procurement_credit.min(pocket);
+            let payroll_reserve = company.fulfilled_fte as f64
+                * company.offered_wage_per_fte.max(1.0);
+            let retire = company
+                .procurement_credit
+                .min((pocket - payroll_reserve).max(0.0));
             if retire > 0.0 {
                 if let Some(ba) = &mut company.brokerage_account {
                     ba.cash -= retire;

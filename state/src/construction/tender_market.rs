@@ -62,7 +62,7 @@ pub fn publish_tender(
 
     let tender_name = generate_tender_name(&project_type, current_turn);
 
-    ConstructionTender {
+    let tender = ConstructionTender {
         id: tender_id,
         tender_name,
         investor_id,
@@ -81,7 +81,111 @@ pub fn publish_tender(
         bids: Vec::new(),
         awarded_bid: None,
         expansion_target_building_id: None,
-    }
+    };
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CONST_DBG[PUBLISH]: turn={} id={} investor={} type={:?} region={} est_cost={:.0} bom_items={} capacity=+{}",
+        current_turn,
+        tender.id,
+        tender.investor_id,
+        tender.project_type,
+        tender.micro_region_id,
+        tender.estimated_cost,
+        tender.required_materials.len(),
+        tender.target_capacity_increase
+    );
+    tender
+}
+
+/// v4.17 FS-7: share of the contract price escrowed at publication.
+/// Progress financing — the investor commits the mobilization advance plus
+/// a secured first-milestone margin (30%), and pays later tranches from its
+/// ongoing cash at release (`release_construction_tranches`). Requiring the
+/// full price up front capped every state contract at one period of
+/// ministry budget (~$112k vs ~$2M real cost) because `ministry_cash` is a
+/// per-period pocket that can never accumulate — a multi-period capital
+/// project is funded across allocations, not escrowed whole.
+pub const MOBILIZATION_ESCROW_RATIO: f64 = 0.30;
+
+/// v4.17 FS-7: turns between milestone releases, used to size pay-cycle
+/// working capital. Tranches default to 4-5 milestones over ~10-16 turn
+/// builds, so a crew's wages must be covered ~4 turns at a time, not one
+/// turn. Shared by the bid payroll reserve, the labor-demand capacity cap,
+/// and the bonding gate so all three agree on what "affordable" means.
+pub const MILESTONE_SPACING_TURNS: f64 = 4.0;
+
+/// v4.17 FS-7: bonding headroom beyond payroll capacity, in FTE. Surety
+/// practice lets a contractor carry backlog beyond liquid working capital
+/// — each project's mobilization advance partly funds its own crew — so a
+/// company is not shut out of its next contract just because its current
+/// backlog is at payroll capacity. Sized at ~1.5 small sites.
+pub const MOBILIZATION_HEADROOM_FTE: f64 = 300.0;
+
+/// v4.17 FS-7: surety backlog cap relative to the crew the contractor has
+/// actually fielded. The cash-based term alone is circular — every award
+/// adds its unreleased tranches to `contract_receivables`, so the winner's
+/// capacity grows with the very backlog being gated (observed: one bidder
+/// holding ~$570M of concurrent work, demanding 3,854 FTE while hiring
+/// friction let it field ~1,500 — sites stalled and cancelled while the
+/// rest of the sector sat idle). Real sureties underwrite backlog against
+/// demonstrated organization size: a firm cannot bond work it could only
+/// crew by hiring several multiples of its entire workforce inside one
+/// build schedule. Furloughed workers count — they are a recallable bench,
+/// not capacity the firm never had.
+pub const BACKLOG_CREW_MULTIPLE: f64 = 3.0;
+
+/// v4.17 FS-7: payroll-funded bonding capacity (FTE) for a contractor —
+/// cash on hand plus half the contract receivables (the 50% haircut the
+/// bid and labor-affordability paths both apply), minus supplier credit
+/// already committed to materials, spread over the pay cycle until the
+/// next milestone lands, then capped by demonstrated crew capacity.
+/// Shared by `construction_bid_decision` (bid gate) and `award_tender`
+/// (award gate) so both enforce the same surety rule.
+pub fn bonding_capacity_fte(company: &Company) -> f64 {
+    let wage = company.offered_wage_per_fte.max(1.0);
+    let receivables = company
+        .extra
+        .get("contract_receivables")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0)
+        .max(0.0);
+    let payroll_capacity = (company.operational_cash()
+        + receivables * 0.5
+        - company.procurement_credit)
+        .max(0.0)
+        / (wage * MILESTONE_SPACING_TURNS)
+        + MOBILIZATION_HEADROOM_FTE;
+    let demonstrated = (company.fulfilled_fte as f64
+        + company.furloughed_workers_count.max(0.0))
+        * BACKLOG_CREW_MULTIPLE
+        + MOBILIZATION_HEADROOM_FTE;
+    payroll_capacity.min(demonstrated)
+}
+
+/// v4.17 FS-7: the contract's implied FTE demand, mirroring
+/// `compute_construction_labor_demand` — remaining BOM value priced at the
+/// economy's numéraire, spread over the scheduled duration, capped per
+/// site. Used by `award_tender` to charge each award against the winner's
+/// bonding capacity.
+pub fn tender_labor_fte(tender: &ConstructionTender, wage: f64) -> f64 {
+    // Same `.max(average_wage)` floor `update_construction_labor_demand`
+    // applies — a bidder with no posted wage (idle/new entrant) would
+    // otherwise divide by ~1 and read every tender as a mega-crew.
+    let labor_per_unit = 10.0 * wage.max(1.0);
+    let remaining_value: f64 = tender
+        .required_materials
+        .iter()
+        .map(|(&commodity, &qty)| {
+            qty * crate::engine::generator::corporate::anchored_base_price(commodity)
+                .max(1.0)
+        })
+        .sum();
+    let schedule =
+        crate::construction::projects::project_type_duration_turns(tender.project_type).max(1)
+            as f64;
+    (remaining_value / (labor_per_unit * schedule))
+        .min(200.0)
+        .max(1.0)
 }
 
 /// Phase 1 fix (C3): Encumber `estimated_cost` from the investor's cash
@@ -91,6 +195,10 @@ pub fn publish_tender(
 /// For Corporate investors: debits `brokerage_account.cash` (or
 /// `available_cash`), credits `debit_cash`.
 /// For State investors: debits `country.budget.liquid_reserves`.
+///
+/// v4.17: the encumbered amount is `estimated_cost ×
+/// [`MOBILIZATION_ESCROW_RATIO`] — the secured advance. Unsecured
+/// tranches are progress payments drawn on the investor's cash at release.
 ///
 /// # Arguments
 /// * `tender` - The tender to encumber funds for (mutated: `escrowed_amount` set).
@@ -104,7 +212,7 @@ pub fn encumber_tender_escrow(
     companies: &mut [Company],
     country: &mut Country,
 ) -> bool {
-    let cost = tender.estimated_cost;
+    let cost = tender.estimated_cost * MOBILIZATION_ESCROW_RATIO;
     if cost <= 0.0 {
         return true; // Nothing to escrow
     }
@@ -114,16 +222,33 @@ pub fn encumber_tender_escrow(
     if is_state {
         // State escrow: debit Treasury reserves
         if country.budget.liquid_reserves < cost {
+            #[cfg(feature = "diagnostic")]
+            eprintln!(
+                "CONST_DBG[ESCROW]: tender={} investor={} cost={:.0} funded=false reason=treasury_shortfall reserves={:.0}",
+                tender.id, tender.investor_id, cost, country.budget.liquid_reserves
+            );
             return false;
         }
         country.budget.liquid_reserves -= cost;
         tender.escrowed_amount = cost;
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "CONST_DBG[ESCROW]: tender={} investor={} cost={:.0} funded=true source=treasury",
+            tender.id, tender.investor_id, cost
+        );
         true
     } else {
         // Corporate escrow: debit company cash, credit debit_cash
         let investor_idx = match companies.iter().position(|c| c.id == tender.investor_id) {
             Some(idx) => idx,
-            None => return false,
+            None => {
+                #[cfg(feature = "diagnostic")]
+                eprintln!(
+                    "CONST_DBG[ESCROW]: tender={} investor={} cost={:.0} funded=false reason=investor_not_found",
+                    tender.id, tender.investor_id, cost
+                );
+                return false;
+            }
         };
 
         let available = if let Some(ref ba) = companies[investor_idx].brokerage_account {
@@ -133,6 +258,11 @@ pub fn encumber_tender_escrow(
         };
 
         if available < cost {
+            #[cfg(feature = "diagnostic")]
+            eprintln!(
+                "CONST_DBG[ESCROW]: tender={} investor={} cost={:.0} funded=false reason=insufficient_cash available={:.0}",
+                tender.id, tender.investor_id, cost, available
+            );
             return false;
         }
 
@@ -143,6 +273,11 @@ pub fn encumber_tender_escrow(
         }
         companies[investor_idx].debit_cash += cost;
         tender.escrowed_amount = cost;
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "CONST_DBG[ESCROW]: tender={} investor={} cost={:.0} funded=true source=corporate",
+            tender.id, tender.investor_id, cost
+        );
         true
     }
 }
@@ -164,23 +299,20 @@ pub fn refund_tender_escrow(
     country: &mut Country,
 ) {
     // Expansion tenders only: `apply_action` debited the investor's
-    // `liquid_capital` by the committed investment up front. On cancellation
-    // the commitment is void — restore the accounting capital so the firm's
-    // capital book isn't permanently shrunk by a tender that never produced
-    // a project. `escrowed_amount` equals the published estimated_cost for
-    // funded tenders; for unfunded ones the committed `estimated_cost` is
-    // restored (no cash ever moved). State tenders and developer tenders do
-    // not debit liquid_capital, so they are untouched.
+    // `liquid_capital` by the committed investment up front; the manager
+    // then restored the unfunded share, leaving `estimated_cost` committed
+    // against this tender. On cancellation the commitment is void — restore
+    // the accounting capital so the firm's capital book isn't permanently
+    // shrunk by a tender that never produced a project. Under progress
+    // financing `escrowed_amount` is only the mobilization share (30%) —
+    // restoring it alone would leak the other ~70% of the committed
+    // capital (v4.17). State tenders and developer tenders do not debit
+    // liquid_capital, so they are untouched.
     if tender.expansion_target_building_id.is_some()
         && !tender.investor_id.starts_with("STATE:")
     {
         if let Some(idx) = companies.iter().position(|c| c.id == tender.investor_id) {
-            let restore = if tender.escrowed_amount > 0.0 {
-                tender.escrowed_amount
-            } else {
-                tender.estimated_cost
-            };
-            companies[idx].liquid_capital += restore;
+            companies[idx].liquid_capital += tender.estimated_cost;
         }
     }
 
@@ -382,6 +514,7 @@ pub fn submit_bid(
 
     let bid_price = bid_cost * (1.0 + bid_margin);
     let is_consortium = !consortium_members.is_empty();
+    let bidder_rep = bidder_extra_reputation(bidder);
 
     let bid = Bid {
         id: format!("bid_{}_{}", bidder.id, current_turn),
@@ -393,10 +526,16 @@ pub fn submit_bid(
         is_consortium,
         consortium_members,
         submitted_turn: current_turn,
-        reputation_score: bidder_extra_reputation(bidder),
+        reputation_score: bidder_rep,
     };
 
     tender.bids.push(bid);
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CONST_DBG[BID]: turn={} tender={} bidder={} cost={:.0} margin={:.3} price={:.0} rep={:.0} bids_total={}",
+        current_turn, tender.id, bidder.id, bid_cost, bid_margin, bid_price, bidder_rep,
+        tender.bids.len()
+    );
     Ok(())
 }
 
@@ -412,6 +551,9 @@ pub fn submit_bid(
 pub fn award_tender(
     tender: &mut ConstructionTender,
     current_turn: u32,
+    companies: &[Company],
+    newly_committed_fte: &mut rustc_hash::FxHashMap<String, f64>,
+    average_wage: f64,
 ) -> Option<ConstructionProject> {
     if tender.status != TenderStatus::Open {
         return None;
@@ -436,16 +578,55 @@ pub fn award_tender(
     if eligible.is_empty() {
         return None;
     }
+    let eligible_count = eligible.len();
 
-    // Select lowest bid_price
-    let winner = eligible
-        .iter()
-        .min_by(|a, b| {
-            a.bid_price
-                .partial_cmp(&b.bid_price)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        })
-        .copied()?;
+    // v4.17 FS-7: award-time bonding gate. `construction_bid_decision`
+    // gates the BID, but every same-turn tender awards against the same
+    // stale `committed_demand_fte` — one persistent low bidder was taking
+    // ~8 contracts in a single turn (observed: NEW_Dacia_1928_78_3), far
+    // beyond what it could crew or supply; the sites stalled at progress
+    // 0.0 and mass-cancelled, dragging the company into a
+    // distressed→merged cycle that depopulated the sector. Here the award
+    // walks the eligible list lowest-price-first and takes the first
+    // bidder whose committed FTE — including awards already made this
+    // pass — fits inside its bonding capacity. Real surety behavior: a
+    // contractor can't be awarded work its bonding line can't cover, so
+    // work spreads across the sector instead of piling onto the cheapest
+    // name.
+    let mut candidates: Vec<&&Bid> = eligible.iter().collect();
+    candidates.sort_by(|a, b| {
+        a.bid_price
+            .partial_cmp(&b.bid_price)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    let mut winner: Option<&Bid> = None;
+    let mut winner_fte = 0.0_f64;
+    for cand in candidates {
+        let Some(co) = companies.iter().find(|c| c.id == cand.bidder_id) else {
+            continue;
+        };
+        let wage = co.offered_wage_per_fte.max(average_wage).max(1.0);
+        let tender_fte = tender_labor_fte(tender, wage);
+        let committed = co
+            .extra
+            .get("committed_demand_fte")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0)
+            .max(0.0)
+            + newly_committed_fte
+                .get(&cand.bidder_id)
+                .copied()
+                .unwrap_or(0.0);
+        if committed + tender_fte <= bonding_capacity_fte(co) {
+            winner = Some(*cand);
+            winner_fte = tender_fte;
+            break;
+        }
+    }
+    let winner = winner?;
+    *newly_committed_fte
+        .entry(winner.bidder_id.clone())
+        .or_insert(0.0) += winner_fte;
 
     let winner_bid_id = winner.id.clone();
     let contractor_id = winner.bidder_id.clone();
@@ -475,14 +656,23 @@ pub fn award_tender(
         cost_spent: 0.0,
         investor_cash_debited: tender.escrowed_amount,
         tranches_paid: 0.0,
-        duration_turns: 0,
+        investor_capital_committed: if tender.expansion_target_building_id.is_some()
+        {
+            tender.estimated_cost
+        } else {
+            0.0
+        },
+        duration_turns:
+            crate::construction::projects::project_type_duration_turns(
+                tender.project_type,
+            ),
         turns_elapsed: 0,
         progress: 0.0,
         on_hold: false,
         consecutive_hold_turns: 0,
         hold_reason: None,
         investor_id: tender.investor_id.clone(),
-        main_contractor_id: contractor_id,
+        main_contractor_id: contractor_id.clone(),
         subcontractors: Vec::new(),
         tranches,
         paid_tranches: 0,
@@ -505,7 +695,17 @@ pub fn award_tender(
     tender.status = TenderStatus::Awarded;
     tender.awarded_bid = Some(winner_bid_id);
 
-    let _ = current_turn; // reserved for future logging
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "CONST_DBG[AWARD]: turn={} tender={} contractor={} price={:.0} bids={} eligible={} escrowed={:.0}",
+        current_turn,
+        tender.id,
+        contractor_id,
+        contract_price,
+        tender.bids.len(),
+        eligible_count,
+        tender.escrowed_amount
+    );
     Some(project)
 }
 
@@ -515,14 +715,15 @@ pub fn is_tender_expired(tender: &ConstructionTender, current_turn: u32) -> bool
         && current_turn >= tender.published_turn + tender.deadline_turns
 }
 
-/// Read a company's reputation score from its `extra` field (Phase 22D).
-/// Returns 50.0 (neutral) if not set.
+/// Read a company's reputation score (Phase 22D).
+///
+/// The authoritative source is `company.reputation_score` — the field
+/// written by KIO blacklist rulings, civil lawsuits, and construction-fraud
+/// compensation. The previous implementation read `extra["reputation_score"]`,
+/// a key that is never populated anywhere in the codebase, so every bidder
+/// silently scored the 50.0 fallback and blacklisting never applied.
 fn bidder_extra_reputation(company: &Company) -> f64 {
-    company
-        .extra
-        .get("reputation_score")
-        .and_then(|v| v.as_f64())
-        .unwrap_or(50.0)
+    company.reputation_score
 }
 
 /// Process the tender market for one turn: award expired tenders.
@@ -540,12 +741,19 @@ fn bidder_extra_reputation(company: &Company) -> f64 {
 pub fn process_tender_awards(
     tenders: &mut Vec<ConstructionTender>,
     current_turn: u32,
+    companies: &[Company],
+    average_wage: f64,
 ) -> (
     Vec<(String, ConstructionProject, Option<String>)>,
     Vec<ConstructionTender>,
 ) {
     let mut awarded = Vec::new();
     let mut cancelled = Vec::new();
+
+    // v4.17 FS-7: FTE committed by awards already made this pass — the
+    // same-turn backlog the bid-time gate cannot see.
+    let mut newly_committed_fte: rustc_hash::FxHashMap<String, f64> =
+        rustc_hash::FxHashMap::default();
 
     let mut to_remove = Vec::new();
     for (idx, tender) in tenders.iter_mut().enumerate() {
@@ -564,11 +772,27 @@ pub fn process_tender_awards(
             continue;
         }
         let expansion_target = tender.expansion_target_building_id.clone();
-        if let Some(project) = award_tender(tender, current_turn) {
+        if let Some(project) = award_tender(
+            tender,
+            current_turn,
+            companies,
+            &mut newly_committed_fte,
+            average_wage,
+        ) {
             awarded.push((tender.id.clone(), project, expansion_target));
         } else {
             // No eligible bids — cancel
             tender.status = TenderStatus::Cancelled;
+            #[cfg(feature = "diagnostic")]
+            eprintln!(
+                "CONST_DBG[CANCEL]: turn={} tender={} investor={} bids={} eligible={} escrowed={:.0}",
+                current_turn,
+                tender.id,
+                tender.investor_id,
+                tender.bids.len(),
+                eligible_bids,
+                tender.escrowed_amount
+            );
         }
         to_remove.push(idx);
     }
@@ -594,7 +818,8 @@ pub fn process_tender_awards(
 pub fn construction_bid_decision(
     company: &Company,
     tender: &ConstructionTender,
-    rng: &mut impl Rng,
+    _rng: &mut impl Rng,
+    market_history: &crate::economy::market::market_history::MarketHistory,
 ) -> Option<(f64, f64, Vec<String>)> {
     if company.sector != Sector::Construction {
         return None;
@@ -607,10 +832,63 @@ pub fn construction_bid_decision(
         return None;
     }
 
+    // v4.17 FS-7: bonding capacity. `award_tender` picks the lowest bid,
+    // and the deterministic jitter below makes the same few companies the
+    // persistent low bidders — so without a backlog check one contractor
+    // accumulates unlimited projects (observed: demand 5,770 FTE against a
+    // payroll it could fund for ~500 → arrears → mass furlough → stall →
+    // cancellation). Surety practice lets a contractor carry backlog beyond
+    // liquid working capital — each project's mobilization advance partly
+    // funds its own crew — but not unboundedly: committed FTE beyond
+    // payroll capacity + ~1.5 sites of headroom stops the bid, spreading
+    // work across the sector.
+    let committed_fte = company
+        .extra
+        .get("committed_demand_fte")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0)
+        .max(0.0);
+    if committed_fte > bonding_capacity_fte(company) {
+        return None;
+    }
+
     // Estimate cost: base on tender's estimated_cost, adjusted for safety level
     let safety_factor = 1.0 - company.safety_level * 0.1; // safer = higher cost
-    let bid_cost =
-        tender.estimated_cost * (0.8 + safety_factor * 0.2) * (0.9 + rng.gen::<f64>() * 0.2);
+    // Deterministic per-(bidder, tender) aggressiveness jitter in [0.9, 1.1).
+    // The old `rng.gen::<f64>()` factor drew from a seeded stream shared
+    // across tenders inside `par_iter_mut`, so award outcomes depended on
+    // rayon scheduling — the same world produced different winners. A
+    // DefaultHasher (fixed-key SipHash) yields a stable jitter from
+    // identity alone and consumes no RNG state.
+    use std::hash::{Hash, Hasher};
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    company.id.hash(&mut hasher);
+    tender.id.hash(&mut hasher);
+    let jitter = (hasher.finish() % 200) as f64 / 1000.0; // [0.0, 0.2)
+    let mut bid_cost = tender.estimated_cost * (0.8 + safety_factor * 0.2) * (0.9 + jitter);
+    // v4.17 MACRO-3: cost floor at CURRENT market procurement prices.
+    // `estimated_cost` is the publish-time anchor estimate; when materials
+    // trade above it (scarcity-priced inputs), a contractor that bids at
+    // the anchor estimate buys inputs at 2-3× contract value and books
+    // structural losses on every project (observed: −$2.5B windowed P&L
+    // against $12M revenue). A real bidder prices its cost estimate at
+    // what the BOM actually costs today — reference chain is VWAP → last
+    // trade → base, the same prices procurement settles at.
+    let market_bom_cost: f64 = tender
+        .required_materials
+        .iter()
+        .map(|(c, q)| {
+            *q * crate::economy::market::market_history::get_reference_price(
+                c,
+                market_history,
+            )
+            .unwrap_or(0.0)
+        })
+        .sum();
+    if market_bom_cost > 0.0 {
+        let market_cost = market_bom_cost * (0.8 + safety_factor * 0.2);
+        bid_cost = bid_cost.max(market_cost);
+    }
 
     // Margin: lower for low-reputation companies (desperate for work)
     let base_margin = 0.15;
@@ -729,7 +1007,10 @@ mod tests {
         submit_bid(&mut tender, &c1, 400_000.0, 0.15, Vec::new(), 10).unwrap();
         submit_bid(&mut tender, &c2, 350_000.0, 0.10, Vec::new(), 10).unwrap();
 
-        let project = award_tender(&mut tender, 13).unwrap();
+        let cos = vec![c1.clone(), c2.clone()];
+        let mut committed = rustc_hash::FxHashMap::default();
+        let project =
+            award_tender(&mut tender, 13, &cos, &mut committed, 100.0).unwrap();
         assert_eq!(tender.status, TenderStatus::Awarded);
         // c2 has lower bid_price (350k * 1.10 = 385k vs 400k * 1.15 = 460k)
         assert_eq!(project.main_contractor_id, "c2");

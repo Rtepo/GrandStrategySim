@@ -309,9 +309,19 @@ impl BankSnapshot {
                 total_liabilities: bs.total_liabilities(),
                 total_equity: bs.total_equity(),
                 is_balanced: bs.is_balanced(),
+                // v4.17: only non-terminal loans can still emit lifecycle
+                // events — a repaid loan's only future transition is removal
+                // (which detect_loan_events already reports as StatusRepaid).
+                // Cloning the full book per checkpoint was quadratic memory:
+                // loans_issued never prunes dead entries, so every one of the
+                // ~15 checkpoints/turn cloned an ever-growing dead-loan vec
+                // (~10GB retained by turn 30 → OOM at ~turn 57).
                 loans: bs
                     .loans_issued
                     .iter()
+                    .filter(|l| {
+                        l.status != crate::state::banking::LoanStatus::Repaid
+                    })
                     .map(LoanSnapshot::from_loan)
                     .collect(),
             }

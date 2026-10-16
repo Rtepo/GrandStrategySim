@@ -254,6 +254,10 @@ pub(crate) struct CountryTask<'a> {
     /// Used by the smuggling phase as the real trade volume instead of the
     /// previous magic `sum(production) * 1000.0` estimate (Rule 2).
     pub(crate) cross_border_trade_value: f64,
+    /// v4.17.0: Gross cross-border trade engagement per region (settled
+    /// export + import leg value with exactly one domestic endpoint).
+    /// Residual weight map for reconcile_regional_gdp.
+    pub(crate) cross_border_gross_by_region: HashMap<String, f64>,
 }
 
 impl<'a> CountryTask<'a> {
@@ -288,6 +292,21 @@ impl<'a> CountryTask<'a> {
                     .insert(b.id.clone(), b.owner_id.clone());
             }
         }
+    }
+
+    /// v4.17.0: Company → home region for regional-GDP attribution.
+    /// Falls back to the first owned building's region for legacy
+    /// saves with empty `Company::region_id`.
+    pub(crate) fn region_of_company(&self, company_id: &str) -> Option<String> {
+        let company = self.companies.iter().find(|c| c.id == company_id)?;
+        if !company.region_id.is_empty() {
+            return Some(company.region_id.clone());
+        }
+        self.ctx
+            .buildings
+            .iter()
+            .find(|b| b.owner_id == company.id && !b.region_id.is_empty())
+            .map(|b| b.region_id.clone())
     }
 }
 
@@ -452,6 +471,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     state_employer_idx: None,
                     public_works_idxs: Vec::new(),
                     state_sector_wages_by_region: HashMap::new(),
+                    cross_border_gross_by_region: HashMap::new(),
                     ministry_public_service_pool: 0.0,
                     planet: planet_ref,
                     depletion_buffer: Vec::new(),
@@ -1161,7 +1181,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     }
                     if let Some((bid_cost, bid_margin, consortium)) =
                         crate::construction::tender_market::construction_bid_decision(
-                            company, tender, &mut rng,
+                            company, tender, &mut rng, &state.market_history,
                         )
                     {
                         let _ = crate::construction::tender_market::submit_bid(
@@ -1184,6 +1204,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             let (awarded, cancelled) = crate::construction::tender_market::process_tender_awards(
                 &mut tenders,
                 task.ctx.turn,
+                &task.companies,
+                task.ctx.country.macro_indicators.average_wage,
             );
             // Phase 1 fix (C3): Refund escrow on cancelled tenders.
             for cancelled_tender in &cancelled {
@@ -1193,36 +1215,18 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     task.ctx.country,
                 );
             }
-            // Attach awarded projects to buildings in the tender's micro-region
-            for (_tender_id, project, expansion_target) in awarded {
-                // Phase 29: If this is an expansion tender, attach to the
-                // specific building being expanded.
-                if let Some(target_bldg_id) = expansion_target {
-                    if let Some(building) = task
-                        .ctx
-                        .buildings
-                        .iter_mut()
-                        .find(|b| b.id == target_bldg_id)
-                    {
-                        if building.active_project.is_none() {
-                            building.active_project = Some(project);
-                        }
-                    }
-                    continue;
-                }
-                // New-building tender: find a matching building
-                let region_id = project.micro_region_id.clone();
-                let investor_id = project.investor_id.clone();
-                let target_bt = project.target_building_type.clone();
-                if let Some(building) = task.ctx.buildings.iter_mut().find(|b| {
-                    b.region_id == region_id
-                        && (b.owner_id == investor_id || investor_id.is_empty())
-                        && b.active_project.is_none()
-                        && (b.name == target_bt || target_bt.is_empty())
-                }) {
-                    building.active_project = Some(project);
-                }
-            }
+            // v4.17.0: awarded projects attach via the dedicated path —
+            // expansion tenders land on their target building, new-build
+            // tenders spawn a real construction site (the old matcher
+            // silently dropped awards when no same-name building existed,
+            // which is why contractors never had work).
+            let _msgs = crate::construction::orders::attach_awarded_projects(
+                awarded,
+                &mut task.ctx.buildings,
+                &mut task.companies,
+                task.ctx.country,
+                task.ctx.year,
+            );
             task.ctx.country.phase22_tenders = tenders;
         });
 
@@ -1395,6 +1399,57 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     k,
                     q,
                     ask_by_c.get(k).copied().unwrap_or(0.0)
+                );
+            }
+            // Spread probe for chronically non-crossing commodities:
+            // highest bid limit vs lowest ask limit per commodity, plus
+            // seller identity of the cheapest asks.
+            for k in ["Cement", "Steel", "Timber", "Planks", "Bricks", "Asphalt"] {
+                let c = format!("{:?}", k);
+                let _ = c;
+                let com: Option<crate::registries::enums::Commodity> =
+                    match k {
+                        "Cement" => Some(crate::registries::enums::Commodity::Cement),
+                        "Steel" => Some(crate::registries::enums::Commodity::Steel),
+                        "Timber" => Some(crate::registries::enums::Commodity::Timber),
+                        "Planks" => Some(crate::registries::enums::Commodity::Planks),
+                        "Bricks" => Some(crate::registries::enums::Commodity::Bricks),
+                        "Asphalt" => Some(crate::registries::enums::Commodity::Asphalt),
+                        _ => None,
+                    };
+                let Some(com) = com else { continue };
+                let max_bid = global_order_book
+                    .bids
+                    .get(&com)
+                    .map(|bs| {
+                        bs.iter()
+                            .map(|b| b.limit_price)
+                            .fold(0.0_f64, f64::max)
+                    })
+                    .unwrap_or(0.0);
+                let mut askv: Vec<(f64, &str)> = global_order_book
+                    .asks
+                    .get(&com)
+                    .map(|as_| {
+                        as_.iter()
+                            .map(|a| (a.limit_price, a.seller_id.as_str()))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                askv.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+                let cheapest = askv
+                    .first()
+                    .map(|(p, s)| format!("{:.2}@{}", p, s))
+                    .unwrap_or_else(|| "-".to_string());
+                let n_asks = askv.len();
+                let p90_idx = (n_asks as f64 * 0.9) as usize;
+                let p90 = askv
+                    .get(p90_idx.min(n_asks.saturating_sub(1)))
+                    .map(|(p, _)| *p)
+                    .unwrap_or(0.0);
+                eprintln!(
+                    "SPREAD[{}]: t={} max_bid={:.2} min_ask={} n_asks={} p90_ask={:.2}",
+                    k, turn, max_bid, cheapest, n_asks, p90
                 );
             }
         }
@@ -1733,6 +1788,32 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 .sum();
             task.cross_border_trade_value = cross_border_value;
 
+            // v4.17.0: per-region gross cross-border engagement (same leg
+            // set as cross_border_value), keyed by the domestic endpoint.
+            {
+                let cname = task.ctx.country_name.clone();
+                let mut xb: HashMap<String, f64> = HashMap::new();
+                for t in &secured_trades {
+                    let (Some(bc), Some(sc)) = (
+                        company_country.get(&t.buyer_id),
+                        company_country.get(&t.seller_id),
+                    ) else {
+                        continue;
+                    };
+                    let b_dom = bc == &cname;
+                    let s_dom = sc == &cname;
+                    if b_dom == s_dom {
+                        continue;
+                    }
+                    let domestic = if s_dom { &t.seller_id } else { &t.buyer_id };
+                    if let Some(rid) = task.region_of_company(domestic) {
+                        *xb.entry(rid).or_insert(0.0) +=
+                            t.quantity * t.execution_price;
+                    }
+                }
+                task.cross_border_gross_by_region = xb;
+            }
+
             // Phase 13: Storage transaction settlement will be wired when
             // warehouse extraction system produces FinancialTransaction records.
 
@@ -1788,6 +1869,21 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 .map(|t| t.quantity * t.execution_price)
                 .sum();
             task.gdp_acc.investment += investment;
+            // v4.17.0: regional I — capital goods land where the buyer
+            // installs them; legs bought by non-domestic buyers book to
+            // the domestic seller's region.
+            for t in secured_trades.iter().filter(|t| t.commodity.is_fixed_asset()) {
+                let v = t.quantity * t.execution_price;
+                if v <= 0.0 {
+                    continue;
+                }
+                if let Some(rid) = task
+                    .region_of_company(&t.buyer_id)
+                    .or_else(|| task.region_of_company(&t.seller_id))
+                {
+                    task.gdp_acc.regional.entry(rid).or_default().investment += v;
+                }
+            }
         }
 
         // Phase 95: Reserve floor — reconcile settlement-path debits via ELA
@@ -2270,7 +2366,16 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     }
                     market.foreign_sector_balance -= task_spend;
                     all_export_trades.extend(export_trades.iter().cloned());
-                    task.gdp_acc.net_exports += task_spend;
+                    // v4.17.0: export proceeds at the exporting firm's region.
+                    for (seller_id, value) in &seller_spend {
+                        if *value <= 0.0 {
+                            continue;
+                        }
+                        match task.region_of_company(seller_id) {
+                            Some(rid) => task.gdp_acc.add_net_exports(&rid, *value),
+                            None => task.gdp_acc.net_exports += *value,
+                        }
+                    }
                     // Persist for the end-of-turn GDP patch — `trade_balances`
                     // overwrites gdp_breakdown.net_exports later, so the
                     // export value must reach that patch via the country.
@@ -2431,7 +2536,17 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     &company_country,
                 );
                 market.foreign_sector_balance += task_import_spend;
-                task.gdp_acc.net_exports -= task_import_spend;
+                // v4.17.0: imports subtract where the importing buyer sits.
+                for t in &import_trades {
+                    let v = t.quantity * t.execution_price;
+                    if v <= 0.0 {
+                        continue;
+                    }
+                    match task.region_of_company(&t.buyer_id) {
+                        Some(rid) => task.gdp_acc.add_net_exports(&rid, -v),
+                        None => task.gdp_acc.net_exports -= v,
+                    }
+                }
                 task.ctx
                     .country
                     .macro_indicators
@@ -2584,6 +2699,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 let parties = task.ctx.country.politics.active_parties.clone();
                 let mut local_order_book = OrderBook::default();
                 for ministry in &mut config.ministries {
+                    let ministry_actions_len = ministry.spending_actions.len();
                     let g_spent = prepare_minister_strategies_with_parties(
                         ministry,
                         &parties,
@@ -2594,6 +2710,95 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     // Phase 42: Accumulate non-procurement ministry spending into GDP G.
                     task.gdp_acc
                         .add_government_spending_tagged("ministry_nonproc", g_spent);
+                    // v4.17.0: regional G — this call's non-procurement
+                    // spend lands at each recipient's region; `remaining`
+                    // caps attribution at g_spent so the channel's
+                    // regional sum equals the national booking exactly.
+                    {
+                        use crate::politics::ministries::MinistrySpendingAction as MSA;
+                        let mut resolved: Vec<(Option<String>, f64)> = Vec::new();
+                        for action in ministry.spending_actions.iter().skip(ministry_actions_len) {
+                            match action {
+                                MSA::Subsidy { target_company_id, amount } => resolved
+                                    .push((task.region_of_company(target_company_id), *amount)),
+                                MSA::TransferToLocalGov { region_id, amount } => {
+                                    resolved.push((Some(region_id.clone()), *amount))
+                                }
+                                MSA::InfrastructureFunding { target_building_id, amount } => {
+                                    let rid = task
+                                        .ctx
+                                        .buildings
+                                        .iter()
+                                        .find(|b| &b.id == target_building_id)
+                                        .map(|b| b.region_id.clone());
+                                    resolved.push((rid, *amount));
+                                }
+                                MSA::PublicServiceWages { building_ids, total_amount } => {
+                                    let each = if building_ids.is_empty() {
+                                        0.0
+                                    } else {
+                                        *total_amount / building_ids.len() as f64
+                                    };
+                                    for bid in building_ids {
+                                        let rid = task
+                                            .ctx
+                                            .buildings
+                                            .iter()
+                                            .find(|b| &b.id == bid)
+                                            .map(|b| b.region_id.clone());
+                                        resolved.push((rid, each));
+                                    }
+                                }
+                                MSA::RAndDGrant { target_entity, amount } => resolved
+                                    .push((task.region_of_company(target_entity), *amount)),
+                                MSA::DirectTransfer { amount, .. } => {
+                                    resolved.push((None, *amount))
+                                }
+                                // Procurement legs are region-tagged from the
+                                // settled ministry_trades; bond issuance swaps
+                                // savings — not government consumption.
+                                MSA::B2BProcurementOrder { .. }
+                                | MSA::RetailSavingsBondIssuance { .. } => {}
+                            }
+                        }
+                        let capital_rid = task
+                            .ctx
+                            .country
+                            .regions
+                            .iter()
+                            .find(|r| r.is_capital)
+                            .or_else(|| task.ctx.country.regions.first())
+                            .map(|r| r.id.clone());
+                        let mut remaining = g_spent.max(0.0);
+                        for (rid, amt) in resolved {
+                            let v = amt.min(remaining);
+                            if v <= 0.0 {
+                                continue;
+                            }
+                            if let Some(r) = rid.or_else(|| capital_rid.clone()) {
+                                task.gdp_acc
+                                    .regional
+                                    .entry(r)
+                                    .or_default()
+                                    .government_spending += v;
+                            }
+                            remaining -= v;
+                            if remaining <= 0.0 {
+                                break;
+                            }
+                        }
+                        // Actions totaling less than g_spent → the balance is
+                        // ministry-seat (capital) spend.
+                        if remaining > 0.0 {
+                            if let Some(r) = capital_rid {
+                                task.gdp_acc
+                                    .regional
+                                    .entry(r)
+                                    .or_default()
+                                    .government_spending += remaining;
+                            }
+                        }
+                    }
                 }
                 // Phase 26: Populate the local order book with sell orders (asks)
                 // from companies that have inventory of the commodities ministries
@@ -2661,6 +2866,20 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     .sum();
                 task.gdp_acc
                     .add_government_spending_tagged("ministry_procurement", ministry_spend);
+                // v4.17.0: procurement spend lands where the selling firm sits.
+                for t in &ministry_trades {
+                    let v = t.quantity * t.execution_price;
+                    if v <= 0.0 {
+                        continue;
+                    }
+                    if let Some(rid) = task.region_of_company(&t.seller_id) {
+                        task.gdp_acc
+                            .regional
+                            .entry(rid)
+                            .or_default()
+                            .government_spending += v;
+                    }
+                }
                 // Process post-clearing refunds for unfilled ministry bids
                 for ministry in &mut config.ministries {
                     process_minister_post_clearing(
@@ -3160,8 +3379,30 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
-            let unit_costs = std::collections::BTreeMap::new();
-            let (_msgs, construction_investment) =
+            // v4.17: value consumed project materials at the market price the
+            // contractor actually paid — the canonical reference chain (VWAP →
+            // last trade → global base). Passing a real price map replaces the
+            // old anchored_base_price × (ppi_index/100) fallback, which applied
+            // a price level as if it were a normalized index and inflated unit
+            // costs orders of magnitude (the phantom-I / phantom-COGS artifact).
+            let mut unit_costs = std::collections::BTreeMap::new();
+            for b in &task.ctx.buildings {
+                if let Some(ref p) = b.active_project {
+                    for &c in p.required_materials.keys() {
+                        if let std::collections::btree_map::Entry::Vacant(e) =
+                            unit_costs.entry(c)
+                        {
+                            if let Some(px) = market_history::get_reference_price(
+                                &c,
+                                &state.market_history,
+                            ) {
+                                e.insert(px);
+                            }
+                        }
+                    }
+                }
+            }
+            let (_msgs, construction_investment, construction_investment_by_region) =
                 crate::construction::orders::advance_construction_projects(
                     &mut task.ctx.buildings,
                     &mut task.companies,
@@ -3173,6 +3414,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             // cash transfers, not capital formation. I only counts physical
             // materials consumed and work performed.
             task.gdp_acc.investment += construction_investment;
+            // v4.17: construction capital formation lands at the site region.
+            for (rid, v) in construction_investment_by_region {
+                if v > 0.0 {
+                    task.gdp_acc.regional.entry(rid).or_default().investment += v;
+                }
+            }
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -4934,6 +5181,21 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
         });
 
+        // v4.17.0: construction labor demand was computed but NEVER called —
+        // contractors kept genesis FTE (or 0) regardless of awarded work, so
+        // sector wages/output stayed at 0 even with live projects. Runs after
+        // agricultural demand and before furlough/wage-offer phases so the
+        // labor market sees real project-driven bids.
+        tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
+            let construction_avg_wage = task.ctx.country.macro_indicators.average_wage;
+            crate::construction::orders::update_construction_labor_demand(
+                &mut task.companies,
+                &task.ctx.buildings,
+                construction_avg_wage,
+            );
+        });
+
         // Phase 47: Apply seasonal furlough AFTER agricultural FTE demand
         // and BEFORE set_wage_offers. This reduces target_fte_demand and
         // fulfilled_fte to standby levels for off-season companies, and
@@ -5517,6 +5779,21 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                             // public capital formation books to I under the
                             // expenditure identity (G = consumption only).
                             task.gdp_acc.investment += works_materials_spend;
+                            // v4.17.0: regional I — public capital goods
+                            // land where the selling firm produces them.
+                            for t in &works_trades {
+                                let v = t.quantity * t.execution_price;
+                                if v <= 0.0 {
+                                    continue;
+                                }
+                                if let Some(rid) = task.region_of_company(&t.seller_id) {
+                                    task.gdp_acc
+                                        .regional
+                                        .entry(rid)
+                                        .or_default()
+                                        .investment += v;
+                                }
+                            }
                             // Return the unspent tranche — reserves were
                             // debited `funded` up front, so only the
                             // settled spend may stay out.
@@ -5904,9 +6181,36 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     );
                     let state_wages = task.companies[idx].fulfilled_fte as f64
                         * task.companies[idx].offered_wage_per_fte;
-                    *task.state_sector_wages_by_region
-                        .entry(task.companies[idx].region_id.clone())
-                        .or_insert(0.0) += state_wages;
+                    // v4.17.0: the single state-employer entity hires civil
+                    // servants who actually staff "State" buildings across
+                    // every region — attributing its whole wage bill to the
+                    // company's home region (always regions[0]) buries the
+                    // other regions' public-sector income. Split the bill by
+                    // each region's share of State building capacity.
+                    {
+                        let mut cap_by_region: HashMap<String, f64> = HashMap::new();
+                        for b in task
+                            .ctx
+                            .buildings
+                            .iter()
+                            .filter(|b| b.owner_id == "State")
+                        {
+                            *cap_by_region.entry(b.region_id.clone()).or_insert(0.0) +=
+                                b.worker_capacity as f64;
+                        }
+                        let cap_total: f64 = cap_by_region.values().sum();
+                        if cap_total > 0.0 {
+                            for (rid, cap) in cap_by_region {
+                                *task.state_sector_wages_by_region.entry(rid).or_insert(0.0) +=
+                                    state_wages * (cap / cap_total);
+                            }
+                        } else {
+                            *task
+                                .state_sector_wages_by_region
+                                .entry(task.companies[idx].region_id.clone())
+                                .or_insert(0.0) += state_wages;
+                        }
+                    }
                     // All state wages flow into G (GDP government spending).
                     task.gdp_acc
                         .add_government_spending_tagged("state_wages", state_wages);
@@ -6660,73 +6964,142 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         });
 
         // D.5: Payment in kind (deduct harvest for subsistence)
-        // Phase 25: Process ALL regions, not just the first.
+        // v4.17.0: process each agricultural company exactly once. The old
+        // per-region loop rebuilt a COUNTRY-WIDE harvest bundle on every
+        // region pass, so each company's subsistence deduction was booked
+        // once per region (imputed consumption inflated ~N_regions×) — and
+        // the bundle was a dead local, so the "consumed" goods were never
+        // removed from building inventory (the same stock fed workers every
+        // turn forever: a mass-conservation violation). `deductions_by_class`
+        // was also populated but never merged, so in-kind-fed workers still
+        // bought full B2C baskets (double consumption).
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
-            let num_regions = task.ctx.country.regions.len();
-            for region_idx in 0..num_regions {
-                let region = &mut task.ctx.country.regions[region_idx];
+            // `.take()` is hoisted so the matrix survives intact for
+            // downstream consumers (process_companies, PIT reporting).
+            let labor_allocation = task.labor_allocation.take().unwrap_or_default();
+            let agri_company_ids: Vec<String> = task
+                .companies
+                .iter()
+                .filter(|c| c.sector == Sector::Agriculture)
+                .map(|c| c.id.clone())
+                .collect();
+            for company_id in agri_company_ids {
+                // This firm's real stock, aggregated across its buildings.
+                let mut company_harvest: std::collections::BTreeMap<Commodity, f64> =
+                    std::collections::BTreeMap::new();
+                for b in &task.ctx.buildings {
+                    if b.owner_id == company_id {
+                        for (&c, &q) in &b.inventory {
+                            *company_harvest.entry(c).or_insert(0.0) += q;
+                        }
+                    }
+                }
+                if company_harvest.is_empty() {
+                    continue;
+                }
+                let region_id = task
+                    .companies
+                    .iter()
+                    .find(|c| c.id == company_id)
+                    .map(|c| c.region_id.clone())
+                    .unwrap_or_default();
+                let Some(region) = task
+                    .ctx
+                    .country
+                    .regions
+                    .iter_mut()
+                    .find(|r| r.id == region_id)
+                else {
+                    continue;
+                };
                 let mut harvest_bundle: std::collections::BTreeMap<
                     String,
                     std::collections::BTreeMap<Commodity, f64>,
                 > = std::collections::BTreeMap::new();
+                harvest_bundle.insert(company_id.clone(), company_harvest);
 
-                for company in &task.companies {
-                    if company.sector == Sector::Agriculture {
-                        let company_harvest: std::collections::BTreeMap<Commodity, f64> = task
-                            .ctx
-                            .buildings
-                            .iter()
-                            .filter(|b| b.owner_id == company.id)
-                            .flat_map(|b| b.inventory.iter())
-                            .map(|(c, &q)| (*c, q))
-                            .collect();
-                        if !company_harvest.is_empty() {
-                            harvest_bundle.insert(company.id.clone(), company_harvest);
-                        }
-                    }
-                }
-
-                let labor_allocation = task.labor_allocation.take().unwrap_or_default();
                 #[cfg(feature = "diagnostic")]
                 {
                     let hb: f64 = harvest_bundle
                         .values()
                         .flat_map(|m| m.values())
                         .sum();
-                    let la: f64 = labor_allocation.fte.values().sum();
                     eprintln!(
-                        "INKINDDBG: t={} c={} r={} bundle_cos={} stock={:.0} alloc_fte={:.0}",
+                        "INKINDDBG: t={} c={} r={} bundle_cos={} stock={:.0}",
                         turn,
                         task.ctx.country.name,
                         region.id,
                         harvest_bundle.len(),
-                        hb,
-                        la
+                        hb
                     );
                 }
                 let (in_kind_ledger, _nutritional_deficit) =
                     apply_payment_in_kind(region, &labor_allocation, &mut harvest_bundle, turn);
-                // Phase 44: Capture the in-kind ledger for imputed GDP calculation.
-                // Merge deductions into the task-level ledger.
-                for (company_id, deductions) in &in_kind_ledger.deductions {
+
+                // Physical conservation: the goods the ledger records as
+                // eaten must actually leave the firm's buildings. Remove
+                // each deducted quantity across the company's stock.
+                if let Some(deductions) = in_kind_ledger.deductions.get(&company_id) {
+                    for (&commodity, &qty) in deductions {
+                        let mut remaining = qty;
+                        for b in task
+                            .ctx
+                            .buildings
+                            .iter_mut()
+                            .filter(|b| b.owner_id == company_id)
+                        {
+                            if remaining <= 0.0 {
+                                break;
+                            }
+                            let held = b.inventory.get(&commodity).copied().unwrap_or(0.0);
+                            let take = held.min(remaining);
+                            if take > 0.0 {
+                                let new_qty = held - take;
+                                if new_qty > 0.0 {
+                                    b.inventory.insert(commodity, new_qty);
+                                } else {
+                                    b.inventory.remove(&commodity);
+                                }
+                                remaining -= take;
+                            }
+                        }
+                    }
+                }
+
+                // Merge all three ledger channels into the task-level ledger:
+                // company deductions (imputed-consumption GDP), cash wage
+                // offsets, and per-class deductions (B2C demand netting).
+                for (cid, deductions) in &in_kind_ledger.deductions {
                     let entry = task
                         .in_kind_ledger
                         .deductions
-                        .entry(company_id.clone())
+                        .entry(cid.clone())
                         .or_default();
                     for (&commodity, &qty) in deductions {
                         *entry.entry(commodity).or_insert(0.0) += qty;
                     }
                 }
-                for (company_id, &offset) in &in_kind_ledger.cash_offsets {
+                for (cid, &offset) in &in_kind_ledger.cash_offsets {
                     *task
                         .in_kind_ledger
                         .cash_offsets
-                        .entry(company_id.clone())
+                        .entry(cid.clone())
                         .or_insert(0.0) += offset;
                 }
+                for ((lid, ldc), deductions) in &in_kind_ledger.deductions_by_class {
+                    let entry = task
+                        .in_kind_ledger
+                        .deductions_by_class
+                        .entry((lid.clone(), *ldc))
+                        .or_default();
+                    for (&commodity, &qty) in deductions {
+                        *entry.entry(commodity).or_insert(0.0) += qty;
+                    }
+                }
             }
+            // Restore for downstream consumers (process_companies, PIT).
+            task.labor_allocation = Some(labor_allocation);
         });
 
 
@@ -7943,6 +8316,20 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.country.politics.vip_registry.as_ref(),
             );
 
+            // SEC-2b: Retail equity flow — wealthy demographic classes invest
+            // a share of savings into listed names each turn. This is the
+            // household demand channel that keeps the order book two-sided
+            // (volume, advancing/declining, real price formation) instead of
+            // bond-only fund flow.
+            crate::securities::funds::submit_retail_equity_orders(
+                &mut task.ctx.country.regions,
+                &mut task.ctx.country.stock_exchange,
+                &task.companies,
+                &config,
+                current_turn,
+                task.ctx.country.macro_indicators.average_wage,
+            );
+
             // SEC-3: Securitize eligible loans into MBS (banks submit Ask orders)
             for bank in task
                 .companies
@@ -7991,6 +8378,7 @@ tasks.par_iter_mut().for_each(|task| {
             // SEC-5: Match all securities orders on the exchange
             let _trades = task.ctx.country.stock_exchange.match_securities_orders(
                 &mut task.companies,
+                &mut task.ctx.country.regions,
                 &mut task.ctx.country.mbs_pool,
                 &mut task.ctx.country.covered_bonds_issued,
                 &mut task.ctx.country.budget,
@@ -8611,6 +8999,7 @@ tasks.par_iter_mut().for_each(|task| {
             if let Some(ref mut config) = ministry_config {
                 let mut local_order_book = OrderBook::default();
                 for ministry in &mut config.ministries {
+                    let ministry_actions_len = ministry.spending_actions.len();
                     let g_spent = prepare_minister_strategies_with_parties(
                         ministry,
                         &active_parties,
@@ -8621,6 +9010,90 @@ tasks.par_iter_mut().for_each(|task| {
                     // Phase 42: Accumulate non-procurement ministry spending into GDP G.
                     task.gdp_acc
                         .add_government_spending_tagged("ministry_nonproc", g_spent);
+                    // v4.17.0: regional G — this call's non-procurement
+                    // spend lands at each recipient's region; `remaining`
+                    // caps attribution at g_spent so the channel's
+                    // regional sum equals the national booking exactly.
+                    {
+                        use crate::politics::ministries::MinistrySpendingAction as MSA;
+                        let mut resolved: Vec<(Option<String>, f64)> = Vec::new();
+                        for action in ministry.spending_actions.iter().skip(ministry_actions_len) {
+                            match action {
+                                MSA::Subsidy { target_company_id, amount } => resolved
+                                    .push((task.region_of_company(target_company_id), *amount)),
+                                MSA::TransferToLocalGov { region_id, amount } => {
+                                    resolved.push((Some(region_id.clone()), *amount))
+                                }
+                                MSA::InfrastructureFunding { target_building_id, amount } => {
+                                    let rid = task
+                                        .ctx
+                                        .buildings
+                                        .iter()
+                                        .find(|b| &b.id == target_building_id)
+                                        .map(|b| b.region_id.clone());
+                                    resolved.push((rid, *amount));
+                                }
+                                MSA::PublicServiceWages { building_ids, total_amount } => {
+                                    let each = if building_ids.is_empty() {
+                                        0.0
+                                    } else {
+                                        *total_amount / building_ids.len() as f64
+                                    };
+                                    for bid in building_ids {
+                                        let rid = task
+                                            .ctx
+                                            .buildings
+                                            .iter()
+                                            .find(|b| &b.id == bid)
+                                            .map(|b| b.region_id.clone());
+                                        resolved.push((rid, each));
+                                    }
+                                }
+                                MSA::RAndDGrant { target_entity, amount } => resolved
+                                    .push((task.region_of_company(target_entity), *amount)),
+                                MSA::DirectTransfer { amount, .. } => {
+                                    resolved.push((None, *amount))
+                                }
+                                MSA::B2BProcurementOrder { .. }
+                                | MSA::RetailSavingsBondIssuance { .. } => {}
+                            }
+                        }
+                        let capital_rid = task
+                            .ctx
+                            .country
+                            .regions
+                            .iter()
+                            .find(|r| r.is_capital)
+                            .or_else(|| task.ctx.country.regions.first())
+                            .map(|r| r.id.clone());
+                        let mut remaining = g_spent.max(0.0);
+                        for (rid, amt) in resolved {
+                            let v = amt.min(remaining);
+                            if v <= 0.0 {
+                                continue;
+                            }
+                            if let Some(r) = rid.or_else(|| capital_rid.clone()) {
+                                task.gdp_acc
+                                    .regional
+                                    .entry(r)
+                                    .or_default()
+                                    .government_spending += v;
+                            }
+                            remaining -= v;
+                            if remaining <= 0.0 {
+                                break;
+                            }
+                        }
+                        if remaining > 0.0 {
+                            if let Some(r) = capital_rid {
+                                task.gdp_acc
+                                    .regional
+                                    .entry(r)
+                                    .or_default()
+                                    .government_spending += remaining;
+                            }
+                        }
+                    }
                 }
                 // Phase 94: Return B2B procurement encumbrance to ministry_cash.
                 // The local_order_book is never submitted to the global market
@@ -10041,6 +10514,17 @@ tasks.par_iter_mut().for_each(|task| {
             // It counts as government spending (G) in GDP.
             task.gdp_acc
                 .add_government_spending_tagged("church_fund", church_fund_result.total_paid);
+            // v4.17.0: regional G — church maintenance lands in the
+            // region of each funded building.
+            for (rid, v) in church_fund_result.paid_by_region {
+                if v > 0.0 {
+                    task.gdp_acc
+                        .regional
+                        .entry(rid)
+                        .or_default()
+                        .government_spending += v;
+                }
+            }
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -10728,6 +11212,31 @@ tasks.par_iter_mut().for_each(|task| {
         #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T33]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            // MEMWALK: sizes of the largest persistent vectors, to locate
+            // per-turn state growth driving the ~turn-57 OOM.
+            let mut li = 0usize; let mut cl = 0usize; let mut mbs = 0usize;
+            let mut ol = 0usize; let mut dt = 0usize; let mut ex = 0usize;
+            let mut fh = 0usize; let mut inv = 0usize; let mut pat = 0usize;
+            let mut jd = 0usize; let mut stk = 0usize;
+            for task in &tasks {
+                dt += task.ctx.country.deferred_trades.len();
+                for c in &task.companies {
+                    ol += c.outstanding_loans.len();
+                    ex += c.extra.len();
+                    fh += c.financial_history.len();
+                    inv += c.licensed_methods.len();
+                    pat += c.patents.len();
+                    jd += c.judgment_debts.len();
+                    stk += c.stolen_ips.len();
+                    if let Some(bs) = &c.balance_sheet {
+                        li += bs.loans_issued.len();
+                        mbs += bs.mbs_holdings.len();
+                    }
+                    cl += c.consumer_loans.len();
+                }
+            }
+            eprintln!("MEMWALK t={} loans_issued={} consumer={} mbs={} outstand={} deferred={} extra={} finhist={} licmeth={} patents={} judgdebt={} stolenip={}",
+                turn, li, cl, mbs, ol, dt, ex, fh, inv, pat, jd, stk);
         }
 probe.checkpoint("turn_end", 4, turn, &market, &tasks);
 
@@ -10743,6 +11252,8 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
                     commercial_buildings: task.commercial_buildings,
                     housing_buildings: task.housing_buildings,
                     state_sector_wages_by_region: task.state_sector_wages_by_region,
+                    gdp_flows_by_region: task.gdp_acc.regional,
+                    cross_border_gross_by_region: task.cross_border_gross_by_region,
                 },
             );
         }
@@ -10877,8 +11388,13 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
     for (country_name, net_exports) in &trade_balances {
         if let Some(country) = state.countries.get_mut(country_name) {
             country.macro_indicators.gdp_breakdown.net_exports = *net_exports;
+            // v4.17.0: imputed subsistence consumption is a national-account
+            // leg too — dropping it here understated official GDP exactly by
+            // the in-kind economy while the regional reconciler (which does
+            // include it) then had no matching residual to distribute.
             country.macro_indicators.gdp_breakdown.official_gdp =
                 country.macro_indicators.gdp_breakdown.consumption
+                    + country.macro_indicators.gdp_breakdown.imputed_consumption
                     + country.macro_indicators.gdp_breakdown.government_spending
                     + country.macro_indicators.gdp_breakdown.investment
                     + country.macro_indicators.gdp_breakdown.net_exports;
@@ -10896,11 +11412,15 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
     // and are not required to sum to it.
     for (country_name, ents) in &entities {
         if let Some(country) = state.countries.get_mut(country_name) {
+            let national_gdp = country.macro_indicators.gdp_breakdown.official_gdp;
             crate::society::geography::reconcile_regional_gdp(
                 &mut country.regions,
                 &ents.companies,
                 &ents.buildings,
                 &ents.state_sector_wages_by_region,
+                &ents.gdp_flows_by_region,
+                national_gdp,
+                &ents.cross_border_gross_by_region,
             );
         }
     }
@@ -11300,6 +11820,7 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
             // arrears behavior — no fiat creation from Treasury credit without debit).
             let mut actual_collected = 0.0_f64;
             for (entity_id, tax_amount) in &tax_debits {
+                let mut settled = false;
                 if let Some(entities_ctx) = entities.get_mut(&country.name) {
                     if let Some(company) = entities_ctx.companies.iter_mut().find(|c| c.id == *entity_id) {
                         if let Some(ref mut acct) = company.brokerage_account {
@@ -11307,7 +11828,23 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
                             acct.cash -= debit;
                             actual_collected += debit;
                         }
+                        settled = true;
                     }
+                }
+                // v4.17.0: retail investors are demographic classes, not
+                // companies — their CGT accrual is keyed by the retail
+                // investor id ({region}:{rural|urban}:{Class}) and settles
+                // out of household savings.
+                if !settled
+                    && crate::securities::exchange::parse_retail_investor_id(entity_id)
+                        .is_some()
+                {
+                    let debit = crate::securities::exchange::debit_retail_savings(
+                        &mut country.regions,
+                        entity_id,
+                        *tax_amount,
+                    );
+                    actual_collected += debit;
                 }
             }
             // R4.2: If actual collected < total_tax (insufficient cash), the

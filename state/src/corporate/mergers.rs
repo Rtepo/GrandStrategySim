@@ -105,7 +105,22 @@ pub fn process_mergers_and_acquisitions(
             + owner_inventory_value
                 .get(&target.id)
                 .copied()
-                .unwrap_or(0.0);
+                .unwrap_or(0.0)
+            // v4.17 FS-7: escrowed contract receivables are real assets —
+            // tranches already debited from the investor, owed on
+            // milestone completion. A contractor buying project materials
+            // on procurement_credit otherwise reads as insolvent while
+            // holding guaranteed contract payments, and gets absorbed —
+            // which is how the construction sector consolidated from ~80
+            // firms to 4. 50% haircut: cancellation refunds unreleased
+            // escrow to the investor, so the receivable is contingent.
+            + target
+                .extra
+                .get("contract_receivables")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0)
+                .max(0.0)
+                * 0.5;
         // `procurement_credit` is debt too — trade-credit restock books it
         // when the buyer has no bank to issue the overdraft (it flows
         // through `compute_company_capital` as a liability already). A
@@ -211,26 +226,49 @@ pub fn process_mergers_and_acquisitions(
     // orphaned store before the owner ids go dangling (which would leave the
     // restock/settlement paths unable to resolve the owner).
     // ------------------------------------------------------------------
-    if !commercial_buildings.is_empty() {
-        let tombstone_map: HashMap<String, String> = companies
-            .iter()
-            .filter_map(|c| c.merged_into.clone().map(|acq| (c.id.clone(), acq)))
-            .collect();
-        if !tombstone_map.is_empty() {
-            // Resolve to the live root of each acquisition chain — an
-            // acquirer may itself be tombstoned by a later plan in the same
-            // sweep, and a single hop would leave the title dangling on a
-            // dead company.
-            let resolve_root = |start: &str| -> Option<String> {
-                let mut cur = start.to_string();
-                for _ in 0..8 {
-                    match tombstone_map.get(&cur) {
-                        Some(next) => cur = next.clone(),
-                        None => return Some(cur),
+    let tombstone_map: HashMap<String, String> = companies
+        .iter()
+        .filter_map(|c| c.merged_into.clone().map(|acq| (c.id.clone(), acq)))
+        .collect();
+    if !tombstone_map.is_empty() {
+        // Resolve to the live root of each acquisition chain — an
+        // acquirer may itself be tombstoned by a later plan in the same
+        // sweep, and a single hop would leave the title dangling on a
+        // dead company.
+        let resolve_root = |start: &str| -> Option<String> {
+            let mut cur = start.to_string();
+            for _ in 0..8 {
+                match tombstone_map.get(&cur) {
+                    Some(next) => cur = next.clone(),
+                    None => return Some(cur),
+                }
+            }
+            None
+        };
+        // v4.17 FS-7: contract novation. An acquired contractor's live
+        // projects keep `main_contractor_id`/subcontractor ids pointing at
+        // the tombstone — the labor-demand and tranche-release lookups then
+        // match no company, so the site starves and cancels at progress
+        // 0.00. Acquisition novates the going-concern contracts to the
+        // acquirer (same-sector, same-region), transferring both the
+        // receivable and the obligation to finish the work.
+        for building in buildings.iter_mut() {
+            if let Some(project) = building.active_project.as_mut() {
+                if tombstone_map.contains_key(&project.main_contractor_id) {
+                    if let Some(root) = resolve_root(&project.main_contractor_id) {
+                        project.main_contractor_id = root;
                     }
                 }
-                None
-            };
+                for sub in project.subcontractors.iter_mut() {
+                    if tombstone_map.contains_key(&sub.subcontractor_id) {
+                        if let Some(root) = resolve_root(&sub.subcontractor_id) {
+                            sub.subcontractor_id = root;
+                        }
+                    }
+                }
+            }
+        }
+        if !commercial_buildings.is_empty() {
             for store in commercial_buildings.iter_mut() {
                 if tombstone_map.contains_key(&store.owner_id) {
                     if let Some(root) = resolve_root(&store.owner_id) {

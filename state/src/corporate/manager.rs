@@ -259,6 +259,12 @@ pub fn process_companies(
         // consumed input cost − actual wage expense. Non-producing sectors
         // keep accrual — their income is donations/fees/treasury transfers,
         // not commodity sales (and banks account on the balance sheet).
+        // v4.17 mechanics fix: Construction is now a REALIZED sector — its
+        // income is contract revenue settled through escrow tranche release
+        // (booked into `turn_settled_sales` by `release_construction_tranches`),
+        // not accrual building output. Site buildings hold no sellable stock,
+        // so anchor-priced accrual always read 0.00 for contractors while
+        // real cash moved through escrow — the exact "0.00 Income" defect.
         let realized_sector = !matches!(
             companies[i].sector,
             Sector::Banking
@@ -269,7 +275,6 @@ pub fn process_companies(
                 | Sector::PublicServices
                 | Sector::ExportServices
                 | Sector::WasteManagement
-                | Sector::Construction
         );
         let input_cogs: f64 = owned
             .iter()
@@ -331,7 +336,23 @@ pub fn process_companies(
         companies[i]
             .extra
             .insert("deferred_cogs".to_string(), serde_json::Value::from(deferred));
-        let cogs_recognized = cogs_now + release;
+        // v4.17: Material cost of construction work performed this turn —
+        // accumulated on the main contractor by `advance_construction_projects`
+        // under `extra["construction_project_cogs"]` and expensed here so the
+        // contractor's P&L recognizes project inputs against tranche revenue.
+        // Read-and-reset like `turn_settled_sales`; reporting-only (the cash
+        // already moved at B2B settlement).
+        let project_cogs = companies[i]
+            .extra
+            .get("construction_project_cogs")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        if project_cogs != 0.0 {
+            companies[i]
+                .extra
+                .insert("construction_project_cogs".to_string(), serde_json::Value::from(0.0));
+        }
+        let cogs_recognized = cogs_now + release + project_cogs;
         let realized_profit = if realized_sector {
             settled_sales - cogs_recognized - actual_wage_expense
         } else {
@@ -542,13 +563,15 @@ pub fn process_companies(
                     let building_id = buildings[j].id.clone();
                     let building_name = buildings[j].name.clone();
                     let region_id = buildings[j].region_id.clone();
-                    // Cap the tender at what the investor can actually escrow:
-                    // `encumber_tender_escrow` requires the full estimated
-                    // cost in real cash, so a tender sized above cash never
-                    // funds — and awarded regardless it produces a zombie
-                    // project that can never pay a tranche. Keep a payroll
-                    // buffer so the commitment can't starve wages — the same
-                    // 2-turn horizon the distress gate uses (strategy.rs).
+                    // Cap the tender at what the investor can fund under
+                    // progress financing: `encumber_tender_escrow` now takes
+                    // the MOBILIZATION share (~30%) at publication and later
+                    // tranches draw the company's ongoing cash at release.
+                    // A contract sized to (cash − payroll buffer) / escrow
+                    // ratio is one the company can service from its flow;
+                    // sizing beyond it produces a zombie project that stalls
+                    // waiting on appropriations. Keep the same 2-turn
+                    // payroll buffer the distress gate uses (strategy.rs).
                     let payroll = companies[i].offered_wage_per_fte
                         * companies[i].fulfilled_fte as f64;
                     let cash = companies[i]
@@ -557,8 +580,10 @@ pub fn process_companies(
                         .map(|ba| ba.cash)
                         .unwrap_or(companies[i].available_cash)
                         .max(0.0);
-                    let fundable =
-                        expansion.investment.min((cash - payroll * 2.0).max(0.0));
+                    let escrow_ratio = crate::construction::tender_market::MOBILIZATION_ESCROW_RATIO;
+                    let fundable = expansion
+                        .investment
+                        .min(((cash - payroll * 2.0).max(0.0)) / escrow_ratio);
                     // apply_action already debited liquid_capital by the full
                     // `investment`; return the uncommitted share to the
                     // capital account so the books match what is escrowed.
@@ -1934,8 +1959,22 @@ fn compute_company_capital(company: &Company) -> f64 {
         .get("store_inventory_value")
         .and_then(|v| v.as_f64())
         .unwrap_or(0.0);
+    // v4.17 FS-7: construction contract receivables are a real asset —
+    // escrowed tranches owed on certified work (an IFRS-15 contract
+    // asset), published by `update_construction_labor_demand`. Without
+    // them a contractor carrying supplier credit for site materials reads
+    // as insolvent while holding the escrowed receivable that pays for
+    // them — the Syndic executed fully-crewed firms with live contracts
+    // (n=15, 9,520 FTE, −$657M "equity" against real revenue). Same 50%
+    // cancellation-risk haircut the merger distress test applies.
+    let contract_receivables = company
+        .extra
+        .get("contract_receivables")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
     company.fixed_capital + company.liquid_capital
         + store_inventory_value
+        + contract_receivables * 0.5
         - company.liabilities
         - company.procurement_credit
 }

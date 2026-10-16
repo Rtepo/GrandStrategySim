@@ -57,9 +57,12 @@ pub use advisory_council::{
 };
 pub use attendance::{calculate_attendance, AttendanceModel, AttendanceResult, QuorumType};
 pub use bill_lifecycle::{
-    deterministic_roll, introduce_bill_to_session, introduce_budget_bill_if_due,
-    process_bicameral_review, process_bill_lifecycle, process_committee_stage,
-    process_executive_review, process_floor_vote, process_legislation_turn,
+    check_bill_type_cooldown, deterministic_roll, deterministic_uniform,
+    introduce_bill_to_session, introduce_budget_bill_if_due,
+    introduce_policy_bill_if_due, process_bicameral_review, process_bill_lifecycle,
+    process_committee_stage, process_executive_review, process_floor_vote,
+    process_legislation_turn, EMERGENCY_BILL_COOLDOWN_TURNS, LEGISLATIVE_CYCLE_TURNS,
+    POLICY_DOMAIN_COOLDOWN_TURNS,
 };
 pub use budget_lifecycle::{
     apply_budget_failure_consequence, budget_bill_to_legislative_bill, draft_budget_bill,
@@ -96,7 +99,9 @@ pub use laws::{
     InspectorateState, LawType, MigrationFlow, MigrationLaw, MigrationReason, Violation,
     ViolationType,
 };
-pub use legislation::{enact_bill, process_sunset_expirations, BillProvision, SunsetProvision};
+pub use legislation::{
+    enact_bill, process_sunset_expirations, BillProvision, BillType, SunsetProvision,
+};
 pub use legislation::{Bill, Clause, Concession, LegislativeSession, LegislativeStage};
 pub use legislative_weight::{derive_weight_from_provisions, LegislativeWeight};
 pub use lobbying::{

@@ -473,6 +473,16 @@ pub fn calculate_tax_evasion(
 /// This represents the target staffing level: 1 tax bureaucrat per 20 companies.
 pub const DEFAULT_BUREAUCRATS_PER_COMPANY: f64 = 0.05; // 1/20 = 0.05
 
+/// Share of the funded civil service working in tax administration.
+///
+/// Generated worlds spawn no dedicated tax offices, so the enforcement
+/// headcount falls back to the State-owned civil service (police, courts,
+/// customs offices, universities). Not all civil servants work for the tax
+/// office — a 10% administration share is a realistic bound and keeps the
+/// evasion gradient meaningful: a treasury that cannot fund payroll still
+/// loses enforcement capacity instead of enjoying free full compliance.
+pub const TAX_ADMIN_SHARE_OF_CIVIL_SERVICE: f64 = 0.10;
+
 /// Allocates budget to the Tax Office for operations.
 ///
 /// # Arguments
@@ -1326,14 +1336,53 @@ pub fn process_tax_collection_turn(
     // assessed taxes (CIT, wealth) collected $0.00 forever. Public
     // administration buildings ARE the tax apparatus (STAGE C); count their
     // employment plus any explicitly registered office IDs.
-    let tax_office_workers: f64 = buildings
+    // `current_employment` is stored per virtual plant — multiply by
+    // scale_factor for the entity-level headcount (same convention as the
+    // post-labor sync in turn.rs).
+    let mut tax_office_workers: f64 = buildings
         .iter()
         .filter(|b| {
             b.sector == crate::registries::enums::Sector::PublicAdministration
                 || country.budget.tax_office_ids.contains(&b.id)
         })
-        .map(|b| b.current_employment as f64)
+        .map(|b| b.current_employment as f64 * b.scale_factor.max(1) as f64)
         .sum();
+
+    // PublicAdministration-sector companies also staff the tax apparatus —
+    // their fulfilled labor demand is real employment even when the building
+    // sector tag is absent.
+    tax_office_workers += companies
+        .iter()
+        .filter(|c| {
+            c.sector == crate::registries::enums::Sector::PublicAdministration
+        })
+        .map(|c| c.fulfilled_fte as f64)
+        .sum::<f64>();
+
+    // Enforcement fallback: generated worlds spawn no dedicated tax offices
+    // and no PublicAdministration entities, but every country DOES run a
+    // civil service (the State-owned building stock: police, courts, customs
+    // offices, universities). Tax administration is a share of that apparatus.
+    // Its effective headcount is bounded by what the treasury can actually
+    // pay — the same affordability bound the State Employer payroll applies
+    // in turn.rs — so a bankrupt state still cannot staff collectors and
+    // evasion degrades with solvency, which is exactly the graduated
+    // semantics this channel models.
+    if tax_office_workers <= 0.0 {
+        let civil_service_capacity: f64 = buildings
+            .iter()
+            .filter(|b| b.owner_id == "State")
+            .map(|b| b.worker_capacity as f64 * b.scale_factor.max(1) as f64)
+            .sum();
+        if civil_service_capacity > 0.0 {
+            let civil_wage = country.macro_indicators.average_wage.max(1.0)
+                * country.turn_config.civil_service_wage_ratio;
+            let funded_fte =
+                (country.budget.liquid_reserves.max(0.0) / civil_wage.max(1.0))
+                    .min(civil_service_capacity);
+            tax_office_workers = funded_fte * TAX_ADMIN_SHARE_OF_CIVIL_SERVICE;
+        }
+    }
     // D.3.2: Use the defined constant, not a hardcoded 0.1 (which is 2x the
     // intended ratio of 1 bureaucrat per 20 companies).
     let evasion = calculate_tax_evasion(
@@ -1367,14 +1416,40 @@ pub fn process_tax_collection_turn(
         // The old base summed `building.last_profit` — output valued at
         // oracle base prices regardless of sale — which taxed phantom profit
         // and drained real cash from companies that never earned it.
-        // Sectors that keep accrual accounting (banks, treasury-funded
-        // entities, project-based construction) fall back to the building
-        // sum so their tax base is unchanged.
+        // Sectors that keep accrual accounting (treasury-funded entities,
+        // project-based construction) fall back to the building sum.
+        // Banks are the exception: their buildings carry no profit (their
+        // income is net interest margin on the loan book, credited to
+        // tier_1_capital during loan servicing). Assess banks on per-turn
+        // interest accrual over performing loans minus payroll — the real,
+        // deterministic income base — instead of an empty building ledger.
         let realized = company.realized_profit_this_turn;
-        let company_profit: f64 = if !matches!(
+        let company_profit: f64 = if company.sector
+            == crate::registries::enums::Sector::Banking
+        {
+            let interest_income: f64 = company
+                .balance_sheet
+                .as_ref()
+                .map(|bs| {
+                    bs.loans_issued
+                        .iter()
+                        .filter(|l| {
+                            l.status
+                                != crate::state::banking::LoanStatus::Default
+                        })
+                        .map(|l| {
+                            l.outstanding_balance
+                                * crate::state::macro_data::annual_to_per_turn_rate(
+                                    l.interest_rate,
+                                )
+                        })
+                        .sum()
+                })
+                .unwrap_or(0.0);
+            interest_income - company.wages_paid_this_turn.max(0.0)
+        } else if !matches!(
             company.sector,
-            crate::registries::enums::Sector::Banking
-                | crate::registries::enums::Sector::NGO
+            crate::registries::enums::Sector::NGO
                 | crate::registries::enums::Sector::Religion
                 | crate::registries::enums::Sector::PublicAdministration
                 | crate::registries::enums::Sector::Government
@@ -1518,9 +1593,30 @@ pub fn process_tax_collection_turn(
     }
 
     // ── Capital Gains Tax ───────────────────────────────────────────
-    // Intercepted before dividend distribution (simplified: no dividends this turn)
-    // This would be called during dividend processing, not here directly.
-    // Placeholder for future wiring.
+    // Realized gains/losses accrue into `country.capital_gains_tax` at the
+    // securities exchange (record_realized during order matching) and settle
+    // physically at fiscal year-end (turn.rs — debits the seller's brokerage
+    // cash, credits the treasury). This orchestrator's remaining jobs:
+    //
+    // 1. Keep the registry's rates in sync with the country's CONFIGURED
+    //    capital-gains brackets. The registry's built-in 19% defaults are
+    //    placeholders — `tax_rates.capital_gains_tax` is authoritative, so a
+    //    legislature changing the top marginal rate actually changes what is
+    //    settled at year-end.
+    // 2. Surface what was actually settled this fiscal year so the Finance
+    //    tab reports a real number instead of a dead 0.00.
+    {
+        let configured_marginal_cgt: f64 = tax_rates
+            .capital_gains_tax
+            .brackets
+            .iter()
+            .map(|b| b.rate.max(0.0))
+            .fold(0.0_f64, f64::max);
+        country.capital_gains_tax.securities_cgt_rate = configured_marginal_cgt;
+        country.capital_gains_tax.commodity_cgt_rate = configured_marginal_cgt;
+        result.capital_gains_tax_collected =
+            country.capital_gains_tax.tax_collected_this_year;
+    }
 
     // ── Capital Flight Evaluation ───────────────────────────────────
     if !tax_rates.tax_havens.is_empty() && tax_rates.exit_tax_rate > 0.0 {
@@ -1556,12 +1652,17 @@ pub fn process_tax_collection_turn(
     }
 
     // ── Phase 39: Customs Revenue ───────────────────────────────────
-    // Read tariff revenue collected by CustomsState during b2b_orders clearing.
-    // This is already physically debited from buyers and credited to treasury
-    // during settle_trades_with_tariffs. We just report it here.
-    if let Some(ref customs) = country.politics.customs_state {
-        result.customs_revenue = customs.tariff_revenue_collected;
-    }
+    // Read tariff revenue recorded by CustomsState during b2b_orders clearing
+    // (settle_trades_with_tariffs physically debits the importer/exporter and
+    // credits liquid_reserves there; the ledger field is the recording leg).
+    // The ledger must EXIST for that writer and for the customs-evasion
+    // recovery path — generated countries start with `customs_state = None`,
+    // so lazily create it here on the first fiscal turn.
+    let customs = country
+        .politics
+        .customs_state
+        .get_or_insert_with(crate::politics::CustomsState::default);
+    result.customs_revenue = customs.tariff_revenue_collected;
 
     // ── Phase 39: State Property Revenue ────────────────────────────
     // Read state forest remittance (already physically transferred via
@@ -1586,19 +1687,73 @@ pub fn process_tax_collection_turn(
     result.total_revenue = total_collected;
 
     // ── Record Tax History ──────────────────────────────────────────
-    country
-        .budget
-        .tax_history
-        .push_back(crate::state::treasury::TaxHistoryEntry {
-            turn: current_turn,
-            pit_collected: result.pit_collected,
-            cit_collected: result.cit_collected,
-            vat_collected: result.vat_collected,
-            wealth_tax_collected: result.wealth_tax_collected,
-            capital_gains_collected: result.capital_gains_tax_collected,
-            capital_flight: result.capital_flight_amount,
-            ..Default::default()
-        });
+    // Per-channel revenue goes into `extra` as well as the typed fields so
+    // downstream tests/UI can read channels that have no dedicated column
+    // (customs, ministry ledger) without a schema change.
+    let (ministry_total_allocated, ministry_total_spent) = country
+        .politics
+        .ministry_config
+        .as_ref()
+        .map(|cfg| {
+            cfg.ministries.iter().fold((0.0, 0.0), |(a, s), m| {
+                (a + m.allocated_cash, s + m.spent_cash)
+            })
+        })
+        .unwrap_or((0.0, 0.0));
+    let mut entry = crate::state::treasury::TaxHistoryEntry {
+        turn: current_turn,
+        pit_collected: result.pit_collected,
+        cit_collected: result.cit_collected,
+        vat_collected: result.vat_collected,
+        wealth_tax_collected: result.wealth_tax_collected,
+        capital_gains_collected: result.capital_gains_tax_collected,
+        capital_flight: result.capital_flight_amount,
+        evasion_rate: evasion.evasion_rate,
+        ..Default::default()
+    };
+    entry.extra.insert(
+        "customs_revenue".to_string(),
+        Value::from(result.customs_revenue),
+    );
+    entry.extra.insert(
+        "capital_gains_tax_collected".to_string(),
+        Value::from(result.capital_gains_tax_collected),
+    );
+    entry.extra.insert(
+        "ministry_total_allocated".to_string(),
+        Value::from(ministry_total_allocated),
+    );
+    entry.extra.insert(
+        "ministry_total_spent".to_string(),
+        Value::from(ministry_total_spent),
+    );
+    entry.extra.insert(
+        "ministry_allocated".to_string(),
+        Value::from(ministry_total_allocated),
+    );
+    entry.extra.insert(
+        "ministry_spent".to_string(),
+        Value::from(ministry_total_spent),
+    );
+    country.budget.tax_history.push_back(entry);
+
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "TAXDBG t={} c={} | enforce_w={:.0} evasion={:.3} | cit={:.0} wealth={:.0} cg={:.0} customs={:.0} vat={:.0} | liab={} evaded={:.0} | min alloc={:.0} spent={:.0}",
+        current_turn,
+        country.name,
+        tax_office_workers,
+        evasion.evasion_rate,
+        result.cit_collected,
+        result.wealth_tax_collected,
+        result.capital_gains_tax_collected,
+        result.customs_revenue,
+        result.vat_collected,
+        result.liabilities.len(),
+        result.taxes_evaded,
+        ministry_total_allocated,
+        ministry_total_spent,
+    );
 
     // total_revenue was already set above.
     result

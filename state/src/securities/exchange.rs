@@ -11,6 +11,7 @@ use crate::entities::{Building, Company};
 use crate::registries::enums::Commodity;
 use crate::securities::covered_bonds::CoveredBond;
 use crate::securities::mbs::TranchePriority;
+use crate::society::geography::{ClassDemographics, Region};
 use crate::state::treasury::Treasury;
 
 /// Type of tradable instrument on the stock exchange.
@@ -68,6 +69,17 @@ pub struct StockExchange {
     /// Phase 56: Commodity spot market with B2B-derived prices.
     #[serde(default)]
     pub commodity_spot: CommoditySpotMarket,
+
+    /// Equity-market fix: previous-turn closing mark per company id.
+    /// Written by `update_share_prices` BEFORE it overwrites each company's
+    /// `share_price`, so `MarketIndex::compute` can count advancing/declining
+    /// names against the genuine previous close. (The old code compared
+    /// `close_price > open_price` — both of which are only written when a
+    /// trade prints, so a stock whose mark drifted via mean reversion never
+    /// registered, and stocks with zero trades kept re-counting a stale
+    /// open/close pair forever.)
+    #[serde(default)]
+    pub prev_close_by_company: BTreeMap<String, f64>,
 
     /// Any additional exchange fields.
     #[serde(flatten, default)]
@@ -178,6 +190,15 @@ impl Order {
         match self {
             Order::Buy { quantity, .. } => *quantity -= filled,
             Order::Sell { quantity, .. } => *quantity -= filled,
+        }
+    }
+
+    /// Set the open quantity of this order outright (used by the
+    /// affordability/inventory clamps inside the matcher).
+    pub fn set_quantity(&mut self, qty: u64) {
+        match self {
+            Order::Buy { quantity, .. } => *quantity = qty,
+            Order::Sell { quantity, .. } => *quantity = qty,
         }
     }
 
@@ -322,9 +343,14 @@ pub struct MarketIndex {
     /// 1000.0 base forever.)
     #[serde(default)]
     pub prev_sector_market_caps: BTreeMap<String, f64>,
-    /// Total trading volume this turn.
+    /// Total trading volume this turn (shares/units matched).
     #[serde(default)]
     pub total_volume: u64,
+    /// Total trading turnover this turn (currency value of matched trades,
+    /// sum of price × quantity). Sibling of `total_volume` so the DTO can
+    /// show both share volume and value traded.
+    #[serde(default)]
+    pub total_turnover: f64,
     /// Number of advancing stocks this turn.
     #[serde(default)]
     pub advancing: u32,
@@ -437,15 +463,42 @@ impl MarketIndex {
                     .sum::<u64>()
             })
             .sum();
+        // Currency value of the same matched trades.
+        let total_turnover: f64 = listed
+            .iter()
+            .map(|c| {
+                let instrument_id = format!("EQUITY:{}", c.id);
+                exchange
+                    .trade_history
+                    .iter()
+                    .filter(|t| {
+                        t.instrument_id == instrument_id && t.turn == last_trade_turn
+                    })
+                    .map(|t| t.quantity as f64 * t.price)
+                    .sum::<f64>()
+            })
+            .sum();
 
-        // Count advancing/declining based on open vs close price.
+        // Advancing/declining vs the PREVIOUS turn's close. The old code
+        // compared this turn's close to this turn's open — both written only
+        // when a trade printed — so mean-reversion moves never registered and
+        // stale open/close pairs re-counted forever. `prev_close_by_company`
+        // is written by update_share_prices before it overwrites the mark.
         let mut advancing = 0u32;
         let mut declining = 0u32;
         for c in &listed {
-            if c.close_price > c.open_price && c.open_price > 0.0 {
-                advancing += 1;
-            } else if c.close_price < c.open_price && c.open_price > 0.0 {
-                declining += 1;
+            let mark = c.share_price;
+            let prev = exchange
+                .prev_close_by_company
+                .get(&c.id)
+                .copied()
+                .unwrap_or(0.0);
+            if prev > 0.0 {
+                if mark > prev * (1.0 + 1e-9) {
+                    advancing += 1;
+                } else if mark < prev * (1.0 - 1e-9) {
+                    declining += 1;
+                }
             }
         }
 
@@ -463,6 +516,7 @@ impl MarketIndex {
         self.main_index_value = new_index_value;
         self.total_market_cap = total_market_cap;
         self.total_volume = total_volume;
+        self.total_turnover = total_turnover;
         self.advancing = advancing;
         self.declining = declining;
 
@@ -538,6 +592,18 @@ impl MarketIndex {
                 hist.remove(0);
             }
         }
+
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "EQDBG index value={:.2} mcap={:.0} vol={} turnover={:.0} adv={} dec={} vol_std={:.4}",
+            self.main_index_value,
+            self.total_market_cap,
+            self.total_volume,
+            self.total_turnover,
+            self.advancing,
+            self.declining,
+            self.volatility
+        );
     }
 }
 
@@ -586,6 +652,133 @@ pub fn can_trade_futures(company: &Company, commodity_id: &str, buildings: &[Bui
 /// Parse a commodity ID string into a `Commodity` enum value.
 fn parse_commodity(id: &str) -> Option<Commodity> {
     serde_json::from_str(&format!("\"{}\"", id)).ok()
+}
+
+// ── Retail (household-class) trading helpers ────────────────────────────────
+//
+// Retail investor ids use the SAME format as the fund-unit contributor ids
+// written by `collect_fund_capital`: `{region_id}:rural:{ClassKey}` or
+// `{region_id}:urban:{ClassKey}` where `ClassKey` is the PascalCase
+// `RuralClass`/`UrbanClass` display name. This makes a household class's
+// direct brokerage positions live on the same identity as its fund units.
+//
+// Retail orders are settled out of `ClassDemographics.savings` (the household
+// wallet counted in `country.budget.citizen_savings`) — they do NOT pre-freeze
+// cash on the class brokerage account. The matcher clamps fill size to the
+// savings actually available at execution time, so an over-committed book
+// can never spend cash that does not exist (M0 conservation).
+
+/// Parse a retail investor id into `(region_id, is_rural, class_key)`.
+/// Returns `None` for company/treasury ids (which never contain the
+/// `:rural:` / `:urban:` marker segments).
+pub fn parse_retail_investor_id(investor_id: &str) -> Option<(&str, bool, &str)> {
+    // Parse from the right so ':' inside a region id cannot corrupt the split.
+    let mut parts = investor_id.rsplitn(3, ':');
+    let class_key = parts.next()?;
+    let domain = parts.next()?;
+    let region_id = parts.next()?;
+    if region_id.is_empty() || class_key.is_empty() {
+        return None;
+    }
+    match domain {
+        "rural" => {
+            if crate::society::geography::RuralClass::from_str(class_key).is_some() {
+                Some((region_id, true, class_key))
+            } else {
+                None
+            }
+        }
+        "urban" => {
+            if crate::society::geography::UrbanClass::from_str(class_key).is_some() {
+                Some((region_id, false, class_key))
+            } else {
+                None
+            }
+        }
+        _ => None,
+    }
+}
+
+/// Immutable lookup of the demographic class behind a retail investor id.
+pub fn retail_class<'a>(
+    regions: &'a [Region],
+    investor_id: &str,
+) -> Option<&'a ClassDemographics> {
+    let (region_id, is_rural, class_key) = parse_retail_investor_id(investor_id)?;
+    let region = regions.iter().find(|r| r.id == region_id)?;
+    if is_rural {
+        let key = crate::society::geography::RuralClass::from_str(class_key)?;
+        region.class_demographics.rural_classes.get(&key)
+    } else {
+        let key = crate::society::geography::UrbanClass::from_str(class_key)?;
+        region.class_demographics.urban_classes.get(&key)
+    }
+}
+
+/// Mutable lookup of the demographic class behind a retail investor id.
+pub fn retail_class_mut<'a>(
+    regions: &'a mut [Region],
+    investor_id: &str,
+) -> Option<&'a mut ClassDemographics> {
+    let (region_id, is_rural, class_key) = parse_retail_investor_id(investor_id)?;
+    let region = regions.iter_mut().find(|r| r.id == region_id)?;
+    if is_rural {
+        let key = crate::society::geography::RuralClass::from_str(class_key)?;
+        region.class_demographics.rural_classes.get_mut(&key)
+    } else {
+        let key = crate::society::geography::UrbanClass::from_str(class_key)?;
+        region.class_demographics.urban_classes.get_mut(&key)
+    }
+}
+
+/// Savings available to back a retail order (0.0 for non-retail ids).
+pub fn retail_savings(regions: &[Region], investor_id: &str) -> f64 {
+    retail_class(regions, investor_id)
+        .map(|c| c.savings.max(0.0))
+        .unwrap_or(0.0)
+}
+
+/// Debit a retail class's household savings by `amount` (clamped to the
+/// available balance; returns the amount actually debited). Used by the
+/// year-end capital-gains settlement for retail taxpayers — the accrual is
+/// recorded under the retail investor id at match time, and this is the
+/// debit path the turn loop calls to collect it.
+pub fn debit_retail_savings(
+    regions: &mut [Region],
+    investor_id: &str,
+    amount: f64,
+) -> f64 {
+    if amount <= 0.0 {
+        return 0.0;
+    }
+    if let Some(class) = retail_class_mut(regions, investor_id) {
+        let debit = amount.min(class.savings.max(0.0));
+        class.savings -= debit;
+        debit
+    } else {
+        0.0
+    }
+}
+
+/// Return a resting BUY order's still-frozen pledge (remaining qty × limit)
+/// to the investor's free cash. No-op for sell orders, retail orders (which
+/// never froze cash — they are backed by savings at execution), and ids
+/// that do not resolve to a company.
+fn release_order_pledge(companies: &mut [Company], order: &Order) {
+    if !matches!(order, Order::Buy { .. }) {
+        return;
+    }
+    let release = order.quantity() as f64 * order.limit_price();
+    if release <= 0.0 {
+        return;
+    }
+    if let Some(investor) = companies.iter_mut().find(|c| c.id == order.investor_id()) {
+        if let Some(ref mut acct) = investor.brokerage_account {
+            let freed = release.min(acct.frozen_cash.max(0.0));
+            acct.frozen_cash -= freed;
+            acct.cash += freed;
+        }
+    }
 }
 
 impl StockExchange {
@@ -666,9 +859,13 @@ impl StockExchange {
     /// * If trades occurred: `share_price` = VWAP of this turn's trades.
     /// * If no trades: apply mean-reversion drift toward book value using `config.mean_reversion_rate`.
     /// * `open_price` = first trade price, `close_price` = last trade price.
-    /// * Price history appended (bounded to 60 entries).
+    /// * `price_history` appended every turn (bounded to 60 entries) so tests
+    ///   and volatility calculations can read per-stock return series.
+    /// * `prev_close_by_company` records each listed company's mark BEFORE
+    ///   this turn's update — the previous close used for advancing/
+    ///   declining breadth in `MarketIndex::compute`.
     pub fn update_share_prices(
-        &self,
+        &mut self,
         companies: &mut [Company],
         current_turn: u32,
         config: &crate::securities::config::SecuritiesMarketConfig,
@@ -677,6 +874,12 @@ impl StockExchange {
             if !company.legal_form.is_listed() || company.shares_count == 0 {
                 continue;
             }
+
+            // Record this turn's previous close (the mark BEFORE today's
+            // VWAP/drift overwrite) for advancing/declining breadth.
+            let prev_mark = company.share_price;
+            self.prev_close_by_company
+                .insert(company.id.clone(), prev_mark);
 
             let instrument_id = format!("EQUITY:{}", company.id);
 
@@ -709,21 +912,53 @@ impl StockExchange {
                 company.share_price = 0.01;
             }
 
-            // Append to price history (bounded to 60).
-            // The price_history field is stored in `extra` as a serde_json array.
-            // We use a simple approach: store in financial_history's extra map.
-            // For now, the open/close/price fields are the primary source of truth.
+            // Per-stock price history for tests/volatility: every listed
+            // name appends its end-of-turn mark each turn (bounded to 60).
+            company.price_history.push(company.share_price);
+            if company.price_history.len() > 60 {
+                company.price_history.remove(0);
+            }
+
+            #[cfg(feature = "diagnostic")]
+            {
+                let vol = self.get_turn_volume(&instrument_id, current_turn);
+                if vol > 0 {
+                    eprintln!(
+                        "EQDBG price {} prev={:.2} open={:.2} close={:.2} vwap={:.2} vol={}",
+                        instrument_id,
+                        prev_mark,
+                        company.open_price,
+                        company.close_price,
+                        company.share_price,
+                        vol
+                    );
+                }
+            }
         }
+    }
+
+    /// Phase 56: Get total turnover (currency value traded) for an
+    /// instrument this turn — sum of price × quantity over matched trades.
+    pub fn get_turn_turnover(&self, instrument_id: &str, current_turn: u32) -> f64 {
+        self.trade_history
+            .iter()
+            .filter(|t| t.instrument_id == instrument_id && t.turn == current_turn)
+            .map(|t| t.price * t.quantity as f64)
+            .sum()
     }
 
     /// Match all pending securities orders across all instrument order books.
     ///
     /// # Arguments
     /// * `companies` - Mutable slice of companies (for equity portfolio updates)
+    /// * `regions` - Mutable slice of regions — retail orders (equity-market
+    ///   fix) settle against `ClassDemographics.savings`/brokerage accounts
+    ///   keyed by `{region_id}:{rural|urban}:{class}` investor ids.
     /// * `mbs_pool` - Mutable slice of MBS structures (for tranche owner updates)
     /// * `covered_bonds` - Mutable slice of covered bonds (for owner updates)
     /// * `treasury` - Mutable treasury (for fee collection)
     /// * `current_turn` - Current turn number
+    /// * `cgt_registry` - Capital-gains registry receiving realized P/L
     ///
     /// # Returns
     /// Vector of all executed trades
@@ -736,9 +971,14 @@ impl StockExchange {
     /// * Transaction fees split: buyer pays fee to treasury, seller receives proceeds minus fee
     /// * Circuit breaker: if triggered, halt all matching
     /// * Expired orders (expiry_turn < current_turn) are removed
+    /// * Equity-market fix: an investor never buys from itself; retail bids
+    ///   are clamped to savings actually available at execution; equity asks
+    ///   are clamped to the seller's real portfolio quantity so resting
+    ///   duplicate asks can never sell shares that do not exist.
     pub fn match_securities_orders(
         &mut self,
         companies: &mut [Company],
+        regions: &mut [Region],
         mbs_pool: &mut [crate::securities::MortgageBackedSecurity],
         covered_bonds: &mut [crate::securities::CoveredBond],
         treasury: &mut Treasury,
@@ -786,19 +1026,7 @@ impl StockExchange {
             // Return the still-frozen pledge (remaining qty × limit price)
             // to each expired bidder's free cash.
             for order in &expired_bids {
-                let release = order.quantity() as f64 * order.limit_price();
-                if release <= 0.0 {
-                    continue;
-                }
-                if let Some(investor) =
-                    companies.iter_mut().find(|c| c.id == order.investor_id())
-                {
-                    if let Some(ref mut acct) = investor.brokerage_account {
-                        let freed = release.min(acct.frozen_cash.max(0.0));
-                        acct.frozen_cash -= freed;
-                        acct.cash += freed;
-                    }
-                }
+                release_order_pledge(companies, order);
             }
 
             // Match loop for this instrument
@@ -818,7 +1046,7 @@ impl StockExchange {
                 }
 
                 // Pop the best bid and best ask orders
-                let (mut bid_order, mut ask_order) = {
+                let (mut bid_order, ask_slot) = {
                     let book = match self.order_book.get_mut(instrument_id) {
                         Some(b) => b,
                         None => break,
@@ -836,12 +1064,14 @@ impl StockExchange {
                         }
                     }
 
-                    // Get best ask (lowest)
+                    // Get best ask (lowest). If the ask side is somehow
+                    // empty, return the bid instead of dropping it (the old
+                    // code leaked the popped bid — its frozen pledge then
+                    // sat until expiry).
                     let ask_order = match book.asks.first_mut() {
-                        Some((_, orders)) if !orders.is_empty() => orders.remove(0),
-                        _ => break,
+                        Some((_, orders)) if !orders.is_empty() => Some(orders.remove(0)),
+                        _ => None,
                     };
-                    // Clean up empty ask level
                     if let Some((_, orders)) = book.asks.first() {
                         if orders.is_empty() {
                             book.asks.remove(0);
@@ -850,15 +1080,97 @@ impl StockExchange {
 
                     (bid_order, ask_order)
                 };
-
-                // Determine fill
-                let bid_qty = bid_order.quantity();
-                let ask_qty = ask_order.quantity();
-                let fill_qty = bid_qty.min(ask_qty);
-                let exec_price = ask_order.limit_price(); // Price-time priority: ask price
+                let mut ask_order = match ask_slot {
+                    Some(a) => a,
+                    None => {
+                        self.reinsert_order(instrument_id, bid_order);
+                        break;
+                    }
+                };
 
                 let buyer_id = bid_order.investor_id().to_string();
                 let seller_id = ask_order.investor_id().to_string();
+
+                // Self-trade guard: an investor must never buy from itself.
+                // Drop the bid (releasing its frozen pledge) and return the
+                // ask — the next-best bid then faces the same ask, so the
+                // loop still makes progress.
+                if buyer_id == seller_id {
+                    release_order_pledge(companies, &bid_order);
+                    self.reinsert_order(instrument_id, ask_order);
+                    continue;
+                }
+
+                // Determine fill
+                let exec_price = ask_order.limit_price(); // Price-time priority: ask price
+                let mut fill_qty = bid_order.quantity().min(ask_order.quantity());
+                let mut drop_bid = false;
+                let mut drop_ask = false;
+
+                // Retail affordability clamp: retail bids are backed by
+                // household savings (checked at execution), not a pre-frozen
+                // pledge — clamp the fill to what the savings can pay for.
+                if parse_retail_investor_id(&buyer_id).is_some() {
+                    let savings = retail_savings(regions, &buyer_id);
+                    let per_share = exec_price * (1.0 + fee_rate);
+                    let affordable = if per_share > 0.0 {
+                        (savings / per_share) as u64
+                    } else {
+                        0
+                    };
+                    if affordable == 0 {
+                        drop_bid = true;
+                    } else if affordable < fill_qty {
+                        fill_qty = affordable;
+                    }
+                }
+
+                // Equity inventory clamp: asks are re-submitted every turn
+                // while stale ones still rest on the book, so the book can
+                // hold more ask quantity than the seller owns. Clamp the
+                // fill to the seller's real position — a phantom sale must
+                // never print. TREASURY issuance floats are unbounded.
+                if instrument_id.starts_with("EQUITY:")
+                    && !(seller_id == "TREASURY" || seller_id.starts_with("TREASURY:"))
+                {
+                    let held: u64 = if let Some(class) =
+                        retail_class(regions, &seller_id)
+                    {
+                        class
+                            .brokerage_account
+                            .as_ref()
+                            .map(|a| a.get_quantity(instrument_id))
+                            .unwrap_or(0)
+                    } else {
+                        companies
+                            .iter()
+                            .find(|c| c.id == seller_id)
+                            .and_then(|c| c.brokerage_account.as_ref())
+                            .map(|a| a.get_quantity(instrument_id))
+                            .unwrap_or(0)
+                    };
+                    if held == 0 {
+                        drop_ask = true;
+                    } else if held < fill_qty {
+                        fill_qty = held;
+                    }
+                }
+
+                if drop_bid || drop_ask || fill_qty == 0 {
+                    // Return the still-viable counterparty side to the book;
+                    // release a dropped bid's frozen pledge immediately so
+                    // the cash is not trapped until expiry.
+                    if drop_bid || fill_qty == 0 {
+                        release_order_pledge(companies, &bid_order);
+                        if !drop_ask {
+                            self.reinsert_order(instrument_id, ask_order);
+                        }
+                    } else {
+                        self.reinsert_order(instrument_id, bid_order);
+                    }
+                    continue;
+                }
+
                 let cost = fill_qty as f64 * exec_price;
                 let fee = cost * fee_rate;
 
@@ -877,6 +1189,7 @@ impl StockExchange {
                     fee,
                     bid_order.limit_price(),
                     companies,
+                    regions,
                     mbs_pool,
                     covered_bonds,
                     treasury,
@@ -886,6 +1199,18 @@ impl StockExchange {
                         reg.record_realized(seller, gain);
                     }
                 }
+
+                #[cfg(feature = "diagnostic")]
+                eprintln!(
+                    "EQDBG match t={} {} qty={} px={:.2} buyer={} seller={} cgt={:?}",
+                    current_turn,
+                    instrument_id,
+                    fill_qty,
+                    exec_price,
+                    buyer_id,
+                    seller_id,
+                    cgt_entry.as_ref().map(|(_, g)| *g)
+                );
 
                 trade_idx += 1;
                 let trade = Trade {
@@ -904,36 +1229,37 @@ impl StockExchange {
                 ask_order.reduce_quantity(fill_qty);
 
                 if !bid_order.is_filled() {
-                    if let Some(book) = self.order_book.get_mut(instrument_id) {
-                        let price = bid_order.limit_price();
-                        if let Some(pos) = book.bids.iter().position(|(p, _)| *p == price) {
-                            book.bids[pos].1.push(bid_order);
-                        } else {
-                            book.bids.push((price, vec![bid_order]));
-                            book.bids.sort_by(|a, b| {
-                                a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
-                            });
-                        }
-                    }
+                    self.reinsert_order(instrument_id, bid_order);
                 }
                 if !ask_order.is_filled() {
-                    if let Some(book) = self.order_book.get_mut(instrument_id) {
-                        let price = ask_order.limit_price();
-                        if let Some(pos) = book.asks.iter().position(|(p, _)| *p == price) {
-                            book.asks[pos].1.push(ask_order);
-                        } else {
-                            book.asks.push((price, vec![ask_order]));
-                            book.asks.sort_by(|a, b| {
-                                a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
-                            });
-                        }
-                    }
+                    self.reinsert_order(instrument_id, ask_order);
                 }
 
                 // Update best bid/ask
                 if let Some(book) = self.order_book.get_mut(instrument_id) {
                     book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
                     book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
+                }
+            }
+
+            #[cfg(feature = "diagnostic")]
+            {
+                let turn_shares: u64 = all_trades
+                    .iter()
+                    .filter(|t| t.instrument_id == *instrument_id)
+                    .map(|t| t.quantity)
+                    .sum();
+                if turn_shares > 0 {
+                    eprintln!(
+                        "EQDBG book t={} {} shares={} trades={}",
+                        current_turn,
+                        instrument_id,
+                        turn_shares,
+                        all_trades
+                            .iter()
+                            .filter(|t| t.instrument_id == *instrument_id)
+                            .count()
+                    );
                 }
             }
         }
@@ -943,7 +1269,55 @@ impl StockExchange {
             self.trade_history.push_back(trade.clone());
         }
 
+        #[cfg(feature = "diagnostic")]
+        {
+            let total_shares: u64 = all_trades.iter().map(|t| t.quantity).sum();
+            let total_value: f64 = all_trades
+                .iter()
+                .map(|t| t.quantity as f64 * t.price)
+                .sum();
+            eprintln!(
+                "EQDBG match_summary t={} trades={} shares={} turnover={:.0}",
+                current_turn,
+                all_trades.len(),
+                total_shares,
+                total_value
+            );
+        }
+
         all_trades
+    }
+
+    /// Return an order to its price level, keeping the side sorted and
+    /// `best_bid`/`best_ask` fresh. Used for partial fills, unfillable
+    /// crosses, and self-trade rejections.
+    fn reinsert_order(&mut self, instrument_id: &str, order: Order) {
+        let price = order.limit_price();
+        let book = self.order_book.entry(instrument_id.to_string()).or_default();
+        match order {
+            Order::Buy { .. } => {
+                if let Some(pos) = book.bids.iter().position(|(p, _)| *p == price) {
+                    book.bids[pos].1.push(order);
+                } else {
+                    book.bids.push((price, vec![order]));
+                    book.bids.sort_by(|a, b| {
+                        a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
+                    });
+                }
+                book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
+            }
+            Order::Sell { .. } => {
+                if let Some(pos) = book.asks.iter().position(|(p, _)| *p == price) {
+                    book.asks[pos].1.push(order);
+                } else {
+                    book.asks.push((price, vec![order]));
+                    book.asks.sort_by(|a, b| {
+                        a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
+                    });
+                }
+                book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
+            }
+        }
     }
 
     /// Settle a single trade with proper double-entry across entity types.
@@ -958,6 +1332,10 @@ impl StockExchange {
     ///   amount the buyer froze at order submission. Settlement consumes that
     ///   frozen pledge first and debits only the shortfall (fee + any price
     ///   improvement is refunded) from free cash.
+    /// * `regions` - Retail settlement sink: a buyer/seller id that resolves
+    ///   to a demographic class (`{region}:{rural|urban}:{class}`) settles
+    ///   out of `ClassDemographics.savings` and the class's
+    ///   `brokerage_account` lots instead of a company account.
     fn settle_trade(
         buyer_id: &str,
         seller_id: &str,
@@ -967,6 +1345,7 @@ impl StockExchange {
         fee: f64,
         buyer_frozen_per_unit: f64,
         companies: &mut [Company],
+        regions: &mut [Region],
         mbs_pool: &mut [crate::securities::MortgageBackedSecurity],
         covered_bonds: &mut [crate::securities::CoveredBond],
         treasury: &mut Treasury,
@@ -1016,6 +1395,45 @@ impl StockExchange {
                             realized_gain = Some(gain);
                         }
                     }
+                }
+            }
+
+            // Retail settlement (equity-market fix): ids that resolve to a
+            // demographic class are household investors. The buyer pays
+            // `cost + fee` out of `class.savings` (already clamped to
+            // affordability by the matcher) and the lots land on the class's
+            // own brokerage account — the plumbing that always existed on
+            // `ClassDemographics` but was never wired to the exchange.
+            // The seller receives `cost - fee` into savings and realizes
+            // the FIFO gain/loss for CGT accrual exactly like a company.
+            if companies.iter().all(|c| c.id != buyer_id) {
+                if let Some(class) = retail_class_mut(regions, buyer_id) {
+                    let debit = (cost + fee).min(class.savings.max(0.0));
+                    class.savings -= debit;
+                    class
+                        .brokerage_account
+                        .get_or_insert_with(Default::default)
+                        .add_lot(instrument_id, quantity, price_per_share, 0);
+                }
+            }
+            if companies.iter().all(|c| c.id != seller_id) {
+                if let Some(class) = retail_class_mut(regions, seller_id) {
+                    {
+                        let acct = class
+                            .brokerage_account
+                            .get_or_insert_with(Default::default);
+                        seller_tax_exempt = acct
+                            .tax_advantaged_account
+                            .as_ref()
+                            .map(|ta| ta.exempt_from_capital_gains_tax())
+                            .unwrap_or(false);
+                        if let Some((gain, _sold)) =
+                            acct.sell_fifo(instrument_id, quantity, price_per_share)
+                        {
+                            realized_gain = Some(gain);
+                        }
+                    }
+                    class.savings += cost - fee;
                 }
             }
         } else if instrument_id.starts_with("MBS:") {

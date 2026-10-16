@@ -97,6 +97,15 @@ pub struct FundLedger {
     /// Phase 57: Fund manager VIP ID (for trait-driven behavior).
     #[serde(default)]
     pub fund_manager_vip_id: Option<String>,
+
+    /// Equity-market fix: instrument_id (`EQUITY:<company_id>`) → shares held,
+    /// synced from the fund's brokerage portfolio each turn by
+    /// `charge_fund_fees`. This is the test/UI-readable count of fund equity
+    /// positions (`funds_equity_holdings_count > 0` checks `len()` here) —
+    /// the brokerage `portfolio` map already tracked lots, but nothing rolled
+    /// them up into a plain per-instrument share count.
+    #[serde(default)]
+    pub equity_holdings: BTreeMap<String, u64>,
 }
 
 /// Phase 36: A fund's holding of a sovereign/treasury bond.
@@ -188,6 +197,12 @@ pub fn collect_fund_capital(
     // Citizen savings ↓ (M0) must be offset by bank reserves ↑ (M0).
     let mut bank_syncs: Vec<(String, f64)> = Vec::new();
 
+    // Equity-market fix: the equity universe AND price map come from the
+    // union of both slices. The turn wiring currently puts every company
+    // into `funds` and leaves `companies` empty (split_at_mut(len)), so any
+    // NAV valuation or candidate scan over `companies` alone sees nothing.
+    let equity_prices = equity_price_map(funds, companies);
+
     for fund in funds.iter_mut() {
         let ft = match &fund.fund_type {
             Some(ft) => ft.clone(),
@@ -213,8 +228,9 @@ pub fn collect_fund_capital(
             .filter(|h| !h.redeemed)
             .map(|h| h.face_value)
             .sum();
-        let portfolio_value = calculate_portfolio_value(&fund.brokerage_account, companies, &None)
-            + bond_holdings_value;
+        let portfolio_value =
+            calculate_portfolio_value(&fund.brokerage_account, &equity_prices, &None)
+                + bond_holdings_value;
         // Frozen cash is still the fund's money (encumbered by open bids) —
         // excluding it understates AUM and drives NAV artificially low.
         let frozen_cash = fund
@@ -430,8 +446,9 @@ pub fn collect_fund_capital(
             .filter(|h| !h.redeemed)
             .map(|h| h.face_value)
             .sum();
-        let portfolio_value = calculate_portfolio_value(&fund.brokerage_account, companies, &None)
-            + bond_holdings_value;
+        let portfolio_value =
+            calculate_portfolio_value(&fund.brokerage_account, &equity_prices, &None)
+                + bond_holdings_value;
         let frozen_cash = fund
             .brokerage_account
             .as_ref()
@@ -447,6 +464,131 @@ pub fn collect_fund_capital(
         // Phase 94: Record total collected for bank-reserve sync (M0).
         if total_collected > 0.0 {
             bank_syncs.push((fund.id.clone(), total_collected));
+        }
+    }
+
+    // Equity-market fix: hedge-fund contributors can also live inside the
+    // `funds` slice itself — the turn wiring passes ALL companies as `funds`
+    // and leaves `companies` empty (split_at_mut(len)), which previously
+    // starved hedge funds of contributors entirely. Pair indices inside the
+    // same slice; `companies` (when non-empty under a corrected wiring) is
+    // still scanned by the in-loop branch above, and the two slices are
+    // disjoint by construction so no contributor is charged twice.
+    let hedge_idx: Vec<usize> = funds
+        .iter()
+        .enumerate()
+        .filter(|(_, f)| {
+            matches!(f.fund_type, Some(FundType::HedgeFund)) && f.fund_ledger.is_some()
+        })
+        .map(|(i, _)| i)
+        .collect();
+    for fi in hedge_idx {
+        // NAV snapshot on the pre-collection state — same formula as the
+        // in-loop branch (par value 1.0 for the first subscription).
+        let nav_per_share = {
+            let fund = &funds[fi];
+            let ledger = fund.fund_ledger.as_ref().unwrap();
+            let fund_cash = fund
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash + b.frozen_cash)
+                .unwrap_or(0.0);
+            let bond_value: f64 = ledger
+                .bond_holdings
+                .iter()
+                .filter(|h| !h.redeemed)
+                .map(|h| h.face_value)
+                .sum();
+            let pv = calculate_portfolio_value(&fund.brokerage_account, &equity_prices, &None);
+            let total = fund_cash + bond_value + pv;
+            if ledger.shares_outstanding > 0 {
+                total / ledger.shares_outstanding as f64
+            } else {
+                1.0
+            }
+        };
+        let subscription_rate = config.fund_subscription_rate * 0.5;
+        let mut collected = 0.0_f64;
+        for ci in 0..funds.len() {
+            if ci == fi {
+                continue;
+            }
+            // Never drain another fund's AUM as a "contributor".
+            if funds[ci].fund_type.is_some() {
+                continue;
+            }
+            let (fund, contributor) = pair_mut(funds, fi, ci);
+            let liquid = contributor.computed_liquid_capital();
+            if liquid <= 0.0 {
+                continue;
+            }
+            let subscription_amount = liquid * subscription_rate;
+            if subscription_amount <= 0.0 {
+                continue;
+            }
+            let contributor_acct = match contributor.brokerage_account.as_mut() {
+                Some(a) => a,
+                None => continue,
+            };
+            if contributor_acct.cash < subscription_amount {
+                continue;
+            }
+            // Double-entry: contributor cash → fund cash.
+            contributor_acct.cash -= subscription_amount;
+            if let Some(ref mut fund_acct) = fund.brokerage_account {
+                fund_acct.cash += subscription_amount;
+            }
+            collected += subscription_amount;
+            let units_issued = if nav_per_share.is_finite() && nav_per_share > 0.0 {
+                let raw = subscription_amount / nav_per_share;
+                if raw.is_finite() && raw > 0.0 {
+                    raw.min(u64::MAX as f64) as u64
+                } else {
+                    0
+                }
+            } else {
+                0
+            };
+            if let Some(ref mut ledger) = fund.fund_ledger {
+                ledger.shares_outstanding =
+                    ledger.shares_outstanding.saturating_add(units_issued);
+                let e = ledger
+                    .unit_holders
+                    .entry(contributor.id.clone())
+                    .or_insert(0);
+                *e = e.saturating_add(units_issued);
+            }
+            subscriptions.push(FundSubscription {
+                fund_id: fund.id.clone(),
+                contributor_id: contributor.id.clone(),
+                amount: subscription_amount,
+                units_issued,
+            });
+        }
+        // Restrike NAV for this hedge fund after its collections.
+        if collected > 0.0 {
+            let fund = &mut funds[fi];
+            let ledger = fund.fund_ledger.as_mut().unwrap();
+            let fund_cash = fund
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash + b.frozen_cash)
+                .unwrap_or(0.0);
+            let bond_value: f64 = ledger
+                .bond_holdings
+                .iter()
+                .filter(|h| !h.redeemed)
+                .map(|h| h.face_value)
+                .sum();
+            let pv = calculate_portfolio_value(&fund.brokerage_account, &equity_prices, &None);
+            let total = fund_cash + bond_value + pv;
+            if ledger.shares_outstanding > 0 {
+                let nav = total / ledger.shares_outstanding as f64;
+                if nav.is_finite() {
+                    ledger.nav_per_share = nav;
+                }
+            }
+            bank_syncs.push((fund.id.clone(), collected));
         }
     }
 
@@ -488,18 +630,48 @@ pub fn collect_fund_capital(
     subscriptions
 }
 
+/// Build a `company_id → share_price` map from every company slice in
+/// scope. The turn wiring currently passes ALL companies as the `funds`
+/// slice (the `companies` argument arrives empty — see `split_at_mut(len)`
+/// in turn.rs), so the equity universe and NAV pricing MUST come from the
+/// union of both slices or the fund never sees a listed stock.
+fn equity_price_map(
+    funds: &[Company],
+    companies: &[Company],
+) -> std::collections::HashMap<String, f64> {
+    funds
+        .iter()
+        .chain(companies.iter())
+        .map(|c| (c.id.clone(), c.share_price))
+        .collect()
+}
+
+/// Disjoint mutable access to two elements of the same slice
+/// (`(&mut s[i], &mut s[j])`), used when hedge-fund contributors live in
+/// the same slice as the fund itself under the current turn wiring.
+fn pair_mut<T>(slice: &mut [T], i: usize, j: usize) -> (&mut T, &mut T) {
+    debug_assert!(i != j);
+    if i < j {
+        let (l, r) = slice.split_at_mut(j);
+        (&mut l[i], &mut r[0])
+    } else {
+        let (l, r) = slice.split_at_mut(i);
+        (&mut r[0], &mut l[j])
+    }
+}
+
 /// Calculate portfolio value at current market prices.
 ///
 /// # Arguments
 /// * `brokerage_account` - Optional reference to brokerage account
-/// * `companies` - Slice of all companies (for share price lookup)
+/// * `equity_prices` - `company_id → share_price` map (see `equity_price_map`)
 /// * `fund_ledger` - Optional fund ledger (for bond holdings, Phase 36)
 ///
 /// # Returns
 /// Total market value of portfolio holdings
 fn calculate_portfolio_value(
     brokerage_account: &Option<crate::securities::BrokerageAccount>,
-    companies: &[Company],
+    equity_prices: &std::collections::HashMap<String, f64>,
     fund_ledger: &Option<FundLedger>,
 ) -> f64 {
     let acct = match brokerage_account {
@@ -514,8 +686,8 @@ fn calculate_portfolio_value(
             continue;
         }
         if let Some(company_id) = instrument_id.strip_prefix("EQUITY:") {
-            if let Some(company) = companies.iter().find(|c| c.id == company_id) {
-                total += company.share_price * qty as f64;
+            if let Some(price) = equity_prices.get(company_id) {
+                total += price * qty as f64;
             }
         }
         // MBS and bond portfolio values would use their respective market prices
@@ -670,6 +842,51 @@ pub fn process_fund_coupon_payments(
     total_coupons
 }
 
+/// Snapshot of a listed company's tradeable-equity data, captured once per
+/// turn (before the mutable fund loop) so every fund prices the same world.
+#[derive(Debug, Clone)]
+struct EquityCandidate {
+    id: String,
+    instrument_id: String,
+    sector: Sector,
+    share_price: f64,
+    market_cap: f64,
+    eps: f64,
+    dividend_yield: f64,
+    /// P/E when eps > 0, else the P/B fallback used by the original screen.
+    pe_or_pb: f64,
+    /// Book value per share (`company_capital / shares_count`).
+    book_ps: f64,
+}
+
+impl EquityCandidate {
+    fn from_company(c: &Company) -> Self {
+        let book_ps = if c.shares_count > 0 {
+            c.company_capital / c.shares_count as f64
+        } else {
+            0.0
+        };
+        let pe_or_pb = if c.eps > 0.0 && c.share_price > 0.0 && c.pe_ratio > 0.0 {
+            c.pe_ratio
+        } else if book_ps > 0.0 {
+            c.share_price / book_ps
+        } else {
+            f64::INFINITY
+        };
+        EquityCandidate {
+            id: c.id.clone(),
+            instrument_id: format!("EQUITY:{}", c.id),
+            sector: c.sector,
+            share_price: c.share_price,
+            market_cap: c.share_price * c.shares_count as f64,
+            eps: c.eps,
+            dividend_yield: c.dividend_yield,
+            pe_or_pb,
+            book_ps,
+        }
+    }
+}
+
 /// Submit fund orders to the exchange based on deterministic valuation scores.
 ///
 /// # Arguments
@@ -683,11 +900,15 @@ pub fn process_fund_coupon_payments(
 ///
 /// # Rules
 /// * Compute Valuation Score for each equity: P/E ratio, dividend yield
-/// * Buy when P/E < fund_min_pe_threshold AND dividend_yield > fund_min_dividend_yield
-/// * Sell when P/E > fund_max_pe_threshold
+/// * Each fund targets `config.fund_equity_target_share` of AUM in listed
+///   equities; the deficit is deployed through real exchange bids each turn.
+/// * Active funds buy non-overvalued, dividend-eligible names ranked by
+///   cheapest valuation (sector preference promoted); passive ETFs
+///   index-weight all listed names by market cap.
+/// * Sell when P/E > fund_max_pe_threshold, priced at max(mark, best_bid).
 /// * For fixed-income: Buy when yield > fund_min_bond_yield
-/// * Orders are limit orders at current market price
-/// * No blind buying — funds only buy undervalued, sell overvalued
+/// * Orders are limit orders; buys freeze the full qty × limit pledge.
+/// * No blind buying — funds only buy names they would not immediately sell.
 pub fn submit_fund_orders(
     funds: &mut [Company],
     exchange: &mut StockExchange,
@@ -699,6 +920,34 @@ pub fn submit_fund_orders(
     vip_registry: Option<&crate::politics::vip_registry::VipRegistry>,
 ) {
     use crate::corporate::market_behavior::evaluate_market_behavior;
+
+    // Equity-market fix: the listed-equity universe and NAV price map are
+    // built from the UNION of both slices. Under the current turn wiring
+    // (`split_at_mut(len)`), every company arrives in `funds` and `companies`
+    // is empty — scanning `companies` alone is why no equity order was ever
+    // generated. Only REAL listed companies (`legal_form.is_listed()`,
+    // positive free float) with a positive mark qualify.
+    let equity_prices = equity_price_map(funds, companies);
+    let mut seen_ids = std::collections::HashSet::new();
+    let equity_candidates: Vec<EquityCandidate> = funds
+        .iter()
+        .chain(companies.iter())
+        .filter(|c| {
+            c.fund_type.is_none()
+                && c.legal_form.is_listed()
+                && c.shares_count > 0
+                && c.share_price > 0.0
+                && seen_ids.insert(c.id.clone())
+        })
+        .map(EquityCandidate::from_company)
+        .collect();
+
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "EQDBG submit_fund_orders t={} candidates={}",
+        current_turn,
+        equity_candidates.len()
+    );
 
     for fund in funds.iter_mut() {
         if fund.fund_type.is_none() || fund.fund_ledger.is_none() {
@@ -750,144 +999,252 @@ pub fn submit_fund_orders(
         // Phase 57: Apply cash reserve preference — hold back minimum cash fraction.
         let investable_cash = fund_cash * (1.0 - modifiers.cash_reserve_preference.min(1.0));
 
-        // Evaluate equities
-        for company in companies {
-            if company.id == fund_id {
-                continue;
-            }
-            // Use the authoritative listing predicate (legal_form.is_listed() —
-            // JSC with free_float > 0) rather than the denormalized
-            // company.is_listed field, which can drift out of sync when the
-            // legal form transitions mid-run.
-            if !company.legal_form.is_listed()
-                || company.shares_count == 0
-                || company.share_price <= 0.0
-            {
-                continue;
-            }
+        // Phase 57: Use trait-driven thresholds instead of config-only thresholds.
+        // The modifier thresholds are derived from traits via evaluate_market_behavior.
+        let sell_pe_threshold = config
+            .fund_max_pe_threshold
+            .max(modifiers.pe_sell_threshold);
 
-            // Phase 57: Apply sector preference filter (e.g., Militarist prefers Armaments).
-            if let Some(preferred) = modifiers.preferred_sector {
-                if company.sector != preferred {
-                    // Still allow trading, but reduce position size for non-preferred sectors.
-                    // This is a soft preference, not a hard filter.
-                }
-            }
-
-            // Phase 55: Use actual P/E ratio (computed in process_company) instead of P/B proxy.
-            // Fall back to P/B only if EPS is not yet available (eps == 0).
-            let pe_ratio = if company.eps > 0.0 && company.share_price > 0.0 {
-                company.pe_ratio
-            } else {
-                // Fallback: P/B ratio for pre-IPO or zero-earnings companies
-                let book_value_per_share = company.company_capital / company.shares_count as f64;
-                if book_value_per_share > 0.0 {
-                    company.share_price / book_value_per_share
-                } else {
-                    f64::INFINITY
-                }
-            };
-
-            // Phase 55: Use computed dividend yield from Company (kept in sync by process_company).
-            let dividend_yield = company.dividend_yield;
-
-            let instrument_id = format!("EQUITY:{}", company.id);
-
-            // Phase 57: Use trait-driven thresholds instead of config-only thresholds.
-            // The modifier thresholds are derived from traits via evaluate_market_behavior.
-            let buy_pe_threshold = config.fund_min_pe_threshold.min(modifiers.pe_buy_threshold);
-            let sell_pe_threshold = config
-                .fund_max_pe_threshold
-                .max(modifiers.pe_sell_threshold);
-
-            // Valuation Score logic — uses P/E ratio, not P/B.
-            // A profitable company with no dividend track record
-            // (dividend_yield <= 0 but eps > 0) is still buyable under the
-            // value gate — otherwise funds can only ever pass the yield
-            // screen on a handful of dividend payers and end up holding
-            // nothing but identical covered bonds.
-            let dividend_ok = dividend_yield > config.fund_min_dividend_yield
-                || (company.eps > 0.0 && dividend_yield <= 0.0);
-            if pe_ratio < buy_pe_threshold && dividend_ok {
-                // Undervalued: submit Buy order
-                // Phase 57: Use trait-driven max_position_pct instead of hardcoded 0.1.
-                let max_investment = investable_cash * modifiers.max_position_pct;
-                let max_shares = (max_investment / company.share_price) as u64;
-                if max_shares == 0 {
-                    continue;
-                }
-                let order = Order::new_buy(
-                    format!("FUND-BUY-{}-{}", fund_id, instrument_id),
-                    fund_id.clone(),
-                    instrument_id.clone(),
-                    InstrumentType::Equity,
-                    max_shares,
-                    company.share_price,
-                    current_turn + 3,
-                );
-                // Freeze cash for the order
-                let cost = max_shares as f64 * company.share_price;
-                if let Some(ref mut acct) = fund.brokerage_account {
-                    if acct.cash >= cost {
-                        acct.cash -= cost;
-                        acct.frozen_cash += cost;
-                        // Insert into order book
-                        let book = exchange
-                            .order_book
-                            .entry(instrument_id.clone())
-                            .or_default();
-                        if let Some(pos) = book
-                            .bids
-                            .iter()
-                            .position(|(p, _)| *p == company.share_price)
-                        {
-                            book.bids[pos].1.push(order);
-                        } else {
-                            book.bids.push((company.share_price, vec![order]));
-                            book.bids.sort_by(|a, b| {
-                                a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
-                            });
-                        }
-                        book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
-                    }
-                }
-            } else if pe_ratio > sell_pe_threshold {
-                // Overvalued: submit Sell order if fund holds shares
-                let held = fund
-                    .brokerage_account
-                    .as_ref()
-                    .map(|a| a.get_quantity(&instrument_id))
-                    .unwrap_or(0);
-                if held == 0 {
-                    continue;
-                }
-                let order = Order::new_sell(
-                    format!("FUND-SELL-{}-{}", fund_id, instrument_id),
-                    fund_id.clone(),
-                    instrument_id.clone(),
-                    InstrumentType::Equity,
-                    held,
-                    company.share_price,
-                    current_turn + 3,
-                );
-                let book = exchange
-                    .order_book
-                    .entry(instrument_id.clone())
-                    .or_default();
-                if let Some(pos) = book
-                    .asks
+        // ── Equity-market fix: AUM-target equity allocation ──────────────
+        // Funds are no longer 100% fixed income: every fund targets
+        // `config.fund_equity_target_share` of AUM in listed equities and
+        // deploys the deficit each turn through REAL exchange bids.
+        //
+        // * Equity universe comes from `equity_candidates` — the union of the
+        //   `funds` and `companies` slices — because the turn wiring passes
+        //   ALL companies in `funds` and leaves `companies` empty.
+        // * ACTIVE funds buy names that are not overvalued
+        //   (P/E or P/B ≤ sell threshold, i.e. the fund would not sell them)
+        //   AND pass the dividend gate, ranked by cheapest valuation first
+        //   (sector preference promoted). PASSIVE funds (ETFs) index-weight
+        //   by market cap across ALL listed names.
+        // * Bid limit = the fund's willingness-to-pay cap
+        //   (`eps * sell_pe_threshold` for earners, book value per share for
+        //   pre-earnings names, never below the mark) so resting asks get
+        //   lifted to fair value — prices emerge from matched trades.
+        // * Sell rule unchanged in trigger (overvalued) but priced
+        //   competitively: ask = max(mark, best_bid) so a standing deep-value
+        //   bid is filled AT the bid instead of letting the ask undercut it.
+        let equity_value_held: f64 = fund
+            .brokerage_account
+            .as_ref()
+            .map(|a| {
+                a.portfolio
                     .iter()
-                    .position(|(p, _)| *p == company.share_price)
-                {
-                    book.asks[pos].1.push(order);
+                    .filter(|(inst, _)| inst.starts_with("EQUITY:"))
+                    .map(|(inst, lots)| {
+                        let qty: u64 = lots.iter().map(|l| l.quantity).sum();
+                        let company_id = inst.strip_prefix("EQUITY:").unwrap_or("");
+                        equity_prices.get(company_id).copied().unwrap_or(0.0)
+                            * qty as f64
+                    })
+                    .sum()
+            })
+            .unwrap_or(0.0);
+        let bond_holdings_value: f64 = fund
+            .fund_ledger
+            .as_ref()
+            .map(|l| {
+                l.bond_holdings
+                    .iter()
+                    .filter(|h| !h.redeemed)
+                    .map(|h| h.face_value)
+                    .sum()
+            })
+            .unwrap_or(0.0);
+        let portfolio_value = equity_value_held + bond_holdings_value;
+        let aum = fund_cash
+            + fund
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.frozen_cash)
+                .unwrap_or(0.0)
+            + portfolio_value;
+        let target_equity = aum * config.fund_equity_target_share;
+        let mut remaining_budget =
+            (target_equity - equity_value_held).max(0.0).min(investable_cash);
+
+        let is_passive = fund
+            .fund_type
+            .as_ref()
+            .map(|ft| ft.is_passive())
+            .unwrap_or(false);
+
+        // Ranked candidate order for THIS fund (deterministic):
+        //   passive → market_cap desc; active → sector-preferred first,
+        //   then cheapest valuation (pe_or_pb asc). Ties broken by id.
+        let mut ranked: Vec<&EquityCandidate> = equity_candidates
+            .iter()
+            .filter(|c| {
+                if is_passive {
+                    true
                 } else {
-                    book.asks.push((company.share_price, vec![order]));
-                    book.asks
-                        .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                    c.pe_or_pb.is_finite()
+                        && c.pe_or_pb <= sell_pe_threshold
+                        && (c.dividend_yield > config.fund_min_dividend_yield
+                            || (c.eps > 0.0 && c.dividend_yield <= 0.0))
                 }
-                book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
+            })
+            .collect();
+        if is_passive {
+            ranked.sort_by(|a, b| {
+                b.market_cap
+                    .partial_cmp(&a.market_cap)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| a.id.cmp(&b.id))
+            });
+        } else {
+            ranked.sort_by(|a, b| {
+                let ap = modifiers
+                    .preferred_sector
+                    .map(|p| a.sector == p)
+                    .unwrap_or(false);
+                let bp = modifiers
+                    .preferred_sector
+                    .map(|p| b.sector == p)
+                    .unwrap_or(false);
+                bp.cmp(&ap)
+                    .then_with(|| {
+                        a.pe_or_pb
+                            .partial_cmp(&b.pe_or_pb)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    })
+                    .then_with(|| a.id.cmp(&b.id))
+            });
+        }
+        let total_candidate_cap: f64 = ranked.iter().map(|c| c.market_cap).sum();
+
+        let total_buy_budget = remaining_budget;
+        let mut _bids_placed = 0u32;
+        for cand in &ranked {
+            if remaining_budget <= 0.0 {
+                break;
+            }
+            if cand.id == fund_id {
+                continue;
+            }
+            // Passive funds allocate by index weight against the ORIGINAL
+            // deficit (weights sum to ~1); active funds fill the cheapest
+            // names first, capped per-position by the trait modifier.
+            let alloc = if is_passive && total_candidate_cap > 0.0 {
+                total_buy_budget * (cand.market_cap / total_candidate_cap)
+            } else {
+                remaining_budget.min(investable_cash * modifiers.max_position_pct)
+            };
+            // Buyer willingness cap — the fund pays up to the top of its
+            // "not overvalued" band, so crossing asks execute at fair value.
+            let cap_bound = if cand.eps > 0.0 {
+                cand.eps * sell_pe_threshold
+            } else {
+                cand.book_ps
+            };
+            let bid_limit = cap_bound.max(cand.share_price);
+            if bid_limit <= 0.0 {
+                continue;
+            }
+            let qty = (alloc / bid_limit) as u64;
+            if qty == 0 {
+                continue;
+            }
+            let order = Order::new_buy(
+                format!("FUND-BUY-{}-{}", fund_id, cand.instrument_id),
+                fund_id.clone(),
+                cand.instrument_id.clone(),
+                InstrumentType::Equity,
+                qty,
+                bid_limit,
+                current_turn + 3,
+            );
+            // Freeze the full worst-case pledge (qty × limit) so settlement
+            // never debits cash that does not exist.
+            let cost = qty as f64 * bid_limit;
+            if let Some(ref mut acct) = fund.brokerage_account {
+                if acct.cash >= cost {
+                    acct.cash -= cost;
+                    acct.frozen_cash += cost;
+                    let book = exchange
+                        .order_book
+                        .entry(cand.instrument_id.clone())
+                        .or_default();
+                    if let Some(pos) = book.bids.iter().position(|(p, _)| *p == bid_limit) {
+                        book.bids[pos].1.push(order);
+                    } else {
+                        book.bids.push((bid_limit, vec![order]));
+                        book.bids.sort_by(|a, b| {
+                            a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
+                        });
+                    }
+                    book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
+                    remaining_budget -= cost;
+                    _bids_placed += 1;
+                }
             }
         }
+
+        // Sell rule: overvalued holdings are offered back to the market.
+        // Ask = max(mark, best_bid) — if a deep-value bid is already resting
+        // above the mark, the ask lifts to the bid so the execution prints
+        // at the better price (the engine settles every match at the ask
+        // limit; a naive market ask would under-sell into it).
+        let mut _asks_placed = 0u32;
+        for cand in equity_candidates.iter() {
+            if cand.id == fund_id {
+                continue;
+            }
+            if !(cand.pe_or_pb.is_finite() && cand.pe_or_pb > sell_pe_threshold) {
+                continue;
+            }
+            let held = fund
+                .brokerage_account
+                .as_ref()
+                .map(|a| a.get_quantity(&cand.instrument_id))
+                .unwrap_or(0);
+            if held == 0 {
+                continue;
+            }
+            let best_bid = exchange
+                .order_book
+                .get(&cand.instrument_id)
+                .map(|b| b.best_bid)
+                .unwrap_or(0.0);
+            let ask_limit = cand.share_price.max(best_bid);
+            let order = Order::new_sell(
+                format!("FUND-SELL-{}-{}", fund_id, cand.instrument_id),
+                fund_id.clone(),
+                cand.instrument_id.clone(),
+                InstrumentType::Equity,
+                held,
+                ask_limit,
+                current_turn + 3,
+            );
+            let book = exchange
+                .order_book
+                .entry(cand.instrument_id.clone())
+                .or_default();
+            if let Some(pos) = book.asks.iter().position(|(p, _)| *p == ask_limit) {
+                book.asks[pos].1.push(order);
+            } else {
+                book.asks.push((ask_limit, vec![order]));
+                book.asks
+                    .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+            }
+            book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
+            _asks_placed += 1;
+        }
+
+        #[cfg(feature = "diagnostic")]
+        eprintln!(
+            "EQDBG fund_orders t={} fund={} aum={:.0} eq_held={:.0} target={:.0} budget_used={:.0} bids={} asks={}",
+            current_turn,
+            fund_id,
+            aum,
+            equity_value_held,
+            target_equity,
+            (target_equity - equity_value_held).max(0.0).min(investable_cash)
+                - remaining_budget,
+            _bids_placed,
+            _asks_placed
+        );
 
         // Evaluate MBS tranches (fixed-income)
         for mbs in mbs_pool {
@@ -1012,9 +1369,34 @@ pub fn charge_fund_fees(
 ) -> f64 {
     let mut total_fees = 0.0;
 
+    // Equity-market fix: value the portfolio from the union of both slices
+    // (`companies` arrives empty under the current turn wiring), and roll up
+    // each fund's per-instrument equity positions into
+    // `FundLedger.equity_holdings` — the test/UI-readable holdings count.
+    let equity_prices = equity_price_map(funds, companies);
+
     for fund in funds.iter_mut() {
         if fund.fund_type.is_none() || fund.fund_ledger.is_none() {
             continue;
+        }
+
+        // Sync the ledger's equity position rollup from the brokerage book.
+        {
+            let acct_ref = fund.brokerage_account.as_ref();
+            if let Some(ref mut ledger) = fund.fund_ledger {
+                ledger.equity_holdings.clear();
+                if let Some(acct) = acct_ref {
+                    for (inst, lots) in &acct.portfolio {
+                        if !inst.starts_with("EQUITY:") {
+                            continue;
+                        }
+                        let qty: u64 = lots.iter().map(|l| l.quantity).sum();
+                        if qty > 0 {
+                            ledger.equity_holdings.insert(inst.clone(), qty);
+                        }
+                    }
+                }
+            }
         }
 
         // Frozen cash is still the fund's money — include it in AUM.
@@ -1023,8 +1405,11 @@ pub fn charge_fund_fees(
             .as_ref()
             .map(|b| b.cash + b.frozen_cash)
             .unwrap_or(0.0);
-        let portfolio_value =
-            calculate_portfolio_value(&fund.brokerage_account, companies, &fund.fund_ledger);
+        let portfolio_value = calculate_portfolio_value(
+            &fund.brokerage_account,
+            &equity_prices,
+            &fund.fund_ledger,
+        );
         let aum = fund_cash + portfolio_value;
 
         if aum <= 0.0 {
@@ -1164,6 +1549,7 @@ pub fn try_create_fund_from_vip(
         },
         bond_holdings: Vec::new(),
         fund_manager_vip_id: Some(vip.full_name.clone()),
+        equity_holdings: std::collections::BTreeMap::new(),
     };
 
     // Create fund company.
@@ -1204,6 +1590,281 @@ pub fn try_create_fund_from_vip(
     };
 
     Some((fund_id, fund_company))
+}
+
+// ============================================================================
+// RETAIL (HOUSEHOLD-CLASS) EQUITY TRADING — equity-market fix
+// ============================================================================
+
+/// Submit retail equity orders for wealthy demographic classes.
+///
+/// Citizens above a wealth floor (derived from the country average wage —
+/// no absolute magic constant) trade listed equities DIRECTLY through the
+/// exchange. Their identity is `{region_id}:{rural|urban}:{ClassKey}` — the
+/// same format `collect_fund_capital` uses for fund unit-holders — and the
+/// matcher settles their fills out of `ClassDemographics.savings` and the
+/// class's own `brokerage_account` (the plumbing that already existed but
+/// was never wired to the exchange).
+///
+/// # Arguments
+/// * `regions` - Mutable regions (class savings + brokerage accounts).
+/// * `exchange` - Mutable stock exchange for order insertion.
+/// * `companies` - All companies (only REAL listed non-fund companies are
+///   eligible: `legal_form.is_listed()` + shares + positive mark).
+/// * `config` - Securities market config (`retail_equity_*` fields).
+/// * `current_turn` - Current turn.
+/// * `avg_wage` - Country average wage (`macro_indicators.average_wage`).
+///
+/// # Rules
+/// * Eligibility: `savings_per_capita >= avg_wage * retail_equity_min_wealth_wages`
+///   (≈ six months of wages at the default of 24 — the same order of
+///   magnitude as the existing fund-subscription wealth gates).
+/// * Buy amount: `savings * retail_equity_invest_rate` per turn — parity
+///   with the fund subscription rate by default.
+/// * Allocation: equal-weight across as many top-market-cap names as the
+///   class can afford one median-priced share of (bounded [1, universe]).
+///   The starting name rotates deterministically by turn + class index so
+///   flow spreads across the market over time without any RNG.
+/// * Bid limit: `share_price` — retail pays the prevailing mark.
+/// * Sell rule: liquidate a position when the mark reaches
+///   `avg_cost * (1 + fund_benchmark_rate)` — the existing benchmark-rate
+///   config reused as the profit hurdle. Ask = max(mark, best_bid).
+/// * No cash is frozen at submission — the matcher clamps each fill to the
+///   savings actually available at execution (M0-safe).
+pub fn submit_retail_equity_orders(
+    regions: &mut [Region],
+    exchange: &mut StockExchange,
+    companies: &[Company],
+    config: &SecuritiesMarketConfig,
+    current_turn: u32,
+    avg_wage: f64,
+) {
+    if avg_wage <= 0.0 {
+        return;
+    }
+
+    // Real listed companies only, ranked by market cap (deterministic).
+    let mut ranked: Vec<EquityCandidate> = companies
+        .iter()
+        .filter(|c| {
+            c.fund_type.is_none()
+                && c.legal_form.is_listed()
+                && c.shares_count > 0
+                && c.share_price > 0.0
+        })
+        .map(EquityCandidate::from_company)
+        .collect();
+    ranked.sort_by(|a, b| {
+        b.market_cap
+            .partial_cmp(&a.market_cap)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.id.cmp(&b.id))
+    });
+    if ranked.is_empty() {
+        return;
+    }
+    let price_by_id: std::collections::HashMap<String, f64> = ranked
+        .iter()
+        .map(|c| (c.id.clone(), c.share_price))
+        .collect();
+    // Diversification breadth is derived from prices, not a magic constant:
+    // one name per median-priced share the investment amount can afford.
+    let mut prices: Vec<f64> = ranked.iter().map(|c| c.share_price).collect();
+    prices.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    let median_price = prices[prices.len() / 2].max(0.01);
+
+    let wealth_floor = avg_wage * config.retail_equity_min_wealth_wages;
+    let mut _orders_placed = 0u32;
+    let mut class_idx = 0usize;
+
+    for region in regions.iter_mut() {
+        // Rural then urban — BTreeMap key order keeps iteration deterministic.
+        for class_key in region
+            .class_demographics
+            .rural_classes
+            .keys()
+            .copied()
+            .collect::<Vec<_>>()
+        {
+            let investor_id = format!("{}:rural:{}", region.id, class_key);
+            let class = region
+                .class_demographics
+                .rural_classes
+                .get_mut(&class_key)
+                .unwrap();
+            _orders_placed += submit_retail_class_orders(
+                class,
+                &investor_id,
+                class_idx,
+                &ranked,
+                &price_by_id,
+                median_price,
+                wealth_floor,
+                exchange,
+                config,
+                current_turn,
+            );
+            class_idx += 1;
+        }
+        for class_key in region
+            .class_demographics
+            .urban_classes
+            .keys()
+            .copied()
+            .collect::<Vec<_>>()
+        {
+            let investor_id = format!("{}:urban:{}", region.id, class_key);
+            let class = region
+                .class_demographics
+                .urban_classes
+                .get_mut(&class_key)
+                .unwrap();
+            _orders_placed += submit_retail_class_orders(
+                class,
+                &investor_id,
+                class_idx,
+                &ranked,
+                &price_by_id,
+                median_price,
+                wealth_floor,
+                exchange,
+                config,
+                current_turn,
+            );
+            class_idx += 1;
+        }
+    }
+
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "EQDBG retail_orders t={} orders={} classes={} wealth_floor={:.0} median_px={:.2}",
+        current_turn,
+        _orders_placed,
+        class_idx,
+        wealth_floor,
+        median_price
+    );
+}
+
+/// Per-class retail order submission (sell profit-takes first, then buys).
+/// Returns the number of orders placed.
+fn submit_retail_class_orders(
+    class: &mut crate::society::geography::ClassDemographics,
+    investor_id: &str,
+    class_idx: usize,
+    ranked: &[EquityCandidate],
+    price_by_id: &std::collections::HashMap<String, f64>,
+    median_price: f64,
+    wealth_floor: f64,
+    exchange: &mut StockExchange,
+    config: &SecuritiesMarketConfig,
+    current_turn: u32,
+) -> u32 {
+    let mut placed = 0u32;
+
+    // ── Profit-taking sells: liquidate a position once the mark reaches
+    // avg_cost × (1 + benchmark). Ask = max(mark, best_bid) so a standing
+    // deep-value fund bid fills at the better price. ──
+    if let Some(acct) = class.brokerage_account.as_ref() {
+        let sells: Vec<(String, u64, f64)> = acct
+            .portfolio
+            .iter()
+            .filter(|(inst, _)| inst.starts_with("EQUITY:"))
+            .filter_map(|(inst, lots)| {
+                let held: u64 = lots.iter().map(|l| l.quantity).sum();
+                if held == 0 {
+                    return None;
+                }
+                let company_id = inst.strip_prefix("EQUITY:")?;
+                let mark = *price_by_id.get(company_id).unwrap_or(&0.0);
+                let avg_cost = acct.get_average_cost_basis(inst);
+                if avg_cost > 0.0
+                    && mark >= avg_cost * (1.0 + config.fund_benchmark_rate)
+                {
+                    Some((inst.clone(), held, mark))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        for (inst, held, mark) in sells {
+            let best_bid = exchange
+                .order_book
+                .get(&inst)
+                .map(|b| b.best_bid)
+                .unwrap_or(0.0);
+            let ask_limit = mark.max(best_bid);
+            let order = Order::new_sell(
+                format!("RETAIL-SELL-{}-{}", investor_id, inst),
+                investor_id.to_string(),
+                inst.clone(),
+                InstrumentType::Equity,
+                held,
+                ask_limit,
+                current_turn + 3,
+            );
+            let book = exchange.order_book.entry(inst.clone()).or_default();
+            if let Some(pos) = book.asks.iter().position(|(p, _)| *p == ask_limit) {
+                book.asks[pos].1.push(order);
+            } else {
+                book.asks.push((ask_limit, vec![order]));
+                book.asks
+                    .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+            }
+            book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
+            placed += 1;
+        }
+    }
+
+    // ── Buys: wealthy classes allocate a fraction of savings into equities ──
+    if class.savings_per_capita < wealth_floor || class.savings <= 0.0 {
+        return placed;
+    }
+    let amount = class.savings * config.retail_equity_invest_rate;
+    if amount <= 0.0 {
+        return placed;
+    }
+    let max_names = ((amount / median_price).floor() as usize)
+        .max(1)
+        .min(ranked.len());
+    // Deterministic rotation so flow spreads across names over turns.
+    let start = (current_turn as usize + class_idx) % ranked.len();
+    let mut remaining = amount;
+    for k in 0..max_names {
+        if remaining <= 0.0 {
+            break;
+        }
+        let cand = &ranked[(start + k) % ranked.len()];
+        let alloc = remaining / (max_names - k) as f64;
+        let qty = (alloc / cand.share_price) as u64;
+        if qty == 0 {
+            continue;
+        }
+        let order = Order::new_buy(
+            format!("RETAIL-BUY-{}-{}", investor_id, cand.instrument_id),
+            investor_id.to_string(),
+            cand.instrument_id.clone(),
+            InstrumentType::Equity,
+            qty,
+            cand.share_price,
+            current_turn + 3,
+        );
+        let book = exchange
+            .order_book
+            .entry(cand.instrument_id.clone())
+            .or_default();
+        if let Some(pos) = book.bids.iter().position(|(p, _)| *p == cand.share_price) {
+            book.bids[pos].1.push(order);
+        } else {
+            book.bids.push((cand.share_price, vec![order]));
+            book.bids
+                .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+        }
+        book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
+        remaining -= qty as f64 * cand.share_price;
+        placed += 1;
+    }
+    placed
 }
 
 #[cfg(test)]

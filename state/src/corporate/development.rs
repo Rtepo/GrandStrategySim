@@ -185,6 +185,7 @@ impl PropertyDeveloper {
             cost_spent: 0.0,
             investor_cash_debited: 0.0,
             tranches_paid: 0.0,
+            investor_capital_committed: 0.0,
             duration_turns: duration,
             turns_elapsed: 0,
             progress: 0.0,
@@ -376,39 +377,7 @@ impl PropertyDeveloper {
 
     /// Estimate project duration in turns
     fn estimate_project_duration(&self, project_type: ConstructionProjectType) -> u32 {
-        match project_type {
-            ConstructionProjectType::Residential => 5,
-            ConstructionProjectType::Commercial => 8,
-            ConstructionProjectType::UtilityNetwork => 12,
-            ConstructionProjectType::Infrastructure => 15,
-            ConstructionProjectType::SocialHousing => 6,
-            ConstructionProjectType::Factory => 10,
-            ConstructionProjectType::TransportNetwork => 20,
-            // Phase 39: Statecraft buildings
-            ConstructionProjectType::Court => 8,
-            ConstructionProjectType::CustomsOffice => 6,
-            ConstructionProjectType::Embassy => 10,
-            ConstructionProjectType::ResearchInstitute => 12,
-            ConstructionProjectType::LaborInspectorate => 7,
-            ConstructionProjectType::PublicWorksSite => 5,
-            ConstructionProjectType::NationalTheater => 10,
-            ConstructionProjectType::NationalLibrary => 9,
-            ConstructionProjectType::TransportDepot => 8,
-            // Phase 82: Thermal infrastructure
-            ConstructionProjectType::ThermalGridPipe => 10,
-            ConstructionProjectType::ThermalHeatingPlant => 15,
-            ConstructionProjectType::CHPRetrofit => 8,
-            // Phase 83: Hydrological infrastructure
-            ConstructionProjectType::WaterMainPipe => 8,
-            ConstructionProjectType::SewerMainPipe => 10,
-            ConstructionProjectType::WaterTreatmentPlant => 12,
-            ConstructionProjectType::WastewaterTreatmentPlant => 14,
-            ConstructionProjectType::Landfill => 10,
-            ConstructionProjectType::WasteSeparationPlant => 12,
-            ConstructionProjectType::RecyclingFacility => 14,
-            ConstructionProjectType::WasteToEnergyPlant => 18,
-            ConstructionProjectType::CivicAmenitySite => 8,
-        }
+        crate::construction::projects::project_type_duration_turns(project_type)
     }
 
     /// Estimate material requirements
@@ -675,19 +644,18 @@ pub fn publish_developer_tenders(
                 .unwrap_or(InformationQuality::Blind);
             let estimated_cost = apply_estimation_error(true_cost, quality);
 
-            // Affordability gate: `encumber_tender_escrow` (turn loop) moves
-            // the FULL estimated_cost into the escrow pocket, so the investor
-            // must be able to cover the whole amount — not just a nominal
-            // down payment. (The former 20% pre-debit was a pure double
-            // charge: escrowed_amount stayed 0, so the encumber demanded a
-            // second full cost — ~120% of cost in cash — and the stray 20%
-            // sat in debit_cash as dead encumbrance forever.)
+            // Affordability gate: `encumber_tender_escrow` (turn loop) now
+            // moves only the MOBILIZATION share of estimated_cost into the
+            // escrow pocket (progress financing — later tranches draw on the
+            // investor's ongoing cash at release). The investor must still
+            // show capacity for the secured tranches plus the first
+            // unsecured milestone: ~50% coverage is the surety check.
             let escrowable = company
                 .brokerage_account
                 .as_ref()
                 .map(|b| b.cash)
                 .unwrap_or(company.available_cash);
-            if escrowable < estimated_cost {
+            if escrowable < estimated_cost * 0.5 {
                 continue;
             }
 
@@ -800,13 +768,43 @@ pub fn publish_state_tenders(
             continue;
         };
 
-        // Phase 7 fix (M3): Cost = configurable fraction of ministry cash,
-        // capped at wage-scaled maximum.
-        let estimated_cost = (ministry.ministry_cash * tender_config.ministry_tender_fraction)
-            .min(max_cost);
+        // v4.17 FS-7: real cost basis. The old estimate was a fraction of
+        // the ministry's per-period cash (~$112k for every building type)
+        // while the BOM for a +50-worker building costs ~10-25× that — no
+        // contractor could ever cover materials+labor from the contract,
+        // so every project starved at mobilization. Tranches are now
+        // progress-financed from the budget flow, so the ministry scopes
+        // the project to what ~3 periods of its allocation can service:
+        // the BOM at anchored prices + ~35% for labor (~10% under the
+        // 10×wage install convention) and margin/overhead.
+        let bom_at_ref =
+            crate::construction::bom::get_construction_bom(
+                crate::registries::enums::Sector::PublicServices,
+                start_year,
+                tender_config.target_capacity_increase,
+            );
+        let mat_at_ref: f64 = bom_at_ref
+            .iter()
+            .map(|(commodity, qty)| {
+                *qty * crate::engine::generator::corporate::anchored_base_price(*commodity)
+            })
+            .sum();
+        if mat_at_ref <= 0.0 {
+            continue;
+        }
+        let per_cap_cost = mat_at_ref / tender_config.target_capacity_increase.max(1) as f64;
+        let budget_capacity = ministry.ministry_cash / 0.3;
+        let capacity_eff = (budget_capacity / (per_cap_cost * 1.35))
+            .min(tender_config.target_capacity_increase as f64)
+            .floor() as u32;
+        if capacity_eff < 5 {
+            continue; // allocation can't fund a real building this period
+        }
+        let estimated_cost = per_cap_cost * capacity_eff as f64 * 1.35;
         if estimated_cost < min_cash {
             continue;
         }
+        let _ = max_cost;
 
         let target_building_type = format!("{:?}", project_type);
         let investor_id = format!("STATE:{}", micro_region_id);
@@ -817,7 +815,7 @@ pub fn publish_state_tenders(
             project_type,
             micro_region_id.to_string(),
             target_building_type,
-            tender_config.target_capacity_increase,
+            capacity_eff,
             estimated_cost,
             estimated_cost,
             tender_config.bidding_window_turns,
@@ -890,15 +888,15 @@ pub fn publish_gas_station_tenders(
         }
 
         let estimated_cost = 150_000.0; // Gas station construction cost
-        let down_payment = estimated_cost * 0.2;
-
-        if company.available_cash < down_payment {
+        // The mobilization escrow is debited by `encumber_tender_escrow` in
+        // the turn loop — a 20% pre-debit here double-committed funds into
+        // `debit_cash` that the escrow-refund path can never find (dead
+        // encumbrance, same defect the housing path documented). The gate
+        // holds the same ~50% surety coverage as the developer path above:
+        // mobilization escrow plus the first unsecured milestone.
+        if company.available_cash < estimated_cost * 0.5 {
             continue;
         }
-
-        // Debit the down payment from the company.
-        company.available_cash -= down_payment;
-        company.debit_cash += down_payment;
 
         let tender = publish_tender(
             company.id.clone(),

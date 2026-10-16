@@ -1342,7 +1342,36 @@ fn introduce_crisis_fast_track_bill(
     current_turn: u32,
     messages: &mut Vec<String>,
 ) {
-    use crate::politics::legislation::{Bill, BillProvision, Clause};
+    use crate::politics::legislation::{Bill, BillProvision, BillType, Clause};
+
+    // Per-type cooldown: a crisis trigger stays hot for many consecutive
+    // turns (debt/deficit conditions persist), so without a ledger the same
+    // emergency bill would be re-introduced every few turns as soon as the
+    // previous one cleared the pipeline. Bounded to once per
+    // `EMERGENCY_BILL_COOLDOWN_TURNS` per bill type.
+    let bill_type = match scope_key {
+        "FISCAL" => BillType::EmergencyFiscal,
+        "BONDS" => BillType::EmergencyBonds,
+        _ => BillType::Other,
+    };
+    if let Err(last_turn) = super::bill_lifecycle::check_bill_type_cooldown(
+        country,
+        bill_type,
+        super::bill_lifecycle::EMERGENCY_BILL_COOLDOWN_TURNS,
+        current_turn,
+    ) {
+        let msg = format!(
+            "[LEGISLATION] Emergency bill '{}' suppressed — {} last introduced on turn {} (cooldown {}t).",
+            title,
+            bill_type.as_str(),
+            last_turn,
+            super::bill_lifecycle::EMERGENCY_BILL_COOLDOWN_TURNS
+        );
+        #[cfg(feature = "diagnostic")]
+        eprintln!("PARLDBG {}", msg);
+        messages.push(msg);
+        return;
+    }
 
     let id_prefix = format!("CRISIS-{}-", scope_key);
     let already_queued = country
@@ -1381,7 +1410,8 @@ fn introduce_crisis_fast_track_bill(
             mutation_notes: Vec::new(),
         }],
         current_turn,
-    );
+    )
+    .with_bill_type(bill_type);
 
     if super::bill_lifecycle::introduce_bill_to_session(country, bill) {
         messages.push(format!(

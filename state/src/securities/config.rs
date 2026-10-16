@@ -88,6 +88,25 @@ pub struct SecuritiesMarketConfig {
     /// Risk-free benchmark rate for performance fee calculation (e.g., 0.04 for 4%).
     #[serde(default)]
     pub fund_benchmark_rate: f64,
+    /// Target fraction of fund assets (AUM) invested in listed equities
+    /// (e.g., 0.40 for a 40/60 equity/bond blend). Funds buy equities each
+    /// turn until their equity portfolio reaches this share of AUM, then
+    /// deploy the remaining investable cash into fixed income. The default
+    /// blends the standard 60/40 portfolio convention.
+    #[serde(default = "default_fund_equity_target_share")]
+    pub fund_equity_target_share: f64,
+    /// Fraction of class savings above the wealth threshold that retail
+    /// investors allocate to listed equities each turn (e.g., 0.02 for 2%).
+    /// Kept at parity with `fund_subscription_rate` by default so retail
+    /// flow is derived from existing calibration, not a magic constant.
+    #[serde(default = "default_retail_equity_invest_rate")]
+    pub retail_equity_invest_rate: f64,
+    /// Wealth eligibility floor for direct retail trading, expressed as
+    /// years of average wages in savings per capita (e.g., 24.0 = two years
+    /// of wages). Classes below this floor route savings into investment
+    /// funds instead of trading directly.
+    #[serde(default = "default_retail_equity_min_wealth_wages")]
+    pub retail_equity_min_wealth_wages: f64,
 
     // ── Securitization ──
     /// MBS servicing spread default (e.g., 0.005 for 0.5%).
@@ -133,6 +152,23 @@ fn default_knf_penalty_multiplier() -> f64 {
     1.0
 }
 
+/// Target equity share of fund AUM — the classic 40/60 equity/bond blend.
+fn default_fund_equity_target_share() -> f64 {
+    0.40
+}
+
+/// Retail direct-equity flow per turn — parity with `fund_subscription_rate`
+/// (0.02) so retail flow inherits existing calibration instead of a magic number.
+fn default_retail_equity_invest_rate() -> f64 {
+    0.02
+}
+
+/// Retail eligibility floor: two years (24 weekly turns * 12 months scaled —
+/// expressed as months of average wages) of per-capita savings.
+fn default_retail_equity_min_wealth_wages() -> f64 {
+    24.0
+}
+
 /// Manual Default implementation to ensure Phase 56 config fields use
 /// their serde default functions rather than 0.0.
 impl Default for SecuritiesMarketConfig {
@@ -166,6 +202,9 @@ impl Default for SecuritiesMarketConfig {
             fund_min_dividend_yield: 0.02,
             fund_min_bond_yield: 0.0,
             fund_benchmark_rate: 0.04,
+            fund_equity_target_share: default_fund_equity_target_share(),
+            retail_equity_invest_rate: default_retail_equity_invest_rate(),
+            retail_equity_min_wealth_wages: default_retail_equity_min_wealth_wages(),
             // ── Securitization ──
             mbs_servicing_spread: 0.0,
             mbs_senior_fraction: 0.0,
