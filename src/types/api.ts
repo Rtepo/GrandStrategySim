@@ -175,13 +175,46 @@ export type CadastreZoningEntry = { designation: string, percentage: number, };
 
 /**
  * Phase 57: Capital gains tax summary row.
+ * v4.18 WS4: `entity_name` is the resolved human-readable label (company
+ * name, `"Class — Region (rural|urban)"` for household investors, VIP
+ * name), `entity_id` keeps the raw registry key.
  */
-export type CapitalGainsTaxRow = { entity_id: string, realized_gains: number, realized_losses: number, tax_owed: number, carried_forward_losses: number, };
+export type CapitalGainsTaxRow = { entity_id: string, entity_name: string, realized_gains: number, realized_losses: number, 
+/**
+ * Settled rows: tax actually paid. Pending rows: accrued estimate.
+ */
+tax_owed: number, carried_forward_losses: number, };
 
 /**
  * Phase 57: Capital gains tax summary response.
  */
-export type CapitalGainsTaxSummary = { rows: Array<CapitalGainsTaxRow>, total_tax_collected: number, annual_tax_history: Array<number>, };
+export type CapitalGainsTaxSummary = { 
+/**
+ * Settled per-entity rows for the most recent completed fiscal year —
+ * `Σ rows.tax_owed == total_tax_collected`.
+ */
+rows: Array<CapitalGainsTaxRow>, 
+/**
+ * Current fiscal year's unsettled accruals (estimated tax at the
+ * configured rate — not yet collected).
+ */
+pending_rows: Array<CapitalGainsTaxRow>, 
+/**
+ * Cash actually collected in the last fiscal-year settlement.
+ */
+total_tax_collected: number, annual_tax_history: Array<number>, 
+/**
+ * Fiscal year of each `annual_tax_history` entry (X axis).
+ */
+annual_tax_history_years: Array<number>, 
+/**
+ * The fiscal year `rows` covers.
+ */
+last_settled_year: number | null, 
+/**
+ * The securities CGT rate applied (for the "estimated" pending column).
+ */
+securities_cgt_rate: number, };
 
 /**
  * A chamber snapshot for the Parliament tab.
@@ -735,12 +768,72 @@ ministry_expenditure_breakdown: Array<MinistryExpenditureEntry>, };
 /**
  * Phase 57: Detailed fund view for the fund detail panel.
  */
-export type FundDetail = { fund_id: string, name: string, fund_type: string, nav_per_share: number, total_aum: number, manager_name: string, manager_vip_id: string, manager_trait: string, shares_outstanding: bigint, ytd_return: number, leverage_ratio: number, management_fee: number, performance_fee: number, top_holdings: Array<[string, number]>, portfolio_holdings: Array<[string, bigint, number]>, };
+export type FundDetail = { fund_id: string, name: string, fund_type: string, 
+/**
+ * v4.18 WS4: mandate risk profile label.
+ */
+risk_profile: string, nav_per_share: number, total_aum: number, manager_name: string, manager_vip_id: string, manager_trait: string, shares_outstanding: bigint, ytd_return: number, leverage_ratio: number, management_fee: number, performance_fee: number, 
+/**
+ * Allocation pie data as (display_name, market_value).
+ */
+top_holdings: Array<[string, number]>, 
+/**
+ * Resolved portfolio rows with instrument names.
+ */
+portfolio_holdings: Array<FundHoldingRow>, };
+
+/**
+ * v4.18 WS4: One resolved holding row on the fund detail view — the
+ * engine's instrument id plus its human-readable display name and the
+ * exchange listing code it trades under.
+ */
+export type FundHoldingRow = { 
+/**
+ * Raw instrument/security id (`EQUITY:<id>`, `BOND:<id>`, `mbs:<id>:<p>`,
+ * or a treasury security id for ledger bond holdings).
+ */
+instrument_id: string, 
+/**
+ * Resolved display name (e.g. "Acme Steel (Shares)", "Nova Bank
+ * Covered Bond #2", "Treasury Bond TBOND-2024-003").
+ */
+display_name: string, 
+/**
+ * Exchange listing code — the id the order book trades under (the
+ * exchange has no separate ticker registry).
+ */
+ticker: string | null, 
+/**
+ * Units held (shares / tranche units / face-value lots).
+ */
+quantity: bigint, 
+/**
+ * Quantity-weighted average cost basis per unit.
+ */
+avg_cost: number, 
+/**
+ * Current mark-to-market value of the position.
+ */
+market_value: number, 
+/**
+ * Position weight as a fraction of fund AUM (0–1).
+ */
+weight_pct: number, };
 
 /**
  * Phase 57: Fund row for the investment funds UI.
  */
-export type FundRow = { fund_id: string, name: string, fund_type: string, nav_per_share: number, total_aum: number, manager_name: string, manager_vip_id: string, manager_trait: string, shares_outstanding: bigint, ytd_return: number, top_holdings: Array<[string, number]>, };
+export type FundRow = { fund_id: string, name: string, fund_type: string, 
+/**
+ * v4.18 WS4: mandate risk profile label (Aggressive / Balanced /
+ * Conservative / Index).
+ */
+risk_profile: string, nav_per_share: number, total_aum: number, manager_name: string, manager_vip_id: string, manager_trait: string, shares_outstanding: bigint, ytd_return: number, 
+/**
+ * Top holdings as (display_name, market_value) — resolved instrument
+ * names, never raw `EQUITY:`/`BOND:` ids.
+ */
+top_holdings: Array<[string, number]>, };
 
 /**
  * Phase 42: A single entry in the Central Bank's FX reserves basket.

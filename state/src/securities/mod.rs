@@ -37,7 +37,7 @@ pub use exchange::{
     CircuitBreaker, CommoditySpotMarket, InstrumentType, LiquidityPool, MarketIndex, Order,
     OrderBook, StockExchange, Trade,
 };
-pub use funds::{FundLedger, FundType, InvestmentMandate};
+pub use funds::{FundLedger, FundRiskProfile, FundType, InvestmentMandate};
 pub use knf::{AuditFinding, FreezeReason, HaltReason, TradingHalt, ViolationType, KNF};
 pub use mbs::{MbsTranche, MortgageBackedSecurity, TranchePriority};
 pub use tax_wrappers::{RetirementAccountVariant, TaxAdvantagedAccount};

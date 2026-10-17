@@ -760,6 +760,115 @@ pub fn debit_retail_savings(
     }
 }
 
+/// v4.18 WS4: Resolve a raw instrument_id into a human-readable display
+/// name plus the listing code the exchange actually trades it under.
+///
+/// Resolution rules (all real registry lookups — no fabricated labels):
+/// * `EQUITY:<company_id>` → `"<Company Name> (Shares)"`, ticker = the
+///   company id (that IS the exchange listing code — order books are keyed
+///   by `EQUITY:<id>`).
+/// * `BOND:<bond_id>` → `"<Issuer Name> Covered Bond #<n>"` where `n` is the
+///   bond's ordinal among that issuer's outstanding covered bonds sorted by
+///   maturity then id. Falls back to `"Covered Bond <bond_id>"` when the
+///   issuer is untracked.
+/// * `MBS:<mbs_id>:<priority>` → `"<Originator Bank> MBS — <Priority>
+///   Tranche"`; falls back to `"<mbs_id> <Priority> Tranche"`.
+/// * Bare treasury security ids (`TBILL-*`/`TBOND-*`/`TREASURY-*`, the ids
+///   stored in `FundLedger.bond_holdings`) → `"Treasury Bill <id>"` /
+///   `"Treasury Bond <id>"` via the debt-market registry.
+/// * Anything else → the raw id (never a fabricated label).
+pub fn instrument_display_name(
+    instrument_id: &str,
+    companies: &[Company],
+    covered_bonds: &[CoveredBond],
+    mbs_pool: &[crate::securities::mbs::MortgageBackedSecurity],
+    treasury_securities: &[crate::economy::debt_market::TreasurySecurity],
+) -> (String, Option<String>) {
+    if let Some(company_id) = instrument_id.strip_prefix("EQUITY:") {
+        if let Some(c) = companies.iter().find(|c| c.id == company_id) {
+            return (format!("{} (Shares)", c.name), Some(company_id.to_string()));
+        }
+        return (format!("{} (Shares)", company_id), Some(company_id.to_string()));
+    }
+
+    if let Some(bond_id) = instrument_id.strip_prefix("BOND:") {
+        if let Some(bond) = covered_bonds.iter().find(|b| b.id == bond_id) {
+            let issuer_name = companies
+                .iter()
+                .find(|c| c.id == bond.issuer_id)
+                .map(|c| c.name.clone())
+                .unwrap_or_else(|| bond.issuer_id.clone());
+            // Series ordinal: position among this issuer's bonds ordered by
+            // maturity then id — deterministic across snapshots.
+            let mut issuer_bonds: Vec<&CoveredBond> = covered_bonds
+                .iter()
+                .filter(|b| b.issuer_id == bond.issuer_id)
+                .collect();
+            issuer_bonds.sort_by(|a, b| {
+                a.maturity_turn
+                    .cmp(&b.maturity_turn)
+                    .then_with(|| a.id.cmp(&b.id))
+            });
+            let ordinal = issuer_bonds
+                .iter()
+                .position(|b| b.id == bond_id)
+                .map(|i| i + 1)
+                .unwrap_or(0);
+            let name = if ordinal > 0 {
+                format!("{} Covered Bond #{}", issuer_name, ordinal)
+            } else {
+                format!("{} Covered Bond", issuer_name)
+            };
+            return (name, Some(bond_id.to_string()));
+        }
+        return (format!("Covered Bond {}", bond_id), Some(bond_id.to_string()));
+    }
+
+    // MBS instrument ids are emitted lowercase by `securitize_loans`
+    // (`format!("MBS:{}:{:?}", ...).to_lowercase()`) — accept both cases.
+    let mbs_rest = instrument_id
+        .strip_prefix("MBS:")
+        .or_else(|| instrument_id.strip_prefix("mbs:"));
+    if let Some(rest) = mbs_rest {
+        // Instrument format: "mbs:<mbs_id>:<priority>" (all lowercase).
+        let mut parts = rest.rsplitn(2, ':');
+        let priority_str = parts.next().unwrap_or("");
+        let mbs_id = parts.next().unwrap_or(rest);
+        let mut chars = priority_str.chars();
+        let priority_label = match chars.next() {
+            Some(first) => format!("{}{}", first.to_uppercase(), chars.as_str()),
+            None => "Tranche".to_string(),
+        };
+        let originator = mbs_pool
+            .iter()
+            .find(|m| m.id == mbs_id)
+            .map(|m| m.originator_bank_id.clone())
+            .and_then(|bank_id| {
+                companies
+                    .iter()
+                    .find(|c| c.id == bank_id)
+                    .map(|c| c.name.clone())
+                    .or(Some(bank_id))
+            });
+        let name = match originator {
+            Some(bank_name) => format!("{} MBS — {} Tranche", bank_name, priority_label),
+            None => format!("{} {} Tranche", mbs_id, priority_label),
+        };
+        return (name, Some(instrument_id.to_string()));
+    }
+
+    // Bare treasury security ids (fund bond ledger holdings).
+    if let Some(sec) = treasury_securities.iter().find(|s| s.id == instrument_id) {
+        let label = match sec.security_type {
+            crate::economy::debt_market::TreasurySecurityType::TreasuryBill => "Treasury Bill",
+            crate::economy::debt_market::TreasurySecurityType::TreasuryBond => "Treasury Bond",
+        };
+        return (format!("{} {}", label, sec.id), Some(sec.id.clone()));
+    }
+
+    (instrument_id.to_string(), None)
+}
+
 /// Return a resting BUY order's still-frozen pledge (remaining qty × limit)
 /// to the investor's free cash. No-op for sell orders, retail orders (which
 /// never froze cash — they are backed by savings at execution), and ids

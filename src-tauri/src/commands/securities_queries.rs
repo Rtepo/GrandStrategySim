@@ -1,7 +1,7 @@
 use crate::state::AppState;
 use sim_engine::ui::snapshot::{
-    CapitalGainsTaxRow, CapitalGainsTaxSummary, CommoditySpotRow, FundDetail, FundRow,
-    KnfFindingRow, ListedCompanyDetail, ListedCompanyPageResponse, ListedCompanyRow,
+    CapitalGainsTaxRow, CapitalGainsTaxSummary, CommoditySpotRow, FundDetail, FundHoldingRow,
+    FundRow, KnfFindingRow, ListedCompanyDetail, ListedCompanyPageResponse, ListedCompanyRow,
     MarketIndexSnapshot, SectorIndexSnapshot, StockExchangeResponse, TradeRow,
 };
 
@@ -70,6 +70,131 @@ fn fund_holdings_value(
             .filter(|h| !h.redeemed)
             .map(|h| h.face_value)
             .sum::<f64>()
+}
+
+/// v4.18 WS4: per-unit market value of a portfolio instrument, so the
+/// holdings table can show mark-to-market value and weight, not just raw
+/// share counts.
+fn instrument_market_price(
+    inst: &str,
+    entities: &[sim_engine::entities::Company],
+    country_ref: &sim_engine::state::Country,
+) -> f64 {
+    if let Some(company_id) = inst.strip_prefix("EQUITY:") {
+        entities
+            .iter()
+            .find(|c| c.id == company_id)
+            .map(|c| c.share_price)
+            .unwrap_or(0.0)
+    } else if let Some(bond_id) = inst.strip_prefix("BOND:") {
+        country_ref
+            .covered_bonds_issued
+            .iter()
+            .find(|b| b.id == bond_id)
+            .map(|b| b.principal)
+            .unwrap_or(0.0)
+    } else if inst.starts_with("MBS:") || inst.starts_with("mbs:") {
+        let rest = &inst[4..];
+        let mut parts = rest.rsplitn(2, ':');
+        let priority_str = parts.next().unwrap_or("");
+        let mbs_id = parts.next().unwrap_or(rest);
+        country_ref
+            .mbs_pool
+            .iter()
+            .find(|m| m.id.eq_ignore_ascii_case(mbs_id))
+            .and_then(|mbs| {
+                mbs.tranches
+                    .iter()
+                    .find(|t| format!("{:?}", t.priority).to_lowercase() == priority_str)
+                    .map(|t| t.outstanding_balance)
+            })
+            .unwrap_or(0.0)
+    } else {
+        0.0
+    }
+}
+
+/// v4.18 WS4: wrap the engine resolver — thin adapter so the command layer
+/// doesn't rebuild the country lookup tables on every row.
+fn resolve_instrument(
+    inst: &str,
+    entities: &[sim_engine::entities::Company],
+    country_ref: &sim_engine::state::Country,
+) -> (String, Option<String>) {
+    sim_engine::securities::exchange::instrument_display_name(
+        inst,
+        entities,
+        &country_ref.covered_bonds_issued,
+        &country_ref.mbs_pool,
+        &country_ref.debt_market.outstanding_securities,
+    )
+}
+
+/// v4.18 WS4: pretty-print a PascalCase class key ("FreePeasant" →
+/// "Free Peasant") for CGT entity display names.
+fn prettify_pascal_case(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 8);
+    for (i, ch) in s.chars().enumerate() {
+        if i > 0 && ch.is_uppercase() {
+            out.push(' ');
+        }
+        out.push(ch);
+    }
+    out
+}
+
+/// v4.18 WS4: resolve a CGT entity id to a display name:
+/// * `{region}:{rural|urban}:{Class}` → `"Class — Region (rural)"`
+///   e.g. "Aristocracy — Lower Venedia (rural)".
+/// * company/fund ids → the company `name`.
+/// * VIP ids → the VIP `full_name`.
+/// * `TREASURY*` → "State Treasury".
+/// * anything else → the raw id (never fabricated).
+fn resolve_cgt_entity_name(
+    entity_id: &str,
+    country_ref: &sim_engine::state::Country,
+    entities: &[sim_engine::entities::Company],
+) -> String {
+    // Household-class investor id: {region_id}:{rural|urban}:{ClassKey}
+    if let Some((region_id, is_rural, class_key)) =
+        sim_engine::securities::exchange::parse_retail_investor_id(entity_id)
+    {
+        let region_label = country_ref
+            .regions
+            .iter()
+            .find(|r| r.id == region_id)
+            .map(|r| {
+                if r.display_name.is_empty() {
+                    r.id.clone()
+                } else {
+                    r.display_name.clone()
+                }
+            })
+            .unwrap_or_else(|| region_id.to_string());
+        let domain = if is_rural { "rural" } else { "urban" };
+        return format!(
+            "{} — {} ({})",
+            prettify_pascal_case(class_key),
+            region_label,
+            domain
+        );
+    }
+
+    if entity_id == "TREASURY" || entity_id.starts_with("TREASURY:") {
+        return "State Treasury".to_string();
+    }
+
+    if let Some(c) = entities.iter().find(|c| c.id == entity_id) {
+        return c.name.clone();
+    }
+
+    if let Some(registry) = country_ref.politics.vip_registry.as_ref() {
+        if let Some(vip) = registry.get(entity_id) {
+            return vip.full_name.clone();
+        }
+    }
+
+    entity_id.to_string()
 }
 
 /// Phase 56: Get the full stock exchange snapshot for a country.
@@ -464,16 +589,25 @@ pub async fn get_funds(
                         ("Unknown".to_string(), "".to_string(), "".to_string())
                     };
 
-                // Compute top holdings from portfolio.
+                // v4.18 WS4: top holdings carry RESOLVED display names and
+                // market values — the raw instrument ids stay available via
+                // the detail view's `instrument_id` field.
                 let top_holdings: Vec<(String, f64)> = if let Some(ref acct) = c.brokerage_account {
                     let mut holdings: Vec<(String, f64)> = acct
                         .portfolio
                         .iter()
                         .map(|(inst, lots)| {
                             let qty: u64 = lots.iter().map(|l| l.quantity).sum();
-                            (inst.clone(), qty as f64)
+                            let mv = instrument_market_price(inst, entities, country_ref)
+                                * qty as f64;
+                            (inst.clone(), qty, mv)
                         })
-                        .filter(|(_, qty)| *qty > 0.0)
+                        .filter(|(_, qty, _)| *qty > 0)
+                        .map(|(inst, _qty, mv)| {
+                            let (name, _ticker) =
+                                resolve_instrument(&inst, entities, country_ref);
+                            (name, mv)
+                        })
                         .collect();
                     holdings
                         .sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
@@ -499,6 +633,7 @@ pub async fn get_funds(
                     fund_id: c.id.clone(),
                     name: c.name.clone(),
                     fund_type: fund_type_str.to_string(),
+                    risk_profile: ledger.investment_mandate.risk_profile.label().to_string(),
                     nav_per_share: ledger.nav_per_share,
                     total_aum,
                     manager_name,
@@ -569,7 +704,12 @@ pub async fn get_fund_detail(
                 ("Unknown".to_string(), "".to_string(), "".to_string())
             };
 
-        let portfolio_holdings: Vec<(String, u64, f64)> =
+        // v4.18 WS4: resolved holdings — each row carries the display name
+        // and listing code so the UI never renders raw `EQUITY:`/`BOND:` ids.
+        // Treasury-bond ledger holdings are surfaced too (they are part of
+        // AUM but live in `fund_ledger.bond_holdings`, not the brokerage
+        // portfolio).
+        let mut portfolio_holdings: Vec<FundHoldingRow> =
             if let Some(ref acct) = fund.brokerage_account {
                 acct.portfolio
                     .iter()
@@ -583,19 +723,43 @@ pub async fn get_fund_detail(
                             .map(|l| l.cost_basis * l.quantity as f64)
                             .sum::<f64>()
                             / (qty as f64).max(1.0);
-                        (inst.clone(), qty, avg_cost)
+                        let market_value =
+                            instrument_market_price(inst, entities, country_ref) * qty as f64;
+                        (inst.clone(), qty, avg_cost, market_value)
                     })
-                    .filter(|(_, qty, _)| *qty > 0)
+                    .filter(|(_, qty, _, _)| *qty > 0)
+                    .map(|(inst, qty, avg_cost, market_value)| {
+                        let (display_name, ticker) =
+                            resolve_instrument(&inst, entities, country_ref);
+                        FundHoldingRow {
+                            instrument_id: inst,
+                            display_name,
+                            ticker,
+                            quantity: qty,
+                            avg_cost,
+                            market_value,
+                            weight_pct: 0.0, // filled below once AUM is known
+                        }
+                    })
                     .collect()
             } else {
                 Vec::new()
             };
 
-        let top_holdings: Vec<(String, f64)> = portfolio_holdings
-            .iter()
-            .map(|(inst, qty, _)| (inst.clone(), *qty as f64))
-            .take(10)
-            .collect();
+        // Treasury-bond ledger holdings as resolved rows.
+        for holding in ledger.bond_holdings.iter().filter(|h| !h.redeemed) {
+            let (display_name, ticker) =
+                resolve_instrument(&holding.security_id, entities, country_ref);
+            portfolio_holdings.push(FundHoldingRow {
+                instrument_id: holding.security_id.clone(),
+                display_name,
+                ticker,
+                quantity: 1,
+                avg_cost: holding.purchase_price,
+                market_value: holding.face_value,
+                weight_pct: 0.0,
+            });
+        }
 
         // Real AUM = cash + frozen cash + holdings marked to market (was
         // cash-only, which showed ~0 for fully invested funds and made the
@@ -605,11 +769,25 @@ pub async fn get_fund_detail(
         } else {
             0.0
         };
+        if total_aum > 0.0 {
+            for h in portfolio_holdings.iter_mut() {
+                h.weight_pct = h.market_value / total_aum;
+            }
+        }
+
+        let mut top_holdings: Vec<(String, f64)> = portfolio_holdings
+            .iter()
+            .map(|h| (h.display_name.clone(), h.market_value))
+            .collect();
+        top_holdings
+            .sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        top_holdings.truncate(10);
 
         Ok(Some(FundDetail {
             fund_id: fund.id.clone(),
             name: fund.name.clone(),
             fund_type: fund_type_label(&fund.fund_type).to_string(),
+            risk_profile: ledger.investment_mandate.risk_profile.label().to_string(),
             nav_per_share: ledger.nav_per_share,
             total_aum,
             manager_name,
@@ -732,10 +910,40 @@ pub async fn get_capital_gains_summary(
             .ok_or(format!("Country '{}' not found", country))?;
 
         let cgt = &country_ref.capital_gains_tax;
+        let entities = engine_state
+            .turn_context
+            .entities
+            .get(&country)
+            .map(|e| e.companies.as_slice())
+            .unwrap_or(&[]);
 
+        // v4.18 WS4: the settled table reads the REAL per-entity ledger —
+        // `last_year_settlements` is populated by `settle_year_end` and the
+        // turn loop fills `tax_paid` with the cash actually debited, so the
+        // Tax column sums exactly to `total_tax_collected`.
         let rows: Vec<CapitalGainsTaxRow> = cgt
+            .last_year_settlements
+            .iter()
+            .map(|(entity_id, s)| CapitalGainsTaxRow {
+                entity_id: entity_id.clone(),
+                entity_name: resolve_cgt_entity_name(entity_id, country_ref, entities),
+                realized_gains: s.realized_gains,
+                realized_losses: s.realized_losses,
+                tax_owed: s.tax_paid,
+                carried_forward_losses: s.losses_carried_forward,
+            })
+            .collect();
+
+        // Current fiscal year's unsettled accruals — the tax shown is the
+        // accrued estimate at the configured rate (not yet collected).
+        let pending_rows: Vec<CapitalGainsTaxRow> = cgt
             .accruals
             .iter()
+            .filter(|(_, accrual)| {
+                accrual.realized_gains > 0.0
+                    || accrual.realized_losses > 0.0
+                    || accrual.carried_forward_losses > 0.0
+            })
             .map(|(entity_id, accrual)| {
                 let tax_owed = if accrual.realized_gains > accrual.realized_losses {
                     (accrual.realized_gains - accrual.realized_losses) * cgt.securities_cgt_rate
@@ -745,6 +953,7 @@ pub async fn get_capital_gains_summary(
 
                 CapitalGainsTaxRow {
                     entity_id: entity_id.clone(),
+                    entity_name: resolve_cgt_entity_name(entity_id, country_ref, entities),
                     realized_gains: accrual.realized_gains,
                     realized_losses: accrual.realized_losses,
                     tax_owed,
@@ -755,8 +964,12 @@ pub async fn get_capital_gains_summary(
 
         Ok(CapitalGainsTaxSummary {
             rows,
+            pending_rows,
             total_tax_collected: cgt.tax_collected_this_year,
             annual_tax_history: cgt.annual_tax_history.clone(),
+            annual_tax_history_years: cgt.annual_tax_history_years.clone(),
+            last_settled_year: cgt.last_settled_year,
+            securities_cgt_rate: cgt.securities_cgt_rate,
         })
     })
     .await

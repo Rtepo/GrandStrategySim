@@ -8577,11 +8577,17 @@ fn create_charity_company(
 // PHASE 57: INVESTMENT FUND GENERATION
 // ============================================================================
 
-/// Phase 57: Generate investment funds for a country at world creation.
+/// Phase 57 + v4.18 WS4: Generate investment funds for a country at world
+/// creation.
 ///
 /// # Rules
-/// * Generate 2–5 investment funds per country based on GDP size.
-/// * Assign `FundType` with weighted probabilities (FIO 40%, Mutual 25%, ETF 15%, FIZ 12%, Hedge 8%).
+/// * Generate 5–8 investment funds per country scaled to the size of the
+///   financial sector (licensed bank count + aggregate banking assets
+///   relative to GDP) — a dead two-fund exchange becomes a multi-party book.
+/// * Assign `FundType` with weighted probabilities (FIO 40%, Mutual 25%,
+///   ETF 15%, FIZ 12%, Hedge 8%) and a [`FundRiskProfile`] rotated across
+///   Aggressive / Balanced / Conservative / Index so every country gets a
+///   mixed book (different mandate weights, cash buffers, turnover).
 /// * Create `FundLedger` with initial NAV = 1.0.
 /// * Create `BrokerageAccount` with seed capital from treasury (1M per fund).
 /// * Assign fund manager VIP with traits appropriate to fund type.
@@ -8596,23 +8602,44 @@ pub fn generate_investment_funds(
     use crate::entities::AggregatedStats;
     use crate::io::entity_store::{DiskEntityStore, EntityStore};
     use crate::politics::vip_registry::{assign_core_traits, Vip, VipRoleExtended};
-    use crate::securities::{BrokerageAccount, FundLedger, FundType, InvestmentMandate};
+    use crate::securities::{
+        BrokerageAccount, FundLedger, FundRiskProfile, FundType, InvestmentMandate,
+    };
 
-    // Determine fund count based on GDP (2–5 funds).
+    // v4.18 WS4: measure the financial sector BEFORE spawning funds — the
+    // count scales with the banking system's footprint (bank count plus
+    // aggregate banking assets relative to GDP). Banking-sector companies
+    // live on disk in the sector file; funds are appended to it below.
+    let company_store = DiskEntityStore::<Company>::new(data_dir);
+    let sector_name = sector_json_name(Sector::Banking);
+    let mut existing = company_store
+        .load_sector(&country.name, &sector_name, None)
+        .unwrap_or_default();
+    let licensed_banks: Vec<&Company> = existing
+        .iter()
+        .filter(|c| c.bank_type.is_some() && c.balance_sheet.is_some())
+        .collect();
+    let bank_count = licensed_banks.len();
+    let bank_assets: f64 = licensed_banks
+        .iter()
+        .filter_map(|c| c.balance_sheet.as_ref())
+        .map(|bs| {
+            bs.reserves_at_central_bank
+                + bs.securities.max(0.0)
+                + bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>()
+        })
+        .sum();
+
+    // Financial-sector depth → 5–8 funds. A country with a handful of thin
+    // banks gets 5; a deep banking system gets the full 8.
     let total_gdp: f64 = country
         .regions
         .iter()
         .map(|r| r.gdp_pc * r.population as f64)
         .sum();
-    let fund_count = if total_gdp > 1e12 {
-        5
-    } else if total_gdp > 5e11 {
-        4
-    } else if total_gdp > 1e11 {
-        3
-    } else {
-        2
-    };
+    let fin_depth =
+        bank_count as f64 * 0.25 + (bank_assets / total_gdp.max(1.0)) * 2.0;
+    let fund_count = (5.0 + fin_depth.round()).clamp(5.0, 8.0) as usize;
 
     // Ensure VIP registry exists.
     if country.politics.vip_registry.is_none() {
@@ -8637,6 +8664,23 @@ pub fn generate_investment_funds(
 
     let mut fund_companies: Vec<Company> = Vec::new();
 
+    // v4.18 WS4: rotate risk profiles across the spawned funds so every
+    // country has a genuinely mixed book — index trackers, defensive
+    // conservative funds, balanced funds and aggressive traders — each with
+    // different mandate weights, cash buffers and turnover. A random start
+    // offset keeps the rotation from pinning profile → ordinal.
+    let profile_rotation = [
+        FundRiskProfile::Index,
+        FundRiskProfile::Conservative,
+        FundRiskProfile::Balanced,
+        FundRiskProfile::Aggressive,
+        FundRiskProfile::Balanced,
+        FundRiskProfile::Conservative,
+        FundRiskProfile::Aggressive,
+        FundRiskProfile::Index,
+    ];
+    let profile_offset = rng.gen_range(0..profile_rotation.len());
+
     for i in 0..fund_count {
         // Pick fund type via weighted random.
         let roll: f64 = rng.gen();
@@ -8648,6 +8692,16 @@ pub fn generate_investment_funds(
                 chosen_type = ft.clone();
                 break;
             }
+        }
+
+        // v4.18 WS4: resolve the fund's risk profile — the rotation assigns
+        // one, then the legal fund type pins profiles that are intrinsic to
+        // it (an ETF IS an index tracker; a hedge fund IS aggressive).
+        let mut risk_profile = profile_rotation[(profile_offset + i) % profile_rotation.len()];
+        match chosen_type {
+            FundType::ExchangeTradedFund => risk_profile = FundRiskProfile::Index,
+            FundType::HedgeFund => risk_profile = FundRiskProfile::Aggressive,
+            _ => {}
         }
 
         // Generate fund manager VIP with traits appropriate to fund type.
@@ -8666,6 +8720,13 @@ pub fn generate_investment_funds(
             ),
             FundType::ClosedEndInvestmentFund => (vec!["Ambitious".to_string()], "Closed-End Fund"),
             FundType::OpenEndInvestmentFund => (vec!["Conservative".to_string()], "Open-End Fund"),
+        };
+        // Profile-aware suffix so the book reads like the mandate mix it is.
+        let fund_name_suffix = match risk_profile {
+            FundRiskProfile::Index => "Index Fund",
+            FundRiskProfile::Aggressive => fund_name_suffix,
+            FundRiskProfile::Balanced => fund_name_suffix,
+            FundRiskProfile::Conservative => "Conservative Fund",
         };
 
         let manager_name = crate::politics::names::generate_full_vip(cultural_group, rng);
@@ -8712,12 +8773,37 @@ pub fn generate_investment_funds(
         // numbers). Scaled by average_wage so it's stable at Turn 1 and
         // Turn 1,000. Clamped to what the treasury can actually pay — no
         // phantom credit (Directive 1: treasury_debit == fund_credit).
+        // v4.18 WS4: with 5–8 funds per country (was 2–5) a first-come-
+        // first-served drain can leave tail funds with a zero seed and a
+        // permanently dead book — no cash means no orders. The affordable
+        // pool is therefore spread evenly across the funds still to be
+        // spawned so every fund debuts with real, tradeable cash.
         let avg_wage = country.macro_indicators.average_wage.max(1.0);
         let target_seed = avg_wage * 100.0;
-        let seed_capital = target_seed.min(country.budget.liquid_reserves.max(0.0));
+        let funds_remaining = (fund_count - i) as f64;
+        let affordable_share = country.budget.liquid_reserves.max(0.0) / funds_remaining;
+        let seed_capital = target_seed.min(affordable_share);
         country.budget.liquid_reserves -= seed_capital;
 
-        // Create fund ledger.
+        // Create fund ledger. v4.18 WS4: the mandate carries the fund's
+        // risk profile — equity target, cash buffer, rebalance cadence and
+        // the single-name concentration cap — so `submit_fund_orders`
+        // produces genuinely different order flow per fund.
+        // Conservative mandates restrict the equity universe to defensive
+        // sectors (utilities-like services, staples, health, agriculture,
+        // energy) — the mandate is enforced in `submit_fund_orders`.
+        let conservative_universe = [
+            Sector::PublicServices,
+            Sector::MedicalServices,
+            Sector::Energy,
+            Sector::Agriculture,
+            Sector::LocalServices,
+        ];
+        let allowed_sectors: Vec<Sector> = if risk_profile == FundRiskProfile::Conservative {
+            conservative_universe.to_vec()
+        } else {
+            Vec::new()
+        };
         let ledger = FundLedger {
             nav_per_share: 1.0,
             shares_outstanding: (seed_capital / 1.0) as u64, // 1M shares at NAV 1.0
@@ -8728,7 +8814,15 @@ pub fn generate_investment_funds(
             } else {
                 0.0
             },
-            investment_mandate: InvestmentMandate::default(),
+            investment_mandate: InvestmentMandate {
+                max_position_size: risk_profile.max_position_pct(),
+                allowed_sectors,
+                min_liquidity: risk_profile.cash_buffer_pct(),
+                risk_profile,
+                equity_target_share: risk_profile.equity_target_share(),
+                cash_buffer_pct: risk_profile.cash_buffer_pct(),
+                rebalance_interval_turns: risk_profile.rebalance_interval_turns(),
+            },
             liquidity_provision: BTreeMap::new(),
             unit_holders: {
                 let mut m = BTreeMap::new();
@@ -8738,6 +8832,7 @@ pub fn generate_investment_funds(
             bond_holdings: Vec::new(),
             equity_holdings: BTreeMap::new(),
             fund_manager_vip_id: Some(manager_id.clone()),
+            last_rebalance_turn: 0,
         };
 
         let fund_company = Company {
@@ -8850,13 +8945,9 @@ pub fn generate_investment_funds(
 
     // Phase 61.1: Save fund companies to disk so they persist across game load.
     // Funds are stored in the "banking" sector file alongside bank companies.
+    // v4.18: `existing` was already loaded above (it feeds the financial-
+    // sector sizing pass) — append the new funds to it in place.
     if !fund_companies.is_empty() {
-        let company_store = DiskEntityStore::<Company>::new(data_dir);
-        let sector_name = sector_json_name(Sector::Banking);
-        // Load existing banking companies, append funds, and save back.
-        let mut existing = company_store
-            .load_sector(&country.name, &sector_name, None)
-            .unwrap_or_default();
 
         // Phase 94: Assign primary banks to funds (M0 conservation).
         // Without a primary_bank_id, collect_fund_capital's bank-reserve

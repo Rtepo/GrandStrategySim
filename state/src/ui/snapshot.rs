@@ -2279,6 +2279,9 @@ pub struct FundRow {
     pub fund_id: String,
     pub name: String,
     pub fund_type: String,
+    /// v4.18 WS4: mandate risk profile label (Aggressive / Balanced /
+    /// Conservative / Index).
+    pub risk_profile: String,
     pub nav_per_share: f64,
     pub total_aum: f64,
     pub manager_name: String,
@@ -2286,7 +2289,34 @@ pub struct FundRow {
     pub manager_trait: String,
     pub shares_outstanding: u64,
     pub ytd_return: f64,
+    /// Top holdings as (display_name, market_value) — resolved instrument
+    /// names, never raw `EQUITY:`/`BOND:` ids.
     pub top_holdings: Vec<(String, f64)>,
+}
+
+/// v4.18 WS4: One resolved holding row on the fund detail view — the
+/// engine's instrument id plus its human-readable display name and the
+/// exchange listing code it trades under.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct FundHoldingRow {
+    /// Raw instrument/security id (`EQUITY:<id>`, `BOND:<id>`, `mbs:<id>:<p>`,
+    /// or a treasury security id for ledger bond holdings).
+    pub instrument_id: String,
+    /// Resolved display name (e.g. "Acme Steel (Shares)", "Nova Bank
+    /// Covered Bond #2", "Treasury Bond TBOND-2024-003").
+    pub display_name: String,
+    /// Exchange listing code — the id the order book trades under (the
+    /// exchange has no separate ticker registry).
+    pub ticker: Option<String>,
+    /// Units held (shares / tranche units / face-value lots).
+    pub quantity: u64,
+    /// Quantity-weighted average cost basis per unit.
+    pub avg_cost: f64,
+    /// Current mark-to-market value of the position.
+    pub market_value: f64,
+    /// Position weight as a fraction of fund AUM (0–1).
+    pub weight_pct: f64,
 }
 
 /// Phase 57: Detailed fund view for the fund detail panel.
@@ -2296,6 +2326,8 @@ pub struct FundDetail {
     pub fund_id: String,
     pub name: String,
     pub fund_type: String,
+    /// v4.18 WS4: mandate risk profile label.
+    pub risk_profile: String,
     pub nav_per_share: f64,
     pub total_aum: f64,
     pub manager_name: String,
@@ -2306,8 +2338,10 @@ pub struct FundDetail {
     pub leverage_ratio: f64,
     pub management_fee: f64,
     pub performance_fee: f64,
+    /// Allocation pie data as (display_name, market_value).
     pub top_holdings: Vec<(String, f64)>,
-    pub portfolio_holdings: Vec<(String, u64, f64)>,
+    /// Resolved portfolio rows with instrument names.
+    pub portfolio_holdings: Vec<FundHoldingRow>,
 }
 
 /// Phase 57: KNF audit finding row for the regulatory UI.
@@ -2324,12 +2358,17 @@ pub struct KnfFindingRow {
 }
 
 /// Phase 57: Capital gains tax summary row.
+/// v4.18 WS4: `entity_name` is the resolved human-readable label (company
+/// name, `"Class — Region (rural|urban)"` for household investors, VIP
+/// name), `entity_id` keeps the raw registry key.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct CapitalGainsTaxRow {
     pub entity_id: String,
+    pub entity_name: String,
     pub realized_gains: f64,
     pub realized_losses: f64,
+    /// Settled rows: tax actually paid. Pending rows: accrued estimate.
     pub tax_owed: f64,
     pub carried_forward_losses: f64,
 }
@@ -2338,9 +2377,21 @@ pub struct CapitalGainsTaxRow {
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct CapitalGainsTaxSummary {
+    /// Settled per-entity rows for the most recent completed fiscal year —
+    /// `Σ rows.tax_owed == total_tax_collected`.
     pub rows: Vec<CapitalGainsTaxRow>,
+    /// Current fiscal year's unsettled accruals (estimated tax at the
+    /// configured rate — not yet collected).
+    pub pending_rows: Vec<CapitalGainsTaxRow>,
+    /// Cash actually collected in the last fiscal-year settlement.
     pub total_tax_collected: f64,
     pub annual_tax_history: Vec<f64>,
+    /// Fiscal year of each `annual_tax_history` entry (X axis).
+    pub annual_tax_history_years: Vec<u32>,
+    /// The fiscal year `rows` covers.
+    pub last_settled_year: Option<u32>,
+    /// The securities CGT rate applied (for the "estimated" pending column).
+    pub securities_cgt_rate: f64,
 }
 
 // ============================================================================

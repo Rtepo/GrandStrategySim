@@ -34,6 +34,95 @@ pub enum FundType {
     MutualFund,
 }
 
+/// v4.18 WS4: Investment risk profile of a fund's mandate.
+///
+/// Profiles differentiate how a fund allocates between listed equities and
+/// cash/fixed income, how much cash it must hold back as a buffer, how often
+/// it rebalances its book through the exchange, and how large a single-name
+/// position may grow before it is trimmed. The profile is stored on the
+/// fund's [`InvestmentMandate`] so order flow in `submit_fund_orders`
+/// genuinely differs per fund instead of every fund running one playbook.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum FundRiskProfile {
+    /// High equity share, wide single-name cap, thin cash buffer, frequent
+    /// rebalancing (growth/hedge-style trading).
+    Aggressive,
+    /// The classic balanced mandate — moderate equity share, moderate buffer.
+    #[default]
+    Balanced,
+    /// Low equity share restricted to defensive sectors, thick cash buffer,
+    /// infrequent rebalancing.
+    Conservative,
+    /// Passive index tracker — almost fully invested at market-cap weights,
+    /// tight tracking band.
+    Index,
+}
+
+impl FundRiskProfile {
+    /// Target fraction of AUM held in listed equities.
+    pub fn equity_target_share(&self) -> f64 {
+        match self {
+            FundRiskProfile::Aggressive => 0.80,
+            FundRiskProfile::Balanced => 0.40,
+            FundRiskProfile::Conservative => 0.20,
+            FundRiskProfile::Index => 0.95,
+        }
+    }
+
+    /// Minimum fraction of AUM held back as cash (redeployment buffer).
+    pub fn cash_buffer_pct(&self) -> f64 {
+        match self {
+            FundRiskProfile::Aggressive => 0.02,
+            FundRiskProfile::Balanced => 0.08,
+            FundRiskProfile::Conservative => 0.20,
+            FundRiskProfile::Index => 0.03,
+        }
+    }
+
+    /// Base rebalance cadence in turns (24 turns = 1 year). Trait-driven
+    /// turnover scales this: high-turnover managers rebalance more often.
+    pub fn rebalance_interval_turns(&self) -> u32 {
+        match self {
+            FundRiskProfile::Aggressive => 2,
+            FundRiskProfile::Balanced => 6,
+            FundRiskProfile::Conservative => 12,
+            FundRiskProfile::Index => 4,
+        }
+    }
+
+    /// Maximum fraction of AUM allowed in a single equity name.
+    pub fn max_position_pct(&self) -> f64 {
+        match self {
+            FundRiskProfile::Aggressive => 0.15,
+            FundRiskProfile::Balanced => 0.10,
+            FundRiskProfile::Conservative => 0.06,
+            FundRiskProfile::Index => 0.25,
+        }
+    }
+
+    /// Relative drift band around a target before a rebalance trim fires
+    /// (e.g. 0.10 = trim only when a position exceeds its cap by >10%).
+    /// Index funds track tightly; conservative funds tolerate more drift.
+    pub fn rebalance_band_pct(&self) -> f64 {
+        match self {
+            FundRiskProfile::Aggressive => 0.06,
+            FundRiskProfile::Balanced => 0.10,
+            FundRiskProfile::Conservative => 0.15,
+            FundRiskProfile::Index => 0.04,
+        }
+    }
+
+    /// Human-readable label for UI display.
+    pub fn label(&self) -> &'static str {
+        match self {
+            FundRiskProfile::Aggressive => "Aggressive",
+            FundRiskProfile::Balanced => "Balanced",
+            FundRiskProfile::Conservative => "Conservative",
+            FundRiskProfile::Index => "Index",
+        }
+    }
+}
+
 impl FundType {
     /// R6.4: Returns true if this is a passive/index-tracking fund.
     /// ETFs are passive — they track an index and charge lower fees.
@@ -106,6 +195,13 @@ pub struct FundLedger {
     /// them up into a plain per-instrument share count.
     #[serde(default)]
     pub equity_holdings: BTreeMap<String, u64>,
+
+    /// v4.18 WS4: last turn this fund ran a mandate rebalance. Compared
+    /// against `investment_mandate.rebalance_interval_turns` (scaled by the
+    /// manager's turnover trait) so each profile rebalances on its own
+    /// cadence instead of every fund trading every turn in lockstep.
+    #[serde(default)]
+    pub last_rebalance_turn: u32,
 }
 
 /// Phase 36: A fund's holding of a sovereign/treasury bond.
@@ -150,6 +246,27 @@ pub struct InvestmentMandate {
 
     /// Minimum liquidity requirement.
     pub min_liquidity: f64,
+
+    /// v4.18 WS4: risk profile driving mandate weights, cash buffer and
+    /// rebalance cadence. `Balanced` preserves the pre-v4.18 behaviour.
+    #[serde(default)]
+    pub risk_profile: FundRiskProfile,
+
+    /// v4.18 WS4: per-fund equity allocation target (fraction of AUM).
+    /// `0.0` = unset → falls back to `risk_profile.equity_target_share()`,
+    /// which for the default `Balanced` profile equals the config default.
+    #[serde(default)]
+    pub equity_target_share: f64,
+
+    /// v4.18 WS4: minimum cash buffer (fraction of AUM) the fund holds back
+    /// from deployment. `0.0` → falls back to `risk_profile.cash_buffer_pct()`.
+    #[serde(default)]
+    pub cash_buffer_pct: f64,
+
+    /// v4.18 WS4: rebalance cadence in turns. `0` → falls back to
+    /// `risk_profile.rebalance_interval_turns()`.
+    #[serde(default)]
+    pub rebalance_interval_turns: u32,
 }
 
 /// Result of a fund capital collection for one contributor.
@@ -996,8 +1113,42 @@ pub fn submit_fund_orders(
             }
         };
 
-        // Phase 57: Apply cash reserve preference — hold back minimum cash fraction.
-        let investable_cash = fund_cash * (1.0 - modifiers.cash_reserve_preference.min(1.0));
+        // v4.18 WS4: Resolve this fund's mandate parameters once per turn.
+        // `InvestmentMandate` fields fall back to the risk-profile defaults
+        // when unset (old saves have zeroed mandates → Balanced profile
+        // semantics, which equal the pre-v4.18 config behaviour).
+        let mandate = fund
+            .fund_ledger
+            .as_ref()
+            .map(|l| l.investment_mandate.clone())
+            .unwrap_or_default();
+        let risk_profile = mandate.risk_profile;
+        let fund_equity_target = if mandate.equity_target_share > 0.0 {
+            mandate.equity_target_share.min(1.0)
+        } else {
+            risk_profile.equity_target_share()
+        };
+        let cash_buffer = if mandate.cash_buffer_pct > 0.0 {
+            mandate.cash_buffer_pct.min(1.0)
+        } else {
+            risk_profile.cash_buffer_pct()
+        };
+        let position_cap_pct = if mandate.max_position_size > 0.0 {
+            mandate.max_position_size.min(1.0)
+        } else {
+            risk_profile.max_position_pct()
+        };
+        let rebalance_interval = if mandate.rebalance_interval_turns > 0 {
+            mandate.rebalance_interval_turns
+        } else {
+            risk_profile.rebalance_interval_turns()
+        };
+
+        // Phase 57 + v4.18: Apply cash reserve preference — hold back the
+        // LARGER of the mandate buffer and the trait-driven preference, so a
+        // paranoid conservative manager keeps even more cash sidelined.
+        let investable_cash =
+            fund_cash * (1.0 - cash_buffer.max(modifiers.cash_reserve_preference.min(1.0)));
 
         // Phase 57: Use trait-driven thresholds instead of config-only thresholds.
         // The modifier thresholds are derived from traits via evaluate_market_behavior.
@@ -1060,7 +1211,9 @@ pub fn submit_fund_orders(
                 .map(|b| b.frozen_cash)
                 .unwrap_or(0.0)
             + portfolio_value;
-        let target_equity = aum * config.fund_equity_target_share;
+        // v4.18 WS4: per-mandate equity target (Aggressive 80%, Balanced 40%,
+        // Conservative 20%, Index 95%) instead of one global config share.
+        let target_equity = aum * fund_equity_target;
         let mut remaining_budget =
             (target_equity - equity_value_held).max(0.0).min(investable_cash);
 
@@ -1076,6 +1229,15 @@ pub fn submit_fund_orders(
         let mut ranked: Vec<&EquityCandidate> = equity_candidates
             .iter()
             .filter(|c| {
+                // v4.18 WS4: enforce the fund's sector mandate — a
+                // non-empty `allowed_sectors` restricts the eligible
+                // universe (e.g. Conservative mandates hold only
+                // defensive sectors).
+                if !mandate.allowed_sectors.is_empty()
+                    && !mandate.allowed_sectors.contains(&c.sector)
+                {
+                    return false;
+                }
                 if is_passive {
                     true
                 } else {
@@ -1129,7 +1291,11 @@ pub fn submit_fund_orders(
             let alloc = if is_passive && total_candidate_cap > 0.0 {
                 total_buy_budget * (cand.market_cap / total_candidate_cap)
             } else {
-                remaining_budget.min(investable_cash * modifiers.max_position_pct)
+                // v4.18 WS4: the mandate's single-name cap binds the
+                // trait-driven position size (mandate is the hard legal
+                // constraint, the trait can only tighten it further).
+                remaining_budget
+                    .min(investable_cash * position_cap_pct.min(modifiers.max_position_pct))
             };
             // Buyer willingness cap — the fund pays up to the top of its
             // "not overvalued" band, so crossing asks execute at fair value.
@@ -1230,6 +1396,116 @@ pub fn submit_fund_orders(
             }
             book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
             _asks_placed += 1;
+        }
+
+        // ── v4.18 WS4: Periodic mandate rebalancing ─────────────────────
+        // Each risk profile rebalances on its own cadence (the base
+        // interval is scaled by the manager's turnover trait — a
+        // high-turnover aggressive manager rebalances more often than the
+        // profile baseline). On a rebalance turn the fund sells:
+        //   (a) a pro-rata share of the sleeve excess when the whole equity
+        //       sleeve overshoots the mandate's equity target, and
+        //   (b) any single-name position that has grown past the mandate's
+        //       concentration cap.
+        // Sells go through the REAL order book as limit asks priced at
+        // max(mark, best_bid) — the same convention as the overvalued-exit
+        // rule — so rebalancing produces genuine sell-side flow that other
+        // funds/retail lift, instead of every fund only ever buying.
+        let interval_turns = ((rebalance_interval as f64)
+            / modifiers.turnover_rate.max(0.1))
+        .round()
+        .max(1.0) as u32;
+        let last_rebalance = fund
+            .fund_ledger
+            .as_ref()
+            .map(|l| l.last_rebalance_turn)
+            .unwrap_or(0);
+        let rebalance_due =
+            aum > 0.0 && current_turn.saturating_sub(last_rebalance) >= interval_turns;
+        if rebalance_due {
+            let band = risk_profile.rebalance_band_pct();
+            let position_cap_value = aum * position_cap_pct;
+            // Snapshot held equity positions with current marks (settled
+            // book only — orders submitted this turn are not yet fills).
+            let held_positions: Vec<(String, u64, f64, f64)> = fund
+                .brokerage_account
+                .as_ref()
+                .map(|a| {
+                    a.portfolio
+                        .iter()
+                        .filter(|(inst, _)| inst.starts_with("EQUITY:"))
+                        .filter_map(|(inst, lots)| {
+                            let qty: u64 = lots.iter().map(|l| l.quantity).sum();
+                            if qty == 0 {
+                                return None;
+                            }
+                            let company_id = inst.strip_prefix("EQUITY:")?;
+                            let mark = equity_prices.get(company_id).copied().unwrap_or(0.0);
+                            if mark <= 0.0 {
+                                return None;
+                            }
+                            Some((inst.clone(), qty, mark, mark * qty as f64))
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
+
+            // Sleeve-level excess is sold pro-rata across held names.
+            let sleeve_excess = if equity_value_held > target_equity * (1.0 + band) {
+                equity_value_held - target_equity
+            } else {
+                0.0
+            };
+
+            for (inst, qty, mark, value) in &held_positions {
+                let name_excess = if *value > position_cap_value * (1.0 + band) {
+                    *value - position_cap_value
+                } else {
+                    0.0
+                };
+                let sleeve_share = if sleeve_excess > 0.0 && equity_value_held > 0.0 {
+                    sleeve_excess * (*value / equity_value_held)
+                } else {
+                    0.0
+                };
+                let sell_value = name_excess + sleeve_share;
+                if sell_value <= 0.0 {
+                    continue;
+                }
+                let sell_qty = ((sell_value / *mark) as u64).min(*qty);
+                if sell_qty == 0 {
+                    continue;
+                }
+                let best_bid = exchange
+                    .order_book
+                    .get(inst)
+                    .map(|b| b.best_bid)
+                    .unwrap_or(0.0);
+                let ask_limit = (*mark).max(best_bid);
+                let order = Order::new_sell(
+                    format!("FUND-REBAL-{}-{}", fund_id, inst),
+                    fund_id.clone(),
+                    inst.clone(),
+                    InstrumentType::Equity,
+                    sell_qty,
+                    ask_limit,
+                    current_turn + 3,
+                );
+                let book = exchange.order_book.entry(inst.clone()).or_default();
+                if let Some(pos) = book.asks.iter().position(|(p, _)| *p == ask_limit) {
+                    book.asks[pos].1.push(order);
+                } else {
+                    book.asks.push((ask_limit, vec![order]));
+                    book.asks
+                        .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+                }
+                book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
+                _asks_placed += 1;
+            }
+
+            if let Some(ref mut ledger) = fund.fund_ledger {
+                ledger.last_rebalance_turn = current_turn;
+            }
         }
 
         #[cfg(feature = "diagnostic")]
@@ -1533,14 +1809,24 @@ pub fn try_create_fund_from_vip(
         0
     };
 
-    // Create fund ledger.
+    // Create fund ledger. Dynamically-created funds are VIP-founded hedge
+    // funds — they carry the Aggressive mandate profile (high equity share,
+    // thin cash buffer, frequent rebalancing).
     let ledger = crate::securities::FundLedger {
         nav_per_share: 1.0,
         shares_outstanding: seed_units,
         management_fee: 0.02,
         performance_fee: 0.20,
         leverage_ratio: 2.0, // Hedge funds start with 2x leverage
-        investment_mandate: crate::securities::InvestmentMandate::default(),
+        investment_mandate: crate::securities::InvestmentMandate {
+            max_position_size: FundRiskProfile::Aggressive.max_position_pct(),
+            allowed_sectors: Vec::new(),
+            min_liquidity: FundRiskProfile::Aggressive.cash_buffer_pct(),
+            risk_profile: FundRiskProfile::Aggressive,
+            equity_target_share: FundRiskProfile::Aggressive.equity_target_share(),
+            cash_buffer_pct: FundRiskProfile::Aggressive.cash_buffer_pct(),
+            rebalance_interval_turns: FundRiskProfile::Aggressive.rebalance_interval_turns(),
+        },
         liquidity_provision: std::collections::BTreeMap::new(),
         unit_holders: {
             let mut m = std::collections::BTreeMap::new();
@@ -1550,6 +1836,7 @@ pub fn try_create_fund_from_vip(
         bond_holdings: Vec::new(),
         fund_manager_vip_id: Some(vip.full_name.clone()),
         equity_holdings: std::collections::BTreeMap::new(),
+        last_rebalance_turn: 0,
     };
 
     // Create fund company.

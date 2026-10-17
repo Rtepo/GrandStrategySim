@@ -54,38 +54,47 @@ export function FundsPage() {
       {showCgt && cgtSummary && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Capital Gains Tax Summary</CardTitle>
+            <CardTitle className="text-sm">
+              Capital Gains Tax Summary
+              {cgtSummary.last_settled_year != null && (
+                <span className="text-muted-foreground font-normal"> — fiscal year {cgtSummary.last_settled_year} settled</span>
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
-                <span className="text-muted-foreground text-sm">Total Tax Collected (This Year):</span>
+                <span className="text-muted-foreground text-sm">Total Tax Collected (Last Settlement):</span>
                 <p className="text-xl font-bold">{fmt(cgtSummary.total_tax_collected)}</p>
+                <span className="text-muted-foreground text-xs">Rate: {(cgtSummary.securities_cgt_rate * 100).toFixed(1)}%</span>
               </div>
               <div>
                 <span className="text-muted-foreground text-sm">Annual History:</span>
                 {cgtSummary.annual_tax_history.length > 1 && (
-                  <CgtHistoryChart data={cgtSummary.annual_tax_history} />
+                  <CgtHistoryChart
+                    data={cgtSummary.annual_tax_history}
+                    years={cgtSummary.annual_tax_history_years}
+                  />
                 )}
               </div>
             </div>
             {cgtSummary.rows.length === 0 ? (
-              <TableEmpty colSpan={5} message="No capital gains tax records." />
+              <TableEmpty colSpan={5} message="No capital gains tax settlement yet — the registry settles at fiscal year-end (every 24 turns)." />
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Entity ID</TableHead>
+                    <TableHead>Taxpayer</TableHead>
                     <TableHead className="text-right">Realized Gains</TableHead>
                     <TableHead className="text-right">Realized Losses</TableHead>
-                    <TableHead className="text-right">Tax Owed</TableHead>
+                    <TableHead className="text-right">Tax Paid</TableHead>
                     <TableHead className="text-right">Carried Forward Losses</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {cgtSummary.rows.map((r) => (
                     <TableRow key={r.entity_id}>
-                      <TableCell className="font-mono text-xs">{r.entity_id}</TableCell>
+                      <TableCell className="text-xs" title={r.entity_id}>{r.entity_name}</TableCell>
                       <TableCell className="text-right text-green-600">{fmt(r.realized_gains)}</TableCell>
                       <TableCell className="text-right text-red-600">{fmt(r.realized_losses)}</TableCell>
                       <TableCell className="text-right font-medium">{fmt(r.tax_owed)}</TableCell>
@@ -95,6 +104,35 @@ export function FundsPage() {
                 </TableBody>
               </Table>
             )}
+            {cgtSummary.pending_rows.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-xs font-medium text-muted-foreground mb-2">
+                  Pending accruals — current fiscal year (estimated at {(cgtSummary.securities_cgt_rate * 100).toFixed(0)}% rate, not yet collected)
+                </h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Taxpayer</TableHead>
+                      <TableHead className="text-right">Realized Gains</TableHead>
+                      <TableHead className="text-right">Realized Losses</TableHead>
+                      <TableHead className="text-right">Est. Tax</TableHead>
+                      <TableHead className="text-right">Carried Forward Losses</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {cgtSummary.pending_rows.map((r) => (
+                      <TableRow key={r.entity_id}>
+                        <TableCell className="text-xs" title={r.entity_id}>{r.entity_name}</TableCell>
+                        <TableCell className="text-right text-green-600">{fmt(r.realized_gains)}</TableCell>
+                        <TableCell className="text-right text-red-600">{fmt(r.realized_losses)}</TableCell>
+                        <TableCell className="text-right">{fmt(r.tax_owed)}</TableCell>
+                        <TableCell className="text-right">{fmt(r.carried_forward_losses)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -103,13 +141,14 @@ export function FundsPage() {
         <CardHeader><CardTitle className="text-sm">Investment Funds</CardTitle></CardHeader>
         <CardContent>
           {!funds || funds.length === 0 ? (
-            <TableEmpty colSpan={8} message="No investment funds found." />
+            <TableEmpty colSpan={9} message="No investment funds found." />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Profile</TableHead>
                   <TableHead className="text-right">NAV</TableHead>
                   <TableHead className="text-right">AUM</TableHead>
                   <TableHead>Manager</TableHead>
@@ -127,6 +166,7 @@ export function FundsPage() {
                   >
                     <TableCell className="font-medium">{f.name}</TableCell>
                     <TableCell><Badge variant="outline">{f.fund_type}</Badge></TableCell>
+                    <TableCell><Badge variant="secondary">{f.risk_profile}</Badge></TableCell>
                     <TableCell className="text-right">{fmt(f.nav_per_share)}</TableCell>
                     <TableCell className="text-right">{fmt(f.total_aum)}</TableCell>
                     <TableCell>
@@ -191,6 +231,7 @@ function FundDetailPanel({
       <CardContent>
         <div className="grid grid-cols-4 gap-3 text-sm mb-4">
           <div><span className="text-muted-foreground">Type:</span> {detail.fund_type}</div>
+          <div><span className="text-muted-foreground">Profile:</span> <Badge variant="secondary">{detail.risk_profile}</Badge></div>
           <div><span className="text-muted-foreground">NAV:</span> {fmt(detail.nav_per_share)}</div>
           <div><span className="text-muted-foreground">AUM:</span> {fmt(detail.total_aum)}</div>
           <div><span className="text-muted-foreground">Shares:</span> {num(detail.shares_outstanding)}</div>
@@ -220,14 +261,23 @@ function FundDetailPanel({
                     <TableHead>Instrument</TableHead>
                     <TableHead className="text-right">Quantity</TableHead>
                     <TableHead className="text-right">Avg Cost</TableHead>
+                    <TableHead className="text-right">Value</TableHead>
+                    <TableHead className="text-right">Weight</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {detail.portfolio_holdings.map(([inst, qty, avgCost]) => (
-                    <TableRow key={inst}>
-                      <TableCell className="font-mono text-xs">{inst}</TableCell>
-                      <TableCell className="text-right">{num(qty)}</TableCell>
-                      <TableCell className="text-right">{fmt(avgCost)}</TableCell>
+                  {detail.portfolio_holdings.map((h) => (
+                    <TableRow key={h.instrument_id}>
+                      <TableCell className="text-xs" title={h.instrument_id}>
+                        {h.display_name}
+                        {h.ticker && (
+                          <span className="text-muted-foreground ml-1 font-mono">({h.ticker})</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">{num(h.quantity)}</TableCell>
+                      <TableCell className="text-right">{fmt(h.avg_cost)}</TableCell>
+                      <TableCell className="text-right">{fmt(h.market_value)}</TableCell>
+                      <TableCell className="text-right">{(h.weight_pct * 100).toFixed(1)}%</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -270,17 +320,46 @@ function HoldingsPieChart({ holdings }: { holdings: [string, number][] }) {
   return <div ref={chartRef} style={{ width: "100%", height: "240px" }} />;
 }
 
-function CgtHistoryChart({ data }: { data: number[] }) {
+/** Compact axis formatter — e.g. 1_500_000 → "1.5M" — keeps the Y-axis
+ *  labels inside the chart area instead of clipping ("00,000"). */
+function axisCompact(v: number): string {
+  const abs = Math.abs(v);
+  if (abs >= 1e9) return (v / 1e9).toFixed(1) + "B";
+  if (abs >= 1e6) return (v / 1e6).toFixed(1) + "M";
+  if (abs >= 1e3) return (v / 1e3).toFixed(1) + "k";
+  return String(Math.round(v));
+}
+
+function CgtHistoryChart({ data, years }: { data: number[]; years: number[] }) {
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!chartRef.current || data.length < 2) return;
     const chart = echarts.init(chartRef.current);
+    // X axis = the real fiscal year each bar settles. `years` is parallel
+    // to `data`, right-aligned: years[y] pairs with data[y + data.len -
+    // years.len]. For older saves that predate year bookkeeping the early
+    // bars are left blank rather than fabricating labels.
+    const offset = data.length - years.length;
+    const categories = data.map((_, i) => {
+      const yearIdx = i - offset;
+      return yearIdx >= 0 && yearIdx < years.length ? String(years[yearIdx]) : "";
+    });
     chart.setOption({
-      grid: { left: 40, right: 10, top: 10, bottom: 20 },
-      xAxis: { type: "category", data: data.map((_, i) => String(i)) },
-      yAxis: { type: "value", axisLabel: { fontSize: 10 } },
-      tooltip: { trigger: "axis" },
+      grid: { left: 4, right: 10, top: 10, bottom: 4, containLabel: true },
+      xAxis: {
+        type: "category",
+        data: categories,
+        axisLabel: { fontSize: 9, rotate: categories.length > 8 ? 45 : 0 },
+      },
+      yAxis: {
+        type: "value",
+        axisLabel: { fontSize: 9, formatter: axisCompact },
+      },
+      tooltip: {
+        trigger: "axis",
+        valueFormatter: (v: number) => fmt(v),
+      },
       series: [{
         type: "bar",
         data,
@@ -293,9 +372,9 @@ function CgtHistoryChart({ data }: { data: number[] }) {
       window.removeEventListener("resize", handleResize);
       chart.dispose();
     };
-  }, [data]);
+  }, [data, years]);
 
-  return <div ref={chartRef} style={{ width: "100%", height: "80px" }} />;
+  return <div ref={chartRef} style={{ width: "100%", height: "110px" }} />;
 }
 
 /** Trait behavioral descriptions for tooltips. */

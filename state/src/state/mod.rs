@@ -32,7 +32,9 @@ pub use banking::{
     BankingTurnResult, BfgFund, InterbankMarket, InterestType, Loan, LoanStatus,
     LoanType as BankingLoanType, SobkScheme,
 };
-pub use capital_gains_tax::{CapitalGainsTaxRegistry, EntityGainsAccrual};
+pub use capital_gains_tax::{
+    CapitalGainsTaxRegistry, EntityCgtSettlement, EntityGainsAccrual,
+};
 pub use central_bank::{
     CentralBank, CentralBankIndependence, MonetaryMandate, MonetaryPolicyCouncil, RppInterestRates,
 };

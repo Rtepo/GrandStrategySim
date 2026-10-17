@@ -11821,12 +11821,14 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
             let mut actual_collected = 0.0_f64;
             for (entity_id, tax_amount) in &tax_debits {
                 let mut settled = false;
+                let mut paid_for_entity = 0.0_f64;
                 if let Some(entities_ctx) = entities.get_mut(&country.name) {
                     if let Some(company) = entities_ctx.companies.iter_mut().find(|c| c.id == *entity_id) {
                         if let Some(ref mut acct) = company.brokerage_account {
                             let debit = tax_amount.min(acct.cash.max(0.0));
                             acct.cash -= debit;
                             actual_collected += debit;
+                            paid_for_entity += debit;
                         }
                         settled = true;
                     }
@@ -11845,7 +11847,14 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
                         *tax_amount,
                     );
                     actual_collected += debit;
+                    paid_for_entity += debit;
                 }
+                // v4.18 WS4: real per-entity bookkeeping — the settlement
+                // ledger records what each entity actually paid so the CGT
+                // summary's Tax column reconciles to the collected total.
+                country
+                    .capital_gains_tax
+                    .record_entity_tax_payment(entity_id, paid_for_entity);
             }
             // R4.2: If actual collected < total_tax (insufficient cash), the
             // treasury was over-credited. Reverse the difference to preserve
@@ -11856,12 +11865,13 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
                 country.budget.liquid_reserves -= over_credit;
             }
 
-            // Record the tax collected for UI display.
-            country.capital_gains_tax.tax_collected_this_year = total_tax;
-            country.capital_gains_tax.annual_tax_history.push(total_tax);
-            if country.capital_gains_tax.annual_tax_history.len() > 60 {
-                country.capital_gains_tax.annual_tax_history.remove(0);
-            }
+            // v4.18 WS4: finalize with the ACTUAL collected figure and the
+            // settled fiscal year. `settle_year_end` already pushed the
+            // history entry (the old code pushed a second copy, doubling
+            // every year on the chart) — finalize corrects it in place.
+            country
+                .capital_gains_tax
+                .finalize_year_settlement(actual_collected, year.saturating_sub(1));
 
             // R6.5: Activate dynamic fund creation — once per political year
             // per country, attempt to create a new hedge fund from a wealthy VIP.
