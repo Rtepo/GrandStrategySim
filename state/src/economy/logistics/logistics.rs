@@ -1010,7 +1010,38 @@ pub fn procure_freight_and_split_trades(
                                                     "OD-{}-fr",
                                                     trade.buyer_id
                                                 );
-                                                {
+                                                // v4.18 WS3: settlement
+                                                // overdrafts are credit
+                                                // creation and must clear
+                                                // the same prudential gate
+                                                // as `issue_loan` —
+                                                // reserve-funded form
+                                                // (`creates_deposit=false`)
+                                                // means the bank's OWN
+                                                // excess reserves must cover
+                                                // the disbursement
+                                                // (borrowed Lombard/ELA
+                                                // reserves cannot support
+                                                // credit) and the LDR cap
+                                                // binds on the existing
+                                                // deposit base. A rejected
+                                                // overdraft falls through to
+                                                // the `!booked` fallback —
+                                                // no ledger trace.
+                                                let gate_ok =
+                                                    crate::state::banking::check_credit_prudential_gates(
+                                                        companies[bi2]
+                                                            .balance_sheet
+                                                            .as_ref()
+                                                            .unwrap(),
+                                                        shortfall,
+                                                        country
+                                                            .central_bank
+                                                            .reserve_requirement_ratio,
+                                                        false,
+                                                    )
+                                                    .is_ok();
+                                                if gate_ok {
                                                     let bs = companies[bi2]
                                                         .balance_sheet
                                                         .as_mut()
@@ -1043,19 +1074,29 @@ pub fn procure_freight_and_split_trades(
                                                             .unwrap_or(0.02),
                                                         ..Default::default()
                                                     });
+                                                    let c = &mut companies[b_idx];
+                                                    c.liabilities += shortfall;
+                                                    c.outstanding_loans.push(LoanRef {
+                                                        loan_id,
+                                                        bank_id: bid.clone(),
+                                                        principal: shortfall,
+                                                        outstanding_balance: shortfall,
+                                                        interest_rate: rate,
+                                                        term_turns: 4,
+                                                        status: LoanStatus::Current,
+                                                    });
+                                                    true
+                                                } else {
+                                                    // Prudential gate
+                                                    // rejected the overdraft
+                                                    // — fall through to the
+                                                    // `!booked` fallback so
+                                                    // the buyer's obligation
+                                                    // is still booked (CB
+                                                    // liquidity / trade
+                                                    // credit), not dropped.
+                                                    false
                                                 }
-                                                let c = &mut companies[b_idx];
-                                                c.liabilities += shortfall;
-                                                c.outstanding_loans.push(LoanRef {
-                                                    loan_id,
-                                                    bank_id: bid.clone(),
-                                                    principal: shortfall,
-                                                    outstanding_balance: shortfall,
-                                                    interest_rate: rate,
-                                                    term_turns: 4,
-                                                    status: LoanStatus::Current,
-                                                });
-                                                true
                                             } else {
                                                 false
                                             }

@@ -4873,7 +4873,42 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                                                             store.owner_id,
                                                             task.ctx.turn
                                                         );
-                                                        {
+                                                        // v4.18 WS3: settlement
+                                                        // overdrafts are credit
+                                                        // creation and must clear
+                                                        // the same prudential
+                                                        // gate as `issue_loan`.
+                                                        // `creates_deposit=false`
+                                                        // — the bank's own
+                                                        // excess reserves must
+                                                        // cover the
+                                                        // disbursement
+                                                        // (borrowed Lombard/ELA
+                                                        // reserves cannot
+                                                        // support credit) and
+                                                        // the LDR cap binds on
+                                                        // the existing deposit
+                                                        // base. Rejection falls
+                                                        // through to `!booked`
+                                                        // (procurement credit)
+                                                        // with zero ledger
+                                                        // trace.
+                                                        let gate_ok =
+                                                            crate::state::banking::check_credit_prudential_gates(
+                                                                task.companies
+                                                                    [bi2]
+                                                                    .balance_sheet
+                                                                    .as_ref()
+                                                                    .unwrap(),
+                                                                shortfall,
+                                                                task.ctx
+                                                                    .country
+                                                                    .central_bank
+                                                                    .reserve_requirement_ratio,
+                                                                false,
+                                                            )
+                                                            .is_ok();
+                                                        if gate_ok {
                                                             let bs = task.companies
                                                                 [bi2]
                                                                 .balance_sheet
@@ -4913,23 +4948,34 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                                                                     .unwrap_or(0.02),
                                                                 ..Default::default()
                                                             });
+                                                            let c =
+                                                                &mut task.companies[si];
+                                                            c.liabilities += shortfall;
+                                                            c.outstanding_loans.push(
+                                                                LoanRef {
+                                                                    loan_id,
+                                                                    bank_id: bid.clone(),
+                                                                    principal: shortfall,
+                                                                    outstanding_balance:
+                                                                        shortfall,
+                                                                    interest_rate: rate,
+                                                                    term_turns: 4,
+                                                                    status: LoanStatus::Current,
+                                                                },
+                                                            );
+                                                            true
+                                                        } else {
+                                                            // Prudential gate
+                                                            // rejected the
+                                                            // overdraft — the
+                                                            // `!booked` fallback
+                                                            // books the store's
+                                                            // obligation as
+                                                            // procurement credit
+                                                            // (never negative
+                                                            // cash).
+                                                            false
                                                         }
-                                                        let c =
-                                                            &mut task.companies[si];
-                                                        c.liabilities += shortfall;
-                                                        c.outstanding_loans.push(
-                                                            LoanRef {
-                                                                loan_id,
-                                                                bank_id: bid.clone(),
-                                                                principal: shortfall,
-                                                                outstanding_balance:
-                                                                    shortfall,
-                                                                interest_rate: rate,
-                                                                term_turns: 4,
-                                                                status: LoanStatus::Current,
-                                                            },
-                                                        );
-                                                        true
                                                     } else {
                                                         false
                                                     }
@@ -9099,24 +9145,30 @@ tasks.par_iter_mut().for_each(|task| {
                 // The local_order_book is never submitted to the global market
                 // (it is dropped at the end of this closure), so the encumbered
                 // cash must be returned to prevent M0 destruction (Directive 1).
-                // Also remove B2B actions from spending_actions so the Phase B
-                // post-clearing loop does not double-return the same encumbrance.
+                // v4.18 WS3: Refund ONLY encumbrances not already reconciled by
+                // the pass-1 post-clearing (`encumbrance_returned == false`).
+                // The old code returned EVERY recorded B2B encumbrance again —
+                // pass-1 orders had already settled against the real order
+                // book, so the double return drove `spent_cash` negative
+                // (production UI: Defense −41.03M, Internal Affairs −45.25M)
+                // and minted ministry_cash the sellers had already received.
+                // Flag each returned action instead of deleting it, preserving
+                // the spending log; the Phase B loop skips flagged actions.
                 for ministry in &mut config.ministries {
                     let mut b2b_return = 0.0_f64;
-                    let mut _b2b_count = 0;
-                    for action in &ministry.spending_actions {
-                        if let crate::politics::ministries::MinistrySpendingAction::B2BProcurementOrder { quantity, limit_price, .. } = action {
-                            b2b_return += quantity * limit_price;
-                            _b2b_count += 1;
+                    for action in &mut ministry.spending_actions {
+                        if let crate::politics::ministries::MinistrySpendingAction::B2BProcurementOrder { quantity, limit_price, encumbrance_returned, .. } = action {
+                            if !*encumbrance_returned {
+                                b2b_return += *quantity * *limit_price;
+                                *encumbrance_returned = true;
+                            }
                         }
                     }
                     if b2b_return > 0.0 {
                         ministry.ministry_cash += b2b_return;
-                        ministry.spent_cash -= b2b_return;
-                        // Remove B2B actions to prevent double-return in Phase B.
-                        ministry.spending_actions.retain(|a| {
-                            !matches!(a, crate::politics::ministries::MinistrySpendingAction::B2BProcurementOrder { .. })
-                        });
+                        // `spent_cash` records real outflows — a refund can
+                        // shrink it toward zero but never below zero.
+                        ministry.spent_cash = (ministry.spent_cash - b2b_return).max(0.0);
                     }
                 }
             }
@@ -9163,16 +9215,23 @@ tasks.par_iter_mut().for_each(|task| {
                 // The placeholder order_book is never submitted to the global
                 // market, so the encumbered cash must be returned to prevent
                 // M0 destruction (Directive 1: closed-loop).
+                // v4.18 WS3: Only encumbrances not already reconciled
+                // (`encumbrance_returned == false`) are returned here — the
+                // ALLOC#2 loop above flags each action it returns, so this
+                // pass cannot double-refund (and cannot drive spent_cash < 0).
                 for ministry in &mut config.ministries {
                     let mut b2b_return = 0.0_f64;
-                    for action in &ministry.spending_actions {
-                        if let crate::politics::ministries::MinistrySpendingAction::B2BProcurementOrder { quantity, limit_price, .. } = action {
-                            b2b_return += quantity * limit_price;
+                    for action in &mut ministry.spending_actions {
+                        if let crate::politics::ministries::MinistrySpendingAction::B2BProcurementOrder { quantity, limit_price, encumbrance_returned, .. } = action {
+                            if !*encumbrance_returned {
+                                b2b_return += *quantity * *limit_price;
+                                *encumbrance_returned = true;
+                            }
                         }
                     }
                     if b2b_return > 0.0 {
                         ministry.ministry_cash += b2b_return;
-                        ministry.spent_cash -= b2b_return;
+                        ministry.spent_cash = (ministry.spent_cash - b2b_return).max(0.0);
                     }
                 }
             }

@@ -1501,6 +1501,10 @@ pub fn default_production_methods() -> HashMap<String, BuildingMethods> {
     registry.insert("local_services".to_string(), local_services_methods());
     registry.insert("banking".to_string(), banking_methods());
     registry.insert(
+        "export_services".to_string(),
+        export_services_methods(),
+    );
+    registry.insert(
         "maintenance_workshops".to_string(),
         maintenance_workshops_methods(),
     );
@@ -11071,6 +11075,118 @@ fn banking_methods() -> BuildingMethods {
         ),
     );
     // NOTE: Production slot only (see local_services_methods).
+    m
+}
+
+// === EXPORT SERVICES (v4.18 WS3) ===
+// The export-services sector (freight forwarding, customs brokerage, export
+// logistics) produces `FreightCapacity` — matching
+// `Sector::ExportServices::primary_commodities()`. Its buildings participate
+// in the paid freight market on equal footing with TransportLogistics:
+// `find_freight_producer`/`accrue_freight_revenue` in economy/logistics are
+// commodity-keyed, not sector-keyed, so any company holding FreightCapacity
+// inventory earns real settlement revenue from deliveries (including export
+// legs). Without a registered method the sector's buildings resolved to the
+// empty deterministic fallback — no output, no revenue, no viable labor
+// demand — which is why ExportServices flatlined at ~100 FTE.
+fn export_services_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    // Bonded warehousing + horse cartage to the border/port — the 19th-c.
+    // customs broker. Draft-animal based so a 1880 cold-start can run it.
+    m.insert(
+        MethodSlot::Production,
+        "Bonded Warehouse & Cartage".into(),
+        pm(
+            1880,
+            None,
+            0.15,
+            0.30,
+            0.55,
+            1.0,
+            &[
+                (Commodity::Fodder, 5.0),
+                (Commodity::DraftAnimals, 3.0),
+                (Commodity::Paper, 4.0),
+            ],
+            &[(Commodity::FreightCapacity, 8.0)],
+        ),
+    );
+    // Railway freight agency — steam-era forwarding desks at rail heads.
+    m.insert(
+        MethodSlot::Production,
+        "Railway Freight Agency".into(),
+        pm(
+            1885,
+            Some("steam_002"),
+            0.20,
+            0.35,
+            0.45,
+            1.8,
+            &[
+                (Commodity::Fuels, 8.0),
+                (Commodity::Steel, 3.0),
+                (Commodity::Paper, 3.0),
+            ],
+            &[(Commodity::FreightCapacity, 30.0)],
+        ),
+    );
+    // Motor freight export depot — truck-era cross-border haulage.
+    m.insert(
+        MethodSlot::Production,
+        "Motor Freight Export Depot".into(),
+        pm(
+            1930,
+            Some("auto_002"),
+            0.25,
+            0.40,
+            0.35,
+            2.8,
+            &[
+                (Commodity::Fuels, 10.0),
+                (Commodity::MechanicalComponents, 3.0),
+                (Commodity::Paper, 2.0),
+            ],
+            &[(Commodity::FreightCapacity, 70.0)],
+        ),
+    );
+    // Container export terminal — crane/berth productivity leap.
+    m.insert(
+        MethodSlot::Production,
+        "Container Export Terminal".into(),
+        pm(
+            1960,
+            Some("auto3_002"),
+            0.30,
+            0.40,
+            0.30,
+            4.5,
+            &[
+                (Commodity::Fuels, 12.0),
+                (Commodity::Steel, 6.0),
+                (Commodity::Energy, 6.0),
+            ],
+            &[(Commodity::FreightCapacity, 140.0)],
+        ),
+    );
+    // Integrated export logistics — IT-coordinated supply chains.
+    m.insert(
+        MethodSlot::Production,
+        "Integrated Export Logistics".into(),
+        pm(
+            1990,
+            Some("advman_002"),
+            0.35,
+            0.40,
+            0.25,
+            7.0,
+            &[
+                (Commodity::Fuels, 8.0),
+                (Commodity::Software, 4.0),
+                (Commodity::ElectronicComponents, 4.0),
+            ],
+            &[(Commodity::FreightCapacity, 220.0)],
+        ),
+    );
     m
 }
 

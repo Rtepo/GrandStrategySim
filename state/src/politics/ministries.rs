@@ -369,6 +369,16 @@ pub enum MinistrySpendingAction {
         quantity: f64,
         /// Maximum price willing to pay.
         limit_price: f64,
+        /// v4.18 WS3: `true` once the submission-time encumbrance has been
+        /// reconciled (unfilled refund and/or price-difference refund, or the
+        /// placeholder-book full return). `spent_cash` tracks REAL outflows;
+        /// refunding an already-reconciled encumbrance a second time (e.g.
+        /// pass-1 orders re-refunded by the ALLOC#2 placeholder phase) drove
+        /// the metric negative in production (−41M Defense, −45M Internal
+        /// Affairs) AND minted `ministry_cash` the sellers had already
+        /// received. Every refund path MUST check and set this flag.
+        #[serde(default)]
+        encumbrance_returned: bool,
     },
     /// Cash subsidy to a specific company (direct transfer, not B2B).
     Subsidy {
@@ -532,17 +542,49 @@ pub fn form_government(
     let mut ministries: Vec<Ministry> = Vec::new();
     let mut competency_idx = 0;
 
+    // v4.18 WS3: Canonical PM party. `build_coalition` returns the election
+    // winner in `ruling_party` and only the PARTNERS in `coalition` — so the
+    // old `coalition.first()` was doubly wrong: `None` for majority winners
+    // (stored "" → random technocrat names on the reserved seats) and the
+    // JUNIOR PARTNER for coalition governments. The cabinet's own record
+    // then disagreed with the PM shown in the header (production: header
+    // "Paolo Ricci", VIP/cabinet "Fernando Mancini"). The party that heads
+    // the cabinet is the election winner — `ruling_party`; the coalition
+    // list is only a last-ditch fallback for legacy states.
+    let pm_party = if !country.politics.ruling_party.is_empty() {
+        country.politics.ruling_party.clone()
+    } else {
+        coalition.first().cloned().unwrap_or_default()
+    };
+
     // Phase 49: Track which parties have already had their leader used as a minister.
     // Initialize BEFORE PM reserved ministries so the PM's party is tracked.
     let mut leader_used: std::collections::HashSet<String> = std::collections::HashSet::new();
-    if let Some(pm_party) = coalition.first() {
-        leader_used.insert(pm_party.clone());
-    }
+    leader_used.insert(pm_party.clone());
 
     // PM ministries (reserved competencies)
-    for comp in &pm_reserved {
-        let pm_party = coalition.first().cloned().unwrap_or_default();
-        let minister_name = resolve_minister_name(active_parties, &pm_party, cg);
+    // v4.18 WS3: One person, one seat. The party leader heads the FIRST
+    // reserved portfolio (Treasury) — the canonical PM — while the second
+    // reserved portfolio (Defense/InternalSecurity) goes to a DISTINCT
+    // cabinet member. The old loop cloned the leader's name onto every
+    // reserved seat, so "Pablo Mancini" held Treasury AND Defense with two
+    // independently-generated ages in the VIP table.
+    let mut pm_reserved_rng = crate::engine::seeded_rng::thread_rng();
+    for (reserved_idx, comp) in pm_reserved.iter().enumerate() {
+        let minister_name = if reserved_idx == 0 {
+            let name = resolve_minister_name(active_parties, &pm_party, cg);
+            if !name.is_empty() {
+                used_names.insert(name.clone());
+            }
+            name
+        } else {
+            crate::politics::names::generate_unique_vip(
+                cg,
+                &mut pm_reserved_rng,
+                &mut *used_names,
+            )
+            .full_name
+        };
         ministries.push(Ministry {
             id: format!("MIN-{:03}", ministries.len() + 1),
             name: competency_display_name(*comp),
@@ -605,7 +647,8 @@ pub fn form_government(
     } else {
         // Single-party government: PM gets all portfolios, but each ministry
         // gets a UNIQUE minister name (Phase 37 fix ÔÇö was cloning PM name for all).
-        let pm_party = coalition.first().cloned().unwrap_or_default();
+        // v4.18 WS3: reuse the canonical pm_party resolved above — an empty
+        // coalition means the majority winner (ruling_party) heads the cabinet.
         let pm_name = resolve_minister_name(active_parties, &pm_party, cg);
         let cultural_group = cg;
         let mut rng = crate::engine::seeded_rng::thread_rng();
@@ -675,7 +718,9 @@ pub fn form_government(
     MinistryConfig {
         ministries,
         formation_turn: current_turn,
-        pm_party: coalition.first().cloned().unwrap_or_default(),
+        // v4.18 WS3: the cabinet's canonical PM party — resolved above with
+        // the ruling_party fallback, never "" while a government exists.
+        pm_party,
     }
 }
 
@@ -947,6 +992,40 @@ pub fn sum_ministry_allocations(config: &Option<MinistryConfig>) -> f64 {
         .unwrap_or(0.0)
 }
 
+/// v4.18 WS3: Integrator/crucible helper — a ministry's recorded spend is
+/// always a real outflow total and can never be negative. Every mutation
+/// path now floors `spent_cash` at zero; this accessor lets audits assert
+/// the invariant (and read a clean value) in one place.
+pub fn ministry_spent(ministry: &Ministry) -> f64 {
+    ministry.spent_cash.max(0.0)
+}
+
+/// v4.18 WS3: Single source of truth for "which party heads the cabinet".
+///
+/// The Prime Minister is the leader of `ruling_party` — the election winner
+/// written by `build_coalition`, which is also what `form_government`
+/// records into `ministry_config.pm_party`. `ruling_party` is preferred
+/// because it is updated FIRST in the election pipeline (parliament VIPs
+/// are rebuilt before `form_government` re-writes the ministry config), so
+/// it can never be a stale outgoing-cabinet record. `ministry_config.pm_party`
+/// remains as a fallback for states where `ruling_party` is empty.
+///
+/// Every consumer — the PM header in `ui/snapshot.rs`, the PM row in
+/// `parliament.rs::build_vips`, and minister-VIP registration — MUST go
+/// through this accessor so the displayed PM can never disagree with the
+/// cabinet's own record.
+pub fn canonical_pm_party_id(politics: &crate::politics::system::Politics) -> &str {
+    if !politics.ruling_party.is_empty() {
+        return politics.ruling_party.as_str();
+    }
+    politics
+        .ministry_config
+        .as_ref()
+        .map(|c| c.pm_party.as_str())
+        .filter(|p| !p.is_empty())
+        .unwrap_or("")
+}
+
 // ============================================================================
 // MINISTER AI ÔÇö PHASE A: PRE-CLEARING STRATEGIES
 // ============================================================================
@@ -1066,6 +1145,7 @@ fn execute_competency_spending_with_parties(
                                 commodity,
                                 quantity,
                                 limit_price,
+                                encumbrance_returned: false,
                             },
                         );
                         order_book.bids.entry(commodity).or_default().push(
@@ -1333,6 +1413,7 @@ fn execute_competency_spending(
                                 commodity,
                                 quantity,
                                 limit_price,
+                                encumbrance_returned: false,
                             },
                         );
                         // Submit bid to order book
@@ -1519,6 +1600,7 @@ fn execute_competency_spending(
                                 commodity,
                                 quantity,
                                 limit_price,
+                                encumbrance_returned: false,
                             },
                         );
                         order_book.bids.entry(commodity).or_default().push(
@@ -1588,8 +1670,14 @@ fn execute_competency_spending(
 ///
 /// # Rules
 /// * Unfilled bid quantities are refunded at the original limit price.
-/// * Refunds increase `ministry.allocated_cash` (unspent cash returns).
-/// * `ministry.spent_cash` is reduced by the refund amount.
+/// * Refunds increase `ministry.ministry_cash` (unspent cash returns).
+/// * `ministry.spent_cash` is reduced by the refund amount, but can never
+///   go below zero — it records REAL outflows this turn, not net
+///   encumbrance. Once every bid/trade is reconciled, each
+///   `B2BProcurementOrder` action is flagged `encumbrance_returned` so the
+///   later placeholder-phase refund loops cannot return the same
+///   encumbrance a second time (which produced negative "SPENT" values —
+///   Defense −41.03M, Internal Affairs −45.25M — in production).
 pub fn process_minister_post_clearing(
     ministry: &mut Ministry,
     order_book: &OrderBook,
@@ -1626,6 +1714,22 @@ pub fn process_minister_post_clearing(
             }
         }
     }
+
+    // v4.18 WS3: Every bid/trade for this ministry has now been reconciled,
+    // so each recorded procurement encumbrance is fully returned. Flag the
+    // actions so the ALLOC#2 placeholder refund loops skip them — they were
+    // settled against the REAL order book here. `spent_cash` is floored at
+    // zero: it measures outflows and cannot represent "negative spending".
+    for action in &mut ministry.spending_actions {
+        if let MinistrySpendingAction::B2BProcurementOrder {
+            encumbrance_returned,
+            ..
+        } = action
+        {
+            *encumbrance_returned = true;
+        }
+    }
+    ministry.spent_cash = ministry.spent_cash.max(0.0);
 }
 
 #[cfg(test)]

@@ -4412,7 +4412,11 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
                 .ministries
                 .iter()
                 .fold((0.0, 0.0, 0.0), |(a, s, c), m| {
-                    (a + m.allocated_cash, s + m.spent_cash, c + m.ministry_cash)
+                    (
+                        a + m.allocated_cash,
+                        s + crate::politics::ministries::ministry_spent(m),
+                        c + m.ministry_cash,
+                    )
                 })
         } else {
             (0.0, 0.0, 0.0)
@@ -4670,7 +4674,10 @@ fn build_ministry_expenditure_breakdown(country: &Country) -> Vec<MinistryExpend
                 .strip_prefix("Ministry of ")
                 .unwrap_or(&m.name)
                 .to_string();
-            (category, m.spent_cash)
+            // v4.18 WS3: read through `ministry_spent` — the floored
+            // accessor — so the Finance tab can never show a negative
+            // spend figure even if a refund path drifts the raw field.
+            (category, crate::politics::ministries::ministry_spent(m))
         })
         .collect();
 
@@ -4706,15 +4713,20 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
         "(vacant)".to_string()
     };
 
-    // PM from ruling party leader.
-    let ruling_party = politics.active_parties.get(&politics.ruling_party);
+    // PM from the canonical cabinet party — v4.18 WS3: resolve through
+    // `canonical_pm_party_id` (same accessor `form_government` and
+    // `parliament::build_vips` use) so the header PM can never disagree with
+    // the cabinet record or the Key VIPs PrimeMinister row (production:
+    // header "Paolo Ricci" vs VIP "Fernando Mancini").
+    let canonical_pm_party = crate::politics::ministries::canonical_pm_party_id(politics);
+    let ruling_party = politics.active_parties.get(canonical_pm_party);
     let pm_name = ruling_party
         .map(|p| {
             if !p.leader.name.is_empty() {
                 p.leader.name.clone()
             } else {
                 // Phase 34: Fallback to party name instead of "(unnamed)".
-                format!("Leader ({})", politics.ruling_party)
+                format!("Leader ({})", canonical_pm_party)
             }
         })
         .unwrap_or_else(|| "(vacant)".to_string());
@@ -4772,7 +4784,9 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
                     ideology,
                     coordinates: minister_coords,
                     allocated_cash: m.allocated_cash,
-                    spent_cash: m.spent_cash,
+                    // v4.18 WS3: floored accessor — `SPENT` is a real
+                    // outflow total and can never render negative.
+                    spent_cash: crate::politics::ministries::ministry_spent(m),
                     ministry_cash: m.ministry_cash,
                 }
             })
@@ -4799,7 +4813,8 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
         head_of_state_name,
         head_of_state_role: format!("{:?}", politics.government_form),
         pm_name,
-        pm_party: politics.ruling_party.clone(),
+        // v4.18 WS3: report the canonical PM party (same source as pm_name).
+        pm_party: canonical_pm_party.to_string(),
         pm_ideology,
         coordinates: pm_coordinates,
         cabinet,
