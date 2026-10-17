@@ -191,6 +191,7 @@ impl PropertyDeveloper {
             progress: 0.0,
             on_hold: false,
             consecutive_hold_turns: 0,
+            work_complete: false,
             hold_reason: None,
             investor_id: String::new(),
             main_contractor_id: String::new(),

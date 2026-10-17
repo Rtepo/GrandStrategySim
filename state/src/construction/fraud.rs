@@ -266,6 +266,7 @@ mod tests {
             progress: 0.0,
             on_hold: false,
             consecutive_hold_turns: 0,
+            work_complete: false,
             hold_reason: None,
             investor_id: "inv1".to_string(),
             main_contractor_id: "c1".to_string(),

@@ -670,6 +670,7 @@ pub fn award_tender(
         progress: 0.0,
         on_hold: false,
         consecutive_hold_turns: 0,
+        work_complete: false,
         hold_reason: None,
         investor_id: tender.investor_id.clone(),
         main_contractor_id: contractor_id.clone(),

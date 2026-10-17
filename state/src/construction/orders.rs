@@ -276,14 +276,44 @@ pub fn submit_construction_b2b_orders(
             priced.push((*commodity, *remaining_needed, limit_price));
             total_want += *remaining_needed * limit_price;
         }
-        let fill_scale = if total_want > max_encumber && total_want > 0.0 {
-            max_encumber / total_want
+        // v4.18 WS2: last-mile exception. The proportional scale-down
+        // protects the shared encumbrance budget for bulk wants, but it
+        // must not shave the final units of a nearly-complete line —
+        // bidding `remaining × s` every turn converges on `required`
+        // asymptotically and never lets a site finish (observed: every BOM
+        // line parked ~2% short for 50+ turns, zero completions).
+        //
+        // Lines whose FULL residual encumbrance is a small share of the
+        // budget are bid in full and funded FIRST (a site near completion
+        // is closest to its next tranche release — the contractor's own
+        // cash-flow incentive); bulk wants then split the remaining budget
+        // proportionally, preserving the anti-tail-starvation intent.
+        let last_mile_cost = (max_encumber * 0.05).max(0.0);
+        let (tail, bulk): (Vec<(Commodity, f64, f64)>, Vec<(Commodity, f64, f64)>) =
+            priced
+                .into_iter()
+                .partition(|&(_, qty, price)| qty * price <= last_mile_cost);
+        let tail_cost: f64 = tail.iter().map(|&(_, q, p)| q * p).sum();
+        let bulk_budget = (max_encumber - tail_cost.min(max_encumber)).max(0.0);
+        let bulk_want: f64 = bulk.iter().map(|&(_, q, p)| q * p).sum();
+        let fill_scale = if bulk_want > bulk_budget && bulk_want > 0.0 {
+            bulk_budget / bulk_want
         } else {
             1.0
         };
 
-        for (commodity, remaining_needed, limit_price) in priced {
-            let bid_qty = remaining_needed * fill_scale;
+        // Tail residuals first (bounded by the cumulative-encumbrance
+        // guard below), then scaled bulk wants.
+        let ordered = tail
+            .into_iter()
+            .map(|(c, q, p)| (c, q, p, false))
+            .chain(bulk.into_iter().map(|(c, q, p)| (c, q, p, true)));
+        for (commodity, remaining_needed, limit_price, scaled) in ordered {
+            let bid_qty = if scaled {
+                remaining_needed * fill_scale
+            } else {
+                remaining_needed
+            };
             if bid_qty <= 0.0 {
                 continue;
             }
@@ -552,6 +582,44 @@ pub fn advance_construction_projects(
             Some(p) => p,
             None => continue,
         };
+
+        // v4.18 WS2: a physically-complete project lingers only as the
+        // contractor's receivable claim — the completion tranche may have
+        // deferred on investor cash. Clear it once every tranche has
+        // settled or the contractor no longer exists to collect. The
+        // escrow/commitment remainder goes back to the investor at close.
+        if project.work_complete {
+            let contractor_gone = !project.main_contractor_id.is_empty()
+                && !companies.iter().any(|c| c.id == project.main_contractor_id);
+            // A liquidated corporate investor can never fund the cash leg —
+            // the claim is unpayable bad debt; close the record rather than
+            // let the site linger as a permanent zombie. STATE investors are
+            // the Treasury itself and cannot disappear.
+            let is_state = project.investor_id.starts_with("STATE:");
+            let investor_gone = !is_state
+                && !project.investor_id.is_empty()
+                && !companies.iter().any(|c| c.id == project.investor_id);
+            if project.tranches.is_empty()
+                || project.tranches.iter().all(|t| t.released)
+                || contractor_gone
+                || investor_gone
+            {
+                let escrow_left =
+                    (project.investor_cash_debited - project.tranches_paid).max(0.0);
+                let commitment_release =
+                    (project.investor_capital_committed - project.tranches_paid).max(0.0);
+                let investor_id = project.investor_id.clone();
+                building.active_project = None;
+                refund_unspent_escrow(
+                    &investor_id,
+                    escrow_left,
+                    commitment_release,
+                    companies,
+                    country,
+                );
+            }
+            continue;
+        }
 
         // Phase 3 fix (C5): Apply weather productivity multiplier.
         // Severe weather (storms, floods, frost) reduces construction
@@ -856,6 +924,21 @@ pub fn advance_construction_projects(
             let project_type = project.project_type;
             let cap_increase = project.target_capacity_increase;
             let capital_increase = project.target_capital_increase;
+            let building_id = building.id.clone();
+            let owner_id = building.owner_id.clone();
+            // v4.18 WS2: release every due tranche — including the final
+            // `trigger_progress == 1.0` completion tranche — BEFORE the
+            // project is cleared and before the escrow refund is computed.
+            // The post-advance `release_construction_tranches` sweep can
+            // never see this tranche: `active_project` is `None` by then.
+            // Releasing here pays the contractor the completion milestone
+            // through the real escrow+cash legs, and the refund below then
+            // returns only what is genuinely unspent.
+            // Recompute progress first: `is_complete()` reads it live, so an
+            // edge case (e.g. an empty-BOM project) may have a stale stored
+            // value below the final tranche's trigger.
+            project.progress = project.compute_progress();
+            release_due_tranches(project, &building_id, companies, country);
             // v4.17: unspent escrow (contract priced below the encumbered
             // estimate) must go back to the investor on completion —
             // previously it stayed debited in `debit_cash`/Treasury limbo
@@ -865,8 +948,16 @@ pub fn advance_construction_projects(
             let refund_investor = project.investor_id.clone();
             let refund_commitment =
                 (project.investor_capital_committed - project.tranches_paid).max(0.0);
-            let building_id = building.id.clone();
-            let owner_id = building.owner_id.clone();
+            // v4.18 WS2: physical work is finished — mark it once so this
+            // block cannot re-fire (capacity/capital are one-shot credits).
+            // If every tranche settled, close out now. If the completion
+            // tranche deferred on investor cash, the record stays attached
+            // to `active_project` as the contractor's open receivable: the
+            // tranche sweep retries each turn and the `work_complete` branch
+            // above clears it on settlement.
+            project.work_complete = true;
+            let all_settled = project.tranches.is_empty()
+                || project.tranches.iter().all(|t| t.released);
 
             // Phase 23B: Transport network projects install a NetworkLink
             // instead of adding building capacity.
@@ -893,14 +984,18 @@ pub fn advance_construction_projects(
                     "CONST_DBG[COMPLETE]: project={} site={} contractor={} type={:?} capacity=+0 escrow_refund={:.0}",
                     project_id, building_id, contractor_id, project_type, completion_escrow_left
                 );
-                building.active_project = None;
-                refund_unspent_escrow(
-                    &refund_investor,
-                    completion_escrow_left,
-                    refund_commitment,
-                    companies,
-                    country,
-                );
+                // v4.18 WS2: close out only when every tranche settled —
+                // otherwise the record stays as the contractor's claim.
+                if all_settled {
+                    building.active_project = None;
+                    refund_unspent_escrow(
+                        &refund_investor,
+                        completion_escrow_left,
+                        refund_commitment,
+                        companies,
+                        country,
+                    );
+                }
                 continue;
             }
 
@@ -930,14 +1025,19 @@ pub fn advance_construction_projects(
                 project_id, building_id, contractor_id, project_type, cap_increase,
                 completion_escrow_left
             );
-            building.active_project = None;
-            refund_unspent_escrow(
-                &refund_investor,
-                completion_escrow_left,
-                refund_commitment,
-                companies,
-                country,
-            );
+            // v4.18 WS2: close out only when every tranche settled —
+            // otherwise the record stays attached as the contractor's
+            // open receivable until the tranche sweep pays it.
+            if all_settled {
+                building.active_project = None;
+                refund_unspent_escrow(
+                    &refund_investor,
+                    completion_escrow_left,
+                    refund_commitment,
+                    companies,
+                    country,
+                );
+            }
             messages.push(format!(
                 "Construction complete: building {} capacity +{}",
                 building_id, cap_increase
@@ -1011,6 +1111,32 @@ pub fn release_construction_tranches(
             continue;
         }
 
+        let building_id = building.id.clone();
+        released_count +=
+            release_due_tranches(project, &building_id, companies, country);
+    }
+
+    released_count
+}
+
+/// v4.18 WS2: Release every eligible unreleased tranche on one project.
+///
+/// Shared by the milestone sweep ([`release_construction_tranches`]) and by
+/// the completion path in `advance_construction_projects`. The final tranche
+/// (`trigger_progress == 1.0`) can only fire once the project is complete —
+/// and completion clears `active_project` before the post-advance sweep sees
+/// it, so without this helper the completion payment could never land.
+///
+/// Returns the number of tranches released this call.
+fn release_due_tranches(
+    project: &mut ConstructionProject,
+    building_id: &str,
+    companies: &mut [Company],
+    country: &mut Country,
+) -> u32 {
+    let mut released_count = 0u32;
+
+    {
         let contractor_id = project.main_contractor_id.clone();
         let investor_id = project.investor_id.clone();
         let progress = project.progress;
@@ -1021,7 +1147,7 @@ pub fn release_construction_tranches(
         // Find contractor index
         let contractor_idx = match companies.iter().position(|c| c.id == contractor_id) {
             Some(idx) => idx,
-            None => continue,
+            None => return released_count,
         };
 
         // Release eligible tranches
@@ -1174,7 +1300,7 @@ pub fn release_construction_tranches(
             eprintln!(
                 "CONST_DBG[TCRELEASE]: project={} site={} contractor={} investor={} amount={:.0} progress={:.2} tranches_paid={:.0} escrow_left={:.0}",
                 project.id,
-                building.id,
+                building_id,
                 contractor_id,
                 investor_id,
                 amount,
@@ -2155,5 +2281,151 @@ mod tests {
             companies[0].turn_settled_sales
         );
         assert_eq!(companies[0].turn_settled_sales, 2_000.0); // 20% of 10k
+    }
+
+    /// v4.18 WS2: a project whose last material installs must reach
+    /// progress 1.0, release EVERY tranche including the completion
+    /// milestone (trigger 1.0), pay the contractor the full contract, and
+    /// clear the site record. Two pre-fix defects broke this: consumption
+    /// asymptoted below 1.0 (`installable = available × p` never closed the
+    /// last gap), and the completion branch cleared `active_project` before
+    /// the tranche sweep ran, so the final 20% could never be paid.
+    #[test]
+    fn completion_releases_final_tranche_and_clears() {
+        let mut contractor = make_company("con_co", Sector::Construction, 0.0);
+        contractor.available_cash = 1.0; // non-empty pocket for credits
+        // Construction is labor-gated: productivity scales with the
+        // contractor's crew fill ratio. Staff it fully.
+        contractor.fulfilled_fte = 10;
+        contractor.target_fte_demand = 10;
+        let mut companies = vec![contractor];
+        let mut country = Country::default();
+        country.budget.liquid_reserves = 10_000_000.0;
+
+        let mut site = Building::new(
+            "site_1".to_string(),
+            "State".to_string(),
+            Sector::Construction,
+            0,
+        );
+        let mut project = make_project("STATE:R1", "con_co", 10_000.0, 10_000.0);
+        project.required_materials.insert(Commodity::Timber, 10.0);
+        // One unit short of complete; the last unit is staged in the site
+        // laydown so `advance_construction_projects` performs the final
+        // consume and crosses 1.0 inside the completion path.
+        project
+            .delivered_materials
+            .insert(Commodity::Timber, 9.0);
+        project.target_capacity_increase = 40;
+        site.inventory.insert(Commodity::Timber, 1.0);
+        site.active_project = Some(project);
+        let mut buildings = vec![site];
+
+        let unit_costs: BTreeMap<Commodity, f64> =
+            [(Commodity::Timber, 1.0)].into_iter().collect();
+        let (msgs, _spent, _by_region) = advance_construction_projects(
+            &mut buildings,
+            &mut companies,
+            &unit_costs,
+            &mut country,
+        );
+
+        assert!(
+            buildings[0].active_project.is_none(),
+            "a fully-settled completed project must clear the site record"
+        );
+        assert_eq!(
+            buildings[0].worker_capacity, 40,
+            "completion must credit the contracted capacity once"
+        );
+        assert!(
+            msgs.iter().any(|m| m.contains("Construction complete")),
+            "completion message expected, got {:?}",
+            msgs
+        );
+        assert!(
+            (companies[0].turn_settled_sales - 10_000.0).abs() < 1e-6,
+            "contractor must book the full contract incl. the completion \
+             tranche, got {}",
+            companies[0].turn_settled_sales
+        );
+    }
+
+    /// v4.18 WS2: when the completion tranche's cash leg defers (investor
+    /// cannot cover it), the finished site must keep its project record as
+    /// the contractor's open claim — clearing it would silently erase the
+    /// unpaid receivable. The tranche sweep retries each turn; once funded
+    /// and paid, the record clears.
+    #[test]
+    fn completion_claim_survives_deferred_tranche() {
+        // Corporate investor: escrowed 2k at publish (held in debit_cash),
+        // contract 10k — tranches are 2k/3k/3k/2k, so after the escrow leg
+        // pays tranche_1 the remaining 8k needs investor cash. Investor
+        // starts with none → deferral.
+        let mut investor = make_company("inv_co", Sector::PublicServices, 0.0);
+        investor.debit_cash = 2_000.0; // escrow pool from publication
+        investor.available_cash = 0.0;
+        investor.liquid_capital = 0.0;
+        let mut contractor = make_company("con_co", Sector::Construction, 0.0);
+        contractor.available_cash = 1.0;
+        contractor.fulfilled_fte = 10;
+        contractor.target_fte_demand = 10;
+        let mut companies = vec![investor, contractor];
+        let mut country = Country::default();
+
+        let mut site = Building::new(
+            "site_1".to_string(),
+            "inv_co".to_string(),
+            Sector::Construction,
+            0,
+        );
+        let mut project = make_project("inv_co", "con_co", 2_000.0, 10_000.0);
+        project.required_materials.insert(Commodity::Timber, 10.0);
+        project
+            .delivered_materials
+            .insert(Commodity::Timber, 9.0);
+        site.inventory.insert(Commodity::Timber, 1.0);
+        site.active_project = Some(project);
+        let mut buildings = vec![site];
+
+        let unit_costs: BTreeMap<Commodity, f64> =
+            [(Commodity::Timber, 1.0)].into_iter().collect();
+        advance_construction_projects(&mut buildings, &mut companies, &unit_costs, &mut country);
+
+        // Physical work is done (capacity grant is one-shot) but the
+        // record survives: tranche_1 settled from escrow, tranches 2-4
+        // are a live claim on the unfunded investor.
+        assert!(
+            buildings[0].active_project.is_some(),
+            "an unpaid completion tranche must keep the claim open"
+        );
+        assert!(
+            buildings[0]
+                .active_project
+                .as_ref()
+                .unwrap()
+                .work_complete,
+            "physical completion is marked even while payment pends"
+        );
+        assert_eq!(companies[1].turn_settled_sales, 2_000.0);
+
+        // Fund the investor — the normal tranche sweep can now settle the
+        // deferred milestones against the still-attached record.
+        companies[0].available_cash = 20_000.0;
+        let released =
+            release_construction_tranches(&mut buildings, &mut companies, &mut country);
+        assert_eq!(released, 3, "tranches 2-4 should now release");
+
+        // Next advance pass sees all tranches settled and clears the record.
+        advance_construction_projects(&mut buildings, &mut companies, &unit_costs, &mut country);
+        assert!(
+            buildings[0].active_project.is_none(),
+            "once every tranche settles the receivable record must clear"
+        );
+        assert!(
+            (companies[1].turn_settled_sales - 10_000.0).abs() < 1e-6,
+            "contractor must eventually book the full contract, got {}",
+            companies[1].turn_settled_sales
+        );
     }
 }
