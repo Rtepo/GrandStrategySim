@@ -37,6 +37,19 @@ fn country_year(country: &Country) -> u32 {
         .unwrap_or(u32::MAX)
 }
 
+/// Same extraction for the global turn counter — used to project pipeline
+/// estimates (earliest enactment turn) onto queued bills. `0` when no
+/// telemetry has been recorded yet.
+fn country_turn(country: &Country) -> u32 {
+    country
+        .macro_indicators
+        .telemetry_history
+        .samples
+        .last()
+        .map(|s| s.turn)
+        .unwrap_or(0)
+}
+
 /// Human-readable display name for a `Sector` enum variant.
 fn sector_display_name(sector: Sector) -> String {
     match sector {
@@ -1809,6 +1822,26 @@ pub struct CommitteeRow {
     pub member_count: usize,
     pub bills_under_review: usize,
     pub partisan_bias: f64,
+    /// v4.18: The bills actually sitting in this committee right now, with
+    /// their pipeline stage/progress and the committee's recommendation.
+    pub bills: Vec<CommitteeBillRow>,
+}
+
+/// v4.18: A bill currently under committee review, for the Committees tab.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CommitteeBillRow {
+    pub bill_id: String,
+    pub title: String,
+    /// Pipeline stage label (Committee, FloorVote, ...).
+    pub stage: String,
+    /// Turn the committee review is scheduled to complete.
+    pub completion_turn: Option<u32>,
+    /// The committee's recommendation modifier — the same deterministic
+    /// coalition-share value the pipeline records on the bill at completion.
+    pub recommendation: f64,
+    /// Sponsor/proposer of the bill.
+    pub initiator: String,
 }
 
 /// Phase 34: A named VIP row for the Parliament tab.
@@ -1862,10 +1895,73 @@ pub struct ClubRow {
 pub struct VoteRow {
     pub bill_id: String,
     pub bill_title: String,
+    /// Chamber that recorded the vote: "lower" or "upper".
+    pub chamber: String,
+    /// Chamber display name (Sejm, Senate, ...).
+    pub chamber_name: String,
     pub votes_for: u32,
     pub votes_against: u32,
+    pub abstentions: u32,
     pub passed: bool,
     pub turn: u32,
+    /// v4.18: Per-club For/Against/Abstain tallies recorded at vote time.
+    pub club_breakdown: Vec<ClubVoteRow>,
+    /// v4.18: Bill provisions/effects snapshot taken at vote time.
+    pub detail: Option<BillDetailRow>,
+}
+
+/// v4.18: Per-club vote tally within one chamber vote.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ClubVoteRow {
+    pub club_id: String,
+    pub votes_for: u32,
+    pub votes_against: u32,
+    pub abstentions: u32,
+}
+
+/// v4.18: One provision inside a bill detail — typed effect data.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ProvisionRow {
+    /// Clause description written at drafting time.
+    pub description: String,
+    /// `BillProvision` variant name (e.g. "TaxRateChange").
+    pub kind: String,
+    /// Concrete effect text formatted from the provision's real fields.
+    pub detail: String,
+    /// Clause budget impact (signed).
+    pub budget_impact: f64,
+    /// Sunset turn if the provision expires.
+    pub sunset_turn: Option<u32>,
+    /// Whether a committee chair mutated this clause.
+    pub mutated: bool,
+    /// Committee mutation notes.
+    pub mutation_notes: Vec<String>,
+}
+
+/// v4.18: Bill detail payload for the expandable drawer — provisions,
+/// sponsor, effective turn.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct BillDetailRow {
+    /// Sponsor/proposer — the club/party that introduced the bill.
+    pub initiator: String,
+    /// BillType snake_case classification.
+    pub bill_type: String,
+    /// Legislative weight (Ordinary/Organic/Constitutional).
+    pub weight: String,
+    /// Stage label at capture time (or terminal outcome).
+    pub stage: String,
+    pub introduction_turn: u32,
+    /// Turn the law took effect (enactment). None while pending.
+    pub enacted_turn: Option<u32>,
+    /// Earliest enactment turn given the current pipeline stage.
+    pub earliest_enactment_turn: Option<u32>,
+    /// Committee id while under review.
+    pub committee: Option<String>,
+    /// Typed provisions from the bill's core clauses.
+    pub provisions: Vec<ProvisionRow>,
 }
 
 /// A legislative queue row.
@@ -1876,6 +1972,10 @@ pub struct QueueRow {
     pub bill_title: String,
     pub stage: String,
     pub initiator: String,
+    /// Committee id while under review.
+    pub committee: Option<String>,
+    /// v4.18: Live bill detail for the expandable drawer.
+    pub detail: Option<BillDetailRow>,
 }
 
 // ============================================================================
@@ -4903,6 +5003,34 @@ fn build_vip_rows(country: &Country, year: u32) -> Vec<VipRow> {
     }
 }
 
+/// v4.18: Convert a `BillDetail` (recorded at vote time or projected live
+/// for queued bills) into the flat UI row shape.
+fn bill_detail_row(d: &crate::politics::parliament::BillDetail) -> BillDetailRow {
+    BillDetailRow {
+        initiator: d.initiator.clone(),
+        bill_type: d.bill_type.clone(),
+        weight: d.weight.clone(),
+        stage: d.stage.clone(),
+        introduction_turn: d.introduction_turn,
+        enacted_turn: d.enacted_turn,
+        earliest_enactment_turn: d.earliest_enactment_turn,
+        committee: d.committee.clone(),
+        provisions: d
+            .provisions
+            .iter()
+            .map(|p| ProvisionRow {
+                description: p.description.clone(),
+                kind: p.kind.clone(),
+                detail: p.detail.clone(),
+                budget_impact: p.budget_impact,
+                sunset_turn: p.sunset_turn,
+                mutated: p.mutated,
+                mutation_notes: p.mutation_notes.clone(),
+            })
+            .collect(),
+    }
+}
+
 /// Phase 32: Build the Parliament tab snapshot.
 fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot {
     let politics = &country.politics;
@@ -4943,25 +5071,42 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
             })
             .collect();
 
-        // Recent votes from lower chamber.
+        // Recent votes from BOTH chambers — each VoteRecord is tagged with
+        // the chamber that cast it so the UI can show lower/upper tallies.
         let recent_votes: Vec<VoteRow> = parl
-            .lower_chamber()
-            .map(|c| {
-                c.recent_votes
-                    .iter()
-                    .map(|v| VoteRow {
-                        bill_id: v.bill_id.clone(),
-                        bill_title: v.bill_title.clone(),
-                        votes_for: v.votes_for,
-                        votes_against: v.votes_against,
-                        passed: v.passed,
-                        turn: v.turn,
-                    })
-                    .collect()
+            .chambers
+            .iter()
+            .flat_map(|c| {
+                c.recent_votes.iter().map(move |v| VoteRow {
+                    bill_id: v.bill_id.clone(),
+                    bill_title: v.bill_title.clone(),
+                    chamber: c.id.clone(),
+                    chamber_name: c.name.clone(),
+                    votes_for: v.votes_for,
+                    votes_against: v.votes_against,
+                    abstentions: v.abstentions,
+                    passed: v.passed,
+                    turn: v.turn,
+                    club_breakdown: v
+                        .club_breakdown
+                        .iter()
+                        .map(|t| ClubVoteRow {
+                            club_id: t.club_id.clone(),
+                            votes_for: t.votes_for,
+                            votes_against: t.votes_against,
+                            abstentions: t.abstentions,
+                        })
+                        .collect(),
+                    detail: v.detail.as_ref().map(bill_detail_row),
+                })
             })
-            .unwrap_or_default();
+            .collect();
 
-        // Legislative queue from lower chamber.
+        let has_upper = parl.upper_chamber().is_some();
+        let current_turn = country_turn(country);
+
+        // Legislative queue from lower chamber — each row carries a live
+        // detail projection for the expandable drawer.
         let legislative_queue: Vec<QueueRow> = parl
             .lower_chamber()
             .map(|c| {
@@ -4969,15 +5114,22 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                     .iter()
                     .map(|id| {
                         // Try to get bill details from legislative session.
-                        let (title, stage, initiator) = politics
+                        let bill = politics
                             .legislative_session
                             .as_ref()
-                            .and_then(|s| s.active_bills.get(id))
+                            .and_then(|s| s.active_bills.get(id));
+                        let (title, stage, initiator, committee, detail) = bill
                             .map(|b| {
                                 (
                                     b.title.clone(),
                                     format!("{:?}", b.stage),
                                     b.initiator.clone(),
+                                    b.committee.clone(),
+                                    Some(crate::politics::bill_lifecycle::build_bill_detail(
+                                        b,
+                                        current_turn,
+                                        has_upper,
+                                    )),
                                 )
                             })
                             .unwrap_or_else(|| {
@@ -4985,6 +5137,8 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                                     "(unknown)".to_string(),
                                     "(unknown)".to_string(),
                                     String::new(),
+                                    None,
+                                    None,
                                 )
                             });
                         QueueRow {
@@ -4992,6 +5146,8 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                             bill_title: title,
                             stage,
                             initiator,
+                            committee,
+                            detail: detail.as_ref().map(bill_detail_row),
                         }
                     })
                     .collect()
@@ -4999,21 +5155,72 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
             .unwrap_or_default();
 
         // Phase 41: VIPs moved to GovernmentSnapshot.
-        // Phase 42: Populate committees from committee_system.
+        // Phase 42 + v4.18: Populate committees — with the live roster of
+        // bills under review, their stage/progress, and the recommendation.
+        let lower_seats: std::collections::HashMap<String, u32> = parl.lower_seat_map();
+        let preview_recommendation =
+            crate::politics::bill_lifecycle::committee_recommendation_modifier(
+                &lower_seats,
+                &politics.coalition,
+                &politics.ruling_party,
+            );
         let committees: Vec<CommitteeRow> = politics
             .committee_system
             .as_ref()
             .map(|cs| {
                 cs.committees
                     .values()
-                    .map(|c| CommitteeRow {
-                        name: c.name.clone(),
-                        committee_type: format!("{:?}", c.committee_type),
-                        chair: c.chair.clone(),
-                        chair_party: c.chair.clone(),
-                        member_count: c.members.values().map(|v| *v as usize).sum(),
-                        bills_under_review: c.bills_under_review.len(),
-                        partisan_bias: c.partisan_bias,
+                    .map(|c| {
+                        // Bills under review: the reconciled committee roster,
+                        // resolved against the live session for details.
+                        let bills: Vec<CommitteeBillRow> = c
+                            .bills_under_review
+                            .iter()
+                            .filter_map(|bid| {
+                                politics
+                                    .legislative_session
+                                    .as_ref()
+                                    .and_then(|s| s.active_bills.get(bid))
+                                    .map(|b| CommitteeBillRow {
+                                        bill_id: bid.clone(),
+                                        title: b.title.clone(),
+                                        stage: format!("{:?}", b.stage),
+                                        completion_turn: b.committee_completion_turn,
+                                        // The recorded modifier once set;
+                                        // otherwise the deterministic preview
+                                        // of the value that will be recorded.
+                                        recommendation: if b.committee_modifier != 0.0 {
+                                            b.committee_modifier
+                                        } else {
+                                            preview_recommendation
+                                        },
+                                        initiator: b.initiator.clone(),
+                                    })
+                            })
+                            .collect();
+                        // Chair display: resolve the named VIP when assigned;
+                        // `Committee::chair` is always the chair's PARTY id.
+                        let chair_name = c
+                            .chair_vip_id
+                            .as_ref()
+                            .and_then(|id| {
+                                politics
+                                    .vip_registry
+                                    .as_ref()
+                                    .and_then(|r| r.get(id))
+                                    .map(|v| v.full_name.clone())
+                            })
+                            .unwrap_or_else(|| c.chair.clone());
+                        CommitteeRow {
+                            name: c.name.clone(),
+                            committee_type: format!("{:?}", c.committee_type),
+                            chair: chair_name,
+                            chair_party: c.chair.clone(),
+                            member_count: c.members.values().map(|v| *v as usize).sum(),
+                            bills_under_review: c.bills_under_review.len(),
+                            partisan_bias: c.partisan_bias,
+                            bills,
+                        }
                     })
                     .collect()
             })

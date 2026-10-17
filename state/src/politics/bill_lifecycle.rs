@@ -7,7 +7,8 @@ use serde::{Deserialize, Serialize};
 
 use super::committees::{Committee, CommitteeSystem};
 use super::ideology::IdeologyCoordinates;
-use super::legislation::{Bill, LegislativeStage};
+use super::legislation::{Bill, BillProvision, LegislativeStage};
+use super::parliament::{BillDetail, ClubVoteTally, ProvisionRecord};
 use super::local_council::{calculate_vote_probability, Councilor};
 
 /// Deterministic pseudo-random uniform value in `[0, 1)` from a seed string.
@@ -462,7 +463,7 @@ pub fn process_legislation_turn(
     // Process bills in the legislative session.
     // We need to extract the session, process it, then put it back (borrow checker).
     let mut session = country.politics.legislative_session.take();
-    let committee_system = country.politics.committee_system.take();
+    let mut committee_system = country.politics.committee_system.take();
 
     if let Some(ref mut sess) = session {
         // Determinism: iterate active bills in sorted id order — HashMap
@@ -550,17 +551,18 @@ pub fn process_legislation_turn(
                         .unwrap_or(0.5);
 
                     // Perform floor vote with attendance and quorum.
-                    let (votes_for, votes_against, abstentions, quorum_met) = calculate_floor_vote(
-                        &bill,
-                        &lower_seats,
-                        &coalition,
-                        &ruling_party,
-                        parties,
-                        &bill_title,
-                        current_turn,
-                        health_capacity_ratio,
-                        social_unrest,
-                    );
+                    let (votes_for, votes_against, abstentions, quorum_met, club_tallies) =
+                        calculate_floor_vote(
+                            &bill,
+                            &lower_seats,
+                            &coalition,
+                            &ruling_party,
+                            parties,
+                            &bill_title,
+                            current_turn,
+                            health_capacity_ratio,
+                            social_unrest,
+                        );
 
                     // Phase 86: If quorum failed, bill stays in FloorVote for next turn.
                     if !quorum_met {
@@ -601,6 +603,15 @@ pub fn process_legislation_turn(
                         abstentions,
                         passed,
                         turn: current_turn,
+                        club_breakdown: club_tallies,
+                        // Snapshot the bill's provisions/sponsor at vote time —
+                        // the record must carry its own detail once the bill
+                        // leaves the active session.
+                        detail: Some(build_bill_detail(
+                            &bill,
+                            current_turn,
+                            !upper_house_composition.is_empty(),
+                        )),
                     };
 
                     // Record vote in parliament struct if it exists.
@@ -644,6 +655,10 @@ pub fn process_legislation_turn(
                             bill_title, votes_for, votes_against, abstentions
                         ));
                         sess.rejected_bills.push(bill_id.clone());
+                        // Stamp the terminal outcome on the recorded vote.
+                        if let Some(ref mut parl) = country.politics.parliament_struct {
+                            parl.mark_bill_terminal(bill_id, "Rejected", current_turn);
+                        }
                     }
                 }
 
@@ -663,7 +678,7 @@ pub fn process_legislation_turn(
                             crate::politics::laws::UniversalityLevel::Limited => 0.3,
                         })
                         .unwrap_or(0.5);
-                    let (votes_for, votes_against, abstentions, upper_quorum_met) =
+                    let (votes_for, votes_against, abstentions, upper_quorum_met, upper_tallies) =
                         calculate_upper_house_vote(
                             &bill,
                             &upper_house_composition,
@@ -722,6 +737,8 @@ pub fn process_legislation_turn(
                             abstentions,
                             passed,
                             turn: current_turn,
+                            club_breakdown: upper_tallies,
+                            detail: Some(build_bill_detail(&bill, current_turn, true)),
                         };
                         if let Some(ref mut parl) = country.politics.parliament_struct {
                             parl.record_upper_vote(upper_record);
@@ -741,6 +758,9 @@ pub fn process_legislation_turn(
                             bill_title, votes_for, votes_against
                         ));
                         sess.rejected_bills.push(bill_id.clone());
+                        if let Some(ref mut parl) = country.politics.parliament_struct {
+                            parl.mark_bill_terminal(bill_id, "Rejected", current_turn);
+                        }
                     }
                 }
 
@@ -765,6 +785,11 @@ pub fn process_legislation_turn(
                         messages.extend(enact_msgs);
 
                         sess.enacted_laws.push(bill_id.clone());
+                        // Stamp the effective turn on the parliamentary record —
+                        // the law takes effect on the enactment turn.
+                        if let Some(ref mut parl) = country.politics.parliament_struct {
+                            parl.mark_bill_terminal(bill_id, "Enacted", current_turn);
+                        }
                     } else {
                         bill.stage = LegislativeStage::Rejected;
                         messages.push(format!(
@@ -772,6 +797,9 @@ pub fn process_legislation_turn(
                             bill_title
                         ));
                         sess.rejected_bills.push(bill_id.clone());
+                        if let Some(ref mut parl) = country.politics.parliament_struct {
+                            parl.mark_bill_terminal(bill_id, "Rejected", current_turn);
+                        }
                     }
                 }
 
@@ -791,6 +819,27 @@ pub fn process_legislation_turn(
             chamber
                 .legislative_queue
                 .retain(|id| sess.active_bills.contains_key(id));
+        }
+    }
+
+    // v4.18: Reconcile each committee's `bills_under_review` roster with the
+    // live session state — the roster is derived truth, rebuilt every turn
+    // from the bills that actually sit in `LegislativeStage::Committee`
+    // pointing at that committee. Sorted for deterministic serialization.
+    if let (Some(ref mut cs), Some(ref sess)) = (&mut committee_system, &session) {
+        for committee in cs.committees.values_mut() {
+            let cid = committee.id.clone();
+            let mut ids: Vec<String> = sess
+                .active_bills
+                .iter()
+                .filter(|(_, b)| {
+                    matches!(b.stage, LegislativeStage::Committee)
+                        && b.committee.as_deref() == Some(cid.as_str())
+                })
+                .map(|(bid, _)| bid.clone())
+                .collect();
+            ids.sort();
+            committee.bills_under_review = ids;
         }
     }
 
@@ -850,6 +899,19 @@ fn process_committee_stage_phase32(
     coalition: &[String],
     ruling_party: &str,
 ) -> f64 {
+    committee_recommendation_modifier(lower_seats, coalition, ruling_party)
+}
+
+/// The committee-stage recommendation modifier recorded on a bill when its
+/// review completes — a deterministic function of the coalition's share of
+/// the lower house. Extracted so the snapshot layer can preview the exact
+/// same value for bills still under review (same inputs, same formula —
+/// no fabrication).
+pub fn committee_recommendation_modifier(
+    lower_seats: &HashMap<String, u32>,
+    coalition: &[String],
+    ruling_party: &str,
+) -> f64 {
     // Committee recommendation is based on coalition proportion in the committee.
     let total_seats: u32 = lower_seats.values().sum();
     if total_seats == 0 {
@@ -868,8 +930,204 @@ fn process_committee_stage_phase32(
     (coalition_share - 0.5) * 0.4
 }
 
+// ============================================================================
+// v4.18: BILL DETAIL PROJECTION — provisions/effects for the UI drawer
+// ============================================================================
+
+/// Render a `BillProvision`'s concrete effect for the UI detail drawer.
+/// Every value is read straight off the typed provision — this is a field
+/// formatter, not prose generation.
+///
+/// # Returns
+/// `(kind, detail)` — the `BillProvision` variant name and a compact
+/// "field: value" rendering of its concrete parameters.
+pub fn describe_provision(p: &BillProvision) -> (String, String) {
+    match p {
+        BillProvision::TaxRateChange {
+            income_tax,
+            vat,
+            corporate_tax,
+        } => {
+            let mut parts = Vec::new();
+            if let Some(v) = income_tax {
+                parts.push(format!("income tax → {:.1}%", v * 100.0));
+            }
+            if let Some(v) = vat {
+                parts.push(format!("VAT → {:.1}%", v * 100.0));
+            }
+            if let Some(v) = corporate_tax {
+                parts.push(format!("corporate tax → {:.1}%", v * 100.0));
+            }
+            ("TaxRateChange".to_string(), parts.join(" · "))
+        }
+        BillProvision::PriceControl {
+            commodity,
+            min_price,
+            max_price,
+        } => {
+            let mut parts = vec![commodity.clone()];
+            if let Some(v) = min_price {
+                parts.push(format!("min {:.2}", v));
+            }
+            if let Some(v) = max_price {
+                parts.push(format!("max {:.2}", v));
+            }
+            ("PriceControl".to_string(), parts.join(" · "))
+        }
+        BillProvision::Subsidy {
+            target,
+            amount_per_unit,
+        } => (
+            "Subsidy".to_string(),
+            format!("{} · {:.2} per unit", target, amount_per_unit),
+        ),
+        BillProvision::Deregulation { sector, scope } => (
+            "Deregulation".to_string(),
+            format!("{} · scope: {}", sector, scope),
+        ),
+        BillProvision::HealthcareLaw(law) => (
+            "HealthcareLaw".to_string(),
+            format!(
+                "system {:?} · universality {:?}",
+                law.healthcare_system, law.universality
+            ),
+        ),
+        BillProvision::EducationLaw(law) => (
+            "EducationLaw".to_string(),
+            format!(
+                "compulsory {} yrs (to age {}) · {:?} · {:?}",
+                law.compulsory_education.compulsory_years,
+                law.compulsory_education.end_age,
+                law.education_model,
+                law.school_system
+            ),
+        ),
+        BillProvision::JusticeLaw(law) => (
+            "JusticeLaw".to_string(),
+            format!(
+                "KRS separated={} · PG separated={} · corruption {:.2} · wait {:?}",
+                law.krs_separated,
+                law.prosecutor_general_separated,
+                law.corruption_index,
+                law.court_wait_time_target
+            ),
+        ),
+        BillProvision::InfrastructureMandate { allocation_pct } => (
+            "InfrastructureMandate".to_string(),
+            format!("allocation {:.1}% of budget", allocation_pct * 100.0),
+        ),
+        BillProvision::FreeSpeechLaw(law) => (
+            "FreeSpeechLaw".to_string(),
+            format!(
+                "speech {:?} · assembly {:?} · press {:?}",
+                law.free_speech_level, law.assembly_rights, law.press_freedom
+            ),
+        ),
+        BillProvision::TransportLaw(law) => (
+            "TransportLaw".to_string(),
+            format!(
+                "ownership {:?} · public subsidy {:.0}%",
+                law.ownership,
+                law.public_subsidy_fraction * 100.0
+            ),
+        ),
+        BillProvision::SentencingLaw(law) => (
+            "SentencingLaw".to_string(),
+            format!(
+                "death_penalty={} · life={} · community_service={} · dualism={}",
+                law.death_penalty_enabled,
+                law.life_imprisonment_enabled,
+                law.community_service_enabled,
+                law.legal_dualism_enabled
+            ),
+        ),
+        BillProvision::MigrationLawChange(law) => (
+            "MigrationLawChange".to_string(),
+            format!(
+                "open_borders={} · visa_required={} · deportation {:?}",
+                law.open_borders, law.visa_required, law.deportation_policy
+            ),
+        ),
+        BillProvision::ChildLaborLaw(law) => (
+            "ChildLaborLaw".to_string(),
+            format!("child labor {:?}", law),
+        ),
+        BillProvision::Custom {
+            description,
+            effect_key,
+            effect_value,
+        } => (
+            "Custom".to_string(),
+            format!("{} · {}={:.2}", description, effect_key, effect_value),
+        ),
+    }
+}
+
+/// Build a `BillDetail` snapshot of a bill's substantive content — typed
+/// provisions/effects, sponsor, stage and effective-turn data for the UI
+/// detail drawer. Recorded onto `VoteRecord`s at vote time (bills leave
+/// `active_bills` on enactment/rejection) and projected live for queued
+/// bills in the snapshot builder.
+///
+/// `earliest_enactment_turn` is pure pipeline arithmetic on the bill's real
+/// stage fields — committee wait → floor vote → optional upper house →
+/// executive signature (each stage transition takes one turn).
+pub fn build_bill_detail(
+    bill: &Bill,
+    current_turn: u32,
+    has_upper_chamber: bool,
+) -> BillDetail {
+    let upper_hops = if has_upper_chamber { 1 } else { 0 };
+    let earliest = match bill.stage {
+        // Introduced → Committee (delay 1–3, assume standard 3) → +2 hops.
+        LegislativeStage::Introduced => Some(current_turn + 3 + 2 + upper_hops),
+        // Committee completes at `committee_completion_turn`, then floor →
+        // (upper) → executive: +2 unicameral, +3 bicameral.
+        LegislativeStage::Committee => Some(
+            bill.committee_completion_turn.unwrap_or(current_turn) + 2 + upper_hops,
+        ),
+        LegislativeStage::FloorVote => Some(current_turn + 1 + upper_hops),
+        LegislativeStage::BicameralPending => Some(current_turn + 1),
+        LegislativeStage::Executive => Some(current_turn),
+        LegislativeStage::Enacted | LegislativeStage::Rejected => None,
+    };
+
+    BillDetail {
+        initiator: bill.initiator.clone(),
+        bill_type: bill.bill_type.as_str().to_string(),
+        weight: format!("{:?}", bill.weight),
+        stage: format!("{:?}", bill.stage),
+        introduction_turn: bill.introduction_turn,
+        enacted_turn: None,
+        earliest_enactment_turn: earliest,
+        committee: bill.committee.clone(),
+        provisions: bill
+            .core_clauses
+            .iter()
+            .map(|c| {
+                let (kind, detail) = c
+                    .provision
+                    .as_ref()
+                    .map(describe_provision)
+                    .unwrap_or_else(|| ("Descriptive".to_string(), String::new()));
+                ProvisionRecord {
+                    description: c.description.clone(),
+                    kind,
+                    detail,
+                    budget_impact: c.budget_impact,
+                    sunset_turn: c.sunset_turn,
+                    mutated: c.mutated,
+                    mutation_notes: c.mutation_notes.clone(),
+                }
+            })
+            .collect(),
+    }
+}
+
 /// Calculate floor vote results (deterministic).
 /// Phase 86: Integrates dynamic attendance and quorum checks.
+/// v4.18: Also returns per-club tallies so the parliamentary record keeps
+/// real For/Against/Abstain bookkeeping by club, not just chamber totals.
 fn calculate_floor_vote(
     bill: &Bill,
     lower_seats: &HashMap<String, u32>,
@@ -880,7 +1138,7 @@ fn calculate_floor_vote(
     current_turn: u32,
     health_capacity_ratio: f64,
     social_unrest: f64,
-) -> (u32, u32, u32, bool) {
+) -> (u32, u32, u32, bool, Vec<ClubVoteTally>) {
     // Phase 86: Calculate attendance and check quorum.
     let attendance = super::attendance::calculate_attendance(
         lower_seats,
@@ -894,12 +1152,13 @@ fn calculate_floor_vote(
 
     // If quorum is not met, the vote is blocked.
     if !attendance.quorum_met {
-        return (0, 0, 0, false);
+        return (0, 0, 0, false, Vec::new());
     }
 
     let mut votes_for: u32 = 0;
     let mut votes_against: u32 = 0;
     let mut abstentions: u32 = 0;
+    let mut club_breakdown: Vec<ClubVoteTally> = Vec::new();
 
     // Phase 86: Use present seats (from attendance) instead of total seats.
     for (party_name, &_total_seats) in lower_seats {
@@ -913,6 +1172,10 @@ fn calculate_floor_vote(
         }
 
         let is_coalition = coalition.contains(party_name) || party_name == ruling_party;
+        let mut tally = ClubVoteTally {
+            club_id: party_name.clone(),
+            ..Default::default()
+        };
 
         if is_coalition {
             // Coalition parties vote yes with high probability (discipline).
@@ -923,9 +1186,12 @@ fn calculate_floor_vote(
             let seed = format!("floor_{}_{}_{}", bill_title, party_name, current_turn);
             if deterministic_roll(&seed, yes_prob) {
                 votes_for += present_seats;
+                tally.votes_for = present_seats;
             } else {
                 abstentions += present_seats / 3;
                 votes_against += present_seats - present_seats / 3;
+                tally.abstentions = present_seats / 3;
+                tally.votes_against = present_seats - present_seats / 3;
             }
         } else {
             // Opposition parties vote based on ideological alignment.
@@ -939,13 +1205,20 @@ fn calculate_floor_vote(
             let seed = format!("floor_{}_{}_{}", bill_title, party_name, current_turn);
             if deterministic_roll(&seed, yes_prob) {
                 votes_for += present_seats;
+                tally.votes_for = present_seats;
             } else {
                 votes_against += present_seats;
+                tally.votes_against = present_seats;
             }
         }
+        club_breakdown.push(tally);
     }
 
-    (votes_for, votes_against, abstentions, true)
+    // Determinism: seat-map iteration order is hash-dependent; sort the
+    // tallies by club id so serialized save files are byte-stable.
+    club_breakdown.sort_by(|a, b| a.club_id.cmp(&b.club_id));
+
+    (votes_for, votes_against, abstentions, true, club_breakdown)
 }
 
 /// Calculate upper house vote results (deterministic).
@@ -960,7 +1233,7 @@ fn calculate_upper_house_vote(
     current_turn: u32,
     health_capacity_ratio: f64,
     social_unrest: f64,
-) -> (u32, u32, u32, bool) {
+) -> (u32, u32, u32, bool, Vec<ClubVoteTally>) {
     // Same logic as floor vote but for upper house.
     calculate_floor_vote(
         bill,

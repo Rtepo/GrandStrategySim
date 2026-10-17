@@ -79,6 +79,81 @@ pub struct VoteRecord {
     pub abstentions: u32,
     pub passed: bool,
     pub turn: u32,
+    /// v4.18: Per-club For/Against/Abstain tallies recorded at vote time —
+    /// real bookkeeping so the UI can decompose the totals by club.
+    #[serde(default)]
+    pub club_breakdown: Vec<ClubVoteTally>,
+    /// v4.18: Snapshot of the bill's substantive content (provisions,
+    /// sponsor, stage, effective-turn data) taken at vote time. Bills leave
+    /// `LegislativeSession::active_bills` on enactment/rejection, so the
+    /// detail must live on the parliamentary record itself.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail: Option<BillDetail>,
+}
+
+/// Per-club For/Against/Abstain tally for a single chamber vote.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+pub struct ClubVoteTally {
+    /// Club/party ID (seat-map key).
+    pub club_id: String,
+    pub votes_for: u32,
+    pub votes_against: u32,
+    pub abstentions: u32,
+}
+
+/// A single bill provision rendered for the detail drawer — every field is
+/// derived from the typed `BillProvision`, never generated prose.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+pub struct ProvisionRecord {
+    /// Clause description written at drafting time.
+    pub description: String,
+    /// `BillProvision` variant name (e.g. "TaxRateChange"); "Descriptive"
+    /// for clauses without a typed provision.
+    pub kind: String,
+    /// Concrete effect text formatted from the provision's real fields.
+    pub detail: String,
+    /// Clause budget impact (signed).
+    pub budget_impact: f64,
+    /// Sunset turn if the provision expires.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sunset_turn: Option<u32>,
+    /// Whether a committee chair mutated this clause.
+    #[serde(default)]
+    pub mutated: bool,
+    /// Committee mutation notes.
+    #[serde(default)]
+    pub mutation_notes: Vec<String>,
+}
+
+/// Snapshot of a bill's substantive content for the UI detail drawer.
+/// Recorded onto `VoteRecord`s and projected for queued bills in the
+/// snapshot builder.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+pub struct BillDetail {
+    /// Sponsor/proposer — the club/party that introduced the bill.
+    pub initiator: String,
+    /// `BillType::as_str()` classification.
+    pub bill_type: String,
+    /// `LegislativeWeight` — determines the majority threshold.
+    pub weight: String,
+    /// Stage label at the time the detail was captured.
+    pub stage: String,
+    /// Turn the bill was introduced.
+    pub introduction_turn: u32,
+    /// Turn the bill was enacted (law took effect). None while pending or
+    /// for bills enacted before this field existed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enacted_turn: Option<u32>,
+    /// Earliest turn the bill could reach enactment given its current stage
+    /// — deterministic pipeline arithmetic, not a prediction.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub earliest_enactment_turn: Option<u32>,
+    /// Committee ID while the bill is/was under committee review.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub committee: Option<String>,
+    /// Typed provisions/effects from the bill's core clauses.
+    #[serde(default)]
+    pub provisions: Vec<ProvisionRecord>,
 }
 
 /// A single legislative chamber (Lower House or Senate).
@@ -246,6 +321,14 @@ pub struct Parliament {
     pub vips: Vec<NamedVip>,
     /// Whether parliament is currently suspended (State of Emergency).
     pub suspended: bool,
+    /// The lower-chamber seat map exactly as written by the last election /
+    /// government formation that seated this parliament — i.e.
+    /// `politics.parliament` at build time, BEFORE intra-term drift.
+    /// `chamber.seats` mutates mid-term (faction defections); `mandate_seats`
+    /// never does, which is what lets per-turn rebuilds distinguish "same
+    /// mandate, drifted" from "fresh election". Absent in pre-v4.18 saves.
+    #[serde(default)]
+    pub mandate_seats: HashMap<String, u32>,
 }
 
 impl Parliament {
@@ -316,6 +399,25 @@ impl Parliament {
             chamber.legislative_queue.retain(|id| id != bill_id);
         }
     }
+
+    /// Stamp a bill's terminal outcome onto every recorded vote for it, in
+    /// all chambers. Called when a bill is enacted, vetoed, or rejected
+    /// downstream of a recorded chamber vote so the parliamentary record
+    /// carries the law's effective turn (`enacted_turn`) and final stage.
+    pub fn mark_bill_terminal(&mut self, bill_id: &str, stage: &str, turn: u32) {
+        for chamber in &mut self.chambers {
+            for record in &mut chamber.recent_votes {
+                if record.bill_id == bill_id {
+                    if let Some(ref mut detail) = record.detail {
+                        detail.stage = stage.to_string();
+                        if stage == "Enacted" {
+                            detail.enacted_turn = Some(turn);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 // ============================================================================
@@ -362,7 +464,7 @@ pub fn initialize_parliament(
     let upper_house = &politics.upper_house;
 
     // Build clubs from the legacy seat map.
-    let clubs = build_clubs_from_seats(legacy_seats, &politics.active_parties, current_turn);
+    let clubs = build_clubs_from_seats(legacy_seats, politics, current_turn);
 
     // Build chambers.
     let mut chambers = Vec::new();
@@ -432,6 +534,8 @@ pub fn initialize_parliament(
         clubs,
         vips,
         suspended: false,
+        // The seat map this parliament was seated on — the mandate identity.
+        mandate_seats: legacy_seats.clone(),
     }
 }
 
@@ -492,22 +596,31 @@ pub fn assign_club_chairpersons(
 }
 
 /// Build parliamentary clubs from the legacy seat map.
+///
+/// Each club inherits the parent party's authoritative ideological
+/// coordinates and a dynamically computed floor discipline. Seat-map keys
+/// that do not resolve to an active party (e.g. legacy splinter IDs that
+/// slipped into `politics.parliament`) keep `parent_party: None` so they
+/// are not mistaken for real parties.
 fn build_clubs_from_seats(
     seats: &HashMap<String, u32>,
-    active_parties: &HashMap<String, Party>,
+    politics: &Politics,
     current_turn: u32,
 ) -> Vec<ParliamentaryClub> {
     seats
         .iter()
         .map(|(party_id, &seat_count)| {
-            let party = active_parties.get(party_id);
+            let party = politics.active_parties.get(party_id);
+            let is_ruling = *party_id == politics.ruling_party;
+            let in_coalition = politics.coalition.contains(party_id);
             let ideology = party.map(|p| p.ideology.clone()).unwrap_or_default();
-            let discipline = party.map(|p| p.organization.discipline).unwrap_or(0.5);
+            let discipline =
+                compute_club_discipline(party, false, is_ruling, in_coalition);
 
             ParliamentaryClub {
                 id: party_id.clone(),
                 name: party_id.clone(),
-                parent_party: Some(party_id.clone()),
+                parent_party: party.map(|_| party_id.clone()),
                 seats: seat_count,
                 ideology,
                 coordinates: party.map(|p| p.coordinates).unwrap_or_default(),
@@ -519,6 +632,186 @@ fn build_clubs_from_seats(
             }
         })
         .collect()
+}
+
+/// Compute a club's effective floor discipline (0.0–1.0) from the parent
+/// party's organization metrics, the party leader's whip-relevant traits,
+/// and the club's position relative to the ruling coalition.
+///
+/// Deterministic — derived entirely from party state, no RNG.
+///
+/// # Rules
+/// * Base: `organization.discipline`; when unset (≤0, legacy parties that
+///   predate the organization system) falls back to the organization's
+///   structural baseline for its `OrganizationType`.
+/// * Whip strength: leader traits adjust enforcement — "Loyal",
+///   "Charismatic", "Militarist", "Cruel" tighten the whip; "Ambitious",
+///   "Populist", "Incompetent" leadership loosens it.
+/// * Coalition status: the ruling party's government whip office tightens
+///   discipline; junior coalition partners face competing pulls; opposition
+///   clubs get a modest whip bonus of their own.
+/// * Internal stress: `factional_tension` erodes discipline while
+///   `cohesion` and `leadership_stability` reinforce it.
+/// * Splinter clubs sit low by construction — they formed around dissent.
+/// * Independent clubs with no parent party apparatus get a neutral 0.5.
+pub fn compute_club_discipline(
+    party: Option<&Party>,
+    is_splinter: bool,
+    is_ruling: bool,
+    in_coalition: bool,
+) -> f64 {
+    if is_splinter {
+        return 0.35; // Splinter groups formed around dissent — loose whips.
+    }
+    let Some(party) = party else {
+        return 0.5; // No party apparatus to enforce a line.
+    };
+    let org = &party.organization;
+    let base = if org.discipline > 0.0 {
+        org.discipline
+    } else {
+        org.organization_type.base_discipline()
+    };
+
+    // Whip enforcement: leader traits adjust party-line voting strength.
+    let whip: f64 = party
+        .leader
+        .traits
+        .iter()
+        .map(|t| match t.as_str() {
+            "Loyal" => 0.04,
+            "Charismatic" => 0.02,
+            "Militarist" => 0.02,
+            "Cruel" => 0.01,
+            "Populist" => -0.02,
+            "Ambitious" => -0.03,
+            "Incompetent" => -0.04,
+            _ => 0.0,
+        })
+        .sum();
+
+    // Coalition status: government whip office vs junior-partner drift.
+    let coalition_adj = if is_ruling {
+        0.08
+    } else if in_coalition {
+        -0.03
+    } else {
+        0.02 // Opposition whips enforce their own line.
+    };
+
+    // Internal stress: stability/cohesion hold the line, tension erodes it.
+    let stress_adj = (org.leadership_stability - 0.6) * 0.15
+        + (org.cohesion - 0.5) * 0.15
+        - org.factional_tension * 0.25;
+
+    (base + whip + coalition_adj + stress_adj).clamp(0.05, 0.95)
+}
+
+/// Merge durable per-term state from a previous `Parliament` into a freshly
+/// rebuilt one. Called after every `initialize_parliament` rebuild — the
+/// rebuild re-derives clubs and chamber seats from `politics.parliament`
+/// (the election seat-of-truth), which would otherwise discard live floor
+/// state every turn.
+///
+/// Carried over unconditionally:
+/// * `Chamber::recent_votes` and `legislative_queue` (the parliamentary
+///   record survives seat refreshes).
+/// * `Parliament::suspended` (State of Emergency bookkeeping).
+/// * Club chairperson assignments — without this, `assign_club_chairpersons`
+///   would register a fresh VIP per club on every per-turn rebuild.
+///
+/// Carried over only when `old` and `new` describe the same mandate —
+/// i.e. `fresh_mandate` is false AND the rebuilt lower-chamber seat map is
+/// identical to `old.mandate_seats` (the election truth the old parliament
+/// was seated on). `politics.parliament` is only ever rewritten by elections
+/// / government formation; defections live exclusively on `chamber.seats`,
+/// so an exact map comparison cleanly separates a fresh mandate (gains,
+/// losses, vanished or new parties — any of which dissolve splinters and
+/// reset drift) from intra-term drift. Pre-v4.18 saves carry an empty
+/// `mandate_seats`, which fails the check and keeps the old wipe behaviour:
+/// * splinter clubs and their seat entries (they exist only in the chamber,
+///   never in `politics.parliament`),
+/// * intra-term seat drift on party clubs.
+pub fn carry_over_parliament_state(new: &mut Parliament, old: &Parliament, fresh_mandate: bool) {
+    for chamber in &mut new.chambers {
+        if let Some(old_chamber) = old.chambers.iter().find(|c| c.id == chamber.id) {
+            chamber.recent_votes = old_chamber.recent_votes.clone();
+            chamber.legislative_queue = old_chamber.legislative_queue.clone();
+        }
+    }
+    new.suspended = old.suspended;
+
+    // Chairperson VIP assignments persist across rebuilds (same club id).
+    for new_club in new.clubs.iter_mut() {
+        if let Some(old_club) = old.clubs.iter().find(|c| c.id == new_club.id) {
+            new_club.chairperson_id = old_club.chairperson_id.clone();
+            new_club.chairperson_name = old_club.chairperson_name.clone();
+        }
+    }
+
+    // Same-mandate check against the recorded election truth.
+    let same_mandate = !fresh_mandate
+        && !old.mandate_seats.is_empty()
+        && new
+            .lower_chamber()
+            .map(|nc| nc.seats == old.mandate_seats)
+            .unwrap_or(false);
+    if !same_mandate {
+        return; // Fresh mandate — splinter clubs dissolve or formalize.
+    }
+
+    // Splinter ids exist only in the chamber seat map, never in the mandate.
+    let splinter_ids: HashSet<&str> = old
+        .clubs
+        .iter()
+        .filter(|c| c.is_splinter)
+        .map(|c| c.id.as_str())
+        .collect();
+
+    // Carry splinter seat entries and intra-term defections on party seats.
+    if let (Some(old_lower), Some(new_lower)) =
+        (old.lower_chamber(), new.lower_chamber_mut())
+    {
+        for (id, &old_s) in &old_lower.seats {
+            if splinter_ids.contains(id.as_str()) {
+                if old_s > 0 {
+                    new_lower.seats.insert(id.clone(), old_s);
+                }
+            } else if let Some(new_s) = new_lower.seats.get_mut(id) {
+                if old_s < *new_s {
+                    *new_s = old_s; // Preserve defected-away seats mid-term.
+                }
+            }
+        }
+        new_lower.total_seats = new_lower.seats.values().sum();
+    }
+
+    // Carry the splinter club objects themselves (they carry ideology,
+    // coordinates, discipline and chairperson state).
+    for old_club in &old.clubs {
+        if !old_club.is_splinter {
+            continue;
+        }
+        let seated = new
+            .lower_chamber()
+            .and_then(|c| c.seats.get(&old_club.id))
+            .copied()
+            .unwrap_or(0);
+        if seated > 0 && !new.clubs.iter().any(|c| c.id == old_club.id) {
+            let mut club = old_club.clone();
+            club.seats = seated;
+            new.clubs.push(club);
+        }
+    }
+
+    // Sync carried party clubs' seat counts with the drifted chamber map.
+    if let Some(seat_map) = new.lower_chamber().map(|c| c.seats.clone()) {
+        for club in new.clubs.iter_mut() {
+            if let Some(&s) = seat_map.get(&club.id) {
+                club.seats = s;
+            }
+        }
+    }
 }
 
 /// Calculate the Speaker's agenda control factor (0.0–1.0).
@@ -893,7 +1186,8 @@ pub fn check_faction_splintering(
             seats: defectors,
             ideology: source_ideology,
             coordinates: source_coordinates,
-            discipline: 0.3, // Splinter groups are less disciplined.
+            // Splinter groups form around dissent — loose whips.
+            discipline: compute_club_discipline(None, true, false, false),
             is_splinter: true,
             formation_turn: current_turn,
             chairperson_id: None,

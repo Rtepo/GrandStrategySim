@@ -110,6 +110,44 @@ defender_casualties: bigint,
 turn: number, };
 
 /**
+ * v4.18: Bill detail payload for the expandable drawer — provisions,
+ * sponsor, effective turn.
+ */
+export type BillDetailRow = { 
+/**
+ * Sponsor/proposer — the club/party that introduced the bill.
+ */
+initiator: string, 
+/**
+ * BillType snake_case classification.
+ */
+bill_type: string, 
+/**
+ * Legislative weight (Ordinary/Organic/Constitutional).
+ */
+weight: string, 
+/**
+ * Stage label at capture time (or terminal outcome).
+ */
+stage: string, introduction_turn: number, 
+/**
+ * Turn the law took effect (enactment). None while pending.
+ */
+enacted_turn: number | null, 
+/**
+ * Earliest enactment turn given the current pipeline stage.
+ */
+earliest_enactment_turn: number | null, 
+/**
+ * Committee id while under review.
+ */
+committee: string | null, 
+/**
+ * Typed provisions from the bill's core clauses.
+ */
+provisions: Array<ProvisionRow>, };
+
+/**
  * Phase 83: Biohazard snapshot for UI display.
  *
  * Role-gating (Rule 11):
@@ -287,9 +325,41 @@ chairperson_id: string | null,
 chairperson_name: string, };
 
 /**
+ * v4.18: Per-club vote tally within one chamber vote.
+ */
+export type ClubVoteRow = { club_id: string, votes_for: number, votes_against: number, abstentions: number, };
+
+/**
+ * v4.18: A bill currently under committee review, for the Committees tab.
+ */
+export type CommitteeBillRow = { bill_id: string, title: string, 
+/**
+ * Pipeline stage label (Committee, FloorVote, ...).
+ */
+stage: string, 
+/**
+ * Turn the committee review is scheduled to complete.
+ */
+completion_turn: number | null, 
+/**
+ * The committee's recommendation modifier — the same deterministic
+ * coalition-share value the pipeline records on the bill at completion.
+ */
+recommendation: number, 
+/**
+ * Sponsor/proposer of the bill.
+ */
+initiator: string, };
+
+/**
  * Phase 42: A committee row for the Parliament tab.
  */
-export type CommitteeRow = { name: string, committee_type: string, chair: string, chair_party: string, member_count: number, bills_under_review: number, partisan_bias: number, };
+export type CommitteeRow = { name: string, committee_type: string, chair: string, chair_party: string, member_count: number, bills_under_review: number, partisan_bias: number, 
+/**
+ * v4.18: The bills actually sitting in this committee right now, with
+ * their pipeline stage/progress and the committee's recommendation.
+ */
+bills: Array<CommitteeBillRow>, };
 
 /**
  * Phase 56: Commodity futures row.
@@ -1447,9 +1517,50 @@ contracted_mw: number,
 remaining_turns: number, };
 
 /**
+ * v4.18: One provision inside a bill detail — typed effect data.
+ */
+export type ProvisionRow = { 
+/**
+ * Clause description written at drafting time.
+ */
+description: string, 
+/**
+ * `BillProvision` variant name (e.g. "TaxRateChange").
+ */
+kind: string, 
+/**
+ * Concrete effect text formatted from the provision's real fields.
+ */
+detail: string, 
+/**
+ * Clause budget impact (signed).
+ */
+budget_impact: number, 
+/**
+ * Sunset turn if the provision expires.
+ */
+sunset_turn: number | null, 
+/**
+ * Whether a committee chair mutated this clause.
+ */
+mutated: boolean, 
+/**
+ * Committee mutation notes.
+ */
+mutation_notes: Array<string>, };
+
+/**
  * A legislative queue row.
  */
-export type QueueRow = { bill_id: string, bill_title: string, stage: string, initiator: string, };
+export type QueueRow = { bill_id: string, bill_title: string, stage: string, initiator: string, 
+/**
+ * Committee id while under review.
+ */
+committee: string | null, 
+/**
+ * v4.18: Live bill detail for the expandable drawer.
+ */
+detail: BillDetailRow | null, };
 
 /**
  * Phase 84: Recycling snapshot for UI display.
@@ -2049,7 +2160,23 @@ coordinates: IdeologyCoordinatesDto | null, age: number, };
 /**
  * A recent vote row.
  */
-export type VoteRow = { bill_id: string, bill_title: string, votes_for: number, votes_against: number, passed: boolean, turn: number, };
+export type VoteRow = { bill_id: string, bill_title: string, 
+/**
+ * Chamber that recorded the vote: "lower" or "upper".
+ */
+chamber: string, 
+/**
+ * Chamber display name (Sejm, Senate, ...).
+ */
+chamber_name: string, votes_for: number, votes_against: number, abstentions: number, passed: boolean, turn: number, 
+/**
+ * v4.18: Per-club For/Against/Abstain tallies recorded at vote time.
+ */
+club_breakdown: Array<ClubVoteRow>, 
+/**
+ * v4.18: Bill provisions/effects snapshot taken at vote time.
+ */
+detail: BillDetailRow | null, };
 
 /**
  * A single active war/front row for the Military dashboard.

@@ -883,6 +883,23 @@ pub fn process_political_turn(
         super::campaign::process_election_cycle(country, &mut active_parties, current_turn);
     messages.extend(election_msgs);
 
+    // Phase 11e: Lobbying (needs country + companies + parties + bills)
+    let lobbying_msgs = super::lobbying::process_lobbying_turn(
+        country,
+        companies,
+        &mut active_parties,
+        &mut Vec::new(),
+        current_turn,
+    );
+    messages.extend(lobbying_msgs);
+
+    // Restore parties. NOTE: everything below this line reads the restored
+    // `country.politics.active_parties` — the parliament rebuild, splintering
+    // check, and political-capital regen were previously run while the map
+    // was still `mem::take`n empty, which is why every club fell back to
+    // default coordinates/discipline (v4.18 fix).
+    country.politics.active_parties = active_parties;
+
     // Phase 32: Initialize/update Parliament struct after elections.
     // Use the country's cultural group (default to slavic if not set).
     let cultural_group = if country.macro_indicators.cultural_group.is_empty() {
@@ -898,17 +915,14 @@ pub fn process_political_turn(
         &mut rng,
         &mut used_vip_names,
     );
-    // Phase 96: Carry over recorded votes and the pending legislative queue —
-    // the per-turn rebuild above constructs fresh chambers with empty
-    // `recent_votes`/`legislative_queue`, which would otherwise wipe the
-    // Parliament tab every turn even though votes were being recorded.
+    // Phase 96 + v4.18: Carry over durable parliamentary state across the
+    // per-turn rebuild — recorded votes, pending legislative queue,
+    // suspension flag, chairperson VIP assignments, and (same-mandate only)
+    // splinter clubs with intra-term seat drift. `fresh_mandate` is false
+    // here — if an election rewrote the seat map earlier this turn, the
+    // internal same-mandate check detects it per-key.
     if let Some(ref old) = country.politics.parliament_struct {
-        for chamber in &mut parliament.chambers {
-            if let Some(old_chamber) = old.chambers.iter().find(|c| c.id == chamber.id) {
-                chamber.recent_votes = old_chamber.recent_votes.clone();
-                chamber.legislative_queue = old_chamber.legislative_queue.clone();
-            }
-        }
+        super::parliament::carry_over_parliament_state(&mut parliament, old, false);
     }
     country.politics.parliament_struct = Some(parliament);
 
@@ -979,19 +993,6 @@ pub fn process_political_turn(
         1.0
     };
     country.politics.political_capital = 50.0 + ruling_support * 0.5 * coalition_stability;
-
-    // Phase 11e: Lobbying (needs country + companies + parties + bills)
-    let lobbying_msgs = super::lobbying::process_lobbying_turn(
-        country,
-        companies,
-        &mut active_parties,
-        &mut Vec::new(),
-        current_turn,
-    );
-    messages.extend(lobbying_msgs);
-
-    // Restore parties
-    country.politics.active_parties = active_parties;
 
     // Phase 96: Ensure the legislative session and committee system exist.
     // Both were previously only initialized inside run_election_if_due (or
@@ -1350,17 +1351,13 @@ pub fn run_election_if_due(
         &mut rng,
         &mut used_vip_names,
     );
-    // Phase 96: Preserve recorded votes and the pending legislative queue
-    // across the post-election rebuild — initialize_parliament creates fresh
-    // chambers with empty recent_votes/legislative_queue, which would wipe the
-    // parliamentary record every time a government is re-formed.
+    // Phase 96 + v4.18: Preserve the parliamentary record across the
+    // post-election rebuild — recorded votes, pending queue, suspension, and
+    // chairperson VIP assignments. `fresh_mandate = true` because the seat
+    // map was just rewritten by the election: splinter clubs dissolve (they
+    // formalize into real parties via regenerate_parties or vanish).
     if let Some(ref old) = country.politics.parliament_struct {
-        for chamber in &mut parliament.chambers {
-            if let Some(old_chamber) = old.chambers.iter().find(|c| c.id == chamber.id) {
-                chamber.recent_votes = old_chamber.recent_votes.clone();
-                chamber.legislative_queue = old_chamber.legislative_queue.clone();
-            }
-        }
+        super::parliament::carry_over_parliament_state(&mut parliament, old, true);
     }
     country.politics.parliament_struct = Some(parliament);
 
