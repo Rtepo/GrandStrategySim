@@ -7428,6 +7428,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     &task.ctx.market_prices,
                     avg_wage,
                     &task.housing_buildings,
+                    &state.market_history,
                 );
                 // Phase 44: Net out in-kind deductions from B2C consumer demand.
                 // Serfs (and partially FreePeasants/LandlessLaborers) have their

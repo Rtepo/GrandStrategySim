@@ -444,7 +444,14 @@ fn test_build_consumer_demand_with_substitution() {
     prices.insert(Commodity::Cereal, 5.0);
     prices.insert(Commodity::Vegetable, 5.0);
 
-    let demand = build_consumer_demand(&region, 0, &prices, 50.0, &[]);
+    let demand = build_consumer_demand(
+        &region,
+        0,
+        &prices,
+        50.0,
+        &[],
+        &sim_engine::economy::market_history::MarketHistory::default(),
+    );
     // Total demand should exist for Meat or its substitutes
     let meat_demand = demand
         .total_demand
@@ -482,7 +489,14 @@ fn test_build_consumer_demand_homeless_no_furniture() {
         .insert(UrbanClass::Worker, demos);
 
     // No housing buildings → homeless
-    let demand = build_consumer_demand(&region, 0, &rustc_hash::FxHashMap::default(), 100.0, &[]);
+    let demand = build_consumer_demand(
+        &region,
+        0,
+        &rustc_hash::FxHashMap::default(),
+        100.0,
+        &[],
+        &sim_engine::economy::market_history::MarketHistory::default(),
+    );
     let furniture_demand = demand
         .total_demand
         .get(&Commodity::Furniture)

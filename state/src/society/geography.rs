@@ -1143,13 +1143,15 @@ pub struct ClassDemographics {
 
     /// v4.18 WS1: Slow-moving anchor of habitual spending capacity — an EWMA
     /// of live `savings / population` refreshed once per turn during B2C
-    /// settlement. `build_consumer_demand` uses it (while `savings > 0`) to
-    /// smooth the wealth gate and wealth-tier multiplier through transitory
-    /// wage-income dips such as seasonal furloughs: households keep demanding
-    /// their habitual basket and draw the shortfall from `savings` at real
-    /// settlement, so consumption stops collapsing ~85% in a single turn
-    /// without fabricating money (M0 conserved; EWMA decays ~25%/turn so
-    /// sustained poverty still converges demand to means).
+    /// settlement. `build_consumer_demand` lets the class TRY to hold this
+    /// habitual standard through transitory wage-income dips such as
+    /// seasonal furloughs, but the gap above live solvency is financed only
+    /// by a bounded draw-down of `savings` (≤ `MAX_SAVINGS_DRAWDOWN_RATE`
+    /// of the stock per turn, rate-bounded both in the smoothed gate signal
+    /// and in the demand-value cap): consumption decays geometrically
+    /// toward wage-sustainable demand instead of collapsing in a single
+    /// turn, and no money is fabricated (M0 conserved; EWMA decays ~25%/turn
+    /// so sustained poverty still converges demand to means).
     #[serde(default)]
     pub habitual_savings_per_capita: f64,
 

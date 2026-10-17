@@ -4,6 +4,7 @@
 //! retail pricing with amortized costs, and consumer inertia/brand loyalty.
 
 use crate::data::consumption_registry;
+use crate::economy::market_history::{get_reference_price, MarketHistory};
 use crate::economy::retail_registry::retail_config;
 use crate::economy::transfer_settler::settle_b2c_purchase;
 use crate::entities::Company;
@@ -231,6 +232,96 @@ fn commodity_wealth_gate(commodity: Commodity) -> f64 {
     }
 }
 
+/// v4.18 WS1 (follow-up): maximum fraction of a class's remaining savings
+/// stock that may finance consumption above current wage income in a single
+/// turn — the bounded-dissaving rate. 0.20 means a class living purely off
+/// its stock retains ≥80% of it each turn: drawdown is geometric and
+/// asymptotic, so both the stock and the demand it funds decay smoothly
+/// toward the wage-sustainable level instead of hitting a zero cliff
+/// (the crucible's −81%/−51% single-turn collapses).
+const MAX_SAVINGS_DRAWDOWN_RATE: f64 = 0.20;
+
+/// v4.18 WS1: solvency signal (savings/capita) at which durable upgrade
+/// demand reaches full strength — scaled linearly below it so the
+/// 5%-of-stock upgrade lump fades in instead of toggling at a hard line.
+const DURABLE_UPGRADE_SPC_SCALE: f64 = 500.0;
+
+/// v4.18 WS1: solvency signal at which durable saturation (gap-filling)
+/// demand reaches full strength — scaled linearly below it so the
+/// 10%-of-gap purchase fades in instead of toggling on/off turn to turn.
+const DURABLE_SATURATION_SPC_SCALE: f64 = 100.0;
+
+/// v4.18 WS1: smoothed spending-power signal for wealth gating/scaling.
+///
+/// The habitual EWMA anchor survives only as a *bounded* top-up over
+/// current solvency: a class may TRY to hold its habitual standard, but
+/// the gap above its live means can only be financed at up to
+/// `MAX_SAVINGS_DRAWDOWN_RATE` of the remaining stock per turn. The
+/// top-up is proportional to the live stock, so it fades asymptotically —
+/// no `savings > 0` binary term, no cliff when the buffer runs out — and
+/// a class at exactly zero savings gets a zero signal: honest collapse.
+fn smoothed_spending_power(live_spc: f64, cached_spc: f64, habitual_anchor: f64) -> f64 {
+    let base = live_spc.max(cached_spc).max(0.0);
+    let draw_allowance = live_spc.max(0.0) * MAX_SAVINGS_DRAWDOWN_RATE;
+    base + (habitual_anchor - base).clamp(0.0, draw_allowance)
+}
+
+/// v4.18 WS1: per-turn spending capacity in money terms — the real bound on
+/// dissaving applied to demanded value in `build_consumer_demand`.
+///
+/// `allocated_fte × average_wage` is this turn's wage-bill proxy (zero for
+/// classes out of wage work — a furloughed or rentier class); the second
+/// term is the bounded drawdown of the savings stock. Spending is capped
+/// at income + ≤20% of the stock per turn, so the stock decays
+/// geometrically and can never be blown out in a turn or two, while a
+/// wage-earning class converges to its wage-sustainable basket instead of
+/// collapsing.
+fn class_spend_capacity(
+    demographics: &crate::society::geography::ClassDemographics,
+    average_wage: f64,
+) -> f64 {
+    demographics.allocated_fte.max(0.0) * average_wage.max(0.0)
+        + demographics.savings.max(0.0) * MAX_SAVINGS_DRAWDOWN_RATE
+}
+
+/// v4.18 WS1: continuous wealth-gate factor. The gate used to toggle
+/// demand 0↔full in a single step when `effective_spc` crossed the line —
+/// the main on/off per-turn volatility amplifier in the crucible series.
+/// Demand now ramps linearly toward the gate: a class at half the gate
+/// demands half the gated line. At zero solvency the factor is zero —
+/// a broke class still gets nothing gated.
+fn wealth_gate_factor(commodity: Commodity, effective_spc: f64) -> f64 {
+    let gate = commodity_wealth_gate(commodity);
+    if gate <= 0.0 {
+        return 1.0;
+    }
+    (effective_spc / gate).clamp(0.0, 1.0)
+}
+
+/// v4.18 WS1: price used to value a unit of consumer demand for the
+/// bounded-dissaving cap — resolved market price, then last turn's retail
+/// VWAP (actual consumer prices with markup), then the
+/// VWAP→last-trade→global-base reference chain; 0.0 if nothing is known.
+fn demand_value_price(
+    commodity: &Commodity,
+    market_prices: &HashMap<Commodity, f64>,
+    market_history: &MarketHistory,
+) -> f64 {
+    if let Some(&p) = market_prices.get(commodity) {
+        if p > 0.0 {
+            return p;
+        }
+    }
+    if let Some(&p) = market_history.retail_vwap_per_commodity.get(commodity) {
+        if p > 0.0 {
+            return p;
+        }
+    }
+    get_reference_price(commodity, market_history)
+        .unwrap_or(0.0)
+        .max(0.0)
+}
+
 /// Phase 47: Compute stock-adjusted durable demand for a class.
 ///
 /// Durables are NOT consumed per-turn. Instead, demand comes from:
@@ -242,9 +333,11 @@ fn commodity_wealth_gate(commodity: Commodity) -> f64 {
 /// target saturation level, not a per-turn consumption rate.
 ///
 /// v4.18 WS1: `effective_spc` is the caller's smoothed spending-power measure
-/// (max of live savings/capita, cached `savings_per_capita`, and the habitual
-/// EWMA anchor while solvent) so durable demand does not collapse on a
-/// single-turn wage dip.
+/// (live solvency plus a draw-rate-bounded top-up toward the habitual EWMA
+/// anchor) so durable demand does not collapse on a single-turn wage dip.
+/// All hard thresholds are soft ramps: the wealth gate, upgrade threshold,
+/// and saturation threshold scale demand linearly instead of toggling
+/// 0↔full — the binary versions were the demand-side volatility amplifier.
 fn compute_durable_demand(
     commodity: Commodity,
     demographics: &crate::society::geography::ClassDemographics,
@@ -259,8 +352,12 @@ fn compute_durable_demand(
     }
 
     // Wealth gate — even if the class basket lists a commodity, it's only
-    // demanded if the class's spending power exceeds the wealth gate.
-    if effective_spc < commodity_wealth_gate(commodity) {
+    // demanded if the class's spending power is near the wealth gate.
+    // v4.18 WS1 follow-up: continuous ramp `min(1, spc/gate)` replaces the
+    // binary pass/fail so a class hovering at the line buys a fraction of
+    // the gated line instead of oscillating between full and none.
+    let gate_factor = wealth_gate_factor(commodity, effective_spc);
+    if gate_factor <= 0.0 {
         return 0.0;
     }
 
@@ -283,8 +380,10 @@ fn compute_durable_demand(
         .map(|c| c.count)
         .sum();
 
-    // 4. Upgrade demand = wealth-driven desire for higher quality
-    let upgrade_demand = if effective_spc > 500.0 && current_stock > 0.0 {
+    // 4. Upgrade demand = wealth-driven desire for higher quality.
+    // v4.18 WS1: ramps in linearly with solvency instead of toggling at 500.
+    let upgrade_factor = (effective_spc / DURABLE_UPGRADE_SPC_SCALE).clamp(0.0, 1.0);
+    let upgrade_demand = if upgrade_factor > 0.0 && current_stock > 0.0 {
         let avg_quality: f64 = demographics
             .household_durables
             .iter()
@@ -293,7 +392,7 @@ fn compute_durable_demand(
             .sum::<f64>()
             / current_stock;
         if avg_quality < 0.9 {
-            current_stock * 0.05
+            current_stock * 0.05 * upgrade_factor
         } else {
             0.0
         }
@@ -301,19 +400,21 @@ fn compute_durable_demand(
         0.0
     };
 
-    // 5. Saturation demand = fill gap toward target stock (wealth-gated, gradual)
+    // 5. Saturation demand = fill gap toward target stock (wealth-gated,
+    // gradual). v4.18 WS1: the 10%-of-gap lump is scaled by a linear
+    // solvency ramp (full strength at DURABLE_SATURATION_SPC_SCALE) so it
+    // fades in/out rather than appearing and vanishing across the old
+    // binary 100.0 threshold each turn.
     let saturation_demand = if current_stock < target_stock {
         let gap = target_stock - current_stock;
-        if effective_spc > 100.0 {
-            gap * 0.10 // Fill 10% of the gap per turn
-        } else {
-            0.0
-        }
+        let saturation_factor =
+            (effective_spc / DURABLE_SATURATION_SPC_SCALE).clamp(0.0, 1.0);
+        gap * 0.10 * saturation_factor
     } else {
         0.0
     };
 
-    (worn_out + upgrade_demand + saturation_demand) * era_mult
+    (worn_out + upgrade_demand + saturation_demand) * era_mult * gate_factor
 }
 
 /// Phase 47: Degrade household durable cohorts by one turn.
@@ -474,6 +575,8 @@ fn affordability_threshold(commodity: Commodity) -> f64 {
 /// * `current_turn` - Current turn number
 /// * `market_prices` - Current market prices by commodity (Phase 74)
 /// * `average_wage` - Current average wage in the economy (Phase 74)
+/// * `market_history` - Price fallback chain (retail VWAP → reference) used
+///   to value demanded goods for the bounded-dissaving cap (v4.18 WS1)
 ///
 /// # Returns
 /// * `ConsumerDemand` - Demand by class and total
@@ -485,6 +588,9 @@ fn affordability_threshold(commodity: Commodity) -> f64 {
 /// * Phase 17A: Applies authority-scaled taboo/obsession modifiers
 /// * Phase 45: Applies wealth-tier and era-aware consumption modifiers
 /// * Phase 74: Applies price-driven substitution and housing complementarity
+/// * v4.18 WS1: Each class's demanded value is capped at this turn's wage
+///   bill plus ≤ `MAX_SAVINGS_DRAWDOWN_RATE` of its savings stock — real
+///   bounded dissaving; the stock decays geometrically, never cliffs
 /// * Used in R1 phase before store offer generation
 pub fn build_consumer_demand(
     region: &Region,
@@ -492,6 +598,7 @@ pub fn build_consumer_demand(
     market_prices: &HashMap<Commodity, f64>,
     average_wage: f64,
     housing_buildings: &[HousingBuilding],
+    market_history: &MarketHistory,
 ) -> ConsumerDemand {
     let mut demand = ConsumerDemand {
         demand: BTreeMap::new(),
@@ -520,32 +627,34 @@ pub fn build_consumer_demand(
             demographics.population,
         );
 
-        // v4.18 WS1 — consumption smoothing. The class's effective spending
-        // power is the maximum of:
-        //   * live `savings / population` (ground truth, immune to a stale
-        //     cached `savings_per_capita`),
-        //   * the cached `savings_per_capita` field (legacy behavior), and
-        //   * the habitual EWMA anchor — applied ONLY while the class still
-        //     holds savings to draw down (`savings > 0`).
+        // v4.18 WS1 — consumption smoothing via BOUNDED DISSAVING.
+        //
+        // The class's effective spending power is live solvency plus a
+        // rate-bounded top-up toward its habitual EWMA anchor:
+        //   effective_spc = base + min(anchor − base, live_spc × DRAW_RATE).
         // During a transitory wage dip (seasonal furlough, payroll arrears)
-        // live spending power collapses but the habitual anchor keeps the
-        // class demanding its normal basket; the shortfall is financed by a
-        // real draw-down of `ClassDemographics::savings` inside
-        // `settle_b2c_purchase` — conserved money movement, not fabricated
-        // income. A class at zero savings gets no anchor: there is nothing
-        // left to dissave, so its demand honestly collapses.
+        // the class keeps TRYING its habitual basket, but only the slice
+        // financed by a bounded draw-down of `ClassDemographics::savings`
+        // inside `settle_b2c_purchase` — conserved money movement, not
+        // fabricated income. The top-up is proportional to the remaining
+        // stock, so it fades asymptotically: no boom funded by the full
+        // anchor, no binary `savings > 0` term dropping it to zero — a
+        // class at zero savings still collapses honestly.
         let live_spc = if demographics.population > 0 {
             demographics.savings / demographics.population as f64
         } else {
             0.0
         };
-        let effective_spc = live_spc.max(demographics.savings_per_capita).max(
-            if demographics.savings > 0.0 {
-                demographics.habitual_savings_per_capita
-            } else {
-                0.0
-            },
+        let effective_spc = smoothed_spending_power(
+            live_spc,
+            demographics.savings_per_capita,
+            demographics.habitual_savings_per_capita,
         );
+
+        // Build this class's demand lines into a local map first: the
+        // bounded-dissaving cap values and scales the whole basket (including
+        // substitution-shifted lines) before it is merged into the aggregate.
+        let mut class_map: BTreeMap<Commodity, f64> = BTreeMap::new();
 
         if let Some(basket) = consumption.get(class_id_str) {
             for (tier, tier_commodities) in &basket.tiers {
@@ -572,15 +681,20 @@ pub fn build_consumer_demand(
                         if era_mult <= 0.0 {
                             continue;
                         }
-                        // Phase 47: Wealth-gate check for non-durables too
-                        // v4.18 WS1: gates on the smoothed measure.
-                        if effective_spc < commodity_wealth_gate(*commodity) {
+                        // Phase 47: Wealth-gate check for non-durables too.
+                        // v4.18 WS1 follow-up: soft ramp instead of binary
+                        // pass/fail — gates scale, they no longer toggle.
+                        let gate_factor = wealth_gate_factor(*commodity, effective_spc);
+                        if gate_factor <= 0.0 {
                             continue;
                         }
                         // Phase 45: Wealth-tier multiplier.
                         let wealth_mult = wealth_tier_multiplier(*tier, effective_spc);
-                        let base_demand =
-                            per_capita * era_mult * wealth_mult * (demographics.population as f64);
+                        let base_demand = per_capita
+                            * era_mult
+                            * wealth_mult
+                            * gate_factor
+                            * (demographics.population as f64);
 
                         // Phase 74: Price-driven substitution
                         let mut final_demand = base_demand;
@@ -600,14 +714,7 @@ pub fn build_consumer_demand(
                                             // Add shifted demand to substitute, scaled by equivalence ratio
                                             let substitute_demand = shifted * sub.equivalence_ratio;
                                             if substitute_demand > 0.0 {
-                                                *demand
-                                                    .demand
-                                                    .entry(key.clone())
-                                                    .or_default()
-                                                    .entry(sub.substitute)
-                                                    .or_insert(0.0) += substitute_demand;
-                                                *demand
-                                                    .total_demand
+                                                *class_map
                                                     .entry(sub.substitute)
                                                     .or_insert(0.0) += substitute_demand;
                                             }
@@ -620,13 +727,43 @@ pub fn build_consumer_demand(
                     };
 
                     if class_demand > 0.0 {
-                        *demand
-                            .demand
-                            .entry(key.clone())
-                            .or_default()
-                            .entry(*commodity)
-                            .or_insert(0.0) += class_demand;
-                        *demand.total_demand.entry(*commodity).or_insert(0.0) += class_demand;
+                        *class_map.entry(*commodity).or_insert(0.0) += class_demand;
+                    }
+                }
+            }
+        }
+
+        // v4.18 WS1 — the REAL drawdown bound. Demand is priced at current
+        // retail/market levels and scaled down to what the turn can
+        // actually finance: this turn's wage bill (allocated_fte ×
+        // average_wage, zero for classes out of wage work) plus at most
+        // MAX_SAVINGS_DRAWDOWN_RATE of the savings stock. A stock can
+        // therefore never be spent faster than ~20%/turn — drawdown is
+        // geometric, C decays smoothly toward the wage-sustainable basket,
+        // and a class with neither income nor savings demands nothing.
+        if !class_map.is_empty() {
+            let demand_value: f64 = class_map
+                .iter()
+                .map(|(c, q)| *q * demand_value_price(c, market_prices, market_history))
+                .sum();
+            let capacity = class_spend_capacity(demographics, average_wage);
+            let scale = if demand_value > 0.0 {
+                (capacity / demand_value).clamp(0.0, 1.0)
+            } else if capacity <= 0.0 {
+                // No wage bill and no savings stock: the class cannot fund
+                // even unpriced demand — honest collapse rather than the
+                // old phantom demand that cleared goods it never paid for.
+                0.0
+            } else {
+                1.0
+            };
+            if scale > 0.0 {
+                let entry = demand.demand.entry(key.clone()).or_default();
+                for (commodity, qty) in class_map {
+                    let scaled = qty * scale;
+                    if scaled > 0.0 {
+                        *entry.entry(commodity).or_insert(0.0) += scaled;
+                        *demand.total_demand.entry(commodity).or_insert(0.0) += scaled;
                     }
                 }
             }
@@ -2163,5 +2300,192 @@ mod tests {
             crate::society::housing::CommercialBuildingType::Supermarket,
             "Mid-wealth region in modern era should get supermarket"
         );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // v4.18 WS1 follow-up: bounded dissaving / consumption-smoothing tests
+    // ═══════════════════════════════════════════════════════════════════
+
+    #[test]
+    fn test_smoothed_power_anchor_top_up_is_rate_bounded() {
+        // Habitual standard 50× above live solvency: the class may only
+        // pretend to be richer by draw_rate × its live stock, not by the
+        // full anchor. live=100, anchor=5000 → effective = 100 + 20 = 120.
+        let eff = smoothed_spending_power(100.0, 100.0, 5000.0);
+        let expected = 100.0 + 100.0 * MAX_SAVINGS_DRAWDOWN_RATE;
+        assert!(
+            (eff - expected).abs() < 1e-9,
+            "anchor top-up must be bounded by draw_rate × live stock: got {eff}, want {expected}"
+        );
+    }
+
+    #[test]
+    fn test_smoothed_power_below_anchor_no_boost() {
+        // When live solvency already exceeds the habitual anchor there is
+        // nothing to smooth: effective equals the live measure.
+        let eff = smoothed_spending_power(500.0, 480.0, 300.0);
+        assert!((eff - 500.0).abs() < 1e-9, "got {eff}");
+    }
+
+    #[test]
+    fn test_smoothed_power_zero_savings_collapses_honestly() {
+        // A class at exactly zero savings gets no anchor resurrection —
+        // there is nothing left to dissave, no matter how high the
+        // habitual standard was.
+        assert_eq!(smoothed_spending_power(0.0, 0.0, 5000.0), 0.0);
+        // A stale-high cached field without live stock still gets no
+        // anchor: the draw allowance keys on LIVE savings only.
+        assert_eq!(smoothed_spending_power(0.0, 250.0, 5000.0), 250.0);
+    }
+
+    #[test]
+    fn test_bounded_dissaving_drawdown_is_rate_limited_and_asymptotic() {
+        // Mandate scenario: a class with savings S and zero income may
+        // draw at most S × rate per turn, approaching zero asymptotically
+        // (never hitting a one-step cliff).
+        let mut savings = 10_000.0_f64;
+        let mut demo = crate::society::geography::ClassDemographics {
+            population: 1,
+            allocated_fte: 0.0, // zero wage income
+            ..Default::default()
+        };
+        for _turn in 0..60 {
+            demo.savings = savings;
+            let capacity = class_spend_capacity(&demo, 0.0);
+            assert!(
+                capacity <= savings * MAX_SAVINGS_DRAWDOWN_RATE + 1e-9,
+                "per-turn draw {capacity} must be ≤ {MAX_SAVINGS_DRAWDOWN_RATE} × stock {savings}"
+            );
+            assert!(capacity > 0.0, "capacity must stay positive while solvent");
+            // Worst case: the class spends its entire capacity from the stock.
+            savings -= capacity;
+            assert!(
+                savings > 0.0,
+                "stock must never be blown to zero in a single turn"
+            );
+        }
+        // After 60 turns of maximal dissaving the stock retains ≥ 0.8^60
+        // of its original value — strictly positive, geometrically small.
+        let retention = savings / 10_000.0;
+        assert!(retention > 0.0);
+        assert!(
+            retention < 0.001,
+            "geometric decay should have mostly run down by turn 60, retention={retention}"
+        );
+    }
+
+    #[test]
+    fn test_spend_capacity_income_plus_bounded_draw() {
+        let demo = crate::society::geography::ClassDemographics {
+            population: 1000,
+            savings: 50_000.0,
+            allocated_fte: 500.0, // half the class employed
+            ..Default::default()
+        };
+        // wage bill = 500 × 100 = 50_000; draw = 50_000 × 0.2 = 10_000
+        let cap = class_spend_capacity(&demo, 100.0);
+        assert!((cap - 60_000.0).abs() < 1e-6, "got {cap}");
+    }
+
+    #[test]
+    fn test_wealth_gate_factor_soft_ramp() {
+        // Ungated perishable: always full demand.
+        assert_eq!(wealth_gate_factor(Commodity::Cereal, 0.0), 1.0);
+        // Gated durable: zero at zero solvency (honest collapse), half at
+        // half the gate, full at and above the gate.
+        assert_eq!(wealth_gate_factor(Commodity::Cars, 0.0), 0.0);
+        assert!((wealth_gate_factor(Commodity::Cars, 750.0) - 0.5).abs() < 1e-9);
+        assert_eq!(wealth_gate_factor(Commodity::Cars, 1500.0), 1.0);
+        assert_eq!(wealth_gate_factor(Commodity::Cars, 9999.0), 1.0);
+    }
+
+    #[test]
+    fn test_demand_value_cap_bounds_dissaving() {
+        use crate::society::geography::{ClassDemographics, RuralClass};
+        // Class with zero employment income and a small stock: demanded
+        // goods value must be capped at draw_rate × stock per turn.
+        let mut region = Region::default();
+        region.id = "cap_region".to_string();
+        let mut demos = ClassDemographics {
+            population: 1000,
+            savings: 10_000.0, // 10/capita stock
+            allocated_fte: 0.0,
+            ..Default::default()
+        };
+        demos.savings_per_capita = 10.0;
+        region
+            .class_demographics
+            .rural_classes
+            .insert(RuralClass::FreePeasant, demos);
+
+        let mut prices: HashMap<Commodity, f64> = HashMap::default();
+        // Price every FreePeasant basket line so the cap can value it.
+        for c in [
+            Commodity::Cereal,
+            Commodity::Vegetable,
+            Commodity::Meat,
+            Commodity::Fruit,
+            Commodity::HealthCapacity,
+            Commodity::EducationSlots,
+        ] {
+            prices.insert(c, 100.0);
+        }
+        let history = MarketHistory::default();
+        let demand = build_consumer_demand(&region, 0, &prices, 100.0, &[], &history);
+
+        let key = (
+            "cap_region".to_string(),
+            DemographicClass::from(RuralClass::FreePeasant),
+        );
+        let class_map = demand
+            .demand
+            .get(&key)
+            .expect("class should still demand something");
+        let value: f64 = class_map
+            .iter()
+            .map(|(c, q)| *q * prices.get(c).copied().unwrap_or(0.0))
+            .sum();
+        let cap = 10_000.0 * MAX_SAVINGS_DRAWDOWN_RATE;
+        assert!(
+            value <= cap + 1e-6,
+            "demanded value {value} must not exceed bounded-dissaving cap {cap}"
+        );
+        // And the cap must actually bind (the uncapped basket was worth more):
+        // the subsistence basket alone (0.18+0.12+0.07+0.02+0.03+0.01=0.43/capita
+        // at 100/unit × 1000 pop) is 43_000 ≫ 2_000.
+        assert!(
+            value > 0.0,
+            "bounded drawdown still allows a fraction of the basket"
+        );
+    }
+
+    #[test]
+    fn test_demand_value_cap_broke_class_collapses() {
+        use crate::society::geography::{ClassDemographics, RuralClass};
+        // No savings, no employment → zero capacity → no demand at all.
+        let mut region = Region::default();
+        region.id = "broke_region".to_string();
+        let demos = ClassDemographics {
+            population: 1000,
+            savings: 0.0,
+            allocated_fte: 0.0,
+            ..Default::default()
+        };
+        region
+            .class_demographics
+            .rural_classes
+            .insert(RuralClass::FreePeasant, demos);
+
+        let history = MarketHistory::default();
+        let demand = build_consumer_demand(
+            &region,
+            0,
+            &HashMap::default(),
+            100.0,
+            &[],
+            &history,
+        );
+        let total: f64 = demand.total_demand.values().sum();
+        assert_eq!(total, 0.0, "broke class with no income must demand nothing");
     }
 }
