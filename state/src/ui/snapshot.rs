@@ -3289,13 +3289,19 @@ pub fn build_country_snapshot(
     };
 
     // Labor market
+    // v4.18 WS1: Furloughed total is summed from the live company roster at
+    // snapshot-build time — `macro_data.labor_market.furloughed_total` is
+    // refreshed end-of-turn from the same source, and the company-level
+    // field is the authoritative one (mid-turn writes race the furlough
+    // phases that run later in the turn).
+    let furloughed_total = crate::economy::telemetry::sum_company_furloughed(companies);
     let labor = LaborSummary {
         unemployment_rate: macro_data.labor_market.unemployment_rate,
         employed_total: macro_data.labor_market.employed_total,
         unemployed: macro_data.labor_market.unemployed,
         workforce: macro_data.labor_market.employed_total + macro_data.labor_market.unemployed,
         average_wage: macro_data.average_wage,
-        furloughed_total: macro_data.labor_market.furloughed_total,
+        furloughed_total,
         peasant_population,
         peasant_pct,
         sports_capacity_per_capita: macro_data.health_statistics.sports_capacity_per_capita,
@@ -3341,8 +3347,9 @@ pub fn build_country_snapshot(
     treasury.savings = total_savings;
 
     // Phase 24F/90: Compute ToT/YoY deltas from telemetry history.
+    // v4.18 WS1: reuse the live company-sum furlough total computed above
+    // for the labor summary (single authoritative aggregation).
     let population_f64 = country.budget.population as f64;
-    let furloughed_total = macro_data.labor_market.furloughed_total;
     let gdp_per_capita = if population_f64 > 0.0 {
         macro_data.gdp_breakdown.official_gdp / population_f64
     } else {
@@ -3362,17 +3369,13 @@ pub fn build_country_snapshot(
     let sectors = aggregate_sectors(companies, country);
 
     // Phase 34: Build region rows for the [8] Regions tab.
-    // Regional GDP remediation: value added is aggregated bottom-up from the
-    // buildings physically located in each region (this turn's actual output
-    // minus intermediate inputs) plus the wage/profit income of buildingless
-    // companies registered there. `Region::gdp` was previously overwritten
-    // each turn with national GDP × population share, so every region in a
-    // country displayed an identical GDP/capita.
-    let regional_va = crate::society::geography::regional_value_added(
-        &country.regions,
-        companies,
-        buildings,
-    );
+    // v4.18 WS1: `Region::gdp` is the expenditure-side regional account
+    // written each turn by `reconcile_regional_gdp` — floored at 0 (inventory
+    // drawdowns are not negative GDP) and reconciled so Σ region.gdp equals
+    // national official GDP to floating-point exactness. The previous
+    // production-side `regional_value_added` path displayed gross output
+    // (not value added) at ~120× national scale and could go negative on
+    // stock drawdown; it remains available as a diagnostic in geography.rs.
     let regions: Vec<RegionRow> = country
         .regions
         .iter()
@@ -3384,7 +3387,7 @@ pub fn build_country_snapshot(
                 .find(|mg| mg.regions.contains(&r.id))
                 .map(|mg| (mg.name.clone(), mg.id.clone()))
                 .unwrap_or_else(|| ("Unassigned".to_string(), String::new()));
-            let regional_gdp = regional_va.get(&r.id).copied().unwrap_or(0.0);
+            let regional_gdp = r.gdp.max(0.0);
             let gdp_per_capita = if r.population > 0 {
                 regional_gdp / r.population as f64
             } else {

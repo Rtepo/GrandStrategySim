@@ -795,6 +795,18 @@ pub struct InflationIndices {
     /// PPI inflation rate, percent (computed from index delta).
     #[serde(default)]
     pub ppi_inflation: f64,
+    /// v4.18 WS1: Turn-0 CPI basket cost — the raw weighted basket value
+    /// `Σ(w_i × p_i) / Σw_i` measured on the first computed turn. Persisted
+    /// so `cpi_index = (basket_t / cpi_base_cost) × 100` stays anchored at
+    /// 100.0 across saves instead of reporting the raw basket sum.
+    /// `0.0` = uninitialized (legacy saves re-anchor on the next computed
+    /// turn, then carry forward through `previous`).
+    #[serde(default)]
+    pub cpi_base_cost: f64,
+    /// v4.18 WS1: Turn-0 PPI basket cost — same anchoring as `cpi_base_cost`
+    /// for the producer-goods basket.
+    #[serde(default)]
+    pub ppi_base_cost: f64,
 }
 
 fn default_index_base() -> f64 {

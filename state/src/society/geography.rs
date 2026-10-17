@@ -1141,6 +1141,18 @@ pub struct ClassDemographics {
     #[serde(default)]
     pub savings_per_capita: f64,
 
+    /// v4.18 WS1: Slow-moving anchor of habitual spending capacity — an EWMA
+    /// of live `savings / population` refreshed once per turn during B2C
+    /// settlement. `build_consumer_demand` uses it (while `savings > 0`) to
+    /// smooth the wealth gate and wealth-tier multiplier through transitory
+    /// wage-income dips such as seasonal furloughs: households keep demanding
+    /// their habitual basket and draw the shortfall from `savings` at real
+    /// settlement, so consumption stops collapsing ~85% in a single turn
+    /// without fabricating money (M0 conserved; EWMA decays ~25%/turn so
+    /// sustained poverty still converges demand to means).
+    #[serde(default)]
+    pub habitual_savings_per_capita: f64,
+
     /// Subsistence consumption rate (0-1, fraction of income needed for survival)
     #[serde(default)]
     pub subsistence_rate: f64,
@@ -2142,6 +2154,10 @@ pub fn sync_region_resources_from_planet(
 ///   Companies WITH buildings are excluded because their activity is already
 ///   captured per-building.
 ///
+/// v4.18 WS1: every contribution is floored at 0 — inventory drawdowns and
+/// stock-building are not negative GDP (a drawdown sale is already counted
+/// under C; subtracting it here would double-count).
+///
 /// # Returns
 /// `region_id → GVA` covering every region in `regions` (0.0 where no
 /// activity was recorded — a genuinely subsistence-only region).
@@ -2176,7 +2192,13 @@ pub fn regional_value_added(
             .get("last_input_cost")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0);
-        *va.entry(b.region_id.clone()).or_insert(0.0) += output_value - input_cost;
+        // v4.18 WS1: Floor each building's contribution at 0. A building whose
+        // inputs exceeded this turn's output stocked inventory (investment,
+        // not negative GDP) or sold from stock — a warehouse drawdown is still
+        // a final sale counted under C, and double-subtracting it here is what
+        // drove regional displays like −12.45M.
+        *va.entry(b.region_id.clone()).or_insert(0.0) +=
+            (output_value - input_cost).max(0.0);
     }
 
     for c in companies {
@@ -2188,9 +2210,13 @@ pub fn regional_value_added(
         if !region_ids.contains(c.region_id.as_str()) {
             continue;
         }
-        *va.entry(c.region_id.clone()).or_insert(0.0) += c.wages_paid_this_turn
+        // v4.18 WS1: Same floor — a buildingless firm's income-side value
+        // added cannot drag the region negative; a realized loss absorbed by
+        // reserves is not negative production.
+        *va.entry(c.region_id.clone()).or_insert(0.0) += (c.wages_paid_this_turn
             + c.arrears_accrued_this_turn
-            + c.realized_profit_this_turn;
+            + c.realized_profit_this_turn)
+            .max(0.0);
     }
 
     va
@@ -2848,45 +2874,53 @@ pub fn generate_class_demographics(
 
     rural_classes.insert(RuralClass::FreePeasant, {
         let savings = free_peasant_pop as f64 * 100.0 * dev_savings_mult;
+        let spc = if free_peasant_pop > 0 {
+            savings / free_peasant_pop as f64
+        } else {
+            0.0
+        };
         ClassDemographics {
             population: free_peasant_pop,
             labor_participation: 0.55,
             savings,
-            savings_per_capita: if free_peasant_pop > 0 {
-                savings / free_peasant_pop as f64
-            } else {
-                0.0
-            },
+            savings_per_capita: spc,
+            // v4.18 WS1: seed the habitual spending anchor at the generated
+            // solvency so the smoothing EWMA starts warm instead of at 0.
+            habitual_savings_per_capita: spc,
             culture: dominant_culture.to_string(),
             ..Default::default()
         }
     });
     rural_classes.insert(RuralClass::LandlessLaborer, {
         let savings = landless_pop as f64 * 50.0 * dev_savings_mult;
+        let spc = if landless_pop > 0 {
+            savings / landless_pop as f64
+        } else {
+            0.0
+        };
         ClassDemographics {
             population: landless_pop,
             labor_participation: 0.60,
             savings,
-            savings_per_capita: if landless_pop > 0 {
-                savings / landless_pop as f64
-            } else {
-                0.0
-            },
+            savings_per_capita: spc,
+            habitual_savings_per_capita: spc,
             culture: dominant_culture.to_string(),
             ..Default::default()
         }
     });
     rural_classes.insert(RuralClass::Aristocracy, {
         let savings = aristocracy_pop as f64 * 5000.0 * dev_savings_mult;
+        let spc = if aristocracy_pop > 0 {
+            savings / aristocracy_pop as f64
+        } else {
+            0.0
+        };
         let mut demo = ClassDemographics {
             population: aristocracy_pop,
             labor_participation: 0.30,
             savings,
-            savings_per_capita: if aristocracy_pop > 0 {
-                savings / aristocracy_pop as f64
-            } else {
-                0.0
-            },
+            savings_per_capita: spc,
+            habitual_savings_per_capita: spc,
             culture: dominant_culture.to_string(),
             ..Default::default()
         };
@@ -2915,30 +2949,35 @@ pub fn generate_class_demographics(
 
     urban_classes.insert(UrbanClass::Worker, {
         let savings = worker_pop as f64 * 200.0 * dev_savings_mult;
+        let spc = if worker_pop > 0 {
+            savings / worker_pop as f64
+        } else {
+            0.0
+        };
         ClassDemographics {
             population: worker_pop,
             labor_participation: 0.60,
             savings,
-            savings_per_capita: if worker_pop > 0 {
-                savings / worker_pop as f64
-            } else {
-                0.0
-            },
+            savings_per_capita: spc,
+            // v4.18 WS1: seed the habitual spending anchor at genesis solvency.
+            habitual_savings_per_capita: spc,
             culture: dominant_culture.to_string(),
             ..Default::default()
         }
     });
     urban_classes.insert(UrbanClass::Bourgeoisie, {
         let savings = middle_pop as f64 * 1000.0 * dev_savings_mult;
+        let spc = if middle_pop > 0 {
+            savings / middle_pop as f64
+        } else {
+            0.0
+        };
         let mut demo = ClassDemographics {
             population: middle_pop,
             labor_participation: 0.55,
             savings,
-            savings_per_capita: if middle_pop > 0 {
-                savings / middle_pop as f64
-            } else {
-                0.0
-            },
+            savings_per_capita: spc,
+            habitual_savings_per_capita: spc,
             culture: dominant_culture.to_string(),
             ..Default::default()
         };

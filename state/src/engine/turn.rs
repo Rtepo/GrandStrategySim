@@ -11425,6 +11425,19 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
         }
     }
 
+    // v4.18 WS1: Re-aggregate furloughed workers into the macro snapshot
+    // from post-turn company state — the authoritative read point, before
+    // any next-turn reset. The labor-market feedback write mid-turn samples
+    // `furloughed_workers_count` before the distress/seasonal furlough
+    // phases that run later in the pipeline, so the dashboard read ~0
+    // while the company explorer showed tens of thousands.
+    for (country_name, ents) in &entities {
+        if let Some(country) = state.countries.get_mut(country_name) {
+            country.macro_indicators.labor_market.furloughed_total =
+                crate::economy::telemetry::sum_company_furloughed(&ents.companies);
+        }
+    }
+
     // Phase 34: prev_net_surplus is now captured at the START of the turn
     // (see above), not at the end. The old end-of-turn capture caused
     // prev_net_surplus == current net_surplus, producing ToT% = 0.00% always.

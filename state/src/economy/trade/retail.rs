@@ -240,11 +240,17 @@ fn commodity_wealth_gate(commodity: Commodity) -> f64 {
 ///
 /// The `base_per_capita` from the consumption registry is used as the
 /// target saturation level, not a per-turn consumption rate.
+///
+/// v4.18 WS1: `effective_spc` is the caller's smoothed spending-power measure
+/// (max of live savings/capita, cached `savings_per_capita`, and the habitual
+/// EWMA anchor while solvent) so durable demand does not collapse on a
+/// single-turn wage dip.
 fn compute_durable_demand(
     commodity: Commodity,
     demographics: &crate::society::geography::ClassDemographics,
     year: u32,
     base_per_capita: f64,
+    effective_spc: f64,
 ) -> f64 {
     // Era gate (no TV demand before 1936, etc.)
     let era_mult = era_consumption_multiplier(commodity, year);
@@ -253,8 +259,8 @@ fn compute_durable_demand(
     }
 
     // Wealth gate — even if the class basket lists a commodity, it's only
-    // demanded if the class's savings_per_capita exceeds the wealth gate.
-    if demographics.savings_per_capita < commodity_wealth_gate(commodity) {
+    // demanded if the class's spending power exceeds the wealth gate.
+    if effective_spc < commodity_wealth_gate(commodity) {
         return 0.0;
     }
 
@@ -278,7 +284,7 @@ fn compute_durable_demand(
         .sum();
 
     // 4. Upgrade demand = wealth-driven desire for higher quality
-    let upgrade_demand = if demographics.savings_per_capita > 500.0 && current_stock > 0.0 {
+    let upgrade_demand = if effective_spc > 500.0 && current_stock > 0.0 {
         let avg_quality: f64 = demographics
             .household_durables
             .iter()
@@ -298,7 +304,7 @@ fn compute_durable_demand(
     // 5. Saturation demand = fill gap toward target stock (wealth-gated, gradual)
     let saturation_demand = if current_stock < target_stock {
         let gap = target_stock - current_stock;
-        if demographics.savings_per_capita > 100.0 {
+        if effective_spc > 100.0 {
             gap * 0.10 // Fill 10% of the gap per turn
         } else {
             0.0
@@ -514,6 +520,33 @@ pub fn build_consumer_demand(
             demographics.population,
         );
 
+        // v4.18 WS1 — consumption smoothing. The class's effective spending
+        // power is the maximum of:
+        //   * live `savings / population` (ground truth, immune to a stale
+        //     cached `savings_per_capita`),
+        //   * the cached `savings_per_capita` field (legacy behavior), and
+        //   * the habitual EWMA anchor — applied ONLY while the class still
+        //     holds savings to draw down (`savings > 0`).
+        // During a transitory wage dip (seasonal furlough, payroll arrears)
+        // live spending power collapses but the habitual anchor keeps the
+        // class demanding its normal basket; the shortfall is financed by a
+        // real draw-down of `ClassDemographics::savings` inside
+        // `settle_b2c_purchase` — conserved money movement, not fabricated
+        // income. A class at zero savings gets no anchor: there is nothing
+        // left to dissave, so its demand honestly collapses.
+        let live_spc = if demographics.population > 0 {
+            demographics.savings / demographics.population as f64
+        } else {
+            0.0
+        };
+        let effective_spc = live_spc.max(demographics.savings_per_capita).max(
+            if demographics.savings > 0.0 {
+                demographics.habitual_savings_per_capita
+            } else {
+                0.0
+            },
+        );
+
         if let Some(basket) = consumption.get(class_id_str) {
             for (tier, tier_commodities) in &basket.tiers {
                 for (commodity, per_capita) in tier_commodities {
@@ -521,8 +554,13 @@ pub fn build_consumer_demand(
                     // upgrade + saturation), NOT per-turn consumption.
                     // Perishables use the existing per_capita × era × wealth × pop.
                     let class_demand = if commodity.is_household_durable() {
-                        let mut d =
-                            compute_durable_demand(*commodity, demographics, year, *per_capita);
+                        let mut d = compute_durable_demand(
+                            *commodity,
+                            demographics,
+                            year,
+                            *per_capita,
+                            effective_spc,
+                        );
                         // Phase 74: Housing complementarity gating
                         if commodity.requires_housing() {
                             d *= housing_rate;
@@ -535,12 +573,12 @@ pub fn build_consumer_demand(
                             continue;
                         }
                         // Phase 47: Wealth-gate check for non-durables too
-                        if demographics.savings_per_capita < commodity_wealth_gate(*commodity) {
+                        // v4.18 WS1: gates on the smoothed measure.
+                        if effective_spc < commodity_wealth_gate(*commodity) {
                             continue;
                         }
                         // Phase 45: Wealth-tier multiplier.
-                        let wealth_mult =
-                            wealth_tier_multiplier(*tier, demographics.savings_per_capita);
+                        let wealth_mult = wealth_tier_multiplier(*tier, effective_spc);
                         let base_demand =
                             per_capita * era_mult * wealth_mult * (demographics.population as f64);
 
@@ -1153,6 +1191,13 @@ pub fn clear_b2c_markets(
     }
 }
 
+/// v4.18 WS1: EWMA learning rate for `habitual_savings_per_capita` — the
+/// slow-moving anchor of habitual spending capacity refreshed once per turn
+/// in `settle_b2c_clearing`. 0.25 halves the gap to live spending power
+/// roughly every 3 turns: fast enough to converge on sustained poverty,
+/// slow enough to bridge a single-turn wage dip.
+const HABITUAL_SPENDING_ANCHOR_ALPHA: f64 = 0.25;
+
 /// Settle B2C clearing revenue through TransferSettler (Phase 16A).
 ///
 /// After `clear_b2c_markets` determines how much each store sold, this function
@@ -1187,6 +1232,37 @@ pub fn settle_b2c_clearing(
     store_id_to_owner: &rustc_hash::FxHashMap<String, String>,
     company_id_to_idx: &rustc_hash::FxHashMap<String, usize>,
 ) -> (f64, f64, f64) {
+    // v4.18 WS1: Refresh each class's habitual spending-capacity anchor once
+    // per turn, BEFORE this turn's retail debits, so the anchor reflects the
+    // class's normal capacity to pay (wages + accumulated stock) rather than
+    // its post-purchase residual. The EWMA is the demand-smoothing state read
+    // by `build_consumer_demand` — it must update even when a class demanded
+    // nothing this turn (the early return below stays after this block).
+    for demo in region
+        .class_demographics
+        .rural_classes
+        .values_mut()
+        .chain(region.class_demographics.urban_classes.values_mut())
+    {
+        let live_spc = if demo.population > 0 {
+            demo.savings / demo.population as f64
+        } else {
+            0.0
+        };
+        // v4.18 WS1: Resync the cached `savings_per_capita` to live savings —
+        // rent/tax/loan debits earlier in the turn mutate `savings` without
+        // refreshing this field, leaving the wealth gate reading a stale
+        // solvency signal. Convention elsewhere (tax, welfare debits) is to
+        // keep the cached field equal to savings/population after every
+        // mutation; the B2C path now upholds it too.
+        demo.savings_per_capita = live_spc;
+        demo.habitual_savings_per_capita += HABITUAL_SPENDING_ANCHOR_ALPHA
+            * (live_spc - demo.habitual_savings_per_capita);
+        if demo.habitual_savings_per_capita < 0.0 {
+            demo.habitual_savings_per_capita = 0.0;
+        }
+    }
+
     // Build class demand shares: (is_rural, DemographicClass) → total demand across all commodities
     // E.6.3: typed DemographicClass key
     let mut class_shares: Vec<(bool, DemographicClass, f64)> = Vec::new();
@@ -1293,6 +1369,26 @@ pub fn settle_b2c_clearing(
                     r.amount_transferred - r.vat_amount;
             }
         }
+    }
+
+    // v4.18 WS1: Post-debit resync of `savings_per_capita`. The settle loops
+    // above drew each class's `savings` down inside `settle_b2c_purchase` /
+    // `debit_b2c_class_savings` (real money movement, clamped at 0) — refresh
+    // the cached per-capita field so next turn's demand gates and wealth
+    // multipliers read post-purchase reality rather than a stale solvency
+    // signal that would let insolvent classes keep demanding above their
+    // means.
+    for demo in region
+        .class_demographics
+        .rural_classes
+        .values_mut()
+        .chain(region.class_demographics.urban_classes.values_mut())
+    {
+        demo.savings_per_capita = if demo.population > 0 {
+            demo.savings / demo.population as f64
+        } else {
+            0.0
+        };
     }
 
     (total_settled, total_vat_collected, municipal_revenue)
