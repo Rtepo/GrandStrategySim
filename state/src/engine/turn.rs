@@ -1498,16 +1498,22 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // Each refund function is selective by buyer_id, so redistributing all
         // unfilled bids to all tasks is safe — only the task that owns the buyer
         // entity will process the refund.
-        let unfilled_bids: Vec<(Commodity, Vec<Bid>)> = global_order_book
+        let mut unfilled_bids: Vec<(Commodity, Vec<Bid>)> = global_order_book
             .bids
             .iter()
             .map(|(c, bids)| (*c, bids.clone()))
             .collect();
-        let unfilled_asks: Vec<(Commodity, Vec<Ask>)> = global_order_book
+        let mut unfilled_asks: Vec<(Commodity, Vec<Ask>)> = global_order_book
             .asks
             .iter()
             .map(|(c, asks)| (*c, asks.clone()))
             .collect();
+        // v4.18 WS2: canonical commodity order — every downstream consumer of
+        // these vectors (per-task redistribution, export sweep, import sweep)
+        // iterates them in Vec order, and HashMap key order is not stable
+        // across identical seeds.
+        unfilled_bids.sort_by_key(|(c, _)| *c);
+        unfilled_asks.sort_by_key(|(c, _)| *c);
         for task in &mut tasks {
             for (commodity, bids) in &unfilled_bids {
                 task.order_book
@@ -1610,14 +1616,25 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     // deterministic, preserves the liquidity constraint, and
                     // drains the pool by exactly the trade's FX cost.
                     let needed_numeraire = foreign_needed * foreign_rate;
-                    let total_numeraire: f64 = task
+                    // v4.18 WS2: sum in canonical currency order — HashMap
+                    // iteration order is randomized per instance, and f64
+                    // addition is not associative, so the pool total (and the
+                    // pro-rata share + coverage gate derived from it)
+                    // differed at bit level across identical seeds.
+                    let mut fx_keys: Vec<String> = task
                         .ctx
                         .country
                         .central_bank
                         .fx_reserves
+                        .keys()
+                        .cloned()
+                        .collect();
+                    fx_keys.sort();
+                    let total_numeraire: f64 = fx_keys
                         .iter()
-                        .map(|(ccy, bal)| {
-                            bal * currency_rates.get(ccy).copied().unwrap_or(1.0)
+                        .map(|ccy| {
+                            task.ctx.country.central_bank.fx_reserves[ccy]
+                                * currency_rates.get(ccy).copied().unwrap_or(1.0)
                         })
                         .sum();
                     if total_numeraire >= needed_numeraire && total_numeraire > 0.0 {
@@ -2059,7 +2076,16 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 .collect();
             eprintln!("EXPORTFILTER: t={} price-capped asks | {}", turn, top.join(" "));
         }
-        let total_residual_value: f64 = country_residual_value.values().sum();
+        // v4.18 WS2: sum in canonical country order — randomized HashMap
+        // iteration made the purse-allocation denominator differ at bit
+        // level across identical seeds, perturbing every fill ratio below.
+        let mut residual_countries: Vec<&String> =
+            country_residual_value.keys().collect();
+        residual_countries.sort();
+        let total_residual_value: f64 = residual_countries
+            .iter()
+            .map(|c| country_residual_value[*c])
+            .sum();
         let export_purse = EXPORT_TURN_BUDGET
             .min(market.foreign_sector_balance.max(0.0) * EXPORT_PURSE_FRACTION)
             .min(total_residual_value);
@@ -2367,13 +2393,19 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     market.foreign_sector_balance -= task_spend;
                     all_export_trades.extend(export_trades.iter().cloned());
                     // v4.17.0: export proceeds at the exporting firm's region.
-                    for (seller_id, value) in &seller_spend {
-                        if *value <= 0.0 {
+                    // v4.18 WS2: canonical seller order — HashMap iteration
+                    // accumulated `gdp_acc.net_exports` (a float sum) in
+                    // randomized order across identical seeds.
+                    let mut seller_ids: Vec<&String> = seller_spend.keys().collect();
+                    seller_ids.sort();
+                    for seller_id in seller_ids {
+                        let value = seller_spend[seller_id];
+                        if value <= 0.0 {
                             continue;
                         }
                         match task.region_of_company(seller_id) {
-                            Some(rid) => task.gdp_acc.add_net_exports(&rid, *value),
-                            None => task.gdp_acc.net_exports += *value,
+                            Some(rid) => task.gdp_acc.add_net_exports(&rid, value),
+                            None => task.gdp_acc.net_exports += value,
                         }
                     }
                     // Persist for the end-of-turn GDP patch — `trade_balances`
@@ -3457,11 +3489,19 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 .unwrap_or(0.0);
             // D.4.7: Dynamic inspection probability — capacity per construction
             // site, not a hardcoded divisor. (Rule 2: no magic numbers)
+            // v4.18 WS2: count only live sites — a work_complete project
+            // lingers purely as the contractor's payment claim; it must not
+            // dilute per-site inspection probability.
             let total_construction_sites = task
                 .ctx
                 .buildings
                 .iter()
-                .filter(|b| b.active_project.is_some())
+                .filter(|b| {
+                    b.active_project
+                        .as_ref()
+                        .map(|p| !p.work_complete)
+                        .unwrap_or(false)
+                })
                 .count() as f64;
             let inspection_prob = task
                 .ctx
@@ -3484,6 +3524,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             for building in &mut task.ctx.buildings {
                 if let Some(project) = building.active_project.as_mut() {
                     if project.main_contractor_id.is_empty() {
+                        continue;
+                    }
+                    // v4.18 WS2: a work_complete record lingers only as the
+                    // contractor's payment claim — no crew is on site, so
+                    // material fraud / OHS cuts / accidents cannot occur.
+                    if project.work_complete {
                         continue;
                     }
                     let contractor_rep = task
@@ -5654,10 +5700,19 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         // never promise stock the seller cannot physically
                         // ship: an over-promised ask is paid in full but
                         // only partially ships — paying for air.
-                        let mut sellers: HashMap<Commodity, Vec<(String, f64)>> =
-                            HashMap::new();
+                        // v4.18 WS2: BTreeMap — `total_deliverable_value`
+                        // below is an f64 sum over this map; a RandomState
+                        // HashMap order shifts the low bits of the total,
+                        // which scales every commodity's bid budget and
+                        // makes settled spend (seller cash + GDP I) differ
+                        // between identical-seed runs.
+                        let mut sellers: std::collections::BTreeMap<
+                            Commodity,
+                            Vec<(String, f64)>,
+                        > = std::collections::BTreeMap::new();
                         for company in &task.companies {
-                            let mut held: HashMap<Commodity, f64> = HashMap::new();
+                            let mut held: std::collections::BTreeMap<Commodity, f64> =
+                                std::collections::BTreeMap::new();
                             for b in task
                                 .ctx
                                 .buildings
@@ -6244,9 +6299,19 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                             *cap_by_region.entry(b.region_id.clone()).or_insert(0.0) +=
                                 b.worker_capacity as f64;
                         }
-                        let cap_total: f64 = cap_by_region.values().sum();
+                        // v4.18 WS2: canonical region order for both the
+                        // denominator sum and the share writes — randomized
+                        // HashMap order perturbed every split at bit level.
+                        let mut cap_regions: Vec<String> =
+                            cap_by_region.keys().cloned().collect();
+                        cap_regions.sort();
+                        let cap_total: f64 = cap_regions
+                            .iter()
+                            .map(|r| cap_by_region[r])
+                            .sum();
                         if cap_total > 0.0 {
-                            for (rid, cap) in cap_by_region {
+                            for rid in cap_regions {
+                                let cap = cap_by_region[&rid];
                                 *task.state_sector_wages_by_region.entry(rid).or_insert(0.0) +=
                                     state_wages * (cap / cap_total);
                             }
@@ -8716,13 +8781,19 @@ tasks.par_iter_mut().for_each(|task| {
             // settle below zero (draw booked as cb_lombard_loans, tracked via
             // liquidity_injected — A=L+E and M0 accounting preserved).
             let _total_bank_debit: f64 = tax_bank_debits.values().sum();
-            for (bank_id, total_debit) in &tax_bank_debits {
+            // v4.18 WS2: canonical bank order — each `ela_cover_debit` call
+            // accumulates `central_bank.liquidity_injected`, a float sum that
+            // inherited randomized HashMap iteration order.
+            let mut tax_bank_ids: Vec<&String> = tax_bank_debits.keys().collect();
+            tax_bank_ids.sort();
+            for bank_id in tax_bank_ids {
+                let total_debit = tax_bank_debits[bank_id];
                 if let Some(bank) = task.companies.iter_mut().find(|c| c.id == *bank_id) {
                     if let Some(ref mut bs) = bank.balance_sheet {
                         crate::state::banking::ela_cover_debit(
                             bs,
                             &mut task.ctx.country.central_bank,
-                            *total_debit,
+                            total_debit,
                         );
                         bs.deposits -= total_debit;
                         bs.reserves_at_central_bank -= total_debit;
@@ -10395,13 +10466,20 @@ tasks.par_iter_mut().for_each(|task| {
             for building in &task.ctx.buildings {
                 let (has_project, defect, ohs_ratio, contractor_id, region_id) =
                     match &building.active_project {
-                        Some(p) if !p.main_contractor_id.is_empty() => (
-                            true,
-                            p.structural_defect,
-                            p.ohs_coverage_ratio,
-                            p.main_contractor_id.clone(),
-                            building.region_id.clone(),
-                        ),
+                        // v4.18 WS2: skip work_complete lingerers — a finished
+                        // site has no live workplace to inspect; the record is
+                        // only the contractor's open payment claim.
+                        Some(p)
+                            if !p.main_contractor_id.is_empty() && !p.work_complete =>
+                        {
+                            (
+                                true,
+                                p.structural_defect,
+                                p.ohs_coverage_ratio,
+                                p.main_contractor_id.clone(),
+                                building.region_id.clone(),
+                            )
+                        }
                         _ => continue,
                     };
                 if !has_project {
@@ -12573,4 +12651,186 @@ fn process_parliament_building_payroll(
     ));
 
     messages
+}
+
+// ============================================================================
+// v4.18 WS2 — DETERMINISTIC STATE FINGERPRINT
+// ============================================================================
+
+/// v4.18 WS2: Hash a `Commodity → f64` map in canonical (sorted-key) order so
+/// the fingerprint never depends on a map's internal iteration order.
+fn fingerprint_commodity_map(
+    h: &mut impl std::hash::Hasher,
+    map: &rustc_hash::FxHashMap<crate::registries::enums::Commodity, f64>,
+) {
+    use std::hash::Hash;
+    let mut entries: Vec<_> = map.iter().collect();
+    entries.sort_by_key(|(c, _)| *c);
+    entries.len().hash(h);
+    for (commodity, value) in entries {
+        commodity.hash(h);
+        value.to_bits().hash(h);
+    }
+}
+
+/// v4.18 WS2: Hash the observable employment/capital projection of one company.
+fn fingerprint_company(h: &mut impl std::hash::Hasher, c: &Company) {
+    use std::hash::Hash;
+    c.id.hash(h);
+    c.sector.hash(h);
+    c.fulfilled_fte.hash(h);
+    c.target_fte_demand.hash(h);
+    c.physical_fte_demand.hash(h);
+    c.furloughed_workers_count.to_bits().hash(h);
+    c.offered_wage_per_fte.to_bits().hash(h);
+    c.available_cash.to_bits().hash(h);
+    c.liquid_capital.to_bits().hash(h);
+    c.company_capital.to_bits().hash(h);
+    c.fixed_capital.to_bits().hash(h);
+    c.liabilities.to_bits().hash(h);
+    c.turn_settled_sales.to_bits().hash(h);
+    c.is_liquidated.hash(h);
+    c.merged_into.hash(h);
+}
+
+/// v4.18 WS2: Hash the observable physical state of one building, including
+/// its commodity inventory and any active construction project's progress.
+fn fingerprint_building(h: &mut impl std::hash::Hasher, b: &Building) {
+    use std::hash::Hash;
+    b.id.hash(h);
+    b.owner_id.hash(h);
+    b.region_id.hash(h);
+    b.current_employment.hash(h);
+    b.reserve.to_bits().hash(h);
+    b.last_profit.to_bits().hash(h);
+    b.last_fulfillment_ratio.to_bits().hash(h);
+    b.inventory.len().hash(h);
+    for (commodity, qty) in &b.inventory {
+        commodity.hash(h);
+        qty.to_bits().hash(h);
+    }
+    if let Some(project) = &b.active_project {
+        true.hash(h);
+        project.progress.to_bits().hash(h);
+        project.cost_spent.to_bits().hash(h);
+        project.tranches_paid.to_bits().hash(h);
+        project.paid_tranches.hash(h);
+        let delivered_total: f64 = project.delivered_materials.values().sum();
+        delivered_total.to_bits().hash(h);
+    } else {
+        false.hash(h);
+    }
+}
+
+/// v4.18 WS2: Hash one country's macro projection (GDP expenditure
+/// components, treasury, wage level, population).
+fn fingerprint_country(
+    h: &mut impl std::hash::Hasher,
+    name: &str,
+    country: &crate::state::Country,
+) {
+    use std::hash::Hash;
+    name.hash(h);
+    let gdp = &country.macro_indicators.gdp_breakdown;
+    gdp.consumption.to_bits().hash(h);
+    gdp.government_spending.to_bits().hash(h);
+    gdp.investment.to_bits().hash(h);
+    gdp.net_exports.to_bits().hash(h);
+    gdp.official_gdp.to_bits().hash(h);
+    gdp.shadow_gdp.to_bits().hash(h);
+    gdp.imputed_consumption.to_bits().hash(h);
+    country.budget.liquid_reserves.to_bits().hash(h);
+    country
+        .macro_indicators
+        .average_wage
+        .to_bits()
+        .hash(h);
+    let pop: i64 = country.regions.iter().map(|r| r.population).sum();
+    pop.hash(h);
+}
+
+/// v4.18 WS2: Fingerprint the live task list at a mid-turn checkpoint.
+///
+/// Hashes the same observable projection as [`state_fingerprint`] (GDP
+/// components, company employment/capital, building inventory + project
+/// progress, market prices) while countries are still split-borrowed inside
+/// `tasks`. `tasks` are already canonically sorted by country name.
+///
+/// `pub(crate)` because [`CountryTask`] is crate-internal; the public
+/// post-turn entry point is [`state_fingerprint`].
+pub(crate) fn fingerprint_tasks(
+    tasks: &[CountryTask<'_>],
+    market: &GlobalMarket,
+) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut h = DefaultHasher::new();
+    fingerprint_commodity_map(&mut h, &market.base_prices);
+    fingerprint_commodity_map(&mut h, &market.net_trade);
+    market.foreign_sector_balance.to_bits().hash(&mut h);
+    market.offshore_capital.to_bits().hash(&mut h);
+
+    for task in tasks {
+        fingerprint_country(&mut h, &task.ctx.country_name, task.ctx.country);
+        task.companies.len().hash(&mut h);
+        for company in &task.companies {
+            fingerprint_company(&mut h, company);
+        }
+        task.ctx.buildings.len().hash(&mut h);
+        for building in &task.ctx.buildings {
+            fingerprint_building(&mut h, building);
+        }
+    }
+    h.finish()
+}
+
+/// v4.18 WS2: Deterministic fingerprint over the observable post-turn state.
+///
+/// Hashes — in canonical (sorted) order — every country's GDP expenditure
+/// breakdown, treasury and wage level, plus each country's companies'
+/// employment/capital state (including summed `fulfilled_fte`), building
+/// inventories and construction-project progress, and the global market
+/// price/trade maps. Two runs of the same seed must produce identical
+/// fingerprints after every turn; the first divergent fingerprint isolates
+/// a nondeterminism source without diffing whole save trees.
+///
+/// Uses `DefaultHasher` (fixed keys → stable across processes) and hashes
+/// `f64` by bit pattern so `-0.0`/`NaN` differences remain visible.
+///
+/// # Example
+/// ```ignore
+/// let fp = sim_engine::engine::turn::state_fingerprint(&state, &ctx);
+/// // run the same seed again → fp must be identical
+/// ```
+pub fn state_fingerprint(
+    state: &GameState,
+    ctx: &crate::engine::turn_context::InMemoryTurnContext,
+) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut h = DefaultHasher::new();
+    fingerprint_commodity_map(&mut h, &ctx.market.base_prices);
+    fingerprint_commodity_map(&mut h, &ctx.market.net_trade);
+    ctx.market.foreign_sector_balance.to_bits().hash(&mut h);
+    ctx.market.offshore_capital.to_bits().hash(&mut h);
+
+    let mut country_names: Vec<&String> = state.countries.keys().collect();
+    country_names.sort();
+    for name in country_names {
+        let country = &state.countries[name];
+        fingerprint_country(&mut h, name, country);
+        if let Some(ents) = ctx.entities.get(name) {
+            ents.companies.len().hash(&mut h);
+            for company in &ents.companies {
+                fingerprint_company(&mut h, company);
+            }
+            ents.buildings.len().hash(&mut h);
+            for building in &ents.buildings {
+                fingerprint_building(&mut h, building);
+            }
+        }
+    }
+    h.finish()
 }

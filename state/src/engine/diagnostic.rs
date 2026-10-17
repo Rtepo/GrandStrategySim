@@ -2282,3 +2282,66 @@ pub fn write_all_dumps(
 
     Ok(())
 }
+
+// ============================================================================
+// v4.18 WS2 — FINGERPRINT PROBE (determinism bisection)
+// ============================================================================
+
+/// v4.18 WS2: Turn probe that records a deterministic state fingerprint at
+/// every phase seam.
+///
+/// Each `checkpoint` stores `(turn, phase_name, fingerprint)` where the
+/// fingerprint is produced by
+/// [`crate::engine::turn::fingerprint_tasks`] over the live task list —
+/// the same observable projection [`crate::engine::turn::state_fingerprint`]
+/// hashes post-turn. Running two identical seeds with this probe and
+/// comparing `fingerprints` element-by-element pinpoints the FIRST phase
+/// whose observable output diverges, turning "same seed, different FTE"
+/// reports into a surgical bisection instead of a whole-loop audit.
+///
+/// Unlike [`CapturingProbe`] this type is always compiled (no `diagnostic`
+/// feature gate) and takes no targets — the hash is cheap enough to compute
+/// for the whole world at every seam.
+#[derive(Debug, Default)]
+pub struct FingerprintProbe {
+    /// `(turn, phase_name, fingerprint)` in call order.
+    pub fingerprints: Vec<(u32, String, u64)>,
+}
+
+impl FingerprintProbe {
+    /// First index where two fingerprint logs diverge, if any.
+    pub fn first_divergence(
+        a: &[(u32, String, u64)],
+        b: &[(u32, String, u64)],
+    ) -> Option<(usize, (u32, String, u64), (u32, String, u64))> {
+        for (i, (x, y)) in a.iter().zip(b.iter()).enumerate() {
+            if x != y {
+                return Some((i, x.clone(), y.clone()));
+            }
+        }
+        if a.len() != b.len() {
+            let idx = a.len().min(b.len());
+            let missing = if a.len() > b.len() {
+                a[idx].clone()
+            } else {
+                b[idx].clone()
+            };
+            return Some((idx, missing.clone(), missing));
+        }
+        None
+    }
+}
+
+impl TurnProbe for FingerprintProbe {
+    fn checkpoint(
+        &mut self,
+        phase_name: &str,
+        _phase_index: u32,
+        turn: u32,
+        market: &GlobalMarket,
+        tasks: &[CountryTask<'_>],
+    ) {
+        let fp = crate::engine::turn::fingerprint_tasks(tasks, market);
+        self.fingerprints.push((turn, phase_name.to_string(), fp));
+    }
+}

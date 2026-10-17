@@ -43,6 +43,13 @@ diagnostic = []
 epic-tests = []
 
 # ============================================================================
+# Fast test targets — compiled every CI run (no required-features)
+# ============================================================================
+[[test]]
+name = "determinism_fingerprint_test"
+path = "tests/determinism_fingerprint_test.rs"
+
+# ============================================================================
 # v4: Epic test targets — only compiled with --features epic-tests
 # ============================================================================
 [[test]]

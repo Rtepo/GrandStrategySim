@@ -1559,6 +1559,64 @@ pub fn settle_trades(
                     gen_config,
                 );
             }
+        } else if site_committed {
+            // v4.18 WS2: milestone-seeking fill order. Splitting each fill
+            // pro-rata across EVERY site the contractor serves atomizes the
+            // shipment — a site needing 0.5 units receives crumbs forever,
+            // and since `compute_progress` is min-over-lines every BOM line
+            // parked ~2% short permanently (observed: sites frozen at
+            // progress 0.92-0.94 for 50+ turns with inv=0).
+            // A shipment goes to the site NEAREST completion first — the
+            // contractor's real incentive (each finished site releases the
+            // next milestone tranche) — with any remainder flowing on to
+            // the next-neediest site. Delivered quantity is conserved; only
+            // the allocation order changes.
+            let mut ordered = recipients;
+            ordered.sort_by(|a, b| {
+                a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal)
+            });
+            let mut remaining_fill = trade.quantity;
+            for (idx, want, _) in ordered {
+                if remaining_fill <= 0.0 {
+                    break;
+                }
+                let share = want.min(remaining_fill);
+                if share <= 0.0 {
+                    continue;
+                }
+                remaining_fill -= share;
+                let building = &mut buildings[idx];
+                *building.inventory.entry(trade.commodity).or_insert(0.0) += share;
+
+                // Phase 95: If blueprint-eligible, also add to inventory cohorts.
+                if trade.commodity.is_blueprint_eligible() {
+                    let cohort = crate::economy::fixed_assets::InventoryCohort::new(
+                        trade.blueprint_id.clone().unwrap_or_default(),
+                        trade.commodity,
+                        share,
+                        trade.quality.unwrap_or(0.0),
+                        trade.durability.unwrap_or(0.0),
+                        current_turn,
+                    );
+                    // v4.17: merge into a compatible existing cohort rather
+                    // than pushing unconditionally — deliveries arrive every
+                    // turn and `compact_inventory_cohorts` is never invoked,
+                    // so the vec grew ~×1.8/turn on hot sites (2,400+ entries
+                    // by t=7 → building-state OOM). Merging preserves
+                    // quantity and the earliest produced_turn for FIFO.
+                    if let Some(existing) = building
+                        .inventory_cohorts
+                        .iter_mut()
+                        .find(|c| c.is_mergeable_with(&cohort))
+                    {
+                        existing.quantity += cohort.quantity;
+                        existing.produced_turn =
+                            existing.produced_turn.min(cohort.produced_turn);
+                    } else {
+                        building.inventory_cohorts.push(cohort);
+                    }
+                }
+            }
         } else {
             let total_w: f64 = recipients.iter().map(|r| r.1).sum();
             for &(idx, w, _) in &recipients {

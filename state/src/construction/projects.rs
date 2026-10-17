@@ -225,6 +225,16 @@ pub struct ConstructionProject {
     #[serde(default)]
     pub consecutive_hold_turns: u32,
 
+    /// v4.18 WS2: the physical work is done (`progress` reached 1.0 and the
+    /// completion bookkeeping — capacity, capital, sector rename — was
+    /// applied exactly once). The project object then survives only as the
+    /// contractor's live payment claim on the investor: the completion
+    /// tranche may defer on investor cash, and clearing the record would
+    /// erase the unpaid remainder. The building's `active_project` clears
+    /// once all tranches settle (or the contractor no longer exists).
+    #[serde(default)]
+    pub work_complete: bool,
+
     // ── Phase 22A: Contractor linkage ──
     /// Investor entity ID (company ID or "STATE:{region_id}").
     /// Empty for legacy self-build projects (investor = building owner).
@@ -409,11 +419,24 @@ impl ConstructionProject {
             if available <= 0.0 {
                 continue;
             }
-            // Phase 3 fix (C5): Weather reduces how much material can be
-            // consumed per turn. A productivity of 0.5 means only half the
-            // available inventory can be installed this turn.
-            let installable = available * p;
-            let to_consume = installable.min(remaining_needed);
+            // v4.18 WS2: install capacity is a per-turn RATE, not a
+            // fraction of the remaining stockpile. `available * p`
+            // coupled the crew's throughput to the size of the staged
+            // pile, so under any crew fraction p < 1 the final units were
+            // consumed geometrically — `delivered` approached `required`
+            // asymptotically but never reached it, `is_complete()` could
+            // never fire, and the progress-1.0 completion tranche never
+            // released (observed: sites parked at progress 0.998 forever,
+            // zero CONST_DBG[COMPLETE] events).
+            //
+            // A full crew (p = 1) installs up to the line's entire
+            // requirement per turn when the material is staged — identical
+            // to the old p = 1 semantics. A fraction-p crew installs
+            // `required * p` units per turn, bounded by what is physically
+            // on site, so the line completes in `ceil(1/p)` fully-staged
+            // turns instead of asymptoting.
+            let rate_cap = required * p;
+            let to_consume = remaining_needed.min(available).min(rate_cap);
             if to_consume <= 0.0 {
                 continue;
             }

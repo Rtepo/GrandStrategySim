@@ -103,7 +103,13 @@ pub struct OrderBook {
 /// * Partial fills are mandatory.
 /// * Unfilled orders are removed after matching.
 pub fn match_orders(order_book: &mut OrderBook) {
-    for commodity in order_book.bids.keys().cloned().collect::<Vec<_>>() {
+    // v4.18 WS2: iterate commodities in canonical order — HashMap key order
+    // is randomized per process, which shuffled `order_book.trades` and made
+    // settlement accumulation order (and any order-sensitive fill logic)
+    // nondeterministic across identical seeds.
+    let mut commodities: Vec<Commodity> = order_book.bids.keys().copied().collect();
+    commodities.sort_unstable();
+    for commodity in commodities {
         let bids = order_book.bids.get_mut(&commodity).unwrap();
         let asks = match order_book.asks.get_mut(&commodity) {
             Some(a) => a,
@@ -204,7 +210,11 @@ pub fn match_orders_with_embargoes(
         std::collections::HashMap<String, crate::international::DiplomaticRelation>,
     >,
 ) {
-    for commodity in order_book.bids.keys().cloned().collect::<Vec<_>>() {
+    // v4.18 WS2: canonical commodity order (see `match_orders`) — deterministic
+    // `order_book.trades` sequence for identical seeds.
+    let mut commodities: Vec<Commodity> = order_book.bids.keys().copied().collect();
+    commodities.sort_unstable();
+    for commodity in commodities {
         let bids = order_book.bids.get_mut(&commodity).unwrap();
         let asks = match order_book.asks.get_mut(&commodity) {
             Some(a) => a,
