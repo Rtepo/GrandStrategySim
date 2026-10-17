@@ -994,7 +994,11 @@ fn build_vips(
     });
 
     // Prime Minister.
-    let pm_party = politics.ruling_party.clone();
+    // v4.18 WS3: resolve through `canonical_pm_party_id` — the single source
+    // of truth shared with `form_government` and the snapshot header — so the
+    // PM VIP can never name a different party's leader than the cabinet's
+    // recorded PM (production: header "Paolo Ricci" vs VIP "Fernando Mancini").
+    let pm_party = crate::politics::ministries::canonical_pm_party_id(politics).to_string();
     let pm_ideology = politics
         .active_parties
         .get(&pm_party)
@@ -1017,6 +1021,13 @@ fn build_vips(
         })
         .unwrap_or_else(|| generate_unique_vip(cultural_group, rng, &mut *used_names).full_name);
     used_names.insert(pm_name.clone());
+    // v4.18 WS3: one VIP → one entry. Track every name already emitted so a
+    // person holding two offices (the PM also keeps the Treasury portfolio)
+    // cannot appear twice with two independently-rolled ages (production:
+    // "Pablo Mancini" listed as both PrimeMinister and Minister, ages 47/61).
+    let mut emitted_names: HashSet<String> = HashSet::new();
+    emitted_names.insert(vips[0].full_name.clone()); // Head of State
+    emitted_names.insert(pm_name.clone());
     vips.push(NamedVip {
         full_name: pm_name,
         party: pm_party,
@@ -1035,6 +1046,14 @@ fn build_vips(
                 generate_unique_vip(cultural_group, rng, &mut *used_names).full_name
             };
             used_names.insert(min_name.clone());
+            // v4.18 WS3: skip persons already listed under a senior role —
+            // the PM (Treasury) and Head of State are already in `vips`, and
+            // any residual same-name minister would duplicate the person with
+            // a second random age.
+            if emitted_names.contains(&min_name) {
+                continue;
+            }
+            emitted_names.insert(min_name.clone());
             let min_ideology = politics
                 .active_parties
                 .get(&ministry.minister_party)

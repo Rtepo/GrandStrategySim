@@ -400,6 +400,126 @@ impl BankBalanceSheet {
             - self.total_loans_outstanding())
         .max(0.0)
     }
+
+    /// v4.18 WS3: Realized Loan-to-Deposit ratio `total_loans / deposits`.
+    ///
+    /// This is the production/UI metric that must stay `<= 1.0` in
+    /// equilibrium (regulatory cap is actually `1 − reserve_requirement`,
+    /// strictly below 1). `0.0` when the bank carries no deposits — a
+    /// bank with no deposits may not lend at all under the gates below.
+    pub fn ldr(&self) -> f64 {
+        if self.deposits > 0.0 {
+            self.total_loans_outstanding() / self.deposits
+        } else {
+            0.0
+        }
+    }
+}
+
+/// v4.18 WS3: Uniform prudential gate for ALL credit creation.
+///
+/// Every lending path — fractional-reserve `issue_loan` AND the
+/// reserve-funded overdrafts settled in the trade/logistics passes —
+/// must clear the same reserve-requirement, hard LDR cap, and leverage
+/// gates. Previously the overdraft paths pushed `loans_issued` directly
+/// with no gate at all, which let a state/universal bank run to ~381%
+/// LDR (loan book 3.8× its deposit base, reserves fully drained) while
+/// commercial banks were bound by the real checks.
+///
+/// * `creates_deposit = true` — classic credit creation: the loan mints
+///   its own deposit (`deposits += P`, reserves untouched at issuance).
+///   The new deposit needs `rr × P` of reserve cover.
+/// * `creates_deposit = false` — reserve-funded credit (settlement
+///   overdrafts whose proceeds are spent in the same instant, so no
+///   deposit liability is minted): the disbursement leaves the bank's
+///   reserve account, so the full `P` must be covered by excess reserves
+///   and the LDR cap binds against the *existing* deposit base.
+///
+/// # Gates (identical meaning on both forms)
+/// 1. Reserve requirement: post-state effective reserves (own reserves,
+///   net of Lombard credit — borrowed reserves cannot support credit
+///   creation) must cover `deposits_after × rr`.
+/// 2. LDR cap: `loans_after ≤ deposits_after × (1 − rr)` — the classic
+///    fractional-reserve bound.
+/// 3. Leverage: `liabilities_after ≤ 9.5 × tier_1_capital` — a bank past
+///    the prudential leverage cap takes no new credit exposure.
+///
+/// A rejection leaves ZERO ledger trace (the caller must not book the
+/// loan).
+pub fn check_credit_prudential_gates(
+    balance_sheet: &BankBalanceSheet,
+    principal: f64,
+    reserve_requirement_ratio: f64,
+    creates_deposit: bool,
+) -> Result<(), String> {
+    // Gate 1 — reserve requirement.
+    let deposits_after = if creates_deposit {
+        balance_sheet.deposits + principal
+    } else {
+        balance_sheet.deposits
+    };
+    let reserves_after = if creates_deposit {
+        balance_sheet.reserves_at_central_bank
+    } else {
+        balance_sheet.reserves_at_central_bank - principal
+    };
+    let required_reserves = deposits_after * reserve_requirement_ratio;
+    let effective_reserves = reserves_after - balance_sheet.cb_lombard_loans;
+    if effective_reserves < required_reserves {
+        return Err(format!(
+            "Reserve requirement violation: need {} reserves, have {} effective ({} raw - {} lombard)",
+            required_reserves, effective_reserves, reserves_after,
+            balance_sheet.cb_lombard_loans
+        ));
+    }
+
+    // Gate 2 — hard LDR cap: total outstanding credit may not exceed
+    // `deposits_after × (1 − reserve_requirement_ratio)` after issuance.
+    let loans_after = balance_sheet.total_loans_outstanding() + principal;
+    let ldr_cap = BankBalanceSheet::ldr_cap(deposits_after, reserve_requirement_ratio);
+    if loans_after > ldr_cap + 1e-9 * ldr_cap.abs().max(1.0) {
+        return Err(format!(
+            "LDR cap violation: loans_after={:.2} exceeds cap={:.2} (deposits_after={:.2} × (1 − rr={:.4}))",
+            loans_after, ldr_cap, deposits_after, reserve_requirement_ratio
+        ));
+    }
+
+    // Gate 3 — prudential leverage: post-state liabilities may not exceed
+    // 9.5× tier_1_capital. Deposit-creating issuance grows liabilities by
+    // `principal`; reserve-funded credit leaves them unchanged but a bank
+    // already over the cap takes no new credit exposure.
+    let liabilities_after = balance_sheet.total_liabilities()
+        + if creates_deposit { principal } else { 0.0 };
+    if balance_sheet.tier_1_capital > 0.0
+        && liabilities_after > balance_sheet.tier_1_capital * 9.5
+    {
+        return Err(format!(
+            "Leverage cap violation: liabilities_after={:.2} exceeds {:.2}× tier_1 ({:.2})",
+            liabilities_after, 9.5, balance_sheet.tier_1_capital
+        ));
+    }
+
+    Ok(())
+}
+
+/// v4.18 WS3: Integrator/crucible helper — the worst Loan-to-Deposit ratio
+/// across all bank balance sheets.
+///
+/// With `check_credit_prudential_gates` applied to EVERY credit-creation
+/// path (fractional-reserve issuance and reserve-funded settlement
+/// overdrafts alike), a live bank can never issue past
+/// `LDR = 1 − reserve_requirement_ratio`, so the observed maximum must
+/// stay `<= 1.0` (the pre-fix state bank ran ~3.81 because the overdraft
+/// paths pushed `loans_issued` with no gate at all). A value above 1.0 can
+/// only come from a legacy/genesis state or a new ungated loan push — both
+/// are bugs the crucible should catch.
+pub fn max_bank_ldr(companies: &[crate::entities::Company]) -> f64 {
+    companies
+        .iter()
+        .filter(|c| c.bank_type.is_some())
+        .filter_map(|c| c.balance_sheet.as_ref())
+        .map(|bs| bs.ldr())
+        .fold(0.0, f64::max)
 }
 
 /// Phase 95: Emergency Liquidity Assistance — draw CB Lombard credit so an
@@ -1092,57 +1212,27 @@ pub fn issue_loan(
     // Phase 77: Subtract Lombard loans from effective reserves â€” borrowed
     // reserves from the CB Lombard facility cannot support further credit
     // creation. Only the bank's OWN reserves count toward lending capacity.
-    let new_deposits = balance_sheet.deposits + principal;
-    let required_reserves = new_deposits * central_bank.reserve_requirement_ratio;
-    let effective_reserves =
-        balance_sheet.reserves_at_central_bank - balance_sheet.cb_lombard_loans;
-
-    if effective_reserves < required_reserves {
-        return Err(format!(
-            "Reserve requirement violation: need {} reserves, have {} effective ({} raw - {} lombard)",
-            required_reserves, effective_reserves,
-            balance_sheet.reserves_at_central_bank, balance_sheet.cb_lombard_loans
-        ));
-    }
-
-    // Step 3b (W3/R1): Hard LDR gate — total outstanding credit may not
-    // exceed `deposits × (1 − reserve_requirement_ratio)` after issuance.
-    // This is the classic fractional-reserve bound: banks lend deposits net
-    // of required reserves, so LDR can never exceed 1 − rr. The loan creates
-    // its own deposit (+principal on both sides), so the post-issuance
-    // deposit base is `deposits + principal`. Banks already above the cap
-    // are barred from new issuance — existing loans amortize down through
-    // normal repayment (no instant recall, no silent write-off).
+    // Step 3a–3c: Prudential gates — v4.18 WS3 routes all three checks
+    // through the shared `check_credit_prudential_gates` helper so the
+    // reserve-requirement, LDR-cap, and leverage gates are identical on
+    // every credit-creation path (fractional-reserve issuance here AND
+    // reserve-funded overdrafts in the trade/logistics passes).
     //
-    // A rejection here leaves ZERO ledger trace: no loan record, no deposit,
-    // no borrower liability, no M0 change (C3).
-    let loans_after = balance_sheet.total_loans_outstanding() + principal;
-    let deposits_after = balance_sheet.deposits + principal;
-    let ldr_cap =
-        BankBalanceSheet::ldr_cap(deposits_after, central_bank.reserve_requirement_ratio);
-    if loans_after > ldr_cap + 1e-9 * ldr_cap.abs().max(1.0) {
-        return Err(format!(
-            "LDR cap violation: loans_after={:.2} exceeds cap={:.2} (deposits_after={:.2} × (1 − rr={:.4}))",
-            loans_after, ldr_cap, deposits_after, central_bank.reserve_requirement_ratio
-        ));
-    }
-
-    // Step 3c (24-turn): Prudential leverage gate — each loan mints
-    // `principal` of new deposits 1:1, so liabilities ratchet with fixed
-    // equity. Without a gate, issuance mechanically breaches the KNF 10×
-    // limit (the Sev-10 flood). Cap post-issuance liabilities at 9.5×
-    // tier_1, leaving headroom for interest accrual between audits. A bank
-    // at/over the cap stops lending until equity rebuilds — the intended
-    // macroprudential brake.
-    let liabilities_after = balance_sheet.total_liabilities() + principal;
-    if balance_sheet.tier_1_capital > 0.0
-        && liabilities_after > balance_sheet.tier_1_capital * 9.5
-    {
-        return Err(format!(
-            "Leverage cap violation: liabilities_after={:.2} exceeds {:.2}× tier_1 ({:.2})",
-            liabilities_after, 9.5, balance_sheet.tier_1_capital
-        ));
-    }
+    // `creates_deposit = true`: the loan mints its own deposit
+    // (+principal on both sides of the balance sheet). The reserve check
+    // requires the new deposit's `rr × principal` cover; the LDR cap is
+    // computed on the post-issuance deposit base `deposits + principal`;
+    // liabilities grow by `principal`. Banks already above the cap are
+    // barred from new issuance — existing loans amortize down through
+    // normal repayment (no instant recall, no silent write-off). A
+    // rejection leaves ZERO ledger trace: no loan record, no deposit, no
+    // borrower liability, no M0 change (C3).
+    check_credit_prudential_gates(
+        balance_sheet,
+        principal,
+        central_bank.reserve_requirement_ratio,
+        true,
+    )?;
 
     // Step 4: Create loan record
     // Use deterministic ID from seeded RNG to avoid non-deterministic timestamps.
@@ -4246,7 +4336,99 @@ pub fn process_banking_turn(
     }
 
     
-// Step 15 (Phase 35/36/38): Bank Labor Demand â€” banks set FTE demand AND wages
+// Step 14b (v4.18 WS3): Deposit service fees — the real revenue leg for a
+    // deposit-holding bank whose loan book is still thin. Payment/account
+    // services are how real banks monetize the deposit book while the asset
+    // side is building; without ANY deposit-linked income a bank's payroll
+    // pocket stays empty (the `operating_cash_credit` above only feeds off
+    // loan interest), so thin-book banks can never staff up — and staff is
+    // exactly what `bank_operational_capacity` multiplies into lending
+    // capacity. That circularity is the observed ~1% commercial LDR stall.
+    //
+    // Double-entry (closed loop, same convention as the interest-income
+    // path at Step 6):
+    //   customer: spendable cash −f      (their deposit balance is debited)
+    //   bank BS : deposits −f            (liability extinguished)
+    //             tier_1_capital +f      (fee income booked to equity → A=L+E)
+    //   bank    : operating pocket +f    (off-BS M0 pocket — the wage fund;
+    //             M0 walk conserves because the customer's pocket loses f)
+    // The fee is bounded by both the customer's positive spendable balance
+    // and the bank's remaining deposit liability, so deposits can never be
+    // driven negative.
+    {
+        const DEPOSIT_SERVICE_FEE_RATE: f64 = 0.0001; // 0.01% of balance per turn
+        // Remaining debitable deposit liability per bank (fees can only
+        // extinguish what the balance sheet says the bank owes customers).
+        let mut remaining: HashMap<String, f64> = companies
+            .iter()
+            .filter(|c| c.bank_type.is_some())
+            .filter_map(|c| {
+                c.balance_sheet
+                    .as_ref()
+                    .map(|bs| (c.id.clone(), bs.deposits.max(0.0)))
+            })
+            .collect();
+        let mut collected: HashMap<String, f64> = HashMap::new();
+        for customer in companies.iter_mut() {
+            if customer.bank_type.is_some() {
+                continue;
+            }
+            let Some(ref bank_id) = customer.primary_bank_id else {
+                continue; // unbanked cash holders pay no deposit fees
+            };
+            let Some(rem) = remaining.get_mut(bank_id) else {
+                continue;
+            };
+            let balance = customer
+                .brokerage_account
+                .as_ref()
+                .map(|ba| ba.cash)
+                .unwrap_or(0.0)
+                .max(0.0)
+                + customer.available_cash.max(0.0);
+            let fee = (balance * DEPOSIT_SERVICE_FEE_RATE).min(*rem);
+            if fee <= 0.0 {
+                continue;
+            }
+            // Debit the customer's spendable pockets (brokerage first, the
+            // primary spendable account, then available_cash).
+            let mut rem_fee = fee;
+            if let Some(ref mut ba) = customer.brokerage_account {
+                let take = ba.cash.max(0.0).min(rem_fee);
+                ba.cash -= take;
+                rem_fee -= take;
+            }
+            if rem_fee > 0.0 {
+                customer.available_cash -= rem_fee;
+            }
+            *rem -= fee;
+            *collected.entry(bank_id.clone()).or_default() += fee;
+        }
+        for bank in companies.iter_mut() {
+            if bank.bank_type.is_none() {
+                continue;
+            }
+            let Some(income) = collected.get(&bank.id).copied() else {
+                continue;
+            };
+            if income <= 0.0 {
+                continue;
+            }
+            if let Some(ref mut bs) = bank.balance_sheet {
+                bs.deposits -= income; // extinguished customer liability
+                bs.tier_1_capital += income; // fee income → equity (A=L+E)
+            }
+            // Operating pocket (off-BS, M0-counted) — same convention as
+            // `operating_cash_credit` in Step 6.
+            if let Some(ref mut ba) = bank.brokerage_account {
+                ba.cash += income;
+            } else {
+                bank.available_cash += income;
+            }
+        }
+    }
+
+    // Step 15 (Phase 35/36/38): Bank Labor Demand â€” banks set FTE demand AND wages
     // based on their loan portfolio and activity scale, rather than staying at zero.
     // Phase 36: Also set offered_wage_per_fte so the labor market can actually
     // hire bank employees. Previously, only target_fte_demand was set, but
@@ -4276,7 +4458,16 @@ pub fn process_banking_turn(
             .iter()
             .map(|l| l.outstanding_principal)
             .sum::<f64>();
-        let current_portfolio = total_loans + consumer_loans_total;
+        let deposits_book: f64 = bs.map(|b| b.deposits.max(0.0)).unwrap_or(0.0);
+        // v4.18 WS3: the serviced book is the WIDER of the credit book and
+        // the deposit book. Deposit servicing (payments, account ops) is
+        // real labor a deposit-rich bank must staff even while its loan
+        // book is thin — and `bank_operational_capacity` multiplies
+        // fulfilled FTE into origination capacity, so staffing the deposit
+        // book is what lets a thin-book bank actually lend. Keying demand
+        // off loans alone deadlocks commercial banks at ~1% LDR:
+        // no loans → no staff → no capacity → no loans.
+        let current_portfolio = (total_loans + consumer_loans_total).max(deposits_book);
         // Phase 38: Smooth portfolio using a moving average stored in extra.
         // This prevents FTE demand from spiking when a batch of loans is issued
         // and crashing when they're repaid.

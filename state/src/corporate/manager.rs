@@ -3034,7 +3034,15 @@ pub fn apply_seasonal_furlough(company: &mut Company, season: crate::state::Seas
             company.furloughed_workers_count = 0.0;
         }
         profile.current_state = SeasonalState::Active;
-        // physical_fte_demand already set by sector logic — leave unchanged
+        // v4.18 WS3: restore the full-capacity labor bid. `physical_fte_demand`
+        // is the persistent full-staffing baseline (never ratcheted — see
+        // below); the off-season pass only lowered `target_fte_demand`, so
+        // on reactivation the target must be lifted back to the baseline or
+        // the company keeps bidding standby crew forever — the observed
+        // "Hospitality 0.00 FTE" dead-sector state. Workers who left the
+        // bench during the off-season are re-hired through the normal labor
+        // bid (subject to the usual affordability/growth clamps).
+        company.target_fte_demand = company.physical_fte_demand;
         return;
     }
 
@@ -3049,7 +3057,14 @@ pub fn apply_seasonal_furlough(company: &mut Company, season: crate::state::Seas
     let excess = (company.fulfilled_fte as f64 - standby).max(0.0);
     company.furloughed_workers_count = excess;
     company.fulfilled_fte = (company.fulfilled_fte as f64 - excess).max(0.0).round() as u32; // Drop to standby level
-    company.physical_fte_demand = standby.round() as u32;
+    // v4.18 WS3: do NOT overwrite `physical_fte_demand` with the standby
+    // level. For generic (non-agri/non-construction) sectors, physical
+    // demand is a persistent baseline with no per-turn recompute — writing
+    // standby into it ratcheted the baseline every off-season
+    // (physical → standby = physical×0.2 → standby′ = physical×0.04 → …→0)
+    // and, because nothing restored it on reactivation, hospitality/energy
+    // companies decayed to zero labor demand after a few winters/summers.
+    // Only the seasonal BID (`target_fte_demand`) drops to standby.
     company.target_fte_demand = standby.round() as u32;
 }
 
@@ -3803,13 +3818,38 @@ mod tests {
             company.fulfilled_fte, 20,
             "fulfilled_fte should drop to standby"
         );
+        // v4.18 WS3: physical_fte_demand keeps the full-capacity baseline —
+        // only the seasonal bid (target) drops to standby. The old code wrote
+        // standby into physical too, which geometrically ratcheted demand to
+        // zero over a few off-seasons (the "dead hospitality sector" bug).
         assert_eq!(
-            company.physical_fte_demand, 20,
-            "physical_fte_demand should be standby"
+            company.physical_fte_demand, 100,
+            "physical_fte_demand must retain the full-capacity baseline"
         );
         assert_eq!(
             company.target_fte_demand, 20,
             "target_fte_demand should be standby"
+        );
+    }
+
+    #[test]
+    fn test_furlough_repeated_offseasons_do_not_ratchet() {
+        // v4.18 WS3 regression test: two consecutive off-seasons must produce
+        // the SAME standby demand — not standby².
+        let active = BTreeSet::from([Season::Spring, Season::Summer, Season::Autumn]);
+        let mut company = make_seasonal_company("TOUR4", active, 0.20, 100.0);
+
+        apply_seasonal_furlough(&mut company, Season::Winter);
+        apply_seasonal_furlough(&mut company, Season::Winter);
+        apply_seasonal_furlough(&mut company, Season::Winter);
+
+        assert_eq!(
+            company.physical_fte_demand, 100,
+            "baseline must survive repeated off-seasons"
+        );
+        assert_eq!(
+            company.target_fte_demand, 20,
+            "standby demand must be stable, not geometrically decayed"
         );
     }
 
@@ -3833,6 +3873,10 @@ mod tests {
         assert_eq!(
             company.fulfilled_fte, 100,
             "fulfilled_fte should be restored"
+        );
+        assert_eq!(
+            company.target_fte_demand, 100,
+            "reactivation must restore the full-capacity labor bid"
         );
     }
 
