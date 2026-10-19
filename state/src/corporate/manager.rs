@@ -471,12 +471,14 @@ pub fn process_companies(
                 let bank_margin = companies[bi].loan_margin.unwrap_or(0.02);
                 let bank_id = companies[bi].id.clone();
 
+                let borrower_bank_id = borrower_clone.primary_bank_id.clone();
                 let loan_result = crate::state::banking::issue_loan(
                     companies[bi].balance_sheet.as_mut().unwrap(),
                     &bank_id,
                     bank_margin,
                     &borrower_clone,
                     &borrower_clone.id,
+                    borrower_bank_id.as_deref(),
                     new_loan_amount,
                     crate::state::banking::LoanType::WorkingCapital,
                     12,
@@ -611,6 +613,7 @@ pub fn process_companies(
                             building_id,
                             crate::registries::enums::Sector::HeavyIndustry,
                             1925 + (current_turn / 24),
+                            market_history,
                         );
                         country.phase22_tenders.push(tender);
                     }
@@ -1420,7 +1423,10 @@ fn evaluate_building_adaptation(
             // adaptation.
             let mut resolved_alt: BTreeMap<Commodity, f64> = BTreeMap::new();
             let mut feasible = true;
-            for (&c, &q) in &pm.inputs {
+            let mut sorted_pm_inputs: Vec<(Commodity, f64)> =
+                pm.inputs.iter().map(|(&c, &q)| (c, q)).collect();
+            sorted_pm_inputs.sort_by_key(|(c, _)| *c);
+            for (c, q) in sorted_pm_inputs {
                 match resolve_stocked_input(c, building, groups, blackout) {
                     Some(rc) => *resolved_alt.entry(rc).or_insert(0.0) += q,
                     None => {
@@ -1497,6 +1503,14 @@ fn resolve_stocked_input(
         if matches!(required, Commodity::Energy | Commodity::Heat) {
             return (!blackout).then_some(required);
         }
+        return Some(required);
+    }
+    if required == Commodity::Food {
+        // Food is worker sustenance — the production fulfillment gate skips
+        // it entirely (B2C wage-funded, never building inventory), so it can
+        // never pin output. Requiring physical stock here makes EVERY
+        // Food-input method infeasible — including all construction-sector
+        // methods — and locks starved yards to their dead recipe forever.
         return Some(required);
     }
     if building
@@ -1720,7 +1734,14 @@ pub fn manage_strategic_reserves(
         // Now the bid encumbers the agency's cash like any company buyer;
         // the settled quantity is delivered into its warehouses and mirrored
         // into `commodity_reserves` inside `settle_trades`.
-        for (commodity_str, trigger) in &data.purchase_triggers {
+        // Canonical iteration order: `purchase_triggers` is a HashMap whose
+        // order varies per process; the `available_cash >= encumbrance` gate
+        // below drains a sequential balance, so which purchases get funded
+        // depended on map order — a same-seed divergence source.
+        let mut sorted_triggers: Vec<(&String, &_)> =
+            data.purchase_triggers.iter().collect();
+        sorted_triggers.sort_by(|a, b| a.0.cmp(b.0));
+        for (commodity_str, trigger) in sorted_triggers {
             // Parse commodity string to Commodity enum (Phase 79: snake_case keys)
             if let Ok(commodity) = commodity_str.parse::<crate::registries::enums::Commodity>() {
                 let current_price = global_market.base_price(commodity, 100.0);

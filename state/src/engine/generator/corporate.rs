@@ -892,15 +892,21 @@ pub fn generate_corporate_entities(
         let Some(methods) = methods else { continue };
         // W8: skip wartime "* Conversion" decree targets — mirrors
         // resolve_active_method in economy/production/production.rs.
-        let Some(pm) = methods
-            .iter_production_slots_named()
+        let mut slots: Vec<(&String, &crate::registries::production_methods::ProductionMethod)> =
+            methods.iter_production_slots_named().collect();
+        // Canonical order: slot maps are HashMaps and `max_by_key` keeps the
+        // LAST max — iteration order picks the winner.
+        slots.sort_by(|a, b| a.0.cmp(b.0));
+        let Some(pm) = slots
+            .iter()
             .filter(|(name, _)| !is_decree_conversion_method(name))
-            .map(|(_, pm)| pm)
+            .map(|(_, pm)| *pm)
             .filter(|pm| pm.year <= start_year)
             .max_by_key(|pm| pm.year)
             .or_else(|| {
-                methods
-                    .iter_production_slots()
+                slots
+                    .iter()
+                    .map(|(_, pm)| *pm)
                     .filter(|pm| pm.year <= start_year)
                     .max_by_key(|pm| pm.year)
             })
@@ -2017,7 +2023,15 @@ fn issue_working_capital_loans(
             if c.sector == crate::registries::enums::Sector::Banking {
                 continue;
             }
-            let sname = sector_json_name(c.sector);
+            // Phase 96: canonical file_stem bucketing — bare sector_json_name
+            // writes custom-stem entities (StrategicReserveAgency →
+            // "strategic_reserve") under their sector file too, duplicating
+            // the id across two stems (loader dedup warning + ambiguity).
+            let sname = if c.file_stem.is_empty() {
+                sector_json_name(c.sector)
+            } else {
+                c.file_stem.clone()
+            };
             by_sector.entry(sname).or_default().push(c.clone());
         }
         for (sector_name, companies) in by_sector {
@@ -2243,7 +2257,10 @@ fn generate_unions(
     }
 
     for (sector_name, unions) in unions_by_sector {
-        union_store.save_sector(&country.name, "unions", Some(&sector_name), &unions)?;
+        // Union::path builds the filename from the `sector` argument and
+        // ignores `region` — passing "unions" here would collapse every
+        // sector's file into `unions/unions.json` (last write wins).
+        union_store.save_sector(&country.name, &sector_name, None, &unions)?;
     }
 
     Ok(())
@@ -2509,11 +2526,13 @@ fn generate_region_companies(
             liquid_capital: company_liquid,
             available_cash: 0.0,
             debit_cash: 0.0,
+            construction_escrow: 0.0,
             credit_cash: 0.0,
             unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
             liabilities: 0.0,
             procurement_credit: 0.0,
+            open_bid_credit: 0.0,
             consecutive_loss_turns: 0,
             company_capital,
             shares_count,
@@ -5223,11 +5242,13 @@ fn create_seed_company_with_explicit_method(
         liquid_capital: company_liquid,
         available_cash: company_liquid,
         debit_cash: 0.0,
+        construction_escrow: 0.0,
         credit_cash: 0.0,
         unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
         liabilities: 0.0,
         procurement_credit: 0.0,
+        open_bid_credit: 0.0,
         consecutive_loss_turns: 0,
         company_capital,
         shares_count: 0,
@@ -5785,11 +5806,13 @@ fn create_seed_company(
         liquid_capital: company_liquid,
         available_cash: company_liquid,
         debit_cash: 0.0,
+        construction_escrow: 0.0,
         credit_cash: 0.0,
         unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
         liabilities: 0.0,
         procurement_credit: 0.0,
+        open_bid_credit: 0.0,
         consecutive_loss_turns: 0,
         company_capital,
         shares_count: 0,
@@ -6292,8 +6315,19 @@ pub fn install_cost_plus_base_prices(
                     + pm.basic_ratio)
                     * 1000.0
                     * labor_wage;
-                let in_cost: f64 = pm
+                // Gauss-Seidel reads must accumulate in canonical order —
+                // `pm.inputs`/`pm.outputs` are `HashMap`s, so a raw `.iter()`
+                // sum visits terms in `RandomState` order. ULP-level drift in
+                // `in_cost`/`out_value` perturbs `bump`, which perturbs every
+                // downstream price — including `global_base_prices` → the
+                // subsistence floor → `base_wage` → every `wages_paid`.
+                let mut sorted_inputs: Vec<(Commodity, f64)> = pm
                     .inputs
+                    .iter()
+                    .map(|(&c, &q)| (c, q))
+                    .collect();
+                sorted_inputs.sort_by_key(|(c, _)| *c);
+                let in_cost: f64 = sorted_inputs
                     .iter()
                     .filter(|(c, _)| !c.is_fixed_asset() && !c.is_local_utility())
                     .map(|(c, q)| prices.get(c).copied().unwrap_or(0.0) * q)
@@ -6302,8 +6336,13 @@ pub fn install_cost_plus_base_prices(
                 if in_cost <= 0.0 {
                     continue;
                 }
-                let out_value: f64 = pm
+                let mut sorted_outputs: Vec<(Commodity, f64)> = pm
                     .outputs
+                    .iter()
+                    .map(|(&c, &q)| (c, q))
+                    .collect();
+                sorted_outputs.sort_by_key(|(c, _)| *c);
+                let out_value: f64 = sorted_outputs
                     .iter()
                     .map(|(c, q)| prices.get(c).copied().unwrap_or(0.0) * q)
                     .sum();
@@ -6843,11 +6882,13 @@ fn create_strategic_reserve_agency(
         // the reserve could never actually purchase anything.
         available_cash: budget_alloc,
         debit_cash: 0.0,
+        construction_escrow: 0.0,
         credit_cash: 0.0,
         unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
         liabilities: 0.0,
         procurement_credit: 0.0,
+        open_bid_credit: 0.0,
         consecutive_loss_turns: 0,
         company_capital: budget_alloc,
         shares_count: 0,
@@ -7199,11 +7240,13 @@ fn generate_retail_stores(
             liquid_capital: company_liquid,
             available_cash: 0.0, // Phase 42: Set below with payroll grant
             debit_cash: 0.0,
+            construction_escrow: 0.0,
             credit_cash: 0.0,
             unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
             liabilities: 0.0,
             procurement_credit: 0.0,
+            open_bid_credit: 0.0,
             consecutive_loss_turns: 0,
             company_capital: company_fixed + company_liquid,
             shares_count: 1000,
@@ -7594,11 +7637,13 @@ fn generate_tourism_entities(
                 liquid_capital: company_capital * 0.4,
                 available_cash: company_capital * 0.2,
                 debit_cash: 0.0,
+                construction_escrow: 0.0,
                 credit_cash: 0.0,
                 unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
                 liabilities: 0.0,
                 procurement_credit: 0.0,
+                open_bid_credit: 0.0,
                 consecutive_loss_turns: 0,
                 company_capital,
                 shares_count: 0,
@@ -8482,11 +8527,13 @@ fn create_charity_company(
         liquid_capital: 0.0,
         available_cash: 0.0, // Funded organically by donations at runtime
         debit_cash: 0.0,
+        construction_escrow: 0.0,
         credit_cash: 0.0,
         unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
         liabilities: 0.0,
         procurement_credit: 0.0,
+        open_bid_credit: 0.0,
         consecutive_loss_turns: 0,
         company_capital: 1000.0,
         shares_count: 0, // Non-profits don't issue shares
@@ -8853,11 +8900,13 @@ pub fn generate_investment_funds(
             liquid_capital: 0.0,
             available_cash: 0.0,
             debit_cash: 0.0,
+            construction_escrow: 0.0,
             credit_cash: 0.0,
             unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
             liabilities: 0.0,
             procurement_credit: 0.0,
+            open_bid_credit: 0.0,
             consecutive_loss_turns: 0,
             company_capital: seed_capital,
             shares_count: (seed_capital / 1.0) as u64,

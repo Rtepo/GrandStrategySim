@@ -513,7 +513,11 @@ pub fn execute_social_programs(
         .politics
         .active_parties
         .values()
-        .next()
+        .max_by(|a, b| {
+            a.support
+                .total_cmp(&b.support)
+                .then_with(|| a.id.cmp(&b.id))
+        })
         .and_then(|p| Ideology::from_name(&p.ideology))
         .unwrap_or(Ideology::SocialLiberalism);
 

@@ -1157,6 +1157,10 @@ pub struct LoanRef {
 /// * `bank_margin` - Bank's margin over XIBOR (e.g., 0.015 for +150 bps)
 /// * `borrower` - Reference to the borrower (implements Borrower trait, immutable for scoring)
 /// * `borrower_id` - ID of the borrower
+/// * `borrower_bank_id` - The borrower's `primary_bank_id`. The minted
+///   deposit only counts toward the LDR/reserve caps when it lands on THIS
+///   bank's book (`borrower_bank_id == Some(bank_id)`); cross-bank and
+///   unbanked issuance is gated as reserve-funded credit.
 /// * `principal` - Loan amount
 /// * `loan_type` - Type of loan (WorkingCapital, Investment, Consolidation)
 /// * `term_turns` - Loan term in turns
@@ -1179,6 +1183,7 @@ pub fn issue_loan(
     bank_margin: f64,
     borrower: &impl Borrower,
     borrower_id: &str,
+    borrower_bank_id: Option<&str>,
     principal: f64,
     loan_type: LoanType,
     term_turns: u32,
@@ -1218,20 +1223,22 @@ pub fn issue_loan(
     // every credit-creation path (fractional-reserve issuance here AND
     // reserve-funded overdrafts in the trade/logistics passes).
     //
-    // `creates_deposit = true`: the loan mints its own deposit
-    // (+principal on both sides of the balance sheet). The reserve check
-    // requires the new deposit's `rr × principal` cover; the LDR cap is
-    // computed on the post-issuance deposit base `deposits + principal`;
-    // liabilities grow by `principal`. Banks already above the cap are
-    // barred from new issuance — existing loans amortize down through
-    // normal repayment (no instant recall, no silent write-off). A
-    // rejection leaves ZERO ledger trace: no loan record, no deposit, no
-    // borrower liability, no M0 change (C3).
+    // `creates_deposit = true` is only honest when the minted deposit
+    // actually LANDS on this bank's book — i.e. the borrower banks here.
+    // For a borrower banked elsewhere the caller's reconciliation ships
+    // `deposits −= P` and `reserves −= P` to the borrower's bank in the
+    // same turn (and unbanked borrowers reverse the deposit entirely),
+    // so the true post-state is loans+P / deposits+0 / reserves−P —
+    // reserve-funded credit. Gating that flow as deposit-creating let
+    // repeated cross-bank issuance stack a loan book above the lender's
+    // real deposit base (observed end-state LDR 1.0047 at BANK-ILL-001:
+    // loans > deposits while every path passed its gates).
+    let creates_deposit = borrower_bank_id == Some(bank_id);
     check_credit_prudential_gates(
         balance_sheet,
         principal,
         central_bank.reserve_requirement_ratio,
-        true,
+        creates_deposit,
     )?;
 
     // Step 4: Create loan record
@@ -2761,6 +2768,29 @@ pub fn process_banking_turn(
                 res, dep, loans, t1, lom, ibl, ibg);
             _diag_prev_res = res;
             _diag_prev_dep = dep;
+            // v4.18 determinism probe: hash cash/disr + bank sheet fields over
+            // the whole companies slice — first divergent step names the writer.
+            {
+                use std::hash::{Hash, Hasher};
+                let mut fh = std::collections::hash_map::DefaultHasher::new();
+                for c in companies.iter() {
+                    c.id.hash(&mut fh);
+                    c.available_cash.to_bits().hash(&mut fh);
+                    c.brokerage_account
+                        .as_ref()
+                        .map(|b| b.cash)
+                        .unwrap_or(0.0)
+                        .to_bits()
+                        .hash(&mut fh);
+                    c.temporary_disruption_modifier.to_bits().hash(&mut fh);
+                    if let Some(ref bs) = c.balance_sheet {
+                        bs.reserves_at_central_bank.to_bits().hash(&mut fh);
+                        bs.deposits.to_bits().hash(&mut fh);
+                        bs.tier_1_capital.to_bits().hash(&mut fh);
+                    }
+                }
+                eprintln!("BKFPC[{}]: turn={} country={} fh={:016x}", $step, current_turn, country.name, fh.finish());
+            }
         }};
     }
     #[cfg(feature = "diagnostic")]
@@ -3519,12 +3549,14 @@ pub fn process_banking_turn(
                 }
             }
 
+            let borrower_bank_id = borrower_clone.primary_bank_id.clone();
             let loan_result = issue_loan(
                 companies[bi].balance_sheet.as_mut().unwrap(),
                 &companies[bi].id,
                 margin,
                 &borrower_clone,
                 &borrower_clone.id,
+                borrower_bank_id.as_deref(),
                 principal,
                 LoanType::WorkingCapital,
                 12,
@@ -3936,12 +3968,14 @@ pub fn process_banking_turn(
             }
             // Phase 77: Route through issue_loan() for reserve check
             let borrower_clone = companies[borrower_idx].clone();
+            let borrower_bank_id = borrower_clone.primary_bank_id.clone();
             let loan_result = issue_loan(
                 companies[bank_idx].balance_sheet.as_mut().unwrap(),
                 &bank_id,
                 effective_margin,
                 &borrower_clone,
                 &borrower_clone.id,
+                borrower_bank_id.as_deref(),
                 loan_amount,
                 LoanType::WorkingCapital,
                 24,
@@ -4427,6 +4461,8 @@ pub fn process_banking_turn(
             }
         }
     }
+    #[cfg(feature = "diagnostic")]
+    _diag_step_trace!("14b_fees");
 
     // Step 15 (Phase 35/36/38): Bank Labor Demand â€” banks set FTE demand AND wages
     // based on their loan portfolio and activity scale, rather than staying at zero.
@@ -4459,37 +4495,54 @@ pub fn process_banking_turn(
             .map(|l| l.outstanding_principal)
             .sum::<f64>();
         let deposits_book: f64 = bs.map(|b| b.deposits.max(0.0)).unwrap_or(0.0);
-        // v4.18 WS3: the serviced book is the WIDER of the credit book and
-        // the deposit book. Deposit servicing (payments, account ops) is
-        // real labor a deposit-rich bank must staff even while its loan
-        // book is thin — and `bank_operational_capacity` multiplies
-        // fulfilled FTE into origination capacity, so staffing the deposit
-        // book is what lets a thin-book bank actually lend. Keying demand
-        // off loans alone deadlocks commercial banks at ~1% LDR:
-        // no loans → no staff → no capacity → no loans.
-        let current_portfolio = (total_loans + consumer_loans_total).max(deposits_book);
-        // Phase 38: Smooth portfolio using a moving average stored in extra.
-        // This prevents FTE demand from spiking when a batch of loans is issued
-        // and crashing when they're repaid.
-        let prev_portfolio = bank.temporary_disruption_modifier; // reuse as scratch
-        let smoothed_portfolio = if prev_portfolio > 0.0 {
-            prev_portfolio * (1.0 - BANK_PORTFOLIO_SMOOTHING)
-                + current_portfolio * BANK_PORTFOLIO_SMOOTHING
-        } else {
-            current_portfolio
+        // v4.18 WS3: labor demand has two legs with different intensities,
+        // each piecewise for scale economies. Credit administration
+        // (underwriting, servicing, collections) is the dense leg at the
+        // capacity-model fixed point: 1 FTE per `20_000 × avg_wage` of book
+        // (~$10M/FTE at wage ~500) — the staffing inverse of
+        // `bank_operational_capacity`, so a fully staffed bank's
+        // `max_asset_under_management` covers its book. Deposit servicing
+        // (payments, account ops, teller lines) is real labor a
+        // deposit-rich bank must staff even while its loan book is thin —
+        // keying demand off loans alone deadlocked commercial banks at ~1%
+        // LDR: no loans → no staff → no capacity → no loans. But deposit
+        // ops are lighter-touch per dollar than credit administration,
+        // modeled at 5× the dollars per FTE.
+        //
+        // Below `STAFF_SCALE_KNEE` ($10B of book) the flat densities hold —
+        // a small bank really does staff proportionally. Beyond the knee,
+        // centralization and automation make marginal book administration
+        // ~10× cheaper per dollar (`STAFF_TAIL_DENSITY_MULT`): a $300B
+        // universal bank does NOT employ 30× the staff of a $10B bank.
+        // Without the knee, a monopoly-scaled bank ($340B deposits)
+        // demanded ~277k FTE — 18% of the national workforce (FS-8 bloat).
+        const STAFF_SCALE_KNEE: f64 = 10.0e9;
+        const STAFF_TAIL_DENSITY_MULT: f64 = 10.0;
+        let piecewise_fte = |book: f64, per_fte: f64| -> f64 {
+            if per_fte <= 0.0 {
+                return 0.0;
+            }
+            let knee = book.min(STAFF_SCALE_KNEE);
+            knee / per_fte
+                + (book - knee).max(0.0) / (per_fte * STAFF_TAIL_DENSITY_MULT)
         };
-        bank.temporary_disruption_modifier = smoothed_portfolio; // store for next turn
-        // 1 FTE per `20_000 × avg_wage` of loan-book assets — the staffing
-        // inverse of `bank_operational_capacity` (an FTE administers
-        // ~20k×wage of assets under management, ~$10M/book at wage ~500).
-        // The old 1-per-100_000 rule demanded ~250k staff for a 25B book —
-        // ~50 bank clerks per real banker — and was the root cause of the
-        // Banking-sector employment/GDP-share explosion. Using `avg_wage`
-        // keeps this the exact fixed point of the capacity model: when the
-        // bank is fully staffed, `capacity.max_asset_under_management`
-        // covers its actual book.
-        let portfolio_per_fte = 20_000.0 * avg_wage;
-        let fte_demand = (smoothed_portfolio / portfolio_per_fte).ceil();
+        let credit_book = total_loans + consumer_loans_total;
+        let credit_book_per_fte = 20_000.0 * avg_wage;
+        let deposit_book_per_fte = credit_book_per_fte * 5.0;
+        let current_fte_need = piecewise_fte(credit_book, credit_book_per_fte)
+            + piecewise_fte(deposits_book, deposit_book_per_fte);
+        // Phase 38: Smooth the FTE requirement using a moving average stored
+        // in extra. This prevents FTE demand from spiking when a batch of
+        // loans is issued and crashing when they're repaid.
+        let prev_need = bank.temporary_disruption_modifier; // reuse as scratch
+        let smoothed_fte_need = if prev_need > 0.0 {
+            prev_need * (1.0 - BANK_PORTFOLIO_SMOOTHING)
+                + current_fte_need * BANK_PORTFOLIO_SMOOTHING
+        } else {
+            current_fte_need
+        };
+        bank.temporary_disruption_modifier = smoothed_fte_need; // store for next turn
+        let fte_demand = smoothed_fte_need.ceil();
         // Phase 38: Cap FTE growth at 10% per turn relative to prev_fulfilled_fte.
         // Banks start small and scale conservatively. Min 2 FTE for basic operations.
         // The cap is upward-only: when `fte_demand` falls below the cap the
@@ -4526,14 +4579,18 @@ pub fn process_banking_turn(
         bank.physical_fte_demand = bank.target_fte_demand;
         #[cfg(feature = "diagnostic")]
         eprintln!(
-            "BANKFTE_DBG: turn={} bank={} portfolio={:.0} fte_raw={:.0} growth_cap={:.0} affordable={:.0} target={} fulfilled={}",
-            current_turn, bank.id, smoothed_portfolio, fte_demand, growth_capped_demand,
+            "BANKFTE_DBG: turn={} bank={} credit_book={:.0} deposits={:.0} fte_raw={:.0} growth_cap={:.0} affordable={:.0} target={} fulfilled={}",
+            current_turn, bank.id, credit_book, deposits_book, fte_demand, growth_capped_demand,
             max_affordable, bank.target_fte_demand, bank.fulfilled_fte
         );
     }
+    #[cfg(feature = "diagnostic")]
+    _diag_step_trace!("15_banklabor");
 
     // Prudential leverage supervision — see `enforce_leverage_cap`.
     enforce_leverage_cap(country, companies);
+    #[cfg(feature = "diagnostic")]
+    _diag_step_trace!("16_leverage_cap");
 
     // Aggregate diagnostics
     for bank in companies.iter() {
@@ -4975,6 +5032,7 @@ mod tests {
             0.015,
             &borrower,
             "COMP-1",
+            Some("BANK-1"), // borrower banks at the lender — deposit persists
             100_000.0,
             LoanType::WorkingCapital,
             12,
@@ -5028,6 +5086,7 @@ mod tests {
             0.015,
             &borrower,
             "COMP-1",
+            Some("BANK-1"),
             100_000.0,
             LoanType::WorkingCapital,
             12,

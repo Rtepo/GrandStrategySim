@@ -277,6 +277,10 @@ struct MarketJson {
     res_stats: HashMap<String, MarketTradeStatsJson>,
     #[serde(default)]
     foreign_sector_balance: f64,
+    #[serde(default)]
+    foreign_income: f64,
+    #[serde(default)]
+    foreign_income_injected: f64,
 }
 
 fn load_market(data_dir: &Path) -> Result<GlobalMarket, TurnError> {
@@ -310,6 +314,8 @@ fn load_market(data_dir: &Path) -> Result<GlobalMarket, TurnError> {
         b2c_demand_volume: FxHashMap::default(),
         foreign_patent_fee_ledger: 0.0,
         foreign_sector_balance: parsed.foreign_sector_balance,
+        foreign_income: parsed.foreign_income,
+        foreign_income_injected: parsed.foreign_income_injected,
         international_org_budgets: 0.0,
     })
 }
@@ -709,7 +715,9 @@ fn load_unions(data_dir: &Path, country: &str) -> Result<Vec<Union>, TurnError> 
         if sector.is_empty() {
             continue;
         }
-        let loaded = match store.load_sector(country, "unions", Some(&sector)) {
+        // Union::path resolves `unions/<sector>.json` from the `sector`
+        // argument — the file stem IS the sector key.
+        let loaded = match store.load_sector(country, &sector, None) {
             Ok(l) => l,
             Err(e) => {
                 eprintln!(
@@ -852,6 +860,8 @@ fn save_market(
         orders: orders_map,
         res_stats,
         foreign_sector_balance: market.foreign_sector_balance,
+        foreign_income: market.foreign_income,
+        foreign_income_injected: market.foreign_income_injected,
     };
     // Persist supply/demand volumes for Market UI continuity.
     let sv_path = data_dir.join("market_volumes.json");
@@ -906,10 +916,10 @@ fn save_unions(data_dir: &Path, country: &str, unions: &[Union]) -> Result<(), T
         if list.is_empty() {
             continue;
         }
-        if store
-            .save_sector(country, "unions", Some(&sector), &list)
-            .is_err()
-        {
+        // Union::path builds `unions/<sector>.json` from the `sector`
+        // argument — passing "unions" would collapse all sectors into one
+        // file (last write wins in HashMap order).
+        if store.save_sector(country, &sector, None, &list).is_err() {
             // Ignore errors - unions are optional
         }
     }
@@ -1026,6 +1036,8 @@ fn default_market() -> GlobalMarket {
         b2c_demand_volume: FxHashMap::default(),
         foreign_patent_fee_ledger: 0.0,
         foreign_sector_balance: 0.0,
+        foreign_income: 0.0,
+        foreign_income_injected: 0.0,
         international_org_budgets: 0.0,
     }
 }

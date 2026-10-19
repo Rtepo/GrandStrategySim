@@ -118,6 +118,25 @@ pub struct GlobalMarket {
     /// outbound domestic tourism and import payments (future mechanics).
     /// Can never go below zero — foreign spending is clamped to this balance.
     pub foreign_sector_balance: f64,
+
+    /// v4.18 WS1 follow-up: the unmodeled world economy's recurring income
+    /// per turn, credited to `foreign_sector_balance` each turn before the
+    /// export sweep. The rest-of-world is an economy with a GDP-scale income
+    /// flow, not a depleting annuity — without an inflow the balance decays
+    /// geometrically and net exports collapse mid-run regardless of how
+    /// competitive domestic exporters are. Seeded at world generation as a
+    /// bounded import-propensity share of modeled world GDP.
+    /// `0.0` on legacy saves preserves the old draining-annuity behavior.
+    #[serde(default)]
+    pub foreign_income: f64,
+
+    /// v4.18 WS1 follow-up: cumulative foreign income credited to the purse —
+    /// the tracked exogenous injection channel for the M0 fiat walk. Foreign
+    /// income is fiat created outside the modeled system; counting it here
+    /// keeps `ΔM0 == Δinjection` exact while the export sweep's purse debit →
+    /// company credit remains a conserved internal transfer.
+    #[serde(default)]
+    pub foreign_income_injected: f64,
 }
 
 impl GlobalMarket {

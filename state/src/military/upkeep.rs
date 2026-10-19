@@ -184,24 +184,33 @@ pub fn submit_defense_b2b_orders(
         }
     }
 
+    // DETERMINISM: `total_demand` is a HashMap — iterate in sorted Commodity
+    // order so the `total_cost` accumulation, the resulting `scale` ratio, and
+    // the bid submission sequence are identical across processes.
+    let mut sorted_demand: Vec<(Commodity, f64)> =
+        total_demand.iter().map(|(&c, &q)| (c, q)).collect();
+    sorted_demand.sort_by_key(|&(c, _)| c);
+
     // Rule 19: Equipment transport must consume FreightCapacity (no teleportation).
     // FreightCapacity demand scales by total equipment quantity procured (Rule 15).
     // Each unit of equipment requires freight_capacity_per_ton units of FreightCapacity.
-    let total_equipment_quantity: f64 = total_demand
-        .values()
-        .copied()
+    let total_equipment_quantity: f64 = sorted_demand
+        .iter()
+        .map(|&(_, q)| q)
         .filter(|&v| v > 0.0)
         .sum();
     let freight_demand = calculate_mod_freight_demand(total_equipment_quantity);
     if freight_demand > 0.0 {
         *total_demand.entry(Commodity::FreightCapacity).or_insert(0.0) += freight_demand;
+        sorted_demand = total_demand.iter().map(|(&c, &q)| (c, q)).collect();
+        sorted_demand.sort_by_key(|&(c, _)| c);
     }
 
     // Create bids with limit price = market price * 1.2 (willing to pay 20% premium)
     let mut bids = Vec::new();
     let mut total_cost = 0.0;
 
-    for (commodity, quantity) in &total_demand {
+    for (commodity, quantity) in &sorted_demand {
         let base_price = market_prices.get(commodity).copied().unwrap_or(10.0);
         let limit_price = base_price * 1.2;
         let cost = quantity * limit_price;
@@ -215,7 +224,7 @@ pub fn submit_defense_b2b_orders(
         1.0
     };
 
-    for (commodity, quantity) in &total_demand {
+    for (commodity, quantity) in &sorted_demand {
         let base_price = market_prices.get(commodity).copied().unwrap_or(10.0);
         let limit_price = base_price * 1.2;
         let scaled_quantity = quantity * scale;

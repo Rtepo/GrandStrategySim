@@ -1212,7 +1212,14 @@ fn regenerate_parties(
         }
     }
 
-    let total_support: f64 = new_parties.values().map(|p| p.support).sum();
+    // Phase 96: canonical order — f64 summation over HashMap values is
+    // order-dependent at ULP level.
+    let mut party_names: Vec<&String> = new_parties.keys().collect();
+    party_names.sort();
+    let total_support: f64 = party_names
+        .iter()
+        .map(|k| new_parties[*k].support)
+        .sum();
     if total_support == 0.0 {
         // Phase 34: Generate a named leader for the provisional government.
         // The old stub used ..Party::default() which left leader.name empty,
@@ -2069,7 +2076,13 @@ pub fn bootstrap_politics(
     }
 
     // Register party leaders as VIPs.
-    for (party_id, party) in &country.politics.active_parties {
+    // Phase 96: canonical order — `active_parties` is a HashMap; iterating it
+    // directly assigns sequential VIP ids in random order per run, so the
+    // same leader gets a different id (and a different name_index pairing).
+    let mut party_ids: Vec<String> = country.politics.active_parties.keys().cloned().collect();
+    party_ids.sort();
+    for party_id in &party_ids {
+        let party = &country.politics.active_parties[party_id];
         let leader = &party.leader;
         let is_ruling = country.politics.ruling_party == *party_id;
         let roles = if is_ruling && !is_monarchy(form) {

@@ -42,7 +42,7 @@ fn test_bid_refund_releases_debit_cash() {
         .enumerate()
         .map(|(i, c)| (c.id.clone(), i))
         .collect();
-    refund_unfilled_bids(&order_book, &mut companies, &company_id_to_idx);
+    refund_unfilled_bids(&order_book, &mut companies, &company_id_to_idx, 0.0);
 
     // Verify debit_cash was released (not liquid_capital credited)
     assert!(

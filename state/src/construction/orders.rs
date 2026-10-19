@@ -59,6 +59,29 @@ pub fn submit_construction_b2b_orders(
             None => continue,
         };
 
+        // v4.18: stop-work on unpaid certified work. If a tranche's trigger
+        // progress has been reached but the release pass could not pay it
+        // (escrow leg exhausted + investor cash leg deferred), the contract
+        // is past due — a real contractor stops mobilizing materials until
+        // the invoice clears. With no new deliveries the project stalls on
+        // the existing material-shortage hold path and eventually cancels,
+        // freeing the escrow — rather than the contractor fronting
+        // unbillable work (the stranded-COGS bleed behind the multi-billion
+        // windowed losses). Tranche-less internal projects (self-funded)
+        // have no due tranches and pass through untouched.
+        let invoice_past_due = project
+            .tranches
+            .iter()
+            .any(|t| !t.released && project.progress >= t.trigger_progress);
+        if invoice_past_due {
+            #[cfg(feature = "diagnostic")]
+            eprintln!(
+                "CONST_DBG[STOPWORK]: project={} site={} contractor={} investor={} progress={:.2} — tranche due but unpaid; deployment halted",
+                project.id, building.id, project.main_contractor_id, project.investor_id, project.progress,
+            );
+            continue;
+        }
+
         // Phase 22A: determine who submits bids
         let buyer_id = if !project.main_contractor_id.is_empty() {
             project.main_contractor_id.clone()
@@ -164,6 +187,14 @@ pub fn submit_construction_b2b_orders(
         }
     }
 
+    // Canonicalize per-buyer request order — the inner Vecs were pushed in
+    // `task_materials`/`required_materials` HashMap iteration order, which is
+    // per-process; the tail/bulk partition and cumulative-encumbrance drain
+    // below are order-sensitive.
+    for requests in buyer_requests.values_mut() {
+        requests.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.cmp(&b.1)));
+    }
+
     for company in companies.iter_mut() {
         // `computed_liquid_capital` returns only brokerage cash — 0.0 for
         // unbanked contractors, so they could never bid for materials even on
@@ -260,13 +291,23 @@ pub fn submit_construction_b2b_orders(
             // Escalate the limit 20% per unfilled turn so converging
             // spreads actually cross — settlement still executes at the
             // ask price, so the premium is a ceiling, not the price paid.
+            // v4.18: the escalation is bounded by the seller ask ceiling
+            // (1+max_markup_ratio)×reference. Unbounded, a never-filled BOM
+            // input (extinct ConstructionServices/Machinery) compounded its
+            // limit to ~10^8×ref, exploded `total_want`, and collapsed the
+            // proportional fill_scale to ~0 — starving every OTHER line's
+            // bid volume too. The cap keeps the limit inside what the book
+            // can legitimately charge.
             let last_unfilled = company
                 .unfilled_bid_prices
                 .get(commodity)
                 .copied()
                 .unwrap_or(0.0);
+            let limit_cap = ref_price * (1.0 + config.max_markup_ratio);
             let limit_price = if last_unfilled > 0.0 {
-                (last_unfilled * 1.20).max(ref_price * (1.0 + config.buy_premium_ratio))
+                (last_unfilled * 1.20)
+                    .min(limit_cap)
+                    .max(ref_price * (1.0 + config.buy_premium_ratio))
             } else {
                 ref_price * (1.0 + config.buy_premium_ratio)
             };
@@ -338,6 +379,7 @@ pub fn submit_construction_b2b_orders(
             let credit = encumbrance - paid;
             if credit > 0.0 {
                 company.procurement_credit += credit;
+                company.open_bid_credit += credit;
             }
             company.debit_cash += encumbrance;
             total_encumbered += encumbrance;
@@ -498,6 +540,16 @@ fn deploy_project_materials(buildings: &mut [Building]) {
             .inventory
             .entry(commodity)
             .or_insert(0.0) += pulled;
+        // v4.18 WS2: deployed units carry a cost basis into the project's
+        // staged pool — valued at the cost-plus anchor (registry-derived
+        // acquisition proxy; contractor stock was bought in earlier turns,
+        // so the spot reference chain would overstate at ratcheted prices).
+        if let Some(p) = buildings[site_idx].active_project.as_mut() {
+            let basis_price =
+                crate::engine::generator::corporate::anchored_base_price(commodity);
+            *p.staging_cost_basis.entry(commodity).or_insert(0.0) += pulled * basis_price;
+            *p.staging_qty.entry(commodity).or_insert(0.0) += pulled;
+        }
         for (di, give) in &gives {
             let donor = &mut buildings[*di];
             let held = donor.inventory.get(&commodity).copied().unwrap_or(0.0);
@@ -717,13 +769,28 @@ pub fn advance_construction_projects(
                 }
             })
             .unwrap_or(1.0);
+        // v4.18: certified-work stop — when a tranche's trigger progress
+        // has been met but `release_due_tranches` could not pay it (escrow
+        // leg exhausted, investor cash leg deferred), the contract is past
+        // due. A real crew stops placing material until the invoice clears;
+        // the hold/cancel path below winds the dead project down the same
+        // way a material shortage does. Delivered-but-uninstalled staging
+        // stays physical on site — no phantom refund of consumed goods.
+        let invoice_past_due = project
+            .tranches
+            .iter()
+            .any(|t| !t.released && project.progress >= t.trigger_progress);
         let labor_productivity = productivity * labor_frac;
-        let consumed = project.consume_delivered_materials(
-            &mut building.inventory,
-            &effective_unit_costs,
-            labor_productivity,
-            &input_reserve,
-        );
+        let consumed = if invoice_past_due {
+            false
+        } else {
+            project.consume_delivered_materials(
+                &mut building.inventory,
+                &effective_unit_costs,
+                labor_productivity,
+                &input_reserve,
+            )
+        };
         project.turns_elapsed += 1;
 
         // Phase 34: Accumulate the cost_spent delta (materials consumed value).
@@ -752,7 +819,11 @@ pub fn advance_construction_projects(
             }
         } else if !project.is_complete() {
             project.consecutive_hold_turns += 1;
-            project.put_on_hold("Material shortage on B2B market".to_string());
+            project.put_on_hold(if invoice_past_due {
+                "Investor funding unavailable — tranche past due".to_string()
+            } else {
+                "Material shortage on B2B market".to_string()
+            });
         }
 
         // Phase 29: Cancel permanently stalled projects (on hold for > 5 turns
@@ -787,14 +858,15 @@ pub fn advance_construction_projects(
                     })
                     .map(|(c, req)| {
                         format!(
-                            "{:?}:{:.0}/{:.0}",
+                            "{:?}:{:.0}/{:.0} stg={:.0}",
                             c,
                             project
                                 .delivered_materials
                                 .get(c)
                                 .copied()
                                 .unwrap_or(0.0),
-                            req
+                            req,
+                            building.inventory.get(c).copied().unwrap_or(0.0)
                         )
                     })
                     .collect();
@@ -820,14 +892,13 @@ pub fn advance_construction_projects(
             let mut termination_due = earned_unpaid.min(refund);
             if !is_state && !investor_id.is_empty() {
                 // The corporate escrow leg pays only out of the investor's
-                // live `debit_cash` pool (shared across tenders and B2B
-                // encumbrances) — clamp here so the booked payment equals
-                // what actually moves.
+                // dedicated `construction_escrow` pocket — clamp here so
+                // the booked payment equals what actually moves.
                 if let Some(iidx) =
                     companies.iter().position(|c| c.id == investor_id)
                 {
                     termination_due =
-                        termination_due.min(companies[iidx].debit_cash.max(0.0));
+                        termination_due.min(companies[iidx].construction_escrow.max(0.0));
                 }
             }
             if termination_due > 0.0 && !project.main_contractor_id.is_empty() {
@@ -864,16 +935,23 @@ pub fn advance_construction_projects(
                 if is_state {
                     country.budget.liquid_reserves += investor_refund;
                 } else if !investor_id.is_empty() {
-                    // Phase 94: Use credit_company_by_id for proper bank
-                    // reserve sync (M0 conservation). Crediting
-                    // brokerage_account.cash directly bypasses bank sync,
-                    // destroying M0 for banked investors.
-                    let _ = crate::economy::transfer_settler::credit_company_by_id(
-                        companies, &investor_id, investor_refund,
-                    );
+                    // v4.18 FS-7: the escrow stayed a deposit liability at
+                    // the investor's bank (earmark convention — the deposit
+                    // never left the book), so the return leg is a pure
+                    // pocket credit, mirroring `refund_unfilled_bids`. A
+                    // bank-synced credit here would mint reserves with no
+                    // counterparty debit. The release clamps to the pocket
+                    // balance so the credit never exceeds what is
+                    // actually encumbered.
                     if let Some(company) = companies.iter_mut().find(|c| c.id == investor_id) {
-                        // Release the encumbrance
-                        company.debit_cash = (company.debit_cash - investor_refund).max(0.0);
+                        let released =
+                            investor_refund.min(company.construction_escrow.max(0.0));
+                        if let Some(ref mut ba) = company.brokerage_account {
+                            ba.cash += released;
+                        } else {
+                            company.available_cash += released;
+                        }
+                        company.construction_escrow -= released;
                         // v4.17: release the unspent share of the committed
                         // investment back to the capital book — the full
                         // commitment minus what tranches actually drew.
@@ -1203,17 +1281,18 @@ fn release_due_tranches(
             let mut paid = 0.0;
             let mut cash_drawn = 0.0;
             if from_escrow > 0.0 {
-                // The corporate escrow helper clamps its payout to the
-                // investor's company-wide `debit_cash` pool (shared across
-                // tenders and B2B bid encumbrances). Mirror that clamp
+                // v4.18 FS-7: the corporate escrow helper draws from the
+                // dedicated `construction_escrow` pocket (B2B bid
+                // encumbrances and the wage trust live in `debit_cash` and
+                // can no longer consume funded tranches). Mirror the clamp
                 // here so `paid`/`tranches_paid` record what actually
-                // moved — booking the requested leg while the pool is
+                // moved — booking the requested leg while the pocket is
                 // short would overstate payments and leak the difference
                 // from the escrow ledger.
                 let escrow_leg = if is_state_investor {
                     from_escrow
                 } else {
-                    from_escrow.min(companies[investor_idx].debit_cash.max(0.0))
+                    from_escrow.min(companies[investor_idx].construction_escrow.max(0.0))
                 };
                 if escrow_leg > 0.0 {
                     let leg_ok = if is_state_investor {
@@ -1457,17 +1536,18 @@ pub fn abandon_project(
         if is_state {
             country.budget.liquid_reserves += refund;
         } else if !investor_id.is_empty() {
-            // Phase 94 convention: `credit_company_by_id` syncs the
-            // recipient's bank reserves/deposits — crediting
-            // `brokerage_account.cash` directly would desync M0 for
-            // banked investors (same fix as the stall-cancel path above).
-            let _ = crate::economy::transfer_settler::credit_company_by_id(
-                companies,
-                &investor_id,
-                refund,
-            );
+            // v4.18 FS-7: pure pocket credit + encumbrance release — the
+            // escrowed deposit never left the investor's bank book, so a
+            // bank-synced credit would mint reserves without a
+            // counterparty (same convention as `refund_unfilled_bids`).
             if let Some(company) = companies.iter_mut().find(|c| c.id == investor_id) {
-                company.debit_cash = (company.debit_cash - refund).max(0.0);
+                let released = refund.min(company.construction_escrow.max(0.0));
+                if let Some(ref mut ba) = company.brokerage_account {
+                    ba.cash += released;
+                } else {
+                    company.available_cash += released;
+                }
+                company.construction_escrow -= released;
                 company.liquid_capital += commitment_release;
             }
         }
@@ -1691,6 +1771,7 @@ pub fn update_construction_labor_demand(
             / (wage * crate::construction::tender_market::MILESTONE_SPACING_TURNS))
             as u32;
         let skeleton = (active_projects * 20).min(new_demand);
+        let raw_demand = new_demand;
         let new_demand = new_demand.min(payroll_capacity_fte.max(skeleton));
 
         let old_demand = company.physical_fte_demand;
@@ -1698,13 +1779,19 @@ pub fn update_construction_labor_demand(
         #[cfg(feature = "diagnostic")]
         if new_demand != old_demand || company.fulfilled_fte > 0 {
             eprintln!(
-                "CONST_DBG[LABORDEMAND]: company={} demand={} prev={} fulfilled={} furloughed={:.0} wage_offer={:.0}",
+                "CONST_DBG[LABORDEMAND]: company={} demand={} prev={} fulfilled={} furloughed={:.0} wage_offer={:.0} pc={} cred={:.0} cft={} imm={:.0} cash={:.0} sites={}",
                 company.id,
                 new_demand,
                 old_demand,
                 company.fulfilled_fte,
                 company.furloughed_workers_count,
-                company.offered_wage_per_fte
+                company.offered_wage_per_fte,
+                payroll_capacity_fte,
+                company.procurement_credit,
+                raw_demand,
+                imminent,
+                company.operational_cash(),
+                active_projects,
             );
         }
 
@@ -1930,13 +2017,19 @@ fn refund_unspent_escrow(
     if investor_id.starts_with("STATE:") {
         country.budget.liquid_reserves += refund;
     } else if !investor_id.is_empty() {
-        let _ = crate::economy::transfer_settler::credit_company_by_id(
-            companies,
-            investor_id,
-            refund,
-        );
         if let Some(c) = companies.iter_mut().find(|c| c.id == investor_id) {
-            c.debit_cash = (c.debit_cash - refund).max(0.0);
+            // Pure pocket credit + encumbrance release — the escrowed
+            // deposit never left the investor's bank book, so no bank
+            // sync applies (same convention as `refund_unfilled_bids`).
+            // Clamp the release to the pocket balance: crediting more
+            // than remains encumbered would mint money.
+            let released = refund.min(c.construction_escrow.max(0.0));
+            if let Some(ref mut ba) = c.brokerage_account {
+                ba.cash += released;
+            } else {
+                c.available_cash += released;
+            }
+            c.construction_escrow -= released;
             c.liquid_capital += unspent_commitment;
         }
     }
@@ -1980,6 +2073,78 @@ pub fn attach_awarded_projects(
     for (award_seq, (tender_id, project, expansion_target)) in
         awarded.into_iter().enumerate()
     {
+        let mut project = project;
+
+        // v4.18 FS-7: award-time escrow top-up. Publication escrowed 30% of
+        // the estimate; the signed contract is the winning bid price. The
+        // mobilization security owed at signing is
+        // `contract_price × MOBILIZATION_ESCROW_RATIO` — draw the difference
+        // from the investor's spendable cash into the escrow pocket now.
+        // An investor that cannot cover the top-up cannot honor tranche 1
+        // (20% of contract): refusing the award refunds the escrow instead
+        // of spawning a zombie site that stop-works at progress 0.00.
+        if !project.investor_id.is_empty()
+            && !project.investor_id.starts_with("STATE:")
+            && project.investor_cash_debited
+                < project.contract_price
+                    * crate::construction::tender_market::MOBILIZATION_ESCROW_RATIO
+        {
+            let required = project.contract_price
+                * crate::construction::tender_market::MOBILIZATION_ESCROW_RATIO;
+            let shortfall = required - project.investor_cash_debited;
+            let investor_idx =
+                companies.iter().position(|c| c.id == project.investor_id);
+            let paid = if let Some(iidx) = investor_idx {
+                let investor = &mut companies[iidx];
+                let pocket = if let Some(ref mut ba) = investor.brokerage_account {
+                    &mut ba.cash
+                } else {
+                    &mut investor.available_cash
+                };
+                let drawn = shortfall.min((*pocket).max(0.0));
+                *pocket -= drawn;
+                investor.construction_escrow += drawn;
+                project.investor_cash_debited += drawn;
+                drawn
+            } else {
+                0.0
+            };
+            if paid < shortfall - 1e-6 {
+                // Mobilization security unfundable — cancel the award and
+                // return whatever escrow exists rather than attach a
+                // guaranteed stall.
+                let refund = refund_project_escrow(&project, companies, country);
+                #[cfg(feature = "diagnostic")]
+                eprintln!(
+                    "CONST_DBG[ATTACH]: tender={} project={} mode=refuse reason=mobilization_escrow_unfunded investor={} required={:.0} escrowed={:.0} refund={:.0}",
+                    tender_id,
+                    project.id,
+                    project.investor_id,
+                    required,
+                    project.investor_cash_debited,
+                    refund
+                );
+                messages.push(format!(
+                    "Tender {} award refused: investor cannot fund mobilization escrow ({:.0}/{:.0}) — escrow refunded",
+                    tender_id,
+                    project.investor_cash_debited,
+                    required
+                ));
+                continue;
+            }
+            #[cfg(feature = "diagnostic")]
+            if paid > 0.0 {
+                eprintln!(
+                    "CONST_DBG[ESCROWTOPUP]: tender={} investor={} contract={:.0} topup={:.0} escrow_total={:.0}",
+                    tender_id,
+                    project.investor_id,
+                    project.contract_price,
+                    paid,
+                    project.investor_cash_debited
+                );
+            }
+        }
+
         // ── Expansion tender: attach to the building being expanded ──
         if let Some(target_bldg_id) = expansion_target {
             match buildings
@@ -2068,7 +2233,6 @@ pub fn attach_awarded_projects(
         // the project avoids the "No land parcel acquired" hold oscillation.
         // STATE sites are left unmarked so `ensure_project_land` performs
         // the real Treasury-parcel reallocation.
-        let mut project = project;
         if !investor_id.starts_with("STATE:") {
             project.parcel_id = format!("site:{}", site_id);
         }
@@ -2175,7 +2339,7 @@ mod tests {
     fn attach_refunds_escrow_when_expansion_target_missing() {
         let mut buildings: Vec<Building> = Vec::new();
         let mut investor = make_company("inv_co", Sector::PublicServices, 0.0);
-        investor.debit_cash = 8_000.0; // encumbered at publish
+        investor.construction_escrow = 8_000.0; // encumbered at publish
         let mut companies = vec![investor];
         let mut country = Country::default();
         let mut project = make_project("inv_co", "dev_co", 8_000.0, 8_000.0);
@@ -2198,7 +2362,7 @@ mod tests {
 
         assert!(buildings.is_empty(), "no site should spawn for expansions");
         let inv = &companies[0];
-        assert_eq!(inv.debit_cash, 0.0, "encumbrance must be released");
+        assert_eq!(inv.construction_escrow, 0.0, "encumbrance must be released");
         assert!(
             inv.available_cash > 0.0
                 || inv.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0) > 0.0,
@@ -2283,6 +2447,114 @@ mod tests {
         assert_eq!(companies[0].turn_settled_sales, 2_000.0); // 20% of 10k
     }
 
+    /// v4.18 FS-7 regression: tender escrow must live in the dedicated
+    /// `construction_escrow` pocket, not the shared `debit_cash` pool —
+    /// B2B settlement and the wage trust drain `debit_cash`, so a funded
+    /// tranche would clamp to zero and stall the project even though the
+    /// investor escrowed at award.
+    #[test]
+    fn tranche_release_ignores_shared_debit_pool() {
+        let mut investor = make_company("inv_co", Sector::PublicServices, 0.0);
+        investor.construction_escrow = 2_000.0; // escrow funded at award
+        investor.debit_cash = 0.0; // B2B/wage drains consumed the shared pool
+        investor.available_cash = 0.0;
+        let mut contractor = make_company("con_co", Sector::Construction, 0.0);
+        contractor.available_cash = 1.0;
+        let mut companies = vec![investor, contractor];
+        let mut country = Country::default();
+
+        let mut site = Building::new(
+            "site_1".to_string(),
+            "inv_co".to_string(),
+            Sector::Construction,
+            0,
+        );
+        // Contract 10k; escrow claim 2k covers the mobilization tranche.
+        let project = make_project("inv_co", "con_co", 2_000.0, 10_000.0);
+        site.active_project = Some(project);
+        let mut buildings = vec![site];
+
+        let released =
+            release_construction_tranches(&mut buildings, &mut companies, &mut country);
+        assert_eq!(
+            released, 1,
+            "mobilization tranche must release from the escrow pocket even \
+             when the shared debit pool is empty"
+        );
+        assert_eq!(companies[0].construction_escrow, 0.0);
+        assert_eq!(companies[1].turn_settled_sales, 2_000.0);
+    }
+
+    /// v4.18 FS-7 regression: at award the mobilization escrow must be
+    /// topped up to 30% of the signed CONTRACT price (the publish-time
+    /// estimate can undershoot the real bid). An investor that cannot
+    /// cover the top-up gets the award refused and the escrow refunded —
+    /// no zombie site.
+    #[test]
+    fn attach_tops_up_escrow_to_contract_price() {
+        let mut buildings: Vec<Building> = Vec::new();
+        let mut investor = make_company("inv_co", Sector::PublicServices, 0.0);
+        investor.construction_escrow = 3_000.0; // 30% of a 10k estimate
+        investor.available_cash = 9_000.0;
+        let mut companies = vec![investor];
+        let mut country = Country::default();
+        // Contract signed at 20k — escrow must reach 6k (30%).
+        let project = make_project("inv_co", "con_co", 3_000.0, 20_000.0);
+
+        let _ = attach_awarded_projects(
+            vec![("tender_topup".to_string(), project, None)],
+            &mut buildings,
+            &mut companies,
+            &mut country,
+            1960,
+        );
+
+        assert_eq!(buildings.len(), 1, "fundable award must attach a site");
+        assert_eq!(
+            companies[0].construction_escrow, 6_000.0,
+            "escrow must be topped to 30% of contract, got {}",
+            companies[0].construction_escrow
+        );
+        assert_eq!(companies[0].available_cash, 6_000.0);
+        let escrow_claim = buildings[0]
+            .active_project
+            .as_ref()
+            .unwrap()
+            .investor_cash_debited;
+        assert_eq!(escrow_claim, 6_000.0);
+    }
+
+    /// The mirror case: investor cannot fund 30% of the signed contract —
+    /// the award is refused and the already-escrowed funds return.
+    #[test]
+    fn attach_refuses_unfundable_contract() {
+        let mut buildings: Vec<Building> = Vec::new();
+        let mut investor = make_company("inv_co", Sector::PublicServices, 0.0);
+        investor.construction_escrow = 3_000.0;
+        investor.available_cash = 0.0; // cannot top up
+        let mut companies = vec![investor];
+        let mut country = Country::default();
+        let project = make_project("inv_co", "con_co", 3_000.0, 20_000.0);
+
+        let _ = attach_awarded_projects(
+            vec![("tender_refuse".to_string(), project, None)],
+            &mut buildings,
+            &mut companies,
+            &mut country,
+            1960,
+        );
+
+        assert!(
+            buildings.is_empty(),
+            "an unfundable award must not spawn a zombie site"
+        );
+        assert_eq!(companies[0].construction_escrow, 0.0);
+        assert_eq!(
+            companies[0].available_cash, 3_000.0,
+            "refused award must refund the escrow to spendable cash"
+        );
+    }
+
     /// v4.18 WS2: a project whose last material installs must reach
     /// progress 1.0, release EVERY tranche including the completion
     /// milestone (trigger 1.0), pay the contractor the full contract, and
@@ -2323,6 +2595,9 @@ mod tests {
 
         let unit_costs: BTreeMap<Commodity, f64> =
             [(Commodity::Timber, 1.0)].into_iter().collect();
+        // Real turn order: the tranche sweep releases the mobilization
+        // advance before the advance pass consumes staged materials.
+        release_construction_tranches(&mut buildings, &mut companies, &mut country);
         let (msgs, _spent, _by_region) = advance_construction_projects(
             &mut buildings,
             &mut companies,
@@ -2358,12 +2633,12 @@ mod tests {
     /// and paid, the record clears.
     #[test]
     fn completion_claim_survives_deferred_tranche() {
-        // Corporate investor: escrowed 2k at publish (held in debit_cash),
-        // contract 10k — tranches are 2k/3k/3k/2k, so after the escrow leg
-        // pays tranche_1 the remaining 8k needs investor cash. Investor
-        // starts with none → deferral.
+        // Corporate investor: escrowed 2k at publish (held in
+        // construction_escrow), contract 10k — tranches are 2k/3k/3k/2k, so
+        // after the escrow leg pays tranche_1 the remaining 8k needs
+        // investor cash. Investor starts with none → deferral.
         let mut investor = make_company("inv_co", Sector::PublicServices, 0.0);
-        investor.debit_cash = 2_000.0; // escrow pool from publication
+        investor.construction_escrow = 2_000.0; // escrow pool from publication
         investor.available_cash = 0.0;
         investor.liquid_capital = 0.0;
         let mut contractor = make_company("con_co", Sector::Construction, 0.0);
@@ -2390,6 +2665,10 @@ mod tests {
 
         let unit_costs: BTreeMap<Commodity, f64> =
             [(Commodity::Timber, 1.0)].into_iter().collect();
+        // Real turn order: the tranche sweep pays the mobilization advance
+        // (escrow leg) before the advance pass runs — otherwise the
+        // invoice-past-due gate correctly stops work on an unpaid contract.
+        release_construction_tranches(&mut buildings, &mut companies, &mut country);
         advance_construction_projects(&mut buildings, &mut companies, &unit_costs, &mut country);
 
         // Physical work is done (capacity grant is one-shot) but the

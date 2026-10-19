@@ -96,4 +96,116 @@ mod tests {
             "post-turn state_fingerprint diverged across identical runs"
         );
     }
+
+    /// Generation determinism probe: two fresh `generate_world` calls must
+    /// produce byte-identical canonical state. `serde_json::Value` parses
+    /// objects into BTreeMap (sorted keys), so a textual diff of the two
+    /// pretty-printed dumps pinpoints the exact divergent field — including
+    /// fields GENESIS_FP's sorted projection cannot see (class savings,
+    /// market internals, unions, securities).
+    #[test]
+    fn same_seed_same_world() {
+        fn canon(dir: &std::path::Path, label: &str) -> String {
+            let registries = Registries::native_only();
+            let options = GenerateOptions {
+                country_count: 4,
+                start_year: StartYear::Y1925,
+                seed: Some(42),
+            };
+            sim_engine::engine::seeded_rng::reset_draw_count();
+            let GeneratedWorld {
+                mut state, ..
+            } = generate_world(dir, options, &registries).expect("world generation failed");
+            let ctx =
+                InMemoryTurnContext::load_from_disk(dir, &mut state).expect("ctx load failed");
+            eprintln!(
+                "DRAWCOUNT {}: {}",
+                label,
+                sim_engine::engine::seeded_rng::draw_count()
+            );
+
+            // Canonicalize: serialize → parse (BTreeMap-sorted keys) →
+            // recursively sort every array by its elements' canonical text,
+            // so only true multiset/content diffs remain.
+            fn deep_canon(v: serde_json::Value) -> serde_json::Value {
+                match v {
+                    serde_json::Value::Object(m) => serde_json::Value::Object(
+                        m.into_iter().map(|(k, x)| (k, deep_canon(x))).collect(),
+                    ),
+                    serde_json::Value::Array(a) => {
+                        let mut items: Vec<serde_json::Value> =
+                            a.into_iter().map(deep_canon).collect();
+                        items.sort_by_cached_key(|x| serde_json::to_string(x).unwrap());
+                        serde_json::Value::Array(items)
+                    }
+                    x => x,
+                }
+            }
+            fn canon<T: serde::Serialize>(label: &str, v: &T) -> serde_json::Value {
+                match serde_json::to_string(v) {
+                    Ok(s) => {
+                        let parsed: serde_json::Value = serde_json::from_str(&s).unwrap();
+                        deep_canon(parsed)
+                    }
+                    Err(e) => {
+                        eprintln!("canon '{}' not JSON-serializable: {} — skipped", label, e);
+                        serde_json::Value::Null
+                    }
+                }
+            }
+            let mut bundle = serde_json::json!({
+                "state": canon("state", &state),
+                "market": canon("market", &ctx.market),
+                "diplomacy": canon("diplomacy", &ctx.diplomacy),
+                "countries": canon("countries", &state.countries),
+                "regions": canon("regions", &state.countries.values().flat_map(|c| c.regions.clone()).collect::<Vec<_>>()),
+            });
+            let mut ents = serde_json::Map::new();
+            let mut names: Vec<&String> = ctx.entities.keys().collect();
+            names.sort();
+            for name in names {
+                let e = &ctx.entities[name];
+                ents.insert(
+                    name.clone(),
+                    serde_json::json!({
+                        "companies": canon("companies", &e.companies),
+                        "buildings": canon("buildings", &e.buildings),
+                        "unions": canon("unions", &e.unions),
+                        "commercial_buildings": canon("commercial_buildings", &e.commercial_buildings),
+                        "housing_buildings": canon("housing_buildings", &e.housing_buildings),
+                    }),
+                );
+            }
+            bundle["entities"] = serde_json::Value::Object(ents);
+            let text = serde_json::to_string_pretty(&bundle).unwrap();
+            let out = std::env::temp_dir().join(format!("ses_gen_{}.json", label));
+            std::fs::write(&out, &text).unwrap();
+            eprintln!("wrote canonical dump: {}", out.display());
+            text
+        }
+
+        let tmp_a = TempDir::new().expect("temp dir a");
+        let tmp_b = TempDir::new().expect("temp dir b");
+        let a = canon(tmp_a.path(), "a");
+        let b = canon(tmp_b.path(), "b");
+
+        if a != b {
+            let (la, lb) = (a.lines().collect::<Vec<_>>(), b.lines().collect::<Vec<_>>());
+            let first = (0..la.len().max(lb.len()))
+                .find(|&i| la.get(i) != lb.get(i))
+                .unwrap_or(0);
+            let lo = first.saturating_sub(4);
+            let mut ctx_lines = String::new();
+            for i in lo..(first + 6).min(la.len().max(lb.len())) {
+                ctx_lines.push_str(&format!(
+                    "  line {}: a={:?}  b={:?}{}\n",
+                    i,
+                    la.get(i).unwrap_or(&"<eof>"),
+                    lb.get(i).unwrap_or(&"<eof>"),
+                    if i == first { "  <-- FIRST DIFF" } else { "" }
+                ));
+            }
+            panic!("worldgen nondeterminism at line {}:\n{}", first, ctx_lines);
+        }
+    }
 }

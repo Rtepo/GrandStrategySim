@@ -37,6 +37,51 @@ pub const DUMPING_FLOOR_RATIO: f64 = 0.5;
 ///
 /// # Returns
 /// A new `ConstructionTender` with status `Open`.
+/// v4.18 FS-7: the BOM-floor estimate `publish_tender` applies. The real
+/// bill of materials priced at the LIVE reference chain
+/// (`get_reference_price`: VWAP → last trade → global base) — the same
+/// basis `construction_bid_decision` floors `bid_cost` on and the same
+/// prices procurement settles at — plus the standard ~35% all-in
+/// allowance. The publisher estimate, the bidder's cost floor, and the
+/// settlement price must share one numéraire: when the floor was anchored
+/// to the static cost-plus table while trades settled ~100× above it,
+/// every tender escrowed a mobilization advance worth a few percent of
+/// the real BOM, contractors could not fund the first material draw, and
+/// projects died at progress 0.00 (observed: thousands of cancellations
+/// citing `missing=[ConstructionMachinery:0/N]`). Publisher affordability
+/// gates must check THIS number — not the raw `estimate_project_cost`
+/// anchor — or tenders get published whose mobilization escrow the
+/// investor can never fund.
+pub fn floored_estimated_cost(
+    sector: crate::registries::enums::Sector,
+    start_year: u32,
+    target_capacity_increase: u32,
+    estimated_cost: f64,
+    market_history: &crate::economy::market::market_history::MarketHistory,
+) -> f64 {
+    let bom_anchor_cost: f64 = get_construction_bom(sector, start_year, target_capacity_increase)
+        .iter()
+        .map(|(c, q)| {
+            *q * crate::economy::market::market_history::get_reference_price(
+                c,
+                market_history,
+            )
+            .unwrap_or_else(|| {
+                crate::engine::generator::corporate::anchored_base_price(*c)
+            })
+            .max(1.0)
+        })
+        .sum();
+    estimated_cost.max(bom_anchor_cost * 1.35)
+}
+
+/// Publish a construction tender (see `floored_estimated_cost` for the
+/// estimate floor — the tender's `estimated_cost` is never below the real
+/// BOM bill priced at the numéraire, so the mobilization escrow covers a
+/// meaningful share of the awarded contract).
+///
+/// # Returns
+/// A new `ConstructionTender` with status `Open`.
 pub fn publish_tender(
     investor_id: String,
     investor_type: TenderInvestorType,
@@ -50,8 +95,25 @@ pub fn publish_tender(
     current_turn: u32,
     sector: crate::registries::enums::Sector,
     start_year: u32,
+    market_history: &crate::economy::market::market_history::MarketHistory,
 ) -> ConstructionTender {
     let required_materials = get_construction_bom(sector, start_year, target_capacity_increase);
+
+    // v4.18 FS-7: the estimate must cover the real bill of materials.
+    // `construction_bid_decision` floors every bid at the BOM priced at
+    // current market reference prices — a hardcoded/political estimate
+    // ~200× below it produced mobilization escrows worth ~0.1% of the
+    // awarded contract (observed: $80k escrow against a $65M award), so
+    // every progress tranche deferred and the project died at progress
+    // 0.00. `floored_estimated_cost` is the shared computation — publisher
+    // affordability gates read the same number.
+    let estimated_cost = floored_estimated_cost(
+        sector,
+        start_year,
+        target_capacity_increase,
+        estimated_cost,
+        market_history,
+    );
 
     let tender_id = format!(
         "tender_{}_{}_{}",
@@ -193,7 +255,7 @@ pub fn tender_labor_fte(tender: &ConstructionTender, wage: f64) -> f64 {
 /// the investor has the funds to pay the contractor.
 ///
 /// For Corporate investors: debits `brokerage_account.cash` (or
-/// `available_cash`), credits `debit_cash`.
+/// `available_cash`), credits `construction_escrow`.
 /// For State investors: debits `country.budget.liquid_reserves`.
 ///
 /// v4.17: the encumbered amount is `estimated_cost ×
@@ -238,7 +300,7 @@ pub fn encumber_tender_escrow(
         );
         true
     } else {
-        // Corporate escrow: debit company cash, credit debit_cash
+        // Corporate escrow: debit company cash, credit construction_escrow
         let investor_idx = match companies.iter().position(|c| c.id == tender.investor_id) {
             Some(idx) => idx,
             None => {
@@ -271,7 +333,14 @@ pub fn encumber_tender_escrow(
         } else {
             companies[investor_idx].available_cash -= cost;
         }
-        companies[investor_idx].debit_cash += cost;
+        // v4.18 FS-7: escrow parks in the dedicated `construction_escrow`
+        // pocket, not `debit_cash` — the shared pool was drained by B2B
+        // settlement, wage-trust garnish, and refunds before the tranche
+        // released, producing phantom `insufficient_cash` stopworks on
+        // funded contracts. For a banked investor the deposit liability
+        // stays on the bank's book (the escrow is a deposit earmark); the
+        // bank legs move at release, mirroring `settle_trades`.
+        companies[investor_idx].construction_escrow += cost;
         tender.escrowed_amount = cost;
         #[cfg(feature = "diagnostic")]
         eprintln!(
@@ -286,7 +355,7 @@ pub fn encumber_tender_escrow(
 /// tender is cancelled (no eligible bids) or abandoned.
 ///
 /// For Corporate investors: credits `brokerage_account.cash` (or
-/// `available_cash`), debits `debit_cash`.
+/// `available_cash`), debits `construction_escrow`.
 /// For State investors: credits `country.budget.liquid_reserves`.
 ///
 /// # Arguments
@@ -312,7 +381,11 @@ pub fn refund_tender_escrow(
         && !tender.investor_id.starts_with("STATE:")
     {
         if let Some(idx) = companies.iter().position(|c| c.id == tender.investor_id) {
-            companies[idx].liquid_capital += tender.estimated_cost;
+            // Restore exactly the commitment `apply_action` debited —
+            // `target_capital_increase` carries the funded amount. Using
+            // `estimated_cost` over-restores once the estimate is floored
+            // at the real BOM cost (v4.18 FS-7).
+            companies[idx].liquid_capital += tender.target_capital_increase;
         }
     }
 
@@ -332,8 +405,8 @@ pub fn refund_tender_escrow(
             } else {
                 companies[investor_idx].available_cash += refund;
             }
-            companies[investor_idx].debit_cash =
-                (companies[investor_idx].debit_cash - refund).max(0.0);
+            companies[investor_idx].construction_escrow =
+                (companies[investor_idx].construction_escrow - refund).max(0.0);
         }
     }
 }
@@ -455,6 +528,7 @@ pub fn publish_expansion_tender(
     expansion_target_building_id: String,
     sector: crate::registries::enums::Sector,
     start_year: u32,
+    market_history: &crate::economy::market::market_history::MarketHistory,
 ) -> ConstructionTender {
     let mut tender = publish_tender(
         investor_id,
@@ -469,6 +543,7 @@ pub fn publish_expansion_tender(
         current_turn,
         sector,
         start_year,
+        market_history,
     );
     tender.expansion_target_building_id = Some(expansion_target_building_id);
     tender
@@ -598,6 +673,7 @@ pub fn award_tender(
         a.bid_price
             .partial_cmp(&b.bid_price)
             .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.bidder_id.cmp(&b.bidder_id))
     });
     let mut winner: Option<&Bid> = None;
     let mut winner_fte = 0.0_f64;
@@ -656,9 +732,14 @@ pub fn award_tender(
         cost_spent: 0.0,
         investor_cash_debited: tender.escrowed_amount,
         tranches_paid: 0.0,
+        staging_cost_basis: BTreeMap::new(),
+        staging_qty: BTreeMap::new(),
         investor_capital_committed: if tender.expansion_target_building_id.is_some()
         {
-            tender.estimated_cost
+            // The committed investment `apply_action` debited from
+            // `liquid_capital` — `target_capital_increase`, not
+            // `estimated_cost` (floored at real BOM cost since v4.18).
+            tender.target_capital_increase
         } else {
             0.0
         },
@@ -883,7 +964,9 @@ pub fn construction_bid_decision(
                 c,
                 market_history,
             )
-            .unwrap_or(0.0)
+            .unwrap_or_else(|| {
+                crate::engine::generator::corporate::anchored_base_price(*c)
+            })
         })
         .sum();
     if market_bom_cost > 0.0 {
@@ -934,6 +1017,7 @@ mod tests {
             10,
             crate::registries::enums::Sector::HeavyIndustry,
             1900,
+            &crate::economy::market::market_history::MarketHistory::default(),
         );
         assert_eq!(tender.status, TenderStatus::Open);
         assert!(!tender.required_materials.is_empty());
@@ -954,6 +1038,7 @@ mod tests {
             10,
             crate::registries::enums::Sector::HeavyIndustry,
             1900,
+            &crate::economy::market::market_history::MarketHistory::default(),
         );
         let mut company = make_construction_company("c1");
         company.sector = Sector::Agriculture;
@@ -976,6 +1061,7 @@ mod tests {
             10,
             crate::registries::enums::Sector::HeavyIndustry,
             1900,
+            &crate::economy::market::market_history::MarketHistory::default(),
         );
         let company = make_construction_company("c1");
         // Cost 100k when estimated is 500k → below 50% floor
@@ -998,6 +1084,7 @@ mod tests {
             10,
             crate::registries::enums::Sector::HeavyIndustry,
             1900,
+            &crate::economy::market::market_history::MarketHistory::default(),
         );
         // Model the real pipeline: the escrow encumbrance runs before award
         // (turn.rs), so a fundable tender carries escrowed_amount > 0. An

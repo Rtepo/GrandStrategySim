@@ -17,6 +17,19 @@ use std::collections::BTreeMap;
 
 type HashMap<K, V> = FxHashMap<K, V>;
 
+/// Canonical iteration order over a BOM map — HashMap iteration order is
+/// per-process, and the cost/revenue accumulations below (plus sequential
+/// drains like fuel-slot allocation) are order-sensitive. Sorting by
+/// commodity makes every pass deterministic across processes.
+fn sorted_io<'a, I>(iter: I) -> Vec<(Commodity, f64)>
+where
+    I: IntoIterator<Item = (&'a Commodity, &'a f64)>,
+{
+    let mut v: Vec<(Commodity, f64)> = iter.into_iter().map(|(&c, &q)| (c, q)).collect();
+    v.sort_by_key(|(c, _)| *c);
+    v
+}
+
 /// Result of one building's production cycle.
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ProductionResult {
@@ -88,7 +101,13 @@ fn resolve_active_method(
         let mut best: Option<&crate::registries::production_methods::ProductionMethod> = None;
         let mut best_year = 0u32;
         let mut best_is_conversion = true;
-        for (name, pm) in methods.iter_production_slots_named() {
+        // Canonical order: the slot maps are HashMaps and the `>=` tie rule
+        // below keeps the LAST same-year method seen — iteration order picks
+        // the winner, so sort by method name for process-stable selection.
+        let mut slots: Vec<(&String, &crate::registries::production_methods::ProductionMethod)> =
+            methods.iter_production_slots_named().collect();
+        slots.sort_by(|a, b| a.0.cmp(b.0));
+        for (name, pm) in slots {
             if pm.year > current_year {
                 continue;
             }
@@ -273,7 +292,7 @@ pub fn process_building_cycle(
     if method.thermal_efficiency > 0.0 {
         // Separate fuel inputs from non-fuel inputs
         let mut fuel_candidates: Vec<(Commodity, f64, f64)> = Vec::new();
-        for (&input_name, &capacity_per_1k) in &method.inputs {
+        for &(input_name, capacity_per_1k) in &sorted_io(&method.inputs) {
             if input_name.is_fuel() {
                 let cv = input_name.calorific_value_mj_per_unit();
                 let price = price_for(input_name, market_prices, base_wage, true);
@@ -289,8 +308,13 @@ pub fn process_building_cycle(
                 market_orders.add_buy(input_name, amount);
             }
         }
-        // Sort fuels by cheapest MJ per currency (descending = best first)
-        fuel_candidates.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
+        // Sort fuels by cheapest MJ per currency (descending = best first),
+        // commodity as canonical tiebreak for equal efficiency.
+        fuel_candidates.sort_by(|a, b| {
+            b.2.partial_cmp(&a.2)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.0.cmp(&b.0))
+        });
 
         // Determine target energy output (MJ-equivalent) from the method's Energy output
         let target_energy: f64 = method
@@ -376,7 +400,7 @@ pub fn process_building_cycle(
         // Strict conservation: output_energy = input_energy * storage_efficiency.
         // Non-Energy inputs (Water, Batteries, Components) use fixed-rate path.
         let mut energy_input: f64 = 0.0;
-        for (&input_name, &amount_per_1k) in &method.inputs {
+        for &(input_name, amount_per_1k) in &sorted_io(&method.inputs) {
             if input_name == Commodity::Energy {
                 energy_input = amount_per_1k * production_scale;
                 let price = price_for(input_name, market_prices, base_wage, true);
@@ -419,7 +443,7 @@ pub fn process_building_cycle(
         // which deposits yield to warehouses during the Harvesting state.
         // This prevents farms from producing food every turn AND via the
         // harvest cycle (double production bug).
-        for (&input_name, amount_per_1k) in &method.inputs {
+        for &(input_name, amount_per_1k) in &sorted_io(&method.inputs) {
             // Skip local utility commodities — delivered by physical grids
             if input_name.is_local_utility() {
                 continue;
@@ -471,7 +495,7 @@ pub fn process_building_cycle(
             // Audit §5.2: apply `efficiency` — the physical path
             // (execute_production_cycle) scales output by it, so the
             // market-order signal must match.
-            for (&output_name, amount_per_1k) in &method.outputs {
+            for &(output_name, amount_per_1k) in &sorted_io(&method.outputs) {
                 let mut amount = amount_per_1k * production_scale * method.efficiency;
                 // Phase A.3: Clamp EducationSlots to physical seat budget.
                 if output_name == Commodity::EducationSlots {
@@ -492,7 +516,7 @@ pub fn process_building_cycle(
             result.durability = Some(bp.durability);
         } else {
             // No blueprint: legacy fixed-rate production.
-            for (&input_name, amount_per_1k) in &method.inputs {
+            for &(input_name, amount_per_1k) in &sorted_io(&method.inputs) {
                 // Food is wage-funded sustenance, not a firm input.
                 if input_name == Commodity::Food {
                     continue;
@@ -504,7 +528,7 @@ pub fn process_building_cycle(
                 market_orders.add_buy(input_name, amount);
             }
 
-            for (&output_name, amount_per_1k) in &method.outputs {
+            for &(output_name, amount_per_1k) in &sorted_io(&method.outputs) {
                 // Audit §5.2: apply `efficiency` to match the physical path.
                 let mut amount = amount_per_1k * production_scale * method.efficiency;
                 // Phase A.3: Clamp EducationSlots to physical seat budget.
@@ -655,7 +679,7 @@ pub fn process_building_cycle_with_geology(
     result.wages_paid = wages_paid;
 
     let mut input_costs = 0.0;
-    for (&input_name, amount_per_1k) in &method.inputs {
+    for &(input_name, amount_per_1k) in &sorted_io(&method.inputs) {
         let amount = amount_per_1k * production_scale;
         let price = price_for(input_name, market_prices, base_wage, true);
         input_costs += amount * price;
@@ -665,7 +689,7 @@ pub fn process_building_cycle_with_geology(
 
     let mut output_revenue = 0.0;
     let mut last_production = BTreeMap::new();
-    for (&output_name, amount_per_1k) in &method.outputs {
+    for &(output_name, amount_per_1k) in &sorted_io(&method.outputs) {
         // Apply deposit quality/depth multiplier to output.
         // Audit §5.2: apply `efficiency` to match the physical path.
         let amount =

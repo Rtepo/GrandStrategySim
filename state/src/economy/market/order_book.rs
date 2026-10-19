@@ -116,20 +116,41 @@ pub fn match_orders(order_book: &mut OrderBook) {
             None => continue,
         };
 
-        // Sort bids: descending limit_price, lexicographical buyer_id tie-breaker
+        // Sort bids: descending limit_price, then a total-order tie-break
+        // chain — insertion order must never leak into match sequence, since
+        // producers push orders in HashMap-driven order across processes.
         bids.sort_by(|a, b| {
             b.limit_price
                 .partial_cmp(&a.limit_price)
                 .unwrap()
                 .then_with(|| a.buyer_id.cmp(&b.buyer_id))
+                .then_with(|| b.quantity.total_cmp(&a.quantity))
+                .then_with(|| a.blueprint_id.cmp(&b.blueprint_id))
+                .then_with(|| {
+                    a.min_quality
+                        .map(f64::to_bits)
+                        .cmp(&b.min_quality.map(f64::to_bits))
+                })
         });
 
-        // Sort asks: ascending limit_price, lexicographical seller_id tie-breaker
+        // Sort asks: ascending limit_price, then the same total-order chain.
         asks.sort_by(|a, b| {
             a.limit_price
                 .partial_cmp(&b.limit_price)
                 .unwrap()
                 .then_with(|| a.seller_id.cmp(&b.seller_id))
+                .then_with(|| a.quantity.total_cmp(&b.quantity))
+                .then_with(|| a.blueprint_id.cmp(&b.blueprint_id))
+                .then_with(|| {
+                    a.quality
+                        .map(f64::to_bits)
+                        .cmp(&b.quality.map(f64::to_bits))
+                })
+                .then_with(|| {
+                    a.durability
+                        .map(f64::to_bits)
+                        .cmp(&b.durability.map(f64::to_bits))
+                })
         });
 
         // Match while crossing prices exist
@@ -185,6 +206,36 @@ pub fn match_orders(order_book: &mut OrderBook) {
         bids.retain(|b| b.quantity >= 1e-9);
         asks.retain(|a| a.quantity >= 1e-9);
     }
+
+    // v4.18 WS2: canonicalize emitted trade order — settlement iterates this
+    // Vec sequentially, so its order must not depend on per-process order-book
+    // insertion order even when all sort keys above are already total.
+    sort_trades_canonical(&mut order_book.trades);
+}
+
+/// Canonical total ordering for an executed-trade list: deterministic across
+/// processes regardless of the order trades were pushed during matching.
+fn sort_trades_canonical(trades: &mut [Trade]) {
+    trades.sort_by(|a, b| {
+        a.commodity
+            .cmp(&b.commodity)
+            .then_with(|| a.buyer_id.cmp(&b.buyer_id))
+            .then_with(|| a.seller_id.cmp(&b.seller_id))
+            .then_with(|| a.execution_price.total_cmp(&b.execution_price))
+            .then_with(|| a.quantity.total_cmp(&b.quantity))
+            .then_with(|| a.bid_limit_price.total_cmp(&b.bid_limit_price))
+            .then_with(|| a.blueprint_id.cmp(&b.blueprint_id))
+            .then_with(|| {
+                a.quality
+                    .map(f64::to_bits)
+                    .cmp(&b.quality.map(f64::to_bits))
+            })
+            .then_with(|| {
+                a.durability
+                    .map(f64::to_bits)
+                    .cmp(&b.durability.map(f64::to_bits))
+            })
+    });
 }
 
 /// Match orders with bilateral embargo enforcement (Phase 11).
@@ -226,6 +277,13 @@ pub fn match_orders_with_embargoes(
                 .partial_cmp(&a.limit_price)
                 .unwrap()
                 .then_with(|| a.buyer_id.cmp(&b.buyer_id))
+                .then_with(|| b.quantity.total_cmp(&a.quantity))
+                .then_with(|| a.blueprint_id.cmp(&b.blueprint_id))
+                .then_with(|| {
+                    a.min_quality
+                        .map(f64::to_bits)
+                        .cmp(&b.min_quality.map(f64::to_bits))
+                })
         });
 
         asks.sort_by(|a, b| {
@@ -233,6 +291,18 @@ pub fn match_orders_with_embargoes(
                 .partial_cmp(&b.limit_price)
                 .unwrap()
                 .then_with(|| a.seller_id.cmp(&b.seller_id))
+                .then_with(|| a.quantity.total_cmp(&b.quantity))
+                .then_with(|| a.blueprint_id.cmp(&b.blueprint_id))
+                .then_with(|| {
+                    a.quality
+                        .map(f64::to_bits)
+                        .cmp(&b.quality.map(f64::to_bits))
+                })
+                .then_with(|| {
+                    a.durability
+                        .map(f64::to_bits)
+                        .cmp(&b.durability.map(f64::to_bits))
+                })
         });
 
         // Shared cursor: index of the first not-fully-consumed ask. It only
@@ -339,6 +409,8 @@ pub fn match_orders_with_embargoes(
         bids.retain(|b| b.quantity >= 1e-9);
         asks.retain(|a| a.quantity >= 1e-9);
     }
+
+    sort_trades_canonical(&mut order_book.trades);
 }
 
 /// Submit a bid with liquidity clamping and capital encumbrance.

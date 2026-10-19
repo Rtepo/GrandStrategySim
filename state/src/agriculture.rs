@@ -565,10 +565,20 @@ pub fn calculate_harvest_yield_and_rot(
             // World Generation & Climate Audit (v0.5.3):
             // Calculate the total yield-per-hectare across all commodities
             // to determine each commodity's share of the pre-accumulated yield.
-            let total_yield_per_hectare: f64 = crop_def.yields.values().sum();
+            // `crop_def.yields` is a `HashMap` — accumulate and iterate in
+            // canonical commodity order so both the share denominator and the
+            // per-building deposit drain below are process-deterministic.
+            let mut sorted_yields: Vec<(Commodity, f64)> = crop_def
+                .yields
+                .iter()
+                .map(|(&c, &y)| (c, y))
+                .collect();
+            sorted_yields.sort_by_key(|(c, _)| *c);
+            let total_yield_per_hectare: f64 =
+                sorted_yields.iter().map(|(_, y)| y).sum();
 
             // For each (commodity, tons_per_hectare) in crop_def.yields:
-            for (commodity, tons_per_hectare) in &crop_def.yields {
+            for (commodity, tons_per_hectare) in &sorted_yields {
                 // Standard per-turn yield calculation (climate-modulated).
                 let base_commodity_yield =
                     batch.active_hectares * tons_per_hectare * modifiers.agriculture_multiplier;

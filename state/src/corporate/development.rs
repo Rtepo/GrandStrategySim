@@ -185,6 +185,8 @@ impl PropertyDeveloper {
             cost_spent: 0.0,
             investor_cash_debited: 0.0,
             tranches_paid: 0.0,
+            staging_cost_basis: BTreeMap::new(),
+            staging_qty: BTreeMap::new(),
             investor_capital_committed: 0.0,
             duration_turns: duration,
             turns_elapsed: 0,
@@ -598,6 +600,7 @@ pub fn publish_developer_tenders(
     micro_region_id: &str,
     current_turn: u32,
     start_year: u32,
+    market_history: &crate::economy::market::market_history::MarketHistory,
 ) {
     use crate::construction::tender_market::publish_tender;
     use crate::construction::tenders::TenderInvestorType;
@@ -651,19 +654,69 @@ pub fn publish_developer_tenders(
             // investor's ongoing cash at release). The investor must still
             // show capacity for the secured tranches plus the first
             // unsecured milestone: ~50% coverage is the surety check.
+            //
+            // The check must run against the BOM-floored estimate
+            // `publish_tender` actually uses — the raw `estimate_project_cost`
+            // anchor passed this gate while the real escrow needed ~6× more
+            // (observed: tenders cancelled at award with `escrowed=0`).
             let escrowable = company
                 .brokerage_account
                 .as_ref()
                 .map(|b| b.cash)
                 .unwrap_or(company.available_cash);
-            if escrowable < estimated_cost * 0.5 {
+            let floored_100 = crate::construction::tender_market::floored_estimated_cost(
+                company.sector,
+                start_year,
+                100,
+                estimated_cost,
+                market_history,
+            );
+            if escrowable < floored_100 * 0.5 {
+                // Scale the project down to the fundable envelope — the same
+                // surety sizing the corporate expansion path applies — so a
+                // small developer builds a small project instead of
+                // publishing a tender it cannot escrow.
+                let scale = (escrowable / 0.5 / floored_100).clamp(0.0, 1.0);
+                let scaled_capacity = (100.0 * scale).floor() as u32;
+                if scaled_capacity == 0 {
+                    continue;
+                }
+                let scaled_cost = crate::construction::tender_market::floored_estimated_cost(
+                    company.sector,
+                    start_year,
+                    scaled_capacity,
+                    estimated_cost * scale,
+                    market_history,
+                );
+                if escrowable < scaled_cost * 0.5 {
+                    continue;
+                }
+                let target_building_type = target_building_type_opt
+                    .unwrap_or_else(|| format!("{:?}", project_type));
+                let tender = publish_tender(
+                    company.id.clone(),
+                    TenderInvestorType::Corporation,
+                    project_type,
+                    micro_region_id.to_string(),
+                    target_building_type,
+                    scaled_capacity,
+                    scaled_cost,
+                    scaled_cost,
+                    5,
+                    current_turn,
+                    company.sector,
+                    start_year,
+                    market_history,
+                );
+                tenders.push(tender);
                 continue;
             }
 
             let target_building_type =
                 target_building_type_opt.unwrap_or_else(|| format!("{:?}", project_type));
 
-            // Publish the tender
+            // Publish the tender — pass the floored estimate so the gate and
+            // the escrow never diverge again.
             let tender = publish_tender(
                 company.id.clone(),
                 TenderInvestorType::Corporation,
@@ -671,12 +724,13 @@ pub fn publish_developer_tenders(
                 micro_region_id.to_string(),
                 target_building_type,
                 100, // target capacity increase
-                estimated_cost,
-                estimated_cost, // target capital increase
-                5,              // 5-turn bidding window
+                floored_100,
+                floored_100, // target capital increase
+                5,         // 5-turn bidding window
                 current_turn,
                 company.sector,
                 start_year,
+                market_history,
             );
             tenders.push(tender);
         }
@@ -710,6 +764,7 @@ pub fn publish_state_tenders(
     current_turn: u32,
     start_year: u32,
     construction_company_count: usize,
+    market_history: &crate::economy::market::market_history::MarketHistory,
 ) {
     use crate::construction::tender_market::publish_tender;
     use crate::construction::tenders::{TenderInvestorType, TenderStatus};
@@ -776,8 +831,12 @@ pub fn publish_state_tenders(
         // so every project starved at mobilization. Tranches are now
         // progress-financed from the budget flow, so the ministry scopes
         // the project to what ~3 periods of its allocation can service:
-        // the BOM at anchored prices + ~35% for labor (~10% under the
-        // 10×wage install convention) and margin/overhead.
+        // the BOM at live reference prices + ~35% for labor (~10% under the
+        // 10×wage install convention) and margin/overhead. v4.19: priced on
+        // the same live chain `floored_estimated_cost` and
+        // `construction_bid_decision` use — an anchored-only basis sized
+        // projects ~100× under their real material cost, so the mobilization
+        // escrow could never fund the first draw.
         let bom_at_ref =
             crate::construction::bom::get_construction_bom(
                 crate::registries::enums::Sector::PublicServices,
@@ -787,7 +846,13 @@ pub fn publish_state_tenders(
         let mat_at_ref: f64 = bom_at_ref
             .iter()
             .map(|(commodity, qty)| {
-                *qty * crate::engine::generator::corporate::anchored_base_price(*commodity)
+                *qty * crate::economy::market::market_history::get_reference_price(
+                    commodity,
+                    market_history,
+                )
+                .unwrap_or_else(|| {
+                    crate::engine::generator::corporate::anchored_base_price(*commodity)
+                })
             })
             .sum();
         if mat_at_ref <= 0.0 {
@@ -823,6 +888,7 @@ pub fn publish_state_tenders(
             current_turn,
             crate::registries::enums::Sector::PublicServices,
             start_year,
+            market_history,
         );
         tenders.push(tender);
     }
@@ -856,6 +922,7 @@ pub fn publish_gas_station_tenders(
     is_logistics_hub: bool,
     current_turn: u32,
     start_year: u32,
+    market_history: &crate::economy::market::market_history::MarketHistory,
 ) {
     use crate::construction::tender_market::publish_tender;
     use crate::construction::tenders::TenderInvestorType;
@@ -894,10 +961,36 @@ pub fn publish_gas_station_tenders(
         // `debit_cash` that the escrow-refund path can never find (dead
         // encumbrance, same defect the housing path documented). The gate
         // holds the same ~50% surety coverage as the developer path above:
-        // mobilization escrow plus the first unsecured milestone.
-        if company.available_cash < estimated_cost * 0.5 {
-            continue;
-        }
+        // mobilization escrow plus the first unsecured milestone — and it
+        // must check the BOM-floored estimate `publish_tender` actually
+        // applies, not the 150k anchor.
+        let floored_100 = crate::construction::tender_market::floored_estimated_cost(
+            crate::registries::enums::Sector::TransportLogistics,
+            start_year,
+            100,
+            estimated_cost,
+            market_history,
+        );
+        let (capacity, funded_cost) = if company.available_cash < floored_100 * 0.5 {
+            let scale = (company.available_cash / 0.5 / floored_100).clamp(0.0, 1.0);
+            let scaled_capacity = (100.0 * scale).floor() as u32;
+            if scaled_capacity == 0 {
+                continue;
+            }
+            let scaled_cost = crate::construction::tender_market::floored_estimated_cost(
+                crate::registries::enums::Sector::TransportLogistics,
+                start_year,
+                scaled_capacity,
+                estimated_cost * scale,
+                market_history,
+            );
+            if company.available_cash < scaled_cost * 0.5 {
+                continue;
+            }
+            (scaled_capacity, scaled_cost)
+        } else {
+            (100, floored_100)
+        };
 
         let tender = publish_tender(
             company.id.clone(),
@@ -905,13 +998,14 @@ pub fn publish_gas_station_tenders(
             ConstructionProjectType::Commercial,
             region_id.to_string(),
             "GasStation".to_string(),
-            100,    // target_capacity_increase
-            5000.0, // target_capital_increase
-            estimated_cost,
+            capacity,
+            5000.0 * (capacity as f64 / 100.0), // target_capital_increase scales with size
+            funded_cost,
             8, // deadline_turns
             current_turn,
             crate::registries::enums::Sector::TransportLogistics,
             start_year,
+            market_history,
         );
         tenders.push(tender);
 

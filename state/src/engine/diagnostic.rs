@@ -606,7 +606,9 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
                 // orders. It is still M0 base money — just earmarked for
                 // a pending bid. Excluding it creates false M0 destruction
                 // between order submission and settlement.
-                debit_cash_total += company.debit_cash;
+                // v4.18 FS-7: construction_escrow is the segregated tender-
+                // escrow pocket — same M0 treatment as debit_cash.
+                debit_cash_total += company.debit_cash + company.construction_escrow;
             }
         }
 
@@ -636,6 +638,14 @@ pub fn walk_global_fiat(market: &GlobalMarket, tasks: &[CountryTask<'_>]) -> Fia
             }
         }
     }
+
+    // v4.18 WS1 follow-up: foreign-sector income credited to the purse is
+    // exogenous fiat creation outside the modeled economies — the same
+    // accounting status as CB liquidity injection. Counted once at market
+    // scope (outside the per-country loop) so the tracked accumulator keeps
+    // `ΔM0 == Δinjection` exact while the purse's own debit/credit legs stay
+    // conserved internal transfers.
+    cumulative_cb_injection += market.foreign_income_injected;
 
     // DIAG: per-bank balance-sheet drift snapshot at each walk point.
     // Interleaves with M0_TRACE markers so a drift can be attributed to the

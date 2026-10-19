@@ -111,13 +111,20 @@ pub fn execute_corporate_method_research(
     let price_per_point = average_wage * 0.5; // Fair market price: ~half a wage per point.
     let mut total_foreign_fees: f64 = 0.0;
 
+    // v4.18: canonical tech order — `tech_tree` is a HashMap, and each
+    // iteration performs `settle_transfer` bank syncs whose float debits
+    // accumulate on the same bank in iteration order. Sorting keeps the
+    // per-bank accumulation order identical across processes.
+    let mut tech_entries: Vec<(&TechId, &TechNode)> = tech_tree.iter().collect();
+    tech_entries.sort_by(|a, b| a.0.cmp(b.0));
+
     for payer_idx in 0..companies.len() {
         if companies[payer_idx].rd_budget <= 0.0 {
             continue;
         }
 
         // Find eligible Commercial techs for this company's sector.
-        for (tech_id, tech_node) in tech_tree.iter() {
+        for &(tech_id, tech_node) in &tech_entries {
             if tech_node.tech_type != TechType::Commercial {
                 continue;
             }

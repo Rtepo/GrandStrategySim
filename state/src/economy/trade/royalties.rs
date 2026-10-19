@@ -382,11 +382,14 @@ pub fn process_blueprint_royalty_payments(
                 .get(&output_commodity)
                 .copied()
                 .unwrap_or_else(|| {
-                    market_history
-                        .vwap_per_commodity
-                        .values()
-                        .next()
-                        .copied()
+                    // DETERMINISM: `vwap_per_commodity` is a HashMap — pick the
+                    // lowest-Commodity-keyed value instead of `.values().next()`
+                    // (arbitrary order differs per process).
+                    let mut ks: Vec<Commodity> =
+                        market_history.vwap_per_commodity.keys().copied().collect();
+                    ks.sort();
+                    ks.first()
+                        .and_then(|k| market_history.vwap_per_commodity.get(k).copied())
                         .unwrap_or(100.0)
                 });
 

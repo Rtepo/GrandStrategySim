@@ -188,6 +188,24 @@ pub struct ConstructionProject {
     #[serde(default)]
     pub tranches_paid: f64,
 
+    /// v4.18 WS2: paid cost basis (dollars) of materials staged for this
+    /// project — B2B deliveries credit `share × execution_price`, material
+    /// deploys from contractor stock credit `qty × anchored_base_price`.
+    /// `cost_spent` must track acquisition cost: valuing installed work at
+    /// the spot reference chain booked ~46× the cash the contractor ever
+    /// paid (thin-market ratcheted ConstructionServices prices) — the
+    /// phantom-COGS / phantom-investment pattern MACRO-3 gates on.
+    /// `staging_qty` shadows the project's share of the site pile so the
+    /// basis average stays exact on expansion sites whose inventory mixes
+    /// operating stock. Units consumed draw their basis out of this pool
+    /// into `cost_spent` FIFO-agnostic (pool average).
+    #[serde(default)]
+    pub staging_cost_basis: std::collections::BTreeMap<Commodity, f64>,
+    /// Project-attributed staged quantity shadowing the site pile (see
+    /// `staging_cost_basis`) — denominator of the paid-basis average.
+    #[serde(default)]
+    pub staging_qty: std::collections::BTreeMap<Commodity, f64>,
+
     /// v4.17: For expansion-tender projects, the investor's `liquid_capital`
     /// committed at publish time (`apply_action` debited the full planned
     /// investment; the uncommitted share was already returned). Under
@@ -450,9 +468,31 @@ impl ConstructionProject {
             }
             // Add to delivered materials
             *self.delivered_materials.entry(commodity).or_insert(0.0) += to_consume;
-            // Track cost spent
-            let unit_cost = unit_costs.get(&commodity).copied().unwrap_or(0.0);
-            self.cost_spent += to_consume * unit_cost;
+            // Track cost spent at ACQUISITION basis — the staged pool's
+            // average paid price (`staging_cost_basis / staging_qty`), with
+            // the `unit_costs` reference only for the unbased remainder
+            // (legacy saves, genesis-seeded stock). Spot-reference pricing
+            // here booked ~46× the contractor's real outlay (MACRO-3).
+            let staged_q = self.staging_qty.get(&commodity).copied().unwrap_or(0.0);
+            let basis = self
+                .staging_cost_basis
+                .get(&commodity)
+                .copied()
+                .unwrap_or(0.0);
+            let (based_q, based_cost) = if staged_q > 0.0 && basis > 0.0 {
+                let q = to_consume.min(staged_q);
+                (q, q * (basis / staged_q))
+            } else {
+                (0.0, 0.0)
+            };
+            self.cost_spent +=
+                based_cost + (to_consume - based_q) * unit_costs.get(&commodity).copied().unwrap_or(0.0);
+            if based_q > 0.0 {
+                *self.staging_cost_basis.entry(commodity).or_insert(0.0) =
+                    (basis - based_cost).max(0.0);
+                *self.staging_qty.entry(commodity).or_insert(0.0) =
+                    (staged_q - based_q).max(0.0);
+            }
             any_consumed = true;
         }
 

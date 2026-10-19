@@ -192,7 +192,11 @@ pub fn settle_transfer_mapped<S: std::hash::BuildHasher>(
     // Must happen BEFORE any debits to ensure atomicity (no state mutated on rejection).
     // If the Central Bank cannot cover the FX conversion, convertibility is suspended.
     if matches!(recipient, TransferRecipient::ForeignEntity) {
-        let total_fx: f64 = country.central_bank.fx_reserves.values().sum();
+        let total_fx: f64 = {
+            let mut v: Vec<f64> = country.central_bank.fx_reserves.values().copied().collect();
+            v.sort_by(|a, b| a.total_cmp(b));
+            v.into_iter().sum()
+        };
         if total_fx < amount {
             return Err(TransferError::InsufficientFxReserves);
         }
@@ -337,7 +341,12 @@ pub fn settle_transfer_mapped<S: std::hash::BuildHasher>(
             // Central Bank loses FX reserves equal to the converted value.
             // Debit proportionally from all FX reserve holdings (basket drawdown).
             // The pre-check above guarantees total_fx >= amount.
-            let total_fx: f64 = country.central_bank.fx_reserves.values().sum();
+            let total_fx: f64 = {
+                let mut v: Vec<f64> =
+                    country.central_bank.fx_reserves.values().copied().collect();
+                v.sort_by(|a, b| a.total_cmp(b));
+                v.into_iter().sum()
+            };
             if total_fx > 0.0 {
                 let ratio = amount / total_fx;
                 for balance in country.central_bank.fx_reserves.values_mut() {
@@ -702,10 +711,12 @@ pub fn settle_treasury_to_company(
 /// `Ok(())` on success, `Err(reason)` on failure.
 ///
 /// # Rules
-/// * Reduces investor's `debit_cash` (releases encumbrance).
+/// * Reduces investor's `construction_escrow` (releases encumbrance).
 /// * Credits contractor's cash (brokerage_account or available_cash).
-/// * Syncs contractor's bank balance sheet.
-/// * Does NOT debit investor's available_cash (already debited at escrow).
+/// * Syncs both banks: the deposit liability backing the escrow leaves the
+///   investor's bank (deposits + reserves down — ELA covers) and lands at
+///   the contractor's bank (deposits + reserves up).
+/// * Does NOT debit investor's spendable cash (already debited at escrow).
 pub fn release_escrow_company_to_contractor(
     companies: &mut [Company],
     investor_idx: usize,
@@ -720,40 +731,70 @@ pub fn release_escrow_company_to_contractor(
         return Err("Invalid company index".to_string());
     }
 
-    // Phase 94: Clamp the release amount to the actual debit_cash balance.
-    // If debit_cash < amount (e.g., multiple tranches released in one turn
-    // exceeding the escrow), crediting the contractor with the full amount
-    // while only decreasing debit_cash by the actual balance would create M0.
-    // Use the actual encumbered amount for all downstream operations.
-    let actual_amount = amount.min(companies[investor_idx].debit_cash);
+    // v4.18 FS-7: the escrow lives in the dedicated `construction_escrow`
+    // pocket — `debit_cash` also carries B2B bid encumbrances, the wage
+    // trust, and logistics encumbrances, so clamping the release to the
+    // shared pool let unrelated settlements consume funded tranches.
+    // Clamp to the actual escrowed balance: crediting more than the
+    // pocket holds would create M0.
+    let actual_amount = amount.min(companies[investor_idx].construction_escrow);
     if actual_amount <= 0.0 {
         return Err("No encumbered cash to release".to_string());
     }
 
     // Release the encumbrance on the investor's side
-    companies[investor_idx].debit_cash -= actual_amount;
+    companies[investor_idx].construction_escrow -= actual_amount;
 
-    // Credit the contractor's cash
-    if let Some(ref mut ba) = companies[contractor_idx].brokerage_account {
-        ba.cash += actual_amount;
-    } else {
-        companies[contractor_idx].available_cash += actual_amount;
+    // Credit the contractor's cash, then apply the same inbound-money
+    // rules as `credit_company_by_id`: wage-arrears garnish first, then
+    // procurement-credit retirement from the surplus above one pay
+    // period. Without the retirement leg, supplier credit booked by
+    // material bids never drains through the escrow channel (the
+    // dominant tranche path) and permanently suppresses the contractor's
+    // payroll capacity in `update_construction_labor_demand`.
+    {
+        let contractor = &mut companies[contractor_idx];
+        if let Some(ref mut ba) = contractor.brokerage_account {
+            ba.cash += actual_amount;
+        } else {
+            contractor.available_cash += actual_amount;
+        }
+        apply_inbound_money_rules(contractor, actual_amount);
     }
 
-    // Phase 94: The encumbered deposit is moving from the investor's bank to
-    // the contractor's bank. The investor's bank reserves were already
-    // debited at escrow creation time (via debit_company_by_id). Releasing
-    // the escrow should ONLY:
-    //   1. Decrease debit_cash (M0 ↓) — releasing the encumbrance
-    //   2. Credit the contractor's bank reserves (M0 ↑) — funding the deposit
-    // Debiting the investor's bank again would double-debit and destroy M0.
+    // Bank legs — the deposit liability backing the escrowed cash moves
+    // from the investor's bank to the contractor's bank, mirroring the
+    // banked-buyer leg in `settle_trades`: the investor's bank was NOT
+    // debited at encumber (the escrow stayed on its book as a deposit
+    // earmark), so its deposits and reserves fall HERE as the liability
+    // transfers. Crediting only the contractor's side created reserves
+    // with no counterparty (M0 leak). ELA covers so reserves never go
+    // negative.
+    let investor_bank_id = companies[investor_idx].primary_bank_id.clone();
+    if let Some(ref bank_id) = investor_bank_id {
+        if let Some(bank) = companies.iter_mut().find(|c| &c.id == bank_id) {
+            if let Some(ref mut bs) = bank.balance_sheet {
+                crate::state::banking::ela_cover_debit(
+                    bs,
+                    &mut country.central_bank,
+                    actual_amount,
+                );
+            }
+        }
+        adjust_bank_balance_unmapped(
+            companies,
+            bank_id,
+            -actual_amount,
+            -actual_amount,
+        );
+    }
+
     let contractor_bank_id = companies[contractor_idx].primary_bank_id.clone();
 
     if let Some(ref bank_id) = contractor_bank_id {
         adjust_bank_balance_unmapped(companies, bank_id, actual_amount, actual_amount);
     }
 
-    let _ = country;
     Ok(())
 }
 
@@ -783,11 +824,17 @@ pub fn release_escrow_treasury_to_contractor(
         return Err("Invalid contractor index".to_string());
     }
 
-    // Credit the contractor's cash (Treasury was already debited at escrow)
-    if let Some(ref mut ba) = companies[contractor_idx].brokerage_account {
-        ba.cash += amount;
-    } else {
-        companies[contractor_idx].available_cash += amount;
+    // Credit the contractor's cash (Treasury was already debited at
+    // escrow), then the shared inbound-money rules — see
+    // `release_escrow_company_to_contractor`.
+    {
+        let contractor = &mut companies[contractor_idx];
+        if let Some(ref mut ba) = contractor.brokerage_account {
+            ba.cash += amount;
+        } else {
+            contractor.available_cash += amount;
+        }
+        apply_inbound_money_rules(contractor, amount);
     }
 
     // Sync contractor's bank: deposits and reserves increase
@@ -897,6 +944,61 @@ pub fn credit_citizen_savings_region(region: &mut Region, amount: f64) -> f64 {
     amount
 }
 
+/// ARREARS-1 + trade-credit retirement — the inbound-money rules every
+/// corporate cash receipt must run after the pocket credit:
+///
+/// 1. Payroll-trust garnish — while the company owes wages, inbound money
+///    first fills the wage trust (`debit_cash` doubles as the trust ledger:
+///    it is M0-counted for unbanked firms and deposit-backed for banked
+///    ones). The labor market sweeps the trust to workers before
+///    procurement, debt service, or any other drain can claim the inflow.
+///    Moving pocket→debit_cash is a pure ledger earmark — no M0 event.
+/// 2. Trade-credit retirement — after workers, inbound money retires
+///    outstanding procurement_credit: pocket −x, liability −x keeps the M0
+///    walk conserved (the credit contra-bucket unwinds against the
+///    destroyed cash). v4.17 FS-7: wages are senior to supplier debt —
+///    retirement draws only the surplus above one pay period's wage bill,
+///    the same seniority the bid-side payroll reserve holds.
+///
+/// `credit_company_by_id` and both construction escrow-release paths share
+/// this helper so every tranche/settlement income services the same
+/// seniority waterfall. `inbound` is the just-received amount: the wage
+/// garnish is capped by it (the trust draws only new money), while credit
+/// retirement reads the whole pocket surplus above the payroll reserve.
+fn apply_inbound_money_rules(company: &mut crate::entities::Company, inbound: f64) {
+    if company.wage_arrears > 0.0 {
+        let garnish = company.wage_arrears.min(inbound);
+        if garnish > 0.0 {
+            if let Some(ba) = &mut company.brokerage_account {
+                ba.cash -= garnish;
+            } else {
+                company.available_cash -= garnish;
+            }
+            company.debit_cash += garnish;
+        }
+    }
+    if company.procurement_credit > 0.0 {
+        let pocket = company
+            .brokerage_account
+            .as_ref()
+            .map(|ba| ba.cash.max(0.0))
+            .unwrap_or(company.available_cash.max(0.0));
+        let payroll_reserve =
+            company.fulfilled_fte as f64 * company.offered_wage_per_fte.max(1.0);
+        let retire = company
+            .procurement_credit
+            .min((pocket - payroll_reserve).max(0.0));
+        if retire > 0.0 {
+            if let Some(ba) = &mut company.brokerage_account {
+                ba.cash -= retire;
+            } else {
+                company.available_cash -= retire;
+            }
+            company.procurement_credit -= retire;
+        }
+    }
+}
+
 /// Credit a company by ID: credits brokerage_account.cash (or available_cash) and syncs bank.
 ///
 /// Returns `true` if the company was found and credited, `false` otherwise.
@@ -932,53 +1034,7 @@ pub fn credit_company_by_id(companies: &mut [Company], company_id: &str, amount:
         } else {
             company.available_cash += amount;
         }
-        // ARREARS-1: payroll-trust garnish — while the company owes wages,
-        // inbound money first fills the wage trust (`debit_cash` doubles as
-        // the trust ledger: it is M0-counted for unbanked firms and
-        // deposit-backed for banked ones). The labor market sweeps the
-        // trust to workers before procurement, debt service, or any other
-        // drain can claim the inflow. Moving pocket→debit_cash is a pure
-        // ledger earmark — no M0 event.
-        if company.wage_arrears > 0.0 {
-            let garnish = company.wage_arrears.min(amount);
-            if let Some(ba) = &mut company.brokerage_account {
-                ba.cash -= garnish;
-            } else {
-                company.available_cash -= garnish;
-            }
-            company.debit_cash += garnish;
-        }
-        // Trade-credit retirement: after workers, inbound money retires
-        // outstanding procurement_credit — pocket −x, liability −x keeps
-        // the M0 walk conserved (the credit contra-bucket unwinds against
-        // the destroyed cash).
-        // v4.17 FS-7: wages are senior to supplier debt. Retiring the
-        // WHOLE balance on each inbound payment let a contractor's
-        // tranche income vanish into supplier credit before this turn's
-        // payroll could clear — the observed ~25% wage coverage behind
-        // the hire→arrears→furlough churn. Retirement now draws only the
-        // surplus above one pay period's wage bill — the same seniority
-        // the bid-side payroll reserve holds.
-        if company.procurement_credit > 0.0 {
-            let pocket = company
-                .brokerage_account
-                .as_ref()
-                .map(|ba| ba.cash.max(0.0))
-                .unwrap_or(company.available_cash.max(0.0));
-            let payroll_reserve = company.fulfilled_fte as f64
-                * company.offered_wage_per_fte.max(1.0);
-            let retire = company
-                .procurement_credit
-                .min((pocket - payroll_reserve).max(0.0));
-            if retire > 0.0 {
-                if let Some(ba) = &mut company.brokerage_account {
-                    ba.cash -= retire;
-                } else {
-                    company.available_cash -= retire;
-                }
-                company.procurement_credit -= retire;
-            }
-        }
+        apply_inbound_money_rules(company, amount);
     } else {
         return false;
     }

@@ -176,21 +176,27 @@ pub fn calculate_unit_cost(
         building.current_employment as f64 * building.scale_factor.max(1) as f64;
     let production_scale = entity_employment / 1000.0;
 
+    let mut sorted_inputs: Vec<(Commodity, f64)> =
+        method.inputs.iter().map(|(&c, &q)| (c, q)).collect();
+    sorted_inputs.sort_by_key(|(c, _)| *c);
     let mut input_cost = 0.0;
-    for (&commodity, &qty_per_1k) in &method.inputs {
+    for (commodity, qty_per_1k) in &sorted_inputs {
         // Worker sustenance is covered by wages (workers buy food B2C) —
         // Food in a BOM is not a production cost borne by the firm.
-        if commodity == Commodity::Food {
+        if *commodity == Commodity::Food {
             continue;
         }
-        let price = reference_prices.get(&commodity).copied().unwrap_or(0.0);
+        let price = reference_prices.get(commodity).copied().unwrap_or(0.0);
         input_cost += qty_per_1k * price * production_scale;
     }
 
     let wage_cost = entity_employment * base_wage;
 
     let mut output_volume = 0.0;
-    for (&_commodity, &qty_per_1k) in &method.outputs {
+    let mut sorted_outputs: Vec<f64> =
+        method.outputs.values().copied().collect();
+    sorted_outputs.sort_by(|a, b| a.total_cmp(b));
+    for qty_per_1k in &sorted_outputs {
         output_volume += qty_per_1k * production_scale;
     }
 
@@ -213,7 +219,10 @@ fn encumber_cash(company: &mut Company, amount: f64) {
     // −5.10B void). The encumbrance portion that exceeds spendable cash is
     // booked as explicit `procurement_credit`: solvency-bounded trade
     // credit that shrinks `company_capital`, is contra-counted in the M0
-    // walk for unbanked firms, and is retired by revenue garnish.
+    // walk for unbanked firms, and is retired by revenue garnish. The
+    // credit-backed share of the open encumbrance is also tracked in
+    // `open_bid_credit` so an unfilled bid can discharge the obligation
+    // it provisionally booked instead of ratcheting debt forever.
     let pocket = if let Some(ba) = &mut company.brokerage_account {
         &mut ba.cash
     } else {
@@ -224,8 +233,34 @@ fn encumber_cash(company: &mut Company, amount: f64) {
     let credit = amount - paid;
     if credit > 0.0 {
         company.procurement_credit += credit;
+        company.open_bid_credit += credit;
     }
     company.debit_cash += amount;
+}
+
+/// Release the `(limit − exec) × qty` slack on a filled bid portion.
+///
+/// The bid's encumbrance locked `qty × limit`; settlement consumed only
+/// `qty × exec` (plus freight drawn separately). The residual slack was never
+/// owed to any counterparty — without an explicit release it stays locked in
+/// `debit_cash` forever, and its credit-backed share keeps ratcheting
+/// `procurement_credit` against obligations that never existed (the
+/// ministries' `bid_limit_price − execution_price` refund is the same
+/// reconciliation, `ministries.rs::run_b2b_procurement`). The cash-backed
+/// share returns to the pocket it was drawn from (brokerage first, matching
+/// `encumber_cash`); the credit-backed share discharges as a phantom
+/// obligation via `release_bid_encumbrance`.
+fn release_fill_slack(buyer: &mut Company, quantity: f64, limit: f64, exec: f64) {
+    let slack = quantity * (limit - exec).max(0.0);
+    if slack <= 0.0 {
+        return;
+    }
+    let cash_back = buyer.release_bid_encumbrance(slack);
+    if let Some(ba) = &mut buyer.brokerage_account {
+        ba.cash += cash_back;
+    } else {
+        buyer.available_cash += cash_back;
+    }
 }
 
 /// Submit B2B Buy Bids and Sell Asks for all companies based on their buildings' BOMs.
@@ -479,6 +514,12 @@ pub fn submit_company_b2b_orders(
             Vec::new();
         for building in &company_buildings {
             let method = &building.active_method;
+            let mut sorted_inputs: Vec<(Commodity, f64)> = method
+                .inputs
+                .iter()
+                .map(|(&c, &q)| (c, q))
+                .collect();
+            sorted_inputs.sort_by_key(|(c, _)| *c);
             // W9: procure against physical capacity, not current employment.
             // A furloughed building (employment→0) would otherwise bid zero —
             // its buffer then sells/drains unprotected and it can never
@@ -492,7 +533,7 @@ pub fn submit_company_b2b_orders(
                 * building.scale_factor.max(1) as f64
                 / 1000.0;
 
-            for (&commodity, &qty_per_1k) in &method.inputs {
+            for &(commodity, qty_per_1k) in &sorted_inputs {
                 // Phase 19B: Fixed-asset commodities (machinery/vehicles) are no
                 // longer consumed per-turn — they're installed as FixedAssetCohorts.
                 // Skip them here; they're procured via separate asset-purchase bids.
@@ -542,14 +583,28 @@ pub fn submit_company_b2b_orders(
                 // price by 20% above the last unfilled price. The ONLY ceiling
                 // is the buyer's max_affordable_budget (cash encumbrance limit).
                 // NO profitability ceiling is applied.
+                // v4.18: the ratchet is bounded by the seller-side ask ceiling.
+                // `limit_price` sizes the cash encumbrance, so an unbounded
+                // ratchet let a single chronically-unfilled input compound to
+                // ~10^8 × reference, exploding `total_desired_encumbrance` and
+                // driving the shared `coverage` ratio to ~0 — every bid the
+                // company posted scaled to zero quantity and procurement
+                // collapsed economy-wide. The cap mirrors `max_markup_ratio`:
+                // sellers never ask above (1+markup) × cost, so a bid at the
+                // same multiple of the market reference can cross any ask the
+                // book can legitimately carry; unfilled asks decay toward the
+                // cap on the seller side.
                 let base_price = ref_price.unwrap();
                 let last_unfilled = company
                     .unfilled_bid_prices
                     .get(&commodity)
                     .copied()
                     .unwrap_or(0.0);
+                let limit_cap = base_price * (1.0 + config.max_markup_ratio);
                 let limit_price = if last_unfilled > 0.0 {
-                    (last_unfilled * 1.20).max(base_price * (1.0 + config.buy_premium_ratio))
+                    (last_unfilled * 1.20)
+                        .min(limit_cap)
+                        .max(base_price * (1.0 + config.buy_premium_ratio))
                 } else {
                     base_price * (1.0 + config.buy_premium_ratio)
                 };
@@ -646,7 +701,10 @@ pub fn submit_company_b2b_orders(
             if needed.is_empty() {
                 continue;
             }
-            for (&commodity, &desired_qty) in &needed {
+            let mut sorted_needed: Vec<(Commodity, f64)> =
+                needed.iter().map(|(&c, &q)| (c, q)).collect();
+            sorted_needed.sort_by_key(|(c, _)| *c);
+            for &(commodity, desired_qty) in &sorted_needed {
                 if desired_qty <= 0.0 {
                     continue;
                 }
@@ -1131,8 +1189,13 @@ pub fn settle_trades(
                             trade.execution_price, trade_value, companies[bi].debit_cash
                         );
                     }
-                    companies[bi].debit_cash =
-                        (companies[bi].debit_cash - trade_value).max(0.0);
+                    companies[bi].consume_bid_encumbrance(trade_value);
+                    release_fill_slack(
+                        &mut companies[bi],
+                        trade.quantity,
+                        trade.bid_limit_price,
+                        trade.execution_price,
+                    );
                     let buyer_bank_id = companies[bi].primary_bank_id.clone();
                     if let Some(ref bank_id) = buyer_bank_id {
                         if let Some(&bidx) = company_id_to_idx.get(bank_id) {
@@ -1172,8 +1235,13 @@ pub fn settle_trades(
                             trade.execution_price, trade_value, companies[bi].debit_cash
                         );
                     }
-                    companies[bi].debit_cash =
-                        (companies[bi].debit_cash - trade_value).max(0.0);
+                    companies[bi].consume_bid_encumbrance(trade_value);
+                    release_fill_slack(
+                        &mut companies[bi],
+                        trade.quantity,
+                        trade.bid_limit_price,
+                        trade.execution_price,
+                    );
                     if let Some(ref mut bs) = companies[bi].balance_sheet {
                         crate::state::banking::ela_cover_debit(
                             bs,
@@ -1207,8 +1275,13 @@ pub fn settle_trades(
                             trade.execution_price, trade_value, companies[bi].debit_cash
                         );
                     }
-                    companies[bi].debit_cash =
-                        (companies[bi].debit_cash - trade_value).max(0.0);
+                    companies[bi].consume_bid_encumbrance(trade_value);
+                    release_fill_slack(
+                        &mut companies[bi],
+                        trade.quantity,
+                        trade.bid_limit_price,
+                        trade.execution_price,
+                    );
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
                     companies[si].turn_settled_sales += trade_value;
@@ -1255,8 +1328,13 @@ pub fn settle_trades(
                             trade.execution_price, trade_value, companies[bi].debit_cash
                         );
                     }
-                    companies[bi].debit_cash =
-                        (companies[bi].debit_cash - trade_value).max(0.0);
+                    companies[bi].consume_bid_encumbrance(trade_value);
+                    release_fill_slack(
+                        &mut companies[bi],
+                        trade.quantity,
+                        trade.bid_limit_price,
+                        trade.execution_price,
+                    );
                     let buyer_bank_id = companies[bi].primary_bank_id.clone();
                     let buyer_is_bank = companies[bi].sector
                         == crate::registries::enums::Sector::Banking;
@@ -1385,8 +1463,13 @@ pub fn settle_trades(
                 }
             }
         } else if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
-            companies[bi].debit_cash =
-                (companies[bi].debit_cash - trade_value).max(0.0);
+            companies[bi].consume_bid_encumbrance(trade_value);
+            release_fill_slack(
+                &mut companies[bi],
+                trade.quantity,
+                trade.bid_limit_price,
+                trade.execution_price,
+            );
         } else {
             // Phase 94: MIN-DEF or other non-company buyer. The buyer's cash
             // was already encumbered (deducted from liquid_reserves). Credit
@@ -1571,6 +1654,12 @@ pub fn settle_trades(
             // next milestone tranche) — with any remainder flowing on to
             // the next-neediest site. Delivered quantity is conserved; only
             // the allocation order changes.
+            #[cfg(feature = "diagnostic")]
+            eprintln!(
+                "CONST_DBG[SITEFILL]: buyer={} com={:?} qty={:.1} exec={:.2} sites={}",
+                trade.buyer_id, trade.commodity, trade.quantity, trade.execution_price,
+                recipients.len()
+            );
             let mut ordered = recipients;
             ordered.sort_by(|a, b| {
                 a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal)
@@ -1587,6 +1676,16 @@ pub fn settle_trades(
                 remaining_fill -= share;
                 let building = &mut buildings[idx];
                 *building.inventory.entry(trade.commodity).or_insert(0.0) += share;
+                // v4.18 WS2: project sites accrue the PAID cost basis
+                // (`execution_price`) so `cost_spent` reflects what the
+                // contractor actually settled — not spot reference prices.
+                if let Some(p) = building.active_project.as_mut() {
+                    if p.required_materials.contains_key(&trade.commodity) {
+                        *p.staging_cost_basis.entry(trade.commodity).or_insert(0.0) +=
+                            share * trade.execution_price;
+                        *p.staging_qty.entry(trade.commodity).or_insert(0.0) += share;
+                    }
+                }
 
                 // Phase 95: If blueprint-eligible, also add to inventory cohorts.
                 if trade.commodity.is_blueprint_eligible() {
@@ -1631,6 +1730,15 @@ pub fn settle_trades(
                 let building = &mut buildings[idx];
                 // Non-fixed-asset: add to flat inventory.
                 *building.inventory.entry(trade.commodity).or_insert(0.0) += share;
+                // v4.18 WS2: same paid-basis accrual for project sites on
+                // the general recipient leg.
+                if let Some(p) = building.active_project.as_mut() {
+                    if p.required_materials.contains_key(&trade.commodity) {
+                        *p.staging_cost_basis.entry(trade.commodity).or_insert(0.0) +=
+                            share * trade.execution_price;
+                        *p.staging_qty.entry(trade.commodity).or_insert(0.0) += share;
+                    }
+                }
 
                 // Phase 95: If blueprint-eligible, also add to inventory cohorts.
                 if trade.commodity.is_blueprint_eligible() {
@@ -1973,7 +2081,7 @@ pub fn settle_trades_with_tariffs(
                     }
                     // Also release the buyer's encumbered debit_cash for the tariff
                     if let Some(buyer) = companies.get_mut(buyer_idx) {
-                        buyer.debit_cash = (buyer.debit_cash - tariff_amount).max(0.0);
+                        buyer.consume_bid_encumbrance(tariff_amount);
                     }
                     // v4.17.0: record the import tariff on the customs ledger
                     // — the money moved above; this is the reporting leg the
@@ -2027,7 +2135,7 @@ pub fn settle_trades_with_tariffs(
                     );
                     // Release the seller's encumbered debit_cash for the tax amount.
                     if let Some(seller) = companies.get_mut(seller_idx) {
-                        seller.debit_cash = (seller.debit_cash - export_tax_amount).max(0.0);
+                        seller.consume_bid_encumbrance(export_tax_amount);
                     }
                     // v4.17.0: record export duty on the same customs ledger.
                     if let Some(ref mut customs) = country.politics.customs_state {
@@ -2047,21 +2155,34 @@ pub fn settle_trades_with_tariffs(
 /// # Arguments
 /// * `order_book` - Order book with remaining unfilled bids.
 /// * `companies` - Mutable slice of companies for refund.
+/// * `freight_reserve_ratio` - The `freight_cost_reserve_ratio` that inflated
+///   the posted encumbrance (`qty × limit × (1+ratio)`) for bids submitted via
+///   the general B2B path. Releasing only `qty × limit` stranded the freight
+///   share in `debit_cash`/`open_bid_credit`/`procurement_credit` every turn —
+///   a chronic leak under sustained unfilled bids. Bids posted without the
+///   reserve (construction, agency) release `qty × limit` exactly: the
+///   `release_bid_encumbrance` floor at `debit_cash` bounds the release to
+///   what the company actually holds, so over-asking is company-local and
+///   self-corrects within the same pocket.
 ///
 /// # Rules
 /// * Refunds encumbered cash: `debit_cash -= refund`, `available_cash += refund`.
 /// * Also restores to brokerage account so it's spendable next turn.
+/// * The credit-backed share of the encumbrance discharges instead of
+///   refunding (no goods delivered → no payable survives) — see
+///   `Company::release_bid_encumbrance`.
 pub fn refund_unfilled_bids(
     order_book: &OrderBook,
     companies: &mut [Company],
     company_id_to_idx: &rustc_hash::FxHashMap<String, usize>,
+    freight_reserve_ratio: f64,
 ) {
     for bids in order_book.bids.values() {
         for bid in bids {
             // Phase 94: O(1) lookup via pre-built index map.
             if let Some(&idx) = company_id_to_idx.get(&bid.buyer_id) {
                 let company = &mut companies[idx];
-                let refund = bid.quantity * bid.limit_price;
+                let refund = bid.quantity * bid.limit_price * (1.0 + freight_reserve_ratio);
                 #[cfg(feature = "diagnostic")]
                 if bid.buyer_id.starts_with("STRATEGIC_RESERVE") {
                     eprintln!(
@@ -2082,13 +2203,23 @@ pub fn refund_unfilled_bids(
                 // the outstanding escrow must not push debit_cash negative or
                 // credit cash that was never locked (double-release voids M0
                 // conservation). The diagnostic above still flags the mismatch.
-                let released = refund.min(company.debit_cash.max(0.0));
-                company.debit_cash -= released;
+                //
+                // v4.18 FS-7: the bid's encumbrance is part real cash, part
+                // `procurement_credit` (the solvency-bounded share booked at
+                // submission). Nothing was delivered, so the credit share is a
+                // phantom obligation — discharging it keeps unfilled bids from
+                // ratcheting `procurement_credit` to infinity (observed:
+                // construction contractors carrying 2.5B of never-delivered
+                // "payables", payroll capacity permanently negative, crews
+                // pinned at skeleton). `release_bid_encumbrance` returns only
+                // the cash-backed share — crediting the full release would
+                // mint money equal to the discharged credit.
+                let cash_back = company.release_bid_encumbrance(refund);
                 // Phase 94: Only credit one cash field to avoid M0 duplication.
                 if let Some(ba) = &mut company.brokerage_account {
-                    ba.cash += released;
+                    ba.cash += cash_back;
                 } else {
-                    company.available_cash += released;
+                    company.available_cash += cash_back;
                 }
                 // Phase 45: Track unfilled bid prices for dynamic price feedback.
                 // Store the limit price so next turn's bid can be raised.
@@ -2354,7 +2485,14 @@ pub fn execute_production_cycle(
             if required_mj > 0.0 {
                 let mut provided_mj = 0.0;
                 let mut scarcest: Option<Commodity> = None;
-                for (fuel, slot_per_1k) in method.inputs.iter().filter(|(c, _)| c.is_fuel()) {
+                let mut fuel_slots: Vec<(Commodity, f64)> = method
+                    .inputs
+                    .iter()
+                    .filter(|(c, _)| c.is_fuel())
+                    .map(|(&c, &v)| (c, v))
+                    .collect();
+                fuel_slots.sort_by_key(|(c, _)| *c);
+                for (fuel, slot_per_1k) in fuel_slots.iter() {
                     let slot_cap = *slot_per_1k * production_scale;
                     let on_hand = building
                         .inventory
@@ -2780,14 +2918,22 @@ pub fn execute_production_cycle(
         let value_price = |c: Commodity| {
             crate::engine::generator::corporate::anchored_base_price(c)
         };
-        let input_costs: f64 = inputs_consumed
-            .iter()
-            .map(|(&commodity, &qty)| qty * value_price(commodity) * 0.5)
-            .sum();
-        let output_revenue: f64 = outputs_produced
-            .iter()
-            .map(|(&commodity, &qty)| qty * value_price(commodity))
-            .sum();
+        let input_costs: f64 = {
+            let mut terms: Vec<f64> = inputs_consumed
+                .iter()
+                .map(|(&commodity, &qty)| qty * value_price(commodity) * 0.5)
+                .collect();
+            terms.sort_by(|a, b| a.total_cmp(b));
+            terms.into_iter().sum()
+        };
+        let output_revenue: f64 = {
+            let mut terms: Vec<f64> = outputs_produced
+                .iter()
+                .map(|(&commodity, &qty)| qty * value_price(commodity))
+                .collect();
+            terms.sort_by(|a, b| a.total_cmp(b));
+            terms.into_iter().sum()
+        };
 
         // Macro-Remediation: subtract the wage bill so `last_profit` reflects
         // true insolvency. `process_building_cycle*` (earlier this turn) stored
@@ -3145,7 +3291,13 @@ pub fn submit_fixed_asset_purchase_bids(
                 * building.scale_factor.max(1) as f64
                 / 1000.0;
 
-            for (&commodity, &qty_per_1k) in &method.inputs {
+            let mut sorted_inputs: Vec<(Commodity, f64)> = method
+                .inputs
+                .iter()
+                .map(|(&c, &q)| (c, q))
+                .collect();
+            sorted_inputs.sort_by_key(|(c, _)| *c);
+            for &(commodity, qty_per_1k) in &sorted_inputs {
                 // Only fixed-asset commodities (skipped by the normal bid loop).
                 if !commodity.is_fixed_asset() {
                     continue;
@@ -3232,7 +3384,10 @@ pub fn submit_fixed_asset_purchase_bids(
                 }
             }
 
-            for (&commodity, &qty) in &replacement_needed {
+            let mut sorted_replacements: Vec<(Commodity, f64)> =
+                replacement_needed.iter().map(|(&c, &q)| (c, q)).collect();
+            sorted_replacements.sort_by_key(|(c, _)| *c);
+            for &(commodity, qty) in &sorted_replacements {
                 if qty <= 0.0 {
                     continue;
                 }
@@ -3664,5 +3819,119 @@ mod tests {
             initial_cash
         );
         assert_eq!(companies[0].available_cash, initial_available);
+    }
+
+    // --- v4.18 FS-7: open_bid_credit lifecycle tests ---
+
+    /// Unfilled credit-backed bids must discharge the provisional
+    /// `procurement_credit` they booked — no goods arrived, so no payable
+    /// may survive the refund. Regression: before the split ledger the
+    /// credit ratcheted every unfilled turn (contractors carrying billions
+    /// of never-delivered "payables", payroll capacity pinned at zero).
+    #[test]
+    fn test_unfilled_credit_bid_discharges_procurement_credit() {
+        let mut company = make_test_company("buyer_0", 100.0);
+        // Encumber beyond the pocket: 250 encumbrance = 100 cash + 150 credit.
+        encumber_cash(&mut company, 250.0);
+        assert_eq!(company.debit_cash, 250.0);
+        assert_eq!(company.procurement_credit, 150.0);
+        assert_eq!(company.open_bid_credit, 150.0);
+        assert_eq!(company.operational_cash(), 0.0);
+
+        let mut book = OrderBook::default();
+        book.bids
+            .entry(Commodity::Steel)
+            .or_default()
+            .push(Bid {
+                buyer_id: "buyer_0".to_string(),
+                commodity: Commodity::Steel,
+                quantity: 25.0,
+                limit_price: 10.0,
+                blueprint_id: None,
+                min_quality: None,
+            });
+        let mut companies = vec![company];
+        let idx: rustc_hash::FxHashMap<String, usize> =
+            [("buyer_0".to_string(), 0usize)].into_iter().collect();
+
+        refund_unfilled_bids(&book, &mut companies, &idx, 0.0);
+
+        let c = &companies[0];
+        assert_eq!(c.debit_cash, 0.0);
+        assert_eq!(
+            c.procurement_credit, 0.0,
+            "phantom payable must discharge with the unfilled bid"
+        );
+        assert_eq!(c.open_bid_credit, 0.0);
+        assert_eq!(
+            c.operational_cash(),
+            100.0,
+            "only the cash-backed share returns — crediting the credit share would mint fiat"
+        );
+    }
+
+    /// A filled bid converts the consumed credit share into a real
+    /// supplier payable: goods were delivered, so the obligation survives.
+    #[test]
+    fn test_filled_credit_bid_converts_to_payable() {
+        let mut company = make_test_company("buyer_0", 100.0);
+        encumber_cash(&mut company, 250.0); // 100 cash + 150 credit
+
+        // Fill of 180 consumes the whole 100 cash share + 80 credit share.
+        company.consume_bid_encumbrance(180.0);
+        assert_eq!(company.debit_cash, 70.0);
+        assert_eq!(
+            company.procurement_credit, 150.0,
+            "delivered-goods credit stays a payable"
+        );
+        assert_eq!(
+            company.open_bid_credit, 70.0,
+            "filled credit leaves the open-bid ledger (80 now payable)"
+        );
+
+        // The 70 residual unfills: all of it is open credit → discharges.
+        let cash_back = company.release_bid_encumbrance(70.0);
+        assert_eq!(cash_back, 0.0);
+        assert_eq!(company.debit_cash, 0.0);
+        assert_eq!(company.open_bid_credit, 0.0);
+        assert_eq!(
+            company.procurement_credit, 80.0,
+            "only the delivered-goods payable survives"
+        );
+    }
+
+    /// A filled bid releases the `(limit − exec) × qty` slack back to the
+    /// buyer: the encumbrance locked `qty × limit`, the seller was paid
+    /// `qty × exec`, and the residual was never owed to anyone. Regression:
+    /// fully-filled bids left the slack locked in `debit_cash` forever (with
+    /// its credit share ratcheting `procurement_credit`), ballooning the
+    /// encumbrance pool and suppressing payroll capacity.
+    #[test]
+    fn test_filled_bid_releases_limit_exec_slack() {
+        let mut company = make_test_company("buyer_0", 100.0);
+        // Bid qty=10 limit=20 → 200 encumbrance (100 cash + 100 credit).
+        encumber_cash(&mut company, 200.0);
+        assert_eq!(company.debit_cash, 200.0);
+        assert_eq!(company.open_bid_credit, 100.0);
+
+        // Fill at exec=10: pay the seller 100, then release the slack.
+        company.consume_bid_encumbrance(100.0);
+        release_fill_slack(&mut company, 10.0, 20.0, 10.0);
+
+        // Escrow fully reconciled: 100 paid + 100 slack released.
+        assert_eq!(company.debit_cash, 0.0);
+        // Slack was the remaining cash share after the consume — all of it
+        // is open credit (consume takes cash first) → phantom discharge,
+        // zero cash back to the pocket.
+        assert_eq!(company.open_bid_credit, 0.0);
+        assert_eq!(
+            company.procurement_credit, 0.0,
+            "slack credit discharges — the bid encumbrance funded goods that cost less than the limit"
+        );
+        assert_eq!(
+            company.operational_cash(),
+            0.0,
+            "cash share already consumed by the fill — nothing returns"
+        );
     }
 }

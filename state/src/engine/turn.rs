@@ -533,7 +533,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         });
 
         // ── DIAGNOSTIC CHECKPOINT 0: turn_start ──
-        probe.checkpoint("turn_start", 0, turn, &market, &tasks);
+        probe.checkpoint("turn_start", 0, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[turn_start]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market)); #[cfg(feature = "diagnostic")] eprintln!("FPB[turn_start]: t={}{}", turn, fingerprint_buildings_fields(&tasks));
         #[cfg(feature = "diagnostic")]
         { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("TURN_START_M0: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash); }
 
@@ -563,6 +563,25 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             process_demographics_and_labor(&mut task.ctx);
+        });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "dm");
+        }
+        // v4.18 WS1: snapshot each class's `savings` as the pre-income stock
+        // for the bounded-dissaving consumption cap. Wage/dividend/transfer
+        // credits land in `savings` later this turn; the B2C demand cap reads
+        // `savings - stock` as spendable income and rate-limits the stock.
+        tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
+            for region in &mut task.ctx.country.regions {
+                for demo in region.class_demographics.rural_classes.values_mut() {
+                    demo.savings_stock_turn_start = demo.savings;
+                }
+                for demo in region.class_demographics.urban_classes.values_mut() {
+                    demo.savings_stock_turn_start = demo.savings;
+                }
+            }
         });
         // Phase 13: Initialize per-class religion from country's dominant religion.
         // Runs after demographics processing creates class entries.
@@ -706,6 +725,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 task.ctx.country.budget.liquid_reserves += advance;
             }
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "sv");
+        }
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let avg_wage = task.ctx.country.macro_indicators.average_wage;
@@ -736,6 +759,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 welfare_enabled,
             );
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "hm");
+        }
         // Phase 23C: Commuter wage remittance moved to after labor phase (see below).
 
 
@@ -745,6 +772,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             crate::engine::seed_propagation::ensure_worker_seeded();
             process_banking_turn(task.ctx.country, &mut task.companies, task.ctx.turn);
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "bk");
+        }
         #[cfg(feature = "diagnostic")]
         { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("BANK_POST: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets); }
 
@@ -756,8 +787,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 &mut task.ctx.country.central_bank,
             );
         }
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "rf");
+        }
         // ── DIAGNOSTIC CHECKPOINT: banking_turn_post ──
-probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
+probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[banking_turn_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market)); #[cfg(feature = "diagnostic")] eprintln!("FPC[banking_turn_post]: t={}{}", turn, fingerprint_companies_fields(&tasks));
 
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
@@ -857,7 +892,31 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         }
         // ── DIAGNOSTIC CHECKPOINT 1: building_cycle_post ──
-        probe.checkpoint("building_cycle_post", 1, turn, &market, &tasks);
+        probe.checkpoint("building_cycle_post", 1, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[building_cycle_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market)); #[cfg(feature = "diagnostic")] eprintln!("FPB[building_cycle_post]: t={}{}", turn, fingerprint_buildings_fields(&tasks));
+        #[cfg(feature = "diagnostic")]
+        if turn == 0 && std::env::var("SES_BLD_DUMP").is_ok() {
+            let mut dump: Vec<String> = Vec::new();
+            for task in &tasks {
+                for b in &task.ctx.buildings {
+                    let wage_bill = b
+                        .extra
+                        .get("last_wage_bill")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(f64::NAN);
+                    dump.push(format!(
+                        "{}|p={:.20e}|w={:.20e}|te={:?}|se={:?}|bp={:?}|dep={:?}|sec={:?}",
+                        b.id, b.last_profit, wage_bill,
+                        b.active_method.thermal_efficiency,
+                        b.active_method.storage_efficiency,
+                        b.active_method.active_blueprint,
+                        b.deposit_id,
+                        b.sector
+                    ));
+                }
+            }
+            dump.sort();
+            eprintln!("BLDDUMP_START\n{}\nBLDDUMP_END", dump.join("\n"));
+        }
 
         // Emergency Stabilization: Clone the immutable base prices (set once at
         // world generation in market_history.global_base_prices) so the clearing
@@ -1031,6 +1090,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         });
 
+        #[cfg(feature = "diagnostic")]
+        eprintln!("FP[pre_tranche]: t={} {}", turn, fingerprint_tasks_split(&tasks, &market));
+
         // Phase 37: Mobilization advance — release first tranche (trigger_progress=0)
         // BEFORE B2B order submission so contractors have cash to bid for materials.
         // This breaks the "no cash → no bids → no materials → no progress → no tranche" deadlock.
@@ -1082,6 +1144,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             });
         }
 
+        #[cfg(feature = "diagnostic")]
+        eprintln!("FP[post_sra]: t={} {}", turn, fingerprint_tasks_split(&tasks, &market));
+
         // ═══════════════════════════════════════════════════════════
         // PHASE 22A: CONSTRUCTION TENDER MARKET
         // Award expired tenders and create new construction projects
@@ -1129,6 +1194,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &micro_region_id,
                 task.ctx.turn,
                 task.ctx.year,
+                &state.market_history,
             );
             // Phase 40: Publish State-funded tenders from ministries with cash.
             // This fixes the root cause of the tender deadlock: the State never
@@ -1148,6 +1214,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 task.ctx.turn,
                 task.ctx.year,
                 construction_company_count,
+                &state.market_history,
             );
             // Phase 94: Encumber escrow for newly published tenders. Without
             // this, tranche release credits contractor cash (M0) but treasury
@@ -1230,6 +1297,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             task.ctx.country.phase22_tenders = tenders;
         });
 
+        #[cfg(feature = "diagnostic")]
+        eprintln!("FP[post_tenders]: t={} {}", turn, fingerprint_tasks_split(&tasks, &market));
+
         // 3.9: Submit agricultural harvest asks (must be before global merge at 6.3)
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
@@ -1287,6 +1357,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             // Expired trades have already had their encumbrance refunded at
             // deferral time; they are simply dropped here.
         }
+
+        #[cfg(feature = "diagnostic")]
+        eprintln!("FP[pre_company_submit]: t={} {}", turn, fingerprint_tasks_split(&tasks, &market));
 
         for task in &mut tasks {
             let b2b_config = task.ctx.country.b2b_order_config.clone();
@@ -1453,10 +1526,70 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 );
             }
         }
+        #[cfg(feature = "diagnostic")]
+        if std::env::var("SES_ORD_DUMP").is_ok()
+            && std::env::var("SES_ORD_TURN")
+                .ok()
+                .and_then(|s| s.parse::<u32>().ok())
+                .map(|t| turn == t)
+                .unwrap_or(turn == 0)
+        {
+            let mut dump: Vec<String> = Vec::new();
+            for (c, bids) in &global_order_book.bids {
+                for b in bids {
+                    dump.push(format!("B|{:?}|{}|{:016x}|{:016x}|{:?}|{:016x}", c, b.buyer_id, b.quantity.to_bits(), b.limit_price.to_bits(), b.blueprint_id, b.min_quality.map(f64::to_bits).unwrap_or(0)));
+                }
+            }
+            for (c, asks) in &global_order_book.asks {
+                for a in asks {
+                    dump.push(format!("A|{:?}|{}|{:016x}|{:016x}|{:?}|{:016x}|{:016x}", c, a.seller_id, a.quantity.to_bits(), a.limit_price.to_bits(), a.blueprint_id, a.quality.map(f64::to_bits).unwrap_or(0), a.durability.map(f64::to_bits).unwrap_or(0)));
+                }
+            }
+            dump.sort();
+            eprintln!("ORDDUMP_START t={}\n{}\nORDDUMP_END", turn, dump.join("\n"));
+        }
         match_orders_with_embargoes(&mut global_order_book, &company_country, &diplomacy);
         let all_trades = global_order_book.trades.clone();
         #[cfg(feature = "diagnostic")]
         {
+            // Fingerprint the matched trade list itself — order and content.
+            use std::hash::{Hash, Hasher};
+            let mut th = std::collections::hash_map::DefaultHasher::new();
+            all_trades.len().hash(&mut th);
+            for t in &all_trades {
+                t.buyer_id.hash(&mut th);
+                t.seller_id.hash(&mut th);
+                t.commodity.hash(&mut th);
+                t.quantity.to_bits().hash(&mut th);
+                t.execution_price.to_bits().hash(&mut th);
+            }
+            eprintln!("FP[match_post]: t={} trades_fp={:016x} {}", turn, th.finish(), fingerprint_tasks_split(&tasks, &market));
+            if std::env::var("SES_ORD_TURN")
+                .ok()
+                .and_then(|s| s.parse::<u32>().ok())
+                .map(|t| turn == t)
+                .unwrap_or(false)
+            {
+                let mut td: Vec<String> = all_trades
+                    .iter()
+                    .map(|t| {
+                        format!(
+                            "T|{:?}|{}|{}|{:016x}|{:016x}|{:016x}|{:?}|{:016x}|{:016x}",
+                            t.commodity,
+                            t.buyer_id,
+                            t.seller_id,
+                            t.quantity.to_bits(),
+                            t.execution_price.to_bits(),
+                            t.bid_limit_price.to_bits(),
+                            t.blueprint_id,
+                            t.quality.map(f64::to_bits).unwrap_or(0),
+                            t.durability.map(f64::to_bits).unwrap_or(0),
+                        )
+                    })
+                    .collect();
+                td.sort();
+                eprintln!("TRADEDUMP t={}\n{}\nTRADEDUMP_END", turn, td.join("\n"));
+            }
             let trade_qty: f64 = all_trades.iter().map(|t| t.quantity).sum();
             eprintln!(
                 "MATCHVOL: t={} trades={} qty={:.3e}",
@@ -1473,10 +1606,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 e.0 += t.quantity;
                 e.1 += t.quantity * t.execution_price;
             }
-            for k in ["Cereal", "Seeds", "Fodder", "Food", "HardCoal", "Fuels", "Steel", "Timber"] {
-                if let Some(&(q, v)) = match_by_c.get(k) {
-                    eprintln!("MATCHVOL_C[{}]: t={} qty={:.3e} val={:.3e}", k, turn, q, v);
-                }
+            for (k, &(q, v)) in &match_by_c {
+                eprintln!("MATCHVOL_C[{}]: t={} qty={:.3e} val={:.3e}", k, turn, q, v);
             }
         }
 
@@ -1488,7 +1619,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         }
         // ── DIAGNOSTIC CHECKPOINT 2: b2b_orders_post ──
-        probe.checkpoint("b2b_orders_post", 2, turn, &market, &tasks);
+        probe.checkpoint("b2b_orders_post", 2, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[b2b_orders_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));
 
         // Phase 24A.1: Redistribute unfilled bids from global_order_book back to
         // per-country task.order_book so that refund functions can process them.
@@ -1657,17 +1788,32 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     fx_failed.insert(trade_key(trade));
                     // Refund the encumbered bid cash — the trade will never
                     // settle, so its encumbrance would otherwise stay frozen.
+                    // Only the cash-backed share returns to the pocket: the
+                    // credit-backed share was a provisional obligation that
+                    // discharges when the order dies.
                     if let Some(buyer) = task
                         .companies
                         .iter_mut()
                         .find(|c| c.id == trade.buyer_id)
                     {
-                        let enc = trade.quantity * trade.bid_limit_price;
-                        buyer.debit_cash = (buyer.debit_cash - enc).max(0.0);
+                        // Bids posted via `encumber_cash` carried the freight
+                        // reserve (`qty × limit × (1+fr)`); releasing only
+                        // `qty × limit` strands that share in the encumbrance
+                        // pool. Bids posted without the reserve floor at
+                        // `debit_cash` inside `release_bid_encumbrance`, so
+                        // over-asking is company-local and self-corrects.
+                        let enc = trade.quantity
+                            * trade.bid_limit_price
+                            * (1.0 + task
+                                .ctx
+                                .country
+                                .b2b_order_config
+                                .freight_cost_reserve_ratio);
+                        let cash_back = buyer.release_bid_encumbrance(enc);
                         if let Some(ba) = &mut buyer.brokerage_account {
-                            ba.cash += enc;
+                            ba.cash += cash_back;
                         } else {
-                            buyer.available_cash += enc;
+                            buyer.available_cash += cash_back;
                         }
                     }
                     #[cfg(feature = "diagnostic")]
@@ -1911,6 +2057,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &mut task.ctx.country.central_bank,
             );
         }
+        #[cfg(feature = "diagnostic")]
+        eprintln!("FP[settle_domestic]: t={} {}", turn, fingerprint_tasks_split(&tasks, &market));
 
         // ── FOREIGN EXPORT SWEEP (external demand floor) ────────────────
         // The residual asks left in `unfilled_asks` are world-facing surplus:
@@ -2086,6 +2234,19 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             .iter()
             .map(|c| country_residual_value[*c])
             .sum();
+        // v4.18 WS1 follow-up: foreign-sector income lands before the sweep.
+        // The unmodeled world economy is not an annuity — it earns recurring
+        // income each turn (world GDP × import propensity, seeded at
+        // generation). Crediting the purse here converts export demand from a
+        // ~3%-per-turn decaying stock draw into a flow-funded steady state:
+        // the purse settles where inflow = outflow and net exports persist
+        // instead of collapsing mid-run. The `foreign_income_injected`
+        // accumulator keeps the M0 fiat walk exact (tracked exogenous
+        // injection, same status as CB liquidity creation).
+        if market.foreign_income > 0.0 {
+            market.foreign_sector_balance += market.foreign_income;
+            market.foreign_income_injected += market.foreign_income;
+        }
         let export_purse = EXPORT_TURN_BUDGET
             .min(market.foreign_sector_balance.max(0.0) * EXPORT_PURSE_FRACTION)
             .min(total_residual_value);
@@ -2611,7 +2772,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         }
 
         // ── DIAGNOSTIC CHECKPOINT 3: b2b_settlement_post ──
-        probe.checkpoint("b2b_settlement_post", 3, turn, &market, &tasks);
+        probe.checkpoint("b2b_settlement_post", 3, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[b2b_settlement_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));
         // ═══════════════════════════════════════════════════════════
         // PHASE 31: CRISIS MANAGEMENT AI — EXECUTIVE DECREES
         // Runs BEFORE ministry procurement so that tax adjustments, bond
@@ -3068,6 +3229,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &task.order_book,
                 &mut task.companies,
                 &task.company_id_to_idx,
+                task.ctx.country.b2b_order_config.freight_cost_reserve_ratio,
             );
             // W11: Record unfilled prices so the convergence ratchets in
             // post_b2b_orders actually fire. Both maps were read (buyer
@@ -3765,7 +3927,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         }
         // ── DIAGNOSTIC CHECKPOINT: production_cycle_post ──
-        probe.checkpoint("production_cycle_post", 5, turn, &market, &tasks);        #[cfg(feature = "diagnostic")]
+        probe.checkpoint("production_cycle_post", 5, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[production_cycle_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));        #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T2]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
             eprintln!("SUBPHASE_POST_PROD: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0} offshore={:.0} foreign={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash, _w.offshore_capital, _w.foreign_sector_balance, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
@@ -3782,6 +3944,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             .par_iter_mut()
             .enumerate()
             .map(|(_i, task)| {
+                crate::engine::seed_propagation::ensure_worker_seeded();
                 let utility_config = task.ctx.country.utility_config.clone();
                 // Phase 81 Wave 2: Build fuel prices from market prices for
                 // merit-order spot market clearing.
@@ -3894,6 +4057,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // is computed and the building owner is charged.
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
             for hb in &mut task.housing_buildings {
                 // Skip buildings with no well or already constructed wells
                 let needs_construction = hb.water_well.as_ref()
@@ -4511,6 +4675,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
 
         // Wave 3: General production (all non-energy sectors, with blackout penalties)
         tasks.par_iter_mut().enumerate().for_each(|(i, task)| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
             let b2b_config = task.ctx.country.b2b_order_config.clone();
             let gen_cfg = task.ctx.country.generative_goods_config.clone();
             let blackout_penalties = &task_penalties[i];
@@ -4621,6 +4786,34 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             use crate::registries::enums::Commodity;
             use crate::society::housing::{CommercialBuildingType, InventoryBatch};
 
+            // Safety stock carried by a retail store, expressed as turns of
+            // revealed demand the shelf should cover. Restock pulls toward
+            // `demand_hint × RESTOCK_SHELF_COVER_TURNS` minus current shelf
+            // stock — ~6 weeks of cover at half-month turns, enough for a
+            // store to sell through a 1–2 turn producer supply gap instead of
+            // passing the gap straight into realized B2C revenue.
+            const RESTOCK_SHELF_COVER_TURNS: f64 = 3.0;
+            // Anti-bullwhip order bound: a store's per-turn wholesale intake
+            // for a commodity is capped at its demonstrated sales plus
+            // `RESTOCK_UNMET_CAPTURE_FRAC` of its attributed unmet-demand
+            // slice. Without it, every shelf converged to its cover target
+            // in a single pull once the budget coverage spread across rows:
+            // a market holding a chronic shortage then released the entire
+            // backlog into realized sales in one turn (the V418-2 +63%
+            // Venedia step at t74). The fractional capture spreads backlog
+            // clearance over ~10 turns — the standard exponential approach
+            // of a smoothed order-up-to policy — while the unmet term keeps
+            // the pull alive through a full stockout (a pure sales-relative
+            // cap is an absorbing trap: sell 0 → order 0 → sell 0).
+            const RESTOCK_UNMET_CAPTURE_FRAC: f64 = 0.15;
+            // Probe floor: a store may always pull a small share of its
+            // capacity per line per turn so a never-stocked commodity can
+            // discover demand instead of deadlocking at intake 0. Kept
+            // small — the floor binds for every store lacking sales of a
+            // line, so a large value would synchronize a visible release
+            // step across all of a region's stores at once.
+            const RESTOCK_PROBE_CAPACITY_FRAC: f64 = 0.005;
+
             // Phase 76: Consumer goods that retail stores should stock.
             // Expanded from the previous 6-item list to cover all B2C-relevant
             // commodities so that retail stores actually receive inventory
@@ -4651,7 +4844,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             for (i, b) in task.ctx.buildings.iter().enumerate() {
                 for &commodity in &consumer_goods {
                     let qty = b.inventory.get(&commodity).copied().unwrap_or(0.0);
-                    if qty > 10.0 {
+                    // Any positive residue is listable: a hard `qty > 10`
+                    // gate made pile availability binary, so a pile drained
+                    // to single digits turned off the whole region's restock
+                    // for a turn and reappeared as a cold-start burst — the
+                    // relaxation oscillation behind the B2C revenue sawtooth.
+                    if qty > 0.0 {
                         surplus_by_region
                             .entry(b.region_id.clone())
                             .or_default()
@@ -4704,6 +4902,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     .companies
                     .iter()
                     .position(|c| c.id == store.owner_id);
+                let mut _budget_probe: (f64, f64, f64, f64) = (0.0, 0.0, 0.0, 0.0);
                 let mut restock_budget = match store_owner_idx {
                     Some(si) => {
                         let c = &task.companies[si];
@@ -4712,6 +4911,15 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                             .as_ref()
                             .map(|ba| ba.cash)
                             .unwrap_or(c.available_cash);
+                        #[cfg(feature = "diagnostic")]
+                        {
+                            _budget_probe = (
+                                liquid,
+                                c.company_capital,
+                                c.wages_paid_this_turn + c.wage_arrears + c.severance_arrears,
+                                c.procurement_credit,
+                            );
+                        }
                         // Reserve the wage obligation against the whole
                         // facility base — capping at spendable liquid
                         // collapsed the reserve to zero exactly when
@@ -4791,40 +4999,176 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     }
                 };
 
-                let mut store_moved = false;
+                // Uniform affordability coverage (read-only pre-pass): total
+                // the desired spend across ALL surplus rows first, then let
+                // every row commit its proportional share of the working-
+                // capital facility — the same coverage convention as B2B bid
+                // scaling. The previous first-come-first-served loop let the
+                // earliest rows in deterministic building order consume the
+                // entire facility, so whichever commodity family happened to
+                // lead the row order starved the rest; and because the
+                // starved family's shelf then emptied while the fed family
+                // still met its shelf target, the binding family flipped
+                // turn-to-turn — a 2-turn bang-bang in realized B2C supply
+                // (the Venedia Clothing ±270% swing behind V418-2).
+                let mut restock_total_due = 0.0f64;
                 for &(building_idx, commodity, qty) in surpluses {
-                    // Demand-aware restock cap: size the wholesale pull to the
-                    // store's revealed demand (last-turn sales + unmet demand,
-                    // ~1.5 turns of cover) rather than a blanket 30% of
-                    // producer surplus. Pulling the full surplus on credit
-                    // buys stock that can never sell and turns the store into
-                    // a debt sink; sizing to demand keeps the trade-credit
-                    // cycle self-liquidating through B2C sales.
-                    let demand_hint = store
+                    let (sold_hint, unmet_hint) = store
                         .retail_profile
                         .as_ref()
                         .map(|p| {
-                            p.units_sold_last_turn
-                                .get(&commodity)
-                                .copied()
-                                .unwrap_or(0.0)
-                                + p.unmet_demand_last_turn
+                            (
+                                p.units_sold_last_turn
                                     .get(&commodity)
                                     .copied()
-                                    .unwrap_or(0.0)
+                                    .unwrap_or(0.0),
+                                p.unmet_demand_last_turn
+                                    .get(&commodity)
+                                    .copied()
+                                    .unwrap_or(0.0),
+                            )
                         })
+                        .unwrap_or((0.0, 0.0));
+                    let hint = sold_hint + unmet_hint;
+                    let shelf: f64 = store
+                        .current_inventory
+                        .get(&String::from(commodity))
+                        .map(|b| b.iter().map(|x| x.quantity).sum())
                         .unwrap_or(0.0);
-                    let offer_qty = if demand_hint > 0.0 {
-                        (qty * 0.3).min(demand_hint * 1.5)
+                    let mut desired = if hint > 0.0 {
+                        (qty * 0.3)
+                            .min((hint * RESTOCK_SHELF_COVER_TURNS - shelf).max(0.0))
                     } else {
-                        // Cold start (no sales history): pull one turn of
-                        // shelf capacity, not 30% of producer surplus — the
-                        // blanket pull buys a wholesale bill far beyond what
-                        // first-week sales can retire and books it as pure
-                        // liabilities against an asset the balance sheet
-                        // cannot see, instantly distressing the owner.
-                        qty.min(store.retail_capacity)
+                        (qty * 0.3).min(store.retail_capacity)
                     };
+                    // Anti-bullwhip intake bound (see const docs above):
+                    // intake ≤ demonstrated sales + a bounded share of the
+                    // store's unmet slice, floored at a probe pull so new
+                    // lines can still discover demand.
+                    let intake_bound = (sold_hint
+                        + unmet_hint * RESTOCK_UNMET_CAPTURE_FRAC)
+                        .max(store.retail_capacity * RESTOCK_PROBE_CAPACITY_FRAC);
+                    desired = desired.min(intake_bound);
+                    desired = desired.min(
+                        task.ctx.buildings[building_idx]
+                            .inventory
+                            .get(&commodity)
+                            .copied()
+                            .unwrap_or(0.0),
+                    );
+                    if desired <= 0.0 {
+                        continue;
+                    }
+                    let producer_owner =
+                        task.ctx.buildings[building_idx].owner_id.clone();
+                    let producer_is_company = !producer_owner.is_empty()
+                        && producer_owner != store.owner_id
+                        && task.companies.iter().any(|c| c.id == producer_owner);
+                    if producer_is_company {
+                        let ref_price = market_history::get_reference_price(
+                            &commodity,
+                            &restock_market_history,
+                        )
+                        .unwrap_or(100.0);
+                        restock_total_due += desired * ref_price;
+                    }
+                }
+                // Every line claims `coverage × its due` — proportional
+                // rationing instead of row-order starvation. Free rows
+                // (non-company producers) never enter `total_due` and pass
+                // unscaled.
+                let restock_coverage = if restock_total_due > restock_budget
+                    && restock_total_due > 0.0
+                {
+                    (restock_budget / restock_total_due).clamp(0.0, 1.0)
+                } else {
+                    1.0
+                };
+
+                let mut store_moved = false;
+                for &(building_idx, commodity, qty) in surpluses {
+                    // Demand-aware restock cap: size the wholesale pull to the
+                    // store's revealed demand (last-turn sales + unmet demand)
+                    // rather than a blanket 30% of producer surplus. Pulling
+                    // the full surplus on credit buys stock that can never
+                    // sell and turns the store into a debt sink; sizing to
+                    // demand keeps the trade-credit cycle self-liquidating
+                    // through B2C sales.
+                    let (sold_hint, unmet_hint) = store
+                        .retail_profile
+                        .as_ref()
+                        .map(|p| {
+                            (
+                                p.units_sold_last_turn
+                                    .get(&commodity)
+                                    .copied()
+                                    .unwrap_or(0.0),
+                                p.unmet_demand_last_turn
+                                    .get(&commodity)
+                                    .copied()
+                                    .unwrap_or(0.0),
+                            )
+                        })
+                        .unwrap_or((0.0, 0.0));
+                    let demand_hint = sold_hint + unmet_hint;
+                    let key: String = commodity.into();
+                    let shelf_now: f64 = store
+                        .current_inventory
+                        .get(&key)
+                        .map(|batches| batches.iter().map(|b| b.quantity).sum())
+                        .unwrap_or(0.0);
+                    // Safety-stock reorder policy: restock toward a shelf
+                    // LEVEL of ~3 turns of revealed demand, not a flow of
+                    // 1.5× per turn. Sizing each pull to (target − shelf)
+                    // means a store with buffer sells through a short supply
+                    // gap instead of passing the gap straight into realized
+                    // sales (the ±100% B2C revenue sawtooth), and an over-
+                    // stocked shelf stops pulling entirely — a standard
+                    // reorder-point rule, still pile- and budget-bounded.
+                    let offer_qty = if demand_hint > 0.0 {
+                        let shelf_target = demand_hint * RESTOCK_SHELF_COVER_TURNS;
+                        (qty * 0.3).min((shelf_target - shelf_now).max(0.0))
+                    } else {
+                        // Cold start (no sales history): pull a bounded
+                        // share of the pile, not the whole pile — the old
+                        // `qty.min(capacity)` line dumped 100% of a
+                        // recovered surplus onto one shelf in a single turn.
+                        (qty * 0.3).min(store.retail_capacity)
+                    };
+                    // Anti-bullwhip intake bound — must match the coverage
+                    // pre-pass `desired` computation or the due/payable
+                    // ratio misweights rows.
+                    let offer_qty = offer_qty.min(
+                        (sold_hint + unmet_hint * RESTOCK_UNMET_CAPTURE_FRAC).max(
+                            store.retail_capacity * RESTOCK_PROBE_CAPACITY_FRAC,
+                        ),
+                    );
+                    #[cfg(feature = "diagnostic")]
+                    if commodity == Commodity::Clothing
+                        && task.ctx.country.name == "Venedia"
+                        && (50..=66).contains(&turn)
+                    {
+                        eprintln!(
+                            "RSTKPRE t={} store={} owner={} hint={:.0} shelf={:.0} offer={:.0} budget={:.0} liq={:.0} cap={:.0} payres={:.0} pcred={:.0}",
+                            turn, store.id, store.owner_id, demand_hint, shelf_now, offer_qty, restock_budget,
+                            _budget_probe.0, _budget_probe.1, _budget_probe.2, _budget_probe.3
+                        );
+                    }
+                    // `qty` is the pile size captured when
+                    // `surplus_by_region` was snapshotted — a STALE value:
+                    // earlier stores in this same pass already drew the
+                    // live pile down. Bound the order at what physically
+                    // remains, or every store pays for ~30% of the opening
+                    // pile while the building ships less than it bills —
+                    // goods materialize from nothing (mass creation) and
+                    // buyers are charged for undelivered units.
+                    let offer_qty = offer_qty.min(
+                        task.ctx.buildings[building_idx]
+                            .inventory
+                            .get(&commodity)
+                            .copied()
+                            .unwrap_or(0.0),
+                    );
                     if offer_qty <= 0.0 {
                         continue;
                     }
@@ -4861,7 +5205,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         let paid = {
                             match store_owner_idx {
                                 Some(si) => {
-                                    let payable = due.min(restock_budget);
+                                    let payable =
+                                        (due * restock_coverage).min(restock_budget);
                                     if payable <= 0.0 {
                                         0.0
                                     } else {
@@ -5074,7 +5419,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                                         .country
                                         .budget
                                         .liquid_reserves;
-                                    let payable = due
+                                    let payable = (due * restock_coverage)
                                         .min(restock_budget)
                                         .min((*budget).max(0.0));
                                     *budget -= payable;
@@ -5106,10 +5451,25 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     if transfer_qty <= 0.0 {
                         continue;
                     }
+                    // Deduct from producer building. `qty` is the pile size
+                    // captured when `surplus_by_region` was snapshotted — a
+                    // STALE value: earlier stores in this same pass already
+                    // drew the live pile down. Deduct from the CURRENT
+                    // inventory and clamp the transfer to what physically
+                    // remains, or every store receives ~30% of the opening
+                    // pile while the building loses only one pull's worth —
+                    // goods materialize from nothing (mass creation).
+                    let live_qty = task.ctx.buildings[building_idx]
+                        .inventory
+                        .get(&commodity)
+                        .copied()
+                        .unwrap_or(0.0);
+                    let transfer_qty = transfer_qty.min(live_qty);
+                    if transfer_qty <= 0.0 {
+                        continue;
+                    }
                     store_moved = true;
-
-                    // Deduct from producer building
-                    let remaining = (qty - transfer_qty).max(0.0);
+                    let remaining = (live_qty - transfer_qty).max(0.0);
                     if remaining > 0.0 {
                         task.ctx.buildings[building_idx]
                             .inventory
@@ -5121,7 +5481,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     }
 
                     // Add to retail store inventory
-                    let key: String = commodity.into();
                     let batch = InventoryBatch {
                         quantity: transfer_qty,
                         storage_turn: turn,
@@ -5133,6 +5492,16 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     };
                     store.current_inventory.entry(key).or_default().push(batch);
                     restock_qty += transfer_qty;
+                    #[cfg(feature = "diagnostic")]
+                    if commodity == Commodity::Clothing
+                        && task.ctx.country.name == "Venedia"
+                        && (50..=66).contains(&turn)
+                    {
+                        eprintln!(
+                            "RSTKPOST t={} store={} moved={:.0} budget_rem={:.0}",
+                            turn, store.id, transfer_qty, restock_budget
+                        );
+                    }
                 }
                 if had_surplus && !store_moved {
                     zero_paid_stores += 1;
@@ -5178,9 +5547,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             }
 
             #[cfg(feature = "diagnostic")]
-            if turn % 8 == 0 || turn >= 117 {
+            if turn % 8 == 0 || turn >= 117 || (50..=66).contains(&turn) {
                 eprintln!(
-                    "RESTOCKDBG: t={} c={} stores={} eligible={} surplus_rows={} no_surplus={} zero_paid={} ownerless={} moved={:.0}",
+                    "RESTOCKDBG: t={} c={} stores={} eligible={} surplus_rows={} no_surplus={} zero_paid={} ownerless={} moved={:.0} tres={:.3e}",
                     turn,
                     task.ctx.country.name,
                     store_count,
@@ -5189,7 +5558,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     no_surplus_stores,
                     zero_paid_stores,
                     ownerless_stores,
-                    restock_qty
+                    restock_qty,
+                    task.ctx.country.budget.liquid_reserves
                 );
                 if ownerless_stores > 0 && (turn == 0 || turn == 119) {
                     let mut shown = 0;
@@ -5384,7 +5754,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // municipal-AI budgeting — legitimate non-wage flows whose
         // treasury→banked-sector legs made measured "company cash" rise
         // every turn (the WAGE-2 false positive).
-        probe.checkpoint("wage_clearing_pre", 40, turn, &market, &tasks);
+        probe.checkpoint("wage_clearing_pre", 40, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[wage_clearing_pre]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));
      // W1: Wage payment (labor market resolution) with PIT withholding (Fix 1.22)
         // Phase 18B: Compute garnishment rates from community service cohorts
         // Phase 23C: Inject commuter FTE based on PassengerTransport coverage.
@@ -6109,18 +6479,27 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 // Macro-Remediation: persist revealed labor state for next
                 // turn's commuter routing — bids that went unfilled mark a
                 // real deficit; workers hired mark what the market used.
-                let allocated: f64 = labor_allocation.fte.values().sum();
+                let allocated: f64 = {
+                    let mut v: Vec<f64> =
+                        labor_allocation.fte.values().copied().collect();
+                    v.sort_by(|a, b| a.total_cmp(b));
+                    v.into_iter().sum()
+                };
                 // Pseudo-employer hires (PWORKS-*/STATE-EMPLOYER-*) are
                 // torn down at end of turn — they must not shrink next
                 // turn's measured idle pool.
-                let private_allocated: f64 = labor_allocation
-                    .fte
-                    .iter()
-                    .filter(|((cid, _), _)| {
-                        !cid.starts_with("PWORKS-") && !cid.starts_with("STATE-EMPLOYER-")
-                    })
-                    .map(|(_, f)| *f)
-                    .sum();
+                let private_allocated: f64 = {
+                    let mut v: Vec<f64> = labor_allocation
+                        .fte
+                        .iter()
+                        .filter(|((cid, _), _)| {
+                            !cid.starts_with("PWORKS-") && !cid.starts_with("STATE-EMPLOYER-")
+                        })
+                        .map(|(_, f)| *f)
+                        .collect();
+                    v.sort_by(|a, b| a.total_cmp(b));
+                    v.into_iter().sum()
+                };
                 region.labor_allocated_last_turn = allocated;
                 region.labor_private_allocated_last_turn = private_allocated;
                 region.labor_unfilled_last_turn =
@@ -6883,7 +7262,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
         // so pocket accounting is complete — but this sits BEFORE the
         // reserve-floor ELA sweep below; residual injections are stripped via
         // cumulative_cb_injection in the probe computation.
-        probe.checkpoint("wage_clearing_post", 41, turn, &market, &tasks);
+        probe.checkpoint("wage_clearing_post", 41, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[wage_clearing_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));
         // ── DIAGNOSTIC CHECKPOINT: labor_market_post ──
         // Macro-Remediation: the wage phase (resolve_regional_labor_market +
         // PIT/garnishment/remittance/commuter routing) ends here. The
@@ -6898,7 +7277,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 &mut task.ctx.country.central_bank,
             );
         }
-        probe.checkpoint("labor_market_post", 8, turn, &market, &tasks);
+        probe.checkpoint("labor_market_post", 8, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[labor_market_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));
 
         // ═══════════════════════════════════════════════════════════
         // RURAL→URBAN CLASS TRANSITIONS (W4 wiring)
@@ -6967,10 +7346,18 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                 }
                 let mut dominant: HashMap<String, DemographicClass> = HashMap::new();
                 for (company_id, classes) in fte_by_company {
+                    // Canonical tiebreak: `into_iter` on a HashMap yields
+                    // RandomState order, and `max_by` returns the LAST max —
+                    // a tie would pick a per-process class. Discriminant order
+                    // makes ties deterministic.
                     if let Some(demographic_class) = classes
                         .into_iter()
-                        .max_by(|(_, a), (_, b)| {
-                            a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)
+                        .max_by(|(ka, a), (kb, b)| {
+                            a.partial_cmp(b)
+                                .unwrap_or(std::cmp::Ordering::Equal)
+                                .then_with(|| {
+                                    format!("{:?}", kb).cmp(&format!("{:?}", ka))
+                                })
                         })
                         .map(|(k, _)| k)
                     {
@@ -7443,14 +7830,22 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     if let Some(class_demand) = consumer_demand.demand.get_mut(&key) {
                         for (&commodity, &deducted_qty) in deductions {
                             if let Some(existing) = class_demand.get_mut(&commodity) {
-                                *existing = (*existing - deducted_qty).max(0.0);
+                                // Remove from `total_demand` only what THIS
+                                // class's demand actually loses. The delivered
+                                // quantity is unscaled physical goods while the
+                                // class's demand entry is capacity-scaled —
+                                // subtracting the full delivery from the
+                                // aggregate steals other classes' demand for
+                                // the same commodity and can zero the whole
+                                // market line (the t≈15 consumption cliff).
+                                let removed = (*existing).min(deducted_qty);
+                                *existing -= removed;
+                                if let Some(total) =
+                                    consumer_demand.total_demand.get_mut(&commodity)
+                                {
+                                    *total = (*total - removed).max(0.0);
+                                }
                             }
-                        }
-                    }
-                    // Also reduce total_demand
-                    for (&commodity, &deducted_qty) in deductions {
-                        if let Some(existing) = consumer_demand.total_demand.get_mut(&commodity) {
-                            *existing = (*existing - deducted_qty).max(0.0);
                         }
                     }
                 }
@@ -7459,6 +7854,17 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     let rationing = task.ctx.country.rationing_system.clone();
                     apply_rationing_to_demand(&mut consumer_demand, &rationing);
                 }
+                // Store membership for this region's market: stores keyed by
+                // the region id itself plus its micro-region ids (the same
+                // key space `store.micro_region_id` uses). Unmet-demand
+                // attribution is scoped to these stores so a region's
+                // shortage feeds ITS restock hints, not the whole country's.
+                let region_store_ids: std::collections::HashSet<String> = {
+                    let mut s: std::collections::HashSet<String> =
+                        region.micro_regions.keys().cloned().collect();
+                    s.insert(region.id.clone());
+                    s
+                };
                 let mut store_offers = generate_store_offers(&task.commercial_buildings, turn);
                 let clearing_result = clear_b2c_markets(
                     &mut store_offers,
@@ -7466,6 +7872,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                     &mut task.commercial_buildings,
                     turn,
                     Some(&task.ctx.country.generative_goods_config),
+                    Some(&region_store_ids),
                 );
                 // Phase 16A: Route B2C revenue through TransferSettler for proper bank sync
                 // Phase 41: Pass VAT rates for transactional VAT collection.
@@ -7488,22 +7895,138 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
                         vat_collected + municipal_revenue;
                     task.ctx.country.accumulated_vat += vat_collected;
                 }
+                // Phase 47: Install purchased household durables into class
+                // cohort stocks — sold units must physically land somewhere.
+                // Each class receives the share of units matching its share
+                // of net demand for that commodity; `install_durable_purchase`
+                // normalizes to per-capita cohort counts.
+                for (&commodity, &units) in &clearing_result.units_sold {
+                    if units <= 0.0 || !commodity.is_household_durable() {
+                        continue;
+                    }
+                    let quality = clearing_result
+                        .sold_quality
+                        .get(&commodity)
+                        .copied()
+                        .unwrap_or(1.0);
+                    let class_shares: Vec<(DemographicClass, f64)> = consumer_demand
+                        .demand
+                        .iter()
+                        .filter(|((rid, _), m)| {
+                            rid == &region.id
+                                && m.get(&commodity).copied().unwrap_or(0.0) > 0.0
+                        })
+                        .map(|((_, class), m)| (*class, m[&commodity]))
+                        .collect();
+                    let total_class_demand: f64 =
+                        class_shares.iter().map(|(_, q)| q).sum();
+                    if total_class_demand <= 0.0 {
+                        continue;
+                    }
+                    for (class, qty) in class_shares {
+                        let units_for_class = units * (qty / total_class_demand);
+                        let demo = class
+                            .to_rural()
+                            .and_then(|rc| {
+                                region.class_demographics.rural_classes.get_mut(&rc)
+                            })
+                            .or_else(|| {
+                                class.to_urban().and_then(|uc| {
+                                    region.class_demographics.urban_classes.get_mut(&uc)
+                                })
+                            });
+                        if let Some(demo) = demo {
+                            crate::economy::trade::retail::install_durable_purchase(
+                                demo,
+                                commodity,
+                                units_for_class,
+                                quality,
+                                turn,
+                            );
+                        }
+                    }
+                }
                 // Phase 24D: Accumulate B2C revenue as GDP final consumption (C).
                 // Phase 35: Tag consumption by region for per-region GDP accounting.
-                let b2c_revenue: f64 = clearing_result.store_revenue.values().sum();
+                let b2c_revenue: f64 = {
+                    let mut v: Vec<f64> =
+                        clearing_result.store_revenue.values().copied().collect();
+                    v.sort_by(|a, b| a.total_cmp(b));
+                    v.into_iter().sum()
+                };
                 #[cfg(feature = "diagnostic")]
                 {
                     let td: f64 = consumer_demand.total_demand.values().sum();
                     let so: f64 = store_offers.iter().map(|o| o.quantity).sum();
+                    let cap_sum: f64 = region
+                        .class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(region.class_demographics.urban_classes.values())
+                        .map(|d| {
+                            crate::economy::trade::retail::class_spend_capacity(d, avg_wage)
+                        })
+                        .sum();
+                    let offval: f64 = store_offers
+                        .iter()
+                        .map(|o| o.quantity * o.price_per_unit.max(0.0))
+                        .sum();
+                    let top: String = {
+                        let mut v: Vec<(String, f64)> = consumer_demand
+                            .total_demand
+                            .iter()
+                            .map(|(c, q)| (format!("{:?}", c), *q))
+                            .collect();
+                        v.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+                        v.iter()
+                            .take(5)
+                            .map(|(n, q)| format!("{n}:{q:.0}"))
+                            .collect::<Vec<_>>()
+                            .join(",")
+                    };
                     eprintln!(
-                        "B2CDBG: t={} c={} r={} demand={:.0} offers={:.0} rev={:.0}",
+                        "B2CDBG: t={} c={} r={} demand={:.0} offers={:.0} offval={:.3e} cap={:.3e} rev={:.0} top=[{}]",
                         turn,
                         task.ctx.country.name,
                         region.id,
                         td,
                         so,
-                        b2c_revenue
+                        offval,
+                        cap_sum,
+                        b2c_revenue,
+                        top
                     );
+                    if (30..=60).contains(&turn) {
+                        for (commodity, units) in &clearing_result.units_sold {
+                            let dem = consumer_demand
+                                .total_demand
+                                .get(commodity)
+                                .copied()
+                                .unwrap_or(0.0);
+                            let off: f64 = store_offers
+                                .iter()
+                                .filter(|o| o.commodity == *commodity)
+                                .map(|o| o.quantity)
+                                .sum();
+                            let price = clearing_result
+                                .retail_prices
+                                .iter()
+                                .find(|(c, _, _)| c == commodity)
+                                .map(|(_, _, p)| *p)
+                                .unwrap_or(0.0);
+                            eprintln!(
+                                "CDBG: t={} r={} {:?} dem={:.0} off={:.0} sold={:.0} px={:.1} rev={:.0}",
+                                turn,
+                                region.id,
+                                commodity,
+                                dem,
+                                off,
+                                units,
+                                price,
+                                units * price
+                            );
+                        }
+                    }
                 }
                 task.gdp_acc.add_consumption(&region.id, b2c_revenue);
                 // Phase 25: Collect retail prices for CPI calculation
@@ -7559,7 +8082,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks);
             );
         }
         // ── DIAGNOSTIC CHECKPOINT: b2c_clearing_post ──
-probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
+probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[b2c_clearing_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));
 
         #[cfg(feature = "diagnostic")]
         {
@@ -7669,7 +8192,15 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks);
                                     let sales: f64 = tenant
                                         .retail_profile
                                         .as_ref()
-                                        .map(|p| p.units_sold_last_turn.values().sum())
+                                        .map(|p| {
+                                            let mut v: Vec<f64> = p
+                                                .units_sold_last_turn
+                                                .values()
+                                                .copied()
+                                                .collect();
+                                            v.sort_by(|a, b| a.total_cmp(b));
+                                            v.into_iter().sum()
+                                        })
                                         .unwrap_or(0.0);
                                     if sales > best_sales {
                                         best_sales = sales;
@@ -7934,6 +8465,10 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.registries,
                 &state.market_history,
             );
+            #[cfg(feature = "diagnostic")]
+            if true {
+                bsr_dump(std::slice::from_ref(&*task), turn, "pc");
+            }
 
             // Wage-guarantee backstop: a company that books positive
             // realized net profit over its financial-history window must
@@ -7965,7 +8500,12 @@ tasks.par_iter_mut().for_each(|task| {
                     c.wage_arrears = 0.0;
                 }
             }
-            let backstop_total: f64 = backstop_by_region.values().sum();
+            let backstop_total: f64 = {
+                let mut v: Vec<f64> =
+                    backstop_by_region.values().copied().collect();
+                v.sort_by(|a, b| a.total_cmp(b));
+                v.into_iter().sum()
+            };
             if backstop_total > 0.0 {
                 let mut backstop_unspent = 0.0;
                 task.ctx.country.central_bank.liquidity_injected += backstop_total;
@@ -8278,6 +8818,10 @@ tasks.par_iter_mut().for_each(|task| {
             );
         });
         #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "lc");
+        }
+        #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_POST_LIFECYCLE_ONLY: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
@@ -8297,6 +8841,7 @@ tasks.par_iter_mut().for_each(|task| {
             eprintln!("EXCLUDED_POST_LIFECYCLE: state_local_res={:.0} cultural_cash={:.0}", _state_local_res, _cultural_cash);
         }
         tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase D: remove tombstoned companies (liquidated/merged) once per turn.
             // Phase 94: Return liquidated companies' cash to treasury before removal.
             let liquidated_cash: f64 = task.companies.iter().filter(|c| c.is_liquidated).map(|c| {
@@ -8393,7 +8938,8 @@ tasks.par_iter_mut().for_each(|task| {
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
         {
-            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_POSTLIFECYCLE: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
+            let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_POSTLIFECYCLE: t={} M0={:.0} cb={:.0} diff={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash);
+            for _t in &tasks { let mut _csum = 0.0f64; for _r in &_t.ctx.country.regions { for _d in _r.class_demographics.rural_classes.values().chain(_r.class_demographics.urban_classes.values()) { _csum += _d.savings; } } eprintln!("M0_TRACE_POSTLIFECYCLE_CT: t={} c={} sav={:.0}", turn, _t.ctx.country_name, _csum); }
         }
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
@@ -8805,6 +9351,10 @@ tasks.par_iter_mut().for_each(|task| {
                 }
             }
             #[cfg(feature = "diagnostic")]
+            if true {
+                bsr_dump(std::slice::from_ref(&*task), turn, "tx");
+            }
+            #[cfg(feature = "diagnostic")]
             eprintln!("TAX_DEBIT: country={} bank_debit={:.0} cit={:.0} wealth={:.0} route={:.0}", task.ctx.country_name, _total_bank_debit, total_cit_debited, total_wealth_tax_debited, tax_result.actual_pit_collected + total_cit_debited + total_wealth_tax_debited);
 
             // Phase 42: Route only the ACTUAL collected amounts to the treasury.
@@ -9003,8 +9553,12 @@ tasks.par_iter_mut().for_each(|task| {
         // Each country's treasury debits M0 (liquid_reserves) when paying
         // foreign bondholders. The credit must go to foreign_sector_balance
         // to preserve M0 conservation (Directive 1: closed-loop).
-        let foreign_credits = std::sync::Mutex::new(Vec::<f64>::with_capacity(tasks.len()));
-        tasks.par_iter_mut().for_each(|task| {
+        // Phase 96: tag each credit with the task index so the post-join sum
+        // runs in canonical order — Mutex push order is scheduling-dependent
+        // and f64 addition is not associative, so unsorted sums drift by ULP.
+        let foreign_credits =
+            std::sync::Mutex::new(Vec::<(usize, f64)>::with_capacity(tasks.len()));
+        tasks.par_iter_mut().enumerate().for_each(|(i, task)| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let current_turn = task.ctx.turn;
 
@@ -9013,12 +9567,18 @@ tasks.par_iter_mut().for_each(|task| {
             let mun_foreign = process_municipal_debt_service(task.ctx.country, &mut task.companies);
             let total_foreign = nat_foreign + mun_foreign;
             if total_foreign > 0.0 {
-                foreign_credits.lock().unwrap().push(total_foreign);
+                foreign_credits.lock().unwrap().push((i, total_foreign));
             }
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "ds");
+        }
 
         // Phase 94: Apply foreign credits to the global foreign_sector_balance.
-        let total_foreign_credit: f64 = foreign_credits.into_inner().unwrap().iter().sum();
+        let mut ordered_credits = foreign_credits.into_inner().unwrap();
+        ordered_credits.sort_by_key(|(i, _)| *i);
+        let total_foreign_credit: f64 = ordered_credits.iter().map(|(_, c)| *c).sum();
         if total_foreign_credit > 0.0 {
             market.foreign_sector_balance += total_foreign_credit;
         }
@@ -9246,6 +9806,10 @@ tasks.par_iter_mut().for_each(|task| {
             }
             task.ctx.country.politics.ministry_config = ministry_config;
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "mx");
+        }
 
 
         #[cfg(feature = "diagnostic")]
@@ -9260,6 +9824,7 @@ tasks.par_iter_mut().for_each(|task| {
             let _count = crate::politics::anti_corruption::maybe_publish_inspectorate_tender(
                 task.ctx.country,
                 task.ctx.turn,
+                &state.market_history,
             );
         });
 
@@ -9309,6 +9874,10 @@ tasks.par_iter_mut().for_each(|task| {
             }
             task.ctx.country.politics.ministry_config = ministry_config;
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "mc");
+        }
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 13: SOCIAL PROGRAMS + CHARITY (THIRD PILLAR)
@@ -9346,6 +9915,10 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.turn,
             );
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "w3");
+        }
 
         // 9. RETAIL SAVINGS BONDS B2C WINDOW
         // Cash raised here funds NEXT turn's budget (causality rule)
@@ -9359,6 +9932,10 @@ tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             clear_secondary_debt_market(&mut task.ctx.country.debt_market, task.ctx.turn);
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "sb");
+        }
 
         #[cfg(feature = "diagnostic")]
         {
@@ -9494,6 +10071,10 @@ tasks.par_iter_mut().for_each(|task| {
                 );
             }
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "pol");
+        }
 
         // ═══════════════════════════════════════════════════════════
         // RESURRECTION PHASE 3: MoD B2B ORDER SUBMISSION
@@ -10022,6 +10603,10 @@ tasks.par_iter_mut().for_each(|task| {
             );
             task.ctx.country.phase22_kio_appeals = appeals;
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "cl");
+        }
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 15B: SMUGGLING + CUSTOMS EVASION RECOVERY
@@ -10043,6 +10628,10 @@ tasks.par_iter_mut().for_each(|task| {
                 trade_volume,
             );
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "ju");
+        }
 
         // Phase 9.2: Innovation Trading + Royalty Payments
         #[cfg(feature = "diagnostic")]
@@ -10100,25 +10689,32 @@ tasks.par_iter_mut().for_each(|task| {
                 let scale = building.current_employment as f64
                     * building.scale_factor.max(1) as f64
                     / 1000.0;
+                // DETERMINISM: `outputs` is a HashMap — iterate in sorted
+                // Commodity order so the sum and "primary output" pick are
+                // identical across processes (HashMap order is randomized).
+                let mut sorted_outputs: Vec<(Commodity, f64)> = building
+                    .active_method
+                    .outputs
+                    .iter()
+                    .map(|(&c, &q)| (c, q))
+                    .collect();
+                sorted_outputs.sort_by_key(|&(c, _)| c);
                 let total_output: f64 =
-                    building.active_method.outputs.values().sum::<f64>() * scale;
+                    sorted_outputs.iter().map(|&(_, q)| q).sum::<f64>() * scale;
                 if total_output > 0.0 {
                     *planned_production
                         .entry(building.owner_id.clone())
                         .or_insert(0.0) += total_output;
                 }
                 // Track the primary output commodity (first non-intangible output).
-                if !building.active_method.outputs.is_empty() {
-                    if let Some((&commodity, &_qty)) = building
-                        .active_method
-                        .outputs
-                        .iter()
-                        .find(|(_, &q)| q > 0.0)
+                if !sorted_outputs.is_empty() {
+                    if let Some((commodity, _qty)) =
+                        sorted_outputs.iter().find(|(_, q)| *q > 0.0)
                     {
                         if !commodity.is_intangible() {
                             company_output_commodities
                                 .entry(building.owner_id.clone())
-                                .or_insert(commodity);
+                                .or_insert(*commodity);
                         }
                     }
                 }
@@ -10387,6 +10983,10 @@ tasks.par_iter_mut().for_each(|task| {
                 tasks.iter().map(|t| t.deported_wealth).sum();
             if total_deported_wealth > 0.0 {
                 market.foreign_sector_balance += total_deported_wealth;
+            }
+            #[cfg(feature = "diagnostic")]
+            if true {
+                bsr_dump(&tasks, turn, "dp");
             }
         }
 
@@ -10679,6 +11279,10 @@ tasks.par_iter_mut().for_each(|task| {
                 &mut task.companies,
             );
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "ch");
+        }
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T28]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
@@ -11176,7 +11780,11 @@ tasks.par_iter_mut().for_each(|task| {
                     // freezing the B2B market (encumbrance = 0). Clamp the
                     // payout to real cash FIRST and pro-rate the member
                     // credits so credits == debit exactly (M0-neutral).
-                    let total_dividends: f64 = dividends.values().sum();
+                    let total_dividends: f64 = {
+                        let mut v: Vec<f64> = dividends.values().copied().collect();
+                        v.sort_by(|a, b| a.total_cmp(b));
+                        v.into_iter().sum()
+                    };
                     let payout =
                         total_dividends.min(company.available_cash.max(0.0));
                     let payout_ratio = if total_dividends > 0.0 {
@@ -11311,6 +11919,10 @@ tasks.par_iter_mut().for_each(|task| {
                 &urbanization_config,
             );
         });
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "ur");
+        }
 
             #[cfg(feature = "diagnostic")]
         {
@@ -11376,7 +11988,11 @@ tasks.par_iter_mut().for_each(|task| {
             eprintln!("MEMWALK t={} loans_issued={} consumer={} mbs={} outstand={} deferred={} extra={} finhist={} licmeth={} patents={} judgdebt={} stolenip={}",
                 turn, li, cl, mbs, ol, dt, ex, fh, inv, pat, jd, stk);
         }
-probe.checkpoint("turn_end", 4, turn, &market, &tasks);
+probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[turn_end]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market)); #[cfg(feature = "diagnostic")] eprintln!("FPC[turn_end]: t={}{}", turn, fingerprint_companies_fields(&tasks));
+        #[cfg(feature = "diagnostic")]
+        if true {
+            bsr_dump(&tasks, turn, "te");
+        }
 
         // Collect entities back from tasks into ctx.entities format.
         for task in tasks {
@@ -11464,6 +12080,28 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks);
             .entry(country_name.clone())
             .or_default();
         history.record(turn, total_reserves, total_deposits, total_loans);
+    }
+
+    #[cfg(feature = "diagnostic")]
+    {
+        for (country_name, ents) in entities.iter() {
+            for c in &ents.companies {
+                if let Some(bs) = &c.balance_sheet {
+                    let ldr = bs.ldr();
+                    if ldr > 0.9 {
+                        eprintln!(
+                            "LDRWATCH: t={} c={} bank={} ldr={:.4} loans={:.0} dep={:.0}",
+                            turn,
+                            country_name,
+                            c.id,
+                            ldr,
+                            bs.total_loans_outstanding(),
+                            bs.deposits
+                        );
+                    }
+                }
+            }
+        }
     }
 
     // Phase 29: Dynamic tariff adjustment based on economic conditions.
@@ -12686,10 +13324,19 @@ fn fingerprint_company(h: &mut impl std::hash::Hasher, c: &Company) {
     c.offered_wage_per_fte.to_bits().hash(h);
     c.available_cash.to_bits().hash(h);
     c.liquid_capital.to_bits().hash(h);
+    c.brokerage_account
+        .as_ref()
+        .map(|b| b.cash)
+        .unwrap_or(0.0)
+        .to_bits()
+        .hash(h);
+    c.debit_cash.to_bits().hash(h);
+    c.construction_escrow.to_bits().hash(h);
     c.company_capital.to_bits().hash(h);
     c.fixed_capital.to_bits().hash(h);
     c.liabilities.to_bits().hash(h);
     c.turn_settled_sales.to_bits().hash(h);
+    c.temporary_disruption_modifier.to_bits().hash(h);
     c.is_liquidated.hash(h);
     c.merged_into.hash(h);
 }
@@ -12706,7 +13353,9 @@ fn fingerprint_building(h: &mut impl std::hash::Hasher, b: &Building) {
     b.last_profit.to_bits().hash(h);
     b.last_fulfillment_ratio.to_bits().hash(h);
     b.inventory.len().hash(h);
-    for (commodity, qty) in &b.inventory {
+    let mut inv_entries: Vec<_> = b.inventory.iter().collect();
+    inv_entries.sort_by_key(|(c, _)| *c);
+    for (commodity, qty) in inv_entries {
         commodity.hash(h);
         qty.to_bits().hash(h);
     }
@@ -12716,7 +13365,12 @@ fn fingerprint_building(h: &mut impl std::hash::Hasher, b: &Building) {
         project.cost_spent.to_bits().hash(h);
         project.tranches_paid.to_bits().hash(h);
         project.paid_tranches.hash(h);
-        let delivered_total: f64 = project.delivered_materials.values().sum();
+        let delivered_total: f64 = {
+            let mut vals: Vec<f64> =
+                project.delivered_materials.values().copied().collect();
+            vals.sort_by(|a, b| a.total_cmp(b));
+            vals.into_iter().sum()
+        };
         delivered_total.to_bits().hash(h);
     } else {
         false.hash(h);
@@ -12784,6 +13438,301 @@ pub(crate) fn fingerprint_tasks(
         }
     }
     h.finish()
+}
+
+/// Diagnostic-only: split fingerprint into (market, country, companies,
+/// buildings) sub-hashes plus a per-task combined hash, so a divergence can
+/// be localized to a domain and a country without diffing whole save trees.
+#[cfg(feature = "diagnostic")]
+pub(crate) fn fingerprint_tasks_split(
+    tasks: &[CountryTask<'_>],
+    market: &GlobalMarket,
+) -> String {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut hm = DefaultHasher::new();
+    fingerprint_commodity_map(&mut hm, &market.base_prices);
+    fingerprint_commodity_map(&mut hm, &market.net_trade);
+    market.foreign_sector_balance.to_bits().hash(&mut hm);
+    market.offshore_capital.to_bits().hash(&mut hm);
+    let market_fp = hm.finish();
+
+    let mut parts = String::new();
+    for task in tasks {
+        let mut hc = DefaultHasher::new();
+        fingerprint_country(&mut hc, &task.ctx.country_name, task.ctx.country);
+        let country_fp = hc.finish();
+
+        let mut hco = DefaultHasher::new();
+        task.companies.len().hash(&mut hco);
+        for company in &task.companies {
+            fingerprint_company(&mut hco, company);
+        }
+        let company_fp = hco.finish();
+
+        let mut hb = DefaultHasher::new();
+        task.ctx.buildings.len().hash(&mut hb);
+        for building in &task.ctx.buildings {
+            fingerprint_building(&mut hb, building);
+        }
+        let building_fp = hb.finish();
+
+        parts.push_str(&format!(
+            " {}:c={:08x}/co={:08x}/b={:08x}",
+            task.ctx.country_name,
+            (country_fp >> 32) as u32,
+            (company_fp >> 32) as u32,
+            (building_fp >> 32) as u32
+        ));
+    }
+    format!("m={:08x}{}", (market_fp >> 32) as u32, parts)
+}
+
+/// Diagnostic-only: per-field building sub-hashes per country, so a
+/// `b=…` divergence can be localized to a specific hashed field
+/// (employment / reserve / profit / fulfillment / inventory / project).
+#[cfg(feature = "diagnostic")]
+pub(crate) fn fingerprint_buildings_fields(tasks: &[CountryTask<'_>]) -> String {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut parts = String::new();
+    for task in tasks {
+        let (mut he, mut hr, mut hp, mut hf, mut hi, mut hj, mut hx) = (
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+        );
+        for b in &task.ctx.buildings {
+            b.current_employment.hash(&mut he);
+            // x = the unhashed profit inputs: condition, scale_factor,
+            // worker_capacity, active_method economics.
+            b.condition.to_bits().hash(&mut hx);
+            b.scale_factor.hash(&mut hx);
+            b.worker_capacity.hash(&mut hx);
+            b.active_method.year.hash(&mut hx);
+            b.active_method.efficiency.to_bits().hash(&mut hx);
+            b.active_method.experts_ratio.to_bits().hash(&mut hx);
+            b.active_method.skilled_ratio.to_bits().hash(&mut hx);
+            b.active_method.basic_ratio.to_bits().hash(&mut hx);
+            for (k, v) in &b.active_method.inputs {
+                k.hash(&mut hx);
+                v.to_bits().hash(&mut hx);
+            }
+            for (k, v) in &b.active_method.outputs {
+                k.hash(&mut hx);
+                v.to_bits().hash(&mut hx);
+            }
+            b.deposit_id.hash(&mut hx);
+            b.reserve.to_bits().hash(&mut hr);
+            b.last_profit.to_bits().hash(&mut hp);
+            b.last_fulfillment_ratio.to_bits().hash(&mut hf);
+            b.inventory.len().hash(&mut hi);
+            let mut inv_entries: Vec<_> = b.inventory.iter().collect();
+            inv_entries.sort_by_key(|(c, _)| *c);
+            for (commodity, qty) in inv_entries {
+                commodity.hash(&mut hi);
+                qty.to_bits().hash(&mut hi);
+            }
+            if let Some(project) = &b.active_project {
+                project.progress.to_bits().hash(&mut hj);
+                project.cost_spent.to_bits().hash(&mut hj);
+                project.tranches_paid.to_bits().hash(&mut hj);
+            } else {
+                0u8.hash(&mut hj);
+            }
+        }
+        parts.push_str(&format!(
+            " {}:e={:08x}/r={:08x}/p={:08x}/f={:08x}/i={:08x}/j={:08x}/x={:08x}",
+            task.ctx.country_name,
+            (he.finish() >> 32) as u32,
+            (hr.finish() >> 32) as u32,
+            (hp.finish() >> 32) as u32,
+            (hf.finish() >> 32) as u32,
+            (hi.finish() >> 32) as u32,
+            (hj.finish() >> 32) as u32,
+            (hx.finish() >> 32) as u32
+        ));
+    }
+    parts
+}
+
+/// Diagnostic-only: per-field company sub-hashes per country — mirrors
+/// [`fingerprint_buildings_fields`] — so a `co=…` divergence can be
+/// localized to a hashed field (fte demand/fulfillment, wage, cash,
+/// Per-bank balance-sheet dump for cross-process divergence bisection.
+#[cfg(feature = "diagnostic")]
+pub(crate) fn bsr_dump(tasks: &[CountryTask<'_>], turn: u32, tag: &str) {
+    if std::env::var("BSRDUMP").is_err() {
+        return;
+    }
+    // BSRFPC (aggregated per-country field hashes) always emits — cheap and
+    // sufficient to bisect which phase first diverges.
+    eprintln!("BSRFPC[{}]: t={}{}", tag, turn, fingerprint_companies_fields(tasks));
+    // BSRDUMP (per-company bit dumps) only emits inside SES_BSR_LO..=HI to
+    // bound log volume. Defaults to the historical 34..=40 ∪ 62..=80 windows.
+    let lo: u32 = std::env::var("SES_BSR_LO").ok().and_then(|s| s.parse().ok()).unwrap_or(34);
+    let hi: u32 = std::env::var("SES_BSR_HI").ok().and_then(|s| s.parse().ok()).unwrap_or(40);
+    let in_window = (lo..=hi).contains(&turn) || (62..=80).contains(&turn);
+    if !in_window {
+        return;
+    }
+    for task in tasks {
+        for c in &task.companies {
+            if let Some(ref bs) = c.balance_sheet {
+                eprintln!("BSRDUMP[{}]: t={} {}:{} res={:016x} dep={:016x} t1={:016x}", tag, turn, task.ctx.country_name, c.id, bs.reserves_at_central_bank.to_bits(), bs.deposits.to_bits(), bs.tier_1_capital.to_bits());
+            }
+        }
+    }
+}
+
+/// capital, liabilities, sales, disruption, lifecycle flags).
+#[cfg(feature = "diagnostic")]
+pub(crate) fn fingerprint_companies_fields(tasks: &[CountryTask<'_>]) -> String {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut parts = String::new();
+    for task in tasks {
+        let (mut hf, mut hw, mut hk, mut hl, mut lf, mut lb, mut hs, mut hd, mut hx, mut hp, mut hb, mut he, mut hd2, mut ht, mut hl2, mut hc2, mut hg) = (
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+            DefaultHasher::new(),
+        );
+        for c in &task.companies {
+            c.id.hash(&mut hf);
+            c.fulfilled_fte.hash(&mut hf);
+            c.target_fte_demand.hash(&mut hf);
+            c.physical_fte_demand.hash(&mut hf);
+            c.furloughed_workers_count.to_bits().hash(&mut hf);
+            c.offered_wage_per_fte.to_bits().hash(&mut hw);
+            c.available_cash.to_bits().hash(&mut hk);
+            c.liquid_capital.to_bits().hash(&mut hk);
+            c.brokerage_account
+                .as_ref()
+                .map(|b| b.cash)
+                .unwrap_or(0.0)
+                .to_bits()
+                .hash(&mut hk);
+            c.company_capital.to_bits().hash(&mut hl);
+            c.fixed_capital.to_bits().hash(&mut lf);
+            c.liabilities.to_bits().hash(&mut lb);
+            c.turn_settled_sales.to_bits().hash(&mut hs);
+            c.temporary_disruption_modifier.to_bits().hash(&mut hd);
+            c.is_liquidated.hash(&mut hx);
+            c.merged_into.hash(&mut hx);
+            // Unhashed inputs feeding `company_capital` — a divergence in
+            // `ccap` with all other fields matching lands in one of these.
+            c.procurement_credit.to_bits().hash(&mut hp);
+            c.open_bid_credit.to_bits().hash(&mut hp);
+            c.debit_cash.to_bits().hash(&mut hp);
+            c.construction_escrow.to_bits().hash(&mut hp);
+            c.target_wage.to_bits().hash(&mut hp);
+            c.outstanding_loans
+                .iter()
+                .map(|l| l.outstanding_balance)
+                .sum::<f64>()
+                .to_bits()
+                .hash(&mut hp);
+            if let Some(ref bs) = c.balance_sheet {
+                c.id.hash(&mut hb);
+                bs.reserves_at_central_bank.to_bits().hash(&mut hb);
+                bs.deposits.to_bits().hash(&mut hd2);
+                bs.tier_1_capital.to_bits().hash(&mut ht);
+                bs.loans_issued
+                    .iter()
+                    .map(|l| l.outstanding_balance)
+                    .sum::<f64>()
+                    .to_bits()
+                    .hash(&mut hl2);
+                bs.consumer_loans_outstanding.to_bits().hash(&mut hc2);
+                // Catch-all: every remaining balance-sheet field so no
+                // unhashed ledger line can carry the divergence.
+                c.id.hash(&mut hg);
+                bs.cb_lombard_loans.to_bits().hash(&mut hg);
+                bs.cb_deposit_facility_balance.to_bits().hash(&mut hg);
+                bs.interbank_loans_given
+                    .values()
+                    .sum::<f64>()
+                    .to_bits()
+                    .hash(&mut hg);
+                bs.interbank_loans_taken
+                    .values()
+                    .sum::<f64>()
+                    .to_bits()
+                    .hash(&mut hg);
+                bs.securities.to_bits().hash(&mut hg);
+                bs.real_estate.to_bits().hash(&mut hg);
+                bs.issued_bonds.to_bits().hash(&mut hg);
+                bs.mbs_holdings.len().hash(&mut hg);
+                for loan in &bs.loans_issued {
+                    loan.id.hash(&mut hg);
+                    loan.borrower_id.hash(&mut hg);
+                    loan.outstanding_balance.to_bits().hash(&mut hg);
+                    loan.principal.to_bits().hash(&mut hg);
+                    std::mem::discriminant(&loan.status).hash(&mut hg);
+                    loan.turns_remaining.hash(&mut hg);
+                }
+                for k in bs.extra.keys() {
+                    k.hash(&mut hg);
+                }
+            }
+            c.extra
+                .get("store_inventory_value")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0)
+                .to_bits()
+                .hash(&mut he);
+            c.extra
+                .get("contract_receivables")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0)
+                .to_bits()
+                .hash(&mut he);
+            c.id.hash(&mut he);
+        }
+        parts.push_str(&format!(
+            " {}:fte={:08x}/w={:08x}/cash={:08x}/ccap={:08x}/fcap={:08x}/liab={:08x}/sales={:08x}/disr={:08x}/life={:08x}/proc={:08x}/bsr={:08x}/bsd={:08x}/bst={:08x}/bsl={:08x}/bsc={:08x}/bsx={:08x}/xtr={:08x}",
+            task.ctx.country_name,
+            (hf.finish() >> 32) as u32,
+            (hw.finish() >> 32) as u32,
+            (hk.finish() >> 32) as u32,
+            (hl.finish() >> 32) as u32,
+            (lf.finish() >> 32) as u32,
+            (lb.finish() >> 32) as u32,
+            (hs.finish() >> 32) as u32,
+            (hd.finish() >> 32) as u32,
+            (hx.finish() >> 32) as u32,
+            (hp.finish() >> 32) as u32,
+            (hb.finish() >> 32) as u32,
+            (hd2.finish() >> 32) as u32,
+            (ht.finish() >> 32) as u32,
+            (hl2.finish() >> 32) as u32,
+            (hc2.finish() >> 32) as u32,
+            (hg.finish() >> 32) as u32,
+            (he.finish() >> 32) as u32
+        ));
+    }
+    parts
 }
 
 /// v4.18 WS2: Deterministic fingerprint over the observable post-turn state.

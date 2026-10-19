@@ -16,7 +16,7 @@ use crate::society::geography::{DemographicClass, Region, RuralClass};
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 type HashMap<K, V> = FxHashMap<K, V>;
 
@@ -239,7 +239,20 @@ fn commodity_wealth_gate(commodity: Commodity) -> f64 {
 /// asymptotic, so both the stock and the demand it funds decay smoothly
 /// toward the wage-sustainable level instead of hitting a zero cliff
 /// (the crucible's −81%/−51% single-turn collapses).
-const MAX_SAVINGS_DRAWDOWN_RATE: f64 = 0.20;
+/// v4.18 WS1 follow-up: bounded-dissaving rate — the ceiling on how much
+/// of the pre-income savings STOCK may be drawn per turn. Two constraints
+/// shape it: the stock must decay asymptotically (never a cliff), and the
+/// mandated `|ΔC/C| < 0.15` bounds the depletion decay — when a class is
+/// stock-funded, C ≈ r×S and S shrinks ≈ r per turn, so r must stay under
+/// the gate band. 0.12 leaves margin for measurement noise.
+const MAX_SAVINGS_DRAWDOWN_RATE: f64 = 0.12;
+
+/// v4.18 WS1 follow-up: permanent-income smoothing — the EWMA update rate
+/// for `ClassDemographics::smoothed_income`. α = 0.35 damps ~2/3 of a
+/// one-turn income spike within the first post-shock turn while tracking
+/// a persistent shift inside ~4 turns; the residual flows into the stock
+/// and is released by `MAX_SAVINGS_DRAWDOWN_RATE` instead of spiking C.
+const INCOME_SMOOTHING_ALPHA: f64 = 0.35;
 
 /// v4.18 WS1: solvency signal (savings/capita) at which durable upgrade
 /// demand reaches full strength — scaled linearly below it so the
@@ -269,19 +282,41 @@ fn smoothed_spending_power(live_spc: f64, cached_spc: f64, habitual_anchor: f64)
 /// v4.18 WS1: per-turn spending capacity in money terms — the real bound on
 /// dissaving applied to demanded value in `build_consumer_demand`.
 ///
-/// `allocated_fte × average_wage` is this turn's wage-bill proxy (zero for
-/// classes out of wage work — a furloughed or rentier class); the second
-/// term is the bounded drawdown of the savings stock. Spending is capped
-/// at income + ≤20% of the stock per turn, so the stock decays
-/// geometrically and can never be blown out in a turn or two, while a
-/// wage-earning class converges to its wage-sustainable basket instead of
-/// collapsing.
-fn class_spend_capacity(
+/// `savings` is a flow-through pocket: this turn's income (wages,
+/// dividends, transfers, rents) is credited into it before the B2C phase,
+/// so the balance at demand-build time is stock+income commingled. The
+/// `savings_stock_turn_start` marker (snapshot at turn start) separates
+/// the two: current income is spendable in full — it was just earned —
+/// while the pre-existing stock may only be drawn down at
+/// `MAX_SAVINGS_DRAWDOWN_RATE` per turn. The stock therefore decays
+/// geometrically and can never be blown out in a turn or two, income dips
+/// are covered by the bounded draw (the mandate's smoothing), and a class
+/// with neither income nor stock honestly collapses to zero demand.
+pub fn class_spend_capacity(
     demographics: &crate::society::geography::ClassDemographics,
     average_wage: f64,
 ) -> f64 {
-    demographics.allocated_fte.max(0.0) * average_wage.max(0.0)
-        + demographics.savings.max(0.0) * MAX_SAVINGS_DRAWDOWN_RATE
+    let _ = average_wage; // income is measured from the pocket, not proxied
+    let stock = demographics.savings_stock_turn_start.max(0.0);
+    // Permanent income (EWMA of realized inflow), not the raw inflow:
+    // spending the live figure turn-for-turn re-creates the wage-cycle
+    // volatility the mandate forbids; the unspent share of a spike sits
+    // in `savings` and is released by the bounded drawdown anyway.
+    let raw = demographics.smoothed_income.max(0.0) + stock * MAX_SAVINGS_DRAWDOWN_RATE;
+    // Conservation ceiling: never demand beyond the whole balance.
+    let target = raw.min(demographics.savings.max(0.0));
+    // Habit-formation envelope: consumption retunes at ≤15%/turn. On an
+    // income dip the floor holds above target and the difference drains
+    // the stock (the mandate's savings draw); on a spike the ceiling
+    // paces the rise and the excess piles into the stock. When the stock
+    // is exhausted `target` collapses to the live balance and the class
+    // honestly lands on income — the physical floor wins over the band.
+    let prev = demographics.prev_spend_capacity;
+    if prev <= 0.0 {
+        target
+    } else {
+        target.clamp(prev * 0.85, prev * 1.15)
+    }
 }
 
 /// v4.18 WS1: continuous wealth-gate factor. The gate used to toggle
@@ -361,38 +396,65 @@ fn compute_durable_demand(
         return 0.0;
     }
 
-    // 1. Target stock = base_per_capita × population (the "saturation" level)
-    let target_stock = base_per_capita * demographics.population as f64;
+    // Cohort `count` is per-capita (units held per citizen) — see
+    // `HouseholdDurableCohort::count`. All stock terms below are
+    // per-capita; the final demand is scaled back by population.
+    let population = demographics.population.max(0) as f64;
+    if population <= 0.0 {
+        return 0.0;
+    }
 
-    // 2. Current stock = sum of cohort counts
-    let current_stock: f64 = demographics
+    // 1. Equilibrium ownership target. `base_per_capita` is the basket's
+    //    desired consumption FLOW (units/citizen/turn); the steady-state
+    //    stock that flow sustains is flow × lifespan — at equilibrium,
+    //    purchases = wear-out = stock / durability.
+    let durability = commodity.household_durable_turns();
+    let target_pc = base_per_capita * if durability.is_finite() { durability } else { 1.0 };
+
+    // 2. Current stock (per-capita) — all cohorts of this commodity.
+    let current_pc: f64 = demographics
         .household_durables
         .iter()
         .filter(|c| c.commodity == commodity)
         .map(|c| c.count)
         .sum();
 
-    // 3. Worn-out stock = cohorts with condition < 0.2 (replacement trigger)
-    let worn_out: f64 = demographics
+    // 3. Serviceable stock = cohorts still usable (condition >= 0.2).
+    //    Worn-out and scrapped units no longer serve the household, so
+    //    they open a replacement deficit — a discarded garment still
+    //    needs replacing; the need does not die with the cohort. This is
+    //    what prevents the old whole-cohort `worn_out` lump (the entire
+    //    seed wardrobe demanded at once, then demand vanishing when the
+    //    cohort was scrapped — the synchronized t≈15 Clothing cliff).
+    let serviceable_pc: f64 = demographics
         .household_durables
         .iter()
-        .filter(|c| c.commodity == commodity && c.condition < 0.2)
+        .filter(|c| c.commodity == commodity && c.condition >= 0.2)
         .map(|c| c.count)
         .sum();
 
-    // 4. Upgrade demand = wealth-driven desire for higher quality.
+    // 4. Replacement/saturation demand — ONE smooth deficit-to-target
+    //    path covering initial build-out, wear-and-tear replacement, and
+    //    post-scrapping repurchase. Fills 10% of the per-capita shortfall
+    //    per turn, scaled by the same solvency ramp as before.
+    let deficit_pc = (target_pc - serviceable_pc).max(0.0);
+    let saturation_factor =
+        (effective_spc / DURABLE_SATURATION_SPC_SCALE).clamp(0.0, 1.0);
+    let replacement_pc = deficit_pc * 0.10 * saturation_factor;
+
+    // 5. Upgrade demand = wealth-driven desire for higher quality.
     // v4.18 WS1: ramps in linearly with solvency instead of toggling at 500.
     let upgrade_factor = (effective_spc / DURABLE_UPGRADE_SPC_SCALE).clamp(0.0, 1.0);
-    let upgrade_demand = if upgrade_factor > 0.0 && current_stock > 0.0 {
+    let upgrade_pc = if upgrade_factor > 0.0 && current_pc > 0.0 {
         let avg_quality: f64 = demographics
             .household_durables
             .iter()
             .filter(|c| c.commodity == commodity)
             .map(|c| c.quality * c.count)
             .sum::<f64>()
-            / current_stock;
+            / current_pc;
         if avg_quality < 0.9 {
-            current_stock * 0.05 * upgrade_factor
+            current_pc * 0.05 * upgrade_factor
         } else {
             0.0
         }
@@ -400,21 +462,24 @@ fn compute_durable_demand(
         0.0
     };
 
-    // 5. Saturation demand = fill gap toward target stock (wealth-gated,
-    // gradual). v4.18 WS1: the 10%-of-gap lump is scaled by a linear
-    // solvency ramp (full strength at DURABLE_SATURATION_SPC_SCALE) so it
-    // fades in/out rather than appearing and vanishing across the old
-    // binary 100.0 threshold each turn.
-    let saturation_demand = if current_stock < target_stock {
-        let gap = target_stock - current_stock;
-        let saturation_factor =
-            (effective_spc / DURABLE_SATURATION_SPC_SCALE).clamp(0.0, 1.0);
-        gap * 0.10 * saturation_factor
-    } else {
-        0.0
-    };
-
-    (worn_out + upgrade_demand + saturation_demand) * era_mult * gate_factor
+    let out = (replacement_pc + upgrade_pc) * population * era_mult * gate_factor;
+    #[cfg(feature = "diagnostic")]
+    if commodity == Commodity::Clothing && demographics.population > 500_000 {
+        eprintln!(
+            "DURDBG: yr={} pop={} stk={:.3} svc={:.3} tgt={:.3} rep={:.4} up={:.4} gf={:.3} espc={:.1} out={:.0}",
+            year,
+            demographics.population,
+            current_pc,
+            serviceable_pc,
+            target_pc,
+            replacement_pc,
+            upgrade_pc,
+            gate_factor,
+            effective_spc,
+            out
+        );
+    }
+    out
 }
 
 /// Phase 47: Degrade household durable cohorts by one turn.
@@ -640,14 +705,21 @@ pub fn build_consumer_demand(
         // stock, so it fades asymptotically: no boom funded by the full
         // anchor, no binary `savings > 0` term dropping it to zero — a
         // class at zero savings still collapses honestly.
+        // The gate signal is SPENDABLE power per capita — smoothed income
+        // plus the bounded stock draw, wrapped in the ±15%/turn habit
+        // envelope (`class_spend_capacity`). The raw `savings` balance is
+        // deliberately NOT the gate: a balance cliffs to ~0 in a single
+        // turn when rent/debit pressure drains the stock, which was the
+        // t≈16 demand collapse. Capacity decays asymptotically instead.
         let live_spc = if demographics.population > 0 {
-            demographics.savings / demographics.population as f64
+            class_spend_capacity(demographics, average_wage)
+                / demographics.population as f64
         } else {
             0.0
         };
         let effective_spc = smoothed_spending_power(
             live_spc,
-            demographics.savings_per_capita,
+            live_spc,
             demographics.habitual_savings_per_capita,
         );
 
@@ -741,6 +813,20 @@ pub fn build_consumer_demand(
         // therefore never be spent faster than ~20%/turn — drawdown is
         // geometric, C decays smoothly toward the wage-sustainable basket,
         // and a class with neither income nor savings demands nothing.
+        #[cfg(feature = "diagnostic")]
+        if class_map.is_empty() {
+            eprintln!(
+                "RETAILDBG: t={} r={} cls={} pop={} sav={:.0} mrk={:.0} inc={:.0} espc={:.1} EMPTY_MAP",
+                current_turn,
+                region.id,
+                class_id_str,
+                demographics.population,
+                demographics.savings,
+                demographics.savings_stock_turn_start,
+                demographics.smoothed_income,
+                effective_spc,
+            );
+        }
         if !class_map.is_empty() {
             let demand_value: f64 = class_map
                 .iter()
@@ -757,6 +843,21 @@ pub fn build_consumer_demand(
             } else {
                 1.0
             };
+            #[cfg(feature = "diagnostic")]
+            eprintln!(
+                "RETAILDBG: t={} r={} cls={} pop={} sav={:.0} mrk={:.0} inc={:.0} cap={:.0} dv={:.0} sc={:.3} espc={:.1}",
+                current_turn,
+                region.id,
+                class_id_str,
+                demographics.population,
+                demographics.savings,
+                demographics.savings_stock_turn_start,
+                demographics.smoothed_income,
+                capacity,
+                demand_value,
+                scale,
+                effective_spc,
+            );
             if scale > 0.0 {
                 let entry = demand.demand.entry(key.clone()).or_default();
                 for (commodity, qty) in class_map {
@@ -1125,6 +1226,10 @@ pub struct B2cClearingResult {
     pub store_revenue: BTreeMap<String, f64>,
     /// Phase 25: Per-commodity (quantity_sold, weighted_average_price) for CPI calculation.
     pub retail_prices: Vec<(Commodity, f64, f64)>,
+    /// Volume-weighted average quality of units sold per commodity.
+    /// Used when installing purchased durables so cohort quality reflects
+    /// what was actually bought rather than a synthetic constant.
+    pub sold_quality: BTreeMap<Commodity, f64>,
 }
 
 /// Clear B2C markets with consumer inertia (Phase 6.5, Phase R6).
@@ -1150,16 +1255,46 @@ pub fn clear_b2c_markets(
     stores: &mut [CommercialBuilding],
     current_turn: u32,
     gen_config: Option<&crate::economy::generative_goods_config::GenerativeGoodsConfig>,
+    region_store_ids: Option<&HashSet<String>>,
 ) -> B2cClearingResult {
     let mut units_sold: BTreeMap<Commodity, f64> = BTreeMap::new();
     let mut store_revenue: BTreeMap<String, f64> = BTreeMap::new();
     let mut retail_price_volume: BTreeMap<Commodity, (f64, f64)> = BTreeMap::new(); // (total_value, total_volume)
+    let mut quality_volume: BTreeMap<Commodity, f64> = BTreeMap::new(); // quality-weighted units
     let config = retail_config();
 
     // Group offers by commodity
     let mut by_commodity: BTreeMap<Commodity, Vec<&mut StoreOffer>> = BTreeMap::new();
     for offer in offers {
         by_commodity.entry(offer.commodity).or_default().push(offer);
+    }
+
+    // Demand with no positive offer anywhere never enters the clearing loop
+    // below — record the full demand as unmet on the stores serving this
+    // market, or the shortage is invisible to next turn's restock
+    // (`demand_hint` collapses to 0 and the recovered pile is pulled as an
+    // unbounded cold-start burst).
+    for (commodity, &dem) in &demand.total_demand {
+        if dem <= 0.0 {
+            continue;
+        }
+        let supplied = by_commodity
+            .get(commodity)
+            .map(|os| os.iter().any(|o| o.quantity > 0.0))
+            .unwrap_or(false);
+        if supplied {
+            continue;
+        }
+        for store in stores.iter_mut() {
+            let serving = region_store_ids
+                .map(|ids| ids.contains(&store.micro_region_id))
+                .unwrap_or(true);
+            if serving {
+                if let Some(profile) = &mut store.retail_profile {
+                    profile.unmet_demand_pending.insert(*commodity, dem);
+                }
+            }
+        }
     }
 
     // Clear each commodity market
@@ -1170,6 +1305,12 @@ pub fn clear_b2c_markets(
         if total_demand == 0.0 || total_supply == 0.0 {
             continue;
         }
+        // Market participants entitled to observe this commodity's
+        // unmet-demand signal: the stores that offered it here.
+        let offerer_ids: HashSet<String> = commodity_offers
+            .iter()
+            .map(|o| o.store_id.clone())
+            .collect();
 
         // Phase 19C: For quality durables, blend the utility with a quality
         // premium weighted by the average wealth-tier quality preference.
@@ -1260,6 +1401,9 @@ pub fn clear_b2c_markets(
             entry.0 += revenue; // total_value
             entry.1 += allocated; // total_volume
 
+            // Quality-weighted volume for durable-cohort installation.
+            *quality_volume.entry(commodity).or_insert(0.0) += offer.quality * allocated;
+
             // Update store sales tracking and consume the physical units
             // sold — without this the same batches resell every turn
             // (physical-conservation violation: goods reach households while
@@ -1275,23 +1419,66 @@ pub fn clear_b2c_markets(
 
         // Phase 45: Track unmet demand for dynamic pricing feedback.
         // remaining_demand is the quantity that could not be fulfilled.
+        // Attribution covers every store serving this market — region members
+        // (they observe the local shortage even while stocked out) plus
+        // offerers/sellers elsewhere. Recording only sellers made a stocked-
+        // out store invisible to its own shortage: `demand_hint` zeroed on
+        // the gap turn and the next restock cold-started a full-pile burst
+        // (the B2C revenue sawtooth).
+        //
+        // The shortage is shared, not duplicated: attributing the FULL
+        // remainder to every serving store overstated each store's demand
+        // signal ~N_stores×, so once the restock budget spread across rows
+        // every store simultaneously ordered toward a region-sized shelf
+        // target and the accumulated shortage released into realized sales
+        // in a single turn (the V418-2 +63% step at t74). Laplace-smoothed
+        // market-share attribution gives each store `unmet × (sold_i + 1) /
+        // (sold_total + n)` — every serving store observes a nonzero slice
+        // (the anti-invisibility property above) while the attributed
+        // signals sum to exactly the market shortage.
+        let serves_market = |store: &CommercialBuilding, commodity: Commodity| {
+            let in_region = region_store_ids
+                .map(|ids| ids.contains(&store.micro_region_id))
+                .unwrap_or(true);
+            in_region
+                || offerer_ids.contains(&store.id)
+                || store
+                    .retail_profile
+                    .as_ref()
+                    .map(|p| p.units_sold_pending.contains_key(&commodity))
+                    .unwrap_or(false)
+        };
         if remaining_demand > 0.0 {
-            // Record unmet demand on stores that sold this commodity this turn.
+            let n_serving = stores
+                .iter()
+                .filter(|s| serves_market(s, commodity))
+                .count() as f64;
+            let total_sold = units_sold.get(&commodity).copied().unwrap_or(0.0);
+            let denom = total_sold + n_serving;
             for store in stores.iter_mut() {
-                if let Some(profile) = &mut store.retail_profile {
-                    if profile.units_sold_pending.contains_key(&commodity) {
+                if serves_market(store, commodity) {
+                    if let Some(profile) = &mut store.retail_profile {
+                        let sold_i = profile
+                            .units_sold_pending
+                            .get(&commodity)
+                            .copied()
+                            .unwrap_or(0.0);
                         *profile
                             .unmet_demand_pending
                             .entry(commodity)
-                            .or_insert(0.0) = remaining_demand;
+                            .or_insert(0.0) = if denom > 0.0 {
+                            remaining_demand * (sold_i + 1.0) / denom
+                        } else {
+                            remaining_demand
+                        };
                     }
                 }
             }
         } else {
             // No unmet demand — clear the tracking for this commodity
             for store in stores.iter_mut() {
-                if let Some(profile) = &mut store.retail_profile {
-                    if profile.units_sold_pending.contains_key(&commodity) {
+                if serves_market(store, commodity) {
+                    if let Some(profile) = &mut store.retail_profile {
                         profile.unmet_demand_pending.insert(commodity, 0.0);
                     }
                 }
@@ -1321,10 +1508,20 @@ pub fn clear_b2c_markets(
         .map(|(commodity, (value, volume))| (commodity, volume, value / volume))
         .collect();
 
+    // Volume-weighted average quality of the units actually sold.
+    let sold_quality: BTreeMap<Commodity, f64> = quality_volume
+        .into_iter()
+        .filter_map(|(commodity, qv)| {
+            let vol = units_sold.get(&commodity).copied().unwrap_or(0.0);
+            (vol > 0.0).then(|| (commodity, qv / vol))
+        })
+        .collect();
+
     B2cClearingResult {
         units_sold,
         store_revenue,
         retail_prices,
+        sold_quality,
     }
 }
 
@@ -1393,8 +1590,43 @@ pub fn settle_b2c_clearing(
         // keep the cached field equal to savings/population after every
         // mutation; the B2C path now upholds it too.
         demo.savings_per_capita = live_spc;
+        // v4.18 WS1: refresh the permanent-income EWMA on the same
+        // pre-debit basis `class_spend_capacity` reads next turn —
+        // `savings` here still holds this turn's wage/dividend/transfer
+        // inflows (post-credit, pre-retail-debit), so the difference over
+        // the turn-start marker is the realized income signal.
+        let income_now = (demo.savings - demo.savings_stock_turn_start).max(0.0);
+        demo.smoothed_income +=
+            INCOME_SMOOTHING_ALPHA * (income_now - demo.smoothed_income);
+        // Refresh next turn's envelope basis on the same pre-debit basis
+        // (smoothed income + bounded stock draw) — but store the CLAMPED
+        // value, not the raw target. If the raw basis were stored, an
+        // income pulse would ratchet the band itself (basis jumps → next
+        // turn's ceiling jumps 15% on top of the jump), which is exactly
+        // the t≈12-14 capacity spike the crucible caught. Storing the
+        // clamped value makes the ±15% band truly recursive: the sequence
+        // of spendable-power values can never move faster than the band.
+        let raw_basis = demo.smoothed_income.max(0.0)
+            + demo.savings_stock_turn_start.max(0.0) * MAX_SAVINGS_DRAWDOWN_RATE;
+        demo.prev_spend_capacity = if demo.prev_spend_capacity <= 0.0 {
+            raw_basis
+        } else {
+            raw_basis.clamp(
+                demo.prev_spend_capacity * 0.85,
+                demo.prev_spend_capacity * 1.15,
+            )
+        };
+        // The habitual anchor tracks the same spendable-power signal the
+        // gate reads (capacity per capita), not the raw balance — the
+        // anchor is "what this class normally affords," which is its
+        // sustainable spend, not its instantaneous pocket.
+        let capacity_spc = if demo.population > 0 {
+            demo.prev_spend_capacity / demo.population as f64
+        } else {
+            0.0
+        };
         demo.habitual_savings_per_capita += HABITUAL_SPENDING_ANCHOR_ALPHA
-            * (live_spc - demo.habitual_savings_per_capita);
+            * (capacity_spc - demo.habitual_savings_per_capita);
         if demo.habitual_savings_per_capita < 0.0 {
             demo.habitual_savings_per_capita = 0.0;
         }
@@ -1429,6 +1661,36 @@ pub fn settle_b2c_clearing(
     // `country.tax_rates.vat` for each commodity's VAT category.
     let blended_vat_rate = compute_blended_vat_rate(consumer_demand, vat_rates);
 
+    // v4.18 WS1 follow-up: cumulative per-class spending budget for THIS
+    // settle — the bounded-dissaving capacity (`prev_spend_capacity`, just
+    // refreshed above to this turn's clamped value). Demand was scaled to
+    // capacity at `demand_value_price` (market/reference prices), but the
+    // money leg debits at *retail* price — when retail clears above the
+    // scaling basis the class spends past its envelope and national C jumps
+    // >15%/turn (the V418-2 t≈19 breach). Capacity is the designed bound;
+    // enforce it at the money-movement point: cumulative class debits in
+    // this clearing may not exceed the class's refreshed capacity. Remaining
+    // capacity is shared across stores so the first stores cannot consume
+    // a later class's budget — each class draws its own budget only.
+    let mut class_capacity: std::collections::HashMap<(bool, DemographicClass), f64> =
+        std::collections::HashMap::new();
+    for (_, class) in consumer_demand.demand.keys() {
+        if class_capacity.contains_key(&(class.is_rural(), *class)) {
+            continue;
+        }
+        let cap = class
+            .to_rural()
+            .and_then(|rc| region.class_demographics.rural_classes.get(&rc))
+            .or_else(|| {
+                class
+                    .to_urban()
+                    .and_then(|uc| region.class_demographics.urban_classes.get(&uc))
+            })
+            .map(|demo| demo.prev_spend_capacity.max(0.0))
+            .unwrap_or(0.0);
+        class_capacity.insert((class.is_rural(), *class), cap);
+    }
+
     for (store_id, revenue) in store_revenue {
         if *revenue <= 0.0 {
             continue;
@@ -1456,6 +1718,15 @@ pub fn settle_b2c_clearing(
                     if class_total <= 0.0 {
                         continue;
                     }
+                    // Bound the debit by the class's remaining bounded-
+                    // dissaving capacity (see `class_capacity` above).
+                    let budget = class_capacity
+                        .get_mut(&(*is_rural, *class_key))
+                        .unwrap();
+                    if *budget <= 0.0 {
+                        continue;
+                    }
+                    let class_total = class_total.min(*budget);
                     let class_key_str = class_key.to_string();
                     let actual = crate::economy::transfer_settler::debit_b2c_class_savings(
                         region,
@@ -1463,6 +1734,7 @@ pub fn settle_b2c_clearing(
                         &class_key_str,
                         class_total,
                     );
+                    *budget -= actual;
                     if actual > 0.0 {
                         let actual_vat = actual * blended_vat_rate / (1.0 + blended_vat_rate);
                         municipal_revenue += actual - actual_vat;
@@ -1484,18 +1756,34 @@ pub fn settle_b2c_clearing(
             // Phase 41: Debit citizen savings by the FULL amount (base + VAT share),
             // but credit company only the base. VAT goes to treasury.
             let class_vat = vat_amount * share;
+            // Bound the TOTAL debit (base + VAT) by the class's remaining
+            // bounded-dissaving capacity (see `class_capacity` above);
+            // scale base and VAT proportionally to keep the tax ratio.
+            let budget = class_capacity
+                .get_mut(&(*is_rural, *class_key))
+                .unwrap();
+            if *budget <= 0.0 {
+                continue;
+            }
+            let total_debit = class_revenue + class_vat;
+            let scale = if total_debit > *budget {
+                *budget / total_debit
+            } else {
+                1.0
+            };
             let class_key_str = class_key.to_string();
             let result = settle_b2c_purchase(
                 companies,
                 company_idx,
-                class_revenue,
+                class_revenue * scale,
                 region,
                 *is_rural,
                 &class_key_str,
-                class_vat,
+                class_vat * scale,
             );
             if let Ok(r) = result {
                 total_settled += r.amount_transferred;
+                *budget -= r.amount_transferred;
                 // Phase 94: Accumulate ACTUAL VAT collected (clamped to citizen
                 // savings), not theoretical VAT. Theoretical VAT credits
                 // treasury more than citizens actually paid, creating M0.
@@ -1969,7 +2257,7 @@ mod tests {
         let mut stores: Vec<CommercialBuilding> = Vec::new();
         let cfg = crate::economy::generative_goods_config::GenerativeGoodsConfig::default();
 
-        let result = clear_b2c_markets(&mut offers, &demand, &mut stores, 100, Some(&cfg));
+        let result = clear_b2c_markets(&mut offers, &demand, &mut stores, 100, Some(&cfg), None);
 
         // At least one store should have sold something.
         let total_revenue: f64 = result.store_revenue.values().sum();
@@ -2018,7 +2306,7 @@ mod tests {
         let mut stores: Vec<CommercialBuilding> = Vec::new();
         let cfg = crate::economy::generative_goods_config::GenerativeGoodsConfig::default();
 
-        let result = clear_b2c_markets(&mut offers, &demand, &mut stores, 100, Some(&cfg));
+        let result = clear_b2c_markets(&mut offers, &demand, &mut stores, 100, Some(&cfg), None);
 
         // Cheap utility = 1/10 + 1.25×0.5/10 = 0.1 + 0.0625 = 0.1625
         // Premium utility = 1/50 + 1.25×2/50 = 0.02 + 0.05 = 0.07
@@ -2055,7 +2343,7 @@ mod tests {
         let mut stores: Vec<CommercialBuilding> = Vec::new();
         let cfg = crate::economy::generative_goods_config::GenerativeGoodsConfig::default();
 
-        let result = clear_b2c_markets(&mut offers, &demand, &mut stores, 100, Some(&cfg));
+        let result = clear_b2c_markets(&mut offers, &demand, &mut stores, 100, Some(&cfg), None);
 
         // Both stores have the same utility (quality ignored for non-durables).
         // Each should sell ~25 units (deterministic sort by utility tie).
@@ -2351,6 +2639,9 @@ mod tests {
         };
         for _turn in 0..60 {
             demo.savings = savings;
+            // Marker == balance models zero income this turn: capacity is
+            // then purely the bounded stock draw.
+            demo.savings_stock_turn_start = savings;
             let capacity = class_spend_capacity(&demo, 0.0);
             assert!(
                 capacity <= savings * MAX_SAVINGS_DRAWDOWN_RATE + 1e-9,
@@ -2378,13 +2669,15 @@ mod tests {
     fn test_spend_capacity_income_plus_bounded_draw() {
         let demo = crate::society::geography::ClassDemographics {
             population: 1000,
-            savings: 50_000.0,
-            allocated_fte: 500.0, // half the class employed
+            savings: 100_000.0,
+            savings_stock_turn_start: 50_000.0,
+            smoothed_income: 50_000.0, // permanent income at the wage bill
+            allocated_fte: 500.0,
             ..Default::default()
         };
-        // wage bill = 500 × 100 = 50_000; draw = 50_000 × 0.2 = 10_000
+        // capacity = smoothed income 50_000 + draw 50_000 × 0.12 = 6_000
         let cap = class_spend_capacity(&demo, 100.0);
-        assert!((cap - 60_000.0).abs() < 1e-6, "got {cap}");
+        assert!((cap - 56_000.0).abs() < 1e-6, "got {cap}");
     }
 
     #[test]
@@ -2409,6 +2702,7 @@ mod tests {
         let mut demos = ClassDemographics {
             population: 1000,
             savings: 10_000.0, // 10/capita stock
+            savings_stock_turn_start: 10_000.0, // marker == balance ⇒ zero income
             allocated_fte: 0.0,
             ..Default::default()
         };

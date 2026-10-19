@@ -4147,10 +4147,17 @@ fn build_region_detail(
         .rural_classes
         .values()
         .chain(region.class_demographics.urban_classes.values())
-        .flat_map(|demo| demo.household_durables.iter())
-        .map(|cohort| DurableCohortSummary {
+        .flat_map(|demo| {
+            // `count` is stored per-capita; the UI summary reports absolute
+            // units held by the class.
+            let pop = demo.population.max(0) as f64;
+            demo.household_durables
+                .iter()
+                .map(move |cohort| (cohort, pop))
+        })
+        .map(|(cohort, pop)| DurableCohortSummary {
             commodity: format!("{:?}", cohort.commodity),
-            count: cohort.count,
+            count: cohort.count * pop,
             avg_condition: cohort.condition,
             quality: cohort.quality,
             durability: cohort.durability,

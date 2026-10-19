@@ -1155,6 +1155,42 @@ pub struct ClassDemographics {
     #[serde(default)]
     pub habitual_savings_per_capita: f64,
 
+    /// v4.18 WS1 follow-up: `savings` balance snapshotted at turn start,
+    /// before this turn's income credits (wages, dividends, transfers,
+    /// rents) land in the same pocket. `class_spend_capacity` uses the split
+    /// to let the class spend its current-turn income in full while
+    /// rate-limiting dissaving of the pre-existing stock — the honest bound
+    /// that prevents both the 85% single-turn collapse (income dips are
+    /// covered by a bounded stock draw) and the unbounded burn that
+    /// produced the mid-run demand spike. `0.0` on legacy saves/turn-0
+    /// means the entire current balance counts as income — the class may
+    /// spend what it holds.
+    #[serde(default)]
+    pub savings_stock_turn_start: f64,
+
+    /// v4.18 WS1 follow-up: EWMA of the class's per-turn money income
+    /// (`savings − savings_stock_turn_start` measured pre-debit), the
+    /// permanent-income term in `class_spend_capacity`. Smoothing income
+    /// is what actually smooths consumption: spending live income
+    /// turn-for-turn would transmit every wage/harvest oscillation
+    /// straight into C (the mandate's `|ΔC/C| < 0.15`), while the lag
+    /// accumulates in the stock and is released by the bounded drawdown.
+    /// `0.0` until the first post-income settle pass warms it.
+    #[serde(default)]
+    pub smoothed_income: f64,
+
+    /// v4.18 WS1 follow-up: last turn's raw spend capacity (smoothed
+    /// income + bounded stock draw), refreshed at settle time. The demand
+    /// cap clamps this turn's capacity to `prev × [0.85, 1.15]` — the
+    /// habit-formation envelope that keeps `|ΔC/C|` inside the mandate
+    /// band through income dips AND spikes: consumption can only retune
+    /// 15% per turn, with the gap financed by (or accumulating into) the
+    /// stock. `0.0` = no prior measurement; the first evaluated turn
+    /// passes the raw target through (genesis transients are outside the
+    /// crucible's measurement window anyway).
+    #[serde(default)]
+    pub prev_spend_capacity: f64,
+
     /// Subsistence consumption rate (0-1, fraction of income needed for survival)
     #[serde(default)]
     pub subsistence_rate: f64,
@@ -2380,6 +2416,22 @@ pub fn reconcile_regional_gdp(
 
     #[cfg(feature = "diagnostic")]
     {
+        for r in regions.iter() {
+            let f = regional_flows.get(&r.id);
+            eprintln!(
+                "REGLEGS: region={} pop={} gdp={:.0} gdp_pc={:.2} c={:.0} imp={:.0} g={:.0} i={:.0} nx={:.0} xva={:.0}",
+                r.id,
+                r.population,
+                r.gdp,
+                r.gdp_pc,
+                f.map(|x| x.consumption).unwrap_or(0.0),
+                f.map(|x| x.imputed_consumption).unwrap_or(0.0),
+                f.map(|x| x.government_spending).unwrap_or(0.0),
+                f.map(|x| x.investment).unwrap_or(0.0),
+                f.map(|x| x.net_exports).unwrap_or(0.0),
+                extra_regional_va.get(&r.id).copied().unwrap_or(0.0),
+            );
+        }
         let gva = regional_value_added(regions, companies, buildings);
         let gva_sum: f64 = gva.values().sum();
         let sum: f64 = regions.iter().map(|r| r.gdp).sum();
@@ -2704,13 +2756,17 @@ pub fn generate_regional_topology(
 /// Earlier eras have fewer durables (no TVs before 1936, etc.).
 fn seed_initial_durables(demo: &mut ClassDemographics, ownership_fraction: f64, year: u32) {
     use crate::registries::enums::Commodity;
-    let pop = demo.population.max(1) as f64;
+    // `HouseholdDurableCohort::count` is per-capita (units held per
+    // citizen) — seeds are per-citizen ownership levels, NOT multiplied
+    // by population. (An earlier version seeded absolute counts here,
+    // which made every class start millions of times over-saturated and
+    // broke the stock-vs-target comparison in `compute_durable_demand`.)
     let frac = ownership_fraction.max(0.0).min(1.0);
 
     // Furniture: always present for wealthy classes
     demo.household_durables.push(HouseholdDurableCohort {
         commodity: Commodity::Furniture,
-        count: frac * pop * 0.8,
+        count: frac * 0.8,
         condition: 0.7,
         quality: 0.7,
         durability: Commodity::Furniture.household_durable_turns(),
@@ -2720,7 +2776,7 @@ fn seed_initial_durables(demo: &mut ClassDemographics, ownership_fraction: f64, 
     // Clothing: always present
     demo.household_durables.push(HouseholdDurableCohort {
         commodity: Commodity::Clothing,
-        count: frac * pop * 2.0,
+        count: frac * 2.0,
         condition: 0.6,
         quality: 0.6,
         durability: Commodity::Clothing.household_durable_turns(),
@@ -2731,7 +2787,7 @@ fn seed_initial_durables(demo: &mut ClassDemographics, ownership_fraction: f64, 
     if frac >= 0.4 {
         demo.household_durables.push(HouseholdDurableCohort {
             commodity: Commodity::LuxuryFurniture,
-            count: frac * pop * 0.3,
+            count: frac * 0.3,
             condition: 0.8,
             quality: 0.9,
             durability: Commodity::LuxuryFurniture.household_durable_turns(),
@@ -2743,7 +2799,7 @@ fn seed_initial_durables(demo: &mut ClassDemographics, ownership_fraction: f64, 
     if year >= 1920 {
         demo.household_durables.push(HouseholdDurableCohort {
             commodity: Commodity::Radio,
-            count: frac * pop * 0.2,
+            count: frac * 0.2,
             condition: 0.8,
             quality: 0.7,
             durability: Commodity::Radio.household_durable_turns(),
@@ -2755,7 +2811,7 @@ fn seed_initial_durables(demo: &mut ClassDemographics, ownership_fraction: f64, 
     if year >= 1910 && frac >= 0.4 {
         demo.household_durables.push(HouseholdDurableCohort {
             commodity: Commodity::Cars,
-            count: frac * pop * 0.05,
+            count: frac * 0.05,
             condition: 0.7,
             quality: 0.8,
             durability: Commodity::Cars.household_durable_turns(),

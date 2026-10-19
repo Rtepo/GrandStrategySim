@@ -365,13 +365,16 @@ extra: std::collections::HashMap::new(),
         central_bank: &crate::state::CentralBank,
         xibor: f64,
     ) -> Result<crate::state::banking::LoanResult, String> {
-        // Direct call with self as Borrower - Party implements Borrower trait
+        // Direct call with self as Borrower - Party implements Borrower trait.
+        // The party's brokerage account is its claim at THIS bank — the
+        // minted deposit lands on the lender's book, so pass Some(bank_id).
         let loan_result = crate::state::banking::issue_loan(
             bank_balance_sheet,
             bank_id,
             bank_margin,
             self, // Party implements Borrower - no dummy wrapper
             &self.id,
+            Some(bank_id),
             principal,
             loan_type,
             term_turns,

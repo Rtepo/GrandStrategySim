@@ -295,6 +295,7 @@ fn test_banking_ldr_rejection_leaves_no_trace() {
         0.02,
         &borrower,
         "COMP-Y",
+        Some("BANK-TEST"), // deposit lands on the lender's book
         10_000.0, // would push loans to 100k > cap 90k+9k… verify math:
                   // loans_after = 100_000; deposits_after = 110_000;
                   // cap = 110_000 × 0.9 = 99_000 < 100_000 → reject.

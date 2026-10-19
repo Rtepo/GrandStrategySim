@@ -115,7 +115,7 @@ impl CompanyLifecycle {
                 total += c.available_cash.max(0.0);
                 total += c.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0).max(0.0);
                 total += c.rd_budget;
-                total += c.debit_cash;
+                total += c.debit_cash + c.construction_escrow;
             }
         }
         // Citizen savings
@@ -181,7 +181,8 @@ impl CompanyLifecycle {
                                 .map(|ba| ba.cash)
                                 .unwrap_or(0.0)
                             + company.rd_budget
-                            + company.debit_cash;
+                            + company.debit_cash
+                            + company.construction_escrow;
                         if deposit > 0.0 {
                             stale_deposit_guarantee += deposit;
                         }
@@ -417,7 +418,8 @@ impl CompanyLifecycle {
                                 .map(|ba| ba.cash)
                                 .unwrap_or(0.0)
                             + remaining.rd_budget
-                            + remaining.debit_cash;
+                            + remaining.debit_cash
+                            + remaining.construction_escrow;
                         if deposit > 0.0 {
                             total_deposit_guarantee += deposit;
                         }
@@ -456,7 +458,7 @@ impl CompanyLifecycle {
         let investment_fraction = 0.01 + (private_capital / 1_000_000.0).min(0.04);
         let investment = private_capital * investment_fraction;
 
-        let promising_sectors: Vec<Sector> = country
+        let mut promising_sectors: Vec<Sector> = country
             .budget
             .sectors
             .iter()
@@ -469,6 +471,13 @@ impl CompanyLifecycle {
             })
             .map(|(sector, _)| *sector)
             .collect();
+        // v4.18: `budget.sectors` is a HashMap — collect order is per-process.
+        // `promising_sectors[i % len]` assigns each startup a sector, so an
+        // unsorted Vec changed which company hit which `min_capital` gate,
+        // altering birth counts (and the citizen-savings debit) between
+        // identical-seed runs. Canonical order makes births deterministic.
+        promising_sectors
+            .sort_by_key(|s| crate::engine::generator::corporate::sector_json_name(*s));
 
         if promising_sectors.is_empty() {
             return;
@@ -577,7 +586,13 @@ impl CompanyLifecycle {
                 .production_methods
                 .get(&sector_key)
                 .and_then(|m| {
-                    m.iter_production_slots()
+                    // Canonical order: slot maps are HashMaps and `max_by_key`
+                    // keeps the LAST max — iteration order picks the winner.
+                    let mut slots: Vec<_> = m.iter_production_slots_named().collect();
+                    slots.sort_by(|a, b| a.0.cmp(b.0));
+                    slots
+                        .into_iter()
+                        .map(|(_, pm)| pm)
                         .filter(|pm| pm.year <= year)
                         .max_by_key(|pm| pm.year)
                 })

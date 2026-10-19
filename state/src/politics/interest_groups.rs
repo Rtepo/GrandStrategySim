@@ -331,7 +331,11 @@ fn calculate_total_political_weight(
     }
 
     // Normalize to sum to 100.0
-    let total: f64 = total_weight.values().sum();
+    // Phase 96: canonical order — f64 summation over HashMap values is
+    // order-dependent at ULP level.
+    let mut tw_keys: Vec<&String> = total_weight.keys().collect();
+    tw_keys.sort();
+    let total: f64 = tw_keys.iter().map(|k| total_weight[*k]).sum();
     if total > 0.0 {
         total_weight
             .into_iter()

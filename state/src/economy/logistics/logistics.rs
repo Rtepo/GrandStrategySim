@@ -761,6 +761,11 @@ pub fn procure_freight_and_split_trades(
 ) -> (Vec<Trade>, Vec<DeferredTrade>) {
     let mut secured: Vec<Trade> = Vec::new();
     let mut deferred: Vec<DeferredTrade> = Vec::new();
+    // Bids submitted via `encumber_cash` locked `qty × limit × (1+fr)`;
+    // a deferred (never-delivered) trade must release the same basis.
+    // Bids posted without the reserve floor at `debit_cash` inside
+    // `release_bid_encumbrance`, so over-asking is company-local.
+    let freight_reserve_ratio = country.b2b_order_config.freight_cost_reserve_ratio;
 
     // Pre-compute company region lookup: company_id → region_id.
     let company_region: HashMap<String, String> = companies
@@ -850,6 +855,7 @@ pub fn procure_freight_and_split_trades(
                 &trade.buyer_id,
                 trade.quantity,
                 trade.bid_limit_price,
+                freight_reserve_ratio,
             );
             deferred.push(DeferredTrade {
                 trade: trade.clone(),
@@ -1206,6 +1212,7 @@ pub fn procure_freight_and_split_trades(
                 &trade.buyer_id,
                 trade.quantity,
                 trade.bid_limit_price,
+                freight_reserve_ratio,
             );
             deferred.push(DeferredTrade {
                 trade: trade.clone(),
@@ -1295,7 +1302,7 @@ fn settle_maritime_transit_fees(
             );
             // Agent 4: Fix debit_cash direction — RELEASE encumbrance (was +=).
             if let Some(buyer) = companies.get_mut(idx) {
-                buyer.debit_cash = (buyer.debit_cash - amount).max(0.0);
+                buyer.consume_bid_encumbrance(*amount);
             }
         }
         // For foreign owners, record the fee as a payable.
@@ -1326,10 +1333,22 @@ fn refund_buyer_encumbrance(
     buyer_id: &str,
     quantity: f64,
     bid_limit_price: f64,
+    freight_reserve_ratio: f64,
 ) {
-    let encumbrance = quantity * bid_limit_price;
+    let encumbrance = quantity * bid_limit_price * (1.0 + freight_reserve_ratio);
     if let Some(buyer) = companies.iter_mut().find(|c| c.id == buyer_id) {
-        buyer.debit_cash = (buyer.debit_cash - encumbrance).max(0.0);
+        // The deferred trade delivered nothing — the credit-backed share of
+        // the encumbrance discharges as a phantom obligation rather than
+        // lingering in `procurement_credit`. The cash-backed share returns
+        // to the pocket it was drawn from (brokerage first, matching
+        // `encumber_cash`): discarding it destroyed real fiat and left the
+        // buyer's spendable cash permanently short the release.
+        let cash_back = buyer.release_bid_encumbrance(encumbrance);
+        if let Some(ba) = &mut buyer.brokerage_account {
+            ba.cash += cash_back;
+        } else {
+            buyer.available_cash += cash_back;
+        }
     }
 }
 

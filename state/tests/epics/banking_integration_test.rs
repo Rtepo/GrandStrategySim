@@ -65,6 +65,7 @@ fn test_full_loan_issuance_workflow() {
         0.015, // bank margin
         &borrower,
         "BORROWER-1",
+        Some("BANK-1"),
         150_000.0,
         LoanType::WorkingCapital,
         12, // 12 turns
@@ -352,6 +353,7 @@ fn test_consolidation_loan_with_equity_swap() {
         0.015,
         &borrower,
         "BORROWER-1",
+        Some("BANK-1"),
         100_000.0,
         LoanType::Consolidation,
         12,

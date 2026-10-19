@@ -502,7 +502,11 @@ pub fn process_justice_turn(
     };
     if pardon_reduction > 0.0 {
         let frozen = &mut justice_state.frozen_company_cash;
-        let keys: Vec<String> = frozen.keys().cloned().collect();
+        // DETERMINISM: `frozen_company_cash` is a HashMap — sort keys so
+        // per-bank reserve/deposit/tier_1 credits accumulate in canonical
+        // order across processes (HashMap iteration order is randomized).
+        let mut keys: Vec<String> = frozen.keys().cloned().collect();
+        keys.sort();
         for key in keys {
             if let Some(amount) = frozen.get_mut(&key) {
                 let reduction = *amount * pardon_reduction;

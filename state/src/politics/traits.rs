@@ -90,17 +90,23 @@ impl TraitRegistry {
             return None;
         }
 
-        let total_weight: f64 = self.traits.values().map(|t| t.rarity_weight).sum();
+        // Canonical key order: HashMap iteration is per-process, and the
+        // sequential `random_weight` drain below makes trait selection
+        // order-sensitive — the same RNG draw must pick the same trait.
+        let mut entries: Vec<&LeaderTrait> = self.traits.values().collect();
+        entries.sort_by(|a, b| a.id.cmp(&b.id));
+
+        let total_weight: f64 = entries.iter().map(|t| t.rarity_weight).sum();
         let mut random_weight = rng.gen::<f64>() * total_weight;
 
-        for trait_data in self.traits.values() {
+        for trait_data in &entries {
             random_weight -= trait_data.rarity_weight;
             if random_weight <= 0.0 {
                 return Some(trait_data);
             }
         }
 
-        self.traits.values().next()
+        entries.first().copied()
     }
 }
 

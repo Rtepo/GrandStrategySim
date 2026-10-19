@@ -116,7 +116,13 @@ impl BankruptcyAuctionPool {
         {
             if price >= asking_price {
                 // Queue distribution to specific creditor banks (pro-rata by claim).
-                let total_claims: f64 = creditor_claims.values().sum();
+                let mut claim_keys: Vec<String> =
+                    creditor_claims.keys().cloned().collect();
+                claim_keys.sort();
+                let total_claims: f64 = claim_keys
+                    .iter()
+                    .map(|k| creditor_claims[k])
+                    .sum();
                 if total_claims > 0.0 {
                     for (bank_id, claim_amount) in creditor_claims {
                         let share = (claim_amount / total_claims) * price;
@@ -321,7 +327,12 @@ impl Syndic {
             .unwrap_or(0.0)
             .max(0.0);
         let available_cash = company.available_cash.max(0.0);
-        let mut total_seized_cash = brokerage_cash + available_cash;
+        // v4.18 FS-7: construction escrow is a deposit-earmarked asset of
+        // the estate — seize it into the waterfall like any other cash
+        // (in-flight projects refund-check `investor not found` and die
+        // with the company regardless).
+        let escrow_cash = company.construction_escrow.max(0.0);
+        let mut total_seized_cash = brokerage_cash + available_cash + escrow_cash;
 
         // Phase 94: For banked non-bank companies, available_cash is NOT M0
         // (it is M1 backed by bank deposits — excluded from walk_global_fiat).
@@ -334,7 +345,10 @@ impl Syndic {
         // instead (the CB acts as lender of last resort to fund the withdrawal).
         if company.bank_type.is_none() {
             if let Some(ref bank_id) = company.primary_bank_id {
-                let banked_cash = brokerage_cash + available_cash;
+                // The escrowed deposit liability is still on the bank's
+                // book (earmark convention) — extinguish it with the rest
+                // of the seized deposits.
+                let banked_cash = brokerage_cash + available_cash + escrow_cash;
                 if banked_cash > 0.0 {
                     let bank = companies.iter_mut().find(|c| &c.id == bank_id);
                     if let Some(bank) = bank {
@@ -380,7 +394,9 @@ impl Syndic {
                 .unwrap_or(0.0);
             let neg_rd = company.rd_budget.min(0.0).abs();
             let neg_debit = company.debit_cash.min(0.0).abs();
-            let neg_total = neg_available + neg_brokerage + neg_rd + neg_debit;
+            let neg_escrow = company.construction_escrow.min(0.0).abs();
+            let neg_total =
+                neg_available + neg_brokerage + neg_rd + neg_debit + neg_escrow;
             if neg_total > 0.0 {
                 country.central_bank.liquidity_injected += neg_total;
             }
@@ -391,6 +407,8 @@ impl Syndic {
         // injection tracking above.
         company.rd_budget = 0.0;
         company.debit_cash = 0.0;
+        company.construction_escrow = 0.0;
+        company.open_bid_credit = 0.0;
         company.available_cash = 0.0;
 
         // ── STEP 2b: Bank-aware seizure — prevent M0 destruction ──
@@ -560,7 +578,13 @@ impl Syndic {
             // The creditor bank's loans_issued decrease is NOT in M0, so
             // no CB injection tracking is needed.
             if remaining_cash > 0.0 && !creditor_claims.is_empty() {
-                let total_claims: f64 = creditor_claims.values().sum();
+                let mut claim_keys: Vec<String> =
+                    creditor_claims.keys().cloned().collect();
+                claim_keys.sort();
+                let total_claims: f64 = claim_keys
+                    .iter()
+                    .map(|k| creditor_claims[k])
+                    .sum();
                 if total_claims > 0.0 {
                     let collection_ratio = (remaining_cash / total_claims).min(1.0);
                     for (bank_id, claim_amount) in &creditor_claims {

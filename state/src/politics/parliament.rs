@@ -607,7 +607,10 @@ fn build_clubs_from_seats(
     politics: &Politics,
     current_turn: u32,
 ) -> Vec<ParliamentaryClub> {
-    seats
+    // Phase 96: canonical order — `seats` is a HashMap; downstream consumers
+    // iterate `clubs` in Vec order (UI, first-match lookups), so the ordering
+    // must not depend on per-process hash order.
+    let mut clubs: Vec<ParliamentaryClub> = seats
         .iter()
         .map(|(party_id, &seat_count)| {
             let party = politics.active_parties.get(party_id);
@@ -631,7 +634,9 @@ fn build_clubs_from_seats(
                 chairperson_name: String::new(),
             }
         })
-        .collect()
+        .collect();
+    clubs.sort_by(|a, b| a.id.cmp(&b.id));
+    clubs
 }
 
 /// Compute a club's effective floor discipline (0.0–1.0) from the parent

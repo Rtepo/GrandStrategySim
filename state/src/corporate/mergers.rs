@@ -378,6 +378,9 @@ fn execute_acquisition(
     companies[acquirer_idx].fixed_capital += companies[target_idx].fixed_capital;
     companies[acquirer_idx].credit_cash += companies[target_idx].credit_cash;
     companies[acquirer_idx].debit_cash += companies[target_idx].debit_cash;
+    companies[acquirer_idx].open_bid_credit += companies[target_idx].open_bid_credit;
+    companies[acquirer_idx].construction_escrow +=
+        companies[target_idx].construction_escrow;
     companies[acquirer_idx].worker_capacity += companies[target_idx].worker_capacity;
     companies[acquirer_idx].scale_factor += companies[target_idx].scale_factor;
     // Labor demand and employment must follow the absorbed capacity and
@@ -449,6 +452,8 @@ fn execute_acquisition(
     // counted twice (debit_cash is M0 for unbanked targets: fiat creation).
     companies[target_idx].credit_cash = 0.0;
     companies[target_idx].debit_cash = 0.0;
+    companies[target_idx].open_bid_credit = 0.0;
+    companies[target_idx].construction_escrow = 0.0;
     companies[target_idx].outstanding_loans.clear();
 
     companies[acquirer_idx].company_capital = (companies[acquirer_idx].fixed_capital

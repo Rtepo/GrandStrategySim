@@ -224,7 +224,11 @@ pub fn run_anti_corruption_feedback(country: &mut Country) -> f64 {
 /// * Requires sufficient allocated cash (minimum 50,000).
 /// * Uses real construction tender mechanism.
 /// * Building types: "Sanitary Inspectorate", "Building Inspectorate", "Environmental Inspectorate".
-pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u32) -> usize {
+pub fn maybe_publish_inspectorate_tender(
+    country: &mut Country,
+    current_turn: u32,
+    market_history: &crate::economy::market::market_history::MarketHistory,
+) -> usize {
     let corruption_index = country
         .politics
         .inspectorate_state
@@ -326,6 +330,7 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
         crate::registries::enums::Sector::PublicAdministration,
         // Derive year from turn: 24 turns per year, default start year 1925
         1925 + (current_turn / 24),
+        market_history,
     );
 
     country.phase22_tenders.push(tender);
@@ -474,7 +479,11 @@ mod tests {
         let mut country = make_country_with_corruption(0.5);
         add_ministries(&mut country, 100_000.0, 200_000.0);
 
-        let count = maybe_publish_inspectorate_tender(&mut country, 10);
+        let count = maybe_publish_inspectorate_tender(
+            &mut country,
+            10,
+            &crate::economy::market::market_history::MarketHistory::default(),
+        );
         assert_eq!(count, 1);
         assert_eq!(country.phase22_tenders.len(), 1);
         let tender = &country.phase22_tenders[0];
@@ -486,7 +495,11 @@ mod tests {
         let mut country = make_country_with_corruption(0.1);
         add_ministries(&mut country, 100_000.0, 200_000.0);
 
-        let count = maybe_publish_inspectorate_tender(&mut country, 10);
+        let count = maybe_publish_inspectorate_tender(
+            &mut country,
+            10,
+            &crate::economy::market::market_history::MarketHistory::default(),
+        );
         assert_eq!(count, 0);
         assert!(country.phase22_tenders.is_empty());
     }
@@ -496,7 +509,11 @@ mod tests {
         let mut country = make_country_with_corruption(0.5);
         add_ministries(&mut country, 10_000.0, 200_000.0); // Security ministry has only 10k
 
-        let count = maybe_publish_inspectorate_tender(&mut country, 10);
+        let count = maybe_publish_inspectorate_tender(
+            &mut country,
+            10,
+            &crate::economy::market::market_history::MarketHistory::default(),
+        );
         assert_eq!(count, 0);
     }
 
@@ -506,11 +523,19 @@ mod tests {
         add_ministries(&mut country, 100_000.0, 200_000.0);
 
         // First call publishes a tender
-        let count1 = maybe_publish_inspectorate_tender(&mut country, 10);
+        let count1 = maybe_publish_inspectorate_tender(
+            &mut country,
+            10,
+            &crate::economy::market::market_history::MarketHistory::default(),
+        );
         assert_eq!(count1, 1);
 
         // Second call should not publish another (cooldown)
-        let count2 = maybe_publish_inspectorate_tender(&mut country, 11);
+        let count2 = maybe_publish_inspectorate_tender(
+            &mut country,
+            11,
+            &crate::economy::market::market_history::MarketHistory::default(),
+        );
         assert_eq!(count2, 0);
     }
 }

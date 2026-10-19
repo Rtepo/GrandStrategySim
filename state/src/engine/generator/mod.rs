@@ -494,13 +494,34 @@ pub fn generate_world(
     // ~t22, collapsing net exports and starving corporate revenue.
     // This is a one-time genesis allocation that scales with the actual
     // generated world — not a magic number.
-    let total_world_gdp: f64 = state.countries.values().map(|c| c.budget.gdp).sum();
+    // Canonical accumulation order — `countries` is a `HashMap`, so a raw
+    // `.values().sum()` visits terms in `RandomState` order and perturbs the
+    // seed at ULP level, shifting `foreign_sector_balance`/`foreign_income`
+    // between same-seed processes.
+    let mut gdp_terms: Vec<f64> =
+        state.countries.values().map(|c| c.budget.gdp).collect();
+    gdp_terms.sort_by(|a, b| a.total_cmp(b));
+    let total_world_gdp: f64 = gdp_terms.iter().sum();
     let foreign_sector_balance = total_world_gdp * 4.0;
+    // v4.18 WS1 follow-up: the unmodeled rest-of-world earns recurring
+    // income each turn and spends a bounded import-propensity share on the
+    // modeled bloc's residual asks. Without an inflow the purse is a
+    // geometrically draining annuity — exports decay ~3%/turn and net
+    // exports collapse mid-run (the GROWTH-1 shortfall) no matter how
+    // competitive domestic supply is. 5% of modeled-world GDP per turn is a
+    // conservative trade-intensity anchor: steady-state exports settle near
+    // the inflow once the purse equilibrates (outflow ≈ 3% of balance).
+    // The tracked `foreign_income_injected` accumulator keeps the M0 fiat
+    // walk conserved — foreign income is exogenous fiat creation, same
+    // accounting status as domestic CB liquidity injection.
+    let foreign_income = total_world_gdp * 0.05;
 
     let market = serde_json::json!({
         "prices": prices,
         "orders": {},
         "foreign_sector_balance": foreign_sector_balance,
+        "foreign_income": foreign_income,
+        "foreign_income_injected": 0.0,
     });
     std::fs::write(
         data_dir.join("market.json"),
@@ -1674,12 +1695,21 @@ fn build_treasury(
         Value::from(rng.gen_range(0.01..0.05)),
     );
 
-    let total_alloc: f64 = allocations.values().filter_map(|v| v.as_f64()).sum();
+    // Phase 96: canonical order — f64 summation is order-dependent at ULP
+    // level and HashMap iteration order varies per process.
+    let mut alloc_keys: Vec<String> = allocations.keys().cloned().collect();
+    alloc_keys.sort();
+    let total_alloc: f64 = alloc_keys
+        .iter()
+        .filter_map(|k| allocations.get(k).and_then(|v| v.as_f64()))
+        .sum();
     if total_alloc > 0.0 {
-        for v in allocations.values_mut() {
-            if let Value::Number(n) = v {
-                if let Some(x) = n.as_f64() {
-                    *v = Value::from(x / total_alloc);
+        for k in &alloc_keys {
+            if let Some(v) = allocations.get_mut(k) {
+                if let Value::Number(n) = v {
+                    if let Some(x) = n.as_f64() {
+                        *v = Value::from(x / total_alloc);
+                    }
                 }
             }
         }

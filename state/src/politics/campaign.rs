@@ -1267,7 +1267,16 @@ pub fn process_campaign_spending(
         return messages;
     }
 
-    for (party_id, party) in parties.iter_mut() {
+    // Determinism: iterate parties in sorted id order. `parties` is a HashMap
+    // whose iteration order is process-random; multiple parties paying the same
+    // media/local-services companies accumulate brokerage cash in arbitrary
+    // order → ULP-variant balances across identical-seed processes.
+    let mut party_ids: Vec<String> = parties.keys().cloned().collect();
+    party_ids.sort();
+    for party_id in party_ids {
+        let Some(party) = parties.get_mut(&party_id) else {
+            continue;
+        };
         let party_cash = party
             .brokerage_account
             .as_ref()

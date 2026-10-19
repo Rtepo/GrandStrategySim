@@ -439,11 +439,15 @@ pub fn resolve_regional_labor_market(
 
     allocation_matrix.sum_bid_fte = bids.iter().map(|b| b.target_fte_demand).sum();
 
-    // 3. Sort bids by wage (descending)
+    // 3. Sort bids by wage (descending), company_id as canonical tiebreak —
+    // most companies offer the same `average_wage`, so equal keys are the
+    // norm and input order resolves them. Input is canonical today, but
+    // explicit tiebreak keeps it so under any future reordering.
     bids.sort_by(|a, b| {
         b.offered_wage_per_fte
             .partial_cmp(&a.offered_wage_per_fte)
             .unwrap()
+            .then_with(|| a.company_id.cmp(&b.company_id))
     });
 
     // Phase 2: Clear Market and Update Structures
@@ -765,7 +769,7 @@ pub fn resolve_regional_labor_market(
         let actual_paid = wage_payment.min(available_cash);
         if actual_paid > 0.0 {
             let from_trust = actual_paid.min(trust_cash);
-            company.debit_cash -= from_trust;
+            company.consume_bid_encumbrance(from_trust);
             let from_pocket = actual_paid - from_trust;
             if from_pocket > 0.0 {
                 if is_bank {
@@ -836,7 +840,7 @@ pub fn resolve_regional_labor_market(
             };
             if repayment > 0.0 {
                 let from_trust = repayment.min(trust);
-                company.debit_cash -= from_trust;
+                company.consume_bid_encumbrance(from_trust);
                 let from_pocket = repayment - from_trust;
                 if from_pocket > 0.0 {
                     if is_bank {

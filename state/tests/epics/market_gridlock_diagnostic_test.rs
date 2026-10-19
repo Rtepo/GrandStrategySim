@@ -99,6 +99,12 @@ struct CompanyIncomeEntry {
     operating_costs: f64,
     interest_paid: f64,
     taxes_paid: f64,
+    /// COGS deferred under the matching principle (stockpiled-output basis)
+    /// plus WIP construction material COGS pending tranche revenue.
+    deferred_cogs: f64,
+    construction_project_cogs: f64,
+    debit_cash: f64,
+    liabilities: f64,
     /// Cumulative lifetime export revenue credited by the foreign-sector
     /// sweep (not windowed) — correlates the purse's reach with P&L.
     export_revenue: f64,
@@ -425,6 +431,20 @@ fn test_market_gridlock_diagnostic() {
     // measured on an annualized window, matching national-accounts practice.
     let mut inv_series: Vec<f64> = Vec::new();
     let mut gov_series: Vec<f64> = Vec::new();
+    // v4.18 WS1: per-turn consumption series for the |ΔC/C| < 0.15 smoothing
+    // gate, plus the turn-0 CPI/PPI capture proving the 100.0 base anchor.
+    let mut cons_series: Vec<f64> = Vec::new();
+    let mut constr_fte_series: Vec<u64> = Vec::new();
+    let mut cons_by_country: BTreeMap<String, Vec<f64>> = BTreeMap::new();
+    let mut tres_by_country: BTreeMap<String, Vec<f64>> = BTreeMap::new();
+    let mut cap_series: Vec<f64> = Vec::new();
+    let mut cpi_series: Vec<f64> = Vec::new();
+    // V418-2 decomposition: per-commodity demanded / sold / unmet / shelf
+    // units — resolves whether a C spike is demand-side or shelf-supply-side.
+    let mut comm_series: BTreeMap<String, Vec<(f64, f64, f64, f64)>> = BTreeMap::new();
+    let mut lc_log: Vec<String> = Vec::new();
+    let mut cl_log: Vec<String> = Vec::new();
+    let mut t0_indices: Vec<(String, f64, f64)> = Vec::new();
     for turn_num in 0..TURNS {
         years.push(state.calendar.current_year);
         let result = run_turn_inner(&mut state, &registries, &mut ctx, &mut probe);
@@ -440,6 +460,161 @@ fn test_market_gridlock_diagnostic() {
                 .values()
                 .map(|c| c.budget.gdp)
                 .sum::<f64>(),
+        );
+        cons_series.push(
+            state
+                .countries
+                .values()
+                .map(|c| c.macro_indicators.gdp_breakdown.consumption)
+                .sum::<f64>(),
+        );
+        for (cname, c) in &state.countries {
+            cons_by_country
+                .entry(cname.clone())
+                .or_default()
+                .push(c.macro_indicators.gdp_breakdown.consumption);
+            tres_by_country
+                .entry(cname.clone())
+                .or_default()
+                .push(c.budget.liquid_reserves);
+        }
+        cap_series.push(
+            state
+                .countries
+                .values()
+                .flat_map(|c| c.regions.iter())
+                .flat_map(|r| {
+                    r.class_demographics
+                        .rural_classes
+                        .values()
+                        .chain(r.class_demographics.urban_classes.values())
+                })
+                .map(|d| d.prev_spend_capacity.max(0.0))
+                .sum::<f64>(),
+        );
+        cpi_series.push(
+            state
+                .countries
+                .values()
+                .map(|c| c.macro_indicators.inflation_indices.cpi_index)
+                .sum::<f64>()
+                / state.countries.len().max(1) as f64,
+        );
+        {
+            let mut dem: BTreeMap<Commodity, f64> = BTreeMap::new();
+            let mut sold: BTreeMap<Commodity, f64> = BTreeMap::new();
+            let mut unmet: BTreeMap<Commodity, f64> = BTreeMap::new();
+            let mut shelf: BTreeMap<Commodity, f64> = BTreeMap::new();
+            // Per-region LuxuryClothing breakdown — the national C sawtooth
+            // rides on this commodity's regional coverage oscillation.
+            for (commodity, qty) in &ctx.market.b2c_demand_volume {
+                *dem.entry(*commodity).or_insert(0.0) += qty;
+            }
+            for ents in ctx.entities.values() {
+                for store in &ents.commercial_buildings {
+                    if let Some(p) = &store.retail_profile {
+                        for (c, q) in &p.units_sold_last_turn {
+                            *sold.entry(*c).or_insert(0.0) += q;
+                        }
+                        for (c, q) in &p.unmet_demand_last_turn {
+                            *unmet.entry(*c).or_insert(0.0) += q;
+                        }
+                    }
+                    let lc_sold = store
+                        .retail_profile
+                        .as_ref()
+                        .and_then(|p| p.units_sold_last_turn.get(&Commodity::LuxuryClothing))
+                        .copied()
+                        .unwrap_or(0.0);
+                    let lc_shelf: f64 = store
+                        .current_inventory
+                        .get("LuxuryClothing")
+                        .map(|b| b.iter().map(|x| x.quantity).sum())
+                        .unwrap_or(0.0);
+                    if lc_sold > 0.0 || lc_shelf > 0.0 {
+                        lc_log.push(format!(
+                            "{}\t{}\t{}\tsold={:.0}\tshelf={:.0}",
+                            turn_num, store.micro_region_id, store.id, lc_sold, lc_shelf
+                        ));
+                    }
+                    if (45..=75).contains(&turn_num) {
+                        for probe_c in [Commodity::Clothing, Commodity::Televisions, Commodity::Agd] {
+                            let _ = probe_c;
+                            let p_sold = store
+                                .retail_profile
+                                .as_ref()
+                                .and_then(|p| p.units_sold_last_turn.get(&probe_c))
+                                .copied()
+                                .unwrap_or(0.0);
+                            let p_unmet = store
+                                .retail_profile
+                                .as_ref()
+                                .and_then(|p| p.unmet_demand_last_turn.get(&probe_c))
+                                .copied()
+                                .unwrap_or(0.0);
+                            let p_shelf: f64 = store
+                                .current_inventory
+                                .get(&String::from(probe_c))
+                                .map(|b| b.iter().map(|x| x.quantity).sum())
+                                .unwrap_or(0.0);
+                            if p_sold > 0.0 || p_shelf > 0.0 || p_unmet > 0.0 {
+                                cl_log.push(format!(
+                                    "{}\t{:?}\t{}\t{}\tsold={:.0}\tunmet={:.0}\tshelf={:.0}",
+                                    turn_num, probe_c, store.micro_region_id, store.id,
+                                    p_sold, p_unmet, p_shelf
+                                ));
+                            }
+                        }
+                    }
+                    for (key, batches) in &store.current_inventory {
+                        if let Ok(c) = Commodity::try_from(key.as_str()) {
+                            *shelf.entry(c).or_insert(0.0) +=
+                                batches.iter().map(|b| b.quantity).sum::<f64>();
+                        }
+                    }
+                }
+                if (45..=75).contains(&turn_num) {
+                    for b in &ents.buildings {
+                        let pile = b.inventory.get(&Commodity::Clothing).copied().unwrap_or(0.0);
+                        if pile > 0.0 {
+                            cl_log.push(format!(
+                                "{}\tPILE\t{}\t{}\tsold=0\tunmet=0\tshelf={:.0}",
+                                turn_num, b.region_id, b.id, pile
+                            ));
+                        }
+                    }
+                }
+            }
+            for (c, d) in &dem {
+                comm_series
+                    .entry(format!("{:?}", c))
+                    .or_default()
+                    .push((
+                        *d,
+                        sold.get(c).copied().unwrap_or(0.0),
+                        unmet.get(c).copied().unwrap_or(0.0),
+                        shelf.get(c).copied().unwrap_or(0.0),
+                    ));
+            }
+        }
+        if turn_num == 0 {
+            for (name, c) in &state.countries {
+                t0_indices.push((
+                    name.clone(),
+                    c.macro_indicators.inflation_indices.cpi_index,
+                    c.macro_indicators.inflation_indices.ppi_index,
+                ));
+            }
+        }
+        // FS-7 trajectory probe: construction-sector fulfilled FTE per turn —
+        // tells a smooth secular decline from a late credit-cycle crash.
+        constr_fte_series.push(
+            ctx.entities
+                .values()
+                .flat_map(|e| e.companies.iter())
+                .filter(|c| c.sector == Sector::Construction)
+                .map(|c| c.fulfilled_fte as u64)
+                .sum::<u64>(),
         );
         inv_series.push(
             state
@@ -890,11 +1065,26 @@ fn test_market_gridlock_diagnostic() {
         panic!(
             "MACRO-3 FAIL: {} ({}) reports windowed net_profit {:.2}B vs \
              wage_expense {:.2}B — losses at >>50× payroll scale are a \
-             phantom accounting artifact, not economics",
+             phantom accounting artifact, not economics \
+             [revenue={:.2}B opcosts={:.2}B interest={:.2}B taxes={:.2}B \
+             cash={:.2}B cap={:.2}B fhist={} fte={} deferred_cogs={:.2}B \
+             proj_cogs={:.2}B debit={:.2}B liab={:.2}B]",
             worst.id,
             worst.sector,
             worst.last_net_profit / 1e9,
             worst.wage_expense / 1e9,
+            worst.last_revenue / 1e9,
+            worst.operating_costs / 1e9,
+            worst.interest_paid / 1e9,
+            worst.taxes_paid / 1e9,
+            worst.available_cash / 1e9,
+            worst.company_capital / 1e9,
+            worst.financial_history_len,
+            worst.fulfilled_fte,
+            worst.deferred_cogs / 1e9,
+            worst.construction_project_cogs / 1e9,
+            worst.debit_cash / 1e9,
+            worst.liabilities / 1e9,
         );
     }
 
@@ -1407,6 +1597,33 @@ fn test_market_gridlock_diagnostic() {
 
     // ── v4.17.0 anti-sleight gates: mechanical behavior, not aggregates ──
 
+    // PRE-GATE probe (non-asserting): evaluate the V418-2 consumption gate
+    // and the FS-7 trajectory BEFORE the FS-7 assert can abort the test, so
+    // a construction failure can't hide the consumption verdict.
+    {
+        let mut worst = (0.0f64, 0usize);
+        for (i, w) in cons_series.windows(2).enumerate() {
+            if w[0] > 0.0 {
+                let d = (w[1] - w[0]).abs() / w[0];
+                if d > worst.0 {
+                    worst = (d, i + 1);
+                }
+            }
+        }
+        eprintln!(
+            "PREGATE[V418-2]: worst |dC/C|={:.2}% at t={} (gate 15%)",
+            worst.0 * 100.0,
+            worst.1
+        );
+        let fte_str: Vec<String> = constr_fte_series
+            .iter()
+            .enumerate()
+            .step_by(6)
+            .map(|(t, f)| format!("t{}:{}", t, f))
+            .collect();
+        eprintln!("PREGATE[FS7-FTE]: {}", fte_str.join(" "));
+    }
+
     // FS-7: Construction is a real operating sector — firms must earn
     // revenue (contract billings) and employ workers, not sit at
     // Income/Expenses/Wages = 0 forever. `turn_settled_sales` is a scratch
@@ -1419,7 +1636,7 @@ fn test_market_gridlock_diagnostic() {
         for c in &ents.companies {
             if c.sector == Sector::Construction {
                 fs7_census.push(format!(
-                    "{} fte={} tgt={} furl={:.0} cash={:.0} recv={:.0} liq={} rev_hist={:.0}",
+                    "{} fte={} tgt={} furl={:.0} cash={:.0} recv={:.0} cred={:.0} cft={:.0} liq={} rev_hist={:.0}",
                     c.id,
                     c.fulfilled_fte,
                     c.target_fte_demand,
@@ -1427,6 +1644,11 @@ fn test_market_gridlock_diagnostic() {
                     c.available_cash,
                     c.extra
                         .get("contract_receivables")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.0),
+                    c.procurement_credit,
+                    c.extra
+                        .get("committed_demand_fte")
                         .and_then(|v| v.as_f64())
                         .unwrap_or(0.0),
                     c.is_liquidated,
@@ -1761,6 +1983,266 @@ fn test_market_gridlock_diagnostic() {
             deficit_regions.iter().take(8).collect::<Vec<_>>(),
         );
     }
+
+    // ========================================================================
+    // v4.18.0 FULL-STACK REALISM GATES
+    // ========================================================================
+    // The UI-visible defects that triggered this release — each gate reads
+    // the same authoritative fields the frontend DTOs serialize, so a pass
+    // here means the numbers a user sees are honest.
+
+    // V418-1: CPI/PPI are normalized Laspeyres indices anchored at exactly
+    // 100.0 on the first computed turn — the v4.17 build emitted raw basket
+    // sums (CPI 16146.84, PPI 62086.29). t0 was captured in the turn loop;
+    // the persisted base costs prove the anchor survives later turns.
+    for (name, cpi0, ppi0) in &t0_indices {
+        assert!(
+            (cpi0 - 100.0).abs() < 1e-6 && (ppi0 - 100.0).abs() < 1e-6,
+            "V418-1 FAIL[{name}]: CPI/PPI not base-anchored — turn-0 cpi={cpi0:.4} \
+             ppi={ppi0:.4} (raw basket sums leaking as index levels)"
+        );
+        let idx = &state
+            .countries
+            .get(name)
+            .expect("country from t0 capture")
+            .macro_indicators
+            .inflation_indices;
+        assert!(
+            idx.cpi_base_cost > 0.0 && idx.ppi_base_cost > 0.0,
+            "V418-1 FAIL[{name}]: base basket costs not persisted \
+             (cpi_base={:.4} ppi_base={:.4}) — anchor would not survive saves",
+            idx.cpi_base_cost,
+            idx.ppi_base_cost
+        );
+    }
+
+    // V418-2: consumption smoothing — |ΔC/C| < 0.15 per turn once the
+    // economy is past genesis transients (price discovery + first harvest
+    // distribute in the opening turns, so the window starts at turn 12).
+    // Households must draw real class savings on income dips; the ~85%
+    // single-turn collapse was the pre-smoothing signature.
+    let mut worst_dc = (0.0f64, 0usize);
+    for (i, w) in cons_series.windows(2).enumerate() {
+        if i + 1 < 12 || w[0] <= 0.0 {
+            continue;
+        }
+        let d = (w[1] - w[0]).abs() / w[0];
+        if d > worst_dc.0 {
+            worst_dc = (d, i + 1);
+        }
+    }
+    eprintln!(
+        "V418-DBG: consumption turns={} worst |ΔC/C|={:.2}% at turn {}",
+        cons_series.len(),
+        worst_dc.0 * 100.0,
+        worst_dc.1
+    );
+    {
+        let wt = worst_dc.1;
+        for (cname, v) in &cons_by_country {
+            if wt < v.len() && wt >= 1 {
+                eprintln!(
+                    "V418-SPIKE {} t{}: {:.3e} -> {:.3e} ({:+.1}%)",
+                    cname, wt, v[wt - 1], v[wt],
+                    (v[wt] - v[wt - 1]) / v[wt - 1].max(1.0) * 100.0
+                );
+            }
+        }
+        for (name, v) in &comm_series {
+            if wt < v.len() && wt >= 1 {
+                let d = v[wt].1 - v[wt - 1].1;
+                if d.abs() > 300.0 {
+                    eprintln!(
+                        "V418-SPIKE-COMM {} t{}: sold {:.0} -> {:.0} (Δ{:+.0}) dem {:.0} shelf {:.0}",
+                        name, wt, v[wt - 1].1, v[wt].1, d, v[wt].0, v[wt].3
+                    );
+                }
+            }
+        }
+    }
+    eprintln!(
+        "V418-SERIES: {}",
+        cons_series
+            .iter()
+            .enumerate()
+            .map(|(i, v)| format!("{}={:.4e}", i, v))
+            .collect::<Vec<_>>()
+            .join(" ")
+    );
+    eprintln!(
+        "V418-CAPSERIES: {}",
+        cap_series
+            .iter()
+            .enumerate()
+            .map(|(i, v)| format!("{}={:.4e}", i, v))
+            .collect::<Vec<_>>()
+            .join(" ")
+    );
+    eprintln!(
+        "V418-CPISERIES: {}",
+        cpi_series
+            .iter()
+            .enumerate()
+            .map(|(i, v)| format!("{}={:.4}", i, v))
+            .collect::<Vec<_>>()
+            .join(" ")
+    );
+    for (cname, v) in &tres_by_country {
+        eprintln!(
+            "V418-TRES {}: {}",
+            cname,
+            v.iter()
+                .enumerate()
+                .map(|(i, x)| format!("{}={:.3e}", i, x))
+                .collect::<Vec<_>>()
+                .join(" ")
+        );
+    }
+    std::fs::write("tests/diagnostic_output/lc_regions.txt", lc_log.join("\n")).ok();
+    std::fs::write("tests/diagnostic_output/cl_regions.txt", cl_log.join("\n")).ok();
+    {
+        let mut ranked: Vec<(&String, f64)> = comm_series
+            .iter()
+            .map(|(k, v)| (k, v.iter().map(|x| x.1).sum()))
+            .collect();
+        ranked.sort_by(|a, b| b.1.total_cmp(&a.1));
+        for (name, _) in ranked.iter().take(10) {
+            let v = &comm_series[*name];
+            eprintln!(
+                "V418-COMM {} dem=[{}] sold=[{}] unmet=[{}] shelf=[{}]",
+                name,
+                v.iter().map(|x| format!("{:.0}", x.0)).collect::<Vec<_>>().join(","),
+                v.iter().map(|x| format!("{:.0}", x.1)).collect::<Vec<_>>().join(","),
+                v.iter().map(|x| format!("{:.0}", x.2)).collect::<Vec<_>>().join(","),
+                v.iter().map(|x| format!("{:.0}", x.3)).collect::<Vec<_>>().join(","),
+            );
+        }
+    }
+    assert!(
+        worst_dc.0 < 0.15,
+        "V418-2 FAIL: |ΔC/C| {:.1}% at turn {} exceeds 15% — consumption \
+         smoothing is not holding (savings drawdown not covering income dips)",
+        worst_dc.0 * 100.0,
+        worst_dc.1
+    );
+
+    // V418-3: ministry SPENT tracks real outflows — never negative (the
+    // allocated−cash artifact produced −41M/−45M on Defense/Internal Affairs).
+    for (name, country) in &state.countries {
+        let Some(cfg) = &country.politics.ministry_config else {
+            continue;
+        };
+        for m in &cfg.ministries {
+            let spent = sim_engine::politics::ministries::ministry_spent(m);
+            assert!(
+                spent >= 0.0,
+                "V418-3 FAIL[{name}]: ministry {} ({}) reports spent={:.2} < 0 — \
+                 allocation-vs-balance arithmetic instead of real debits",
+                m.name,
+                m.id,
+                spent
+            );
+        }
+    }
+
+    // V418-4: regional GDP — every region floored at 0 and the regional
+    // accounts reconciling to national GDP within ±1% (a 120× unit mismatch
+    // and −12.45M region were observed on the v4.17 frontend).
+    for (name, country) in &state.countries {
+        let national = country.macro_indicators.gdp_breakdown.official_gdp;
+        let min_r = sim_engine::economy::telemetry::min_regional_gdp(&country.regions);
+        assert!(
+            min_r >= 0.0,
+            "V418-4 FAIL[{name}]: min regional gdp {min_r:.2} < 0 — inventory \
+             drawdown booked as negative value-added",
+        );
+        if national > 0.0 {
+            assert!(
+                sim_engine::economy::telemetry::regional_gdp_reconciles(
+                    &country.regions,
+                    national,
+                    1.0
+                ),
+                "V418-4 FAIL[{name}]: Σ regional_gdp deviates from national \
+                 {:.2}B by more than 1%",
+                national / 1e9,
+            );
+        }
+    }
+
+    // V418-5: every bank — state/universal included — inside the 1.0 LDR
+    // cap. The 381% state-bank LDR came from ungated overdraft paths; all
+    // credit creation now passes check_credit_prudential_gates.
+    let max_ldr = ctx
+        .entities
+        .values()
+        .map(|e| sim_engine::state::banking::max_bank_ldr(&e.companies))
+        .fold(0.0f64, f64::max);
+    eprintln!("V418-DBG: max_bank_ldr={:.4}", max_ldr);
+    for (cname, e) in &ctx.entities {
+        for c in &e.companies {
+            if let Some(bs) = &c.balance_sheet {
+                let ldr = bs.ldr();
+                if ldr > 0.95 {
+                    eprintln!(
+                        "V418-5BANK: {} {} ldr={:.4} loans={:.0} consumer={:.0} dep={:.0} res={:.0}",
+                        cname,
+                        c.id,
+                        ldr,
+                        bs.loans_issued
+                            .iter()
+                            .map(|l| l.outstanding_balance)
+                            .sum::<f64>(),
+                        bs.consumer_loans_outstanding,
+                        bs.deposits,
+                        bs.reserves_at_central_bank
+                    );
+                }
+            }
+        }
+    }
+    assert!(
+        max_ldr <= 1.0 + 1e-9,
+        "V418-5 FAIL: max bank LDR {:.4} > 1.0 — a bank path still bypasses \
+         the prudential gates",
+        max_ldr
+    );
+
+    // V418-6: the macro Furloughed indicator equals the real sum of
+    // company furloughed workers (was 0.00 while tens of thousands stood
+    // furloughed — aggregated mid-turn before distress furloughs landed).
+    for (name, country) in &state.countries {
+        let Some(ents) = ctx.entities.get(name) else {
+            continue;
+        };
+        let company_sum =
+            sim_engine::economy::telemetry::sum_company_furloughed(&ents.companies);
+        let macro_val = country.macro_indicators.labor_market.furloughed_total;
+        assert!(
+            (macro_val - company_sum).abs() < 1e-6,
+            "V418-6 FAIL[{name}]: macro furloughed {:.0} != Σ company \
+             furloughed {:.0} — snapshot reads a stale/reset field",
+            macro_val,
+            company_sum
+        );
+    }
+
+    // V418-7: parliamentary clubs carry real ideology — >= 3 distinct values
+    // across all seated clubs (every club showed hardcoded "Agrarianism").
+    let club_ideologies: std::collections::HashSet<&str> = state
+        .countries
+        .values()
+        .filter_map(|c| c.politics.parliament_struct.as_ref())
+        .flat_map(|p| p.clubs.iter().map(|cl| cl.ideology.as_str()))
+        .collect();
+    eprintln!("V418-DBG: distinct club ideologies: {:?}", club_ideologies);
+    assert!(
+        club_ideologies.len() >= 3,
+        "V418-7 FAIL: only {} distinct club ideologies {:?} — clubs are not \
+         inheriting ideology from their parent parties",
+        club_ideologies.len(),
+        club_ideologies
+    );
 }
 
 // ============================================================================
@@ -2116,6 +2598,18 @@ fn compute_company_income(ctx: &InMemoryTurnContext) -> Vec<CompanyIncomeEntry> 
                 operating_costs,
                 interest_paid,
                 taxes_paid,
+                deferred_cogs: company
+                    .extra
+                    .get("deferred_cogs")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0),
+                construction_project_cogs: company
+                    .extra
+                    .get("construction_project_cogs")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0),
+                debit_cash: company.debit_cash,
+                liabilities: company.liabilities,
             });
         }
     }

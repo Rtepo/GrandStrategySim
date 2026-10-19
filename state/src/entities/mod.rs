@@ -459,6 +459,19 @@ pub struct Company {
     /// Phase 6.5: Cash committed to bids but not yet settled
     #[serde(default)]
     pub debit_cash: f64,
+    /// v4.18 FS-7: Construction tender escrow — mobilization security the
+    /// company committed as a construction INVESTOR. Kept in a dedicated
+    /// pocket because `debit_cash` is shared with B2B bid encumbrances,
+    /// the payroll-trust garnish, and logistics encumbrances: escrow parked
+    /// there was consumed by unrelated settlements before its tranche
+    /// released, producing phantom `insufficient_cash` stalls on funded
+    /// contracts. Only construction escrow paths (encumber at publish /
+    /// award top-up, tranche release, refund) may touch this field.
+    /// Same M0 treatment as `debit_cash`: counted for unbanked companies;
+    /// for banked companies it stays deposit-backed at the investor's bank
+    /// until release moves the liability to the contractor's bank.
+    #[serde(default)]
+    pub construction_escrow: f64,
     /// Phase 6.5: Cash received from asks but not yet settled
     #[serde(default)]
     pub credit_cash: f64,
@@ -485,6 +498,20 @@ pub struct Company {
     /// self-limits at net worth and insolvency still reaches default.
     #[serde(default)]
     pub procurement_credit: f64,
+    /// Credit-backed share of the currently-open bid encumbrance
+    /// (`debit_cash`). Booked alongside `procurement_credit` when a
+    /// solvency-bounded bid exceeds the spendable pocket. Distinguishing
+    /// the open-bid share from realized payables is what stops unfilled
+    /// bids from ratcheting `procurement_credit` forever: when a bid
+    /// refunds (no goods delivered → no obligation exists) the credit
+    /// share discharges instead of lingering as phantom debt that
+    /// zeroes `payroll_capacity_fte` (observed: construction contractors
+    /// carrying 2.5B of never-delivered "payables", crews pinned at
+    /// skeleton). On a fill the consumed credit share stays in
+    /// `procurement_credit` as a true supplier payable and leaves this
+    /// ledger.
+    #[serde(default)]
+    pub open_bid_credit: f64,
     /// Macro-Remediation: consecutive turns with negative `net_profit`,
     /// maintained by `process_company`. The lifecycle wind-down rule
     /// requires this to reach `TURNS_PER_YEAR` (a full year of losses)
@@ -897,11 +924,13 @@ extra: HashMap::new(),
             liquid_capital: 0.0, // Zeroed after transfer to brokerage_account
             available_cash: 0.0,
             debit_cash: 0.0,
+            construction_escrow: 0.0,
             credit_cash: 0.0,
             unfilled_bid_prices: std::collections::HashMap::new(),
             unfilled_ask_prices: std::collections::HashMap::new(),
             liabilities: 0.0,
             procurement_credit: 0.0,
+            open_bid_credit: 0.0,
             consecutive_loss_turns: 0,
             company_capital,
             shares_count: 0,
@@ -1022,6 +1051,36 @@ extra: HashMap::new(),
                 .as_ref()
                 .map(|b| b.cash.max(0.0))
                 .unwrap_or(0.0)
+    }
+
+    /// Consume `amount` of outstanding bid encumbrance when the encumbered
+    /// order delivered real value (trade fill, tariff, wage-trust draw,
+    /// transit fee). The real-cash share is consumed first; the consumed
+    /// credit share reclassifies from `open_bid_credit` into a true
+    /// `procurement_credit` payable — the counterparty obligation now
+    /// exists, so the liability survives the bid's lifecycle.
+    pub fn consume_bid_encumbrance(&mut self, amount: f64) {
+        let cash_locked = (self.debit_cash - self.open_bid_credit).max(0.0);
+        let credit_take = (amount - cash_locked.min(amount)).max(0.0);
+        self.open_bid_credit = (self.open_bid_credit - credit_take).max(0.0);
+        self.debit_cash = (self.debit_cash - amount).max(0.0);
+    }
+
+    /// Release `amount` of outstanding bid encumbrance on a cancelled or
+    /// unfilled order. The credit-backed share discharges as a phantom
+    /// obligation (nothing was delivered — no payable may persist), while
+    /// the cash-backed share is released to the caller for return to a
+    /// spendable pocket. Returns the cash-backed share released.
+    pub fn release_bid_encumbrance(&mut self, amount: f64) -> f64 {
+        let released = amount.min(self.debit_cash.max(0.0));
+        let credit_part = released
+            .min(self.open_bid_credit)
+            .min(self.procurement_credit)
+            .max(0.0);
+        self.open_bid_credit -= credit_part;
+        self.procurement_credit -= credit_part;
+        self.debit_cash -= released;
+        released - credit_part
     }
 
     /// AI & Stability Audit (Pillar 4A): Moving average of net profit over

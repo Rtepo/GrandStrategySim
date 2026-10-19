@@ -1180,7 +1180,8 @@ pub fn submit_fund_orders(
             .brokerage_account
             .as_ref()
             .map(|a| {
-                a.portfolio
+                let mut terms: Vec<f64> = a
+                    .portfolio
                     .iter()
                     .filter(|(inst, _)| inst.starts_with("EQUITY:"))
                     .map(|(inst, lots)| {
@@ -1189,7 +1190,9 @@ pub fn submit_fund_orders(
                         equity_prices.get(company_id).copied().unwrap_or(0.0)
                             * qty as f64
                     })
-                    .sum()
+                    .collect();
+                terms.sort_by(|x, y| x.total_cmp(y));
+                terms.into_iter().sum()
             })
             .unwrap_or(0.0);
         let bond_holdings_value: f64 = fund
