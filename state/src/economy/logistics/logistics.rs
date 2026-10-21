@@ -1121,7 +1121,10 @@ pub fn procure_freight_and_split_trades(
                                             // overdraft via ELA at phase end).
                                             if let Some(ref mut bs) = c.balance_sheet {
                                                 bs.reserves_at_central_bank -= shortfall;
-                                                bs.deposits -= shortfall;
+                                                // Own-account freight:
+                                                // equity bears the cost,
+                                                // not customer deposits.
+                                                bs.tier_1_capital -= shortfall;
                                             }
                                         } else {
                                             // No commercial bank to underwrite

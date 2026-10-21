@@ -432,12 +432,16 @@ pub fn settle_trade_deficits(
 ) -> Vec<TradeSettlementResult> {
     let mut results = Vec::new();
 
-    // Collect country IDs with deficits to avoid borrow issues
-    let deficit_countries: Vec<(String, f64)> = trade_balances
+    // Collect country IDs with deficits to avoid borrow issues.
+    // `trade_balances` is a std HashMap — iteration order is per-process
+    // random, and each country's settlement can touch shared state (gold
+    // exchange, vaults), so process countries in canonical name order.
+    let mut deficit_countries: Vec<(String, f64)> = trade_balances
         .iter()
         .filter(|(_, &balance)| balance < 0.0)
         .map(|(k, &v)| (k.clone(), v))
         .collect();
+    deficit_countries.sort_by(|a, b| a.0.cmp(&b.0));
 
     for (country_id, deficit) in deficit_countries {
         let mut result = TradeSettlementResult {
@@ -459,15 +463,23 @@ pub fn settle_trade_deficits(
         let country = state.countries.get_mut(&country_id).unwrap();
         let cb_id = country.central_bank.id.clone();
 
-        // Determine the foreign currency to settle in
-        // Use the first fx_reserve key that isn't the domestic currency
-        let foreign_currency = country
-            .central_bank
-            .fx_reserves
-            .keys()
-            .find(|k| *k != &domestic_currency)
-            .cloned()
-            .unwrap_or_else(|| "IEU".to_string());
+        // Determine the foreign currency to settle in — the lowest-sorted
+        // fx_reserve key that isn't the domestic currency. `fx_reserves` is
+        // a std HashMap: `keys().find(...)` returned an ARBITRARY bucket, so
+        // different processes drained different currencies and the pools
+        // diverged invisibly until a borderline FX gate flipped turns later.
+        let foreign_currency = {
+            let mut keys: Vec<&String> = country
+                .central_bank
+                .fx_reserves
+                .keys()
+                .filter(|k| *k != &domestic_currency)
+                .collect();
+            keys.sort();
+            keys.first()
+                .map(|k| (*k).clone())
+                .unwrap_or_else(|| "IEU".to_string())
+        };
 
         let deficit_amount = -deficit;
 

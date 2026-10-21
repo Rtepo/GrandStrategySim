@@ -276,7 +276,11 @@ pub fn settle_transfer_mapped<S: std::hash::BuildHasher>(
                     amount,
                 );
                 bs.reserves_at_central_bank -= amount;
-                bs.deposits -= amount;
+                // Own-account outflow: book against equity, not customer
+                // deposits — the deposit liability is owed to depositors,
+                // so debiting it would be a category error (and can drive
+                // `deposits` negative).
+                bs.tier_1_capital -= amount;
             }
         } else {
             #[cfg(feature = "diagnostic")]
@@ -1109,7 +1113,9 @@ pub fn debit_company_by_id(companies: &mut [Company], company_id: &str, amount: 
             if let Some(bank) = companies.iter_mut().find(|c| c.id == company_id) {
                 if let Some(ref mut bs) = bank.balance_sheet {
                     bs.reserves_at_central_bank -= actual;
-                    bs.deposits -= actual;
+                    // Own-account outflow: equity bears the expense, never
+                    // the customer-deposit liability.
+                    bs.tier_1_capital -= actual;
                 }
             }
         }

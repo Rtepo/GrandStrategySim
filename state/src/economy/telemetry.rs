@@ -182,8 +182,16 @@ impl GdpAccumulator {
 ///
 /// # Rules
 /// * Read-only: does not mutate any cash ledgers.
-/// * `official_gdp = consumption + government_spending + investment + net_exports`.
+/// * `official_gdp = consumption + imputed_consumption + government_spending
+///   + investment + net_exports`.
 /// * `shadow_gdp` is stored separately (not added to official GDP).
+/// * `consumption` holds MONETIZED household consumption only (v4.19):
+///   `imputed_consumption` (in-kind/subsistence flows valued at VWAP) is
+///   highly seasonal — folding it into C reintroduces the harvest sawtooth
+///   that V418-2 smoothing exists to suppress. The full GDP identity is
+///   `official_gdp = consumption + imputed_consumption + G + I + NX` and the
+///   UI must display imputed as its own component row so the account
+///   reconciles visibly (v4.18 showed C+I+G+NX=890M vs GDP=2.33B).
 pub fn compute_gdp(acc: &GdpAccumulator, previous_gdp: f64) -> GdpBreakdown {
     let official_gdp = acc.consumption
         + acc.imputed_consumption

@@ -1,12 +1,12 @@
 import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
-import { getParliament } from "../hooks/useTauriCommand";
+import { getParliament, getConstitutionLaws, getElections } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
 import { SeatDistributionChart } from "../components/charts/SeatDistributionChart";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { fmt } from "../lib/format";
-import type { AdvisoryCouncilSnapshot, RoyalDynastySnapshot, ParliamentSnapshot, VoteRow, BillDetailRow } from "../types/api";
+import type { AdvisoryCouncilSnapshot, RoyalDynastySnapshot, ParliamentSnapshot, VoteRow, BillDetailRow, ConstitutionLawsResponse, ElectionsResponse } from "../types/api";
 
 const AUTHORITARIAN_FORMS = ["Absolute Monarchy", "Constitutional Monarchy", "Authoritarian Republic", "Personalist Dictatorship", "Military Junta", "One-Party State"];
 
@@ -37,7 +37,10 @@ export function ParliamentPage() {
       </div>
 
       {isAuthoritarian && hasAdvisoryCouncil ? (
-        <AdvisoryCouncilView council={data.advisory_council!} dynasty={hasRoyalDynasty ? data.royal_dynasty! : null} />
+        <div className="space-y-4">
+          <AdvisoryCouncilView council={data.advisory_council!} dynasty={hasRoyalDynasty ? data.royal_dynasty! : null} />
+          <ConstitutionLawsView />
+        </div>
       ) : (
         <DemocraticParliamentView parliament={data.parliament} />
       )}
@@ -69,6 +72,8 @@ function DemocraticParliamentView({ parliament }: { parliament: ParliamentSnapsh
         { label: "Committees", value: "committees", content: <CommitteesView parliament={parliament} /> },
         { label: "Votes", value: "votes", content: <VotesView parliament={parliament} /> },
         { label: "Legislative Queue", value: "queue", content: <QueueView parliament={parliament} /> },
+        { label: "Constitution & Laws", value: "laws", content: <ConstitutionLawsView /> },
+        { label: "Elections", value: "elections", content: <ElectionsView /> },
       ]}
     />
   );
@@ -213,7 +218,7 @@ function CommitteesView({ parliament }: { parliament: ParliamentSnapshot }) {
                               {c.bills.map((b) => (
                                 <TableRow key={b.bill_id}>
                                   <TableCell className="text-xs">{b.title}</TableCell>
-                                  <TableCell><Badge variant="secondary">{b.stage}</Badge></TableCell>
+                                  <TableCell><Badge variant={stageVariant(b.stage)}>{stageLabel(b.stage)}</Badge></TableCell>
                                   <TableCell className="text-right">
                                     {b.completion_turn !== null ? `T${b.completion_turn}` : "—"}
                                   </TableCell>
@@ -239,6 +244,27 @@ function CommitteesView({ parliament }: { parliament: ParliamentSnapshot }) {
       </CardContent>
     </Card>
   );
+}
+
+/// v4.19 WS4: Map a raw `LegislativeStage`/terminal stamp to a readable,
+/// status-accurate label. Terminal stamps produced by `mark_bill_terminal`
+/// already carry the rejecting body ("Rejected by Senate") or the vetoing
+/// executive ("Vetoed by <name>") — pass them through verbatim.
+function stageLabel(stage: string): string {
+  switch (stage) {
+    case "Committee": return "In Committee";
+    case "FloorVote": return "Floor Vote (Lower)";
+    case "BicameralPending": return "Passed Lower House → Senate";
+    case "Executive": return "Passed Parliament → Executive";
+    default: return stage; // "Enacted", "Rejected by …", "Vetoed by …"
+  }
+}
+
+function stageVariant(stage: string): "secondary" | "success" | "destructive" | "default" {
+  if (stage === "Enacted") return "success";
+  if (stage.startsWith("Rejected") || stage.startsWith("Vetoed")) return "destructive";
+  if (stage === "BicameralPending" || stage === "Executive") return "default";
+  return "secondary";
 }
 
 /// Committee recommendation badge — the value is the real pipeline modifier
@@ -391,7 +417,7 @@ function BillDetailPanel({ detail }: { detail: BillDetailRow }) {
         <DetailField label="Sponsor" value={detail.initiator || "—"} />
         <DetailField label="Type" value={detail.bill_type} />
         <DetailField label="Weight" value={detail.weight} />
-        <DetailField label="Stage" value={detail.stage} />
+        <DetailField label="Stage" value={stageLabel(detail.stage)} />
         <DetailField label="Introduced" value={`T${detail.introduction_turn}`} />
         <DetailField
           label="Effective"
@@ -472,7 +498,7 @@ function QueueView({ parliament }: { parliament: ParliamentSnapshot }) {
                       {q.bill_id}
                     </TableCell>
                     <TableCell className="text-xs">{q.bill_title}</TableCell>
-                    <TableCell><Badge variant="secondary">{q.stage}</Badge></TableCell>
+                    <TableCell><Badge variant={stageVariant(q.stage)}>{stageLabel(q.stage)}</Badge></TableCell>
                     <TableCell className="text-xs">{q.committee ?? "—"}</TableCell>
                     <TableCell className="text-xs">{q.initiator}</TableCell>
                   </TableRow>
@@ -596,6 +622,267 @@ function AdvisoryCouncilView({ council, dynasty }: { council: AdvisoryCouncilSna
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// v4.19 WS4: CONSTITUTION & LAWS TAB
+// ============================================================================
+
+function ConstitutionLawsView() {
+  const { selectedCountry } = useGameStore();
+  const { data, isLoading } = useQuery<ConstitutionLawsResponse>({
+    queryKey: ["constitution-laws", selectedCountry],
+    queryFn: () => getConstitutionLaws(selectedCountry!),
+    enabled: !!selectedCountry,
+  });
+
+  if (!selectedCountry) return null;
+  if (isLoading) return <div className="p-4 text-muted-foreground text-sm">Loading constitution…</div>;
+  if (!data) return null;
+
+  const c = data.constitution;
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Constitution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!c.exists ? (
+            <div className="text-sm text-muted-foreground">
+              No constitution in force — the {c.regime_type} rules by decree.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-xs">
+              <DetailField label="Regime" value={c.regime_type} />
+              <DetailField
+                label="Chambers"
+                value={c.chambers >= 2 ? `Bicameral (${c.upper_house_name ?? "Upper House"})` : "Unicameral"}
+              />
+              <DetailField label="Electoral System" value={c.electoral_system} />
+              <DetailField
+                label="Election Threshold"
+                value={`${(c.election_threshold * 100).toFixed(1)}%`}
+              />
+              <DetailField
+                label="Term Length"
+                value={c.term_length_years >= 999 ? "Non-elective" : `${c.term_length_years} years`}
+              />
+              <DetailField label="Presidential Veto" value={c.presidential_veto ? "Yes" : "No"} />
+              <DetailField label="Constitutional Tribunal" value={c.constitutional_tribunal} />
+              <DetailField label="Suffrage" value={c.suffrage_system} />
+              <DetailField label="Budget Failure" value={c.budget_failure_consequence} />
+              <DetailField label="Change Mechanism" value={c.change_mechanism} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Statutes &amp; Policy Configurations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Domain</TableHead>
+                <TableHead>Law</TableHead>
+                <TableHead>Active Parameters</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.active_laws.length > 0 ? (
+                data.active_laws.map((l, i) => (
+                  <TableRow key={`${l.domain}-${l.name}-${i}`}>
+                    <TableCell><Badge variant="outline">{l.domain}</Badge></TableCell>
+                    <TableCell className="text-xs font-medium">{l.name}</TableCell>
+                    <TableCell className="text-xs">{l.summary}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableEmpty colSpan={3} message="No active statutes configured" />
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Enacted Bills</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Bill ID</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Initiator</TableHead>
+                <TableHead className="text-right">Enacted</TableHead>
+                <TableHead className="text-right">Provisions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.enacted_statutes.length > 0 ? (
+                data.enacted_statutes.map((s) => (
+                  <TableRow key={s.bill_id}>
+                    <TableCell className="text-xs font-mono">{s.bill_id}</TableCell>
+                    <TableCell className="text-xs">{s.title}</TableCell>
+                    <TableCell className="text-xs">{s.bill_type}</TableCell>
+                    <TableCell className="text-xs">{s.initiator}</TableCell>
+                    <TableCell className="text-right">
+                      {s.enacted_turn !== null ? `T${s.enacted_turn}` : "—"}
+                    </TableCell>
+                    <TableCell className="text-right">{s.provisions.length}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableEmpty colSpan={6} message="No bills enacted yet" />
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
+// v4.19 WS4: ELECTIONS & CAMPAIGNS TAB
+// ============================================================================
+
+function ElectionsView() {
+  const { selectedCountry } = useGameStore();
+  const { data, isLoading } = useQuery<ElectionsResponse>({
+    queryKey: ["elections", selectedCountry],
+    queryFn: () => getElections(selectedCountry!),
+    enabled: !!selectedCountry,
+  });
+
+  if (!selectedCountry) return null;
+  if (isLoading) return <div className="p-4 text-muted-foreground text-sm">Loading elections…</div>;
+  if (!data) return null;
+
+  const nonElective = data.years_to_elections >= 900;
+  const seatData = data.current_seats.map(([party, seats]): [string, number] => [party, seats]);
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Election Countdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {nonElective ? (
+            <div className="text-sm text-muted-foreground">
+              No scheduled elections — {data.government_form} is a non-elective regime.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-xs">
+              <DetailField label="State" value={data.election_state} />
+              <DetailField label="Years Remaining" value={`${data.years_to_elections}`} />
+              <DetailField label="~Turns Remaining" value={`${data.estimated_turns_remaining}`} />
+              <DetailField label="Next Election Year" value={`${data.next_election_year}`} />
+              <DetailField label="Head of State" value={data.head_of_state_name} />
+              <DetailField label="Head of State Role" value={data.head_of_state_title} />
+              <DetailField label="Campaign Duration" value={`${data.campaign_duration_turns} turns`} />
+              <DetailField label="Government Form" value={data.government_form} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Party Standings &amp; Support</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Party</TableHead>
+                <TableHead>Ideology</TableHead>
+                <TableHead className="text-right">Support</TableHead>
+                <TableHead className="text-right">Seats</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.parties.length > 0 ? (
+                data.parties.map((p) => (
+                  <TableRow key={p.party_id}>
+                    <TableCell className="text-xs font-medium">{p.party_id}</TableCell>
+                    <TableCell className="text-xs">{p.ideology}</TableCell>
+                    <TableCell className="text-right">{(p.support * 100).toFixed(1)}%</TableCell>
+                    <TableCell className="text-right">{p.seats}</TableCell>
+                    <TableCell>
+                      {p.is_ruling && <Badge variant="success" className="mr-1">Ruling</Badge>}
+                      {p.is_coalition_member && <Badge variant="secondary">Coalition</Badge>}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableEmpty colSpan={5} message="No active parties" />
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Current Seat Distribution (Latest Election)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {seatData.length > 0 ? (
+            <SeatDistributionChart data={seatData} title="Seats" />
+          ) : (
+            <div className="text-muted-foreground text-sm">No seat data available</div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Campaign Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Party</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead className="text-right">Turn</TableHead>
+                <TableHead>Funding</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.campaign_actions.length > 0 ? (
+                data.campaign_actions.map((a, i) => (
+                  <TableRow key={`${a.party_id}-${a.turn}-${i}`}>
+                    <TableCell className="text-xs">{a.party_id}</TableCell>
+                    <TableCell className="text-xs">{a.action}</TableCell>
+                    <TableCell className="text-right">T{a.turn}</TableCell>
+                    <TableCell>
+                      {a.is_black_money ? (
+                        <Badge variant="destructive">Black Money</Badge>
+                      ) : (
+                        <Badge variant="secondary">Declared</Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableEmpty colSpan={4} message="No campaign actions executed this cycle" />
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

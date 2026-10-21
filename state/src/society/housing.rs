@@ -589,6 +589,14 @@ pub struct RetailProfile {
     #[serde(default)]
     pub market_share_last_turn: std::collections::BTreeMap<Commodity, f64>,
 
+    /// v4.19: Last turn's posted shelf price per commodity — the price-
+    /// stickiness anchor. `generate_store_offers` EWMAs each new offer toward
+    /// its target by `RETAIL_PRICE_SMOOTHING` of the gap so scarcity/aging
+    /// markup flips cannot whip realized B2C prices in a single turn
+    /// (menu-cost repricing).
+    #[serde(default)]
+    pub last_offer_price: std::collections::BTreeMap<Commodity, f64>,
+
     /// Phase 6.5: First active turn (for newcomer grace period)
     #[serde(default)]
     pub first_active_turn: u32,

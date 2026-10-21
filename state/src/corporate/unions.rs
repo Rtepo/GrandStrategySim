@@ -39,6 +39,17 @@ pub fn process_unions(
     let mut current_strike_count: usize = companies.iter().filter(|c| c.is_striking).count();
 
     for union in unions.iter_mut() {
+        // v4.19 WS5: Enrollment reconciliation. Genesis lists every sector
+        // firm in `company_ids` but never sets the company-side `union_id`,
+        // so `collect_union_dues`, strike eligibility, and membership stats
+        // were all disconnected. Idempotently enroll roster members —
+        // repairs both fresh worlds and legacy saves on the first pass.
+        for company in companies.iter_mut() {
+            if company.union_id.is_none() && union.company_ids.contains(&company.id) {
+                company.union_id = Some(union.id.clone());
+            }
+        }
+
         // Update union militancy based on economic conditions
         update_union_militancy(union, country);
 
@@ -459,8 +470,18 @@ fn collect_union_dues(union: &mut Union, companies: &mut [Company]) {
         if company.union_id.as_ref() != Some(&union.id) {
             continue;
         }
-        // Calculate dues as 1% of company capital.
-        let dues = company.company_capital * 0.01;
+        // v4.19 WS5: Real union dues are a percentage of the wage bill
+        // (paid by workers via payroll), not 1% of company capital per turn
+        // (which was ~24%/yr once `union_id` actually populated — it would
+        // have drained member firms to bankruptcy). Use actual wages paid
+        // this turn, falling back to the offered-wage estimate for firms
+        // that haven't run payroll yet.
+        let wage_bill = if company.wages_paid_this_turn > 0.0 {
+            company.wages_paid_this_turn
+        } else {
+            company.fulfilled_fte as f64 * company.offered_wage_per_fte.max(0.0)
+        };
+        let dues = wage_bill * 0.015;
         if dues <= 0.0 {
             continue;
         }
@@ -495,7 +516,7 @@ fn collect_union_dues(union: &mut Union, companies: &mut [Company]) {
 /// * High unemployment increases recruitment
 /// * Low wages increase recruitment
 /// * Union militancy affects recruitment success
-fn recruit_union_members(union: &mut Union, companies: &[Company], country: &Country) {
+fn recruit_union_members(union: &mut Union, companies: &mut [Company], country: &Country) {
     let unemployment_rate = country.macro_indicators.labor_market.unemployment_rate;
 
     // Only recruit if unemployment is high enough
@@ -503,9 +524,13 @@ fn recruit_union_members(union: &mut Union, companies: &[Company], country: &Cou
         return;
     }
 
-    // Find companies without unions and recruit them
-    for company in companies {
-        if company.union_id.is_none() {
+    // v4.19 WS5: Recruit only same-sector firms, and actually link them —
+    // previously this inserted company IDs into `company_ids` without ever
+    // setting `company.union_id`, and (worse) a sector union would absorb
+    // firms from every sector in the economy.
+    for company in companies.iter_mut() {
+        if company.union_id.is_none() && company.sector == union.sector {
+            company.union_id = Some(union.id.clone());
             union.company_ids.insert(company.id.clone());
         }
     }
@@ -566,6 +591,9 @@ mod tests {
             100,
         )];
         companies[0].union_id = Some("TEST_UNION".to_string());
+        // v4.19: dues are 1.5% of the wage bill — give the company payroll.
+        companies[0].wages_paid_this_turn = 10_000.0;
+        companies[0].available_cash = 50_000.0;
 
         collect_union_dues(&mut union, &mut companies);
 
@@ -581,6 +609,7 @@ mod tests {
         let mut union = Union {
             id: "TEST_UNION".to_string(),
             name: "Test Union".to_string(),
+            sector: Sector::Mining,
             militancy: 0.6,
             strike_fund: 10_000.0,
             company_ids: std::collections::BTreeSet::new(),
@@ -589,7 +618,7 @@ mod tests {
         };
 
         let legal_form = LegalForm::FamilyBusiness(FamilyBusinessData::default());
-        let companies = vec![
+        let mut companies = vec![
             Company::new(
                 "COMPANY_1".to_string(),
                 "Test Company 1".to_string(),
@@ -616,10 +645,15 @@ mod tests {
         country.macro_indicators.labor_market.employed_total = 1_000_000.0;
 
         let initial_companies = union.company_ids.len();
-        recruit_union_members(&mut union, &companies, &country);
+        recruit_union_members(&mut union, &mut companies, &country);
 
-        // Should recruit new companies
+        // Should recruit new companies AND link them bidirectionally
         assert!(union.company_ids.len() > initial_companies);
+        assert_eq!(
+            companies[0].union_id.as_deref(),
+            Some("TEST_UNION"),
+            "recruited company must carry the union's id"
+        );
     }
 
     /// Verify that dissolve_union distributes treasury pro-rata by dues_history

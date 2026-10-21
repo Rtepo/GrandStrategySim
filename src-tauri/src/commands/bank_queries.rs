@@ -1,8 +1,41 @@
 use crate::state::AppState;
 use sim_engine::ui::snapshot::{
-    build_country_snapshot, BankPageResponse, BankingAggregates, BankingHistoryResponse, PageQuery,
-    ViewQuery,
+    build_bank_detail, build_country_snapshot, BankDetail, BankPageResponse, BankingAggregates,
+    BankingHistoryResponse, PageQuery, ViewQuery,
 };
+
+/// v4.19 WS2: Full balance-sheet + income-statement detail for one bank
+/// (expandable row in the Commercial Banks table).
+#[tauri::command]
+pub async fn get_bank_detail(
+    state: tauri::State<'_, AppState>,
+    country: String,
+    bank_id: String,
+) -> Result<BankDetail, String> {
+    let state_clone = state.inner().clone();
+    tokio::task::spawn_blocking(move || {
+        let engine_guard = state_clone.engine.blocking_read();
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
+
+        let country_ref = engine_state
+            .game_state
+            .countries
+            .get(&country)
+            .ok_or(format!("Country '{}' not found", country))?;
+
+        let entities = engine_state
+            .turn_context
+            .entities
+            .get(&country)
+            .map(|e| e.companies.as_slice())
+            .unwrap_or(&[]);
+
+        build_bank_detail(country_ref, entities, &bank_id)
+            .ok_or_else(|| format!("Bank '{}' not found", bank_id))
+    })
+    .await
+    .map_err(|e| format!("Task join error: {e}"))?
+}
 
 /// Phase 54: Returns rolling banking history for sparkline tooltips.
 #[tauri::command]

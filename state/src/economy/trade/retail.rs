@@ -334,20 +334,37 @@ fn wealth_gate_factor(commodity: Commodity, effective_spc: f64) -> f64 {
 }
 
 /// v4.18 WS1: price used to value a unit of consumer demand for the
-/// bounded-dissaving cap — resolved market price, then last turn's retail
-/// VWAP (actual consumer prices with markup), then the
+/// bounded-dissaving cap — the smoothed retail-VWAP expectation first (the
+/// habitual shelf price households budget around), then last turn's retail
+/// VWAP, then the resolved market price, then the
 /// VWAP→last-trade→global-base reference chain; 0.0 if nothing is known.
+///
+/// v4.19: retail-first ordering. Households budget against shelf prices —
+/// the prices they face at the till — not the wholesale order-imbalance
+/// signal in `market_prices`, which they cannot observe. Under the old
+/// wholesale-first chain a B2B price spike compressed demanded units even
+/// while (sticky) shelf prices had not moved — the t24 aggregate-C dip.
+/// And the expectation is SMOOTHED: households do not re-budget their whole
+/// basket on one turn's shelf-price dip; valuing demand at spot VWAP made
+/// a temporary dip release a units wave that rebounded as a >15% C step.
+/// Real affordability is still enforced at settle by the savings/capacity
+/// money bound — this price only sizes the requested basket.
 fn demand_value_price(
     commodity: &Commodity,
     market_prices: &HashMap<Commodity, f64>,
     market_history: &MarketHistory,
 ) -> f64 {
-    if let Some(&p) = market_prices.get(commodity) {
+    if let Some(&p) = market_history.retail_vwap_smoothed.get(commodity) {
         if p > 0.0 {
             return p;
         }
     }
     if let Some(&p) = market_history.retail_vwap_per_commodity.get(commodity) {
+        if p > 0.0 {
+            return p;
+        }
+    }
+    if let Some(&p) = market_prices.get(commodity) {
         if p > 0.0 {
             return p;
         }
@@ -1120,17 +1137,29 @@ fn wealth_tier_multiplier(
 /// # Returns
 /// * `Vec<StoreOffer>` - Store offers for B2C clearing
 ///
+/// v4.19: Shelf-price stickiness — posted prices move each turn by at most
+/// this fraction of the gap toward target price (Calvo-style menu-cost
+/// repricing). A hard ±15% clip preserves bang-bang oscillation at the clip
+/// edge (the Clothing px/units limit cycle that produced ±30% VWAP swings);
+/// an exponential step damps the waveform itself — a one-turn markup-signal
+/// flip contributes ~35% immediately and converges over ~4 turns.
+pub const RETAIL_PRICE_SMOOTHING: f64 = 0.35;
+
 /// # Rules
 /// * Only stores with retail_profile generate offers
 /// * Effective attractiveness = base + upgrade bonuses
-/// * Price = acquisition_cost * markup_ratio
+/// * Price = acquisition_cost * markup_ratio, smoothed toward target by
+///   RETAIL_PRICE_SMOOTHING of the gap per turn (price stickiness)
 /// * Used in R2 phase before B2C clearing
-pub fn generate_store_offers(stores: &[CommercialBuilding], current_turn: u32) -> Vec<StoreOffer> {
+pub fn generate_store_offers(
+    stores: &mut [CommercialBuilding],
+    current_turn: u32,
+) -> Vec<StoreOffer> {
     let mut offers = Vec::new();
     let _config = retail_config();
 
-    for store in stores {
-        if let Some(profile) = &store.retail_profile {
+    for store in stores.iter_mut() {
+        if let Some(profile) = &mut store.retail_profile {
             // Compute effective attractiveness
             let effective_attractiveness = profile.base_attractiveness;
 
@@ -1198,7 +1227,19 @@ pub fn generate_store_offers(stores: &[CommercialBuilding], current_turn: u32) -
                             / total_quantity;
 
                         let dynamic_markup = base_markup * (1.0 + scarcity_factor - aging_discount);
-                        let price_per_unit = avg_acquisition_cost * dynamic_markup.max(0.5);
+                        let target_price =
+                            avg_acquisition_cost * dynamic_markup.max(0.5);
+                        // Price stickiness: posted price EWMAs toward target
+                        // (RETAIL_PRICE_SMOOTHING of the gap per turn) so a
+                        // one-turn markup-signal flip cannot whip realized
+                        // consumer prices. First offers post at target.
+                        let price_per_unit = match profile.last_offer_price.get(&commodity) {
+                            Some(&prev) if prev > 0.0 => {
+                                prev + (target_price - prev) * RETAIL_PRICE_SMOOTHING
+                            }
+                            _ => target_price,
+                        };
+                        profile.last_offer_price.insert(commodity, price_per_unit);
 
                         offers.push(StoreOffer {
                             store_id: store.id.clone(),

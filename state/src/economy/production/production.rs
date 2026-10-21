@@ -695,7 +695,12 @@ pub fn process_building_cycle_with_geology(
         let amount =
             amount_per_1k * production_scale * output_multiplier * method.efficiency;
 
-        if amount > 0.0 && depth_accessible {
+        // v4.19 WS5: Deplete on ANY physical output — including the 5%
+        // surface-scrape fallback for depth-blocked veins. That ore
+        // physically leaves the ground, so it must reduce reserves and
+        // register in regional extraction telemetry; skipping it made
+        // blocked mines produce for free forever with Extraction: 0.00.
+        if amount > 0.0 {
             if let Some(ref mut buf) = depletion_buffer {
                 // Phase 93: Collect depletion request for batch pro-rata application.
                 // `region_id` attributes the extraction to the region hosting

@@ -73,6 +73,7 @@ export function MacroPage() {
               <CardContent>
                 <div className="space-y-2">
                   <ComponentRow label="Consumption" value={macro.consumption} />
+                  <ComponentRow label="Imputed C (in-kind)" value={macro.imputed_consumption} />
                   <ComponentRow label="Investment" value={macro.investment} />
                   <ComponentRow label="Gov Spending" value={macro.government_spending} />
                   <ComponentRow label="Net Exports" value={macro.net_exports} />

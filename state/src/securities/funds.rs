@@ -187,6 +187,13 @@ pub struct FundLedger {
     #[serde(default)]
     pub fund_manager_vip_id: Option<String>,
 
+    /// v4.19 WS3: Manager's full name persisted on the ledger at spawn, so
+    /// the UI can always show who runs the fund even when the VIP registry
+    /// entry cannot be resolved (legacy funds spawned before managers were
+    /// registered, or registry churn).
+    #[serde(default)]
+    pub fund_manager_name: String,
+
     /// Equity-market fix: instrument_id (`EQUITY:<company_id>`) → shares held,
     /// synced from the fund's brokerage portfolio each turn by
     /// `charge_fund_fees`. This is the test/UI-readable count of fund equity
@@ -202,6 +209,13 @@ pub struct FundLedger {
     /// cadence instead of every fund trading every turn in lockstep.
     #[serde(default)]
     pub last_rebalance_turn: u32,
+
+    /// v4.19 WS3: NAV per share at the fiscal-year boundary — restriken by
+    /// the turn loop every 24 turns so `ytd_return` computes
+    /// `nav_per_share / year_start_nav - 1` from real NAV history instead
+    /// of a stubbed zero.
+    #[serde(default)]
+    pub year_start_nav: f64,
 }
 
 /// Phase 36: A fund's holding of a sovereign/treasury bond.
@@ -1401,6 +1415,73 @@ pub fn submit_fund_orders(
             _asks_placed += 1;
         }
 
+        // ── v4.19 WS3: Standing sell-side liquidity ────────────────────
+        // Funds distribute a small churn slice of every held position each
+        // turn — the continuous offer flow real asset managers run through
+        // their trading desks. Without it the book degenerates to bids-only:
+        // bids rest at the mark while nothing is ever offered at/below it,
+        // so `best_ask` is 0, the spread is 0, and no trade ever prints.
+        // Ask = max(mark, best_bid): a deep-value bid lifts the print to the
+        // bid (genuine price discovery), otherwise the offer rests at the
+        // mark for retail and under-target funds to cross.
+        const FUND_LIQUIDITY_TURNS: u64 = 48; // ~2%/turn distribution churn
+        for (inst, held) in fund
+            .brokerage_account
+            .as_ref()
+            .map(|a| {
+                a.portfolio
+                    .iter()
+                    .map(|(i, l)| (i.clone(), l.iter().map(|x| x.quantity).sum::<u64>()))
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default()
+        {
+            if !inst.starts_with("EQUITY:") {
+                continue;
+            }
+            let company_id = &inst["EQUITY:".len()..];
+            if company_id == fund_id {
+                continue;
+            }
+            let offer_qty = (held / FUND_LIQUIDITY_TURNS).max(if held >= FUND_LIQUIDITY_TURNS {
+                1
+            } else {
+                0
+            });
+            if offer_qty == 0 {
+                continue;
+            }
+            let mark = equity_prices.get(company_id).copied().unwrap_or(0.0);
+            if mark <= 0.0 {
+                continue;
+            }
+            let best_bid = exchange
+                .order_book
+                .get(&inst)
+                .map(|b| b.best_bid)
+                .unwrap_or(0.0);
+            let ask_limit = mark.max(best_bid);
+            let order = Order::new_sell(
+                format!("FUND-LIQ-{}-{}", fund_id, inst),
+                fund_id.clone(),
+                inst.clone(),
+                InstrumentType::Equity,
+                offer_qty,
+                ask_limit,
+                current_turn + 3,
+            );
+            let book = exchange.order_book.entry(inst.clone()).or_default();
+            if let Some(pos) = book.asks.iter().position(|(p, _)| *p == ask_limit) {
+                book.asks[pos].1.push(order);
+            } else {
+                book.asks.push((ask_limit, vec![order]));
+                book.asks
+                    .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+            }
+            book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
+            _asks_placed += 1;
+        }
+
         // ── v4.18 WS4: Periodic mandate rebalancing ─────────────────────
         // Each risk profile rebalances on its own cadence (the base
         // interval is scaled by the manager's turnover trait — a
@@ -1837,9 +1918,15 @@ pub fn try_create_fund_from_vip(
             m
         },
         bond_holdings: Vec::new(),
-        fund_manager_vip_id: Some(vip.full_name.clone()),
+        fund_manager_vip_id: Some(if vip.id.is_empty() {
+            vip.full_name.clone()
+        } else {
+            vip.id.clone()
+        }),
+        fund_manager_name: vip.full_name.clone(),
         equity_holdings: std::collections::BTreeMap::new(),
         last_rebalance_turn: 0,
+        year_start_nav: 1.0,
     };
 
     // Create fund company.

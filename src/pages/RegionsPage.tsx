@@ -214,6 +214,7 @@ function RegionDetailPanel({ detail }: { detail: RegionDetail }) {
                       <div className="font-medium">{safeStr(m.description)}</div>
                       <div className="text-xs text-muted-foreground mt-1">
                         Required: {fmt(safeNum(m.required_spending))} · Funded: {fmt(safeNum(m.central_funding))} · Gap: {fmt(safeNum(m.funding_gap))}
+                        {m.imposed_turn ? ` · Imposed T${m.imposed_turn}` : ""}
                       </div>
                       <Badge variant="secondary" className="mt-1">{safeStr(m.status)}</Badge>
                     </div>

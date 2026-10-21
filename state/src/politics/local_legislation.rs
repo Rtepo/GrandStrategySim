@@ -38,6 +38,14 @@ pub struct UnfundedMandate {
     /// Whether the JST council has voted on how to cover the gap.
     #[serde(default)]
     pub council_decision: MandateFundingDecision,
+    /// v4.19 WS5c: Target region. Legacy records abused `description` as
+    /// the region key; new records carry an explicit region id so the
+    /// description stays human-readable.
+    #[serde(default)]
+    pub region_id: String,
+    /// v4.19 WS5c: National bill id that imposed this mandate (provenance).
+    #[serde(default)]
+    pub source_bill_id: String,
 }
 
 /// How the regional council decided to cover the funding gap.
@@ -535,13 +543,19 @@ pub fn process_active_mandates(country: &mut Country) {
 
     for mandate in mandates {
         // Find the region for this mandate.
-        let region_idx = country.regions.iter().position(|r| {
-            r.governance
-                .as_ref()
-                .map(|g| g.id.contains(&mandate.description))
-                .unwrap_or(false)
-                || r.id == mandate.description
-        });
+        // v4.19 WS5c: Prefer the explicit region_id on new mandates; fall
+        // back to the legacy description-as-key matching for old saves.
+        let region_idx = if !mandate.region_id.is_empty() {
+            country.regions.iter().position(|r| r.id == mandate.region_id)
+        } else {
+            country.regions.iter().position(|r| {
+                r.governance
+                    .as_ref()
+                    .map(|g| g.id.contains(&mandate.description))
+                    .unwrap_or(false)
+                    || r.id == mandate.description
+            })
+        };
 
         let region_idx = match region_idx {
             Some(idx) => idx,
@@ -587,6 +601,107 @@ pub fn process_active_mandates(country: &mut Country) {
     }
 
     country.politics.active_mandates = remaining_mandates;
+}
+
+/// v4.19 WS5c: Impose per-region mandates when a national bill carrying
+/// regional-obligation provisions is enacted.
+///
+/// Real-world analogue: national infrastructure/education/health statutes
+/// oblige regions (JST councils) to fund implementation — the classic
+/// "unfunded mandate". Each governed region gets its own mandate record
+/// whose required spending is derived from that region's actual
+/// `local_expenditures` budget, with the Treasury covering a bounded share.
+///
+/// # Arguments
+/// * `country` - Mutable country (regions, treasury, `politics.active_mandates`)
+/// * `bill` - The just-enacted bill (provisions + title for description)
+/// * `current_turn` - Turn the mandate is imposed
+///
+/// # Rules
+/// * Only governed regions (with `governance`) receive mandates.
+/// * `required_spending_per_region` = region's local_expenditures × share.
+/// * Central funding = 50% of required, with the total across all regions
+///   capped at 2% of Treasury liquid reserves (bounded, real affordability).
+/// * Skip provisions that don't impose regional obligations.
+/// * Deterministic: no RNG.
+pub fn impose_mandates_for_bill(
+    country: &mut Country,
+    bill: &crate::politics::legislation::Bill,
+    current_turn: u32,
+) {
+    use crate::politics::legislation::BillProvision;
+
+    // Collect (label, required-share-of-local-budget) obligations.
+    let mut obligations: Vec<(String, f64)> = Vec::new();
+    for clause in &bill.core_clauses {
+        let share = match &clause.provision {
+            Some(BillProvision::InfrastructureMandate { allocation_pct }) => {
+                Some((format!("{} — infrastructure works", bill.title), *allocation_pct))
+            }
+            Some(BillProvision::EducationLaw(_)) => {
+                Some((format!("{} — compulsory education provision", bill.title), 0.08))
+            }
+            Some(BillProvision::HealthcareLaw(_)) => {
+                Some((format!("{} — public health provision", bill.title), 0.08))
+            }
+            _ => None,
+        };
+        if let Some((label, s)) = share {
+            obligations.push((label, s.max(0.0)));
+        }
+    }
+    if obligations.is_empty() {
+        return;
+    }
+
+    // Total central co-funding is capped at 2% of Treasury liquid reserves,
+    // then distributed pro-rata so regions share a realistic pool.
+    let governed: Vec<usize> = country
+        .regions
+        .iter()
+        .enumerate()
+        .filter(|(_, r)| r.governance.is_some())
+        .map(|(i, _)| i)
+        .collect();
+    if governed.is_empty() {
+        return;
+    }
+
+    for (label, share) in obligations {
+        // Per-region required spending from each region's real local budget.
+        let requireds: Vec<(usize, f64)> = governed
+            .iter()
+            .map(|&i| {
+                let local_budget = country.regions[i]
+                    .governance
+                    .as_ref()
+                    .map(|g| g.budget.local_expenditures)
+                    .unwrap_or(0.0);
+                (i, local_budget * share)
+            })
+            .filter(|(_, req)| *req > 0.0)
+            .collect();
+        let total_required: f64 = requireds.iter().map(|(_, r)| *r).sum();
+        if total_required <= 0.0 {
+            continue;
+        }
+        // Central share: 50% pro-rata, capped by real treasury affordability.
+        let pool = (total_required * 0.5).min(country.budget.liquid_reserves * 0.02).max(0.0);
+        for (i, required) in requireds {
+            let central = pool * (required / total_required);
+            country.politics.active_mandates.push(UnfundedMandate {
+                description: label.clone(),
+                required_spending_per_region: required,
+                central_funding: central,
+                funding_gap: (required - central).max(0.0),
+                imposed_turn: current_turn,
+                friction_score: 0.0,
+                council_decision: MandateFundingDecision::Pending,
+                region_id: country.regions[i].id.clone(),
+                source_bill_id: bill.id.clone(),
+            });
+        }
+    }
 }
 
 // ============================================================================

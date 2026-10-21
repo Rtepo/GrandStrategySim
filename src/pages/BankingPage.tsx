@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
-import { getPaginatedBanks, getBankingAggregates, getBankingHistory } from "../hooks/useTauriCommand";
+import { getPaginatedBanks, getBankingAggregates, getBankingHistory, getBankDetail } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button } from "../components/ui";
 import { Sparkline } from "../components/charts/Sparkline";
 import { fmt } from "../lib/format";
@@ -11,6 +11,7 @@ const PAGE_SIZE = 20;
 export function BankingPage() {
   const { selectedCountry } = useGameStore();
   const [offset, setOffset] = useState(0);
+  const [expandedBankId, setExpandedBankId] = useState<string | null>(null);
 
   const { data: aggregates, isLoading: aggLoading } = useQuery({
     queryKey: ["banking-aggregates", selectedCountry],
@@ -97,20 +98,13 @@ export function BankingPage() {
                 <TableEmpty colSpan={8} message="Loading..." />
               ) : banksData && banksData.rows.length > 0 ? (
                 banksData.rows.map((b) => (
-                  <TableRow key={b.name}>
-                    <TableCell className="font-medium">{b.name}</TableCell>
-                    <TableCell>{b.bank_type}</TableCell>
-                    <TableCell className="text-right">{fmt(b.reserves)}</TableCell>
-                    <TableCell className="text-right">{fmt(b.deposits)}</TableCell>
-                    <TableCell className="text-right">{fmt(b.loans)}</TableCell>
-                    <TableCell className="text-right">{fmt(b.securities)}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={b.ldr > 0.8 ? "destructive" : b.ldr > 0.6 ? "default" : "success"}>
-                        {(b.ldr * 100).toFixed(0)}%
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{b.is_dspw ? <Badge variant="secondary">Yes</Badge> : "—"}</TableCell>
-                  </TableRow>
+                  <BankTableRow
+                    key={b.id}
+                    bank={b}
+                    country={selectedCountry}
+                    expanded={expandedBankId === b.id}
+                    onToggle={() => setExpandedBankId(expandedBankId === b.id ? null : b.id)}
+                  />
                 ))
               ) : (
                 <TableEmpty colSpan={8} message="No banks found" />
@@ -133,6 +127,112 @@ export function BankingPage() {
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+type BankRowT = import("../types/api").BankRow;
+
+/** v4.19 WS2: Bank row with expandable detail panel. */
+function BankTableRow({
+  bank,
+  country,
+  expanded,
+  onToggle,
+}: {
+  bank: BankRowT;
+  country: string;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Fragment>
+      <TableRow
+        className="cursor-pointer hover:bg-muted/50"
+        onClick={onToggle}
+      >
+        <TableCell className="font-medium">
+          <span className="mr-1 inline-block w-3 text-muted-foreground">{expanded ? "▾" : "▸"}</span>
+          {bank.name}
+        </TableCell>
+        <TableCell>{bank.bank_type}</TableCell>
+        <TableCell className="text-right">{fmt(bank.reserves)}</TableCell>
+        <TableCell className="text-right">{fmt(bank.deposits)}</TableCell>
+        <TableCell className="text-right">{fmt(bank.loans)}</TableCell>
+        <TableCell className="text-right">{fmt(bank.securities)}</TableCell>
+        <TableCell className="text-right">
+          <Badge variant={bank.ldr > 0.8 ? "destructive" : bank.ldr > 0.6 ? "default" : "success"}>
+            {(bank.ldr * 100).toFixed(0)}%
+          </Badge>
+        </TableCell>
+        <TableCell>{bank.is_dspw ? <Badge variant="secondary">Yes</Badge> : "—"}</TableCell>
+      </TableRow>
+      {expanded && (
+        <TableRow className="bg-muted/30">
+          <TableCell colSpan={8} className="p-0">
+            <BankDetailPanel country={country} bankId={bank.id} />
+          </TableCell>
+        </TableRow>
+      )}
+    </Fragment>
+  );
+}
+
+/** v4.19 WS2: Balance-sheet breakdown + income statement for one bank. */
+function BankDetailPanel({ country, bankId }: { country: string; bankId: string }) {
+  const { data: d, isLoading } = useQuery({
+    queryKey: ["bank-detail", country, bankId],
+    queryFn: () => getBankDetail(country, bankId),
+  });
+  if (isLoading) return <div className="p-4 text-sm text-muted-foreground">Loading bank detail...</div>;
+  if (!d) return <div className="p-4 text-sm text-muted-foreground">No detail available.</div>;
+
+  const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
+  return (
+    <div className="grid grid-cols-3 gap-4 p-4 text-sm">
+      <div>
+        <h4 className="mb-2 font-semibold text-foreground">Assets</h4>
+        <Dl label="Cash / CB Reserves" value={fmt(d.reserves_at_central_bank)} />
+        <Dl label="CB Deposit Facility" value={fmt(d.cb_deposit_facility_balance)} />
+        <Dl label="Interbank Loans" value={fmt(d.interbank_loans_given)} />
+        <Dl label="Corporate Loans" value={fmt(d.corporate_loans)} />
+        <Dl label="Consumer Loans" value={fmt(d.consumer_loans)} />
+        <Dl label="Gov/CB Securities" value={fmt(d.securities)} />
+        <Dl label="MBS Holdings" value={fmt(d.mbs_holdings_value)} />
+        <Dl label="Real Estate" value={fmt(d.real_estate)} />
+        <Dl label="Total Assets" value={fmt(d.total_assets)} bold />
+      </div>
+      <div>
+        <h4 className="mb-2 font-semibold text-foreground">Liabilities & Equity</h4>
+        <Dl label="Deposits" value={fmt(d.deposits)} />
+        <Dl label="ELA / Lombard Borrowings" value={fmt(d.cb_lombard_loans)} />
+        <Dl label="Interbank Borrowings" value={fmt(d.interbank_loans_taken)} />
+        <Dl label="Issued Bonds" value={fmt(d.issued_bonds)} />
+        <Dl label="Total Liabilities" value={fmt(d.total_liabilities)} bold />
+        <Dl label="Tier 1 Capital" value={fmt(d.tier_1_capital)} bold />
+        <h4 className="mb-2 mt-3 font-semibold text-foreground">Regulatory Ratios</h4>
+        <Dl label="LDR" value={pct(d.ldr)} />
+        <Dl label="CAR" value={pct(d.car)} />
+        <Dl label="Reserve Ratio" value={pct(d.reserve_ratio)} />
+      </div>
+      <div>
+        <h4 className="mb-2 font-semibold text-foreground">Income Statement (turn)</h4>
+        <Dl label="Interest Income" value={fmt(d.interest_income)} />
+        <Dl label="Interest Expense" value={fmt(d.interest_expense)} />
+        <Dl label="Net Interest Margin" value={pct(d.net_interest_margin)} />
+        <Dl label="NPL / Provisions" value={fmt(d.non_performing_loans)} />
+        <Dl label="Operating Wages" value={fmt(d.operating_wages)} />
+        <Dl label="Net Profit" value={fmt(d.net_profit)} bold />
+      </div>
+    </div>
+  );
+}
+
+function Dl({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
+  return (
+    <div className="flex justify-between py-0.5">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={bold ? "font-semibold text-foreground" : "text-foreground"}>{value}</span>
     </div>
   );
 }

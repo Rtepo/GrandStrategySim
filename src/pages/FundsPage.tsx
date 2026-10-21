@@ -79,7 +79,9 @@ export function FundsPage() {
               </div>
             </div>
             {cgtSummary.rows.length === 0 ? (
-              <TableEmpty colSpan={5} message="No capital gains tax settlement yet — the registry settles at fiscal year-end (every 24 turns)." />
+              <TableEmpty colSpan={5} message={cgtSummary.last_settled_year != null
+                ? `Fiscal year ${cgtSummary.last_settled_year} settled — no realized capital gains to tax this year.`
+                : "No capital gains tax settlement yet — the registry settles at fiscal year-end (every 24 turns)."} />
             ) : (
               <Table>
                 <TableHeader>

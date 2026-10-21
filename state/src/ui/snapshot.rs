@@ -1218,22 +1218,37 @@ pub fn build_organizations_snapshot(
 
     // Trade Unions
     for union in unions {
+        // v4.19 WS5: members are the unionized *workers*, not the firm
+        // count — `company_ids.len()` produced the cloned "Members: 154"
+        // where 154 was actually the number of companies in the sector.
+        let member_workers: usize = companies
+            .iter()
+            .filter(|c| {
+                c.union_id.as_deref() == Some(union.id.as_str())
+                    || union.company_ids.contains(&c.id)
+            })
+            .map(|c| c.fulfilled_fte as usize)
+            .sum();
+        let member_firms = union.company_ids.len();
         organizations.push(OrganizationRow {
             id: union.id.clone(),
             name: union.name.clone(),
             category: OrganizationCategory::TradeUnion,
             sector: format!("{:?}", union.sector),
             region_id: union.region_id.clone(),
-            member_count: union.company_ids.len(),
+            member_count: member_workers,
             funds: if is_classified {
                 None
             } else {
-                Some(union.budget)
+                Some(union.budget + union.strike_fund)
             },
             activity_summary: if union.on_strike {
                 "ON STRIKE".to_string()
             } else {
-                format!("{} member companies", union.company_ids.len())
+                format!(
+                    "{} workers across {} member companies",
+                    member_workers, member_firms
+                )
             },
         });
     }
@@ -1242,7 +1257,11 @@ pub fn build_organizations_snapshot(
     for movement in &country.politics.mass_movements {
         organizations.push(OrganizationRow {
             id: movement.id.clone(),
-            name: format!("{:?} in {}", movement.movement_type, movement.region_id),
+            name: format!(
+                "{} in {}",
+                movement_type_label(&movement.movement_type),
+                movement.region_id
+            ),
             category: OrganizationCategory::PoliticalMovement,
             sector: movement.initiating_class.clone(),
             region_id: movement.region_id.clone(),
@@ -1265,6 +1284,18 @@ pub fn build_organizations_snapshot(
 /// Phase 87+: Build an organization detail snapshot.
 /// Category-specific data is populated based on the organization type.
 /// Role-gated (Rule 11): strips classified data for foreign observers.
+/// Human-readable label for a mass-movement type (used in Organizations UI).
+fn movement_type_label(t: &crate::politics::mass_movements::MassMovementType) -> &'static str {
+    use crate::politics::mass_movements::MassMovementType::*;
+    match t {
+        IndustrialStrike => "Industrial Strike",
+        Riot => "Riot",
+        PeacefulProtest => "Peaceful Protest",
+        Occupation => "Occupation",
+        Boycott => "Boycott",
+    }
+}
+
 pub fn build_organization_detail(
     country: &crate::state::Country,
     companies: &[crate::entities::Company],
@@ -1325,21 +1356,29 @@ pub fn build_organization_detail(
                     .and_then(|r| r.get(lid))
                     .map(|v| v.full_name.clone())
             });
+            let member_workers: usize = companies
+                .iter()
+                .filter(|c| {
+                    c.union_id.as_deref() == Some(union.id.as_str())
+                        || union.company_ids.contains(&c.id)
+                })
+                .map(|c| c.fulfilled_fte as usize)
+                .sum();
             Some(OrganizationDetail {
                 id: union.id.clone(),
                 name: union.name.clone(),
                 category: OrganizationCategory::TradeUnion,
                 region_id: union.region_id.clone(),
-                member_count: union.company_ids.len(),
+                member_count: member_workers,
                 funds: if is_classified {
                     None
                 } else {
-                    Some(union.budget)
+                    Some(union.budget + union.strike_fund)
                 },
                 activity_summary: if union.on_strike {
                     "ON STRIKE".to_string()
                 } else {
-                    "Active".to_string()
+                    format!("{} unionized workers", member_workers)
                 },
                 union_detail: Some(UnionDetailData {
                     sector: format!("{:?}", union.sector),
@@ -2124,6 +2163,7 @@ pub struct VipDossier {
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct BankRow {
+    pub id: String,
     pub name: String,
     pub bank_type: String,
     pub reserves: f64,
@@ -2132,6 +2172,51 @@ pub struct BankRow {
     pub securities: f64,
     pub is_dspw: bool,
     pub ldr: f64,
+}
+
+/// v4.19 WS2: Full bank detail for the expandable row panel — balance-sheet
+/// breakdown, regulatory ratios, and a per-turn income statement derived
+/// from the live ledger (interest run-rates = outstanding balances ×
+/// contract/standing-facility rates; no synthetic accrual figures).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct BankDetail {
+    pub id: String,
+    pub name: String,
+    pub bank_type: String,
+    pub is_dspw: bool,
+    // Assets
+    pub reserves_at_central_bank: f64,
+    pub cb_deposit_facility_balance: f64,
+    pub interbank_loans_given: f64,
+    pub corporate_loans: f64,
+    pub consumer_loans: f64,
+    pub securities: f64,
+    pub real_estate: f64,
+    pub mbs_holdings_value: f64,
+    // Liabilities
+    pub deposits: f64,
+    pub cb_lombard_loans: f64,
+    pub interbank_loans_taken: f64,
+    pub issued_bonds: f64,
+    // Equity + totals
+    pub tier_1_capital: f64,
+    pub total_assets: f64,
+    pub total_liabilities: f64,
+    // Regulatory ratios
+    pub ldr: f64,
+    /// Capital adequacy: tier_1_capital / total_assets.
+    pub car: f64,
+    /// reserves_at_central_bank / deposits (1.0 when depositless).
+    pub reserve_ratio: f64,
+    // Income statement (current-turn run-rate)
+    pub interest_income: f64,
+    pub interest_expense: f64,
+    pub net_interest_margin: f64,
+    /// Outstanding principal on loans past Current status.
+    pub non_performing_loans: f64,
+    pub operating_wages: f64,
+    pub net_profit: f64,
 }
 
 // ============================================================================
@@ -2827,6 +2912,12 @@ pub struct MandateSummary {
     pub central_funding: f64,
     pub funding_gap: f64,
     pub status: String,
+    /// Region this mandate targets (empty = legacy national record).
+    pub region_id: String,
+    /// Imposing bill's id (provenance; empty for legacy).
+    pub source_bill_id: String,
+    /// Turn the mandate was imposed.
+    pub imposed_turn: u32,
 }
 
 /// Summary of a household durable cohort for the region drill-down.
@@ -3011,6 +3102,114 @@ pub struct ParliamentResponse {
     pub government_form: String,
 }
 
+// ============================================================================
+// v4.19 WS4: CONSTITUTION & LAWS + ELECTIONS SNAPSHOTS
+// ============================================================================
+
+/// Constitutional parameters for the "Constitution & Laws" tab — every
+/// field read from `politics.constitution` / `politics` (no projection).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ConstitutionSnapshot {
+    pub exists: bool,
+    pub regime_type: String,
+    pub chambers: u32,
+    pub upper_house_name: Option<String>,
+    pub electoral_system: String,
+    pub election_threshold: f64,
+    /// Government-form term length in years (4/5 democratic, 999 non-elective).
+    pub term_length_years: u32,
+    pub presidential_veto: bool,
+    pub constitutional_tribunal: String,
+    pub suffrage_system: String,
+    pub budget_failure_consequence: String,
+    pub change_mechanism: String,
+}
+
+/// One active statute/policy configuration row.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ActiveLawRow {
+    /// Policy domain (Labor, Health, Education, Justice, Migration, ...).
+    pub domain: String,
+    /// Display name of the law/policy.
+    pub name: String,
+    /// Current active parameters (e.g. the configured regime value).
+    pub summary: String,
+}
+
+/// A bill that completed the pipeline and was enacted.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct EnactedStatuteRow {
+    pub bill_id: String,
+    pub title: String,
+    pub initiator: String,
+    pub bill_type: String,
+    pub enacted_turn: Option<u32>,
+    /// Provisions/effects recorded at vote time.
+    pub provisions: Vec<String>,
+}
+
+/// Response for the get_constitution_laws command.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ConstitutionLawsResponse {
+    pub constitution: ConstitutionSnapshot,
+    /// Live policy configurations (what the laws currently DO).
+    pub active_laws: Vec<ActiveLawRow>,
+    /// Bills enacted this term — the parliamentary statute book.
+    pub enacted_statutes: Vec<EnactedStatuteRow>,
+}
+
+/// A party's standing for the Elections tab.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ElectionPartyRow {
+    pub party_id: String,
+    pub ideology: String,
+    /// Current support share (0-1).
+    pub support: f64,
+    /// Seats currently held in the lower chamber.
+    pub seats: u32,
+    pub is_coalition_member: bool,
+    pub is_ruling: bool,
+}
+
+/// One executed campaign action.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CampaignActionRow {
+    pub party_id: String,
+    pub action: String,
+    pub turn: u32,
+    pub is_black_money: bool,
+}
+
+/// Response for the get_elections command.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ElectionsResponse {
+    pub government_form: String,
+    /// ElectionState label: Idle / PreCampaign / ActiveCampaign / ElectionDay.
+    pub election_state: String,
+    /// Years remaining on the current parliamentary term.
+    pub years_to_elections: u32,
+    /// Estimated turns until the next election (years_to_elections × 24).
+    pub estimated_turns_remaining: u32,
+    /// Calendar year of the next scheduled election.
+    pub next_election_year: u32,
+    pub head_of_state_name: String,
+    pub head_of_state_title: String,
+    pub campaign_duration_turns: u32,
+    /// Party standings (support share + current seats) — the "polling" table.
+    pub parties: Vec<ElectionPartyRow>,
+    /// Campaign actions executed this cycle (real `campaign_executions`).
+    pub campaign_actions: Vec<CampaignActionRow>,
+    /// Current lower-chamber seat distribution (latest election result).
+    pub current_seats: Vec<(String, u32)>,
+}
+
 /// Response for the get_macro_indicators command.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
@@ -3024,6 +3223,11 @@ pub struct MacroIndicatorsResponse {
     pub money_supply_m0: f64,
     pub money_supply_m3: f64,
     pub consumption: f64,
+    /// Imputed consumption — in-kind/subsistence flows valued at VWAP. Kept
+    /// as its own GDP component so C+I+G+NX+imputed visibly reconciles with
+    /// the headline (v4.18's 890M-vs-2.33B gap), while `consumption` stays
+    /// the monetized series that V418-2 smoothing governs.
+    pub imputed_consumption: f64,
     pub investment: f64,
     pub government_spending: f64,
     pub net_exports: f64,
@@ -3754,6 +3958,7 @@ fn build_bank_page(_country: &Country, companies: &[Company], view: &ViewQuery) 
                 0.0
             };
             Some(BankRow {
+                id: c.id.clone(),
                 name: c.name.clone(),
                 bank_type: format!("{:?}", c.bank_type.as_ref()?),
                 reserves: bs.reserves_at_central_bank,
@@ -3765,6 +3970,365 @@ fn build_bank_page(_country: &Country, companies: &[Company], view: &ViewQuery) 
             })
         })
         .collect()
+}
+
+/// v4.19 WS2: Full detail for one bank (expandable row panel). Every figure
+/// is read from the live balance sheet / ledger — interest flows are the
+/// per-turn run-rate implied by outstanding balances and contract rates.
+pub fn build_bank_detail(
+    country: &Country,
+    companies: &[Company],
+    bank_id: &str,
+) -> Option<BankDetail> {
+    use crate::state::banking::LoanStatus;
+    let c = companies.iter().find(|c| c.id == bank_id && c.bank_type.is_some())?;
+    let bs = c.balance_sheet.as_ref()?;
+    let rates = &country.central_bank.interest_rates;
+
+    let corporate_loans: f64 = bs.loans_issued.iter().map(|l| l.outstanding_balance).sum();
+    let non_performing_loans: f64 = bs
+        .loans_issued
+        .iter()
+        .filter(|l| matches!(l.status, LoanStatus::Overdue | LoanStatus::Default))
+        .map(|l| l.outstanding_balance)
+        .sum();
+    let mbs_holdings_value: f64 = bs
+        .mbs_holdings
+        .iter()
+        .map(|m| m.total_underlying_notional)
+        .sum();
+    let interbank_given: f64 = bs.interbank_loans_given.values().sum();
+    let interbank_taken: f64 = bs.interbank_loans_taken.values().sum();
+
+    // Per-turn interest run-rate: loan interest accrues at each loan's
+    // contract rate; liabilities accrue at the CB standing-facility corridor
+    // (deposits at the deposit rate, Lombard at the penalty rate, interbank
+    // at the reference rate, issued bonds at reference + 1% credit spread).
+    let interest_income: f64 = bs
+        .loans_issued
+        .iter()
+        .map(|l| l.outstanding_balance * l.interest_rate)
+        .sum::<f64>()
+        + bs.consumer_loans_outstanding * (rates.reference_rate + 0.04)
+        + interbank_given * rates.reference_rate;
+    let interest_expense: f64 = bs.deposits * rates.deposit_rate
+        + bs.cb_lombard_loans * rates.lombard_rate
+        + interbank_taken * rates.reference_rate
+        + bs.issued_bonds * (rates.reference_rate + 0.01);
+    let interest_bearing_assets =
+        corporate_loans + bs.consumer_loans_outstanding + interbank_given + bs.securities;
+    let net_interest_margin = if interest_bearing_assets > 0.0 {
+        (interest_income - interest_expense) / interest_bearing_assets
+    } else {
+        0.0
+    };
+    let ldr = if bs.deposits > 0.0 {
+        (corporate_loans + bs.consumer_loans_outstanding) / bs.deposits
+    } else {
+        0.0
+    };
+    let total_assets = bs.total_assets();
+    let car = if total_assets > 0.0 {
+        bs.tier_1_capital / total_assets
+    } else {
+        0.0
+    };
+    let reserve_ratio = if bs.deposits > 0.0 {
+        bs.reserves_at_central_bank / bs.deposits
+    } else {
+        1.0
+    };
+
+    Some(BankDetail {
+        id: c.id.clone(),
+        name: c.name.clone(),
+        bank_type: format!("{:?}", c.bank_type.as_ref()?),
+        is_dspw: c.is_dspw,
+        reserves_at_central_bank: bs.reserves_at_central_bank,
+        cb_deposit_facility_balance: bs.cb_deposit_facility_balance,
+        interbank_loans_given: interbank_given,
+        corporate_loans,
+        consumer_loans: bs.consumer_loans_outstanding,
+        securities: bs.securities,
+        real_estate: bs.real_estate,
+        mbs_holdings_value,
+        deposits: bs.deposits,
+        cb_lombard_loans: bs.cb_lombard_loans,
+        interbank_loans_taken: interbank_taken,
+        issued_bonds: bs.issued_bonds,
+        tier_1_capital: bs.tier_1_capital,
+        total_assets,
+        total_liabilities: bs.total_liabilities(),
+        ldr,
+        car,
+        reserve_ratio,
+        interest_income,
+        interest_expense,
+        net_interest_margin,
+        non_performing_loans,
+        operating_wages: c.wages_paid_this_turn + c.arrears_accrued_this_turn,
+        net_profit: c.realized_profit_this_turn,
+    })
+}
+
+/// v4.19 WS4: Constitution parameters + the live statute/policy book for
+/// the "Constitution & Laws" tab. All rows come from real `politics`
+/// fields — no projected or synthetic statute lists.
+pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
+    let p = &country.politics;
+    let c = &p.constitution;
+    let constitution = ConstitutionSnapshot {
+        exists: c.exists,
+        regime_type: format!("{:?}", p.government_form),
+        chambers: p.government_form.chambers(),
+        upper_house_name: c.upper_house.as_ref().map(|u| format!("{:?}", u)),
+        electoral_system: if p.election_method.is_empty() {
+            "None (non-elective regime)".to_string()
+        } else {
+            p.election_method.clone()
+        },
+        election_threshold: p.election_threshold,
+        term_length_years: p.government_form.election_cycle(),
+        presidential_veto: c.presidential_veto,
+        constitutional_tribunal: c.constitutional_tribunal.clone(),
+        suffrage_system: format!("{:?}", c.suffrage_system),
+        budget_failure_consequence: format!("{:?}", c.budget_failure_consequence),
+        change_mechanism: c.change_mechanism.clone(),
+    };
+
+    // Live statute/policy rows — every entry is a real Politics field and
+    // its currently-active parameters.
+    let mut active_laws: Vec<ActiveLawRow> = Vec::new();
+    let mut push = |domain: &str, name: &str, summary: String| {
+        if !summary.is_empty() {
+            active_laws.push(ActiveLawRow {
+                domain: domain.to_string(),
+                name: name.to_string(),
+                summary,
+            });
+        }
+    };
+    push("Civil Rights", "Civil Rights Regime", p.civil_rights_law.clone());
+    push("Civil Rights", "Emancipation Regime", p.emancipation_law.clone());
+    push("Labor", "Labor Relations Regime", p.labor_law.clone());
+    push("Labor", "Union Regime", p.union_law.clone());
+    push("Labor", "Strike Regime", p.strike_law.clone());
+    push("Religion", "Religious Regime", p.religious_law.clone());
+    if let Some(ref l) = p.child_labor_law {
+        push("Labor", "Child Labor Law", format!("{l:?}"));
+    }
+    if let Some(ref l) = p.healthcare_law {
+        push(
+            "Health",
+            "Healthcare Act",
+            format!(
+                "{:?} — {:?} coverage",
+                l.healthcare_system, l.universality
+            ),
+        );
+    }
+    if let Some(ref l) = p.education_law {
+        push(
+            "Education",
+            "Education Act",
+            format!("{:?} — {:?} school system", l.education_model, l.school_system),
+        );
+    }
+    if let Some(ref l) = p.justice_law {
+        push(
+            "Justice",
+            "Justice Reform",
+            format!(
+                "pardon: {:?}, KRS separated: {}, corruption idx {:.2}",
+                l.pardon_authority, l.krs_separated, l.corruption_index
+            ),
+        );
+    }
+    if let Some(ref l) = p.prison_labor_law {
+        push(
+            "Justice",
+            "Prison Labor Law",
+            format!("{:?} — compensation {:.2}", l.prison_type, l.labor_compensation),
+        );
+    }
+    if let Some(ref l) = p.sentencing_law {
+        push(
+            "Justice",
+            "Sentencing Code",
+            format!(
+                "death penalty: {}, life imprisonment: {}, community service: {}",
+                l.death_penalty_enabled, l.life_imprisonment_enabled, l.community_service_enabled
+            ),
+        );
+    }
+    if let Some(ref l) = p.amnesty_law {
+        if l.active {
+            push(
+                "Justice",
+                "Amnesty Program",
+                format!("rate {:.2}, fee {:.0}, target {:?}", l.legalization_rate, l.legalization_fee, l.target_status),
+            );
+        }
+    }
+    if let Some(ref l) = p.migration_law {
+        push(
+            "Migration",
+            "Migration Law",
+            format!(
+                "open borders: {}, visa required: {}, deportation: {:?}",
+                l.open_borders, l.visa_required, l.deportation_policy
+            ),
+        );
+    }
+    if let Some(ref l) = p.religious_law_struct {
+        push(
+            "Religion",
+            "Religious Law",
+            format!(
+                "state religion: {}, separation: {}, church tax {:.2}",
+                l.state_religion.clone().unwrap_or_else(|| "none".into()),
+                l.separation_of_church_and_state,
+                l.church_tax_rate
+            ),
+        );
+    }
+    if p.nuclear_law {
+        push("Energy", "Nuclear Program Act", "authorized".to_string());
+    }
+
+    // Enacted statutes — bills that completed the pipeline this term, with
+    // the terminal stage/enactment turn stamped by `mark_bill_terminal`.
+    let mut enacted_statutes: Vec<EnactedStatuteRow> = Vec::new();
+    if let Some(ref parl) = p.parliament_struct {
+        for chamber in &parl.chambers {
+            for record in &chamber.recent_votes {
+                let Some(ref detail) = record.detail else {
+                    continue;
+                };
+                if detail.stage != "Enacted" {
+                    continue;
+                }
+                if enacted_statutes.iter().any(|r| r.bill_id == record.bill_id) {
+                    continue;
+                }
+                enacted_statutes.push(EnactedStatuteRow {
+                    bill_id: record.bill_id.clone(),
+                    title: record.bill_title.clone(),
+                    initiator: detail.initiator.clone(),
+                    bill_type: detail.bill_type.clone(),
+                    enacted_turn: detail.enacted_turn,
+                    provisions: detail
+                        .provisions
+                        .iter()
+                        .map(|pr| pr.description.clone())
+                        .collect(),
+                });
+            }
+        }
+        enacted_statutes.sort_by_key(|r| r.bill_id.clone());
+    }
+
+    ConstitutionLawsResponse {
+        constitution,
+        active_laws,
+        enacted_statutes,
+    }
+}
+
+/// v4.19 WS4: Elections & Campaigns snapshot — countdown from
+/// `years_to_elections` (the live term counter), party standings from real
+/// `support` values and current seats, and executed campaign actions.
+pub fn build_elections(country: &Country, current_year: u32) -> ElectionsResponse {
+    let p = &country.politics;
+    let election_state = match &p.election_state {
+        crate::politics::campaign::ElectionState::Idle => "Idle".to_string(),
+        crate::politics::campaign::ElectionState::PreCampaign {
+            turns_until_start,
+            registration_deadline,
+        } => format!(
+            "Pre-Campaign (starts in {} turns, registration by turn {})",
+            turns_until_start, registration_deadline
+        ),
+        crate::politics::campaign::ElectionState::ActiveCampaign {
+            turns_remaining, ..
+        } => format!("Active Campaign ({} turns remaining)", turns_remaining),
+        crate::politics::campaign::ElectionState::ElectionDay => "Election Day".to_string(),
+        crate::politics::campaign::ElectionState::PostElectionResolution { turn } => {
+            format!("Post-Election Resolution (turn {})", turn)
+        }
+    };
+    let current_seats: Vec<(String, u32)> = p
+        .parliament_struct
+        .as_ref()
+        .map(|parl| {
+            let mut v: Vec<(String, u32)> =
+                parl.lower_seat_map().into_iter().collect();
+            v.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+            v
+        })
+        .unwrap_or_else(|| {
+            let mut v: Vec<(String, u32)> = p.parliament.iter().map(|(k, v)| (k.clone(), *v)).collect();
+            v.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+            v
+        });
+
+    let ruling = p
+        .parliament
+        .iter()
+        .max_by_key(|(_, s)| *s)
+        .map(|(k, _)| k.clone());
+    let mut parties: Vec<ElectionPartyRow> = p
+        .active_parties
+        .iter()
+        .map(|(pid, party)| ElectionPartyRow {
+            party_id: pid.clone(),
+            ideology: party.ideology.clone(),
+            support: party.support,
+            seats: p
+                .parliament_struct
+                .as_ref()
+                .map(|parl| *parl.lower_seat_map().get(pid).unwrap_or(&0))
+                .or_else(|| p.parliament.get(pid).copied())
+                .unwrap_or(0),
+            is_coalition_member: p.coalition.contains(pid),
+            is_ruling: ruling.as_deref() == Some(pid.as_str()),
+        })
+        .collect();
+    parties.sort_by(|a, b| {
+        b.support
+            .partial_cmp(&a.support)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.party_id.cmp(&b.party_id))
+    });
+
+    let campaign_actions: Vec<CampaignActionRow> = p
+        .campaign_executions
+        .iter()
+        .map(|e| CampaignActionRow {
+            party_id: e.party_id.clone(),
+            action: format!("{:?}", e.action),
+            turn: e.execution_turn,
+            is_black_money: e.is_black_money,
+        })
+        .collect();
+
+    ElectionsResponse {
+        government_form: format!("{:?}", p.government_form),
+        election_state,
+        years_to_elections: p.years_to_elections,
+        estimated_turns_remaining: p.years_to_elections.saturating_mul(24),
+        next_election_year: current_year.saturating_add(p.years_to_elections),
+        head_of_state_name: if !p.head_of_state.name.is_empty() {
+            p.head_of_state.name.clone()
+        } else {
+            "(vacant)".to_string()
+        },
+        head_of_state_title: format!("{:?}", p.government_form),
+        campaign_duration_turns: p.campaign_duration_turns,
+        parties,
+        campaign_actions,
+        current_seats,
+    }
 }
 
 /// Count total banks (for scroll indicators).
@@ -4107,16 +4671,22 @@ fn build_region_detail(
     };
 
     // Active mandates (mandates are national, not per-region, so show all).
+    // v4.19 WS5c: Show mandates targeting THIS region (new records carry a
+    // real region_id), plus legacy unscoped national mandates.
     let active_mandates = country
         .politics
         .active_mandates
         .iter()
+        .filter(|m| m.region_id.is_empty() || m.region_id == *region_id)
         .map(|m| MandateSummary {
             description: m.description.clone(),
             required_spending: m.required_spending_per_region,
             central_funding: m.central_funding,
             funding_gap: m.funding_gap,
             status: format!("{:?}", m.council_decision),
+            region_id: m.region_id.clone(),
+            source_bill_id: m.source_bill_id.clone(),
+            imposed_turn: m.imposed_turn,
         })
         .collect();
 
@@ -4133,13 +4703,19 @@ fn build_region_detail(
         infra_links.iter().map(|l| l.condition).sum::<f64>() / infra_links.len() as f64
     };
 
-    // Sector employment: Region doesn't have a labor_market field directly.
-    // Use capacity utilization as a proxy for economic activity by type.
-    let sector_employment: Vec<(String, f64)> = region
-        .capacity_utilization
+    // v4.19 WS5c: Real sector employment — sum `current_employment` (actual
+    // staffed FTE) across the region's buildings, grouped by GDP sector.
+    // The previous capacity_utilization proxy showed percentages, not jobs.
+    let mut sector_fte: std::collections::BTreeMap<String, f64> =
+        std::collections::BTreeMap::new();
+    for building in buildings
         .iter()
-        .map(|(ct, util)| (format!("{:?}", ct), *util * 100.0))
-        .collect();
+        .filter(|b| b.region_id == *region_id)
+    {
+        *sector_fte.entry(format!("{:?}", building.sector)).or_insert(0.0) +=
+            building.current_employment as f64;
+    }
+    let sector_employment: Vec<(String, f64)> = sector_fte.into_iter().collect();
 
     // Durable cohorts from class demographics.
     let durable_cohorts = region
@@ -4329,28 +4905,54 @@ fn build_geological_deposit_rows(
                 .and_then(|v| v.as_f64())
                 .unwrap_or(0.0)
                 .max(0.0);
-            // Depletion fraction of the original estimated reserves,
-            // clamped to [0,1] so malformed mirrors can't render negatives.
-            let utilization = if reserves > 0.0 {
-                ((reserves - current) / reserves).clamp(0.0, 1.0)
-            } else {
-                0.0
-            };
             let formation_name = map
                 .get("formation_name")
                 .and_then(|v| v.as_str())
                 .unwrap_or("Unknown")
                 .to_string();
-            // Phase 89: Count active mines by matching building.deposit_id to
-            // the resource key (vein ID or composite ID). This is the
-            // authoritative count — buildings with deposit_id == resource_key
-            // are mines extracting from this vein.
-            let active_mines = buildings
+            // Phase 89 + v4.19: Match mines by `deposit_id` against every
+            // vein-id form — worldgen may key this resource entry by vein.id
+            // while buildings store composite_id (or vice versa). The
+            // per-turn sync stamps both forms on the entry.
+            let vein_id = map.get("vein_id").and_then(|v| v.as_str());
+            let composite_id = map.get("composite_id").and_then(|v| v.as_str());
+            let mines: Vec<&crate::entities::Building> = buildings
                 .iter()
                 .filter(|b| {
-                    b.region_id == region.id && b.deposit_id.as_deref() == Some(resource_key)
+                    b.region_id == region.id
+                        && b.deposit_id.as_deref().is_some_and(|d| {
+                            d == resource_key.as_str()
+                                || Some(d) == vein_id
+                                || Some(d) == composite_id
+                        })
                 })
-                .count() as u32;
+                .collect();
+            let active_mines = mines.len() as u32;
+            // v4.19 WS5: Utilization = actual extraction / nameplate mine
+            // capacity. Per-mine capacity mirrors the production path:
+            // output_per_1k × (worker_capacity × scale / 1000) × efficiency
+            // for the vein's commodity. Depletion % remains visible via
+            // Estimated vs Current reserves.
+            let capacity: f64 = mines
+                .iter()
+                .map(|b| {
+                    let per_1k = b
+                        .active_method
+                        .outputs
+                        .iter()
+                        .find(|(c, _)| format!("{:?}", c) == commodity)
+                        .map(|(_, q)| *q)
+                        .unwrap_or(0.0);
+                    let cap_fte = (b.worker_capacity as f64)
+                        * (b.scale_factor.max(1) as f64);
+                    per_1k * (cap_fte / 1000.0) * b.active_method.efficiency.max(0.0)
+                })
+                .sum();
+            let utilization = if capacity > 0.0 {
+                (extraction_rate / capacity).clamp(0.0, 1.0)
+            } else {
+                0.0
+            };
             let discovered = map
                 .get("discovered")
                 .and_then(|v| v.as_bool())

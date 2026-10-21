@@ -58,7 +58,10 @@ pub async fn get_macro_indicators(
             average_wage: md.labor.average_wage,
             money_supply_m0: md.money_supply.m0,
             money_supply_m3: md.money_supply.m3,
+            // v4.19: `consumption` is the monetized series; the in-kind leg
+            // is its own component so C+imputed+I+G+NX reconciles visibly.
             consumption: md.gdp_breakdown.consumption,
+            imputed_consumption: md.gdp_breakdown.imputed_consumption,
             investment: md.gdp_breakdown.investment,
             government_spending: md.gdp_breakdown.government_spending,
             net_exports: md.gdp_breakdown.net_exports,

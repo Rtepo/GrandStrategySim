@@ -1,6 +1,6 @@
 [package]
 name = "sim_engine"
-version = "4.18.0"
+version = "4.19.0"
 edition = "2021"
 description = "Rust migration of the Grand Strategy simulation engine (Target 0: static registries & core math)."
 license = "MIT"
@@ -120,6 +120,16 @@ required-features = ["epic-tests", "diagnostic"]
 [[test]]
 name = "wage_reconciliation_test"
 path = "tests/epics/wage_reconciliation_test.rs"
+required-features = ["epic-tests", "diagnostic"]
+
+[[test]]
+name = "run_to_run_divergence_probe"
+path = "tests/epics/run_to_run_divergence_probe.rs"
+required-features = ["epic-tests", "diagnostic"]
+
+[[test]]
+name = "c_spike_probe"
+path = "tests/epics/c_spike_probe.rs"
 required-features = ["epic-tests", "diagnostic"]
 
 [[test]]

@@ -13,6 +13,7 @@ import type {
   CompanyPageResponse,
   CompanyDetail,
   BankPageResponse,
+  BankDetail,
   BankingAggregates,
   BankingHistoryResponse,
   RegionRow,
@@ -20,6 +21,8 @@ import type {
   MegaregionDetail,
   ParliamentResponse,
   GovernmentSnapshot,
+  ConstitutionLawsResponse,
+  ElectionsResponse,
   RegionOption,
   RoleOption,
   StockExchangeResponse,
@@ -133,6 +136,10 @@ export async function getBankingAggregates(country: string): Promise<BankingAggr
   return invoke<BankingAggregates>("get_banking_aggregates", { country });
 }
 
+export async function getBankDetail(country: string, bankId: string): Promise<BankDetail> {
+  return invoke<BankDetail>("get_bank_detail", { country, bankId });
+}
+
 export async function getRegions(country: string): Promise<RegionRow[]> {
   return invoke<RegionRow[]>("get_regions", { country });
 }
@@ -151,6 +158,15 @@ export async function getParliament(country: string): Promise<ParliamentResponse
 
 export async function getGovernment(country: string): Promise<GovernmentSnapshot> {
   return invoke<GovernmentSnapshot>("get_government", { country });
+}
+
+// v4.19 WS4: Constitution & Laws + Elections sub-tabs.
+export async function getConstitutionLaws(country: string): Promise<ConstitutionLawsResponse> {
+  return invoke<ConstitutionLawsResponse>("get_constitution_laws", { country });
+}
+
+export async function getElections(country: string): Promise<ElectionsResponse> {
+  return invoke<ElectionsResponse>("get_elections", { country });
 }
 
 // Phase 56/57: Securities & Fund commands

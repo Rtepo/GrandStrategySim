@@ -24,8 +24,13 @@
 use crate::economy::order_book::{Bid, OrderBook};
 use crate::entities::Company;
 use crate::registries::enums::Commodity;
+use crate::state::macro_data::TURNS_PER_YEAR;
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
+
+/// Annual local-government operating procurement as a share of regional
+/// GDP — a modest O&M appropriation (administrative services + machinery).
+const JST_ANNUAL_EXPENDITURE_GDP_SHARE: f64 = 0.02;
 
 /// Configuration for JST spending behavior.
 ///
@@ -113,14 +118,28 @@ pub fn submit_jst_procurement_bids(
             continue;
         };
 
-        let local_expenditures = governance.budget.local_expenditures;
-        if local_expenditures <= 0.0 {
+        // local_expenditures is an annual appropriation — refresh it from
+        // live regional output so procurement tracks the tax base instead
+        // of the genesis seed. When the tax base can't be measured yet
+        // (genesis/zero-gdp turn), keep the council's existing
+        // appropriation rather than zeroing it — but a region that truly
+        // has no appropriation still places no bids.
+        let available = governance.budget.liquid_reserves.max(0.0);
+        let live_appropriation =
+            region.gdp.max(0.0) * JST_ANNUAL_EXPENDITURE_GDP_SHARE;
+        let annual_appropriation = if live_appropriation > 0.0 {
+            live_appropriation
+        } else {
+            governance.budget.local_expenditures.max(0.0)
+        };
+        governance.budget.local_expenditures = annual_appropriation;
+        if annual_appropriation <= 0.0 {
             continue;
         }
 
-        // Clamp procurement budget to available reserves.
-        let available = governance.budget.liquid_reserves.max(0.0);
-        let procurement_budget = local_expenditures.min(available);
+        // Per-turn spend: appropriation slice bounded by real reserves.
+        let procurement_budget =
+            (annual_appropriation / TURNS_PER_YEAR as f64).min(available);
         if procurement_budget <= 0.0 {
             continue;
         }

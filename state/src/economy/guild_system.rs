@@ -107,6 +107,32 @@ pub fn check_guild_formation_trigger(
     best_sector.map(|(s, _)| s)
 }
 
+/// Compute the per-class seed-capital extraction for a new guild.
+///
+/// Pro-rata by cottage FTE share, capped at each class's actual savings.
+/// Shared by `create_guild` (which credits the guild) and by callers that
+/// must debit the same amounts from the real class savings (double-entry).
+///
+/// Returns `Vec<(class_id, extraction_amount)>`.
+pub fn compute_seed_extraction(
+    contributing_classes: &[(String, f64, f64)],
+    average_wage: f64,
+    config: &GuildConfig,
+) -> Vec<(String, f64)> {
+    let seed_capital = config.min_seed_capital_wage_multiple * average_wage;
+    let total_cottage_fte: f64 = contributing_classes.iter().map(|(_, fte, _)| *fte).sum();
+    if total_cottage_fte <= 0.0 {
+        return Vec::new();
+    }
+    contributing_classes
+        .iter()
+        .map(|(class_id, fte_share, savings)| {
+            let proportion = fte_share / total_cottage_fte;
+            (class_id.clone(), (seed_capital * proportion).min(*savings))
+        })
+        .collect()
+}
+
 /// Create a new guild company.
 ///
 /// Seed capital is extracted pro-rata from the aggregate savings of the
@@ -119,18 +145,12 @@ pub fn create_guild(
     average_wage: f64,
     config: &GuildConfig,
 ) -> Company {
-    let seed_capital = config.min_seed_capital_wage_multiple * average_wage;
-
-    // Extract seed capital pro-rata from contributing classes
-    let total_cottage_fte: f64 = contributing_classes.iter().map(|(_, fte, _)| *fte).sum();
-    let mut total_extracted = 0.0;
-    for (_, fte_share, savings) in contributing_classes {
-        if total_cottage_fte > 0.0 {
-            let proportion = fte_share / total_cottage_fte;
-            let extraction = (seed_capital * proportion).min(*savings);
-            total_extracted += extraction;
-        }
-    }
+    // Extract seed capital pro-rata from contributing classes.
+    // The CALLER is responsible for debiting each class's savings by the
+    // amounts returned — the guild only receives what was really extracted
+    // (double-entry, Rule 1).
+    let extractions = compute_seed_extraction(contributing_classes, average_wage, config);
+    let total_extracted: f64 = extractions.iter().map(|(_, amt)| *amt).sum();
 
     let sector_str = format!("{:?}", sector);
     let guild_id = format!("GUILD-{}-{}", domain.id, sector_str);
