@@ -254,6 +254,7 @@ pub fn apply_mass_movement_disruption(
     movement: &MassMovement,
     companies: &mut [Company],
     config: &ChaosConfig,
+    participant_share: f64,
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
@@ -269,7 +270,7 @@ pub fn apply_mass_movement_disruption(
         }
 
         // Calculate disruption based on movement type and intensity using config multipliers
-        let disruption_factor = match movement.movement_type {
+        let type_factor = match movement.movement_type {
             MassMovementType::IndustrialStrike => {
                 movement.intensity * config.strike_disruption_multiplier
             }
@@ -282,6 +283,12 @@ pub fn apply_mass_movement_disruption(
                 movement.intensity * config.protest_disruption_multiplier
             }
         };
+        // v4.19 WS5: scale by the participant share of the region — a
+        // movement whose radicals are 8% of the population cannot switch
+        // off a quarter of regional output. The 0.25 floor keeps even a
+        // small organized minority economically audible.
+        let disruption_factor =
+            type_factor * (0.25 + 0.75 * participant_share.clamp(0.0, 1.0));
 
         // CRITICAL: Set transient modifier (NOT permanent mutation)
         // This modifier is reset to 0.0 at start of each turn
@@ -623,8 +630,100 @@ pub fn process_mass_movements_turn(
     let mut messages = Vec::new();
     let config = chaos_config;
 
-    // 1. Spawn check for each region
+    // 0. Sentiment update (v4.19 WS5): apply real macro/class drivers to
+    //    `political_sentiment` before spawn checks. Previously
+    //    `calculate_yoy_drivers` was dead code and `ChaosConfig::default()`
+    //    had all-zero weights, so `radicals` never moved and no movement
+    //    could ever spawn organically.
+    let government_approval = country
+        .politics
+        .active_parties
+        .get(&country.politics.ruling_party)
+        .map(|p| p.support / 100.0)
+        .unwrap_or(0.5)
+        .clamp(0.0, 1.0);
+    let current_real_wage = country.macro_indicators.average_wage;
+    let current_inflation = country.macro_indicators.inflation_indices.cpi_inflation / 100.0;
+
     for region in regions.iter_mut() {
+        for class in region.class_demographics.rural_classes.values_mut() {
+            let drivers = class.calculate_yoy_drivers(
+                current_turn,
+                class.savings_per_capita,
+                current_real_wage,
+                current_inflation,
+            );
+            class.apply_sentiment_update(&drivers, config, government_approval, current_turn);
+            class.update_historical_snapshot(
+                current_turn,
+                class.savings_per_capita,
+                current_real_wage,
+                current_inflation,
+            );
+        }
+        for class in region.class_demographics.urban_classes.values_mut() {
+            let drivers = class.calculate_yoy_drivers(
+                current_turn,
+                class.savings_per_capita,
+                current_real_wage,
+                current_inflation,
+            );
+            class.apply_sentiment_update(&drivers, config, government_approval, current_turn);
+            class.update_historical_snapshot(
+                current_turn,
+                class.savings_per_capita,
+                current_real_wage,
+                current_inflation,
+            );
+        }
+    }
+
+    // 1. Spawn check for each region — v4.19 WS5 guards:
+    //    a) ONE active movement per region: a region cannot host parallel
+    //       simultaneous movements — the strongest organizes and absorbs
+    //       the rest. Previously every over-threshold turn pushed another
+    //       entry, stacking ~5 concurrent movements per region (150
+    //       cumulative spawns by t12) and holding ~25% of every region's
+    //       output permanently disrupted.
+    //    b) Post-resolution cooldown: resolved movements retain entries for
+    //       `expected_duration + 5` turns; a region cannot re-organize
+    //       within 4 turns of a resolution — movements are episodic events,
+    //       not ambient state. (Cooldown ≤ the 5-turn retention overhang,
+    //       so the retained record always covers the window.)
+    const MOVEMENT_RESPAWN_COOLDOWN_TURNS: u32 = 4;
+    let busy_regions: std::collections::BTreeSet<String> = country
+        .politics
+        .mass_movements
+        .iter()
+        .filter(|m| m.status == MassMovementStatus::Active)
+        .map(|m| m.region_id.clone())
+        .collect();
+    let mut last_end: std::collections::HashMap<String, u32> =
+        std::collections::HashMap::new();
+    for m in &country.politics.mass_movements {
+        if matches!(
+            m.status,
+            MassMovementStatus::ResolvedSuccess | MassMovementStatus::ResolvedFailure
+        ) {
+            let end = m.start_turn + m.expected_duration;
+            last_end
+                .entry(m.region_id.clone())
+                .and_modify(|e| *e = (*e).max(end))
+                .or_insert(end);
+        }
+    }
+    for region in regions.iter_mut() {
+        if busy_regions.contains(region.id.as_str()) {
+            continue;
+        }
+        if last_end
+            .get(region.id.as_str())
+            .is_some_and(|&end| {
+                current_turn < end + MOVEMENT_RESPAWN_COOLDOWN_TURNS
+            })
+        {
+            continue;
+        }
         if let Some(mut movement) =
             check_mass_movement_spawn(&region.id, &region.class_demographics, config, current_turn)
         {
@@ -659,8 +758,32 @@ pub fn process_mass_movements_turn(
             continue;
         }
 
-        // Apply disruption to companies in the region
-        let disruption_msgs = apply_mass_movement_disruption(movement, companies, config);
+        // Apply disruption to companies in the region — scaled by what
+        // share of the regional population is actually participating.
+        let participant_share: f64 = regions
+            .iter()
+            .find(|r| r.id == movement.region_id)
+            .map(|r| {
+                let pop = r
+                    .class_demographics
+                    .rural_classes
+                    .values()
+                    .map(|c| c.population)
+                    .sum::<i64>()
+                    + r.class_demographics
+                        .urban_classes
+                        .values()
+                        .map(|c| c.population)
+                        .sum::<i64>();
+                if pop > 0 {
+                    movement.participant_count as f64 / pop as f64
+                } else {
+                    0.0
+                }
+            })
+            .unwrap_or(0.0);
+        let disruption_msgs =
+            apply_mass_movement_disruption(movement, companies, config, participant_share);
         messages.extend(disruption_msgs);
 
         // Process union strike fund payments
@@ -756,6 +879,33 @@ pub fn process_mass_movements_turn(
             "[MOVEMENT] {:?} in region {} resolved (demands not met)",
             movement.movement_type, movement.region_id
         ));
+
+        // v4.19 WS5: resolution DISCHARGES unrest — the organized action
+        // spent part of the radicalization that produced it. Half of the
+        // initiating class's radicals settle back to undecided; without
+        // this, radicals persist at the self-healed level and every region
+        // instantly re-spawns forever (permanent nationwide disruption).
+        const RESOLUTION_DEFUSE_FRACTION: f64 = 0.5;
+        if let Some(region) = regions
+            .iter_mut()
+            .find(|r| r.id == movement.region_id)
+        {
+            let class_opt = crate::society::geography::RuralClass::from_str(
+                &movement.initiating_class,
+            )
+            .and_then(|k| region.class_demographics.rural_classes.get_mut(&k))
+            .or_else(|| {
+                crate::society::geography::UrbanClass::from_str(&movement.initiating_class)
+                    .and_then(|k| region.class_demographics.urban_classes.get_mut(&k))
+            });
+            if let Some(class) = class_opt {
+                let s = &mut class.political_sentiment;
+                let drained = s.radicals * RESOLUTION_DEFUSE_FRACTION;
+                s.radicals -= drained;
+                s.undecided += drained;
+                s.normalize();
+            }
+        }
     }
 
     // Clean up resolved movements older than 5 turns

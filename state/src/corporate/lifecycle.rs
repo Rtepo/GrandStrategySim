@@ -37,6 +37,7 @@ impl CompanyLifecycle {
         market_signal: &MarketSignal,
         current_turn: u32,
         registries: &crate::registries::Registries,
+        planet: Option<&crate::society::planet::Planet>,
     ) {
         // Phase 94: M0 conservation diagnostic — compute simplified M0 sum
         // before and after each lifecycle step to identify M0 leaks.
@@ -73,6 +74,7 @@ impl CompanyLifecycle {
             market_signal,
             current_turn,
             registries,
+            planet,
         );
         #[cfg(feature = "diagnostic")]
         {
@@ -445,6 +447,7 @@ impl CompanyLifecycle {
         market_signal: &MarketSignal,
         current_turn: u32,
         registries: &crate::registries::Registries,
+        planet: Option<&crate::society::planet::Planet>,
     ) {
         if market_signal.interest_rate > 0.15 {
             return;
@@ -630,6 +633,47 @@ impl CompanyLifecycle {
                     new_building.inventory_capacity.max(seed_total * 2.0);
             }
 
+            // v4.19 WS5: Link mining-sector spawns to a real geological vein
+            // in the host region. Without `deposit_id`, the building takes
+            // the legacy production path forever — it extracts without
+            // depleting any vein, so `apply_depletion_batch` /
+            // `extraction_by_region` never see it and the Land & Cadastre →
+            // Resources tab reads Extraction 0.00 despite active mines.
+            if sector == Sector::Mining {
+                if let Some(planet) = planet {
+                    // Primary output = largest output entry. `outputs` is a
+                    // BTreeMap — deterministic iteration, so `max_by` keeps
+                    // the tie-break canonical.
+                    let primary_output = new_building
+                        .active_method
+                        .outputs
+                        .iter()
+                        .max_by(|a, b| {
+                            a.1.partial_cmp(b.1)
+                                .unwrap_or(std::cmp::Ordering::Equal)
+                        })
+                        .map(|(c, _)| *c);
+                    if let Some(commodity) = primary_output {
+                        let mut candidates = planet
+                            .veins_for_region_and_commodity(&spawn_region_id, commodity)
+                            .into_iter()
+                            .filter(|v| v.discovered && v.current_reserves > 0.0)
+                            .collect::<Vec<_>>();
+                        candidates.sort_by(|a, b| {
+                            b.current_reserves
+                                .partial_cmp(&a.current_reserves)
+                                .unwrap_or(std::cmp::Ordering::Equal)
+                                .then_with(|| a.id.cmp(&b.id))
+                        });
+                        if let Some(vein) = candidates.first() {
+                            new_building.deposit_id = Some(
+                                vein.composite_id.clone().unwrap_or_else(|| vein.id.clone()),
+                            );
+                        }
+                    }
+                }
+            }
+
             companies.push(new_company);
             buildings.push(new_building);
 
@@ -770,6 +814,7 @@ mod tests {
             &market_signal,
             0,
             &crate::registries::Registries::native_only(),
+            None,
         );
 
         assert!(companies.is_empty());
@@ -801,6 +846,7 @@ mod tests {
             &market_signal,
             0,
             &crate::registries::Registries::native_only(),
+            None,
         );
 
         assert!(companies.is_empty());
@@ -884,6 +930,7 @@ mod tests {
             &market_signal,
             0,
             &crate::registries::Registries::native_only(),
+            None,
         );
 
         assert!(!companies.is_empty(), "expected lifecycle spawn");
@@ -979,6 +1026,7 @@ mod tests {
             &market_signal,
             spawn_turn,
             &crate::registries::Registries::native_only(),
+            None,
         );
 
         assert!(!companies.is_empty(), "expected lifecycle spawn");

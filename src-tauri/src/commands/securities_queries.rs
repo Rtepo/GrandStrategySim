@@ -640,7 +640,13 @@ pub async fn get_funds(
                     manager_vip_id,
                     manager_trait,
                     shares_outstanding: ledger.shares_outstanding,
-                    ytd_return: 0.0, // TODO: compute from NAV history
+                    // v4.19 WS3: real NAV-history return — `year_start_nav`
+                    // is restriken every fiscal-year boundary (24 turns).
+                    ytd_return: if ledger.year_start_nav > 0.0 {
+                        ledger.nav_per_share / ledger.year_start_nav - 1.0
+                    } else {
+                        0.0
+                    },
                     top_holdings,
                 }
             })
@@ -689,20 +695,38 @@ pub async fn get_fund_detail(
         }
 
         let ledger = fund.fund_ledger.as_ref().unwrap();
-        let (manager_name, manager_vip_id, manager_trait) =
-            if let Some(ref mid) = ledger.fund_manager_vip_id {
-                if let Some(registry) = registry {
-                    if let Some(vip) = registry.get(mid) {
-                        (vip.full_name.clone(), mid.clone(), vip.main_trait.clone())
+        // v4.19 WS3: manager resolution order — ledger VIP id → registry,
+        // ceo_vip_id → registry, persisted ledger name — so a fund always
+        // shows its actual manager instead of falling to "Unknown".
+        let resolve_vip = |vip_id: &str| -> Option<(String, String)> {
+            registry
+                .and_then(|r| r.get(vip_id).or_else(|| r.get_by_name(vip_id)))
+                .map(|v| (v.full_name.clone(), v.main_trait.clone()))
+        };
+        let (manager_name, manager_vip_id, manager_trait) = ledger
+            .fund_manager_vip_id
+            .as_ref()
+            .and_then(|mid| resolve_vip(mid).map(|(n, t)| (n, mid.clone(), t)))
+            .or_else(|| {
+                fund.ceo_vip_id
+                    .as_ref()
+                    .and_then(|cid| resolve_vip(cid).map(|(n, t)| (n, cid.clone(), t)))
+            })
+            .unwrap_or_else(|| {
+                (
+                    if ledger.fund_manager_name.is_empty() {
+                        "Unassigned".to_string()
                     } else {
-                        ("Unknown".to_string(), mid.clone(), "".to_string())
-                    }
-                } else {
-                    ("Unknown".to_string(), mid.clone(), "".to_string())
-                }
-            } else {
-                ("Unknown".to_string(), "".to_string(), "".to_string())
-            };
+                        ledger.fund_manager_name.clone()
+                    },
+                    ledger
+                        .fund_manager_vip_id
+                        .clone()
+                        .or_else(|| fund.ceo_vip_id.clone())
+                        .unwrap_or_default(),
+                    "".to_string(),
+                )
+            });
 
         // v4.18 WS4: resolved holdings — each row carries the display name
         // and listing code so the UI never renders raw `EQUITY:`/`BOND:` ids.
@@ -794,7 +818,13 @@ pub async fn get_fund_detail(
             manager_vip_id,
             manager_trait,
             shares_outstanding: ledger.shares_outstanding,
-            ytd_return: 0.0,
+            // v4.19 WS3: real NAV-history return — the ledger restrikes
+            // `year_start_nav` every fiscal-year boundary (24 turns).
+            ytd_return: if ledger.year_start_nav > 0.0 {
+                ledger.nav_per_share / ledger.year_start_nav - 1.0
+            } else {
+                0.0
+            },
             leverage_ratio: ledger.leverage_ratio,
             management_fee: ledger.management_fee,
             performance_fee: ledger.performance_fee,

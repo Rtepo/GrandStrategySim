@@ -649,6 +649,17 @@ pub fn clear_savings_bonds_b2c(country: &mut Country, current_turn: u32) {
 
             // Create savings bond record
             let holder_key = format!("{}:{}", region.id, class_name);
+            // v4.19: stagger maturities 18–41 turns by issuance index
+            // instead of a fixed term. A uniform term phase-locks every
+            // bond in an issuance burst into a single maturity wall —
+            // the synchronized principal repayment (~930M globally at
+            // t24) pulsed household savings and rebounded through spend
+            // capacity as a >15% aggregate consumption step. Spreading
+            // the term over a ~24-turn ladder keeps any single turn's
+            // redemption ≈ 1/24 of the outstanding cohort — inside the
+            // per-turn capacity band — while the mean term stays ~24.
+            let maturity_turns = 18
+                + ((country.debt_market.retail_bonds.len() + 1) % 24) as u32;
             country.debt_market.retail_bonds.push(SavingsBond {
                 id: format!(
                     "SB-{}-{:04}",
@@ -658,8 +669,8 @@ pub fn clear_savings_bonds_b2c(country: &mut Country, current_turn: u32) {
                 face_value: purchase,
                 interest_rate: retail_rate,
                 issue_turn: current_turn,
-                maturity_turns: 24, // 6 years default
-                turns_remaining: 24,
+                maturity_turns,
+                turns_remaining: maturity_turns,
                 is_inflation_indexed: false,
                 holder_key,
                 arrears: 0.0,
@@ -786,20 +797,20 @@ pub fn process_debt_service(
             bond.turns_remaining -= 1;
         }
 
-        // Interest payment (annual — Phase 74: fix to every 24 turns, not 4)
-        if (current_turn - bond.issue_turn).is_multiple_of(TURNS_PER_YEAR as u32)
-            && bond.turns_remaining > 0
-        {
-            let adjusted_principal = if bond.is_inflation_indexed {
-                let new_principal = bond.face_value * (1.0 + inflation_rate);
-                bond.face_value = new_principal;
-                new_principal
-            } else {
-                bond.face_value
-            };
-
-            // Annual coupon paid once per year — full annual rate is correct
-            let interest = adjusted_principal * bond.interest_rate;
+        // Interest accrual: every live turn pays the compound-equivalent
+        // per-turn share of the annual coupon instead of one lump on the
+        // 24-turn issue "birthday". annual_to_per_turn_rate is the exact
+        // compounding inverse — 24 per-turn payments equal one annual
+        // coupon for a continuously-held bond — so the yield is identical,
+        // but payouts no longer phase-lock into a synchronized year-end
+        // credit into household savings (the t24 retail pulse that
+        // rebounded through spend capacity as a >15% consumption step).
+        // Inflation indexing compounds per turn on the same identity.
+        if bond.turns_remaining > 0 {
+            if bond.is_inflation_indexed {
+                bond.face_value *= 1.0 + annual_to_per_turn_rate(inflation_rate);
+            }
+            let interest = bond.face_value * annual_to_per_turn_rate(bond.interest_rate);
             total_due += interest;
             // Retail interest goes to citizen savings
             payments.push((format!("RETAIL:{}", bond.holder_key), interest));

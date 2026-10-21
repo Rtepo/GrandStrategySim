@@ -33,7 +33,7 @@ fn debit_bank_for_company_action(
         if company_has_brokerage {
             bs.tier_1_capital -= debit;
         } else {
-            bs.deposits -= debit;
+            crate::state::banking::settle_deposit_debit(bs, debit);
         }
     }
 }

@@ -655,9 +655,20 @@ pub fn process_legislation_turn(
                             bill_title, votes_for, votes_against, abstentions
                         ));
                         sess.rejected_bills.push(bill_id.clone());
-                        // Stamp the terminal outcome on the recorded vote.
+                        // Stamp the terminal outcome on the recorded vote —
+                        // name the rejecting chamber so the UI can badge
+                        // "Rejected by <chamber>" instead of a bare "Rejected".
                         if let Some(ref mut parl) = country.politics.parliament_struct {
-                            parl.mark_bill_terminal(bill_id, "Rejected", current_turn);
+                            let lower_name = parl
+                                .chambers
+                                .first()
+                                .map(|c| c.name.clone())
+                                .unwrap_or_else(|| "Lower House".to_string());
+                            parl.mark_bill_terminal(
+                                bill_id,
+                                &format!("Rejected by {lower_name}"),
+                                current_turn,
+                            );
                         }
                     }
                 }
@@ -759,7 +770,16 @@ pub fn process_legislation_turn(
                         ));
                         sess.rejected_bills.push(bill_id.clone());
                         if let Some(ref mut parl) = country.politics.parliament_struct {
-                            parl.mark_bill_terminal(bill_id, "Rejected", current_turn);
+                            let upper_name = parl
+                                .chambers
+                                .get(1)
+                                .map(|c| c.name.clone())
+                                .unwrap_or_else(|| "Upper House".to_string());
+                            parl.mark_bill_terminal(
+                                bill_id,
+                                &format!("Rejected by {upper_name}"),
+                                current_turn,
+                            );
                         }
                     }
                 }
@@ -784,6 +804,15 @@ pub fn process_legislation_turn(
                         let enact_msgs = super::legislation::enact_bill(country, &bill);
                         messages.extend(enact_msgs);
 
+                        // v4.19 WS5c: Regional-obligation provisions impose
+                        // unfunded mandates on governed regions (displayed in
+                        // Regions → Mandates, executed by process_active_mandates).
+                        super::local_legislation::impose_mandates_for_bill(
+                            country,
+                            &bill,
+                            current_turn,
+                        );
+
                         sess.enacted_laws.push(bill_id.clone());
                         // Stamp the effective turn on the parliamentary record —
                         // the law takes effect on the enactment turn.
@@ -797,8 +826,14 @@ pub fn process_legislation_turn(
                             bill_title
                         ));
                         sess.rejected_bills.push(bill_id.clone());
+                        let hos = &country.politics.head_of_state.name;
+                        let veto_label = if hos.is_empty() {
+                            "Vetoed by Head of State".to_string()
+                        } else {
+                            format!("Vetoed by {hos}")
+                        };
                         if let Some(ref mut parl) = country.politics.parliament_struct {
-                            parl.mark_bill_terminal(bill_id, "Rejected", current_turn);
+                            parl.mark_bill_terminal(bill_id, &veto_label, current_turn);
                         }
                     }
                 }
@@ -873,21 +908,76 @@ impl FastTrackBill for Bill {
 /// `HashMap::keys().next()` iteration order is arbitrary and would assign
 /// different committees run-to-run.
 fn assign_committee(bill: &Bill, cs: &CommitteeSystem) -> String {
-    let title = bill.title.to_lowercase();
-    // Fiscal measures (budget, crisis fiscal responses, bond authorisations)
-    // all belong to the budget committee; everything else is general.
-    let bill_type = if title.contains("budget")
-        || title.contains("crisis")
-        || title.contains("emergency")
-        || title.contains("bond")
-    {
-        "budget"
-    } else {
-        "general"
+    // v4.19 WS4: route on the bill's actual policy domain, not a title
+    // keyword guess. The old fallback read `bill_type_assignments["general"]`
+    // (nonexistent) and landed every non-budget bill in `committees.keys()
+    // .min()` — alphabetically the Budget Committee — so seven committees
+    // sat at zero bills while Budget swallowed everything.
+    use crate::politics::legislation::BillType;
+    let mapped: Option<&'static str> = match bill.bill_type {
+        BillType::Budget | BillType::EmergencyFiscal | BillType::EmergencyBonds | BillType::TaxReform => {
+            Some("budget_committee")
+        }
+        BillType::Healthcare => Some("health_committee"),
+        BillType::Education => Some("education_committee"),
+        BillType::Justice | BillType::Sentencing => Some("justice_committee"),
+        BillType::Infrastructure | BillType::Transport => Some("infrastructure_committee"),
+        BillType::Labor | BillType::FreeSpeech | BillType::Migration => {
+            Some("social_affairs_committee")
+        }
+        BillType::Other => None,
     };
-    cs.get_committee_for_bill(bill_type)
-        .cloned()
-        .or_else(|| cs.committees.keys().min().cloned())
+    if let Some(committee_id) = mapped {
+        if cs.committees.contains_key(committee_id) {
+            return committee_id.to_string();
+        }
+    }
+
+    // Uncategorized bills: title keywords first, then the least-loaded
+    // committee (fair rotation) — never a fixed default.
+    let title = bill.title.to_lowercase();
+    let keyword_hit = [
+        ("budget", "budget_committee"),
+        ("crisis", "budget_committee"),
+        ("emergency", "budget_committee"),
+        ("bond", "budget_committee"),
+        ("tax", "budget_committee"),
+        ("health", "health_committee"),
+        ("hospital", "health_committee"),
+        ("education", "education_committee"),
+        ("school", "education_committee"),
+        ("justice", "justice_committee"),
+        ("court", "justice_committee"),
+        ("sentenc", "justice_committee"),
+        ("infrastructure", "infrastructure_committee"),
+        ("transport", "infrastructure_committee"),
+        ("rail", "infrastructure_committee"),
+        ("defense", "defense_committee"),
+        ("military", "defense_committee"),
+        ("army", "defense_committee"),
+        ("foreign", "foreign_affairs_committee"),
+        ("treaty", "foreign_affairs_committee"),
+        ("labor", "social_affairs_committee"),
+        ("speech", "social_affairs_committee"),
+        ("migration", "social_affairs_committee"),
+    ]
+    .iter()
+    .find(|(kw, _)| title.contains(kw))
+    .map(|(_, cid)| *cid);
+    if let Some(committee_id) = keyword_hit {
+        if cs.committees.contains_key(committee_id) {
+            return committee_id.to_string();
+        }
+    }
+    cs.committees
+        .iter()
+        .min_by(|(id_a, a), (id_b, b)| {
+            a.bills_under_review
+                .len()
+                .cmp(&b.bills_under_review.len())
+                .then_with(|| id_a.cmp(id_b))
+        })
+        .map(|(id, _)| id.clone())
         .unwrap_or_else(|| "budget_committee".to_string())
 }
 
@@ -1452,20 +1542,56 @@ fn parliament_can_legislate(country: &crate::state::Country) -> bool {
 ///
 /// # Returns
 /// `Some(message)` when a bill was introduced this turn, `None` otherwise.
+/// Fiscal-year anchor turn for the budget cycle (24 turns = 1 year).
+/// The annual budget bill carries id `BUDGET-{year}` — a single unified
+/// record per fiscal year instead of a fresh `BUDGET-{turn}` duplicate
+/// every 4 turns.
+pub const BUDGET_BILL_PERIOD_TURNS: u32 = 24;
+
 pub fn introduce_budget_bill_if_due(
     country: &mut crate::state::Country,
     current_turn: u32,
 ) -> Option<String> {
-    if !current_turn.is_multiple_of(4) {
+    // v4.19 WS4: budgets are ANNUAL (every 24 turns). The intermediate
+    // 4-turn checkpoint only re-submits when the session's own record of
+    // this year's budget bill is terminal-rejected (upper-chamber vote or
+    // executive veto) — and it re-queues the SAME `BUDGET-{year}` id, so
+    // the chamber list keeps one unified bill record rather than
+    // unexplained duplicate rows.
+    let annual_due = current_turn.is_multiple_of(BUDGET_BILL_PERIOD_TURNS);
+    let checkpoint = current_turn.is_multiple_of(4);
+    if !annual_due && !checkpoint {
         return None;
     }
-    // Shared intake gate: needs chambers, a seated body, and a parliament
-    // that is neither suspended nor bypassed by a State of Emergency.
     if !parliament_can_legislate(country) {
         return None;
     }
 
-    let budget_bill = super::budget_lifecycle::draft_budget_bill(country, current_turn);
+    let year = current_turn / BUDGET_BILL_PERIOD_TURNS;
+    let unified_id = format!("BUDGET-{year}");
+    let resubmission = if !annual_due {
+        // Off-cadence turn: only re-submit when this year's budget record
+        // is rejected AND no live copy is still under consideration.
+        let session = country.politics.legislative_session.as_ref()?;
+        let rejected = session.rejected_bills.contains(&unified_id);
+        let still_live = session.active_bills.contains_key(&unified_id);
+        if !rejected || still_live {
+            return None;
+        }
+        true
+    } else {
+        false
+    };
+
+    let mut budget_bill = super::budget_lifecycle::draft_budget_bill(country, current_turn);
+    // Unify the record: the year's budget always carries `BUDGET-{year}`
+    // so re-submissions reuse the same row rather than `BUDGET-{turn}` dups.
+    budget_bill.id = unified_id.clone();
+    if resubmission {
+        budget_bill.title = format!("Budget Bill FY{} (Re-submitted)", 1900 + year);
+    } else {
+        budget_bill.title = format!("Budget Bill FY{}", 1900 + year);
+    }
     let bill = super::budget_lifecycle::budget_bill_to_legislative_bill(country, &budget_bill);
     let bill_id = bill.id.clone();
     if introduce_bill_to_session(country, bill) {

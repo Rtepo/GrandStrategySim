@@ -36,6 +36,13 @@ pub fn clear_seed_global() {
     IS_MAIN_THREAD.with(|flag| flag.set(false));
 }
 
+/// Whether a global seed is armed (process-wide flag, not thread-local).
+/// Used by the `UNSEEDED_DRAW` diagnostic to flag draws that fell back to
+/// OS entropy on a thread whose TLS was never seeded mid-run.
+pub fn global_seed_is_set() -> bool {
+    SEED_SET.load(Ordering::SeqCst)
+}
+
 /// Propagate the global seed to the current rayon worker thread if set.
 ///
 /// Phase 94: For full determinism, re-seed at every call using the global
@@ -52,8 +59,11 @@ pub fn clear_seed_global() {
 /// it already processed — i.e., on scheduling order — producing a different
 /// world every run. Re-seeding per element on every thread (including main)
 /// makes each task's RNG stream a pure function of the global seed,
-/// independent of which thread executes it. `restore_main_rng` already
-/// re-seeds the main thread after each parallel section for sequential code.
+/// independent of which thread executes it. Callers that need the main
+/// thread's sequential stream preserved across a parallel section use
+/// `seeded_rng::save_stream`/`restore_stream` around the section;
+/// `restore_main_rng` remains for sites that deliberately reset the
+/// main stream to position 0 before a pinned sequential draw.
 pub fn ensure_worker_seeded() {
     if SEED_SET.load(Ordering::SeqCst) {
         let global_seed = SEED_ATOMIC.load(Ordering::SeqCst);

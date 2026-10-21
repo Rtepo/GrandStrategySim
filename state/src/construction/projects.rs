@@ -447,13 +447,17 @@ impl ConstructionProject {
             // released (observed: sites parked at progress 0.998 forever,
             // zero CONST_DBG[COMPLETE] events).
             //
-            // A full crew (p = 1) installs up to the line's entire
-            // requirement per turn when the material is staged — identical
-            // to the old p = 1 semantics. A fraction-p crew installs
-            // `required * p` units per turn, bounded by what is physically
-            // on site, so the line completes in `ceil(1/p)` fully-staged
-            // turns instead of asymptoting.
-            let rate_cap = required * p;
+            // A full crew (p = 1) installs `required / INSTALL_HORIZON`
+            // units per turn, so a fully-staged line completes in
+            // `INSTALL_HORIZON` turns and a fraction-p crew in
+            // `INSTALL_HORIZON / p` — still linear convergence (the rate
+            // is proportional to the constant requirement, not the
+            // shrinking remainder), but the physical installation now
+            // spans several turns so construction investment books into
+            // GDP as continuous work-in-progress rather than a single
+            // per-project burst.
+            const INSTALL_HORIZON: f64 = 4.0;
+            let rate_cap = required * p / INSTALL_HORIZON;
             let to_consume = remaining_needed.min(available).min(rate_cap);
             if to_consume <= 0.0 {
                 continue;

@@ -445,6 +445,7 @@ pub fn generate_world(
             .expect("country missing");
         crate::society::factional_domains::generate_factional_domains(
             country,
+            &mut regions,
             &domain_config,
             &mut rng,
         );
@@ -466,6 +467,7 @@ pub fn generate_world(
         generate_investment_funds(
             data_dir,
             country,
+            &regions,
             &cultural_group,
             options.start_year as u32,
             &mut rng,

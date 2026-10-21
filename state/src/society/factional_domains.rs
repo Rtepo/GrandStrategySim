@@ -69,6 +69,11 @@ impl Default for FactionalDomainConfig {
 /// generation, so that parcel ownership and building data are available
 /// for faction type assignment.
 ///
+/// `regions` must be the top-level generated regions map — `country.regions`
+/// is intentionally empty during world generation (it is reassembled from
+/// `regions.json` at load time in `turn_context`). Iterating `country.regions`
+/// here would silently produce zero domains.
+///
 /// # Rules
 /// - Domain count scales with parcel count: `(parcel_count / parcels_per_domain).clamp(min, max)`.
 /// - Faction type assigned based on parcel ownership:
@@ -79,6 +84,7 @@ impl Default for FactionalDomainConfig {
 ///   - Parcels with existing SEZ/industrial → IndustrialistDomain
 pub fn generate_factional_domains(
     country: &mut Country,
+    regions: &mut HashMap<String, Region>,
     config: &FactionalDomainConfig,
     rng: &mut impl Rng,
 ) {
@@ -100,7 +106,20 @@ pub fn generate_factional_domains(
     // Step 1: Generate domains and collect parcel→domain mappings
     let mut parcel_domain_map: HashMap<ParcelId, String> = HashMap::new();
 
-    for region in country.regions.iter_mut() {
+    // Canonical iteration order: `regions` is a HashMap (per-process random
+    // order) and `determine_faction_type_from_ownership` consumes rng draws —
+    // iterating it raw would assign draws to regions nondeterministically.
+    let mut region_ids: Vec<String> = regions
+        .iter()
+        .filter(|(_, r)| r.owner_country == country.name)
+        .map(|(id, _)| id.clone())
+        .collect();
+    region_ids.sort();
+
+    for region_id in region_ids {
+        let Some(region) = regions.get_mut(&region_id) else {
+            continue;
+        };
         // Collect parcel IDs for this region
         let region_parcel_ids: Vec<ParcelId> = region.parcel_ids.clone();
         if region_parcel_ids.is_empty() {

@@ -238,6 +238,29 @@ fn encumber_cash(company: &mut Company, amount: f64) {
     company.debit_cash += amount;
 }
 
+/// Working-capital facility for generic procurement: spendable liquid plus
+/// net worth MINUS the contract-receivable share of `company_capital`.
+/// Receivables count at 0.5 for solvency (an escrowed tranche owed on
+/// certified work is a real IFRS-15 contract asset — `compute_company_capital`),
+/// but the same receivable is already spoken for: it funds the payroll and
+/// site materials of the project that earned it. Re-collateralizing it for
+/// restock/maintenance/capex bids let stalled contractors draw ~45M/turn of
+/// procurement credit their crews could never work off; the ratcheted balance
+/// then zeroed payroll capacity (construction pacing subtracts the full
+/// credit stock), pinning the national sector at site-skeleton crews
+/// (v4.19 FS-7 fix: FTE had decayed 134K → 2K). Firms without receivables
+/// are unaffected.
+fn procurement_working_capital_facility(company: &Company, liquid: f64) -> f64 {
+    let receivable_collateral = company
+        .extra
+        .get("contract_receivables")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0)
+        .max(0.0)
+        * 0.5;
+    liquid + (company.company_capital - receivable_collateral).max(0.0)
+}
+
 /// Release the `(limit − exec) × qty` slack on a filled bid portion.
 ///
 /// The bid's encumbrance locked `qty × limit`; settlement consumed only
@@ -418,7 +441,10 @@ pub fn submit_company_b2b_orders(
         // bid volume to actual need, so the facility can extend to full net
         // worth without over-procuring — the solvency bound is the real
         // safety limit.
-        let working_capital_facility = liquid + company.company_capital.max(0.0);
+        // v4.19 FS-7: the facility excludes contract receivables — they are
+        // already spoken for by the project that earned them (payroll +
+        // site materials). See `procurement_working_capital_facility`.
+        let working_capital_facility = procurement_working_capital_facility(company, liquid);
         // 24-turn fix: reserve the payroll before procurement — the facility
         // extends to net worth, which let restock bids consume the cash (and
         // implicit credit) needed to cover this turn's wage bill plus the
@@ -1249,7 +1275,9 @@ pub fn settle_trades(
                             trade_value,
                         );
                         bs.reserves_at_central_bank -= trade_value;
-                        bs.deposits -= trade_value;
+                        // Own-account purchase: equity bears the cost, not
+                        // the customer-deposit liability.
+                        bs.tier_1_capital -= trade_value;
                     }
                     let seller_id = companies[si].id.clone();
                     credit_company_by_id(companies, &seller_id, trade_value);
@@ -1385,7 +1413,9 @@ pub fn settle_trades(
                                 trade_value,
                             );
                             bs.reserves_at_central_bank -= trade_value;
-                            bs.deposits -= trade_value;
+                            // Own-account purchase: equity bears the cost,
+                            // not the customer-deposit liability.
+                            bs.tier_1_capital -= trade_value;
                         }
                     }
                     // else: unbanked buyer — the debit_cash release above
@@ -3162,7 +3192,19 @@ pub fn submit_maintenance_service_bids(
             .map(|ba| ba.cash.max(0.0))
             .unwrap_or_else(|| company.available_cash.max(0.0));
         // Phase 94: Do NOT overwrite available_cash (M0 duplication for unbanked companies)
-        let max_encumber = liquid * b2b_config.max_cash_encumbrance_ratio;
+        // Maintenance/capital procurement is an operating necessity, not
+        // discretionary spend — use the same working-capital facility as
+        // the primary B2B loop (liquidity plus net worth, payroll reserved
+        // first) so cash-poor factories still post demand instead of
+        // starving MaintenanceWorkshops and machinery sellers into the
+        // zero-FTE absorbing state.
+        let working_capital_facility = procurement_working_capital_facility(company, liquid);
+        let payroll_reserve = (company.wages_paid_this_turn * 2.0
+            + company.wage_arrears
+            + company.severance_arrears)
+            .min(working_capital_facility.max(0.0));
+        let max_encumber = (working_capital_facility - payroll_reserve).max(0.0)
+            * b2b_config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
 
         // Phase 94: Use pre-built index map instead of O(B) filter scan.
@@ -3271,7 +3313,21 @@ pub fn submit_fixed_asset_purchase_bids(
             .map(|ba| ba.cash.max(0.0))
             .unwrap_or_else(|| company.available_cash.max(0.0));
         // Phase 94: Do NOT overwrite available_cash (M0 duplication for unbanked companies)
-        let max_encumber = liquid * b2b_config.max_cash_encumbrance_ratio;
+        // Maintenance/capital procurement is an operating necessity, not
+        // discretionary spend — use the same working-capital facility as
+        // the primary B2B loop (liquidity plus net worth, payroll reserved
+        // first) so cash-poor factories still post demand instead of
+        // starving MaintenanceWorkshops and machinery sellers into the
+        // zero-FTE absorbing state.
+        // v4.19 FS-7: excludes receivable collateral — see
+        // `procurement_working_capital_facility`.
+        let working_capital_facility = procurement_working_capital_facility(company, liquid);
+        let payroll_reserve = (company.wages_paid_this_turn * 2.0
+            + company.wage_arrears
+            + company.severance_arrears)
+            .min(working_capital_facility.max(0.0));
+        let max_encumber = (working_capital_facility - payroll_reserve).max(0.0)
+            * b2b_config.max_cash_encumbrance_ratio;
         let mut total_encumbered = 0.0;
 
         // Phase 94: Use pre-built index map instead of O(B) filter scan.

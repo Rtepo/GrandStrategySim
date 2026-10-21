@@ -156,6 +156,11 @@ pub fn process_diplomacy_turn(
     intel_updates: &mut Vec<(String, String, crate::international::fog_of_war::IntelLevel)>,
     expel_actions: &mut Vec<(String, String)>,
 ) {
+    // Restore the main-thread RNG before drawing — every other sequential
+    // consumer in the turn tail does this. Without it, the stream position
+    // is whatever rayon work-stealing left on the main thread after the
+    // last parallel section (scheduling-dependent → nondeterministic).
+    crate::engine::seed_propagation::restore_main_rng();
     let mut rng = crate::engine::seeded_rng::thread_rng();
 
     // Collect sorted country names for deterministic iteration
@@ -266,17 +271,24 @@ pub fn process_diplomacy_turn(
                 })
             });
             if has_ambassador {
-                // Find the ambassador's traits for modifier computation
+                // Find the ambassador's traits for modifier computation —
+                // deterministic pick: lowest vip id (HashMap order is
+                // reseeded per clone).
                 if let Some(reg) = c1_vip_registry {
-                    for vip in reg.vips.values() {
-                        if vip.diplomatic_post.as_ref().is_some_and(|p| {
-                            p.host_country == *c2_name
-                                && p.post_type == DiplomaticPostType::Ambassador
-                        }) {
-                            let (rel_bonus, _) = compute_diplomat_modifiers(&vip.traits);
-                            delta += 1 + rel_bonus as i64;
-                            break;
-                        }
+                    let mut envoys: Vec<&_> = reg
+                        .vips
+                        .values()
+                        .filter(|vip| {
+                            vip.diplomatic_post.as_ref().is_some_and(|p| {
+                                p.host_country == *c2_name
+                                    && p.post_type == DiplomaticPostType::Ambassador
+                            })
+                        })
+                        .collect();
+                    envoys.sort_by(|a, b| a.id.cmp(&b.id));
+                    if let Some(vip) = envoys.first() {
+                        let (rel_bonus, _) = compute_diplomat_modifiers(&vip.traits);
+                        delta += 1 + rel_bonus as i64;
                     }
                 }
             }
@@ -305,8 +317,11 @@ pub fn process_diplomacy_turn(
             }
 
             // 7. Phase 66: Spy activity — intel generation and discovery risk
+            // Sorted by vip id — each spy consumes a seeded rng draw below,
+            // so HashMap order would scramble draw alignment across runs.
             let spy_vips: Vec<_> = c1_vip_registry.map_or(Vec::new(), |reg| {
-                reg.vips
+                let mut v: Vec<_> = reg
+                    .vips
                     .values()
                     .filter(|vip| {
                         vip.diplomatic_post.as_ref().is_some_and(|post| {
@@ -314,7 +329,9 @@ pub fn process_diplomacy_turn(
                                 && post.post_type == DiplomaticPostType::Spy
                         })
                     })
-                    .collect()
+                    .collect();
+                v.sort_by(|a, b| a.id.cmp(&b.id));
+                v
             });
 
             for spy in &spy_vips {

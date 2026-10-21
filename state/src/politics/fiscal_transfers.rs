@@ -106,7 +106,7 @@ pub fn process_regional_taxes(country: &mut Country, companies: &mut [Company]) 
     for (bank_id, total_debit) in &bank_debits {
         if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
             if let Some(ref mut bs) = bank.balance_sheet {
-                bs.deposits -= total_debit;
+                crate::state::banking::settle_deposit_debit(bs, *total_debit);
                 bs.reserves_at_central_bank -= total_debit;
             }
         }

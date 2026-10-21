@@ -978,7 +978,7 @@ pub fn resolve_regional_labor_market(
     for (bank_id, total_debit) in &bank_debits {
         if let Some(bank) = companies.iter_mut().find(|c| c.id == *bank_id) {
             if let Some(ref mut bs) = bank.balance_sheet {
-                bs.deposits -= total_debit;
+                crate::state::banking::settle_deposit_debit(bs, *total_debit);
                 bs.reserves_at_central_bank -= total_debit;
                 _bank_debits_applied += total_debit;
             } else {

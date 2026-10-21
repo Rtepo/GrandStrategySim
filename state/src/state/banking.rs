@@ -548,6 +548,49 @@ pub fn ela_cover_debit(
     shortfall
 }
 
+/// Debit a bank's customer-deposit liability for an outflow already applied
+/// to a customer's cash leg. `deposits` is floored at 0 — a debit exceeding
+/// the recorded liability is an unbooked impairment (the bank paid out more
+/// than customers held), charged to `tier_1_capital` so A = L + E stays
+/// exact. Returns the equity-charged residual.
+pub fn settle_deposit_debit(bs: &mut BankBalanceSheet, amount: f64) -> f64 {
+    if amount <= 0.0 {
+        return 0.0;
+    }
+    let debit = amount.min(bs.deposits.max(0.0));
+    bs.deposits -= debit;
+    let residual = amount - debit;
+    bs.tier_1_capital -= residual;
+    residual
+}
+
+/// End-of-phase deposit-floor reconciliation. `deposits` is a liability owed
+/// to customers and can never be negative; a debit that bypasses the guarded
+/// settlement paths (unbacked outflow) is an impairment — the bank owes money
+/// it no longer holds. Repairing it lifts `deposits` to 0 and books the
+/// shortfall against `tier_1_capital` so L↓ and E↓ keep A = L + E balanced.
+/// Banks driven to/below zero equity are left to the resolution regime.
+/// Returns total equity written off.
+pub fn enforce_deposit_floor(companies: &mut [crate::entities::Company]) -> f64 {
+    let mut written_off = 0.0;
+    for company in companies.iter_mut() {
+        if company.bank_type.is_none() {
+            continue;
+        }
+        let Some(ref mut bs) = company.balance_sheet else {
+            continue;
+        };
+        if bs.deposits >= 0.0 {
+            continue;
+        }
+        let shortfall = -bs.deposits;
+        bs.deposits = 0.0;
+        bs.tier_1_capital -= shortfall;
+        written_off += shortfall;
+    }
+    written_off
+}
+
 /// Phase 95: End-of-phase reserve-floor reconciliation. Lifts every bank's
 /// `reserves_at_central_bank` to >= 0 via ELA, repairing debits that bypassed
 /// the guarded settlement paths (batch wage/tax syncs, `debit_company_by_id`,
@@ -3352,7 +3395,7 @@ pub fn process_banking_turn(
                     // reduced in the loan loop. No reserve movement â€” the
                     // deposit and loan cancel out within the same bank.
                     if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
-                        bs.deposits -= amount;
+                        settle_deposit_debit(bs, amount);
                     }
                 } else {
                     // Inter-bank: borrower's bank loses deposits + reserves,
@@ -3361,7 +3404,7 @@ pub fn process_banking_turn(
                     // represent CB Lombard borrowing. Clamping breaks A=L+E.
                     if let Some(bank) = companies.iter_mut().find(|c| c.id == p_bank_id.as_str()) {
                         if let Some(ref mut bs) = bank.balance_sheet {
-                            bs.deposits -= amount;
+                            settle_deposit_debit(bs, amount);
                             bs.reserves_at_central_bank -= amount;
                         }
                     }
@@ -3612,7 +3655,7 @@ pub fn process_banking_turn(
                 match companies[borrower_idx].primary_bank_id.clone() {
                     None => {
                         if let Some(ref mut bs) = companies[bi].balance_sheet {
-                            bs.deposits -= lr.principal_amount;
+                            settle_deposit_debit(bs, lr.principal_amount);
                             bs.reserves_at_central_bank -= lr.principal_amount;
                         }
                     }
@@ -3622,7 +3665,7 @@ pub fn process_banking_turn(
                         // bank ships reserves to the borrower's bank, which
                         // books the new deposit liability instead.
                         if let Some(ref mut bs) = companies[bi].balance_sheet {
-                            bs.deposits -= lr.principal_amount;
+                            settle_deposit_debit(bs, lr.principal_amount);
                             bs.reserves_at_central_bank -= lr.principal_amount;
                         }
                         if let Some(bank) = companies.iter_mut().find(|c| c.id == pb) {
@@ -3998,7 +4041,7 @@ pub fn process_banking_turn(
                 match companies[borrower_idx].primary_bank_id.clone() {
                     None => {
                         if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
-                            bs.deposits -= lr.principal_amount;
+                            settle_deposit_debit(bs, lr.principal_amount);
                             bs.reserves_at_central_bank -= lr.principal_amount;
                         }
                     }
@@ -4007,7 +4050,7 @@ pub fn process_banking_turn(
                         // Inter-bank: move the created deposit to the
                         // borrower's bank, funded by a reserve transfer.
                         if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
-                            bs.deposits -= lr.principal_amount;
+                            settle_deposit_debit(bs, lr.principal_amount);
                             bs.reserves_at_central_bank -= lr.principal_amount;
                         }
                         if let Some(bank) = companies.iter_mut().find(|c| c.id == pb) {

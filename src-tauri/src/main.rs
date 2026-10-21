@@ -52,6 +52,7 @@ fn main() {
             commands::securities_queries::get_knf_findings,
             commands::securities_queries::get_capital_gains_summary,
             commands::bank_queries::get_paginated_banks,
+            commands::bank_queries::get_bank_detail,
             commands::bank_queries::get_banking_aggregates,
             commands::bank_queries::get_banking_history,
             commands::region_queries::get_regions,
@@ -59,6 +60,8 @@ fn main() {
             commands::region_queries::get_megaregion_detail,
             commands::parliament_queries::get_parliament,
             commands::parliament_queries::get_government,
+            commands::parliament_queries::get_constitution_laws,
+            commands::parliament_queries::get_elections,
             // Phase 60: Cadastre / Land / Courts
             commands::cadastre_queries::get_cadastre_summary,
             commands::cadastre_queries::get_zoning_plans,

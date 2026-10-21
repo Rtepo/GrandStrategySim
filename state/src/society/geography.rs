@@ -1396,12 +1396,12 @@ impl ClassDemographics {
     /// * Unit consistency: current_savings_per_capita compared to historical.savings_per_capita_yoy
     pub fn calculate_yoy_drivers(
         &self,
-        calendar: &crate::state::Calendar,
+        global_turn: u32,
         current_savings_per_capita: f64,
         current_real_wage: f64,
         current_inflation: f64,
     ) -> crate::politics::chaos_config::SentimentDrivers {
-        let turn_index = ((calendar.global_turn - 1) % 24) as usize;
+        let turn_index = (global_turn.saturating_sub(1) % 24) as usize;
         let historical = &self.historical_qol[turn_index];
 
         // FIRST-YEAR FALLBACK: If no YoY data exists, use Turn-over-Turn comparison
@@ -1507,19 +1507,19 @@ impl ClassDemographics {
     /// * Unit consistency: current_savings_per_capita stored as per_capita in both structures
     pub fn update_historical_snapshot(
         &mut self,
-        calendar: &crate::state::Calendar,
+        global_turn: u32,
         current_savings_per_capita: f64,
         current_real_wage: f64,
         current_inflation: f64,
     ) {
-        let turn_index = ((calendar.global_turn - 1) % 24) as usize;
+        let turn_index = (global_turn.saturating_sub(1) % 24) as usize;
 
         // Update ring buffer for YoY comparison
         self.historical_qol[turn_index] = HistoricalQualityOfLife {
             savings_per_capita_yoy: current_savings_per_capita,
             real_wage_yoy: current_real_wage,
             inflation_yoy: current_inflation,
-            snapshot_turn: calendar.global_turn,
+            snapshot_turn: global_turn,
         };
 
         // Update short-term memory for Turn-over-Turn fallback
@@ -1527,8 +1527,103 @@ impl ClassDemographics {
             savings_per_capita_yoy: current_savings_per_capita,
             real_wage_yoy: current_real_wage,
             inflation_yoy: current_inflation,
-            snapshot_turn: calendar.global_turn,
+            snapshot_turn: global_turn,
         };
+    }
+
+    /// v4.19 WS5: Apply per-turn sentiment drift from real economic drivers.
+    ///
+    /// The sentiment model (loyalists/undecided/radicals) was previously never
+    /// updated after genesis — `calculate_yoy_drivers` computed real drivers
+    /// but no caller consumed them, so `radicals` stayed at its genesis value
+    /// forever and mass movements could never emerge organically.
+    ///
+    /// # Rules
+    /// * Self-healing seed: if all three buckets are ~0 (legacy/defaulted
+    ///   state), initialize once from `economic_status` — real class economics,
+    ///   not a flat constant.
+    /// * Radicalization pressure: inflation + real-wage decline + class
+    ///   unemployment + savings depletion, scaled by exploitation.
+    /// * Loyalization pressure: real-wage growth + government approval.
+    /// * Shift bounded by `shift_magnitude_base`; undecided is the buffer
+    ///   bucket (radicals recruit from undecided, loyalists recruit back
+    ///   through undecided). Components always renormalized to 1.0.
+    /// * Deterministic: pure function of state, no RNG.
+    ///
+    /// # Arguments
+    /// * `drivers` - Real YoY/ToT sentiment drivers from `calculate_yoy_drivers`
+    /// * `config` - ChaosConfig weights
+    /// * `government_approval` - Ruling party support, 0.0-1.0
+    /// * `current_turn` - Stamps `last_update_turn`
+    pub fn apply_sentiment_update(
+        &mut self,
+        drivers: &crate::politics::chaos_config::SentimentDrivers,
+        config: &crate::politics::chaos_config::ChaosConfig,
+        government_approval: f64,
+        current_turn: u32,
+    ) {
+        let s = &mut self.political_sentiment;
+        let total = s.loyalists + s.undecided + s.radicals;
+        if total < 0.01 {
+            // Self-healing seed for legacy/all-zero saves: derive the initial
+            // distribution from the class's actual economic condition.
+            let (loy, und, rad) = match self.economic_status {
+                EconomicStatus::Prosperous => (0.60, 0.30, 0.10),
+                EconomicStatus::Stable => (0.45, 0.40, 0.15),
+                EconomicStatus::Struggling => (0.25, 0.45, 0.30),
+                EconomicStatus::Destitute => (0.10, 0.35, 0.55),
+            };
+            s.loyalists = loy;
+            s.undecided = und;
+            s.radicals = rad;
+        }
+
+        // Class-level unemployment from real FTE allocation.
+        let unemployment_rate = if self.available_fte > 0.0 {
+            ((self.available_fte - self.allocated_fte).max(0.0) / self.available_fte).min(1.0)
+        } else {
+            0.0
+        };
+
+        let radicalization = (drivers.inflation_rate.max(0.0) * config.inflation_weight
+            + (-drivers.real_wage_growth).max(0.0) * config.real_wage_weight
+            + unemployment_rate * config.unemployment_weight
+            + drivers.savings_depletion_rate.max(0.0) * config.savings_depletion_weight)
+            * drivers.exploitation_penalty.max(0.0);
+
+        let loyalization = drivers.real_wage_growth.max(0.0) * config.real_wage_weight
+            + government_approval.clamp(0.0, 1.0) * config.government_approval_weight;
+
+        let shift = ((radicalization - loyalization) * config.shift_magnitude_base)
+            .clamp(-config.shift_magnitude_base, config.shift_magnitude_base);
+
+        if shift > 0.0 {
+            // Radicalize: undecided → radicals, then loyalists → undecided.
+            let from_undecided = s.undecided.min(shift);
+            s.undecided -= from_undecided;
+            s.radicals += from_undecided;
+            let rem = shift - from_undecided;
+            if rem > 0.0 {
+                let from_loyal = s.loyalists.min(rem);
+                s.loyalists -= from_loyal;
+                s.undecided += from_loyal;
+            }
+        } else if shift < 0.0 {
+            // De-radicalize: radicals → undecided, then undecided → loyalists.
+            let back = -shift;
+            let from_radicals = s.radicals.min(back);
+            s.radicals -= from_radicals;
+            s.undecided += from_radicals;
+            let rem = back - from_radicals;
+            if rem > 0.0 {
+                let from_und = s.undecided.min(rem);
+                s.undecided -= from_und;
+                s.loyalists += from_und;
+            }
+        }
+
+        s.normalize();
+        s.last_update_turn = current_turn;
     }
 }
 
@@ -2166,6 +2261,13 @@ pub fn sync_region_resources_from_planet(
             // paths stay consistent.
             obj.insert("annual_extraction".to_string(), Value::from(extracted));
             obj.insert("discovered".to_string(), Value::from(vein.discovered));
+            // v4.19 WS5: Stamp the vein's canonical identity so readers can
+            // match `Building::deposit_id` regardless of which form
+            // (vein.id vs composite_id) the resource key happens to be.
+            obj.insert("vein_id".to_string(), Value::from(vein.id.clone()));
+            if let Some(cid) = vein.composite_id.as_ref() {
+                obj.insert("composite_id".to_string(), Value::from(cid.clone()));
+            }
         }
     }
 }

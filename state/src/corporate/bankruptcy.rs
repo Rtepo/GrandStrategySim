@@ -367,7 +367,7 @@ impl Syndic {
                                 banked_cash,
                             );
                             bs.reserves_at_central_bank -= banked_cash;
-                            bs.deposits -= banked_cash;
+                            crate::state::banking::settle_deposit_debit(bs, banked_cash);
                         }
                     } else {
                         // Bank not found — CB injection covers the full amount.

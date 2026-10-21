@@ -16,6 +16,12 @@ pub type HashMap<K, V> = FxHashMap<K, V>;
 /// Provides a stable baseline for SRA shock-responsive price triggers.
 pub const VWAP_HISTORY_WINDOW: usize = 24;
 
+/// v4.19: EWMA step for `retail_vwap_smoothed` — matches the shelf-price
+/// stickiness rate (retail.rs `RETAIL_PRICE_SMOOTHING`) so households'
+/// habitual price expectation tracks posted prices with the same ~4-turn
+/// horizon rather than chasing single-turn VWAP noise.
+pub const RETAIL_VWAP_SMOOTHING: f64 = 0.35;
+
 /// Historical price data for fallback reference.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct MarketHistory {
@@ -29,6 +35,13 @@ pub struct MarketHistory {
     /// Updated after B2C clearing each turn. Used by CPI to track actual consumer prices.
     #[serde(default)]
     pub retail_vwap_per_commodity: HashMap<Commodity, f64>,
+    /// v4.19: EWMA of `retail_vwap_per_commodity` — the habitual shelf-price
+    /// expectation households budget against. Spot retail VWAP dips/releases
+    /// fed straight into `demand_value_price` caused the residual ±15%
+    /// demand-release oscillation; budgeting on a smoothed price expectation
+    /// damps that loop while the recorded VWAP stays accurate for CPI.
+    #[serde(default)]
+    pub retail_vwap_smoothed: HashMap<Commodity, f64>,
     /// Phase 33: Previous-turn net surplus per commodity.
     /// Updated at the end of each turn from market.net_surplus.
     /// Used by the UI to compute turn-over-turn % change in surplus.
@@ -141,6 +154,15 @@ pub fn update_retail_vwap(history: &mut MarketHistory, retail_prices: &[(Commodi
             let value = value_per_commodity.get(&commodity).unwrap();
             let vwap = value / volume;
             history.retail_vwap_per_commodity.insert(commodity, vwap);
+            // v4.19: maintain the smoothed expectation alongside the record.
+            let smoothed = history
+                .retail_vwap_smoothed
+                .get(&commodity)
+                .copied()
+                .filter(|p| *p > 0.0)
+                .map(|prev| prev + (vwap - prev) * RETAIL_VWAP_SMOOTHING)
+                .unwrap_or(vwap);
+            history.retail_vwap_smoothed.insert(commodity, smoothed);
         }
     }
 }

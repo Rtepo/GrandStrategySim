@@ -527,13 +527,15 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // demo.savings. Without this, the M0 fiat walk sees a stale value at
         // turn_start, then a "jump" after process_demographics_and_labor runs,
         // creating a false FiatCreation violation.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::economy::labor::aggregate_citizen_savings(task.ctx.country);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ── DIAGNOSTIC CHECKPOINT 0: turn_start ──
-        probe.checkpoint("turn_start", 0, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[turn_start]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market)); #[cfg(feature = "diagnostic")] eprintln!("FPB[turn_start]: t={}{}", turn, fingerprint_buildings_fields(&tasks));
+        probe.checkpoint("turn_start", 0, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[turn_start]: t={} fp={:016x} fxr={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_fx_rates(&state.currencies), fingerprint_tasks_split(&tasks, &market)); #[cfg(feature = "diagnostic")] eprintln!("FPB[turn_start]: t={}{}", turn, fingerprint_buildings_fields(&tasks));
         #[cfg(feature = "diagnostic")]
         { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("TURN_START_M0: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash); }
 
@@ -544,10 +546,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // - ClergyLand education/health capacity is available for social systems
         // - Domain modifiers are applied before any FTE allocation decisions
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::society::factional_domains::apply_domain_modifiers(task.ctx.country);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 14: PRISON LABOR PREPROCESSING
@@ -555,15 +559,19 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // - PrivateLaborCamps: company.target_fte_demand is reduced before labor market
         // - IsolationCamp: targeted demographics have available_fte zeroed before labor pool
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             process_prison_labor_turn(task.ctx.country, &task.ctx.buildings, &mut task.companies);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             process_demographics_and_labor(&mut task.ctx);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "dm");
@@ -572,6 +580,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // for the bounded-dissaving consumption cap. Wage/dividend/transfer
         // credits land in `savings` later this turn; the B2C demand cap reads
         // `savings - stock` as spendable income and rate-limits the stock.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             for region in &mut task.ctx.country.regions {
@@ -583,8 +592,10 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         // Phase 13: Initialize per-class religion from country's dominant religion.
         // Runs after demographics processing creates class entries.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let religion = task.ctx.country.macro_indicators.religion.clone();
@@ -603,9 +614,11 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         // Phase 10: Initialize per-class culture from country's dominant culture.
         // This is the save-migration path for old saves that don't have the
         // `culture` field — empty values are backfilled with the dominant culture.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let culture = task.ctx.country.macro_indicators.culture.clone();
@@ -624,6 +637,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         // ═══════════════════════════════════════════════════════════
         // BLUEPRINT 007-FIX: COOPERATIVE LIFECYCLE & HOMELESS TRANSITIONS
         // Must run AFTER process_demographics_and_labor (line 512) and
@@ -659,6 +673,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // ELA reserve cover uses. The advance is a floor, not a grant:
         // when tax inflows refill the treasury the gap shrinks and the
         // advance self-limits.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let prev_g = task
@@ -725,10 +740,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 task.ctx.country.budget.liquid_reserves += advance;
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "sv");
         }
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let avg_wage = task.ctx.country.macro_indicators.average_wage;
@@ -759,6 +776,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 welfare_enabled,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "hm");
@@ -768,10 +786,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
 
         #[cfg(feature = "diagnostic")]
         { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("BANK_PRE: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets); }
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             process_banking_turn(task.ctx.country, &mut task.companies, task.ctx.turn);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "bk");
@@ -786,6 +806,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                 &mut task.companies,
                 &mut task.ctx.country.central_bank,
             );
+            crate::state::banking::enforce_deposit_floor(&mut task.companies);
         }
         #[cfg(feature = "diagnostic")]
         if true {
@@ -794,10 +815,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         // ── DIAGNOSTIC CHECKPOINT: banking_turn_post ──
 probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[banking_turn_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market)); #[cfg(feature = "diagnostic")] eprintln!("FPC[banking_turn_post]: t={}{}", turn, fingerprint_companies_fields(&tasks));
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             update_gdp_shares_from_employment(&mut task.ctx);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // RESURRECTION PHASE 10: EMERGENCY CONDITIONS CHECK
@@ -805,11 +828,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // Uses a snapshot of global market surplus for shortage detection.
         // ═══════════════════════════════════════════════════════════
         let surplus_snapshot = market.net_surplus.clone();
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             check_emergency_conditions(task.ctx.country, &surplus_snapshot);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase 4: Reset transient disruption modifiers (set by mass movements in previous turn)
@@ -823,6 +849,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 task.ctx.year,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let base_wage = task
@@ -883,6 +911,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         // Phase 95: Reserve floor — reconcile any unguarded debits via ELA so
         // no bank posts negative reserves at the checkpoint.
         for task in &mut tasks {
@@ -890,6 +919,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &mut task.companies,
                 &mut task.ctx.country.central_bank,
             );
+            crate::state::banking::enforce_deposit_floor(&mut task.companies);
         }
         // ── DIAGNOSTIC CHECKPOINT 1: building_cycle_post ──
         probe.checkpoint("building_cycle_post", 1, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[building_cycle_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market)); #[cfg(feature = "diagnostic")] eprintln!("FPB[building_cycle_post]: t={}{}", turn, fingerprint_buildings_fields(&tasks));
@@ -923,6 +953,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // engine can anchor PRICE_CAP/FLOOR to a stable reference instead of the
         // dynamically-updated VWAP-smoothed base prices that compound recursively.
         let immutable_base_prices = state.market_history.global_base_prices.clone();
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             task.ctx.market_prices = resolve_market_prices(
@@ -938,6 +969,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &task.ctx.market_prices,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 6.4: Continuous order book matching
         let mut global_order_book = OrderBook::default();
@@ -965,6 +997,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // ═══════════════════════════════════════════════════════════
 
         // 3.5a: Collect cultural donations (fundraising before B2B)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let religion = task.ctx.country.macro_indicators.religion.clone();
@@ -1013,9 +1046,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 17C: Apostolic See remittance (parallel — each country debits its own buildings/treasury)
         // The See ledger aggregation happens sequentially below.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let religious_law = task
@@ -1043,6 +1078,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             );
             task.see_remittance = result;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 17C: Sequentially aggregate See remittances into the global ledger.
         let total_see_remittance: f64 = tasks
@@ -1055,6 +1091,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         market.apostolic_see_ledger.global_charity_pool += total_see_remittance;
 
         // 3.5b: Distribute cash relief (direct transfers to serfs/laborers)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let config = task.ctx.country.cultural_relief_config.clone();
@@ -1064,9 +1101,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &config,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 94: Trace M0 after See remittance + cash relief.
         // 3.6: Submit relief B2B buy orders (before market clearing)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let config = task.ctx.country.cultural_relief_config.clone();
@@ -1077,8 +1116,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &config,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // 3.7a: Submit shipyard construction B2B buy orders
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let config = task.ctx.country.maritime_config.clone();
@@ -1089,6 +1130,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &config,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         eprintln!("FP[pre_tranche]: t={} {}", turn, fingerprint_tasks_split(&tasks, &market));
@@ -1096,6 +1138,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // Phase 37: Mobilization advance — release first tranche (trigger_progress=0)
         // BEFORE B2B order submission so contractors have cash to bid for materials.
         // This breaks the "no cash → no bids → no materials → no progress → no tranche" deadlock.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _released = crate::construction::orders::release_construction_tranches(
@@ -1104,8 +1147,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 task.ctx.country,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // 3.8: Submit construction B2B buy orders for active building projects
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let b2b_config = task.ctx.country.b2b_order_config.clone();
@@ -1117,6 +1162,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &b2b_config,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // 3.9: Strategic Reserve Agency physical buy/sell orders.
         // 24-turn mandate: moved from Phase 10 (which posted to the
@@ -1128,6 +1174,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // (aggregate revenue ≈ 0.98×wages without it).
         {
             let market_history_snapshot = state.market_history.clone();
+            let _saved_rng_state = crate::engine::seeded_rng::save_stream();
             tasks.par_iter_mut().for_each(|task| {
                 crate::engine::seed_propagation::ensure_worker_seeded();
                 for company in &mut task.companies {
@@ -1142,6 +1189,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     }
                 }
             });
+            crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         }
 
         #[cfg(feature = "diagnostic")]
@@ -1156,6 +1204,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
 
         // Phase 24C.6: Property developer AI publishes new tenders based on
         // market opportunities (housing shortage, commercial vacancy, ROI).
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let mut tenders = std::mem::take(&mut task.ctx.country.phase22_tenders);
@@ -1230,10 +1279,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             }
             task.ctx.country.phase22_tenders = tenders;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 29: Construction companies submit bids on open tenders.
         // This makes the tender market functional — without bids, all
         // tenders would be cancelled on expiry.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let mut tenders = std::mem::take(&mut task.ctx.country.phase22_tenders);
@@ -1264,7 +1315,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             }
             task.ctx.country.phase22_tenders = tenders;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let mut tenders = std::mem::take(&mut task.ctx.country.phase22_tenders);
@@ -1296,11 +1349,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             );
             task.ctx.country.phase22_tenders = tenders;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         eprintln!("FP[post_tenders]: t={} {}", turn, fingerprint_tasks_split(&tasks, &market));
 
         // 3.9: Submit agricultural harvest asks (must be before global merge at 6.3)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let market_prices: std::collections::BTreeMap<Commodity, f64> = state
@@ -1334,14 +1389,17 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // 3.7b: Add fleet commodity demand to market orders
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Fleets not yet stored on Country; pass empty slice
             let fleets: Vec<crate::military::fleet::Fleet> = Vec::new();
             crate::military::add_fleet_demand_to_market(&fleets, &mut task.orders.orders);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Collect all bids and asks from countries — Phase 6.3: Production Planning
         // Phase 23A: Manage deferred trades (increment counters, expire old ones).
@@ -1617,6 +1675,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &mut task.companies,
                 &mut task.ctx.country.central_bank,
             );
+            crate::state::banking::enforce_deposit_floor(&mut task.companies);
         }
         // ── DIAGNOSTIC CHECKPOINT 2: b2b_orders_post ──
         probe.checkpoint("b2b_orders_post", 2, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[b2b_orders_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));
@@ -2056,6 +2115,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &mut task.companies,
                 &mut task.ctx.country.central_bank,
             );
+            crate::state::banking::enforce_deposit_floor(&mut task.companies);
         }
         #[cfg(feature = "diagnostic")]
         eprintln!("FP[settle_domestic]: t={} {}", turn, fingerprint_tasks_split(&tasks, &market));
@@ -2104,6 +2164,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         const EXPORT_TURN_BUDGET: f64 = 1.2e10;
         const EXPORT_PURSE_FRACTION: f64 = 0.03;
         const EXPORT_PRICE_TOLERANCE: f64 = 3.0;
+        // A country's foreign-sector purchases may not exceed this share of
+        // its own GDP — ROW demand is exogenous in price but bounded in
+        // volume by the size of the market it is buying from.
+        const NX_EXPORT_GDP_CAP: f64 = 0.35;
         const FOREIGN_BUYER_ID: &str = "FOREIGN-SECTOR";
 
         let exportable = |c: &Commodity| {
@@ -2277,7 +2341,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     Some(&v) => v,
                     None => continue,
                 };
-                let mut budget = export_purse * resid / total_residual_value;
+                let mut budget = (export_purse * resid / total_residual_value)
+                    .min(NX_EXPORT_GDP_CAP * task.ctx.country.budget.gdp.max(0.0));
                 if budget <= 0.0 {
                     continue;
                 }
@@ -2772,13 +2837,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         }
 
         // ── DIAGNOSTIC CHECKPOINT 3: b2b_settlement_post ──
-        probe.checkpoint("b2b_settlement_post", 3, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[b2b_settlement_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));
+        probe.checkpoint("b2b_settlement_post", 3, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[b2b_settlement_post]: t={} fp={:016x} fxr={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_fx_rates(&state.currencies), fingerprint_tasks_split(&tasks, &market));
         // ═══════════════════════════════════════════════════════════
         // PHASE 31: CRISIS MANAGEMENT AI — EXECUTIVE DECREES
         // Runs BEFORE ministry procurement so that tax adjustments, bond
         // issuance, and emergency subsidies are available for the turn.
         // Bypasses bill_lifecycle entirely (executive decrees only).
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Track consecutive zero-investment and zero-NX turns via extra map.
@@ -2842,6 +2908,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
@@ -2852,6 +2919,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // If Treasury cannot afford payroll: condition degrades, political
         // capital crashes, coalition tension rises. No money printed.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let parliament_msgs = process_parliament_building_payroll(task.ctx.country, turn);
@@ -2874,12 +2942,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 7: MINISTRY PROCUREMENT (Domestic Order Book)
         // CRITICAL: Uses settle_trades (NOT settle_trades_with_tariffs) —
         // ministry orders are domestic; tariffs must NOT apply.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Allocate cash from treasury to ministries
@@ -3086,6 +3156,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             // Restore ministry config
             task.ctx.country.politics.ministry_config = ministry_config;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
@@ -3095,6 +3166,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // ConstructionMachinery and AdministrativeServices. Strict market
         // clearing — unfilled bids are refunded, infrastructure degrades.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let jst_config = crate::politics::jst_spending::JstSpendingConfig::default();
@@ -3195,6 +3267,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &jst_config,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
@@ -3221,6 +3294,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // properly releases debit_cash and restores available_cash + brokerage.
         // The old order_book::refund_unfilled_bids credited liquid_capital
         // (wrong field) and has been deleted.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase 94: Rebuild company_id→index map with .clear() to retain capacity.
@@ -3262,12 +3336,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Black Hole 1.19: Refund unfilled defense bids back to Treasury.
         // Defense bids (buyer_id == "MIN-DEF") are not companies, so
         // refund_unfilled_bids cannot refund them. This function computes
         // the refund as total_encumbered - filled_encumbered and restores
         // it to liquid_reserves.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             if !task.saved_defense_bids.is_empty() {
@@ -3279,8 +3355,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Post-clearing: Advance shipyard construction projects
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // W12: Shipyard construction is a state program — treasury pays
@@ -3309,8 +3387,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &task.order_book,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Post-clearing: Deliver relief goods to population
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::infrastructure::cultural::deliver_relief_goods(
@@ -3337,9 +3417,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Post-clearing: Process heritage effects (prestige, tourism)
         // E3: Store heritage tourism boost on the task for later tourism demand computation.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let mut region_prestige = std::collections::BTreeMap::new();
@@ -3350,8 +3432,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &mut task.heritage_tourism_boost,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Post-clearing: Process port utilization
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let config = task.ctx.country.maritime_config.clone();
@@ -3360,8 +3444,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &config,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Post-clearing: Process shipyard/port maintenance
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let config = task.ctx.country.maritime_config.clone();
@@ -3372,8 +3458,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &mut task.ctx.country.budget.liquid_reserves,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Post-clearing: Process fleet upkeep
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Fleets not yet stored on Country; pass empty slice
@@ -3420,6 +3508,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
@@ -3432,6 +3521,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // MIL-5: Peasant devastation
         // MIL-6: War exhaustion decay
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let config = task.ctx.country.military_config.clone();
@@ -3503,6 +3593,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 let _ = storage_result;
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
@@ -3513,6 +3604,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // 69-C: Expired decree cleanup (after production, see below)
         // ═══════════════════════════════════════════════════════════
         let war_economy_config = WarEconomyConfig::default();
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // 69-A: Conscription
@@ -3551,6 +3643,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
@@ -3564,6 +3657,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // Phase 8 fix (M4): Ensure all active projects have land before
         // advancing. State projects reallocate Treasury parcels; corporate
         // projects without land are stalled.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::construction::orders::ensure_all_projects_have_land(
@@ -3571,6 +3665,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &mut task.ctx.country.cadastre,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // v4.17: value consumed project materials at the market price the
@@ -3615,6 +3711,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 22A: TRANCHE PAYMENTS
@@ -3622,6 +3719,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // Runs after construction progress so tranches trigger on
         // updated progress values. Uses double-entry settlement.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _released = crate::construction::orders::release_construction_tranches(
@@ -3630,6 +3728,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 task.ctx.country,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
@@ -3639,6 +3738,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // contractors. Runs after progress so fraud affects ongoing
         // projects. Defects accumulate on the project struct.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let justice_coverage = task
@@ -3773,6 +3873,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 23B: TRANSPORT NETWORK DEGRADATION & MAINTENANCE
@@ -3782,6 +3883,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // maintenance CANNOT happen. Links degrade and are NOT repaired. The
         // treasury is NOT debited. The economy suffers the physical consequences.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Degrade all network links by 1% per turn.
@@ -3827,6 +3929,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
@@ -3839,6 +3942,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // ═══════════════════════════════════════════════════════════
         let current_season = turn_calendar.get_season();
         let current_turn = turn_calendar.global_turn;
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::economy::weather::process_weather_turn(
@@ -3847,7 +3951,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 current_turn,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let config = task.ctx.country.maintenance_config.clone();
@@ -3856,11 +3962,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &config,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 19B: Degrade fixed-asset cohorts (machinery wear & tear).
         // Runs after building-condition degradation so the building stress
         // factor reflects the post-degradation condition. Scrapped cohorts
         // (condition ≤ 0) are removed to keep the cohort vector compact.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let gen_cfg = task.ctx.country.generative_goods_config.clone();
@@ -3876,7 +3984,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 crate::economy::fixed_assets::remove_scrapped(&mut building.fixed_assets);
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::economy::osp::process_osp_volunteer_allocation(
@@ -3885,6 +3995,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 task.ctx.country,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 8: WAVE-BASED PRODUCTION EXECUTION
@@ -3902,6 +4013,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             eprintln!("FM0A t={} pre_prod_cycle tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0} debit={:.0}",
                 turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.debit_cash);
         }
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let b2b_config = task.ctx.country.b2b_order_config.clone();
@@ -3918,6 +4030,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 task.ctx.year,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 95: Reserve floor before the checkpoint.
         for task in &mut tasks {
@@ -3925,6 +4038,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &mut task.companies,
                 &mut task.ctx.country.central_bank,
             );
+            crate::state::banking::enforce_deposit_floor(&mut task.companies);
         }
         // ── DIAGNOSTIC CHECKPOINT: production_cycle_post ──
         probe.checkpoint("production_cycle_post", 5, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[production_cycle_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));        #[cfg(feature = "diagnostic")]
@@ -3940,6 +4054,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // Water/heat distribution still uses the old distribute_utilities.
         // Phase 81 Wave 2: Clone market_history for PPA VWAP computation.
         let ppa_market_history = state.market_history.clone();
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         let grid_penalties_per_task: Vec<std::collections::HashMap<String, f64>> = tasks
             .par_iter_mut()
             .enumerate()
@@ -4005,6 +4120,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 grid_result.building_efficiency_penalties
             })
             .collect();
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 8.2: Utility Consumption — calculate deficits, penalties, billing
         // Collect efficiency penalties per task for Wave 3.
@@ -4056,6 +4172,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // constructed. The CAPEX BOM (Steel/Cement/ConstructionMachinery)
         // is computed and the building owner is charged.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             for hb in &mut task.housing_buildings {
@@ -4095,11 +4212,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 82: Thermal grid pipe degradation + smog computation.
         // Pipes degrade each turn (faster in winter). Smog is computed from
         // emissions and accumulates with natural decay. Smog is distributed
         // to cadastre parcels as particulate pollution.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let winter_severity = match current_season {
@@ -4201,6 +4320,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
            #[cfg(feature = "diagnostic")]
@@ -4588,6 +4708,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // Phase 44: Residential Rent Collection — double-entry transfer.
         // Debit occupying class savings, credit owner entity (State treasury or class savings).
         // No money creation or destruction.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             for hb in &task.housing_buildings {
@@ -4672,8 +4793,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 // Unknown owner prefixes: rent is lost (should not happen with genesis housing).
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Wave 3: General production (all non-energy sectors, with blackout penalties)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().enumerate().for_each(|(i, task)| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let b2b_config = task.ctx.country.b2b_order_config.clone();
@@ -4736,8 +4859,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             }
             task.ctx.country.regional_overflow_fees = regional_overflow;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 8.3: Waste Collection & Processing (legacy Phase 8 system)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _waste_result = crate::utilities::waste_collection::process_waste_turn(
@@ -4749,6 +4874,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 current_season,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
            #[cfg(feature = "diagnostic")]
@@ -4762,6 +4888,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // consumption receipts. Trash streams B2B-excluded. WtE outputs
         // ash. Landfills have hard capacity stop. Dual fee billing.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::utilities::waste_grid::process_waste_epic_turn(
@@ -4772,6 +4899,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 current_season,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 25: Restock retail stores from producer buildings.
         // After production, transfer a portion of output goods from producer
@@ -4781,6 +4909,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // flow of goods from factories to retail shelves.
         // Phase 76: Clone market_history for dynamic acquisition_cost pricing.
         let restock_market_history = state.market_history.clone();
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             use crate::registries::enums::Commodity;
@@ -5547,7 +5676,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             }
 
             #[cfg(feature = "diagnostic")]
-            if turn % 8 == 0 || turn >= 117 || (50..=66).contains(&turn) {
+            if turn.is_multiple_of(8) || turn >= 117 || (50..=66).contains(&turn) {
                 eprintln!(
                     "RESTOCKDBG: t={} c={} stores={} eligible={} surplus_rows={} no_surplus={} zero_paid={} ownerless={} moved={:.0} tres={:.3e}",
                     turn,
@@ -5562,14 +5691,12 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     task.ctx.country.budget.liquid_reserves
                 );
                 if ownerless_stores > 0 && (turn == 0 || turn == 119) {
-                    let mut shown = 0;
-                    for s in task.commercial_buildings.iter().filter(|s| {
-                        s.retail_profile.is_some()
-                    }) {
-                        if shown >= 4 {
-                            break;
-                        }
-                        shown += 1;
+                    for s in task
+                        .commercial_buildings
+                        .iter()
+                        .filter(|s| s.retail_profile.is_some())
+                        .take(4)
+                    {
                         let found = task
                             .companies
                             .iter()
@@ -5582,6 +5709,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Update market history with VWAP. The foreign export sweep's
         // trades are folded in: export demand pulls the domestic reference
@@ -5600,16 +5728,19 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // Phase 81 Wave 2: Expire PPAs that have reached their end turn.
         // Runs after market history update so the next turn's PPA negotiation
         // has access to the latest VWAP data.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::energy::ppa::expire_ppas(task.ctx.country, current_turn);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 69-C: EXPIRED DECREE CLEANUP
         // After production, remove expired production decrees and
         // restore original production methods on affected buildings.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             process_expired_decrees(
@@ -5619,8 +5750,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 task.ctx.turn,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 6.5: Agricultural sub-sequence (Phase 6.3.5)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             for company in &mut task.companies {
@@ -5632,6 +5765,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             for company in &mut task.companies {
@@ -5642,12 +5777,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // v4.17.0: construction labor demand was computed but NEVER called —
         // contractors kept genesis FTE (or 0) regardless of awarded work, so
         // sector wages/output stayed at 0 even with live projects. Runs after
         // agricultural demand and before furlough/wage-offer phases so the
         // labor market sees real project-driven bids.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let construction_avg_wage = task.ctx.country.macro_indicators.average_wage;
@@ -5657,6 +5794,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 construction_avg_wage,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 47: Apply seasonal furlough AFTER agricultural FTE demand
         // and BEFORE set_wage_offers. This reduces target_fte_demand and
@@ -5667,6 +5805,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // Emergency Stabilization: Furlough re-instatement and attrition run
         // BEFORE seasonal furlough and BEFORE production so re-instated workers
         // can participate in this turn's production cycle.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // 1. Re-instate furloughed workers when conditions improve
@@ -5679,17 +5818,20 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             // 3. Seasonal furlough (existing)
             crate::corporate::apply_seasonal_furlough_all(&mut task.companies, current_season);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 25: Set wage offers AFTER agricultural FTE demand is computed
         // and AFTER B2B trades have settled. This ensures:
         // 1. target_fte_demand is correct (agriculture may have updated it)
         // 2. brokerage_account.cash reflects actual post-B2B remaining cash
         // 3. The labor clearing's affordability check matches the wage offer
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let market_avg_wage = task.ctx.country.macro_indicators.average_wage;
             crate::corporate::set_wage_offers(&mut task.companies, market_avg_wage);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
            #[cfg(feature = "diagnostic")]
@@ -5703,6 +5845,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // Coverage ratio determines how many workers can commute to
         // adjacent regions for jobs.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let commuting_config = task.ctx.country.commuting_config.clone();
@@ -5733,13 +5876,16 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             );
             task.commute_coverage = coverage;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 89: Reset accumulated_pit before labor clearing (W1).
         // PIT is accumulated during labor clearing and read by tax collection (Phase 7).
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             task.ctx.country.accumulated_pit = 0.0;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
            #[cfg(feature = "diagnostic")]
         {
@@ -5762,6 +5908,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // Phase 28: Inject State Employer pseudo-company so state buildings
         // (police, military, courts) participate in labor clearing. State wages
         // are funded from the treasury and accumulate to GDP government spending (G).
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase 28: Create State Employer pseudo-company.
@@ -6514,6 +6661,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             }
             task.labor_allocation = Some(aggregated_allocation);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         {
@@ -6528,6 +6676,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // employed_total and average_wage from circular formulas. Here we
         // overwrite them with REAL values from actual hiring, so that next
         // turn's top-down model starts from the correct baseline.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let total_fulfilled: f64 = task.companies.iter().map(|c| c.fulfilled_fte as f64).sum();
@@ -7026,6 +7175,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         {
@@ -7038,6 +7188,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // for next turn's hiring frictions and sticky wage rigidity.
         // This must run AFTER all labor clearing is complete and AFTER the
         // state employer pseudo-company is removed.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             for c in &mut task.companies {
@@ -7050,12 +7201,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 c.is_striking = false;
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 25: Sync building.current_employment from company.fulfilled_fte.
         // This is the critical missing link between labor clearing and production.
         // Labor clearing sets company.fulfilled_fte, but production reads
         // building.current_employment. Without this sync, production uses stale
         // employment values and GDP stays at 0.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Build a map from company_id → fulfilled_fte
@@ -7110,6 +7263,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         {
@@ -7117,6 +7271,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             eprintln!("SUB2_POST_LABOR: turn={} M0={:.0} cb={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
         // Fix 1.22: Credit withheld PIT + garnishments to each country's Treasury
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             if let Some(ref labor_alloc) = task.labor_allocation {
@@ -7131,6 +7286,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         {
@@ -7143,6 +7299,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // withheld total to the foreign sector balance — the external world's
         // purchasing pool. This seals the FiatDestruction leak: previously the
         // amount was only recorded in shadow_economy_state and vanished from M0.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             if let Some(ref labor_alloc) = task.labor_allocation {
@@ -7160,6 +7317,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         // Sequential: credit total remittances to foreign_sector_balance (Rule 1).
         let total_remittances: f64 = tasks
             .iter()
@@ -7188,6 +7346,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // earned. Previously this ran before banking_turn_post, using the
         // PREVIOUS turn labor_allocation. On turn 0, no commuter wages
         // were credited, causing FiatDestruction of ~500K.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             if let Some(ref labor_alloc) = task.labor_allocation {
@@ -7252,6 +7411,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     }
                 }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T12]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
@@ -7276,6 +7436,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &mut task.companies,
                 &mut task.ctx.country.central_bank,
             );
+            crate::state::banking::enforce_deposit_floor(&mut task.companies);
         }
         probe.checkpoint("labor_market_post", 8, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[labor_market_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));
 
@@ -7289,6 +7450,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // config-driven rates, no RNG. The urban-unemployment gate keeps it
         // inert while labor demand is saturated.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _class_transition_result =
@@ -7297,11 +7459,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     &crate::economy::labor::class_transitions::ClassTransitionConfig::default(),
                 );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 18A: Shadow Economy Processing
         // Processes shadow employment: companies in labor-intensive sectors
         // with ShadowEmployment records pay shadow wages (no PIT).
         // Runs after labor market resolution and before tax collection.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase 28: Trigger shadow employment for companies that can't
@@ -7326,11 +7490,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             // Phase 24D: Accumulate shadow wages as shadow GDP.
             task.gdp_acc.shadow_gdp += shadow_result.total_shadow_wages;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase D.5.1: Extract dominant demographic class per company from
         // the labor allocation matrix before it is consumed by D.5 payment
         // in kind. This map is used later by inspectorate bribery (Phase 22C)
         // and OHS compensation to route funds to the exact class of workers.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             if let Some(ref la) = task.labor_allocation {
@@ -7367,12 +7533,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 task.dominant_class_by_company = Some(dominant);
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase D.1.2: Process deferred OHS compensations now that the
         // dominant class map is available. Route compensation through
         // settle_transfer (Rule 1: bank balance synchronized) to the exact
         // injured worker class (Rule 7: no communization). If the employer
         // cannot pay, mark for Syndic bankruptcy processing.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             use crate::economy::transfer_settler::{settle_transfer, TransferRecipient, TransferError};
@@ -7460,6 +7628,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // D.5: Payment in kind (deduct harvest for subsistence)
         // v4.17.0: process each agricultural company exactly once. The old
@@ -7471,6 +7640,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // turn forever: a mass-conservation violation). `deductions_by_class`
         // was also populated but never merged, so in-kind-fed workers still
         // bought full B2C baskets (double consumption).
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // `.take()` is hoisted so the matrix survives intact for
@@ -7599,9 +7769,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             // Restore for downstream consumers (process_companies, PIT).
             task.labor_allocation = Some(labor_allocation);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
 
         // Value each deducted commodity at VWAP or base_price and add to GDP.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             if task.in_kind_ledger.deductions.is_empty() {
@@ -7651,6 +7823,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 total_imputed
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // D.6: Deposit remaining harvest to warehouses
         // World Generation & Climate Audit (v0.5.3): FIX — Previously this
@@ -7659,6 +7832,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // number of regions in the country). This caused N× mass duplication
         // of harvest yield. Now each company is harvested exactly once,
         // using its own region's climate profile.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             for company in &mut task.companies {
@@ -7685,13 +7859,17 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 10: Accumulate storage fees (debt only, no money moves)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             accumulate_storage_fees(&mut task.commercial_buildings);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let mut all_destroyed_batches = Vec::new();
@@ -7708,11 +7886,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 29: Periodic storage fee settlement — warehouse owners
         // collect accumulated fees from batch owners. If owners cannot pay,
         // batches are seized and liquidated. This makes warehousing a real
         // revenue stream for logistics companies.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _collected = crate::government::settle_periodic_storage_fees(
@@ -7721,6 +7901,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &mut task.ctx.country.budget,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             for company in &mut task.companies {
@@ -7750,11 +7932,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             task.companies
                 .retain(|c| !task.despawned_company_ids.contains(&c.id));
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
            #[cfg(feature = "diagnostic")]
         {
@@ -7766,6 +7951,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // and immediately discarded (`let _consumer_demand = ...`). The demand is
         // rebuilt during R6 clearing where it is actually used.
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // R4: Reset procurement commitments for wholesalers
@@ -7773,7 +7959,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 reset_procurement_commitment(building);
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // R5: Apply clearance discounts for stale inventory
@@ -7790,7 +7978,9 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
                     // R6: Clear B2C markets
@@ -7865,7 +8055,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     s.insert(region.id.clone());
                     s
                 };
-                let mut store_offers = generate_store_offers(&task.commercial_buildings, turn);
+                let mut store_offers =
+                    generate_store_offers(&mut task.commercial_buildings, turn);
                 let clearing_result = clear_b2c_markets(
                     &mut store_offers,
                     &consumer_demand,
@@ -8072,6 +8263,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 95: Reserve floor — reconcile B2C-clearing debits via ELA so
         // no bank posts negative reserves at the checkpoint.
@@ -8080,6 +8272,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &mut task.companies,
                 &mut task.ctx.country.central_bank,
             );
+            crate::state::banking::enforce_deposit_floor(&mut task.companies);
         }
         // ── DIAGNOSTIC CHECKPOINT: b2c_clearing_post ──
 probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[b2c_clearing_post]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market));
@@ -8093,6 +8286,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
         // Runs after B2C clearing, before telemetry. Durable goods
         // (Furniture, Cars, Televisions, Clothing, etc.) slowly wear out
         // and are scrapped when condition reaches 0.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             for region in &mut task.ctx.country.regions {
@@ -8104,6 +8298,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         {
@@ -8147,6 +8342,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
             }
         }
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // R7: Accrue retail rents and update leases
@@ -8344,6 +8540,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
@@ -8353,10 +8550,12 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
         // RESURRECTION PHASE 10: RATIONING CONSEQUENCES
         // After B2C clearing — mortality and unrest penalties from rationing.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             apply_rationing_consequences(task.ctx.country);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // ═══════════════════════════════════════════════════════════
@@ -8387,6 +8586,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
         // also borrowing it mutably in the parallel pass.
         let climate_config_clone = tasks[0].climate_config.clone();
         let foreign_sector_balance = market.foreign_sector_balance;
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let result = crate::society::tourism::compute_tourism_demand(
@@ -8401,6 +8601,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
             );
             task.tourism_demand = result;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // SEQUENTIAL: Clamp foreign inflow to foreign_sector_balance.
         // Foreign tourist spending comes from the external world's spending pool.
@@ -8418,6 +8619,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
         market.foreign_sector_balance -= total_foreign_actual;
 
         // PASS 2 (parallel): Credit companies with clamped amounts.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::society::tourism::settle_tourism_revenue(
@@ -8426,6 +8628,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
                 foreign_scaling_ratio,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         {
@@ -8436,6 +8639,7 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREABANDON: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
+let _saved_rng_state = crate::engine::seeded_rng::save_stream();
 tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase 24C.7: Update information quality tier for each company
@@ -8691,6 +8895,7 @@ tasks.par_iter_mut().for_each(|task| {
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T20]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
@@ -8699,6 +8904,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Companies queue AbandonProject actions via pply_action;
         // the actual abandonment is processed here where buildings are
         // mutable. Refunds remaining escrow to the investor.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let pending_abandons: Vec<String> = task
@@ -8727,11 +8933,13 @@ tasks.par_iter_mut().for_each(|task| {
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         
         #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREFEDERATION: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
+let _saved_rng_state = crate::engine::seeded_rng::save_stream();
 tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // R2.1: Process cooperative federations.
@@ -8741,11 +8949,13 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.turn,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         
         #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREMERGERS: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
+let _saved_rng_state = crate::engine::seeded_rng::save_stream();
 tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::corporate::mergers::process_mergers_and_acquisitions(
@@ -8758,11 +8968,13 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.turn,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         
         #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PRERESOLUTION: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
+let _saved_rng_state = crate::engine::seeded_rng::save_stream();
 tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase 96: Process Strategic Resolution for energy companies in receivership.
@@ -8778,6 +8990,7 @@ tasks.par_iter_mut().for_each(|task| {
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         
         #[cfg(feature = "diagnostic")]
         {
@@ -8798,6 +9011,7 @@ tasks.par_iter_mut().for_each(|task| {
             }
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PRELIFECYCLE: t={} M0={:.0} cb={:.0} diff={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
+let _saved_rng_state = crate::engine::seeded_rng::save_stream();
 tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             CompanyLifecycle::process_lifecycle(
@@ -8808,6 +9022,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &task.market_signal,
                 task.ctx.turn,
                 task.ctx.registries,
+                Some(task.planet),
             );
             // List any JSCs spawned by lifecycle transitions (births, legal-form
             // changes) the same turn — process_companies ran earlier, so this
@@ -8817,6 +9032,7 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.country,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "lc");
@@ -8840,6 +9056,7 @@ tasks.par_iter_mut().for_each(|task| {
             }
             eprintln!("EXCLUDED_POST_LIFECYCLE: state_local_res={:.0} cultural_cash={:.0}", _state_local_res, _cultural_cash);
         }
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase D: remove tombstoned companies (liquidated/merged) once per turn.
@@ -8935,6 +9152,7 @@ tasks.par_iter_mut().for_each(|task| {
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
         {
@@ -8942,6 +9160,7 @@ tasks.par_iter_mut().for_each(|task| {
             for _t in &tasks { let mut _csum = 0.0f64; for _r in &_t.ctx.country.regions { for _d in _r.class_demographics.rural_classes.values().chain(_r.class_demographics.urban_classes.values()) { _csum += _d.savings; } } eprintln!("M0_TRACE_POSTLIFECYCLE_CT: t={} c={} sav={:.0}", turn, _t.ctx.country_name, _csum); }
         }
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let current_turn = task.ctx.turn;
@@ -9185,6 +9404,7 @@ tasks.par_iter_mut().for_each(|task| {
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
@@ -9197,6 +9417,7 @@ tasks.par_iter_mut().for_each(|task| {
         // BEFORE any spending occurs. This ensures the Treasury has
         // sufficient liquid reserves to disburse funds.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let current_turn = task.ctx.turn;
@@ -9248,12 +9469,14 @@ tasks.par_iter_mut().for_each(|task| {
                 }));
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREFISCAL: t={} M0={:.0} cb={:.0} diff={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets);
         }
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // 2. ALL TAX COLLECTION (NATIONAL + LOCAL + FISCAL TRANSFERS)
@@ -9342,7 +9565,7 @@ tasks.par_iter_mut().for_each(|task| {
                             &mut task.ctx.country.central_bank,
                             total_debit,
                         );
-                        bs.deposits -= total_debit;
+                        crate::state::banking::settle_deposit_debit(bs, total_debit);
                         bs.reserves_at_central_bank -= total_debit;
                     }
                 } else {
@@ -9533,6 +9756,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &corrupt_officials,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         { let mut _br: f64 = 0.0; let mut _tre: f64 = 0.0; let mut _cb: f64 = 0.0; for _t in &tasks { _br += _t.companies.iter().filter_map(|c| c.balance_sheet.as_ref()).map(|bs| bs.reserves_at_central_bank).sum::<f64>(); _tre += _t.ctx.country.budget.liquid_reserves; _cb += _t.ctx.country.central_bank.liquidity_injected; } eprintln!("POSTTAX_TRACE: t={} br={:.0} tre={:.0} cb={:.0}", turn, _br, _tre, _cb); }
@@ -9558,6 +9782,7 @@ tasks.par_iter_mut().for_each(|task| {
         // and f64 addition is not associative, so unsorted sums drift by ULP.
         let foreign_credits =
             std::sync::Mutex::new(Vec::<(usize, f64)>::with_capacity(tasks.len()));
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().enumerate().for_each(|(i, task)| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let current_turn = task.ctx.turn;
@@ -9570,6 +9795,7 @@ tasks.par_iter_mut().for_each(|task| {
                 foreign_credits.lock().unwrap().push((i, total_foreign));
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "ds");
@@ -9592,6 +9818,7 @@ tasks.par_iter_mut().for_each(|task| {
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREFISC: t={} M0={:.0} cb={:.0} diff={:.0} t={:.0} c={:.0} br={:.0} corp={:.0} min={:.0} foreign={:.0} debit={:.0} offshore={:.0} charity={:.0} arb={:.0} blackops={:.0} intel={:.0} iob={:.0} frozen={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash, _w.foreign_sector_balance, _w.debit_cash, _w.offshore_capital, _w.see_charity_pool, _w.arbitration_escrow, _w.black_ops_budget, _w.intelligence_budget, _w.international_org_budgets, _w.frozen_cash);
         }
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Phase 10: State reserve warehouse maintenance (physical upkeep)
@@ -9806,6 +10033,7 @@ tasks.par_iter_mut().for_each(|task| {
             }
             task.ctx.country.politics.ministry_config = ministry_config;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "mx");
@@ -9819,6 +10047,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Phase 29: State construction of inspectorate buildings.
         // When corruption is high, the Justice/InternalSecurity ministry
         // publishes construction tenders for new inspectorate buildings.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _count = crate::politics::anti_corruption::maybe_publish_inspectorate_tender(
@@ -9827,6 +10056,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &state.market_history,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // 8. MINISTRY PHASE B: Post-Clearing Reconciliation
         // (B2B market clearing already occurred above as placeholder;
@@ -9835,6 +10065,7 @@ tasks.par_iter_mut().for_each(|task| {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREMINPOST: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         //  in full implementation, ministry buy orders would be matched there)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let mut ministry_config = task.ctx.country.politics.ministry_config.take();
@@ -9874,6 +10105,7 @@ tasks.par_iter_mut().for_each(|task| {
             }
             task.ctx.country.politics.ministry_config = ministry_config;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "mc");
@@ -9886,6 +10118,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Welfare must precede charity distribution so charity supplements gaps.
         // All transfers are strict double-entry.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // 13a: Charity fundraising — collect donations from wealthy/co-religionists
@@ -9895,7 +10128,9 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.turn,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // 13b: Social welfare distribution — execute active SocialPrograms
@@ -9905,7 +10140,9 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.turn,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // 13c: Charity distribution — distribute relief to poorest classes
@@ -9915,6 +10152,7 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.turn,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "w3");
@@ -9922,16 +10160,20 @@ tasks.par_iter_mut().for_each(|task| {
 
         // 9. RETAIL SAVINGS BONDS B2C WINDOW
         // Cash raised here funds NEXT turn's budget (causality rule)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             clear_savings_bonds_b2c(task.ctx.country, task.ctx.turn);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // 10. SECONDARY DEBT MARKET CLEARING (wholesale only)
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             clear_secondary_debt_market(&mut task.ctx.country.debt_market, task.ctx.turn);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "sb");
@@ -9956,14 +10198,17 @@ tasks.par_iter_mut().for_each(|task| {
         // Phase 39: Apply ideology tax policy every turn (not just on election).
         // This ensures wealth/capital-gains tax brackets always reflect the
         // ruling ideology. Player agency is expressed through elections.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::politics::apply_ruling_coordinate_policies(task.ctx.country, task.ctx.year);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 39: Check snap election every turn (not just at year boundary).
         // This breaks provisional government deadlocks immediately instead of
         // waiting up to 23 turns for the year-boundary political processing.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let msgs = crate::politics::check_snap_election(task.ctx.country, task.ctx.turn);
@@ -9974,9 +10219,11 @@ tasks.par_iter_mut().for_each(|task| {
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Phase 39: Run election if due every turn (not just at year boundary).
         // This ensures snap elections take effect immediately.
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let unrest = task.ctx.country.macro_indicators.social_unrest;
@@ -9994,8 +10241,10 @@ tasks.par_iter_mut().for_each(|task| {
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         if is_year_boundary {
+            let _saved_rng_state = crate::engine::seeded_rng::save_stream();
             tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
                 process_political_year(
@@ -10005,6 +10254,7 @@ tasks.par_iter_mut().for_each(|task| {
                     task.ctx.year,
                 );
             });
+            crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         }
 
         #[cfg(feature = "diagnostic")]
@@ -10021,6 +10271,7 @@ tasks.par_iter_mut().for_each(|task| {
         // CRITICAL: This also drains `vip_registry.pending_unnatural_deaths` at
         // the start of each turn to trigger immediate succession for
         // assassinated/couped/executed leaders (Zombie Leader prevention).
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Collect councilors from regional governance structures.
@@ -10071,6 +10322,7 @@ tasks.par_iter_mut().for_each(|task| {
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "pol");
@@ -10093,6 +10345,7 @@ tasks.par_iter_mut().for_each(|task| {
         // NEXT turn's Phase 6.4, ensuring the MoD never spends cash it
         // hasn't received yet (cross-turn causality).
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let config = task.ctx.country.military_config.clone();
@@ -10114,6 +10367,7 @@ tasks.par_iter_mut().for_each(|task| {
             // settle_defense_trades debits liquid_reserves when trades execute.
             task.ctx.country.pending_defense_orders = bids;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         {
@@ -10124,6 +10378,7 @@ tasks.par_iter_mut().for_each(|task| {
         // global order book instead of the forecast-layer MarketOrders.
 
         // Add military commodity demand to market before clearing
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             add_military_demand_to_market(
@@ -10131,9 +10386,11 @@ tasks.par_iter_mut().for_each(|task| {
                 &mut task.orders.orders,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
 
         // Phase 9: R&D, Fishing, Infrastructure
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // 9.1: Corporate R&D and patent expiration
@@ -10312,12 +10569,14 @@ tasks.par_iter_mut().for_each(|task| {
             // government treasury support is added, write back here. This is
             // a latent gap documented in the plan (Risks section).
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // Moved here per blueprint revision — aligned with consumer budgeting phase
                 #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREB2C: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
+let _saved_rng_state = crate::engine::seeded_rng::save_stream();
 tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let service_config = task.ctx.country.service_pricing_config.clone();
@@ -10456,6 +10715,7 @@ tasks.par_iter_mut().for_each(|task| {
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 14: JUSTICE SYSTEM COVERAGE
@@ -10468,6 +10728,7 @@ tasks.par_iter_mut().for_each(|task| {
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREJUS: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let mut building_inventories: std::collections::BTreeMap<
@@ -10484,6 +10745,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &building_inventories,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 18B: VIGILANTE JUSTICE (VIGILANTE JUSTICE) + OMBUDSMAN (Ombudsman)
@@ -10494,6 +10756,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Ombudsman: detects legal dualism rights violations, generates
         // unrest and scandals. Runs after justice system, before pogroms.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _vigilante_result = crate::economy::sentencing::check_vigilante_justice(
@@ -10502,12 +10765,15 @@ tasks.par_iter_mut().for_each(|task| {
                 current_turn,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _ombudsman_result =
                 crate::economy::sentencing::process_ombudsman_turn(task.ctx.country);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 15A: MAINTENANCE SPENDING + DISASTER CHECKS
@@ -10516,6 +10782,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Mitigated by FireProtectionCapacity and ShelterCapacity from production.
         // Must run AFTER production + justice so capacity is available.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let config = task.ctx.country.maintenance_config.clone();
@@ -10525,7 +10792,9 @@ tasks.par_iter_mut().for_each(|task| {
                 &config,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let disaster_result = crate::economy::disasters::check_disaster_triggers(
@@ -10561,6 +10830,7 @@ tasks.par_iter_mut().for_each(|task| {
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 22D: PRIVATE OVERSIGHT + CIVIL LAWSUITS + KIO APPEALS
@@ -10569,6 +10839,7 @@ tasks.par_iter_mut().for_each(|task| {
         // challenge tender awards. All use double-entry settlement.
         // Runs after disasters so collapse events can trigger lawsuits.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let justice_coverage = task
@@ -10603,6 +10874,7 @@ tasks.par_iter_mut().for_each(|task| {
             );
             task.ctx.country.phase22_kio_appeals = appeals;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "cl");
@@ -10614,6 +10886,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Customs: recovers evaded taxes scaled by CustomsCapacity.
         // Both run in parallel (per-country, no cross-country deps).
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Agent 4 — Phase 4: Use actual cross-border trade value instead of
@@ -10628,6 +10901,7 @@ tasks.par_iter_mut().for_each(|task| {
                 trade_volume,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "ju");
@@ -10638,6 +10912,7 @@ tasks.par_iter_mut().for_each(|task| {
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREROY: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let innovation_config = task.ctx.country.innovation_config.clone();
@@ -10744,6 +11019,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &mut task.cross_border_royalty_outbox,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         {
@@ -10969,6 +11245,7 @@ tasks.par_iter_mut().for_each(|task| {
 
             // Pass 3: Process deportations per country (parallel-safe, single country)
             let deportation_config = migration_config.clone();
+            let _saved_rng_state = crate::engine::seeded_rng::save_stream();
             tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
                 let border_cap =
@@ -10977,6 +11254,7 @@ tasks.par_iter_mut().for_each(|task| {
                     crate::economy::migration::process_deportations(task.ctx.country, border_cap, &deportation_config);
                 task.deported_wealth = wealth;
             });
+            crate::engine::seeded_rng::restore_stream(_saved_rng_state);
             // Sequential: credit deported wealth to foreign_sector_balance (F4).
             // Deportees take their savings out of the country → external world gains.
             let total_deported_wealth: f64 =
@@ -10999,6 +11277,7 @@ tasks.par_iter_mut().for_each(|task| {
         // remittance from StateMonopoly company to Treasury.
         // Both run per-country in parallel (no cross-country deps).
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _inspectorate_result = crate::economy::inspectorates::process_inspectorates_turn(
@@ -11010,11 +11289,13 @@ tasks.par_iter_mut().for_each(|task| {
                 task.planet,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         #[cfg(feature = "diagnostic")]
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T27]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _forest_result = crate::economy::state_forests::process_state_forests_turn(
@@ -11023,6 +11304,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &mut task.ctx.buildings,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 22C: CONSTRUCTION INSPECTIONS + BRIBERY
@@ -11031,6 +11313,7 @@ tasks.par_iter_mut().for_each(|task| {
         // which sites can be reached. Corrupt inspectors may accept
         // bribes via CitizenSavings (no building reserve mutation).
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Compute PIP fleet ranges from inspectorate buildings
@@ -11209,6 +11492,7 @@ tasks.par_iter_mut().for_each(|task| {
                 );
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 17C: MONASTERY PRODUCTION + CHURCH FUND
@@ -11218,6 +11502,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Treasury to owning companies via credit_company_by_id.
         // Both run per-country in parallel (no cross-country deps).
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _monastery_value = crate::economy::religious_economy::process_monastery_production(
@@ -11225,7 +11510,9 @@ tasks.par_iter_mut().for_each(|task| {
                 &mut task.companies,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let religious_law = task
@@ -11264,6 +11551,7 @@ tasks.par_iter_mut().for_each(|task| {
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 18A: AMNESTY & LEGALIZATION
@@ -11272,6 +11560,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Runs after shadow economy processing and before Phase 17B
         // assimilation, so legalized workers can immediately assimilate.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _amnesty_result = crate::economy::legal_status::process_amnesty_turn(
@@ -11279,6 +11568,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &mut task.companies,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "ch");
@@ -11294,6 +11584,7 @@ tasks.par_iter_mut().for_each(|task| {
         // charity, holy sites, and clergy-to-follower ratio. Must run BEFORE
         // religious conversion (which uses authority scores).
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let config = crate::society::religious_authority::ReligiousAuthorityConfig::default();
@@ -11305,6 +11596,7 @@ tasks.par_iter_mut().for_each(|task| {
             );
             task.ctx.country.religious_authority_state.authority = authority;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 17B: RELIGIOUS CONVERSION + INSTITUTIONAL ASSIMILATION
@@ -11314,6 +11606,7 @@ tasks.par_iter_mut().for_each(|task| {
         // ethnic assimilation), then assimilation uses dual-channel coverage
         // (education + Integration Centers) with syncretism bounding.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             // Step 1: Religious conversion (driven by ReligiousAuthority).
@@ -11334,6 +11627,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &edu_needs,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE[M0_T29]: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
@@ -11350,6 +11644,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Effects: zero-sum wealth transfer, casualties, emigration.
         // Runs per-country in parallel after assimilation (demographics settled).
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let pogrom_config = crate::economy::ethnic_violence::PogromConfig::default();
@@ -11360,6 +11655,7 @@ tasks.par_iter_mut().for_each(|task| {
                 current_turn,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 18C: TERRORISM (ASYMMETRIC WARFARE)
@@ -11367,11 +11663,13 @@ tasks.par_iter_mut().for_each(|task| {
         // Destroys state buildings, reduces B2B inventory, creates casualties.
         // Runs after pogroms (Phase 17C), before See reinvestment.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let _terrorism_result =
                 check_terrorism_triggers(task.ctx.country, &mut task.ctx.buildings, current_turn);
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         tasks.sort_by(|a, b| a.ctx.country_name.cmp(&b.ctx.country_name));
 
@@ -11509,6 +11807,7 @@ tasks.par_iter_mut().for_each(|task| {
         // diffusion index using Orders, Production, Employment, Deliveries,
         // and Inventories. Uses previous-turn telemetry for delta calculations.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let sectors: Vec<Sector> = task.ctx.country.budget.sectors.keys().copied().collect();
@@ -11552,6 +11851,7 @@ tasks.par_iter_mut().for_each(|task| {
                 }
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 24D: MACROECONOMIC TELEMETRY (end-of-turn aggregation)
@@ -11560,6 +11860,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Runs in parallel (per-country, no cross-country deps).
         // Net exports are set to 0 here and updated after balance_global_trade.
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let prev_gdp = task.ctx.country.macro_indicators.gdp_breakdown.official_gdp;
@@ -11608,6 +11909,7 @@ tasks.par_iter_mut().for_each(|task| {
             task.ctx.country.budget.gdp =
                 task.ctx.country.macro_indicators.gdp_breakdown.official_gdp;
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 85A: GUILD SYSTEM CYCLE
@@ -11624,6 +11926,7 @@ tasks.par_iter_mut().for_each(|task| {
         // Must run BEFORE urbanization cycle so that emancipation checks
         // see updated guild state (Rule 16).
         // ═══════════════════════════════════════════════════════════
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             let guild_config = task.ctx.country.guild_config.clone();
@@ -11635,7 +11938,12 @@ tasks.par_iter_mut().for_each(|task| {
                 .max(subsistence_wage_floor);
 
             // 85A.1: Check guild formation in GuildBurgher domains
-            for region in &task.ctx.country.regions {
+            // Ids of guilds spawned this turn — `already_exists` alone misses
+            // same-turn duplicates (and any entity-store duplicates), so the
+            // check covers both.
+            let mut spawned_guild_ids: std::collections::HashSet<String> =
+                std::collections::HashSet::new();
+            for region in task.ctx.country.regions.iter_mut() {
                 for micro in region.micro_regions.values() {
                     if !matches!(
                         micro.faction_type,
@@ -11643,15 +11951,28 @@ tasks.par_iter_mut().for_each(|task| {
                     ) {
                         continue;
                     }
-                    // Aggregate cottage_fte by sector from class demographics
+                    // v4.19 WS5b: The artisanal pool is the UNALLOCATED FTE
+                    // of craft classes — FreePeasant cottagers (rural) and
+                    // Worker/Bourgeoisie (urban). `cottage_fte_allocated`
+                    // stays 0 because the cottage reservation pipeline was
+                    // never wired into the turn loop; using it starved
+                    // guild formation entirely.
+                    let artisan_slack = |d: &crate::society::geography::ClassDemographics| {
+                        (d.available_fte - d.allocated_fte).max(0.0)
+                    };
+                    let mut artisanal_fte = 0.0;
+                    for (class_key, d) in region.class_demographics.rural_classes.iter() {
+                        if matches!(class_key, crate::society::geography::RuralClass::FreePeasant) {
+                            artisanal_fte += artisan_slack(d);
+                        }
+                    }
+                    for d in region.class_demographics.urban_classes.values() {
+                        artisanal_fte += artisan_slack(d);
+                    }
                     let mut cottage_fte_by_sector: std::collections::BTreeMap<String, f64> =
                         std::collections::BTreeMap::new();
-                    for demographics in region.class_demographics.rural_classes.values() {
-                        // Sum cottage FTE — the sector is derived from the domain
-                        // For now, aggregate all cottage FTE into a single sector key
-                        *cottage_fte_by_sector
-                            .entry("crafts".to_string())
-                            .or_insert(0.0) += demographics.cottage_fte_allocated;
+                    if artisanal_fte > 0.0 {
+                        cottage_fte_by_sector.insert("crafts".to_string(), artisanal_fte);
                     }
                     if let Some(sector_str) =
                         crate::economy::guild_system::check_guild_formation_trigger(
@@ -11660,30 +11981,97 @@ tasks.par_iter_mut().for_each(|task| {
                             &guild_config,
                         )
                     {
-                        // Check if a guild for this domain+sector already exists
-                        let guild_id = format!("GUILD-{}-{}", micro.id, sector_str);
-                        let already_exists = task.companies.iter().any(|c| c.id == guild_id);
+                        // Check if a guild for this domain+sector already
+                        // exists. The id must match `create_guild`'s formula
+                        // (`GUILD-{domain}-{Sector:?}`) — keying on the raw
+                        // trigger string ("crafts") never matches the minted
+                        // company id and a new guild spawns every turn.
+                        let sector = match sector_str.as_str() {
+                            "LightIndustry" => crate::registries::enums::Sector::LightIndustry,
+                            "LocalServices" => crate::registries::enums::Sector::LocalServices,
+                            _ => crate::registries::enums::Sector::LightIndustry,
+                        };
+                        let guild_id = format!("GUILD-{}-{:?}", micro.id, sector);
+                        let already_exists = spawned_guild_ids.contains(&guild_id)
+                            || task.companies.iter().any(|c| c.id == guild_id);
                         if !already_exists {
-                            // Gather contributing classes with their savings
-                            let contributing_classes: Vec<(String, f64, f64)> = region
-                                .class_demographics
-                                .rural_classes
-                                .iter()
-                                .filter(|(_, d)| d.cottage_fte_allocated > 0.0)
-                                .map(|(class_id, d)| {
-                                    (class_id.to_string(), d.cottage_fte_allocated, d.savings)
-                                })
-                                .collect();
+                            // Contributing classes = the artisan classes that
+                            // actually supply the pool (rural + urban).
+                            let mut contributing_classes: Vec<(String, f64, f64)> = Vec::new();
+                            for (class_id, d) in region.class_demographics.rural_classes.iter() {
+                                if matches!(
+                                    class_id,
+                                    crate::society::geography::RuralClass::FreePeasant
+                                ) && artisan_slack(d) > 0.0
+                                {
+                                    contributing_classes.push((
+                                        class_id.to_string(),
+                                        artisan_slack(d),
+                                        d.savings,
+                                    ));
+                                }
+                            }
+                            for (class_id, d) in region.class_demographics.urban_classes.iter() {
+                                if artisan_slack(d) > 0.0 {
+                                    contributing_classes.push((
+                                        class_id.to_string(),
+                                        artisan_slack(d),
+                                        d.savings,
+                                    ));
+                                }
+                            }
                             if !contributing_classes.is_empty() {
-                                let sector = match sector_str.as_str() {
-                                    "LightIndustry" => {
-                                        crate::registries::enums::Sector::LightIndustry
+                                // v4.19 WS5: Double-entry seed capital —
+                                // debit each contributing class's savings by
+                                // the exact amount credited to the guild.
+                                let extractions =
+                                    crate::economy::guild_system::compute_seed_extraction(
+                                        &contributing_classes,
+                                        average_wage,
+                                        &guild_config,
+                                    );
+                                for (class_id, amount) in &extractions {
+                                    if *amount <= 0.0 {
+                                        continue;
                                     }
-                                    "LocalServices" => {
-                                        crate::registries::enums::Sector::LocalServices
+                                    let debited = if let Some(rk) =
+                                        crate::society::geography::RuralClass::from_str(class_id)
+                                    {
+                                        region
+                                            .class_demographics
+                                            .rural_classes
+                                            .get_mut(&rk)
+                                            .map(|d| {
+                                                d.savings = (d.savings - amount).max(0.0);
+                                                if d.population > 0 {
+                                                    d.savings_per_capita =
+                                                        d.savings / d.population as f64;
+                                                }
+                                            })
+                                            .is_some()
+                                    } else {
+                                        false
+                                    };
+                                    if !debited {
+                                        if let Some(uk) =
+                                            crate::society::geography::UrbanClass::from_str(
+                                                class_id,
+                                            )
+                                        {
+                                            if let Some(d) = region
+                                                .class_demographics
+                                                .urban_classes
+                                                .get_mut(&uk)
+                                            {
+                                                d.savings = (d.savings - amount).max(0.0);
+                                                if d.population > 0 {
+                                                    d.savings_per_capita =
+                                                        d.savings / d.population as f64;
+                                                }
+                                            }
+                                        }
                                     }
-                                    _ => crate::registries::enums::Sector::LightIndustry,
-                                };
+                                }
                                 let mut guild = crate::economy::guild_system::create_guild(
                                     micro,
                                     sector,
@@ -11691,7 +12079,79 @@ tasks.par_iter_mut().for_each(|task| {
                                     average_wage,
                                     &guild_config,
                                 );
+                                // v4.19 WS5: Register the contributing
+                                // classes' workshops as guild members
+                                // (one workshop handle per ~10 artisan FTE)
+                                // and record the guild's labor claim in
+                                // `guild_fte_allocated` — the field
+                                // `get_labor_pool_fte` subtracts from the
+                                // industrial labor pool.
+                                if let crate::entities::legal_form::LegalForm::Guild(
+                                    ref mut guild_data,
+                                ) = guild.legal_form
+                                {
+                                    // A workshop needs a physical site — the
+                                    // domain cannot host more workshops than
+                                    // it controls parcels. Without this bound
+                                    // the per-10-FTE rule minted ~50K ids per
+                                    // guild (13M strings across the world),
+                                    // which swamped memory and every
+                                    // fingerprint hash.
+                                    let mut workshop_sites =
+                                        micro.controlled_parcel_ids.len().max(1);
+                                    for (class_id, artisan_fte, _) in &contributing_classes {
+                                        let workshop_count = ((artisan_fte / 10.0).ceil()
+                                            as usize)
+                                            .min(workshop_sites)
+                                            .max(1);
+                                        workshop_sites =
+                                            workshop_sites.saturating_sub(workshop_count);
+                                        for i in 0..workshop_count {
+                                            guild_data.member_workshop_ids.push(format!(
+                                                "WS-{}-{}-{}",
+                                                guild_id, class_id, i
+                                            ));
+                                        }
+                                        // Half of the class's artisan slack
+                                        // formalizes into guild production,
+                                        // bounded by the workshops' actual
+                                        // employment capacity; the rest stays
+                                        // informal cottage.
+                                        let claimed = (artisan_fte * 0.5)
+                                            .min(workshop_count as f64 * 10.0);
+                                        if let Some(rk) =
+                                            crate::society::geography::RuralClass::from_str(
+                                                class_id,
+                                            )
+                                        {
+                                            if let Some(d) = region
+                                                .class_demographics
+                                                .rural_classes
+                                                .get_mut(&rk)
+                                            {
+                                                d.guild_fte_allocated =
+                                                    (d.guild_fte_allocated + claimed)
+                                                        .min(d.available_fte);
+                                            }
+                                        } else if let Some(uk) =
+                                            crate::society::geography::UrbanClass::from_str(
+                                                class_id,
+                                            )
+                                        {
+                                            if let Some(d) = region
+                                                .class_demographics
+                                                .urban_classes
+                                                .get_mut(&uk)
+                                            {
+                                                d.guild_fte_allocated =
+                                                    (d.guild_fte_allocated + claimed)
+                                                        .min(d.available_fte);
+                                            }
+                                        }
+                                    }
+                                }
                                 guild.region_id = region.id.clone();
+                                spawned_guild_ids.insert(guild_id.clone());
                                 task.companies.push(guild);
                             }
                         }
@@ -11897,6 +12357,7 @@ tasks.par_iter_mut().for_each(|task| {
                 task.companies.remove(idx);
             }
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 85B: URBANIZATION CYCLE
@@ -11907,6 +12368,7 @@ tasks.par_iter_mut().for_each(|task| {
         // to the next turn's demographics/labor phase (Rule 16).
         // ═══════════════════════════════════════════════════════════
         let urbanization_config = crate::society::urbanization::EmancipationConfig::default();
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
             crate::society::urbanization::process_urbanization_cycle(
@@ -11919,6 +12381,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &urbanization_config,
             );
         });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "ur");
@@ -11945,6 +12408,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &mut task.companies,
                 &mut task.ctx.country.central_bank,
             );
+            crate::state::banking::enforce_deposit_floor(&mut task.companies);
         }
         // Prudential supervision — second pass. The `process_banking_turn`
         // recap runs before the turn's settlement phases, and every seller
@@ -11988,7 +12452,7 @@ tasks.par_iter_mut().for_each(|task| {
             eprintln!("MEMWALK t={} loans_issued={} consumer={} mbs={} outstand={} deferred={} extra={} finhist={} licmeth={} patents={} judgdebt={} stolenip={}",
                 turn, li, cl, mbs, ol, dt, ex, fh, inv, pat, jd, stk);
         }
-probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[turn_end]: t={} fp={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_tasks_split(&tasks, &market)); #[cfg(feature = "diagnostic")] eprintln!("FPC[turn_end]: t={}{}", turn, fingerprint_companies_fields(&tasks));
+probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnostic")] eprintln!("FP[turn_end]: t={} fp={:016x} fxr={:016x} {}", turn, fingerprint_tasks(&tasks, &market), fingerprint_fx_rates(&state.currencies), fingerprint_tasks_split(&tasks, &market)); #[cfg(feature = "diagnostic")] eprintln!("FPC[turn_end]: t={}{}", turn, fingerprint_companies_fields(&tasks));
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "te");
@@ -12168,6 +12632,8 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
             // leg too — dropping it here understated official GDP exactly by
             // the in-kind economy while the regional reconciler (which does
             // include it) then had no matching residual to distribute.
+            // v4.19: `consumption` holds MONETIZED spending only; the full
+            // identity keeps `imputed_consumption` as its own term.
             country.macro_indicators.gdp_breakdown.official_gdp =
                 country.macro_indicators.gdp_breakdown.consumption
                     + country.macro_indicators.gdp_breakdown.imputed_consumption
@@ -12662,11 +13128,24 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
                 .capital_gains_tax
                 .finalize_year_settlement(actual_collected, year.saturating_sub(1));
 
+            // v4.19 WS3: restrike each fund's year-start NAV at the fiscal
+            // boundary so `ytd_return` = NAV(now)/NAV(year_start) − 1 is a
+            // real NAV-history figure.
+            if let Some(entities_ctx) = entities.get_mut(&country.name) {
+                for company in entities_ctx.companies.iter_mut() {
+                    if let Some(ref mut ledger) = company.fund_ledger {
+                        if ledger.nav_per_share.is_finite() && ledger.nav_per_share > 0.0 {
+                            ledger.year_start_nav = ledger.nav_per_share;
+                        }
+                    }
+                }
+            }
+
             // R6.5: Activate dynamic fund creation — once per political year
             // per country, attempt to create a new hedge fund from a wealthy VIP.
             if let Some(ref registry) = country.politics.vip_registry {
                 // Find eligible VIPs: influence > 50, age 35-65, ambitious
-                let eligible_vips: Vec<_> = registry
+                let mut eligible_vips: Vec<_> = registry
                     .vips
                     .values()
                     .filter(|v| {
@@ -12681,6 +13160,16 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
                     })
                     .cloned()
                     .collect();
+                // DETERMINISM: `vips` is a HashMap — `values()` order is
+                // per-process random, so `.first()` picked a different
+                // founder each run (observed: divergent FP at the t=24
+                // year boundary, country `co=` split). Canonical order is
+                // by VIP id; the pick stays "first eligible" as before.
+                // `id` is serde-defaulted (legacy saves may hold empty
+                // ids), and stable sort preserves input order on ties —
+                // full_name makes the order total.
+                eligible_vips
+                    .sort_by(|a, b| a.id.cmp(&b.id).then_with(|| a.full_name.cmp(&b.full_name)));
                 // Try the first eligible VIP (limit 1 new fund per year)
                 if let Some(vip) = eligible_vips.first() {
                     if let Some((fund_id, fund_company)) =
@@ -13312,6 +13801,27 @@ fn fingerprint_commodity_map(
     }
 }
 
+/// v4.18 WS2: Hash every currency's exchange rate in sorted-code order.
+/// `international/trade.rs` mutates `exchange_rate` on trade balance, so the
+/// rates are live deterministic state that the task fingerprint cannot reach
+/// (they live on `GameState`, not on per-country tasks). A rate drift that
+/// flips the FX-affordability gate surfaces here the turn it happens.
+pub(crate) fn fingerprint_fx_rates(
+    currencies: &HashMap<String, crate::state::Currency>,
+) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+    let mut h = DefaultHasher::new();
+    let mut cs: Vec<(&String, &crate::state::Currency)> = currencies.iter().collect();
+    cs.sort_by(|a, b| a.0.cmp(b.0));
+    cs.len().hash(&mut h);
+    for (code, cur) in cs {
+        code.hash(&mut h);
+        cur.exchange_rate.to_bits().hash(&mut h);
+    }
+    h.finish()
+}
+
 /// v4.18 WS2: Hash the observable employment/capital projection of one company.
 fn fingerprint_company(h: &mut impl std::hash::Hasher, c: &Company) {
     use std::hash::Hash;
@@ -13402,6 +13912,19 @@ fn fingerprint_country(
         .hash(h);
     let pop: i64 = country.regions.iter().map(|r| r.population).sum();
     pop.hash(h);
+    // Central-bank FX reserves feed the cross-border settlement gate
+    // (`available_fx >= foreign_needed`) but are otherwise invisible to the
+    // fingerprint — a silent drift here only surfaces turns later as a
+    // settlement-count flip. Hashed sorted so map order never matters.
+    {
+        let mut fx: Vec<(&String, &f64)> = country.central_bank.fx_reserves.iter().collect();
+        fx.sort_by(|a, b| a.0.cmp(b.0));
+        fx.len().hash(h);
+        for (k, v) in fx {
+            k.hash(h);
+            v.to_bits().hash(h);
+        }
+    }
 }
 
 /// v4.18 WS2: Fingerprint the live task list at a mid-turn checkpoint.
@@ -13421,6 +13944,14 @@ pub(crate) fn fingerprint_tasks(
     use std::hash::{Hash, Hasher};
 
     let mut h = DefaultHasher::new();
+    // Main-thread seeded-RNG stream position. Par-elements re-seed the TLS
+    // they run on; when rayon co-schedules an element onto the main thread,
+    // it leaves the shared main stream at a position that depends on which
+    // element ran last — a scheduling artifact. Any sequential draw between
+    // par sections then diverges run-to-run without touching fingerprinted
+    // state. Peeking (not advancing) surfaces the desync in the fingerprint.
+    #[cfg(feature = "diagnostic")]
+    crate::engine::seeded_rng::peek_next_u64().hash(&mut h);
     fingerprint_commodity_map(&mut h, &market.base_prices);
     fingerprint_commodity_map(&mut h, &market.net_trade);
     market.foreign_sector_balance.to_bits().hash(&mut h);

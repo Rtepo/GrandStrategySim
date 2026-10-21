@@ -500,6 +500,11 @@ pub fn generate_corporate_entities(
     // Phase 94: Sort sectors by JSON name for deterministic RNG consumption.
     let mut sorted_sectors: Vec<_> = country.budget.sectors.iter().collect();
     sorted_sectors.sort_by_key(|a| sector_json_name(*a.0));
+    // v4.19 WS3: per-country company-name uniqueness set — collisions across
+    // regions/sectors re-roll the surname deterministically instead of
+    // producing identically-named listed companies.
+    let mut used_company_names: std::collections::HashSet<String> =
+        all_companies.iter().map(|c| c.name.clone()).collect();
     for (&sector, share) in sorted_sectors {
         if sector == Sector::PublicServices {
             continue;
@@ -574,6 +579,7 @@ pub fn generate_corporate_entities(
                 &cultural_group,
                 rng,
                 sector_method_cursor,
+                &mut used_company_names,
             );
             sector_method_cursor += region_companies.len();
 
@@ -2217,13 +2223,24 @@ fn generate_unions(
 
         let sector_name = sector_json_name(sector);
         let union_id = idgen.next_union();
-        let union_name = format!("Union {}", sector_name);
+        // v4.19 WS5: Human-readable name ("armaments_industry" →
+        // "Armaments Industry Union") — raw snake_case was shown in the UI.
+        let union_name = format!("{} Union", humanize_slug(&sector_name));
 
         let mut company_ids: BTreeSet<String> = BTreeSet::new();
+        let mut member_workers = 0u64;
+        let mut member_wage_bill = 0.0;
         for company in sector_companies {
             company_ids.insert(company.id.clone());
+            member_workers += company.fulfilled_fte as u64;
+            member_wage_bill +=
+                company.fulfilled_fte as f64 * company.offered_wage_per_fte.max(0.0);
         }
 
+        // v4.19 WS5: Scale the union's treasury to its actual membership —
+        // ~2 months of dues as operating budget and ~4 months as strike
+        // reserve — instead of identical cloned 100k/25k balances.
+        let monthly_dues = member_wage_bill * 0.015;
         let union = Union {
             id: union_id.clone(),
             name: union_name,
@@ -2231,9 +2248,9 @@ fn generate_unions(
             sector,
             region_id: country.name.clone(),
             company_ids,
-            budget: 100_000.0,
-            strike_fund: 25_000.0,
-            political_power: 10.0 + rng.gen::<f64>() * 20.0,
+            budget: (monthly_dues * 2.0 + 5_000.0).max(1_000.0),
+            strike_fund: (monthly_dues * 4.0 + 10_000.0).max(2_000.0),
+            political_power: 10.0 + rng.gen::<f64>() * 20.0 + (member_workers as f64 / 500.0),
             militancy: 0.2 + rng.gen::<f64>() * 0.3,
             wage_demand: 5.0 + rng.gen::<f64>() * 10.0,
             safety_demand: 0.5 + rng.gen::<f64>() * 0.5,
@@ -2342,6 +2359,7 @@ fn generate_region_companies(
     cultural_group: &str,
     rng: &mut impl Rng,
     method_offset: usize,
+    used_names: &mut std::collections::HashSet<String>,
 ) -> Vec<(Company, Building)> {
     // Phase 44: Strict Zero Agriculture — if arable land is zero, spawn NO
     // agricultural companies. The region must rely on imported food.
@@ -2503,8 +2521,15 @@ fn generate_region_companies(
         let company_id = idgen.next_company();
         // Phase 37: Use English-only company name generator with cultural surname prefix.
         // Phase 53: Pass cultural_group for culture-scoped surnames.
-        let company_name =
-            generate_company_name(sector, &legal_form, &region.id, rank, cultural_group, rng);
+        let company_name = generate_company_name(
+            sector,
+            &legal_form,
+            &region.id,
+            rank,
+            cultural_group,
+            rng,
+            used_names,
+        );
         let share_price = if shares_count > 0 {
             company_capital / shares_count as f64
         } else {
@@ -2787,6 +2812,22 @@ pub(crate) fn sector_json_name(sector: Sector) -> String {
         .unwrap_or_else(|| format!("{sector:?}"))
 }
 
+/// v4.19 WS5: Convert a snake_case slug into Title Case for UI-facing
+/// organization names ("armaments_industry" → "Armaments Industry").
+pub(crate) fn humanize_slug(slug: &str) -> String {
+    slug.split('_')
+        .filter(|w| !w.is_empty())
+        .map(|w| {
+            let mut chars = w.chars();
+            match chars.next() {
+                Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 fn sector_display(sector: Sector) -> String {
     match sector {
         Sector::Agriculture => "Agriculture",
@@ -3043,6 +3084,7 @@ fn generate_company_name(
     rank: usize,
     cultural_group: &str,
     rng: &mut impl rand::Rng,
+    used_names: &mut std::collections::HashSet<String>,
 ) -> String {
     // Phase 53: Draw surnames from the culture-specific pool.
     let cg = if cultural_group.is_empty() {
@@ -3051,16 +3093,33 @@ fn generate_company_name(
         cultural_group
     };
     let pool = crate::politics::names::name_pool_for_culture(cg);
-    let surname = pool.surnames.choose(rng).copied().unwrap_or("Smith");
-
     let suffix = sector_suffix(sector, rng);
     let legal = legal_form_suffix(legal_form);
 
-    // For uniqueness, include the region ID and rank as a subtle suffix.
-    if rank > 1 {
-        format!("{surname} {suffix} {legal} #{rank}")
-    } else {
-        format!("{surname} {suffix} {legal}")
+    // v4.19 WS3: a name like "Simić Rural Estates Inc" collides whenever
+    // two regions roll the same surname + sector + legal form at rank 1.
+    // Re-roll the surname a bounded number of times, then fall back to a
+    // deterministic disambiguation counter so every company in a country
+    // has a unique display name.
+    for _ in 0..20 {
+        let surname = pool.surnames.choose(rng).copied().unwrap_or("Smith");
+        let candidate = if rank > 1 {
+            format!("{surname} {suffix} {legal} #{rank}")
+        } else {
+            format!("{surname} {suffix} {legal}")
+        };
+        if used_names.insert(candidate.clone()) {
+            return candidate;
+        }
+    }
+    let surname = pool.surnames.choose(rng).copied().unwrap_or("Smith");
+    let mut serial = 2usize;
+    loop {
+        let candidate = format!("{surname} {suffix} {legal} #{serial}");
+        serial += 1;
+        if used_names.insert(candidate.clone()) {
+            return candidate;
+        }
     }
 }
 
@@ -7383,6 +7442,7 @@ fn generate_retail_stores(
             units_sold_pending: std::collections::BTreeMap::new(),
             unmet_demand_pending: std::collections::BTreeMap::new(),
             market_share_last_turn: std::collections::BTreeMap::new(),
+            last_offer_price: std::collections::BTreeMap::new(),
             first_active_turn: 0,
         };
 
@@ -7561,7 +7621,19 @@ fn generate_tourism_entities(
                 CommercialBuildingType::Restaurant,
                 CommercialBuildingType::Casino,
             ];
-            let btype = building_types[rng.gen_range(0..building_types.len())];
+            // Guarantee at least one accommodation provider per
+            // destination — visitor spend gates on Hotel/Resort capacity,
+            // so a fully random draw can leave a destination with only
+            // Restaurant/Casino buildings and a dead hospitality sector.
+            let btype = if i == 0 {
+                if rng.gen_bool(0.5) {
+                    CommercialBuildingType::Hotel
+                } else {
+                    CommercialBuildingType::Resort
+                }
+            } else {
+                building_types[rng.gen_range(0..building_types.len())]
+            };
             let building_id = idgen.next_building();
 
             let (office_cap, retail_cap) = match btype {
@@ -8642,6 +8714,7 @@ fn create_charity_company(
 pub fn generate_investment_funds(
     data_dir: &std::path::Path,
     country: &mut Country,
+    regions: &HashMap<String, Region>,
     cultural_group: &str,
     _start_year: u32,
     rng: &mut impl Rng,
@@ -8679,10 +8752,22 @@ pub fn generate_investment_funds(
 
     // Financial-sector depth → 5–8 funds. A country with a handful of thin
     // banks gets 5; a deep banking system gets the full 8.
-    let total_gdp: f64 = country
-        .regions
+    // `country.regions` is empty during world generation (reassembled from
+    // `regions.json` at load time) — read the generated regions map instead.
+    // Canonical accumulation order: `regions` is a HashMap, so sort region
+    // ids before the float sum to keep the seed deterministic.
+    let mut country_region_ids: Vec<&String> = regions
         .iter()
-        .map(|r| r.gdp_pc * r.population as f64)
+        .filter(|(_, r)| r.owner_country == country.name)
+        .map(|(id, _)| id)
+        .collect();
+    country_region_ids.sort();
+    let total_gdp: f64 = country_region_ids
+        .iter()
+        .map(|id| {
+            let r = &regions[*id];
+            r.gdp_pc * r.population as f64
+        })
         .sum();
     let fin_depth =
         bank_count as f64 * 0.25 + (bank_assets / total_gdp.max(1.0)) * 2.0;
@@ -8693,11 +8778,10 @@ pub fn generate_investment_funds(
         country.politics.vip_registry = Some(crate::politics::vip_registry::VipRegistry::new());
     }
 
-    // Pick a region for the fund HQ (first region).
-    let hq_region = country
-        .regions
+    // Pick a region for the fund HQ (first region by canonical id order).
+    let hq_region = country_region_ids
         .first()
-        .map(|r| r.id.clone())
+        .map(|id| (*id).clone())
         .unwrap_or_default();
 
     // Weighted fund type distribution: FIO 40%, Mutual 25%, ETF 15%, FIZ 12%, Hedge 8%.
@@ -8879,7 +8963,9 @@ pub fn generate_investment_funds(
             bond_holdings: Vec::new(),
             equity_holdings: BTreeMap::new(),
             fund_manager_vip_id: Some(manager_id.clone()),
+            fund_manager_name: manager_name.full_name.clone(),
             last_rebalance_turn: 0,
+            year_start_nav: 1.0,
         };
 
         let fund_company = Company {

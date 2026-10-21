@@ -674,7 +674,14 @@ impl VipRegistry {
     /// Returns a list of (vip_id, cause) tuples for VIPs who died.
     pub fn check_natural_deaths(&mut self, rng: &mut impl rand::Rng) -> Vec<(String, DeathCause)> {
         let mut deaths = Vec::new();
-        let vip_ids: Vec<String> = self.vips.keys().cloned().collect();
+        // DETERMINISM: `vips` is a HashMap — `keys()` order is per-process
+        // random, so each `rng.gen` draw below was assigned to a different
+        // VIP per process (observed: divergent fund-order behaviour after a
+        // year boundary, when a fund manager's death flipped the
+        // `evaluate_market_behavior` fallback). Sort so draw k always maps
+        // to the same VIP.
+        let mut vip_ids: Vec<String> = self.vips.keys().cloned().collect();
+        vip_ids.sort();
 
         for vip_id in vip_ids {
             let vip = match self.vips.get_mut(&vip_id) {

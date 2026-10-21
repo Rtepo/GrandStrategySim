@@ -16,6 +16,11 @@ use crate::registries::enums::Sector;
 use crate::society::geography::{RuralClass, UrbanClass};
 use crate::state::Country;
 
+/// Payroll turns a charity reserves before distributing donations — keeps
+/// the wage bill funded across the donation cycle instead of giving away
+/// the entire balance and collapsing to zero FTE.
+const CHARITY_PAYROLL_RESERVE_TURNS: f64 = 3.0;
+
 /// Solidarity factor by cultural group (proxy for charitable giving propensity).
 fn solidarity_factor(cultural_group: &str) -> f64 {
     match cultural_group {
@@ -221,12 +226,21 @@ pub fn process_charity_distribution(companies: &mut [Company], country: &mut Cou
             continue;
         }
 
-        let distributable = company
+        // Hold back a payroll reserve before distributing — a charity that
+        // donates its entire balance every turn can never fund next turn's
+        // wage bill and spirals to zero FTE. The reserve is sized off the
+        // company's own labor plan (target FTE × offered wage) so the rule
+        // scales with the organization instead of pinning a global constant.
+        let spendable = company
             .brokerage_account
             .as_ref()
             .map(|b| b.cash)
             .unwrap_or(company.available_cash)
-            * staffing_ratio;
+            .max(0.0);
+        let payroll_reserve = company.target_fte_demand as f64
+            * company.offered_wage_per_fte.max(0.0)
+            * CHARITY_PAYROLL_RESERVE_TURNS;
+        let distributable = (spendable - payroll_reserve).max(0.0) * staffing_ratio;
         if distributable <= 0.0 {
             continue;
         }

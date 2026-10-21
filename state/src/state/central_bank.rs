@@ -711,8 +711,14 @@ impl CentralBank {
     ///
     /// For simplicity, we sum all FX reserve balances. The caller
     /// should pass the appropriate exchange rate if conversion is needed.
+    /// Sorted before summing: `fx_reserves` is a std HashMap whose iteration
+    /// order is randomized per process, and a naive f64 sum is not
+    /// associative — downstream callers feed this total into pro-rata
+    /// write paths, so the sum must be bit-exact across runs.
     pub fn total_forex_reserves(&self) -> f64 {
-        self.fx_reserves.values().sum()
+        let mut v: Vec<f64> = self.fx_reserves.values().copied().collect();
+        v.sort_by(|a, b| a.total_cmp(b));
+        v.into_iter().sum()
     }
 
     /// Blueprint 007: Drain forex reserves for emigration capital outflow.

@@ -52,7 +52,7 @@ pub struct SentimentDrivers {
 }
 
 /// Configuration for all Chaos Factor mechanics (loaded via JSON)
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ChaosConfig {
     // === SENTIMENT THRESHOLDS & WEIGHTS ===
     /// Radical threshold for mass movement spawning (0-1, fraction of regional population)
@@ -139,4 +139,38 @@ pub struct ChaosConfig {
     /// Any additional fields
     #[serde(flatten, default)]
     pub extra: HashMap<String, Value>,
+}
+
+impl Default for ChaosConfig {
+    /// v4.19 WS5: Real defaults. The derived all-zero config made mass
+    /// movements unreachable (`radical_threshold` semantics aside, zero
+    /// sentiment weights meant sentiment could never move) and neutered
+    /// suppression/disruption economics entirely.
+    fn default() -> Self {
+        Self {
+            // ~5% of a region radicalized is enough to organize a movement.
+            radical_threshold: 0.05,
+            // Bounded per-turn drift so a shock takes ~10-30 turns to move
+            // a class meaningfully — no instant revolutions.
+            shift_magnitude_base: 0.03,
+            inflation_weight: 0.30,
+            real_wage_weight: 0.40,
+            unemployment_weight: 0.50,
+            savings_depletion_weight: 0.30,
+            sse_success_weight: 0.10,
+            campaign_effectiveness_weight: 0.10,
+            government_approval_weight: 0.20,
+            suppression_cost_per_participant: 50.0,
+            suppression_intensity_threshold: default_suppression_intensity_threshold(),
+            security_power_multiplier: default_security_power_multiplier(),
+            casualty_rate: 0.01,
+            backlash_magnitude: 0.10,
+            strike_disruption_multiplier: 0.30,
+            riot_disruption_multiplier: 0.50,
+            occupation_disruption_multiplier: 0.40,
+            boycott_disruption_multiplier: 0.15,
+            protest_disruption_multiplier: 0.10,
+            extra: HashMap::new(),
+        }
+    }
 }

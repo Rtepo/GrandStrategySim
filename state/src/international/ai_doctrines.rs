@@ -91,16 +91,19 @@ pub fn evaluate_doctrine(
 
     let military_size = country.order_of_battle.unit_count() as u32;
 
-    // Compute average military size across all countries
+    // Compute average military size across all countries.
+    // Sorted iteration keeps the float accumulation order deterministic —
+    // `state.countries` is a HashMap whose order is reseeded per clone.
     let avg_military: f64 = if state.countries.is_empty() {
         0.0
     } else {
-        state
+        let mut sizes: Vec<(String, f64)> = state
             .countries
-            .values()
-            .map(|c| c.order_of_battle.unit_count() as f64)
-            .sum::<f64>()
-            / state.countries.len() as f64
+            .iter()
+            .map(|(name, c)| (name.clone(), c.order_of_battle.unit_count() as f64))
+            .collect();
+        sizes.sort_by(|a, b| a.0.cmp(&b.0));
+        sizes.iter().map(|(_, s)| *s).sum::<f64>() / sizes.len() as f64
     };
 
     // Expansionist: military significantly above average
@@ -177,14 +180,18 @@ pub fn execute_doctrine(
 
     match doctrine {
         GeopoliticalDoctrine::Expansionist => {
-            // Find weakest neighbor to provoke
+            // Find weakest neighbor to provoke — deterministic pick: sorted
+            // country order, name breaks military-size ties (HashMap
+            // iteration order is reseeded per clone).
             if rng.gen::<f64>() < config.expansionist_provocation_chance {
                 let mut weakest: Option<(&String, u32)> = None;
-                for (name, other) in &state.countries {
+                let mut sorted: Vec<&String> = state.countries.keys().collect();
+                sorted.sort();
+                for name in sorted {
                     if name == country_name {
                         continue;
                     }
-                    let mil = other.order_of_battle.unit_count() as u32;
+                    let mil = state.countries[name].order_of_battle.unit_count() as u32;
                     if weakest.is_none_or(|(_, m)| mil < m) {
                         weakest = Some((name, mil));
                     }
@@ -201,29 +208,33 @@ pub fn execute_doctrine(
         GeopoliticalDoctrine::AllianceSeeker => {
             // Propose treaties with friendly nations
             if rng.gen::<f64>() < config.alliance_seeker_treaty_chance {
-                // Find a country with positive reputation/relations
-                let mut best_partner: Option<&String> = None;
-                for name in state.countries.keys() {
-                    if name == country_name {
-                        continue;
-                    }
-                    best_partner = Some(name);
-                    break; // Simple: pick first available
-                }
+                // Find a country with positive reputation/relations —
+                // deterministically the alphabetically-first partner
+                // (HashMap iteration order is reseeded per clone).
+                let best_partner: Option<String> = state
+                    .countries
+                    .keys()
+                    .filter(|name| *name != country_name)
+                    .min()
+                    .cloned();
                 if let Some(partner) = best_partner {
                     // Queue an ambassador assignment as a precursor to treaty
                     if let Some(registry) = &country.politics.vip_registry {
-                        let available_diplomat = registry
-                            .vips
-                            .values()
-                            .find(|v| {
-                                v.diplomatic_post.is_none()
-                                    && !v.is_dead
-                                    && v.roles.contains(
-                                        &crate::politics::vip_registry::VipRoleExtended::Ambassador,
-                                    )
-                            })
-                            .map(|v| v.id.clone());
+                        let available_diplomat = {
+                            let mut eligible: Vec<&_> = registry
+                                .vips
+                                .values()
+                                .filter(|v| {
+                                    v.diplomatic_post.is_none()
+                                        && !v.is_dead
+                                        && v.roles.contains(
+                                            &crate::politics::vip_registry::VipRoleExtended::Ambassador,
+                                        )
+                                })
+                                .collect();
+                            eligible.sort_by(|a, b| a.id.cmp(&b.id));
+                            eligible.first().map(|v| v.id.clone())
+                        };
                         if let Some(vip_id) = available_diplomat {
                             actions.push(DiplomaticAction::AssignDiplomat {
                                 vip_id,
@@ -241,12 +252,16 @@ pub fn execute_doctrine(
             // Seek trade preference treaties with resource-rich nations
             // For now, send aid to potential partners to improve relations
             if country.budget.liquid_reserves > 500_000.0 && rng.gen::<f64>() < 0.05 {
-                for (name, other) in &state.countries {
+                // Deterministic: sorted iteration (HashMap order is reseeded
+                // per clone).
+                let mut sorted: Vec<&String> = state.countries.keys().collect();
+                sorted.sort();
+                for name in sorted {
                     if name == country_name {
                         continue;
                     }
                     // Send aid to countries with high GDP (potential resource suppliers)
-                    if other.budget.gdp > country.budget.gdp * 0.8 {
+                    if state.countries[name].budget.gdp > country.budget.gdp * 0.8 {
                         actions.push(DiplomaticAction::SendEconomicAid {
                             from_country: country_name.to_string(),
                             to_country: name.clone(),
@@ -258,9 +273,12 @@ pub fn execute_doctrine(
             }
         }
         GeopoliticalDoctrine::Isolationist => {
-            // Recall diplomats, minimize engagement
+            // Recall diplomats, minimize engagement — deterministic VIP
+            // order so the per-VIP RNG draws line up across runs.
             if let Some(registry) = &country.politics.vip_registry {
-                for (vip_id, vip) in &registry.vips {
+                let mut sorted_vips: Vec<(&String, &_)> = registry.vips.iter().collect();
+                sorted_vips.sort_by(|a, b| a.0.cmp(b.0));
+                for (vip_id, vip) in sorted_vips {
                     if vip.diplomatic_post.is_some() && rng.gen::<f64>() < 0.10 {
                         actions.push(DiplomaticAction::RecallDiplomat {
                             vip_id: vip_id.clone(),

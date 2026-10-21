@@ -95,9 +95,14 @@ impl Committee {
             }
         }
 
-        // Distribute remaining seats to largest party
+        // Distribute remaining seats to largest party. DETERMINISM:
+        // parliament is a HashMap — max_by_key ties resolve in per-process
+        // iteration order; break ties on party name so the residual seat
+        // goes to the same party every run.
         if allocated < committee_size {
-            if let Some((largest_party, _)) = parliament.iter().max_by_key(|(_, s)| *s) {
+            if let Some((largest_party, _)) = parliament.iter().max_by(|(na, sa), (nb, sb)| {
+                sa.cmp(sb).then_with(|| na.cmp(nb))
+            }) {
                 *members.get_mut(largest_party).unwrap_or(&mut 0) += committee_size - allocated;
             }
         }
@@ -343,18 +348,81 @@ impl CommitteeSystem {
             ),
         ];
 
-        for (committee_type, name) in committee_types {
+        // v4.19 WS4: chairmanships allocated across parliamentary parties
+        // proportional to seat share (largest-remainder, deterministic).
+        // The old code handed EVERY chair to `ruling_coalition.first()` —
+        // an empty coalition rendered every committee "Independents".
+        let n_committees = committee_types.len();
+        let total_seats: u32 = parliament.values().sum();
+        let mut chair_parties: Vec<String> = Vec::new();
+        if total_seats > 0 {
+            let mut parties: Vec<(String, u32, f64)> = parliament
+                .iter()
+                .map(|(p, s)| {
+                    let exact = *s as f64 * n_committees as f64 / total_seats as f64;
+                    (p.clone(), exact.floor() as u32, exact.fract())
+                })
+                .filter(|(_, seats, _)| *seats > 0)
+                .collect();
+            let assigned: usize = parties.iter().map(|(_, s, _)| *s as usize).sum();
+            let mut leftover = n_committees.saturating_sub(assigned);
+            if leftover > 0 {
+                let mut fracs: Vec<(String, f64)> = parliament
+                    .iter()
+                    .map(|(p, s)| {
+                        let exact = *s as f64 * n_committees as f64 / total_seats as f64;
+                        (p.clone(), exact.fract())
+                    })
+                    .collect();
+                // Largest fractional remainder wins the spare chairs; tie
+                // broken by name for determinism.
+                fracs.sort_by(|a, b| {
+                    b.1.partial_cmp(&a.1)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                        .then_with(|| a.0.cmp(&b.0))
+                });
+                for (party, _) in fracs.into_iter().take(leftover) {
+                    if let Some(e) = parties.iter_mut().find(|(p, _, _)| *p == party) {
+                        e.1 += 1;
+                    } else {
+                        parties.push((party, 1, 0.0));
+                    }
+                    leftover -= 1;
+                    if leftover == 0 {
+                        break;
+                    }
+                }
+            }
+            // Largest parties chair the highest-prestige committees first
+            // (Budget first in the list); deterministic order.
+            parties.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+            for (party, count, _) in parties {
+                for _ in 0..count {
+                    chair_parties.push(party.clone());
+                }
+            }
+        }
+        chair_parties.resize(n_committees, "Independents".to_string());
+
+        for (i, (committee_type, name)) in committee_types.into_iter().enumerate() {
             let id = format!(
                 "{}_committee",
                 format!("{:?}", committee_type).to_lowercase()
             );
-            let committee = Committee::new(
+            let mut committee = Committee::new(
                 id.clone(),
                 name,
                 committee_type,
                 parliament,
                 ruling_coalition,
             );
+            // Proportional chair party — falls back to the coalition pick
+            // when the parliament map is empty.
+            if let Some(chair_party) = chair_parties.get(i) {
+                if chair_party != "Independents" || ruling_coalition.is_empty() {
+                    committee.chair = chair_party.clone();
+                }
+            }
             self.committees.insert(id, committee);
         }
     }
