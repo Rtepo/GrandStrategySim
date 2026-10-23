@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, Ta
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { fmt, num } from "../lib/format";
-import type { RegionDetail, MegaregionDetail } from "../types/api";
+import type { RegionDetail, MegaregionDetail, CouncilResolutionRow, CouncilRollCallRow } from "../types/api";
 
 const safeStr = (v: string | null | undefined): string => v ?? "—";
 const safeNum = (v: number | null | undefined): number => v ?? 0;
@@ -187,13 +187,17 @@ function RegionDetailPanel({ detail }: { detail: RegionDetail }) {
               </div>
             )},
             { label: "Council", value: "council", content: (
-              <div>
-                <CouncilPieChart factions={safeArr(detail.council_factions)} />
-                {safeNum(detail.total_council_seats) > 0 && (
-                  <div className="text-center text-sm text-muted-foreground mt-2">
-                    Total Mandates/Seats: <span className="font-bold text-foreground">{safeNum(detail.total_council_seats)}</span>
-                  </div>
-                )}
+              <div className="space-y-4">
+                <div>
+                  <CouncilPieChart factions={safeArr(detail.council_factions)} />
+                  {safeNum(detail.total_council_seats) > 0 && (
+                    <div className="text-center text-sm text-muted-foreground mt-2">
+                      Total Mandates/Seats: <span className="font-bold text-foreground">{safeNum(detail.total_council_seats)}</span>
+                    </div>
+                  )}
+                </div>
+                <CouncilResolutions resolutions={safeArr(detail.council_resolutions)} />
+                <CouncilRollCalls rollCalls={safeArr(detail.council_roll_calls)} />
               </div>
             )},
             { label: "Employment", value: "employment", content: (
@@ -426,6 +430,112 @@ function CouncilPieChart({ factions }: { factions: [string, number][] }) {
   };
 
   return <EChart option={option} style={{ minHeight: 240 }} />;
+}
+
+/// v4.20: Map a council resolution status to a Badge variant.
+function councilStatusVariant(status: string): "success" | "destructive" | "secondary" {
+  const s = status.toLowerCase();
+  if (s.includes("pass") || s.includes("adopt") || s.includes("enact") || s.includes("approv")) return "success";
+  if (s.includes("reject") || s.includes("fail") || s.includes("defeat") || s.includes("veto")) return "destructive";
+  return "secondary";
+}
+
+/// v4.20: Map a roll-call vote to a Badge variant.
+function councilVoteVariant(vote: string): "success" | "destructive" | "secondary" {
+  const v = vote.toLowerCase();
+  if (v.includes("abstain") || v.includes("absent") || v.includes("present")) return "secondary";
+  if (v.includes("for") || v.includes("yea") || v.includes("aye") || v.includes("favor") || v.includes("yes")) return "success";
+  return "destructive";
+}
+
+/// v4.20: Regional council resolutions — the regional analogue of the
+/// parliamentary Recent Votes table.
+function CouncilResolutions({ resolutions }: { resolutions: CouncilResolutionRow[] }) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground mb-1">Resolutions</h3>
+      {resolutions.length > 0 ? (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">For</TableHead>
+              <TableHead className="text-right">Against</TableHead>
+              <TableHead className="text-right">Abstain</TableHead>
+              <TableHead className="text-right">Turn</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {resolutions.map((r, i) => (
+              <TableRow key={`${r.title}-${r.turn}-${i}`}>
+                <TableCell className="text-xs font-medium">{r.title}</TableCell>
+                <TableCell className="text-xs">{r.resolution_type}</TableCell>
+                <TableCell><Badge variant={councilStatusVariant(r.status)}>{r.status}</Badge></TableCell>
+                <TableCell className="text-right text-green-400">{r.votes_for}</TableCell>
+                <TableCell className="text-right text-red-400">{r.votes_against}</TableCell>
+                <TableCell className="text-right text-muted-foreground">{r.abstentions}</TableCell>
+                <TableCell className="text-right text-xs">T{r.turn}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <div className="text-muted-foreground text-sm">No resolutions recorded</div>
+      )}
+    </div>
+  );
+}
+
+/// v4.20: Per-councilor roll-call records grouped by resolution+turn.
+function CouncilRollCalls({ rollCalls }: { rollCalls: CouncilRollCallRow[] }) {
+  const groups = new Map<string, CouncilRollCallRow[]>();
+  for (const rc of rollCalls) {
+    const key = `${rc.resolution_title}::${rc.turn}`;
+    const arr = groups.get(key) ?? [];
+    arr.push(rc);
+    groups.set(key, arr);
+  }
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground mb-1">Roll Calls</h3>
+      {groups.size > 0 ? (
+        <div className="space-y-3">
+          {[...groups.entries()].map(([key, rows]) => {
+            const first = rows[0];
+            return (
+              <div key={key}>
+                <div className="text-xs font-medium text-muted-foreground mb-1">
+                  {first.resolution_title} <span className="opacity-60">(T{first.turn})</span>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Member</TableHead>
+                      <TableHead>Faction</TableHead>
+                      <TableHead>Vote</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.map((rc, i) => (
+                      <TableRow key={`${rc.member_name}-${i}`}>
+                        <TableCell className="text-xs">{rc.member_name}</TableCell>
+                        <TableCell className="text-xs">{rc.faction}</TableCell>
+                        <TableCell><Badge variant={councilVoteVariant(rc.vote)}>{rc.vote}</Badge></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-muted-foreground text-sm">No roll-call records</div>
+      )}
+    </div>
+  );
 }
 
 /// Phase 53: Megaregion detail panel — analogous to RegionDetailPanel.

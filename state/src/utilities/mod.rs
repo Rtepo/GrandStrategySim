@@ -34,7 +34,9 @@ pub use hydro_grid::{
 pub use hydro_types::{WastewaterPlantType, WaterPlantType};
 pub use resolution::StrategicResolution;
 pub use waste::{Landfill, LandfillData, LandfillUpgrade, WasteProcessingResult};
-pub use waste_collection::{process_waste_turn, WasteTurnResult};
+pub use waste_collection::{
+    ensure_municipal_services_employers, process_waste_turn, WasteTurnResult,
+};
 pub use waste_grid::{
     compute_construction_waste, compute_regulated_curbside_fee, compute_regulated_gate_fee,
     compute_waste_from_consumption, compute_waste_pollution, is_centralized_waste_method,

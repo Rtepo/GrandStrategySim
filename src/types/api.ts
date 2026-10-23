@@ -182,7 +182,17 @@ committee: string | null,
 /**
  * Typed provisions from the bill's core clauses.
  */
-provisions: Array<ProvisionRow>, };
+provisions: Array<ProvisionRow>, 
+/**
+ * v4.20: Terminal/procedural badge — "Passed", "Rejected by Upper
+ * House", "Senate Veto Overridden", "Presidential Veto", etc.
+ */
+status_badge: string, 
+/**
+ * v4.20: Thematic tag for color-coding — "Budget", "Justice", "Labor",
+ * "Infrastructure", "Education", "Defense", "Other".
+ */
+theme_tag: string, };
 
 /**
  * Phase 83: Biohazard snapshot for UI display.
@@ -364,7 +374,17 @@ chairperson_id: string | null,
 /**
  * Phase 54: Chairperson display name.
  */
-chairperson_name: string, };
+chairperson_name: string, 
+/**
+ * v4.20: Deterministic party visual identity — persistent hex color
+ * assigned at party genesis, shared across Hemicycle/Elections/Clubs.
+ */
+color_hex: string, 
+/**
+ * v4.20: Ideology badge key (e.g. "conservative", "socialist") resolved
+ * to an icon by the frontend.
+ */
+ideology_icon: string, };
 
 /**
  * v4.18: Per-club vote tally within one chamber vote.
@@ -642,6 +662,24 @@ export type CottageOutputEntry = { commodity: string, volume: number, };
 export type CouncilMemberRow = { vip_id: string, name: string, faction: string, loyalty: number, influence: number, };
 
 /**
+ * v4.20 WS4: A resolution debated and voted by a regional council —
+ * mirrors `CouncilResolution` on `politics::local_council::LocalCouncil`
+ * and the `CouncilResolutionRow` api.ts contract.
+ */
+export type CouncilResolutionRow = { title: string, resolution_type: string, status: string, votes_for: number, votes_against: number, abstentions: number, turn: number, };
+
+/**
+ * v4.20 WS4: Per-councilor vote record for a council resolution — mirrors
+ * `CouncilRollCall` and the `CouncilRollCallRow` api.ts contract. `vip_id`
+ * is an extra field beyond the contract (the frontend tolerates extras).
+ */
+export type CouncilRollCallRow = { resolution_title: string, member_name: string, faction: string, vote: string, turn: number, 
+/**
+ * Extra: councilor persistent id (VIP identifier where registered).
+ */
+vip_id: string, };
+
+/**
  * Phase 60: Response wrapper for court backlog query.
  */
 export type CourtBacklogResponse = { rows: Array<CourtBacklogRow>, 
@@ -769,7 +807,15 @@ support: number,
 /**
  * Seats currently held in the lower chamber.
  */
-seats: number, is_coalition_member: boolean, is_ruling: boolean, };
+seats: number, is_coalition_member: boolean, is_ruling: boolean, 
+/**
+ * v4.20: Deterministic party color, shared with ClubRow.color_hex.
+ */
+color_hex: string, 
+/**
+ * v4.20: Ideology badge key resolved to an icon by the frontend.
+ */
+ideology_icon: string, };
 
 /**
  * Response for the get_elections command.
@@ -787,6 +833,15 @@ years_to_elections: number,
  * Estimated turns until the next election (years_to_elections × 24).
  */
 estimated_turns_remaining: number, 
+/**
+ * v4.20: LIVE countdown — decremented every turn by the engine until the
+ * election fires at 0. Replaces the static estimate for display.
+ */
+turns_remaining: number, 
+/**
+ * v4.20: Scheduled turn index on which the next election executes.
+ */
+scheduled_election_turn: number, 
 /**
  * Calendar year of the next scheduled election.
  */
@@ -1359,7 +1414,20 @@ export type MarriageEventRow = { turn: number, spouse1_name: string, spouse2_nam
  * Phase 53: Megaregion drill-down data for the Regions tab.
  * Analogous to `RegionDetail` but for the megaregion administrative layer.
  */
-export type MegaregionDetail = { megaregion_id: string, display_name: string, country: string, member_region_ids: Array<string>, member_region_count: number, total_population: bigint, total_gdp: number, governor_name: string, governor_appointed: boolean, competence_level: string, budget_reserves: number, regional_transfers: number, development_expenditures: number, coordination_expenditures: number, budget_balance: number, };
+export type MegaregionDetail = { megaregion_id: string, display_name: string, country: string, member_region_ids: Array<string>, member_region_count: number, total_population: bigint, total_gdp: number, governor_name: string, governor_appointed: boolean, competence_level: string, budget_reserves: number, regional_transfers: number, development_expenditures: number, coordination_expenditures: number, budget_balance: number, 
+/**
+ * v4.20 WS4: Council legislative record aggregated from member
+ * regions' councils — the megaregion has no council of its own
+ * (`MegaregionGovernance` is governor-led), so its assembly record is
+ * the union of member-region council resolutions (real data only;
+ * api.ts `MegaregionDetail` lacks these fields — extra JSON keys are
+ * tolerated).
+ */
+council_resolutions: Array<CouncilResolutionRow>, 
+/**
+ * v4.20 WS4: Roll calls of member-region councilors.
+ */
+council_roll_calls: Array<CouncilRollCallRow>, };
 
 /**
  * Full military dashboard response.
@@ -1578,7 +1646,18 @@ vips: Array<VipRow>,
 /**
  * Phase 42: Committees with chairs and member counts.
  */
-committees: Array<CommitteeRow>, };
+committees: Array<CommitteeRow>, 
+/**
+ * v4.20: Regime-aware display name for the legislature ("Parliament",
+ * "Royal Council", "National Salvation Committee",
+ * "Supreme Religious Council", "People's Assembly", ...).
+ */
+legislature_name: string, 
+/**
+ * v4.20: Regime type key (Democracy, AbsoluteMonarchy,
+ * MilitaryDictatorship, Theocracy, OnePartyState, ...).
+ */
+regime_type: string, };
 
 /**
  * Phase 81: Active power plant count by type.
@@ -1745,7 +1824,16 @@ head_vip_id: string | null, council_factions: Array<[string, number]>,
 /**
  * Phase 54: Total council seats/mandates (sum of all factions).
  */
-total_council_seats: number, budget_reserves: number, budget_tax_revenue: number, budget_property_tax: number, budget_expenditures: number, budget_balance: number, debt_total: number, debt_to_revenue_ratio: number, credit_rating: string, active_mandates: Array<MandateSummary>, infrastructure_avg_condition: number, sector_employment: Array<[string, number]>, durable_cohorts: Array<DurableCohortSummary>, 
+total_council_seats: number, budget_reserves: number, budget_tax_revenue: number, budget_property_tax: number, budget_expenditures: number, budget_balance: number, debt_total: number, debt_to_revenue_ratio: number, credit_rating: string, active_mandates: Array<MandateSummary>, 
+/**
+ * v4.20 WS4: Regional council legislative record — resolutions debated
+ * and voted by the council each turn (oldest → newest).
+ */
+council_resolutions: Array<CouncilResolutionRow>, 
+/**
+ * v4.20 WS4: Per-councilor roll-call records for the resolutions above.
+ */
+council_roll_calls: Array<CouncilRollCallRow>, infrastructure_avg_condition: number, sector_employment: Array<[string, number]>, durable_cohorts: Array<DurableCohortSummary>, 
 /**
  * Phase 82: Thermal grid snapshot (role-gated — only visible to
  * regional/national government roles, not to foreign observers).

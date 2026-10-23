@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getVipDossier } from "../hooks/useTauriCommand";
 import { useGameStore } from "../store/gameStore";
@@ -16,12 +17,14 @@ interface VipHoverCardProps {
 /**
  * Phase 54: Hover card / tooltip that fetches and displays a compact VIP
  * dossier on hover or focus. Uses React Query caching to avoid excessive
- * requests. Clicking the name opens the full dossier via pendingVipId.
+ * requests. Clicking the name navigates to /vips and opens the full
+ * dossier via pendingVipId.
  */
 export function VipHoverCard({ vipId, children, className }: VipHoverCardProps) {
   const [visible, setVisible] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { selectedCountry, setPendingVipId } = useGameStore();
+  const navigate = useNavigate();
 
   const { data: dossier, isLoading, isError } = useQuery<VipDossier | null>({
     queryKey: ["vipDossier", selectedCountry, vipId],
@@ -50,8 +53,10 @@ export function VipHoverCard({ vipId, children, className }: VipHoverCardProps) 
     return <span className={className}>{children}</span>;
   }
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
     setPendingVipId(vipId);
+    navigate("/vips");
   };
 
   return (
@@ -62,15 +67,17 @@ export function VipHoverCard({ vipId, children, className }: VipHoverCardProps) 
       onFocus={show}
       onBlur={hide}
       onClick={handleClick}
+      onKeyDown={(e) => { if (e.key === "Enter") handleClick(e); }}
       style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted" }}
       tabIndex={0}
     >
       {children}
       {visible && (
         <div
-          className="absolute z-50 left-0 top-full mt-1 w-64 bg-popover border border-border rounded shadow-lg p-3 text-xs space-y-1"
+          className="absolute z-50 left-0 top-full mt-1 w-64 bg-card border border-border rounded shadow-xl p-3 text-xs space-y-1"
           onMouseEnter={show}
           onMouseLeave={hide}
+          onClick={(e) => e.stopPropagation()}
         >
           {isLoading && <p className="text-muted-foreground">Loading...</p>}
           {isError && <p className="text-destructive">Failed to load dossier.</p>}

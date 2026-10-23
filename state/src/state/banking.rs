@@ -41,9 +41,156 @@ fn default_reserve_requirement_ratio() -> f64 {
     0.10
 }
 
+/// v4.20 WS3: Hard floor on corporate loan contract rates (50 bps annual).
+///
+/// Nominal loan rates must never be negative — a negative rate pays the
+/// borrower interest out of bank equity and produces negative interest
+/// income (the observed −280K/turn anomaly under deflationary NIRP).
+/// With the zero-lower-bound central bank this floor is rarely reached,
+/// but it is the honest invariant on every repricing/issuance path.
+pub const MIN_LOAN_RATE: f64 = 0.005;
+
+/// v4.20 WS3: Hard floor on household consumer-credit rates (100 bps
+/// annual). Consumer credit carries a wider margin than corporate
+/// facilities; the floor keeps B2C interest income strictly positive.
+pub const MIN_CONSUMER_RATE: f64 = 0.01;
+
 /// Default bank condition string.
 fn default_condition() -> String {
     "Stable".to_string()
+}
+
+/// v4.20 WS3: Household credit-demand calibration.
+///
+/// Baseline leverage households seek against their permanent income for
+/// housing + durable-goods financing (mortgage-style): 1.0× ANNUAL income
+/// when the durable stock is at target and real rates are neutral.
+const CONSUMER_DEBT_INCOME_BASE: f64 = 1.0;
+/// Each unmet durable unit per capita adds this much leverage demand —
+/// a household short of its target durable stock finances the gap with
+/// credit (cars, furniture, appliances — the goods the B2C market keeps
+/// unmet when savings are thin). Cap at +200% extra leverage.
+const CONSUMER_GAP_CREDIT_K: f64 = 0.5;
+const CONSUMER_GAP_CAP: f64 = 3.0;
+/// Neutral real rate (annual, 3%) for the interest-rate channel and the
+/// per-point sensitivity of desired leverage. Real rates BELOW neutral
+/// stimulate borrowing (cheap credit), above neutral depress it —
+/// demand responds to real economic conditions, not deposit levels.
+const CONSUMER_TARGET_REAL_RATE: f64 = 0.03;
+const CONSUMER_RATE_SENSITIVITY: f64 = 6.0;
+/// Per-class per-turn origination cap — converges to the desired debt
+/// stock over a few turns instead of a single-turn lump.
+const CONSUMER_MAX_LOAN_PER_CLASS_TURN: f64 = 250_000.0;
+
+/// v4.20 WS3: Adaptive expected CPI inflation (percent, per turn) — an
+/// exponential-weighted average of realized `cpi_inflation` samples in
+/// `TelemetryHistory`. Same λ=0.20 convention as the wage Phillips curve
+/// (`economy::labor::labor::expected_inflation_ewma`); duplicated here to
+/// keep `state/` modules free of economy-layer dependencies.
+fn expected_cpi_inflation_pct(
+    history: &crate::state::macro_data::TelemetryHistory,
+    current: f64,
+) -> f64 {
+    const LAMBDA: f64 = 0.20;
+    let mut acc = current * LAMBDA;
+    let mut weight_sum = LAMBDA;
+    let mut decay = 1.0 - LAMBDA;
+    for sample in history.samples.iter().rev() {
+        let w = LAMBDA * decay;
+        acc += sample.cpi_inflation * w;
+        weight_sum += w;
+        decay *= 1.0 - LAMBDA;
+    }
+    if weight_sum > 0.0 {
+        acc / weight_sum
+    } else {
+        current
+    }
+}
+
+/// v4.20 WS3: Unmet durable-consumption gap for a class, in units per
+/// capita — the real stock deficit between the consumption-registry
+/// target (`base_per_capita × durability`, the same anchor the retail
+/// demand builder uses) and the class's serviceable durable stock
+/// (`household_durables` cohorts still above condition 0.2).
+fn unmet_durable_gap_pc(
+    class: &crate::society::geography::ClassDemographics,
+    class_name: &str,
+) -> f64 {
+    let Some(basket) = crate::data::consumption_registry::consumption_registry().get(class_name)
+    else {
+        return 0.0;
+    };
+    let mut gap = 0.0;
+    for tier_commodities in basket.tiers.values() {
+        for (commodity, base_pc) in tier_commodities {
+            if !commodity.is_household_durable() {
+                continue;
+            }
+            let durability = commodity.household_durable_turns();
+            let target_pc = if durability.is_finite() && durability > 0.0 {
+                base_pc * durability
+            } else {
+                *base_pc
+            };
+            let serviceable_pc: f64 = class
+                .household_durables
+                .iter()
+                .filter(|c| c.commodity == *commodity && c.condition >= 0.2)
+                .map(|c| c.count)
+                .sum();
+            gap += (target_pc - serviceable_pc).max(0.0);
+        }
+    }
+    gap
+}
+
+/// v4.20 WS3: Desired NEW household credit this turn — demand driven by
+/// real economic conditions, not by deposit levels:
+///
+///   desired_debt_stock = annual_income_pc × DEBT_INCOME_BASE
+///                        × (1 + K·unmet_durable_gap_pc)   [housing/durable channel]
+///                        × rate_factor(real_rate)         [low real rates stimulate]
+///   new_credit = max(0, desired_debt_stock − current_debt)
+///
+/// * Income: `smoothed_income` (permanent-income EWMA already maintained
+///   by the B2C layer) — real wage/income channel. Falls back to the
+///   national average wage when a class has no recorded income stream.
+/// * `consumer_rate`/`expected_inflation` are ANNUAL decimals; the gap is
+///   per-capita units; `population` scales the stock.
+fn consumer_credit_demand(
+    class: &crate::society::geography::ClassDemographics,
+    class_name: &str,
+    avg_wage: f64,
+    consumer_rate: f64,
+    expected_inflation_annual: f64,
+) -> f64 {
+    let population = class.population.max(0) as f64;
+    if population <= 0.0 {
+        return 0.0;
+    }
+    // Permanent income per capita (turn units → annual).
+    let income_pc = if class.smoothed_income > 0.0 {
+        class.smoothed_income / population
+    } else {
+        avg_wage
+    };
+    if income_pc <= 0.0 {
+        return 0.0;
+    }
+    let annual_income_pc = income_pc * crate::state::macro_data::TURNS_PER_YEAR as f64;
+
+    let gap_pc = unmet_durable_gap_pc(class, class_name);
+    let gap_boost = (1.0 + CONSUMER_GAP_CREDIT_K * gap_pc).min(CONSUMER_GAP_CAP);
+    let real_rate = consumer_rate - expected_inflation_annual;
+    let rate_factor =
+        (1.0 + CONSUMER_RATE_SENSITIVITY * (CONSUMER_TARGET_REAL_RATE - real_rate))
+            .clamp(0.25, 2.0);
+    let desired_debt = annual_income_pc * CONSUMER_DEBT_INCOME_BASE
+        * gap_boost
+        * rate_factor
+        * population;
+    (desired_debt - class.debt.max(0.0)).max(0.0)
 }
 
 // ============================================================================
@@ -359,6 +506,22 @@ impl BankBalanceSheet {
         self.reserves_at_central_bank - required_reserves
     }
 
+    /// v4.20 WS3b: Pay `amount` of central-bank money, draining the deposit
+    /// facility before the settlement account.
+    ///
+    /// The facility is a same-day callable asset (the Step-4 pass already
+    /// withdraws it at par to cure reserve deficits before resorting to
+    /// Lombard), so a solvent bank always spends the parked buffer before
+    /// letting `reserves_at_central_bank` go negative. Net effect: total
+    /// CB liquidity (`reserves + depfac`) decreases by exactly `amount`;
+    /// A = L + E and M0 accounting are unchanged (both fields are already
+    /// counted as bank reserves).
+    pub fn draw_cb_liquidity(&mut self, amount: f64) {
+        let from_depfac = amount.min(self.cb_deposit_facility_balance.max(0.0));
+        self.cb_deposit_facility_balance -= from_depfac;
+        self.reserves_at_central_bank -= amount - from_depfac;
+    }
+
     /// W3/R1: Total outstanding credit extended by this bank.
     ///
     /// Sums every loan asset on the book: corporate `loans_issued` plus
@@ -458,28 +621,49 @@ pub fn check_credit_prudential_gates(
     } else {
         balance_sheet.deposits
     };
-    let reserves_after = if creates_deposit {
-        balance_sheet.reserves_at_central_bank
+    // v4.20 WS3b: the CB deposit facility is a same-day callable reserve
+    // asset — Step 4 already withdraws it at par to cure reserve deficits
+    // before resorting to Lombard. Measuring lendable liquidity on raw
+    // `reserves_at_central_bank` alone was the LDR killer: Step 4 sweeps
+    // every surplus unit into the facility, leaving `res ≈ deposits × rr`
+    // so this gate rejected essentially ALL new credit (avg LDR 0.11 while
+    // banks parked 10-100× their reserves at the CB). A solvent bank can
+    // always fund a loan by drawing the facility down.
+    let cb_liquidity_after = if creates_deposit {
+        balance_sheet.reserves_at_central_bank + balance_sheet.cb_deposit_facility_balance
     } else {
-        balance_sheet.reserves_at_central_bank - principal
+        balance_sheet.reserves_at_central_bank
+            + balance_sheet.cb_deposit_facility_balance
+            - principal
     };
     let required_reserves = deposits_after * reserve_requirement_ratio;
-    let effective_reserves = reserves_after - balance_sheet.cb_lombard_loans;
+    let effective_reserves = cb_liquidity_after - balance_sheet.cb_lombard_loans;
     if effective_reserves < required_reserves {
         return Err(format!(
-            "Reserve requirement violation: need {} reserves, have {} effective ({} raw - {} lombard)",
-            required_reserves, effective_reserves, reserves_after,
+            "Reserve requirement violation: need {} reserves, have {} effective ({} raw + {} depfac - {} lombard)",
+            required_reserves, effective_reserves,
+            balance_sheet.reserves_at_central_bank,
+            balance_sheet.cb_deposit_facility_balance,
             balance_sheet.cb_lombard_loans
         ));
     }
 
-    // Gate 2 — hard LDR cap: total outstanding credit may not exceed
+    // Gate 2 — LDR cap: total outstanding credit may not exceed
     // `deposits_after × (1 − reserve_requirement_ratio)` after issuance.
+    // v4.20 WS3b: the prudential bound is further tightened by an
+    // OPERATIONAL ceiling of 0.85 — the top of the healthy leverage band.
+    // Without it the loan book saturates the deposit base system-wide at
+    // ~1−rr, leaving zero secondary-market headroom: a bank whose realized
+    // LDR drifts past 1.0 through deposit flight then has no buyer for its
+    // excess paper (every other bank sits at the same cap). Holding
+    // issuance to 0.85 reserves the 11-point gap between operational and
+    // prudential caps as the reservoir `enforce_ldr_cap` sells into.
     let loans_after = balance_sheet.total_loans_outstanding() + principal;
-    let ldr_cap = BankBalanceSheet::ldr_cap(deposits_after, reserve_requirement_ratio);
+    let ldr_cap = BankBalanceSheet::ldr_cap(deposits_after, reserve_requirement_ratio)
+        .min(deposits_after * 0.85);
     if loans_after > ldr_cap + 1e-9 * ldr_cap.abs().max(1.0) {
         return Err(format!(
-            "LDR cap violation: loans_after={:.2} exceeds cap={:.2} (deposits_after={:.2} × (1 − rr={:.4}))",
+            "LDR cap violation: loans_after={:.2} exceeds cap={:.2} (deposits_after={:.2} × min(1 − rr={:.4}, 0.85))",
             loans_after, ldr_cap, deposits_after, reserve_requirement_ratio
         ));
     }
@@ -659,6 +843,329 @@ pub fn enforce_leverage_cap(
             bs.tier_1_capital += residual;
         }
     }
+}
+
+/// v4.20 WS3b: Realized-LDR supervision — secondary-market whole-loan
+/// sales between banks.
+///
+/// `check_credit_prudential_gates` caps credit at ISSUANCE
+/// (`loans_after <= deposits_after × (1 − rr)`), but `deposits` are
+/// demand liabilities that migrate between banks every turn while the
+/// loan book is sticky stock. A lending bank's REALIZED LDR can
+/// therefore drift past 1.0 through deposit flight alone — its book
+/// ends up funded by interbank/Lombard credit rather than by its own
+/// deposit base. No issuance-time control can bound that ex-post
+/// drift; the remedy real banks use is the secondary loan market: a
+/// deposit-poor lender sells whole loans at par to a deposit-rich bank
+/// holding regulatory headroom, moving the asset toward the funding.
+/// Both legs stay inside the banking system — M0-neutral, and
+/// A = L + E is exact on both sheets (assets swap loans↔reserves,
+/// liabilities untouched).
+///
+/// Mechanics — every bank with `ldr() > 0.97` sells down to 0.90:
+///   * Sellers move whole `Loan` records, skipping defaulted,
+///     securitized, and covered-bond-pledged paper — impaired or
+///     encumbered assets do not trade at par. The scalar
+///     `consumer_loans_outstanding` book is NOT transferable: a
+///     participation slice would desynchronize the repayment loop,
+///     which debits the originating bank's scalar against borrower
+///     cash regardless of who holds a notional share.
+///   * Buyers may hold up to their own issuance cap
+///     `deposits × (1 − rr)` post-purchase, and must keep
+///     `reserves + depfac − price` covering the reserve requirement on
+///     their unchanged deposit base. The CB deposit facility is drawn
+///     into reserves to settle — the same liquidity ladder the lending
+///     gates already treat as lendable.
+///   * Settlement is in reserves: buyer `reserves −= price`, seller
+///     `reserves += price`. No money is created or destroyed;
+///     aggregate loans and deposits are untouched.
+///
+/// Called after the leverage-cap pass (in-turn AND end-of-turn):
+/// deposit churn during the turn's settlement phases is what pushes
+/// realized LDR out of band, so supervision must read the final
+/// balance-sheet snapshot the audit sees. Borrower-side `LoanRef`s key
+/// on `loan_id`, so the next turn's accrual loop services the paper
+/// under its new owner with no borrower-visible change. Returns total
+/// outstanding principal transferred.
+pub fn enforce_ldr_cap(
+    companies: &mut [crate::entities::Company],
+    reserve_requirement_ratio: f64,
+) -> f64 {
+    const LDR_SALE_TRIGGER: f64 = 0.97;
+    const LDR_TARGET: f64 = 0.90;
+    let n = companies.len();
+    // Planned transfers: (seller_idx, buyer_idx, loan_vec_idx, price).
+    // Two-phase: the plan is computed on immutable reads with
+    // `pending_*` counters so concurrent seller demand is allocated to
+    // buyers deterministically in index order.
+    let mut plan: Vec<(usize, usize, usize, f64)> = Vec::new();
+    let mut pending_loans = vec![0.0f64; n];
+    let mut pending_spend = vec![0.0f64; n];
+
+    for s in 0..n {
+        if companies[s].bank_type.is_none() {
+            continue;
+        }
+        let Some(sbs) = companies[s].balance_sheet.as_ref() else {
+            continue;
+        };
+        if sbs.ldr() <= LDR_SALE_TRIGGER || sbs.deposits <= 0.0 {
+            continue;
+        }
+        let needed = sbs.total_loans_outstanding() - sbs.deposits * LDR_TARGET;
+        // Sellable paper, smallest first. Loans are atomic (borrower
+        // LoanRefs key on the record id, so a tranche sale would orphan
+        // the buyer's repayment stream), which means the marginal sale
+        // may overshoot the target — landing below LDR_TARGET is legal.
+        // Ordering ascending by (price, index) keeps the marginal piece
+        // as small as the book allows and the plan deterministic.
+        let mut candidates: Vec<(usize, f64)> = sbs
+            .loans_issued
+            .iter()
+            .enumerate()
+            .filter(|(_, loan)| {
+                loan.status != LoanStatus::Default
+                    && !loan.securitized
+                    && loan.pledged_to_covered_bond.is_none()
+                    && loan.outstanding_balance > 0.0
+            })
+            .map(|(li, loan)| (li, loan.outstanding_balance))
+            .collect();
+        candidates
+            .sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap().then(a.0.cmp(&b.0)));
+        let mut sold = 0.0;
+        for (li, price) in candidates {
+            if sold >= needed {
+                break;
+            }
+            // First buyer (index order) that can hold this loan inside
+            // its own (1 − rr) cap and settle it out of free reserves
+            // + deposit-facility liquidity.
+            for b in 0..n {
+                if b == s || companies[b].bank_type.is_none() {
+                    continue;
+                }
+                let Some(bbs) = companies[b].balance_sheet.as_ref() else {
+                    continue;
+                };
+                if bbs.deposits <= 0.0 {
+                    continue;
+                }
+                let cap = BankBalanceSheet::ldr_cap(bbs.deposits, reserve_requirement_ratio);
+                let headroom = cap - (bbs.total_loans_outstanding() + pending_loans[b]);
+                if headroom < price {
+                    continue;
+                }
+                let free = bbs.reserves_at_central_bank + bbs.cb_deposit_facility_balance
+                    - pending_spend[b]
+                    - bbs.deposits * reserve_requirement_ratio;
+                if free < price {
+                    continue;
+                }
+                plan.push((s, b, li, price));
+                pending_loans[b] += price;
+                pending_spend[b] += price;
+                sold += price;
+                break;
+            }
+        }
+        #[cfg(feature = "diagnostic")]
+        if sold < needed {
+            let mut sellable = 0.0;
+            let mut pledged = 0.0;
+            let mut defaulted = 0.0;
+            let mut securitized = 0.0;
+            for l in &sbs.loans_issued {
+                if l.status == LoanStatus::Default {
+                    defaulted += l.outstanding_balance;
+                } else if l.securitized {
+                    securitized += l.outstanding_balance;
+                } else if l.pledged_to_covered_bond.is_some() {
+                    pledged += l.outstanding_balance;
+                } else {
+                    sellable += l.outstanding_balance;
+                }
+            }
+            eprintln!(
+                "LDRSALE_SHORT: bank={} ldr={:.4} needed={:.0} sold={:.0} sellable={:.0} pledged={:.0} defaulted={:.0} sec={:.0} book={:.0}",
+                companies[s].id,
+                sbs.ldr(),
+                needed,
+                sold,
+                sellable,
+                pledged,
+                defaulted,
+                securitized,
+                sbs.total_loans_outstanding()
+            );
+        }
+    }
+
+    // Phase 2 — apply. Group removals per seller and strip loan indices
+    // in descending order so planned positions stay valid.
+    let mut moved_total = 0.0;
+    let mut by_seller: BTreeMap<usize, Vec<(usize, usize, f64)>> = BTreeMap::new();
+    for (s, b, li, price) in plan {
+        by_seller.entry(s).or_default().push((b, li, price));
+    }
+    for (s, mut moves) in by_seller {
+        moves.sort_by_key(|m| m.1);
+        let mut taken: Vec<(usize, Loan, f64)> = Vec::new();
+        if let Some(ref mut bs) = companies[s].balance_sheet {
+            for &(b, li, price) in moves.iter().rev() {
+                let loan = bs.loans_issued.remove(li);
+                bs.reserves_at_central_bank += price;
+                taken.push((b, loan, price));
+            }
+        }
+        for (b, loan, price) in taken {
+            if let Some(ref mut bbs) = companies[b].balance_sheet {
+                bbs.reserves_at_central_bank -= price;
+                // Draw the deposit facility into reserves to restore the
+                // reserve requirement after settlement.
+                let required = bbs.deposits * reserve_requirement_ratio;
+                let topup = (required - bbs.reserves_at_central_bank)
+                    .min(bbs.cb_deposit_facility_balance)
+                    .max(0.0);
+                bbs.cb_deposit_facility_balance -= topup;
+                bbs.reserves_at_central_bank += topup;
+                bbs.loans_issued.push(loan);
+                moved_total += price;
+            }
+        }
+    }
+    moved_total
+}
+
+/// v4.20 WS3c: Realized-LDR supervision — deposit migration.
+///
+/// The secondary loan market (`enforce_ldr_cap`) cannot clear a breach
+/// when the seller's book is fully encumbered — covered-bond-pledged or
+/// securitized paper legally does not trade, and the scalar consumer
+/// book is not portable. The residual fix real systems exhibit is
+/// funding-side: a deposit-poor lender bids balances away from
+/// deposit-rich banks (rate competition / wholesale placement), moving
+/// the DENOMINATOR instead of the asset.
+///
+/// Mechanics — every bank still above `LDR_SALE_TRIGGER` after the sale
+/// pass attracts deposits down to `LDR_TARGET`. Each migrated unit is
+/// settled through the payment system: donor `deposits −= x,
+/// reserves −= x`, receiver `deposits += x, reserves += x` — the
+/// reserves behind the balance follow it. A = L + E holds on both
+/// sheets and aggregate deposits/reserves are conserved (M0 untouched).
+/// Donors are chosen lowest-LDR first and are bounded on BOTH sides:
+/// their post-gift LDR stays under the same target and the reserves
+/// they pay out keep their own requirement covered
+/// (`free/(1 − rr)` capacity). Runs after the sale pass at both call
+/// sites; returns total deposits migrated.
+pub fn enforce_ldr_deposit_migration(
+    companies: &mut [crate::entities::Company],
+    reserve_requirement_ratio: f64,
+) -> f64 {
+    const LDR_SALE_TRIGGER: f64 = 0.97;
+    const LDR_TARGET: f64 = 0.90;
+    let n = companies.len();
+    // Donor order is deterministic: lowest realized LDR first, index as
+    // tiebreak — the deepest funding pools absorb the migration.
+    let mut donor_order: Vec<usize> = (0..n)
+        .filter(|&b| {
+            companies[b].bank_type.is_some()
+                && companies[b]
+                    .balance_sheet
+                    .as_ref()
+                    .is_some_and(|bs| bs.deposits > 0.0)
+        })
+        .collect();
+    donor_order.sort_by(|&a, &b| {
+        let la = companies[a]
+            .balance_sheet
+            .as_ref()
+            .map(|bs| bs.ldr())
+            .unwrap_or(0.0);
+        let lb = companies[b]
+            .balance_sheet
+            .as_ref()
+            .map(|bs| bs.ldr())
+            .unwrap_or(0.0);
+        la.partial_cmp(&lb).unwrap().then(a.cmp(&b))
+    });
+    // Planned transfers: (donor_idx, receiver_idx, amount).
+    let mut plan: Vec<(usize, usize, f64)> = Vec::new();
+    let mut pending_give = vec![0.0f64; n];
+    let mut pending_take = vec![0.0f64; n];
+    for s in 0..n {
+        if companies[s].bank_type.is_none() {
+            continue;
+        }
+        let Some(sbs) = companies[s].balance_sheet.as_ref() else {
+            continue;
+        };
+        if sbs.ldr() <= LDR_SALE_TRIGGER || sbs.deposits <= 0.0 {
+            continue;
+        }
+        // Deposits needed so loans / (deposits + x) <= LDR_TARGET.
+        let mut needed =
+            sbs.total_loans_outstanding() / LDR_TARGET - sbs.deposits - pending_take[s];
+        if needed <= 0.0 {
+            continue;
+        }
+        for &d in &donor_order {
+            if d == s {
+                continue;
+            }
+            let Some(dbs) = companies[d].balance_sheet.as_ref() else {
+                continue;
+            };
+            let dep_after = dbs.deposits - pending_give[d];
+            if dep_after <= 0.0 {
+                continue;
+            }
+            // Donor LDR bound: loans / (dep − give) <= LDR_TARGET.
+            let ldr_room = dep_after - dbs.total_loans_outstanding() / LDR_TARGET;
+            // Donor reserve bound: paying x reserves while deposits fall
+            // x leaves required = (dep − x)·rr, so free reserves shrink
+            // by x·(1 − rr).
+            let free = dbs.reserves_at_central_bank + dbs.cb_deposit_facility_balance
+                - pending_give[d]
+                - dep_after * reserve_requirement_ratio;
+            let res_room = free / (1.0 - reserve_requirement_ratio).max(1e-9);
+            let give = needed.min(ldr_room).min(res_room);
+            if give <= 0.0 {
+                continue;
+            }
+            plan.push((d, s, give));
+            pending_give[d] += give;
+            pending_take[s] += give;
+            needed -= give;
+            if needed <= 0.0 {
+                break;
+            }
+        }
+        #[cfg(feature = "diagnostic")]
+        if needed > 0.0 {
+            eprintln!(
+                "LDRMIG_SHORT: bank={} ldr={:.4} needed={:.0} short={:.0}",
+                companies[s].id,
+                sbs.ldr(),
+                sbs.total_loans_outstanding() / LDR_TARGET - sbs.deposits,
+                needed
+            );
+        }
+    }
+    // Phase 2 — apply the migration.
+    let mut moved = 0.0;
+    for (d, s, x) in plan {
+        if let Some(ref mut dbs) = companies[d].balance_sheet {
+            dbs.deposits -= x;
+            dbs.reserves_at_central_bank -= x;
+        }
+        if let Some(ref mut sbs) = companies[s].balance_sheet {
+            sbs.deposits += x;
+            sbs.reserves_at_central_bank += x;
+            moved += x;
+        }
+    }
+    moved
 }
 
 /// Interbank market for daily liquidity exchange between banks.
@@ -1253,8 +1760,12 @@ pub fn issue_loan(
     }
 
     // Step 2: Calculate loan interest rate (XIBOR + Bank Margin + Risk Premium)
+    // v4.20 WS3: floor the contract rate — a negative retail loan rate pays
+    // the borrower interest and produces negative bank interest income,
+    // which is incoherent (with the ZLB this can only be reached via a
+    // stale/deserialized XIBOR, but the floor is the honest invariant).
     let risk_premium = credit_score.risk_premium_bps / 10000.0; // Convert bps to decimal
-    let interest_rate = xibor + bank_margin + risk_premium;
+    let interest_rate = (xibor + bank_margin + risk_premium).max(MIN_LOAN_RATE);
 
     // Step 3: Simulate balance sheet expansion to check reserve requirement.
     // Phase 77: Subtract Lombard loans from effective reserves â€” borrowed
@@ -3204,13 +3715,23 @@ pub fn process_banking_turn(
                     continue;
                 }
                 // Accrue interest (Phase 74: compound per-turn rate)
+                // v4.20 WS3: clamp the ACCRUAL itself at ≥ 0 — new
+                // origination and variable repricing are floored, but a
+                // fixed-rate loan booked in an earlier turn at a negative
+                // rate would otherwise keep accruing negative interest
+                // income forever. Nominal interest income can never be
+                // negative.
                 let per_turn_rate = annual_to_per_turn_rate(loan.interest_rate);
-                let interest = loan.outstanding_balance * per_turn_rate;
+                let interest = (loan.outstanding_balance * per_turn_rate).max(0.0);
                 loan.outstanding_balance += interest;
 
                 // Update variable rate loans
                 if loan.interest_type == InterestType::Variable {
-                    loan.interest_rate = xibor + loan.bank_margin;
+                    // v4.20 WS3: floor at MIN_LOAN_RATE — variable-rate
+                    // repricing through a negative XIBOR was the direct
+                    // source of NEGATIVE interest income (outstanding
+                    // balance × negative rate) shredding bank equity.
+                    loan.interest_rate = (xibor + loan.bank_margin).max(MIN_LOAN_RATE);
                 }
 
                 // Attempt repayment (simplified: 1/term_turns per turn)
@@ -3517,7 +4038,13 @@ pub fn process_banking_turn(
         }
         let bs = c.balance_sheet.as_ref().unwrap();
         let required = bs.deposits * cb_for_loans.reserve_requirement_ratio;
-        let effective_reserves = bs.reserves_at_central_bank - bs.cb_lombard_loans;
+        // v4.20 WS3b: depfac counts as lendable liquidity (same-day
+        // callable, Step 4 already converts it at par to cure deficits) —
+        // without it every bank's "excess" collapses to ~0 after the
+        // facility sweep and the whole book sits idle at the CB.
+        let effective_reserves = bs.reserves_at_central_bank
+            + bs.cb_deposit_facility_balance
+            - bs.cb_lombard_loans;
         let excess = (effective_reserves - required).max(0.0);
         let margin = c.loan_margin.unwrap_or(0.02);
         bank_info.push((bi, margin, excess, 0.0_f64));
@@ -3543,12 +4070,45 @@ pub fn process_banking_turn(
 
         let principal = needed.min(5_000_000.0); // Cap per-loan
         let borrower_clone = companies[borrower_idx].clone();
+        let borrower_bank_id = borrower_clone.primary_bank_id.clone();
+        let reserve_ratio = cb_for_loans.reserve_requirement_ratio;
 
-        // Try each bank in order of excess reserves until one can issue the loan
-        for entry in &mut bank_info {
+        // v4.20 WS3: lend through the borrower's OWN bank first. A loan to
+        // an in-house customer mints its deposit on THIS bank's book (the
+        // `creates_deposit` gate inside `issue_loan`), so it only consumes
+        // `rr × P` of reserve cover. Cross-bank and unbanked lending ships
+        // the reserves out with the proceeds and legitimately needs the
+        // full principal. The old blanket `excess < principal` pre-filter
+        // required 100% reserve cover for EVERY loan — that is the classic
+        // full-reserve model, not fractional-reserve credit creation, and
+        // it is what collapsed operational LDR to the low single digits:
+        // banks could only lend up to their excess RESERVES (~rr% of
+        // deposits) rather than converting deposits into performing loans
+        // up to the regulatory `1 − rr` cap.
+        let mut bank_order: Vec<usize> = (0..bank_info.len()).collect();
+        if let Some(ref pb) = borrower_bank_id {
+            if let Some(pos) = bank_info
+                .iter()
+                .position(|(bi, ..)| companies[*bi].id == *pb)
+            {
+                bank_order.remove(pos);
+                bank_order.insert(0, pos);
+            }
+        }
+        for &ei in &bank_order {
+            let entry = &mut bank_info[ei];
             let (bi, margin, excess, new_loans_turn) = (entry.0, entry.1, entry.2, entry.3);
-            // Check excess reserves
-            if excess < principal {
+            // Check the reserve cover THIS issuance path actually consumes:
+            // deposit-creating (in-house) loans need `rr × P`; reserve-
+            // funded (cross-bank/unbanked) loans need the full principal.
+            let creates_deposit_here =
+                borrower_bank_id.as_deref() == Some(companies[bi].id.as_str());
+            let required_cover = if creates_deposit_here {
+                principal * reserve_ratio
+            } else {
+                principal
+            };
+            if excess < required_cover {
                 continue;
             }
             // Phase 77: Check operational capacity (labor-based)
@@ -3592,7 +4152,6 @@ pub fn process_banking_turn(
                 }
             }
 
-            let borrower_bank_id = borrower_clone.primary_bank_id.clone();
             let loan_result = issue_loan(
                 companies[bi].balance_sheet.as_mut().unwrap(),
                 &companies[bi].id,
@@ -3677,8 +4236,15 @@ pub fn process_banking_turn(
                     }
                 }
                 result.total_new_credit += lr.principal_amount;
-                // Update this bank's tracking: reduce excess, increase new_loans_turn
-                entry.2 -= lr.principal_amount;
+                // Update this bank's tracking: excess reserves fall by the
+                // cover this path actually consumed — `rr × P` of new
+                // required reserves for deposit-creating (in-house) loans,
+                // the full reserve outflow for cross-bank/unbanked ones.
+                entry.2 -= if creates_deposit_here {
+                    lr.principal_amount * reserve_ratio
+                } else {
+                    lr.principal_amount
+                };
                 entry.3 += lr.principal_amount;
                 break; // Loan issued, move to next borrower
             }
@@ -4042,16 +4608,18 @@ pub fn process_banking_turn(
                     None => {
                         if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
                             settle_deposit_debit(bs, lr.principal_amount);
-                            bs.reserves_at_central_bank -= lr.principal_amount;
+                            bs.draw_cb_liquidity(lr.principal_amount);
                         }
                     }
                     Some(pb) if pb == bank_id => {}
                     Some(pb) => {
                         // Inter-bank: move the created deposit to the
-                        // borrower's bank, funded by a reserve transfer.
+                        // borrower's bank, funded by a reserve transfer —
+                        // drawn from the deposit facility first so the
+                        // settlement account isn't drained spuriously.
                         if let Some(ref mut bs) = companies[bank_idx].balance_sheet {
                             settle_deposit_debit(bs, lr.principal_amount);
-                            bs.reserves_at_central_bank -= lr.principal_amount;
+                            bs.draw_cb_liquidity(lr.principal_amount);
                         }
                         if let Some(bank) = companies.iter_mut().find(|c| c.id == pb) {
                             if let Some(ref mut bs) = bank.balance_sheet {
@@ -4109,9 +4677,15 @@ pub fn process_banking_turn(
         let mut loans_to_process: Vec<(usize, f64, f64)> = Vec::new();
         for (i, loan) in bank.consumer_loans.iter().enumerate() {
             // Per-turn repayment: 1/24 of principal + interest (Phase 74: compound rate)
+            // v4.20 WS3: floor the interest leg at ≥ 0 — a consumer loan
+            // booked while administered rates were negative would
+            // otherwise pay the borrower to borrow (negative
+            // `interest_payment` → `repayment_interest` < 0 →
+            // `tier_1_capital` shredded, and a total_payment BELOW the
+            // principal portion — a permanent interest subsidy).
             let principal_payment = loan.outstanding_principal / 24.0;
             let per_turn_rate = annual_to_per_turn_rate(loan.interest_rate);
-            let interest_payment = loan.outstanding_principal * per_turn_rate;
+            let interest_payment = (loan.outstanding_principal * per_turn_rate).max(0.0);
             loans_to_process.push((i, principal_payment, interest_payment));
         }
         // Find the region and class for each loan and process repayment
@@ -4138,8 +4712,9 @@ pub fn process_banking_turn(
                     let total_payment = principal_pay + interest_pay;
                     if class.savings >= total_payment {
                         class.savings -= total_payment;
-                        class.debt -= principal_pay;
-                        loan.outstanding_principal -= principal_pay;
+                        class.debt = (class.debt - principal_pay).max(0.0);
+                        loan.outstanding_principal =
+                            (loan.outstanding_principal - principal_pay).max(0.0);
                         repayment_principal += principal_pay;
                         repayment_interest += interest_pay;
                     } else if class.savings > 0.0 {
@@ -4148,8 +4723,9 @@ pub fn process_banking_turn(
                         let principal_portion = partial * (principal_pay / total_payment);
                         let interest_portion = partial - principal_portion;
                         class.savings = 0.0;
-                        class.debt -= principal_portion;
-                        loan.outstanding_principal -= principal_portion;
+                        class.debt = (class.debt - principal_portion).max(0.0);
+                        loan.outstanding_principal =
+                            (loan.outstanding_principal - principal_portion).max(0.0);
                         repayment_principal += principal_portion;
                         repayment_interest += interest_portion;
                     }
@@ -4205,9 +4781,39 @@ pub fn process_banking_turn(
             .map(|bs| bs.ldr_headroom(country.central_bank.reserve_requirement_ratio))
             .unwrap_or(0.0);
         let max_consumer_credit = max_consumer_credit.min(ldr_headroom);
+        // v4.20 WS3: Consumer disbursements are cash leaving the reserve
+        // account — the origination budget must also fit inside excess
+        // reserves (own reserves net of Lombard, minus required cover).
+        // v4.20 WS3b: the deposit-facility balance is same-day callable
+        // central-bank money, so it counts toward the disbursement budget —
+        // without it Step 4's sweep leaves every bank "reserve-poor" and
+        // household credit stops dead (avg LDR pinned near zero).
+        let excess_reserves = bank
+            .balance_sheet
+            .as_ref()
+            .map(|bs| {
+                let required = bs.deposits * country.central_bank.reserve_requirement_ratio;
+                (bs.reserves_at_central_bank + bs.cb_deposit_facility_balance
+                    - bs.cb_lombard_loans - required).max(0.0)
+            })
+            .unwrap_or(0.0);
+        let max_consumer_credit = max_consumer_credit.min(excess_reserves);
         if max_consumer_credit < 500.0 {
             continue;
         }
+        // v4.20 WS3: household credit demand is priced ONCE per bank-turn.
+        // `consumer_rate` = CB reference + a 5pp retail margin, floored at
+        // MIN_CONSUMER_RATE so B2C interest income can never go negative.
+        // `expected_inflation_annual` feeds the real-rate channel in
+        // `consumer_credit_demand` — cheap real credit stimulates housing/
+        // durable borrowing; expensive real credit depresses it.
+        let consumer_rate = (cb_ref_rate + 0.05).max(MIN_CONSUMER_RATE);
+        let expected_inflation_annual = expected_cpi_inflation_pct(
+            &country.macro_indicators.telemetry_history,
+            country.macro_indicators.inflation,
+        ) / 100.0
+            * crate::state::macro_data::TURNS_PER_YEAR as f64;
+        let avg_wage = country.macro_indicators.average_wage;
         let mut issued_total = 0.0;
         for region in &mut country.regions {
             if !bank_region.is_empty() && region.id != bank_region {
@@ -4229,25 +4835,25 @@ pub fn process_banking_turn(
                     .rural_classes
                     .get_mut(key)
                     .unwrap();
-                if class.population <= 0 || class.debt > 0.0 {
-                    continue; // Already has debt
-                }
-                let per_capita_savings = if class.population > 0 {
-                    class.savings / class.population as f64
-                } else {
-                    0.0
-                };
-                let avg_wage = country.macro_indicators.average_wage;
-                if per_capita_savings > avg_wage * 0.5 {
-                    continue; // Not poor enough to need a loan
-                }
-                let loan_amount = (avg_wage * class.population as f64 * 0.1)
+                // v4.20 WS3: demand = f(income, real rate, unmet durable
+                // stock) — replaces the subsistence-only gates that killed
+                // household credit (`debt > 0` blacklist + "too rich to
+                // borrow" savings test). A class keeps borrowing toward its
+                // desired leverage as long as income supports it.
+                let demand = consumer_credit_demand(
+                    class,
+                    key.as_str(),
+                    avg_wage,
+                    consumer_rate,
+                    expected_inflation_annual,
+                );
+                let loan_amount = demand
                     .min(max_consumer_credit - issued_total)
-                    .min(100000.0);
+                    .min(CONSUMER_MAX_LOAN_PER_CLASS_TURN);
                 if loan_amount < 100.0 {
                     continue;
                 }
-                let rate = cb_ref_rate + 0.05; // 5% margin for consumer loans
+                let rate = consumer_rate;
                 class.savings += loan_amount;
                 class.debt += loan_amount;
                 bank.consumer_loans.push(ConsumerLoan {
@@ -4266,7 +4872,7 @@ pub fn process_banking_turn(
                 // The consumer loan is a bank asset tracked via
                 // consumer_loans_outstanding to maintain A=L+E.
                 if let Some(ref mut bs) = bank.balance_sheet {
-                    bs.reserves_at_central_bank -= loan_amount;
+                    bs.draw_cb_liquidity(loan_amount);
                     bs.consumer_loans_outstanding += loan_amount;
                 }
                 issued_total += loan_amount;
@@ -4290,25 +4896,20 @@ pub fn process_banking_turn(
                     .urban_classes
                     .get_mut(key)
                     .unwrap();
-                if class.population <= 0 || class.debt > 0.0 {
-                    continue;
-                }
-                let per_capita_savings = if class.population > 0 {
-                    class.savings / class.population as f64
-                } else {
-                    0.0
-                };
-                let avg_wage = country.macro_indicators.average_wage;
-                if per_capita_savings > avg_wage * 0.5 {
-                    continue;
-                }
-                let loan_amount = (avg_wage * class.population as f64 * 0.1)
+                let demand = consumer_credit_demand(
+                    class,
+                    key.as_str(),
+                    avg_wage,
+                    consumer_rate,
+                    expected_inflation_annual,
+                );
+                let loan_amount = demand
                     .min(max_consumer_credit - issued_total)
-                    .min(100000.0);
+                    .min(CONSUMER_MAX_LOAN_PER_CLASS_TURN);
                 if loan_amount < 100.0 {
                     continue;
                 }
-                let rate = cb_ref_rate + 0.05;
+                let rate = consumer_rate;
                 class.savings += loan_amount;
                 class.debt += loan_amount;
                 bank.consumer_loans.push(ConsumerLoan {
@@ -4323,7 +4924,7 @@ pub fn process_banking_turn(
                 // Phase 94: Debit bank reserves and track consumer loan asset
                 // (double-entry, see rural above).
                 if let Some(ref mut bs) = bank.balance_sheet {
-                    bs.reserves_at_central_bank -= loan_amount;
+                    bs.draw_cb_liquidity(loan_amount);
                     bs.consumer_loans_outstanding += loan_amount;
                 }
                 issued_total += loan_amount;
@@ -4634,6 +5235,20 @@ pub fn process_banking_turn(
     enforce_leverage_cap(country, companies);
     #[cfg(feature = "diagnostic")]
     _diag_step_trace!("16_leverage_cap");
+
+    // Realized-LDR supervision — see `enforce_ldr_cap`. Runs in-turn so
+    // the secondary market can rebalance before end-of-day settlement.
+    enforce_ldr_cap(
+        companies,
+        country.central_bank.reserve_requirement_ratio,
+    );
+    // Funding-side fallback — deposit migration for breaches the asset
+    // market could not clear (encumbered books). See
+    // `enforce_ldr_deposit_migration`.
+    enforce_ldr_deposit_migration(
+        companies,
+        country.central_bank.reserve_requirement_ratio,
+    );
 
     // Aggregate diagnostics
     for bank in companies.iter() {
@@ -5229,6 +5844,249 @@ mod tests {
                 extra: Map::new(),
             }
         }
+    }
+
+    fn loan(id: &str, balance: f64) -> Loan {
+        Loan {
+            id: id.to_string(),
+            borrower_id: "COMP-X".to_string(),
+            principal: balance,
+            outstanding_balance: balance,
+            interest_rate: 0.05,
+            term_turns: 12,
+            turns_remaining: 12,
+            collateral_value: None,
+            loan_type: LoanType::WorkingCapital,
+            last_payment_turn: 0,
+            status: LoanStatus::Current,
+            interest_type: InterestType::default(),
+            duration_risk_premium: 0.0,
+            base_xibor: 0.0,
+            bank_margin: 0.0,
+            securitized: false,
+            pledged_to_covered_bond: None,
+            extra: Map::new(),
+        }
+    }
+
+    fn bank_company(id: &str, bs: BankBalanceSheet) -> Company {
+        Company {
+            id: id.to_string(),
+            bank_type: Some(BankType::Commercial),
+            balance_sheet: Some(bs),
+            ..Company::default()
+        }
+    }
+
+    #[test]
+    fn ldr_cap_sales_move_loans_to_deposit_rich_banks() {
+        // rr = 10%. Seller: loans 980 vs deposits 1000 -> LDR 0.98 > 0.97
+        // trigger. Excess over the 0.90 target = 980 - 900 = 80, so the
+        // 80-unit loan sells and the oversized paper stays.
+        let mut seller_bs = BankBalanceSheet::default();
+        seller_bs.deposits = 1_000.0;
+        seller_bs.reserves_at_central_bank = 100.0;
+        for (id, bal) in [("L1", 500.0), ("L2", 300.0), ("L3", 80.0), ("L4", 70.0), ("L5", 30.0)] {
+            seller_bs.loans_issued.push(loan(id, bal));
+        }
+        // Buyer: loans 200 vs deposits 2000 -> LDR 0.10, headroom to the
+        // 1800 cap = 1600. Free liquidity = 400 res + 100 depfac - 200
+        // required = 300, enough to settle the 100-unit sale.
+        let mut buyer_bs = BankBalanceSheet::default();
+        buyer_bs.deposits = 2_000.0;
+        buyer_bs.reserves_at_central_bank = 400.0;
+        buyer_bs.cb_deposit_facility_balance = 100.0;
+        buyer_bs.loans_issued.push(loan("B1", 200.0));
+        let mut companies = vec![
+            bank_company("BANK-SELLER", seller_bs),
+            bank_company("BANK-BUYER", buyer_bs),
+            Company::default(),
+        ];
+        // Seller needs to shed 80 (book 980 vs target 900). Loans are
+        // atomic, so the pass sells smallest-first until covered: L5(30)
+        // then L4(70) = 100 moved, landing the seller at LDR 0.88 —
+        // slightly under target because no 50-unit piece exists.
+        let moved = enforce_ldr_cap(&mut companies, 0.10);
+        assert!((moved - 100.0).abs() < 1e-9);
+        let seller = companies[0].balance_sheet.as_ref().unwrap();
+        let buyer = companies[1].balance_sheet.as_ref().unwrap();
+        // Seller shed the two smallest records; oversized paper stayed.
+        assert!((seller.total_loans_outstanding() - 880.0).abs() < 1e-9);
+        assert!((seller.ldr() - 0.88).abs() < 1e-9);
+        assert_eq!(seller.loans_issued.len(), 3);
+        // Buyer absorbed both at par: loans 300, reserves 300 (>= required 200).
+        assert!((buyer.total_loans_outstanding() - 300.0).abs() < 1e-9);
+        assert!((buyer.reserves_at_central_bank - 300.0).abs() < 1e-9);
+        assert!((buyer.cb_deposit_facility_balance - 100.0).abs() < 1e-9);
+        assert!(buyer.loans_issued.iter().any(|l| l.id == "L5"));
+        assert!(buyer.loans_issued.iter().any(|l| l.id == "L4"));
+        // Conservation: aggregate loans, deposits, reserves untouched.
+        assert!((seller.reserves_at_central_bank - 200.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn ldr_cap_buyer_draws_facility_to_settle() {
+        // Same seller; buyer holds only 250 reserves — the 80-unit sale
+        // leaves reserves at 170 < required 200, so the facility tops up
+        // 30 and falls to 70.
+        let mut seller_bs = BankBalanceSheet::default();
+        seller_bs.deposits = 1_000.0;
+        seller_bs.loans_issued.push(loan("L1", 980.0));
+        seller_bs.loans_issued.push(loan("L2", 80.0));
+        // loans total 1060 -> ldr 1.06; excess = 1060 - 900 = 160; only
+        // the 80-unit loan fits (980 > 160).
+        let mut buyer_bs = BankBalanceSheet::default();
+        buyer_bs.deposits = 2_000.0;
+        buyer_bs.reserves_at_central_bank = 250.0;
+        buyer_bs.cb_deposit_facility_balance = 100.0;
+        buyer_bs.loans_issued.push(loan("B1", 200.0));
+        let mut companies = vec![
+            bank_company("BANK-SELLER", seller_bs),
+            bank_company("BANK-BUYER", buyer_bs),
+        ];
+        let moved = enforce_ldr_cap(&mut companies, 0.10);
+        assert!((moved - 80.0).abs() < 1e-9);
+        let buyer = companies[1].balance_sheet.as_ref().unwrap();
+        assert!((buyer.reserves_at_central_bank - 200.0).abs() < 1e-9);
+        assert!((buyer.cb_deposit_facility_balance - 70.0).abs() < 1e-9);
+        // Seller still carries the oversized L1 — residual LDR 0.98.
+        let seller = companies[0].balance_sheet.as_ref().unwrap();
+        assert!((seller.ldr() - 0.98).abs() < 1e-9);
+    }
+
+    #[test]
+    fn ldr_cap_skips_untradable_and_untriggered_banks() {
+        let mut seller_bs = BankBalanceSheet::default();
+        seller_bs.deposits = 1_000.0;
+        let mut bad = loan("BAD", 50.0);
+        bad.status = LoanStatus::Default;
+        let mut sec = loan("SEC", 50.0);
+        sec.securitized = true;
+        seller_bs.loans_issued.push(bad);
+        seller_bs.loans_issued.push(sec);
+        seller_bs.consumer_loans_outstanding = 900.0; // LDR 1.0 but no
+        // tradable paper and no transferable consumer records.
+        let mut buyer_bs = BankBalanceSheet::default();
+        buyer_bs.deposits = 2_000.0;
+        buyer_bs.reserves_at_central_bank = 500.0;
+        let mut healthy_bs = BankBalanceSheet::default();
+        healthy_bs.deposits = 1_000.0;
+        healthy_bs.loans_issued.push(loan("OK", 500.0)); // LDR 0.50
+        let mut companies = vec![
+            bank_company("BANK-UNTRADABLE", seller_bs),
+            bank_company("BANK-BUYER", buyer_bs),
+            bank_company("BANK-HEALTHY", healthy_bs),
+        ];
+        let moved = enforce_ldr_cap(&mut companies, 0.10);
+        assert_eq!(moved, 0.0);
+        assert_eq!(companies[0].balance_sheet.as_ref().unwrap().loans_issued.len(), 2);
+        assert_eq!(companies[1].balance_sheet.as_ref().unwrap().loans_issued.len(), 0);
+        assert_eq!(companies[2].balance_sheet.as_ref().unwrap().loans_issued.len(), 1);
+    }
+
+    #[test]
+    fn ldr_migration_fixes_untradable_breach() {
+        // The case the sale pass cannot clear: bank's book is fully
+        // encumbered (consumer scalar + securitized paper), so no Loan
+        // record can move. Deposits migrate in instead: receiver lands
+        // at the 0.90 target, donor stays inside its own target.
+        let mut recv_bs = BankBalanceSheet::default();
+        recv_bs.deposits = 1_000.0;
+        recv_bs.reserves_at_central_bank = 200.0;
+        let mut sec = loan("SEC", 100.0);
+        sec.securitized = true;
+        recv_bs.loans_issued.push(sec);
+        recv_bs.consumer_loans_outstanding = 900.0; // LDR 1.00, nothing sellable
+        let mut donor_bs = BankBalanceSheet::default();
+        donor_bs.deposits = 2_000.0;
+        donor_bs.reserves_at_central_bank = 500.0;
+        donor_bs.loans_issued.push(loan("D1", 200.0)); // LDR 0.10
+        let mut companies = vec![
+            bank_company("BANK-RECV", recv_bs),
+            bank_company("BANK-DONOR", donor_bs),
+            Company::default(),
+        ];
+        let dep0 = 3_000.0;
+        let res0 = 700.0;
+        let moved = enforce_ldr_deposit_migration(&mut companies, 0.10);
+        // Receiver needs dep' = loans/0.90 = 1111.11 → migrate 111.11.
+        let recv = companies[0].balance_sheet.as_ref().unwrap();
+        let donor = companies[1].balance_sheet.as_ref().unwrap();
+        let need = 1_000.0 / 0.90 - 1_000.0;
+        assert!((moved - need).abs() < 1e-6);
+        assert!((recv.deposits - (1_000.0 + need)).abs() < 1e-6);
+        assert!((recv.reserves_at_central_bank - (200.0 + need)).abs() < 1e-6);
+        assert!((recv.ldr() - 0.90).abs() < 1e-6);
+        // Donor gave deposits + reserves, stays inside its own cap.
+        assert!((donor.deposits - (2_000.0 - need)).abs() < 1e-6);
+        assert!((donor.reserves_at_central_bank - (500.0 - need)).abs() < 1e-6);
+        assert!(donor.ldr() <= 0.90 + 1e-9);
+        assert!(donor.reserves_at_central_bank >= donor.deposits * 0.10 - 1e-6);
+        // Conservation: total deposits and reserves unchanged.
+        let total_dep: f64 = companies
+            .iter()
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.deposits)
+            .sum();
+        let total_res: f64 = companies
+            .iter()
+            .filter_map(|c| c.balance_sheet.as_ref())
+            .map(|bs| bs.reserves_at_central_bank)
+            .sum();
+        assert!((total_dep - dep0).abs() < 1e-6);
+        assert!((total_res - res0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn ldr_migration_bounds_donor_liquidity() {
+        // Donor with thin free reserves can only give free/(1−rr):
+        // receiver keeps a residual rather than draining the donor.
+        let mut recv_bs = BankBalanceSheet::default();
+        recv_bs.deposits = 1_000.0;
+        recv_bs.reserves_at_central_bank = 100.0;
+        recv_bs.loans_issued.push(loan("L1", 1_200.0)); // LDR 1.20, needs 333.3
+        let mut donor_bs = BankBalanceSheet::default();
+        donor_bs.deposits = 1_000.0;
+        donor_bs.reserves_at_central_bank = 150.0;
+        // donor free = 150 − 100 = 50 → res_room = 50/0.9 ≈ 55.56;
+        // ldr_room = 1000 − 0/0.9 = 1000 → binding bound is reserves.
+        let mut companies = vec![
+            bank_company("BANK-RECV", recv_bs),
+            bank_company("BANK-DONOR", donor_bs),
+        ];
+        let moved = enforce_ldr_deposit_migration(&mut companies, 0.10);
+        let donor = companies[1].balance_sheet.as_ref().unwrap();
+        let res_room = 50.0 / 0.9;
+        assert!((moved - res_room).abs() < 1e-6);
+        // Donor keeps required reserves on its post-gift deposit base.
+        assert!(
+            donor.reserves_at_central_bank >= donor.deposits * 0.10 - 1e-6,
+            "donor reserves {} below requirement on deposits {}",
+            donor.reserves_at_central_bank,
+            donor.deposits
+        );
+        assert!(donor.ldr() <= 0.90 + 1e-9);
+    }
+
+    #[test]
+    fn ldr_migration_skips_untriggered_and_absent_donors() {
+        // A bank under the trigger is untouched; a breached bank with no
+        // viable donor keeps its state unchanged.
+        let mut ok_bs = BankBalanceSheet::default();
+        ok_bs.deposits = 1_000.0;
+        ok_bs.reserves_at_central_bank = 100.0;
+        ok_bs.loans_issued.push(loan("OK", 800.0)); // LDR 0.80
+        let mut lone_bs = BankBalanceSheet::default();
+        lone_bs.deposits = 0.0; // no deposit franchise — not a donor
+        lone_bs.loans_issued.push(loan("X", 10.0));
+        let mut companies = vec![
+            bank_company("BANK-OK", ok_bs),
+            bank_company("BANK-LONE", lone_bs),
+        ];
+        let moved = enforce_ldr_deposit_migration(&mut companies, 0.10);
+        assert_eq!(moved, 0.0);
+        assert!((companies[0].balance_sheet.as_ref().unwrap().deposits - 1_000.0).abs() < 1e-9);
+        assert!((companies[1].balance_sheet.as_ref().unwrap().deposits - 0.0).abs() < 1e-9);
     }
 }
 

@@ -62,6 +62,63 @@ fn minimum_wage_multiplier(labor_law: &str) -> f64 {
     }
 }
 
+/// v4.20 WS3: Adaptive inflation expectations for the wage Phillips curve.
+///
+/// Workers and firms form expectations adaptively — an exponentially
+/// weighted average of *realized* per-turn CPI inflation read from the
+/// telemetry history (newest sample has the most weight). This is the
+/// standard backward-looking expectations channel: no synthetic anchor,
+/// no random state, and no new persisted field — the expectation is
+/// re-derived deterministically from recorded history each turn.
+///
+/// * `history` - the rolling `TelemetryHistory` buffer (`cpi_inflation`
+///   is stored in PERCENT per turn).
+/// * `current` - this turn's realized CPI inflation (percent, per turn).
+///
+/// Returns expected per-turn CPI inflation in percent. `λ = 0.20` per
+/// lag gives an effective memory of ~5 turns (~2.5 months), so a
+/// persistent deflation regime drags expectations negative within a
+/// quarter while single-turn noise is averaged out.
+pub fn expected_inflation_ewma(
+    history: &crate::state::macro_data::TelemetryHistory,
+    current: f64,
+) -> f64 {
+    const LAMBDA: f64 = 0.20;
+    let mut weight_sum = 0.0;
+    let mut acc = 0.0;
+    // Current turn's print anchors the expectation (weight 1 − λ on the
+    // freshest observation comes first in the fold below: we fold the
+    // current value as lag 0 by seeding with it directly).
+    acc += current * LAMBDA;
+    weight_sum += LAMBDA;
+    let mut decay = 1.0 - LAMBDA;
+    for sample in history.samples.iter().rev() {
+        let w = LAMBDA * decay;
+        acc += sample.cpi_inflation * w;
+        weight_sum += w;
+        decay *= 1.0 - LAMBDA;
+    }
+    if weight_sum > 0.0 {
+        acc / weight_sum
+    } else {
+        current
+    }
+}
+
+/// v4.20 WS3: Phillips-curve slope — the per-turn nominal-wage response
+/// to one point of labor-market slack (fraction). κ = 0.15 means each
+/// +1pp of unemployment above the frictional floor cuts nominal wage
+/// growth by 0.15%/turn (≈ −3.5%/yr); symmetric upside when the market
+/// is tighter than the frictional norm. Combined with the 1.0
+/// pass-through of expected per-turn inflation this yields:
+///   wage_inflation_turn = E[π] − κ × slack
+const PHILLIPS_KAPPA: f64 = 0.15;
+/// Bound the per-turn wage adjustment so a single turn cannot move the
+/// nominal wage schedule by more than ±2.5% — keeps the wage channel
+/// bounded under extreme deflation/overheating while still allowing a
+/// real (signed) decline in slack, deflationary markets.
+const WAGE_INFLATION_TURN_CAP: f64 = 0.025;
+
 /// Updates demographics and labor market for one turn.
 ///
 /// # Arguments
@@ -370,10 +427,36 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             + labor_market.unemployment_structure.structural * 0.3;
         labor_market.unemployed = unemployed;
 
-        // Dynamic wage pressure when unemployment exceeds the frictional floor.
-        let wage_pressure = 0.002 * (unemployment_rate - frictional_unemployment_floor).max(0.0);
-        let wage_friction = (1.0 - wage_pressure).clamp(0.0, 1.0);
-        let adjusted_base_wage = base_wage * wage_friction;
+        // v4.20 WS3: Signed Phillips-curve wage inflation replaces the old
+        // one-sided `wage_pressure` friction (which could only shrink or
+        // freeze the base wage — combined with the sticky company-offer
+        // targets it produced an automatic +1–2%/turn ratchet regardless of
+        // labor-market conditions or the price level).
+        //
+        //   wage_inflation_turn = E[π]_turn − κ × slack_fraction
+        //
+        // * E[π]_turn = adaptive expected per-turn CPI inflation (EWMA of
+        //   realized `cpi_inflation` samples) — full 1.0 pass-through, the
+        //   expectations-augmented Phillips curve. Positive expected
+        //   inflation lifts nominal wages; expected deflation drags them.
+        // * slack = raw_unemployment_rate − frictional_floor, SIGNED and in
+        //   percent: positive slack (weak labor market) cuts wages at
+        //   κ = 0.15 per pp (≈ −0.15%/turn each, ~−3.5%/yr); negative slack
+        //   (labor tighter than the frictional norm — possible because the
+        //   raw rate is measured BEFORE the floor clamp) lifts them.
+        //
+        // Consequences: wages rise ONLY when the labor market is tight or
+        // inflation is genuinely positive; they are flat-to-negative in a
+        // slack, deflationary economy — ending the automatic ratchet.
+        let expected_inflation_pct = expected_inflation_ewma(
+            &macro_indicators.telemetry_history,
+            macro_indicators.inflation,
+        );
+        let slack_pp = raw_unemployment_rate - frictional_unemployment_floor;
+        let wage_inflation_turn = (expected_inflation_pct / 100.0
+            - PHILLIPS_KAPPA * (slack_pp / 100.0))
+        .clamp(-WAGE_INFLATION_TURN_CAP, WAGE_INFLATION_TURN_CAP);
+        let adjusted_base_wage = base_wage * (1.0 + wage_inflation_turn).max(0.0);
 
         let brain_drain = demographics.brain_drain_index;
         let expert_premium = (3.0 + brain_drain * 5.0) * (1.0 + (0.2 - expert_share).max(0.0));

@@ -988,6 +988,8 @@ struct EquityCandidate {
     pe_or_pb: f64,
     /// Book value per share (`company_capital / shares_count`).
     book_ps: f64,
+    /// Total issued shares — sizes the underwriter float dribble.
+    shares_count: u64,
 }
 
 impl EquityCandidate {
@@ -1014,7 +1016,180 @@ impl EquityCandidate {
             dividend_yield: c.dividend_yield,
             pe_or_pb,
             book_ps,
+            shares_count: c.shares_count,
         }
+    }
+}
+
+/// v4.20 WS3: Per-turn step the underwriter walks its standing float ask
+/// toward fair value (2%/turn). Bounded so prints ratchet rather than jump:
+/// prices discover fair value over ~a quarter, not in one trade.
+const FLOAT_REQUOTE_STEP: f64 = 0.02;
+/// Fraction of issued shares the underwriter offers when a listed name has
+/// NO ask-side liquidity at all (0.1% of shares) — a dribble float tranche,
+/// not a flood.
+const FLOAT_TOPUP_SHARES_DIVISOR: u64 = 1000;
+/// Retail limit tolerance above the mark (5%). Lets household bids lift
+/// fair-value asks walking at `mark·(1+FLOAT_REQUOTE_STEP)`; the matcher
+/// still executes at the ask, never above it.
+const RETAIL_BID_TOLERANCE: f64 = 0.05;
+
+/// v4.20 WS3: Re-quote the standing TREASURY-underwritten float asks for
+/// every listed equity at a fair-value-anchored price.
+///
+/// Root cause of the frozen tape: the IPO underwriter's resting asks
+/// (`TREASURY:<company_id>`, expiry `u32::MAX`) were placed ONCE at the
+/// listing price. With zero trades the mark mean-reverts toward book
+/// value, the book locks at `best_bid < best_ask` forever, and no trade
+/// ever prints — `VOLUME 0.00`, `CHANGE +0.00%`, funds hold no equity,
+/// so no secondary offers exist either (a chicken-and-egg liquidity
+/// deadlock).
+///
+/// The underwriter is a real seller of the residual float. Each turn it:
+///   1. Computes fair value from reported state:
+///      `fair = ½·eps·max_pe + ½·book_ps` for earners, `book_ps` otherwise
+///      (earnings-capitalized value blended with book — no synthetic anchor).
+///   2. Re-prices its resting ask toward fair, bounded by
+///      `FLOAT_REQUOTE_STEP` around the mark: up to `mark·1.02` when fair
+///      exceeds the mark (capped AT fair — it will not ask above what it
+///      believes the shares are worth), down to `mark·0.98` when fair is
+///      below (floored AT fair — it will not dump below fair value).
+///   3. Top-up: when a book has NO asks at all (float fully absorbed or
+///      never offered), places a dribble tranche of `shares/1000` at the
+///      same quote — real float sell liquidity for every listed name.
+///
+/// Crossing: fund bids rest at `cap_bound` (≥ fair for eligible names) and
+/// retail bids at `mark·(1+tol)`, so the re-quoted ask is lifted whenever
+/// genuine buy interest exists — the matcher then prints real trades at
+/// the ask, VWAP carries the mark ±step per turn toward fair value.
+fn requote_float_asks(
+    exchange: &mut StockExchange,
+    candidates: &[EquityCandidate],
+    config: &SecuritiesMarketConfig,
+    current_turn: u32,
+) {
+    for cand in candidates {
+        let mark = cand.share_price;
+        if mark <= 0.0 || cand.shares_count == 0 {
+            continue;
+        }
+        // Fair value: earnings-capitalized (eps × max P/E) blended with book
+        // for profitable names; book alone for pre-earnings companies.
+        let fair = if cand.eps > 0.0 {
+            0.5 * cand.eps * config.fund_max_pe_threshold + 0.5 * cand.book_ps
+        } else {
+            cand.book_ps
+        };
+        let mut quote = if fair > mark {
+            (mark * (1.0 + FLOAT_REQUOTE_STEP)).min(fair).max(0.01)
+        } else if fair < mark {
+            (mark * (1.0 - FLOAT_REQUOTE_STEP)).max(fair).max(0.01)
+        } else {
+            mark
+        };
+
+        let Some(book) = exchange.order_book.get_mut(&cand.instrument_id) else {
+            // No book yet — create it with the underwriter's opening ask.
+            let qty = (cand.shares_count / FLOAT_TOPUP_SHARES_DIVISOR).max(1);
+            let book = exchange
+                .order_book
+                .entry(cand.instrument_id.clone())
+                .or_default();
+            book.asks.push((
+                quote,
+                vec![Order::new_sell(
+                    format!("FLOAT-ASK-{}-{}", cand.id, current_turn),
+                    format!("TREASURY:{}", cand.id),
+                    cand.instrument_id.clone(),
+                    InstrumentType::Equity,
+                    qty,
+                    quote,
+                    u32::MAX,
+                )],
+            ));
+            book.best_ask = quote;
+            continue;
+        };
+
+        // Meet genuine resting demand: when the best standing bid is close
+        // to the mark (≥ mark·0.9, so stale deep-bid junk can't drag the
+        // tape) but sits just under the underwriter's quote, the
+        // underwriter — whose mandate is to distribute float, not to hold
+        // the line — drops its ask to that bid. Execution is at the ask,
+        // so the print lands at the buyer's valuation, still bounded
+        // inside the ±10%/turn discovery band [mark·0.9, mark·1.02].
+        let best_bid = book.best_bid;
+        if best_bid > 0.0 && best_bid < quote && best_bid >= mark * 0.9 {
+            quote = best_bid.max(0.01);
+        }
+
+        // Pull every resting TREASURY-underwritten ask out of its price level
+        // and re-quote it at `quote` (keeping quantity and expiry).
+        let mut treasury_orders: Vec<Order> = Vec::new();
+        for (_, orders) in book.asks.iter_mut() {
+            let mut i = 0;
+            while i < orders.len() {
+                if orders[i].investor_id().starts_with("TREASURY") {
+                    treasury_orders.push(orders.remove(i));
+                } else {
+                    i += 1;
+                }
+            }
+        }
+        book.asks.retain(|(_, orders)| !orders.is_empty());
+
+        if treasury_orders.is_empty() && book.asks.is_empty() {
+            // No float order AND no sell-side liquidity at all — the
+            // underwriter dribbles out a top-up tranche so every listed
+            // name has an offer the buy side can lift.
+            let qty = (cand.shares_count / FLOAT_TOPUP_SHARES_DIVISOR).max(1);
+            treasury_orders.push(Order::new_sell(
+                format!("FLOAT-ASK-{}-{}", cand.id, current_turn),
+                format!("TREASURY:{}", cand.id),
+                cand.instrument_id.clone(),
+                InstrumentType::Equity,
+                qty,
+                quote,
+                u32::MAX,
+            ));
+        }
+
+        // Re-insert the re-quoted orders at the new price level.
+        for order in treasury_orders {
+            let order = match order {
+                Order::Sell {
+                    order_id,
+                    investor_id,
+                    instrument_id,
+                    instrument_type,
+                    quantity,
+                    limit_price: _,
+                    expiry_turn,
+                } => Order::Sell {
+                    order_id,
+                    investor_id,
+                    instrument_id,
+                    instrument_type,
+                    quantity,
+                    limit_price: quote,
+                    expiry_turn,
+                },
+                other => other,
+            };
+            if let Some(pos) = book
+                .asks
+                .iter()
+                .position(|(p, _)| (*p - quote).abs() < 0.001)
+            {
+                book.asks[pos].1.push(order);
+            } else {
+                book.asks.push((quote, vec![order]));
+                book.asks.sort_by(|a, b| {
+                    a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)
+                });
+            }
+        }
+        book.best_ask = book.asks.first().map(|(p, _)| *p).unwrap_or(0.0);
     }
 }
 
@@ -1079,6 +1254,13 @@ pub fn submit_fund_orders(
         current_turn,
         equity_candidates.len()
     );
+
+    // v4.20 WS3: Re-quote standing underwriter float asks at fair-value-
+    // anchored prices BEFORE fund orders are placed, so resting and
+    // incoming buy interest can lift the offer and print trades this
+    // turn. Runs once per turn (not per fund) — the underwriter is a
+    // single market liquidity provider, not per-fund state.
+    requote_float_asks(exchange, &equity_candidates, config, current_turn);
 
     for fund in funds.iter_mut() {
         if fund.fund_type.is_none() || fund.fund_ledger.is_none() {
@@ -2213,7 +2395,17 @@ fn submit_retail_class_orders(
         }
         let cand = &ranked[(start + k) % ranked.len()];
         let alloc = remaining / (max_names - k) as f64;
-        let qty = (alloc / cand.share_price) as u64;
+        // v4.20 WS3: Retail bids carry a fill tolerance above the mark.
+        // The old code bid exactly `share_price`; the underwriter's fair-
+        // value ask walks UP to `mark × (1 + FLOAT_REQUOTE_STEP)` per
+        // turn, so mark-priced bids could never lift the offer — this is
+        // the same zero-cross deadlock as the fund side. Execution is at
+        // the ASK price regardless, so the tolerance only widens which
+        // resting asks a bid can lift (≤ mark·1.05), never prints above
+        // the prevailing offer. qty is sized against the limit so the
+        // cash pledge stays ≤ alloc.
+        let bid_limit = cand.share_price * (1.0 + RETAIL_BID_TOLERANCE);
+        let qty = (alloc / bid_limit) as u64;
         if qty == 0 {
             continue;
         }
@@ -2223,22 +2415,22 @@ fn submit_retail_class_orders(
             cand.instrument_id.clone(),
             InstrumentType::Equity,
             qty,
-            cand.share_price,
+            bid_limit,
             current_turn + 3,
         );
         let book = exchange
             .order_book
             .entry(cand.instrument_id.clone())
             .or_default();
-        if let Some(pos) = book.bids.iter().position(|(p, _)| *p == cand.share_price) {
+        if let Some(pos) = book.bids.iter().position(|(p, _)| (*p - bid_limit).abs() < 0.001) {
             book.bids[pos].1.push(order);
         } else {
-            book.bids.push((cand.share_price, vec![order]));
+            book.bids.push((bid_limit, vec![order]));
             book.bids
                 .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
         }
         book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
-        remaining -= qty as f64 * cand.share_price;
+        remaining -= qty as f64 * bid_limit;
         placed += 1;
     }
     placed

@@ -1129,10 +1129,36 @@ pub fn generate_money_laundering_black_money(
     Ok(())
 }
 
+/// Turns per in-game year — the engine's annual boundary is
+/// `(turn + 1) % TURNS_PER_YEAR == 0`, so `process_political_year` decrements
+/// `years_to_elections` on turns 23, 47, 71, ... and `run_election_if_due`
+/// then executes the election on the following turn (24, 48, ...).
+pub const TURNS_PER_YEAR: u32 = 24;
+
+/// The next year-boundary turn at or after `turn` — i.e. the next turn `t`
+/// with `(t + 1) % TURNS_PER_YEAR == 0`.
+fn next_year_boundary(turn: u32) -> u32 {
+    let rem = turn % TURNS_PER_YEAR;
+    turn + (TURNS_PER_YEAR - 1 + TURNS_PER_YEAR - rem) % TURNS_PER_YEAR
+}
+
+/// The turn on which an election scheduled `years` ahead of `current_turn`
+/// executes — the turn AFTER the `years`-th year boundary, which is exactly
+/// when `run_election_if_due` observes `years_to_elections == 0` and fires.
+///
+/// v4.20 T1: used to (re)anchor `Politics.scheduled_election_turn` so the
+/// live countdown and the legacy annual countdown can never disagree.
+pub fn election_exec_turn(current_turn: u32, years: u32) -> u32 {
+    next_year_boundary(current_turn)
+        .saturating_add(years.max(1).saturating_sub(1) * TURNS_PER_YEAR)
+        + 1
+}
+
 /// Process election cycle — advance state machine, trigger campaigns and elections.
 ///
 /// # Arguments
 /// * `country` - Mutable country (for politics.election_state)
+/// * `parties` - Mutable active-party map (taken out of `country.politics` by the caller)
 /// * `current_turn` - Current game turn
 ///
 /// # Returns
@@ -1140,8 +1166,15 @@ pub fn generate_money_laundering_black_money(
 ///
 /// # Rules
 /// * Advances ElectionState: Idle → PreCampaign → ActiveCampaign → ElectionDay → PostElectionResolution → Idle
-/// * On ElectionDay: seats are recalculated, coalition formed, ruling party set
-/// * On PostElectionResolution: committee system initialized
+/// * v4.20 T1: maintains `scheduled_election_turn`/`turns_until_election`
+///   every turn — the LIVE per-turn countdown. Campaign phases are gated on
+///   the countdown, so campaigns lead into the real election that
+///   `run_election_if_due` executes when `years_to_elections` hits 0.
+/// * Externally-driven elections (snap/crisis via `run_election_if_due`)
+///   reset `years_to_elections` to a full cycle; the resync below detects
+///   that jump and re-anchors `scheduled_election_turn`, cancelling any
+///   in-flight campaign for the stale schedule.
+/// * On ElectionDay → PostElectionResolution → Idle
 pub fn process_election_cycle(
     country: &mut crate::state::Country,
     parties: &mut HashMap<String, Party>,
@@ -1149,14 +1182,89 @@ pub fn process_election_cycle(
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
+    // v4.20 T2: Every party that entered the map by any path acquires its
+    // persistent deterministic color/icon exactly once here.
+    crate::politics::system::ensure_all_party_identities(parties);
+
+    // v4.20 T1: Supports are vote-share percent — keep them a proper
+    // partition (sum == 100) after campaign decay / event multipliers.
+    crate::politics::system::normalize_party_supports(parties);
+
+    // v4.20 T3: One-party states keep ONLY the ruling club seated — this
+    // post-passes every reseating path (elections, crisis government,
+    // genesis) so stray opposition/splinter seats can never persist.
+    crate::politics::parliament::enforce_one_party_seating(&mut country.politics);
+
+    // ---------------------------------------------------------------------
+    // v4.20 T1: Live per-turn election countdown maintenance.
+    // ---------------------------------------------------------------------
+    let form = country.politics.government_form;
+    if form.is_democratic() {
+        if country.politics.scheduled_election_turn == 0 {
+            // Lazy anchor for fresh states / pre-v4.20 saves: derive the
+            // first execution turn from the legacy year countdown.
+            country.politics.scheduled_election_turn =
+                election_exec_turn(current_turn, country.politics.years_to_elections);
+        }
+        let scheduled = country.politics.scheduled_election_turn;
+        // Resync: `run_election_if_due` (snap election, budget crisis,
+        // minority collapse) resets `years_to_elections` to a fresh full
+        // cycle without touching the turn anchor. When the year counter
+        // holds MORE than the turn anchor implies, an external election
+        // already fired — re-anchor on the new cycle and scrap any campaign
+        // running for the stale schedule.
+        let turns_left = scheduled.saturating_sub(current_turn);
+        let implied_years = turns_left.div_ceil(TURNS_PER_YEAR);
+        if country.politics.years_to_elections > implied_years {
+            country.politics.scheduled_election_turn =
+                election_exec_turn(current_turn, country.politics.years_to_elections);
+            if matches!(
+                country.politics.election_state,
+                ElectionState::PreCampaign { .. } | ElectionState::ActiveCampaign { .. }
+            ) {
+                country.politics.election_state = ElectionState::Idle;
+                messages.push(
+                    "[ELECTION] Campaign cancelled — an early election already resolved the term."
+                        .to_string(),
+                );
+            }
+        }
+        country.politics.turns_until_election = country
+            .politics
+            .scheduled_election_turn
+            .saturating_sub(current_turn);
+    } else {
+        // Non-elective regimes never count down — the UI collapses the
+        // Elections tab entirely for them.
+        country.politics.turns_until_election = 0;
+        country.politics.scheduled_election_turn = 0;
+    }
+
     match &country.politics.election_state {
         ElectionState::Idle => {
-            if current_turn > 0 && current_turn.is_multiple_of(12) {
-                country.politics.election_state = ElectionState::PreCampaign {
-                    turns_until_start: country.politics.campaign_duration_turns.max(1),
-                    registration_deadline: current_turn + 2,
-                };
-                messages.push("[ELECTION] Pre-campaign period begins".to_string());
+            // v4.20 T1: campaign phases are driven by the real countdown —
+            // a pre-campaign begins once the remaining turns fit the
+            // campaign pipeline, so ElectionDay lands on
+            // `scheduled_election_turn` exactly.
+            if form.is_democratic() && country.politics.scheduled_election_turn > 0 {
+                let turns_left = country.politics.turns_until_election;
+                let campaign_len = country.politics.campaign_duration_turns.max(1);
+                // Pre-campaign runway: up to 8 turns of registration/prep
+                // before the campaign proper.
+                const PRE_CAMPAIGN_WINDOW: u32 = 8;
+                if turns_left <= PRE_CAMPAIGN_WINDOW + campaign_len + 1 {
+                    // Size the pre-campaign so PreCampaign(S) + ActiveCampaign(R)
+                    // + 1 transition turn = turns_left → ElectionDay arm runs
+                    // on `scheduled_election_turn`.
+                    let s = turns_left
+                        .saturating_sub(campaign_len + 1)
+                        .clamp(1, PRE_CAMPAIGN_WINDOW);
+                    country.politics.election_state = ElectionState::PreCampaign {
+                        turns_until_start: s,
+                        registration_deadline: current_turn + 2,
+                    };
+                    messages.push("[ELECTION] Pre-campaign period begins".to_string());
+                }
             }
         }
         ElectionState::PreCampaign {
@@ -1195,32 +1303,20 @@ pub fn process_election_cycle(
             }
         }
         ElectionState::ElectionDay => {
-            // Calculate seats from party support
-            let party_list: Vec<(String, f64)> = parties
-                .iter()
-                .map(|(id, p)| (id.clone(), p.support))
-                .collect();
-
-            if !party_list.is_empty() {
-                let seats = crate::politics::elections::calculate_seats(
-                    parties,
-                    &country.politics.election_method,
-                    country.politics.election_threshold,
-                    460,
-                );
+            // The real election — seat reallocation, coalition formation,
+            // ministry reformation — is executed by `run_election_if_due`
+            // earlier in this same engine pass (the annual decrement made
+            // `years_to_elections` hit 0 at the boundary last turn). This
+            // arm certifies the result and drives the state machine back
+            // to Idle via PostElectionResolution.
+            let total_seats: u32 = country.politics.parliament.values().sum();
+            if total_seats > 0 {
                 messages.push(format!(
-                    "[ELECTION] Seats allocated: {} parties",
-                    seats.len()
+                    "[ELECTION] Results certified: {} seats across {} parties. {} forms government.",
+                    total_seats,
+                    country.politics.parliament.len(),
+                    country.politics.ruling_party
                 ));
-
-                // Form coalition (simplified: largest party rules)
-                if let Some((winner_id, _)) = party_list
-                    .iter()
-                    .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
-                {
-                    country.politics.ruling_party = winner_id.clone();
-                    messages.push(format!("[ELECTION] Ruling party: {}", winner_id));
-                }
             }
 
             country.politics.election_state =

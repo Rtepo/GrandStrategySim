@@ -667,6 +667,7 @@ pub fn process_legislation_turn(
                             parl.mark_bill_terminal(
                                 bill_id,
                                 &format!("Rejected by {lower_name}"),
+                                "Rejected",
                                 current_turn,
                             );
                         }
@@ -764,20 +765,139 @@ pub fn process_legislation_turn(
                         ));
                         sess.active_bills.insert(bill_id.clone(), bill);
                     } else {
+                        // v4.20 T5: Upper-house VETO — a written constitution
+                        // gives the lower house one override vote (2/3 of the
+                        // chamber) before the bill actually dies.
+                        let upper_name = country
+                            .politics
+                            .parliament_struct
+                            .as_ref()
+                            .and_then(|p| p.chambers.get(1))
+                            .map(|c| c.name.clone())
+                            .filter(|n| !n.is_empty())
+                            .unwrap_or_else(|| "Upper House".to_string());
+                        if country.politics.constitution.exists {
+                            bill.stage = LegislativeStage::VetoOverride;
+                            messages.push(format!(
+                                "[LEGISLATION] Bill '{}' REJECTED by {} ({}:{}) — constitutional override vote scheduled.",
+                                bill_title, upper_name, votes_for, votes_against
+                            ));
+                            sess.active_bills.insert(bill_id.clone(), bill);
+                        } else {
+                            messages.push(format!(
+                                "[LEGISLATION] Bill '{}' REJECTED by {} ({}:{}) — no constitutional override available.",
+                                bill_title, upper_name, votes_for, votes_against
+                            ));
+                            sess.rejected_bills.push(bill_id.clone());
+                            if let Some(ref mut parl) = country.politics.parliament_struct {
+                                parl.mark_bill_terminal(
+                                    bill_id,
+                                    &format!("Rejected by {upper_name}"),
+                                    "Rejected by Upper House",
+                                    current_turn,
+                                );
+                            }
+                        }
+                    }
+                }
+
+                LegislativeStage::VetoOverride => {
+                    // v4.20 T5: Constitutional override — the lower chamber
+                    // votes to enact over the upper house's veto. Requires a
+                    // 2/3 supermajority of the TOTAL lower chamber (not just
+                    // members present) — the constitutional threshold.
+                    let social_unrest =
+                        (country.macro_indicators.social_unrest / 100.0).clamp(0.0, 1.0);
+                    let health_capacity_ratio = country
+                        .politics
+                        .healthcare_law
+                        .as_ref()
+                        .map(|law| match law.universality {
+                            crate::politics::laws::UniversalityLevel::Universal => 1.0,
+                            crate::politics::laws::UniversalityLevel::MeansTested => 0.7,
+                            crate::politics::laws::UniversalityLevel::Categorical => 0.6,
+                            crate::politics::laws::UniversalityLevel::Limited => 0.3,
+                        })
+                        .unwrap_or(0.5);
+                    let (votes_for, votes_against, abstentions, quorum_met, override_tallies) =
+                        calculate_floor_vote(
+                            &bill,
+                            &lower_seats,
+                            &coalition,
+                            &ruling_party,
+                            parties,
+                            &bill_title,
+                            current_turn,
+                            health_capacity_ratio,
+                            social_unrest,
+                        );
+
+                    if !quorum_met {
                         messages.push(format!(
-                            "[LEGISLATION] Bill '{}' REJECTED by upper house ({}:{}).",
-                            bill_title, votes_for, votes_against
+                            "[QUORUM] Override vote on '{}' failed quorum — held for next turn.",
+                            bill_title
+                        ));
+                        sess.active_bills.insert(bill_id.clone(), bill);
+                        continue;
+                    }
+
+                    let override_passed = votes_for * 3 > total_lower_seats * 2;
+
+                    // Record the override attempt in the lower chamber log.
+                    let override_record = super::parliament::VoteRecord {
+                        bill_id: bill_id.clone(),
+                        bill_title: bill_title.clone(),
+                        bill_type: bill.bill_type,
+                        votes_for,
+                        votes_against,
+                        abstentions,
+                        passed: override_passed,
+                        turn: current_turn,
+                        club_breakdown: override_tallies,
+                        detail: Some(build_bill_detail(&bill, current_turn, true)),
+                    };
+                    if let Some(ref mut parl) = country.politics.parliament_struct {
+                        parl.record_vote(override_record);
+                    }
+                    country.politics.history.push(serde_json::json!({
+                        "event": "veto_override_vote",
+                        "bill_id": bill_id,
+                        "title": bill_title,
+                        "votes_for": votes_for,
+                        "votes_against": votes_against,
+                        "abstentions": abstentions,
+                        "passed": override_passed,
+                        "turn": current_turn,
+                    }));
+
+                    let upper_name = country
+                        .politics
+                        .parliament_struct
+                        .as_ref()
+                        .and_then(|p| p.chambers.get(1))
+                        .map(|c| c.name.clone())
+                        .filter(|n| !n.is_empty())
+                        .unwrap_or_else(|| "Upper House".to_string());
+
+                    if override_passed {
+                        bill.stage = LegislativeStage::Executive;
+                        bill.veto_overridden = true;
+                        messages.push(format!(
+                            "[LEGISLATION] {} veto on '{}' OVERRIDDEN by lower house ({}:{}) → Executive review.",
+                            upper_name, bill_title, votes_for, votes_against
+                        ));
+                        sess.active_bills.insert(bill_id.clone(), bill);
+                    } else {
+                        messages.push(format!(
+                            "[LEGISLATION] Override of {} veto on '{}' FAILED ({}:{}) — bill rejected.",
+                            upper_name, bill_title, votes_for, votes_against
                         ));
                         sess.rejected_bills.push(bill_id.clone());
                         if let Some(ref mut parl) = country.politics.parliament_struct {
-                            let upper_name = parl
-                                .chambers
-                                .get(1)
-                                .map(|c| c.name.clone())
-                                .unwrap_or_else(|| "Upper House".to_string());
                             parl.mark_bill_terminal(
                                 bill_id,
                                 &format!("Rejected by {upper_name}"),
+                                "Rejected by Upper House",
                                 current_turn,
                             );
                         }
@@ -817,7 +937,15 @@ pub fn process_legislation_turn(
                         // Stamp the effective turn on the parliamentary record —
                         // the law takes effect on the enactment turn.
                         if let Some(ref mut parl) = country.politics.parliament_struct {
-                            parl.mark_bill_terminal(bill_id, "Enacted", current_turn);
+                            // v4.20 T5: badge distinguishes an ordinary
+                            // enactment from one enacted over an upper-house
+                            // veto via the constitutional override.
+                            let badge = if bill.veto_overridden {
+                                "Senate Veto Overridden"
+                            } else {
+                                "Enacted"
+                            };
+                            parl.mark_bill_terminal(bill_id, "Enacted", badge, current_turn);
                         }
                     } else {
                         bill.stage = LegislativeStage::Rejected;
@@ -833,7 +961,12 @@ pub fn process_legislation_turn(
                             format!("Vetoed by {hos}")
                         };
                         if let Some(ref mut parl) = country.politics.parliament_struct {
-                            parl.mark_bill_terminal(bill_id, &veto_label, current_turn);
+                            parl.mark_bill_terminal(
+                                bill_id,
+                                &veto_label,
+                                "Presidential Veto",
+                                current_turn,
+                            );
                         }
                     }
                 }
@@ -1078,28 +1211,44 @@ pub fn describe_provision(p: &BillProvision) -> (String, String) {
         BillProvision::HealthcareLaw(law) => (
             "HealthcareLaw".to_string(),
             format!(
-                "system {:?} · universality {:?}",
-                law.healthcare_system, law.universality
+                "system {} · universality {}",
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    law.healthcare_system
+                )),
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    law.universality
+                ))
             ),
         ),
         BillProvision::EducationLaw(law) => (
             "EducationLaw".to_string(),
             format!(
-                "compulsory {} yrs (to age {}) · {:?} · {:?}",
+                "compulsory {} yrs (to age {}) · {} · {}",
                 law.compulsory_education.compulsory_years,
                 law.compulsory_education.end_age,
-                law.education_model,
-                law.school_system
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    law.education_model
+                )),
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    law.school_system
+                ))
             ),
         ),
         BillProvision::JusticeLaw(law) => (
             "JusticeLaw".to_string(),
             format!(
-                "KRS separated={} · PG separated={} · corruption {:.2} · wait {:?}",
+                "KRS separated={} · PG separated={} · corruption {:.2} · wait {}",
                 law.krs_separated,
                 law.prosecutor_general_separated,
                 law.corruption_index,
-                law.court_wait_time_target
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    law.court_wait_time_target
+                ))
             ),
         ),
         BillProvision::InfrastructureMandate { allocation_pct } => (
@@ -1109,15 +1258,29 @@ pub fn describe_provision(p: &BillProvision) -> (String, String) {
         BillProvision::FreeSpeechLaw(law) => (
             "FreeSpeechLaw".to_string(),
             format!(
-                "speech {:?} · assembly {:?} · press {:?}",
-                law.free_speech_level, law.assembly_rights, law.press_freedom
+                "speech {} · assembly {} · press {}",
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    law.free_speech_level
+                )),
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    law.assembly_rights
+                )),
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    law.press_freedom
+                ))
             ),
         ),
         BillProvision::TransportLaw(law) => (
             "TransportLaw".to_string(),
             format!(
-                "ownership {:?} · public subsidy {:.0}%",
-                law.ownership,
+                "ownership {} · public subsidy {:.0}%",
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    law.ownership
+                )),
                 law.public_subsidy_fraction * 100.0
             ),
         ),
@@ -1134,13 +1297,21 @@ pub fn describe_provision(p: &BillProvision) -> (String, String) {
         BillProvision::MigrationLawChange(law) => (
             "MigrationLawChange".to_string(),
             format!(
-                "open_borders={} · visa_required={} · deportation {:?}",
-                law.open_borders, law.visa_required, law.deportation_policy
+                "open_borders={} · visa_required={} · deportation {}",
+                law.open_borders,
+                law.visa_required,
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    law.deportation_policy
+                ))
             ),
         ),
         BillProvision::ChildLaborLaw(law) => (
             "ChildLaborLaw".to_string(),
-            format!("child labor {:?}", law),
+            format!(
+                "child labor {}",
+                crate::politics::system::humanize_debug_token(&format!("{law:?}"))
+            ),
         ),
         BillProvision::Custom {
             description,
@@ -1178,6 +1349,8 @@ pub fn build_bill_detail(
         ),
         LegislativeStage::FloorVote => Some(current_turn + 1 + upper_hops),
         LegislativeStage::BicameralPending => Some(current_turn + 1),
+        // Override vote this turn → executive next turn.
+        LegislativeStage::VetoOverride => Some(current_turn + 2),
         LegislativeStage::Executive => Some(current_turn),
         LegislativeStage::Enacted | LegislativeStage::Rejected => None,
     };
@@ -1185,8 +1358,11 @@ pub fn build_bill_detail(
     BillDetail {
         initiator: bill.initiator.clone(),
         bill_type: bill.bill_type.as_str().to_string(),
-        weight: format!("{:?}", bill.weight),
-        stage: format!("{:?}", bill.stage),
+        weight: crate::politics::system::humanize_debug_token(&format!(
+            "{:?}",
+            bill.weight
+        )),
+        stage: bill.stage.label().to_string(),
         introduction_turn: bill.introduction_turn,
         enacted_turn: None,
         earliest_enactment_turn: earliest,
@@ -1211,6 +1387,10 @@ pub fn build_bill_detail(
                 }
             })
             .collect(),
+        // v4.20 T5: procedural badge while the bill is in flight —
+        // `mark_bill_terminal` stamps the terminal vocabulary on vote-out.
+        status_badge: bill.stage.label().to_string(),
+        theme_tag: bill.bill_type.theme_tag().to_string(),
     }
 }
 

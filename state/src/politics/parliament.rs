@@ -11,7 +11,7 @@ use std::collections::{HashMap, HashSet};
 
 use super::ideology::IdeologyCoordinates;
 use super::names::{generate_full_vip, generate_unique_vip};
-use super::system::{Party, Politics};
+use super::system::{GovernmentForm, Party, Politics};
 
 // ============================================================================
 // VIP STRUCTURES
@@ -154,6 +154,18 @@ pub struct BillDetail {
     /// Typed provisions/effects from the bill's core clauses.
     #[serde(default)]
     pub provisions: Vec<ProvisionRecord>,
+    /// v4.20 T5: Terminal/procedural badge for the UI — "Passed",
+    /// "Rejected by Upper House", "Senate Veto Overridden",
+    /// "Presidential Veto", "In Committee", ... Stamped by
+    /// `mark_bill_terminal` on terminal outcomes; set from the pipeline
+    /// stage while the bill is in flight.
+    #[serde(default)]
+    pub status_badge: String,
+    /// v4.20 T5: Thematic tag for color-coding — "Budget", "Justice",
+    /// "Labor", "Infrastructure", "Education", "Defense", "Other".
+    /// Derived from `bill_type` once at `build_bill_detail` time.
+    #[serde(default)]
+    pub theme_tag: String,
 }
 
 /// A single legislative chamber (Lower House or Senate).
@@ -329,6 +341,12 @@ pub struct Parliament {
     /// mandate, drifted" from "fresh election". Absent in pre-v4.18 saves.
     #[serde(default)]
     pub mandate_seats: HashMap<String, u32>,
+    /// v4.20 T3: This legislature seats a single (ruling) party — set for
+    /// `GovernmentForm::OnePartyState`. Suppresses mid-term faction
+    /// splintering and splinter-club carry-over so the chamber NEVER
+    /// displays opposition or breakaway clubs.
+    #[serde(default)]
+    pub single_party_legislature: bool,
 }
 
 impl Parliament {
@@ -403,13 +421,17 @@ impl Parliament {
     /// Stamp a bill's terminal outcome onto every recorded vote for it, in
     /// all chambers. Called when a bill is enacted, vetoed, or rejected
     /// downstream of a recorded chamber vote so the parliamentary record
-    /// carries the law's effective turn (`enacted_turn`) and final stage.
-    pub fn mark_bill_terminal(&mut self, bill_id: &str, stage: &str, turn: u32) {
+    /// carries the law's effective turn (`enacted_turn`), final stage, and
+    /// the v4.20 `status_badge` the UI colors (e.g. "Enacted",
+    /// "Rejected by Upper House", "Senate Veto Overridden",
+    /// "Presidential Veto").
+    pub fn mark_bill_terminal(&mut self, bill_id: &str, stage: &str, badge: &str, turn: u32) {
         for chamber in &mut self.chambers {
             for record in &mut chamber.recent_votes {
                 if record.bill_id == bill_id {
                     if let Some(ref mut detail) = record.detail {
                         detail.stage = stage.to_string();
+                        detail.status_badge = badge.to_string();
                         if stage == "Enacted" {
                             detail.enacted_turn = Some(turn);
                         }
@@ -460,11 +482,25 @@ pub fn initialize_parliament(
 ) -> Parliament {
     let form = politics.government_form;
     let num_chambers = form.chambers();
-    let legacy_seats = &politics.parliament;
+    // v4.20 T3: One-party states seat ONLY the ruling party — every other
+    // club is barred from the legislature at initialization and every
+    // reseating path (`enforce_one_party_seating` also scrubs the flat seat
+    // map before this function is reached).
+    let single_party = form == GovernmentForm::OnePartyState;
+    let legacy_seats: HashMap<String, u32> = if single_party
+        && !politics.ruling_party.is_empty()
+    {
+        let total: u32 = politics.parliament.values().sum();
+        [(politics.ruling_party.clone(), total.max(1))]
+            .into_iter()
+            .collect()
+    } else {
+        politics.parliament.clone()
+    };
     let upper_house = &politics.upper_house;
 
     // Build clubs from the legacy seat map.
-    let clubs = build_clubs_from_seats(legacy_seats, politics, current_turn);
+    let clubs = build_clubs_from_seats(&legacy_seats, politics, current_turn);
 
     // Build chambers.
     let mut chambers = Vec::new();
@@ -513,7 +549,19 @@ pub fn initialize_parliament(
             id: "upper".to_string(),
             name: upper_name,
             total_seats,
-            seats: upper_house.clone(),
+            seats: if single_party {
+                // The rubber-stamp upper house also seats only the ruling
+                // party when one exists.
+                if politics.ruling_party.is_empty() {
+                    HashMap::new()
+                } else {
+                    [(politics.ruling_party.clone(), total_seats.max(1))]
+                        .into_iter()
+                        .collect()
+                }
+            } else {
+                upper_house.clone()
+            },
             presidium: ChamberPresidium {
                 speaker: upper_speaker,
                 deputy_speakers: Vec::new(),
@@ -535,8 +583,82 @@ pub fn initialize_parliament(
         vips,
         suspended: false,
         // The seat map this parliament was seated on — the mandate identity.
-        mandate_seats: legacy_seats.clone(),
+        mandate_seats: legacy_seats,
+        single_party_legislature: single_party,
     }
+}
+
+/// v4.20 T3: One-party states seat ONLY the ruling party.
+///
+/// Scrubs the flat seat map (`politics.parliament` and `politics.upper_house`)
+/// and, when a parliament struct exists, strips non-ruling seats/clubs so the
+/// legislature NEVER displays opposition or splinter clubs. Idempotent — run
+/// every political turn after any code path that might have reseated the
+/// chamber (elections, crisis government formation, genesis).
+///
+/// Deterministic: driven only by `politics.ruling_party` — no map iteration
+/// order affects the result.
+///
+/// # Returns
+/// `true` when the seat maps were modified.
+pub fn enforce_one_party_seating(politics: &mut Politics) -> bool {
+    if politics.government_form != GovernmentForm::OnePartyState {
+        return false;
+    }
+    if politics.ruling_party.is_empty() {
+        return false;
+    }
+    let ruling = politics.ruling_party.clone();
+    let mut changed = false;
+
+    for map in [&mut politics.parliament, &mut politics.upper_house] {
+        if map.len() > 1 || (map.len() == 1 && !map.contains_key(&ruling)) {
+            let total: u32 = map.values().sum();
+            map.clear();
+            map.insert(ruling.clone(), total.max(1));
+            changed = true;
+        }
+    }
+
+    if let Some(ref mut parl) = politics.parliament_struct {
+        for chamber in &mut parl.chambers {
+            let stray: Vec<String> = chamber
+                .seats
+                .keys()
+                .filter(|k| k.as_str() != ruling.as_str())
+                .cloned()
+                .collect();
+            if !stray.is_empty() {
+                let mut lost = 0u32;
+                for id in stray {
+                    if let Some(s) = chamber.seats.remove(&id) {
+                        lost += s;
+                    }
+                }
+                *chamber.seats.entry(ruling.clone()).or_insert(0) += lost;
+                changed = true;
+            }
+        }
+        let before = parl.clubs.len();
+        parl.clubs.retain(|c| c.id == ruling);
+        if parl.clubs.len() != before {
+            changed = true;
+        }
+        // Keep the sole club's seat count in sync with the chamber truth.
+        let chamber_total: u32 = parl
+            .chambers
+            .first()
+            .map(|c| c.seats.values().sum())
+            .unwrap_or(0);
+        if let Some(club) = parl.clubs.first_mut() {
+            if club.seats != chamber_total {
+                club.seats = chamber_total;
+                changed = true;
+            }
+        }
+        parl.mandate_seats = politics.parliament.clone();
+    }
+    changed
 }
 
 /// Phase 54: Generate and assign a Chairperson VIP for each parliamentary club.
@@ -752,6 +874,14 @@ pub fn carry_over_parliament_state(new: &mut Parliament, old: &Parliament, fresh
             new_club.chairperson_id = old_club.chairperson_id.clone();
             new_club.chairperson_name = old_club.chairperson_name.clone();
         }
+    }
+
+    // v4.20 T3: A one-party legislature never carries splinter clubs or
+    // intra-term defections — the ruling party is the only legal club and
+    // mid-term splintering is suppressed entirely. (Chairperson carry above
+    // still runs — the ruling club keeps its chair.)
+    if new.single_party_legislature {
+        return;
     }
 
     // Same-mandate check against the recorded election truth.
@@ -1129,6 +1259,9 @@ pub fn check_faction_splintering(
 
     if parliament.suspended {
         return events; // No splintering when parliament is suspended.
+    }
+    if parliament.single_party_legislature {
+        return events; // v4.20 T3: the ruling party is the only legal club.
     }
 
     // Collect splinter candidates first (avoid mutating while iterating).

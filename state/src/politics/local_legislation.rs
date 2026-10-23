@@ -511,6 +511,20 @@ pub fn execute_mandate_payment(
         }
     }
 
+    // v4.20 WS4: Settle the counterparty leg. `central_credit` was recorded
+    // on the result but never actually credited anywhere — every executed
+    // mandate silently destroyed `jst_debit` fiat (the payee was missing).
+    // The mandate buys mandated public services/works, so the payment lands
+    // in `ministry_public_service_pool` — an M0-counted pocket consumed by
+    // the State Employer payroll path next turn.
+    if result.central_credit > 0.0 {
+        country.ministry_public_service_pool += result.central_credit;
+        result.messages.push(format!(
+            "[MANDATE] Credited {:.2} to public-service pool (mandated works delivered).",
+            result.central_credit
+        ));
+    }
+
     // Validate: reserves must never be negative.
     if let Some(ref gov) = country.regions[region_idx].governance {
         assert!(
@@ -532,8 +546,17 @@ pub fn execute_mandate_payment(
 ///
 /// This function is called from the turn loop after fiscal transfers,
 /// equalization, and before JST spending.
+///
+/// v4.20 WS4: The pass no longer early-returns on an empty mandate list —
+/// regional councils convene every turn (`process_regional_council_sessions`)
+/// AFTER the execution pass, so mandates adopted this turn persist in
+/// `active_mandates` for a full turn (they are funded by NEXT turn's pass)
+/// and `RegionDetail.active_mandates` reads a live record between turns.
 pub fn process_active_mandates(country: &mut Country) {
+    let current_turn = country_turn(country);
+
     if country.politics.active_mandates.is_empty() {
+        process_regional_council_sessions(country, current_turn);
         return;
     }
 
@@ -601,6 +624,11 @@ pub fn process_active_mandates(country: &mut Country) {
     }
 
     country.politics.active_mandates = remaining_mandates;
+
+    // v4.20 WS4: regional councils convene after the execution pass so a
+    // mandate adopted this turn is visible as `active` until NEXT turn's
+    // pass funds it (snapshot reads between turns see a non-empty list).
+    process_regional_council_sessions(country, current_turn);
 }
 
 /// v4.19 WS5c: Impose per-region mandates when a national bill carrying
@@ -702,6 +730,261 @@ pub fn impose_mandates_for_bill(
             });
         }
     }
+}
+
+// ============================================================================
+// v4.20 WS4: REGIONAL COUNCIL SESSIONS (resolutions + roll calls)
+// ============================================================================
+
+use crate::politics::local_council::{
+    calculate_vote_probability, CouncilResolution, CouncilRollCall, Faction,
+};
+
+/// A council agenda item drafted from real regional conditions.
+struct CouncilAgendaItem {
+    /// Resolution title (stable per condition — the UI groups roll calls
+    /// by `resolution_title + turn`).
+    title: String,
+    /// Contract category: "infrastructure" | "sanitation" | "budget".
+    resolution_type: &'static str,
+    /// Local cash the resolution appropriates when adopted (0 = no
+    /// execution mandate).
+    required_spending: f64,
+    /// Ideological alignment per faction: (Populares, Moderates, Optimates).
+    alignment: (f64, f64, f64),
+    /// Dedup key for the execution mandate this resolution can impose —
+    /// a second mandate for the same purpose is never stacked while one is
+    /// still active (the council simply re-votes the resolution).
+    mandate_key: &'static str,
+}
+
+/// Best available current-turn proxy when only `&mut Country` is at hand:
+/// telemetry is appended at end-of-turn, so the latest sample is turn −1.
+/// The explicit `process_regional_council_sessions(country, turn)` hook
+/// exists for the orchestrator to pass `task.ctx.turn` directly.
+fn country_turn(country: &Country) -> u32 {
+    country
+        .macro_indicators
+        .telemetry_history
+        .latest()
+        .map(|s| s.turn + 1)
+        .unwrap_or(0)
+}
+
+/// Convene every regional council: draft an agenda from the region's REAL
+/// conditions, run a faction/trait-driven vote per sitting councilor with a
+/// full roll call, and give adopted spending resolutions an execution arm
+/// (an `UnfundedMandate` that next turn's `process_active_mandates` pass
+/// will fund through the normal council-funding vote + double-entry
+/// payment path).
+///
+/// # Agenda sources (no synthetic items)
+/// * Infrastructure gap — `region.treasury.infrastructure_level` below the
+///   60-point JST service standard. Spending = 2% of regional GDP × gap
+///   fraction (the JST annual-expenditure coefficient).
+/// * Sanitation backlog — `region.waste_grid` uncollected tons, landfill
+///   utilization > 85%, or collection routes below 50% condition.
+///   Spending = backlog tons × 1% of the national average wage per ton
+///   plus a 10% local-budget expansion tranche per degraded subsystem.
+/// * Budget pressure — `budget_balance < 0` or reserves < 10% of annual
+///   local expenditures. Austerity ordinance; adoption cuts
+///   `local_expenditures` 5% (real, immediate effect — no mandate).
+///
+/// # Determinism
+/// Councilor votes use `calculate_vote_probability` (trait-aware) driven by
+/// the engine's seeded RNG; abstention is a fixed 8-point band above the
+/// support probability. No HashMap iteration affects state.
+///
+/// # Arguments
+/// * `country` — regions, councils, budgets, `politics.active_mandates`.
+/// * `current_turn` — global turn stamped on resolutions, roll calls, and
+///   `imposed_turn` of generated mandates.
+pub fn process_regional_council_sessions(country: &mut Country, current_turn: u32) {
+    use rand::Rng;
+    let mut rng = crate::engine::seeded_rng::thread_rng();
+
+    let avg_wage = country.macro_indicators.average_wage.max(1.0);
+    // Mandates already in flight — a council never stacks a second
+    // execution mandate for a purpose that is still pending.
+    let active_sources: std::collections::HashSet<String> = country
+        .politics
+        .active_mandates
+        .iter()
+        .map(|m| m.source_bill_id.clone())
+        .collect();
+    let mut new_mandates: Vec<UnfundedMandate> = Vec::new();
+
+    for region in country.regions.iter_mut() {
+        let region_id = region.id.clone();
+        let region_gdp = region.gdp.max(0.0);
+        // Real regional conditions — read before mutating governance.
+        let infra_level = region.treasury.infrastructure_level;
+        let uncollected_tons = region.waste_grid.total_uncollected();
+        let landfill_fill = region.waste_grid.landfill_utilization;
+        let route_condition = region.waste_grid.route_condition;
+
+        let gov = match region.governance.as_mut() {
+            Some(g) => g,
+            None => continue,
+        };
+        if gov.council.councilors.is_empty() {
+            continue;
+        }
+
+        // ── AGENDA — one item per unmet need (deterministic order) ──
+        let mut agenda: Vec<CouncilAgendaItem> = Vec::new();
+
+        // 1) Infrastructure gap.
+        let infra_gap = (60.0 - infra_level).max(0.0);
+        if infra_gap > 5.0 && region_gdp > 0.0 {
+            agenda.push(CouncilAgendaItem {
+                title: "Municipal Infrastructure Modernization Ordinance".to_string(),
+                resolution_type: "infrastructure",
+                required_spending: region_gdp * 0.02 * (infra_gap / 60.0),
+                // Populares embrace public works; Optimates resist spending.
+                alignment: (0.85, 0.60, 0.35),
+                mandate_key: "infra",
+            });
+        }
+
+        // 2) Sanitation backlog.
+        let mut sanitation_cost = uncollected_tons * avg_wage * 0.01;
+        if landfill_fill > 0.85 {
+            // Landfill expansion tranche — 10% of the local budget.
+            sanitation_cost += gov.budget.local_expenditures.max(0.0) * 0.10;
+        }
+        if route_condition < 0.5 {
+            // Collection-route repair tranche.
+            sanitation_cost += gov.budget.local_expenditures.max(0.0) * 0.05;
+        }
+        if sanitation_cost > 0.0 {
+            agenda.push(CouncilAgendaItem {
+                title: "Emergency Sanitation Services Resolution".to_string(),
+                resolution_type: "sanitation",
+                required_spending: sanitation_cost,
+                alignment: (0.80, 0.65, 0.30),
+                mandate_key: "sanitation",
+            });
+        }
+
+        // 3) Budget pressure.
+        let deficit = gov.budget.budget_balance < 0.0;
+        let thin_reserves = gov.budget.local_expenditures > 0.0
+            && gov.budget.liquid_reserves < gov.budget.local_expenditures * 0.10;
+        if deficit || thin_reserves {
+            agenda.push(CouncilAgendaItem {
+                title: "Emergency Budget Stabilization Ordinance".to_string(),
+                resolution_type: "budget",
+                required_spending: 0.0,
+                // Optimates embrace austerity; Populares resist cuts.
+                alignment: (0.20, 0.55, 0.80),
+                mandate_key: "budget",
+            });
+        }
+
+        if agenda.is_empty() {
+            continue;
+        }
+
+        // ── SESSION — debate + roll-call vote per agenda item ──
+        for item in agenda {
+            let mut votes_for: u32 = 0;
+            let mut votes_against: u32 = 0;
+            let mut abstentions: u32 = 0;
+            let mut calls: Vec<CouncilRollCall> =
+                Vec::with_capacity(gov.council.councilors.len());
+
+            for councilor in &gov.council.councilors {
+                let alignment = match councilor.faction {
+                    Faction::Populares => item.alignment.0,
+                    Faction::Moderates => item.alignment.1,
+                    Faction::Optimates => item.alignment.2,
+                };
+                // Trait-aware support probability; councilors are not
+                // bribed/blackmailed in a routine session, party discipline
+                // is a mid 0.5 baseline, party wealth is not modeled here.
+                let p = calculate_vote_probability(
+                    councilor, false, alignment, false, false, 0.5, 0.0,
+                )
+                .clamp(0.02, 0.98);
+                let roll: f64 = rng.gen();
+                let vote = if roll < p {
+                    votes_for += 1;
+                    "for"
+                } else if roll < p + 0.08 {
+                    abstentions += 1;
+                    "abstain"
+                } else {
+                    votes_against += 1;
+                    "against"
+                };
+                calls.push(CouncilRollCall {
+                    resolution_title: item.title.clone(),
+                    member_name: councilor.name.clone(),
+                    faction: councilor.faction.to_string(),
+                    vote: vote.to_string(),
+                    vip_id: councilor.id.clone(),
+                    turn: current_turn,
+                });
+            }
+
+            let adopted = votes_for > votes_against;
+            gov.council.resolutions.push(CouncilResolution {
+                title: item.title.clone(),
+                resolution_type: item.resolution_type.to_string(),
+                status: if adopted { "adopted" } else { "rejected" }.to_string(),
+                votes_for,
+                votes_against,
+                abstentions,
+                turn: current_turn,
+            });
+            gov.council.roll_calls.extend(calls);
+
+            if adopted {
+                gov.council.approval_rating = (gov.council.approval_rating + 0.5).min(100.0);
+                if item.required_spending > 0.0 {
+                    // Execution arm: the appropriation becomes an unfunded
+                    // mandate on the JST budget. `central_funding = 0` — a
+                    // self-appropriated local ordinance, fully JST-financed.
+                    let source_id =
+                        format!("COUNCIL-RES-{}-{}", region_id, item.mandate_key);
+                    if !active_sources.contains(&source_id) {
+                        new_mandates.push(UnfundedMandate {
+                            description: item.title.clone(),
+                            required_spending_per_region: item.required_spending,
+                            central_funding: 0.0,
+                            funding_gap: item.required_spending,
+                            imposed_turn: current_turn,
+                            friction_score: 0.0,
+                            council_decision: MandateFundingDecision::Pending,
+                            region_id: region_id.clone(),
+                            source_bill_id: source_id,
+                        });
+                    }
+                } else if item.resolution_type == "budget" {
+                    // Austerity ordinance takes effect immediately — a 5%
+                    // expenditure cut is a real budget decision, not a
+                    // synthetic value.
+                    gov.budget.local_expenditures *= 0.95;
+                }
+            } else {
+                gov.council.approval_rating = (gov.council.approval_rating - 0.2).max(0.0);
+            }
+        }
+
+        // Bounded history: 4 years of resolutions (96 turns), roll calls
+        // capped at 20× per-resolution worst case (50 seats × 3 items).
+        if gov.council.resolutions.len() > 96 {
+            let drop = gov.council.resolutions.len() - 96;
+            gov.council.resolutions.drain(0..drop);
+        }
+        if gov.council.roll_calls.len() > 960 {
+            let drop = gov.council.roll_calls.len() - 960;
+            gov.council.roll_calls.drain(0..drop);
+        }
+    }
+
+    country.politics.active_mandates.extend(new_mandates);
 }
 
 // ============================================================================
@@ -842,6 +1125,211 @@ mod tests {
         region.governance = Some(gov);
         country.regions = vec![region];
         country
+    }
+
+    // ── v4.20 WS4: Regional council sessions ──
+
+    use crate::politics::local_council::Councilor;
+    use crate::registries::enums::Commodity;
+
+    /// A governed region whose council sits three real councilors, with an
+    /// infrastructure gap (level 30 < 55) and a budget deficit — two agenda
+    /// items that must always reach the floor.
+    fn make_council_country() -> Country {
+        let mut country = make_country_with_region(AdministrativeStatus::Normal, 5_000.0);
+        let region = &mut country.regions[0];
+        region.gdp = 1_000_000.0;
+        region.treasury.infrastructure_level = 30.0;
+        let gov = region.governance.as_mut().unwrap();
+        gov.budget.budget_balance = -10.0; // deficit → austerity agenda item
+        gov.council.total_seats = 3;
+        gov.council.councilors = vec![
+            Councilor {
+                id: "C-1".to_string(),
+                name: "Anna Nowak".to_string(),
+                faction: Faction::Populares,
+                ..Default::default()
+            },
+            Councilor {
+                id: "C-2".to_string(),
+                name: "Jan Krol".to_string(),
+                faction: Faction::Moderates,
+                ..Default::default()
+            },
+            Councilor {
+                id: "C-3".to_string(),
+                name: "Piotr Lis".to_string(),
+                faction: Faction::Optimates,
+                ..Default::default()
+            },
+        ];
+        country
+    }
+
+    #[test]
+    fn test_council_session_records_resolutions_and_roll_calls() {
+        crate::engine::seeded_rng::set_seed(42);
+        let mut country = make_council_country();
+        process_regional_council_sessions(&mut country, 7);
+
+        let gov = country.regions[0].governance.as_ref().unwrap();
+        // Infrastructure gap + budget deficit → exactly two agenda items.
+        assert_eq!(
+            gov.council.resolutions.len(),
+            2,
+            "infrastructure + budget items must reach the floor"
+        );
+        let types: std::collections::HashSet<&str> = gov
+            .council
+            .resolutions
+            .iter()
+            .map(|r| r.resolution_type.as_str())
+            .collect();
+        assert!(types.contains("infrastructure"));
+        assert!(types.contains("budget"));
+        for r in &gov.council.resolutions {
+            assert_eq!(r.turn, 7);
+            assert_eq!(
+                r.votes_for + r.votes_against + r.abstentions,
+                3,
+                "every sitting councilor casts a vote or abstains"
+            );
+            assert!(r.status == "adopted" || r.status == "rejected");
+        }
+        // One roll call per councilor per resolution — actual member data.
+        assert_eq!(gov.council.roll_calls.len(), 2 * 3);
+        for rc in &gov.council.roll_calls {
+            assert!(!rc.member_name.is_empty());
+            assert!(
+                rc.faction == "Populares" || rc.faction == "Moderates" || rc.faction == "Optimates"
+            );
+            assert!(rc.vote == "for" || rc.vote == "against" || rc.vote == "abstain");
+            assert_eq!(rc.turn, 7);
+            assert!(gov
+                .council
+                .resolutions
+                .iter()
+                .any(|r| r.title == rc.resolution_title));
+        }
+        // Adopted spending resolutions become real unfunded mandates.
+        let adopted_spenders = gov
+            .council
+            .resolutions
+            .iter()
+            .filter(|r| r.status == "adopted" && r.resolution_type != "budget")
+            .count();
+        assert_eq!(
+            country.politics.active_mandates.len(),
+            adopted_spenders,
+            "each adopted spending resolution imposes exactly one mandate"
+        );
+        for m in &country.politics.active_mandates {
+            assert!(m.source_bill_id.starts_with("COUNCIL-RES-TEST-REGION-"));
+            assert_eq!(m.imposed_turn, 7);
+            assert_eq!(m.council_decision, MandateFundingDecision::Pending);
+        }
+        crate::engine::seeded_rng::clear_seed();
+    }
+
+    #[test]
+    fn test_process_active_mandates_convenes_council_on_empty_list() {
+        crate::engine::seeded_rng::set_seed(9);
+        let mut country = make_council_country();
+        assert!(country.politics.active_mandates.is_empty());
+        process_active_mandates(&mut country);
+        let gov = country.regions[0].governance.as_ref().unwrap();
+        assert!(
+            !gov.council.resolutions.is_empty(),
+            "council must convene even with no active mandates"
+        );
+        crate::engine::seeded_rng::clear_seed();
+    }
+
+    #[test]
+    fn test_sanitation_resolution_driven_by_waste_backlog() {
+        crate::engine::seeded_rng::set_seed(11);
+        let mut country = make_council_country();
+        {
+            let region = &mut country.regions[0];
+            region.treasury.infrastructure_level = 100.0; // no infra item
+            let gov = region.governance.as_mut().unwrap();
+            gov.budget.budget_balance = 0.0; // no deficit item
+            region.waste_grid.add_uncollected(Commodity::MixedWaste, 500.0);
+        }
+        process_regional_council_sessions(&mut country, 3);
+        let gov = country.regions[0].governance.as_ref().unwrap();
+        assert_eq!(gov.council.resolutions.len(), 1);
+        assert_eq!(gov.council.resolutions[0].resolution_type, "sanitation");
+        assert_eq!(gov.council.roll_calls.len(), 3);
+        crate::engine::seeded_rng::clear_seed();
+    }
+
+    #[test]
+    fn test_council_mandate_dedup_no_stacking() {
+        crate::engine::seeded_rng::set_seed(5);
+        let mut country = make_council_country();
+        // Pre-seed an in-flight council mandate for the same purpose.
+        country.politics.active_mandates.push(UnfundedMandate {
+            description: "prior infrastructure ordinance".to_string(),
+            required_spending_per_region: 100.0,
+            region_id: "TEST-REGION".to_string(),
+            source_bill_id: "COUNCIL-RES-TEST-REGION-infra".to_string(),
+            ..Default::default()
+        });
+        process_regional_council_sessions(&mut country, 8);
+        let infra_mandates = country
+            .politics
+            .active_mandates
+            .iter()
+            .filter(|m| m.source_bill_id == "COUNCIL-RES-TEST-REGION-infra")
+            .count();
+        assert_eq!(infra_mandates, 1, "council never stacks a duplicate mandate");
+        crate::engine::seeded_rng::clear_seed();
+    }
+
+    #[test]
+    fn test_council_mandate_executes_and_credits_service_pool() {
+        crate::engine::seeded_rng::set_seed(13);
+        let mut country = make_council_country();
+        country.politics.active_mandates.push(UnfundedMandate {
+            description: "Municipal Infrastructure Modernization Ordinance".to_string(),
+            required_spending_per_region: 200.0,
+            central_funding: 0.0,
+            funding_gap: 200.0,
+            imposed_turn: 1,
+            region_id: "TEST-REGION".to_string(),
+            source_bill_id: "COUNCIL-RES-TEST-REGION-infra".to_string(),
+            ..Default::default()
+        });
+        process_active_mandates(&mut country);
+        // Either the council refused (mandate stays for retry) or the
+        // payment executed — in which case the payee leg must have landed
+        // in the M0-counted public-service pool (the void-sink fix).
+        let still_active = !country.politics.active_mandates.is_empty();
+        let credited = country.ministry_public_service_pool;
+        assert!(
+            still_active || credited == 200.0,
+            "executed mandate must credit the service pool (got {credited})"
+        );
+        if !still_active {
+            assert_eq!(credited, 200.0);
+        }
+        crate::engine::seeded_rng::clear_seed();
+    }
+
+    #[test]
+    fn test_council_sessions_deterministic_under_seed() {
+        let mut a = make_council_country();
+        let mut b = make_council_country();
+        crate::engine::seeded_rng::set_seed(77);
+        process_regional_council_sessions(&mut a, 4);
+        crate::engine::seeded_rng::set_seed(77);
+        process_regional_council_sessions(&mut b, 4);
+        let ga = a.regions[0].governance.as_ref().unwrap();
+        let gb = b.regions[0].governance.as_ref().unwrap();
+        assert_eq!(ga.council.resolutions, gb.council.resolutions);
+        assert_eq!(ga.council.roll_calls, gb.council.roll_calls);
+        crate::engine::seeded_rng::clear_seed();
     }
 
     #[test]

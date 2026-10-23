@@ -1046,6 +1046,151 @@ impl StockExchange {
         }
     }
 
+    /// v4.20 WS3: Distribute accumulated free-float dividend cash to the
+    /// brokerage accounts that actually hold the instrument.
+    ///
+    /// Root cause: `corporate/manager.rs` credits the free-float share of
+    /// every listed company's dividend into `liquidity_pools[instrument_id].
+    /// cash` ("the public's" entitlement) — but NOTHING ever paid it out.
+    /// Fund and retail holders of `EQUITY:<id>` therefore received zero
+    /// dividend income, a primary reason equity funds showed negative
+    /// returns even for profitable constituents.
+    ///
+    /// This sweep pays the pooled cash pro-rata to every brokerage account
+    /// holding shares of the instrument (funds and other companies in
+    /// `companies`, plus retail class accounts in `regions`), net of the
+    /// standard 19% dividend withholding that applies to every other
+    /// dividend channel. The residual — dividends on float still held by
+    /// the TREASURY underwriter (unsold IPO tranches) plus f.p. dust —
+    /// escheats to `treasury`, so the pooled cash is conserved exactly:
+    /// `pool.cash = Σ holder_net + Σ withholding + treasury_residual`.
+    ///
+    /// Call once per turn after share-price/mark updates, while the
+    /// companies/regions slices are mutably available (see turn.rs
+    /// securities section, after `update_share_prices`).
+    pub fn distribute_float_dividends(
+        &mut self,
+        companies: &mut [Company],
+        regions: &mut [Region],
+        treasury: &mut Treasury,
+    ) {
+        const FLOAT_DIVIDEND_WITHHOLDING: f64 = 0.19; // parity with manager.rs
+
+        // BTreeMap — deterministic instrument order.
+        let pool_instruments: Vec<String> = self
+            .liquidity_pools
+            .iter()
+            .filter(|(_, pool)| pool.cash > 1e-9)
+            .map(|(id, _)| id.clone())
+            .collect();
+
+        for instrument_id in pool_instruments {
+            let Some(pool) = self.liquidity_pools.get_mut(&instrument_id) else {
+                continue;
+            };
+            let pool_cash = pool.cash;
+            if pool_cash <= 1e-9 {
+                continue;
+            }
+
+            // Tally real holdings of this instrument across every
+            // brokerage account (companies incl. funds, then retail
+            // classes). Slice order is deterministic; the distribution
+            // itself is order-independent.
+            let company_qty: Vec<u64> = companies
+                .iter()
+                .map(|c| {
+                    c.brokerage_account
+                        .as_ref()
+                        .map(|b| b.get_quantity(&instrument_id))
+                        .unwrap_or(0)
+                })
+                .collect();
+            // Two passes: count total held, then pay pro-rata.
+            let mut total_held: u64 = company_qty.iter().sum();
+            for region in regions.iter() {
+                for class in region.class_demographics.rural_classes.values() {
+                    total_held += class
+                        .brokerage_account
+                        .as_ref()
+                        .map(|b| b.get_quantity(&instrument_id))
+                        .unwrap_or(0);
+                }
+                for class in region.class_demographics.urban_classes.values() {
+                    total_held += class
+                        .brokerage_account
+                        .as_ref()
+                        .map(|b| b.get_quantity(&instrument_id))
+                        .unwrap_or(0);
+                }
+            }
+
+            let mut paid = 0.0_f64;
+            let mut withholding_total = 0.0_f64;
+
+            if total_held > 0 {
+                let per_share_gross = pool_cash / total_held as f64;
+                for (c, qty) in companies.iter_mut().zip(company_qty.iter()) {
+                    if *qty == 0 {
+                        continue;
+                    }
+                    if let Some(acct) = c.brokerage_account.as_mut() {
+                        let gross = per_share_gross * *qty as f64;
+                        let wh = gross * FLOAT_DIVIDEND_WITHHOLDING;
+                        acct.cash += gross - wh;
+                        paid += gross;
+                        withholding_total += wh;
+                    }
+                }
+                for region in regions.iter_mut() {
+                    for class in region.class_demographics.rural_classes.values_mut() {
+                        let qty = class
+                            .brokerage_account
+                            .as_ref()
+                            .map(|b| b.get_quantity(&instrument_id))
+                            .unwrap_or(0);
+                        if qty == 0 {
+                            continue;
+                        }
+                        if let Some(acct) = class.brokerage_account.as_mut() {
+                            let gross = per_share_gross * qty as f64;
+                            let wh = gross * FLOAT_DIVIDEND_WITHHOLDING;
+                            acct.cash += gross - wh;
+                            paid += gross;
+                            withholding_total += wh;
+                        }
+                    }
+                    for class in region.class_demographics.urban_classes.values_mut() {
+                        let qty = class
+                            .brokerage_account
+                            .as_ref()
+                            .map(|b| b.get_quantity(&instrument_id))
+                            .unwrap_or(0);
+                        if qty == 0 {
+                            continue;
+                        }
+                        if let Some(acct) = class.brokerage_account.as_mut() {
+                            let gross = per_share_gross * qty as f64;
+                            let wh = gross * FLOAT_DIVIDEND_WITHHOLDING;
+                            acct.cash += gross - wh;
+                            paid += gross;
+                            withholding_total += wh;
+                        }
+                    }
+                }
+            }
+
+            // Drain the pool: paid + withholding + residual-to-treasury
+            // conserves pool_cash exactly (residual = dividends on float
+            // still underwritten by TREASURY + rounding dust).
+            let residual = (pool_cash - paid).max(0.0);
+            if let Some(pool) = self.liquidity_pools.get_mut(&instrument_id) {
+                pool.cash = 0.0;
+            }
+            treasury.liquid_reserves += withholding_total + residual;
+        }
+    }
+
     /// Phase 56: Get total turnover (currency value traded) for an
     /// instrument this turn — sum of price × quantity over matched trades.
     pub fn get_turn_turnover(&self, instrument_id: &str, current_turn: u32) -> f64 {
@@ -1094,6 +1239,15 @@ impl StockExchange {
         current_turn: u32,
         mut cgt_registry: Option<&mut crate::state::capital_gains_tax::CapitalGainsTaxRegistry>,
     ) -> Vec<Trade> {
+        // v4.20 WS3: Sweep pooled free-float dividends to the brokerage
+        // accounts that actually hold the shares BEFORE matching. This is
+        // an income distribution, not trading — it still runs while the
+        // circuit breaker halts the market (dividends are owed regardless
+        // of whether orders execute). Uses the same companies/regions/
+        // treasury borrows the matcher already receives, so no extra
+        // turn-orchestrator wiring is needed.
+        self.distribute_float_dividends(companies, regions, treasury);
+
         if self.circuit_breaker.is_halted {
             return Vec::new();
         }

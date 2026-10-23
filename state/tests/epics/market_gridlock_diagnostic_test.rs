@@ -450,6 +450,13 @@ fn test_market_gridlock_diagnostic() {
     // V418-2 decomposition: per-commodity demanded / sold / unmet / shelf
     // units — resolves whether a C spike is demand-side or shelf-supply-side.
     let mut comm_series: BTreeMap<String, Vec<(f64, f64, f64, f64)>> = BTreeMap::new();
+    // Constant-price deflator inputs: this turn's sold units per commodity
+    // and the retail VWAP those units cleared at. A Paasche-style consumer
+    // deflator over the actual sold basket measures REAL consumption; the
+    // normative CPI basket under-weights high-price durables and lets a
+    // single-commodity price event masquerade as a demand move.
+    let mut sold_units_series: Vec<BTreeMap<Commodity, f64>> = Vec::new();
+    let mut retail_px_series: Vec<BTreeMap<Commodity, f64>> = Vec::new();
     // V419-4: cumulative committee-routing observation — bills sit in
     // `Committee` stage for ~3 turns, so a single end-state sample can read
     // zero during a legitimate pipeline lull or post-election rebuild. Track
@@ -536,6 +543,7 @@ fn test_market_gridlock_diagnostic() {
         {
             let mut dem: BTreeMap<Commodity, f64> = BTreeMap::new();
             let mut sold: BTreeMap<Commodity, f64> = BTreeMap::new();
+            let mut sold_now: BTreeMap<Commodity, f64> = BTreeMap::new();
             let mut unmet: BTreeMap<Commodity, f64> = BTreeMap::new();
             let mut shelf: BTreeMap<Commodity, f64> = BTreeMap::new();
             // Per-region LuxuryClothing breakdown — the national C sawtooth
@@ -548,6 +556,12 @@ fn test_market_gridlock_diagnostic() {
                     if let Some(p) = &store.retail_profile {
                         for (c, q) in &p.units_sold_last_turn {
                             *sold.entry(*c).or_insert(0.0) += q;
+                        }
+                        // `units_sold_pending` holds the turn that just
+                        // cleared — the quantity weights for this turn's
+                        // retail VWAP in the consumer deflator.
+                        for (c, q) in &p.units_sold_pending {
+                            *sold_now.entry(*c).or_insert(0.0) += q;
                         }
                         for (c, q) in &p.unmet_demand_last_turn {
                             *unmet.entry(*c).or_insert(0.0) += q;
@@ -629,6 +643,15 @@ fn test_market_gridlock_diagnostic() {
                         shelf.get(c).copied().unwrap_or(0.0),
                     ));
             }
+            sold_units_series.push(sold_now);
+            retail_px_series.push(
+                state
+                    .market_history
+                    .retail_vwap_per_commodity
+                    .iter()
+                    .map(|(c, p)| (*c, *p))
+                    .collect(),
+            );
         }
         if turn_num == 0 {
             for (name, c) in &state.countries {
@@ -1648,15 +1671,71 @@ fn test_market_gridlock_diagnostic() {
     // ── v4.17.0 anti-sleight gates: mechanical behavior, not aggregates ──
 
     // V418-2 deflation: the smoothing invariant is REAL household
-    // consumption. Nominal retail revenue carries CPI noise (±5%/turn
-    // repricing swings) that is not a smoothing failure — deflate each
-    // country's consumption by its CPI index before aggregating.
-    let mut real_cons_series: Vec<f64> = vec![0.0; cons_series.len()];
+    // consumption — the national-accounts measure: this turn's sold basket
+    // valued at constant prices. CPI-deflating is wrong for single-
+    // commodity price events: the CPI basket is normative (registry tier
+    // weights) and under-weights high-price durables, so a fire-sale
+    // clearance whipsaw in one commodity (the t=37–41 Clothing event:
+    // VWAP −45% on a distressed exporter's flood, units flat) read as a
+    // phantom ±24% demand move. The Paasche consumer deflator
+    //   def_t = Σ q_c,t·p_c,t / Σ q_c,t·p_c,base
+    // over the actual sold basket deflates a pure price event to zero
+    // while a genuine volume collapse still fails: when units fall at
+    // unchanged prices the deflator is flat and real C tracks the nominal
+    // drop. Masking by a COMBINED price+volume collapse is bounded by the
+    // physical-units floor asserted below.
+    let mut base_px: BTreeMap<Commodity, f64> = BTreeMap::new();
+    // Anchor at the gate window start (turn 12) — genesis/bootstrap price
+    // discovery is still settling before that and sits outside the
+    // measured window anyway.
+    if let Some(m) = retail_px_series.get(12) {
+        for (c, p) in m {
+            if *p > 0.0 {
+                base_px.insert(*c, *p);
+            }
+        }
+    }
+    // Commodities that first traded later anchor at their first positive px.
+    for m in &retail_px_series {
+        for (c, p) in m {
+            if *p > 0.0 {
+                base_px.entry(*c).or_insert(*p);
+            }
+        }
+    }
+    let mut real_cons_series: Vec<f64> = Vec::with_capacity(cons_series.len());
+    let mut cons_deflator: Vec<f64> = Vec::with_capacity(cons_series.len());
+    for (i, &nom) in cons_series.iter().enumerate() {
+        let (mut num, mut den) = (0.0f64, 0.0f64);
+        if let Some(sold) = sold_units_series.get(i) {
+            let pxm = retail_px_series.get(i);
+            for (c, q) in sold {
+                if *q <= 0.0 {
+                    continue;
+                }
+                let Some(&p0) = base_px.get(c).filter(|p| **p > 0.0) else {
+                    continue;
+                };
+                let pt = pxm
+                    .and_then(|m| m.get(c))
+                    .copied()
+                    .filter(|p| *p > 0.0)
+                    .unwrap_or(p0);
+                num += q * pt;
+                den += q * p0;
+            }
+        }
+        let def = if den > 0.0 { num / den } else { 1.0 };
+        cons_deflator.push(def);
+        real_cons_series.push(nom / def.max(1e-6));
+    }
+    // CPI-deflated twin kept for diagnostics only.
+    let mut real_cons_cpi: Vec<f64> = vec![0.0; cons_series.len()];
     for (cname, v) in &cons_by_country {
         let cv = cpi_by_country.get(cname);
         for (i, &nom) in v.iter().enumerate() {
             let idx = cv.and_then(|c| c.get(i)).copied().unwrap_or(1.0).max(1e-6);
-            real_cons_series[i] += nom / idx;
+            real_cons_cpi[i] += nom / idx;
         }
     }
 
@@ -2085,10 +2164,10 @@ fn test_market_gridlock_diagnostic() {
     // Households must draw real class savings on income dips; the ~85%
     // single-turn collapse was the pre-smoothing signature.
     //
-    // The real (CPI-deflated) series is computed once above the pre-gate and
-    // shared here — class spend capacity is already enveloped at ±15%/turn,
-    // so nominal-revenue jumps driven by CPI moves are price noise, not a
-    // smoothing failure.
+    // The real (constant-price, sold-basket deflated) series is computed
+    // once above the pre-gate and shared here — class spend capacity is
+    // already enveloped at ±15%/turn, so nominal-revenue jumps driven by
+    // price moves are price discovery, not a smoothing failure.
     let mut worst_dc = (0.0f64, 0usize);
     for (i, w) in real_cons_series.windows(2).enumerate() {
         if i + 1 < 12 || w[0] <= 0.0 {
@@ -2097,6 +2176,34 @@ fn test_market_gridlock_diagnostic() {
         let d = (w[1] - w[0]).abs() / w[0];
         if d > worst_dc.0 {
             worst_dc = (d, i + 1);
+        }
+    }
+    // CPI-deflated worst for diagnostics — shows how much of the real move
+    // the normative basket misses on single-commodity price events.
+    let mut worst_dc_cpi = (0.0f64, 0usize);
+    for (i, w) in real_cons_cpi.windows(2).enumerate() {
+        if i + 1 < 12 || w[0] <= 0.0 {
+            continue;
+        }
+        let d = (w[1] - w[0]).abs() / w[0];
+        if d > worst_dc_cpi.0 {
+            worst_dc_cpi = (d, i + 1);
+        }
+    }
+    // Physical-units floor: the deflated gate can in principle be masked
+    // by a combined price+volume collapse (deflator falls with nominal),
+    // so the raw sold-unit path gets its own collapse bound. Upside moves
+    // are legitimate (harvest releases, backlog clearance) — the failure
+    // mode under test is a demand collapse.
+    let mut worst_units_drop = (0.0f64, 0usize);
+    for i in 12..sold_units_series.len().saturating_sub(1) {
+        let a: f64 = sold_units_series[i].values().sum();
+        let b: f64 = sold_units_series[i + 1].values().sum();
+        if a > 0.0 {
+            let drop = (a - b) / a;
+            if drop > worst_units_drop.0 {
+                worst_units_drop = (drop, i + 1);
+            }
         }
     }
     // Nominal-metric worst for diagnostics — kept so the SPIKE dump below
@@ -2112,12 +2219,21 @@ fn test_market_gridlock_diagnostic() {
         }
     }
     eprintln!(
-        "V418-DBG: consumption turns={} worst |ΔC/C|={:.2}% real at turn {} (nominal {:.2}% at turn {})",
+        "V418-DBG: consumption turns={} worst |ΔC/C|={:.2}% real at turn {} (nominal {:.2}% at turn {}, cpi-defl {:.2}% at turn {}, units-drop {:.1}% at turn {}, min-deflator {:.3})",
         cons_series.len(),
         worst_dc.0 * 100.0,
         worst_dc.1,
         worst_dc_nominal.0 * 100.0,
-        worst_dc_nominal.1
+        worst_dc_nominal.1,
+        worst_dc_cpi.0 * 100.0,
+        worst_dc_cpi.1,
+        worst_units_drop.0 * 100.0,
+        worst_units_drop.1,
+        cons_deflator
+            .iter()
+            .copied()
+            .filter(|d| *d > 0.0)
+            .fold(f64::INFINITY, f64::min)
     );
     {
         let wt = worst_dc.1;
@@ -2206,6 +2322,13 @@ fn test_market_gridlock_diagnostic() {
          smoothing is not holding (savings drawdown not covering income dips)",
         worst_dc.0 * 100.0,
         worst_dc.1
+    );
+    assert!(
+        worst_units_drop.0 < 0.25,
+        "V418-2 FAIL: retail units sold collapsed {:.1}% at turn {} — physical \
+         consumption fell through a price move the deflator absorbed",
+        worst_units_drop.0 * 100.0,
+        worst_units_drop.1
     );
 
     // V418-3: ministry SPENT tracks real outflows — never negative (the
@@ -2512,6 +2635,212 @@ fn test_market_gridlock_diagnostic() {
         guilds_with_members,
         movements_count,
         union_member_sets.len()
+    );
+
+    // ========================================================================
+    // v4.20.0 POLITICAL DEPTH, MONETARY REALISM & SERVICE GATES
+    // ========================================================================
+    // Release-gate assertions for the v4.20 workstreams. Each gate reads the
+    // same authoritative state the UI DTOs serialize — no synthetic metrics.
+
+    // V420-1: Party supports are a proper partition — stored on the percent
+    // scale and renormalized every turn so the electorate sums to ~100.0
+    // (the v4.19 Elections tab showed supports ×100 twice: 3129.8% summing
+    // to ~10,000%).
+    for (name, country) in &state.countries {
+        let party_supports_sum: f64 = country
+            .politics
+            .active_parties
+            .values()
+            .map(|p| p.support.max(0.0))
+            .sum();
+        if country.politics.active_parties.is_empty() {
+            continue;
+        }
+        assert!(
+            (party_supports_sum - 100.0).abs() < 1.0,
+            "V420-1 FAIL[{name}]: party supports sum to {party_supports_sum:.2} \
+             (need ~100.0) — support is not a normalized partition"
+        );
+    }
+
+    // V420-2: Elections actually execute — the per-turn countdown reaches
+    // ElectionDay and run_election_if_due reallocates seats (the v4.19
+    // countdown stayed frozen at ~96 because nothing ever decremented it).
+    let elections_held_count: u32 = state
+        .countries
+        .values()
+        .map(|c| c.politics.elections_held)
+        .sum();
+    assert!(
+        elections_held_count > 0,
+        "V420-2 FAIL: elections_held={elections_held_count} after {TURNS} \
+         turns — the election countdown never fired seat reallocation"
+    );
+
+    // V420-3: One-party states seat ONLY the ruling club — the v4.19
+    // Occitania parliament held 8 multi-ideology opposition clubs.
+    for (name, country) in &state.countries {
+        if country.politics.government_form
+            != sim_engine::politics::system::GovernmentForm::OnePartyState
+        {
+            continue;
+        }
+        let one_party_state_clubs_count = country
+            .politics
+            .parliament_struct
+            .as_ref()
+            .map(|p| p.clubs.len())
+            .unwrap_or(0);
+        assert_eq!(
+            one_party_state_clubs_count, 1,
+            "V420-3 FAIL[{name}]: OnePartyState parliament seats \
+             {one_party_state_clubs_count} clubs — must seat exactly the \
+             ruling club"
+        );
+        assert_eq!(
+            country.politics.parliament.len(),
+            1,
+            "V420-3 FAIL[{name}]: flat parliament map holds {} parties — \
+             ruling club must be the only seat-holder",
+            country.politics.parliament.len()
+        );
+    }
+
+    // V420-4: Banks lend profitably — average LDR in the operational band
+    // and per-bank interest income never negative (the v4.19 NIRP regime
+    // drove interest income to −281.89K and LDR to 0-4%). The interest
+    // income terms mirror the BankDetail DTO formula in snapshot.rs.
+    let mut ldr_sum = 0.0;
+    let mut ldr_n = 0usize;
+    let mut negative_income_banks: Vec<String> = Vec::new();
+    for (name, country) in &state.countries {
+        let rates = &country.central_bank.interest_rates;
+        if let Some(ents) = ctx.entities.get(name) {
+            for c in &ents.companies {
+                let Some(bs) = c.balance_sheet.as_ref() else {
+                    continue;
+                };
+                if bs.deposits <= 0.0 {
+                    continue;
+                }
+                let corporate_loans: f64 = bs
+                    .loans_issued
+                    .iter()
+                    .map(|l| l.outstanding_balance)
+                    .sum();
+                let interbank_given: f64 = bs.interbank_loans_given.values().sum();
+                let ldr =
+                    (corporate_loans + bs.consumer_loans_outstanding) / bs.deposits;
+                ldr_sum += ldr;
+                ldr_n += 1;
+                let interest_income: f64 = bs
+                    .loans_issued
+                    .iter()
+                    .map(|l| l.outstanding_balance * l.interest_rate.max(0.0))
+                    .sum::<f64>()
+                    + bs.consumer_loans_outstanding * (rates.reference_rate + 0.04).max(0.0)
+                    + interbank_given * rates.reference_rate.max(0.0);
+                if interest_income < 0.0 {
+                    negative_income_banks.push(format!(
+                        "{name}/{} ii={interest_income:.0}",
+                        c.id
+                    ));
+                }
+            }
+        }
+    }
+    let avg_bank_ldr = if ldr_n > 0 { ldr_sum / ldr_n as f64 } else { 0.0 };
+    eprintln!(
+        "V420-DBG: avg_bank_ldr={avg_bank_ldr:.3} banks={ldr_n} \
+         negative_income={negative_income_banks:?}"
+    );
+    assert!(
+        ldr_n > 0,
+        "V420-4 FAIL: zero deposit-taking banks at horizon — cannot \
+         evaluate LDR band"
+    );
+    assert!(
+        avg_bank_ldr > 0.25,
+        "V420-4 FAIL: avg_bank_ldr={avg_bank_ldr:.3} <= 0.25 — deposits are \
+         not being converted into loans"
+    );
+    assert!(
+        negative_income_banks.is_empty(),
+        "V420-4 FAIL: banks with negative interest income: \
+         {negative_income_banks:?} — nominal rates must be floored >= 0"
+    );
+
+    // V420-5: The stock exchange trades — distinct equity instruments with
+    // executed volume on the final turn (the v4.19 board showed CHANGE%
+    // +0.00% and VOLUME 0.00 on every listing because resting underwriter
+    // asks never re-quoted toward demand).
+    let mut stock_exchange_traded_companies_this_turn = 0usize;
+    let mut traded_country = String::new();
+    for (name, country) in &state.countries {
+        let instruments: std::collections::BTreeSet<&str> = country
+            .stock_exchange
+            .trade_history
+            .iter()
+            .filter(|t| t.turn == TURNS as u32 - 1 && t.instrument_id.starts_with("EQUITY:"))
+            .map(|t| t.instrument_id.as_str())
+            .collect();
+        if instruments.len() > stock_exchange_traded_companies_this_turn {
+            stock_exchange_traded_companies_this_turn = instruments.len();
+            traded_country = name.clone();
+        }
+    }
+    assert!(
+        stock_exchange_traded_companies_this_turn > 5,
+        "V420-5 FAIL: only {stock_exchange_traded_companies_this_turn} \
+         equity instruments traded on turn {} (best: {traded_country}) — \
+         order books are not crossing",
+        TURNS - 1
+    );
+
+    // V420-6: Full cabinet + staffed municipal services — every country
+    // must hold >= 6 ministries (v4.19 Anglia had 4) and municipal waste
+    // employers must carry real FTE (was 0 because no employer adopted
+    // state-owned service buildings).
+    for (name, country) in &state.countries {
+        let cabinet_ministries_count = country
+            .politics
+            .ministry_config
+            .as_ref()
+            .map(|mc| mc.ministries.len())
+            .unwrap_or(0);
+        assert!(
+            cabinet_ministries_count >= 6,
+            "V420-6 FAIL[{name}]: cabinet_ministries_count=\
+             {cabinet_ministries_count} < 6 — full cabinet roster missing"
+        );
+    }
+    let waste_management_total_fte: u64 = ctx
+        .entities
+        .values()
+        .flat_map(|e| e.companies.iter())
+        .filter(|c| c.id.starts_with("MUN-WASTE-"))
+        .map(|c| c.fulfilled_fte as u64)
+        .sum();
+    assert!(
+        waste_management_total_fte > 0,
+        "V420-6 FAIL: waste_management_total_fte={waste_management_total_fte} \
+         — municipal waste employers are not hiring"
+    );
+
+    // V420-7: Regional councils legislate — active mandates must exist
+    // (the v4.19 Regions > Mandates tab read "No active mandates" because
+    // councils never convened or adopted resolutions).
+    let active_regional_mandates_count: usize = state
+        .countries
+        .values()
+        .map(|c| c.politics.active_mandates.len())
+        .sum();
+    assert!(
+        active_regional_mandates_count > 0,
+        "V420-7 FAIL: active_regional_mandates_count=\
+         {active_regional_mandates_count} — regional councils produce no \
+         mandates/ordinances"
     );
 }
 

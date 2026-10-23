@@ -75,6 +75,23 @@ impl BillType {
         matches!(self, BillType::EmergencyFiscal | BillType::EmergencyBonds)
     }
 
+    /// v4.20 T5: Frontend theme tag — one of "Budget", "Justice", "Labor",
+    /// "Infrastructure", "Education", "Defense", "Other".
+    pub fn theme_tag(&self) -> &'static str {
+        match self {
+            BillType::Budget | BillType::EmergencyFiscal | BillType::EmergencyBonds => "Budget",
+            BillType::Justice | BillType::Sentencing => "Justice",
+            BillType::Labor => "Labor",
+            BillType::Infrastructure | BillType::Transport => "Infrastructure",
+            BillType::Education => "Education",
+            BillType::TaxReform => "Budget",
+            BillType::Healthcare
+            | BillType::FreeSpeech
+            | BillType::Migration
+            | BillType::Other => "Other",
+        }
+    }
+
     /// `true` for routine policy legislation (not budget, not emergency).
     pub fn is_policy(&self) -> bool {
         matches!(
@@ -145,6 +162,12 @@ pub struct Bill {
     /// produces and used as the cooldown-ledger key for recurring triggers.
     #[serde(default)]
     pub bill_type: BillType,
+
+    /// v4.20 T5: This bill cleared the lower house's constitutional
+    /// override vote after an upper-house veto. The enactment badge reads
+    /// "Senate Veto Overridden" (or the regime's upper-house name).
+    #[serde(default)]
+    pub veto_overridden: bool,
 }
 
 /// Individual clause within a bill
@@ -233,12 +256,31 @@ pub enum LegislativeStage {
     FloorVote,
     /// Passed one chamber, awaiting second
     BicameralPending,
+    /// v4.20 T5: Upper house vetoed — the lower house is holding a
+    /// constitutional override vote (2/3 supermajority required).
+    VetoOverride,
     /// Passed both chambers, awaiting executive
     Executive,
     /// Enacted into law
     Enacted,
     /// Rejected
     Rejected,
+}
+
+impl LegislativeStage {
+    /// Human-readable stage label for UI DTOs (never a `{:?}` debug token).
+    pub fn label(&self) -> &'static str {
+        match self {
+            LegislativeStage::Introduced => "Introduced",
+            LegislativeStage::Committee => "In Committee",
+            LegislativeStage::FloorVote => "Floor Vote",
+            LegislativeStage::BicameralPending => "Upper House Review",
+            LegislativeStage::VetoOverride => "Override Vote",
+            LegislativeStage::Executive => "Executive Review",
+            LegislativeStage::Enacted => "Enacted",
+            LegislativeStage::Rejected => "Rejected",
+        }
+    }
 }
 
 impl Bill {
@@ -279,6 +321,7 @@ impl Bill {
             committee_completion_turn: None,
             weight,
             bill_type: BillType::Other,
+            veto_overridden: false,
         }
     }
 
@@ -385,6 +428,10 @@ impl Bill {
                 true
             }
             LegislativeStage::BicameralPending => {
+                self.stage = LegislativeStage::Executive;
+                true
+            }
+            LegislativeStage::VetoOverride => {
                 self.stage = LegislativeStage::Executive;
                 true
             }

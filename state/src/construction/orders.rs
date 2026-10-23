@@ -1764,9 +1764,29 @@ pub fn update_construction_labor_demand(
         let install_per_cycle =
             crew_fte * 10.0 * wage * crate::construction::tender_market::MILESTONE_SPACING_TURNS;
         let imminent_capped = (imminent * 0.5).min(install_per_cycle);
+        // v4.20 WS3b: only the AP actually collectible THIS cycle
+        // competes with payroll. Suppliers cannot extract cash the
+        // company does not hold — the retirement pass already debits
+        // exactly `pocket − payroll_reserve` (transfer_settler), so
+        // netting the full `procurement_credit` stock here punishes the
+        // same obligation twice: the credit-bought materials sit
+        // undelivered-to-site because the liability that bought them
+        // also zeroes the crew needed to install them, which stalls the
+        // tranche revenue that would retire it — the FS-7 death spiral
+        // that pinned solvent-backlog contractors at skeleton crews.
+        let payroll_reserve =
+            company.fulfilled_fte as f64 * company.offered_wage_per_fte.max(1.0);
+        let pocket = company
+            .brokerage_account
+            .as_ref()
+            .map(|ba| ba.cash.max(0.0))
+            .unwrap_or(company.available_cash.max(0.0));
+        let collectible_credit = company
+            .procurement_credit
+            .min((pocket - payroll_reserve).max(0.0));
         let payroll_capacity_fte = ((company.operational_cash()
             + imminent_capped
-            - company.procurement_credit)
+            - collectible_credit)
             .max(0.0)
             / (wage * crate::construction::tender_market::MILESTONE_SPACING_TURNS))
             as u32;

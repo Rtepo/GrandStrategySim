@@ -51,9 +51,72 @@ pub struct LocalCouncil {
     #[serde(default)]
     pub approval_rating: f64,
 
+    /// v4.20 WS4: Legislative record — resolutions debated and voted by
+    /// this council each turn, newest last (bounded history).
+    #[serde(default)]
+    pub resolutions: Vec<CouncilResolution>,
+
+    /// v4.20 WS4: Per-councilor roll-call record for the resolutions above
+    /// (bounded history, newest last).
+    #[serde(default)]
+    pub roll_calls: Vec<CouncilRollCall>,
+
     /// Any additional council fields
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
+}
+
+/// A resolution debated and voted on by a regional council.
+///
+/// Mirrors the `CouncilResolutionRow` UI contract (`api.ts`) — the region
+/// detail snapshot maps these records 1:1.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct CouncilResolution {
+    /// Human-readable resolution title (stable — the UI groups votes and
+    /// roll calls by `resolution_title + turn`).
+    #[serde(default)]
+    pub title: String,
+    /// Category: "infrastructure" | "sanitation" | "budget".
+    #[serde(default)]
+    pub resolution_type: String,
+    /// Outcome: "adopted" | "rejected".
+    #[serde(default)]
+    pub status: String,
+    #[serde(default)]
+    pub votes_for: u32,
+    #[serde(default)]
+    pub votes_against: u32,
+    #[serde(default)]
+    pub abstentions: u32,
+    /// Global turn the vote was held.
+    #[serde(default)]
+    pub turn: u32,
+}
+
+/// Per-councilor record of how each member voted on a resolution.
+///
+/// Mirrors the `CouncilRollCallRow` UI contract (`api.ts`), plus `vip_id`
+/// (extra field — the frontend tolerates extras).
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct CouncilRollCall {
+    /// Title of the resolution this vote belongs to.
+    #[serde(default)]
+    pub resolution_title: String,
+    /// Councilor display name.
+    #[serde(default)]
+    pub member_name: String,
+    /// Councilor's faction ("Populares" | "Moderates" | "Optimates").
+    #[serde(default)]
+    pub faction: String,
+    /// Cast vote: "for" | "against" | "abstain".
+    #[serde(default)]
+    pub vote: String,
+    /// Councilor's persistent id (VIP identifier where registered).
+    #[serde(default)]
+    pub vip_id: String,
+    /// Global turn the vote was cast.
+    #[serde(default)]
+    pub turn: u32,
 }
 
 /// Individual councilor

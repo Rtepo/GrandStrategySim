@@ -3,12 +3,86 @@ import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { getParliament, getConstitutionLaws, getElections } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
-import { SeatDistributionChart } from "../components/charts/SeatDistributionChart";
+import { Hemicycle } from "../components/Hemicycle";
 import { VipHoverCard } from "../components/VipHoverCard";
+import { partyColor, ideologyIcon } from "../lib/partyVisuals";
 import { fmt } from "../lib/format";
 import type { AdvisoryCouncilSnapshot, RoyalDynastySnapshot, ParliamentSnapshot, VoteRow, BillDetailRow, ConstitutionLawsResponse, ElectionsResponse } from "../types/api";
 
 const AUTHORITARIAN_FORMS = ["Absolute Monarchy", "Constitutional Monarchy", "Authoritarian Republic", "Personalist Dictatorship", "Military Junta", "One-Party State"];
+
+/// v4.20: RegimeType keys (normalized: lowercase, non-alpha stripped) whose
+/// legislature is not popularly elected — the Elections tab collapses to a
+/// no-elections state for these instead of showing frozen countdown numbers.
+const NON_ELECTIVE_REGIMES = new Set([
+  "absolutemonarchy",
+  "militarydictatorship",
+  "militaryjunta",
+  "theocracy",
+  "onepartystate",
+  "personalistdictatorship",
+  "authoritarianrepublic",
+]);
+
+const normKey = (s: string | null | undefined): string => (s ?? "").toLowerCase().replace(/[^a-z]/g, "");
+const legislatureLabel = (name: string | null | undefined): string => (name ?? "").trim() || "Parliament";
+
+/// Clickable-name affordance for VIPs rendered without a vip_id (navigation
+/// wiring lives in the shared VipHoverCard / App shell).
+const VIP_LINK_AFFORDANCE = "hover:underline decoration-dotted underline-offset-2 cursor-pointer";
+
+const CHIP_BASE = "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium";
+
+/// v4.20: colored status chip for BillDetailRow.status_badge — green Passed,
+/// red Rejected, amber veto/override outcomes, slate committee/pending.
+function StatusChip({ status, className = "" }: { status: string; className?: string }) {
+  const s = status.toLowerCase();
+  if (s.includes("veto") || s.includes("overrid")) {
+    return <span className={`${CHIP_BASE} bg-amber-500/20 text-amber-400 border-amber-500/30 ${className}`}>{status}</span>;
+  }
+  if (s === "passed" || s === "enacted") return <Badge variant="success" className={className}>{status}</Badge>;
+  if (s.includes("reject") || s.includes("fail") || s.includes("defeat")) {
+    return <Badge variant="destructive" className={className}>{status}</Badge>;
+  }
+  return <Badge variant="secondary" className={className}>{status}</Badge>;
+}
+
+/// v4.20: distinct color per BillDetailRow.theme_tag.
+const THEME_STYLES: Record<string, string> = {
+  budget: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  justice: "bg-violet-500/15 text-violet-400 border-violet-500/30",
+  labor: "bg-orange-500/15 text-orange-400 border-orange-500/30",
+  infrastructure: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
+  education: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  defense: "bg-red-500/15 text-red-400 border-red-500/30",
+};
+
+function ThemeTag({ tag, className = "" }: { tag: string; className?: string }) {
+  if (!tag) return null;
+  const cls = THEME_STYLES[normKey(tag)] ?? "bg-slate-500/15 text-slate-400 border-slate-500/30";
+  return <span className={`${CHIP_BASE} ${cls} ${className}`}>{tag}</span>;
+}
+
+/// Party color swatch — color_hex when present, deterministic hash fallback.
+function ColorSwatch({ hex, seed }: { hex: string | null | undefined; seed: string }) {
+  return (
+    <span
+      className="inline-block h-3 w-3 shrink-0 rounded-sm border border-black/40"
+      style={{ backgroundColor: partyColor(hex, seed) }}
+    />
+  );
+}
+
+/// Ideology label + mapped lucide icon (icon key or label resolved by partyVisuals).
+function IdeologyBadge({ iconKey, label }: { iconKey?: string | null; label?: string | null }) {
+  const Icon = ideologyIcon(iconKey, label);
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+      <span>{label || iconKey || "—"}</span>
+    </span>
+  );
+}
 
 export function ParliamentPage() {
   const { selectedCountry } = useGameStore();
@@ -24,15 +98,19 @@ export function ParliamentPage() {
   if (!data) return null;
 
   const isAuthoritarian = AUTHORITARIAN_FORMS.some((f) => data.government_form.includes(f));
-  const isMonarchy = data.government_form.toLowerCase().includes("monarchy");
   const hasAdvisoryCouncil = data.advisory_council !== null;
   const hasRoyalDynasty = data.royal_dynasty !== null;
+  // v4.20: regime-aware legislature label ("Royal Council", "People's
+  // Assembly", ...). Falls back to "Parliament" when the field is absent.
+  const legislatureName = legislatureLabel(data.parliament.legislature_name);
+  const regimeType = data.parliament.regime_type ?? "";
 
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center gap-3">
-        <h2 className="text-xl font-bold text-foreground">Parliament — {selectedCountry}</h2>
+        <h2 className="text-xl font-bold text-foreground">{legislatureName} — {selectedCountry}</h2>
         <Badge variant="secondary">{data.government_form}</Badge>
+        {regimeType && <Badge variant="outline">{regimeType}</Badge>}
         {data.parliament.suspended && <Badge variant="destructive">Suspended</Badge>}
       </div>
 
@@ -49,86 +127,76 @@ export function ParliamentPage() {
 }
 
 function DemocraticParliamentView({ parliament }: { parliament: ParliamentSnapshot }) {
-  const firstChamber = parliament.chambers[0];
-  const seatData = firstChamber?.seat_distribution ?? [];
+  const legislatureName = legislatureLabel(parliament.legislature_name);
 
   return (
     <Tabs
       tabs={[
+        // v4.20: Chambers + Seat Distribution merged — the hemicycle IS the
+        // seat distribution, rendered per chamber inside each chamber card.
         { label: "Chambers", value: "chambers", content: <ChambersView parliament={parliament} /> },
-        { label: "Seat Distribution", value: "seats", content: (
-          <Card>
-            <CardHeader><CardTitle>{firstChamber?.name ?? "Chamber"} — Seat Distribution</CardTitle></CardHeader>
-            <CardContent>
-              {seatData.length > 0 ? (
-                <SeatDistributionChart data={seatData} title="Parliament Seats" />
-              ) : (
-                <div className="text-muted-foreground text-sm">No seat data available</div>
-              )}
-            </CardContent>
-          </Card>
-        )},
-        { label: "Clubs", value: "clubs", content: <ClubsView parliament={parliament} /> },
+        { label: "Clubs", value: "clubs", content: <ClubsView parliament={parliament} legislatureName={legislatureName} /> },
         { label: "Committees", value: "committees", content: <CommitteesView parliament={parliament} /> },
         { label: "Votes", value: "votes", content: <VotesView parliament={parliament} /> },
         { label: "Legislative Queue", value: "queue", content: <QueueView parliament={parliament} /> },
         { label: "Constitution & Laws", value: "laws", content: <ConstitutionLawsView /> },
-        { label: "Elections", value: "elections", content: <ElectionsView /> },
+        { label: "Elections", value: "elections", content: <ElectionsView regimeType={parliament.regime_type ?? ""} legislatureName={legislatureName} /> },
       ]}
     />
   );
 }
 
 function ChambersView({ parliament }: { parliament: ParliamentSnapshot }) {
+  // ClubRow lookup so each seat-distribution entry inherits the club's
+  // color_hex / ideology_icon; unmatched names fall back to a hashed color.
+  const clubByName = new Map(parliament.clubs.map((c) => [c.name, c]));
   return (
     <div className="space-y-4">
-      {parliament.chambers.map((chamber) => (
-        <Card key={chamber.name}>
-          <CardHeader>
-            <CardTitle>{chamber.name}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div>
-                <div className="text-xs text-muted-foreground">Total Seats</div>
-                <div className="text-lg font-bold">{chamber.total_seats}</div>
+      {parliament.chambers.map((chamber) => {
+        const entries = chamber.seat_distribution.map(([name, seats]) => {
+          const club = clubByName.get(name);
+          return {
+            name,
+            seats,
+            color: partyColor(club?.color_hex, name),
+            icon: ideologyIcon(club?.ideology_icon, club?.ideology),
+          };
+        });
+        return (
+          <Card key={chamber.name}>
+            <CardHeader>
+              <CardTitle>{chamber.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div>
+                  <div className="text-xs text-muted-foreground">Total Seats</div>
+                  <div className="text-lg font-bold">{chamber.total_seats}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Speaker</div>
+                  <div className="text-sm font-medium">
+                    <span className={VIP_LINK_AFFORDANCE}>{chamber.speaker_name}</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Speaker Club</div>
+                  <div className="text-sm font-medium">{chamber.speaker_club}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Speaker</div>
-                <div className="text-sm font-medium">{chamber.speaker_name}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Speaker Club</div>
-                <div className="text-sm font-medium">{chamber.speaker_club}</div>
-              </div>
-            </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Party</TableHead>
-                  <TableHead className="text-right">Seats</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {chamber.seat_distribution.map(([party, seats]) => (
-                  <TableRow key={party}>
-                    <TableCell>{party}</TableCell>
-                    <TableCell className="text-right">{seats}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      ))}
+              <Hemicycle entries={entries} totalSeats={chamber.total_seats} />
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
 
-function ClubsView({ parliament }: { parliament: ParliamentSnapshot }) {
+function ClubsView({ parliament, legislatureName }: { parliament: ParliamentSnapshot; legislatureName: string }) {
   return (
     <Card>
-      <CardHeader><CardTitle>Parliamentary Clubs</CardTitle></CardHeader>
+      <CardHeader><CardTitle>{legislatureName} Clubs</CardTitle></CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
@@ -145,9 +213,16 @@ function ClubsView({ parliament }: { parliament: ParliamentSnapshot }) {
             {parliament.clubs.length > 0 ? (
               parliament.clubs.map((club) => (
                 <TableRow key={club.name}>
-                  <TableCell className="font-medium">{club.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <span className="inline-flex items-center gap-1.5">
+                      <ColorSwatch hex={club.color_hex} seed={club.name} />
+                      {club.name}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-right">{club.seats}</TableCell>
-                  <TableCell>{club.ideology}</TableCell>
+                  <TableCell>
+                    <IdeologyBadge iconKey={club.ideology_icon} label={club.ideology} />
+                  </TableCell>
                   <TableCell>
                     {club.chairperson_name ? (
                       <VipHoverCard vipId={club.chairperson_id}>{club.chairperson_name}</VipHoverCard>
@@ -196,7 +271,7 @@ function CommitteesView({ parliament }: { parliament: ParliamentSnapshot }) {
                       {c.name}
                     </TableCell>
                     <TableCell>{c.committee_type}</TableCell>
-                    <TableCell>{c.chair} ({c.chair_party})</TableCell>
+                    <TableCell><span className={VIP_LINK_AFFORDANCE}>{c.chair}</span> ({c.chair_party})</TableCell>
                     <TableCell className="text-right">{c.member_count}</TableCell>
                     <TableCell className="text-right">{c.bills_under_review}</TableCell>
                   </TableRow>
@@ -319,12 +394,16 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
                       <TableCell className="text-xs">
                         <span className="text-muted-foreground mr-1">{expanded === rowKey ? "▾" : "▸"}</span>
                         {v.bill_title}
+                        {v.detail?.theme_tag ? <ThemeTag tag={v.detail.theme_tag} className="ml-1.5" /> : null}
                       </TableCell>
                       <TableCell><Badge variant="outline">{v.chamber_name}</Badge></TableCell>
                       <TableCell className="text-right text-green-400">{v.votes_for}</TableCell>
                       <TableCell className="text-right text-red-400">{v.votes_against}</TableCell>
                       <TableCell className="text-right text-muted-foreground">{v.abstentions}</TableCell>
-                      <TableCell>{v.passed ? <Badge variant="success">Passed</Badge> : <Badge variant="destructive">Failed</Badge>}</TableCell>
+                      <TableCell>
+                        {v.passed ? <Badge variant="success">Passed</Badge> : <Badge variant="destructive">Failed</Badge>}
+                        {v.detail?.status_badge ? <StatusChip status={v.detail.status_badge} className="ml-1" /> : null}
+                      </TableCell>
                       <TableCell className="text-right">{v.turn}</TableCell>
                     </TableRow>
                     {expanded === rowKey && (
@@ -413,6 +492,12 @@ function DetailField({ label, value }: { label: string; value: string }) {
 function BillDetailPanel({ detail }: { detail: BillDetailRow }) {
   return (
     <div className="space-y-3">
+      {(detail.status_badge || detail.theme_tag) && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {detail.status_badge ? <StatusChip status={detail.status_badge} /> : null}
+          {detail.theme_tag ? <ThemeTag tag={detail.theme_tag} /> : null}
+        </div>
+      )}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-xs">
         <DetailField label="Sponsor" value={detail.initiator || "—"} />
         <DetailField label="Type" value={detail.bill_type} />
@@ -497,8 +582,14 @@ function QueueView({ parliament }: { parliament: ParliamentSnapshot }) {
                       <span className="text-muted-foreground mr-1">{expanded === q.bill_id ? "▾" : "▸"}</span>
                       {q.bill_id}
                     </TableCell>
-                    <TableCell className="text-xs">{q.bill_title}</TableCell>
-                    <TableCell><Badge variant={stageVariant(q.stage)}>{stageLabel(q.stage)}</Badge></TableCell>
+                    <TableCell className="text-xs">
+                      {q.bill_title}
+                      {q.detail?.theme_tag ? <ThemeTag tag={q.detail.theme_tag} className="ml-1.5" /> : null}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={stageVariant(q.stage)}>{stageLabel(q.stage)}</Badge>
+                      {q.detail?.status_badge ? <StatusChip status={q.detail.status_badge} className="ml-1" /> : null}
+                    </TableCell>
                     <TableCell className="text-xs">{q.committee ?? "—"}</TableCell>
                     <TableCell className="text-xs">{q.initiator}</TableCell>
                   </TableRow>
@@ -563,7 +654,9 @@ function AdvisoryCouncilView({ council, dynasty }: { council: AdvisoryCouncilSna
             <TableBody>
               {council.members.map((m) => (
                 <TableRow key={m.vip_id}>
-                  <TableCell className="font-medium">{m.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <VipHoverCard vipId={m.vip_id}>{m.name}</VipHoverCard>
+                  </TableCell>
                   <TableCell>{m.faction}</TableCell>
                   <TableCell className="text-right">
                     <Badge variant={m.loyalty > 70 ? "success" : m.loyalty > 40 ? "default" : "destructive"}>
@@ -610,7 +703,9 @@ function AdvisoryCouncilView({ council, dynasty }: { council: AdvisoryCouncilSna
               <TableBody>
                 {dynasty.members.map((m) => (
                   <TableRow key={m.vip_id}>
-                    <TableCell className="font-medium">{m.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <VipHoverCard vipId={m.vip_id}>{m.name}</VipHoverCard>
+                    </TableCell>
                     <TableCell>{m.relation}</TableCell>
                     <TableCell className="text-right">{m.age}</TableCell>
                     <TableCell className="text-right">{m.succession_order}</TableCell>
@@ -755,7 +850,7 @@ function ConstitutionLawsView() {
 // v4.19 WS4: ELECTIONS & CAMPAIGNS TAB
 // ============================================================================
 
-function ElectionsView() {
+function ElectionsView({ regimeType, legislatureName }: { regimeType: string; legislatureName: string }) {
   const { selectedCountry } = useGameStore();
   const { data, isLoading } = useQuery<ElectionsResponse>({
     queryKey: ["elections", selectedCountry],
@@ -767,8 +862,45 @@ function ElectionsView() {
   if (isLoading) return <div className="p-4 text-muted-foreground text-sm">Loading elections…</div>;
   if (!data) return null;
 
-  const nonElective = data.years_to_elections >= 900;
-  const seatData = data.current_seats.map(([party, seats]): [string, number] => [party, seats]);
+  // v4.20: non-elective regimes (by RegimeType key or a non-scheduled term)
+  // collapse the whole tab to a no-elections state — no frozen countdown.
+  const nonElective =
+    data.years_to_elections >= 900 || NON_ELECTIVE_REGIMES.has(normKey(regimeType));
+
+  if (nonElective) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Elections</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-muted-foreground">
+            No elections under this regime — {data.government_form} does not elect
+            the {legislatureName}.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // v4.20: live countdown decremented by the engine; falls back to the
+  // static years×24 estimate when the new field is absent/zero.
+  const turnsRemaining =
+    (data.turns_remaining ?? 0) > 0 ? data.turns_remaining : data.estimated_turns_remaining;
+  const scheduledTurn = data.scheduled_election_turn ?? 0;
+
+  const partyById = new Map(data.parties.map((p) => [p.party_id, p]));
+  const seatEntries = data.current_seats
+    .filter(([, seats]) => seats > 0)
+    .map(([name, seats]) => {
+      const p = partyById.get(name);
+      return {
+        name,
+        seats,
+        color: partyColor(p?.color_hex, name),
+        icon: ideologyIcon(p?.ideology_icon, p?.ideology),
+      };
+    });
 
   return (
     <div className="space-y-4">
@@ -777,22 +909,20 @@ function ElectionsView() {
           <CardTitle>Election Countdown</CardTitle>
         </CardHeader>
         <CardContent>
-          {nonElective ? (
-            <div className="text-sm text-muted-foreground">
-              No scheduled elections — {data.government_form} is a non-elective regime.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-xs">
-              <DetailField label="State" value={data.election_state} />
-              <DetailField label="Years Remaining" value={`${data.years_to_elections}`} />
-              <DetailField label="~Turns Remaining" value={`${data.estimated_turns_remaining}`} />
-              <DetailField label="Next Election Year" value={`${data.next_election_year}`} />
-              <DetailField label="Head of State" value={data.head_of_state_name} />
-              <DetailField label="Head of State Role" value={data.head_of_state_title} />
-              <DetailField label="Campaign Duration" value={`${data.campaign_duration_turns} turns`} />
-              <DetailField label="Government Form" value={data.government_form} />
-            </div>
-          )}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-xs">
+            <DetailField label="State" value={data.election_state} />
+            <DetailField label="Years Remaining" value={`${data.years_to_elections}`} />
+            <DetailField label="Turns Remaining" value={`${turnsRemaining}`} />
+            <DetailField
+              label="Scheduled Turn"
+              value={scheduledTurn > 0 ? `T${scheduledTurn}` : "—"}
+            />
+            <DetailField label="Next Election Year" value={`${data.next_election_year}`} />
+            <DetailField label="Head of State" value={data.head_of_state_name} />
+            <DetailField label="Head of State Role" value={data.head_of_state_title} />
+            <DetailField label="Campaign Duration" value={`${data.campaign_duration_turns} turns`} />
+            <DetailField label="Government Form" value={data.government_form} />
+          </div>
         </CardContent>
       </Card>
 
@@ -815,8 +945,15 @@ function ElectionsView() {
               {data.parties.length > 0 ? (
                 data.parties.map((p) => (
                   <TableRow key={p.party_id}>
-                    <TableCell className="text-xs font-medium">{p.party_id}</TableCell>
-                    <TableCell className="text-xs">{p.ideology}</TableCell>
+                    <TableCell className="text-xs font-medium">
+                      <span className="inline-flex items-center gap-1.5">
+                        <ColorSwatch hex={p.color_hex} seed={p.party_id} />
+                        {p.party_id}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <IdeologyBadge iconKey={p.ideology_icon} label={p.ideology} />
+                    </TableCell>
                     <TableCell className="text-right">{(p.support * 100).toFixed(1)}%</TableCell>
                     <TableCell className="text-right">{p.seats}</TableCell>
                     <TableCell>
@@ -838,8 +975,8 @@ function ElectionsView() {
           <CardTitle>Current Seat Distribution (Latest Election)</CardTitle>
         </CardHeader>
         <CardContent>
-          {seatData.length > 0 ? (
-            <SeatDistributionChart data={seatData} title="Seats" />
+          {seatEntries.length > 0 ? (
+            <Hemicycle entries={seatEntries} />
           ) : (
             <div className="text-muted-foreground text-sm">No seat data available</div>
           )}

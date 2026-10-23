@@ -807,6 +807,37 @@ fn generate_country(
     );
     companies.extend(bank_companies);
     crate::politics::bootstrap_politics(&mut country, &mut companies, start_year as u32, rng);
+
+    // -----------------------------------------------------------------
+    // v4.20 (agent-5) political-depth genesis block.
+    // -----------------------------------------------------------------
+    // T2: Persistent deterministic party visual identity — assigned once
+    // at genesis so hemicycle, elections and club rows share colors/icons
+    // for a given seed.
+    crate::politics::system::ensure_all_party_identities(
+        &mut country.politics.active_parties,
+    );
+
+    // T1: Live per-turn election countdown — anchor the turn schedule on
+    // the legacy year countdown so `turns_remaining`/`scheduled_election_turn`
+    // agree with `years_to_elections` from turn 0. Non-elective regimes
+    // stay unscheduled (the UI collapses the Elections tab for them).
+    if country.politics.government_form.is_democratic()
+        && country.politics.scheduled_election_turn == 0
+    {
+        country.politics.scheduled_election_turn =
+            crate::politics::campaign::election_exec_turn(
+                0,
+                country.politics.years_to_elections,
+            );
+        country.politics.turns_until_election = country.politics.scheduled_election_turn;
+    }
+
+    // T4: Regime-consistent genesis statutes — theocracy gets a state
+    // religion, autocracies get suppressed speech/assembly/press, fused
+    // judiciary, penal colonies, closed borders and banned unions.
+    seed_regime_genesis_laws(&mut country);
+
     // Phase 32: Seat the Parliament at genesis — chambers must exist from
     // turn 0 so the legislative queue and recent_votes are live before the
     // first political turn lazily initializes them otherwise.
@@ -819,14 +850,28 @@ fn generate_country(
         // influence shares. Democracies get the same treatment (their
         // turn-0 election would have seated an identical map anyway).
         if country.politics.parliament.values().sum::<u32>() == 0 {
+            // v4.20 T3: One-party states seat ONLY the ruling party — the
+            // People's Assembly is a rubber stamp, not an electoral body.
             let eligible: std::collections::HashMap<String, crate::politics::system::Party> =
-                country
-                    .politics
-                    .active_parties
-                    .iter()
-                    .filter(|(_, p)| p.support > 0.0)
-                    .map(|(n, p)| (n.clone(), p.clone()))
-                    .collect();
+                if country.politics.government_form
+                    == crate::politics::system::GovernmentForm::OnePartyState
+                {
+                    country
+                        .politics
+                        .active_parties
+                        .iter()
+                        .filter(|(n, _)| **n == country.politics.ruling_party)
+                        .map(|(n, p)| (n.clone(), p.clone()))
+                        .collect()
+                } else {
+                    country
+                        .politics
+                        .active_parties
+                        .iter()
+                        .filter(|(_, p)| p.support > 0.0)
+                        .map(|(n, p)| (n.clone(), p.clone()))
+                        .collect()
+                };
             let seats = crate::politics::elections::calculate_seats(
                 &eligible,
                 "D'Hondt",
@@ -837,6 +882,8 @@ fn generate_country(
                 country.politics.parliament = seats;
             }
         }
+        // T3: Scrub any pre-seeded multi-party map for one-party states.
+        crate::politics::parliament::enforce_one_party_seating(&mut country.politics);
         if country.politics.parliament_struct.is_none() {
             let parl = crate::politics::parliament::initialize_parliament(
                 &country.politics,
@@ -847,6 +894,27 @@ fn generate_country(
             );
             country.politics.parliament_struct = Some(parl);
         }
+    }
+
+    // v4.20: Seed a complete cabinet at genesis — `form_government` sizes
+    // the roster by GDP (floor 6); top up to a full 8-portfolio cabinet so
+    // the Government tab never opens on a skeleton ministry.
+    if country.politics.ministry_config.is_none()
+        && !country.politics.ruling_party.is_empty()
+    {
+        let mut used_names: std::collections::HashSet<String> =
+            std::collections::HashSet::new();
+        let coalition = country.politics.coalition.clone();
+        let mut config = crate::politics::ministries::form_government(
+            &country,
+            &coalition,
+            &country.politics.active_parties,
+            0,
+            &mut used_names,
+        );
+        top_up_cabinet(&mut config, &country, rng, &mut used_names);
+        country.politics.ministry_config = Some(config);
+        crate::politics::ministries::calculate_budget_needs(&mut country);
     }
     #[cfg(feature = "diagnostic")]
     eprintln!(
@@ -2466,4 +2534,313 @@ fn build_bank_companies(
     }
 
     banks
+}
+
+// ============================================================================
+// v4.20 (agent-5): Regime-consistent genesis helpers
+// ============================================================================
+
+/// v4.20 T4: Seed regime-consistent genesis statutes.
+///
+/// Populates the STRUCTURED law fields (`religious_law_struct`,
+/// `free_speech_law`, `justice_law`, `prison_labor_law`, `migration_law`)
+/// and the string mirrors (`religious_law`, `union_law`, `strike_law`,
+/// `civil_rights_law`, `emancipation_law`, `labor_law`) with values that
+/// match the government form — theocracies get a state religion,
+/// autocracies get suppressed speech/assembly/press, fused judiciary,
+/// penal colonies, closed borders and banned independent unions.
+///
+/// The string mirrors are the same values `apply_ruling_coordinate_policies`
+/// will write at the first year boundary (identical resolver functions and
+/// ruling coordinates), so turn-0 DTOs already look regime-consistent and
+/// nothing visibly "flips" at year 1. The structured fields are never
+/// touched by the yearly writer — they persist until real legislation
+/// replaces them.
+///
+/// Every seed only fills `None`/default fields, so anything bootstrap
+/// already decided is preserved.
+fn seed_regime_genesis_laws(country: &mut crate::state::Country) {
+    use crate::politics::free_speech::{
+        AssemblyRights, FreeSpeechLaw, FreeSpeechLevel, PressFreedom,
+    };
+    use crate::politics::interest_groups::SuffrageType;
+    use crate::politics::laws::{
+        CourtWaitTime, DeportationPolicy, JusticeLaw, MigrationLaw, PardonAuthority,
+        PrisonLaborLaw, PrisonType, ReligiousLaw,
+    };
+    use crate::politics::system::GovernmentForm;
+
+    let form = country.politics.government_form;
+    let democratic = form.is_democratic();
+    let autocratic = matches!(
+        form,
+        GovernmentForm::OnePartyState
+            | GovernmentForm::MilitaryDictatorship
+            | GovernmentForm::AbsoluteMonarchy
+            | GovernmentForm::Theocracy
+    );
+    // Monarchies with a throne keep an established church and limited
+    // franchise; the rest of the scale is captured below.
+    let throne = matches!(
+        form,
+        GovernmentForm::AbsoluteMonarchy
+            | GovernmentForm::DualistMonarchy
+            | GovernmentForm::ElectiveMonarchy
+            | GovernmentForm::ConstitutionalMonarchy
+    );
+
+    // --- State religion -------------------------------------------------
+    if country.politics.religious_law_struct.is_none() {
+        let rel_key = crate::society::culture_registry::registry()
+            .religion_key_from_display(&country.macro_indicators.religion);
+        let established = form == GovernmentForm::Theocracy || throne;
+        country.politics.religious_law_struct = Some(ReligiousLaw {
+            state_religion: if established && !rel_key.is_empty() {
+                Some(rel_key)
+            } else {
+                None
+            },
+            separation_of_church_and_state: !established,
+            church_tax_rate: if established { 0.02 } else { 0.0 },
+            apostolic_remittance_rate: if established { 0.10 } else { 0.0 },
+        });
+        // Keep the string mirror consistent from turn 0 — resolver-derived
+        // so it matches what the yearly preference writer produces.
+        let trad = country
+            .politics
+            .active_parties
+            .get(&country.politics.ruling_party)
+            .map(|p| p.coordinates.tradition)
+            .unwrap_or(0.0);
+        country.politics.religious_law = if established {
+            "State Religion".to_string()
+        } else {
+            crate::politics::ideology::resolve_religion(trad).to_string()
+        };
+    }
+
+    // --- Free speech / assembly / press ---------------------------------
+    if country.politics.free_speech_law.is_none() {
+        country.politics.free_speech_law = Some(if autocratic {
+            FreeSpeechLaw {
+                free_speech_level: FreeSpeechLevel::Suppressed,
+                assembly_rights: AssemblyRights::Banned,
+                press_freedom: PressFreedom::StateControlled,
+            }
+        } else if !democratic {
+            // Dualist/elective monarchies — censored but not totalitarian.
+            FreeSpeechLaw {
+                free_speech_level: FreeSpeechLevel::Restricted,
+                assembly_rights: AssemblyRights::Restricted,
+                press_freedom: PressFreedom::Mixed,
+            }
+        } else {
+            FreeSpeechLaw::default() // democratic: full rights
+        });
+    }
+
+    // --- Judiciary --------------------------------------------------------
+    if country.politics.justice_law.is_none() {
+        country.politics.justice_law = Some(if democratic {
+            JusticeLaw {
+                krs_separated: true,
+                prosecutor_general_separated: true,
+                court_wait_time_target: CourtWaitTime::Normal,
+                pardon_authority: PardonAuthority::JudicialBoard,
+                corruption_index: 0.25,
+            }
+        } else {
+            JusticeLaw {
+                krs_separated: false,
+                prosecutor_general_separated: false,
+                court_wait_time_target: CourtWaitTime::Backlogged,
+                pardon_authority: PardonAuthority::HeadOfState,
+                corruption_index: 0.45,
+            }
+        });
+    }
+
+    // --- Prisons ------------------------------------------------------------
+    if country.politics.prison_labor_law.is_none() {
+        country.politics.prison_labor_law = Some(if autocratic {
+            PrisonLaborLaw {
+                prison_type: PrisonType::StatePenalColony,
+                labor_compensation: 0.0,
+                health_degradation_rate: 0.01,
+                private_transfer_fee: 0.0,
+                target_demographic: None,
+                isolation_capacity: 0,
+            }
+        } else {
+            PrisonLaborLaw::default() // VoluntaryLabor
+        });
+    }
+
+    // --- Borders -------------------------------------------------------------
+    if country.politics.migration_law.is_none() {
+        country.politics.migration_law = Some(if autocratic {
+            MigrationLaw {
+                open_borders: false,
+                visa_required: true,
+                deportation_policy: DeportationPolicy::Selective,
+            }
+        } else {
+            MigrationLaw {
+                open_borders: true,
+                visa_required: false,
+                deportation_policy: DeportationPolicy::Selective,
+            }
+        });
+    }
+
+    // --- Franchise ---------------------------------------------------------
+    {
+        let st = &mut country.politics.constitution.suffrage_system.suffrage_type;
+        *st = match form {
+            GovernmentForm::AbsoluteMonarchy
+            | GovernmentForm::MilitaryDictatorship
+            | GovernmentForm::Theocracy => SuffrageType::NoVoting,
+            GovernmentForm::OnePartyState => SuffrageType::CensusRestrictedVoting,
+            GovernmentForm::DualistMonarchy | GovernmentForm::ElectiveMonarchy => {
+                SuffrageType::WealthWeightedVoting
+            }
+            _ => SuffrageType::UniversalSuffrage,
+        };
+    }
+
+    // --- Labor/civil-rights string mirrors ------------------------------------
+    // Same resolvers `apply_ruling_coordinate_policies` applies each year —
+    // identical input coordinates ⇒ identical strings from turn 0.
+    let coords = country
+        .politics
+        .active_parties
+        .get(&country.politics.ruling_party)
+        .map(|p| p.coordinates)
+        .unwrap_or_default();
+    country.politics.union_law =
+        crate::politics::ideology::resolve_union_law(coords.liberty, coords.economy)
+            .to_string();
+    country.politics.strike_law =
+        crate::politics::ideology::resolve_strike_law(coords.liberty, coords.economy)
+            .to_string();
+    country.politics.labor_law =
+        crate::politics::ideology::resolve_labor_law(coords.economy, coords.liberty)
+            .to_string();
+    country.politics.civil_rights_law = crate::politics::ideology::resolve_citizenship(
+        coords.liberty,
+        coords.tradition,
+    )
+    .to_string();
+    country.politics.emancipation_law =
+        crate::politics::ideology::resolve_emancipation(coords.tradition, coords.liberty)
+            .to_string();
+}
+
+/// v4.20: Cabinet floor — top a `MinistryConfig` up to 8 ministries.
+///
+/// `form_government` sizes the roster by GDP (`min(15, max(6, …))`); small
+/// economies would otherwise open the game with a skeleton cabinet. The
+/// remaining core portfolios are appended in canonical bundle order with
+/// unique VIP names from the seeded rng — deterministic per seed.
+///
+/// `ministries.rs` is owned by another agent — this file-level top-up is
+/// the permitted integration point.
+fn top_up_cabinet(
+    config: &mut crate::politics::ministries::MinistryConfig,
+    country: &crate::state::Country,
+    rng: &mut impl rand::Rng,
+    used_names: &mut std::collections::HashSet<String>,
+) {
+    use crate::politics::ministries::{GovernmentCompetency, Ministry};
+
+    /// Display names matching `competency_display_name` in ministries.rs
+    /// (private there — duplicated here to keep cabinet labels identical).
+    fn ministry_name(comp: GovernmentCompetency) -> &'static str {
+        match comp {
+            GovernmentCompetency::Treasury => "Ministry of Treasury",
+            GovernmentCompetency::Defense => "Ministry of National Defense",
+            GovernmentCompetency::InternalSecurity => "Ministry of Internal Affairs",
+            GovernmentCompetency::ForeignAffairs => "Ministry of Foreign Affairs",
+            GovernmentCompetency::Education => "Ministry of Education",
+            GovernmentCompetency::Healthcare => "Ministry of Health",
+            GovernmentCompetency::SocialWelfare => "Ministry of Social Welfare",
+            GovernmentCompetency::Agriculture => "Ministry of Agriculture",
+            GovernmentCompetency::Infrastructure => "Ministry of Infrastructure",
+            GovernmentCompetency::HeavyIndustry => "Ministry of Heavy Industry",
+            GovernmentCompetency::LightIndustry => "Ministry of Light Industry",
+            GovernmentCompetency::Justice => "Ministry of Justice",
+            GovernmentCompetency::Science => "Ministry of Science",
+            GovernmentCompetency::Energy => "Ministry of Energy",
+            GovernmentCompetency::Transport => "Ministry of Transport",
+            GovernmentCompetency::Housing => "Ministry of Housing",
+            GovernmentCompetency::Culture => "Ministry of Culture",
+            GovernmentCompetency::Labor => "Ministry of Labor",
+            GovernmentCompetency::Environment => "Ministry of Environment",
+            GovernmentCompetency::StateAssets => "Ministry of State Assets",
+        }
+    }
+
+    // Canonical bundle order — same sequence as `default_competency_bundles`.
+    const ORDER: &[GovernmentCompetency] = &[
+        GovernmentCompetency::Treasury,
+        GovernmentCompetency::Defense,
+        GovernmentCompetency::InternalSecurity,
+        GovernmentCompetency::Education,
+        GovernmentCompetency::Healthcare,
+        GovernmentCompetency::Infrastructure,
+        GovernmentCompetency::SocialWelfare,
+        GovernmentCompetency::Agriculture,
+        GovernmentCompetency::HeavyIndustry,
+        GovernmentCompetency::Justice,
+        GovernmentCompetency::ForeignAffairs,
+        GovernmentCompetency::Science,
+        GovernmentCompetency::Transport,
+        GovernmentCompetency::Energy,
+        GovernmentCompetency::Labor,
+        GovernmentCompetency::StateAssets,
+    ];
+
+    const TARGET: usize = 8;
+    if config.ministries.len() >= TARGET {
+        return;
+    }
+
+    let cg_owned;
+    let cg = if country.macro_indicators.cultural_group.is_empty() {
+        "slavic"
+    } else {
+        cg_owned = country.macro_indicators.cultural_group.clone();
+        cg_owned.as_str()
+    };
+    let party = if config.pm_party.is_empty() {
+        country.politics.ruling_party.clone()
+    } else {
+        config.pm_party.clone()
+    };
+
+    for comp in ORDER {
+        if config.ministries.len() >= TARGET {
+            break;
+        }
+        if config
+            .ministries
+            .iter()
+            .any(|m| m.competencies.contains(comp))
+        {
+            continue;
+        }
+        let minister_name =
+            crate::politics::names::generate_unique_vip(cg, rng, used_names).full_name;
+        config.ministries.push(Ministry {
+            id: format!("MIN-{:03}", config.ministries.len() + 1),
+            name: ministry_name(*comp).to_string(),
+            competencies: vec![*comp],
+            minister_party: party.clone(),
+            minister_name,
+            allocated_cash: 0.0,
+            spent_cash: 0.0,
+            spending_actions: Vec::new(),
+            ministry_cash: 0.0,
+        });
+    }
 }

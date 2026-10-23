@@ -73,6 +73,275 @@ impl GovernmentForm {
             _ => 2,
         }
     }
+
+    /// v4.20 T4: Human-readable regime display name (replaces `{:?}` output
+    /// in UI DTO strings).
+    pub fn display_name(self) -> &'static str {
+        match self {
+            GovernmentForm::ParliamentaryDemocracy => "Parliamentary Democracy",
+            GovernmentForm::PresidentialRepublic => "Presidential Republic",
+            GovernmentForm::SemiPresidentialRepublic => "Semi-Presidential Republic",
+            GovernmentForm::DirectorialDemocracy => "Directorial Democracy",
+            GovernmentForm::ConstitutionalMonarchy => "Constitutional Monarchy",
+            GovernmentForm::DualistMonarchy => "Dualist Monarchy",
+            GovernmentForm::ElectiveMonarchy => "Elective Monarchy",
+            GovernmentForm::AbsoluteMonarchy => "Absolute Monarchy",
+            GovernmentForm::OnePartyState => "One-Party State",
+            GovernmentForm::MilitaryDictatorship => "Military Dictatorship",
+            GovernmentForm::Theocracy => "Theocracy",
+        }
+    }
+
+    /// v4.20 T3: Regime type key for the UI (`ParliamentSnapshot.regime_type`,
+    /// `ConstitutionSnapshot.regime_type`). The frontend normalizes this key
+    /// (lowercase, no separators) to decide whether the Elections tab and
+    /// elective institutions exist for the regime.
+    pub fn regime_type_key(self) -> &'static str {
+        match self {
+            GovernmentForm::ParliamentaryDemocracy
+            | GovernmentForm::PresidentialRepublic
+            | GovernmentForm::SemiPresidentialRepublic
+            | GovernmentForm::DirectorialDemocracy
+            | GovernmentForm::ConstitutionalMonarchy => "Democracy",
+            GovernmentForm::DualistMonarchy => "DualistMonarchy",
+            GovernmentForm::ElectiveMonarchy => "ElectiveMonarchy",
+            GovernmentForm::AbsoluteMonarchy => "AbsoluteMonarchy",
+            GovernmentForm::OnePartyState => "OnePartyState",
+            GovernmentForm::MilitaryDictatorship => "MilitaryDictatorship",
+            GovernmentForm::Theocracy => "Theocracy",
+        }
+    }
+
+    /// v4.20 T3: Regime-appropriate display name for the legislature
+    /// (`ParliamentSnapshot.legislature_name`).
+    pub fn legislature_name(self) -> &'static str {
+        match self {
+            GovernmentForm::ParliamentaryDemocracy
+            | GovernmentForm::PresidentialRepublic
+            | GovernmentForm::SemiPresidentialRepublic
+            | GovernmentForm::DirectorialDemocracy
+            | GovernmentForm::ConstitutionalMonarchy => "Parliament",
+            GovernmentForm::DualistMonarchy => "Imperial Diet",
+            GovernmentForm::ElectiveMonarchy => "Elective Sejm",
+            GovernmentForm::AbsoluteMonarchy => "Royal Council",
+            GovernmentForm::OnePartyState => "People's Assembly",
+            GovernmentForm::MilitaryDictatorship => "National Salvation Committee",
+            GovernmentForm::Theocracy => "Supreme Religious Council",
+        }
+    }
+}
+
+/// v4.20 T4: Convert a Rust `Debug`-style enum token ("WealthWeightedVoting",
+/// "snap_election") into a readable UI label ("Wealth Weighted Voting",
+/// "Snap Election"). Used wherever a DTO previously leaked `format!("{:?}")`.
+pub fn humanize_debug_token(token: &str) -> String {
+    let mut out = String::with_capacity(token.len() + 8);
+    let mut prev_lower_or_digit = false;
+    for (i, ch) in token.chars().enumerate() {
+        if ch == '_' || ch == '-' {
+            out.push(' ');
+            prev_lower_or_digit = false;
+            continue;
+        }
+        if ch.is_uppercase() && prev_lower_or_digit {
+            out.push(' ');
+        }
+        if i == 0 {
+            out.extend(ch.to_uppercase());
+        } else {
+            out.push(ch);
+        }
+        prev_lower_or_digit = ch.is_lowercase() || ch.is_ascii_digit();
+    }
+    out
+}
+
+/// v4.20 T2: Deterministic party visual-identity palette — 32 distinct hues.
+/// `Party.color_hex` is assigned once at genesis/first sight and persisted,
+/// so identical seeds produce identical hemicycle/election colors.
+pub const PARTY_COLOR_PALETTE: &[&str] = &[
+    "#b91c1c", "#dc2626", "#ea580c", "#d97706", "#ca8a04", "#a16207", "#65a30d",
+    "#16a34a", "#059669", "#0d9488", "#0891b2", "#0284c7", "#2563eb", "#4f46e5",
+    "#7c3aed", "#9333ea", "#c026d3", "#db2777", "#e11d48", "#78716c", "#57534e",
+    "#92400e", "#713f12", "#3f6212", "#166534", "#134e4a", "#155e75", "#1e40af",
+    "#5b21b6", "#86198f", "#9f1239", "#44403c",
+];
+
+/// v4.20 T2: Stable hash of a party id used to index `PARTY_COLOR_PALETTE`.
+/// FNV-1a — deterministic across processes (no `RandomState`).
+fn stable_party_hash(s: &str) -> u64 {
+    let mut h: u64 = 0xcbf29ce484222325;
+    for b in s.as_bytes() {
+        h ^= *b as u64;
+        h = h.wrapping_mul(0x100000001b3);
+    }
+    h
+}
+
+/// v4.20 T2: Map an ideology display label / coordinates onto the icon key
+/// vocabulary the frontend resolves (`conservative`, `liberal`, `socialist`,
+/// `communist`, `green`, `nationalist`, `religious`, `monarchist`, `fascist`,
+/// `military`, `agrarian`, `libertarian`, `anarchist`, `technocrat`,
+/// `populist`, `centrist`, `reactionary`).
+pub fn ideology_icon_key(ideology_label: &str, coords: &IdeologyCoordinates) -> String {
+    let l = ideology_label.to_lowercase();
+    let key = if l.contains("marxism") || l.contains("maoism") || l.contains("communist") {
+        "communist"
+    } else if l.contains("green") || l.contains("ecolog") {
+        "green"
+    } else if l.contains("agrarian") || l.contains("peasant") {
+        "agrarian"
+    } else if l.contains("christian") || l.contains("religious") || l.contains("theocrat") {
+        "religious"
+    } else if l.contains("fascis") || l.contains("nazis") {
+        "fascist"
+    } else if l.contains("monarch") || l.contains("royal") {
+        "monarchist"
+    } else if l.contains("militar") || l.contains("junta") {
+        "military"
+    } else if l.contains("national") || l.contains("patriot") {
+        "nationalist"
+    } else if l.contains("anarcho-capital") || l.contains("libertari") {
+        "libertarian"
+    } else if l.contains("anarch") {
+        "anarchist"
+    } else if l.contains("techno") {
+        "technocrat"
+    } else if l.contains("populi") {
+        "populist"
+    } else if l.contains("reaction") {
+        "reactionary"
+    } else if l.contains("conserv") || l.contains("traditional") {
+        "conservative"
+    } else if l.contains("social democr") || l.contains("socialist") || l.contains("labor") {
+        "socialist"
+    } else if l.contains("liberal") || l.contains("free") {
+        "liberal"
+    } else if l.contains("centri") || l.contains("moderate") {
+        "centrist"
+    } else {
+        // Coordinate fallback when the label has no recognizable keyword.
+        if coords.tradition > 0.5 {
+            "conservative"
+        } else if coords.economy < -0.4 {
+            "socialist"
+        } else if coords.liberty > 0.4 {
+            "liberal"
+        } else if coords.liberty < -0.6 {
+            "fascist"
+        } else {
+            "centrist"
+        }
+    };
+    key.to_string()
+}
+
+/// v4.20 T2: Fill `color_hex`/`ideology_icon` on one party if unset.
+/// `used_colors` collects already-assigned hex values so sibling parties in
+/// the same map never share a hemicycle color. Call order must be canonical
+/// (sorted party ids) so the assignment is deterministic.
+fn fill_party_identity(party_id: &str, party: &mut Party, used_colors: &mut std::collections::HashSet<String>) {
+    if party.ideology_icon.is_empty() {
+        party.ideology_icon = ideology_icon_key(&party.ideology, &party.coordinates);
+    }
+    if party.color_hex.is_empty() {
+        let n = PARTY_COLOR_PALETTE.len();
+        let start = (stable_party_hash(party_id) as usize) % n;
+        let mut idx = start;
+        while used_colors.contains(PARTY_COLOR_PALETTE[idx]) {
+            idx = (idx + 1) % n;
+        }
+        let color = PARTY_COLOR_PALETTE[idx].to_string();
+        used_colors.insert(color.clone());
+        party.color_hex = color;
+    } else {
+        used_colors.insert(party.color_hex.clone());
+    }
+}
+
+/// v4.20 T2: Deterministically assign `color_hex`/`ideology_icon` to every
+/// active party that lacks them. Iterates sorted party ids — the fill order
+/// never depends on HashMap iteration. Idempotent: persisted values are kept.
+/// Called from `process_election_cycle` (every turn) and genesis, so parties
+/// created by any path (bootstrap, fallback injection, splinter formalization)
+/// acquire identity exactly once.
+pub fn ensure_all_party_identities(parties: &mut HashMap<String, Party>) {
+    let mut ids: Vec<String> = parties.keys().cloned().collect();
+    ids.sort();
+    let mut used_colors: std::collections::HashSet<String> = std::collections::HashSet::new();
+    for id in ids {
+        if let Some(party) = parties.get_mut(&id) {
+            fill_party_identity(&id.clone(), party, &mut used_colors);
+        }
+    }
+}
+
+/// v4.20 T1: Renormalize party supports so they sum to exactly 100.0.
+///
+/// Support is stored on the percent scale (0-100 vote-share semantics —
+/// `elections.rs` compares it against `election_threshold`). Campaign
+/// decays and event multipliers (`party.support *= 0.9`, `= 0.0`) shrink
+/// the aggregate below 100 over time; the invariant that the electorate
+/// partitions fully across parties must be restored every turn or the
+/// v4.20 release gate `(supports_sum - 100).abs() < 1.0` drifts red.
+///
+/// Proportional rescale preserves relative shares; zero-support parties
+/// stay at zero; an all-zero map is left untouched (no parties active).
+/// Iteration is over a sorted id vec for determinism.
+pub fn normalize_party_supports(parties: &mut HashMap<String, Party>) {
+    // `active_parties` is a std HashMap — its iteration order is per-process
+    // random. The `total` f64 sum MUST iterate in a canonical (sorted) order:
+    // floating-point addition is non-associative, so an unsorted sum yields a
+    // last-ulp-different `scale` per process, which writes back into support
+    // and drifts trajectories over 120 turns (same class as the v4.19
+    // `total_forex_reserves` fix).
+    let mut ids: Vec<String> = parties.keys().cloned().collect();
+    ids.sort();
+    let total: f64 = ids
+        .iter()
+        .map(|id| parties[id].support.max(0.0))
+        .sum();
+    if total <= f64::EPSILON || (total - 100.0).abs() < 1e-9 {
+        return;
+    }
+    let scale = 100.0 / total;
+    for id in ids {
+        if let Some(p) = parties.get_mut(&id) {
+            p.support = (p.support.max(0.0) * scale).clamp(0.0, 100.0);
+        }
+    }
+}
+
+/// v4.20 T2: Look up a club's visual identity — the parent party's persisted
+/// color/icon when it exists, otherwise a deterministic derivation from the
+/// club id and ideology (splinter clubs have no parent party entry).
+pub fn club_visual_identity(
+    club_id: &str,
+    ideology_label: &str,
+    coords: &IdeologyCoordinates,
+    parties: &HashMap<String, Party>,
+) -> (String, String) {
+    if let Some(p) = parties.get(club_id) {
+        let color = if p.color_hex.is_empty() {
+            PARTY_COLOR_PALETTE[(stable_party_hash(club_id) as usize) % PARTY_COLOR_PALETTE.len()]
+                .to_string()
+        } else {
+            p.color_hex.clone()
+        };
+        let icon = if p.ideology_icon.is_empty() {
+            ideology_icon_key(&p.ideology, &p.coordinates)
+        } else {
+            p.ideology_icon.clone()
+        };
+        (color, icon)
+    } else {
+        (
+            PARTY_COLOR_PALETTE
+                [(stable_party_hash(club_id) as usize) % PARTY_COLOR_PALETTE.len()]
+            .to_string(),
+            ideology_icon_key(ideology_label, coords),
+        )
+    }
 }
 
 /// A single political leader.
@@ -152,6 +421,17 @@ pub struct Party {
     // PHASE 4: Annual donations tracked (revenue tracker)
     #[serde(default)]
     pub annual_donations: f64,
+
+    // v4.20 T2: Persistent party visual identity — hex color shared across
+    // the Elections poll table, the hemicycle, and the parliamentary club
+    // rows. Assigned once by `ensure_all_party_identities`, never re-rolled.
+    #[serde(default)]
+    pub color_hex: String,
+
+    // v4.20 T2: Stable ideology badge key resolved to an icon by the
+    // frontend (e.g. "conservative", "socialist", "green").
+    #[serde(default)]
+    pub ideology_icon: String,
 }
 
 impl Borrower for Party {
@@ -787,6 +1067,22 @@ pub struct Politics {
     pub minority_government: bool,
     #[serde(default)]
     pub years_to_elections: u32,
+    /// v4.20 T1: Absolute turn index on which the next scheduled election
+    /// executes. Derived from `years_to_elections` (24 turns/year) and kept
+    /// in sync with it; snap/crisis elections re-anchor this via
+    /// `process_election_cycle`'s per-turn resync. 0 = not yet scheduled
+    /// (pre-init) / non-elective regime.
+    #[serde(default)]
+    pub scheduled_election_turn: u32,
+    /// v4.20 T1: Live countdown — `scheduled_election_turn - current_turn`,
+    /// recomputed every political turn. Reaches 0 on the turn the election
+    /// fires. Replaces the static `years_to_elections * 24` estimate for UI
+    /// countdowns.
+    #[serde(default)]
+    pub turns_until_election: u32,
+    /// v4.20: Total elections executed (scheduled + snap) — release gate.
+    #[serde(default)]
+    pub elections_held: u32,
     #[serde(default)]
     pub active_parties: HashMap<String, Party>,
     #[serde(default)]
