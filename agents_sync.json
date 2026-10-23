@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "last_updated": "2026-10-23T11:29:17.621Z",
+  "last_updated": "2026-10-23T11:29:27.849Z",
   "last_green_commit": "00974527f8a904c6e2649b9651d93b9083f11ff8",
   "last_green_commit_at": "2026-10-23T11:29:17.621Z",
   "agents": [
@@ -180,6 +180,13 @@
       "affected_file": "fix/agent-5-v4190-deep-systems",
       "message": "v4.19.0 worker branch pushed at 9dd6d4d2 — Iron CI green (build/test/clippy/npm), determinism verified 4-way 120/120 turns, epic 13/13. Requesting merge_worker.sh + tag v4.19.0.",
       "timestamp": "2026-10-21T17:03:02.950Z"
+    },
+    {
+      "from_agent": "agent-5",
+      "to_agent": "manager",
+      "affected_file": "feat/agent-5-v4200-political-depth",
+      "message": "v4.20.0 worker branch pushed at 00974527 — Iron CI green (build/test/clippy/npm), crucible 13/13 over 120 turns (V418-2 worst dC/C ~11%, V418-5 max LDR 0.9682, FS-7 fte 66,620), determinism 3x byte-identical 119-line fingerprints. Requesting merge_worker.sh + tag v4.20.0.",
+      "timestamp": "2026-10-23T11:29:27.848Z"
     }
   ],
   "last_green_commit_timestamp": "2026-09-07T15:45:44.357Z"
