@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -11,6 +11,8 @@ import {
   TrendingUp,
   Globe,
   Play,
+  Pause,
+  FastForward,
   Plus,
   RefreshCw,
   CandlestickChart,
@@ -76,24 +78,64 @@ function monthName(month: number): string {
   return names[(month - 1) % 12] ?? "";
 }
 
-function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
-  const { gameStatus, selectedCountry, setSelectedCountry, processing, refreshStatus, bumpTurn } = useGameStore();
-  const queryClient = useQueryClient();
+/// Wall-clock delay between auto-advanced turns per speed setting.
+const AUTO_SPEED_MS = { 1: 4000, 2: 2000, 5: 800 } as const;
+type AutoSpeed = keyof typeof AUTO_SPEED_MS;
 
-  const handleAdvance = async () => {
-    if (processing) return; // Prevent duplicate clicks
-    useGameStore.getState().setProcessing(true);
+function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
+  const { gameStatus, selectedCountry, setSelectedCountry, processing } = useGameStore();
+  const queryClient = useQueryClient();
+  const [autoAdvance, setAutoAdvance] = useState(false);
+  const [autoSpeed, setAutoSpeed] = useState<AutoSpeed>(1);
+  const speedRef = useRef<AutoSpeed>(autoSpeed);
+  speedRef.current = autoSpeed;
+
+  const runTurn = async (): Promise<boolean> => {
+    const store = useGameStore.getState();
+    if (store.processing) return true; // Prevent overlapping runs
+    store.setProcessing(true);
     try {
       await advanceTurn();
-      await refreshStatus();
-      bumpTurn();
-      queryClient.invalidateQueries();
+      await store.refreshStatus();
+      store.bumpTurn();
+      await queryClient.invalidateQueries();
+      return true;
     } catch (e) {
       console.error("Turn failed:", e);
       alert(`Turn failed: ${e}`);
+      return false;
+    } finally {
+      useGameStore.getState().setProcessing(false);
     }
-    useGameStore.getState().setProcessing(false);
   };
+
+  const handleAdvance = () => {
+    void runTurn();
+  };
+
+  // Auto-advance: chained setTimeout — the next turn is only scheduled
+  // after the previous advance fully resolves, so runs never overlap.
+  // Errors pause auto-advance.
+  useEffect(() => {
+    if (!autoAdvance) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const tick = async () => {
+      const ok = await runTurn();
+      if (cancelled) return;
+      if (!ok) {
+        setAutoAdvance(false);
+        return;
+      }
+      timer = setTimeout(tick, AUTO_SPEED_MS[speedRef.current]);
+    };
+    timer = setTimeout(tick, AUTO_SPEED_MS[speedRef.current]);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoAdvance]);
 
   return (
     <aside className="w-60 bg-card border-r border-border flex flex-col">
@@ -143,18 +185,49 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
       </nav>
 
       <div className="p-3 border-t border-border space-y-2">
-        <button
-          onClick={handleAdvance}
-          disabled={processing || !gameStatus?.has_game}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 hover:opacity-90"
-        >
-          {processing ? (
-            <RefreshCw size={16} className="animate-spin" />
-          ) : (
-            <Play size={16} />
-          )}
-          {processing ? "Processing..." : "Advance Turn"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleAdvance}
+            disabled={processing || !gameStatus?.has_game}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 hover:opacity-90"
+          >
+            {processing ? (
+              <RefreshCw size={16} className="animate-spin" />
+            ) : (
+              <Play size={16} />
+            )}
+            {processing ? "Processing..." : "Advance Turn"}
+          </button>
+          <button
+            onClick={() => setAutoAdvance((a) => !a)}
+            disabled={!gameStatus?.has_game}
+            title={autoAdvance ? "Pause auto-advance" : "Auto-advance turns"}
+            className={`flex items-center justify-center px-2.5 py-2 rounded text-sm font-medium disabled:opacity-50 ${
+              autoAdvance
+                ? "bg-primary text-primary-foreground hover:opacity-90"
+                : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            }`}
+          >
+            {autoAdvance ? <Pause size={16} /> : <FastForward size={16} />}
+          </button>
+          <select
+            value={autoSpeed}
+            onChange={(e) => setAutoSpeed(Number(e.target.value) as AutoSpeed)}
+            disabled={!gameStatus?.has_game}
+            title="Auto-advance speed"
+            className="bg-input text-foreground text-xs rounded border border-border px-1 py-2 disabled:opacity-50"
+          >
+            <option value={1}>1x</option>
+            <option value={2}>2x</option>
+            <option value={5}>5x</option>
+          </select>
+        </div>
+        {autoAdvance && (
+          <div className="flex items-center gap-1.5 text-xs text-primary">
+            <RefreshCw size={12} className="animate-spin" />
+            Auto-advancing · {autoSpeed}x
+          </div>
+        )}
         <button
           onClick={onCheckUpdates}
           disabled={updateChecking || processing}

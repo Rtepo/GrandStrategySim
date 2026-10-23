@@ -1718,7 +1718,7 @@ pub fn build_foreign_country_rows(
             .map(|r| r.relations);
 
         let government_form = if intel.government_known {
-            Some(format!("{:?}", country.politics.government_form))
+            Some(country.politics.government_form.display_name().to_string())
         } else {
             None
         };
@@ -1848,6 +1848,13 @@ pub struct ParliamentSnapshot {
     pub vips: Vec<VipRow>,
     /// Phase 42: Committees with chairs and member counts.
     pub committees: Vec<CommitteeRow>,
+    /// v4.20: Regime-aware display name for the legislature ("Parliament",
+    /// "Royal Council", "National Salvation Committee",
+    /// "Supreme Religious Council", "People's Assembly", ...).
+    pub legislature_name: String,
+    /// v4.20: Regime type key (Democracy, AbsoluteMonarchy,
+    /// MilitaryDictatorship, Theocracy, OnePartyState, ...).
+    pub regime_type: String,
 }
 
 /// Phase 42: A committee row for the Parliament tab.
@@ -1926,6 +1933,12 @@ pub struct ClubRow {
     pub chairperson_id: Option<String>,
     /// Phase 54: Chairperson display name.
     pub chairperson_name: String,
+    /// v4.20: Deterministic party visual identity — persistent hex color
+    /// assigned at party genesis, shared across Hemicycle/Elections/Clubs.
+    pub color_hex: String,
+    /// v4.20: Ideology badge key (e.g. "conservative", "socialist") resolved
+    /// to an icon by the frontend.
+    pub ideology_icon: String,
 }
 
 /// A recent vote row.
@@ -2001,6 +2014,12 @@ pub struct BillDetailRow {
     pub committee: Option<String>,
     /// Typed provisions from the bill's core clauses.
     pub provisions: Vec<ProvisionRow>,
+    /// v4.20: Terminal/procedural badge — "Passed", "Rejected by Upper
+    /// House", "Senate Veto Overridden", "Presidential Veto", etc.
+    pub status_badge: String,
+    /// v4.20: Thematic tag for color-coding — "Budget", "Justice", "Labor",
+    /// "Infrastructure", "Education", "Defense", "Other".
+    pub theme_tag: String,
 }
 
 /// A legislative queue row.
@@ -2842,6 +2861,13 @@ pub struct RegionDetail {
     pub debt_to_revenue_ratio: f64,
     pub credit_rating: String,
     pub active_mandates: Vec<MandateSummary>,
+    /// v4.20 WS4: Regional council legislative record — resolutions debated
+    /// and voted by the council each turn (oldest → newest).
+    #[serde(default)]
+    pub council_resolutions: Vec<CouncilResolutionRow>,
+    /// v4.20 WS4: Per-councilor roll-call records for the resolutions above.
+    #[serde(default)]
+    pub council_roll_calls: Vec<CouncilRollCallRow>,
     pub infrastructure_avg_condition: f64,
     pub sector_employment: Vec<(String, f64)>,
     pub durable_cohorts: Vec<DurableCohortSummary>,
@@ -2920,6 +2946,36 @@ pub struct MandateSummary {
     pub imposed_turn: u32,
 }
 
+/// v4.20 WS4: A resolution debated and voted by a regional council —
+/// mirrors `CouncilResolution` on `politics::local_council::LocalCouncil`
+/// and the `CouncilResolutionRow` api.ts contract.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CouncilResolutionRow {
+    pub title: String,
+    pub resolution_type: String,
+    pub status: String,
+    pub votes_for: u32,
+    pub votes_against: u32,
+    pub abstentions: u32,
+    pub turn: u32,
+}
+
+/// v4.20 WS4: Per-councilor vote record for a council resolution — mirrors
+/// `CouncilRollCall` and the `CouncilRollCallRow` api.ts contract. `vip_id`
+/// is an extra field beyond the contract (the frontend tolerates extras).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CouncilRollCallRow {
+    pub resolution_title: String,
+    pub member_name: String,
+    pub faction: String,
+    pub vote: String,
+    pub turn: u32,
+    /// Extra: councilor persistent id (VIP identifier where registered).
+    pub vip_id: String,
+}
+
 /// Summary of a household durable cohort for the region drill-down.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
@@ -2951,6 +3007,17 @@ pub struct MegaregionDetail {
     pub development_expenditures: f64,
     pub coordination_expenditures: f64,
     pub budget_balance: f64,
+    /// v4.20 WS4: Council legislative record aggregated from member
+    /// regions' councils — the megaregion has no council of its own
+    /// (`MegaregionGovernance` is governor-led), so its assembly record is
+    /// the union of member-region council resolutions (real data only;
+    /// api.ts `MegaregionDetail` lacks these fields — extra JSON keys are
+    /// tolerated).
+    #[serde(default)]
+    pub council_resolutions: Vec<CouncilResolutionRow>,
+    /// v4.20 WS4: Roll calls of member-region councilors.
+    #[serde(default)]
+    pub council_roll_calls: Vec<CouncilRollCallRow>,
 }
 
 // ============================================================================
@@ -3174,6 +3241,10 @@ pub struct ElectionPartyRow {
     pub seats: u32,
     pub is_coalition_member: bool,
     pub is_ruling: bool,
+    /// v4.20: Deterministic party color, shared with ClubRow.color_hex.
+    pub color_hex: String,
+    /// v4.20: Ideology badge key resolved to an icon by the frontend.
+    pub ideology_icon: String,
 }
 
 /// One executed campaign action.
@@ -3197,6 +3268,11 @@ pub struct ElectionsResponse {
     pub years_to_elections: u32,
     /// Estimated turns until the next election (years_to_elections × 24).
     pub estimated_turns_remaining: u32,
+    /// v4.20: LIVE countdown — decremented every turn by the engine until the
+    /// election fires at 0. Replaces the static estimate for display.
+    pub turns_remaining: u32,
+    /// v4.20: Scheduled turn index on which the next election executes.
+    pub scheduled_election_turn: u32,
     /// Calendar year of the next scheduled election.
     pub next_election_year: u32,
     pub head_of_state_name: String,
@@ -3764,7 +3840,7 @@ pub fn build_country_snapshot(
         megaregion_detail: build_megaregion_detail(country, view),
         advisory_council: build_advisory_council_snapshot(country),
         royal_dynasty: build_royal_dynasty_snapshot(country),
-        government_form: format!("{:?}", country.politics.government_form),
+        government_form: country.politics.government_form.display_name().to_string(),
     }
 }
 
@@ -4079,9 +4155,9 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
     let c = &p.constitution;
     let constitution = ConstitutionSnapshot {
         exists: c.exists,
-        regime_type: format!("{:?}", p.government_form),
+        regime_type: p.government_form.display_name().to_string(),
         chambers: p.government_form.chambers(),
-        upper_house_name: c.upper_house.as_ref().map(|u| format!("{:?}", u)),
+        upper_house_name: c.upper_house.as_ref().map(|u| u.name.clone()),
         electoral_system: if p.election_method.is_empty() {
             "None (non-elective regime)".to_string()
         } else {
@@ -4091,8 +4167,14 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
         term_length_years: p.government_form.election_cycle(),
         presidential_veto: c.presidential_veto,
         constitutional_tribunal: c.constitutional_tribunal.clone(),
-        suffrage_system: format!("{:?}", c.suffrage_system),
-        budget_failure_consequence: format!("{:?}", c.budget_failure_consequence),
+        suffrage_system: crate::politics::system::humanize_debug_token(&format!(
+            "{:?}",
+            c.suffrage_system.suffrage_type
+        )),
+        budget_failure_consequence: crate::politics::system::humanize_debug_token(&format!(
+            "{:?}",
+            c.budget_failure_consequence
+        )),
         change_mechanism: c.change_mechanism.clone(),
     };
 
@@ -4115,15 +4197,26 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
     push("Labor", "Strike Regime", p.strike_law.clone());
     push("Religion", "Religious Regime", p.religious_law.clone());
     if let Some(ref l) = p.child_labor_law {
-        push("Labor", "Child Labor Law", format!("{l:?}"));
+        push(
+            "Labor",
+            "Child Labor Law",
+            crate::politics::system::humanize_debug_token(&format!("{l:?}")),
+        );
     }
     if let Some(ref l) = p.healthcare_law {
         push(
             "Health",
             "Healthcare Act",
             format!(
-                "{:?} — {:?} coverage",
-                l.healthcare_system, l.universality
+                "{} — {} coverage",
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    l.healthcare_system
+                )),
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    l.universality
+                ))
             ),
         );
     }
@@ -4131,7 +4224,17 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
         push(
             "Education",
             "Education Act",
-            format!("{:?} — {:?} school system", l.education_model, l.school_system),
+            format!(
+                "{} — {} school system",
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    l.education_model
+                )),
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    l.school_system
+                ))
+            ),
         );
     }
     if let Some(ref l) = p.justice_law {
@@ -4139,8 +4242,13 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
             "Justice",
             "Justice Reform",
             format!(
-                "pardon: {:?}, KRS separated: {}, corruption idx {:.2}",
-                l.pardon_authority, l.krs_separated, l.corruption_index
+                "pardon: {}, KRS separated: {}, corruption idx {:.2}",
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    l.pardon_authority
+                )),
+                l.krs_separated,
+                l.corruption_index
             ),
         );
     }
@@ -4148,7 +4256,14 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
         push(
             "Justice",
             "Prison Labor Law",
-            format!("{:?} — compensation {:.2}", l.prison_type, l.labor_compensation),
+            format!(
+                "{} — compensation {:.2}",
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    l.prison_type
+                )),
+                l.labor_compensation
+            ),
         );
     }
     if let Some(ref l) = p.sentencing_law {
@@ -4166,7 +4281,15 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
             push(
                 "Justice",
                 "Amnesty Program",
-                format!("rate {:.2}, fee {:.0}, target {:?}", l.legalization_rate, l.legalization_fee, l.target_status),
+                format!(
+                    "rate {:.2}, fee {:.0}, target {}",
+                    l.legalization_rate,
+                    l.legalization_fee,
+                    crate::politics::system::humanize_debug_token(&format!(
+                        "{:?}",
+                        l.target_status
+                    ))
+                ),
             );
         }
     }
@@ -4175,8 +4298,13 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
             "Migration",
             "Migration Law",
             format!(
-                "open borders: {}, visa required: {}, deportation: {:?}",
-                l.open_borders, l.visa_required, l.deportation_policy
+                "open borders: {}, visa required: {}, deportation: {}",
+                l.open_borders,
+                l.visa_required,
+                crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    l.deportation_policy
+                ))
             ),
         );
     }
@@ -4186,7 +4314,10 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
             "Religious Law",
             format!(
                 "state religion: {}, separation: {}, church tax {:.2}",
-                l.state_religion.clone().unwrap_or_else(|| "none".into()),
+                l.state_religion
+                    .as_deref()
+                    .map(crate::politics::system::humanize_debug_token)
+                    .unwrap_or_else(|| "none".into()),
                 l.separation_of_church_and_state,
                 l.church_tax_rate
             ),
@@ -4277,21 +4408,40 @@ pub fn build_elections(country: &Country, current_year: u32) -> ElectionsRespons
         .iter()
         .max_by_key(|(_, s)| *s)
         .map(|(k, _)| k.clone());
+    // v4.20 T1: Normalize support — the engine stores percent-scale values
+    // (sum ≈ 100) but the contract requires a 0..1 fraction summing to ~1.0
+    // across active parties.
+    let total_support: f64 = p.active_parties.values().map(|x| x.support).sum();
     let mut parties: Vec<ElectionPartyRow> = p
         .active_parties
         .iter()
-        .map(|(pid, party)| ElectionPartyRow {
-            party_id: pid.clone(),
-            ideology: party.ideology.clone(),
-            support: party.support,
-            seats: p
-                .parliament_struct
-                .as_ref()
-                .map(|parl| *parl.lower_seat_map().get(pid).unwrap_or(&0))
-                .or_else(|| p.parliament.get(pid).copied())
-                .unwrap_or(0),
-            is_coalition_member: p.coalition.contains(pid),
-            is_ruling: ruling.as_deref() == Some(pid.as_str()),
+        .map(|(pid, party)| {
+            let (color_hex, ideology_icon) =
+                crate::politics::system::club_visual_identity(
+                    pid,
+                    &party.ideology,
+                    &party.coordinates,
+                    &p.active_parties,
+                );
+            ElectionPartyRow {
+                party_id: pid.clone(),
+                ideology: party.ideology.clone(),
+                support: if total_support > 0.0 {
+                    (party.support / total_support).clamp(0.0, 1.0)
+                } else {
+                    0.0
+                },
+                seats: p
+                    .parliament_struct
+                    .as_ref()
+                    .map(|parl| *parl.lower_seat_map().get(pid).unwrap_or(&0))
+                    .or_else(|| p.parliament.get(pid).copied())
+                    .unwrap_or(0),
+                is_coalition_member: p.coalition.contains(pid),
+                is_ruling: ruling.as_deref() == Some(pid.as_str()),
+                color_hex,
+                ideology_icon,
+            }
         })
         .collect();
     parties.sort_by(|a, b| {
@@ -4306,24 +4456,29 @@ pub fn build_elections(country: &Country, current_year: u32) -> ElectionsRespons
         .iter()
         .map(|e| CampaignActionRow {
             party_id: e.party_id.clone(),
-            action: format!("{:?}", e.action),
+            action: crate::politics::system::humanize_debug_token(&format!(
+                "{:?}",
+                e.action
+            )),
             turn: e.execution_turn,
             is_black_money: e.is_black_money,
         })
         .collect();
 
     ElectionsResponse {
-        government_form: format!("{:?}", p.government_form),
+        government_form: p.government_form.display_name().to_string(),
         election_state,
         years_to_elections: p.years_to_elections,
         estimated_turns_remaining: p.years_to_elections.saturating_mul(24),
+        turns_remaining: p.turns_until_election,
+        scheduled_election_turn: p.scheduled_election_turn,
         next_election_year: current_year.saturating_add(p.years_to_elections),
         head_of_state_name: if !p.head_of_state.name.is_empty() {
             p.head_of_state.name.clone()
         } else {
             "(vacant)".to_string()
         },
-        head_of_state_title: format!("{:?}", p.government_form),
+        head_of_state_title: p.government_form.display_name().to_string(),
         campaign_duration_turns: p.campaign_duration_turns,
         parties,
         campaign_actions,
@@ -4690,6 +4845,49 @@ fn build_region_detail(
         })
         .collect();
 
+    // v4.20 WS4: Council legislative record — resolutions + roll calls are
+    // persisted on `gov.council` by
+    // `politics::local_legislation::process_regional_council_sessions`
+    // (condition-driven agenda → faction/trait-weighted vote per real
+    // councilor → recorded roll calls).
+    let council_resolutions: Vec<CouncilResolutionRow> = region
+        .governance
+        .as_ref()
+        .map(|g| {
+            g.council
+                .resolutions
+                .iter()
+                .map(|r| CouncilResolutionRow {
+                    title: r.title.clone(),
+                    resolution_type: r.resolution_type.clone(),
+                    status: r.status.clone(),
+                    votes_for: r.votes_for,
+                    votes_against: r.votes_against,
+                    abstentions: r.abstentions,
+                    turn: r.turn,
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    let council_roll_calls: Vec<CouncilRollCallRow> = region
+        .governance
+        .as_ref()
+        .map(|g| {
+            g.council
+                .roll_calls
+                .iter()
+                .map(|rc| CouncilRollCallRow {
+                    resolution_title: rc.resolution_title.clone(),
+                    member_name: rc.member_name.clone(),
+                    faction: rc.faction.clone(),
+                    vote: rc.vote.clone(),
+                    turn: rc.turn,
+                    vip_id: rc.vip_id.clone(),
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
     // Infrastructure average condition.
     let infra_links: Vec<&crate::economy::transport_networks::NetworkLink> = country
         .transport_networks
@@ -4759,6 +4957,8 @@ fn build_region_detail(
         debt_to_revenue_ratio,
         credit_rating,
         active_mandates,
+        council_resolutions,
+        council_roll_calls,
         infrastructure_avg_condition,
         sector_employment,
         durable_cohorts,
@@ -5024,6 +5224,36 @@ fn build_megaregion_detail(country: &Country, view: &ViewQuery) -> Option<Megare
         )
     };
 
+    // v4.20 WS4: Aggregate council legislative records from member regions
+    // (member order is the megaregion's stored region list — deterministic).
+    let mut council_resolutions: Vec<CouncilResolutionRow> = Vec::new();
+    let mut council_roll_calls: Vec<CouncilRollCallRow> = Vec::new();
+    for region in &member_regions {
+        if let Some(ref gov) = region.governance {
+            council_resolutions.extend(gov.council.resolutions.iter().map(|r| {
+                CouncilResolutionRow {
+                    title: r.title.clone(),
+                    resolution_type: r.resolution_type.clone(),
+                    status: r.status.clone(),
+                    votes_for: r.votes_for,
+                    votes_against: r.votes_against,
+                    abstentions: r.abstentions,
+                    turn: r.turn,
+                }
+            }));
+            council_roll_calls.extend(gov.council.roll_calls.iter().map(|rc| {
+                CouncilRollCallRow {
+                    resolution_title: rc.resolution_title.clone(),
+                    member_name: rc.member_name.clone(),
+                    faction: rc.faction.clone(),
+                    vote: rc.vote.clone(),
+                    turn: rc.turn,
+                    vip_id: rc.vip_id.clone(),
+                }
+            }));
+        }
+    }
+
     Some(MegaregionDetail {
         megaregion_id: megaregion.id.clone(),
         display_name: if megaregion.name.is_empty() {
@@ -5044,6 +5274,8 @@ fn build_megaregion_detail(country: &Country, view: &ViewQuery) -> Option<Megare
         development_expenditures,
         coordination_expenditures,
         budget_balance,
+        council_resolutions,
+        council_roll_calls,
     })
 }
 
@@ -5574,7 +5806,7 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
 
     GovernmentSnapshot {
         head_of_state_name,
-        head_of_state_role: format!("{:?}", politics.government_form),
+        head_of_state_role: politics.government_form.display_name().to_string(),
         pm_name,
         // v4.18 WS3: report the canonical PM party (same source as pm_name).
         pm_party: canonical_pm_party.to_string(),
@@ -5586,7 +5818,7 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
         // Phase 41: VIPs moved from Parliament to Government tab.
         vips: build_vip_rows(country, year),
         // Phase 54: Government form + royal dynasty for monarchy sub-tab.
-        government_form: format!("{:?}", politics.government_form),
+        government_form: politics.government_form.display_name().to_string(),
         royal_dynasty: build_royal_dynasty_snapshot(country),
         // D.7.1: Inspectorate stats from InspectorateState
         inspectorate_sanepid_capacity: politics.inspectorate_state.as_ref().map(|ist| ist.sanepid_capacity).unwrap_or(0.0),
@@ -5652,7 +5884,34 @@ fn bill_detail_row(d: &crate::politics::parliament::BillDetail) -> BillDetailRow
                 mutation_notes: p.mutation_notes.clone(),
             })
             .collect(),
+        // v4.20: legacy saves carry empty badge/tag — fall back to the stage
+        // label / bill-type mapping so the drawer never shows blanks.
+        status_badge: if d.status_badge.is_empty() {
+            d.stage.clone()
+        } else {
+            d.status_badge.clone()
+        },
+        theme_tag: if d.theme_tag.is_empty() {
+            bill_theme_tag_from_type(&d.bill_type)
+        } else {
+            d.theme_tag.clone()
+        },
     }
+}
+
+/// v4.20: Theme tag for a `BillType::as_str()` id — same vocabulary as
+/// `BillType::theme_tag()` ("Budget", "Justice", "Labor",
+/// "Infrastructure", "Education", "Defense", "Other").
+fn bill_theme_tag_from_type(bill_type: &str) -> String {
+    match bill_type {
+        "budget" | "emergency_fiscal" | "emergency_bonds" | "tax_reform" => "Budget",
+        "justice" | "sentencing" => "Justice",
+        "labor" => "Labor",
+        "infrastructure" | "transport" => "Infrastructure",
+        "education" => "Education",
+        _ => "Other",
+    }
+    .to_string()
 }
 
 /// Phase 32: Build the Parliament tab snapshot.
@@ -5660,16 +5919,23 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
     let politics = &country.politics;
 
     if let Some(ref parl) = politics.parliament_struct {
-        // Chambers.
+        // Chambers. v4.20: seat distributions are sorted (seats desc, id asc)
+        // — HashMap iteration order must not leak into serialized snapshots.
         let chambers: Vec<ChamberSnapshot> = parl
             .chambers
             .iter()
-            .map(|c| ChamberSnapshot {
-                name: c.name.clone(),
-                total_seats: c.total_seats,
-                speaker_name: c.presidium.speaker.full_name.clone(),
-                speaker_club: c.presidium.speaker_club.clone(),
-                seat_distribution: c.seats.iter().map(|(k, v)| (k.clone(), *v)).collect(),
+            .map(|c| {
+                let mut seat_distribution: Vec<(String, u32)> =
+                    c.seats.iter().map(|(k, v)| (k.clone(), *v)).collect();
+                seat_distribution
+                    .sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+                ChamberSnapshot {
+                    name: c.name.clone(),
+                    total_seats: c.total_seats,
+                    speaker_name: c.presidium.speaker.full_name.clone(),
+                    speaker_club: c.presidium.speaker_club.clone(),
+                    seat_distribution,
+                }
             })
             .collect();
 
@@ -5681,6 +5947,15 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                 // Ideology Step 6: Derive ideology label from `classify()` using
                 // the club's authoritative coordinates (not the stored string).
                 let ideology = classify(c.coordinates, year).0.to_string();
+                // v4.20 T2: persistent party color/icon — parent party's stored
+                // identity, or a deterministic derivation for splinter clubs.
+                let (color_hex, ideology_icon) =
+                    crate::politics::system::club_visual_identity(
+                        &c.id,
+                        &ideology,
+                        &c.coordinates,
+                        &politics.active_parties,
+                    );
                 ClubRow {
                     name: c.name.clone(),
                     seats: c.seats,
@@ -5691,6 +5966,8 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                     discipline: c.discipline,
                     chairperson_id: c.chairperson_id.clone(),
                     chairperson_name: c.chairperson_name.clone(),
+                    color_hex,
+                    ideology_icon,
                 }
             })
             .collect();
@@ -5746,7 +6023,7 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                             .map(|b| {
                                 (
                                     b.title.clone(),
-                                    format!("{:?}", b.stage),
+                                    b.stage.label().to_string(),
                                     b.initiator.clone(),
                                     b.committee.clone(),
                                     Some(crate::politics::bill_lifecycle::build_bill_detail(
@@ -5808,7 +6085,7 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                                     .map(|b| CommitteeBillRow {
                                         bill_id: bid.clone(),
                                         title: b.title.clone(),
-                                        stage: format!("{:?}", b.stage),
+                                        stage: b.stage.label().to_string(),
                                         completion_turn: b.committee_completion_turn,
                                         // The recorded modifier once set;
                                         // otherwise the deterministic preview
@@ -5837,7 +6114,9 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                             .unwrap_or_else(|| c.chair.clone());
                         CommitteeRow {
                             name: c.name.clone(),
-                            committee_type: format!("{:?}", c.committee_type),
+                            committee_type: crate::politics::system::humanize_debug_token(
+                                &format!("{:?}", c.committee_type),
+                            ),
                             chair: chair_name,
                             chair_party: c.chair.clone(),
                             member_count: c.members.values().map(|v| *v as usize).sum(),
@@ -5858,10 +6137,17 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
             suspended: parl.suspended,
             vips: Vec::new(), // Phase 41: VIPs now in GovernmentSnapshot
             committees,
+            legislature_name: politics.government_form.legislature_name().to_string(),
+            regime_type: politics.government_form.regime_type_key().to_string(),
         }
     } else {
-        // No parliament struct — return empty snapshot.
-        ParliamentSnapshot::default()
+        // No parliament struct — still report the regime-appropriate
+        // legislature identity so the UI can label the (empty) tab.
+        ParliamentSnapshot {
+            legislature_name: politics.government_form.legislature_name().to_string(),
+            regime_type: politics.government_form.regime_type_key().to_string(),
+            ..Default::default()
+        }
     }
 }
 

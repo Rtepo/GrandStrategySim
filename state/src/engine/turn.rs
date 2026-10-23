@@ -5716,7 +5716,19 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // price toward the world price (law of one price), which lifts next
         // turn's bid limit prices toward ask floors and revives domestic
         // order-book crossing.
-        let mut vwap_trades = all_trades.clone();
+        // Only settled trades may form the market price. FX-failed
+        // matches are refunded and never deliver, so counting them let
+        // phantom volume reset the world reference — a distressed
+        // exporter's unserved asks dragged the global Clothing VWAP ~40%
+        // below its prior level for three turns and whipsawed retail
+        // prices worldwide (the V418-2 t=37–41 oscillation). Committed
+        // freight-deferred trades still count: they hold real encumbered
+        // claims and deliver later.
+        let mut vwap_trades: Vec<Trade> = all_trades
+            .iter()
+            .filter(|t| !fx_failed.contains(&trade_key(t)))
+            .cloned()
+            .collect();
         vwap_trades.extend(all_export_trades.iter().cloned());
         market_history::update_vwap(&mut state.market_history, &vwap_trades);
         // Phase 79: Update rolling VWAP history for SRA shock-responsive triggers.
@@ -12420,6 +12432,21 @@ tasks.par_iter_mut().for_each(|task| {
             crate::state::banking::enforce_leverage_cap(
                 task.ctx.country,
                 &mut task.companies,
+            );
+        }
+        // Realized-LDR supervision — second pass, same rationale: deposit
+        // churn during settlement drifts loan/deposit ratios out of band
+        // AFTER the in-turn sale pass, so the secondary market must read
+        // the final snapshot the V418-5 audit sees. The migration pass
+        // covers breaches whose books are too encumbered to sell.
+        for task in &mut tasks {
+            crate::state::banking::enforce_ldr_cap(
+                &mut task.companies,
+                task.ctx.country.central_bank.reserve_requirement_ratio,
+            );
+            crate::state::banking::enforce_ldr_deposit_migration(
+                &mut task.companies,
+                task.ctx.country.central_bank.reserve_requirement_ratio,
             );
         }
         // ── DIAGNOSTIC CHECKPOINT 4: turn_end (pre-writeback) ──

@@ -1339,6 +1339,9 @@ pub fn run_election_if_due(
     country.politics.coalition_id = coa_id;
     country.politics.years_to_elections = form.election_cycle();
     country.politics.budget_crisis = false;
+    // v4.20: count every executed election (scheduled, snap, crisis) —
+    // release gate `elections_held_count > 0`.
+    country.politics.elections_held = country.politics.elections_held.saturating_add(1);
 
     apply_ruling_coordinate_policies(country, year);
 

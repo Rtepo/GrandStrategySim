@@ -350,10 +350,15 @@ impl CentralBank {
         let prev_rate = self.interest_rates.reference_rate;
         let smoothed_rate = 0.7 * taylor_rate + 0.3 * prev_rate;
 
-        // Phase 40: Allow NIRP (Negative Interest Rate Policy) during severe deflation.
-        // Floor at -2% (-0.02) to allow meaningful negative rates while preventing
-        // absurd deep-negative territory. Cap at 20%.
-        let new_reference_rate = smoothed_rate.max(-0.02).min(0.20);
+        // v4.20 WS3: Zero Lower Bound — no NIRP. When the Taylor rule wants a
+        // negative rate (deep deflation), the CB holds at 0% and relies on
+        // quantity tools (QE step in process_banking_turn) instead. Nominal
+        // administered rates must never be negative: a negative reference rate
+        // propagates through the rate hierarchy into negative deposit/
+        // discount rates, negative XIBOR, and ultimately NEGATIVE loan
+        // interest income (banks paying borrowers), which is incoherent.
+        // Cap at 20%.
+        let new_reference_rate = smoothed_rate.max(0.0).min(0.20);
         let rate_adjustment = new_reference_rate - prev_rate;
 
         self.interest_rates.reference_rate = new_reference_rate;
@@ -390,11 +395,15 @@ impl CentralBank {
     /// * Rediscount and discount: Between reference and deposit/lombard
     fn update_rate_hierarchy(&mut self) {
         let reference = self.interest_rates.reference_rate;
-        self.interest_rates.lombard_rate = (reference + 0.015).min(0.25); // +150 bps, cap at 25%
-        self.interest_rates.rediscount_rate = (reference + 0.005).min(0.25); // +50 bps, cap at 25%
-                                                                             // Phase 40: Allow negative discount and deposit rates (NIRP).
-        self.interest_rates.discount_rate = (reference - 0.0075).max(-0.025); // -75 bps, floor -2.5%
-        self.interest_rates.deposit_rate = (reference - 0.015).max(-0.03); // -150 bps, floor -3%
+        // v4.20 WS3: every administered rate is floored at 0.0 — the ZLB
+        // binds the whole corridor, not just the reference rate. At the
+        // floor the corridor degenerates to all-zeros (deposit = discount =
+        // reference = 0, lombard = 1.5%), which is the standard ELB
+        // configuration; the CB then stimulates via QE, not negative carry.
+        self.interest_rates.lombard_rate = (reference + 0.015).min(0.25).max(0.0); // +150 bps, cap at 25%
+        self.interest_rates.rediscount_rate = (reference + 0.005).min(0.25).max(0.0); // +50 bps, cap at 25%
+        self.interest_rates.discount_rate = (reference - 0.0075).max(0.0); // -75 bps, floor 0%
+        self.interest_rates.deposit_rate = (reference - 0.015).max(0.0); // -150 bps, floor 0%
                                                                            // The reference rate is the CB's target for the interbank rate (XIBOR).
                                                                            // OMO operations will steer XIBOR towards this target physically.
         self.omo_target_rate = reference;
@@ -1141,12 +1150,14 @@ mod tests {
         cb.update_reference_rate(0.10, 0.05, 10);
         assert!(cb.interest_rates.reference_rate <= 0.20);
 
-        // Phase 40: NIRP allows rates below 0% (floor is now -2%).
-        // Try to push rate below 0% with deflation.
+        // v4.20 WS3: Zero Lower Bound — the Taylor rule may want a negative
+        // rate under deflation, but nominal administered rates floor at 0%.
         cb.interest_rates.reference_rate = 0.01;
         cb.update_reference_rate(-0.05, 0.0, 10);
-        // Rate should be negative but not below -2%
-        assert!(cb.interest_rates.reference_rate < 0.0);
-        assert!(cb.interest_rates.reference_rate >= -0.02);
+        assert!(cb.interest_rates.reference_rate >= 0.0);
+        // The whole administered corridor respects the floor too.
+        assert!(cb.interest_rates.deposit_rate >= 0.0);
+        assert!(cb.interest_rates.discount_rate >= 0.0);
+        assert!(cb.interest_rates.lombard_rate >= 0.0);
     }
 }

@@ -510,7 +510,12 @@ pub fn form_government(
     used_names: &mut HashSet<String>,
 ) -> MinistryConfig {
     let gdp = country.budget.gdp;
-    let num_ministries = std::cmp::min(15, std::cmp::max(3, (gdp / 1e9) as usize + 3));
+    // v4.20 WS4: A cabinet needs at least a full complement of core
+    // portfolios — the old `max(3, …)` floor produced 3-seat cabinets for
+    // small economies (Treasury + Defense + one more), below the release
+    // gate's `cabinet_ministries_count >= 6`. `default_competency_bundles`
+    // has 16 portfolios, so the bundle supply is never the constraint.
+    let num_ministries = std::cmp::min(15, std::cmp::max(6, (gdp / 1e9) as usize + 3));
     let cg = if country.macro_indicators.cultural_group.is_empty() {
         "slavic"
     } else {
@@ -923,6 +928,22 @@ pub fn allocate_cash_to_ministries(country: &mut Country, preserve_turn_spend: b
         calculate_budget_needs(country);
     }
 
+    // v4.20 WS4: A generator-seeded config arrives with `allocated_cash = 0`
+    // (targets are computed by `calculate_budget_needs`, which only ran in
+    // the post-tax pass). With zero targets the old code early-returned, so
+    // the FIRST allocation pass never moved cash and pass-1 procurement was
+    // silently skipped for every seeded ministry. Compute targets on demand
+    // instead of skipping the pass.
+    let promised_now: f64 = country
+        .politics
+        .ministry_config
+        .as_ref()
+        .map(|c| c.ministries.iter().map(|m| m.allocated_cash).sum())
+        .unwrap_or(0.0);
+    if promised_now <= 0.0 {
+        calculate_budget_needs(country);
+    }
+
     let Some(ref mut config) = country.politics.ministry_config else {
         return;
     };
@@ -1101,10 +1122,23 @@ fn execute_competency_spending_with_parties(
     let mut total_g_spending: f64 = 0.0;
 
     match comp {
+        // v4.20 WS4: Commodity-procurement portfolios. Every basket maps to
+        // goods that actually exist in B2B supply (ministry asks are filled
+        // from company building inventories). Defense buys armaments —
+        // `Ammunition`/`TowedArtillery`/`Trucks` are ArmamentsIndustry
+        // outputs, a supply pool the old Steel/IndustrialMachinery basket
+        // never reached. Portfolios that used to fall into the dead
+        // `DirectTransfer` arm (Energy, Transport, Housing, Justice,
+        // Culture) now post real buy orders.
         GovernmentCompetency::HeavyIndustry
         | GovernmentCompetency::LightIndustry
         | GovernmentCompetency::Defense
-        | GovernmentCompetency::InternalSecurity => {
+        | GovernmentCompetency::InternalSecurity
+        | GovernmentCompetency::Energy
+        | GovernmentCompetency::Transport
+        | GovernmentCompetency::Housing
+        | GovernmentCompetency::Justice
+        | GovernmentCompetency::Culture => {
             let commodities = match comp {
                 GovernmentCompetency::HeavyIndustry => {
                     vec![Commodity::Steel, Commodity::IndustrialMachinery]
@@ -1112,11 +1146,33 @@ fn execute_competency_spending_with_parties(
                 GovernmentCompetency::LightIndustry => {
                     vec![Commodity::Clothing, Commodity::LuxuryClothing]
                 }
-                GovernmentCompetency::Defense => {
-                    vec![Commodity::Steel, Commodity::IndustrialMachinery]
+                GovernmentCompetency::Defense => vec![
+                    Commodity::Ammunition,
+                    Commodity::TowedArtillery,
+                    Commodity::Trucks,
+                    Commodity::Steel,
+                ],
+                GovernmentCompetency::InternalSecurity => vec![
+                    Commodity::Clothing,
+                    Commodity::Trucks,
+                    Commodity::OfficeMachinery,
+                ],
+                GovernmentCompetency::Energy => {
+                    vec![Commodity::HardCoal, Commodity::BrownCoal]
                 }
-                GovernmentCompetency::InternalSecurity => {
-                    vec![Commodity::Clothing, Commodity::IndustrialMachinery]
+                GovernmentCompetency::Transport => vec![
+                    Commodity::Asphalt,
+                    Commodity::ConstructionMachinery,
+                    Commodity::Trucks,
+                ],
+                GovernmentCompetency::Housing => vec![
+                    Commodity::Cement,
+                    Commodity::Bricks,
+                    Commodity::Timber,
+                ],
+                GovernmentCompetency::Justice => vec![Commodity::OfficeMachinery],
+                GovernmentCompetency::Culture => {
+                    vec![Commodity::Timber, Commodity::Bricks, Commodity::Steel]
                 }
                 _ => vec![],
             };
@@ -1198,7 +1254,7 @@ fn execute_competency_spending_with_parties(
                 }
             }
         }
-        GovernmentCompetency::Infrastructure | GovernmentCompetency::Transport => {
+        GovernmentCompetency::Infrastructure => {
             // Phase 35: Debit ministry_cash (the pocket), not liquid_reserves.
             let actual = spend.min(ministry.ministry_cash);
             if actual > 0.0 {
@@ -1250,16 +1306,155 @@ fn execute_competency_spending_with_parties(
             // Phase 13: SocialWelfare handled by dynamic SocialProgram system.
             // No-op here; cash is reserved for execute_social_welfare in turn loop.
         }
-        GovernmentCompetency::Treasury
-        | GovernmentCompetency::ForeignAffairs
-        | GovernmentCompetency::Justice
-        | GovernmentCompetency::Science
-        | GovernmentCompetency::Energy
-        | GovernmentCompetency::Culture
-        | GovernmentCompetency::Environment
-        | GovernmentCompetency::Labor
-        | GovernmentCompetency::Housing
-        | GovernmentCompetency::StateAssets => {
+        GovernmentCompetency::Labor => {
+            // v4.20 WS4: Labor ministry funds public works through the State
+            // Employer pool — the same payroll channel Education/Healthcare
+            // use (ported from the legacy `execute_competency_spending` arm;
+            // the with_parties path had collapsed it into a dead
+            // DirectTransfer). Strict double-entry: debit ministry_cash,
+            // credit ministry_public_service_pool (M0-counted pocket).
+            let actual = spend.min(ministry.ministry_cash);
+            if actual > 0.0 {
+                ministry.ministry_cash -= actual;
+                country.ministry_public_service_pool += actual;
+                ministry.spent_cash += actual;
+                ministry
+                    .spending_actions
+                    .push(MinistrySpendingAction::PublicServiceWages {
+                        building_ids: vec!["PUBLIC_WORKS_POOL".to_string()],
+                        total_amount: actual,
+                    });
+            }
+        }
+        GovernmentCompetency::Science => {
+            // v4.20 WS4: R&D grants to technology-capable companies — the
+            // grant lands in `rd_budget` so it feeds the actual R&D
+            // pipeline (ported from the legacy arm).
+            let tech_companies: Vec<usize> = companies
+                .iter()
+                .enumerate()
+                .filter(|(_, c)| {
+                    c.sector == crate::registries::enums::Sector::HeavyIndustry
+                        || c.sector == crate::registries::enums::Sector::LightIndustry
+                })
+                .map(|(i, _)| i)
+                .collect();
+            if !tech_companies.is_empty() {
+                let per_company = spend / tech_companies.len() as f64;
+                for idx in &tech_companies {
+                    let actual = per_company.min(ministry.ministry_cash);
+                    if actual > 0.0 {
+                        ministry.ministry_cash -= actual;
+                        let company_id = companies[*idx].id.clone();
+                        // Phase 94: credit_company_by_id syncs bank reserves
+                        // (M0); rd_budget routes the grant into research.
+                        crate::economy::transfer_settler::credit_company_by_id(
+                            companies,
+                            &company_id,
+                            actual,
+                        );
+                        companies[*idx].rd_budget += actual;
+                        ministry.spent_cash += actual;
+                        ministry
+                            .spending_actions
+                            .push(MinistrySpendingAction::RAndDGrant {
+                                target_entity: company_id,
+                                amount: actual,
+                            });
+                        total_g_spending += actual;
+                    }
+                }
+            }
+        }
+        GovernmentCompetency::Environment => {
+            // v4.20 WS4: Environmental ministry contracts waste-management
+            // utilities (the v4.20 municipal waste employers included) —
+            // sector subsidy as the delivery arm; falls back to generic
+            // local services when no waste operator exists in the economy.
+            let env_companies: Vec<usize> = companies
+                .iter()
+                .enumerate()
+                .filter(|(_, c)| {
+                    c.sector == crate::registries::enums::Sector::WasteManagement
+                })
+                .map(|(i, _)| i)
+                .collect();
+            let fallback: Vec<usize> = if env_companies.is_empty() {
+                companies
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, c)| {
+                        c.sector == crate::registries::enums::Sector::LocalServices
+                    })
+                    .map(|(i, _)| i)
+                    .collect()
+            } else {
+                Vec::new()
+            };
+            let targets = if env_companies.is_empty() {
+                &fallback
+            } else {
+                &env_companies
+            };
+            if !targets.is_empty() {
+                let per_company = spend / targets.len() as f64;
+                for idx in targets {
+                    let actual = per_company.min(ministry.ministry_cash);
+                    if actual > 0.0 {
+                        ministry.ministry_cash -= actual;
+                        let company_id = companies[*idx].id.clone();
+                        crate::economy::transfer_settler::credit_company_by_id(
+                            companies,
+                            &company_id,
+                            actual,
+                        );
+                        ministry.spent_cash += actual;
+                        ministry
+                            .spending_actions
+                            .push(MinistrySpendingAction::Subsidy {
+                                target_company_id: company_id,
+                                amount: actual,
+                            });
+                        total_g_spending += actual;
+                    }
+                }
+            }
+        }
+        GovernmentCompetency::StateAssets => {
+            // v4.20 WS4: State-assets ministry capitalizes state-owned
+            // enterprises (state_share >= 1.0) — direct equity support,
+            // mirroring the Agriculture subsidy arm's delivery pattern.
+            let soe_companies: Vec<usize> = companies
+                .iter()
+                .enumerate()
+                .filter(|(_, c)| c.state_share >= 1.0)
+                .map(|(i, _)| i)
+                .collect();
+            if !soe_companies.is_empty() {
+                let per_company = spend / soe_companies.len() as f64;
+                for idx in &soe_companies {
+                    let actual = per_company.min(ministry.ministry_cash);
+                    if actual > 0.0 {
+                        ministry.ministry_cash -= actual;
+                        let company_id = companies[*idx].id.clone();
+                        crate::economy::transfer_settler::credit_company_by_id(
+                            companies,
+                            &company_id,
+                            actual,
+                        );
+                        ministry.spent_cash += actual;
+                        ministry
+                            .spending_actions
+                            .push(MinistrySpendingAction::Subsidy {
+                                target_company_id: company_id,
+                                amount: actual,
+                            });
+                        total_g_spending += actual;
+                    }
+                }
+            }
+        }
+        GovernmentCompetency::Treasury | GovernmentCompetency::ForeignAffairs => {
             // Phase 35: Debit ministry_cash (the pocket), not liquid_reserves.
             let actual = spend.min(ministry.ministry_cash);
             if actual > 0.0 {
@@ -1277,10 +1472,11 @@ fn execute_competency_spending_with_parties(
                     });
                 // v4.16.0: NOT counted in GDP G — intra-government transfer
                 // (ministry pocket → consolidated treasury), not a final
-                // purchase of goods/services. These competencies have no
-                // modeled delivery mechanism yet; booking the pocket shuffle
-                // as expenditure created phantom government consumption and
-                // re-counted the same cash when it later funded real wages.
+                // purchase of goods/services. Treasury fiscal operations and
+                // foreign transfers have no domestic delivery mechanism;
+                // booking the pocket shuffle as expenditure created phantom
+                // government consumption and re-counted the same cash when it
+                // later funded real wages.
             }
         }
     }
@@ -1371,7 +1567,12 @@ fn execute_competency_spending(
         | GovernmentCompetency::LightIndustry
         | GovernmentCompetency::Defense
         | GovernmentCompetency::InternalSecurity => {
-            // Submit B2B buy orders for relevant commodities
+            // Submit B2B buy orders for relevant commodities.
+            // v4.20 WS4: baskets widened to match the live
+            // `execute_competency_spending_with_parties` path — Defense buys
+            // armaments-sector output (a supply pool the old Steel/machinery
+            // basket never reached); Internal Security buys vehicles and
+            // office equipment alongside uniforms.
             let commodities = match comp {
                 GovernmentCompetency::HeavyIndustry => {
                     vec![Commodity::Steel, Commodity::IndustrialMachinery]
@@ -1379,12 +1580,17 @@ fn execute_competency_spending(
                 GovernmentCompetency::LightIndustry => {
                     vec![Commodity::Clothing, Commodity::LuxuryClothing]
                 }
-                GovernmentCompetency::Defense => {
-                    vec![Commodity::Steel, Commodity::IndustrialMachinery]
-                }
-                GovernmentCompetency::InternalSecurity => {
-                    vec![Commodity::Clothing, Commodity::IndustrialMachinery]
-                }
+                GovernmentCompetency::Defense => vec![
+                    Commodity::Ammunition,
+                    Commodity::TowedArtillery,
+                    Commodity::Trucks,
+                    Commodity::Steel,
+                ],
+                GovernmentCompetency::InternalSecurity => vec![
+                    Commodity::Clothing,
+                    Commodity::Trucks,
+                    Commodity::OfficeMachinery,
+                ],
                 _ => vec![],
             };
 
@@ -1467,6 +1673,9 @@ fn execute_competency_spending(
             let actual = spend.min(ministry.ministry_cash);
             if actual > 0.0 {
                 ministry.ministry_cash -= actual;
+                // v4.20 WS4: credit treasury so the record is not a void sink
+                // (matches the with_parties arm's M0 treatment).
+                country.budget.liquid_reserves += actual;
                 ministry.spent_cash += actual;
                 ministry
                     .spending_actions
@@ -1569,6 +1778,9 @@ fn execute_competency_spending(
             let actual = spend.min(ministry.ministry_cash);
             if actual > 0.0 {
                 ministry.ministry_cash -= actual;
+                // v4.20 WS4: credit treasury so the record is not a void
+                // sink (Directive 1: no fiat destruction).
+                country.budget.liquid_reserves += actual;
                 ministry.spent_cash += actual;
                 ministry
                     .spending_actions
@@ -1874,5 +2086,185 @@ mod tests {
             !name.contains("(NONEXISTENT)"),
             "Should not contain party ID in parentheses"
         );
+    }
+
+    // ── v4.20 WS4: full cabinet, first-pass funding, real spending ──
+
+    /// A minimal democratic country: one ruling party holding all seats.
+    fn make_democracy(gdp: f64, reserves: f64) -> Country {
+        let mut country = Country::mock_for_tests();
+        country.budget.gdp = gdp;
+        country.budget.liquid_reserves = reserves;
+        country.politics.ruling_party = "P1".to_string();
+        country.politics.coalition = vec!["P1".to_string()];
+        country.politics.parliament = [("P1".to_string(), 60_u32)].into_iter().collect();
+        let mut p1 = Party::default();
+        p1.id = "P1".to_string();
+        p1.leader.name = "Leader One".to_string();
+        country
+            .politics
+            .active_parties
+            .insert("P1".to_string(), p1);
+        country
+    }
+
+    #[test]
+    fn test_form_government_floors_cabinet_at_six() {
+        // Tiny economy — the old max(3, gdp/1e9 + 3) floor produced 3
+        // portfolios, below the cabinet_ministries_count >= 6 release gate.
+        let country = make_democracy(1.0e6, 1.0e9);
+        let coalition = vec!["P1".to_string()];
+        let mut used = HashSet::new();
+        let config = form_government(
+            &country,
+            &coalition,
+            &country.politics.active_parties,
+            1,
+            &mut used,
+        );
+        assert!(
+            config.ministries.len() >= 6,
+            "cabinet must have at least 6 ministries, got {}",
+            config.ministries.len()
+        );
+    }
+
+    #[test]
+    fn test_default_government_forms_for_undemocratic_regime() {
+        // Non-democratic governments never run elections → ministry_config
+        // stays None forever unless the allocator forms a default cabinet.
+        let mut country = make_democracy(1.0e6, 1.0e9);
+        country.politics.government_form = crate::politics::system::GovernmentForm::AbsoluteMonarchy;
+        assert!(country.politics.ministry_config.is_none());
+        allocate_cash_to_ministries(&mut country, false);
+        let config = country.politics.ministry_config.as_ref().unwrap();
+        assert!(config.ministries.len() >= 6);
+        assert!(config
+            .ministries
+            .iter()
+            .all(|m| m.allocated_cash > 0.0 && m.ministry_cash > 0.0));
+    }
+
+    #[test]
+    fn test_seeded_zero_allocation_config_is_funded_in_pass_one() {
+        // Generator-seeded configs arrive with allocated_cash = 0 (targets
+        // are normally computed post-tax). The allocator must compute needs
+        // on demand so pass-1 procurement actually happens.
+        let mut country = make_democracy(1.0e9, 1.0e9);
+        country.politics.ministry_config = Some(MinistryConfig {
+            ministries: vec![
+                Ministry {
+                    id: "MIN-A".into(),
+                    name: "Procurement".into(),
+                    competencies: vec![GovernmentCompetency::Defense],
+                    minister_party: "P1".into(),
+                    minister_name: "A".into(),
+                    allocated_cash: 0.0,
+                    spent_cash: 0.0,
+                    spending_actions: vec![],
+                    ministry_cash: 0.0,
+                },
+                Ministry {
+                    id: "MIN-B".into(),
+                    name: "Services".into(),
+                    competencies: vec![GovernmentCompetency::Healthcare],
+                    minister_party: "P1".into(),
+                    minister_name: "B".into(),
+                    allocated_cash: 0.0,
+                    spent_cash: 0.0,
+                    spending_actions: vec![],
+                    ministry_cash: 0.0,
+                },
+            ],
+            formation_turn: 0,
+            pm_party: "P1".into(),
+        });
+        allocate_cash_to_ministries(&mut country, false);
+        let config = country.politics.ministry_config.as_ref().unwrap();
+        assert!(config
+            .ministries
+            .iter()
+            .all(|m| m.allocated_cash > 0.0 && m.ministry_cash > 0.0),
+            "every seeded ministry must receive a cash allocation");
+    }
+
+    #[test]
+    fn test_ministry_executes_real_spending() {
+        // A procurement portfolio must post a B2B bid and encumber cash;
+        // a public-service portfolio must fund the state-employer pool.
+        let mut country = make_democracy(1.0e9, 1.0e9);
+        country.politics.ministry_config = Some(MinistryConfig {
+            ministries: vec![
+                Ministry {
+                    id: "MIN-DEF".into(),
+                    name: "Ministry of Defense".into(),
+                    competencies: vec![GovernmentCompetency::Defense],
+                    minister_party: "P1".into(),
+                    minister_name: "A".into(),
+                    allocated_cash: 1_000_000.0,
+                    spent_cash: 0.0,
+                    spending_actions: vec![],
+                    ministry_cash: 1_000_000.0,
+                },
+                Ministry {
+                    id: "MIN-HLT".into(),
+                    name: "Ministry of Healthcare".into(),
+                    competencies: vec![GovernmentCompetency::Healthcare],
+                    minister_party: "P1".into(),
+                    minister_name: "B".into(),
+                    allocated_cash: 500_000.0,
+                    spent_cash: 0.0,
+                    spending_actions: vec![],
+                    ministry_cash: 500_000.0,
+                },
+            ],
+            formation_turn: 0,
+            pm_party: "P1".into(),
+        });
+        let mut order_book = crate::economy::order_book::OrderBook::default();
+        let mut companies: Vec<crate::entities::Company> = Vec::new();
+        let parties = country.politics.active_parties.clone();
+        // Move the config out so `&mut country` can be passed for spending.
+        let mut config = country.politics.ministry_config.take().unwrap();
+
+        let g_def = prepare_minister_strategies_with_parties(
+            &mut config.ministries[0],
+            &parties,
+            &mut companies,
+            &mut order_book,
+            &mut country,
+        );
+        let g_hlt = prepare_minister_strategies_with_parties(
+            &mut config.ministries[1],
+            &parties,
+            &mut companies,
+            &mut order_book,
+            &mut country,
+        );
+
+        // Defense posted real buy orders against tradeable commodities.
+        assert!(
+            !order_book.bids.is_empty(),
+            "procurement ministry must post B2B bids"
+        );
+        assert!(config.ministries[0].spent_cash > 0.0);
+        assert!(config.ministries[0]
+            .spending_actions
+            .iter()
+            .any(|a| matches!(a, MinistrySpendingAction::B2BProcurementOrder { .. })));
+
+        // Healthcare funded the public-service payroll pool (double-entry).
+        assert!(country.ministry_public_service_pool > 0.0);
+        assert!(config.ministries[1].spent_cash > 0.0);
+        assert_eq!(
+            country.ministry_public_service_pool,
+            config.ministries[1].spent_cash
+        );
+        country.politics.ministry_config = Some(config);
+        // Procurement encumbrance is not counted toward non-procurement G;
+        // healthcare pool funding is excluded by design (State Employer wage
+        // path counts it), so both G returns are 0 here — the assertion that
+        // matters is the spending records above.
+        let _ = (g_def, g_hlt);
     }
 }

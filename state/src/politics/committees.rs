@@ -710,6 +710,7 @@ mod phase48_tests {
             committee_completion_turn: None,
             weight: crate::politics::legislative_weight::LegislativeWeight::Ordinary,
             bill_type: crate::politics::legislation::BillType::Other,
+            veto_overridden: false,
         }
     }
 
