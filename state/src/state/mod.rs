@@ -181,6 +181,46 @@ impl Calendar {
     }
 }
 
+#[cfg(test)]
+mod calendar_tests {
+    use super::*;
+
+    fn cal(turn: u32, start_month: u32) -> Calendar {
+        let mut c = Calendar {
+            global_turn: turn,
+            start_year: 1900,
+            start_month,
+            ..Default::default()
+        };
+        c.resync();
+        c
+    }
+
+    #[test]
+    fn august_1900_start_rolls_over_in_january() {
+        // v4.22 WS1 release gate: turn 0 = Aug 1900, turn 10 = Jan 1901.
+        let c0 = cal(0, 8);
+        assert_eq!((c0.current_year, c0.current_month, c0.half_month), (1900, 8, false));
+        let c9 = cal(9, 8);
+        assert_eq!((c9.current_year, c9.current_month), (1900, 12));
+        let c10 = cal(10, 8);
+        assert_eq!((c10.current_year, c10.current_month), (1901, 1));
+        // Dec-late (h=23) is year end; Jan-early (h=0 mod 24) is year start.
+        let c11 = cal(11, 8);
+        assert_eq!((c11.current_year, c11.current_month), (1901, 1));
+        assert!(cal(9, 8).is_year_end());
+        assert!(cal(10, 8).is_year_start());
+    }
+
+    #[test]
+    fn september_start_keeps_offset_16() {
+        let c0 = cal(0, 9);
+        assert_eq!((c0.current_year, c0.current_month), (1900, 9));
+        let c8 = cal(8, 9);
+        assert_eq!((c8.current_year, c8.current_month), (1901, 1));
+    }
+}
+
 /// Tariff and export-tax policy for a country.
 ///
 /// # Rules

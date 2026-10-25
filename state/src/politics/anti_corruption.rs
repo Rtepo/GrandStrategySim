@@ -531,6 +531,7 @@ mod tests {
         let count1 = maybe_publish_inspectorate_tender(
             &mut country,
             10,
+            1925,
             &crate::economy::market::market_history::MarketHistory::default(),
         );
         assert_eq!(count1, 1);
@@ -539,6 +540,7 @@ mod tests {
         let count2 = maybe_publish_inspectorate_tender(
             &mut country,
             11,
+            1925,
             &crate::economy::market::market_history::MarketHistory::default(),
         );
         assert_eq!(count2, 0);
