@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "last_updated": "2026-10-25T23:25:58.299Z",
+  "last_updated": "2026-10-25T23:26:01.959Z",
   "last_green_commit": "19e8a1d983f3804215fe77bd8f8a506aa4320a11",
   "last_green_commit_at": "2026-10-25T23:25:35.280Z",
   "agents": [
@@ -37,15 +37,12 @@
       "agent_id": "agent-3",
       "session_id": null,
       "branch": "feat/disability-social-care",
-      "locked_dirs": [
-        "infrastructure/care.rs",
-        "politics/social_programs.rs"
-      ],
+      "locked_dirs": [],
       "shared_files": [
         "telemetry.rs"
       ],
       "task": "Disability lifecycles, Sheltered Workshops, B2C Care",
-      "status": "active",
+      "status": "force-unlocked",
       "role": "worker",
       "registered_at": null,
       "last_heartbeat": null
