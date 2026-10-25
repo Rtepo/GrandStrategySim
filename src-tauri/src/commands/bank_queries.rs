@@ -103,6 +103,7 @@ pub async fn get_paginated_banks(
             entities.1,
             entities.0,
             &view,
+            engine_state.game_state.calendar.current_year,
         );
 
         Ok(BankPageResponse {
@@ -145,6 +146,7 @@ pub async fn get_banking_aggregates(
             entities.1,
             entities.0,
             &view,
+            engine_state.game_state.calendar.current_year,
         );
 
         let finance = &snap.finance;

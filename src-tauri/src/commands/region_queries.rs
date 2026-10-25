@@ -33,6 +33,7 @@ pub async fn get_regions(
             entities.1,
             entities.0,
             &ViewQuery::default(),
+            engine_state.game_state.calendar.current_year,
         );
 
         Ok(snap.regions)
@@ -77,6 +78,7 @@ pub async fn get_region_detail(
             entities.1,
             entities.0,
             &view,
+            engine_state.game_state.calendar.current_year,
         );
 
         Ok(snap.region_detail)
@@ -121,6 +123,7 @@ pub async fn get_megaregion_detail(
             entities.1,
             entities.0,
             &view,
+            engine_state.game_state.calendar.current_year,
         );
 
         Ok(snap.megaregion_detail)

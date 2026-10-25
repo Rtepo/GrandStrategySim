@@ -3278,13 +3278,11 @@ fn best_simple_machinery_method(
                 .iter()
                 .any(|(c, _)| *c == Commodity::IndustrialMachinery)
         })
-        // Key filter: exclude methods that need ElectronicComponents or Semiconductors.
+        // Key filter: exclude methods whose inputs are not yet invented.
         .filter(|pm| {
-            !pm.inputs.iter().any(|(c, _)| {
-                *c == Commodity::ElectronicComponents
-                    || *c == Commodity::Semiconductors
-                    || *c == Commodity::Software
-            })
+            !pm.inputs
+                .iter()
+                .any(|(c, _)| start_year < c.introduction_year())
         })
         .max_by_key(|pm| pm.year)?;
 
@@ -3373,13 +3371,11 @@ fn best_mechanical_components_method(
                 .iter()
                 .any(|(c, _)| *c == Commodity::MechanicalComponents)
         })
-        // Exclude methods that need ElectronicComponents (may not exist yet).
+        // Exclude methods whose inputs are not yet invented.
         .filter(|pm| {
-            !pm.inputs.iter().any(|(c, _)| {
-                *c == Commodity::ElectronicComponents
-                    || *c == Commodity::Semiconductors
-                    || *c == Commodity::Software
-            })
+            !pm.inputs
+                .iter()
+                .any(|(c, _)| start_year < c.introduction_year())
         })
         .max_by_key(|pm| pm.year)?;
 
@@ -3676,19 +3672,11 @@ fn select_diversified_method(
 /// Returns false for commodities that should not be produced in early eras
 /// (e.g., Electronics, Plastics, Semiconductors before 1950).
 fn is_era_appropriate_commodity(commodity: Commodity, start_year: u32) -> bool {
-    match commodity {
-        // Electronics and advanced tech: post-1950
-        Commodity::ElectronicComponents => start_year >= 1950,
-        Commodity::Semiconductors | Commodity::Software => start_year >= 1975,
-        // Plastics: post-1950
-        Commodity::Plastics => start_year >= 1950,
-        // Televisions: post-1950
-        Commodity::Televisions => start_year >= 1950,
-        // Advanced chemicals (Haber-Bosch): post-1925
-        Commodity::Fertilizers => start_year >= 1925,
-        // Most other commodities are era-appropriate
-        _ => true,
-    }
+    // v4.22 WS1: single source of truth — `Commodity::introduction_year`.
+    // Fertilizers now map to 1880 (superphosphate era), so the existing
+    // 1880 "Fertilizer Production" heavy-industry method seeds real
+    // chemical plants at Turn 0 in the 1900 scenario.
+    start_year >= commodity.introduction_year()
 }
 
 /// Phase 44: Filter production methods to only those whose outputs are era-appropriate.
@@ -7057,22 +7045,31 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                 year,
             ),
         ),
-        "police_station" => (
-            name.to_string(),
-            method_from_ratios(
-                0.10,
-                0.60,
-                0.30,
-                BTreeMap::from([
-                    (Commodity::Rifles, 1.0),
-                    (Commodity::Cars, 5.0),
-                    (Commodity::AdministrativeServices, 2.0),
-                    (Commodity::Paper, 2.0),
-                ]),
-                BTreeMap::from([(Commodity::SecurityCapacity, 20.0)]),
-                year,
-            ),
-        ),
+        "police_station" => {
+            // v4.22 WS1: motor vehicles only once invented — pre-Cars eras
+            // police on foot/horseback consume food and paper instead.
+            let mut inputs = BTreeMap::from([
+                (Commodity::Rifles, 1.0),
+                (Commodity::AdministrativeServices, 2.0),
+                (Commodity::Paper, 2.0),
+            ]);
+            if start_year >= Commodity::Cars.introduction_year() {
+                inputs.insert(Commodity::Cars, 5.0);
+            } else {
+                inputs.insert(Commodity::Food, 5.0);
+            }
+            (
+                name.to_string(),
+                method_from_ratios(
+                    0.10,
+                    0.60,
+                    0.30,
+                    inputs,
+                    BTreeMap::from([(Commodity::SecurityCapacity, 20.0)]),
+                    year,
+                ),
+            )
+        }
         "courthouse" => (
             name.to_string(),
             method_from_ratios(
@@ -7087,38 +7084,55 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                 year,
             ),
         ),
-        "service_headquarters" => (
-            name.to_string(),
-            method_from_ratios(
-                0.30,
-                0.50,
-                0.20,
-                BTreeMap::from([
-                    (Commodity::ElectronicComponents, 10.0),
-                    (Commodity::Rifles, 2.0),
-                    (Commodity::Cars, 3.0),
-                    (Commodity::AdministrativeServices, 5.0),
-                ]),
-                BTreeMap::new(),
-                year,
-            ),
-        ),
-        "intelligence_hq" => (
-            name.to_string(),
-            method_from_ratios(
-                0.30,
-                0.50,
-                0.20,
-                BTreeMap::from([
-                    (Commodity::ElectronicComponents, 10.0),
-                    (Commodity::Rifles, 2.0),
-                    (Commodity::Cars, 3.0),
-                    (Commodity::AdministrativeServices, 5.0),
-                ]),
-                BTreeMap::from([(Commodity::IntelligenceCapacity, 8.0)]),
-                year,
-            ),
-        ),
+        "service_headquarters" => {
+            // v4.22 WS1: electronics/cars gated by introduction year —
+            // early-era headquarters run on paper and couriers.
+            let mut inputs = BTreeMap::from([
+                (Commodity::Rifles, 2.0),
+                (Commodity::AdministrativeServices, 5.0),
+            ]);
+            if start_year >= Commodity::ElectronicComponents.introduction_year() {
+                inputs.insert(Commodity::ElectronicComponents, 10.0);
+            } else {
+                inputs.insert(Commodity::Paper, 10.0);
+            }
+            if start_year >= Commodity::Cars.introduction_year() {
+                inputs.insert(Commodity::Cars, 3.0);
+            } else {
+                inputs.insert(Commodity::Food, 3.0);
+            }
+            (
+                name.to_string(),
+                method_from_ratios(0.30, 0.50, 0.20, inputs, BTreeMap::new(), year),
+            )
+        }
+        "intelligence_hq" => {
+            let mut inputs = BTreeMap::from([
+                (Commodity::Rifles, 2.0),
+                (Commodity::AdministrativeServices, 5.0),
+            ]);
+            if start_year >= Commodity::ElectronicComponents.introduction_year() {
+                inputs.insert(Commodity::ElectronicComponents, 10.0);
+            } else {
+                inputs.insert(Commodity::Paper, 10.0);
+            }
+            if start_year >= Commodity::Cars.introduction_year() {
+                inputs.insert(Commodity::Cars, 3.0);
+            } else {
+                inputs.insert(Commodity::Food, 3.0);
+            }
+            (
+                name.to_string(),
+                method_from_ratios(
+                    0.30,
+                    0.50,
+                    0.20,
+                    inputs,
+                    BTreeMap::from([(Commodity::IntelligenceCapacity, 8.0)]),
+                    year,
+                ),
+            )
+        }
         "border_guard" => (
             name.to_string(),
             method_from_ratios(

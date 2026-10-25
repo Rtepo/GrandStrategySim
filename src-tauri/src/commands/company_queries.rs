@@ -158,6 +158,7 @@ pub async fn get_paginated_companies(
             entities.1,
             entities.0,
             &view,
+            engine_state.game_state.calendar.current_year,
         );
 
         Ok(CompanyPageResponse {
@@ -205,6 +206,7 @@ pub async fn get_company_detail(
             entities.1,
             entities.0,
             &view,
+            engine_state.game_state.calendar.current_year,
         );
 
         Ok(snap.company_detail)

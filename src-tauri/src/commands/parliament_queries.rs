@@ -79,6 +79,7 @@ pub async fn get_parliament(
             entities.1,
             entities.0,
             &ViewQuery::default(),
+            engine_state.game_state.calendar.current_year,
         );
 
         Ok(ParliamentResponse {
@@ -122,6 +123,7 @@ pub async fn get_government(
             entities.1,
             entities.0,
             &ViewQuery::default(),
+            engine_state.game_state.calendar.current_year,
         );
 
         Ok(snap.government)

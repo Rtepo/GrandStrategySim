@@ -906,6 +906,43 @@ impl Commodity {
         self.is_fixed_asset() || self.is_quality_durable()
     }
 
+    /// v4.22 WS1: Historical year the commodity becomes available. This is
+    /// the single source of truth for tech-era gating — supply-side method
+    /// filtering (`is_era_appropriate_commodity`), B2C era demand multipliers
+    /// (`era_consumption_multiplier`), state-building recipe inputs, and the
+    /// Market UI row filter all consult this table. `0` = always available.
+    ///
+    /// Aligned with `registries::tech_tree` unlock years and
+    /// `production_methods_data` `pm.year` fields.
+    pub fn introduction_year(&self) -> u32 {
+        match self {
+            // Superphosphate / early chemical fertilizer (Liebig–Lawes era) —
+            // unlocks the 1880 "Fertilizer Production" heavy-industry method.
+            Commodity::Fertilizers => 1880,
+            // Mass-produced automobiles (Model T era).
+            Commodity::Cars => 1910,
+            // Typewriters / office equipment (mech_008 "Mass Production", 1905).
+            Commodity::OfficeMachinery => 1905,
+            // Broadcast radio receivers.
+            Commodity::Radio => 1920,
+            // Household appliances (electric refrigerators etc.).
+            Commodity::Agd => 1930,
+            // Broadcast television sets.
+            Commodity::Televisions => 1936,
+            // Mass plastics (Bakelite 1907 → post-war mass consumption).
+            Commodity::Plastics => 1950,
+            // Vacuum-tube / transistor electronics components.
+            Commodity::ElectronicComponents => 1950,
+            // Dry-cell/accumulator battery industry at consumer scale.
+            Commodity::Batteries => 1950,
+            // Silicon age.
+            Commodity::Semiconductors => 1975,
+            Commodity::Software => 1975,
+            Commodity::PhotovoltaicPanels => 1975,
+            _ => 0,
+        }
+    }
+
     /// Returns all tradeable commodity variants in canonical (English) JSON order.
     pub fn all() -> [Commodity; 152] {
         [

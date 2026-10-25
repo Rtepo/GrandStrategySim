@@ -126,24 +126,47 @@ fn default_start_month() -> u32 {
 }
 
 impl Calendar {
+    /// Half-month offset from January of `start_year` implied by `start_month`.
+    /// August (8) → 14, September (9) → 16.
+    pub fn start_month_offset(&self) -> u32 {
+        self.start_month.saturating_sub(1).min(11) * 2
+    }
+
+    /// Absolute half-month index since January of `start_year` describing the
+    /// CURRENT (in-progress) period: `global_turn` counts half-months already
+    /// completed, so the displayed date is `global_turn + offset`.
+    /// E.g. with an August start (offset 14): turn 0 → h=14 → Aug-1,
+    /// turn 10 → h=24 → Jan-1 of start_year+1.
+    pub fn absolute_half_month(&self) -> u32 {
+        self.global_turn + self.start_month_offset()
+    }
+
+    /// Recompute `current_year`, `current_month`, and `half_month` from
+    /// `global_turn` using the absolute-half-month model. The calendar year
+    /// rolls over strictly on the first turn of January — never mid-year.
+    pub fn resync(&mut self) {
+        let h = self.absolute_half_month();
+        self.current_year = self.start_year + h / 24;
+        self.current_month = (h / 2) % 12 + 1;
+        self.half_month = h % 2 == 1;
+    }
+
     /// Advance by one half-month tick
     pub fn advance(&mut self) {
         self.global_turn += 1;
-        self.current_year = (self.global_turn - 1) / 24 + self.start_year;
-        // Month is offset by start_month so Turn 1 = September when start_month = 9
-        let turn_in_year = (self.global_turn - 1) % 24;
-        self.current_month = (turn_in_year / 2 + self.start_month - 1) % 12 + 1;
-        self.half_month = turn_in_year % 2 == 1;
+        self.resync();
     }
 
-    /// Check if this is the last half-month of the year (turn 24, 48, 72...)
+    /// Check if the current period is the last half-month of the calendar year
+    /// (late December: h % 24 == 23).
     pub fn is_year_end(&self) -> bool {
-        self.global_turn.is_multiple_of(24)
+        self.absolute_half_month() % 24 == 23
     }
 
-    /// Check if this is the first half-month of the year (turn 1, 25, 49...)
+    /// Check if the current period is the first half-month of the calendar
+    /// year (early January: h % 24 == 0).
     pub fn is_year_start(&self) -> bool {
-        self.global_turn % 24 == 1
+        self.absolute_half_month() % 24 == 0
     }
 
     /// Get season based on current month

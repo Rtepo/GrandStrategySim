@@ -197,8 +197,15 @@ pub fn generate_world(
     state.calendar.start_year = options.start_year.as_year();
     state.calendar.current_year = options.start_year.as_year();
     state.calendar.global_turn = 0;
-    state.calendar.start_month = 9; // September harvest start
-    state.calendar.current_month = 9;
+    // v4.22 WS1: the 1900 scenario starts in August (offset 14 half-months
+    // since January) so the calendar year rolls over on the first turn of
+    // January (turn 10 → Jan 1901). Later scenarios keep the September
+    // harvest start.
+    state.calendar.start_month = match options.start_year {
+        StartYear::Y1900 => 8, // August 1900
+        _ => 9,              // September harvest start
+    };
+    state.calendar.current_month = state.calendar.start_month;
     state.calendar.half_month = false;
 
     let mut regions = HashMap::new();

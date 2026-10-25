@@ -817,6 +817,9 @@ pub fn process_political_turn(
     chaos_config: &super::chaos_config::ChaosConfig,
     trait_registry: Option<&super::traits::TraitRegistry>,
     current_turn: u32,
+    // v4.22 WS1: the live calendar — fiscal cadence and FY labels are
+    // anchored to real January rollover, not raw `turn / 24` sim-years.
+    calendar: &crate::state::Calendar,
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
@@ -997,13 +1000,13 @@ pub fn process_political_turn(
     // Phase 96: Ensure the legislative session and committee system exist.
     // Both were previously only initialized inside run_election_if_due (or
     // never at all), so process_legislation_turn early-returned every turn.
-    ensure_legislative_infrastructure(country, current_turn);
+    ensure_legislative_infrastructure(country, current_turn, calendar);
 
     // Phase 96: Introduce the periodic budget bill into the real legislative
     // queue so Parliament actually votes on it and `recent_votes` populates.
     // Same cadence as the engine's budget lifecycle (every 4 turns).
     if let Some(msg) =
-        super::bill_lifecycle::introduce_budget_bill_if_due(country, current_turn)
+        super::bill_lifecycle::introduce_budget_bill_if_due(country, current_turn, calendar)
     {
         messages.push(msg);
     }
@@ -1052,7 +1055,11 @@ pub fn process_political_turn(
 /// `committee_system` was only built inside `run_election_if_due`, so the
 /// legislation pipeline was dead for parliaments seated at genesis or between
 /// elections. This lazy init mirrors the election-time wiring.
-fn ensure_legislative_infrastructure(country: &mut Country, current_turn: u32) {
+fn ensure_legislative_infrastructure(
+    country: &mut Country,
+    current_turn: u32,
+    calendar: &crate::state::Calendar,
+) {
     // Seat check reads the live chamber map first (appointed/consultative
     // chambers seated at genesis or restored mid-run), falling back to the
     // legacy flat map — the two must agree but only the legacy map is
@@ -1072,8 +1079,11 @@ fn ensure_legislative_infrastructure(country: &mut Country, current_turn: u32) {
     }
 
     if country.politics.legislative_session.is_none() {
+        // v4.22 WS1: session year index anchored to the January-aligned
+        // calendar year (0-based relative to the scenario start year).
+        let session_year = calendar.current_year.saturating_sub(calendar.start_year);
         country.politics.legislative_session = Some(
-            super::legislation::LegislativeSession::new(current_turn / 24),
+            super::legislation::LegislativeSession::new(session_year),
         );
     }
 

@@ -303,12 +303,21 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
                     .unwrap_or(1900) as u32;
                 state.calendar.global_turn = turn;
                 state.calendar.current_year = year;
-                state.calendar.current_month = if turn > 0 {
-                    ((turn - 1) % 24) / 2 + 1
-                } else {
-                    1
-                };
-                state.calendar.half_month = turn > 0 && (turn - 1) % 2 == 1;
+                // v4.22 WS1: absolute-half-month model — the saved `turn`
+                // counts completed half-months, so the in-progress period is
+                // `turn + (start_month-1)*2` since January of start_year.
+                if state.calendar.start_month == 0 {
+                    state.calendar.start_month = 9;
+                }
+                if state.calendar.start_year == 0 {
+                    state.calendar.start_year = year.max(1);
+                }
+                state.calendar.resync();
+                // The save stores the authoritative year; keep it if the
+                // recomputed value disagrees by an off-by-one edge case.
+                if year > 0 {
+                    state.calendar.current_year = year;
+                }
                 state
                     .extra
                     .insert("current_turn".to_string(), Value::from(turn));

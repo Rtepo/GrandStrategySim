@@ -58,10 +58,13 @@ pub fn transition_agricultural_states(
         return;
     }
 
-    let current_turn = calendar.global_turn % 24;
-    if current_turn == 0 {
-        return; // Invalid turn
-    }
+    // v4.22 WS1: sowing windows are anchored to a September-based crop year
+    // (index 1 = early September), independent of the scenario start month.
+    // Derive the index from the calendar month/half fields rather than
+    // `global_turn % 24`, which drifts whenever `start_month` changes.
+    let current_turn = ((calendar.current_month + 12 - 9) % 12) * 2
+        + calendar.half_month as u32
+        + 1;
 
     let company_id = company.id.clone();
     let is_in_receivership = company.is_in_receivership;

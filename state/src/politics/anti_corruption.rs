@@ -227,6 +227,9 @@ pub fn run_anti_corruption_feedback(country: &mut Country) -> f64 {
 pub fn maybe_publish_inspectorate_tender(
     country: &mut Country,
     current_turn: u32,
+    // v4.22 WS1: real calendar year for the tender's construction BOM era,
+    // replacing the hardcoded `1925 + turn/24` derivation.
+    current_year: u32,
     market_history: &crate::economy::market::market_history::MarketHistory,
 ) -> usize {
     let corruption_index = country
@@ -328,8 +331,7 @@ pub fn maybe_publish_inspectorate_tender(
         3, // 3-turn bidding window — temporal unit, not a magic number
         current_turn,
         crate::registries::enums::Sector::PublicAdministration,
-        // Derive year from turn: 24 turns per year, default start year 1925
-        1925 + (current_turn / 24),
+        current_year,
         market_history,
     );
 
@@ -482,6 +484,7 @@ mod tests {
         let count = maybe_publish_inspectorate_tender(
             &mut country,
             10,
+            1925,
             &crate::economy::market::market_history::MarketHistory::default(),
         );
         assert_eq!(count, 1);
@@ -498,6 +501,7 @@ mod tests {
         let count = maybe_publish_inspectorate_tender(
             &mut country,
             10,
+            1925,
             &crate::economy::market::market_history::MarketHistory::default(),
         );
         assert_eq!(count, 0);
@@ -512,6 +516,7 @@ mod tests {
         let count = maybe_publish_inspectorate_tender(
             &mut country,
             10,
+            1925,
             &crate::economy::market::market_history::MarketHistory::default(),
         );
         assert_eq!(count, 0);

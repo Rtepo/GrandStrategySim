@@ -1731,6 +1731,7 @@ pub const BUDGET_BILL_PERIOD_TURNS: u32 = 24;
 pub fn introduce_budget_bill_if_due(
     country: &mut crate::state::Country,
     current_turn: u32,
+    calendar: &crate::state::Calendar,
 ) -> Option<String> {
     // v4.19 WS4: budgets are ANNUAL (every 24 turns). The intermediate
     // 4-turn checkpoint only re-submits when the session's own record of
@@ -1738,7 +1739,12 @@ pub fn introduce_budget_bill_if_due(
     // executive veto) — and it re-queues the SAME `BUDGET-{year}` id, so
     // the chamber list keeps one unified bill record rather than
     // unexplained duplicate rows.
-    let annual_due = current_turn.is_multiple_of(BUDGET_BILL_PERIOD_TURNS);
+    // v4.22 WS1: the fiscal year is anchored to the JANUARY rollover —
+    // `h = current_turn + start_month_offset` is the absolute half-month
+    // describing the in-progress period, so `h % 24 == 0` fires on the
+    // first turn of January (Aug-1900 start: turn 10, 34, 58, ...).
+    let h = current_turn + calendar.start_month_offset();
+    let annual_due = h.is_multiple_of(BUDGET_BILL_PERIOD_TURNS);
     let checkpoint = current_turn.is_multiple_of(4);
     if !annual_due && !checkpoint {
         return None;
@@ -1747,8 +1753,10 @@ pub fn introduce_budget_bill_if_due(
         return None;
     }
 
-    let year = current_turn / BUDGET_BILL_PERIOD_TURNS;
-    let unified_id = format!("BUDGET-{year}");
+    // Fiscal year for the budget under consideration: the calendar year the
+    // in-progress period belongs to (Jan-1901 → FY1901).
+    let fiscal_year = calendar.start_year + h / 24;
+    let unified_id = format!("BUDGET-{fiscal_year}");
     let resubmission = if !annual_due {
         // Off-cadence turn: only re-submit when this year's budget record
         // is rejected AND no live copy is still under consideration.
@@ -1768,9 +1776,9 @@ pub fn introduce_budget_bill_if_due(
     // so re-submissions reuse the same row rather than `BUDGET-{turn}` dups.
     budget_bill.id = unified_id.clone();
     if resubmission {
-        budget_bill.title = format!("Budget Bill FY{} (Re-submitted)", 1900 + year);
+        budget_bill.title = format!("Budget Bill FY{fiscal_year} (Re-submitted)");
     } else {
-        budget_bill.title = format!("Budget Bill FY{}", 1900 + year);
+        budget_bill.title = format!("Budget Bill FY{fiscal_year}");
     }
     let bill = super::budget_lifecycle::budget_bill_to_legislative_bill(country, &budget_bill);
     let bill_id = bill.id.clone();

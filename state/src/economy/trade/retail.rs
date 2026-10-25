@@ -726,6 +726,10 @@ fn affordability_threshold(commodity: Commodity) -> f64 {
 pub fn build_consumer_demand(
     region: &Region,
     current_turn: u32,
+    // v4.22 WS1: real calendar year (from `state.calendar.current_year`),
+    // replaces the old hardcoded `1925 + turn/24` that misaligned every
+    // era gate by the scenario's start offset.
+    current_year: u32,
     market_prices: &HashMap<Commodity, f64>,
     average_wage: f64,
     housing_buildings: &[HousingBuilding],
@@ -763,8 +767,8 @@ pub fn build_consumer_demand(
 
     let consumption = consumption_registry();
     let price_subs = consumption_registry::price_substitution_matrix();
-    // Phase 45: Derive year from turn (24 turns per year, default start 1925)
-    let year = 1925 + (current_turn / 24);
+    // Phase 45: Era gates evaluate against the real calendar year.
+    let year = current_year;
 
     // Helper: compute demand for a single class (rural or urban)
     // E.6.3: Uses typed DemographicClass for demand keys
@@ -1252,6 +1256,12 @@ fn inject_heating_fuel_demand(
 /// * Luxury goods: always available but scaled by era
 /// * Subsistence goods (Cereal, Vegetable, Protein, Meat, Clothing, Furniture): always 1.0
 fn era_consumption_multiplier(commodity: Commodity, year: u32) -> f64 {
+    // v4.22 WS1: hard gate — a commodity cannot generate consumer demand
+    // before its historical introduction year (Software, Plastics,
+    // OfficeMachinery, Batteries, Radio, Televisions, ...).
+    if year < commodity.introduction_year() {
+        return 0.0;
+    }
     match commodity {
         // Always available — subsistence and basic goods
         Commodity::Cereal
@@ -3020,6 +3030,7 @@ mod tests {
         let demand = build_consumer_demand(
             &region,
             0,
+            1925,
             &prices,
             100.0,
             &[],
@@ -3076,6 +3087,7 @@ mod tests {
         let demand = build_consumer_demand(
             &region,
             0,
+            1925,
             &HashMap::default(),
             100.0,
             &[],

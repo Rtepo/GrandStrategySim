@@ -8248,6 +8248,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 let mut consumer_demand = build_consumer_demand(
                     region,
                     turn,
+                    state.calendar.current_year,
                     &task.ctx.market_prices,
                     avg_wage,
                     &task.housing_buildings,
@@ -10353,6 +10354,7 @@ tasks.par_iter_mut().for_each(|task| {
             let _count = crate::politics::anti_corruption::maybe_publish_inspectorate_tender(
                 task.ctx.country,
                 task.ctx.turn,
+                task.ctx.year,
                 &state.market_history,
             );
         });
@@ -10488,12 +10490,16 @@ tasks.par_iter_mut().for_each(|task| {
             let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("M0_TRACE_PREPOL: t={} M0={:.0} cb={:.0} diff={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.total - _w.cumulative_cb_injection);
         }
         // Phase 35: Gate process_political_year to run only once per year
-        // (on the last turn of each year, turn 23/47/71...). Previously this
+        // (on the last turn of each year). Previously this
         // ran every turn, causing the election timer to tick 24× too fast
         // (elections every 4 turns instead of every 4 years) and political
         // capital to be regenerated every turn, masking the payroll failure
         // cascade that drives it to 0.0.
-        let is_year_boundary = turn > 0 && (turn + 1).is_multiple_of(24);
+        // v4.22 WS1: "last turn of the year" = the turn processing late
+        // December — the turn after which the calendar enters January:
+        // (turn + 1 + offset) % 24 == 0 (Aug-1900 start: turn 9, 33, 57...).
+        let is_year_boundary =
+            (turn + 1 + turn_calendar.start_month_offset()).is_multiple_of(24);
 
         // Phase 39: Apply ideology tax policy every turn (not just on election).
         // This ensures wealth/capital-gains tax brackets always reflect the
@@ -10600,6 +10606,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &chaos_config,
                 Some(&trait_registry),
                 task.ctx.turn,
+                turn_calendar,
             );
 
             // Store messages for diagnostics. Index the key (not msg.len())
@@ -13524,11 +13531,13 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
     // No disk persistence — entities stay in ctx.
 
     turn += 1;
-    // Phase 27: 1 Year = 24 Turns (2 turns per month). Year only increments
-    // after a full year of 24 turns has passed. Guard with turn > 0 to avoid
-    // firing on turn 0 (game start).
-    if turn > 0 && turn.is_multiple_of(24) {
-        year += 1;
+    // v4.22 WS1: the fiscal year rolls over on the FIRST TURN OF JANUARY.
+    // `h = turn + start_month_offset` is the absolute half-month describing
+    // the upcoming (in-progress) period; h % 24 == 0 ⇔ early January
+    // (Aug-1900 start: fires at turn 10, 34, 58, ...).
+    let upcoming_h = turn + state.calendar.start_month_offset();
+    if upcoming_h.is_multiple_of(24) {
+        year = state.calendar.start_year + upcoming_h / 24;
 
         // Phase 57: Capital Gains Tax year-end settlement.
         // Runs at fiscal year-end (every 24 turns). Settles all accrued gains/losses,
@@ -14001,22 +14010,13 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
     }
 
     // Sync state.calendar so the TUI and snapshots show the correct turn/year.
-    // AI & Stability Audit (Pillar 1A): Use start_month-aware formula to fix
-    // the time-travel bug where Turn 1 jumped back to January instead of
-    // staying in September (start_month = 9). The old formula
-    // `((turn - 1) % 24) / 2 + 1` ignored start_month entirely.
+    // v4.22 WS1: absolute-half-month model — the calendar describes the
+    // CURRENT (in-progress) period `h = global_turn + (start_month-1)*2`, so
+    // the year rolls over strictly on the first turn of January
+    // (Aug-1900 start: turn 10 → Jan 1901), never mid-year in August.
     state.calendar.global_turn = turn;
-    state.calendar.current_year = year;
-    if turn > 0 {
-        let turn_in_year = (turn - 1) % 24;
-        state.calendar.current_month =
-            (turn_in_year / 2 + state.calendar.start_month.saturating_sub(1)) % 12 + 1;
-        state.calendar.half_month = turn_in_year % 2 == 1;
-    } else {
-        // Turn 0: use start_month directly (game start).
-        state.calendar.current_month = state.calendar.start_month.max(1).min(12);
-        state.calendar.half_month = false;
-    }
+    state.calendar.resync();
+    let year = state.calendar.current_year;
     update_storage(state, turn, year);
 
     // Write results back into ctx (no disk I/O).

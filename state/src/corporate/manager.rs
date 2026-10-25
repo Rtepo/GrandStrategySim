@@ -612,7 +612,8 @@ pub fn process_companies(
                             current_turn,
                             building_id,
                             crate::registries::enums::Sector::HeavyIndustry,
-                            1925 + (current_turn / 24),
+                            // v4.22 WS1: real calendar year, not 1925+turn/24.
+                            year,
                             market_history,
                         );
                         country.phase22_tenders.push(tender);
@@ -654,8 +655,9 @@ pub fn process_companies(
             // Get the generative goods config from the country.
             let gen_config = &country.generative_goods_config;
 
-            // Determine base_tech_year from the current year.
-            let base_tech_year = 1925 + (current_turn / 24);
+            // v4.22 WS1: blueprint tech year is the real calendar year,
+            // not the hardcoded 1925 baseline.
+            let base_tech_year = year;
 
             if let Some(blueprint) = design_blueprint(
                 &company_id,

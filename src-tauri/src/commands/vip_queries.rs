@@ -50,6 +50,7 @@ pub async fn get_paginated_vips(
             entities.1,
             entities.0,
             &view,
+            engine_state.game_state.calendar.current_year,
         );
 
         Ok(VipPageResponse {
@@ -114,6 +115,7 @@ pub async fn get_vip_dossier(
             entities.1,
             entities.0,
             &view,
+            engine_state.game_state.calendar.current_year,
         );
 
         Ok(snap.vip_dossier)

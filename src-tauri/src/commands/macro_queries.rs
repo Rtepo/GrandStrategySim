@@ -31,6 +31,7 @@ fn get_country_and_build(
         entities.1,
         entities.0,
         &ViewQuery::default(),
+        engine_state.game_state.calendar.current_year,
     );
 
     Ok(snapshot)

@@ -3540,15 +3540,20 @@ pub fn build_country_snapshot(
     buildings: &[crate::entities::Building],
     companies: &[Company],
     view: &ViewQuery,
+    calendar_year: u32,
 ) -> CountrySnapshot {
     let macro_data = &country.macro_indicators;
 
     // Commodities: build rows for all 140 commodities.
     // Stabilization Sprint: Exclude local grid utilities (Energy, Heat, Water,
     // WasteUtility) — these are managed by physical grids, not the B2B market.
+    // v4.22 WS1: hide commodities not yet invented (Software/Radio/Plastics/
+    // OfficeMachinery/Batteries at 1900) — they surface once the calendar
+    // reaches `Commodity::introduction_year`.
     let commodities: Vec<CommodityRow> = Commodity::all()
         .iter()
         .filter(|&&c| !c.is_local_utility())
+        .filter(|&&c| calendar_year >= c.introduction_year())
         .map(|&c| {
             let name = format!("{:?}", c);
             let vwap = market_history
@@ -6945,8 +6950,15 @@ pub fn build_global_snapshot(
             .get(name)
             .map(|v| v.as_slice())
             .unwrap_or(&[]);
-        let mut snap =
-            build_country_snapshot(country, market_history, market, buildings, companies, view);
+        let mut snap = build_country_snapshot(
+            country,
+            market_history,
+            market,
+            buildings,
+            companies,
+            view,
+            year,
+        );
         snap.turn = turn;
         snap.year = year;
         countries.insert(name.clone(), snap);
