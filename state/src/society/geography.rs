@@ -1316,6 +1316,13 @@ pub struct ClassDemographics {
     /// Below threshold → factory strikes and military desertions.
     pub war_morale: f64,
 
+    /// v4.22: Whether `war_morale`/`mental_health` have been seeded from real
+    /// class conditions. `false` on legacy saves and fresh `Default` spawns —
+    /// the homefront morale update self-heals (seeds once from the computed
+    /// target) instead of treating `0.0` as genuine collapsed morale.
+    #[serde(default)]
+    pub morale_initialized: bool,
+
     /// Phase 85: FTE allocated to cottage industry self-production this turn.
     /// Reserved in the Pre-labor phase BEFORE the industrial labor market clears.
     /// Clamped to [0.0, (available_fte - allocated_fte - guild_fte_allocated).max(0.0)]
@@ -3027,6 +3034,10 @@ pub fn generate_class_demographics(
                 labor_participation: 0.65,
                 savings: 0.0, // Serfs don't have cash savings
                 culture: dominant_culture.to_string(),
+                // v4.22: display baseline — `morale_initialized` stays false
+                // so the first homefront update snaps to the computed target.
+                war_morale: 70.0,
+                mental_health: 70.0,
                 ..Default::default()
             },
         );
@@ -3048,6 +3059,10 @@ pub fn generate_class_demographics(
             // solvency so the smoothing EWMA starts warm instead of at 0.
             habitual_savings_per_capita: spc,
             culture: dominant_culture.to_string(),
+            // v4.22: display baseline — `morale_initialized` stays false
+            // so the first homefront update snaps to the computed target.
+            war_morale: 70.0,
+            mental_health: 70.0,
             ..Default::default()
         }
     });
@@ -3065,6 +3080,10 @@ pub fn generate_class_demographics(
             savings_per_capita: spc,
             habitual_savings_per_capita: spc,
             culture: dominant_culture.to_string(),
+            // v4.22: display baseline — `morale_initialized` stays false
+            // so the first homefront update snaps to the computed target.
+            war_morale: 70.0,
+            mental_health: 70.0,
             ..Default::default()
         }
     });
@@ -3082,6 +3101,10 @@ pub fn generate_class_demographics(
             savings_per_capita: spc,
             habitual_savings_per_capita: spc,
             culture: dominant_culture.to_string(),
+            // v4.22: display baseline — `morale_initialized` stays false
+            // so the first homefront update snaps to the computed target.
+            war_morale: 70.0,
+            mental_health: 70.0,
             ..Default::default()
         };
         // Phase 47: Seed initial household durables for wealthy classes.
@@ -3122,6 +3145,10 @@ pub fn generate_class_demographics(
             // v4.18 WS1: seed the habitual spending anchor at genesis solvency.
             habitual_savings_per_capita: spc,
             culture: dominant_culture.to_string(),
+            // v4.22: display baseline — `morale_initialized` stays false
+            // so the first homefront update snaps to the computed target.
+            war_morale: 70.0,
+            mental_health: 70.0,
             ..Default::default()
         }
     });
@@ -3139,6 +3166,10 @@ pub fn generate_class_demographics(
             savings_per_capita: spc,
             habitual_savings_per_capita: spc,
             culture: dominant_culture.to_string(),
+            // v4.22: display baseline — `morale_initialized` stays false
+            // so the first homefront update snaps to the computed target.
+            war_morale: 70.0,
+            mental_health: 70.0,
             ..Default::default()
         };
         // Phase 47: Seed initial household durables for wealthy classes.

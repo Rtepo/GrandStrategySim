@@ -371,23 +371,26 @@ pub fn process_diplomacy_turn(
 /// registered VIP, but nothing ever created one — so every country's
 /// Diplomacy tab reported zero posts forever.
 ///
-/// Each turn, every country checks whether it has at least one diplomatic
-/// envoy (Ambassador/Consul/MilitaryAttache — the "diplomat" coverage the
-/// test counts) and one Spy posted abroad. For each missing role it:
-///   1. Verifies `budget.liquid_reserves` can actually fund the
-///      `diplomat_assignment_cost` — recruitment is skipped when the
-///      treasury cannot pay (no unfunded posts, no M0 creation).
-///   2. Picks a host deterministically (see `pick_staffing_host`).
-///   3. Recruits a NEW culturally-appropriate VIP via seeded RNG and
-///      registers it in the home country's `VipRegistry` (name + traits +
-///      portrait seed, same pipeline every other VIP uses).
-///   4. Queues a `DiplomaticAction::AssignDiplomat` — the sequential drain
-///      then enforces `DiplomaticPostCap` and moves the real money
-///      (home debits, host credits — strict double-entry).
+/// v4.22: The corps now SCALES with country size instead of the old binary
+/// "1 envoy + 1 spy" coverage check that left 12/14 countries at
+/// `IntelLevel::Unknown` forever. Each country targets:
+///   * `target_envoys = 1 + pop_tier + gdp_tier` ambassadors on distinct
+///     hosts — `pop_tier` is the population log-tier (10M→+1, 100M→+2,
+///     1B→+3) and `gdp_tier` adds one post per 250B GDP. Ambassadors go to
+///     the largest-GDP partners first (real diplomatic priority).
+///   * `target_spies = 1 + pop_tier` spies on distinct hosts, posted to the
+///     countries relations are worst with (adversarial intelligence).
+/// Both are capped by the number of foreign countries and by what the
+/// treasury can actually fund this turn — each post still moves the real
+/// `diplomat_assignment_cost` home→host in the sequential drain (strict
+/// double-entry, no M0 creation). Because every missing post is queued in
+/// a single call, a fresh world fills its corps on the first turn and
+/// holds it at steady state thereafter.
 ///
-/// Runs on the single-threaded tail of the turn, so direct `state`
-/// mutation is safe. Deterministic: sorted country iteration, seeded RNG
-/// only, and the RNG stream is restored first like every tail consumer.
+/// Recruitment pipeline is unchanged: seeded-RNG culturally-appropriate
+/// VIP → `VipRegistry` → `DiplomaticAction::AssignDiplomat` (the drain
+/// enforces `DiplomaticPostCap` per host). Deterministic: sorted country
+/// iteration, seeded RNG only, RNG stream restored first.
 pub fn staff_diplomatic_posts(
     state: &mut GameState,
     diplomacy: &HashMap<String, HashMap<String, DiplomaticRelation>>,
@@ -402,118 +405,156 @@ pub fn staff_diplomatic_posts(
 
     let mut sorted_names: Vec<String> = state.countries.keys().cloned().collect();
     sorted_names.sort();
-    if sorted_names.len() < 2 {
+    let foreign_count = sorted_names.len().saturating_sub(1);
+    if foreign_count == 0 {
         return; // A lone country posts no foreign staff.
     }
 
     for home_name in &sorted_names {
         // Snapshot the home country's staffing state (single borrow).
-        let (has_diplomat, has_spy, can_fund, cultural_group, used_names) = {
+        let (
+            envoy_count,
+            spy_count,
+            covered_hosts,
+            affordable,
+            cultural_group,
+            used_names,
+            population,
+            gdp,
+        ) = {
             let Some(home) = state.countries.get(home_name) else {
                 continue;
             };
             let reg = home.politics.vip_registry.as_ref();
-            let covered = |pt: &DiplomaticPostType| {
-                reg.is_some_and(|r| {
-                    r.vips.values().any(|v| {
-                        !v.is_dead
-                            && v.diplomatic_post
-                                .as_ref()
-                                .is_some_and(|p| &p.post_type == pt)
-                    })
-                })
-            };
-            let diplomat = covered(&DiplomaticPostType::Ambassador)
-                || covered(&DiplomaticPostType::Consul)
-                || covered(&DiplomaticPostType::MilitaryAttache);
+            let mut envoys = 0usize;
+            let mut spies = 0usize;
+            let mut covered: std::collections::HashSet<String> =
+                std::collections::HashSet::new();
+            if let Some(r) = reg {
+                for v in r.vips.values() {
+                    if v.is_dead {
+                        continue;
+                    }
+                    if let Some(p) = &v.diplomatic_post {
+                        match p.post_type {
+                            DiplomaticPostType::Spy => spies += 1,
+                            DiplomaticPostType::Ambassador
+                            | DiplomaticPostType::Consul
+                            | DiplomaticPostType::MilitaryAttache => envoys += 1,
+                        }
+                        covered.insert(p.host_country.clone());
+                    }
+                }
+            }
             let names: std::collections::HashSet<String> = reg
                 .map(|r| r.name_index.keys().cloned().collect())
                 .unwrap_or_default();
+            let population: i64 = home.regions.iter().map(|r| r.population).sum();
             (
-                diplomat,
-                covered(&DiplomaticPostType::Spy),
-                home.budget.liquid_reserves >= cost,
+                envoys,
+                spies,
+                covered,
+                if cost > 0.0 {
+                    (home.budget.liquid_reserves / cost).floor() as usize
+                } else {
+                    foreign_count * 4
+                },
                 home.macro_indicators.cultural_group.clone(),
                 names,
+                population,
+                home.budget.gdp,
             )
         };
 
-        if !can_fund {
-            continue;
-        }
+        // v4.22: corps size scales with country size. pop_tier: +1 post per
+        // population decade past 1M (10M→1, 100M→2, 1B→3). gdp_tier: +1 post
+        // per 250B GDP. Both targets clamp to the number of foreign hosts.
+        let pop_tier = ((population.max(1) as f64).log10() - 6.0).max(0.0) as usize;
+        let gdp_tier = (gdp.max(0.0) / 250_000_000_000.0) as usize;
+        let target_envoys = (1 + pop_tier + gdp_tier).min(foreign_count);
+        let target_spies = (1 + pop_tier).min(foreign_count);
+
         let mut used_names = used_names;
+        let mut covered_hosts = covered_hosts;
+        let mut slots = affordable;
 
-        for post_type in [
-            DiplomaticPostType::Ambassador,
-            DiplomaticPostType::Spy,
+        for (post_type, have, target) in [
+            (DiplomaticPostType::Ambassador, envoy_count, target_envoys),
+            (DiplomaticPostType::Spy, spy_count, target_spies),
         ] {
-            let covered = match post_type {
-                DiplomaticPostType::Spy => has_spy,
-                _ => has_diplomat,
-            };
-            if covered {
-                continue;
-            }
-
-            let Some(host_name) =
-                pick_staffing_host(state, diplomacy, home_name, &post_type, &sorted_names, &cap)
-            else {
-                continue;
-            };
-
-            // Recruit the officer: seeded name + trait draw, then add the
-            // professional trait the post calls for — `compute_diplomat_
-            // modifiers` rewards Diplomatic envoys and Cautious spies.
-            let vip_name = crate::politics::names::generate_unique_vip(
-                &cultural_group,
-                &mut rng,
-                &mut used_names,
-            );
-            let (mut traits, main_trait) =
-                crate::politics::vip_registry::assign_core_traits(&mut rng);
-            let professional = match post_type {
-                DiplomaticPostType::Spy => "Cautious",
-                _ => "Diplomatic",
-            };
-            if !traits.iter().any(|t| t == professional) {
-                traits.push(professional.to_string());
-            }
-            let vip = crate::politics::vip_registry::Vip {
-                full_name: vip_name.full_name,
-                gender: vip_name.gender,
-                age: 35 + rng.gen_range(0..25),
-                health: crate::politics::vip_registry::VipHealth {
-                    physical_health: 1.0,
-                    mental_health: 1.0,
-                },
-                traits,
-                main_trait,
-                ideology: "Centrist".to_string(),
-                nationality: home_name.clone(),
-                born_turn: current_turn,
-                base_influence: 10 + rng.gen_range(0..20),
-                ..Default::default()
-            };
-
-            let vip_id = {
-                let Some(home) = state.countries.get_mut(home_name) else {
-                    continue;
+            for _ in have..target {
+                if slots == 0 {
+                    break;
+                }
+                let Some(host_name) = pick_staffing_host(
+                    state,
+                    diplomacy,
+                    home_name,
+                    &post_type,
+                    &sorted_names,
+                    &cap,
+                    &covered_hosts,
+                ) else {
+                    break;
                 };
-                let Some(registry) = home.politics.vip_registry.as_mut() else {
-                    continue;
+                // Recruit the officer: seeded name + trait draw, then add the
+                // professional trait the post calls for — `compute_diplomat_
+                // modifiers` rewards Diplomatic envoys and Cautious spies.
+                let vip_name = crate::politics::names::generate_unique_vip(
+                    &cultural_group,
+                    &mut rng,
+                    &mut used_names,
+                );
+                let (mut traits, main_trait) =
+                    crate::politics::vip_registry::assign_core_traits(&mut rng);
+                let professional = match post_type {
+                    DiplomaticPostType::Spy => "Cautious",
+                    _ => "Diplomatic",
                 };
-                registry.register_new(vip)
-            };
+                if !traits.iter().any(|t| t == professional) {
+                    traits.push(professional.to_string());
+                }
+                let vip = crate::politics::vip_registry::Vip {
+                    full_name: vip_name.full_name,
+                    gender: vip_name.gender,
+                    age: 35 + rng.gen_range(0..25),
+                    health: crate::politics::vip_registry::VipHealth {
+                        physical_health: 1.0,
+                        mental_health: 1.0,
+                    },
+                    traits,
+                    main_trait,
+                    ideology: "Centrist".to_string(),
+                    nationality: home_name.clone(),
+                    born_turn: current_turn,
+                    base_influence: 10 + rng.gen_range(0..20),
+                    ..Default::default()
+                };
 
-            state
-                .pending_diplomatic_actions
-                .push(crate::state::diplomatic_actions::DiplomaticAction::AssignDiplomat {
-                    vip_id,
-                    home_country: home_name.clone(),
-                    host_country: host_name,
-                    post_type: post_type.clone(),
-                    assigned_turn: current_turn,
-                });
+                let vip_id = {
+                    let Some(home) = state.countries.get_mut(home_name) else {
+                        break;
+                    };
+                    let Some(registry) = home.politics.vip_registry.as_mut() else {
+                        break;
+                    };
+                    registry.register_new(vip)
+                };
+
+                state.pending_diplomatic_actions.push(
+                    crate::state::diplomatic_actions::DiplomaticAction::AssignDiplomat {
+                        vip_id,
+                        home_country: home_name.clone(),
+                        host_country: host_name.clone(),
+                        post_type: post_type.clone(),
+                        assigned_turn: current_turn,
+                    },
+                );
+                // Mark covered so the next slot spreads to a new host, and
+                // reserve the funds the drain will move for this post.
+                covered_hosts.insert(host_name);
+                slots = slots.saturating_sub(1);
+            }
         }
     }
 }
@@ -530,6 +571,9 @@ pub fn staff_diplomatic_posts(
 /// skipped, and all ties break by sorted country name so the pick is
 /// identical across runs. `count_diplomats` reads the CURRENT posted
 /// state; same-turn queued actions are re-checked by the drain anyway.
+/// `covered_hosts` additionally suppresses hosts the caller has already
+/// queued a post to this turn, so a scaled corps spreads across distinct
+/// partners instead of stacking on one host.
 fn pick_staffing_host(
     state: &GameState,
     diplomacy: &HashMap<String, HashMap<String, DiplomaticRelation>>,
@@ -537,10 +581,11 @@ fn pick_staffing_host(
     post_type: &DiplomaticPostType,
     sorted_names: &[String],
     cap: &DiplomaticPostCap,
+    covered_hosts: &std::collections::HashSet<String>,
 ) -> Option<String> {
     let mut best: Option<(String, f64)> = None; // (name, score)
     for cand in sorted_names {
-        if cand == home_name {
+        if cand == home_name || covered_hosts.contains(cand) {
             continue;
         }
         // Per-host capacity: a full embassy / burned network is skipped.

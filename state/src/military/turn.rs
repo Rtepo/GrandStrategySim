@@ -151,10 +151,40 @@ pub fn process_military_turn(
     let devastation_messages = process_peasant_devastation(&units, regions, config);
     all_messages.extend(devastation_messages);
 
-    // MIL-7: Recover morale for all demographic classes (end of military turn)
+    // MIL-7: Homefront morale update (end of military turn).
+    //
+    // v4.22: Replaced the flat `recover_morale` (+1.0/turn to a fixed cap)
+    // with `update_homefront_morale` — an EWMA seek toward a target computed
+    // from real per-class inputs (economic status, YoY real-wage growth,
+    // consumption fulfillment vs habitual standard, FTE unemployment,
+    // radicalization, health) plus country war exhaustion/at-war state.
+    // Peacetime classes settle at 60–90; only genuine grievance drags a
+    // class below the strike threshold. Uninitialized classes (legacy saves,
+    // `or_default()` spawns) self-heal to the computed target instead of
+    // sitting pinned at 0.0 for dozens of turns.
+    let war_exhaustion = fronts
+        .iter()
+        .map(|f| {
+            f.war_exhaustion
+                .get(country_name)
+                .copied()
+                .unwrap_or(0.0)
+        })
+        .fold(0.0_f64, f64::max);
+    let morale_ctx = crate::military::morale::HomefrontContext {
+        war_exhaustion,
+        at_war: !fronts.is_empty(),
+        current_turn: turn,
+    };
     for region in regions.iter_mut() {
-        crate::military::morale::recover_morale_for_classes(
+        crate::military::morale::update_homefront_morale_for_classes(
             &mut region.class_demographics.rural_classes,
+            &morale_ctx,
+            morale_config,
+        );
+        crate::military::morale::update_homefront_morale_for_classes(
+            &mut region.class_demographics.urban_classes,
+            &morale_ctx,
             morale_config,
         );
     }

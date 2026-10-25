@@ -90,6 +90,16 @@ pub async fn advance_turn(state: tauri::State<'_, AppState>) -> Result<TurnResul
 
         let turn = engine_state.game_state.calendar.global_turn;
         let year = engine_state.game_state.calendar.current_year;
+
+        // v4.22 WS4: append the finalized GDP expenditure breakdown to each
+        // country's `gdp_composition_history` ring buffer (the turn loop is
+        // owned by another workstream, so this buffer is appended at the
+        // post-turn boundary; `push_gdp_composition_sample` dedups on turn).
+        for country in engine_state.game_state.countries.values_mut() {
+            country
+                .macro_indicators
+                .push_gdp_composition_sample(turn, year);
+        }
         Ok::<TurnResult, String>(TurnResult {
             turn,
             year,

@@ -264,6 +264,185 @@ pub fn calculate_desertions(manpower: i64, war_morale: f64, config: &MoraleConfi
 pub fn initialize_morale(demographics: &mut ClassDemographics, config: &MoraleConfig) {
     demographics.war_morale = config.baseline_war_morale;
     demographics.mental_health = config.baseline_mental_health;
+    demographics.morale_initialized = true;
+}
+
+// ============================================================================
+// v4.22: DYNAMIC HOMEFRONT MORALE (target-seeking update)
+// ============================================================================
+
+/// Country-level inputs that shape every class's morale target.
+///
+/// All inputs are real simulation state: no constants beyond the configured
+/// weights inside [`MoraleConfig`]. Derived per country in the military turn
+/// from its active fronts (`war_exhaustion`, `at_war`).
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct HomefrontContext {
+    /// Country war exhaustion (0.0–100.0), max over the country's fronts.
+    pub war_exhaustion: f64,
+    /// Whether the country is currently at war (has fronts / war list).
+    pub at_war: bool,
+    /// Current global turn (for YoY driver snapshots).
+    pub current_turn: u32,
+}
+
+/// Computes the morale target for a class from real per-class inputs.
+///
+/// Inputs (all read off [`ClassDemographics`] — no external lookups):
+/// * `economic_status` — Prosperous/Stable/Struggling/Destitute.
+/// * Real wage vs expected — YoY real-wage growth via `calculate_yoy_drivers`
+///   (the class's own QoL ring buffer, fed with its last stamped real wage).
+/// * Consumption fulfillment — `savings_per_capita` vs
+///   `habitual_savings_per_capita` (the habitual standard the class tries to
+///   hold); persistent shortfall means unfilled consumption.
+/// * Class unemployment — `allocated_fte` / `available_fte` gap.
+/// * War exhaustion + active war (`HomefrontContext`).
+/// * Repression/unrest — `political_sentiment.radicals` share.
+/// * `health_status` — Critical/Poor classes carry a morale penalty.
+///
+/// # Returns
+/// `(war_morale_target, mental_health_target)` in `[5.0, 95.0]`.
+pub fn compute_morale_targets(
+    demographics: &ClassDemographics,
+    ctx: &HomefrontContext,
+    config: &MoraleConfig,
+) -> (f64, f64) {
+    let base = config.baseline_war_morale;
+
+    // Economic status anchor: peacetime prosperity sits high; genuine
+    // destitution is the primary path below the strike threshold.
+    let status_mod = match demographics.economic_status {
+        crate::society::geography::EconomicStatus::Prosperous => 8.0,
+        crate::society::geography::EconomicStatus::Stable => 0.0,
+        crate::society::geography::EconomicStatus::Struggling => -10.0,
+        crate::society::geography::EconomicStatus::Destitute => -22.0,
+    };
+
+    // Real wage vs expected: YoY real-wage growth clamped to ±50% → ±15 pts.
+    // Uses the class's own QoL history; the last stamped real wage is the
+    // country average wage recorded by the sentiment pass last turn.
+    let current_real_wage = demographics.previous_turn_qol.real_wage_yoy;
+    let drivers = demographics.calculate_yoy_drivers(
+        ctx.current_turn,
+        demographics.savings_per_capita,
+        current_real_wage,
+        0.0,
+    );
+    let wage_mod = drivers.real_wage_growth.clamp(-0.5, 0.5) * 30.0;
+
+    // Consumption fulfillment: live savings/capita vs habitual standard.
+    // A class running below its habitual standard is having consumption
+    // squeezed — unfilled subsistence/discretionary demand drags morale.
+    let consumption_mod = if demographics.habitual_savings_per_capita > 0.0 {
+        let fill_ratio = (demographics.savings_per_capita
+            / demographics.habitual_savings_per_capita)
+            .min(1.0);
+        (fill_ratio - 1.0) * 25.0 // 0 at full fill, → -25 as fill → 0
+    } else {
+        0.0
+    };
+
+    // Class unemployment: share of offered FTE with no allocation.
+    let unemployment_ratio = if demographics.available_fte > 0.0 {
+        ((demographics.available_fte - demographics.allocated_fte).max(0.0)
+            / demographics.available_fte)
+            .min(1.0)
+    } else {
+        0.0
+    };
+    let unemployment_mod = -unemployment_ratio * 20.0;
+
+    // War pressure: baseline −5 when at war, plus up to −30 scaled by
+    // exhaustion (0–100). Casualty shocks apply separately via
+    // `apply_casualty_morale_impact`.
+    let war_mod = if ctx.at_war { -5.0 } else { 0.0 } - ctx.war_exhaustion * 0.30;
+
+    // Repression/unrest: radicalized classes are already disaffected.
+    let radical_mod = -demographics.political_sentiment.radicals * 15.0;
+
+    // Health: sick/critical populations are demoralized.
+    let health_mod = match demographics.health_status {
+        crate::society::geography::HealthStatus::Critical => -8.0,
+        crate::society::geography::HealthStatus::Poor => -4.0,
+        _ => 0.0,
+    };
+
+    let war_target = base
+        + status_mod
+        + wage_mod
+        + consumption_mod
+        + unemployment_mod
+        + war_mod
+        + radical_mod
+        + health_mod;
+
+    // Mental health tracks the same inputs but damped — psychological
+    // well-being moves slower and shallower than war sentiment.
+    let mental_target = config.baseline_mental_health
+        + status_mod * 0.6
+        + wage_mod * 0.5
+        + consumption_mod * 0.6
+        + unemployment_mod * 0.8
+        + (war_mod * 0.7)
+        + radical_mod * 0.5
+        + health_mod * 1.5;
+
+    (war_target.clamp(5.0, 95.0), mental_target.clamp(5.0, 95.0))
+}
+
+/// Per-turn homefront morale update for a single demographic class.
+///
+/// Morale is EWMA-seeked toward `compute_morale_targets`:
+/// * `war_morale` converges at `morale_seek_rate` (≈5-turn half-life).
+/// * `mental_health` converges at half that rate (slower dynamics).
+///
+/// Self-healing seed: classes whose `morale_initialized` flag is `false`
+/// (legacy saves, `or_default()` spawns — the historical cause of the pinned
+/// `war_morale: 0.0` state) are seeded straight to the computed target so
+/// peacetime morale starts in the natural 60–90 band instead of climbing
+/// +1.0/turn from zero.
+///
+/// Casualty-driven drops are still applied by `apply_casualty_morale_impact`
+/// during battle resolution — this function only steers the slow signal back
+/// toward the target implied by living conditions, so a devastated class
+/// converges to a *low* target, not instantly to baseline.
+pub fn update_homefront_morale(
+    demographics: &mut ClassDemographics,
+    ctx: &HomefrontContext,
+    config: &MoraleConfig,
+) {
+    let (war_target, mental_target) = compute_morale_targets(demographics, ctx, config);
+
+    if !demographics.morale_initialized {
+        demographics.war_morale = war_target;
+        demographics.mental_health = mental_target;
+        demographics.morale_initialized = true;
+        return;
+    }
+
+    const WAR_SEEK_RATE: f64 = 0.20;
+    const MENTAL_SEEK_RATE: f64 = 0.10;
+    demographics.war_morale +=
+        (war_target - demographics.war_morale) * WAR_SEEK_RATE;
+    demographics.mental_health +=
+        (mental_target - demographics.mental_health) * MENTAL_SEEK_RATE;
+    demographics.war_morale = demographics.war_morale.clamp(0.0, 100.0);
+    demographics.mental_health = demographics.mental_health.clamp(0.0, 100.0);
+}
+
+/// Per-turn homefront morale update for all classes in a keyed map.
+///
+/// Generic over the class key type so it serves both `rural_classes`
+/// (`BTreeMap<RuralClass, _>`) and `urban_classes` (`BTreeMap<UrbanClass, _>`).
+/// O(classes) — single pass, no per-entity scans.
+pub fn update_homefront_morale_for_classes<K: Ord>(
+    classes: &mut BTreeMap<K, ClassDemographics>,
+    ctx: &HomefrontContext,
+    config: &MoraleConfig,
+) {
+    for demographics in classes.values_mut() {
+        update_homefront_morale(demographics, ctx, config);
+    }
 }
 
 // ============================================================================

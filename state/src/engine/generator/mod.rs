@@ -2119,6 +2119,7 @@ fn build_macro_data(
         inflation_indices: crate::state::macro_data::InflationIndices::default(),
         money_supply: crate::state::macro_data::MoneySupplySnapshot::default(),
         telemetry_history: crate::state::macro_data::TelemetryHistory::default(),
+        gdp_composition_history: Vec::new(),
         extra,
     }
 }

@@ -11,4 +11,5 @@ pub mod parliament_queries;
 pub mod phase85_queries;
 pub mod region_queries;
 pub mod securities_queries;
+pub mod society_queries;
 pub mod vip_queries;

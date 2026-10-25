@@ -630,6 +630,44 @@ impl TelemetryHistory {
     }
 }
 
+/// v4.22 WS4: One turn of GDP expenditure composition for the rolling
+/// 24-turn history consumed by the GDP-composition UI.
+///
+/// Kept separate from `TelemetrySample` (whose fixed field layout is
+/// constructed inside `engine/turn.rs`) so the composition series can be
+/// persisted cheaply as its own ring buffer without a turn-loop edit.
+/// All legs are copied from the finalized `GdpBreakdown` of that turn.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct GdpCompositionSample {
+    /// Global turn of the sample.
+    #[serde(default)]
+    pub turn: u32,
+    /// Sim year of the sample.
+    #[serde(default)]
+    pub year: u32,
+    /// Monetized household consumption (B2C clearing revenue).
+    #[serde(default)]
+    pub consumption: f64,
+    /// Imputed subsistence consumption (in-kind leg).
+    #[serde(default)]
+    pub imputed_consumption: f64,
+    /// Government spending.
+    #[serde(default)]
+    pub government_spending: f64,
+    /// Gross investment.
+    #[serde(default)]
+    pub investment: f64,
+    /// Net exports (exports − imports).
+    #[serde(default)]
+    pub net_exports: f64,
+    /// Official GDP (C + imputed-C + G + I + NX).
+    #[serde(default)]
+    pub official_gdp: f64,
+    /// Shadow GDP (parallel economy, outside official GDP).
+    #[serde(default)]
+    pub shadow_gdp: f64,
+}
+
 #[cfg(test)]
 mod telemetry_history_tests {
     use super::*;
@@ -906,9 +944,17 @@ pub struct MacroData {
     /// Phase 24D: Money supply snapshot (M0, M3, multiplier).
     #[serde(default)]
     pub money_supply: MoneySupplySnapshot,
-    /// Phase 24F: Rolling telemetry history for ToT/YoY delta computation.
+        /// Phase 24F: Rolling telemetry history for ToT/YoY delta computation.
     #[serde(default)]
     pub telemetry_history: TelemetryHistory,
+    /// v4.22 WS4: Rolling GDP expenditure-composition history (last ≤25
+    /// turns). `TelemetrySample` is a fixed-layout struct maintained by the
+    /// turn loop; the composition legs live in their own ring buffer so the
+    /// GDP-composition UI gets a real 24-turn series without touching the
+    /// turn-loop struct literal. Appended once per turn by the post-turn
+    /// hook (Tauri `advance_turn`); empty on pre-v4.22 saves.
+    #[serde(default)]
+    pub gdp_composition_history: Vec<GdpCompositionSample>,
     /// Remaining political and runtime sub-trees (`politics`,
     /// `health_statistics`, `education_statistics`, `crime_statistics`,
     /// ...), preserved losslessly.
@@ -940,12 +986,46 @@ impl Default for MacroData {
             inflation_indices: InflationIndices::default(),
             money_supply: MoneySupplySnapshot::default(),
             telemetry_history: TelemetryHistory::default(),
+            gdp_composition_history: Vec::new(),
             extra: Map::new(),
         }
     }
 }
 
-impl MacroData {}
+impl MacroData {
+    /// v4.22 WS4: Append the finalized `gdp_breakdown` to the composition
+    /// ring buffer (`gdp_composition_history`, capacity [`MAX_HISTORY`]).
+    ///
+    /// Dedup: a no-op when the newest sample already carries `turn`, so
+    /// repeated post-turn hooks (or a hook replay after loading a
+    /// mid-turn save) never double-record. Oldest samples are evicted
+    /// FIFO once capacity is reached.
+    pub fn push_gdp_composition_sample(&mut self, turn: u32, year: u32) {
+        if self
+            .gdp_composition_history
+            .last()
+            .map(|s| s.turn == turn)
+            .unwrap_or(false)
+        {
+            return;
+        }
+        self.gdp_composition_history.push(GdpCompositionSample {
+            turn,
+            year,
+            consumption: self.gdp_breakdown.consumption,
+            imputed_consumption: self.gdp_breakdown.imputed_consumption,
+            government_spending: self.gdp_breakdown.government_spending,
+            investment: self.gdp_breakdown.investment,
+            net_exports: self.gdp_breakdown.net_exports,
+            official_gdp: self.gdp_breakdown.official_gdp,
+            shadow_gdp: self.gdp_breakdown.shadow_gdp,
+        });
+        if self.gdp_composition_history.len() > MAX_HISTORY {
+            let drop = self.gdp_composition_history.len() - MAX_HISTORY;
+            self.gdp_composition_history.drain(0..drop);
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

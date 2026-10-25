@@ -14,7 +14,22 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Four-tier intelligence level for foreign nation data.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+///
+/// Declaration order doubles as rank: `Unknown` < `BroadRange` <
+/// `NarrowRange` < `Exact` (used for `max(asset_level, regime_floor)`).
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Serialize,
+    Deserialize,
+    Default,
+)]
 pub enum IntelLevel {
     /// No intelligence — all foreign stats are null/None in the DTO.
     #[default]
@@ -218,9 +233,15 @@ pub struct ForeignIntelligence {
     /// Estimated GDP range: (low, high). Both None if Unknown.
     pub estimated_gdp: Option<(f64, f64)>,
     /// Estimated military size range: (low, high). Both None if Unknown.
+    /// Covert OOB detail — never filled by the regime-openness floor.
     pub estimated_military: Option<(u32, u32)>,
     /// Estimated treasury reserves range: (low, high). None if Unknown.
+    /// For open regimes this is the *published* public budget figure.
     pub estimated_treasury: Option<(f64, f64)>,
+    /// v4.22: Estimated population range: (low, high). None if Unknown.
+    /// Headline macro indicator — floored for open regimes.
+    #[serde(default)]
+    pub estimated_population: Option<(f64, f64)>,
     /// Whether the foreign country's government form is known.
     pub government_known: bool,
     /// Current intelligence level for this country.
@@ -236,6 +257,7 @@ impl ForeignIntelligence {
             estimated_gdp: None,
             estimated_military: None,
             estimated_treasury: None,
+            estimated_population: None,
             government_known: false,
             intel_level: IntelLevel::Unknown,
             last_intel_turn: 0,
@@ -243,12 +265,19 @@ impl ForeignIntelligence {
     }
 
     /// Updates the intelligence estimate based on the true values and the intel level.
+    ///
+    /// `level` drives the public macro fields (GDP, treasury/public budget,
+    /// population, government form). `military_level` separately gates the
+    /// covert military estimate — it is `Unknown` when the observer has no
+    /// real assets, so the regime-openness floor never leaks OOB detail.
     pub fn update_from_true_values(
         &mut self,
         true_gdp: f64,
         true_military: u32,
         true_treasury: f64,
+        true_population: f64,
         level: IntelLevel,
+        military_level: IntelLevel,
         turn: u32,
         rng: &mut impl Rng,
     ) {
@@ -260,6 +289,7 @@ impl ForeignIntelligence {
             self.estimated_gdp = None;
             self.estimated_military = None;
             self.estimated_treasury = None;
+            self.estimated_population = None;
             return;
         }
 
@@ -271,13 +301,30 @@ impl ForeignIntelligence {
         let gdp_high = true_gdp * (1.0 + margin + noise);
         self.estimated_gdp = Some((gdp_low, gdp_high));
 
-        let mil_low = ((true_military as f64) * (1.0 - margin + noise)).max(0.0) as u32;
-        let mil_high = ((true_military as f64) * (1.0 + margin + noise)).max(0.0) as u32;
-        self.estimated_military = Some((mil_low, mil_high));
-
         let treas_low = (true_treasury * (1.0 - margin + noise)).max(0.0);
         let treas_high = true_treasury * (1.0 + margin + noise);
         self.estimated_treasury = Some((treas_low, treas_high));
+
+        let pop_margin = level.error_margin();
+        let pop_noise = rng.gen_range(-0.1..=0.1) * pop_margin;
+        let pop_low = (true_population * (1.0 - pop_margin + pop_noise)).max(0.0);
+        let pop_high = true_population * (1.0 + pop_margin + pop_noise);
+        self.estimated_population = Some((pop_low, pop_high));
+
+        // Covert military detail: only real assets reveal it — the floor
+        // does not apply here.
+        let mil_level = military_level.min(level);
+        if mil_level.has_data() {
+            let mil_margin = mil_level.error_margin();
+            let mil_noise = rng.gen_range(-0.1..=0.1) * mil_margin;
+            let mil_low =
+                ((true_military as f64) * (1.0 - mil_margin + mil_noise)).max(0.0) as u32;
+            let mil_high =
+                ((true_military as f64) * (1.0 + mil_margin + mil_noise)).max(0.0) as u32;
+            self.estimated_military = Some((mil_low, mil_high));
+        } else {
+            self.estimated_military = None;
+        }
     }
 }
 
@@ -355,6 +402,10 @@ impl Default for DiplomaticConfig {
 
 /// Computes the intel level for a foreign country based on posted diplomats,
 /// spies, trade volume, and treaty participation.
+///
+/// This is the ASSET-based level only — the regime-openness baseline floor
+/// (`baseline_intel_floor`) is applied by `process_intel_turn`, not here, so
+/// covert fields can distinguish "public floor" from "real assets".
 pub fn compute_intel_level(
     state: &GameState,
     observer: &str,
@@ -402,6 +453,38 @@ pub fn compute_intel_level(
     }
 }
 
+/// v4.22: Baseline intelligence floor derived from the TARGET's regime
+/// openness — no observer assets required.
+///
+/// Open societies (democracies and monarchies) publish headline macro
+/// indicators — GDP, census population, the public budget, and the form of
+/// government are matters of public record, so every observer gets a
+/// `BroadRange` estimate for free. Totalitarian/closed regimes
+/// (`OnePartyState`, `MilitaryDictatorship`, `Theocracy`) publish nothing
+/// reliable: they are spy-only, exactly as before.
+///
+/// Strict fog is preserved where it belongs: covert military OOB detail and
+/// secret reserves are NOT floored — `process_intel_turn` passes the raw
+/// asset level through as `military_level`, and treasury estimates for
+/// closed regimes remain `Unknown` without spies.
+pub fn baseline_intel_floor(
+    government_form: crate::politics::system::GovernmentForm,
+) -> IntelLevel {
+    use crate::politics::system::GovernmentForm;
+    if government_form.is_democratic()
+        || matches!(
+            government_form,
+            GovernmentForm::DualistMonarchy
+                | GovernmentForm::ElectiveMonarchy
+                | GovernmentForm::AbsoluteMonarchy
+        )
+    {
+        IntelLevel::BroadRange
+    } else {
+        IntelLevel::Unknown
+    }
+}
+
 /// Applies Fog of War filtering to a foreign country's true values.
 ///
 /// Returns `None` for all estimated fields if the intel level is `Unknown`.
@@ -411,6 +494,7 @@ pub fn apply_fog_of_war(
     true_gdp: f64,
     true_military: u32,
     true_treasury: f64,
+    true_population: f64,
     intel: &ForeignIntelligence,
 ) -> FogOfWarResult {
     match intel.intel_level {
@@ -418,18 +502,21 @@ pub fn apply_fog_of_war(
             gdp: None,
             military: None,
             treasury: None,
+            population: None,
             intel_level: IntelLevel::Unknown,
         },
         IntelLevel::Exact => FogOfWarResult {
             gdp: Some((true_gdp, true_gdp)),
             military: Some((true_military, true_military)),
             treasury: Some((true_treasury, true_treasury)),
+            population: Some((true_population, true_population)),
             intel_level: IntelLevel::Exact,
         },
         IntelLevel::BroadRange | IntelLevel::NarrowRange => FogOfWarResult {
             gdp: intel.estimated_gdp,
             military: intel.estimated_military,
             treasury: intel.estimated_treasury,
+            population: intel.estimated_population,
             intel_level: intel.intel_level,
         },
     }
@@ -442,9 +529,12 @@ pub struct FogOfWarResult {
     /// Estimated GDP range (low, high), or None if Unknown.
     pub gdp: Option<(f64, f64)>,
     /// Estimated military size range (low, high), or None if Unknown.
+    /// Covert OOB detail — never floored by regime openness.
     pub military: Option<(u32, u32)>,
     /// Estimated treasury range (low, high), or None if Unknown.
     pub treasury: Option<(f64, f64)>,
+    /// v4.22: Estimated population range (low, high), or None if Unknown.
+    pub population: Option<(f64, f64)>,
     /// Current intel level for this country.
     pub intel_level: IntelLevel,
 }
@@ -469,8 +559,15 @@ pub fn process_intel_turn(
     let true_gdp = target_country.budget.gdp;
     let true_military = target_country.order_of_battle.unit_count() as u32;
     let true_treasury = target_country.budget.liquid_reserves;
+    let true_population = target_country.budget.population as f64;
 
-    let level = compute_intel_level(state, observer, target, fog_config);
+    // v4.22: effective level = max(asset level, regime-openness floor).
+    // Open regimes get a free BroadRange on public macro indicators; the
+    // military estimate stays on the raw asset level so covert OOB detail
+    // still requires diplomats/spies.
+    let asset_level = compute_intel_level(state, observer, target, fog_config);
+    let floor = baseline_intel_floor(target_country.politics.government_form);
+    let level = asset_level.max(floor);
 
     // Get or create the intelligence entry
     let observer_intel = intelligence.entry(observer.to_string()).or_default();
@@ -487,7 +584,9 @@ pub fn process_intel_turn(
             true_gdp,
             true_military,
             true_treasury,
+            true_population,
             level,
+            asset_level,
             current_turn,
             &mut rng,
         );
@@ -549,6 +648,8 @@ mod tests {
             1_000_000.0,
             500,
             50_000.0,
+            2_000_000.0,
+            IntelLevel::BroadRange,
             IntelLevel::BroadRange,
             10,
             &mut rng,
@@ -571,7 +672,16 @@ mod tests {
     fn test_foreign_intelligence_update_exact() {
         let mut intel = ForeignIntelligence::unknown();
         let mut rng = crate::engine::seeded_rng::thread_rng();
-        intel.update_from_true_values(1_000_000.0, 500, 50_000.0, IntelLevel::Exact, 10, &mut rng);
+        intel.update_from_true_values(
+            1_000_000.0,
+            500,
+            50_000.0,
+            2_000_000.0,
+            IntelLevel::Exact,
+            IntelLevel::Exact,
+            10,
+            &mut rng,
+        );
 
         assert_eq!(intel.intel_level, IntelLevel::Exact);
         // Exact should have zero margin
@@ -589,6 +699,8 @@ mod tests {
             1_000_000.0,
             500,
             50_000.0,
+            2_000_000.0,
+            IntelLevel::BroadRange,
             IntelLevel::BroadRange,
             10,
             &mut rng,
@@ -599,6 +711,8 @@ mod tests {
             1_000_000.0,
             500,
             50_000.0,
+            2_000_000.0,
+            IntelLevel::Unknown,
             IntelLevel::Unknown,
             11,
             &mut rng,
@@ -609,12 +723,69 @@ mod tests {
     }
 
     #[test]
+    fn test_foreign_intelligence_floor_does_not_leak_military() {
+        // v4.22: an open-regime floor raises macro fields to BroadRange, but
+        // a military_level of Unknown must strip/keep the covert estimate.
+        let mut intel = ForeignIntelligence::unknown();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
+        intel.update_from_true_values(
+            1_000_000.0,
+            500,
+            50_000.0,
+            2_000_000.0,
+            IntelLevel::BroadRange,
+            IntelLevel::Unknown,
+            10,
+            &mut rng,
+        );
+        assert_eq!(intel.intel_level, IntelLevel::BroadRange);
+        assert!(intel.estimated_gdp.is_some());
+        assert!(intel.estimated_treasury.is_some());
+        assert!(intel.estimated_population.is_some());
+        assert!(
+            intel.estimated_military.is_none(),
+            "covert OOB detail must not leak through the regime floor"
+        );
+        assert!(intel.government_known);
+    }
+
+    #[test]
+    fn test_baseline_intel_floor_by_regime() {
+        use crate::politics::system::GovernmentForm;
+        assert_eq!(
+            baseline_intel_floor(GovernmentForm::ParliamentaryDemocracy),
+            IntelLevel::BroadRange
+        );
+        assert_eq!(
+            baseline_intel_floor(GovernmentForm::ConstitutionalMonarchy),
+            IntelLevel::BroadRange
+        );
+        assert_eq!(
+            baseline_intel_floor(GovernmentForm::AbsoluteMonarchy),
+            IntelLevel::BroadRange
+        );
+        assert_eq!(
+            baseline_intel_floor(GovernmentForm::OnePartyState),
+            IntelLevel::Unknown
+        );
+        assert_eq!(
+            baseline_intel_floor(GovernmentForm::MilitaryDictatorship),
+            IntelLevel::Unknown
+        );
+        assert_eq!(
+            baseline_intel_floor(GovernmentForm::Theocracy),
+            IntelLevel::Unknown
+        );
+    }
+
+    #[test]
     fn test_apply_fog_of_war_unknown() {
         let intel = ForeignIntelligence::unknown();
-        let result = apply_fog_of_war(1_000_000.0, 500, 50_000.0, &intel);
+        let result = apply_fog_of_war(1_000_000.0, 500, 50_000.0, 2_000_000.0, &intel);
         assert!(result.gdp.is_none());
         assert!(result.military.is_none());
         assert!(result.treasury.is_none());
+        assert!(result.population.is_none());
         assert_eq!(result.intel_level, IntelLevel::Unknown);
     }
 
@@ -622,10 +793,20 @@ mod tests {
     fn test_apply_fog_of_war_exact() {
         let mut intel = ForeignIntelligence::unknown();
         let mut rng = crate::engine::seeded_rng::thread_rng();
-        intel.update_from_true_values(1_000_000.0, 500, 50_000.0, IntelLevel::Exact, 10, &mut rng);
-        let result = apply_fog_of_war(1_000_000.0, 500, 50_000.0, &intel);
+        intel.update_from_true_values(
+            1_000_000.0,
+            500,
+            50_000.0,
+            2_000_000.0,
+            IntelLevel::Exact,
+            IntelLevel::Exact,
+            10,
+            &mut rng,
+        );
+        let result = apply_fog_of_war(1_000_000.0, 500, 50_000.0, 2_000_000.0, &intel);
         assert_eq!(result.gdp, Some((1_000_000.0, 1_000_000.0)));
         assert_eq!(result.military, Some((500, 500)));
+        assert_eq!(result.population, Some((2_000_000.0, 2_000_000.0)));
         assert_eq!(result.intel_level, IntelLevel::Exact);
     }
 

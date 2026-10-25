@@ -24,6 +24,29 @@ summary: string, };
 export type AdvisoryCouncilSnapshot = { council_type: string, members: Array<CouncilMemberRow>, aggregate_loyalty: number, coup_risk_threshold: number, coup_cooldown_until_turn: number, };
 
 /**
+ * One age cohort row of the demographic structure.
+ *
+ * The sim tracks three real cohorts — children / adults / elderly
+ * (`Demographics::age_groups`, shares updated every turn by the
+ * demographic model). Finer granularity (5-year brackets) does not exist
+ * in engine state, so the honest three-cohort structure is emitted; the
+ * frontend renders it as the population pyramid's coarse form.
+ */
+export type AgeCohortDto = { 
+/**
+ * Cohort label ("children" | "adults" | "elderly").
+ */
+label: string, 
+/**
+ * Share of total population (0.0–1.0).
+ */
+share: number, 
+/**
+ * Absolute population (share × population).
+ */
+population: number, };
+
+/**
  * Phase 60: Arbitration case row (public data).
  */
 export type ArbitrationCaseRow = { case_id: string, plaintiff_name: string, plaintiff_type: string, compensation_claimed: number, status: string, filed_turn: number, state_strength_assessment: number, };
@@ -68,7 +91,12 @@ units_by_type: Array<[string, number]>,
 /**
  * Total manpower by type.
  */
-manpower_by_type: Array<[string, bigint]>, };
+manpower_by_type: Array<[string, bigint]>, 
+/**
+ * v4.22: Per-region unit/manpower breakdown keyed by unit `location`
+ * (Country→Region grouping for the UI). Regions are country-local IDs.
+ */
+region_breakdown: Array<RegionArmyRow>, };
 
 /**
  * v4.19 WS2: Full bank detail for the expandable row panel — balance-sheet
@@ -359,6 +387,64 @@ treasury_reserves: number,
 development_level: number, };
 
 /**
+ * Per-class standard-of-living row, aggregated nationally across regions.
+ * All fields are population-weighted aggregates of the real per-region
+ * `ClassDemographics` records.
+ */
+export type ClassLivingRow = { 
+/**
+ * Class name (RuralClass/UrbanClass identifier, e.g. "FreePeasant").
+ */
+class_name: string, 
+/**
+ * Total population of this class nationwide.
+ */
+population: bigint, 
+/**
+ * Population-weighted savings per capita.
+ */
+savings_per_capita: number, 
+/**
+ * Modal economic status across regions (the status of the largest
+ * regional population share — deterministic).
+ */
+economic_status: string, 
+/**
+ * Population-weighted mental health (0.0–100.0).
+ */
+mental_health: number, 
+/**
+ * Population-weighted radical sentiment share (0.0–1.0).
+ */
+radical_share: number, 
+/**
+ * Population-weighted loyalist sentiment share (0.0–1.0).
+ */
+loyalist_share: number, 
+/**
+ * Population-weighted undecided sentiment share (0.0–1.0).
+ */
+undecided_share: number, 
+/**
+ * Largest regional religion label for this class (real per-class
+ * `religion` field; empty when unset).
+ */
+religion: string, 
+/**
+ * Largest regional culture label for this class (real per-class
+ * `culture` field; empty when unset).
+ */
+culture: string, 
+/**
+ * Total available FTE offered by this class.
+ */
+available_fte: number, 
+/**
+ * Total FTE allocated to companies this turn.
+ */
+allocated_fte: number, };
+
+/**
  * v4.21 WS1: A bill the club sponsored — live-session bills plus completed
  * bills recovered from `VoteRecord.detail` (which outlives the bill's
  * removal from `LegislativeSession::active_bills`).
@@ -612,6 +698,20 @@ export type CompanyPageResponse = { rows: Array<CompanyRow>, total_count: number
  * A row in the Company explorer list (compact form for table display).
  */
 export type CompanyRow = { id: string, name: string, sector: string, region: string, fulfilled_fte: number, average_wage: number, seasonal_state: string, wage_arrears: number, };
+
+/**
+ * Generic composition entry (ethnicity or religion share).
+ */
+export type CompositionEntryDto = { 
+/**
+ * Group name (real key from `ethnic_composition`/`religious_composition`,
+ * or the per-class `culture`/`religion` field).
+ */
+name: string, 
+/**
+ * Share (0.0–1.0).
+ */
+share: number, };
 
 /**
  * Response for the get_constitution_laws command.
@@ -874,6 +974,19 @@ gender: string,
  * Phase 92: Portrait seed for deterministic avatar generation.
  */
 portrait_seed: string, };
+
+/**
+ * One education-level row of the national education distribution.
+ */
+export type EducationLevelDto = { 
+/**
+ * Level label ("none" | "basic" | "secondary:<spec>" | "higher:<spec>").
+ */
+level: string, 
+/**
+ * Share of the adult population (0.0–1.0).
+ */
+share: number, };
 
 /**
  * Phase E.10: Education and social mobility telemetry snapshot.
@@ -1181,6 +1294,106 @@ month: number,
  * Emergency Stabilization: Current season name (Winter/Spring/Summer/Autumn).
  */
 season: string, processing: boolean, countries: Array<string>, };
+
+/**
+ * National + per-region GDP composition with a ~24-turn history.
+ */
+export type GdpCompositionDto = { 
+/**
+ * Country name.
+ */
+country: string, 
+/**
+ * National expenditure breakdown (last computed turn).
+ */
+national: GdpExpenditureBreakdown, 
+/**
+ * Shadow GDP — off-the-books wages + bribes (parallel economy,
+ * not part of official GDP).
+ */
+shadow_gdp: number, 
+/**
+ * Per-region composition rows in `country.regions` order.
+ */
+regions: Array<RegionalGdpCompositionRow>, 
+/**
+ * Composition history — newest sample last.
+ */
+history: Array<GdpCompositionHistoryPoint>, };
+
+/**
+ * One turn of GDP composition history from the
+ * `MacroData::gdp_composition_history` ring buffer (up to 25 samples ≈
+ * last 24 turns + current; empty on pre-v4.22 saves).
+ */
+export type GdpCompositionHistoryPoint = { 
+/**
+ * Global turn of the sample.
+ */
+turn: number, 
+/**
+ * Sim year of the sample.
+ */
+year: number, 
+/**
+ * Monetized household consumption.
+ */
+consumption: number, 
+/**
+ * Imputed subsistence consumption.
+ */
+imputed_consumption: number, 
+/**
+ * Government spending.
+ */
+government_spending: number, 
+/**
+ * Gross investment.
+ */
+investment: number, 
+/**
+ * Net exports.
+ */
+net_exports: number, 
+/**
+ * Official GDP.
+ */
+official_gdp: number, 
+/**
+ * Shadow GDP (parallel economy, outside official GDP).
+ */
+shadow_gdp: number, };
+
+/**
+ * Expenditure-side GDP breakdown for one accounting unit (nation or region).
+ * All values are absolute currency units — the frontend derives shares.
+ */
+export type GdpExpenditureBreakdown = { 
+/**
+ * C — monetized final household consumption (B2C retail clearing).
+ */
+consumption: number, 
+/**
+ * Imputed consumption — in-kind/subsistence flows valued at VWAP
+ * (tracked separately from `consumption` since v4.19).
+ */
+imputed_consumption: number, 
+/**
+ * G — government spending (ministry procurement + subsidies + wages).
+ */
+government_spending: number, 
+/**
+ * I — gross investment (fixed-asset purchases + construction spend).
+ */
+investment: number, 
+/**
+ * NX — net exports (exports − imports).
+ */
+net_exports: number, 
+/**
+ * Official GDP = C + imputed-C + G + I + NX.
+ */
+official_gdp: number, };
 
 /**
  * Phase 81: Generation mix entry (fraction of total supply by plant type).
@@ -1649,11 +1862,15 @@ region_id: string,
  */
 class_name: string, 
 /**
- * War morale (0.0–100.0).
+ * Class group for Country→Region UI grouping ("rural" or "urban").
+ */
+class_group: string, 
+/**
+ * War morale (0.0–100.0), EWMA-seeked toward living-condition targets.
  */
 war_morale: number, 
 /**
- * Mental health (0.0–100.0).
+ * Mental health (0.0–100.0), slower-moving counterpart of war morale.
  */
 mental_health: number, 
 /**
@@ -1661,13 +1878,20 @@ mental_health: number,
  */
 population: bigint, 
 /**
- * Whether strikes are active.
+ * Whether strikes are active — a thresholded outcome of low war morale
+ * PLUS labor organization (union affiliation, a strong Trade Unions
+ * interest group, or an active IndustrialStrike movement), never a
+ * pinned default.
  */
 strikes_active: boolean, 
 /**
  * Whether desertions are active.
  */
-desertions_active: boolean, };
+desertions_active: boolean, 
+/**
+ * Whether this class carries a formal trade-union affiliation.
+ */
+unionized: boolean, };
 
 /**
  * Phase 87+: Political movement-specific detail data.
@@ -1751,6 +1975,77 @@ funds: number | null, activity_summary: string, };
  * Phase 87+: Organizations snapshot for the consolidated OrganizationsPage.
  */
 export type OrganizationsSnapshot = { organizations: Array<OrganizationRow>, };
+
+/**
+ * Headline aggregates for the Organizations page.
+ *
+ * Union membership counts the *workers* at union-affiliated companies (the
+ * v4.19 WS5 definition — `fulfilled_fte`, not firm count). The
+ * radicalization index is the population-weighted `radicals` share of
+ * `political_sentiment` aggregated over every class demographic.
+ */
+export type OrganizationsSummaryDto = { 
+/**
+ * Country name.
+ */
+country: string, 
+/**
+ * Number of registered trade unions.
+ */
+union_count: number, 
+/**
+ * Total workers employed at union-affiliated companies.
+ */
+union_member_workers: bigint, 
+/**
+ * Total employed workforce (`labor_market.employed_total`).
+ */
+employed_total: number, 
+/**
+ * Unionization rate: `union_member_workers / employed_total` (0 when
+ * employed_total is 0).
+ */
+unionization_rate: number, 
+/**
+ * Unions currently on strike.
+ */
+active_strikes: number, 
+/**
+ * Workers at companies covered by striking unions.
+ */
+striking_workers: bigint, 
+/**
+ * Number of craft-guild companies.
+ */
+guild_count: number, 
+/**
+ * Total member workshops across all guilds.
+ */
+guild_member_workshops: number, 
+/**
+ * FTE allocated to guild workshops this turn (real labor allocation).
+ */
+guild_worker_fte: number, 
+/**
+ * Active/forming/negotiating mass movements.
+ */
+active_movements: number, 
+/**
+ * Total participants across active mass movements.
+ */
+movement_participants: bigint, 
+/**
+ * Population-weighted radical share of political sentiment (0.0–1.0).
+ */
+radicalization_index: number, 
+/**
+ * Population-weighted loyalist share (0.0–1.0).
+ */
+loyalist_share: number, 
+/**
+ * Population-weighted undecided share (0.0–1.0).
+ */
+undecided_share: number, };
 
 /**
  * Pagination request for a scrollable list view.
@@ -1876,6 +2171,129 @@ contracted_mw: number,
 remaining_turns: number, };
 
 /**
+ * One newspaper article — a deterministic rendering of a real event.
+ */
+export type PressArticleDto = { 
+/**
+ * Stable article id: `{paper_id}:{event_ref}`.
+ */
+id: string, 
+/**
+ * Owning paper (`gazette` | `socialist` | `conservative` | `liberal`).
+ */
+paper_id: string, 
+/**
+ * Headline (slant-phrased; facts identical across papers).
+ */
+headline: string, 
+/**
+ * Article body (real numbers/names + one slant-flavored line).
+ */
+body: string, 
+/**
+ * Event category: "floor_vote" | "veto_override" | "budget_bill" |
+ * "council_resolution" | "royal_birth" | "royal_marriage" | "strike" |
+ * "mass_movement" | "treaty" | "war" | "economy" | "election_scheduled".
+ */
+event_kind: string, 
+/**
+ * Deterministic event reference for frontend linking/dedup
+ * (e.g. "floor_vote:BILL-12:187", "royal_birth:VIP-91").
+ */
+event_ref: string, 
+/**
+ * Global turn the underlying event happened (or its live state).
+ */
+turn: number, };
+
+/**
+ * Real media-freedom context from `politics.media_state` / `free_speech_law`.
+ */
+export type PressMediaContext = { 
+/**
+ * State media share of information production (0.0–1.0), when tracked.
+ */
+state_media_share: number | null, 
+/**
+ * Whether a propaganda campaign is currently active.
+ */
+propaganda_active: boolean, 
+/**
+ * Last turn's information consumption ratio (0.0–1.0), when tracked.
+ */
+information_consumption_ratio: number | null, 
+/**
+ * `free_speech_law.free_speech_level` ("full" | "restricted" |
+ * "suppressed" | "totalitarian"; "full" when no law is set).
+ */
+free_speech_level: string, 
+/**
+ * `free_speech_law.press_freedom` ("independent" | "mixed" |
+ * "state_controlled"; "independent" when no law is set).
+ */
+press_freedom: string, 
+/**
+ * `free_speech_law.assembly_rights` ("free" | "restricted" | "banned";
+ * "free" when no law is set).
+ */
+assembly_rights: string, };
+
+/**
+ * A newspaper front page: the paper's editorial selection of real events.
+ */
+export type PressPaperDto = { 
+/**
+ * Paper id (`gazette` | `socialist` | `conservative` | `liberal`).
+ */
+paper_id: string, 
+/**
+ * Display name (deterministic per country).
+ */
+name: string, 
+/**
+ * Ideological slant ("official" | "socialist" | "conservative" | "liberal").
+ */
+ideological_slant: string, 
+/**
+ * Legality under the country's real `FreeSpeechLaw`/`PressFreedom`:
+ * "legal" | "restricted" | "underground".
+ */
+status: string, 
+/**
+ * Articles, most editorially relevant first.
+ */
+articles: Array<PressArticleDto>, };
+
+/**
+ * Per-country press snapshot: four deterministic front pages + media context.
+ */
+export type PressSnapshotDto = { 
+/**
+ * Country name.
+ */
+country: string, 
+/**
+ * Global turn the snapshot was generated at.
+ */
+current_turn: number, 
+/**
+ * Sim year.
+ */
+year: number, 
+/**
+ * Real media-freedom context.
+ */
+media: PressMediaContext, 
+/**
+ * Front pages (one per ideological paper).
+ */
+papers: Array<PressPaperDto>, 
+/**
+ * Total articles emitted across all papers.
+ */
+total_articles: number, };
+
+/**
  * v4.18: One provision inside a bill detail — typed effect data.
  */
 export type ProvisionRow = { 
@@ -1953,6 +2371,27 @@ total_incinerated: number,
  * Ash generated this turn (tons) — CRITICAL FIX 2.
  */
 ash_generated: number, };
+
+/**
+ * Per-region slice of a country's order of battle.
+ */
+export type RegionArmyRow = { 
+/**
+ * Country name (grouping key).
+ */
+country: string, 
+/**
+ * Region ID where the units are currently located.
+ */
+region_id: string, 
+/**
+ * Number of units located in this region.
+ */
+unit_count: number, 
+/**
+ * Total manpower located in this region.
+ */
+manpower: bigint, };
 
 /**
  * Full region drill-down data for the Regions tab modal.
@@ -2104,6 +2543,64 @@ export type RegionRow = { id: string, display_name: string, megaregion: string,
 megaregion_id: string, population: bigint, regional_gdp: number, gdp_per_capita: number, has_governance: boolean, liquid_reserves: number, };
 
 /**
+ * Per-region expenditure composition for the Region Overview.
+ *
+ * The `*_leg` fields are the real per-region expenditure legs accumulated
+ * by `GdpAccumulator::regional` during the last turn. `reconciled_gdp` is
+ * `Region::gdp` after `reconcile_regional_gdp` distributed the national
+ * residual (modeled trade balance + unattributed legs) — it need not equal
+ * the leg sum; `residual` carries the difference so the account reconciles
+ * visibly.
+ */
+export type RegionalGdpCompositionRow = { 
+/**
+ * Region id (`Region::id`).
+ */
+region_id: string, 
+/**
+ * Display name (`Region::display_name`, falls back to id upstream).
+ */
+region_name: string, 
+/**
+ * Region population.
+ */
+population: bigint, 
+/**
+ * C leg — B2C retail revenue attributed to this region's households.
+ */
+consumption: number, 
+/**
+ * Imputed subsistence consumption leg.
+ */
+imputed_consumption: number, 
+/**
+ * G leg — ministry spending attributed to this region.
+ */
+government_spending: number, 
+/**
+ * I leg — construction/fixed-asset spend attributed to this region.
+ */
+investment: number, 
+/**
+ * NX leg — physically settled foreign-sweep legs attributed here.
+ */
+net_exports: number, 
+/**
+ * Sum of the attributed legs (C + imputed-C + G + I + NX).
+ */
+attributed_gdp: number, 
+/**
+ * Final `Region::gdp` after national-residual reconciliation
+ * (`Σ regions.gdp == national GDP` by construction).
+ */
+reconciled_gdp: number, 
+/**
+ * `reconciled_gdp − attributed_gdp` — the residual placed on this
+ * region (∝ measured gross cross-border engagement, or capital seat).
+ */
+residual: number, };
+
+/**
  * Phase 54: A role option for the VIPs tab role filter dropdown.
  */
 export type RoleOption = { value: string, label: string, };
@@ -2228,6 +2725,104 @@ industrial_emissions: number,
  * Smog mortality multiplier (1.0 = normal, 1.5 = 50% increase).
  */
 mortality_multiplier: number, };
+
+/**
+ * Per-country demographic snapshot — all fields sourced from real state.
+ */
+export type SocietySnapshotDto = { 
+/**
+ * Country name.
+ */
+country: string, 
+/**
+ * Total population (`budget.population`).
+ */
+population: bigint, 
+/**
+ * Age structure — the real children/adults/elderly cohorts.
+ */
+age_cohorts: Array<AgeCohortDto>, 
+/**
+ * Male share of population (0.0–1.0).
+ */
+male_share: number, 
+/**
+ * Female share of population (0.0–1.0).
+ */
+female_share: number, 
+/**
+ * Mean age (`demographics.average_age`).
+ */
+average_age: number, 
+/**
+ * Median age (`demographics.median_age`).
+ */
+median_age: number, 
+/**
+ * Education distribution (none/basic + specialization rows).
+ */
+education: Array<EducationLevelDto>, 
+/**
+ * Ethnic composition (`demographics.ethnic_composition` shares).
+ */
+ethnicities: Array<CompositionEntryDto>, 
+/**
+ * Religious composition (`demographics.religious_composition` shares).
+ */
+religions: Array<CompositionEntryDto>, 
+/**
+ * Annual birth rate percent (`demographics.birth_rate`).
+ */
+birth_rate: number, 
+/**
+ * Annual mortality rate percent (`demographics.death_rate`).
+ */
+death_rate: number, 
+/**
+ * Net migration rate (fraction of population per year).
+ */
+net_migration_rate: number, 
+/**
+ * Births in the last turn.
+ */
+last_births: number, 
+/**
+ * Deaths in the last turn (natural + workplace).
+ */
+last_deaths: number, 
+/**
+ * Net migration in the last turn.
+ */
+last_migration: number, 
+/**
+ * Life expectancy (`health_statistics.average_lifespan`, computed each
+ * turn from health infrastructure/quality).
+ */
+life_expectancy: number, 
+/**
+ * Literacy rate (`education_statistics.literacy_rate`).
+ */
+literacy_rate: number, 
+/**
+ * Higher-education rate (`education_statistics.higher_education_rate`).
+ */
+higher_education_rate: number, 
+/**
+ * Urban population share (`demographics.city_urban`).
+ */
+urban_share: number, 
+/**
+ * Rural population share (`demographics.rural`).
+ */
+rural_share: number, 
+/**
+ * Nomadic population share (`demographics.nomads`).
+ */
+nomad_share: number, 
+/**
+ * Per-class standard-of-living rows (rural + urban classes).
+ */
+classes: Array<ClassLivingRow>, };
 
 /**
  * Phase 81 Wave 2: Spot market clearing info for a region.
@@ -2418,6 +3013,67 @@ transmission_loss_fraction: number, };
  * Phase 56: Recent trade row for the stock exchange UI.
  */
 export type TradeRow = { instrument_id: string, buyer_id: string, seller_id: string, quantity: bigint, price: number, turn: number, };
+
+/**
+ * Per-commodity market/trade value shares grouped by VAT category.
+ */
+export type TradeTreemapDto = { 
+/**
+ * Sum of all entry values.
+ */
+total_value: number, 
+/**
+ * Entries sorted by value descending (ties broken by commodity name —
+ * deterministic). Only commodities with nonzero order flow appear.
+ */
+entries: Array<TradeTreemapEntry>, };
+
+/**
+ * One commodity's market-value share for the trade treemap.
+ *
+ * `value` is a cleared-volume bound — `min(supply_volume, demand_volume)`
+ * (the most goods that could cross the book this turn) priced at the last
+ * settled VWAP. Exact settled quantities are not persisted on state, so
+ * the bound and its inputs are emitted explicitly rather than estimated
+ * silently.
+ */
+export type TradeTreemapEntry = { 
+/**
+ * Commodity display name (serde key, e.g. "Steel").
+ */
+commodity: string, 
+/**
+ * VAT-category grouping: "agriculture" | "industry" | "services".
+ */
+category: string, 
+/**
+ * Cleared-volume bound: `min(supply_volume, demand_volume)` in units.
+ */
+cleared_volume: number, 
+/**
+ * Reference price — VWAP → last trade → global base fallback chain.
+ */
+reference_price: number, 
+/**
+ * Market value: `cleared_volume × reference_price`.
+ */
+value: number, 
+/**
+ * Share of total treemap value (0.0–1.0).
+ */
+share: number, 
+/**
+ * Total sell-order volume this turn (B2B supply side).
+ */
+supply_volume: number, 
+/**
+ * Total buy-order volume this turn (B2C + B2B demand side).
+ */
+demand_volume: number, 
+/**
+ * Net trade (imports − exports, physical units; positive = importer).
+ */
+net_trade: number, };
 
 /**
  * Treasury fields for the Finance tab.

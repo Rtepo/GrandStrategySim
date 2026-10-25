@@ -1722,6 +1722,7 @@ pub fn build_foreign_country_rows(
             country.budget.gdp,
             country.order_of_battle.unit_count() as u32,
             country.budget.liquid_reserves,
+            country.budget.population as f64,
             &intel,
         );
 
@@ -7045,6 +7046,23 @@ pub struct ArmyCompositionRow {
     pub units_by_type: Vec<(String, usize)>,
     /// Total manpower by type.
     pub manpower_by_type: Vec<(String, i64)>,
+    /// v4.22: Per-region unit/manpower breakdown keyed by unit `location`
+    /// (Country→Region grouping for the UI). Regions are country-local IDs.
+    pub region_breakdown: Vec<RegionArmyRow>,
+}
+
+/// Per-region slice of a country's order of battle.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct RegionArmyRow {
+    /// Country name (grouping key).
+    pub country: String,
+    /// Region ID where the units are currently located.
+    pub region_id: String,
+    /// Number of units located in this region.
+    pub unit_count: usize,
+    /// Total manpower located in this region.
+    pub manpower: i64,
 }
 
 /// War morale for a single country's demographic class.
@@ -7057,16 +7075,23 @@ pub struct MoraleRow {
     pub region_id: String,
     /// Class name (e.g., "FreePeasant").
     pub class_name: String,
-    /// War morale (0.0–100.0).
+    /// Class group for Country→Region UI grouping ("rural" or "urban").
+    pub class_group: String,
+    /// War morale (0.0–100.0), EWMA-seeked toward living-condition targets.
     pub war_morale: f64,
-    /// Mental health (0.0–100.0).
+    /// Mental health (0.0–100.0), slower-moving counterpart of war morale.
     pub mental_health: f64,
     /// Population.
     pub population: i64,
-    /// Whether strikes are active.
+    /// Whether strikes are active — a thresholded outcome of low war morale
+    /// PLUS labor organization (union affiliation, a strong Trade Unions
+    /// interest group, or an active IndustrialStrike movement), never a
+    /// pinned default.
     pub strikes_active: bool,
     /// Whether desertions are active.
     pub desertions_active: bool,
+    /// Whether this class carries a formal trade-union affiliation.
+    pub unionized: bool,
 }
 
 /// A single disaster event for the Peacetime Disasters panel.
@@ -7196,6 +7221,25 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             *manpower_by_type.entry(type_name).or_insert(0) += unit.manpower;
         }
 
+        // v4.22: Region breakdown for Country→Region grouping — units are
+        // bucketed by their live `location` field (real OOB state).
+        let mut region_units: std::collections::BTreeMap<String, (usize, i64)> =
+            std::collections::BTreeMap::new();
+        for unit in oob.flatten() {
+            let entry = region_units.entry(unit.location.clone()).or_default();
+            entry.0 += 1;
+            entry.1 += unit.manpower;
+        }
+        let region_breakdown: Vec<RegionArmyRow> = region_units
+            .into_iter()
+            .map(|(region_id, (count, manpower))| RegionArmyRow {
+                country: country_name.clone(),
+                region_id,
+                unit_count: count,
+                manpower,
+            })
+            .collect();
+
         army_compositions.push(ArmyCompositionRow {
             country: country_name.clone(),
             total_manpower,
@@ -7205,21 +7249,72 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             unit_count,
             units_by_type: units_by_type.into_iter().collect(),
             manpower_by_type: manpower_by_type.into_iter().collect(),
+            region_breakdown,
         });
 
-        // War morale per class — regions is a Vec<Region>
+        // War morale per class — regions is a Vec<Region>.
+        //
+        // v4.22: `strikes_active` is a thresholded OUTCOME — low war morale
+        // AND labor organization — not a bare morale threshold (the old code
+        // flagged every class below 30, which combined with the pinned
+        // baseline made all 848 rows read "STRIKES"). Organization is read
+        // from real state: the class's own `union_affiliation`, the national
+        // "Trade Unions" interest-group weight, or an active/forming
+        // IndustrialStrike movement targeting that class in that region.
+        let strike_threshold = country.morale_config.strike_threshold;
+        let desertion_threshold = country.morale_config.desertion_threshold;
+        let national_union_weight = country
+            .politics
+            .interest_groups
+            .get("Trade Unions")
+            .map(|g| g.total_political_weight)
+            .unwrap_or(0.0);
         for region in &country.regions {
-            for (class_name, demo) in &region.class_demographics.rural_classes {
+            let region_movements: Vec<&crate::politics::mass_movements::MassMovement> = country
+                .politics
+                .mass_movements
+                .iter()
+                .filter(|m| {
+                    m.region_id == region.id
+                        && matches!(
+                            m.movement_type,
+                            crate::politics::mass_movements::MassMovementType::IndustrialStrike
+                        )
+                        && matches!(
+                            m.status,
+                            crate::politics::mass_movements::MassMovementStatus::Active
+                                | crate::politics::mass_movements::MassMovementStatus::Forming
+                                | crate::politics::mass_movements::MassMovementStatus::Negotiating
+                        )
+                })
+                .collect();
+            let mut push_morale_row = |class_name: String,
+                                       class_group: &str,
+                                       demo: &crate::society::geography::ClassDemographics| {
+                let class_strike_movement = region_movements
+                    .iter()
+                    .any(|m| m.initiating_class == class_name);
+                let unionized = demo.union_affiliation.is_some();
+                let labor_organized = unionized || national_union_weight >= 5.0;
                 war_morale.push(MoraleRow {
                     country: country_name.clone(),
                     region_id: region.id.clone(),
-                    class_name: class_name.to_string(),
+                    class_name,
+                    class_group: class_group.to_string(),
                     war_morale: demo.war_morale,
                     mental_health: demo.mental_health,
                     population: demo.population,
-                    strikes_active: demo.war_morale < 30.0,
-                    desertions_active: demo.war_morale < 15.0,
+                    strikes_active: class_strike_movement
+                        || (demo.war_morale < strike_threshold && labor_organized),
+                    desertions_active: demo.war_morale < desertion_threshold,
+                    unionized,
                 });
+            };
+            for (class_name, demo) in &region.class_demographics.rural_classes {
+                push_morale_row(class_name.to_string(), "rural", demo);
+            }
+            for (class_name, demo) in &region.class_demographics.urban_classes {
+                push_morale_row(class_name.to_string(), "urban", demo);
             }
         }
 

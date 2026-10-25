@@ -13313,6 +13313,10 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
             true_gdp,
             true_military,
             true_treasury,
+            target_country.budget.population as f64,
+            *new_level,
+            // v4.22: spy-derived intel is asset-based — the same level
+            // legitimately covers covert military detail.
             *new_level,
             state.calendar.global_turn,
             &mut rng,

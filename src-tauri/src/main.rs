@@ -95,6 +95,12 @@ fn main() {
             commands::phase85_queries::get_municipal_ai_snapshot,
             commands::phase85_queries::get_organizations_snapshot,
             commands::phase85_queries::get_organization_detail,
+            // v4.22: Society / Press / GDP composition / trade treemap
+            commands::society_queries::get_gdp_composition,
+            commands::society_queries::get_trade_treemap,
+            commands::society_queries::get_organizations_summary,
+            commands::society_queries::get_society_snapshot,
+            commands::society_queries::get_press_snapshot,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
