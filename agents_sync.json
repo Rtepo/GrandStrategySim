@@ -1,22 +1,19 @@
 {
   "version": 2,
-  "last_updated": "2026-10-25T23:25:35.281Z",
+  "last_updated": "2026-10-25T23:25:54.816Z",
   "last_green_commit": "19e8a1d983f3804215fe77bd8f8a506aa4320a11",
   "last_green_commit_at": "2026-10-25T23:25:35.280Z",
   "agents": [
     {
       "agent_id": "agent-1",
-      "session_id": "manager-dispatch-b2b-bid-fix",
+      "session_id": null,
       "branch": "fix/m0-leaks-phase94",
-      "locked_dirs": [
-        "economy/trade/",
-        "military/supply/"
-      ],
+      "locked_dirs": [],
       "shared_files": [
         "engine/turn.rs"
       ],
       "task": "Phase 94 M0 fiat leak diagnostics",
-      "status": "active",
+      "status": "force-unlocked",
       "role": "worker",
       "registered_at": null,
       "last_heartbeat": null
