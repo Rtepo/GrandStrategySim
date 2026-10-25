@@ -22,6 +22,22 @@ pub const VWAP_HISTORY_WINDOW: usize = 24;
 /// horizon rather than chasing single-turn VWAP noise.
 pub const RETAIL_VWAP_SMOOTHING: f64 = 0.35;
 
+/// v4.21: EWMA step for `vwap_per_commodity` — the B2B reference chain.
+/// The reference price feeds BOTH sides of the book next turn (ask cap =
+/// ref×(1+buy_premium), bid cap = ref×(1+max_markup)) and the unit-cost
+/// floor that anchors asks via `calculate_unit_cost` mark-to-market input
+/// valuation. A full-replacement update closed a geometric ratchet: every
+/// agent priced at ref+margin, execs settled above ref, and the reference
+/// absorbed the entire jump — observed drift ~5000× in 120 turns while
+/// retail/wage levels drifted ~10-50×, which is the differential that
+/// inflates nominal investment (qty×blown price) against consumption.
+/// The EWMA bounds per-turn drift by the step size (a 3× exec print moves
+/// ref +50%, not +200%) while preserving real scarcity repricing — the
+/// same damping pattern `retail_vwap_smoothed` applies to the B2C side.
+/// `last_trade_price` still records the raw print (it means "last seen",
+/// not "reference").
+pub const B2B_VWAP_SMOOTHING: f64 = 0.25;
+
 /// Historical price data for fallback reference.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct MarketHistory {
@@ -60,6 +76,15 @@ pub struct MarketHistory {
     /// while domestic wages inflate.
     #[serde(default)]
     pub numeraire_wage: f64,
+    /// v4.21: last-turn B2C retail VWAP keyed by `(region_id, commodity)`.
+    /// Regional shelves clear at materially different prices (measured
+    /// 1.3–3× spread across a country's regions), so the global VWAP in
+    /// `retail_vwap_per_commodity` systematically misprices each region's
+    /// household budget — cheap regions demanded too few units and spent
+    /// only ~40% of capacity. The demand-capacity valuation reads the
+    /// region's own shelf prices through this map.
+    #[serde(default)]
+    pub regional_retail_vwap: std::collections::BTreeMap<(String, Commodity), f64>,
 }
 
 /// Get reference price using fallback chain.
@@ -112,9 +137,15 @@ pub fn update_vwap(history: &mut MarketHistory, trades: &[Trade]) {
     for (commodity, volume) in volume_per_commodity {
         if volume > 0.0 {
             let value = value_per_commodity.get(&commodity).unwrap();
-            let vwap = value / volume;
-            history.vwap_per_commodity.insert(commodity, vwap);
-            history.last_trade_price.insert(commodity, vwap);
+            let observed = value / volume;
+            let prev = history
+                .vwap_per_commodity
+                .get(&commodity)
+                .copied()
+                .unwrap_or(observed);
+            let smoothed = prev + (observed - prev) * B2B_VWAP_SMOOTHING;
+            history.vwap_per_commodity.insert(commodity, smoothed);
+            history.last_trade_price.insert(commodity, observed);
         }
     }
 

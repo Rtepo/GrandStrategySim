@@ -172,6 +172,10 @@ pub fn ensure_municipal_services_employers(
                     continue;
                 }
                 b.owner_id = employer_id.clone();
+                // Keep the denormalized cluster mirror in sync (genesis
+                // writes both fields; the owner→buildings index and UI
+                // attribution read them interchangeably).
+                b.cluster_info.owner_id = employer_id.clone();
                 // Seat formula mirrors the Phase-25 employment sync:
                 // per-plant seats = worker_capacity × scale_factor.
                 capacity = capacity
@@ -616,5 +620,125 @@ mod tests {
         assert_eq!(waste.target_fte_demand, 40);
         assert!(waste.offered_wage_per_fte >= 1.0, "wage floor holds");
         assert_eq!(waste.available_cash, 0.0);
+    }
+
+    /// v4.21 WS3 horizon verification (`--ignored`; ~1-2 min): runs a real
+    /// generated world for 60 turns end-to-end and prints municipal-sector
+    /// staffing per region. Asserts the sectors are genuinely staffed —
+    /// i.e. `current_employment` on adopted buildings is non-zero after the
+    /// full pipeline (employer → demand → clearing → fulfilled → building
+    /// sync), not merely that demand was posted. The 1,000-FTE target scales
+    /// with region count; a 1-country generated world has ~5,200
+    /// PublicServices seats and ~50 landfill seats per region.
+    #[test]
+    #[ignore]
+    fn test_municipal_sectors_staffed_at_horizon() {
+        use crate::engine::diagnostic::NoopProbe;
+        use crate::engine::turn::run_turn_inner;
+        use crate::engine::turn_context::InMemoryTurnContext;
+        use crate::engine::{generate_world, GenerateOptions, GeneratedWorld, StartYear};
+        use crate::registries::Registries;
+
+        let tmp = tempfile::TempDir::new().expect("temp dir");
+        let registries = Registries::native_only();
+        let GeneratedWorld { mut state, .. } = generate_world(
+            tmp.path(),
+            GenerateOptions {
+                country_count: 1,
+                start_year: StartYear::Y1900,
+                seed: Some(42),
+            },
+            &registries,
+        )
+        .expect("world generation failed");
+        let mut ctx = InMemoryTurnContext::load_from_disk(tmp.path(), &mut state)
+            .expect("turn context");
+        let mut probe = NoopProbe;
+
+        let dump_owners = |ctx: &InMemoryTurnContext, label: &str| {
+            for (name, entities) in ctx.entities.iter() {
+                let mut hist: std::collections::BTreeMap<String, u64> =
+                    std::collections::BTreeMap::new();
+                for b in entities
+                    .buildings
+                    .iter()
+                    .filter(|b| b.sector == Sector::PublicServices)
+                {
+                    let tag = if b.owner_id.starts_with("MUN-") {
+                        "MUN-*".to_string()
+                    } else {
+                        b.owner_id.clone()
+                    };
+                    *hist.entry(tag).or_default() +=
+                        b.worker_capacity as u64 * b.scale_factor.max(1) as u64;
+                }
+                eprintln!("MUN-OWNERS {label} {name} PublicServices: {hist:?}");
+            }
+        };
+        dump_owners(&ctx, "genesis");
+
+        const HORIZON: u32 = 60;
+        for tick in 0..HORIZON {
+            run_turn_inner(&mut state, &registries, &mut ctx, &mut probe)
+                .unwrap_or_else(|e| panic!("tick {tick} failed: {e:?}"));
+            if tick == 0 || tick == 4 || tick == 19 {
+                dump_owners(&ctx, &format!("t={}", tick + 1));
+            }
+        }
+
+        for (name, entities) in ctx.entities.iter() {
+            for sector in [Sector::WasteManagement, Sector::PublicServices] {
+                let seat_cap: u64 = entities
+                    .buildings
+                    .iter()
+                    .filter(|b| b.sector == sector)
+                    .map(|b| b.worker_capacity as u64 * b.scale_factor.max(1) as u64)
+                    .sum();
+                let employed: u64 = entities
+                    .buildings
+                    .iter()
+                    .filter(|b| b.sector == sector)
+                    .map(|b| b.current_employment as u64)
+                    .sum();
+                let mut mun: Vec<(String, u32, u32)> = entities
+                    .companies
+                    .iter()
+                    .filter(|c| c.sector == sector && c.id.starts_with("MUN-"))
+                    .map(|c| (c.id.clone(), c.target_fte_demand, c.fulfilled_fte))
+                    .collect();
+                mun.sort_by(|a, b| a.0.cmp(&b.0));
+                // Owner histogram — is anything OTHER than MUN-*/State
+                // holding municipal-sector buildings?
+                let mut owner_hist: std::collections::BTreeMap<String, u64> =
+                    std::collections::BTreeMap::new();
+                for b in entities.buildings.iter().filter(|b| b.sector == sector) {
+                    let tag = if b.owner_id.starts_with("MUN-") {
+                        "MUN-*".to_string()
+                    } else {
+                        b.owner_id.clone()
+                    };
+                    *owner_hist.entry(tag).or_default() +=
+                        b.worker_capacity as u64 * b.scale_factor.max(1) as u64;
+                }
+                eprintln!(
+                    "MUN-SECTOR {name} {sector:?}: seats={seat_cap} employed={employed} owners={owner_hist:?} employers={mun:?}"
+                );
+                assert!(
+                    seat_cap == 0 || employed > 0,
+                    "{name}/{sector:?}: {seat_cap} seats exist but employment is 0"
+                );
+                // Every municipal employer that owns seats must actually
+                // convert its demand into hires — a 0-fulfilled employer
+                // with seats is the original dead-sector bug resurfacing.
+                for (id, target, fulfilled) in &mun {
+                    if *target > 0 {
+                        assert!(
+                            *fulfilled > 0,
+                            "{name}/{sector:?}: {id} posts {target} demand but hired 0"
+                        );
+                    }
+                }
+            }
+        }
     }
 }

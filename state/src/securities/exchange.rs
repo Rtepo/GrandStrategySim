@@ -81,6 +81,20 @@ pub struct StockExchange {
     #[serde(default)]
     pub prev_close_by_company: BTreeMap<String, f64>,
 
+    /// v4.21 WS4: Shares matched per instrument in `last_trade_turn`,
+    /// written at match time in `match_securities_orders`. The UI queries
+    /// AFTER `calendar.global_turn` has already advanced past the trading
+    /// turn (trades stamp turn N, queries ask about N+1), so
+    /// `get_turn_volume` consults this counter instead of re-scanning
+    /// history for a turn number that no trade carries.
+    #[serde(default)]
+    pub turn_volume_by_instrument: BTreeMap<String, u64>,
+    /// Turn the `turn_volume_by_instrument` counters belong to — the most
+    /// recent turn on which any trade matched. `BTreeMap` keeps the
+    /// iteration order deterministic.
+    #[serde(default)]
+    pub last_trade_turn: u32,
+
     /// Any additional exchange fields.
     #[serde(flatten, default)]
     pub extra: HashMap<String, Value>,
@@ -939,10 +953,32 @@ impl StockExchange {
     }
 
     /// Phase 56: Get total volume for an instrument this turn.
+    ///
+    /// v4.21 WS4: UI queries run after `calendar.global_turn` has advanced
+    /// past the trading turn — trades stamp turn N, the query asks about
+    /// N+1 and an exact-turn history scan always returned 0. A request for
+    /// any turn at/after the last recorded trading turn therefore resolves
+    /// to that turn's counters (written at match time, O(1)); older turns
+    /// and freshly loaded saves fall back to the history scan.
     pub fn get_turn_volume(&self, instrument_id: &str, current_turn: u32) -> u64 {
+        let last = self
+            .last_trade_turn
+            .max(self.trade_history.back().map(|t| t.turn).unwrap_or(0));
+        let effective_turn = if last > 0 && current_turn >= last {
+            last
+        } else {
+            current_turn
+        };
+        if effective_turn == self.last_trade_turn && self.last_trade_turn > 0 {
+            return self
+                .turn_volume_by_instrument
+                .get(instrument_id)
+                .copied()
+                .unwrap_or(0);
+        }
         self.trade_history
             .iter()
-            .filter(|t| t.instrument_id == instrument_id && t.turn == current_turn)
+            .filter(|t| t.instrument_id == instrument_id && t.turn == effective_turn)
             .map(|t| t.quantity)
             .sum()
     }
@@ -993,10 +1029,12 @@ impl StockExchange {
             let instrument_id = format!("EQUITY:{}", company.id);
 
             // Set open/close prices from trade history.
-            if let Some(open) = self.get_open_price(&instrument_id, current_turn) {
+            let turn_open = self.get_open_price(&instrument_id, current_turn);
+            let turn_close = self.get_close_price(&instrument_id, current_turn);
+            if let Some(open) = turn_open {
                 company.open_price = open;
             }
-            if let Some(close) = self.get_close_price(&instrument_id, current_turn) {
+            if let Some(close) = turn_close {
                 company.close_price = close;
             }
 
@@ -1019,6 +1057,17 @@ impl StockExchange {
             // Ensure non-negative price.
             if company.share_price < 0.01 {
                 company.share_price = 0.01;
+            }
+
+            // v4.21 WS4: no trades printed this turn → rebase the open/close
+            // pair onto the turn-start mark (prev_mark) and the end-of-turn
+            // mark. The query-side `change_pct = (close - open) / open` then
+            // reports the REAL per-turn move (mean-reversion drift) instead
+            // of re-emitting the last trading turn's stale prints forever
+            // alongside a zero volume figure.
+            if turn_open.is_none() && prev_mark > 0.0 {
+                company.open_price = prev_mark;
+                company.close_price = company.share_price;
             }
 
             // Per-stock price history for tests/volatility: every listed
@@ -1152,13 +1201,17 @@ impl StockExchange {
                         if qty == 0 {
                             continue;
                         }
-                        if let Some(acct) = class.brokerage_account.as_mut() {
-                            let gross = per_share_gross * qty as f64;
-                            let wh = gross * FLOAT_DIVIDEND_WITHHOLDING;
-                            acct.cash += gross - wh;
-                            paid += gross;
-                            withholding_total += wh;
-                        }
+                        // v4.21 WS2: household dividend income lands in
+                        // `savings` — the pocket `smoothed_income`/retail
+                        // demand read — matching the retail sell-proceeds
+                        // convention (exchange settlement credits savings).
+                        // Brokerage `cash` is a dead pocket for classes and
+                        // trapped the property-income leg of GDP.
+                        let gross = per_share_gross * qty as f64;
+                        let wh = gross * FLOAT_DIVIDEND_WITHHOLDING;
+                        class.savings += gross - wh;
+                        paid += gross;
+                        withholding_total += wh;
                     }
                     for class in region.class_demographics.urban_classes.values_mut() {
                         let qty = class
@@ -1169,13 +1222,11 @@ impl StockExchange {
                         if qty == 0 {
                             continue;
                         }
-                        if let Some(acct) = class.brokerage_account.as_mut() {
-                            let gross = per_share_gross * qty as f64;
-                            let wh = gross * FLOAT_DIVIDEND_WITHHOLDING;
-                            acct.cash += gross - wh;
-                            paid += gross;
-                            withholding_total += wh;
-                        }
+                        let gross = per_share_gross * qty as f64;
+                        let wh = gross * FLOAT_DIVIDEND_WITHHOLDING;
+                        class.savings += gross - wh;
+                        paid += gross;
+                        withholding_total += wh;
                     }
                 }
             }
@@ -1530,6 +1581,47 @@ impl StockExchange {
         // Record all trades in history
         for trade in &all_trades {
             self.trade_history.push_back(trade.clone());
+        }
+
+        // v4.21 WS4: Publish per-turn market data AT MATCH TIME so listed-
+        // company rows show real volume and price moves. Trades stamp this
+        // turn, but `calendar.global_turn` has already advanced when the
+        // UI queries — `get_turn_volume` resolves that skew via
+        // `turn_volume_by_instrument`/`last_trade_turn`, and the equity
+        // open/close written here mirror the securities_queries row path
+        // (`change_pct = (close - open) / open`). `update_share_prices`
+        // rewrites the same open/close values and the VWAP `share_price`
+        // mark later in the turn — it stays the single mark authority.
+        if !all_trades.is_empty() {
+            if self.last_trade_turn != current_turn {
+                self.turn_volume_by_instrument.clear();
+                self.last_trade_turn = current_turn;
+            }
+            // Aggregate per instrument: (qty, first print = open, last
+            // print = close). BTreeMap → deterministic write order.
+            let mut per_instrument: BTreeMap<&str, (u64, f64, f64)> =
+                BTreeMap::new();
+            for t in &all_trades {
+                let e = per_instrument
+                    .entry(t.instrument_id.as_str())
+                    .or_insert((0, t.price, t.price));
+                e.0 += t.quantity;
+                e.2 = t.price;
+            }
+            for (instrument_id, (qty, open, close)) in per_instrument {
+                *self
+                    .turn_volume_by_instrument
+                    .entry(instrument_id.to_string())
+                    .or_insert(0) += qty;
+                if let Some(company_id) = instrument_id.strip_prefix("EQUITY:") {
+                    if let Some(c) =
+                        companies.iter_mut().find(|c| c.id == company_id)
+                    {
+                        c.open_price = open;
+                        c.close_price = close;
+                    }
+                }
+            }
         }
 
         #[cfg(feature = "diagnostic")]

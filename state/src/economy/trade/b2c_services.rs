@@ -135,6 +135,7 @@ pub fn clear_education_slots_b2c(
     service_needs: &BTreeMap<String, f64>,
     building_inventories: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
     config: &ServicePricingConfig,
+    gdp_acc: &mut crate::economy::telemetry::GdpAccumulator,
 ) -> BTreeMap<String, f64> {
     let commodity = Commodity::EducationSlots;
     let txns = compute_service_transactions(
@@ -161,6 +162,7 @@ pub fn clear_education_slots_b2c(
         country,
         building_inventories,
         commodity,
+        gdp_acc,
     );
     region_consumption
 }
@@ -190,6 +192,7 @@ pub fn clear_health_capacity_b2c(
     service_needs: &BTreeMap<String, f64>,
     building_inventories: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
     config: &ServicePricingConfig,
+    gdp_acc: &mut crate::economy::telemetry::GdpAccumulator,
 ) {
     let commodity = Commodity::HealthCapacity;
     let txns = compute_service_transactions(
@@ -207,6 +210,7 @@ pub fn clear_health_capacity_b2c(
         country,
         building_inventories,
         commodity,
+        gdp_acc,
     );
 }
 
@@ -256,6 +260,7 @@ pub fn clear_local_services_b2c(
     service_needs: &BTreeMap<String, f64>,
     building_inventories: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
     config: &ServicePricingConfig,
+    gdp_acc: &mut crate::economy::telemetry::GdpAccumulator,
 ) -> BTreeMap<String, f64> {
     let commodity = Commodity::LocalServicesCommodity;
     let txns = compute_service_transactions(
@@ -281,6 +286,7 @@ pub fn clear_local_services_b2c(
         country,
         building_inventories,
         commodity,
+        gdp_acc,
     );
     region_consumption
 }
@@ -343,6 +349,7 @@ pub fn clear_sports_capacity_b2c(
     config: &ServicePricingConfig,
     weather_state: &crate::economy::weather::WeatherState,
     season: crate::state::Season,
+    gdp_acc: &mut crate::economy::telemetry::GdpAccumulator,
 ) -> BTreeMap<String, f64> {
     let commodity = Commodity::SportsCapacity;
 
@@ -401,6 +408,7 @@ pub fn clear_sports_capacity_b2c(
         country,
         building_inventories,
         commodity,
+        gdp_acc,
     );
 
     // Restore unsold inventory that was held back by seasonality.
@@ -591,6 +599,7 @@ fn apply_service_transactions(
     country: &mut Country,
     building_inventories: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
     commodity: Commodity,
+    gdp_acc: &mut crate::economy::telemetry::GdpAccumulator,
 ) {
     for txn in &txns {
         if txn.units_consumed <= 0.0 {
@@ -621,6 +630,21 @@ fn apply_service_transactions(
         let total_revenue = actual_citizen_payment + txn.government_subsidy;
         if total_revenue <= 0.0 {
             continue;
+        }
+
+        // v4.21: book the settled legs into the GDP identity. Household
+        // payments for services are final consumption (C); the state subsidy
+        // leg is government individual consumption (G). Both legs are real
+        // debits performed above — nothing here moves money.
+        if actual_citizen_payment > 0.0 {
+            gdp_acc.add_consumption(&txn.region_id, actual_citizen_payment);
+        }
+        if txn.government_subsidy > 0.0 {
+            gdp_acc.add_government_spending_tagged_regional(
+                "b2c_service_subsidy",
+                &txn.region_id,
+                txn.government_subsidy,
+            );
         }
 
         // 12-turn mandate: revenue recognition for service sales. The B2C
@@ -751,6 +775,7 @@ pub fn clear_passenger_transport_b2c(
     country: &mut Country,
     service_needs: &BTreeMap<String, f64>,
     config: &ServicePricingConfig,
+    gdp_acc: &mut crate::economy::telemetry::GdpAccumulator,
 ) -> BTreeMap<String, f64> {
     #[cfg(feature = "diagnostic")]
     let mut _diag_public_revenue: f64 = 0.0;
@@ -855,6 +880,19 @@ pub fn clear_passenger_transport_b2c(
                 // Credit the public building's reserve (only actual amounts).
                 let total_credit = actual_subsidy + actual_citizen_payment;
                 building.reserve += total_credit;
+                // v4.21: book the settled legs into the GDP identity —
+                // the citizen leg is household consumption, the subsidy
+                // leg is government individual consumption.
+                if actual_citizen_payment > 0.0 {
+                    gdp_acc.add_consumption(region_id, actual_citizen_payment);
+                }
+                if actual_subsidy > 0.0 {
+                    gdp_acc.add_government_spending_tagged_regional(
+                        "b2c_transport_subsidy",
+                        region_id,
+                        actual_subsidy,
+                    );
+                }
                 #[cfg(feature = "diagnostic")]
                 {
                     _diag_public_revenue += total_credit;
@@ -866,6 +904,11 @@ pub fn clear_passenger_transport_b2c(
                 let mut actual_revenue = 0.0;
                 if let Some(region) = country.regions.iter_mut().find(|r| r.id == *region_id) {
                     actual_revenue = debit_citizen_savings_region(region, revenue);
+                }
+                // v4.21: household spend on private transport is final
+                // consumption — book the actual debited amount into C.
+                if actual_revenue > 0.0 {
+                    gdp_acc.add_consumption(region_id, actual_revenue);
                 }
                 // Credit the private operator company (only actual debited amount).
                 let _credit_ok = if actual_revenue > 0.0 {
@@ -954,6 +997,7 @@ mod tests {
             &service_needs,
             &mut building_inventories,
             &ServicePricingConfig::default(),
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // Phase C.2: Dynamic price = (1000*0.05 + 1000*0.5/24) * 1.10 = 77.916...
@@ -1000,6 +1044,7 @@ mod tests {
             &service_needs,
             &mut building_inventories,
             &ServicePricingConfig::default(),
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // Phase C.2: Subsidy fails, citizens pay full dynamic price.
@@ -1045,6 +1090,7 @@ mod tests {
             &service_needs,
             &mut building_inventories,
             &ServicePricingConfig::default(),
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // Phase C.2: No subsidy, citizens pay full dynamic price.
@@ -1094,6 +1140,7 @@ mod tests {
             &mut country,
             &needs,
             &config,
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // Demand 50, supply 100 → consumed 50, coverage 1.0
@@ -1126,6 +1173,7 @@ mod tests {
             &mut country,
             &needs,
             &config,
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         assert_eq!(coverage.get("R1").copied().unwrap_or(0.0), 1.0);
@@ -1156,6 +1204,7 @@ mod tests {
             &mut country,
             &needs,
             &config,
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // No supply → coverage 0, no consumption
@@ -1178,6 +1227,7 @@ mod tests {
             &mut country,
             &needs,
             &config,
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // Demand 100, supply 20 → consumed 20, coverage 0.2
@@ -1225,6 +1275,7 @@ mod tests {
             &ServicePricingConfig::default(),
             &weather,
             crate::state::Season::Summer,
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // Public facility with 100% subsidy: citizens with zero savings
@@ -1280,6 +1331,7 @@ mod tests {
             &ServicePricingConfig::default(),
             &weather,
             crate::state::Season::Summer,
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // Private facility: zero-savings citizen cannot afford it.
@@ -1332,6 +1384,7 @@ mod tests {
             &ServicePricingConfig::default(),
             &weather,
             crate::state::Season::Winter,
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         let consumed = consumption.get("REGION_SPORTS").copied().unwrap_or(0.0);
@@ -1383,6 +1436,7 @@ mod tests {
             &ServicePricingConfig::default(),
             &weather,
             crate::state::Season::Winter,
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         let consumed = consumption.get("REGION_SPORTS").copied().unwrap_or(0.0);

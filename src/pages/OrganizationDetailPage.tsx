@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api/core';
+import { fmt } from '../lib/format';
 import type { OrganizationDetail } from '../types/api';
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -53,7 +54,7 @@ export const OrganizationDetailPage: React.FC = () => {
         <Field label="Category" value={CATEGORY_LABELS[detail.category] || detail.category} />
         <Field label="Region" value={detail.region_id || '—'} />
         <Field label="Members" value={detail.member_count} />
-        <Field label="Funds" value={detail.funds !== null && detail.funds !== undefined ? detail.funds.toFixed(0) : '—'} />
+        <Field label="Funds" value={detail.funds !== null && detail.funds !== undefined ? fmt(detail.funds) : '—'} />
       </div>
 
       {/* Guild-specific */}
@@ -61,9 +62,9 @@ export const OrganizationDetailPage: React.FC = () => {
         <div className="rounded-lg border p-4 space-y-1">
           <h3 className="text-sm font-semibold text-foreground mb-2">Guild Details</h3>
           <Field label="Sector" value={detail.guild_detail.sector} />
-          <Field label="Welfare Fund" value={detail.guild_detail.welfare_fund?.toFixed(0)} />
+          <Field label="Welfare Fund" value={detail.guild_detail.welfare_fund != null ? fmt(detail.guild_detail.welfare_fund) : '—'} />
           <Field label="Welfare Contribution Rate" value={`${(detail.guild_detail.welfare_contribution_rate * 100).toFixed(1)}%`} />
-          <Field label="Dividend per Member" value={detail.guild_detail.dividend_per_member?.toFixed(0)} />
+          <Field label="Dividend per Member" value={detail.guild_detail.dividend_per_member != null ? fmt(detail.guild_detail.dividend_per_member) : '—'} />
           <Field label="Quality Standard" value={detail.guild_detail.quality_standard.toFixed(2)} />
           <Field label="Has Charter" value={detail.guild_detail.has_charter ? 'Yes' : 'No'} />
           <Field label="Jurisdiction Domain" value={detail.guild_detail.jurisdiction_domain_id || '—'} />

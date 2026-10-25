@@ -204,6 +204,11 @@ pub(crate) struct CountryTask<'a> {
     pub(crate) gdp_acc: crate::economy::telemetry::GdpAccumulator,
     /// Phase 25: Retail prices collected from B2C clearing, for CPI calculation.
     pub(crate) retail_prices: Vec<(crate::registries::enums::Commodity, f64, f64)>,
+    /// v4.21: per-region retail clearing prices `(region_id, commodity,
+    /// quantity_sold, vwap)` — feeds `MarketHistory.regional_retail_vwap`
+    /// so next turn's household budget prices at the region's own shelves.
+    pub(crate) regional_retail_prices:
+        Vec<(String, crate::registries::enums::Commodity, f64, f64)>,
     /// Phase 44: B2C consumer demand per commodity, collected for Market UI.
     pub(crate) b2c_demand: std::collections::HashMap<crate::registries::enums::Commodity, f64>,
     /// Phase 44: In-kind ledger from payment-in-kind processing (for imputed GDP).
@@ -464,6 +469,7 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
                     commuter_outflows: Vec::new(),
                     gdp_acc: crate::economy::telemetry::GdpAccumulator::default(),
                     retail_prices: Vec::new(),
+                    regional_retail_prices: Vec::new(),
                     b2c_demand: std::collections::HashMap::new(),
                     in_kind_ledger: crate::economy::finance::payment_in_kind::InKindLedger::default(
                     ),
@@ -825,13 +831,26 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // ═══════════════════════════════════════════════════════════
         // RESURRECTION PHASE 10: EMERGENCY CONDITIONS CHECK
         // Must run before B2C clearing so rationing state is known.
-        // Uses a snapshot of global market surplus for shortage detection.
+        // v4.21 WS2: shortage detection reads `unfilled_b2b_demand` —
+        // the post-match, post-import residual bid quantity — instead of
+        // `net_surplus` (gross desired-input vs desired-output flow). A
+        // chronic order-book deficit covered by stocks and imports is
+        // commerce, not an emergency; the residual is demand the market
+        // physically failed to deliver. The map is keyed by buyer
+        // country — emergency powers are national, so each country only
+        // reads its own undelivered demand.
         // ═══════════════════════════════════════════════════════════
-        let surplus_snapshot = market.net_surplus.clone();
+        let surplus_snapshot = market.unfilled_b2b_demand.clone();
+        let empty_surplus: FxHashMap<Commodity, f64> = FxHashMap::default();
         let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
-            check_emergency_conditions(task.ctx.country, &surplus_snapshot);
+            check_emergency_conditions(
+                task.ctx.country,
+                surplus_snapshot
+                    .get(&task.ctx.country_name)
+                    .unwrap_or(&empty_surplus),
+            );
         });
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
@@ -1840,48 +1859,96 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                         }
                         true
                     } else {
+                        #[cfg(feature = "diagnostic")]
+                        eprintln!(
+                            "FXFAIL: t={} c={} buyer={} seller={} val={:.2} need={:.2} avail={:.2} pool={:.2}",
+                            turn, country_name, trade.buyer_id, trade.seller_id,
+                            trade.quantity * trade.execution_price,
+                            foreign_needed, available_fx, total_numeraire
+                        );
                         false
                     }
                 };
                 if !fx_covered {
                     fx_failed.insert(trade_key(trade));
-                    // Refund the encumbered bid cash — the trade will never
-                    // settle, so its encumbrance would otherwise stay frozen.
-                    // Only the cash-backed share returns to the pocket: the
-                    // credit-backed share was a provisional obligation that
-                    // discharges when the order dies.
-                    if let Some(buyer) = task
-                        .companies
+                    // v4.21 WS2: payment failure annuls the match — restore
+                    // both legs' remaining quantity so the world-market
+                    // sweeps can serve them. The buyer's bid re-enters the
+                    // import sweep (foreign-sector fills at world price
+                    // regardless of bilateral reserves); the seller's ask
+                    // re-enters the export sweep (foreign-sector buys the
+                    // surplus share). The buyer's encumbrance stays held:
+                    // a swept fill consumes it through `settle_trades`, and
+                    // an unswept residue is released by the end-of-turn
+                    // `refund_unfilled_b2b_bids` pass — the same lifecycle
+                    // as any bid that never matched. This is what an FX-
+                    // broke importer actually does: reroute to the world
+                    // market rather than cancel the order.
+                    let mut rerouted = false;
+                    if let Some((_, bids)) = unfilled_bids
                         .iter_mut()
-                        .find(|c| c.id == trade.buyer_id)
+                        .find(|(c, _)| *c == trade.commodity)
                     {
-                        // Bids posted via `encumber_cash` carried the freight
-                        // reserve (`qty × limit × (1+fr)`); releasing only
-                        // `qty × limit` strands that share in the encumbrance
-                        // pool. Bids posted without the reserve floor at
-                        // `debit_cash` inside `release_bid_encumbrance`, so
-                        // over-asking is company-local and self-corrects.
-                        let enc = trade.quantity
-                            * trade.bid_limit_price
-                            * (1.0 + task
-                                .ctx
-                                .country
-                                .b2b_order_config
-                                .freight_cost_reserve_ratio);
-                        let cash_back = buyer.release_bid_encumbrance(enc);
-                        if let Some(ba) = &mut buyer.brokerage_account {
-                            ba.cash += cash_back;
-                        } else {
-                            buyer.available_cash += cash_back;
+                        if let Some(bid) = bids.iter_mut().find(|b| {
+                            b.buyer_id == trade.buyer_id
+                                && (b.limit_price - trade.bid_limit_price).abs()
+                                    < 1e-9
+                        }) {
+                            bid.quantity += trade.quantity;
+                            rerouted = true;
                         }
                     }
-                    #[cfg(feature = "diagnostic")]
-                    eprintln!(
-                        "FXFAIL: t={} c={} buyer={} seller={} val={:.2} need={:.2} avail={:.2}",
-                        turn, country_name, trade.buyer_id, trade.seller_id,
-                        trade.quantity * trade.execution_price, foreign_needed,
-                        available_fx
-                    );
+                    if let Some(bids) = task.order_book.bids.get_mut(&trade.commodity)
+                    {
+                        if let Some(bid) = bids.iter_mut().find(|b| {
+                            b.buyer_id == trade.buyer_id
+                                && (b.limit_price - trade.bid_limit_price).abs()
+                                    < 1e-9
+                        }) {
+                            bid.quantity += trade.quantity;
+                        }
+                    }
+                    if let Some((_, asks)) = unfilled_asks
+                        .iter_mut()
+                        .find(|(c, _)| *c == trade.commodity)
+                    {
+                        if let Some(ask) = asks
+                            .iter_mut()
+                            .find(|a| a.seller_id == trade.seller_id)
+                        {
+                            ask.quantity += trade.quantity;
+                        }
+                    }
+                    if !rerouted {
+                        // No surviving bid slot to restore — fall back to the
+                        // direct refund so the encumbrance cannot strand.
+                        if let Some(buyer) = task
+                            .companies
+                            .iter_mut()
+                            .find(|c| c.id == trade.buyer_id)
+                        {
+                            // Bids posted via `encumber_cash` carried the
+                            // freight reserve (`qty × limit × (1+fr)`);
+                            // releasing only `qty × limit` strands that
+                            // share in the encumbrance pool. Bids posted
+                            // without the reserve floor at `debit_cash`
+                            // inside `release_bid_encumbrance`, so
+                            // over-asking is company-local and self-corrects.
+                            let enc = trade.quantity
+                                * trade.bid_limit_price
+                                * (1.0 + task
+                                    .ctx
+                                    .country
+                                    .b2b_order_config
+                                    .freight_cost_reserve_ratio);
+                            let cash_back = buyer.release_bid_encumbrance(enc);
+                            if let Some(ba) = &mut buyer.brokerage_account {
+                                ba.cash += cash_back;
+                            } else {
+                                buyer.available_cash += cash_back;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -2689,6 +2756,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         let importable = |c: &Commodity| {
             !c.is_local_utility() && *c != Commodity::FreightCapacity
         };
+        // v4.21 WS2: track which unfilled-bid slots an import actually
+        // covered so the post-sweep residual can be computed. `bidx` is a
+        // stable index into `unfilled_bids`' per-commodity vec — every
+        // buyer belongs to exactly one country, so a slot can be filled
+        // at most once across all tasks.
+        let mut import_filled: std::collections::HashSet<(Commodity, usize)> =
+            std::collections::HashSet::new();
         for task in &mut tasks {
             let cname = task.ctx.country_name.clone();
             let mut import_trades: Vec<Trade> = Vec::new();
@@ -2754,6 +2828,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     }
                     task_import_spend += bid.quantity * price;
                     imported_fills.push((bid.buyer_id.clone(), *commodity, bidx, price));
+                    import_filled.insert((*commodity, bidx));
                     import_trades.push(Trade {
                         buyer_id: bid.buyer_id.clone(),
                         seller_id: FOREIGN_BUYER_ID.to_string(),
@@ -2834,6 +2909,77 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 n_noworld,
                 imported_fills.len()
             );
+        }
+
+        // v4.21 WS2: residual B2B scarcity — bid quantity that survived
+        // BOTH the domestic match and the import sweep (unimportable
+        // goods, no world price, bids below the import price floor, or
+        // non-company buyers). This is the physical shortage signal the
+        // emergency-powers check reads next turn; `net_surplus` remains
+        // the gross order-flow imbalance for pricing/telemetry. Deficit-
+        // signed to match the existing `surplus < -10000` conventions.
+        {
+            // Per-country attribution: emergency powers are national, so
+            // each country's shortage signal must reflect only its own
+            // buyers' undelivered demand. Company buyers resolve through
+            // `company_country`; non-company buyers (strategic reserves,
+            // state purses) carry the country name inside the id.
+            let country_names: Vec<String> = tasks
+                .iter()
+                .map(|t| t.ctx.country_name.clone())
+                .collect();
+            let buyer_country = |buyer_id: &str| -> String {
+                if let Some(c) = company_country.get(buyer_id) {
+                    return c.clone();
+                }
+                country_names
+                    .iter()
+                    .find(|n| buyer_id.contains(n.as_str()))
+                    .cloned()
+                    .unwrap_or_default()
+            };
+            let mut residual: FxHashMap<String, FxHashMap<Commodity, f64>> =
+                FxHashMap::default();
+            for (commodity, bids) in &unfilled_bids {
+                for (bidx, bid) in bids.iter().enumerate() {
+                    if bid.quantity > 0.0
+                        && !import_filled.contains(&(*commodity, bidx))
+                    {
+                        *residual
+                            .entry(buyer_country(&bid.buyer_id))
+                            .or_default()
+                            .entry(*commodity)
+                            .or_default() += bid.quantity;
+                    }
+                }
+            }
+            market.unfilled_b2b_demand = residual
+                .iter()
+                .map(|(c, inner)| {
+                    (
+                        c.clone(),
+                        inner.iter().map(|(k, q)| (*k, -*q)).collect(),
+                    )
+                })
+                .collect();
+            // FX-vetoed cross-border fills: the bid's quantity was consumed
+            // at match time, but the trade died in settlement when the
+            // buyer's central bank couldn't cover the foreign-currency leg —
+            // the goods never arrived. Tracked separately from the physical
+            // residual: a payments failure is not a production shortfall,
+            // and the emergency rationing lever cannot fix it.
+            let mut fx_vetoed: FxHashMap<String, FxHashMap<Commodity, f64>> =
+                FxHashMap::default();
+            for trade in &all_trades {
+                if fx_failed.contains(&trade_key(trade)) {
+                    *fx_vetoed
+                        .entry(buyer_country(&trade.buyer_id))
+                        .or_default()
+                        .entry(trade.commodity)
+                        .or_default() -= trade.quantity;
+                }
+            }
+            market.fx_vetoed_import_demand = fx_vetoed;
         }
 
         // ── DIAGNOSTIC CHECKPOINT 3: b2b_settlement_post ──
@@ -4711,6 +4857,11 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
+            // v4.21 WS2: Rent is household consumption of housing services —
+            // it must enter the GDP C account, not just move between ledgers.
+            // Accumulate per-region actual debits, then book them below.
+            let mut rent_by_region: std::collections::BTreeMap<String, f64> =
+                std::collections::BTreeMap::new();
             for hb in &task.housing_buildings {
                 let occupied = hb.primary_slots.occupied_slots as f64;
                 let rent_per_slot = hb.primary_slots.rent_per_slot;
@@ -4771,6 +4922,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 if actual_rent_debited <= 0.0 {
                     continue;
                 }
+                *rent_by_region.entry(region.id.clone()).or_default() += actual_rent_debited;
                 if owner.starts_with("STATE:") {
                     task.ctx.country.budget.liquid_reserves += actual_rent_debited;
                 } else if owner.starts_with("CLASS:Aristocracy:") {
@@ -4791,6 +4943,17 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     }
                 }
                 // Unknown owner prefixes: rent is lost (should not happen with genesis housing).
+            }
+
+            // v4.21 WS2: Book the collected rent into the GDP C account.
+            // The housing service was consumed this turn; the payment is
+            // household final consumption whether the landlord is the
+            // treasury or a landlord class. (Double-entry cash legs above;
+            // this is the national-accounts reflection of that real flow.)
+            for (rid, amt) in rent_by_region {
+                if amt > 0.0 {
+                    task.gdp_acc.add_consumption(&rid, amt);
+                }
             }
         });
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
@@ -5885,6 +6048,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 task.ctx.country,
                 &commute_needs,
                 &service_config,
+                &mut task.gdp_acc,
             );
             task.commute_coverage = coverage;
         });
@@ -6041,10 +6205,15 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             // the demand injection is what lets store restocking pull
             // producer utilization (and hence private labor bids) back up.
             const WORKS_TRIGGER_RATE: f64 = 15.0;
-            const WORKS_ABSORPTION: f64 = 0.85;
-            // Below both the private market (1.0×) and civil service
-            // (0.8×): works bids rank last in the wage-sorted clearing.
-            const WORKS_WAGE_RATIO: f64 = 0.7;
+            const WORKS_ABSORPTION: f64 = 0.95;
+            // Below the private market (1.0×) and level with the civil
+            // service (0.8×): works bids still rank behind private offers
+            // in the wage-sorted clearing, but a relief job at 0.7× the
+            // market wage paid sub-subsistence in low-wage regimes —
+            // lifting the ratio to parity with the civil service keeps
+            // the program a living-wage floor without outbidding the
+            // private sector it feeds.
+            const WORKS_WAGE_RATIO: f64 = 0.8;
             const WORKS_RESERVE_FRACTION: f64 = 0.85;
             // Public works are not labor-only: the program builds real
             // infrastructure and consumes a real material basket — a 2:1
@@ -6053,7 +6222,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             // workers, but state procurement is what lets producing firms
             // sell stock they already hold and book revenue against the
             // payroll the gate measures.
-            const WORKS_MATERIALS_RATIO: f64 = 1.0;
+            const WORKS_MATERIALS_RATIO: f64 = 0.5;
             // The basket targets goods whose stock physically CANNOT
             // clear otherwise: finished capital goods and durables no
             // domestic buyer is expanding to purchase (vehicle fleets,
@@ -6467,6 +6636,25 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
 
             let pit_rate = task.ctx.country.tax_rates.income_tax.rate;
 
+            // v4.21.0 WS2: statutory personal allowance — a zero-rated PIT
+            // band expressed as a share of the average wage (default 30%).
+            // Countries override via
+            // `income_tax.extra["personal_allowance_wage_share"]`.
+            let pit_allowance_share = task
+                .ctx
+                .country
+                .tax_rates
+                .income_tax
+                .extra
+                .get("personal_allowance_wage_share")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(
+                    crate::economy::labor_market::DEFAULT_PIT_PERSONAL_ALLOWANCE_WAGE_SHARE,
+                )
+                .clamp(0.0, 1.0);
+            let pit_allowance_per_fte =
+                task.ctx.country.macro_indicators.average_wage.max(0.0) * pit_allowance_share;
+
             // Phase 25: Clear labor market for ALL regions, not just the first.
             // The old code only processed regions.iter_mut().next(), leaving
             // all other regions' labor markets uncleared.
@@ -6630,6 +6818,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     turn_calendar,
                     &crate::economy::labor_market::LaborConfig::default(),
                     pit_rate,
+                    pit_allowance_per_fte,
                     &garnishment_rates,
                     commuter_inflow_fte,
                     &task.ctx.country.politics.civil_rights_law,
@@ -7664,6 +7853,25 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 .filter(|c| c.sector == Sector::Agriculture)
                 .map(|c| c.id.clone())
                 .collect();
+            // v4.21: population-scale in-kind provisioning needs each
+            // class's REGIONAL FTE totals. `labor_allocation` is
+            // country-wide, so index company→region once per task.
+            let company_region_of: std::collections::BTreeMap<&str, &str> = task
+                .companies
+                .iter()
+                .map(|c| (c.id.as_str(), c.region_id.as_str()))
+                .collect();
+            let mut regional_class_fte: std::collections::BTreeMap<
+                (String, DemographicClass),
+                f64,
+            > = std::collections::BTreeMap::new();
+            for ((cid, class), fte) in &labor_allocation.fte {
+                if let Some(rid) = company_region_of.get(cid.as_str()) {
+                    *regional_class_fte
+                        .entry((rid.to_string(), *class))
+                        .or_default() += fte;
+                }
+            }
             for company_id in agri_company_ids {
                 // This firm's real stock, aggregated across its buildings.
                 let mut company_harvest: std::collections::BTreeMap<Commodity, f64> =
@@ -7714,8 +7922,13 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                         hb
                     );
                 }
-                let (in_kind_ledger, _nutritional_deficit) =
-                    apply_payment_in_kind(region, &labor_allocation, &mut harvest_bundle, turn);
+                let (in_kind_ledger, _nutritional_deficit) = apply_payment_in_kind(
+                    region,
+                    &labor_allocation,
+                    &mut harvest_bundle,
+                    &regional_class_fte,
+                    turn,
+                );
 
                 // Physical conservation: the goods the ledger records as
                 // eaten must actually leave the firm's buildings. Remove
@@ -8011,6 +8224,27 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             for region_idx in 0..num_regions {
                 let region = &mut task.ctx.country.regions[region_idx];
                 let avg_wage = task.ctx.country.macro_indicators.average_wage;
+                // Shelf state must exist before the demand build: the
+                // capacity envelope is priced over commodities physically
+                // listed this turn (posted-price floor), so offers come
+                // first and feed both the demand scale and the rationing
+                // scope below.
+                let mut store_offers =
+                    generate_store_offers(&mut task.commercial_buildings, turn);
+                let shelf_prices: std::collections::BTreeMap<Commodity, f64> =
+                    store_offers
+                        .iter()
+                        .filter(|o| o.quantity > 0.0 && o.price_per_unit > 0.0)
+                        .fold(std::collections::BTreeMap::new(), |mut m, o| {
+                            m.entry(o.commodity)
+                                .and_modify(|p: &mut f64| {
+                                    if o.price_per_unit < *p {
+                                        *p = o.price_per_unit;
+                                    }
+                                })
+                                .or_insert(o.price_per_unit);
+                            m
+                        });
                 let mut consumer_demand = build_consumer_demand(
                     region,
                     turn,
@@ -8018,43 +8252,27 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     avg_wage,
                     &task.housing_buildings,
                     &state.market_history,
+                    // Phase 44: Net out in-kind deductions INSIDE the demand
+                    // build — deducted from the raw physical want before the
+                    // capacity scale so a delivered basket removes exactly
+                    // the units it covers and no more.
+                    Some(&task.in_kind_ledger.deductions_by_class),
+                    &task.ctx.country.tax_rates.vat,
+                    &shelf_prices,
                 );
-                // Phase 44: Net out in-kind deductions from B2C consumer demand.
-                // Serfs (and partially FreePeasants/LandlessLaborers) have their
-                // subsistence needs met in-kind. Their B2C demand for those
-                // commodities must be reduced to avoid double-counting.
-                for ((lid, ldc), deductions) in &task.in_kind_ledger.deductions_by_class {
-                    if lid != &region.id {
-                        continue;
-                    }
-                    // E.6.3: consumer_demand.demand uses (String, DemographicClass) keys
-                    let key = (lid.clone(), *ldc);
-                    if let Some(class_demand) = consumer_demand.demand.get_mut(&key) {
-                        for (&commodity, &deducted_qty) in deductions {
-                            if let Some(existing) = class_demand.get_mut(&commodity) {
-                                // Remove from `total_demand` only what THIS
-                                // class's demand actually loses. The delivered
-                                // quantity is unscaled physical goods while the
-                                // class's demand entry is capacity-scaled —
-                                // subtracting the full delivery from the
-                                // aggregate steals other classes' demand for
-                                // the same commodity and can zero the whole
-                                // market line (the t≈15 consumption cliff).
-                                let removed = (*existing).min(deducted_qty);
-                                *existing -= removed;
-                                if let Some(total) =
-                                    consumer_demand.total_demand.get_mut(&commodity)
-                                {
-                                    *total = (*total - removed).max(0.0);
-                                }
-                            }
-                        }
-                    }
-                }
-                // Phase 10: Apply rationing to consumer demand before clearing
+                // Phase 10: Apply rationing to consumer demand before
+                // clearing — but only on lines the market cannot deliver.
+                // Goods already on the shelf clear physically regardless of
+                // the wholesale deficit that triggered the emergency.
                 if task.ctx.country.rationing_system.active {
                     let rationing = task.ctx.country.rationing_system.clone();
-                    apply_rationing_to_demand(&mut consumer_demand, &rationing);
+                    let stocked: std::collections::HashSet<crate::registries::enums::Commodity> =
+                        store_offers
+                            .iter()
+                            .filter(|o| o.quantity > 0.0)
+                            .map(|o| o.commodity)
+                            .collect();
+                    apply_rationing_to_demand(&mut consumer_demand, &rationing, &stocked);
                 }
                 // Store membership for this region's market: stores keyed by
                 // the region id itself plus its micro-region ids (the same
@@ -8067,8 +8285,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     s.insert(region.id.clone());
                     s
                 };
-                let mut store_offers =
-                    generate_store_offers(&mut task.commercial_buildings, turn);
                 let clearing_result = clear_b2c_markets(
                     &mut store_offers,
                     &consumer_demand,
@@ -8080,7 +8296,16 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 // Phase 16A: Route B2C revenue through TransferSettler for proper bank sync
                 // Phase 41: Pass VAT rates for transactional VAT collection.
                 let vat_rates = task.ctx.country.tax_rates.vat.clone();
-                let (_b2c_settled, vat_collected, municipal_revenue) = settle_b2c_clearing(
+                // v4.21: per-class revenue shares are value-weighted at the
+                // prices goods actually settled at this turn (unsold demand
+                // lines carry zero weight — a class is only charged for
+                // value that physically moved).
+                let settle_prices: std::collections::BTreeMap<Commodity, f64> = clearing_result
+                    .retail_prices
+                    .iter()
+                    .map(|(c, _qty, vwap)| (*c, *vwap))
+                    .collect();
+                let (b2c_settled, vat_collected, municipal_revenue) = settle_b2c_clearing(
                     &clearing_result.store_revenue,
                     &consumer_demand,
                     &task.commercial_buildings,
@@ -8089,6 +8314,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     &vat_rates,
                     &task.store_id_to_owner,
                     &task.company_id_to_idx,
+                    &settle_prices,
                 );
                 // Phase 41: Credit treasury with VAT (SINGLE credit — no double-counting in tax turn).
                 // Municipal-market revenue from orphaned stores also returns
@@ -8150,6 +8376,10 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     }
                 }
                 // Phase 24D: Accumulate B2C revenue as GDP final consumption (C).
+                // v4.21 WS2: book the SETTLED outlay (what households actually
+                // paid, VAT-inclusive) rather than the net store revenue —
+                // PCE is measured at purchaser prices, and the settle bound
+                // can clip below the posted total when capacity binds.
                 // Phase 35: Tag consumption by region for per-region GDP accounting.
                 let b2c_revenue: f64 = {
                     let mut v: Vec<f64> =
@@ -8187,8 +8417,23 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                             .collect::<Vec<_>>()
                             .join(",")
                     };
+                    // demanded value at this turn's posted offer prices —
+                    // what the scale-limited basket would spend if every
+                    // unit settled.
+                    let dem_val: f64 = consumer_demand
+                        .total_demand
+                        .iter()
+                        .map(|(c, q)| {
+                            *q * clearing_result
+                                .retail_prices
+                                .iter()
+                                .find(|(cc, _, _)| cc == c)
+                                .map(|(_, _, p)| *p)
+                                .unwrap_or(0.0)
+                        })
+                        .sum();
                     eprintln!(
-                        "B2CDBG: t={} c={} r={} demand={:.0} offers={:.0} offval={:.3e} cap={:.3e} rev={:.0} top=[{}]",
+                        "B2CDBG: t={} c={} r={} demand={:.0} offers={:.0} offval={:.3e} cap={:.3e} rev={:.0} settled={:.0} demval={:.0} top=[{}]",
                         turn,
                         task.ctx.country.name,
                         region.id,
@@ -8197,6 +8442,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                         offval,
                         cap_sum,
                         b2c_revenue,
+                        b2c_settled,
+                        dem_val,
                         top
                     );
                     if (30..=60).contains(&turn) {
@@ -8231,10 +8478,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                         }
                     }
                 }
-                task.gdp_acc.add_consumption(&region.id, b2c_revenue);
+                task.gdp_acc.add_consumption(&region.id, b2c_settled);
                 // Phase 25: Collect retail prices for CPI calculation
                 task.retail_prices
                     .extend(clearing_result.retail_prices.iter().cloned());
+                task.regional_retail_prices
+                    .extend(clearing_result.retail_prices.iter().map(
+                        |(c, q, vwap)| (region.id.clone(), *c, *q, *vwap),
+                    ));
                 // Phase 44: Collect B2C consumer demand per commodity for Market UI.
                 for (&commodity, &qty) in &consumer_demand.total_demand {
                     *task.b2c_demand.entry(commodity).or_insert(0.0) += qty;
@@ -8322,6 +8573,20 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
             .flat_map(|t| t.retail_prices.iter().cloned())
             .collect();
         market_history::update_retail_vwap(&mut state.market_history, &all_retail_prices);
+        // v4.21: publish last-turn per-region retail VWAPs — household demand
+        // budgets next turn at each region's own shelf prices, not the global
+        // blend (regional price dispersion was measured at 1.3–3× and priced
+        // cheap regions' demanded units ~60% under their spendable capacity).
+        for t in &tasks {
+            for (rid, c, _qty, vwap) in &t.regional_retail_prices {
+                if *vwap > 0.0 {
+                    state
+                        .market_history
+                        .regional_retail_vwap
+                        .insert((rid.clone(), *c), *vwap);
+                }
+            }
+        }
 
         #[cfg(feature = "diagnostic")]
         {
@@ -8630,17 +8895,40 @@ probe.checkpoint("b2c_clearing_post", 6, turn, &market, &tasks); #[cfg(feature =
         let total_foreign_actual = total_foreign_requested * foreign_scaling_ratio;
         market.foreign_sector_balance -= total_foreign_actual;
 
-        // PASS 2 (parallel): Credit companies with clamped amounts.
+        // PASS 2 (parallel): Credit companies with clamped amounts, book
+        // domestic spend to C and foreign inflow to NX per destination.
         let _saved_rng_state = crate::engine::seeded_rng::save_stream();
-        tasks.par_iter_mut().for_each(|task| {
-            crate::engine::seed_propagation::ensure_worker_seeded();
-            crate::society::tourism::settle_tourism_revenue(
-                &mut task.companies,
-                &task.tourism_demand,
-                foreign_scaling_ratio,
-            );
-        });
+        let tourism_exports: Vec<f64> = tasks
+            .par_iter_mut()
+            .map(|task| {
+                crate::engine::seed_propagation::ensure_worker_seeded();
+                crate::society::tourism::settle_tourism_revenue(
+                    &mut task.companies,
+                    &task.tourism_demand,
+                    foreign_scaling_ratio,
+                    &mut task.gdp_acc,
+                )
+            })
+            .collect();
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
+        // v4.21 WS2: service exports ride the same `foreign_export_value`
+        // patch as goods — trade_balances (which overwrites
+        // gdp_breakdown.net_exports and drives reserve settlement) then
+        // counts the FX the tourists actually paid in.
+        for (task, fx_inflow) in tasks.iter_mut().zip(tourism_exports) {
+            if fx_inflow <= 0.0 {
+                continue;
+            }
+            let entry = task
+                .ctx
+                .country
+                .macro_indicators
+                .extra
+                .entry("foreign_export_value".to_string())
+                .or_insert(serde_json::json!(0.0));
+            let prev = entry.as_f64().unwrap_or(0.0);
+            *entry = serde_json::json!(prev + fx_inflow);
+        }
 
         #[cfg(feature = "diagnostic")]
         {
@@ -10314,10 +10602,12 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.turn,
             );
 
-            // Store messages for diagnostics.
-            for msg in msgs {
+            // Store messages for diagnostics. Index the key (not msg.len())
+            // so same-length messages within one turn don't collide and drop
+            // records — e.g. `[MOVEMENT] spawned` evidence read by V419-6.
+            for (i, msg) in msgs.into_iter().enumerate() {
                 task.ctx.country.budget.extra.insert(
-                    format!("political_turn_msg_{}_{}", task.ctx.turn, msg.len()),
+                    format!("political_turn_msg_{}_{}", task.ctx.turn, i),
                     serde_json::Value::String(msg),
                 );
             }
@@ -10615,6 +10905,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &education_needs,
                 &mut building_inventories,
                 &service_config,
+                &mut task.gdp_acc,
             );
             task.education_consumption = edu_consumption;
             task.education_needs = education_needs;
@@ -10639,6 +10930,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &health_needs,
                 &mut building_inventories,
                 &service_config,
+                &mut task.gdp_acc,
             );
 
             // Phase 18S: Sports & Recreation B2C clearing.
@@ -10658,6 +10950,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &service_config,
                 &weather_state,
                 current_season,
+                &mut task.gdp_acc,
             );
 
             // Phase 18S: Update sports_capacity_per_capita for life expectancy.
@@ -10699,6 +10992,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &mut building_inventories,
                 &service_config,
                 propaganda_subsidy_rate,
+                &mut task.gdp_acc,
             );
 
             // Phase 18C: Process propaganda effects (scaled by consumption ratio)
@@ -10718,6 +11012,7 @@ tasks.par_iter_mut().for_each(|task| {
                 &local_services_needs,
                 &mut building_inventories,
                 &service_config,
+                &mut task.gdp_acc,
             );
 
             // Sync building inventories back from the temporary map
@@ -12215,10 +12510,45 @@ tasks.par_iter_mut().for_each(|task| {
                 // Add output to company available_cash (guilds sell via B2C)
                 // The output is stored in the result; revenue is added to liquid_capital
                 company.liquid_capital += result.revenue;
-                // Store profit for dividend distribution
+                // v4.21 WS4: Record the market value of this turn's member
+                // workshop output. `result.revenue` is always 0 (guild goods
+                // are not routed through B2C clearing), so the guild's real
+                // revenue measure is the physical output valued at the actual
+                // market prices the workshops produced for. 85A.3 uses it to
+                // assess member dues — the guild's ONLY income channel.
+                let output_value: f64 = result
+                    .output
+                    .iter()
+                    .map(|(commodity, qty)| {
+                        task.ctx
+                            .market_prices
+                            .get(commodity)
+                            .copied()
+                            .unwrap_or(0.0)
+                            * qty
+                    })
+                    .sum();
+                company.extra.insert(
+                    "guild_turn_output_value".to_string(),
+                    serde_json::Value::from(output_value),
+                );
             }
 
-            // 85A.3: Distribute dividends for profitable guilds
+            // 85A.3: Guild dues, welfare disbursement, and member dividends.
+            // The guild is funded by member dues — a realistic share of this
+            // turn's member workshop revenue — debited from each member
+            // class's real savings and credited to the guild's real cash
+            // (strict double-entry). The welfare fund accrues its share of
+            // dues, pays a regular per-turn disbursement back to members,
+            // and is hard-capped below 5% of national GDP — balances above
+            // the cap are swept into the member payout.
+            let guild_gdp = task
+                .ctx
+                .country
+                .macro_indicators
+                .gdp_breakdown
+                .official_gdp
+                .max(0.0);
             for company in &mut task.companies {
                 if !matches!(
                     company.legal_form,
@@ -12226,70 +12556,198 @@ tasks.par_iter_mut().for_each(|task| {
                 ) {
                     continue;
                 }
-                // Estimate profit as a fraction of liquid_capital
-                let profit = company.liquid_capital * 0.1;
-                if profit > 0.0 {
-                    let member_shares: Vec<(String, f64)> = company
-                        .legal_form
-                        .guild_data()
-                        .map(|d| {
-                            d.master_class_ids
-                                .iter()
-                                .map(|id| (id.clone(), 1.0))
-                                .collect()
-                        })
-                        .unwrap_or_default();
-                    let dividends = crate::economy::guild_system::distribute_guild_dividends(
-                        company,
-                        profit,
-                        &member_shares,
-                    );
-                    // Macro-Remediation: the dividend pool is sized off
-                    // `liquid_capital` (book equity), which routinely exceeds
-                    // real cash by orders of magnitude. Crediting the full
-                    // pool then debiting `available_cash` unconditionally
-                    // drove company cash deeply negative (-379M observed),
-                    // freezing the B2B market (encumbrance = 0). Clamp the
-                    // payout to real cash FIRST and pro-rate the member
-                    // credits so credits == debit exactly (M0-neutral).
-                    let total_dividends: f64 = {
-                        let mut v: Vec<f64> = dividends.values().copied().collect();
-                        v.sort_by(|a, b| a.total_cmp(b));
-                        v.into_iter().sum()
-                    };
-                    let payout =
-                        total_dividends.min(company.available_cash.max(0.0));
-                    let payout_ratio = if total_dividends > 0.0 {
-                        payout / total_dividends
-                    } else {
-                        0.0
-                    };
-                    // Credit dividends to class savings in the guild's region
-                    let region_id = company.region_id.clone();
-                    if payout > 0.0 {
-                        if let Some(region) = task
-                            .ctx
-                            .country
-                            .regions
-                            .iter_mut()
-                            .find(|r| r.id == region_id)
-                        {
-                            for (class_id, amount) in &dividends {
-                                if let Some(rk) = RuralClass::from_str(class_id) {
-                                    if let Some(demographics) =
-                                        region.class_demographics.rural_classes.get_mut(&rk)
-                                    {
-                                        demographics.savings += amount * payout_ratio;
+                let member_shares: Vec<(String, f64)> = company
+                    .legal_form
+                    .guild_data()
+                    .map(|d| {
+                        d.master_class_ids
+                            .iter()
+                            .map(|id| (id.clone(), 1.0))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                if member_shares.is_empty() {
+                    continue;
+                }
+                let member_count = company
+                    .legal_form
+                    .guild_data()
+                    .map(|d| d.member_workshop_ids.len())
+                    .unwrap_or(0)
+                    .max(1);
+                let region_id = company.region_id.clone();
+                let member_revenue = company
+                    .extra
+                    .get("guild_turn_output_value")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+
+                // Step 1 — collect dues: member classes pay the guild from
+                // their real savings (rural AND urban masters — urban
+                // classes are the guild's actual membership in GuildBurgher
+                // domains). Each class's debit is clamped to the cash it
+                // actually holds; the guild is credited only what was
+                // really collected (double-entry, M0-conserved).
+                let dues_map = crate::economy::guild_system::assess_guild_dues(
+                    company,
+                    member_revenue,
+                    &member_shares,
+                    &guild_config,
+                );
+                let mut dues_collected = 0.0;
+                if !dues_map.is_empty() {
+                    if let Some(region) = task
+                        .ctx
+                        .country
+                        .regions
+                        .iter_mut()
+                        .find(|r| r.id == region_id)
+                    {
+                        for (class_id, due) in &dues_map {
+                            if *due <= 0.0 {
+                                continue;
+                            }
+                            let paid = if let Some(rk) = RuralClass::from_str(class_id) {
+                                region
+                                    .class_demographics
+                                    .rural_classes
+                                    .get_mut(&rk)
+                                    .map(|d| {
+                                        let p = due.min(d.savings.max(0.0));
+                                        d.savings -= p;
+                                        if d.population > 0 {
+                                            d.savings_per_capita =
+                                                d.savings / d.population as f64;
+                                        }
+                                        p
+                                    })
+                                    .unwrap_or(0.0)
+                            } else if let Some(uk) =
+                                crate::society::geography::UrbanClass::from_str(class_id)
+                            {
+                                region
+                                    .class_demographics
+                                    .urban_classes
+                                    .get_mut(&uk)
+                                    .map(|d| {
+                                        let p = due.min(d.savings.max(0.0));
+                                        d.savings -= p;
+                                        if d.population > 0 {
+                                            d.savings_per_capita =
+                                                d.savings / d.population as f64;
+                                        }
+                                        p
+                                    })
+                                    .unwrap_or(0.0)
+                            } else {
+                                0.0
+                            };
+                            dues_collected += paid;
+                        }
+                    }
+                }
+                if dues_collected > 0.0 {
+                    company.available_cash += dues_collected;
+                }
+
+                // Step 2 — accrue the welfare share of real dues and split
+                // the remainder into the member dividend pool.
+                let mut dividends = crate::economy::guild_system::distribute_guild_dividends(
+                    company,
+                    dues_collected,
+                    &member_shares,
+                );
+
+                // Step 3 — regular welfare disbursement + GDP-cap sweep:
+                // the fund pays members every turn and can never hold more
+                // than `welfare_fund_gdp_cap_share` of national GDP.
+                let welfare_payout = crate::economy::guild_system::plan_welfare_disbursement(
+                    company,
+                    guild_gdp,
+                    &guild_config,
+                );
+                if welfare_payout > 0.0 {
+                    let total_weight: f64 = member_shares.iter().map(|(_, w)| *w).sum();
+                    if total_weight > 0.0 {
+                        for (class_id, w) in &member_shares {
+                            *dividends.entry(class_id.clone()).or_insert(0.0) +=
+                                welfare_payout * w / total_weight;
+                        }
+                    }
+                }
+
+                // Step 4 — pay out: clamp the pool to real cash FIRST and
+                // pro-rate member credits so credits == debit exactly
+                // (M0-neutral). Both rural and urban member classes are
+                // credited — urban masters are the guild's real owners.
+                let total_dividends: f64 = {
+                    let mut v: Vec<f64> = dividends.values().copied().collect();
+                    v.sort_by(|a, b| a.total_cmp(b));
+                    v.into_iter().sum()
+                };
+                let payout = total_dividends.min(company.available_cash.max(0.0));
+                let payout_ratio = if total_dividends > 0.0 {
+                    payout / total_dividends
+                } else {
+                    0.0
+                };
+                if payout > 0.0 {
+                    if let Some(region) = task
+                        .ctx
+                        .country
+                        .regions
+                        .iter_mut()
+                        .find(|r| r.id == region_id)
+                    {
+                        for (class_id, amount) in &dividends {
+                            let credit = amount * payout_ratio;
+                            if credit <= 0.0 {
+                                continue;
+                            }
+                            if let Some(rk) = RuralClass::from_str(class_id) {
+                                if let Some(demographics) =
+                                    region.class_demographics.rural_classes.get_mut(&rk)
+                                {
+                                    demographics.savings += credit;
+                                    if demographics.population > 0 {
+                                        demographics.savings_per_capita =
+                                            demographics.savings
+                                                / demographics.population as f64;
+                                    }
+                                }
+                            } else if let Some(uk) =
+                                crate::society::geography::UrbanClass::from_str(class_id)
+                            {
+                                if let Some(demographics) =
+                                    region.class_demographics.urban_classes.get_mut(&uk)
+                                {
+                                    demographics.savings += credit;
+                                    if demographics.population > 0 {
+                                        demographics.savings_per_capita =
+                                            demographics.savings
+                                                / demographics.population as f64;
                                     }
                                 }
                             }
                         }
-                        // Phase 94: Debit company available_cash for dividends.
-                        // Without this debit, dividends are M0 CREATION (class
-                        // savings increase without a matching M0 decrease).
-                        company.available_cash -= payout;
                     }
+                    // Phase 94: Debit company available_cash for dividends.
+                    // Without this debit, dividends are M0 CREATION (class
+                    // savings increase without a matching M0 decrease).
+                    company.available_cash -= payout;
                 }
+
+                // v4.21 WS4: Persist this turn's real dividend per member
+                // workshop on the company — the guilds snapshot reads it so
+                // "Dividend per Member" shows actual paid data instead of —.
+                company.extra.insert(
+                    "guild_last_dividend_per_member".to_string(),
+                    serde_json::Value::from(payout / member_count as f64),
+                );
+                company.extra.insert(
+                    "guild_last_dividend_turn".to_string(),
+                    serde_json::Value::from(turn),
+                );
             }
 
             // 85A.4: Check dissolution for guilds below min_members
@@ -12870,7 +13328,21 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
             },
         );
     }
-    // Drain the newly queued expulsion actions
+
+    // v4.21 WS4: AI diplomatic & intelligence staffing. Countries missing
+    // a diplomatic envoy or a spy recruit a real VIP (seeded RNG, cultural
+    // name pool) and queue AssignDiplomat actions; the drain below enforces
+    // per-host post caps and moves the real assignment cost (home debits,
+    // host credits). Runs before the drain so posts land THIS turn and
+    // next turn's process_diplomacy_turn sees them.
+    crate::international::diplomacy::staff_diplomatic_posts(
+        state,
+        &diplomacy,
+        &state.diplomatic_config.clone(),
+        state.calendar.global_turn,
+    );
+
+    // Drain the newly queued expulsion + staffing actions
     crate::state::diplomatic_actions::drain_diplomatic_actions(
         state,
         &state.diplomatic_config.clone(),

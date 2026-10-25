@@ -2,12 +2,12 @@ import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { getParliament, getConstitutionLaws, getElections } from "../hooks/useTauriCommand";
-import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
 import { Hemicycle } from "../components/Hemicycle";
 import { VipHoverCard } from "../components/VipHoverCard";
-import { partyColor, ideologyIcon } from "../lib/partyVisuals";
+import { partyColor, ideologyIcon, estateVisual, spectrumOf } from "../lib/partyVisuals";
 import { fmt } from "../lib/format";
-import type { AdvisoryCouncilSnapshot, RoyalDynastySnapshot, ParliamentSnapshot, VoteRow, BillDetailRow, ConstitutionLawsResponse, ElectionsResponse } from "../types/api";
+import type { AdvisoryCouncilSnapshot, RoyalDynastySnapshot, ParliamentSnapshot, ClubRow, ClubVoteHistoryRow, VoteRow, BillDetailRow, ConstitutionLawsResponse, ElectionsResponse } from "../types/api";
 
 const AUTHORITARIAN_FORMS = ["Absolute Monarchy", "Constitutional Monarchy", "Authoritarian Republic", "Personalist Dictatorship", "Military Junta", "One-Party State"];
 
@@ -155,11 +155,25 @@ function ChambersView({ parliament }: { parliament: ParliamentSnapshot }) {
       {parliament.chambers.map((chamber) => {
         const entries = chamber.seat_distribution.map(([name, seats]) => {
           const club = clubByName.get(name);
+          // v4.21 WS1: upper-house social estates ("Trade Unions",
+          // "Aristocracy", ...) are NOT clubs — resolve their distinct
+          // icon/spectrum slot/descriptor from the estate map instead.
+          const estate = club ? undefined : estateVisual(name);
           return {
             name,
             seats,
             color: partyColor(club?.color_hex, name),
-            icon: ideologyIcon(club?.ideology_icon, club?.ideology),
+            icon: club
+              ? ideologyIcon(club.ideology_icon, club.ideology)
+              : (estate?.icon ?? ideologyIcon(null, name)),
+            ideology: club?.ideology || estate?.label || name,
+            spectrum: spectrumOf({
+              economy: club?.coordinates?.economy,
+              tradition: club?.coordinates?.tradition,
+              iconKey: club?.ideology_icon,
+              label: club?.ideology,
+              name,
+            }),
           };
         });
         return (
@@ -193,10 +207,55 @@ function ChambersView({ parliament }: { parliament: ParliamentSnapshot }) {
   );
 }
 
+/// v4.21 WS1: club spectrum position — the same Left→Right ordering the
+/// hemicycle applies (authoritative coordinates via `spectrumOf`, estate /
+/// ideology-label fallbacks).
+function clubSpectrum(club: ClubRow): number {
+  return spectrumOf({
+    economy: club.coordinates?.economy,
+    tradition: club.coordinates?.tradition,
+    iconKey: club.ideology_icon,
+    label: club.ideology,
+    name: club.name,
+  });
+}
+
+type ClubSortMode = "seats" | "spectrum";
+
 function ClubsView({ parliament, legislatureName }: { parliament: ParliamentSnapshot; legislatureName: string }) {
+  const [sortMode, setSortMode] = useState<ClubSortMode>("seats");
+  const [expanded, setExpanded] = useState<string | null>(null);
+  // Default: seat count descending. Toggle: Left→Right ideological
+  // spectrum, ties broken by seats then name for a stable order.
+  const clubs = [...parliament.clubs].sort((a, b) =>
+    sortMode === "spectrum"
+      ? clubSpectrum(a) - clubSpectrum(b) || b.seats - a.seats || a.name.localeCompare(b.name)
+      : b.seats - a.seats || a.name.localeCompare(b.name)
+  );
   return (
     <Card>
-      <CardHeader><CardTitle>{legislatureName} Clubs</CardTitle></CardHeader>
+      <CardHeader>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <CardTitle>{legislatureName} Clubs</CardTitle>
+          <div className="inline-flex items-center gap-1.5 text-xs">
+            <span className="text-muted-foreground">Sort:</span>
+            <Button
+              size="sm"
+              variant={sortMode === "seats" ? "default" : "outline"}
+              onClick={() => setSortMode("seats")}
+            >
+              Seats
+            </Button>
+            <Button
+              size="sm"
+              variant={sortMode === "spectrum" ? "default" : "outline"}
+              onClick={() => setSortMode("spectrum")}
+            >
+              Left → Right
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
@@ -210,27 +269,40 @@ function ClubsView({ parliament, legislatureName }: { parliament: ParliamentSnap
             </TableRow>
           </TableHeader>
           <TableBody>
-            {parliament.clubs.length > 0 ? (
-              parliament.clubs.map((club) => (
-                <TableRow key={club.name}>
-                  <TableCell className="font-medium">
-                    <span className="inline-flex items-center gap-1.5">
-                      <ColorSwatch hex={club.color_hex} seed={club.name} />
-                      {club.name}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">{club.seats}</TableCell>
-                  <TableCell>
-                    <IdeologyBadge iconKey={club.ideology_icon} label={club.ideology} />
-                  </TableCell>
-                  <TableCell>
-                    {club.chairperson_name ? (
-                      <VipHoverCard vipId={club.chairperson_id}>{club.chairperson_name}</VipHoverCard>
-                    ) : "—"}
-                  </TableCell>
-                  <TableCell className="text-right">{club.discipline.toFixed(2)}</TableCell>
-                  <TableCell>{club.is_splinter ? <Badge variant="secondary">Yes</Badge> : "—"}</TableCell>
-                </TableRow>
+            {clubs.length > 0 ? (
+              clubs.map((club) => (
+                <Fragment key={club.name}>
+                  <TableRow
+                    className="cursor-pointer"
+                    onClick={() => setExpanded(expanded === club.name ? null : club.name)}
+                  >
+                    <TableCell className="font-medium">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="text-muted-foreground">{expanded === club.name ? "▾" : "▸"}</span>
+                        <ColorSwatch hex={club.color_hex} seed={club.name} />
+                        {club.name}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">{club.seats}</TableCell>
+                    <TableCell>
+                      <IdeologyBadge iconKey={club.ideology_icon} label={club.ideology} />
+                    </TableCell>
+                    <TableCell>
+                      {club.chairperson_name ? (
+                        <VipHoverCard vipId={club.chairperson_id}>{club.chairperson_name}</VipHoverCard>
+                      ) : "—"}
+                    </TableCell>
+                    <TableCell className="text-right">{club.discipline.toFixed(2)}</TableCell>
+                    <TableCell>{club.is_splinter ? <Badge variant="secondary">Yes</Badge> : "—"}</TableCell>
+                  </TableRow>
+                  {expanded === club.name && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="bg-accent/20">
+                        <ClubDetailSections club={club} />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
               ))
             ) : (
               <TableEmpty colSpan={6} message="No clubs data" />
@@ -239,6 +311,97 @@ function ClubsView({ parliament, legislatureName }: { parliament: ParliamentSnap
         </Table>
       </CardContent>
     </Card>
+  );
+}
+
+/// v4.21 WS1: expandable club drawer — three real-data sections from the
+/// snapshot DTO (offices held, bills sponsored, per-vote whip + rebels).
+function ClubDetailSections({ club }: { club: ClubRow }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-1">
+      {/* Controlled Offices — presidium speakerships, committee
+          chairmanships, cabinet portfolios resolved from real records. */}
+      <div>
+        <div className="text-xs font-medium text-muted-foreground mb-1.5">Controlled Offices</div>
+        {club.offices.length > 0 ? (
+          <ul className="space-y-1 text-xs">
+            {club.offices.map((o, i) => (
+              <li key={`${o.office}-${o.body}-${i}`} className="flex items-baseline gap-1.5">
+                <Badge variant="outline" className="shrink-0">{o.office}</Badge>
+                <span className="text-foreground">{o.body}</span>
+                <span className="text-muted-foreground">· {o.holder}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="text-xs text-muted-foreground">No offices held.</div>
+        )}
+      </div>
+
+      {/* Legislative Initiatives — bills this club sponsored, live-session
+          bills plus completed bills recovered from recorded votes. */}
+      <div>
+        <div className="text-xs font-medium text-muted-foreground mb-1.5">Legislative Initiatives</div>
+        {club.initiatives.length > 0 ? (
+          <ul className="space-y-1 text-xs">
+            {club.initiatives.map((b) => (
+              <li key={b.bill_id}>
+                <span className="text-foreground">{b.title}</span>{" "}
+                <StatusChip status={b.status} />
+                <span className="text-muted-foreground ml-1">
+                  T{b.introduced_turn}
+                  {b.enacted_turn !== null ? ` → T${b.enacted_turn}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="text-xs text-muted-foreground">No bills sponsored.</div>
+        )}
+      </div>
+
+      {/* Voting History & Discipline — the club's whip line on each recent
+          bill and the seats that broke it. */}
+      <div>
+        <div className="text-xs font-medium text-muted-foreground mb-1.5">
+          Voting History &amp; Discipline
+        </div>
+        {club.vote_history.length > 0 ? (
+          <ul className="space-y-1 text-xs">
+            {club.vote_history.map((v) => (
+              <ClubVoteHistoryItem key={`${v.bill_id}:${v.chamber_name}:${v.turn}`} vote={v} />
+            ))}
+          </ul>
+        ) : (
+          <div className="text-xs text-muted-foreground">No recorded votes.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/// One line of the club's voting history — whip stance, tally, rebels.
+function ClubVoteHistoryItem({ vote }: { vote: ClubVoteHistoryRow }) {
+  return (
+    <li>
+      <span className="text-foreground">{vote.bill_title}</span>
+      <span className="text-muted-foreground"> · {vote.chamber_name} T{vote.turn}</span>
+      <span className="inline-flex items-center gap-1 ml-1.5">
+        <Badge
+          variant={vote.stance === "For" ? "success" : vote.stance === "Against" ? "destructive" : "secondary"}
+        >
+          {vote.stance}
+        </Badge>
+        <span className="text-muted-foreground">
+          {vote.votes_for}/{vote.votes_against}/{vote.abstentions}
+        </span>
+        {vote.rebels > 0 ? (
+          <Badge variant="destructive" title="Club seats cast against the club line">
+            {vote.rebels} rebel{vote.rebels === 1 ? "" : "s"}
+          </Badge>
+        ) : null}
+      </span>
+    </li>
   );
 }
 
@@ -338,7 +501,17 @@ function stageLabel(stage: string): string {
 function stageVariant(stage: string): "secondary" | "success" | "destructive" | "default" {
   if (stage === "Enacted") return "success";
   if (stage.startsWith("Rejected") || stage.startsWith("Vetoed")) return "destructive";
-  if (stage === "BicameralPending" || stage === "Executive") return "default";
+  // v4.21 WS1: match both the enum-ish ids and the `LegislativeStage::label`
+  // forms the DTOs actually carry ("Upper House Review", "Executive
+  // Review", "Override Vote").
+  if (
+    stage === "BicameralPending" ||
+    stage === "Executive" ||
+    stage === "Upper House Review" ||
+    stage === "Executive Review" ||
+    stage === "Override Vote"
+  )
+    return "default";
   return "secondary";
 }
 
@@ -355,8 +528,47 @@ function RecommendationBadge({ value }: { value: number }) {
   );
 }
 
+/// v4.21 WS1: ONE canonical bill status for a recorded chamber-vote row.
+/// Precedence: Enacted (incl. veto-override enactments) → Passed both
+/// chambers → Passed lower / awaiting upper → Rejected → in-flight stage.
+/// Terminal stamps written by `mark_bill_terminal` onto every record of
+/// the bill always win over the individual chamber outcome, which is how a
+/// row can never show contradictory badges ("Passed" + "Rejected by …").
+function canonicalVoteStatus(
+  v: VoteRow,
+  billVotes: VoteRow[],
+  hasUpperChamber: boolean
+): { label: string; variant: "success" | "destructive" | "default" | "secondary" } {
+  const badge = (v.detail?.status_badge ?? "").trim();
+  const stage = (v.detail?.stage ?? "").trim();
+  const b = badge.toLowerCase();
+  const s = stage.toLowerCase();
+  // Terminal outcome — "Enacted", "Senate Veto Overridden".
+  if (s === "enacted" || b === "enacted" || b.includes("overrid")) {
+    return { label: badge || "Enacted", variant: "success" };
+  }
+  // Terminal rejection — "Rejected", "Rejected by Upper House",
+  // "Presidential Veto", "Vetoed by …".
+  if (s.startsWith("rejected") || s.startsWith("vetoed") || b.includes("reject") || b.includes("veto")) {
+    return { label: badge || stage, variant: "destructive" };
+  }
+  // In-flight: this chamber's own recorded outcome.
+  if (!v.passed) return { label: `Rejected by ${v.chamber_name}`, variant: "destructive" };
+  if (v.chamber === "upper") return { label: "Passed Both Chambers", variant: "success" };
+  const upper = billVotes.find((x) => x.chamber === "upper");
+  if (upper) {
+    return upper.passed
+      ? { label: "Passed Both Chambers", variant: "success" }
+      : { label: `Rejected by ${upper.chamber_name}`, variant: "destructive" };
+  }
+  return hasUpperChamber
+    ? { label: "Passed — Awaiting Upper House", variant: "default" }
+    : { label: "Passed", variant: "success" };
+}
+
 function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const hasUpperChamber = parliament.chambers.length > 1;
   // Group recorded chamber votes by bill so the drawer can show per-club
   // tallies separately for the Lower vs Upper chamber vote on the same bill.
   const votesByBill = new Map<string, VoteRow[]>();
@@ -373,7 +585,6 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
           <TableHeader>
             <TableRow>
               <TableHead>Bill</TableHead>
-              <TableHead>Chamber</TableHead>
               <TableHead className="text-right">For</TableHead>
               <TableHead className="text-right">Against</TableHead>
               <TableHead className="text-right">Abstain</TableHead>
@@ -385,6 +596,7 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
             {parliament.recent_votes.length > 0 ? (
               parliament.recent_votes.map((v) => {
                 const rowKey = `${v.bill_id}:${v.chamber}:${v.turn}`;
+                const status = canonicalVoteStatus(v, votesByBill.get(v.bill_id) ?? [v], hasUpperChamber);
                 return (
                   <Fragment key={rowKey}>
                     <TableRow
@@ -396,19 +608,17 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
                         {v.bill_title}
                         {v.detail?.theme_tag ? <ThemeTag tag={v.detail.theme_tag} className="ml-1.5" /> : null}
                       </TableCell>
-                      <TableCell><Badge variant="outline">{v.chamber_name}</Badge></TableCell>
                       <TableCell className="text-right text-green-400">{v.votes_for}</TableCell>
                       <TableCell className="text-right text-red-400">{v.votes_against}</TableCell>
                       <TableCell className="text-right text-muted-foreground">{v.abstentions}</TableCell>
                       <TableCell>
-                        {v.passed ? <Badge variant="success">Passed</Badge> : <Badge variant="destructive">Failed</Badge>}
-                        {v.detail?.status_badge ? <StatusChip status={v.detail.status_badge} className="ml-1" /> : null}
+                        <Badge variant={status.variant}>{status.label}</Badge>
                       </TableCell>
                       <TableCell className="text-right">{v.turn}</TableCell>
                     </TableRow>
                     {expanded === rowKey && (
                       <TableRow>
-                        <TableCell colSpan={7} className="bg-accent/20">
+                        <TableCell colSpan={6} className="bg-accent/20">
                           <div className="space-y-3 py-1">
                             {v.detail ? (
                               <BillDetailPanel detail={v.detail} />
@@ -431,7 +641,7 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
                 );
               })
             ) : (
-              <TableEmpty colSpan={7} message="No recent votes" />
+              <TableEmpty colSpan={6} message="No recent votes" />
             )}
           </TableBody>
         </Table>
@@ -587,8 +797,14 @@ function QueueView({ parliament }: { parliament: ParliamentSnapshot }) {
                       {q.detail?.theme_tag ? <ThemeTag tag={q.detail.theme_tag} className="ml-1.5" /> : null}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={stageVariant(q.stage)}>{stageLabel(q.stage)}</Badge>
-                      {q.detail?.status_badge ? <StatusChip status={q.detail.status_badge} className="ml-1" /> : null}
+                      {/* v4.21 WS1: ONE canonical status — the detail's
+                          status_badge already carries the same pipeline
+                          stage label (or a terminal stamp); rendering it
+                          next to the stage badge printed e.g. "Executive
+                          Review" twice. */}
+                      <Badge variant={stageVariant(q.detail?.status_badge || q.stage)}>
+                        {q.detail?.status_badge || stageLabel(q.stage)}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-xs">{q.committee ?? "—"}</TableCell>
                     <TableCell className="text-xs">{q.initiator}</TableCell>
@@ -899,6 +1115,14 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
         seats,
         color: partyColor(p?.color_hex, name),
         icon: ideologyIcon(p?.ideology_icon, p?.ideology),
+        // v4.21 WS1: wedge ordering + tooltip ideology — election rows carry
+        // no coordinates, so spectrumOf resolves via icon key / label / name.
+        ideology: p?.ideology || name,
+        spectrum: spectrumOf({
+          iconKey: p?.ideology_icon,
+          label: p?.ideology,
+          name,
+        }),
       };
     });
 

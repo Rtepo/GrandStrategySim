@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { fmt } from '../lib/format';
 import type { GuildsSnapshot, GuildRow } from '../types/api';
 
 const GuildsPage: React.FC = () => {
@@ -59,8 +60,8 @@ const GuildsPage: React.FC = () => {
                 <td>{g.name}</td>
                 <td>{g.sector}</td>
                 <td>{g.member_count}</td>
-                <td>{g.welfare_fund != null ? g.welfare_fund.toFixed(2) : '—'}</td>
-                <td>{g.dividend_per_member != null ? g.dividend_per_member.toFixed(2) : '—'}</td>
+                <td>{g.welfare_fund != null ? fmt(g.welfare_fund) : '—'}</td>
+                <td>{g.dividend_per_member != null ? fmt(g.dividend_per_member) : '—'}</td>
                 <td>{(g.quality_standard * 100).toFixed(1)}%</td>
                 <td>{g.has_charter ? 'Yes' : 'No'}</td>
                 <td>{g.jurisdiction_domain_id}</td>

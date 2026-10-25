@@ -119,6 +119,26 @@ const PHILLIPS_KAPPA: f64 = 0.15;
 /// real (signed) decline in slack, deflationary markets.
 const WAGE_INFLATION_TURN_CAP: f64 = 0.025;
 
+/// v4.21 WS2: Target labor share of value added per labor-law regime.
+/// Collective-bargaining and statutory-minimum regimes anchor a larger
+/// fraction of VA to wages; free-market regimes let the Phillips cycle
+/// do more of the work. All are far below 1.0 — profits fund I.
+fn wage_share_target(labor_law: &str) -> f64 {
+    match labor_law {
+        "Rigid Minimum Wage" => 0.55,
+        "Worker Protection" => 0.50,
+        _ => 0.40,
+    }
+}
+
+/// v4.21 WS2: Convergence speed of the value-added wage norm — a 0.10
+/// labor-share gap pulls wages ±0.8%/turn, so a missing-income-share
+/// regime repairs over ~1-2 sim-years rather than lurching.
+const WAGE_NORM_GAIN: f64 = 0.08;
+/// v4.21 WS2: The norm term alone can never push nominal wages more than
+/// ±2%/turn — stays subordinate to the ±2.5% total cap above.
+const WAGE_NORM_TURN_CAP: f64 = 0.02;
+
 /// Updates demographics and labor market for one turn.
 ///
 /// # Arguments
@@ -453,8 +473,39 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             macro_indicators.inflation,
         );
         let slack_pp = raw_unemployment_rate - frictional_unemployment_floor;
+        // v4.21 WS2: Value-added wage norm. The Phillips term handles the
+        // labor-market CYCLE; it cannot fix the LEVEL — the reference wage
+        // is otherwise a unit-root process (w_{t+1} = w_t · (1+π−κ·slack)),
+        // so with persistent slack the labor share of value added erodes
+        // without bound while nominal GDP keeps inflating. Real economies
+        // anchor trend wages via collective-bargaining/statutory norms: a
+        // labor-law-dependent share of VA per worker. We add a slow signed
+        // pull toward that norm, measured on the realized bill
+        // (prev_avg × employed vs official GDP), still bounded by the
+        // ±WAGE_INFLATION_TURN_CAP below.
+        let wage_norm_adjust = {
+            let gdp_prev = macro_indicators.gdp_breakdown.official_gdp;
+            // Realized employment carried over from last turn's clearing
+            // write-back (employed_total is overwritten below); fall back
+            // to the labor-force estimate before the first clearing.
+            let realized_fte = labor_market.employed_total;
+            let employed_est = if realized_fte > 0.0 {
+                realized_fte
+            } else {
+                labor_force * (1.0 - (unemployment_rate / 100.0).clamp(0.0, 1.0))
+            };
+            if gdp_prev > 0.0 && employed_est > 0.0 && prev_avg > 0.0 {
+                let implied_share = (prev_avg * employed_est) / gdp_prev;
+                let target_share = wage_share_target(&labor_law);
+                (WAGE_NORM_GAIN * (target_share - implied_share))
+                    .clamp(-WAGE_NORM_TURN_CAP, WAGE_NORM_TURN_CAP)
+            } else {
+                0.0
+            }
+        };
         let wage_inflation_turn = (expected_inflation_pct / 100.0
-            - PHILLIPS_KAPPA * (slack_pp / 100.0))
+            - PHILLIPS_KAPPA * (slack_pp / 100.0)
+            + wage_norm_adjust)
         .clamp(-WAGE_INFLATION_TURN_CAP, WAGE_INFLATION_TURN_CAP);
         let adjusted_base_wage = base_wage * (1.0 + wage_inflation_turn).max(0.0);
 

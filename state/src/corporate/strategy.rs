@@ -353,6 +353,23 @@ pub trait CorporateStrategy {
 
 impl CorporateStrategy for LegalForm {
     fn decide(&self, ctx: &CorporateDecisionCtx) -> CorporateAction {
+        // v4.21 WS3: Municipal service utilities (`MUN-*`) are not
+        // autonomous market actors — their workforce is set every turn by
+        // `ensure_municipal_services_employers` from the JST service
+        // contract (building capacity → target_fte_demand → funded payroll).
+        // Their P&L is structurally negative (WasteManagement/PublicServices
+        // are accrual `!realized_sector`s that book wage expense with no
+        // commodity sales), so the generic distress path fired EVERY turn:
+        // furlough benched the crew and `evaluate_restructure` shed
+        // `worker_capacity` 10–25%/turn — a one-way ratchet that also shrank
+        // `building.worker_capacity` in `process_companies`, permanently
+        // zeroing the seats the employer re-posts. Left alone the sectors
+        // read 0.00 FTE inside ~50 turns. Municipal staffing is a
+        // governance decision, not a board decision: always Idle.
+        if matches!(self, LegalForm::MunicipalCompany(_)) {
+            return CorporateAction::Idle;
+        }
+
         if let Some(ipo) = self.evaluate_ipo(ctx) {
             return ipo;
         }
@@ -2014,5 +2031,50 @@ mod tests {
         set_adaptive_production_enabled(true); // restore for other tests
         // Legacy: fulfilled × (1 − 0.0) = all 400.
         assert_eq!(furloughed, 400);
+    }
+
+    /// v4.21 WS3 regression: a `MunicipalCompany` must NEVER take a
+    /// distress action. `MUN-*` utilities book structurally negative P&L
+    /// (accrual `!realized_sector` → wage expense, no sales), so before the
+    /// guard `decide()` fired `evaluate_restructure`/`Furlough` every turn —
+    /// shredding `worker_capacity` ~10–25%/turn and ratcheting the whole
+    /// WasteManagement/PublicServices sector to 0.00 FTE. Municipal staffing
+    /// is a governance contract set by `ensure_municipal_services_employers`,
+    /// not a board decision: `decide()` must return `Idle`.
+    #[test]
+    fn test_municipal_company_decide_always_idles_under_distress() {
+        use crate::entities::legal_form::{MunicipalCompanyData, MunicipalServiceType};
+
+        let country = Country::default();
+        let share = sector_share_fixture();
+        let signal = MarketSignal::default();
+        let stock = StockMarket::default();
+        let labor = LaborMarket::default();
+        // Maximal distress: zero cash, zero fulfillment, past every grace cap —
+        // the context that used to trigger furlough → restructure.
+        let mut company = distressed_company("MUN-WASTE-REG1", 40, 0.0, 0.0);
+        company.sector = Sector::WasteManagement;
+        company.target_fte_demand = 40;
+        company.legal_form = LegalForm::MunicipalCompany(MunicipalCompanyData {
+            owner_municipality: "JST-REG1".to_string(),
+            service_type: MunicipalServiceType::WasteUtility,
+            ..Default::default()
+        });
+        let buildings: Vec<Building> = (0..2)
+            .map(|i| owned_building("MUN-WASTE-REG1", &format!("BLD-{i}"), 20, 0.0))
+            .collect();
+        let ctx = ctx_of(
+            &company, &country, &share, &signal, &stock, &labor, &buildings,
+            0.0, 100,
+        );
+        assert!(
+            is_distressed(&ctx),
+            "fixture must actually be distressed for the guard to mean anything"
+        );
+        assert_eq!(
+            company.legal_form.decide(&ctx),
+            CorporateAction::Idle,
+            "municipal utilities must not furlough/restructure/expand on their own"
+        );
     }
 }

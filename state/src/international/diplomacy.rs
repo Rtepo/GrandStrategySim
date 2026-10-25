@@ -365,6 +365,215 @@ pub fn process_diplomacy_turn(
     }
 }
 
+/// v4.21 WS4: AI diplomatic & intelligence staffing.
+///
+/// Closes the recruitment catch-22: `AssignDiplomat` requires an eligible
+/// registered VIP, but nothing ever created one — so every country's
+/// Diplomacy tab reported zero posts forever.
+///
+/// Each turn, every country checks whether it has at least one diplomatic
+/// envoy (Ambassador/Consul/MilitaryAttache — the "diplomat" coverage the
+/// test counts) and one Spy posted abroad. For each missing role it:
+///   1. Verifies `budget.liquid_reserves` can actually fund the
+///      `diplomat_assignment_cost` — recruitment is skipped when the
+///      treasury cannot pay (no unfunded posts, no M0 creation).
+///   2. Picks a host deterministically (see `pick_staffing_host`).
+///   3. Recruits a NEW culturally-appropriate VIP via seeded RNG and
+///      registers it in the home country's `VipRegistry` (name + traits +
+///      portrait seed, same pipeline every other VIP uses).
+///   4. Queues a `DiplomaticAction::AssignDiplomat` — the sequential drain
+///      then enforces `DiplomaticPostCap` and moves the real money
+///      (home debits, host credits — strict double-entry).
+///
+/// Runs on the single-threaded tail of the turn, so direct `state`
+/// mutation is safe. Deterministic: sorted country iteration, seeded RNG
+/// only, and the RNG stream is restored first like every tail consumer.
+pub fn staff_diplomatic_posts(
+    state: &mut GameState,
+    diplomacy: &HashMap<String, HashMap<String, DiplomaticRelation>>,
+    diplomatic_config: &crate::international::fog_of_war::DiplomaticConfig,
+    current_turn: u32,
+) {
+    crate::engine::seed_propagation::restore_main_rng();
+    let mut rng = crate::engine::seeded_rng::thread_rng();
+
+    let cap = DiplomaticPostCap::default();
+    let cost = diplomatic_config.diplomat_assignment_cost;
+
+    let mut sorted_names: Vec<String> = state.countries.keys().cloned().collect();
+    sorted_names.sort();
+    if sorted_names.len() < 2 {
+        return; // A lone country posts no foreign staff.
+    }
+
+    for home_name in &sorted_names {
+        // Snapshot the home country's staffing state (single borrow).
+        let (has_diplomat, has_spy, can_fund, cultural_group, used_names) = {
+            let Some(home) = state.countries.get(home_name) else {
+                continue;
+            };
+            let reg = home.politics.vip_registry.as_ref();
+            let covered = |pt: &DiplomaticPostType| {
+                reg.is_some_and(|r| {
+                    r.vips.values().any(|v| {
+                        !v.is_dead
+                            && v.diplomatic_post
+                                .as_ref()
+                                .is_some_and(|p| &p.post_type == pt)
+                    })
+                })
+            };
+            let diplomat = covered(&DiplomaticPostType::Ambassador)
+                || covered(&DiplomaticPostType::Consul)
+                || covered(&DiplomaticPostType::MilitaryAttache);
+            let names: std::collections::HashSet<String> = reg
+                .map(|r| r.name_index.keys().cloned().collect())
+                .unwrap_or_default();
+            (
+                diplomat,
+                covered(&DiplomaticPostType::Spy),
+                home.budget.liquid_reserves >= cost,
+                home.macro_indicators.cultural_group.clone(),
+                names,
+            )
+        };
+
+        if !can_fund {
+            continue;
+        }
+        let mut used_names = used_names;
+
+        for post_type in [
+            DiplomaticPostType::Ambassador,
+            DiplomaticPostType::Spy,
+        ] {
+            let covered = match post_type {
+                DiplomaticPostType::Spy => has_spy,
+                _ => has_diplomat,
+            };
+            if covered {
+                continue;
+            }
+
+            let Some(host_name) =
+                pick_staffing_host(state, diplomacy, home_name, &post_type, &sorted_names, &cap)
+            else {
+                continue;
+            };
+
+            // Recruit the officer: seeded name + trait draw, then add the
+            // professional trait the post calls for — `compute_diplomat_
+            // modifiers` rewards Diplomatic envoys and Cautious spies.
+            let vip_name = crate::politics::names::generate_unique_vip(
+                &cultural_group,
+                &mut rng,
+                &mut used_names,
+            );
+            let (mut traits, main_trait) =
+                crate::politics::vip_registry::assign_core_traits(&mut rng);
+            let professional = match post_type {
+                DiplomaticPostType::Spy => "Cautious",
+                _ => "Diplomatic",
+            };
+            if !traits.iter().any(|t| t == professional) {
+                traits.push(professional.to_string());
+            }
+            let vip = crate::politics::vip_registry::Vip {
+                full_name: vip_name.full_name,
+                gender: vip_name.gender,
+                age: 35 + rng.gen_range(0..25),
+                health: crate::politics::vip_registry::VipHealth {
+                    physical_health: 1.0,
+                    mental_health: 1.0,
+                },
+                traits,
+                main_trait,
+                ideology: "Centrist".to_string(),
+                nationality: home_name.clone(),
+                born_turn: current_turn,
+                base_influence: 10 + rng.gen_range(0..20),
+                ..Default::default()
+            };
+
+            let vip_id = {
+                let Some(home) = state.countries.get_mut(home_name) else {
+                    continue;
+                };
+                let Some(registry) = home.politics.vip_registry.as_mut() else {
+                    continue;
+                };
+                registry.register_new(vip)
+            };
+
+            state
+                .pending_diplomatic_actions
+                .push(crate::state::diplomatic_actions::DiplomaticAction::AssignDiplomat {
+                    vip_id,
+                    home_country: home_name.clone(),
+                    host_country: host_name,
+                    post_type: post_type.clone(),
+                    assigned_turn: current_turn,
+                });
+        }
+    }
+}
+
+/// Deterministically pick the host for a new posting.
+///
+/// * **Ambassador** (chief of mission / embassy): the highest-GDP foreign
+///   country with post capacity — envoys go to the major powers and
+///   trading partners first.
+/// * **Spy**: the foreign country relations are WORST with (adversarial
+///   intelligence — missing relation entries read as 0).
+///
+/// In both cases hosts at the `DiplomaticPostCap` for that type are
+/// skipped, and all ties break by sorted country name so the pick is
+/// identical across runs. `count_diplomats` reads the CURRENT posted
+/// state; same-turn queued actions are re-checked by the drain anyway.
+fn pick_staffing_host(
+    state: &GameState,
+    diplomacy: &HashMap<String, HashMap<String, DiplomaticRelation>>,
+    home_name: &str,
+    post_type: &DiplomaticPostType,
+    sorted_names: &[String],
+    cap: &DiplomaticPostCap,
+) -> Option<String> {
+    let mut best: Option<(String, f64)> = None; // (name, score)
+    for cand in sorted_names {
+        if cand == home_name {
+            continue;
+        }
+        // Per-host capacity: a full embassy / burned network is skipped.
+        if count_diplomats(state, home_name, cand, post_type)
+            >= cap.for_post_type(post_type)
+        {
+            continue;
+        }
+        let score = match post_type {
+            // Spy → LOWEST relations = highest priority (adversarial
+            // intel). Negate so a larger score still wins.
+            DiplomaticPostType::Spy => -diplomacy
+                .get(home_name)
+                .and_then(|m| m.get(cand))
+                .map(|r| r.relations as f64)
+                .unwrap_or(0.0),
+            // Ambassador & envoys → largest economy (trade & treaty
+            // relevance first).
+            _ => state
+                .countries
+                .get(cand)
+                .map(|c| c.budget.gdp)
+                .unwrap_or(0.0),
+        };
+        // Strictly-greater keeps the FIRST best under sorted order →
+        // deterministic tie-break by country name.
+        if best.as_ref().map(|(_, s)| score > *s).unwrap_or(true) {
+            best = Some((cand.clone(), score));
+        }
+    }
+    best.map(|(name, _)| name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

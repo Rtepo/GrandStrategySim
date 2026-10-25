@@ -2165,13 +2165,33 @@ fn assign_state_structure(
 }
 
 fn build_tax_rates(gdp_total: f64, rng: &mut impl Rng) -> TaxRates {
+    // v4.21 WS2: record the country's genesis statutory rates as its tax
+    // policy BASELINE. `drift_tax_rates_toward_targets` converges the
+    // baseline toward the governing coalition's ideology on a slow
+    // structural-reform horizon, so the initial codebooks keep countries on
+    // distinct statutory paths even under identical ruling ideologies.
+    let pit = rng.gen_range(0.1..0.25);
+    let cit = rng.gen_range(0.05..0.2);
+    let mut tax_extra = Map::new();
+    tax_extra.insert(
+        "statutory_baseline_pit".to_string(),
+        serde_json::Value::from(pit),
+    );
+    tax_extra.insert(
+        "statutory_baseline_cit".to_string(),
+        serde_json::Value::from(cit),
+    );
+    tax_extra.insert(
+        "statutory_baseline_vat".to_string(),
+        serde_json::Value::from(0.15_f64),
+    );
     TaxRates {
         income_tax: IncomeTax {
-            rate: rng.gen_range(0.1..0.25),
+            rate: pit,
             structure: "linear".to_string(),
-            extra: Map::new(),
+            extra: tax_extra,
         },
-        corporate_tax: rng.gen_range(0.05..0.2),
+        corporate_tax: cit,
         vat: HashMap::from([
             (
                 "services".to_string(),

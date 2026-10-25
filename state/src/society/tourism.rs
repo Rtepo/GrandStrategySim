@@ -151,6 +151,9 @@ impl TourismDestination {
 /// Per-destination computed demand (Pass 1 output).
 #[derive(Debug, Clone)]
 pub struct DestinationSettlement {
+    /// Region where the destination sits — used to attribute the
+    /// consumption and net-export GDP legs to the producing region.
+    pub region_id: String,
     /// (company_id, share) — proportional capacity shares for revenue distribution.
     pub company_shares: Vec<(String, f64)>,
     /// Domestic spend for this destination (already debited from citizens).
@@ -548,6 +551,7 @@ pub fn compute_tourism_demand(
         total_foreign_spend += foreign_spend;
 
         destination_demands.push(DestinationSettlement {
+            region_id: dest.region_id.clone(),
             company_shares,
             domestic_spend: theoretical_domestic_spend,
             foreign_spend,
@@ -646,18 +650,38 @@ pub fn compute_tourism_demand(
 /// * `companies` - Mutable slice of all companies (hospitality companies credited).
 /// * `demand` - Tourism demand result from `compute_tourism_demand`.
 /// * `foreign_scaling_ratio` - Ratio by which foreign spend is scaled (0.0–1.0).
+/// * `gdp_acc` - Per-country GDP accumulator. Domestic tourist spend books to
+///   household consumption (C); the clamped foreign inflow books to net
+///   exports (service export). Both are attributed to the destination region.
 ///
 /// # Rules
 /// * Debit = Credit: The sum of all company credits equals
 ///   `demand.total_domestic_spend + total_foreign_requested * foreign_scaling_ratio`.
 /// * No country mutation, no market mutation.
+///
+/// # Returns
+/// Total foreign tourism revenue actually credited (post-clamp) — the caller
+/// folds it into the `foreign_export_value` GDP patch so the end-of-turn
+/// trade-balance pass counts service exports alongside goods.
 pub fn settle_tourism_revenue(
     companies: &mut [crate::entities::Company],
     demand: &TourismDemandResult,
     foreign_scaling_ratio: f64,
-) {
+    gdp_acc: &mut crate::economy::telemetry::GdpAccumulator,
+) -> f64 {
+    let mut foreign_actual_total = 0.0_f64;
     for dd in &demand.destinations {
-        let dest_revenue = dd.domestic_spend + dd.foreign_spend * foreign_scaling_ratio;
+        let foreign_actual = dd.foreign_spend * foreign_scaling_ratio;
+        let dest_revenue = dd.domestic_spend + foreign_actual;
+        // v4.21 WS2: tourism spend is real services output — domestic spend
+        // is household consumption, foreign inflow is a service export.
+        if dd.domestic_spend > 0.0 {
+            gdp_acc.add_consumption(&dd.region_id, dd.domestic_spend);
+        }
+        if foreign_actual > 0.0 {
+            gdp_acc.add_net_exports(&dd.region_id, foreign_actual);
+            foreign_actual_total += foreign_actual;
+        }
         for (company_id, share) in &dd.company_shares {
             // Phase 94: Use credit_company_by_id to sync bank reserves (M0).
             // Directly crediting available_cash skips the bank reserve sync,
@@ -674,4 +698,5 @@ pub fn settle_tourism_revenue(
             }
         }
     }
+    foreign_actual_total
 }

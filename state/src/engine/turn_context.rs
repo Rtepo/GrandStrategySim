@@ -306,6 +306,8 @@ fn load_market(data_dir: &Path) -> Result<GlobalMarket, TurnError> {
     Ok(GlobalMarket {
         base_prices,
         net_surplus,
+        unfilled_b2b_demand: FxHashMap::default(),
+        fx_vetoed_import_demand: FxHashMap::default(),
         offshore_capital: 0.0,
         apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
         supply_volume,
@@ -1028,6 +1030,8 @@ fn default_market() -> GlobalMarket {
     GlobalMarket {
         base_prices: default_price_map(),
         net_surplus: FxHashMap::default(),
+        unfilled_b2b_demand: FxHashMap::default(),
+        fx_vetoed_import_demand: FxHashMap::default(),
         offshore_capital: 0.0,
         apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
         supply_volume: FxHashMap::default(),

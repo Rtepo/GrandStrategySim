@@ -201,4 +201,137 @@ mod tests {
         }
         eprintln!("probe complete: diverged={}", diverged);
     }
+
+    /// v4.21 WS2 probe: household income vs GDP decomposition at horizon.
+    /// For each country prints the gdp_breakdown components, total class
+    /// smoothed_income (the EWMA household-income aggregate the retail
+    /// pipeline reads), total class savings, population, and per-capita
+    /// spending power — to localize where GDP fails to reach households.
+    #[test]
+    #[ignore = "diagnostic probe — run explicitly"]
+    fn hh_income_probe() {
+        let registries = Registries::native_only();
+        let tmp = TempDir::new().expect("tmp");
+        let options = GenerateOptions {
+            country_count: 4,
+            start_year: StartYear::Y1925,
+            seed: Some(42),
+        };
+        let GeneratedWorld {
+            mut state, ..
+        } = generate_world(tmp.path(), options, &registries).expect("worldgen failed");
+        let mut ctx =
+            InMemoryTurnContext::load_from_disk(tmp.path(), &mut state).expect("ctx load");
+        let turns = turn_limit();
+        for _ in 0..turns {
+            run_turn_inner(&mut state, &registries, &mut ctx, &mut NoopProbe)
+                .expect("turn failed");
+        }
+        for (name, country) in &state.countries {
+            let bd = &country.macro_indicators.gdp_breakdown;
+            let mut sum_income = 0.0;
+            let mut sum_savings = 0.0;
+            let mut sum_pop = 0i64;
+            let mut sum_capacity = 0.0;
+            for region in &country.regions {
+                for d in region
+                    .class_demographics
+                    .rural_classes
+                    .values()
+                    .chain(region.class_demographics.urban_classes.values())
+                {
+                    sum_income += d.smoothed_income.max(0.0);
+                    sum_savings += d.savings.max(0.0);
+                    sum_pop += d.population;
+                    // Same capacity formula the retail pipeline uses.
+                    sum_capacity += d.smoothed_income.max(0.0)
+                        + d.savings.max(0.0) * 0.12;
+                }
+            }
+            // Realized wage bill: offered_wage_per_fte × fulfilled_fte.
+            let ents = ctx.entities.get(name);
+            let wage_bill: f64 = ents
+                .map(|e| {
+                    e.companies
+                        .iter()
+                        .map(|c| c.offered_wage_per_fte.max(0.0) * c.fulfilled_fte as f64)
+                        .sum()
+                })
+                .unwrap_or(0.0);
+            let total_fte: f64 = ents
+                .map(|e| {
+                    e.companies
+                        .iter()
+                        .map(|c| c.fulfilled_fte as f64)
+                        .sum()
+                })
+                .unwrap_or(0.0);
+            // Rent flow: occupied_slots × rent_per_slot across housing stock.
+            let rent_flow: f64 = ents
+                .map(|e| {
+                    e.housing_buildings
+                        .iter()
+                        .map(|h| {
+                            h.primary_slots.occupied_slots as f64
+                                * h.primary_slots.rent_per_slot
+                        })
+                        .sum()
+                })
+                .unwrap_or(0.0);
+            eprintln!(
+                "HH[{}]: gdp={:.3e} C={:.3e} impC={:.3e} I={:.3e} G={:.3e} NX={:.3e} \
+                 | hh_income={:.3e} ({:.1}% gdp) savings={:.3e} pop={} \
+                 pit={:.3} vat_svc={:.3} unemp={:.3} \
+                 | wage_bill={:.3e} ({:.1}% gdp) fte={:.2e} avgw={:.1} \
+                 rent={:.3e} ({:.1}% gdp) capacity={:.3e} spend/cap={:.2}",
+                name,
+                bd.official_gdp,
+                bd.consumption,
+                bd.imputed_consumption,
+                bd.investment,
+                bd.government_spending,
+                bd.net_exports,
+                sum_income,
+                if bd.official_gdp > 0.0 {
+                    sum_income / bd.official_gdp * 100.0
+                } else {
+                    0.0
+                },
+                sum_savings,
+                sum_pop,
+                country.tax_rates.income_tax.rate,
+                country
+                    .tax_rates
+                    .vat
+                    .get("services")
+                    .map(|v| v.rate)
+                    .unwrap_or(0.0),
+                country.macro_indicators.labor_market.unemployment_rate,
+                wage_bill,
+                if bd.official_gdp > 0.0 {
+                    wage_bill / bd.official_gdp * 100.0
+                } else {
+                    0.0
+                },
+                total_fte,
+                if total_fte > 0.0 {
+                    wage_bill / total_fte
+                } else {
+                    0.0
+                },
+                rent_flow,
+                if bd.official_gdp > 0.0 {
+                    rent_flow / bd.official_gdp * 100.0
+                } else {
+                    0.0
+                },
+                sum_capacity,
+                if sum_capacity > 0.0 {
+                    bd.consumption / sum_capacity
+                } else {
+                    0.0
+                },
+            );
+        }
+    }
 }

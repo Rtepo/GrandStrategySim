@@ -41,6 +41,38 @@ pub struct GuildConfig {
     pub default_welfare_contribution_rate: f64,
     /// Default quality standard for new guilds (financial premium only).
     pub default_quality_standard: f64,
+    /// Share of member workshop revenue collected as guild dues each turn.
+    /// The guild's income is bounded to a realistic fraction of what its
+    /// member workshops actually produce (valued at market prices), instead
+    /// of the old `liquid_capital * 0.1` book-equity proxy that let the
+    /// "profit" estimate compound far beyond any real earnings.
+    #[serde(default = "default_member_dues_rate")]
+    pub member_dues_rate: f64,
+    /// Hard cap on the welfare fund as a share of national GDP. Guilds are
+    /// mutual-aid associations, not sovereign wealth funds — a fund larger
+    /// than a few percent of GDP is an accounting artifact. Balances above
+    /// `gdp * welfare_fund_gdp_cap_share` are swept into the member payout
+    /// pool (and the unbacked accrual written down — see
+    /// `plan_welfare_disbursement`), keeping every guild fund well under
+    /// the 5%-of-GDP realism bound.
+    #[serde(default = "default_welfare_fund_gdp_cap_share")]
+    pub welfare_fund_gdp_cap_share: f64,
+    /// Fraction of the welfare fund paid out to members each turn. The fund
+    /// is a benefit pool (sickness, retirement, widows) — it must disburse
+    /// regularly, not accumulate without bound. A 25%/turn payout yields a
+    /// steady-state balance of ~4× the per-turn dues accrual.
+    #[serde(default = "default_welfare_disbursement_rate")]
+    pub welfare_disbursement_rate: f64,
+}
+
+fn default_member_dues_rate() -> f64 {
+    0.15
+}
+fn default_welfare_fund_gdp_cap_share() -> f64 {
+    0.04
+}
+fn default_welfare_disbursement_rate() -> f64 {
+    0.25
 }
 
 impl Default for GuildConfig {
@@ -52,6 +84,9 @@ impl Default for GuildConfig {
             min_seed_capital_wage_multiple: 50.0,
             default_welfare_contribution_rate: 0.10,
             default_quality_standard: 0.15,
+            member_dues_rate: default_member_dues_rate(),
+            welfare_fund_gdp_cap_share: default_welfare_fund_gdp_cap_share(),
+            welfare_disbursement_rate: default_welfare_disbursement_rate(),
         }
     }
 }
@@ -306,6 +341,105 @@ pub fn distribute_guild_dividends(
     }
 
     dividends
+}
+
+/// Assess this turn's guild dues from member workshop revenue.
+///
+/// Member workshops' production for the turn is valued at real market
+/// prices (`member_revenue`); the guild assesses
+/// `member_revenue * config.member_dues_rate` in dues, split pro-rata
+/// across the contributing classes by `member_shares`. This is the ONLY
+/// income channel the guild has — the returned map is what the caller
+/// debits from each member class's real savings and credits into the
+/// guild's `available_cash` (strict double-entry; per-class debits are
+/// clamped to what that class actually holds).
+///
+/// # Arguments
+/// * `company` - The guild company (read-only).
+/// * `member_revenue` - Market value of this turn's guild production.
+/// * `member_shares` - (class_id, weight) pairs — same weights used for
+///   dividend distribution, so dues and payouts share the member split.
+/// * `config` - Guild configuration (`member_dues_rate`).
+pub fn assess_guild_dues(
+    company: &Company,
+    member_revenue: f64,
+    member_shares: &[(String, f64)],
+    config: &GuildConfig,
+) -> BTreeMap<String, f64> {
+    let mut dues = BTreeMap::new();
+    if !matches!(company.legal_form, LegalForm::Guild(_)) {
+        return dues;
+    }
+    let pool = member_revenue * config.member_dues_rate;
+    if !pool.is_finite() || pool <= 0.0 {
+        return dues;
+    }
+    let total_weight: f64 = member_shares.iter().map(|(_, w)| *w).sum();
+    if total_weight <= 0.0 {
+        return dues;
+    }
+    for (class_id, weight) in member_shares {
+        let share = pool * weight / total_weight;
+        if share > 0.0 {
+            *dues.entry(class_id.clone()).or_insert(0.0) += share;
+        }
+    }
+    dues
+}
+
+/// Plan this turn's welfare-fund disbursement to members.
+///
+/// Two payout components, both real claims on guild cash:
+/// 1. **Regular disbursement**: `welfare_fund * welfare_disbursement_rate` —
+///    the fund pays out a share of its balance every turn (it is a mutual
+///    benefit pool, not a hoard).
+/// 2. **GDP cap sweep**: any balance above
+///    `gdp * welfare_fund_gdp_cap_share` is scheduled for disbursement so
+///    the fund cannot exceed a realistic share of national output.
+///
+/// The fund balance is reduced by the full planned amount here. The caller
+/// performs the double-entry transfer — debiting `available_cash` and
+/// crediting member savings — clamped to the cash actually on hand.
+///
+/// Historical note: legacy saves may carry welfare-fund balances that were
+/// accrued against a `liquid_capital`-proxy profit estimate rather than
+/// real member revenue and were never backed by segregated cash. The GDP
+/// cap therefore also writes the unbacked excess down to the cap: the
+/// claim is extinguished up to `cap` without a matching cash movement
+/// (the accrual itself never moved cash either — it is a pure ledger
+/// correction, M0-neutral). Members still receive the largest cash-backed
+/// disbursement the guild can actually fund.
+///
+/// # Returns
+/// The planned cash disbursement (≤ `welfare_fund` before reduction).
+pub fn plan_welfare_disbursement(
+    company: &mut Company,
+    gdp: f64,
+    config: &GuildConfig,
+) -> f64 {
+    let guild_data = match &mut company.legal_form {
+        LegalForm::Guild(data) => data,
+        _ => return 0.0,
+    };
+    let fund = guild_data.welfare_fund;
+    if !fund.is_finite() || fund <= 0.0 {
+        guild_data.welfare_fund = fund.max(0.0);
+        return 0.0;
+    }
+
+    let cap = (gdp * config.welfare_fund_gdp_cap_share).max(0.0);
+    let regular = fund * config.welfare_disbursement_rate;
+    let excess_over_cap = (fund - cap).max(0.0);
+    let planned = (regular + excess_over_cap).min(fund);
+
+    // Reduce the claim by what is scheduled to be paid; if the fund still
+    // exceeds the cap after scheduling (e.g. a legacy accrual dwarfs real
+    // cash), write the unbacked remainder down to the cap. Cash actually
+    // paid is subtracted below only once — the claim reduction IS the
+    // accounting entry for the disbursement.
+    guild_data.welfare_fund = (fund - planned).min(cap).max(0.0);
+
+    planned
 }
 
 /// Check if a guild should dissolve.

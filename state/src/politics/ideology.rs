@@ -1223,6 +1223,146 @@ pub fn get_ruling_coordinates(country: &crate::state::Country) -> IdeologyCoordi
         .unwrap_or_default()
 }
 
+/// Get the GOVERNING coalition's ideological coordinates.
+///
+/// Where `get_ruling_coordinates` reads only the senior ruling party, this
+/// returns the seat-weighted centroid of the whole governing coalition —
+/// the political object that actually sets fiscal policy. Each coalition
+/// member is weighted by its seat share inside the coalition (from
+/// `politics.parliament`); minority governments are pulled 30% of the way
+/// toward the centrist origin (they must court opposition votes to pass
+/// budgets, so their effective platform is moderated). Single-party
+/// majority governments and non-coalition regimes collapse to the ruling
+/// party's own coordinates.
+///
+/// The coalition centroid is then scaled by the government's seat share
+/// (mandate strength: a thin coalition is pulled toward the legislative
+/// center, a dominant one implements its full platform), and minority
+/// governments are pulled a further 30% toward the centrist origin.
+///
+/// This is what drives national tax targets: two countries ruled by the
+/// same ideology but governing with different partners and different seat
+/// maps land on different effective coordinates — and therefore different
+/// rates.
+pub fn governing_coordinates(country: &crate::state::Country) -> IdeologyCoordinates {
+    let politics = &country.politics;
+    let ruling = get_ruling_coordinates(country);
+
+    let total_seats: f64 = politics.parliament.values().map(|s| *s as f64).sum();
+
+    // Coalition centroid: seat-weighted mean of the governing parties'
+    // coordinates. Single-party majority governments (`coalition` empty)
+    // collapse to the ruling party's own coordinates; non-democratic
+    // regimes likewise.
+    let (centroid, gov_seats) = if politics.coalition.is_empty() {
+        let seats = politics
+            .parliament
+            .get(&politics.ruling_party)
+            .copied()
+            .unwrap_or(0) as f64;
+        (ruling, seats)
+    } else {
+        let mut acc = IdeologyCoordinates {
+            economy: 0.0,
+            liberty: 0.0,
+            tradition: 0.0,
+        };
+        let mut total_w = 0.0;
+        for member_id in &politics.coalition {
+            let coords = politics
+                .active_parties
+                .get(member_id)
+                .map(|p| p.coordinates)
+                .unwrap_or(ruling);
+            // A member with no recorded seats gets weight 1 so
+            // appointed/technocratic partners still count.
+            let seats = politics
+                .parliament
+                .get(member_id)
+                .copied()
+                .unwrap_or(0)
+                .max(1) as f64;
+            acc = acc.add(coords.scale(seats));
+            total_w += seats;
+        }
+        let centroid = if total_w > 0.0 {
+            acc.scale(1.0 / total_w)
+        } else {
+            ruling
+        };
+        (centroid, total_w)
+    };
+
+    // Mandate strength: the government's seat share scales how much of its
+    // platform it can actually implement — a 51% coalition drifts toward
+    // the legislative center, a 90% one-party state implements the full
+    // program. Two countries ruled by the same ideology but with
+    // different seat maps therefore get different effective platforms.
+    let strength = if politics.government_form.is_democratic() && total_seats > 0.0 {
+        (gov_seats / total_seats).clamp(0.2, 1.0)
+    } else {
+        1.0
+    };
+    let mut effective = centroid.scale(strength);
+
+    // Minority governments must court opposition votes to pass supply —
+    // pull the effective platform a further 30% toward the origin.
+    if politics.minority_government {
+        effective = effective.scale(0.7);
+    }
+    effective.clamp_mut();
+    effective
+}
+
+/// National tax-policy targets as a function of the governing coalition's
+/// economic coordinate.
+///
+/// Returns `(pit, cit, vat)` as fractions — the rates the coalition would
+/// enact given unlimited political capital. The per-turn application code
+/// drifts actual rates toward these targets rather than snapping.
+///
+/// Piecewise-linear anchors on the economy axis (-1 = collectivist,
+/// +1 = laissez-faire):
+///   -1.00 Marxist planned        -> PIT 42 / CIT 32 / VAT 20
+///   -0.60 Democratic socialist   -> PIT 37 / CIT 27 / VAT 19
+///   -0.30 Social democracy       -> PIT 32 / CIT 22 / VAT 18
+///    0.00 Centrist               -> PIT 27 / CIT 20 / VAT 16
+///   +0.25 Conservative           -> PIT 22 / CIT 18 / VAT 14
+///   +0.50 Liberal-conservative   -> PIT 19 / CIT 16 / VAT 12
+///   +0.80 Classical liberal      -> PIT 15 / CIT 15 / VAT 10
+///   +1.00 Laissez-faire          -> PIT 10 / CIT 10 / VAT  8
+pub fn ideology_tax_targets(economy: f64) -> (f64, f64, f64) {
+    /// (economy, pit, cit, vat) anchor table, ascending by economy.
+    const ANCHORS: &[(f64, f64, f64, f64)] = &[
+        (-1.00, 0.42, 0.32, 0.20),
+        (-0.60, 0.37, 0.27, 0.19),
+        (-0.30, 0.32, 0.22, 0.18),
+        (0.00, 0.27, 0.20, 0.16),
+        (0.25, 0.22, 0.18, 0.14),
+        (0.50, 0.19, 0.16, 0.12),
+        (0.80, 0.15, 0.15, 0.10),
+        (1.00, 0.10, 0.10, 0.08),
+    ];
+    let e = economy.clamp(-1.0, 1.0);
+    // Find the segment containing e; interpolate within it.
+    for w in ANCHORS.windows(2) {
+        let (e0, p0, c0, v0) = w[0];
+        let (e1, p1, c1, v1) = w[1];
+        if e >= e0 && e <= e1 {
+            let t = (e - e0) / (e1 - e0);
+            return (
+                p0 + (p1 - p0) * t,
+                c0 + (c1 - c0) * t,
+                v0 + (v1 - v0) * t,
+            );
+        }
+    }
+    // Unreachable after clamping (e is within the outer anchors), but keep
+    // a safe fallback at the extreme endpoint.
+    let last = ANCHORS[ANCHORS.len() - 1];
+    (last.1, last.2, last.3)
+}
+
 // =============================================================================
 // Coordinate-based base bid (Ideology Step 4, Part 5.3)
 // =============================================================================

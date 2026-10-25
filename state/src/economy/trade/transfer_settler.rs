@@ -259,7 +259,18 @@ pub fn settle_transfer_mapped<S: std::hash::BuildHasher>(
                     );
                 }
             }
-            adjust_bank_balance(companies, id_to_idx, bank_id, -amount, -amount);
+            let bank_debited =
+                adjust_bank_balance(companies, id_to_idx, bank_id, -amount, -amount);
+            #[cfg(feature = "diagnostic")]
+            if !bank_debited {
+                // The payer is banked — its cash is M1 (excluded from the
+                // M0 walk) — but the reserve debit never landed, so the
+                // payer leg produced no M0 counterpart while recipient legs
+                // did. Unbanked payers hit the final `else` below; their
+                // available_cash debit is itself M0-counted (physical fiat).
+                eprintln!("TRACE_NO_BANK_TRANSFER: payer={} amount={:.2} recipient={:?} — M0 creation risk (payer bank unresolved)",
+                    companies[payer_idx].id, amount, recipient);
+            }
         } else if companies[payer_idx].sector == crate::registries::enums::Sector::Banking {
             // The payer IS a bank paying from its own reserves (e.g. fines,
             // taxes, deposit insurance). Debit the bank's own balance sheet
@@ -282,11 +293,11 @@ pub fn settle_transfer_mapped<S: std::hash::BuildHasher>(
                 // `deposits` negative).
                 bs.tier_1_capital -= amount;
             }
-        } else {
-            #[cfg(feature = "diagnostic")]
-            eprintln!("TRACE_NO_BANK_TRANSFER: payer={} amount={:.2} recipient={:?} — M0 creation risk (no bank debit)",
-                companies[payer_idx].id, amount, recipient);
         }
+        // Unbanked payer (primary_bank_id = None, non-Banking sector): no
+        // bank leg exists — and none is needed. The walk counts unbanked
+        // corporate cash as physical M0, so the available_cash debit above
+        // is already the M0-side leg.
     }
 
     let mut result = TransferResult {

@@ -56,10 +56,15 @@ pub struct NutritionalDeficit {
 /// * Intersection + capped substitution: only deduct commodities actually harvested
 /// * Surplus of produced commodity may substitute for missing needs up to substitution_cap
 /// * Remaining harvest after deduction flows to D.6 (deposit to warehouses)
+///
+/// `regional_class_fte`: (region_id, class) → total FTE for that class in
+/// the region — used to allocate each class's regional population across
+/// the companies that employ it.
 pub fn apply_payment_in_kind(
     region: &mut Region,
     labor_allocation: &LaborAllocationMatrix,
     harvest_bundle: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
+    regional_class_fte: &BTreeMap<(String, DemographicClass), f64>,
     _current_turn: u32,
 ) -> (InKindLedger, NutritionalDeficit) {
     let mut in_kind_ledger = InKindLedger::default();
@@ -68,6 +73,60 @@ pub fn apply_payment_in_kind(
     let config = subsistence_config();
     let consumption = consumption_registry();
     let substitution = substitution_matrix();
+
+    // v4.21: population-scale subsistence provisioning. An agricultural
+    // estate feeds the whole rural population tied to its land — workers,
+    // their households, and dependents — not only the measured FTE
+    // headcount. Each company's share of a class's regional FTE carries
+    // that share of the class's regional population; the claim stays
+    // bounded by the physical harvest, so uncovered need remains a
+    // market/deficit claim rather than phantom consumption.
+    let covered_classes = [
+        DemographicClass::Serf,
+        DemographicClass::FreePeasant,
+        DemographicClass::LandlessLaborer,
+    ];
+    let mut class_population: BTreeMap<DemographicClass, f64> = BTreeMap::new();
+    for class in covered_classes {
+        if let Some(rural) = class.to_rural() {
+            let pop = region
+                .class_demographics
+                .rural_classes
+                .get(&rural)
+                .map(|d| d.population.max(0) as f64)
+                .unwrap_or(0.0);
+            class_population.insert(class, pop);
+        }
+    }
+    let class_reg_fte: BTreeMap<DemographicClass, f64> = covered_classes
+        .iter()
+        .map(|c| {
+            (
+                *c,
+                regional_class_fte
+                    .get(&(region.id.clone(), *c))
+                    .copied()
+                    .unwrap_or(0.0),
+            )
+        })
+        .collect();
+    // People provisioned per company for a class = the class's regional
+    // population allocated by the company's share of the class's
+    // regional FTE. Classes outside the rural laboring classes (or
+    // unmapped) fall back to their own FTE headcount.
+    let covered_heads = |class: &DemographicClass, fte: f64| -> f64 {
+        match class_population.get(class) {
+            Some(&pop) if pop > 0.0 => {
+                let reg = class_reg_fte.get(class).copied().unwrap_or(0.0);
+                if reg > 0.0 {
+                    pop * (fte / reg)
+                } else {
+                    0.0
+                }
+            }
+            _ => fte,
+        }
+    };
 
     // Process each agricultural company in the region
     for (company_id, harvest) in harvest_bundle.iter_mut() {
@@ -97,7 +156,7 @@ pub fn apply_payment_in_kind(
             if let Some(basket) = consumption.get(class.as_str()) {
                 if let Some(subsistence_tier) = basket.tiers.get(&NeedTier::Subsistence) {
                     for (commodity, per_capita) in subsistence_tier {
-                        let need = per_capita * fte;
+                        let need = per_capita * covered_heads(class, *fte);
                         *total_subsistence_need.entry(*commodity).or_insert(0.0) += need;
                     }
                 }
@@ -117,7 +176,7 @@ pub fn apply_payment_in_kind(
                 if let Some(basket) = consumption.get(class.as_str()) {
                     if let Some(subsistence_tier) = basket.tiers.get(&NeedTier::Subsistence) {
                         for (commodity, per_capita) in subsistence_tier {
-                            let need = per_capita * fte;
+                            let need = per_capita * covered_heads(class, *fte);
                             *deductions.entry(*commodity).or_insert(0.0) += need;
                         }
                     }
@@ -136,7 +195,7 @@ pub fn apply_payment_in_kind(
                     if let Some(basket) = consumption.get(class.as_str()) {
                         if let Some(subsistence_tier) = basket.tiers.get(&NeedTier::Subsistence) {
                             for (commodity, per_capita) in subsistence_tier {
-                                let need = per_capita * fte;
+                                let need = per_capita * covered_heads(class, *fte);
                                 *deductions.entry(*commodity).or_insert(0.0) += need;
                             }
                         }
@@ -216,10 +275,15 @@ pub fn apply_payment_in_kind(
                     let key = (region.id.clone(), *class);
                     let class_entry = in_kind_ledger.deductions_by_class.entry(key).or_default();
                     for (&commodity, &qty) in &actual_deductions {
-                        // Proportionally assign deductions based on FTE share
-                        let total_fte: f64 = company_fte.values().sum();
-                        if total_fte > 0.0 {
-                            let share = fte / total_fte;
+                        // Proportionally assign deductions based on the
+                        // covered-population share (population-scale
+                        // provisioning), not raw FTE.
+                        let total_covered: f64 = company_fte
+                            .iter()
+                            .map(|(c, f)| covered_heads(c, *f))
+                            .sum();
+                        if total_covered > 0.0 {
+                            let share = covered_heads(class, *fte) / total_covered;
                             *class_entry.entry(commodity).or_insert(0.0) += qty * share;
                         }
                     }
@@ -235,7 +299,7 @@ pub fn apply_payment_in_kind(
         if let Some(basket) = consumption.get(class.as_str()) {
             if let Some(subsistence_tier) = basket.tiers.get(&NeedTier::Subsistence) {
                 for (commodity, per_capita) in subsistence_tier {
-                    let need = per_capita * *fte;
+                    let need = per_capita * covered_heads(class, *fte);
                     let key = (region.id.clone(), *class);
                     *nutritional_deficit
                         .deficits
