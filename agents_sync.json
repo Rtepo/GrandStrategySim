@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "last_updated": "2026-10-25T23:26:01.959Z",
+  "last_updated": "2026-10-25T23:26:04.938Z",
   "last_green_commit": "19e8a1d983f3804215fe77bd8f8a506aa4320a11",
   "last_green_commit_at": "2026-10-25T23:25:35.280Z",
   "agents": [
@@ -49,15 +49,12 @@
     },
     {
       "agent_id": "agent-4",
-      "session_id": "automatic-smoke",
+      "session_id": null,
       "branch": "feat/education-mobility",
-      "locked_dirs": [
-        "economy/labor/education",
-        "economy/config/education_config.rs"
-      ],
+      "locked_dirs": [],
       "shared_files": [],
       "task": "Regionalizing education shares, Loyalty Bonds, tiered financing",
-      "status": "active",
+      "status": "force-unlocked",
       "role": "worker",
       "registered_at": null,
       "last_heartbeat": null
