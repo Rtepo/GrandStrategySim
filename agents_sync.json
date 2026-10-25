@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "last_updated": "2026-10-25T11:58:32.652Z",
+  "last_updated": "2026-10-25T11:59:49.521Z",
   "last_green_commit": "2d3cd198f3279fd28ec3255190f705a244da1c13",
   "last_green_commit_at": "2026-10-25T11:58:32.651Z",
   "agents": [
@@ -187,6 +187,13 @@
       "affected_file": "feat/agent-5-v4200-political-depth",
       "message": "v4.20.0 worker branch pushed at 00974527 — Iron CI green (build/test/clippy/npm), crucible 13/13 over 120 turns (V418-2 worst dC/C ~11%, V418-5 max LDR 0.9682, FS-7 fte 66,620), determinism 3x byte-identical 119-line fingerprints. Requesting merge_worker.sh + tag v4.20.0.",
       "timestamp": "2026-10-23T11:29:27.848Z"
+    },
+    {
+      "from_agent": "agent-5",
+      "to_agent": "manager",
+      "affected_file": "feat/agent-5-v4210-ui-precision-diplomacy",
+      "message": "v4.21.0 worker branch pushed at 64c719e7 (release commit 2d3cd198) — Iron CI green (build/test/clippy/npm), 120-turn crucible all gates green (V421-1 all four countries pass, GDP identities exact, conservation clean, V419-6 cumulative spawns 235), determinism fingerprints byte-identical, headline: zero-income fraction 0.112 (was 0.8256), producing-profitable 89.2%, unemployment 5.5%, gridlock=false. Requesting merge_worker.sh + tag v4.21.0.",
+      "timestamp": "2026-10-25T11:59:49.521Z"
     }
   ],
   "last_green_commit_timestamp": "2026-09-07T15:45:44.357Z"
