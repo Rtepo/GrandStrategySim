@@ -209,6 +209,22 @@ impl CompanyLifecycle {
             crate::state::macro_data::TURNS_PER_YEAR as u32;
 
         for (idx, company) in companies.iter().enumerate() {
+            // v4.21 WS3: Municipal service utilities are never liquidated.
+            // They are non-privatizable (`privatizable: false`,
+            // `state_share = 1.0`) public utilities whose "insolvency" is a
+            // municipal-funding shortfall, not a market failure — the Syndic
+            // would auction their public-service buildings into the
+            // bankruptcy pool and permanently orphan the region's
+            // waste/public-services staffing. Same rationale as the Energy
+            // and Banking exemptions below: resolution runs through the JST
+            // contract (`ensure_municipal_services_employers`) and wage
+            // arrears, not asset fire-sales.
+            if matches!(
+                company.legal_form,
+                crate::entities::legal_form::LegalForm::MunicipalCompany(_)
+            ) {
+                continue;
+            }
             // Check for negative equity.
             if company.company_capital < 0.0 {
                 // Strategic Resolution: Energy companies are too critical to liquidate.
@@ -1161,6 +1177,67 @@ mod tests {
             companies.len(),
             1,
             "company with active workers must survive the loss-streak rule"
+        );
+    }
+
+    /// v4.21 WS3 regression: `MUN-*` municipal utilities must NEVER reach
+    /// the Syndic. They book structurally negative P&L (accrual
+    /// `!realized_sector` → wage expense, no commodity sales), so before the
+    /// exemption every JST utility hit the negative-equity or loss-streak
+    /// path within ~3 years, was liquidated, and its public-service
+    /// buildings were routed to the bankruptcy auction pool — permanently
+    /// orphaning the region's WasteManagement/PublicServices staffing.
+    #[test]
+    fn test_municipal_company_never_liquidated() {
+        let mut company = Company::new(
+            "MUN-WASTE-REG1".to_string(),
+            "Municipal Waste Utility".to_string(),
+            Sector::WasteManagement,
+            LegalForm::MunicipalCompany(
+                crate::entities::legal_form::MunicipalCompanyData::default(),
+            ),
+            1000.0,
+            0.0,
+            40,
+        );
+        // Worst case: deep negative equity AND a sustained loss streak,
+        // long past every grace window.
+        company.founded_turn = 0;
+        company.company_capital = -5_000.0;
+        company.consecutive_loss_turns =
+            crate::state::macro_data::TURNS_PER_YEAR as u32 * 4;
+        company.building_ids.push("mun-bld".to_string());
+        let mut companies = vec![company];
+
+        let mut buildings = vec![Building::new(
+            "mun-bld".to_string(),
+            "MUN-WASTE-REG1".to_string(),
+            Sector::WasteManagement,
+            40,
+        )];
+        buildings[0].current_employment = 30;
+
+        let mut country = Country::mock_for_tests();
+        country.name = "Test".to_string();
+
+        let far_past_grace = crate::state::macro_data::TURNS_PER_YEAR as u32 * 10;
+        CompanyLifecycle::liquidate_bankrupt_companies(
+            &mut companies,
+            &mut buildings,
+            &mut country,
+            2024,
+            far_past_grace,
+        );
+
+        assert_eq!(
+            companies.len(),
+            1,
+            "municipal utility must survive the Syndic — municipal insolvency \
+             is resolved through the JST contract, not asset fire-sales"
+        );
+        assert_eq!(
+            buildings[0].owner_id, "MUN-WASTE-REG1",
+            "public-service building must stay with its municipal operator"
         );
     }
 }

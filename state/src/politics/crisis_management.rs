@@ -23,7 +23,10 @@
 #![allow(missing_docs)]
 
 use crate::entities::Company;
-use crate::politics::ideology::{lerp, lerp_clamped_nonneg, Ideology, IdeologyCoordinates};
+use crate::politics::ideology::{
+    governing_coordinates, ideology_tax_targets, lerp, lerp_clamped_nonneg, Ideology,
+    IdeologyCoordinates,
+};
 use crate::politics::parliament::StateOfEmergency;
 use crate::politics::system::Politics;
 use crate::registries::enums::{Commodity, Sector};
@@ -370,6 +373,147 @@ pub fn compute_subsistence_wage(market_prices: &HashMap<Commodity, f64>) -> f64 
     // A worker needs ~200 units of food per year for subsistence.
     // Engine runs 24 turns/year, so per-turn subsistence = 200/24 Ôëł 8.33 units.
     (200.0 / 24.0) * food_price
+}
+
+// ============================================================================
+// FISCAL DISTRESS GATE (v4.21 WS2)
+// ============================================================================
+//
+// Emergency fiscal instruments — tax-hike decrees, the CRISIS-FISCAL and
+// CRISIS-BONDS fast-track bills, and crisis bond auctions — exist to stop
+// the treasury running dry, not to answer every macro wobble. Previously
+// they fired on ANY crisis signal (a GDP dip, a zero-NX turn) and ratcheted
+// PIT/CIT/VAT to the legal ceilings turn after turn — the uniform
+// 60/40/25 endpoint observed across every country.
+//
+// The gate now measures the treasury's actual burn rate: the EWMA of the
+// per-turn change in `liquid_reserves`, sampled at the same pipeline point
+// every turn so it captures the full organic fiscal flow (tax receipts,
+// ministry spend, transfers, non-crisis financing). Recording the "prev"
+// snapshot AFTER this module's own bond issuance means a successful
+// auction cancels out of the next delta — the tracker sees structural
+// deficit, never its own financing.
+
+/// EWMA smoothing for the measured treasury burn rate (per turn).
+const DEFICIT_BURN_EWMA_ALPHA: f64 = 0.20;
+
+/// `budget.extra` keys for the fiscal-distress tracker.
+const KEY_PREV_RESERVES: &str = "crisis_prev_liquid_reserves";
+const KEY_BURN_EWMA: &str = "crisis_deficit_burn_ewma";
+
+/// Extra headroom (fraction points) a crisis decree may add on top of the
+/// governing coalition's standing tax targets. Austerity under real fiscal
+/// distress may overshoot the platform, but never to the old uniform
+/// 60/40/25 ceiling regardless of ideology.
+const CRISIS_PIT_HEADROOM: f64 = 0.12;
+const CRISIS_CIT_HEADROOM: f64 = 0.12;
+const CRISIS_VAT_HEADROOM: f64 = 0.06;
+
+/// Per-turn deficit run-rate (units/turn), EWMA-smoothed. Positive = the
+/// treasury is bleeding money each turn.
+fn deficit_burn_rate(country: &Country) -> f64 {
+    country
+        .budget
+        .extra
+        .get(KEY_BURN_EWMA)
+        .and_then(|v| v.as_f64())
+        .unwrap_or_else(|| structural_deficit_estimate(country))
+}
+
+/// Cold-start estimate of the per-turn deficit before any measured history
+/// exists: nominal budget spend per turn minus last turn's recorded tax
+/// revenue. Conservative (ignores non-tax revenue) — the tracker replaces
+/// it with the measured flow after the first turn.
+fn structural_deficit_estimate(country: &Country) -> f64 {
+    let spend = country.budget.nominal_budget / crate::state::macro_data::TURNS_PER_YEAR as f64;
+    let revenue = country
+        .budget
+        .tax_history
+        .back()
+        .map(|e| {
+            e.pit_collected
+                + e.cit_collected
+                + e.vat_collected
+                + e.wealth_tax_collected
+                + e.capital_gains_collected
+                + e.extra
+                    .get("customs_revenue")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0)
+        })
+        .unwrap_or(0.0);
+    (spend - revenue).max(0.0)
+}
+
+/// Update the deficit-burn tracker. Must run EVERY turn at the same point
+/// in the crisis pipeline so the measured delta is a true per-turn flow.
+/// Call once at the top of `execute_crisis_response`; then call
+/// `stamp_post_crisis_reserves` at the end so crisis bond proceeds do not
+/// distort the next measurement.
+fn update_deficit_tracker(country: &mut Country) {
+    let reserves_now = country.budget.liquid_reserves;
+    let prev = country
+        .budget
+        .extra
+        .get(KEY_PREV_RESERVES)
+        .and_then(|v| v.as_f64())
+        .unwrap_or(reserves_now);
+    let measured_flow = prev - reserves_now; // > 0 = net treasury outflow
+    let ewma = country
+        .budget
+        .extra
+        .get(KEY_BURN_EWMA)
+        .and_then(|v| v.as_f64())
+        .unwrap_or_else(|| structural_deficit_estimate(country));
+    let burn = ewma * (1.0 - DEFICIT_BURN_EWMA_ALPHA) + measured_flow * DEFICIT_BURN_EWMA_ALPHA;
+    country
+        .budget
+        .extra
+        .insert(KEY_BURN_EWMA.to_string(), serde_json::json!(burn));
+    // Stamp pre-action reserves; the post-crisis re-stamp (after bonds)
+    // overwrites this when the full path runs.
+    country
+        .budget
+        .extra
+        .insert(KEY_PREV_RESERVES.to_string(), serde_json::json!(reserves_now));
+}
+
+/// Re-stamp reserves after all crisis actions (incl. bond auctions) so the
+/// money raised inside this module doesn't masquerade as next turn's
+/// organic surplus.
+fn stamp_post_crisis_reserves(country: &mut Country) {
+    let reserves = country.budget.liquid_reserves;
+    country
+        .budget
+        .extra
+        .insert(KEY_PREV_RESERVES.to_string(), serde_json::json!(reserves));
+}
+
+/// True when liquid reserves cover less than 2 turns of the current
+/// deficit run-rate — the condition that unlocks emergency fiscal
+/// instruments (tax decrees, fast-track fiscal/bond bills, bond auctions).
+/// An empty treasury counts as distressed even when the measured burn is
+/// momentarily flat.
+pub fn fiscal_distress(country: &Country) -> bool {
+    let reserves = country.budget.liquid_reserves;
+    if reserves <= 0.0 {
+        return true;
+    }
+    let burn = deficit_burn_rate(country);
+    burn > 0.0 && reserves < 2.0 * burn
+}
+
+/// Per-tax crisis ceilings: the coalition's standing targets plus a bounded
+/// austerity headroom, capped by the legal maxima (PIT 60%, CIT 40%, VAT
+/// 25%). Different ruling ideologies now produce different crisis ceilings —
+/// no more uniform 60/40/25 endpoint.
+fn crisis_rate_caps(country: &Country) -> (f64, f64, f64) {
+    let (pit_t, cit_t, vat_t) = ideology_tax_targets(governing_coordinates(country).economy);
+    (
+        (pit_t + CRISIS_PIT_HEADROOM).min(0.60),
+        (cit_t + CRISIS_CIT_HEADROOM).min(0.40),
+        (vat_t + CRISIS_VAT_HEADROOM).min(0.25),
+    )
 }
 
 // ============================================================================
@@ -753,7 +897,11 @@ pub fn apply_coalition_moderation(
 /// Phase 31: Execute fiscal response via executive decree.
 ///
 /// Adjusts PIT, CIT, and VAT based on the crisis response profile.
-/// Tax adjustments are bounded: PIT 0%ÔÇô60%, CIT 0%ÔÇô40%, VAT 0%ÔÇô25%.
+/// Tax adjustments are bounded by ideology-aware ceilings: the governing
+/// coalition's standing target plus a bounded austerity headroom
+/// (`crisis_rate_caps`), never above the legal maxima PIT 60%, CIT 40%,
+/// VAT 25%. This keeps even a permanent fiscal crisis from collapsing
+/// every country onto the same 60/40/25 corner.
 /// Maximum change per turn: ┬▒3 percentage points (┬▒1% for minority governments).
 ///
 /// # Returns
@@ -769,10 +917,13 @@ pub fn execute_fiscal_response(
         return messages;
     }
 
+    // v4.21 WS2: ideology-differentiated crisis ceilings.
+    let (pit_cap, cit_cap, vat_cap) = crisis_rate_caps(country);
+
     // PIT adjustment (rate is stored as a fraction, adjustment is in pp).
     let pit_delta = profile.pit_adjustment / 100.0;
     let old_pit = country.tax_rates.income_tax.rate;
-    let new_pit = (old_pit + pit_delta).clamp(0.0, 0.60);
+    let new_pit = (old_pit + pit_delta).clamp(0.0, pit_cap);
     if (new_pit - old_pit).abs() > 1e-9 {
         country.tax_rates.income_tax.rate = new_pit;
         messages.push(format!(
@@ -786,7 +937,7 @@ pub fn execute_fiscal_response(
     // CIT adjustment.
     let cit_delta = profile.cit_adjustment / 100.0;
     let old_cit = country.tax_rates.corporate_tax;
-    let new_cit = (old_cit + cit_delta).clamp(0.0, 0.40);
+    let new_cit = (old_cit + cit_delta).clamp(0.0, cit_cap);
     if (new_cit - old_cit).abs() > 1e-9 {
         country.tax_rates.corporate_tax = new_cit;
         messages.push(format!(
@@ -802,7 +953,7 @@ pub fn execute_fiscal_response(
     let mut vat_changes = 0;
     for bracket in country.tax_rates.vat.values_mut() {
         let old_vat = bracket.rate;
-        let new_vat = (old_vat + vat_delta).clamp(0.0, 0.25);
+        let new_vat = (old_vat + vat_delta).clamp(0.0, vat_cap);
         if (new_vat - old_vat).abs() > 1e-9 {
             bracket.rate = new_vat;
             vat_changes += 1;
@@ -934,48 +1085,93 @@ pub fn issue_crisis_bonds(
     // and citizens must be debited total_raised too. Debiting actual_amount
     // while crediting total_raised destroys M0 by the discount.
     // Allocate bond purchases proportionally across banks by excess reserves.
+    // v4.21 WS2: record each bank's PAID amount — the holder's face
+    // entitlement is paid/issue_price, and the residual face belongs to
+    // the citizen leg below (previously banks were recorded as holding the
+    // whole face, silently absorbing the citizen-funded share).
+    let mut bank_paid: Vec<(usize, f64)> = Vec::new();
     let mut remaining = total_raised;
     for (idx, excess) in &bank_indices {
         if remaining <= 0.0 {
             break;
         }
-        let bank_share = (remaining * (*excess / bank_capacity)).min(*excess);
-        if bank_share <= 0.0 {
+        let paid = (remaining * (*excess / bank_capacity)).min(*excess);
+        if paid <= 0.0 {
             continue;
         }
         // Debit bank reserves.
         if let Some(ref mut bs) = companies[*idx].balance_sheet {
-            bs.reserves_at_central_bank -= bank_share;
-            bs.securities += bank_share;
+            bs.reserves_at_central_bank -= paid;
+            bs.securities += paid;
         }
-        remaining -= bank_share;
+        bank_paid.push((*idx, paid));
+        remaining -= paid;
     }
 
     // Step 5: Citizen purchases (deduct from savings, create savings bonds).
     // Phase 94: citizen_share is the remaining portion of total_raised after
     // bank purchases. Debit citizens the discounted price, not face value.
+    // v4.21 WS2: the citizen leg now creates REAL retail SavingsBond claims
+    // (face = paid/issue_price, same coupon/maturity as the wholesale leg)
+    // instead of voiding the debited savings — the old path took household
+    // money and issued no instrument, silently destroying both citizen
+    // wealth and the debt ledger's double entry.
     let citizen_share = remaining.max(0.0);
+    let mut citizen_paid_total = 0.0;
     if citizen_share > 0.0 && citizen_capacity > 0.0 {
+        use crate::economy::debt_market::SavingsBond;
+        let retail_rate = if is_short_term { 0.0 } else { market_yield };
         for region in &mut country.regions {
-            for cd in region
+            for (class_name, cd) in region
                 .class_demographics
                 .rural_classes
-                .values_mut()
-                .chain(region.class_demographics.urban_classes.values_mut())
+                .iter_mut()
+                .map(|(k, v)| (k.to_string(), v))
+                .chain(
+                    region
+                        .class_demographics
+                        .urban_classes
+                        .iter_mut()
+                        .map(|(k, v)| (k.to_string(), v)),
+                )
             {
                 if cd.savings <= 0.0 {
                     continue;
                 }
-                let share = (cd.savings * 0.05 / citizen_capacity) * citizen_share;
-                if share > cd.savings {
+                let paid = (cd.savings * 0.05 / citizen_capacity) * citizen_share;
+                if paid > cd.savings {
                     continue;
                 }
-                cd.savings -= share;
+                cd.savings -= paid;
+                citizen_paid_total += paid;
+                let face = paid / issue_price;
+                if face <= 0.0 {
+                    continue;
+                }
+                country.debt_market.retail_bonds.push(SavingsBond {
+                    id: format!(
+                        "CSB-{}-{:04}",
+                        current_turn,
+                        country.debt_market.retail_bonds.len() + 1
+                    ),
+                    face_value: face,
+                    interest_rate: retail_rate,
+                    issue_turn: current_turn,
+                    maturity_turns,
+                    turns_remaining: maturity_turns,
+                    is_inflation_indexed: false,
+                    holder_key: format!("{}:{}", region.id, class_name),
+                    arrears: 0.0,
+                });
             }
         }
     }
 
-    // Credit treasury.
+    // Credit treasury with the amount actually collected — strict
+    // double-entry: every credited unit came out of a bank's reserves or a
+    // class's savings (the old code credited the full target even when the
+    // citizen leg underpaid, minting the shortfall from the void).
+    let total_raised: f64 = bank_paid.iter().map(|(_, p)| p).sum::<f64>() + citizen_paid_total;
     country.budget.liquid_reserves += total_raised;
 
     // Create treasury security record.
@@ -992,15 +1188,18 @@ pub fn issue_crisis_bonds(
     };
 
     let mut holders = Vec::new();
-    // Record bank holders.
-    for (idx, excess) in &bank_indices {
-        let bank_share = (actual_amount * (*excess / bank_capacity)).min(*excess);
-        if bank_share > 0.0 {
+    // Record bank holders — face entitlement = paid / issue_price. The
+    // wholesale security's face therefore covers only the bank-funded
+    // portion of the raise; the citizen-funded portion lives in
+    // `retail_bonds`. Holder sum + retail faces == actual_amount.
+    for (idx, paid) in &bank_paid {
+        let quantity = *paid / issue_price;
+        if quantity > 0.0 {
             holders.push(SecurityHolder {
                 entity_id: companies[*idx].id.clone(),
                 holder_type: SecurityHolderType::CommercialBank,
-                quantity: bank_share,
-                purchase_price: bank_share * issue_price,
+                quantity,
+                purchase_price: *paid,
             });
         }
     }
@@ -1015,7 +1214,7 @@ pub fn issue_crisis_bonds(
             } else {
                 TreasurySecurityType::TreasuryBond
             },
-            face_value: actual_amount,
+            face_value: bank_paid.iter().map(|(_, p)| p / issue_price).sum(),
             issue_price,
             issue_turn: current_turn,
             maturity_turns,
@@ -1043,20 +1242,29 @@ pub fn issue_crisis_bonds(
 }
 
 /// Phase 31: Issue crisis bonds if treasury coverage is below 2 months.
+/// v4.21 WS2: coverage is now measured in TURNS of the measured deficit
+/// run-rate (EWMA of organic treasury outflow), not months of the nominal
+/// budget — the old gate fired on healthy reserves whenever the nominal
+/// budget was large, spamming auctions (and their authorizing bills) while
+/// the state was in no fiscal distress at all.
 pub fn issue_crisis_bonds_if_needed(
     country: &mut Country,
     companies: &mut [Company],
     current_turn: u32,
 ) -> Vec<String> {
-    let monthly_spending = country.budget.nominal_budget / 12.0;
-    if monthly_spending <= 0.0 {
+    let burn = deficit_burn_rate(country);
+    if burn <= 0.0 {
         return Vec::new();
     }
-    let coverage = country.budget.liquid_reserves / monthly_spending;
-    if coverage >= 2.0 {
+    let coverage_turns = country.budget.liquid_reserves / burn;
+    if coverage_turns >= 2.0 {
         return Vec::new();
     }
-    let amount_needed = (2.0 * monthly_spending) - country.budget.liquid_reserves;
+    // Raise enough to restore ~6 turns of deficit runway.
+    let amount_needed = (6.0 * burn) - country.budget.liquid_reserves;
+    if amount_needed <= 0.0 {
+        return Vec::new();
+    }
     let (_, msgs) = issue_crisis_bonds(country, companies, amount_needed, current_turn);
     msgs
 }
@@ -1458,6 +1666,11 @@ pub fn execute_crisis_response(
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
+    // v4.21 WS2: keep the treasury burn-rate tracker current EVERY turn —
+    // the fiscal-distress gate below reads it, and the per-turn delta must
+    // be sampled at a fixed pipeline point to be a true run-rate.
+    update_deficit_tracker(country);
+
     // 1. Detect crisis.
     let indicators = detect_crisis(
         country,
@@ -1529,53 +1742,66 @@ pub fn execute_crisis_response(
     apply_coalition_moderation(&mut profile, &country.politics, ideology);
 
     // 4. Execute fiscal response (tax adjustments + spending cuts).
-    // Phase 32: Classify whether this should be a decree or fast-track legislation.
-    let fiscal_action_type =
-        classify_crisis_action(&country.politics, CrisisActionScope::BroadTaxChange);
-    match fiscal_action_type {
-        CrisisActionType::FastTrack => {
-            // Fast-track: fiscal changes go through Parliament.
-            // Phase 96: the bill is actually introduced into the legislative
-            // session now — it travels the real queue (committee → floor vote)
-            // and produces a VoteRecord in the chamber's recent_votes.
-            messages.push(
-                "[CRISIS FAST-TRACK] Fiscal response routed through Parliament (fast-track)."
-                    .to_string(),
-            );
-            let fiscal_msgs = execute_fiscal_response(country, &indicators, &profile);
-            messages.extend(fiscal_msgs);
-            introduce_crisis_fast_track_bill(
-                country,
-                "FISCAL",
-                "Emergency Fiscal Response Act",
-                current_turn,
-                &mut messages,
-            );
-        }
-        CrisisActionType::Decree => {
-            // Executive decree (parliament suspended or no parliament).
-            let fiscal_msgs = execute_fiscal_response(country, &indicators, &profile);
-            messages.extend(fiscal_msgs);
+    // v4.21 WS2: emergency fiscal instruments — tax decrees AND their
+    // authorizing fast-track bills — only fire when the treasury covers
+    // less than 2 turns of the measured deficit run-rate. A GDP-dip or
+    // trade-collapse crisis with a healthy treasury no longer hikes taxes;
+    // the counter-cyclical response and subsidies handle those.
+    let in_fiscal_distress = fiscal_distress(country);
+    if in_fiscal_distress {
+        // Phase 32: Classify whether this should be a decree or fast-track legislation.
+        let fiscal_action_type =
+            classify_crisis_action(&country.politics, CrisisActionScope::BroadTaxChange);
+        match fiscal_action_type {
+            CrisisActionType::FastTrack => {
+                // Fast-track: fiscal changes go through Parliament.
+                // Phase 96: the bill is actually introduced into the legislative
+                // session now — it travels the real queue (committee → floor vote)
+                // and produces a VoteRecord in the chamber's recent_votes.
+                messages.push(
+                    "[CRISIS FAST-TRACK] Fiscal response routed through Parliament (fast-track)."
+                        .to_string(),
+                );
+                let fiscal_msgs = execute_fiscal_response(country, &indicators, &profile);
+                messages.extend(fiscal_msgs);
+                introduce_crisis_fast_track_bill(
+                    country,
+                    "FISCAL",
+                    "Emergency Fiscal Response Act",
+                    current_turn,
+                    &mut messages,
+                );
+            }
+            CrisisActionType::Decree => {
+                // Executive decree (parliament suspended or no parliament).
+                let fiscal_msgs = execute_fiscal_response(country, &indicators, &profile);
+                messages.extend(fiscal_msgs);
+            }
         }
     }
 
     // 5. Issue crisis bonds if treasury is low (strict double-entry auction).
-    // Phase 32: Bond authorization classification.
-    let bond_action_type =
-        classify_crisis_action(&country.politics, CrisisActionScope::BondAuthorization);
-    if bond_action_type == CrisisActionType::FastTrack {
-        messages
-            .push("[CRISIS FAST-TRACK] Bond issuance authorized through Parliament.".to_string());
-        introduce_crisis_fast_track_bill(
-            country,
-            "BONDS",
-            "Emergency Bond Authorization Act",
-            current_turn,
-            &mut messages,
-        );
+    // v4.21 WS2: the authorization bill rides the same fiscal-distress gate
+    // — no emergency borrowing while reserves are healthy.
+    if in_fiscal_distress {
+        // Phase 32: Bond authorization classification.
+        let bond_action_type =
+            classify_crisis_action(&country.politics, CrisisActionScope::BondAuthorization);
+        if bond_action_type == CrisisActionType::FastTrack {
+            messages.push(
+                "[CRISIS FAST-TRACK] Bond issuance authorized through Parliament.".to_string(),
+            );
+            introduce_crisis_fast_track_bill(
+                country,
+                "BONDS",
+                "Emergency Bond Authorization Act",
+                current_turn,
+                &mut messages,
+            );
+        }
+        let bond_msgs = issue_crisis_bonds_if_needed(country, companies, current_turn);
+        messages.extend(bond_msgs);
     }
-    let bond_msgs = issue_crisis_bonds_if_needed(country, companies, current_turn);
-    messages.extend(bond_msgs);
 
     // 6. Allocate emergency subsidies to collapsing sectors.
     // Subsidies are always decrees (minor, specific interventions).
@@ -1618,6 +1844,10 @@ pub fn execute_crisis_response(
             distressed
         ));
     }
+
+    // v4.21 WS2: re-stamp reserves AFTER bond auctions/subsidies so the
+    // deficit tracker sees only the organic flow next turn.
+    stamp_post_crisis_reserves(country);
 
     messages
 }
@@ -2222,7 +2452,11 @@ mod tests {
     }
 
     #[test]
-    fn fiscal_response_clamps_pit_at_60pct() {
+    fn fiscal_response_clamps_pit_at_ideology_cap() {
+        // v4.21 WS2: the crisis ceiling is no longer the flat 60% legal max —
+        // it is the governing coalition's standing target plus a bounded
+        // austerity headroom. A default (centrist) country targets PIT 27%,
+        // so the cap is 27% + 12pp = 39%.
         let mut country = Country::default();
         country.tax_rates.income_tax.rate = 0.58; // 58% PIT
 
@@ -2239,10 +2473,10 @@ mod tests {
         let profile = CrisisResponseProfile::for_ideology(Ideology::MarxismLeninism);
         let _ = execute_fiscal_response(&mut country, &indicators, &profile);
 
-        // PIT should be clamped at 60% (not 61%).
+        // PIT should be clamped at the centrist crisis cap (39%), not 60%.
         assert!(
-            (country.tax_rates.income_tax.rate - 0.60).abs() < 1e-9,
-            "PIT should be clamped at 60%, got {}",
+            (country.tax_rates.income_tax.rate - 0.39).abs() < 1e-9,
+            "PIT should be clamped at the centrist crisis cap (39%), got {}",
             country.tax_rates.income_tax.rate
         );
     }

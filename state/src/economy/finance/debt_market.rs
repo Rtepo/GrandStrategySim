@@ -1006,6 +1006,31 @@ pub fn process_debt_service(
         .retain(|b| b.turns_remaining > 0);
 
     country.debt_market.recalculate();
+
+    // v4.21 WS2: record the sovereign debt service actually paid this turn
+    // (coupons + principal, scaled by the partial-payment ratio) plus a
+    // 24-turn EWMA run-rate. The Finance snapshot reads the EWMA so the
+    // "Debt Service" row reflects the real flow instead of a hardcoded 0 —
+    // the raw per-turn figure is lumpy (Annual coupons pay once per
+    // TURNS_PER_YEAR turns), the EWMA is its honest run-rate.
+    let paid_this_turn = total_due * payment_ratio;
+    let alpha = 1.0 / TURNS_PER_YEAR as f64;
+    let prev_rate = country
+        .budget
+        .extra
+        .get("debt_service_run_rate")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
+    let run_rate = prev_rate * (1.0 - alpha) + paid_this_turn * alpha;
+    country
+        .budget
+        .extra
+        .insert("debt_service_paid".to_string(), serde_json::json!(paid_this_turn));
+    country
+        .budget
+        .extra
+        .insert("debt_service_run_rate".to_string(), serde_json::json!(run_rate));
+
     foreign_payments
 }
 

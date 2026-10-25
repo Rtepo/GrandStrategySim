@@ -46,6 +46,31 @@ pub struct UnfundedMandate {
     /// v4.19 WS5c: National bill id that imposed this mandate (provenance).
     #[serde(default)]
     pub source_bill_id: String,
+    /// v4.21 WS3: What the mandate covers (derived from the imposing
+    /// provision/resolution — not a synthetic narrative).
+    #[serde(default)]
+    pub scope: String,
+    /// v4.21 WS3: The real-world effect the mandated spending produces.
+    #[serde(default)]
+    pub effects: String,
+    /// v4.21 WS3: Total cash actually disbursed to the service provider so
+    /// far (per-turn tranches). Completion is `disbursed >= required`.
+    #[serde(default)]
+    pub disbursed: f64,
+    /// v4.21 WS3: Portion of `disbursed` paid by the central grant leg
+    /// (Treasury → JST reserves → service provider).
+    #[serde(default)]
+    pub central_disbursed: f64,
+    /// v4.21 WS3: Portion of `disbursed` paid by the regional treasury leg
+    /// (JST reserves → service provider).
+    #[serde(default)]
+    pub regional_disbursed: f64,
+    /// v4.21 WS3: Whether the council's chosen funding mechanism (bond
+    /// issuance, expenditure cut, tax/fee rate change) has already been
+    /// applied once. Tranche disbursement must not re-issue bonds or
+    /// re-cut expenditures every turn.
+    #[serde(default)]
+    pub mechanism_applied: bool,
 }
 
 /// How the regional council decided to cover the funding gap.
@@ -536,13 +561,24 @@ pub fn execute_mandate_payment(
     result
 }
 
+/// v4.21 WS3: Mandates are funded works programs — cash reaches the
+/// service provider in per-turn tranches, not a single lump the turn
+/// after adoption. Eight turns amortizes a typical ordinance across two
+/// JST budget quarters while keeping `Regions → Mandates` progress
+/// visibly advancing between snapshots.
+pub const MANDATE_DISBURSE_TURNS: f64 = 8.0;
+
 /// Phase D.10: Process all active mandates in the turn loop.
 ///
 /// For each active mandate:
 /// 1. Determine the affected region.
 /// 2. Vote on funding mechanism via `vote_on_mandate_funding`.
-/// 3. Execute the mandate payment via `execute_mandate_payment`.
-/// 4. Remove completed/refused mandates from `active_mandates`.
+/// 3. Disburse this turn's tranche via `disburse_mandate_tranche` —
+///    strict double-entry (Treasury → JST reserves →
+///    `ministry_public_service_pool`), tracked by `disbursed`,
+///    `central_disbursed` and `regional_disbursed` on the mandate.
+/// 4. Keep the mandate while `disbursed < required`; drop it on
+///    completion. Refused mandates stay for a re-vote next turn.
 ///
 /// This function is called from the turn loop after fiscal transfers,
 /// equalization, and before JST spending.
@@ -552,6 +588,10 @@ pub fn execute_mandate_payment(
 /// AFTER the execution pass, so mandates adopted this turn persist in
 /// `active_mandates` for a full turn (they are funded by NEXT turn's pass)
 /// and `RegionDetail.active_mandates` reads a live record between turns.
+///
+/// v4.21 WS3: the council's funding vote is now persisted onto the
+/// mandate (`council_decision`) so the UI shows the real mechanism
+/// instead of a permanent "Pending".
 pub fn process_active_mandates(country: &mut Country) {
     let current_turn = country_turn(country);
 
@@ -564,7 +604,7 @@ pub fn process_active_mandates(country: &mut Country) {
     let mandates = std::mem::take(&mut country.politics.active_mandates);
     let mut remaining_mandates = Vec::new();
 
-    for mandate in mandates {
+    for mut mandate in mandates {
         // Find the region for this mandate.
         // v4.19 WS5c: Prefer the explicit region_id on new mandates; fall
         // back to the legacy description-as-key matching for old saves.
@@ -590,36 +630,58 @@ pub fn process_active_mandates(country: &mut Country) {
         };
 
         let region_id = country.regions[region_idx].id.clone();
-        let shortfall = (mandate.required_spending_per_region - mandate.central_funding).max(0.0);
 
-        // Vote on funding.
+        // Completion check — a mandate that already disbursed its full
+        // requirement retires instead of re-voting forever.
+        let required = mandate.required_spending_per_region.max(0.0);
+        let remaining = (required - mandate.disbursed).max(0.0);
+        if required <= 0.0 || remaining <= 1e-9 {
+            continue;
+        }
+
+        // Vote on how the JST covers its share of the gap (the council
+        // re-votes while a mandate is refused/pending — a real council
+        // re-litigates a funding refusal each session).
+        let gap_remaining =
+            (mandate.funding_gap - mandate.regional_disbursed).max(0.0);
         let decision = {
             let gov = country.regions[region_idx].governance.as_ref();
             match gov {
-                Some(g) => vote_on_mandate_funding(g, shortfall, &mut rng),
+                Some(g) => vote_on_mandate_funding(g, gap_remaining, &mut rng),
                 None => MandateFundingDecision::Refused,
             }
         };
+        // Persist the vote on the mandate — the UI reads `council_decision`
+        // as the funding-mechanism status.
+        mandate.council_decision = decision.clone();
 
-        // Check if Treasury can afford the central funding.
-        let treasury_can_afford = country.budget.liquid_reserves >= mandate.central_funding;
+        // Treasury covers the CENTRAL share pro-rata per tranche.
+        let central_remaining =
+            (mandate.central_funding - mandate.central_disbursed).max(0.0);
+        let treasury_can_afford =
+            country.budget.liquid_reserves >= central_remaining;
 
-        // Execute the mandate payment.
-        let result = execute_mandate_payment(
+        // Disburse this turn's tranche (strict double-entry).
+        let result = disburse_mandate_tranche(
             country,
             &region_id,
-            &mandate,
+            &mut mandate,
             &decision,
             treasury_can_afford,
         );
 
-        // Keep the mandate if it was refused or suspended (retry next turn).
-        // Remove it if it was successfully paid.
-        if !result.refused {
-            // Mandate was executed (fully or partially). Remove from active.
+        if result.refused {
+            // Council refused, commissary bond lock, or zero real cash —
+            // keep the mandate for next turn's session.
+            remaining_mandates.push(mandate);
             continue;
         }
-        // Mandate was refused — keep for retry.
+        if mandate.disbursed >= required - 1e-9 {
+            // Fully disbursed — the works are funded; retire the mandate.
+            continue;
+        }
+        // Tranche paid but the program continues — keep it active so the
+        // next turn disburses the following tranche.
         remaining_mandates.push(mandate);
     }
 
@@ -629,6 +691,186 @@ pub fn process_active_mandates(country: &mut Country) {
     // mandate adopted this turn is visible as `active` until NEXT turn's
     // pass funds it (snapshot reads between turns see a non-empty list).
     process_regional_council_sessions(country, current_turn);
+}
+
+/// Disburse one per-turn tranche of a mandate with strict double-entry
+/// accounting.
+///
+/// ## Cash flow (per turn)
+/// 1. `tranche = min(required / MANDATE_DISBURSE_TURNS, remaining)`.
+/// 2. CENTRAL GRANT leg: Treasury → JST `liquid_reserves`, pro-rata share
+///    of the tranche, capped by the remaining central commitment and the
+///    Treasury's real cash.
+/// 3. FUNDING MECHANISM (applied exactly once): the council's voted
+///    mechanism prepares the JST purse — bond proceeds credit reserves
+///    against new `total_debt`, expenditure cuts release reserves, tax /
+///    fee changes are rate changes for FUTURE collection.
+/// 4. DISBURSE leg: JST `liquid_reserves` →
+///    `ministry_public_service_pool` (the M0-counted provider pocket).
+/// 5. `disbursed` / `central_disbursed` / `regional_disbursed` accumulate;
+///    the mandate completes when `disbursed >= required`.
+///
+/// Unlike the legacy `execute_mandate_payment` (kept for the unit-test
+/// contract), a tranche that exceeds current reserves pays only what
+/// exists — no fiat is fabricated — and the mandate stays active to
+/// continue next turn instead of reporting a "partial" payment that
+/// silently suspended the remainder forever.
+fn disburse_mandate_tranche(
+    country: &mut Country,
+    region_id: &str,
+    mandate: &mut UnfundedMandate,
+    decision: &MandateFundingDecision,
+    treasury_can_afford: bool,
+) -> MandateExecutionResult {
+    let mut result = MandateExecutionResult::default();
+    let required = mandate.required_spending_per_region.max(0.0);
+    let remaining = (required - mandate.disbursed).max(0.0);
+    let tranche = (required / MANDATE_DISBURSE_TURNS).min(remaining);
+
+    // Councils that refused or never voted release no cash this turn.
+    if matches!(
+        decision,
+        MandateFundingDecision::Refused | MandateFundingDecision::Pending
+    ) || tranche <= 0.0
+    {
+        result.refused = true;
+        result.final_reserves = country
+            .regions
+            .iter()
+            .find(|r| r.id == region_id)
+            .and_then(|r| r.governance.as_ref())
+            .map(|g| g.budget.liquid_reserves)
+            .unwrap_or(0.0);
+        result.final_debt = country
+            .regions
+            .iter()
+            .find(|r| r.id == region_id)
+            .and_then(|r| r.governance.as_ref())
+            .map(|g| g.debt.total_debt)
+            .unwrap_or(0.0);
+        return result;
+    }
+
+    let region_idx = match country.regions.iter().position(|r| r.id == region_id) {
+        Some(idx) => idx,
+        None => {
+            result.refused = true;
+            return result;
+        }
+    };
+    let is_commissary = country.regions[region_idx]
+        .governance
+        .as_ref()
+        .map(|g| g.admin_status == AdministrativeStatus::CommissaryAdministration)
+        .unwrap_or(false);
+
+    // Commissary bond lock: a commissary region can never issue bonds —
+    // Treasury must carry the tranche's central share; without it the
+    // mandate stalls (refused) rather than printing junk debt.
+    if is_commissary
+        && matches!(decision, MandateFundingDecision::IssueBonds { .. })
+        && !treasury_can_afford
+    {
+        result.refused = true;
+        result.final_reserves = country.regions[region_idx]
+            .governance
+            .as_ref()
+            .map(|g| g.budget.liquid_reserves)
+            .unwrap_or(0.0);
+        result.final_debt = country.regions[region_idx]
+            .governance
+            .as_ref()
+            .map(|g| g.debt.total_debt)
+            .unwrap_or(0.0);
+        return result;
+    }
+
+    // ── CENTRAL GRANT leg ─────────────────────────────────────────────
+    // Pro-rata central share of this tranche; Treasury → JST reserves.
+    let central_ratio = if required > 0.0 {
+        (mandate.central_funding / required).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+    let central_due = (tranche * central_ratio)
+        .min((mandate.central_funding - mandate.central_disbursed).max(0.0));
+    let grant = central_due.min(country.budget.liquid_reserves.max(0.0));
+    if grant > 0.0 {
+        country.budget.liquid_reserves -= grant;
+        if let Some(ref mut gov) = country.regions[region_idx].governance {
+            gov.budget.liquid_reserves += grant;
+        }
+        mandate.central_disbursed += grant;
+    }
+
+    // ── FUNDING MECHANISM (exactly once) ──────────────────────────────
+    // The council's voted mechanism prepares the JST purse once — bonds
+    // are a single issuance, cuts a single release, rate changes persist.
+    if !mandate.mechanism_applied {
+        match decision {
+            MandateFundingDecision::IssueBonds {
+                principal,
+                interest_rate: _,
+            } => {
+                if !is_commissary {
+                    if let Some(ref mut gov) = country.regions[region_idx].governance {
+                        gov.debt.total_debt += *principal;
+                        gov.budget.liquid_reserves += *principal;
+                        result.bonds_issued = *principal;
+                    }
+                }
+            }
+            MandateFundingDecision::CutExpenditures { cut_amount } => {
+                if let Some(ref mut gov) = country.regions[region_idx].governance {
+                    let actual_cut = cut_amount.min(gov.budget.local_expenditures);
+                    gov.budget.local_expenditures -= actual_cut;
+                    gov.budget.liquid_reserves += actual_cut;
+                    result.expenditures_cut = actual_cut;
+                }
+            }
+            MandateFundingDecision::RaisePropertyTax { new_rate } => {
+                if let Some(ref mut gov) = country.regions[region_idx].governance {
+                    gov.budget.property_tax = *new_rate;
+                }
+            }
+            MandateFundingDecision::RaiseLocalFees { fee_multiplier } => {
+                if let Some(ref mut gov) = country.regions[region_idx].governance {
+                    gov.budget.local_fees *= fee_multiplier;
+                }
+            }
+            _ => {}
+        }
+        mandate.mechanism_applied = true;
+    }
+
+    // ── DISBURSE leg ──────────────────────────────────────────────────
+    // The JST pays this turn's tranche (grant included — it was just
+    // credited to its reserves) to the mandated service provider. Cash
+    // is clamped by real reserves: an empty treasury pays nothing and
+    // the mandate simply retries — no fiat is ever fabricated.
+    if let Some(ref mut gov) = country.regions[region_idx].governance {
+        let paid = tranche.min(gov.budget.liquid_reserves.max(0.0));
+        if paid <= 0.0 {
+            result.refused = true;
+        } else {
+            gov.budget.liquid_reserves -= paid;
+            country.ministry_public_service_pool += paid;
+            mandate.disbursed += paid;
+            mandate.regional_disbursed += (paid - grant).max(0.0);
+            result.jst_debit = paid;
+            result.central_credit = paid;
+        }
+        result.final_reserves = gov.budget.liquid_reserves;
+        result.final_debt = gov.debt.total_debt;
+        result.messages.push(format!(
+            "[MANDATE] '{}' tranche {paid:.2} disbursed ({:.2}/{:.2}) for {region_id}",
+            mandate.description, mandate.disbursed, required
+        ));
+    } else {
+        result.refused = true;
+    }
+
+    result
 }
 
 /// v4.19 WS5c: Impose per-region mandates when a national bill carrying
@@ -659,23 +901,37 @@ pub fn impose_mandates_for_bill(
 ) {
     use crate::politics::legislation::BillProvision;
 
-    // Collect (label, required-share-of-local-budget) obligations.
-    let mut obligations: Vec<(String, f64)> = Vec::new();
+    // Collect (label, required-share-of-local-budget, scope, effects)
+    // obligations. Scope/effects describe what the mandated spending
+    // physically covers — derived from the provision type, not narrative.
+    let mut obligations: Vec<(String, f64, &'static str, &'static str)> = Vec::new();
     for clause in &bill.core_clauses {
         let share = match &clause.provision {
-            Some(BillProvision::InfrastructureMandate { allocation_pct }) => {
-                Some((format!("{} — infrastructure works", bill.title), *allocation_pct))
-            }
-            Some(BillProvision::EducationLaw(_)) => {
-                Some((format!("{} — compulsory education provision", bill.title), 0.08))
-            }
-            Some(BillProvision::HealthcareLaw(_)) => {
-                Some((format!("{} — public health provision", bill.title), 0.08))
-            }
+            Some(BillProvision::InfrastructureMandate { allocation_pct }) => Some((
+                format!("{} — infrastructure works", bill.title),
+                *allocation_pct,
+                "Regional roads, water, and public-works upgrades",
+                "Obliges regions to fund infrastructure works; raises the \
+                 regional infrastructure level toward the JST service standard.",
+            )),
+            Some(BillProvision::EducationLaw(_)) => Some((
+                format!("{} — compulsory education provision", bill.title),
+                0.08,
+                "School places, teachers, and teaching materials",
+                "Expands compulsory-education coverage; raises long-run \
+                 human capital through the education pipeline.",
+            )),
+            Some(BillProvision::HealthcareLaw(_)) => Some((
+                format!("{} — public health provision", bill.title),
+                0.08,
+                "Clinics, public-health programs, and preventive care",
+                "Improves regional public-health outcomes and lowers \
+                 mortality pressure.",
+            )),
             _ => None,
         };
-        if let Some((label, s)) = share {
-            obligations.push((label, s.max(0.0)));
+        if let Some((label, s, scope, effects)) = share {
+            obligations.push((label, s.max(0.0), scope, effects));
         }
     }
     if obligations.is_empty() {
@@ -695,7 +951,7 @@ pub fn impose_mandates_for_bill(
         return;
     }
 
-    for (label, share) in obligations {
+    for (label, share, scope, effects) in obligations {
         // Per-region required spending from each region's real local budget.
         let requireds: Vec<(usize, f64)> = governed
             .iter()
@@ -727,6 +983,9 @@ pub fn impose_mandates_for_bill(
                 council_decision: MandateFundingDecision::Pending,
                 region_id: country.regions[i].id.clone(),
                 source_bill_id: bill.id.clone(),
+                scope: scope.to_string(),
+                effects: effects.to_string(),
+                ..Default::default()
             });
         }
     }
@@ -756,6 +1015,31 @@ struct CouncilAgendaItem {
     /// a second mandate for the same purpose is never stacked while one is
     /// still active (the council simply re-votes the resolution).
     mandate_key: &'static str,
+}
+
+/// v4.21 WS3: Scope/effects text for council-appropriated mandates,
+/// keyed by the agenda item's `mandate_key` — the stable identity of the
+/// underlying need. These describe what the appropriated spending
+/// physically covers and produces; no synthetic narrative.
+fn council_mandate_scope_effects(mandate_key: &str) -> (&'static str, &'static str) {
+    match mandate_key {
+        "infra" => (
+            "Regional roads, water, and public-works upgrades",
+            "Closes the infrastructure gap toward the 60-point JST service \
+             standard; tranches disburse to the public-service provider pool \
+             as works are delivered.",
+        ),
+        "sanitation" => (
+            "Waste collection routes, landfill capacity, and sewerage",
+            "Clears the uncollected-waste backlog, expands overfilled \
+             landfill/route capacity, and lowers biohazard exposure.",
+        ),
+        _ => (
+            "Regional public services and local works",
+            "Funds JST-delivered public services; per-turn tranches draw \
+             the regional treasury until the appropriation completes.",
+        ),
+    }
 }
 
 /// Best available current-turn proxy when only `&mut Country` is at hand:
@@ -887,7 +1171,26 @@ pub fn process_regional_council_sessions(country: &mut Country, current_turn: u3
         }
 
         // ── SESSION — debate + roll-call vote per agenda item ──
+        // v4.21 WS3: a council does not re-vote the identical ordinance
+        // every turn while the underlying need persists — the conditions
+        // that draft an agenda item (infrastructure gap, sanitation
+        // backlog, deficit) decay over many turns, so the same static
+        // title hit the floor every session and the bounded history +
+        // UI record filled with duplicate resolutions and roll calls.
+        // An item whose stable identity (resolution_type + title) was
+        // voted within the cooldown window is skipped; legitimate
+        // re-authorizations resume once the window lapses. No votes are
+        // deleted — dedup happens at the agenda stage.
+        const REVOTE_COOLDOWN_TURNS: u32 = 12;
         for item in agenda {
+            let recently_voted = gov.council.resolutions.iter().any(|r| {
+                r.resolution_type == item.resolution_type
+                    && r.title == item.title
+                    && current_turn.saturating_sub(r.turn) < REVOTE_COOLDOWN_TURNS
+            });
+            if recently_voted {
+                continue;
+            }
             let mut votes_for: u32 = 0;
             let mut votes_against: u32 = 0;
             let mut abstentions: u32 = 0;
@@ -949,6 +1252,8 @@ pub fn process_regional_council_sessions(country: &mut Country, current_turn: u3
                     let source_id =
                         format!("COUNCIL-RES-{}-{}", region_id, item.mandate_key);
                     if !active_sources.contains(&source_id) {
+                        let (scope, effects) =
+                            council_mandate_scope_effects(item.mandate_key);
                         new_mandates.push(UnfundedMandate {
                             description: item.title.clone(),
                             required_spending_per_region: item.required_spending,
@@ -959,6 +1264,9 @@ pub fn process_regional_council_sessions(country: &mut Country, current_turn: u3
                             council_decision: MandateFundingDecision::Pending,
                             region_id: region_id.clone(),
                             source_bill_id: source_id,
+                            scope: scope.to_string(),
+                            effects: effects.to_string(),
+                            ..Default::default()
                         });
                     }
                 } else if item.resolution_type == "budget" {

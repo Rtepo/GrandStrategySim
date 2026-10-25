@@ -91,6 +91,24 @@ pub fn process_mergers_and_acquisitions(
             || target.merged_into.is_some()
             || target.bank_type.is_some()
             || target.worker_capacity == 0
+            // v4.21 WS3: Municipal service utilities are never acquisition
+            // targets. `MUN-*` companies are non-privatizable
+            // (`privatizable: false`, `state_share = 1.0`) public
+            // concessions whose "distress" is a JST funding shortfall, not
+            // a market failure — every region also seeds a private
+            // same-sector PublicServices company
+            // (`seed_minimum_viable_supply_chain`), so an underfunded JST
+            // would let the private firm absorb the utility AND its
+            // public-service buildings in one turn, permanently orphaning
+            // the region's municipal staffing. Resolution runs through the
+            // JST contract (`ensure_municipal_services_employers`), not the
+            // going-concern market. (A MUN may still appear as the
+            // ACQUIRER below — municipalization of a failing private
+            // service is the intended direction.)
+            || matches!(
+                target.legal_form,
+                crate::entities::legal_form::LegalForm::MunicipalCompany(_)
+            )
         {
             continue;
         }

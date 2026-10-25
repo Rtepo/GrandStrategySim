@@ -7,7 +7,14 @@ import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, Ta
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { fmt, num } from "../lib/format";
-import type { RegionDetail, MegaregionDetail, CouncilResolutionRow, CouncilRollCallRow } from "../types/api";
+import type { CouncilResolutionRow, CouncilRollCallRow } from "../types/api";
+import type {
+  CouncilFactionSummary,
+  CouncilorRow,
+  MandateSummaryExtended,
+  MegaregionDetailExtended,
+  RegionDetailExtended,
+} from "../types/regions";
 
 const safeStr = (v: string | null | undefined): string => v ?? "—";
 const safeNum = (v: number | null | undefined): number => v ?? 0;
@@ -28,12 +35,16 @@ export function RegionsPage() {
     queryKey: ["region-detail", selectedCountry, selectedRegionId],
     queryFn: () => getRegionDetail(selectedCountry!, selectedRegionId!),
     enabled: !!selectedCountry && !!selectedRegionId,
+    // v4.21 WS3: backend serializes extra council/mandate keys tolerated by
+    // the generated api.ts contract — declare them via types/regions.ts.
+    select: (d) => d as RegionDetailExtended,
   });
 
   const { data: megaDetail } = useQuery({
     queryKey: ["megaregion-detail", selectedCountry, selectedMegaregionId],
     queryFn: () => getMegaregionDetail(selectedCountry!, selectedMegaregionId!),
     enabled: !!selectedCountry && !!selectedMegaregionId,
+    select: (d) => d as MegaregionDetailExtended,
   });
 
   if (!selectedCountry) return <div className="p-6 text-muted-foreground">Select a country from the sidebar.</div>;
@@ -132,9 +143,12 @@ export function RegionsPage() {
         </div>
 
         <div>
-          {detail ? (
+          {/* Guard on the selection state — React Query retains stale
+              `data` for a disabled query, so `detail`/`megaDetail` alone
+              would mask whichever panel was clicked most recently. */}
+          {selectedRegionId && detail ? (
             <RegionDetailPanel detail={detail} />
-          ) : megaDetail ? (
+          ) : selectedMegaregionId && megaDetail ? (
             <MegaregionDetailPanel detail={megaDetail} />
           ) : (
             <Card>
@@ -149,7 +163,7 @@ export function RegionsPage() {
   );
 }
 
-function RegionDetailPanel({ detail }: { detail: RegionDetail }) {
+function RegionDetailPanel({ detail }: { detail: RegionDetailExtended }) {
   const devLevel = safeNum(detail.development_level);
   const infraCond = safeNum(detail.infrastructure_avg_condition);
   const debtRatio = safeNum(detail.debt_to_revenue_ratio);
@@ -196,8 +210,15 @@ function RegionDetailPanel({ detail }: { detail: RegionDetail }) {
                     </div>
                   )}
                 </div>
+                {/* v4.21 WS3: faction summary (Faction | Seats | For | Against |
+                    Abstain) with expandable councilor rows — replaces the
+                    endless flat Councilor POP-1..N roll-call list. */}
+                <CouncilFactionTable
+                  factions={safeArr<[string, number]>(detail.council_factions)}
+                  rollCalls={safeArr(detail.council_roll_calls)}
+                  members={safeArr(detail.council_members)}
+                />
                 <CouncilResolutions resolutions={safeArr(detail.council_resolutions)} />
-                <CouncilRollCalls rollCalls={safeArr(detail.council_roll_calls)} />
               </div>
             )},
             { label: "Employment", value: "employment", content: (
@@ -211,22 +232,7 @@ function RegionDetailPanel({ detail }: { detail: RegionDetail }) {
               </div>
             )},
             { label: "Mandates", value: "mandates", content: (
-              <div className="space-y-2">
-                {safeArr(detail.active_mandates).length > 0 ? (
-                  safeArr(detail.active_mandates).map((m, i) => (
-                    <div key={i} className="text-sm border border-border rounded p-2">
-                      <div className="font-medium">{safeStr(m.description)}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Required: {fmt(safeNum(m.required_spending))} · Funded: {fmt(safeNum(m.central_funding))} · Gap: {fmt(safeNum(m.funding_gap))}
-                        {m.imposed_turn ? ` · Imposed T${m.imposed_turn}` : ""}
-                      </div>
-                      <Badge variant="secondary" className="mt-1">{safeStr(m.status)}</Badge>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-muted-foreground text-sm">No active mandates</div>
-                )}
-              </div>
+              <MandatesList mandates={safeArr(detail.active_mandates)} />
             )},
             { label: "Sanitation", value: "sanitation", content: (
               <SanitationTab detail={detail} />
@@ -252,7 +258,7 @@ function Field({ label, value }: { label: string; value: string }) {
 
 /// Phase 83: Sanitation tab — displays water reserves, water grid, sewer grid,
 /// and biohazard snapshots. Role-gated data may be null for unauthorized viewers.
-function SanitationTab({ detail }: { detail: RegionDetail }) {
+function SanitationTab({ detail }: { detail: RegionDetailExtended }) {
   const wr = detail.water_reserves;
   const wg = detail.water_grid;
   const sg = detail.sewer_grid;
@@ -323,7 +329,7 @@ function SanitationTab({ detail }: { detail: RegionDetail }) {
 
 /// Phase 84: Waste tab — displays waste grid, landfill, waste pollution,
 /// and recycling snapshots. Role-gated data may be null for unauthorized viewers.
-function WasteTab({ detail }: { detail: RegionDetail }) {
+function WasteTab({ detail }: { detail: RegionDetailExtended }) {
   const wg = detail.waste_grid;
   const lf = detail.landfill;
   const wp = detail.waste_pollution;
@@ -440,42 +446,196 @@ function councilStatusVariant(status: string): "success" | "destructive" | "seco
   return "secondary";
 }
 
-/// v4.20: Map a roll-call vote to a Badge variant.
-function councilVoteVariant(vote: string): "success" | "destructive" | "secondary" {
-  const v = vote.toLowerCase();
-  if (v.includes("abstain") || v.includes("absent") || v.includes("present")) return "secondary";
-  if (v.includes("for") || v.includes("yea") || v.includes("aye") || v.includes("favor") || v.includes("yes")) return "success";
-  return "destructive";
+/// v4.21 WS3: Roll-call votes aggregated per faction across the recorded
+/// window — drives the `Faction | Seats | For | Against | Abstain` summary.
+function buildFactionSummaries(
+  factions: [string, number][],
+  rollCalls: CouncilRollCallRow[],
+  members: CouncilorRow[],
+): CouncilFactionSummary[] {
+  const byFaction = new Map<string, CouncilFactionSummary>();
+  const ensure = (faction: string): CouncilFactionSummary => {
+    let s = byFaction.get(faction);
+    if (!s) {
+      s = { faction, seats: 0, votesFor: 0, votesAgainst: 0, abstentions: 0, members: [] };
+      byFaction.set(faction, s);
+    }
+    return s;
+  };
+  for (const [faction, seats] of factions) ensure(faction).seats = seats;
+  // Real vote tallies — every recorded roll call counts exactly once.
+  for (const rc of rollCalls) {
+    const s = ensure(rc.faction);
+    const v = rc.vote.toLowerCase();
+    if (v.includes("for") || v.includes("yea") || v.includes("aye") || v.includes("yes") || v.includes("favor")) s.votesFor += 1;
+    else if (v.includes("abstain") || v.includes("absent") || v.includes("present")) s.abstentions += 1;
+    else s.votesAgainst += 1;
+  }
+  // Members: real councilors when serialized; fall back to distinct
+  // roll-call members on saves that predate `council_members`.
+  const memberByFaction = new Map<string, Map<string, CouncilorRow>>();
+  for (const m of members) {
+    let fm = memberByFaction.get(m.faction);
+    if (!fm) { fm = new Map(); memberByFaction.set(m.faction, fm); }
+    fm.set(m.vip_id || m.name, m);
+  }
+  if (memberByFaction.size === 0) {
+    for (const rc of rollCalls) {
+      let fm = memberByFaction.get(rc.faction);
+      if (!fm) { fm = new Map(); memberByFaction.set(rc.faction, fm); }
+      if (!fm.has(rc.vip_id || rc.member_name)) {
+        fm.set(rc.vip_id || rc.member_name, {
+          name: rc.member_name, faction: rc.faction, vip_id: rc.vip_id,
+        });
+      }
+    }
+  }
+  for (const [faction, fm] of memberByFaction) {
+    const s = ensure(faction);
+    s.members = [...fm.values()].sort((a, b) => a.name.localeCompare(b.name));
+    if (s.seats === 0) s.seats = s.members.length;
+  }
+  const order = ["Populares", "Moderates", "Optimates"];
+  return [...byFaction.values()].sort(
+    (a, b) => order.indexOf(a.faction) - order.indexOf(b.faction),
+  );
 }
 
-/// v4.20: Regional council resolutions — the regional analogue of the
-/// parliamentary Recent Votes table.
-function CouncilResolutions({ resolutions }: { resolutions: CouncilResolutionRow[] }) {
+/// v4.21 WS3: Council faction-summary roll call — exactly
+/// `Faction | Seats | For | Against | Abstain`, each row expandable to
+/// list the faction's individual councilors (real member data). No
+/// horizontal scroll: 5 compact columns, fixed layout.
+function CouncilFactionTable({
+  factions,
+  rollCalls,
+  members,
+}: {
+  factions: [string, number][];
+  rollCalls: CouncilRollCallRow[];
+  members: CouncilorRow[];
+}) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const rows = buildFactionSummaries(factions, rollCalls, members);
+  // Per-member vote tally for the expanded detail rows.
+  const memberVotes = new Map<string, { for: number; against: number; abstain: number }>();
+  for (const rc of rollCalls) {
+    const key = rc.vip_id || `${rc.faction}::${rc.member_name}`;
+    const t = memberVotes.get(key) ?? { for: 0, against: 0, abstain: 0 };
+    const v = rc.vote.toLowerCase();
+    if (v.includes("for") || v.includes("yea") || v.includes("aye") || v.includes("yes") || v.includes("favor")) t.for += 1;
+    else if (v.includes("abstain") || v.includes("absent") || v.includes("present")) t.abstain += 1;
+    else t.against += 1;
+    memberVotes.set(key, t);
+  }
   return (
     <div>
-      <h3 className="text-sm font-semibold text-foreground mb-1">Resolutions</h3>
-      {resolutions.length > 0 ? (
-        <Table>
+      <h3 className="text-sm font-semibold text-foreground mb-1">Council Roll Call</h3>
+      {rows.length > 0 ? (
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">For</TableHead>
-              <TableHead className="text-right">Against</TableHead>
-              <TableHead className="text-right">Abstain</TableHead>
-              <TableHead className="text-right">Turn</TableHead>
+              <TableHead>Faction</TableHead>
+              <TableHead className="text-right w-12">Seats</TableHead>
+              <TableHead className="text-right w-10">For</TableHead>
+              <TableHead className="text-right w-12">Against</TableHead>
+              <TableHead className="text-right w-14">Abstain</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {resolutions.map((r, i) => (
+            {rows.map((s) => {
+              const isOpen = expanded === s.faction;
+              return (
+                <React.Fragment key={s.faction}>
+                  <TableRow
+                    className="cursor-pointer hover:bg-accent"
+                    onClick={() => setExpanded(isOpen ? null : s.faction)}
+                  >
+                    <TableCell className="text-xs font-medium whitespace-normal break-words">
+                      {isOpen ? "▾" : "▸"} {s.faction}
+                    </TableCell>
+                    <TableCell className="text-right">{s.seats}</TableCell>
+                    <TableCell className="text-right text-green-400">{s.votesFor}</TableCell>
+                    <TableCell className="text-right text-red-400">{s.votesAgainst}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{s.abstentions}</TableCell>
+                  </TableRow>
+                  {isOpen && s.members.map((m) => {
+                    const t = memberVotes.get(m.vip_id || `${m.faction}::${m.name}`)
+                      ?? { for: 0, against: 0, abstain: 0 };
+                    return (
+                      <TableRow key={m.vip_id || m.name} className="bg-muted/30">
+                        <TableCell className="text-xs pl-7 whitespace-normal break-words">
+                          {m.name}
+                          {m.region_id ? (
+                            <span className="text-muted-foreground"> · {m.region_id}</span>
+                          ) : null}
+                        </TableCell>
+                        <TableCell className="text-right text-xs text-muted-foreground">
+                          {t.for + t.against + t.abstain > 0 ? `${t.for}F` : "—"}
+                        </TableCell>
+                        <TableCell className="text-right text-xs text-green-400/70">
+                          {t.for + t.against + t.abstain > 0 ? `${t.against}A` : ""}
+                        </TableCell>
+                        <TableCell className="text-right text-xs text-muted-foreground/70">
+                          {t.for + t.against + t.abstain > 0 ? `${t.abstain}Ab` : ""}
+                        </TableCell>
+                        <TableCell />
+                      </TableRow>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
+      ) : (
+        <div className="text-muted-foreground text-sm">No council roll-call data</div>
+      )}
+    </div>
+  );
+}
+
+/// v4.21 WS3: Regional council resolutions — deduplicated by stable
+/// identity (title+type+turn) and laid out to fit the drawer width
+/// without horizontal scrolling (fixed table, wrapping title cell).
+function CouncilResolutions({ resolutions }: { resolutions: CouncilResolutionRow[] }) {
+  // Stable-identity dedup: one (title, type, turn) vote may legitimately
+  // appear once — duplicates of that exact key are stale double-emissions
+  // from saves predating the session fix.
+  const seen = new Set<string>();
+  const rows = resolutions.filter((r) => {
+    const key = `${r.title}::${r.resolution_type}::${r.turn}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground mb-1">Resolutions</h3>
+      {rows.length > 0 ? (
+        <Table className="table-fixed">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Ordinance</TableHead>
+              <TableHead className="w-16">Status</TableHead>
+              <TableHead className="text-right w-20">F · A · Ab</TableHead>
+              <TableHead className="text-right w-10">Turn</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((r, i) => (
               <TableRow key={`${r.title}-${r.turn}-${i}`}>
-                <TableCell className="text-xs font-medium">{r.title}</TableCell>
-                <TableCell className="text-xs">{r.resolution_type}</TableCell>
+                <TableCell className="text-xs font-medium whitespace-normal break-words">
+                  {r.title}
+                  <div className="text-muted-foreground font-normal">{r.resolution_type}</div>
+                </TableCell>
                 <TableCell><Badge variant={councilStatusVariant(r.status)}>{r.status}</Badge></TableCell>
-                <TableCell className="text-right text-green-400">{r.votes_for}</TableCell>
-                <TableCell className="text-right text-red-400">{r.votes_against}</TableCell>
-                <TableCell className="text-right text-muted-foreground">{r.abstentions}</TableCell>
+                <TableCell className="text-right text-xs">
+                  <span className="text-green-400">{r.votes_for}</span>
+                  <span className="text-muted-foreground"> · </span>
+                  <span className="text-red-400">{r.votes_against}</span>
+                  <span className="text-muted-foreground"> · </span>
+                  <span className="text-muted-foreground">{r.abstentions}</span>
+                </TableCell>
                 <TableCell className="text-right text-xs">T{r.turn}</TableCell>
               </TableRow>
             ))}
@@ -488,88 +648,155 @@ function CouncilResolutions({ resolutions }: { resolutions: CouncilResolutionRow
   );
 }
 
-/// v4.20: Per-councilor roll-call records grouped by resolution+turn.
-function CouncilRollCalls({ rollCalls }: { rollCalls: CouncilRollCallRow[] }) {
-  const groups = new Map<string, CouncilRollCallRow[]>();
-  for (const rc of rollCalls) {
-    const key = `${rc.resolution_title}::${rc.turn}`;
-    const arr = groups.get(key) ?? [];
-    arr.push(rc);
-    groups.set(key, arr);
+/// v4.21 WS3: Unfunded mandates — scope, effects, disbursement progress,
+/// and the explicit funding source (Central Grant / Regional Treasury).
+function MandatesList({ mandates }: { mandates: MandateSummaryExtended[] }) {
+  if (mandates.length === 0) {
+    return <div className="text-muted-foreground text-sm">No active mandates</div>;
   }
   return (
-    <div>
-      <h3 className="text-sm font-semibold text-foreground mb-1">Roll Calls</h3>
-      {groups.size > 0 ? (
-        <div className="space-y-3">
-          {[...groups.entries()].map(([key, rows]) => {
-            const first = rows[0];
-            return (
-              <div key={key}>
-                <div className="text-xs font-medium text-muted-foreground mb-1">
-                  {first.resolution_title} <span className="opacity-60">(T{first.turn})</span>
-                </div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Member</TableHead>
-                      <TableHead>Faction</TableHead>
-                      <TableHead>Vote</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rows.map((rc, i) => (
-                      <TableRow key={`${rc.member_name}-${i}`}>
-                        <TableCell className="text-xs">{rc.member_name}</TableCell>
-                        <TableCell className="text-xs">{rc.faction}</TableCell>
-                        <TableCell><Badge variant={councilVoteVariant(rc.vote)}>{rc.vote}</Badge></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+    <div className="space-y-2">
+      {mandates.map((m, i) => {
+        const progress = Math.min(Math.max(m.progress ?? 0, 0), 1);
+        const sources = safeStr(m.funding_source)
+          .split("+")
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0 && s !== "—");
+        return (
+          <div key={`${m.source_bill_id || m.description}-${i}`} className="text-sm border border-border rounded p-2 space-y-1.5">
+            <div className="font-medium whitespace-normal break-words">{safeStr(m.description)}</div>
+            {m.scope && (
+              <div className="text-xs text-muted-foreground whitespace-normal break-words">
+                <span className="font-medium text-foreground/80">Scope:</span> {m.scope}
               </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="text-muted-foreground text-sm">No roll-call records</div>
-      )}
+            )}
+            {m.effects && (
+              <div className="text-xs text-muted-foreground whitespace-normal break-words">
+                <span className="font-medium text-foreground/80">Effects:</span> {m.effects}
+              </div>
+            )}
+            <div className="text-xs text-muted-foreground">
+              Required: {fmt(safeNum(m.required_spending))} · Central: {fmt(safeNum(m.central_funding))} · Gap: {fmt(safeNum(m.funding_gap))}
+              {m.imposed_turn ? ` · Imposed T${m.imposed_turn}` : ""}
+            </div>
+            {/* Disbursement progress — real tranches paid so far. */}
+            <div className="text-xs">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Disbursed</span>
+                <span className="text-foreground font-medium">
+                  {fmt(safeNum(m.disbursed))} / {fmt(safeNum(m.required_spending))} ({(progress * 100).toFixed(0)}%)
+                </span>
+              </div>
+              <div className="h-1.5 mt-0.5 rounded bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${progress * 100}%` }}
+                />
+              </div>
+              {safeNum(m.per_turn_disbursement) > 0 && (
+                <div className="text-muted-foreground mt-0.5">
+                  ≈ {fmt(safeNum(m.per_turn_disbursement))}/turn
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1 pt-0.5">
+              {sources.map((src) => (
+                <Badge
+                  key={src}
+                  variant={src.includes("Central") ? "default" : "secondary"}
+                >
+                  {src}
+                </Badge>
+              ))}
+              <Badge variant={m.status === "Refused" ? "destructive" : "secondary"}>
+                {safeStr(m.status)}
+              </Badge>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-/// Phase 53: Megaregion detail panel — analogous to RegionDetailPanel.
-function MegaregionDetailPanel({ detail }: { detail: MegaregionDetail }) {
+/// Phase 53: Megaregion detail panel — v4.21 WS3: tabbed like the region
+/// panel (Overview / Council / Employment / Mandates). The megaregion has
+/// no council of its own; the Council tab shows the member-region
+/// Assembly composition and legislative record aggregated from real
+/// `LocalCouncil` state.
+function MegaregionDetailPanel({ detail }: { detail: MegaregionDetailExtended }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>{safeStr(detail.display_name)}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2 text-sm">
-          <Field label="Country" value={safeStr(detail.country)} />
-          <Field label="Member Regions" value={String(detail.member_region_count)} />
-          <Field label="Total Population" value={num(detail.total_population)} />
-          <Field label="Total GDP" value={fmt(detail.total_gdp)} />
-          <Field label="Governor" value={safeStr(detail.governor_name)} />
-          <Field label="Governor Appointed" value={detail.governor_appointed ? "Yes" : "No"} />
-          <Field label="Competence Level" value={safeStr(detail.competence_level)} />
-          <Field label="Budget Reserves" value={fmt(safeNum(detail.budget_reserves))} />
-          <Field label="Regional Transfers" value={fmt(safeNum(detail.regional_transfers))} />
-          <Field label="Development Expenditures" value={fmt(safeNum(detail.development_expenditures))} />
-          <Field label="Coordination Expenditures" value={fmt(safeNum(detail.coordination_expenditures))} />
-          <Field label="Budget Balance" value={fmt(safeNum(detail.budget_balance))} />
-        </div>
-        {safeArr<string>(detail.member_region_ids).length > 0 && (
-          <div className="mt-4">
-            <div className="text-xs text-muted-foreground mb-1">Member Region IDs</div>
-            <div className="flex flex-wrap gap-1">
-              {safeArr<string>(detail.member_region_ids).map((id: string) => (
-                <Badge key={id} variant="secondary">{id}</Badge>
-              ))}
-            </div>
-          </div>
-        )}
+        <Tabs
+          tabs={[
+            { label: "Overview", value: "overview", content: (
+              <div className="space-y-2 text-sm">
+                <Field label="Country" value={safeStr(detail.country)} />
+                <Field label="Member Regions" value={String(detail.member_region_count)} />
+                <Field label="Total Population" value={num(detail.total_population)} />
+                <Field label="Total GDP" value={fmt(detail.total_gdp)} />
+                <Field label="Governor" value={safeStr(detail.governor_name)} />
+                <Field label="Governor Appointed" value={detail.governor_appointed ? "Yes" : "No"} />
+                <Field label="Competence Level" value={safeStr(detail.competence_level)} />
+                <Field label="Budget Reserves" value={fmt(safeNum(detail.budget_reserves))} />
+                <Field label="Regional Transfers" value={fmt(safeNum(detail.regional_transfers))} />
+                <Field label="Development Expenditures" value={fmt(safeNum(detail.development_expenditures))} />
+                <Field label="Coordination Expenditures" value={fmt(safeNum(detail.coordination_expenditures))} />
+                <Field label="Budget Balance" value={fmt(safeNum(detail.budget_balance))} />
+                {safeArr<string>(detail.member_region_ids).length > 0 && (
+                  <div className="pt-2">
+                    <div className="text-xs text-muted-foreground mb-1">Member Region IDs</div>
+                    <div className="flex flex-wrap gap-1">
+                      {safeArr<string>(detail.member_region_ids).map((id: string) => (
+                        <Badge key={id} variant="secondary">{id}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )},
+            { label: "Council", value: "council", content: (
+              <div className="space-y-4">
+                <div>
+                  <CouncilPieChart factions={safeArr(detail.council_factions)} />
+                  {safeNum(detail.total_council_seats) > 0 && (
+                    <div className="text-center text-sm text-muted-foreground mt-2">
+                      Assembly Seats: <span className="font-bold text-foreground">{safeNum(detail.total_council_seats)}</span>
+                      <span className="block text-xs">(member-region councils)</span>
+                    </div>
+                  )}
+                </div>
+                <CouncilFactionTable
+                  factions={safeArr<[string, number]>(detail.council_factions)}
+                  rollCalls={safeArr(detail.council_roll_calls)}
+                  members={safeArr(detail.council_members)}
+                />
+                <CouncilResolutions resolutions={safeArr(detail.council_resolutions)} />
+              </div>
+            )},
+            { label: "Employment", value: "employment", content: (
+              <div className="space-y-2">
+                {safeArr(detail.sector_employment).length > 0 ? (
+                  safeArr(detail.sector_employment).map(([sector, emp]) => (
+                    <div key={sector} className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">{sector}</span>
+                      <span className="text-foreground">{fmt(safeNum(emp))}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-muted-foreground text-sm">No employment data</div>
+                )}
+              </div>
+            )},
+            { label: "Mandates", value: "mandates", content: (
+              <MandatesList mandates={safeArr(detail.active_mandates)} />
+            )},
+          ]}
+        />
       </CardContent>
     </Card>
   );

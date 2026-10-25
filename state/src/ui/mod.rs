@@ -12,3 +12,4 @@
 #![allow(missing_docs)]
 
 pub mod snapshot;
+pub mod snapshot_regions;

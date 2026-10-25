@@ -2691,6 +2691,8 @@ mod tests {
         let mut global_market = crate::economy::market::GlobalMarket {
             base_prices: rustc_hash::FxHashMap::default(),
             net_surplus: rustc_hash::FxHashMap::default(),
+            unfilled_b2b_demand: rustc_hash::FxHashMap::default(),
+            fx_vetoed_import_demand: rustc_hash::FxHashMap::default(),
             offshore_capital: 0.0,
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
             supply_volume: rustc_hash::FxHashMap::default(),
@@ -2743,6 +2745,8 @@ mod tests {
         let mut global_market = crate::economy::market::GlobalMarket {
             base_prices: rustc_hash::FxHashMap::default(),
             net_surplus: rustc_hash::FxHashMap::default(),
+            unfilled_b2b_demand: rustc_hash::FxHashMap::default(),
+            fx_vetoed_import_demand: rustc_hash::FxHashMap::default(),
             offshore_capital: 0.0,
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
             supply_volume: rustc_hash::FxHashMap::default(),
@@ -2886,6 +2890,8 @@ mod tests {
         let mut global_market = crate::economy::market::GlobalMarket {
             base_prices: rustc_hash::FxHashMap::default(),
             net_surplus: rustc_hash::FxHashMap::default(),
+            unfilled_b2b_demand: rustc_hash::FxHashMap::default(),
+            fx_vetoed_import_demand: rustc_hash::FxHashMap::default(),
             offshore_capital: 10_000_000.0, // 10M offshore
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
             supply_volume: rustc_hash::FxHashMap::default(),
@@ -2930,6 +2936,8 @@ mod tests {
         let mut global_market = crate::economy::market::GlobalMarket {
             base_prices: rustc_hash::FxHashMap::default(),
             net_surplus: rustc_hash::FxHashMap::default(),
+            unfilled_b2b_demand: rustc_hash::FxHashMap::default(),
+            fx_vetoed_import_demand: rustc_hash::FxHashMap::default(),
             offshore_capital: 1_000_000.0, // Only 1M offshore
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
             supply_volume: rustc_hash::FxHashMap::default(),

@@ -5,8 +5,8 @@ use rand::Rng;
 use super::elections;
 use super::generator;
 use super::ideology::{
-    economic_school_from_coords, get_ruling_coordinates, resolve_preferences, Ideology,
-    IdeologyCoordinates,
+    economic_school_from_coords, get_ruling_coordinates, governing_coordinates,
+    ideology_tax_targets, resolve_preferences, Ideology, IdeologyCoordinates,
 };
 use super::interest_groups;
 use super::local_council;
@@ -1460,6 +1460,15 @@ pub fn apply_ruling_coordinate_policies(country: &mut Country, year: u32) {
     // Now coordinate-based and inflation-proof (scales by average_wage).
     let avg_wage = country.macro_indicators.average_wage;
     apply_coordinate_tax_policy(country, ruling_coords, avg_wage);
+
+    // v4.21 WS2: National tax policy (PIT/CIT/VAT) is set by the GOVERNING
+    // coalition — a seat-weighted ideological centroid that differs across
+    // countries even when the senior ruling party shares an ideology.
+    // Rates drift toward the coalition's target each turn (politically
+    // gradual), they do not snap: `distinct_country_pit_rates` at horizon
+    // reflects real differences in who governs each country.
+    let governing = governing_coordinates(country);
+    drift_tax_rates_toward_targets(country, governing);
 }
 
 /// Apply tax policy derived from ideological coordinates.
@@ -1563,6 +1572,128 @@ fn apply_coordinate_tax_policy(
         holding_period_modifier: 1.0,
         extra: Map::new(),
     };
+}
+
+/// v4.21 WS2: per-turn fraction of the remaining gap closed toward the
+/// governing coalition's tax targets. 6%/turn converges ~63% of the way in
+/// ~16 turns and ~95% in ~48 (two in-game years) — a politically gradual
+/// drift, never a snap, while still dominating the post-crisis return to
+/// the coalition's standing rates.
+const TAX_POLICY_DRIFT_RATE: f64 = 0.06;
+
+/// v4.21 WS2: per-turn fraction of the remaining gap closed between the
+/// country's STATUTORY BASELINE and the governing coalition's ideology
+/// target. Structural tax reform is slow — 1%/turn leaves ~30% of a
+/// country's inherited codebook at the 120-turn horizon and ~95% gone
+/// after ~12 in-game years — so two countries ruled by identical
+/// ideologies keep measurably different rates for a full plan period
+/// while still converging over a long legislature.
+const TAX_BASELINE_DRIFT_RATE: f64 = 0.01;
+
+/// Read one statutory baseline off `income_tax.extra`, seeding it from the
+/// live rate when absent (worlds generated before the baseline fields
+/// existed, or freshly-written law paths).
+fn tax_baseline(extra: &serde_json::Map<String, serde_json::Value>, key: &str, live: f64) -> f64 {
+    extra
+        .get(key)
+        .and_then(|v| v.as_f64())
+        .unwrap_or(live)
+        .clamp(0.0, 0.60)
+}
+
+/// Drift the flat national tax rates (PIT, CIT, VAT) toward the governing
+/// coalition's ideology-derived targets.
+///
+/// * PIT is a single statutory rate (`income_tax.rate`).
+/// * CIT is the flat `corporate_tax` fraction.
+/// * VAT is a bracket map: brackets drift toward `target × (current /
+///   standard-rate)` so reduced-rate categories keep their relative
+///   discount (a 0-rate/exempt bracket stays exempt).
+///
+/// Hard legal ceilings match the crisis-decree bounds (PIT 60%, CIT 40%,
+/// VAT 25%) — ideology never pushes a rate above what an emergency decree
+/// could, and post-decree drift walks elevated rates back down to the
+/// coalition's standing target.
+fn drift_tax_rates_toward_targets(country: &mut Country, governing: IdeologyCoordinates) {
+    let (pit_t, cit_t, vat_t) = ideology_tax_targets(governing.economy);
+    let k = TAX_POLICY_DRIFT_RATE;
+    let kb = TAX_BASELINE_DRIFT_RATE;
+
+    // The baseline is the country's standing statutory codebook — what the
+    // legislature has actually enacted over time. It converges toward the
+    // coalition platform on the slow structural-reform horizon while the
+    // live rate tracks the baseline quickly (rate ≈ baseline after ~16
+    // turns). Enacted tax laws overwrite BOTH the rate and the baseline
+    // (see laws.rs TaxRateChange) so legislation persists as the new
+    // attractor; emergency-decree spikes only move the rate and decay back.
+    let extra_snapshot = country.tax_rates.income_tax.extra.clone();
+    let mut pit_b = tax_baseline(&extra_snapshot, "statutory_baseline_pit", country.tax_rates.income_tax.rate);
+    let mut cit_b = tax_baseline(&extra_snapshot, "statutory_baseline_cit", country.tax_rates.corporate_tax);
+    let mut vat_b = tax_baseline(
+        &extra_snapshot,
+        "statutory_baseline_vat",
+        country
+            .tax_rates
+            .vat
+            .get("services")
+            .map(|b| b.rate)
+            .unwrap_or(vat_t),
+    );
+
+    pit_b += (pit_t - pit_b) * kb;
+    cit_b += (cit_t - cit_b) * kb;
+    vat_b += (vat_t - vat_b) * kb;
+
+    let extra = &mut country.tax_rates.income_tax.extra;
+    extra.insert("statutory_baseline_pit".to_string(), serde_json::Value::from(pit_b));
+    extra.insert("statutory_baseline_cit".to_string(), serde_json::Value::from(cit_b));
+    extra.insert("statutory_baseline_vat".to_string(), serde_json::Value::from(vat_b));
+
+    // PIT
+    let pit = &mut country.tax_rates.income_tax.rate;
+    *pit = (*pit + (pit_b - *pit) * k).clamp(0.0, 0.60);
+
+    // CIT
+    let cit = &mut country.tax_rates.corporate_tax;
+    *cit = (*cit + (cit_b - *cit) * k).clamp(0.0, 0.40);
+
+    // VAT — standard rate is the "services" bracket (the headline rate);
+    // every bracket drifts toward target × its current relative ratio.
+    let standard = country
+        .tax_rates
+        .vat
+        .get("services")
+        .map(|b| b.rate)
+        .unwrap_or(0.0);
+    for bracket in country.tax_rates.vat.values_mut() {
+        let scale = if standard > 1e-9 {
+            (bracket.rate / standard).clamp(0.0, 2.0)
+        } else {
+            1.0
+        };
+        let target = vat_b * scale;
+        bracket.rate = (bracket.rate + (target - bracket.rate) * k).clamp(0.0, 0.25);
+    }
+
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "TAXDBG drift c={} gov_econ={:.2} | PIT {:.1}%→base {:.1}%→tgt {:.1}% CIT {:.1}%→base {:.1}%→tgt {:.1}% VATsvc {:.1}%→tgt {:.1}%",
+        country.name,
+        governing.economy,
+        country.tax_rates.income_tax.rate * 100.0,
+        pit_b * 100.0,
+        pit_t * 100.0,
+        country.tax_rates.corporate_tax * 100.0,
+        cit_b * 100.0,
+        cit_t * 100.0,
+        country
+            .tax_rates
+            .vat
+            .get("services")
+            .map(|b| b.rate * 100.0)
+            .unwrap_or(0.0),
+        vat_t * 100.0,
+    );
 }
 
 /// Bootstraps a fresh `Turn 0` political block for a generated country.

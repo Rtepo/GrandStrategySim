@@ -451,6 +451,9 @@ fn test_build_consumer_demand_with_substitution() {
         50.0,
         &[],
         &sim_engine::economy::market_history::MarketHistory::default(),
+        None,
+        &std::collections::HashMap::new(),
+        &std::collections::BTreeMap::new(),
     );
     // Total demand should exist for Meat or its substitutes
     let meat_demand = demand
@@ -496,6 +499,9 @@ fn test_build_consumer_demand_homeless_no_furniture() {
         100.0,
         &[],
         &sim_engine::economy::market_history::MarketHistory::default(),
+        None,
+        &std::collections::HashMap::new(),
+        &std::collections::BTreeMap::new(),
     );
     let furniture_demand = demand
         .total_demand

@@ -108,6 +108,7 @@ pub fn clear_information_b2c(
     building_inventories: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
     config: &ServicePricingConfig,
     propaganda_subsidy_rate: f64,
+    gdp_acc: &mut crate::economy::telemetry::GdpAccumulator,
 ) -> InformationB2cResult {
     let commodity = Commodity::Information;
     // Phase C.2: Dynamic cost-plus pricing (Rule 2/21).
@@ -249,7 +250,6 @@ pub fn clear_information_b2c(
                 .entry(txn.region_id.clone())
                 .or_insert(0.0) += txn.units_consumed;
             total_consumed += txn.units_consumed;
-            total_citizen_payments += txn.citizen_payment;
             total_gov_subsidy += txn.government_subsidy;
         }
     }
@@ -267,22 +267,40 @@ pub fn clear_information_b2c(
             *current = (*current - txn.units_consumed).max(0.0);
         }
 
-        // Debit citizen savings
+        // Debit citizen savings — capture the ACTUAL debited amount: a
+        // region's class balances may come up short of `txn.citizen_payment`,
+        // and crediting the intended amount anyway would mint fiat.
+        let mut actual_citizen_payment = 0.0;
         if txn.citizen_payment > 0.0 {
             if let Some(region) = country.regions.iter_mut().find(|r| r.id == txn.region_id) {
-                debit_citizen_savings_region(region, txn.citizen_payment);
+                actual_citizen_payment =
+                    debit_citizen_savings_region(region, txn.citizen_payment);
             }
         }
+        total_citizen_payments += actual_citizen_payment;
 
         // Debit government treasury
         if txn.government_subsidy > 0.0 {
             country.budget.liquid_reserves -= txn.government_subsidy;
         }
 
-        // Credit revenue
-        let total_revenue = txn.citizen_payment + txn.government_subsidy;
+        // Credit revenue (only the actual debited amount + subsidy)
+        let total_revenue = actual_citizen_payment + txn.government_subsidy;
         if total_revenue <= 0.0 {
             continue;
+        }
+
+        // v4.21: book the settled legs into the GDP identity — household
+        // media spend is C, the subsidy leg is government consumption (G).
+        if actual_citizen_payment > 0.0 {
+            gdp_acc.add_consumption(&txn.region_id, actual_citizen_payment);
+        }
+        if txn.government_subsidy > 0.0 {
+            gdp_acc.add_government_spending_tagged_regional(
+                "b2c_information_subsidy",
+                &txn.region_id,
+                txn.government_subsidy,
+            );
         }
 
         if txn.is_public {
@@ -361,6 +379,7 @@ mod tests {
             &mut inventories,
             &ServicePricingConfig::default(),
             0.0,
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // No subsidy: citizens pay 30.0 per unit. Affordable = 1000/30 = 33 units
@@ -394,6 +413,7 @@ mod tests {
             &mut inventories,
             &ServicePricingConfig::default(),
             0.0, // State media is always fully subsidized regardless of propaganda config
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // State media: 100% subsidy, citizens pay 0
@@ -427,6 +447,7 @@ mod tests {
             &mut inventories,
             &ServicePricingConfig::default(),
             0.95, // 95% subsidy — near free
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // Phase C.2: Dynamic price = (1000*0.02 + 1000*0.1/24) * 1.10 = 26.583...
@@ -463,6 +484,7 @@ mod tests {
             &mut inventories,
             &ServicePricingConfig::default(),
             0.95, // 95% subsidy requested but Treasury is nearly empty
+            &mut crate::economy::telemetry::GdpAccumulator::default(),
         );
 
         // Subsidy: 50 * 30 * 0.95 = 1425, but gov only has 10

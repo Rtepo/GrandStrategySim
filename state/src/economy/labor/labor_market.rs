@@ -14,6 +14,15 @@ fn default_remittance_rate() -> f64 {
     0.10
 }
 
+/// Default PIT personal allowance expressed as a share of the national
+/// average wage. Every FTE's first `share × average_wage` of turn earnings
+/// is exempt from withholding. A statutory zero-rated band is standard in
+/// real PIT systems (~25–55% of average earnings across OECD members —
+/// higher in redistributive regimes; e.g. Romania's personal deduction
+/// reaches ~60% at the minimum wage); countries may override via
+/// `tax_rates.income_tax.extra["personal_allowance_wage_share"]`.
+pub const DEFAULT_PIT_PERSONAL_ALLOWANCE_WAGE_SHARE: f64 = 0.55;
+
 /// Data-driven configuration for labor market mechanics
 /// Loaded via JSON to avoid hardcoded simulation logic
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -163,6 +172,7 @@ pub fn resolve_regional_labor_market(
     _calendar: &Calendar,
     config: &LaborConfig,
     pit_rate: f64,
+    pit_allowance_per_fte: f64,
     garnishment_rates: &std::collections::BTreeMap<(String, DemographicClass), f64>,
     commuter_inflow_fte: f64,
     civil_rights_law: &str,
@@ -1076,7 +1086,15 @@ pub fn resolve_regional_labor_market(
             } else {
                 0.0
             };
-            let taxable_base = (post_garnishment - per_capita_contribution).max(0.0);
+            // v4.21.0 WS2: statutory personal allowance — the first
+            // `pit_allowance_per_fte` of each FTE's earnings is PIT-exempt.
+            // Aggregate units: `allocated_fte * allowance_per_fte` matches
+            // `post_garnishment`'s class-total units. Relief is progressive
+            // in effect: a class paid below the wage anchor sees a larger
+            // exempt share than one paid above it.
+            let allowance_amount = ledger.allocated_fte * pit_allowance_per_fte;
+            let taxable_base =
+                (post_garnishment - per_capita_contribution - allowance_amount).max(0.0);
 
             let pit_amount = taxable_base * pit_rate;
             let net_wage = post_garnishment - pit_amount;
@@ -1118,7 +1136,15 @@ pub fn resolve_regional_labor_market(
             } else {
                 0.0
             };
-            let taxable_base = (post_garnishment - per_capita_contribution).max(0.0);
+            // v4.21.0 WS2: statutory personal allowance — the first
+            // `pit_allowance_per_fte` of each FTE's earnings is PIT-exempt.
+            // Aggregate units: `allocated_fte * allowance_per_fte` matches
+            // `post_garnishment`'s class-total units. Relief is progressive
+            // in effect: a class paid below the wage anchor sees a larger
+            // exempt share than one paid above it.
+            let allowance_amount = ledger.allocated_fte * pit_allowance_per_fte;
+            let taxable_base =
+                (post_garnishment - per_capita_contribution - allowance_amount).max(0.0);
 
             let pit_amount = taxable_base * pit_rate;
             let net_wage = post_garnishment - pit_amount;
@@ -1269,8 +1295,10 @@ pub fn resolve_regional_labor_market(
     if let Some(commuter_ledger) = pool.class_ledgers.get(&commuter_class) {
         let gross = commuter_ledger.earned_wages;
         if gross > 0.0 {
-            // PIT on commuter wages (host region keeps it).
-            let pit = gross * pit_rate;
+            // PIT on commuter wages (host region keeps it); the personal
+            // allowance applies identically to commuter earnings.
+            let pit = (gross - pit_allowance_per_fte * commuter_ledger.allocated_fte).max(0.0)
+                * pit_rate;
             allocation_matrix.pit_withheld += pit;
             allocation_matrix.commuter_wages = gross - pit;
             allocation_matrix.commuter_fte = commuter_ledger.allocated_fte;
@@ -1336,6 +1364,7 @@ mod tests {
             &calendar,
             &config,
             0.0,
+            0.0,
             &garnishments,
             5.0, // 5 commuter FTE
             "open_citizenship",
@@ -1377,6 +1406,7 @@ mod tests {
             None,
             &calendar,
             &config,
+            0.0,
             0.0,
             &garnishments,
             0.0, // no commuters

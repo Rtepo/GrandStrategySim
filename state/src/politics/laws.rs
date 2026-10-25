@@ -369,6 +369,13 @@ pub fn enact_law(country: &mut crate::state::Country, law_type: LawType) -> Stri
             let mut changes = Vec::new();
             if let Some(rate) = income_tax {
                 country.tax_rates.income_tax.rate = rate;
+                // v4.21 WS2: an enacted tax law rewrites the statute book —
+                // the coalition's drift then treats it as the new baseline
+                // instead of reverting it over the next turns.
+                country.tax_rates.income_tax.extra.insert(
+                    "statutory_baseline_pit".to_string(),
+                    serde_json::Value::from(rate),
+                );
                 changes.push(format!("income_tax={:.1}%", rate * 100.0));
             }
             if let Some(rate) = vat {
@@ -376,10 +383,18 @@ pub fn enact_law(country: &mut crate::state::Country, law_type: LawType) -> Stri
                 if let Some(bracket) = country.tax_rates.vat.get_mut("services") {
                     bracket.rate = rate;
                 }
+                country.tax_rates.income_tax.extra.insert(
+                    "statutory_baseline_vat".to_string(),
+                    serde_json::Value::from(rate),
+                );
                 changes.push(format!("vat={:.1}%", rate * 100.0));
             }
             if let Some(rate) = corporate_tax {
                 country.tax_rates.corporate_tax = rate;
+                country.tax_rates.income_tax.extra.insert(
+                    "statutory_baseline_cit".to_string(),
+                    serde_json::Value::from(rate),
+                );
                 changes.push(format!("corporate_tax={:.1}%", rate * 100.0));
             }
             format!("Tax rates changed: {}", changes.join(", "))

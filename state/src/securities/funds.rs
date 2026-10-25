@@ -1351,6 +1351,19 @@ pub fn submit_fund_orders(
         let sell_pe_threshold = config
             .fund_max_pe_threshold
             .max(modifiers.pe_sell_threshold);
+        // v4.21 WS4: each risk profile prices "overvalued" differently —
+        // an Aggressive growth mandate tolerates rich multiples, a
+        // Conservative income mandate exits anything it would not buy.
+        // The same factor rescales the ENTRY screen below, so every fund
+        // sells exactly the names it would not purchase — the books
+        // diverge by mandate rather than all chasing the same cheapest
+        // list (the v4.20 "identical books, identical losses" bug).
+        let profile_pe_threshold = sell_pe_threshold
+            * match risk_profile {
+                FundRiskProfile::Aggressive => 1.5,
+                FundRiskProfile::Conservative => 0.6,
+                _ => 1.0,
+            };
 
         // ── Equity-market fix: AUM-target equity allocation ──────────────
         // Funds are no longer 100% fixed income: every fund targets
@@ -1424,7 +1437,17 @@ pub fn submit_fund_orders(
 
         // Ranked candidate order for THIS fund (deterministic):
         //   passive → market_cap desc; active → sector-preferred first,
-        //   then cheapest valuation (pe_or_pb asc). Ties broken by id.
+        //   then a PROFILE-SPECIFIC screen and ranking (v4.21 WS4):
+        //   Aggressive = growth (earnings yield desc, no dividend gate,
+        //   richer multiples OK), Conservative = income (real dividend
+        //   mandatory, strict value cap, yield desc), Balanced = value
+        //   blend (cheapest pe_or_pb first). Ties broken by id.
+        let sector_pref = |c: &EquityCandidate| {
+            modifiers
+                .preferred_sector
+                .map(|p| c.sector == p)
+                .unwrap_or(false)
+        };
         let mut ranked: Vec<&EquityCandidate> = equity_candidates
             .iter()
             .filter(|c| {
@@ -1438,12 +1461,34 @@ pub fn submit_fund_orders(
                     return false;
                 }
                 if is_passive {
-                    true
-                } else {
-                    c.pe_or_pb.is_finite()
-                        && c.pe_or_pb <= sell_pe_threshold
-                        && (c.dividend_yield > config.fund_min_dividend_yield
-                            || (c.eps > 0.0 && c.dividend_yield <= 0.0))
+                    return true;
+                }
+                match risk_profile {
+                    // Growth mandate: earnings power only — real EPS with
+                    // a finite multiple within the widened band. No
+                    // dividend gate; growth names often pay nothing.
+                    FundRiskProfile::Aggressive => {
+                        c.eps > 0.0
+                            && c.pe_or_pb.is_finite()
+                            && c.pe_or_pb <= profile_pe_threshold
+                    }
+                    // Income/defensive mandate: a REAL dividend is
+                    // mandatory (no pre-earnings exemption) and the
+                    // multiple must clear the tightened value cap.
+                    FundRiskProfile::Conservative => {
+                        c.pe_or_pb.is_finite()
+                            && c.pe_or_pb <= profile_pe_threshold
+                            && c.dividend_yield > config.fund_min_dividend_yield
+                    }
+                    // Balanced (and any unhandled profile): the original
+                    // value+income blend — not overvalued AND (pays a
+                    // real dividend OR is profitable with yield absent).
+                    _ => {
+                        c.pe_or_pb.is_finite()
+                            && c.pe_or_pb <= profile_pe_threshold
+                            && (c.dividend_yield > config.fund_min_dividend_yield
+                                || (c.eps > 0.0 && c.dividend_yield <= 0.0))
+                    }
                 }
             })
             .collect();
@@ -1455,23 +1500,55 @@ pub fn submit_fund_orders(
                     .then_with(|| a.id.cmp(&b.id))
             });
         } else {
-            ranked.sort_by(|a, b| {
-                let ap = modifiers
-                    .preferred_sector
-                    .map(|p| a.sector == p)
-                    .unwrap_or(false);
-                let bp = modifiers
-                    .preferred_sector
-                    .map(|p| b.sector == p)
-                    .unwrap_or(false);
-                bp.cmp(&ap)
-                    .then_with(|| {
-                        a.pe_or_pb
-                            .partial_cmp(&b.pe_or_pb)
-                            .unwrap_or(std::cmp::Ordering::Equal)
-                    })
-                    .then_with(|| a.id.cmp(&b.id))
-            });
+            match risk_profile {
+                // Growth book: strongest earnings yield (eps/price) first.
+                FundRiskProfile::Aggressive => ranked.sort_by(|a, b| {
+                    sector_pref(b)
+                        .cmp(&sector_pref(a))
+                        .then_with(|| {
+                            let ay = if a.share_price > 0.0 {
+                                a.eps / a.share_price
+                            } else {
+                                0.0
+                            };
+                            let by = if b.share_price > 0.0 {
+                                b.eps / b.share_price
+                            } else {
+                                0.0
+                            };
+                            by.partial_cmp(&ay)
+                                .unwrap_or(std::cmp::Ordering::Equal)
+                        })
+                        .then_with(|| a.id.cmp(&b.id))
+                }),
+                // Income book: highest dividend yield first, then cheapest.
+                FundRiskProfile::Conservative => ranked.sort_by(|a, b| {
+                    sector_pref(b)
+                        .cmp(&sector_pref(a))
+                        .then_with(|| {
+                            b.dividend_yield
+                                .partial_cmp(&a.dividend_yield)
+                                .unwrap_or(std::cmp::Ordering::Equal)
+                        })
+                        .then_with(|| {
+                            a.pe_or_pb
+                                .partial_cmp(&b.pe_or_pb)
+                                .unwrap_or(std::cmp::Ordering::Equal)
+                        })
+                        .then_with(|| a.id.cmp(&b.id))
+                }),
+                // Balanced book: cheapest valuation first (unchanged).
+                _ => ranked.sort_by(|a, b| {
+                    sector_pref(b)
+                        .cmp(&sector_pref(a))
+                        .then_with(|| {
+                            a.pe_or_pb
+                                .partial_cmp(&b.pe_or_pb)
+                                .unwrap_or(std::cmp::Ordering::Equal)
+                        })
+                        .then_with(|| a.id.cmp(&b.id))
+                }),
+            }
         }
         let total_candidate_cap: f64 = ranked.iter().map(|c| c.market_cap).sum();
 
@@ -1497,9 +1574,10 @@ pub fn submit_fund_orders(
                     .min(investable_cash * position_cap_pct.min(modifiers.max_position_pct))
             };
             // Buyer willingness cap — the fund pays up to the top of its
-            // "not overvalued" band, so crossing asks execute at fair value.
+            // profile's "not overvalued" band (Aggressive 1.5×, Conservative
+            // 0.6×), so crossing asks execute at the mandate's fair value.
             let cap_bound = if cand.eps > 0.0 {
-                cand.eps * sell_pe_threshold
+                cand.eps * profile_pe_threshold
             } else {
                 cand.book_ps
             };
@@ -1551,12 +1629,15 @@ pub fn submit_fund_orders(
         // above the mark, the ask lifts to the bid so the execution prints
         // at the better price (the engine settles every match at the ask
         // limit; a naive market ask would under-sell into it).
+        // v4.21 WS4: "overvalued" is judged against the fund's PROFILE
+        // threshold (Aggressive 1.5×, Conservative 0.6×) — a fund sells
+        // exactly the names its mandate would not buy.
         let mut _asks_placed = 0u32;
         for cand in equity_candidates.iter() {
             if cand.id == fund_id {
                 continue;
             }
-            if !(cand.pe_or_pb.is_finite() && cand.pe_or_pb > sell_pe_threshold) {
+            if !(cand.pe_or_pb.is_finite() && cand.pe_or_pb > profile_pe_threshold) {
                 continue;
             }
             let held = fund

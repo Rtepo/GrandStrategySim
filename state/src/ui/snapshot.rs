@@ -1106,8 +1106,13 @@ pub fn build_guilds_snapshot(
                 dividend_per_member: if is_classified {
                     None
                 } else {
-                    // Would be computed from last turn's dividends
-                    None
+                    // v4.21 WS4: real per-turn dividend paid per member
+                    // workshop, persisted by Phase 85A.3 after the
+                    // double-entry class credits.
+                    company
+                        .extra
+                        .get("guild_last_dividend_per_member")
+                        .and_then(|v| v.as_f64())
                 },
                 quality_standard: data.quality_standard,
                 has_charter: data.has_charter,
@@ -1331,7 +1336,16 @@ pub fn build_organization_detail(
                         Some(data.welfare_fund)
                     },
                     welfare_contribution_rate: data.welfare_contribution_rate,
-                    dividend_per_member: None,
+                    // v4.21 WS4: real per-turn dividend paid per member
+                    // workshop, persisted by Phase 85A.3.
+                    dividend_per_member: if is_classified {
+                        None
+                    } else {
+                        company
+                            .extra
+                            .get("guild_last_dividend_per_member")
+                            .and_then(|v| v.as_f64())
+                    },
                     quality_standard: data.quality_standard,
                     has_charter: data.has_charter,
                     jurisdiction_domain_id: data.jurisdiction_domain_id.clone(),
@@ -1939,6 +1953,74 @@ pub struct ClubRow {
     /// v4.20: Ideology badge key (e.g. "conservative", "socialist") resolved
     /// to an icon by the frontend.
     pub ideology_icon: String,
+    /// v4.21 WS1: Offices controlled by this club — chamber speakerships,
+    /// committee chairmanships, and cabinet portfolios held by its party.
+    pub offices: Vec<ClubOfficeRow>,
+    /// v4.21 WS1: Bills this club sponsored/initiated (in-flight and
+    /// completed), recovered from the live session and recorded votes.
+    pub initiatives: Vec<ClubInitiativeRow>,
+    /// v4.21 WS1: Recent chamber votes carrying this club's tally — the
+    /// club's whip line plus the seats that broke it (discipline rebels).
+    pub vote_history: Vec<ClubVoteHistoryRow>,
+}
+
+/// v4.21 WS1: One office held by a parliamentary club — a speakership,
+/// committee chairmanship, or cabinet portfolio. Every field is resolved
+/// from the presidium/committee/ministry records, never synthesized.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ClubOfficeRow {
+    /// Office title: "Speaker", "Deputy Speaker", "Committee Chair",
+    /// "Prime Minister", "Minister".
+    pub office: String,
+    /// Body the office belongs to — chamber name, committee name, or
+    /// ministry name.
+    pub body: String,
+    /// Officeholder display name (VIP name, or the recorded role+party
+    /// fallback when the seat is unnamed).
+    pub holder: String,
+}
+
+/// v4.21 WS1: A bill the club sponsored — live-session bills plus completed
+/// bills recovered from `VoteRecord.detail` (which outlives the bill's
+/// removal from `LegislativeSession::active_bills`).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ClubInitiativeRow {
+    pub bill_id: String,
+    pub title: String,
+    /// Current pipeline stage label or terminal stamp — "In Committee",
+    /// "Executive Review", "Enacted", "Rejected by …".
+    pub status: String,
+    /// Turn the bill was introduced.
+    pub introduced_turn: u32,
+    /// Turn the law took effect; None while pending or rejected.
+    pub enacted_turn: Option<u32>,
+}
+
+/// v4.21 WS1: One recorded chamber vote carrying this club's tally — the
+/// club's whip line and the seats that broke it.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ClubVoteHistoryRow {
+    pub bill_id: String,
+    pub bill_title: String,
+    /// Chamber display name that cast this vote (Sejm, Senate, ...).
+    pub chamber_name: String,
+    pub turn: u32,
+    /// The club's official line on the bill: "For" for government-side
+    /// clubs (ruling party + coalition, whipped yes by the vote model);
+    /// the plurality direction of the club's own recorded tally otherwise.
+    pub stance: String,
+    pub votes_for: u32,
+    pub votes_against: u32,
+    pub abstentions: u32,
+    /// Party-discipline rebels — seats in the club's tally cast against its
+    /// line (the split the vote model records when a whipped club fails its
+    /// discipline roll).
+    pub rebels: u32,
+    /// Whether the bill passed this chamber's vote.
+    pub passed: bool,
 }
 
 /// A recent vote row.
@@ -2868,6 +2950,10 @@ pub struct RegionDetail {
     /// v4.20 WS4: Per-councilor roll-call records for the resolutions above.
     #[serde(default)]
     pub council_roll_calls: Vec<CouncilRollCallRow>,
+    /// v4.21 WS3: Sitting councilors for the expandable faction summary —
+    /// includes members with no recorded roll-call votes.
+    #[serde(default)]
+    pub council_members: Vec<crate::ui::snapshot_regions::CouncilorRow>,
     pub infrastructure_avg_condition: f64,
     pub sector_employment: Vec<(String, f64)>,
     pub durable_cohorts: Vec<DurableCohortSummary>,
@@ -2944,6 +3030,31 @@ pub struct MandateSummary {
     pub source_bill_id: String,
     /// Turn the mandate was imposed.
     pub imposed_turn: u32,
+    /// v4.21 WS3: What the mandate physically covers (provision-derived).
+    #[serde(default)]
+    pub scope: String,
+    /// v4.21 WS3: The real-world effect the mandated spending produces.
+    #[serde(default)]
+    pub effects: String,
+    /// v4.21 WS3: Cash disbursed to the service provider so far.
+    #[serde(default)]
+    pub disbursed: f64,
+    /// v4.21 WS3: Portion paid by the central-grant leg (Treasury→JST→pool).
+    #[serde(default)]
+    pub central_disbursed: f64,
+    /// v4.21 WS3: Portion paid by the regional-treasury leg (JST→pool).
+    #[serde(default)]
+    pub regional_disbursed: f64,
+    /// v4.21 WS3: "Central Grant" | "Regional Treasury" | combined —
+    /// explicit funding source derived from the mandate's cash legs.
+    #[serde(default)]
+    pub funding_source: String,
+    /// v4.21 WS3: `disbursed / required` progress fraction (0–1).
+    #[serde(default)]
+    pub progress: f64,
+    /// v4.21 WS3: Nominal per-turn tranche (`required / MANDATE_DISBURSE_TURNS`).
+    #[serde(default)]
+    pub per_turn_disbursement: f64,
 }
 
 /// v4.20 WS4: A resolution debated and voted by a regional council —
@@ -3018,6 +3129,25 @@ pub struct MegaregionDetail {
     /// v4.20 WS4: Roll calls of member-region councilors.
     #[serde(default)]
     pub council_roll_calls: Vec<CouncilRollCallRow>,
+    /// v4.21 WS3: Assembly composition — faction seat totals aggregated
+    /// from member-region councils (the megaregion has no council of its
+    /// own; this is real governance state, not fabricated seats).
+    #[serde(default)]
+    pub council_factions: Vec<(String, u32)>,
+    /// v4.21 WS3: Sum of `council_factions` seats.
+    #[serde(default)]
+    pub total_council_seats: u32,
+    /// v4.21 WS3: Sitting councilors of member-region councils (assembly
+    /// membership for the expandable faction summary).
+    #[serde(default)]
+    pub council_members: Vec<crate::ui::snapshot_regions::CouncilorRow>,
+    /// v4.21 WS3: Sector employment aggregated over member regions
+    /// (Σ building.current_employment per GDP sector).
+    #[serde(default)]
+    pub sector_employment: Vec<(String, f64)>,
+    /// v4.21 WS3: Unfunded mandates targeting member regions.
+    #[serde(default)]
+    pub active_mandates: Vec<MandateSummary>,
 }
 
 // ============================================================================
@@ -3837,7 +3967,7 @@ pub fn build_country_snapshot(
         company_total_count: count_companies(companies, view),
         company_detail: build_company_detail(country, companies, view),
         region_detail: build_region_detail(country, buildings, view),
-        megaregion_detail: build_megaregion_detail(country, view),
+        megaregion_detail: build_megaregion_detail(country, buildings, view),
         advisory_council: build_advisory_council_snapshot(country),
         royal_dynasty: build_royal_dynasty_snapshot(country),
         government_form: country.politics.government_form.display_name().to_string(),
@@ -4833,16 +4963,7 @@ fn build_region_detail(
         .active_mandates
         .iter()
         .filter(|m| m.region_id.is_empty() || m.region_id == *region_id)
-        .map(|m| MandateSummary {
-            description: m.description.clone(),
-            required_spending: m.required_spending_per_region,
-            central_funding: m.central_funding,
-            funding_gap: m.funding_gap,
-            status: format!("{:?}", m.council_decision),
-            region_id: m.region_id.clone(),
-            source_bill_id: m.source_bill_id.clone(),
-            imposed_turn: m.imposed_turn,
-        })
+        .map(crate::ui::snapshot_regions::build_mandate_summary)
         .collect();
 
     // v4.20 WS4: Council legislative record — resolutions + roll calls are
@@ -4886,6 +5007,14 @@ fn build_region_detail(
                 })
                 .collect()
         })
+        .unwrap_or_default();
+
+    // v4.21 WS3: Sitting councilors — the expandable faction summary lists
+    // every member (including those with no recorded roll-call vote).
+    let council_members = region
+        .governance
+        .as_ref()
+        .map(|g| crate::ui::snapshot_regions::council_member_rows(&g.council, ""))
         .unwrap_or_default();
 
     // Infrastructure average condition.
@@ -4959,6 +5088,7 @@ fn build_region_detail(
         active_mandates,
         council_resolutions,
         council_roll_calls,
+        council_members,
         infrastructure_avg_condition,
         sector_employment,
         durable_cohorts,
@@ -5174,7 +5304,11 @@ fn build_geological_deposit_rows(
 }
 
 /// Phase 53: Build megaregion drill-down detail on-demand for the selected megaregion.
-fn build_megaregion_detail(country: &Country, view: &ViewQuery) -> Option<MegaregionDetail> {
+fn build_megaregion_detail(
+    country: &Country,
+    buildings: &[crate::entities::Building],
+    view: &ViewQuery,
+) -> Option<MegaregionDetail> {
     let megaregion_id = view.megaregion_drilldown_id.as_ref()?;
     let megaregion = country
         .megaregions
@@ -5228,6 +5362,7 @@ fn build_megaregion_detail(country: &Country, view: &ViewQuery) -> Option<Megare
     // (member order is the megaregion's stored region list — deterministic).
     let mut council_resolutions: Vec<CouncilResolutionRow> = Vec::new();
     let mut council_roll_calls: Vec<CouncilRollCallRow> = Vec::new();
+    let mut council_members: Vec<crate::ui::snapshot_regions::CouncilorRow> = Vec::new();
     for region in &member_regions {
         if let Some(ref gov) = region.governance {
             council_resolutions.extend(gov.council.resolutions.iter().map(|r| {
@@ -5251,8 +5386,48 @@ fn build_megaregion_detail(country: &Country, view: &ViewQuery) -> Option<Megare
                     vip_id: rc.vip_id.clone(),
                 }
             }));
+            // v4.21 WS3: the megaregional Assembly's membership is the union
+            // of member-region councils — real governance state, tagged by
+            // home region so the UI can group assembly members.
+            council_members.extend(
+                crate::ui::snapshot_regions::council_member_rows(&gov.council, &region.id),
+            );
         }
     }
+
+    // v4.21 WS3: Assembly composition — faction seat totals aggregated
+    // from member-region councils (real `LocalCouncil.faction_distribution`,
+    // not fabricated assembly seats).
+    let council_factions = crate::ui::snapshot_regions::aggregate_faction_seats(
+        member_regions
+            .iter()
+            .filter_map(|r| r.governance.as_ref().map(|g| &g.council)),
+    );
+    let total_council_seats: u32 = council_factions.iter().map(|(_, s)| *s).sum();
+
+    // v4.21 WS3: Sector employment across member regions — Σ
+    // building.current_employment per GDP sector, same measure as the
+    // region-level `sector_employment` tab.
+    let mut sector_fte: std::collections::BTreeMap<String, f64> =
+        std::collections::BTreeMap::new();
+    for building in buildings
+        .iter()
+        .filter(|b| megaregion.regions.contains(&b.region_id))
+    {
+        *sector_fte.entry(format!("{:?}", building.sector)).or_insert(0.0) +=
+            building.current_employment as f64;
+    }
+    let sector_employment: Vec<(String, f64)> = sector_fte.into_iter().collect();
+
+    // v4.21 WS3: Mandates targeting member regions (legacy unscoped
+    // national records included — they apply to every governed region).
+    let active_mandates: Vec<MandateSummary> = country
+        .politics
+        .active_mandates
+        .iter()
+        .filter(|m| m.region_id.is_empty() || megaregion.regions.contains(&m.region_id))
+        .map(crate::ui::snapshot_regions::build_mandate_summary)
+        .collect();
 
     Some(MegaregionDetail {
         megaregion_id: megaregion.id.clone(),
@@ -5276,6 +5451,11 @@ fn build_megaregion_detail(country: &Country, view: &ViewQuery) -> Option<Megare
         budget_balance,
         council_resolutions,
         council_roll_calls,
+        council_factions,
+        total_council_seats,
+        council_members,
+        sector_employment,
+        active_mandates,
     })
 }
 
@@ -5619,7 +5799,17 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
         wealth_tax_rate,
         capital_gains_rate,
         total_public_debt,
-        debt_service: 0.0,
+        // v4.21 WS2: real sovereign debt service — the EWMA run-rate of
+        // coupon+principal payments recorded by `process_debt_service`
+        // each turn (raw per-turn figure is lumpy on annual coupons; the
+        // EWMA is its honest run-rate). Falls back to 0 only when the
+        // engine has never serviced debt.
+        debt_service: country
+            .budget
+            .extra
+            .get("debt_service_run_rate")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0),
         weighted_avg_interest_rate,
         debt_held_by_banks,
         debt_held_by_central_bank,
@@ -5968,6 +6158,12 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                     chairperson_name: c.chairperson_name.clone(),
                     color_hex,
                     ideology_icon,
+                    // v4.21 WS1: expandable Clubs-tab sections — controlled
+                    // offices, sponsored bills, and per-vote whip/rebel data,
+                    // all resolved from real state below.
+                    offices: club_offices(c, parl, politics),
+                    initiatives: club_initiatives(c, parl, politics),
+                    vote_history: club_vote_history(c, parl, politics),
                 }
             })
             .collect();
@@ -6149,6 +6345,247 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
             ..Default::default()
         }
     }
+}
+
+/// v4.21 WS1: Offices controlled by one club — chamber speakerships,
+/// committee chairmanships, and cabinet portfolios. Every row is resolved
+/// from the presidium/committee/ministry records; holders fall back to the
+/// recorded role+party label when the seat has no named VIP.
+fn club_offices(
+    club: &crate::politics::parliament::ParliamentaryClub,
+    parl: &crate::politics::parliament::Parliament,
+    politics: &crate::politics::system::Politics,
+) -> Vec<ClubOfficeRow> {
+    // Seat-map keys are club ids; normal clubs share the party id while
+    // splinter clubs get their own `Splinter_*` key. Match both id and
+    // display name so recorded officeholders always resolve.
+    let matches = |id: &str| id == club.id || id == club.name;
+    let mut offices = Vec::new();
+
+    // Chamber presidiums — speaker and deputy speakers carry a party id.
+    for chamber in &parl.chambers {
+        if matches(&chamber.presidium.speaker_club) {
+            offices.push(ClubOfficeRow {
+                office: "Speaker".to_string(),
+                body: chamber.name.clone(),
+                holder: chamber.presidium.speaker.full_name.clone(),
+            });
+        }
+        for deputy in &chamber.presidium.deputy_speakers {
+            if matches(&deputy.party) {
+                offices.push(ClubOfficeRow {
+                    office: "Deputy Speaker".to_string(),
+                    body: chamber.name.clone(),
+                    holder: deputy.full_name.clone(),
+                });
+            }
+        }
+    }
+
+    // Committee chairmanships — `Committee::chair` is the chair's party id;
+    // resolve the named VIP exactly like the CommitteeRow emit above.
+    if let Some(ref cs) = politics.committee_system {
+        for committee in cs.committees.values() {
+            if matches(&committee.chair) {
+                let holder = committee
+                    .chair_vip_id
+                    .as_ref()
+                    .and_then(|id| {
+                        politics
+                            .vip_registry
+                            .as_ref()
+                            .and_then(|r| r.get(id))
+                            .map(|v| v.full_name.clone())
+                    })
+                    .unwrap_or_else(|| committee.chair.clone());
+                offices.push(ClubOfficeRow {
+                    office: "Committee Chair".to_string(),
+                    body: committee.name.clone(),
+                    holder,
+                });
+            }
+        }
+    }
+
+    // Premiership — resolved through the canonical PM-party accessor (same
+    // source as the Government tab's pm_party), named via the parliament VIP
+    // roster or the party leader.
+    let pm_party = crate::politics::ministries::canonical_pm_party_id(politics);
+    if matches(pm_party) {
+        let holder = parl
+            .vips
+            .iter()
+            .find(|v| v.role == crate::politics::parliament::VipRole::PrimeMinister)
+            .map(|v| v.full_name.clone())
+            .or_else(|| {
+                politics
+                    .active_parties
+                    .get(pm_party)
+                    .map(|p| p.leader.name.clone())
+                    .filter(|n| !n.is_empty())
+            })
+            .unwrap_or_else(|| format!("PM ({})", pm_party));
+        offices.push(ClubOfficeRow {
+            office: "Prime Minister".to_string(),
+            body: "Cabinet".to_string(),
+            holder,
+        });
+    }
+
+    // Cabinet portfolios — `Ministry::minister_party` is a party id.
+    if let Some(ref config) = politics.ministry_config {
+        for m in &config.ministries {
+            if matches(&m.minister_party) {
+                offices.push(ClubOfficeRow {
+                    office: "Minister".to_string(),
+                    // Same display convention as MinisterRow — strip the
+                    // "Ministry of " prefix.
+                    body: m
+                        .name
+                        .strip_prefix("Ministry of ")
+                        .unwrap_or(&m.name)
+                        .to_string(),
+                    holder: if m.minister_name.is_empty() {
+                        format!("Minister ({})", m.minister_party)
+                    } else {
+                        m.minister_name.clone()
+                    },
+                });
+            }
+        }
+    }
+
+    // Deterministic order — committees/ministries iterate HashMaps/Vecs that
+    // must not leak storage order into serialized snapshots.
+    offices.sort_by(|a, b| a.office.cmp(&b.office).then_with(|| a.body.cmp(&b.body)));
+    offices
+}
+
+/// v4.21 WS1: Bills this club sponsored — live-session bills plus completed
+/// bills recovered from recorded chamber votes (`VoteRecord.detail`
+/// outlives the bill's removal from `active_bills`). Deduped by bill id;
+/// the recorded (possibly terminal) status wins over the in-flight label.
+fn club_initiatives(
+    club: &crate::politics::parliament::ParliamentaryClub,
+    parl: &crate::politics::parliament::Parliament,
+    politics: &crate::politics::system::Politics,
+) -> Vec<ClubInitiativeRow> {
+    let matches = |id: &str| id == club.id || id == club.name;
+    let mut by_id: std::collections::HashMap<String, ClubInitiativeRow> =
+        std::collections::HashMap::new();
+
+    // In-flight bills from the live legislative session.
+    if let Some(ref session) = politics.legislative_session {
+        for bill in session.active_bills.values() {
+            if !matches(&bill.initiator) {
+                continue;
+            }
+            by_id.insert(
+                bill.id.clone(),
+                ClubInitiativeRow {
+                    bill_id: bill.id.clone(),
+                    title: bill.title.clone(),
+                    status: bill.stage.label().to_string(),
+                    introduced_turn: bill.introduction_turn,
+                    enacted_turn: None,
+                },
+            );
+        }
+    }
+
+    // Completed bills — `mark_bill_terminal` stamps the final outcome
+    // ("Enacted", "Rejected by …") onto the recorded detail.
+    for chamber in &parl.chambers {
+        for record in &chamber.recent_votes {
+            let Some(ref detail) = record.detail else {
+                continue;
+            };
+            if !matches(&detail.initiator) {
+                continue;
+            }
+            let status = if !detail.status_badge.is_empty() {
+                detail.status_badge.clone()
+            } else if !detail.stage.is_empty() {
+                detail.stage.clone()
+            } else {
+                "Recorded".to_string()
+            };
+            let row = ClubInitiativeRow {
+                bill_id: record.bill_id.clone(),
+                title: record.bill_title.clone(),
+                status,
+                introduced_turn: detail.introduction_turn,
+                enacted_turn: detail.enacted_turn,
+            };
+            // Prefer the recorded status — it carries terminal stamps the
+            // live-session stage label lacks.
+            by_id.insert(record.bill_id.clone(), row);
+        }
+    }
+
+    let mut initiatives: Vec<ClubInitiativeRow> = by_id.into_values().collect();
+    initiatives.sort_by(|a, b| {
+        b.introduced_turn
+            .cmp(&a.introduced_turn)
+            .then_with(|| a.bill_id.cmp(&b.bill_id))
+    });
+    initiatives
+}
+
+/// v4.21 WS1: Recent chamber votes carrying this club's tally, with the
+/// club's whip line and its discipline rebels. Government-side clubs
+/// (ruling party or coalition member — the same `is_coalition` test
+/// `calculate_floor_vote` applies) are whipped FOR the agenda; every other
+/// club's line is the plurality direction of its own recorded tally, since
+/// MPs are anonymized seat pools and the tally is the finest real
+/// granularity the engine keeps. `rebels` counts seats cast against the
+/// line — nonzero when a whipped club fails its discipline roll and its
+/// bloc splits into Against/Abstain.
+fn club_vote_history(
+    club: &crate::politics::parliament::ParliamentaryClub,
+    parl: &crate::politics::parliament::Parliament,
+    politics: &crate::politics::system::Politics,
+) -> Vec<ClubVoteHistoryRow> {
+    let matches = |id: &str| id == club.id || id == club.name;
+    let whipped_for = matches(&politics.ruling_party)
+        || politics.coalition.iter().any(|p| matches(p));
+    let mut rows = Vec::new();
+    for chamber in &parl.chambers {
+        for record in &chamber.recent_votes {
+            let Some(tally) = record.club_breakdown.iter().find(|t| matches(&t.club_id)) else {
+                continue;
+            };
+            let stance = if whipped_for {
+                "For"
+            } else if tally.votes_for >= tally.votes_against && tally.votes_for >= tally.abstentions {
+                "For"
+            } else if tally.votes_against >= tally.abstentions {
+                "Against"
+            } else {
+                "Abstain"
+            };
+            let total = tally.votes_for + tally.votes_against + tally.abstentions;
+            let loyal = match stance {
+                "For" => tally.votes_for,
+                "Against" => tally.votes_against,
+                _ => tally.abstentions,
+            };
+            rows.push(ClubVoteHistoryRow {
+                bill_id: record.bill_id.clone(),
+                bill_title: record.bill_title.clone(),
+                chamber_name: chamber.name.clone(),
+                turn: record.turn,
+                stance: stance.to_string(),
+                votes_for: tally.votes_for,
+                votes_against: tally.votes_against,
+                abstentions: tally.abstentions,
+                rebels: total.saturating_sub(loyal),
+                passed: record.passed,
+            });
+        }
+    }
+    rows.sort_by(|a, b| b.turn.cmp(&a.turn).then_with(|| a.bill_id.cmp(&b.bill_id)));
+    rows
 }
 
 /// Phase 26: Aggregate companies by sector for the Sector Overview table.

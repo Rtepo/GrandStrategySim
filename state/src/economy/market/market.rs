@@ -80,6 +80,35 @@ pub struct GlobalMarket {
     pub base_prices: HashMap<Commodity, f64>,
     /// Net global surplus per commodity (positive = surplus, negative = deficit).
     pub net_surplus: HashMap<Commodity, f64>,
+    /// v4.21 WS2: post-resolution unfilled B2B demand per commodity,
+    /// deficit-signed (value < 0 = unfilled units remaining). Unlike
+    /// `net_surplus` — a gross order-flow imbalance of desired recipe
+    /// inputs vs desired outputs — this measures bids that survived BOTH
+    /// domestic matching and the foreign import sweep: demand the market
+    /// physically could not deliver this turn. Emergency-powers shortage
+    /// detection reads this, so a chronic order-book deficit that stocks
+    /// and imports actually cover cannot pin countries under martial law
+    /// while shelves stay full.
+    ///
+    /// Keyed by the BUYER's country name: emergency powers are national,
+    /// so each country must see only its own shortfall — a healthy
+    /// exporter must not ration domestic demand because an FX-starved
+    /// neighbor's import bids go undelivered. Bids whose buyer cannot be
+    /// attributed (non-company ids without an embedded country name)
+    /// accumulate under the empty-string key and never trigger a check.
+    #[serde(default)]
+    pub unfilled_b2b_demand: HashMap<String, HashMap<Commodity, f64>>,
+    /// v4.21 WS2: matched cross-border bids whose settlement died on the
+    /// buyer's FX-reserve constraint — the goods existed and matched, but
+    /// the importing central bank could not cover the foreign-currency
+    /// leg. Keyed by the importing country; deficit-signed like
+    /// `unfilled_b2b_demand`. Kept separate from the physical residual on
+    /// purpose: this is a payments-system failure (a BoP squeeze), not a
+    /// production shortfall, and the emergency-powers rationing lever
+    /// cannot fix it — demand-side compression for a payments problem
+    /// would only crush consumption.
+    #[serde(default)]
+    pub fx_vetoed_import_demand: HashMap<String, HashMap<Commodity, f64>>,
     /// Offshore capital ledger (Phase 5: Capital Flight).
     /// Tracks total capital that has fled domestic economies to tax havens.
     /// This ensures money mass preservation - capital doesn't disappear, it moves offshore.

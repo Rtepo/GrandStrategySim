@@ -47,6 +47,19 @@ pub fn check_emergency_conditions(
     };
 
     let current = country.emergency_powers;
+    #[cfg(feature = "diagnostic")]
+    if desired_powers != EmergencyPowers::Normal || current != EmergencyPowers::Normal {
+        eprintln!(
+            "EMERGDBG: c={} current={:?} desired={:?} def_sev={:.3} crit={} esc={} desc={}",
+            country.name,
+            current,
+            desired_powers,
+            deficit_severity,
+            critical_shortages,
+            country.emergency_escalation_counter,
+            country.emergency_deescalation_counter,
+        );
+    }
 
     // Phase 33: Hysteresis logic.
     let new_powers = if desired_powers == current {

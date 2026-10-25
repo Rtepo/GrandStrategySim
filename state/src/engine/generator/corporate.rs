@@ -1138,9 +1138,16 @@ pub fn generate_corporate_entities(
     {
         let mut private_by_key: HashMap<(String, String), Vec<Building>> = HashMap::new();
         for b in &all_buildings {
-            if b.owner_id == "State" {
-                continue;
-            }
+            // v4.21 WS3: do NOT drop `owner_id == "State"` buildings here.
+            // `save_sector` is a whole-file `fs::write` keyed by
+            // (sector, region), and the earlier state-buildings save wrote
+            // the same `public_services/<region>.json` path — skipping
+            // State-owned buildings in this re-save therefore DELETED
+            // every police station/court/university from disk. The loaded
+            // world had zero adoptable municipal buildings, so
+            // `ensure_municipal_services_employers` never formed a JST
+            // PublicServices employer (only landfills survived — no
+            // private waste company re-writes that sector file).
             let sector_name = sector_json_name(b.sector);
             private_by_key
                 .entry((sector_name, b.region_id.clone()))
@@ -1563,9 +1570,9 @@ pub fn generate_corporate_entities(
                 let mut scaled_by_key: HashMap<(String, String), Vec<Building>> =
                     HashMap::new();
                 for b in &all_buildings {
-                    if b.owner_id == "State" {
-                        continue;
-                    }
+                    // v4.21 WS3: same whole-file clobber as the Phase-94
+                    // re-save above — skipping "State" buildings here
+                    // deletes them from `public_services/<region>.json`.
                     scaled_by_key
                         .entry((sector_json_name(b.sector), b.region_id.clone()))
                         .or_default()

@@ -248,11 +248,14 @@ fn commodity_wealth_gate(commodity: Commodity) -> f64 {
 const MAX_SAVINGS_DRAWDOWN_RATE: f64 = 0.12;
 
 /// v4.18 WS1 follow-up: permanent-income smoothing — the EWMA update rate
-/// for `ClassDemographics::smoothed_income`. α = 0.35 damps ~2/3 of a
+/// for `ClassDemographics::smoothed_income`. α = 0.50 damps ~half of a
 /// one-turn income spike within the first post-shock turn while tracking
-/// a persistent shift inside ~4 turns; the residual flows into the stock
+/// a persistent shift inside ~3 turns; the residual flows into the stock
 /// and is released by `MAX_SAVINGS_DRAWDOWN_RATE` instead of spiking C.
-const INCOME_SMOOTHING_ALPHA: f64 = 0.35;
+/// v4.21 WS2: raised from 0.35 — the deeper lag (~1.9 turns) clipped
+/// spending capacity persistently below realized income through the
+/// long wage-growth regime, suppressing household consumption share.
+const INCOME_SMOOTHING_ALPHA: f64 = 0.50;
 
 /// v4.18 WS1: solvency signal (savings/capita) at which durable upgrade
 /// demand reaches full strength — scaled linearly below it so the
@@ -353,25 +356,71 @@ fn demand_value_price(
     commodity: &Commodity,
     market_prices: &HashMap<Commodity, f64>,
     market_history: &MarketHistory,
+    region_id: &str,
+    posted: Option<f64>,
 ) -> f64 {
-    if let Some(&p) = market_history.retail_vwap_smoothed.get(commodity) {
+    let mut p = if let Some(&p) = market_history.retail_vwap_smoothed.get(commodity) {
         if p > 0.0 {
-            return p;
+            p
+        } else {
+            0.0
+        }
+    } else {
+        0.0
+    };
+    if p <= 0.0 {
+        if let Some(&p2) = market_history.retail_vwap_per_commodity.get(commodity) {
+            if p2 > 0.0 {
+                p = p2;
+            }
         }
     }
-    if let Some(&p) = market_history.retail_vwap_per_commodity.get(commodity) {
-        if p > 0.0 {
-            return p;
+    if p <= 0.0 {
+        if let Some(&p2) = market_prices.get(commodity) {
+            if p2 > 0.0 {
+                p = p2;
+            }
         }
     }
-    if let Some(&p) = market_prices.get(commodity) {
-        if p > 0.0 {
-            return p;
+    if p <= 0.0 {
+        p = get_reference_price(commodity, market_history)
+            .unwrap_or(0.0)
+            .max(0.0);
+    }
+    // v4.21 WS2: never value the demanded basket above the last OBSERVED
+    // posted retail price — the REGION's own shelf VWAP when it exists
+    // (regional prices diverge 1.3–3× from the global blend; a global floor
+    // still overprices a cheap region's shelves and undersizes demanded
+    // units ~60%), falling back to the global retail VWAP. Households plan
+    // quantities around the habitual expectation, but when posted prices
+    // sit below it their budget buys MORE units — the income effect of a
+    // lower price level. Without this floor, a persistent expectation-vs-
+    // posted gap sizes demanded units at stale-high prices and the unspent
+    // residual just banks into savings: measured spend runs ~40% of
+    // capacity forever even with shelves full. The cap is one-sided by
+    // design — when the last print is ABOVE the smoothed expectation
+    // (inflation shock) the smoothed value still wins, preserving the
+    // v4.19 anti-oscillation budgeting.
+    let observed = market_history
+        .regional_retail_vwap
+        .get(&(region_id.to_string(), *commodity))
+        .or_else(|| market_history.retail_vwap_per_commodity.get(commodity));
+    if let Some(&actual) = observed {
+        if actual > 0.0 {
+            p = p.min(actual);
         }
     }
-    get_reference_price(commodity, market_history)
-        .unwrap_or(0.0)
-        .max(0.0)
+    // v4.21 WS2: this turn's posted shelf price is the freshest actual — a
+    // line listed below both the smoothed expectation and the last printed
+    // VWAP buys MORE units per unit of capacity (the same one-sided income
+    // effect as the regional floor). Posted-above-expectation is ignored so
+    // a markup spike cannot inflate the envelope.
+    if let Some(posted_price) = posted {
+        if posted_price > 0.0 {
+            p = p.min(posted_price);
+        }
+    }
+    p
 }
 
 /// Phase 47: Compute stock-adjusted durable demand for a class.
@@ -681,6 +730,31 @@ pub fn build_consumer_demand(
     average_wage: f64,
     housing_buildings: &[HousingBuilding],
     market_history: &MarketHistory,
+    // v4.21 WS2: physical in-kind deliveries per (region_id, class) —
+    // subtracted from the RAW basket want (unscaled units) BEFORE the
+    // capacity scale applies. The ledger delivers physical units; netting
+    // it out of the pre-scale want is the unit-consistent place — netting
+    // post-scale compared unscaled goods against a demand already crushed
+    // ~100x by the capacity scale and zeroed staple demand wholesale.
+    in_kind_deductions: Option<
+        &BTreeMap<(String, DemographicClass), BTreeMap<Commodity, f64>>,
+    >,
+    // v4.21 WS2: active VAT brackets — the capacity scale must price the
+    // basket GROSS of VAT. The settle debits base+VAT against the same
+    // capacity envelope; a net-priced basket systematically overshoots the
+    // envelope by the blended rate and the money leg clips ~15% of every
+    // class's spend (measured settled/rev ≈ 0.856 at vat≈0.169).
+    vat_rates: &std::collections::HashMap<String, crate::state::tax::VatBracket>,
+    // v4.21 WS2: this turn's shelf state — minimum posted unit price per
+    // commodity across the region's store offers. The capacity envelope is
+    // priced only over lines physically on shelves THIS turn: a line whose
+    // last sale printed a VWAP but which stores no longer carry cannot
+    // convert income into goods, so letting it consume the envelope strands
+    // ~15–20% of spendable power on unfillable demand. Demanded units on
+    // unshelved lines still enter `total_demand` at full scale — that unmet
+    // demand is the restock signal that pulls supply back onto the shelf,
+    // at which point the line rejoins the priced basket automatically.
+    shelf_prices: &BTreeMap<Commodity, f64>,
 ) -> ConsumerDemand {
     let mut demand = ConsumerDemand {
         demand: BTreeMap::new(),
@@ -743,6 +817,10 @@ pub fn build_consumer_demand(
         // Build this class's demand lines into a local map first: the
         // bounded-dissaving cap values and scales the whole basket (including
         // substitution-shifted lines) before it is merged into the aggregate.
+        // Lines with no retail channel stay in the basket — their unmet
+        // demand is the restock signal that draws supply into stores — but
+        // they are excluded from `demand_value` below so they cannot consume
+        // the class's spendable budget.
         let mut class_map: BTreeMap<Commodity, f64> = BTreeMap::new();
 
         if let Some(basket) = consumption.get(class_id_str) {
@@ -845,13 +923,63 @@ pub fn build_consumer_demand(
             );
         }
         if !class_map.is_empty() {
+            // v4.21 WS2: net in-kind deliveries out of the RAW want — the
+            // ledger is physical units, the basket is physical units, and
+            // the capacity scale then prices the residual fairly. (Doing
+            // this post-scale mixed units and zeroed staple demand: at
+            // sc≈0.01 a full-population delivery dwarfs the scaled line.)
+            if let Some(ded_map) = in_kind_deductions.and_then(|m| m.get(&key)) {
+                for (commodity, qty) in class_map.iter_mut() {
+                    if let Some(&ded) = ded_map.get(commodity) {
+                        *qty = (*qty - ded).max(0.0);
+                    }
+                }
+            }
+            // v4.21: the capacity envelope is priced only over lines that can
+            // actually convert income into goods — commodities physically on
+            // this region's shelves this turn. Demanded lines with no retail
+            // presence (intangible service-capacity slots, goods no store
+            // has ever stocked, or lines whose shelf ran dry) can never
+            // settle, so letting them inflate `dv` would crush the common
+            // scale factor and strand the class's spendable budget —
+            // measured spend stalled at ~40% of capacity with dead lines,
+            // and ~80% with stale-VWAP-but-unstocked lines. Their demanded
+            // units remain in `class_map`/`total_demand`, so the unmet-
+            // demand restock signal keeps pulling supply toward them; once
+            // a line lands on a shelf it rejoins the priced basket
+            // automatically.
+            let mut vat_weighted: f64 = 0.0;
             let demand_value: f64 = class_map
                 .iter()
-                .map(|(c, q)| *q * demand_value_price(c, market_prices, market_history))
+                .filter(|(c, _)| shelf_prices.contains_key(*c))
+                .map(|(c, q)| {
+                    let v = *q
+                        * demand_value_price(
+                            c,
+                            market_prices,
+                            market_history,
+                            &region.id,
+                            shelf_prices.get(c).copied(),
+                        );
+                    vat_weighted += v
+                        * vat_rates
+                            .get(c.vat_category())
+                            .map(|b| b.rate)
+                            .unwrap_or(0.0);
+                    v
+                })
                 .sum();
+            // Gross-of-VAT scale: demanded units shrink by 1/(1+blend) so the
+            // VAT-inclusive bill lands inside capacity instead of clipping at
+            // the money leg and stranding ~15% of spendable power.
+            let blended_vat = if demand_value > 0.0 {
+                vat_weighted / demand_value
+            } else {
+                0.0
+            };
             let capacity = class_spend_capacity(demographics, average_wage);
             let scale = if demand_value > 0.0 {
-                (capacity / demand_value).clamp(0.0, 1.0)
+                (capacity / (demand_value * (1.0 + blended_vat))).clamp(0.0, 1.0)
             } else if capacity <= 0.0 {
                 // No wage bill and no savings stock: the class cannot fund
                 // even unpriced demand — honest collapse rather than the
@@ -877,13 +1005,104 @@ pub fn build_consumer_demand(
             );
             if scale > 0.0 {
                 let entry = demand.demand.entry(key.clone()).or_default();
-                for (commodity, qty) in class_map {
-                    let scaled = qty * scale;
+                for (commodity, qty) in &class_map {
+                    let scaled = *qty * scale;
                     if scaled > 0.0 {
-                        *entry.entry(commodity).or_insert(0.0) += scaled;
-                        *demand.total_demand.entry(commodity).or_insert(0.0) += scaled;
+                        *entry.entry(*commodity).or_insert(0.0) += scaled;
+                        *demand.total_demand.entry(*commodity).or_insert(0.0) += scaled;
                     }
                 }
+            }
+            #[cfg(feature = "diagnostic")]
+            if current_turn >= 118 {
+                let mut top: Vec<(Commodity, f64, f64, f64)> = class_map
+                    .iter()
+                    .map(|(c, q)| {
+                        (
+                            *c,
+                            *q,
+                            demand_value_price(
+                                c,
+                                market_prices,
+                                market_history,
+                                &region.id,
+                                shelf_prices.get(c).copied(),
+                            ),
+                            market_history
+                                .regional_retail_vwap
+                                .get(&(region.id.clone(), *c))
+                                .or_else(|| market_history.retail_vwap_per_commodity.get(c))
+                                .copied()
+                                .unwrap_or(0.0),
+                        )
+                    })
+                    .collect();
+                top.sort_by(|a, b| {
+                    (b.1 * b.2)
+                        .partial_cmp(&(a.1 * a.2))
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
+                let desc: String = top
+                    .iter()
+                    .take(3)
+                    .map(|(c, q, b, a)| {
+                        format!("{:?}:q={:.0} basis={:.1} act={:.1}", c, q, b, a)
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" | ");
+                let (vb, va, va_s): (f64, f64, f64) = class_map.iter().fold(
+                    (0.0, 0.0, 0.0),
+                    |(vb, va, va_s), (c, q)| {
+                        let b = demand_value_price(
+                            c,
+                            market_prices,
+                            market_history,
+                            &region.id,
+                            shelf_prices.get(c).copied(),
+                        );
+                        let a = market_history
+                            .regional_retail_vwap
+                            .get(&(region.id.clone(), *c))
+                            .or_else(|| market_history.retail_vwap_per_commodity.get(c))
+                            .copied()
+                            .unwrap_or(0.0);
+                        // Saleable-only value: the same membership test the
+                        // capacity scale uses (physically on shelves now).
+                        let s = shelf_prices.get(c).copied().unwrap_or(0.0);
+                        (vb + q * b, va + q * a, va_s + q * s)
+                    },
+                );
+                // uval = post-scale demanded units valued at the last actual
+                // price — the apples-to-apples comparison against capacity.
+                let dvu = scale * va;
+                let dvu_s = scale * va_s;
+                eprintln!(
+                    "BASISDBG: t={} r={} cls={} ratio={:.3} uval={:.0} ucap={:.3} uvls={:.3} {} [{}]",
+                    current_turn,
+                    region.id,
+                    class_id_str,
+                    if vb > 0.0 { va / vb } else { 0.0 },
+                    dvu,
+                    if capacity > 0.0 { dvu / capacity } else { 0.0 },
+                    if capacity > 0.0 { dvu_s / capacity } else { 0.0 },
+                    desc,
+                    {
+                        let mut miss: Vec<String> = class_map
+                            .iter()
+                            .filter(|(c, _)| {
+                                market_history
+                                    .retail_vwap_per_commodity
+                                    .get(*c)
+                                    .copied()
+                                    .unwrap_or(0.0)
+                                    <= 0.0
+                            })
+                            .map(|(c, q)| format!("{:?}x{:.0}", c, q))
+                            .collect();
+                        miss.truncate(6);
+                        miss.join(",")
+                    }
+                );
             }
         }
     };
@@ -1606,6 +1825,7 @@ pub fn settle_b2c_clearing(
     vat_rates: &std::collections::HashMap<String, crate::state::tax::VatBracket>,
     store_id_to_owner: &rustc_hash::FxHashMap<String, String>,
     company_id_to_idx: &rustc_hash::FxHashMap<String, usize>,
+    settle_prices: &BTreeMap<Commodity, f64>,
 ) -> (f64, f64, f64) {
     // v4.18 WS1: Refresh each class's habitual spending-capacity anchor once
     // per turn, BEFORE this turn's retail debits, so the anchor reflects the
@@ -1673,12 +1893,20 @@ pub fn settle_b2c_clearing(
         }
     }
 
-    // Build class demand shares: (is_rural, DemographicClass) → total demand across all commodities
+    // Build class demand shares: (is_rural, DemographicClass) → demanded
+    // *value* at this turn's settled retail prices, across all commodities.
+    // v4.21: value-weighted shares replace the old raw-unit split — demanded
+    // units on lines that never settled (no retail channel, or stocked out)
+    // contributed units but zero purchased value, so unit shares charged
+    // classes for revenue on goods they never received.
     // E.6.3: typed DemographicClass key
     let mut class_shares: Vec<(bool, DemographicClass, f64)> = Vec::new();
     let mut total_class_demand: f64 = 0.0;
     for ((_, class), commodity_map) in &consumer_demand.demand {
-        let class_total: f64 = commodity_map.values().sum();
+        let class_total: f64 = commodity_map
+            .iter()
+            .map(|(c, q)| *q * settle_prices.get(c).copied().unwrap_or(0.0))
+            .sum();
         if class_total > 0.0 {
             let is_rural = class.is_rural();
             class_shares.push((is_rural, *class, class_total));
@@ -1700,7 +1928,10 @@ pub fn settle_b2c_clearing(
     // Phase 41: Compute VAT for this region's consumer demand mix once —
     // it does not depend on the store. DYNAMIC RATE LOOKUP via
     // `country.tax_rates.vat` for each commodity's VAT category.
-    let blended_vat_rate = compute_blended_vat_rate(consumer_demand, vat_rates);
+    // v4.21: weight the blend by settled value (units × actual price), not
+    // raw demanded units — demanded units on lines that never settled have
+    // no revenue and must not skew the applied rate.
+    let blended_vat_rate = compute_blended_vat_rate(consumer_demand, vat_rates, settle_prices);
 
     // v4.18 WS1 follow-up: cumulative per-class spending budget for THIS
     // settle — the bounded-dissaving capacity (`prev_spend_capacity`, just
@@ -1868,16 +2099,22 @@ pub fn settle_b2c_clearing(
 fn compute_blended_vat_rate(
     consumer_demand: &ConsumerDemand,
     vat_rates: &std::collections::HashMap<String, crate::state::tax::VatBracket>,
+    settle_prices: &BTreeMap<Commodity, f64>,
 ) -> f64 {
     let mut total_weighted_rate: f64 = 0.0;
     let mut total_demand: f64 = 0.0;
 
     for commodity_map in consumer_demand.demand.values() {
         for (commodity, demand) in commodity_map {
+            let price = settle_prices.get(commodity).copied().unwrap_or(0.0);
+            let demand_value = demand * price;
+            if demand_value <= 0.0 {
+                continue;
+            }
             let category = commodity.vat_category();
             let rate = vat_rates.get(category).map(|b| b.rate).unwrap_or(0.0);
-            total_weighted_rate += rate * demand;
-            total_demand += demand;
+            total_weighted_rate += rate * demand_value;
+            total_demand += demand_value;
         }
     }
 
@@ -1953,9 +2190,18 @@ pub fn calculate_retail_price(
 /// * `Emergency` → 10% of normal demand.
 /// * `None` → no change.
 /// * Scales both `total_demand` and per-class `demand` maps.
+/// `available` is the set of commodities physically stocked on this market's
+/// shelves this turn. Rationing exists to conserve stock the state cannot
+/// resupply; a demanded line that is already on the shelf physically clears
+/// regardless of the wholesale order-book deficit that activated the state of
+/// emergency — suppressing it would strand existing inventory and the money
+/// earmarked for it, not conserve anything. Lines with no shelf stock keep
+/// their multiplier, which preserves the conservation intent exactly where
+/// scarcity actually binds.
 pub fn apply_rationing_to_demand(
     demand: &mut ConsumerDemand,
     rationing: &crate::state::RationingSystem,
+    available: &std::collections::HashSet<Commodity>,
 ) {
     for (commodity_str, level) in &rationing.rationed_goods {
         let multiplier = match level {
@@ -1969,6 +2215,9 @@ pub fn apply_rationing_to_demand(
             Ok(c) => c,
             Err(_) => continue,
         };
+        if available.contains(&commodity) {
+            continue;
+        }
 
         // Scale total_demand
         if let Some(total) = demand.total_demand.get_mut(&commodity) {
@@ -2766,7 +3015,19 @@ mod tests {
             prices.insert(c, 100.0);
         }
         let history = MarketHistory::default();
-        let demand = build_consumer_demand(&region, 0, &prices, 100.0, &[], &history);
+        let shelf: std::collections::BTreeMap<Commodity, f64> =
+            prices.iter().map(|(c, p)| (*c, *p)).collect();
+        let demand = build_consumer_demand(
+            &region,
+            0,
+            &prices,
+            100.0,
+            &[],
+            &history,
+            None,
+            &std::collections::HashMap::new(),
+            &shelf,
+        );
 
         let key = (
             "cap_region".to_string(),
@@ -2819,6 +3080,9 @@ mod tests {
             100.0,
             &[],
             &history,
+            None,
+            &std::collections::HashMap::new(),
+            &std::collections::BTreeMap::new(),
         );
         let total: f64 = demand.total_demand.values().sum();
         assert_eq!(total, 0.0, "broke class with no income must demand nothing");

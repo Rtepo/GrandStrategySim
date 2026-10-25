@@ -3300,6 +3300,13 @@ pub fn set_wage_offers(companies: &mut [Company], market_average_wage: f64) {
     const STICKY_WAGE_MAX_DROP: f64 = 0.03;
     const STICKY_WAGE_MAX_RISE: f64 = 0.05; // Phase 40: Symmetric upward cap
                                             // Phase 41: Target wage adjusts max 2% per turn toward market average.
+    // v4.21: pace bound on the downstream propagation of the v4.21
+    // value-added wage norm (labor.rs). Kept at 2% — letting company
+    // targets chase at 3% while the tier-wage norm moves at 2% let offers
+    // outrun the institutional anchor and inflated nominal GDP faster
+    // than the labor share (probe: C/GDP fell 0.307→0.288 while GDP
+    // more than doubled). The distributional correction now comes from
+    // the PIT personal allowance in the withholding path instead.
     const TARGET_WAGE_MAX_ADJUSTMENT: f64 = 0.02;
     // Phase 41: Hard fallback floor for Turn 1 when market average is 0.
     const TARGET_WAGE_FALLBACK: f64 = 50.0;
