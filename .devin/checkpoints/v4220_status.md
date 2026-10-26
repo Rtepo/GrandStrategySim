@@ -65,9 +65,10 @@ Updated: 2026-10-25 (Agent 5 / Manager, session-1526-RDW192022, agent-7c3134e8)
 | 4  | DONE   | ef933972 | GDP donut (Macro + Region Overview), OEC treemap (Market) via ECharts |
 | 6  | DONE   | ef933972 | Society tab (pyramid/education/ethnicity/religion/vitals/class table), Press tab (4 ideological front pages + media context), Organizations KPI header |
 | 5  | PARTIAL| c2953469 | Military OOB + morale grouped Country→expandable Region. Treaties + org/sanctions panels already existed. TODO: IA per-country resolution votes, AI friction wars |
-| 2  | TODO   | — | parliament/regime/elections/ministry overhaul (6 items) |
-| 3  | TODO   | — | regions/councils/mandates/MPZP (4 items) |
-| gate | IN PROGRESS | — | v4220_release_gate_test.rs epic added (Y1900, 120 turns, all 6 assertion groups); [[test]] registered |
+| 2  | PARTIAL| 662c6f90, c6f3b4d0 | Regime legislature names in sidebar (legislature_names map, GameStatus), five-shade outcome badges, theocracy-confessional party bids. TODO: elections-tab redesign, ministry report drawer, committee composition, votes-table consolidation |
+| 3  | PARTIAL| 6a9d833b | Governance mode column (Autonomous Council/Appointed Governor/Commissary Admin), MPZP targets blended w/ real endowments. TODO: hemicycle councils, mandate dedup + negotiation logs |
+| gate | PASS   | — | v4220_release_gate_1900 PASSED 305s release mode |
+| CI   | IN PROG| f8b2144e | build OK, clippy -D warnings OK, npm build OK, cargo test running |
 
 ### Post-Phase-0 notes
 - All manifests already 4.22.0 (salvage). Cargo.lock matches.
