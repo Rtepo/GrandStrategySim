@@ -1019,6 +1019,19 @@ color_hex: string,
 ideology_icon: string, };
 
 /**
+ * v4.22.1 WS2.3: One completed election for the historical sub-view.
+ */
+export type ElectionRecordRow = { turn: number, year: number, 
+/**
+ * (party name, vote share, seats won).
+ */
+results: Array<[string, number, number]>, 
+/**
+ * (round, candidate, backing party, vote share, is_winner).
+ */
+presidential_rounds: Array<[number, string, string, number, boolean]>, };
+
+/**
  * Response for the get_elections command.
  */
 export type ElectionsResponse = { government_form: string, 
@@ -1071,28 +1084,6 @@ support_history: Array<SupportSnapshotRow>,
  * v4.22.1 WS2.3: Party backing the current head of state (ruling party).
  */
 head_of_state_party: string, };
-
-/**
- * v4.22.1 WS2.3: One completed election for the historical sub-view.
- */
-export type ElectionRecordRow = { turn: number, year: number, 
-/**
- * (party name, vote share, seats won).
- */
-results: Array<[string, number, number]>, 
-/**
- * (round, candidate, backing party, vote share, is_winner).
- */
-presidential_rounds: Array<[number, string, string, number, boolean]>, };
-
-/**
- * v4.22.1 WS2.3: One turn's party support readings.
- */
-export type SupportSnapshotRow = { turn: number, 
-/**
- * (party name, support).
- */
-support: Array<[string, number]>, };
 
 /**
  * State of Emergency snapshot.
@@ -2902,6 +2893,15 @@ total_dispatched_mw: number, };
  * Phase 56: Full stock exchange response for the securities UI.
  */
 export type StockExchangeResponse = { main_index: MarketIndexSnapshot, sector_indices: Array<SectorIndexSnapshot>, listed_companies: Array<ListedCompanyRow>, recent_trades: Array<TradeRow>, trading_halted: boolean, commodity_spot: Array<CommoditySpotRow>, commodity_futures: Array<CommodityFuturesRow>, };
+
+/**
+ * v4.22.1 WS2.3: One turn's party support readings.
+ */
+export type SupportSnapshotRow = { turn: number, 
+/**
+ * (party name, support).
+ */
+support: Array<[string, number]>, };
 
 /**
  * ToT (Turn-over-Turn) and YoY (Year-over-Year) percentage deltas
