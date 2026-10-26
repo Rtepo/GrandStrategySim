@@ -2685,6 +2685,90 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     }
                     market.foreign_sector_balance -= task_spend;
                     all_export_trades.extend(export_trades.iter().cloned());
+                    // v4.23 WS3: freight & trade margin for the carriage
+                    // sector. Cross-border haulage is real work the sweep
+                    // bypassed — the purse pays a forwarding margin on
+                    // delivered value to the FreightCapacity-holding
+                    // carriers (ExportServices / TransportLogistics). The
+                    // charge is M0-conserved (foreign pocket ↓, corporate
+                    // pockets ↑) and booked as a service export alongside
+                    // the goods leg, matching the tourism inflow pattern.
+                    const TRADE_FREIGHT_MARGIN: f64 = 0.08;
+                    let mut cap_by_company: HashMap<String, f64> = HashMap::new();
+                    for b in &task.ctx.buildings {
+                        if b.owner_id.is_empty() {
+                            continue;
+                        }
+                        let cap = b
+                            .inventory
+                            .get(&Commodity::FreightCapacity)
+                            .copied()
+                            .unwrap_or(0.0);
+                        if cap > 0.0 {
+                            *cap_by_company
+                                .entry(b.owner_id.clone())
+                                .or_insert(0.0) += cap;
+                        }
+                    }
+                    // Fallback: a fully-deployed fleet still earns the
+                    // forwarding margin — weight sector members by crew
+                    // when no capacity stock sits in depots this turn.
+                    if cap_by_company.is_empty() {
+                        for c in &task.companies {
+                            if matches!(
+                                c.sector,
+                                Sector::ExportServices | Sector::TransportLogistics
+                            ) && c.worker_capacity > 0
+                            {
+                                cap_by_company
+                                    .insert(c.id.clone(), c.worker_capacity as f64);
+                            }
+                        }
+                    }
+                    let total_freight_cap: f64 = cap_by_company.values().sum();
+                    let mut export_freight_paid = 0.0f64;
+                    if total_freight_cap > 0.0 {
+                        let paid =
+                            (task_spend * TRADE_FREIGHT_MARGIN)
+                                .min(market.foreign_sector_balance.max(0.0));
+                        if paid > 0.0 {
+                            market.foreign_sector_balance -= paid;
+                            export_freight_paid = paid;
+                            let mut carrier_ids: Vec<&String> =
+                                cap_by_company.keys().collect();
+                            carrier_ids.sort();
+                            for cid in carrier_ids {
+                                let share =
+                                    paid * cap_by_company[cid] / total_freight_cap;
+                                if share <= 0.0 {
+                                    continue;
+                                }
+                                if !crate::economy::transfer_settler::credit_company_by_id(
+                                    &mut task.companies,
+                                    cid,
+                                    share,
+                                ) {
+                                    continue;
+                                }
+                                crate::economy::logistics::accrue_freight_revenue(
+                                    &mut task.ctx.buildings,
+                                    cid,
+                                    share,
+                                );
+                                if let Some(c) =
+                                    task.companies.iter_mut().find(|c| &c.id == cid)
+                                {
+                                    c.turn_settled_sales += share;
+                                }
+                                match task.region_of_company(cid) {
+                                    Some(rid) => {
+                                        task.gdp_acc.add_net_exports(&rid, share)
+                                    }
+                                    None => task.gdp_acc.net_exports += share,
+                                }
+                            }
+                        }
+                    }
                     // v4.17.0: export proceeds at the exporting firm's region.
                     // v4.18 WS2: canonical seller order — HashMap iteration
                     // accumulated `gdp_acc.net_exports` (a float sum) in
@@ -2704,13 +2788,14 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     // Persist for the end-of-turn GDP patch — `trade_balances`
                     // overwrites gdp_breakdown.net_exports later, so the
                     // export value must reach that patch via the country.
+                    // Goods + carriage margin are both FX earned abroad.
                     task.ctx
                         .country
                         .macro_indicators
                         .extra
                         .insert(
                             "foreign_export_value".to_string(),
-                            serde_json::json!(task_spend),
+                            serde_json::json!(task_spend + export_freight_paid),
                         );
                     #[cfg(feature = "diagnostic")]
                     {
@@ -2869,6 +2954,96 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     &company_country,
                 );
                 market.foreign_sector_balance += task_import_spend;
+                // v4.23 WS3: inbound carriage margin — the ROW seller's
+                // delivered price includes haulage contracted to the same
+                // domestic FreightCapacity carriers. Symmetric with the
+                // export-leg margin: purse-funded, M0-conserved, booked
+                // as a service export (the carriers sell freight services
+                // to the foreign seller).
+                const IMPORT_FREIGHT_MARGIN: f64 = 0.08;
+                let mut cap_by_company: HashMap<String, f64> = HashMap::new();
+                for b in &task.ctx.buildings {
+                    if b.owner_id.is_empty() {
+                        continue;
+                    }
+                    let cap = b
+                        .inventory
+                        .get(&Commodity::FreightCapacity)
+                        .copied()
+                        .unwrap_or(0.0);
+                    if cap > 0.0 {
+                        *cap_by_company
+                            .entry(b.owner_id.clone())
+                            .or_insert(0.0) += cap;
+                    }
+                }
+                // Fallback: a fully-deployed fleet still earns the
+                // forwarding margin — weight sector members by crew when
+                // no capacity stock sits in depots this turn.
+                if cap_by_company.is_empty() {
+                    for c in &task.companies {
+                        if matches!(
+                            c.sector,
+                            Sector::ExportServices | Sector::TransportLogistics
+                        ) && c.worker_capacity > 0
+                        {
+                            cap_by_company
+                                .insert(c.id.clone(), c.worker_capacity as f64);
+                        }
+                    }
+                }
+                let total_freight_cap: f64 = cap_by_company.values().sum();
+                if total_freight_cap > 0.0 {
+                    let paid = (task_import_spend * IMPORT_FREIGHT_MARGIN)
+                        .min(market.foreign_sector_balance.max(0.0));
+                    if paid > 0.0 {
+                        market.foreign_sector_balance -= paid;
+                        let mut carrier_ids: Vec<&String> =
+                            cap_by_company.keys().collect();
+                        carrier_ids.sort();
+                        for cid in carrier_ids {
+                            let share = paid * cap_by_company[cid] / total_freight_cap;
+                            if share <= 0.0 {
+                                continue;
+                            }
+                            if !crate::economy::transfer_settler::credit_company_by_id(
+                                &mut task.companies,
+                                cid,
+                                share,
+                            ) {
+                                continue;
+                            }
+                            crate::economy::logistics::accrue_freight_revenue(
+                                &mut task.ctx.buildings,
+                                cid,
+                                share,
+                            );
+                            if let Some(c) =
+                                task.companies.iter_mut().find(|c| &c.id == cid)
+                            {
+                                c.turn_settled_sales += share;
+                            }
+                            match task.region_of_company(cid) {
+                                Some(rid) => {
+                                    task.gdp_acc.add_net_exports(&rid, share)
+                                }
+                                None => task.gdp_acc.net_exports += share,
+                            }
+                        }
+                        // The carriage margin is service-export FX inflow —
+                        // accumulate onto the same `foreign_export_value`
+                        // patch the goods leg and tourism already feed.
+                        let entry = task
+                            .ctx
+                            .country
+                            .macro_indicators
+                            .extra
+                            .entry("foreign_export_value".to_string())
+                            .or_insert(serde_json::json!(0.0));
+                        let prev = entry.as_f64().unwrap_or(0.0);
+                        *entry = serde_json::json!(prev + paid);
+                    }
+                }
                 // v4.17.0: imports subtract where the importing buyer sits.
                 for t in &import_trades {
                     let v = t.quantity * t.execution_price;
