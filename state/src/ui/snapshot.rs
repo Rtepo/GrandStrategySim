@@ -588,6 +588,31 @@ pub struct DiplomacySnapshot {
     /// Phase 68: Active sanctions against this country.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub sanctions_against: Vec<SanctionRow>,
+    /// v4.22.1 WS5.3: Localized wars declared through diplomatic friction.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub declared_wars: Vec<DeclaredWarRow>,
+    /// v4.22.1 WS5.3: Bilateral friction levels (tension toward war).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub tensions: Vec<TensionRow>,
+}
+
+/// v4.22.1 WS5.3: A localized war declared through diplomatic friction.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct DeclaredWarRow {
+    pub aggressor: String,
+    pub defender: String,
+    pub start_turn: u32,
+    pub reason: String,
+}
+
+/// v4.22.1 WS5.3: A bilateral friction level — the pair's tension level and
+/// provocation count driving the AI war-escalation pipeline.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct TensionRow {
+    pub country_a: String,
+    pub country_b: String,
+    pub level: f64,
+    pub provocations: u32,
 }
 
 /// Phase 66: A single bilateral relation row.
@@ -711,10 +736,29 @@ pub struct InternationalOrgRow {
     pub member_states: Vec<String>,
     /// Number of active directives.
     pub directive_count: usize,
+    /// v4.22.1 WS5.2: debated resolutions with per-country roll calls.
+    pub directives: Vec<DirectiveRow>,
     /// Founded turn.
     pub founded_turn: u32,
     /// Active sanctions enacted by this organization.
     pub sanctions: Vec<SanctionRow>,
+}
+
+/// v4.22.1 WS5.2: A debated International Assembly resolution — status,
+/// vote tally, and per-member roll call for the IA panel.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct DirectiveRow {
+    pub id: String,
+    pub title: String,
+    pub status: String,
+    pub mandate_type: String,
+    pub enacted_turn: u32,
+    pub compliance_deadline: u32,
+    pub votes_for: usize,
+    pub votes_against: usize,
+    pub votes_abstain: usize,
+    /// (member state, "For"|"Against"|"Abstain") roll call, sorted by member.
+    pub votes: Vec<(String, String)>,
 }
 
 /// Phase 68: A sanction row for the diplomacy snapshot.
@@ -1670,6 +1714,34 @@ pub fn build_diplomacy_snapshot(
                 is_active: s.is_active_at(current_turn),
             })
             .collect();
+        let directives: Vec<DirectiveRow> = org
+            .directives
+            .iter()
+            .map(|d| DirectiveRow {
+                id: d.id.clone(),
+                title: d.title.clone(),
+                status: d.status.clone(),
+                mandate_type: d.mandate_type.as_str().to_string(),
+                enacted_turn: d.enacted_turn,
+                compliance_deadline: d.compliance_deadline,
+                votes_for: d.votes.values().filter(|v| v.as_str() == "For").count(),
+                votes_against: d
+                    .votes
+                    .values()
+                    .filter(|v| v.as_str() == "Against")
+                    .count(),
+                votes_abstain: d
+                    .votes
+                    .values()
+                    .filter(|v| v.as_str() == "Abstain")
+                    .count(),
+                votes: d
+                    .votes
+                    .iter()
+                    .map(|(m, v)| (m.clone(), v.clone()))
+                    .collect(),
+            })
+            .collect();
         organizations.push(InternationalOrgRow {
             id: org.id.clone(),
             name: org.name.clone(),
@@ -1677,6 +1749,7 @@ pub fn build_diplomacy_snapshot(
             voting_mechanism: org.voting_mechanism.as_str().to_string(),
             member_states: org.member_states.clone(),
             directive_count: org.directives.len(),
+            directives,
             founded_turn: org.founded_turn,
             sanctions: org_sanctions,
         });
@@ -1699,6 +1772,37 @@ pub fn build_diplomacy_snapshot(
         })
         .collect();
 
+    // v4.22.1 WS5.3: declared localized wars + bilateral friction levels.
+    let declared_wars: Vec<DeclaredWarRow> = state
+        .declared_wars
+        .iter()
+        .map(|w| DeclaredWarRow {
+            aggressor: w.aggressor.clone(),
+            defender: w.defender.clone(),
+            start_turn: w.start_turn,
+            reason: format!("{:?}", w.reason),
+        })
+        .collect();
+    let mut tensions: Vec<TensionRow> = state
+        .bilateral_tensions
+        .iter()
+        .filter_map(|(key, t)| {
+            let mut parts = key.splitn(2, '|');
+            Some(TensionRow {
+                country_a: parts.next()?.to_string(),
+                country_b: parts.next()?.to_string(),
+                level: t.level,
+                provocations: t.provocation_count,
+            })
+        })
+        .filter(|t| t.level > 0.0)
+        .collect();
+    tensions.sort_by(|a, b| {
+        b.level
+            .partial_cmp(&a.level)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
     DiplomacySnapshot {
         country: country_name.to_string(),
         relations,
@@ -1709,6 +1813,8 @@ pub fn build_diplomacy_snapshot(
         doctrine,
         organizations,
         sanctions_against,
+        declared_wars,
+        tensions,
     }
 }
 

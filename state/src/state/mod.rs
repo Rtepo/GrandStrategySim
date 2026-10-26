@@ -1029,6 +1029,18 @@ pub struct GameState {
     pub diplomatic_config: crate::international::fog_of_war::DiplomaticConfig,
     /// Phase 67: Treaty registry (all treaties: active, pending, expired, abrogated).
     pub treaty_registry: crate::international::treaties::TreatyRegistry,
+    /// v4.22.1 WS5.3: Bilateral diplomatic tensions feeding war escalation —
+    /// keyed by `tension_key` ("country_a|country_b", sorted).
+    #[serde(default)]
+    pub bilateral_tensions:
+        HashMap<String, crate::military::war_declarations::BilateralTension>,
+    /// v4.22.1 WS5.3: Localized wars declared through diplomatic friction.
+    #[serde(default)]
+    pub declared_wars: Vec<crate::military::war_declarations::WarState>,
+    /// v4.22.1 WS5.3: War escalation configuration (threshold, decay, gains).
+    #[serde(default)]
+    pub war_declaration_config:
+        crate::military::war_declarations::WarDeclarationConfig,
     /// Phase 67: Treaty configuration (negotiation speed, capacity costs).
     pub treaty_config: crate::international::treaties::TreatyConfig,
     /// Phase 67: Reputation configuration (penalties, recovery rate, thresholds).
@@ -1077,6 +1089,10 @@ impl GameState {
             fog_of_war_config: crate::international::fog_of_war::FogOfWarConfig::default(),
             diplomatic_config: crate::international::fog_of_war::DiplomaticConfig::default(),
             treaty_registry: crate::international::treaties::TreatyRegistry::default(),
+            bilateral_tensions: HashMap::new(),
+            declared_wars: Vec::new(),
+            war_declaration_config:
+                crate::military::war_declarations::WarDeclarationConfig::default(),
             treaty_config: crate::international::treaties::TreatyConfig::default(),
             reputation_config: crate::international::reputation::ReputationConfig::default(),
             doctrine_config: crate::international::ai_doctrines::DoctrineConfig::default(),
