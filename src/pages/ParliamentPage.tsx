@@ -1142,10 +1142,12 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
   const turnsRemaining =
     (data.turns_remaining ?? 0) > 0 ? data.turns_remaining : data.estimated_turns_remaining;
   const scheduledTurn = data.scheduled_election_turn ?? 0;
-  // v4.22.1 WS2.3: derive the calendar remainder from the LIVE turn countdown
-  // (the flat `years_to_elections` field can lag by a year around boundaries).
+  // v4.23.0 WS1.2: 1 turn = 15 days (half-month). Render the remainder as
+  // years + months + days — never "h" (that read as hours).
   const remYears = Math.floor(turnsRemaining / 24);
-  const remHalfMonths = turnsRemaining % 24;
+  const remTurns = turnsRemaining % 24;
+  const remMonths = Math.floor(remTurns / 2);
+  const remDays = (remTurns % 2) * 15;
 
   const partyById = new Map(data.parties.map((p) => [p.party_id, p]));
   const lastElection = data.election_history?.[data.election_history.length - 1];
@@ -1170,6 +1172,11 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
     lineStyle: { width: 1.5, color: partyColor(partyById.get(name)?.color_hex, name) },
     itemStyle: { color: partyColor(partyById.get(name)?.color_hex, name) },
   }));
+  // v4.23.0 WS1.3: autoscale to the observed max + 5pp instead of dead 0-100.
+  const trendMax = Math.max(
+    15,
+    ...[...trendParties.values()].flatMap((pts) => pts.map(([, v]) => v)),
+  ) + 5;
 
   return (
     <div className="space-y-4">
@@ -1182,7 +1189,7 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
             <DetailField label="State" value={data.election_state} />
             <DetailField
               label="Time Remaining"
-              value={`${remYears}y ${remHalfMonths}h (${turnsRemaining} turns)`}
+              value={`${remYears}y ${remMonths}m ${remDays}d (${turnsRemaining} turns)`}
             />
             <DetailField
               label="Scheduled Turn"
@@ -1275,17 +1282,22 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
             <EChart
               style={{ height: 220 }}
               option={{
-                grid: { left: 40, right: 16, top: 28, bottom: 28 },
+                grid: { left: 44, right: 16, top: 36, bottom: 30 },
                 xAxis: { type: "value", name: "Turn", min: "dataMin", axisLabel: { fontSize: 10 } },
                 yAxis: {
                   type: "value",
-                  name: "Support",
+                  name: "Support %",
+                  nameGap: 6,
                   min: 0,
-                  max: 100,
+                  max: Math.ceil(trendMax),
                   axisLabel: { fontSize: 10, formatter: "{value}" },
                 },
-                legend: { type: "scroll", top: 0, textStyle: { fontSize: 10 } },
-                tooltip: { trigger: "axis" },
+                legend: { type: "scroll", top: 0, height: 24, textStyle: { fontSize: 10 } },
+                tooltip: {
+                  trigger: "axis",
+                  valueFormatter: (v: unknown) =>
+                    typeof v === "number" ? v.toFixed(1) : String(v),
+                },
                 series: trendSeries,
               }}
             />

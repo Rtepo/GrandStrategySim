@@ -522,17 +522,29 @@ fn country_is_minority(coalition: &[String], parliament: &HashMap<String, u32>) 
 ///   Deficit spending capped at 3% of GDP. No new ministries.
 /// * `DictatorialDecree`: PM's original budget enacted without amendments.
 ///   Sets `iron_fist += 1`. May trigger unrest.
-pub fn apply_budget_failure_consequence(country: &mut Country, bill: BudgetBill) {
+pub fn apply_budget_failure_consequence(
+    country: &mut Country,
+    bill: BudgetBill,
+    current_turn: u32,
+) {
     let consequence = country.politics.constitution.budget_failure_consequence;
 
     match consequence {
         BudgetFailureConsequence::SnapElections => {
-            country.politics.years_to_elections = 1;
-            country.politics.budget_crisis = true;
-            // Provisional budget: 80% of last year's allocations
+            // v4.23.0 WS1.1: at most one snap election per 24 turns (~1 year).
+            // Inside the cooldown, a failed budget instead enacts a provisional
+            // continuing resolution at 90% of prior allocations — the previous
+            // loop let serial budget vetoes fire 6-7 elections per year.
+            let snap_ok = country.politics.last_snap_election_turn == 0
+                || current_turn.saturating_sub(country.politics.last_snap_election_turn) >= 24;
+            if snap_ok {
+                country.politics.years_to_elections = 1;
+                country.politics.budget_crisis = true;
+                country.politics.last_snap_election_turn = current_turn;
+            }
             if let Some(ref mut config) = country.politics.ministry_config {
                 for ministry in &mut config.ministries {
-                    ministry.allocated_cash *= 0.8;
+                    ministry.allocated_cash *= 0.9;
                 }
             }
         }
@@ -613,7 +625,7 @@ mod tests {
         });
 
         let bill = BudgetBill::default();
-        apply_budget_failure_consequence(&mut country, bill);
+        apply_budget_failure_consequence(&mut country, bill, 0);
 
         assert_eq!(country.politics.years_to_elections, 1);
         assert!(country.politics.budget_crisis);

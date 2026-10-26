@@ -9757,7 +9757,11 @@ tasks.par_iter_mut().for_each(|task| {
                         }
                     }
                 } else {
-                    apply_budget_failure_consequence(task.ctx.country, final_bill);
+                    apply_budget_failure_consequence(
+                        task.ctx.country,
+                        final_bill,
+                        task.ctx.turn,
+                    );
                 }
                 // GOV-1: record every budget session outcome in the political
                 // history ledger so diagnostics (and the crucible's

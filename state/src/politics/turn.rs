@@ -1434,6 +1434,15 @@ pub fn run_election_if_due(
             } else {
                 Vec::new()
             };
+        // v4.23.0 WS1.2: a decided presidential race installs the winner as
+        // head of state immediately (the field was staying stale).
+        if let Some(new_president) = presidential_rounds.last().map(|r| r.winner.clone()) {
+            if !new_president.is_empty()
+                && country.politics.head_of_state.name != new_president
+            {
+                country.politics.head_of_state.name = new_president;
+            }
+        }
         country.politics.election_history.push(
             super::system::ElectionRecord {
                 turn: current_turn,
@@ -2585,9 +2594,19 @@ fn build_constitution(form: GovernmentForm, _rng: &mut impl Rng) -> Constitution
             | GovernmentForm::ElectiveMonarchy
     );
     let upper_house = if form.chambers() >= 2 {
+        // v4.23.0 WS1.1: estate/noble upper houses (House of Lords) belong to
+        // monarchies only — republics get a party-proportional Senate. A
+        // corporatist chamber of interest groups blocked every budget and
+        // spammed snap elections.
+        let (name, elections) = match form {
+            GovernmentForm::ConstitutionalMonarchy
+            | GovernmentForm::DualistMonarchy
+            | GovernmentForm::ElectiveMonarchy => ("House of Lords", "Hereditary"),
+            _ => ("Senate", "Proportional Representation"),
+        };
         Some(UpperHouse {
-            name: "Upper House".to_string(),
-            elections: "Indirect Elections".to_string(),
+            name: name.to_string(),
+            elections: elections.to_string(),
             powers: "Bill Veto".to_string(),
         })
     } else {
