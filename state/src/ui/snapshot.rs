@@ -1929,6 +1929,10 @@ pub struct GovernmentSnapshot {
     pub head_of_state_vip_id: Option<String>,
     pub head_of_state_role: String,
     pub pm_name: String,
+    /// v4.23.0 WS2: VIP registry id of the prime minister — enables the
+    /// clickable dossier link on the PM name.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pm_vip_id: Option<String>,
     pub pm_party: String,
     pub pm_ideology: String,
     /// Ideology Step 6: Ruling party's ideological coordinates for 3-axis
@@ -1963,6 +1967,10 @@ pub struct GovernmentSnapshot {
 pub struct MinisterRow {
     pub ministry_name: String,
     pub minister_name: String,
+    /// v4.23.0 WS2: VIP registry id of the minister (resolved by name) —
+    /// enables the clickable dossier link.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub minister_vip_id: Option<String>,
     pub party: String,
     pub ideology: String,
     /// Ideology Step 6: Minister's party ideological coordinates (Directive 17).
@@ -2014,6 +2022,10 @@ pub struct CommitteeRow {
     pub name: String,
     pub committee_type: String,
     pub chair: String,
+    /// v4.23.0 WS2: VIP registry id of the committee chair — enables the
+    /// clickable dossier link on the chair name.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub chair_vip_id: Option<String>,
     pub chair_party: String,
     pub member_count: usize,
     pub bills_under_review: usize,
@@ -2047,6 +2059,10 @@ pub struct CommitteeBillRow {
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct VipRow {
     pub full_name: String,
+    /// v4.23.0 WS2: VIP registry id (resolved by name) — enables the
+    /// clickable dossier link on the name.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vip_id: Option<String>,
     pub party: String,
     pub role: String,
     pub ideology: String,
@@ -2063,6 +2079,10 @@ pub struct ChamberSnapshot {
     pub name: String,
     pub total_seats: u32,
     pub speaker_name: String,
+    /// v4.23.0 WS2: VIP registry id of the speaker (resolved by name) —
+    /// enables the clickable dossier link.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speaker_vip_id: Option<String>,
     pub speaker_club: String,
     pub seat_distribution: Vec<(String, u32)>,
 }
@@ -2117,6 +2137,10 @@ pub struct ClubOfficeRow {
     /// Officeholder display name (VIP name, or the recorded role+party
     /// fallback when the seat is unnamed).
     pub holder: String,
+    /// v4.23.0 WS2: VIP registry id of the officeholder when a named VIP
+    /// occupies the seat — enables the clickable dossier link.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub holder_vip_id: Option<String>,
 }
 
 /// v4.21 WS1: A bill the club sponsored — live-session bills plus completed
@@ -2180,6 +2204,26 @@ pub struct VoteRow {
     pub club_breakdown: Vec<ClubVoteRow>,
     /// v4.18: Bill provisions/effects snapshot taken at vote time.
     pub detail: Option<BillDetailRow>,
+    /// v4.23.0 WS2: Turn of the FIRST recorded vote on this bill across all
+    /// chambers (same on every row of the bill group).
+    pub first_vote_turn: u32,
+    /// v4.23.0 WS2: Turn of the LAST recorded vote on this bill across all
+    /// chambers (same on every row of the bill group).
+    pub last_vote_turn: u32,
+    /// v4.23.0 WS2: Turn the law took effect (enactment) — None while the
+    /// bill is in flight or was rejected/vetoed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effective_turn: Option<u32>,
+    /// v4.23.0 WS2: How many chamber votes the bill has PASSED so far.
+    pub stages_passed: u32,
+    /// v4.23.0 WS2: How many chamber stages the bill requires — 2 for
+    /// bicameral legislatures, 1 for unicameral.
+    pub stages_required: u32,
+    /// v4.23.0 WS2: Canonical per-bill outcome for the RESULT column —
+    /// "Enacted", "Senate Veto Overridden", "Senate Veto Override Failed",
+    /// "Rejected in Lower House", "Rejected by Upper House",
+    /// "Presidential Veto", or the live stage label while in flight.
+    pub result: String,
 }
 
 /// v4.18: Per-club vote tally within one chamber vote.
@@ -3301,6 +3345,14 @@ pub struct AdvisoryCouncilSnapshot {
     pub aggregate_loyalty: f64,
     pub coup_risk_threshold: f64,
     pub coup_cooldown_until_turn: u32,
+    /// v4.23.0 WS2: Faction aggregates — member count, mean loyalty, total
+    /// influence — grouped from the live member list.
+    pub factions: Vec<CouncilFactionRow>,
+    /// v4.23.0 WS2: Decrees issued by the ruler with the council's recorded
+    /// opinion (the autocratic legislative record).
+    pub decrees: Vec<CouncilDecreeRow>,
+    /// v4.23.0 WS2: Petitions factions carried to the ruler.
+    pub petitions: Vec<CouncilPetitionRow>,
 }
 
 /// A single council member row.
@@ -3310,8 +3362,66 @@ pub struct CouncilMemberRow {
     pub vip_id: String,
     pub name: String,
     pub faction: String,
+    /// v4.23.0 WS2: Faction category (Nobility, Military, Religious, ...) —
+    /// used to group the Factions tab.
+    pub faction_type: String,
     pub loyalty: f64,
     pub influence: u32,
+}
+
+/// v4.23.0 WS2: One faction inside an autocratic legislature — aggregated
+/// from the real member list (count, mean loyalty, total influence).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CouncilFactionRow {
+    pub faction: String,
+    pub faction_type: String,
+    pub members: u32,
+    pub avg_loyalty: f64,
+    pub total_influence: f64,
+}
+
+/// v4.23.0 WS2: A `{vip_id, display name}` pair — lets the UI render a
+/// hover-card link without a second lookup.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct VipLinkRow {
+    pub vip_id: String,
+    pub name: String,
+}
+
+/// v4.23.0 WS2: A decree row for the autocratic legislature view.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CouncilDecreeRow {
+    pub id: String,
+    pub title: String,
+    pub domain: String,
+    pub issued_turn: u32,
+    pub net_opinion: f64,
+    /// Supporters/opponents as `{vip_id, name}` pairs resolved at build
+    /// time (deceased councilors included).
+    pub supporters: Vec<VipLinkRow>,
+    pub opponents: Vec<VipLinkRow>,
+    /// "Promulgated" | "Promulgated over Council Objection" | "Withdrawn".
+    pub status: String,
+}
+
+/// v4.23.0 WS2: A petition row for the autocratic legislature view.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CouncilPetitionRow {
+    pub id: String,
+    pub faction: String,
+    pub petitioner_vip_id: String,
+    pub petitioner_name: String,
+    pub subject: String,
+    pub filed_turn: u32,
+    pub urgency: f64,
+    /// "Pending" | "Granted" | "Rejected" | "Ignored".
+    pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resolved_turn: Option<u32>,
 }
 
 /// Royal dynasty snapshot for the Parliament tab (monarchies).
@@ -3328,6 +3438,63 @@ pub struct RoyalDynastySnapshot {
     /// Phase 86: Genealogy event history.
     pub marriage_history: Vec<MarriageEventRow>,
     pub birth_history: Vec<BirthEventRow>,
+    /// v4.23.0 WS2: Succession law label describing the rule the succession
+    /// engine applies (primogeniture for hereditary crowns; elective note
+    /// for elective monarchies).
+    pub succession_law: String,
+    /// v4.23.0 WS2: Dead members who held the throne — the reign history.
+    pub previous_monarchs: Vec<PreviousMonarchRow>,
+    /// v4.23.0 WS2: Active court intrigues — derived from real council
+    /// disloyalty, regent ambition, and rival claimants.
+    pub intrigues: Vec<CourtIntrigueRow>,
+    /// v4.23.0 WS2: Living claimants in the succession line behind the heir.
+    pub pretenders: Vec<PretenderRow>,
+}
+
+/// v4.23.0 WS2: A dead member who reigned — one row of reign history.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct PreviousMonarchRow {
+    pub vip_id: String,
+    pub name: String,
+    /// Turn the reign began (None for founding-era monarchs without a
+    /// recorded accession).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reign_start_turn: Option<u32>,
+    /// Turn the reign ended (the monarch's death turn).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reign_end_turn: Option<u32>,
+    pub death_cause: String,
+    pub age_at_death: u32,
+}
+
+/// v4.23.0 WS2: One active court intrigue — a real state condition the UI
+/// surfaces: council faction conspiracy, regent power grab, or a rival
+/// claimant. `severity` (0.0–1.0) drives the row tint.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CourtIntrigueRow {
+    pub vip_id: String,
+    pub name: String,
+    /// "Faction Conspiracy" | "Regent Ambition" | "Rival Claimant".
+    pub kind: String,
+    pub description: String,
+    pub severity: f64,
+}
+
+/// v4.23.0 WS2: A living claimant in the succession line behind the heir
+/// apparent — the pretenders table.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct PretenderRow {
+    pub vip_id: String,
+    pub name: String,
+    pub age: u32,
+    pub relation: String,
+    pub succession_order: u32,
+    /// Claim strength derived from line position (1/order).
+    pub claim_strength: f64,
+    pub trait_label: String,
 }
 
 /// A single dynasty member row.
@@ -3351,6 +3518,10 @@ pub struct DynastyMemberRow {
     pub gender: String,
     /// Phase 92: Portrait seed for deterministic avatar generation.
     pub portrait_seed: String,
+    /// v4.23.0 WS2: Turn this member's reign began (monarchs only) — lets
+    /// the tree card show "reigns since T{n}".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reign_start_turn: Option<u32>,
 }
 
 /// Phase 86: A royal marriage event row for UI display.
@@ -5667,55 +5838,177 @@ fn build_megaregion_detail(
 }
 
 /// Build advisory council snapshot for autocracies.
+/// v4.23.0 WS2: now emits the full autocratic legislative record —
+/// faction aggregates, decree history, and the petition log — all
+/// resolved from live council state (names looked up across living AND
+/// deceased registry entries so historical councilors stay named).
 fn build_advisory_council_snapshot(country: &Country) -> Option<AdvisoryCouncilSnapshot> {
     let council = country.politics.advisory_council.as_ref()?;
     let registry = &country.politics.vip_registry;
+    // Name resolution that also covers the deceased archive — a purged or
+    // dead councilor must still render a name on the decree/petition record.
+    let name_of = |vip_id: &str| -> String {
+        registry
+            .as_ref()
+            .and_then(|r| {
+                r.get(vip_id).or_else(|| {
+                    r.deceased.iter().find(|v| v.id == vip_id)
+                })
+            })
+            .map(|v| v.full_name.clone())
+            .unwrap_or_else(|| vip_id.to_string())
+    };
     let members = council
         .members
         .iter()
         .map(|m| {
-            let name = registry
-                .as_ref()
-                .and_then(|r| r.get(&m.vip_id))
-                .map(|v| v.full_name.clone())
-                .unwrap_or_else(|| m.vip_id.clone());
             CouncilMemberRow {
                 vip_id: m.vip_id.clone(),
-                name,
+                name: name_of(&m.vip_id),
                 faction: m.faction.clone(),
+                faction_type: format!("{:?}", m.faction_type),
                 loyalty: m.loyalty,
                 influence: m.influence as u32,
             }
         })
         .collect();
+
+    // v4.23.0 WS2: faction aggregates — grouped from the live member list,
+    // ordered by total influence (most powerful faction first).
+    let mut faction_map: BTreeMap<String, (String, u32, f64, f64)> = BTreeMap::new();
+    for m in &council.members {
+        let e = faction_map
+            .entry(m.faction.clone())
+            .or_insert_with(|| (format!("{:?}", m.faction_type), 0, 0.0, 0.0));
+        e.1 += 1;
+        e.2 += m.loyalty;
+        e.3 += m.influence;
+    }
+    let mut factions: Vec<CouncilFactionRow> = faction_map
+        .into_iter()
+        .map(|(faction, (faction_type, count, loyalty_sum, influence))| CouncilFactionRow {
+            faction,
+            faction_type,
+            members: count,
+            avg_loyalty: if count > 0 {
+                loyalty_sum / count as f64
+            } else {
+                0.0
+            },
+            total_influence: influence,
+        })
+        .collect();
+    factions.sort_by(|a, b| {
+        b.total_influence
+            .partial_cmp(&a.total_influence)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.faction.cmp(&b.faction))
+    });
+
+    let decrees = council
+        .decrees
+        .iter()
+        .map(|d| CouncilDecreeRow {
+            id: d.id.clone(),
+            title: d.title.clone(),
+            domain: d.domain.clone(),
+            issued_turn: d.issued_turn,
+            net_opinion: d.net_opinion,
+            supporters: d
+                .supporters
+                .iter()
+                .map(|id| VipLinkRow {
+                    vip_id: id.clone(),
+                    name: name_of(id),
+                })
+                .collect(),
+            opponents: d
+                .opponents
+                .iter()
+                .map(|id| VipLinkRow {
+                    vip_id: id.clone(),
+                    name: name_of(id),
+                })
+                .collect(),
+            status: d.status.clone(),
+        })
+        .collect();
+
+    let petitions = council
+        .petitions
+        .iter()
+        .map(|p| CouncilPetitionRow {
+            id: p.id.clone(),
+            faction: p.faction.clone(),
+            petitioner_vip_id: p.petitioner_vip_id.clone(),
+            petitioner_name: name_of(&p.petitioner_vip_id),
+            subject: p.subject.clone(),
+            filed_turn: p.filed_turn,
+            urgency: p.urgency,
+            status: p.status.clone(),
+            resolved_turn: p.resolved_turn,
+        })
+        .collect();
+
     Some(AdvisoryCouncilSnapshot {
-        council_type: format!("{:?}", council.council_type),
+        // v4.23.0 WS2: human display name ("Royal Council", "Junta",
+        // "Supreme Religious Council", "Politburo") — not the Debug tag.
+        council_type: crate::politics::advisory_council::council_type_name(
+            &council.council_type,
+        )
+        .to_string(),
         members,
         aggregate_loyalty: council.aggregate_loyalty,
         coup_risk_threshold: council.coup_risk_threshold,
         coup_cooldown_until_turn: council.coup_cooldown_until_turn,
+        factions,
+        decrees,
+        petitions,
     })
 }
 
 /// Build royal dynasty snapshot for monarchies.
+/// v4.23.0 WS2: resolves names across living AND deceased registry entries
+/// (dead monarchs/parents must still render names in the tree and the
+/// reign history), flags members dead via `death_turn`/deceased archive
+/// (the old code only checked `vip.is_dead`, which misses archived dead),
+/// and derives succession law, previous monarchs, court intrigues and
+/// pretenders from the real succession/council state.
 fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapshot> {
     let dynasty = country.politics.royal_dynasty.as_ref()?;
     let registry = &country.politics.vip_registry;
-    let resolve_name = |vip_id: &str| -> String {
-        registry
-            .as_ref()
-            .and_then(|r| r.get(vip_id))
+    // v4.23.0 WS2: resolution that also reaches into the deceased archive.
+    let vip_any = |vip_id: &str| -> Option<&crate::politics::vip_registry::Vip> {
+        registry.as_ref().and_then(|r| {
+            r.get(vip_id)
+                .or_else(|| r.deceased.iter().find(|v| v.id == vip_id))
+        })
+    };
+    let resolve_name_full = |vip_id: &str| -> String {
+        vip_any(vip_id)
             .map(|v| v.full_name.clone())
             .unwrap_or_else(|| vip_id.to_string())
+    };
+    // v4.23.0 WS2: real dead check — registry flag, archived dead, or the
+    // member's own recorded death turn.
+    let member_dead = |m: &crate::politics::succession::RoyalFamilyMember| -> bool {
+        m.death_turn.is_some()
+            || registry
+                .as_ref()
+                .map(|r| {
+                    r.get(&m.vip_id).map(|v| v.is_dead).unwrap_or(false)
+                        || r.deceased.iter().any(|v| v.id == m.vip_id)
+                })
+                .unwrap_or(false)
     };
     let members = dynasty
         .members
         .iter()
         .map(|m| {
-            let vip = registry.as_ref().and_then(|r| r.get(&m.vip_id));
+            let vip = vip_any(&m.vip_id);
             DynastyMemberRow {
                 vip_id: m.vip_id.clone(),
-                name: resolve_name(&m.vip_id),
+                name: resolve_name_full(&m.vip_id),
                 relation: format!("{:?}", m.relation),
                 age: vip.map(|v| v.age).unwrap_or(0),
                 succession_order: m.succession_order,
@@ -5725,33 +6018,36 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                 mother_vip_id: m.mother_vip_id.clone(),
                 spouse_vip_id: m.spouse_vip_id.clone(),
                 children_vip_ids: m.children_vip_ids.clone(),
-                is_dead: vip.map(|v| v.is_dead).unwrap_or(false),
+                is_dead: member_dead(m),
                 death_cause: m.death_cause.as_ref().map(|c| format!("{:?}", c)),
                 // Phase 92: Gender and portrait seed for visual indicators.
                 gender: vip.map(|v| v.gender.clone()).unwrap_or_default(),
                 portrait_seed: vip.map(|v| v.portrait_seed.clone()).unwrap_or_default(),
+                reign_start_turn: m.reign_start_turn,
             }
         })
         .collect();
     let current_monarch_name = dynasty
         .current_monarch_id
         .as_ref()
-        .map(|id| resolve_name(id))
+        .map(|id| resolve_name_full(id))
         .unwrap_or_default();
     let current_regent_name = dynasty
         .current_regent_id
         .as_ref()
-        .map(|id| resolve_name(id))
+        .map(|id| resolve_name_full(id))
         .unwrap_or_default();
 
     // Phase 86: Build marriage and birth event history rows.
+    // v4.23.0 WS2: resolve through the deceased archive too — a dead
+    // spouse/parent must still render a name, not a raw VIP id.
     let marriage_history = dynasty
         .marriage_history
         .iter()
         .map(|m| MarriageEventRow {
             turn: m.turn,
-            spouse1_name: resolve_name(&m.spouse1_vip_id),
-            spouse2_name: resolve_name(&m.spouse2_vip_id),
+            spouse1_name: resolve_name_full(&m.spouse1_vip_id),
+            spouse2_name: resolve_name_full(&m.spouse2_vip_id),
             significance: format!("{:?}", m.political_significance),
             foreign_dynasty: m.foreign_dynasty.clone(),
         })
@@ -5761,12 +6057,172 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
         .iter()
         .map(|b| BirthEventRow {
             turn: b.turn,
-            child_name: resolve_name(&b.child_vip_id),
-            father_name: resolve_name(&b.father_vip_id),
-            mother_name: resolve_name(&b.mother_vip_id),
+            child_name: resolve_name_full(&b.child_vip_id),
+            father_name: resolve_name_full(&b.father_vip_id),
+            mother_name: resolve_name_full(&b.mother_vip_id),
             is_legitimate: b.is_legitimate,
         })
         .collect();
+
+    // v4.23.0 WS2: Succession law label — the rule the engine actually
+    // applies. `recalculate_succession_order` ranks the monarch's
+    // legitimate children eldest-first with no gender clause (absolute
+    // primogeniture); collateral dynasts follow. Elective crowns route
+    // through the same dynastic line, so the label names the election.
+    let succession_law = match country.politics.government_form {
+        crate::politics::system::GovernmentForm::ElectiveMonarchy => {
+            "Elective — foremost legitimate dynast acclaimed to the throne".to_string()
+        }
+        _ => {
+            "Absolute Primogeniture — eldest legitimate child inherits; \
+             collateral dynasts follow in line"
+                .to_string()
+        }
+    };
+
+    // v4.23.0 WS2: Reign history — dead members who held the throne. A
+    // member "reigned" when accession stamped `reign_start_turn` (v4.23.0+)
+    // or they carried the Monarch relation into death (older saves).
+    let mut previous_monarchs: Vec<PreviousMonarchRow> = dynasty
+        .members
+        .iter()
+        .filter(|m| {
+            member_dead(m)
+                && (m.relation == crate::politics::succession::RoyalRelation::Monarch
+                    || m.reign_start_turn.is_some())
+        })
+        .map(|m| PreviousMonarchRow {
+            vip_id: m.vip_id.clone(),
+            name: resolve_name_full(&m.vip_id),
+            reign_start_turn: m.reign_start_turn,
+            reign_end_turn: m
+                .death_turn
+                .or_else(|| vip_any(&m.vip_id).and_then(|v| v.death_turn)),
+            death_cause: m
+                .death_cause
+                .as_ref()
+                .map(|c| format!("{:?}", c))
+                .unwrap_or_else(|| "—".to_string()),
+            age_at_death: vip_any(&m.vip_id).map(|v| v.age).unwrap_or(0),
+        })
+        .collect();
+    previous_monarchs.sort_by_key(|m| m.reign_end_turn.unwrap_or(u32::MAX));
+
+    // v4.23.0 WS2: Pretenders — living legitimate claimants in the
+    // succession line behind the monarch and the heir apparent. Claim
+    // strength is positional (1/order): the next claimant has the
+    // strongest claim.
+    let current_monarch_id = dynasty.current_monarch_id.clone().unwrap_or_default();
+    let pretenders: Vec<PretenderRow> = dynasty
+        .succession_line()
+        .into_iter()
+        .filter(|m| {
+            m.vip_id != current_monarch_id && !m.is_heir_apparent && !member_dead(m)
+        })
+        .map(|m| {
+            let vip = vip_any(&m.vip_id);
+            PretenderRow {
+                vip_id: m.vip_id.clone(),
+                name: resolve_name_full(&m.vip_id),
+                age: vip.map(|v| v.age).unwrap_or(0),
+                relation: format!("{:?}", m.relation),
+                succession_order: m.succession_order,
+                claim_strength: 1.0 / m.succession_order.max(1) as f64,
+                trait_label: vip
+                    .map(|v| {
+                        if !v.main_trait.is_empty() {
+                            v.main_trait.clone()
+                        } else {
+                            v.traits.first().cloned().unwrap_or_else(|| "—".to_string())
+                        }
+                    })
+                    .unwrap_or_else(|| "—".to_string()),
+            }
+        })
+        .collect();
+
+    // v4.23.0 WS2: Court intrigues — every row is a real state condition
+    // the politics engine already tracks, not decorative filler:
+    //  (a) disloyal council members (loyalty below the 0.2 revolt
+    //      threshold — the same check that feeds coup risk),
+    //  (b) a regent whose traits drive PowerGrab/Usurpation behavior,
+    //  (c) Ambitious pretenders in the succession line.
+    let mut intrigues: Vec<CourtIntrigueRow> = Vec::new();
+    if let Some(ref council) = country.politics.advisory_council {
+        for m in council.disloyal_members() {
+            intrigues.push(CourtIntrigueRow {
+                vip_id: m.vip_id.clone(),
+                name: resolve_name_full(&m.vip_id),
+                kind: "Faction Conspiracy".to_string(),
+                description: format!(
+                    "{} of the {} faction is disloyal to the crown (loyalty {:.2}).",
+                    resolve_name_full(&m.vip_id),
+                    m.faction,
+                    m.loyalty
+                ),
+                severity: ((0.2 - m.loyalty) / 0.2).clamp(0.0, 1.0),
+            });
+        }
+    }
+    if dynasty.regency_active {
+        if let Some(ref regent_id) = dynasty.current_regent_id {
+            if let Some(regent_vip) = registry.as_ref().and_then(|r| r.get(regent_id)) {
+                use crate::politics::succession::{regent_behavior, RegentBehavior};
+                let (description, severity) = match regent_behavior(regent_vip) {
+                    RegentBehavior::PowerGrab => (
+                        format!(
+                            "Regent {} delays the handover of power to the heir.",
+                            resolve_name_full(regent_id)
+                        ),
+                        0.65,
+                    ),
+                    RegentBehavior::Usurpation => (
+                        format!(
+                            "Regent {} is positioned to seize the throne outright.",
+                            resolve_name_full(regent_id)
+                        ),
+                        0.95,
+                    ),
+                    RegentBehavior::Stewardship => (String::new(), 0.0),
+                };
+                if severity > 0.0 {
+                    intrigues.push(CourtIntrigueRow {
+                        vip_id: regent_id.clone(),
+                        name: resolve_name_full(regent_id),
+                        kind: "Regent Ambition".to_string(),
+                        description,
+                        severity,
+                    });
+                }
+            }
+        }
+    }
+    for p in &pretenders {
+        if registry
+            .as_ref()
+            .and_then(|r| r.get(&p.vip_id))
+            .map(|v| v.has_trait("Ambitious"))
+            .unwrap_or(false)
+        {
+            intrigues.push(CourtIntrigueRow {
+                vip_id: p.vip_id.clone(),
+                name: p.name.clone(),
+                kind: "Rival Claimant".to_string(),
+                description: format!(
+                    "{} ({} in line, {}) harbors Ambitious designs on the throne.",
+                    p.name,
+                    ordinal_suffix(p.succession_order),
+                    p.relation
+                ),
+                severity: p.claim_strength.clamp(0.0, 1.0),
+            });
+        }
+    }
+    intrigues.sort_by(|a, b| {
+        b.severity
+            .partial_cmp(&a.severity)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     Some(RoyalDynastySnapshot {
         dynasty_name: dynasty.dynasty_name.clone(),
@@ -5778,7 +6234,27 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
         members,
         marriage_history,
         birth_history,
+        succession_law,
+        previous_monarchs,
+        intrigues,
+        pretenders,
     })
+}
+
+/// v4.23.0 WS2: Ordinal label for succession positions ("1st", "2nd",
+/// "3rd", "4th", ...) used in intrigue descriptions.
+fn ordinal_suffix(n: u32) -> String {
+    let suffix = if (11..=13).contains(&(n % 100)) {
+        "th"
+    } else {
+        match n % 10 {
+            1 => "st",
+            2 => "nd",
+            3 => "rd",
+            _ => "th",
+        }
+    };
+    format!("{}{}", n, suffix)
 }
 
 /// Phase 35: Build the Finance tab snapshot from existing country data.
@@ -6147,6 +6623,22 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
                 // Ideology Step 6: Minister party coordinates for radar chart.
                 let minister_coords = minister_party
                     .map(|p| IdeologyCoordinatesDto::from(p.coordinates));
+                let minister_name = if m.minister_name.is_empty() {
+                    // Try to get the party leader's name as fallback.
+                    politics
+                        .active_parties
+                        .get(&m.minister_party)
+                        .map(|p| {
+                            if !p.leader.name.is_empty() {
+                                p.leader.name.clone()
+                            } else {
+                                format!("Minister ({})", m.minister_party)
+                            }
+                        })
+                        .unwrap_or_else(|| format!("Minister ({})", m.minister_party))
+                } else {
+                    m.minister_name.clone()
+                };
                 MinisterRow {
                     // Phase 34: Strip "Ministry of " prefix for cleaner UI display.
                     ministry_name: m
@@ -6156,22 +6648,12 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
                         .unwrap_or(&m.name)
                         .to_string(),
                     // Phase 34: Use resolve_minister_name fallback instead of "(unnamed)".
-                    minister_name: if m.minister_name.is_empty() {
-                        // Try to get the party leader's name as fallback.
-                        politics
-                            .active_parties
-                            .get(&m.minister_party)
-                            .map(|p| {
-                                if !p.leader.name.is_empty() {
-                                    p.leader.name.clone()
-                                } else {
-                                    format!("Minister ({})", m.minister_party)
-                                }
-                            })
-                            .unwrap_or_else(|| format!("Minister ({})", m.minister_party))
-                    } else {
-                        m.minister_name.clone()
-                    },
+                    minister_vip_id: politics
+                        .vip_registry
+                        .as_ref()
+                        .and_then(|r| r.get_by_name(&minister_name))
+                        .map(|v| v.id.clone()),
+                    minister_name,
                     party: m.minister_party.clone(),
                     ideology,
                     coordinates: minister_coords,
@@ -6215,11 +6697,21 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
                 .map(|v| v.id.clone())
         });
 
+    // v4.23.0 WS2: same resolution for the prime minister — the canonical
+    // PM party leader is a registered VIP.
+    let pm_vip_id = country
+        .politics
+        .vip_registry
+        .as_ref()
+        .and_then(|r| r.get_by_name(&pm_name))
+        .map(|v| v.id.clone());
+
     GovernmentSnapshot {
         head_of_state_name,
         head_of_state_vip_id,
         head_of_state_role: politics.government_form.display_name().to_string(),
         pm_name,
+        pm_vip_id,
         // v4.18 WS3: report the canonical PM party (same source as pm_name).
         pm_party: canonical_pm_party.to_string(),
         pm_ideology,
@@ -6248,6 +6740,7 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
 
 /// Phase 41: Build VIP rows from the parliament struct for the Government tab.
 fn build_vip_rows(country: &Country, year: u32) -> Vec<VipRow> {
+    let registry = country.politics.vip_registry.as_ref();
     if let Some(ref parl) = country.politics.parliament_struct {
         parl.vips
             .iter()
@@ -6257,6 +6750,11 @@ fn build_vip_rows(country: &Country, year: u32) -> Vec<VipRow> {
                 let ideology = classify(v.coordinates, year).0.to_string();
                 VipRow {
                     full_name: v.full_name.clone(),
+                    // v4.23.0 WS2: resolve the persistent registry id by name —
+                    // enables the dossier hover link on every VIP row.
+                    vip_id: registry
+                        .and_then(|r| r.get_by_name(&v.full_name))
+                        .map(|vip| vip.id.clone()),
                     party: v.party.clone(),
                     role: format!("{:?}", v.role),
                     ideology,
@@ -6345,6 +6843,13 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                     name: c.name.clone(),
                     total_seats: c.total_seats,
                     speaker_name: c.presidium.speaker.full_name.clone(),
+                    // v4.23.0 WS2: resolve the speaker's registry id by name —
+                    // party-leader speakers are registered VIPs.
+                    speaker_vip_id: politics
+                        .vip_registry
+                        .as_ref()
+                        .and_then(|r| r.get_by_name(&c.presidium.speaker.full_name))
+                        .map(|v| v.id.clone()),
                     speaker_club: c.presidium.speaker_club.clone(),
                     seat_distribution,
                 }
@@ -6392,31 +6897,114 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
 
         // Recent votes from BOTH chambers — each VoteRecord is tagged with
         // the chamber that cast it so the UI can show lower/upper tallies.
+        //
+        // v4.23.0 WS2: two-pass build. Pass 1 rolls every VoteRecord up per
+        // bill — first/last vote turn, passed stages, terminal badge and
+        // enactment turn — so each row can carry the bill's full lifecycle
+        // (FIRST VOTE / STAGES PASSED / LAST VOTE / EFFECTIVE DATE / RESULT).
+        struct BillRollup {
+            first_vote: u32,
+            last_vote: u32,
+            stages_passed: u32,
+            badge: String,
+            stage: String,
+            enacted_turn: Option<u32>,
+        }
+        let mut rollups: std::collections::HashMap<String, BillRollup> =
+            std::collections::HashMap::new();
+        for c in &parl.chambers {
+            for v in &c.recent_votes {
+                let r = rollups
+                    .entry(v.bill_id.clone())
+                    .or_insert_with(|| BillRollup {
+                        first_vote: v.turn,
+                        last_vote: v.turn,
+                        stages_passed: 0,
+                        badge: String::new(),
+                        stage: String::new(),
+                        enacted_turn: None,
+                    });
+                r.first_vote = r.first_vote.min(v.turn);
+                r.last_vote = r.last_vote.max(v.turn);
+                if v.passed {
+                    r.stages_passed += 1;
+                }
+                if let Some(d) = &v.detail {
+                    // `mark_bill_terminal` stamps every record of the bill
+                    // uniformly; the latest write is the terminal outcome.
+                    if !d.status_badge.is_empty() {
+                        r.badge = d.status_badge.clone();
+                    }
+                    if !d.stage.is_empty() {
+                        r.stage = d.stage.clone();
+                    }
+                    if d.enacted_turn.is_some() {
+                        r.enacted_turn = d.enacted_turn;
+                    }
+                }
+            }
+        }
+        let stages_required: u32 = if parl.upper_chamber().is_some() { 2 } else { 1 };
+        // Canonical per-bill outcome vocabulary for the RESULT column —
+        // terminal badges pass through; "Rejected" (lower-house stamp) is
+        // remapped to the mandate's wording; in-flight bills surface their
+        // live pipeline stage.
+        fn canonical_result(r: &BillRollup) -> String {
+            match r.badge.as_str() {
+                "Rejected" => "Rejected in Lower House".to_string(),
+                "" => {
+                    if !r.stage.is_empty() {
+                        r.stage.clone()
+                    } else if r.enacted_turn.is_some() {
+                        "Enacted".to_string()
+                    } else if r.stages_passed > 0 {
+                        "Passed".to_string()
+                    } else {
+                        "Rejected in Lower House".to_string()
+                    }
+                }
+                s => s.to_string(),
+            }
+        }
+
+        // `rollups` is borrowed by the `move` closures below — bind a
+        // shared reference (Copy) so the `flat_map` FnMut doesn't move the
+        // map itself.
+        let rollups = &rollups;
         let recent_votes: Vec<VoteRow> = parl
             .chambers
             .iter()
             .flat_map(|c| {
-                c.recent_votes.iter().map(move |v| VoteRow {
-                    bill_id: v.bill_id.clone(),
-                    bill_title: v.bill_title.clone(),
-                    chamber: c.id.clone(),
-                    chamber_name: c.name.clone(),
-                    votes_for: v.votes_for,
-                    votes_against: v.votes_against,
-                    abstentions: v.abstentions,
-                    passed: v.passed,
-                    turn: v.turn,
-                    club_breakdown: v
-                        .club_breakdown
-                        .iter()
-                        .map(|t| ClubVoteRow {
-                            club_id: t.club_id.clone(),
-                            votes_for: t.votes_for,
-                            votes_against: t.votes_against,
-                            abstentions: t.abstentions,
-                        })
-                        .collect(),
-                    detail: v.detail.as_ref().map(bill_detail_row),
+                c.recent_votes.iter().map(move |v| {
+                    let rollup = rollups.get(&v.bill_id);
+                    VoteRow {
+                        bill_id: v.bill_id.clone(),
+                        bill_title: v.bill_title.clone(),
+                        chamber: c.id.clone(),
+                        chamber_name: c.name.clone(),
+                        votes_for: v.votes_for,
+                        votes_against: v.votes_against,
+                        abstentions: v.abstentions,
+                        passed: v.passed,
+                        turn: v.turn,
+                        club_breakdown: v
+                            .club_breakdown
+                            .iter()
+                            .map(|t| ClubVoteRow {
+                                club_id: t.club_id.clone(),
+                                votes_for: t.votes_for,
+                                votes_against: t.votes_against,
+                                abstentions: t.abstentions,
+                            })
+                            .collect(),
+                        detail: v.detail.as_ref().map(bill_detail_row),
+                        first_vote_turn: rollup.map(|r| r.first_vote).unwrap_or(v.turn),
+                        last_vote_turn: rollup.map(|r| r.last_vote).unwrap_or(v.turn),
+                        effective_turn: rollup.and_then(|r| r.enacted_turn),
+                        stages_passed: rollup.map(|r| r.stages_passed).unwrap_or(0),
+                        stages_required,
+                        result: rollup.map(canonical_result).unwrap_or_default(),
+                    }
                 })
             })
             .collect();
@@ -6536,6 +7124,7 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                                 &format!("{:?}", c.committee_type),
                             ),
                             chair: chair_name,
+                            chair_vip_id: c.chair_vip_id.clone(),
                             chair_party: c.chair.clone(),
                             member_count: c.members.values().map(|v| *v as usize).sum(),
                             bills_under_review: c.bills_under_review.len(),
@@ -6594,12 +7183,20 @@ fn club_offices(
     let mut offices = Vec::new();
 
     // Chamber presidiums — speaker and deputy speakers carry a party id.
+    let vip_id_of = |name: &str| -> Option<String> {
+        politics
+            .vip_registry
+            .as_ref()
+            .and_then(|r| r.get_by_name(name))
+            .map(|v| v.id.clone())
+    };
     for chamber in &parl.chambers {
         if matches(&chamber.presidium.speaker_club) {
             offices.push(ClubOfficeRow {
                 office: "Speaker".to_string(),
                 body: chamber.name.clone(),
                 holder: chamber.presidium.speaker.full_name.clone(),
+                holder_vip_id: vip_id_of(&chamber.presidium.speaker.full_name),
             });
         }
         for deputy in &chamber.presidium.deputy_speakers {
@@ -6608,6 +7205,7 @@ fn club_offices(
                     office: "Deputy Speaker".to_string(),
                     body: chamber.name.clone(),
                     holder: deputy.full_name.clone(),
+                    holder_vip_id: vip_id_of(&deputy.full_name),
                 });
             }
         }
@@ -6633,6 +7231,7 @@ fn club_offices(
                     office: "Committee Chair".to_string(),
                     body: committee.name.clone(),
                     holder,
+                    holder_vip_id: committee.chair_vip_id.clone(),
                 });
             }
         }
@@ -6656,10 +7255,12 @@ fn club_offices(
                     .filter(|n| !n.is_empty())
             })
             .unwrap_or_else(|| format!("PM ({})", pm_party));
+        let holder_vip_id = vip_id_of(&holder);
         offices.push(ClubOfficeRow {
             office: "Prime Minister".to_string(),
             body: "Cabinet".to_string(),
             holder,
+            holder_vip_id,
         });
     }
 
@@ -6667,6 +7268,11 @@ fn club_offices(
     if let Some(ref config) = politics.ministry_config {
         for m in &config.ministries {
             if matches(&m.minister_party) {
+                let holder = if m.minister_name.is_empty() {
+                    format!("Minister ({})", m.minister_party)
+                } else {
+                    m.minister_name.clone()
+                };
                 offices.push(ClubOfficeRow {
                     office: "Minister".to_string(),
                     // Same display convention as MinisterRow — strip the
@@ -6676,11 +7282,8 @@ fn club_offices(
                         .strip_prefix("Ministry of ")
                         .unwrap_or(&m.name)
                         .to_string(),
-                    holder: if m.minister_name.is_empty() {
-                        format!("Minister ({})", m.minister_party)
-                    } else {
-                        m.minister_name.clone()
-                    },
+                    holder_vip_id: vip_id_of(&holder),
+                    holder,
                 });
             }
         }

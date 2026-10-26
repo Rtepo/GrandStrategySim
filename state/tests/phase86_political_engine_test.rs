@@ -486,6 +486,7 @@ fn test_royal_family_member_new_genealogy_fields() {
         marriage_turn: Some(24),
         death_turn: None,
         death_cause: None,
+        reign_start_turn: None,
     };
     assert_eq!(member.spouse_vip_id, Some("VIP-002".to_string()));
     assert_eq!(member.children_vip_ids, vec!["VIP-003".to_string()]);

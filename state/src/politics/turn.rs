@@ -1979,6 +1979,8 @@ pub fn bootstrap_politics(
                 marriage_turn: None,
                 death_turn: None,
                 death_cause: None,
+                // Founding monarch's reign counts from the simulation start.
+                reign_start_turn: Some(0),
             });
 
         // Generate a royal consort (spouse for the monarch).
@@ -2038,6 +2040,7 @@ pub fn bootstrap_politics(
                 marriage_turn: Some(0),
                 death_turn: None,
                 death_cause: None,
+                reign_start_turn: None,
             });
 
         // Generate 1-2 royal heirs (children of monarch and consort).
@@ -2103,6 +2106,7 @@ pub fn bootstrap_politics(
                     marriage_turn: None,
                     death_turn: None,
                     death_cause: None,
+                    reign_start_turn: None,
                 });
             children_ids.push(heir_vip_id);
         }
@@ -2176,6 +2180,7 @@ pub fn bootstrap_politics(
                     marriage_turn: None,
                     death_turn: None,
                     death_cause: None,
+                    reign_start_turn: None,
                 });
             next_succession_order += 1;
             sibling_ids.push(sibling_vip_id);
@@ -2234,6 +2239,7 @@ pub fn bootstrap_politics(
                     marriage_turn: None,
                     death_turn: None,
                     death_cause: None,
+                    reign_start_turn: None,
                 });
             next_succession_order += 1;
             uncle_aunt_ids.push(ua_vip_id);
@@ -2304,6 +2310,7 @@ pub fn bootstrap_politics(
                     marriage_turn: None,
                     death_turn: None,
                     death_cause: None,
+                    reign_start_turn: None,
                 });
             // Link cousin to uncle/aunt's children list.
             if let Some(pid) = &parent_id {

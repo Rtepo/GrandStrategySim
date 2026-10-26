@@ -21,7 +21,21 @@ summary: string, };
 /**
  * Advisory council snapshot for the Parliament tab (autocracies).
  */
-export type AdvisoryCouncilSnapshot = { council_type: string, members: Array<CouncilMemberRow>, aggregate_loyalty: number, coup_risk_threshold: number, coup_cooldown_until_turn: number, };
+export type AdvisoryCouncilSnapshot = { council_type: string, members: Array<CouncilMemberRow>, aggregate_loyalty: number, coup_risk_threshold: number, coup_cooldown_until_turn: number, 
+/**
+ * v4.23.0 WS2: Faction aggregates — member count, mean loyalty, total
+ * influence — grouped from the live member list.
+ */
+factions: Array<CouncilFactionRow>, 
+/**
+ * v4.23.0 WS2: Decrees issued by the ruler with the council's recorded
+ * opinion (the autocratic legislative record).
+ */
+decrees: Array<CouncilDecreeRow>, 
+/**
+ * v4.23.0 WS2: Petitions factions carried to the ruler.
+ */
+petitions: Array<CouncilPetitionRow>, };
 
 /**
  * One age cohort row of the demographic structure.
@@ -338,7 +352,12 @@ securities_cgt_rate: number, };
 /**
  * A chamber snapshot for the Parliament tab.
  */
-export type ChamberSnapshot = { name: string, total_seats: number, speaker_name: string, speaker_club: string, seat_distribution: Array<[string, number]>, };
+export type ChamberSnapshot = { name: string, total_seats: number, speaker_name: string, 
+/**
+ * v4.23.0 WS2: VIP registry id of the speaker (resolved by name) —
+ * enables the clickable dossier link.
+ */
+speaker_vip_id: string | null, speaker_club: string, seat_distribution: Array<[string, number]>, };
 
 /**
  * Phase 85B: Cities snapshot for the CitiesPage.
@@ -484,7 +503,12 @@ body: string,
  * Officeholder display name (VIP name, or the recorded role+party
  * fallback when the seat is unnamed).
  */
-holder: string, };
+holder: string, 
+/**
+ * v4.23.0 WS2: VIP registry id of the officeholder when a named VIP
+ * occupies the seat — enables the clickable dossier link.
+ */
+holder_vip_id: string | null, };
 
 /**
  * A parliamentary club row.
@@ -586,7 +610,12 @@ initiator: string, };
 /**
  * Phase 42: A committee row for the Parliament tab.
  */
-export type CommitteeRow = { name: string, committee_type: string, chair: string, chair_party: string, member_count: number, bills_under_review: number, partisan_bias: number, 
+export type CommitteeRow = { name: string, committee_type: string, chair: string, 
+/**
+ * v4.23.0 WS2: VIP registry id of the committee chair — enables the
+ * clickable dossier link on the chair name.
+ */
+chair_vip_id: string | null, chair_party: string, member_count: number, bills_under_review: number, partisan_bias: number, 
 /**
  * v4.18: The bills actually sitting in this committee right now, with
  * their pipeline stage/progress and the committee's recommendation.
@@ -845,9 +874,43 @@ export type CottageInputEntry = { commodity: string, demand: number, };
 export type CottageOutputEntry = { commodity: string, volume: number, };
 
 /**
+ * v4.23.0 WS2: A decree row for the autocratic legislature view.
+ */
+export type CouncilDecreeRow = { id: string, title: string, domain: string, issued_turn: number, net_opinion: number, 
+/**
+ * Supporters/opponents as `{vip_id, name}` pairs resolved at build
+ * time (deceased councilors included).
+ */
+supporters: Array<VipLinkRow>, opponents: Array<VipLinkRow>, 
+/**
+ * "Promulgated" | "Promulgated over Council Objection" | "Withdrawn".
+ */
+status: string, };
+
+/**
+ * v4.23.0 WS2: One faction inside an autocratic legislature — aggregated
+ * from the real member list (count, mean loyalty, total influence).
+ */
+export type CouncilFactionRow = { faction: string, faction_type: string, members: number, avg_loyalty: number, total_influence: number, };
+
+/**
  * A single council member row.
  */
-export type CouncilMemberRow = { vip_id: string, name: string, faction: string, loyalty: number, influence: number, };
+export type CouncilMemberRow = { vip_id: string, name: string, faction: string, 
+/**
+ * v4.23.0 WS2: Faction category (Nobility, Military, Religious, ...) —
+ * used to group the Factions tab.
+ */
+faction_type: string, loyalty: number, influence: number, };
+
+/**
+ * v4.23.0 WS2: A petition row for the autocratic legislature view.
+ */
+export type CouncilPetitionRow = { id: string, faction: string, petitioner_vip_id: string, petitioner_name: string, subject: string, filed_turn: number, urgency: number, 
+/**
+ * "Pending" | "Granted" | "Rejected" | "Ignored".
+ */
+status: string, resolved_turn: number | null, };
 
 /**
  * v4.20 WS4: A resolution debated and voted by a regional council —
@@ -884,6 +947,17 @@ export type CourtBacklogRow = { region_id: string, region_name: string, pending_
  * Whether the court is in crisis (severely backlogged or paralyzed).
  */
 is_crisis: boolean, };
+
+/**
+ * v4.23.0 WS2: One active court intrigue — a real state condition the UI
+ * surfaces: council faction conspiracy, regent power grab, or a rival
+ * claimant. `severity` (0.0–1.0) drives the row tint.
+ */
+export type CourtIntrigueRow = { vip_id: string, name: string, 
+/**
+ * "Faction Conspiracy" | "Regent Ambition" | "Rival Claimant".
+ */
+kind: string, description: string, severity: number, };
 
 /**
  * Building defect summary.
@@ -977,7 +1051,12 @@ gender: string,
 /**
  * Phase 92: Portrait seed for deterministic avatar generation.
  */
-portrait_seed: string, };
+portrait_seed: string, 
+/**
+ * v4.23.0 WS2: Turn this member's reign began (monarchs only) — lets
+ * the tree card show "reigns since T{n}".
+ */
+reign_start_turn: number | null, };
 
 /**
  * One education-level row of the national education distribution.
@@ -1460,7 +1539,12 @@ export type GovernmentSnapshot = { head_of_state_name: string,
  * v4.22.1 WS2.2: VIP registry id of the head of state — enables the
  * clickable dossier link on the Government card.
  */
-head_of_state_vip_id: string | null, head_of_state_role: string, pm_name: string, pm_party: string, pm_ideology: string, 
+head_of_state_vip_id: string | null, head_of_state_role: string, pm_name: string, 
+/**
+ * v4.23.0 WS2: VIP registry id of the prime minister — enables the
+ * clickable dossier link on the PM name.
+ */
+pm_vip_id: string | null, pm_party: string, pm_ideology: string, 
 /**
  * Ideology Step 6: Ruling party's ideological coordinates for 3-axis
  * radar chart (Directive 17). `Option` for fog-of-war stripping (Rule 11).
@@ -1858,7 +1942,12 @@ pow_camps: Array<PowCampRow>, };
 /**
  * A minister row for the Government tab.
  */
-export type MinisterRow = { ministry_name: string, minister_name: string, party: string, ideology: string, 
+export type MinisterRow = { ministry_name: string, minister_name: string, 
+/**
+ * v4.23.0 WS2: VIP registry id of the minister (resolved by name) —
+ * enables the clickable dossier link.
+ */
+minister_vip_id: string | null, party: string, ideology: string, 
 /**
  * Ideology Step 6: Minister's party ideological coordinates (Directive 17).
  */
@@ -2333,6 +2422,30 @@ papers: Array<PressPaperDto>,
 total_articles: number, };
 
 /**
+ * v4.23.0 WS2: A living claimant in the succession line behind the heir
+ * apparent — the pretenders table.
+ */
+export type PretenderRow = { vip_id: string, name: string, age: number, relation: string, succession_order: number, 
+/**
+ * Claim strength derived from line position (1/order).
+ */
+claim_strength: number, trait_label: string, };
+
+/**
+ * v4.23.0 WS2: A dead member who reigned — one row of reign history.
+ */
+export type PreviousMonarchRow = { vip_id: string, name: string, 
+/**
+ * Turn the reign began (None for founding-era monarchs without a
+ * recorded accession).
+ */
+reign_start_turn: number | null, 
+/**
+ * Turn the reign ended (the monarch's death turn).
+ */
+reign_end_turn: number | null, death_cause: string, age_at_death: number, };
+
+/**
  * v4.18: One provision inside a bill detail — typed effect data.
  */
 export type ProvisionRow = { 
@@ -2656,7 +2769,26 @@ export type RoyalDynastySnapshot = { dynasty_name: string, current_monarch_id: s
 /**
  * Phase 86: Genealogy event history.
  */
-marriage_history: Array<MarriageEventRow>, birth_history: Array<BirthEventRow>, };
+marriage_history: Array<MarriageEventRow>, birth_history: Array<BirthEventRow>, 
+/**
+ * v4.23.0 WS2: Succession law label describing the rule the succession
+ * engine applies (primogeniture for hereditary crowns; elective note
+ * for elective monarchies).
+ */
+succession_law: string, 
+/**
+ * v4.23.0 WS2: Dead members who held the throne — the reign history.
+ */
+previous_monarchs: Array<PreviousMonarchRow>, 
+/**
+ * v4.23.0 WS2: Active court intrigues — derived from real council
+ * disloyalty, regent ambition, and rival claimants.
+ */
+intrigues: Array<CourtIntrigueRow>, 
+/**
+ * v4.23.0 WS2: Living claimants in the succession line behind the heir.
+ */
+pretenders: Array<PretenderRow>, };
 
 /**
  * Phase 56: Sector index snapshot.
@@ -3226,6 +3358,12 @@ search: string,
 role_filter: string, };
 
 /**
+ * v4.23.0 WS2: A `{vip_id, display name}` pair — lets the UI render a
+ * hover-card link without a second lookup.
+ */
+export type VipLinkRow = { vip_id: string, name: string, };
+
+/**
  * Response for paginated VIP queries.
  */
 export type VipPageResponse = { rows: Array<VipDossierRow>, total_count: number, };
@@ -3233,7 +3371,12 @@ export type VipPageResponse = { rows: Array<VipDossierRow>, total_count: number,
 /**
  * Phase 34: A named VIP row for the Parliament tab.
  */
-export type VipRow = { full_name: string, party: string, role: string, ideology: string, 
+export type VipRow = { full_name: string, 
+/**
+ * v4.23.0 WS2: VIP registry id (resolved by name) — enables the
+ * clickable dossier link on the name.
+ */
+vip_id: string | null, party: string, role: string, ideology: string, 
 /**
  * Ideology Step 6: VIP ideological coordinates for radar chart (Directive 17).
  */
@@ -3258,7 +3401,38 @@ club_breakdown: Array<ClubVoteRow>,
 /**
  * v4.18: Bill provisions/effects snapshot taken at vote time.
  */
-detail: BillDetailRow | null, };
+detail: BillDetailRow | null, 
+/**
+ * v4.23.0 WS2: Turn of the FIRST recorded vote on this bill across all
+ * chambers (same on every row of the bill group).
+ */
+first_vote_turn: number, 
+/**
+ * v4.23.0 WS2: Turn of the LAST recorded vote on this bill across all
+ * chambers (same on every row of the bill group).
+ */
+last_vote_turn: number, 
+/**
+ * v4.23.0 WS2: Turn the law took effect (enactment) — None while the
+ * bill is in flight or was rejected/vetoed.
+ */
+effective_turn: number | null, 
+/**
+ * v4.23.0 WS2: How many chamber votes the bill has PASSED so far.
+ */
+stages_passed: number, 
+/**
+ * v4.23.0 WS2: How many chamber stages the bill requires — 2 for
+ * bicameral legislatures, 1 for unicameral.
+ */
+stages_required: number, 
+/**
+ * v4.23.0 WS2: Canonical per-bill outcome for the RESULT column —
+ * "Enacted", "Senate Veto Overridden", "Senate Veto Override Failed",
+ * "Rejected in Lower House", "Rejected by Upper House",
+ * "Presidential Veto", or the live stage label while in flight.
+ */
+result: string, };
 
 /**
  * A single active war/front row for the Military dashboard.
