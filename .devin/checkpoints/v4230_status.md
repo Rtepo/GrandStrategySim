@@ -65,6 +65,21 @@ Protocol: disk-first checkpoints, logs → /tmp/, incremental commit per WS.
 - WS4.1 treemap: `TradeTreemapDto` is domestic-cleared volume; need real
   cross-border export/import rows per country (check trade ledger/settlement
   aggregates) + SITC category map + REE already has introduction_year gate.
-- merge_worker.sh self-rewrite caveat: merge rewrites the script mid-run —
-  copy to temp + exec for future releases (known bug, flag in release notes).
+- merge_worker.sh self-rewrite FIXED (845113a9): execs a stable /tmp copy +
+  env-preserved SCRIPT_DIR/PROJECT_DIR.
+
+### FINALIZE PROTOCOL (after all 4 daemons complete)
+1. `git pull --rebase origin feat/agent-5-v4230-fixes` in w2.
+2. Write `v4230_release_gate` epic test (state/tests/epics/ + [[test]] w/
+   required-features epic-tests) asserting: elections_held ≤5 per country
+   per 120t; energy supply>100MW; ExportServices revenue>0; fertility<8,
+   life_exp<80, age_pyramid.len()>=7; !unionization.is_nan();
+   diplomatic_wars == military_wars.
+3. Iron CI → /tmp/v4230_{build,test,clippy,npm}.log (all 4 must pass).
+4. Bump manifests+lock to 4.23.0 (state/, src-tauri/Cargo.toml,
+   tauri.conf.json, package.json, Cargo.lock 2 names).
+5. `bash .devin/scripts/merge_worker.sh feat/agent-5-v4230-fixes --tag
+   v4.23.0` from agent-5-cash1-merge worktree (SESSION_ID env set) —
+   self-immunity fix makes tag push reliable; verify `git ls-remote --tags`.
+
 
