@@ -447,6 +447,7 @@ fn test_build_consumer_demand_with_substitution() {
     let demand = build_consumer_demand(
         &region,
         0,
+        1925,
         &prices,
         50.0,
         &[],
@@ -495,6 +496,7 @@ fn test_build_consumer_demand_homeless_no_furniture() {
     let demand = build_consumer_demand(
         &region,
         0,
+        1925,
         &rustc_hash::FxHashMap::default(),
         100.0,
         &[],

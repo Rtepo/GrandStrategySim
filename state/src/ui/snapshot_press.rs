@@ -745,9 +745,9 @@ fn headline_for(paper: &str, e: &NewsEvent) -> String {
         }
         ("gazette", BudgetBill) => {
             if e.positive {
-                format!("National Budget Enacted for the Coming Term")
+                "National Budget Enacted for the Coming Term".to_string()
             } else {
-                format!("Budget Session Adjourns Without Settlement")
+                "Budget Session Adjourns Without Settlement".to_string()
             }
         }
         ("gazette", CouncilResolution) => {
@@ -790,9 +790,9 @@ fn headline_for(paper: &str, e: &NewsEvent) -> String {
         }
         ("socialist", BudgetBill) => {
             if e.positive {
-                format!("Budget Signed — Count the Crumbs for Workers")
+                "Budget Signed — Count the Crumbs for Workers".to_string()
             } else {
-                format!("Budget Collapses — Ministers Count Coins, Not Need")
+                "Budget Collapses — Ministers Count Coins, Not Need".to_string()
             }
         }
         ("socialist", CouncilResolution) => {
@@ -853,9 +853,9 @@ fn headline_for(paper: &str, e: &NewsEvent) -> String {
         }
         ("conservative", BudgetBill) => {
             if e.positive {
-                format!("Steady Hands: Budget Enacted")
+                "Steady Hands: Budget Enacted".to_string()
             } else {
-                format!("Budget Deadlock Tests the Nation's Nerve")
+                "Budget Deadlock Tests the Nation's Nerve".to_string()
             }
         }
         ("conservative", CouncilResolution) => {
@@ -916,9 +916,9 @@ fn headline_for(paper: &str, e: &NewsEvent) -> String {
         }
         ("liberal", BudgetBill) => {
             if e.positive {
-                format!("Budget Passes — The Numbers Behind It")
+                "Budget Passes — The Numbers Behind It".to_string()
             } else {
-                format!("No Budget, No Plan: Session Ends Empty-Handed")
+                "No Budget, No Plan: Session Ends Empty-Handed".to_string()
             }
         }
         ("liberal", CouncilResolution) => {

@@ -166,7 +166,7 @@ impl Calendar {
     /// Check if the current period is the first half-month of the calendar
     /// year (early January: h % 24 == 0).
     pub fn is_year_start(&self) -> bool {
-        self.absolute_half_month() % 24 == 0
+        self.absolute_half_month().is_multiple_of(24)
     }
 
     /// Get season based on current month
