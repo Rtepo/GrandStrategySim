@@ -1,3 +1,4 @@
+import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { getGovernment } from "../hooks/useTauriCommand";
@@ -8,6 +9,8 @@ import { fmt } from "../lib/format";
 
 export function GovernmentPage() {
   const { selectedCountry } = useGameStore();
+  // v4.22.1 WS2.6: which ministry's "View Reports" drawer is open.
+  const [reportOpen, setReportOpen] = useState<string | null>(null);
 
   const { data: gov, isLoading } = useQuery({
     queryKey: ["government", selectedCountry],
@@ -32,7 +35,18 @@ export function GovernmentPage() {
             <Card>
               <CardHeader><CardTitle>Head of State</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <Row label="Name" value={gov.head_of_state_name} />
+                <Row
+                  label="Name"
+                  value={
+                    gov.head_of_state_vip_id ? (
+                      <VipHoverCard vipId={gov.head_of_state_vip_id}>
+                        {gov.head_of_state_name}
+                      </VipHoverCard>
+                    ) : (
+                      gov.head_of_state_name
+                    )
+                  }
+                />
                 <Row label="Role" value={gov.head_of_state_role} />
               </CardContent>
             </Card>
@@ -162,18 +176,64 @@ export function GovernmentPage() {
             </TableHeader>
             <TableBody>
               {gov.cabinet.length > 0 ? (
-                gov.cabinet.map((m) => (
-                  <TableRow key={m.ministry_name}>
-                    <TableCell className="font-medium">{m.ministry_name}</TableCell>
-                    <TableCell>{m.minister_name}</TableCell>
-                    <TableCell className="text-right">{fmt(m.allocated_cash)}</TableCell>
-                    <TableCell className="text-right">{fmt(m.spent_cash)}</TableCell>
-                    <TableCell className="text-right">{fmt(m.ministry_cash)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm">View Reports</Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                gov.cabinet.map((m) => {
+                  const open = reportOpen === m.ministry_name;
+                  const utilization =
+                    m.allocated_cash > 0 ? Math.min(100, (m.spent_cash / m.allocated_cash) * 100) : 0;
+                  return (
+                    <Fragment key={m.ministry_name}>
+                      <TableRow key={m.ministry_name}>
+                        <TableCell className="font-medium">{m.ministry_name}</TableCell>
+                        <TableCell>{m.minister_name}</TableCell>
+                        <TableCell className="text-right">{fmt(m.allocated_cash)}</TableCell>
+                        <TableCell className="text-right">{fmt(m.spent_cash)}</TableCell>
+                        <TableCell className="text-right">{fmt(m.ministry_cash)}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setReportOpen(open ? null : m.ministry_name)}
+                          >
+                            {open ? "Hide" : "View"} Reports
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      {open && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="bg-accent/20">
+                            <div className="p-3 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                              <div>
+                                <div className="font-semibold mb-1">Minister</div>
+                                <div>{m.minister_name || "(vacant)"}</div>
+                                <div className="text-muted-foreground">
+                                  {m.party || "—"} · {m.ideology || "—"}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="font-semibold mb-1">Budget Utilization</div>
+                                <div className="h-2 w-full bg-muted rounded overflow-hidden mb-1">
+                                  <div
+                                    className="h-full bg-primary"
+                                    style={{ width: `${utilization.toFixed(1)}%` }}
+                                  />
+                                </div>
+                                <div className="text-muted-foreground">
+                                  {utilization.toFixed(1)}% of allocated funds spent
+                                </div>
+                              </div>
+                              <div>
+                                <div className="font-semibold mb-1">Cash Position</div>
+                                <div>Allocated: {fmt(m.allocated_cash)}</div>
+                                <div>Spent: {fmt(m.spent_cash)}</div>
+                                <div>Remaining: {fmt(m.ministry_cash)}</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Fragment>
+                  );
+                })
               ) : (
                 <TableEmpty colSpan={6} message="No ministry data" />
               )}
@@ -256,7 +316,7 @@ export function GovernmentPage() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex justify-between">
       <span className="text-muted-foreground">{label}</span>

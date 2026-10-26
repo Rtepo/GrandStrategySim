@@ -1924,6 +1924,9 @@ impl From<IdeologyCoordinates> for IdeologyCoordinatesDto {
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct GovernmentSnapshot {
     pub head_of_state_name: String,
+    /// v4.22.1 WS2.2: VIP registry id of the head of state — enables the
+    /// clickable dossier link on the Government card.
+    pub head_of_state_vip_id: Option<String>,
     pub head_of_state_role: String,
     pub pm_name: String,
     pub pm_party: String,
@@ -2018,6 +2021,8 @@ pub struct CommitteeRow {
     /// v4.18: The bills actually sitting in this committee right now, with
     /// their pipeline stage/progress and the committee's recommendation.
     pub bills: Vec<CommitteeBillRow>,
+    /// v4.22.1 WS2.5: Per-party seat composition of the committee membership.
+    pub party_seats: Vec<(String, u32)>,
 }
 
 /// v4.18: A bill currently under committee review, for the Committees tab.
@@ -3551,6 +3556,33 @@ pub struct ElectionsResponse {
     pub campaign_actions: Vec<CampaignActionRow>,
     /// Current lower-chamber seat distribution (latest election result).
     pub current_seats: Vec<(String, u32)>,
+    /// v4.22.1 WS2.3: Completed elections, latest last (results + rounds).
+    pub election_history: Vec<ElectionRecordRow>,
+    /// v4.22.1 WS2.3: Rolling 24-turn support history for the trend chart.
+    pub support_history: Vec<SupportSnapshotRow>,
+    /// v4.22.1 WS2.3: Party backing the current head of state (ruling party).
+    pub head_of_state_party: String,
+}
+
+/// v4.22.1 WS2.3: One completed election for the historical sub-view.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ElectionRecordRow {
+    pub turn: u32,
+    pub year: u32,
+    /// (party name, vote share, seats won).
+    pub results: Vec<(String, f64, u32)>,
+    /// (round, candidate, backing party, vote share, is_winner).
+    pub presidential_rounds: Vec<(u32, String, String, f64, bool)>,
+}
+
+/// v4.22.1 WS2.3: One turn's party support readings.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct SupportSnapshotRow {
+    pub turn: u32,
+    /// (party name, support).
+    pub support: Vec<(String, f64)>,
 }
 
 /// Response for the get_macro_indicators command.
@@ -4756,6 +4788,38 @@ pub fn build_elections(country: &Country, current_year: u32) -> ElectionsRespons
         parties,
         campaign_actions,
         current_seats,
+        election_history: p
+            .election_history
+            .iter()
+            .map(|e| ElectionRecordRow {
+                turn: e.turn,
+                year: e.year,
+                results: e.results.clone(),
+                presidential_rounds: e
+                    .presidential_rounds
+                    .iter()
+                    .flat_map(|r| {
+                        let round = r.round;
+                        let winner = r.winner.clone();
+                        r.candidates
+                            .iter()
+                            .map(move |(cand, party, share)| {
+                                (round, cand.clone(), party.clone(), *share, *cand == winner)
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                    .collect(),
+            })
+            .collect(),
+        support_history: p
+            .party_support_history
+            .iter()
+            .map(|s| SupportSnapshotRow {
+                turn: s.turn,
+                support: s.support.clone(),
+            })
+            .collect(),
+        head_of_state_party: p.ruling_party.clone(),
     }
 }
 
@@ -6137,8 +6201,23 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
         }
     });
 
+    // v4.22.1 WS2.2: resolve the head of state's VIP id so the UI can link
+    // the name to the full dossier.
+    let hos_name = politics.head_of_state.name.clone();
+    let head_of_state_vip_id = country
+        .politics
+        .vip_registry
+        .as_ref()
+        .and_then(|r| {
+            r.vips
+                .values()
+                .find(|v| !v.is_dead && v.full_name == hos_name)
+                .map(|v| v.id.clone())
+        });
+
     GovernmentSnapshot {
         head_of_state_name,
+        head_of_state_vip_id,
         head_of_state_role: politics.government_form.display_name().to_string(),
         pm_name,
         // v4.18 WS3: report the canonical PM party (same source as pm_name).
@@ -6462,6 +6541,15 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                             bills_under_review: c.bills_under_review.len(),
                             partisan_bias: c.partisan_bias,
                             bills,
+                            party_seats: {
+                                let mut ps: Vec<(String, u32)> = c
+                                    .members
+                                    .iter()
+                                    .map(|(party, seats)| (party.clone(), *seats))
+                                    .collect();
+                                ps.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+                                ps
+                            },
                         }
                     })
                     .collect()

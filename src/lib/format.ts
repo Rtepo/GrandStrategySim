@@ -1,9 +1,12 @@
 function fmt(n: number | null | undefined): string {
   if (n === null || n === undefined || isNaN(n)) return "—";
-  if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2) + "B";
-  if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + "M";
-  if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(2) + "K";
-  return n.toFixed(2);
+  // v4.22.1 WS2.6: collapse negative zero / sub-cent dust — "-0.00" is a
+  // formatting artifact, not a real negative balance.
+  const v = Math.abs(n) < 0.005 ? 0 : n;
+  if (Math.abs(v) >= 1e9) return (v / 1e9).toFixed(2) + "B";
+  if (Math.abs(v) >= 1e6) return (v / 1e6).toFixed(2) + "M";
+  if (Math.abs(v) >= 1e3) return (v / 1e3).toFixed(2) + "K";
+  return v.toFixed(2);
 }
 
 function pct(n: number | null | undefined): string {

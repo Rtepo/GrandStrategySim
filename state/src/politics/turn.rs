@@ -1045,6 +1045,31 @@ pub fn process_political_turn(
     let trait_msgs = super::traits::process_leader_traits_turn(country, trait_registry);
     messages.extend(trait_msgs);
 
+    // v4.22.1 WS2.3: ring-buffer of party support — the Elections sub-tab's
+    // 24-turn trend chart reads this. Record only when polling is meaningful.
+    if country.politics.government_form.is_democratic()
+        && !country.politics.active_parties.is_empty()
+    {
+        let mut support: Vec<(String, f64)> = country
+            .politics
+            .active_parties
+            .iter()
+            .map(|(name, p)| (name.clone(), p.support))
+            .collect();
+        support.sort_by(|a, b| a.0.cmp(&b.0));
+        country
+            .politics
+            .party_support_history
+            .push(super::system::SupportSnapshot {
+                turn: current_turn,
+                support,
+            });
+        if country.politics.party_support_history.len() > 24 {
+            let drain = country.politics.party_support_history.len() - 24;
+            country.politics.party_support_history.drain(..drain);
+        }
+    }
+
     messages
 }
 
@@ -1381,6 +1406,43 @@ pub fn run_election_if_due(
     // v4.20: count every executed election (scheduled, snap, crisis) —
     // release gate `elections_held_count > 0`.
     country.politics.elections_held = country.politics.elections_held.saturating_add(1);
+
+    // v4.22.1 WS2.3: record this election in the historical record (results,
+    // vote shares, and presidential rounds for executive republics).
+    {
+        let mut results: Vec<(String, f64, u32)> = country
+            .politics
+            .active_parties
+            .iter()
+            .map(|(name, p)| {
+                let seats_won = country.politics.parliament.get(name).copied().unwrap_or(0);
+                (name.clone(), p.support, seats_won)
+            })
+            .collect();
+        results.sort_by(|a, b| {
+            b.1.partial_cmp(&a.1)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.0.cmp(&b.0))
+        });
+        let presidential_rounds =
+            if matches!(
+                form,
+                super::system::GovernmentForm::PresidentialRepublic
+                    | super::system::GovernmentForm::SemiPresidentialRepublic
+            ) {
+                super::system::build_presidential_rounds(&country.politics)
+            } else {
+                Vec::new()
+            };
+        country.politics.election_history.push(
+            super::system::ElectionRecord {
+                turn: current_turn,
+                year,
+                results,
+                presidential_rounds,
+            },
+        );
+    }
 
     apply_ruling_coordinate_policies(country, year);
 
