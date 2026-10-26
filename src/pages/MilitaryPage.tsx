@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { invoke } from "@tauri-apps/api/core";
 import {
@@ -215,6 +216,7 @@ function DevastationHeatmapPanel({ devastation }: { devastation: MilitaryDashboa
 }
 
 function ArmyCompositionPanel({ armies }: { armies: MilitaryDashboardResponse["army_compositions"] }) {
+  const [open, setOpen] = useState<string | null>(null);
   return (
     <Card>
       <CardHeader>
@@ -237,14 +239,29 @@ function ArmyCompositionPanel({ armies }: { armies: MilitaryDashboardResponse["a
             </TableHeader>
             <TableBody>
               {armies.map((a) => (
-                <TableRow key={a.country}>
-                  <TableCell className="font-medium">{a.country}</TableCell>
-                  <TableCell className="font-bold">{num(Number(a.total_manpower))}</TableCell>
-                  <TableCell>{a.army_count}</TableCell>
-                  <TableCell>{a.division_count}</TableCell>
-                  <TableCell>{a.regiment_count}</TableCell>
-                  <TableCell>{a.unit_count}</TableCell>
-                </TableRow>
+                <>
+                  {/* v4.22 WS5: Country → expandable Region grouping */}
+                  <TableRow key={a.country}
+                    className="cursor-pointer hover:bg-accent/50"
+                    onClick={() => setOpen(open === a.country ? null : a.country)}>
+                    <TableCell className="font-medium">
+                      {open === a.country ? "▾" : "▸"} {a.country}
+                    </TableCell>
+                    <TableCell className="font-bold">{num(Number(a.total_manpower))}</TableCell>
+                    <TableCell>{a.army_count}</TableCell>
+                    <TableCell>{a.division_count}</TableCell>
+                    <TableCell>{a.regiment_count}</TableCell>
+                    <TableCell>{a.unit_count}</TableCell>
+                  </TableRow>
+                  {open === a.country && a.region_breakdown.map((r) => (
+                    <TableRow key={`${a.country}-${r.region_id}`} className="bg-accent/20">
+                      <TableCell className="pl-8 text-muted-foreground">{r.region_id}</TableCell>
+                      <TableCell>{num(Number(r.manpower))}</TableCell>
+                      <TableCell colSpan={3} className="text-muted-foreground">—</TableCell>
+                      <TableCell>{r.unit_count}</TableCell>
+                    </TableRow>
+                  ))}
+                </>
               ))}
             </TableBody>
           </Table>
@@ -254,60 +271,102 @@ function ArmyCompositionPanel({ armies }: { armies: MilitaryDashboardResponse["a
   );
 }
 
+/// v4.22 WS5: Homefront Morale grouped Country → expandable Region.
 function WarMoralePanel({ morale }: { morale: MilitaryDashboardResponse["war_morale"] }) {
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  if (morale.length === 0) {
+    return (
+      <Card>
+        <CardHeader><CardTitle>Homefront Morale</CardTitle></CardHeader>
+        <CardContent><p className="text-sm text-muted-foreground">No morale data.</p></CardContent>
+      </Card>
+    );
+  }
+  const byCountry = new Map<string, Map<string, typeof morale>>();
+  for (const m of morale) {
+    const regions = byCountry.get(m.country) ?? new Map<string, typeof morale>();
+    const rows = regions.get(m.region_id) ?? [];
+    rows.push(m);
+    regions.set(m.region_id, rows);
+    byCountry.set(m.country, regions);
+  }
   return (
     <Card>
       <CardHeader>
         <CardTitle>Homefront Morale</CardTitle>
       </CardHeader>
-      <CardContent>
-        {morale.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No morale data.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Country</TableHead>
-                <TableHead>Region</TableHead>
-                <TableHead>Class</TableHead>
-                <TableHead>Population</TableHead>
-                <TableHead>War Morale</TableHead>
-                <TableHead>Mental Health</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {morale
-                .filter((m) => m.war_morale < 70.0 || m.mental_health < 70.0)
-                .sort((a, b) => a.war_morale - b.war_morale)
-                .map((m, i) => (
-                  <TableRow key={`${m.country}-${m.region_id}-${m.class_name}-${i}`}>
-                    <TableCell className="font-medium">{m.country}</TableCell>
-                    <TableCell>{m.region_id}</TableCell>
-                    <TableCell>{m.class_name}</TableCell>
-                    <TableCell>{num(Number(m.population))}</TableCell>
-                    <TableCell>
-                      <span className={moraleColor(m.war_morale)}>{m.war_morale.toFixed(1)}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={moraleColor(m.mental_health)}>{m.mental_health.toFixed(1)}</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {m.strikes_active && <Badge variant="destructive">STRIKES</Badge>}
-                        {m.desertions_active && <Badge variant="destructive">DESERTIONS</Badge>}
-                        {!m.strikes_active && !m.desertions_active && (
-                          <Badge variant="outline">Stable</Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        )}
+      <CardContent className="space-y-2">
+        {[...byCountry.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([country, regions]) => {
+          const rows = [...regions.values()].flat();
+          const avg = rows.reduce((s, m) => s + m.war_morale, 0) / rows.length;
+          const isOpen = open[country] ?? false;
+          return (
+            <div key={country} className="rounded border border-border">
+              <button
+                className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-accent/50"
+                onClick={() => setOpen({ ...open, [country]: !isOpen })}
+              >
+                <span className="font-medium">{isOpen ? "▾" : "▸"} {country}</span>
+                <span className={`tabular-nums ${moraleColor(avg)}`}>avg {avg.toFixed(1)}</span>
+              </button>
+              {isOpen && (
+                <div className="px-3 pb-3 space-y-1">
+                  {[...regions.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([regionId, classes]) => (
+                    <RegionMoraleBlock key={regionId} regionId={regionId} classes={classes} />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
+  );
+}
+
+function RegionMoraleBlock({ regionId, classes }: { regionId: string; classes: MilitaryDashboardResponse["war_morale"] }) {
+  const [open, setOpen] = useState(false);
+  const worst = [...classes].sort((a, b) => a.war_morale - b.war_morale)[0];
+  return (
+    <div className="rounded border border-border/60">
+      <button
+        className="w-full flex items-center justify-between px-3 py-1.5 text-xs hover:bg-accent/40"
+        onClick={() => setOpen(!open)}
+      >
+        <span className="text-muted-foreground">{open ? "▾" : "▸"} {regionId} · {classes.length} classes</span>
+        <span className={`tabular-nums ${moraleColor(worst.war_morale)}`}>worst {worst.war_morale.toFixed(1)}</span>
+      </button>
+      {open && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Class</TableHead>
+              <TableHead>Population</TableHead>
+              <TableHead>War Morale</TableHead>
+              <TableHead>Mental Health</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[...classes].sort((a, b) => a.war_morale - b.war_morale).map((m, i) => (
+              <TableRow key={`${m.class_name}-${i}`}>
+                <TableCell>{m.class_name}</TableCell>
+                <TableCell>{num(Number(m.population))}</TableCell>
+                <TableCell><span className={moraleColor(m.war_morale)}>{m.war_morale.toFixed(1)}</span></TableCell>
+                <TableCell><span className={moraleColor(m.mental_health)}>{m.mental_health.toFixed(1)}</span></TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    {m.strikes_active && <Badge variant="destructive">STRIKES</Badge>}
+                    {m.desertions_active && <Badge variant="destructive">DESERTIONS</Badge>}
+                    {!m.strikes_active && !m.desertions_active && <Badge variant="outline">Stable</Badge>}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
   );
 }
 
