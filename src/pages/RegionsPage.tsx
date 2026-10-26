@@ -4,6 +4,8 @@ import * as echarts from "echarts";
 import { useGameStore } from "../store/gameStore";
 import { getRegions, getRegionDetail, getMegaregionDetail, getGdpComposition } from "../hooks/useTauriCommand";
 import { GdpDonutChart } from "../components/charts/GdpDonutChart";
+import { Hemicycle, type HemicycleEntry } from "../components/Hemicycle";
+import { partyColor, spectrumOf } from "../lib/partyVisuals";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button, Tabs } from "../components/ui";
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
@@ -20,6 +22,20 @@ import type {
 const safeStr = (v: string | null | undefined): string => v ?? "—";
 const safeNum = (v: number | null | undefined): number => v ?? 0;
 const safeArr = <T,>(v: T[] | null | undefined): T[] => v ?? [];
+
+/// v4.22 WS3.2: Council faction pairs → hemicycle seat entries. Faction names
+/// are free-form (estate/party labels); color is deterministic by name hash and
+/// the wedge order resolves through the shared ideology-spectrum helpers.
+function councilHemicycleEntries(factions: [string, number][]): HemicycleEntry[] {
+  return factions
+    .filter(([name, seats]) => name && seats > 0)
+    .map(([name, seats]) => ({
+      name,
+      seats,
+      color: partyColor(null, name),
+      spectrum: spectrumOf({ name }),
+    }));
+}
 
 export function RegionsPage() {
   const { selectedCountry } = useGameStore();
@@ -215,7 +231,10 @@ function RegionDetailPanel({ detail }: { detail: RegionDetailExtended }) {
             { label: "Council", value: "council", content: (
               <div className="space-y-4">
                 <div>
-                  <CouncilPieChart factions={safeArr(detail.council_factions)} />
+                  <Hemicycle
+                    entries={councilHemicycleEntries(safeArr(detail.council_factions))}
+                    totalSeats={safeNum(detail.total_council_seats) || undefined}
+                  />
                   {safeNum(detail.total_council_seats) > 0 && (
                     <div className="text-center text-sm text-muted-foreground mt-2">
                       Total Mandates/Seats: <span className="font-bold text-foreground">{safeNum(detail.total_council_seats)}</span>
@@ -230,7 +249,10 @@ function RegionDetailPanel({ detail }: { detail: RegionDetailExtended }) {
                   rollCalls={safeArr(detail.council_roll_calls)}
                   members={safeArr(detail.council_members)}
                 />
-                <CouncilResolutions resolutions={safeArr(detail.council_resolutions)} />
+                <CouncilResolutions
+                  resolutions={safeArr(detail.council_resolutions)}
+                  rollCalls={safeArr(detail.council_roll_calls)}
+                />
               </div>
             )},
             { label: "Employment", value: "employment", content: (
@@ -442,39 +464,29 @@ function WasteTab({ detail }: { detail: RegionDetailExtended }) {
 }
 
 /// Phase 53: ECharts pie chart for local council faction distribution.
-function CouncilPieChart({ factions }: { factions: [string, number][] }) {
-  const data = factions
-    .filter(([, count]) => count > 0)
-    .map(([faction, count]) => ({ name: faction, value: count }));
-
-  if (data.length === 0) {
-    return <div className="text-muted-foreground text-sm py-8 text-center">No council data</div>;
+/// v4.22 WS3.2: Per-resolution faction tally — groups that specific vote's
+/// roll calls by faction and counts For/Against/Abstain inside each.
+function factionBreakdown(
+  rollCalls: CouncilRollCallRow[],
+  resolutionTitle: string,
+  turn: number,
+): { faction: string; for_: number; against: number; abstain: number; members: { name: string; vote: string }[] }[] {
+  const relevant = rollCalls.filter(
+    (rc) => rc.resolution_title === resolutionTitle && rc.turn === turn,
+  );
+  const byFaction = new Map<string, { for_: number; against: number; abstain: number; members: { name: string; vote: string }[] }>();
+  for (const rc of relevant) {
+    const bucket = byFaction.get(rc.faction) ?? { for_: 0, against: 0, abstain: 0, members: [] };
+    const v = rc.vote.toLowerCase();
+    if (v.includes("for") || v.includes("aye") || v.includes("yes")) bucket.for_ += 1;
+    else if (v.includes("against") || v.includes("nay") || v.includes("no")) bucket.against += 1;
+    else bucket.abstain += 1;
+    bucket.members.push({ name: rc.member_name, vote: rc.vote });
+    byFaction.set(rc.faction, bucket);
   }
-
-  const option: echarts.EChartsOption = {
-    tooltip: {
-      trigger: "item",
-      formatter: "{b}: {c} ({d}%)",
-    },
-    legend: {
-      bottom: 0,
-      textStyle: { color: "#94a3b8" },
-    },
-    series: [
-      {
-        type: "pie",
-        radius: ["40%", "70%"],
-        avoidLabelOverlap: false,
-        label: {
-          show: true,
-          color: "#94a3b8",
-        },
-        data,
-      },
-    ],
-  };
-
-  return <EChart option={option} style={{ minHeight: 240 }} />;
+  return [...byFaction.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([faction, b]) => ({ faction, ...b }));
 }
 
 /// v4.20: Map a council resolution status to a Badge variant.
@@ -636,7 +648,7 @@ function CouncilFactionTable({
 /// v4.21 WS3: Regional council resolutions — deduplicated by stable
 /// identity (title+type+turn) and laid out to fit the drawer width
 /// without horizontal scrolling (fixed table, wrapping title cell).
-function CouncilResolutions({ resolutions }: { resolutions: CouncilResolutionRow[] }) {
+function CouncilResolutions({ resolutions, rollCalls }: { resolutions: CouncilResolutionRow[]; rollCalls: CouncilRollCallRow[] }) {
   // Stable-identity dedup: one (title, type, turn) vote may legitimately
   // appear once — duplicates of that exact key are stale double-emissions
   // from saves predating the session fix.
@@ -647,6 +659,7 @@ function CouncilResolutions({ resolutions }: { resolutions: CouncilResolutionRow
     seen.add(key);
     return true;
   });
+  const [expanded, setExpanded] = React.useState<string | null>(null);
   return (
     <div>
       <h3 className="text-sm font-semibold text-foreground mb-1">Resolutions</h3>
@@ -661,23 +674,61 @@ function CouncilResolutions({ resolutions }: { resolutions: CouncilResolutionRow
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((r, i) => (
-              <TableRow key={`${r.title}-${r.turn}-${i}`}>
-                <TableCell className="text-xs font-medium whitespace-normal break-words">
-                  {r.title}
-                  <div className="text-muted-foreground font-normal">{r.resolution_type}</div>
-                </TableCell>
-                <TableCell><Badge variant={councilStatusVariant(r.status)}>{r.status}</Badge></TableCell>
-                <TableCell className="text-right text-xs">
-                  <span className="text-green-400">{r.votes_for}</span>
-                  <span className="text-muted-foreground"> · </span>
-                  <span className="text-red-400">{r.votes_against}</span>
-                  <span className="text-muted-foreground"> · </span>
-                  <span className="text-muted-foreground">{r.abstentions}</span>
-                </TableCell>
-                <TableCell className="text-right text-xs">T{r.turn}</TableCell>
-              </TableRow>
-            ))}
+            {rows.map((r, i) => {
+              const key = `${r.title}::${r.turn}`;
+              const isOpen = expanded === key;
+              const factions = isOpen ? factionBreakdown(rollCalls, r.title, r.turn) : [];
+              return (
+                <React.Fragment key={`${key}-${i}`}>
+                  <TableRow
+                    className="cursor-pointer hover:bg-muted/40"
+                    onClick={() => setExpanded(isOpen ? null : key)}
+                  >
+                    <TableCell className="text-xs font-medium whitespace-normal break-words">
+                      <span className="text-muted-foreground mr-1">{isOpen ? "▾" : "▸"}</span>
+                      {r.title}
+                      <div className="text-muted-foreground font-normal">{r.resolution_type}</div>
+                    </TableCell>
+                    <TableCell><Badge variant={councilStatusVariant(r.status)}>{r.status}</Badge></TableCell>
+                    <TableCell className="text-right text-xs">
+                      <span className="text-green-400">{r.votes_for}</span>
+                      <span className="text-muted-foreground"> · </span>
+                      <span className="text-red-400">{r.votes_against}</span>
+                      <span className="text-muted-foreground"> · </span>
+                      <span className="text-muted-foreground">{r.abstentions}</span>
+                    </TableCell>
+                    <TableCell className="text-right text-xs">T{r.turn}</TableCell>
+                  </TableRow>
+                  {isOpen && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="bg-muted/20">
+                        {factions.length > 0 ? (
+                          <div className="space-y-1 py-1">
+                            {factions.map((f) => (
+                              <div key={f.faction} className="text-xs">
+                                <span className="font-medium">{f.faction}</span>
+                                <span className="text-muted-foreground"> — </span>
+                                <span className="text-green-400">{f.for_} for</span>
+                                <span className="text-muted-foreground"> · </span>
+                                <span className="text-red-400">{f.against} against</span>
+                                <span className="text-muted-foreground"> · {f.abstain} abstain</span>
+                                <div className="text-muted-foreground pl-3">
+                                  {f.members.map((m, mi) => (
+                                    <span key={mi}>{m.name} <span className="opacity-70">({m.vote})</span>{mi < f.members.length - 1 ? ", " : ""}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-muted-foreground py-1">No per-councilor roll call recorded for this vote.</div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </TableBody>
         </Table>
       ) : (
@@ -690,20 +741,61 @@ function CouncilResolutions({ resolutions }: { resolutions: CouncilResolutionRow
 /// v4.21 WS3: Unfunded mandates — scope, effects, disbursement progress,
 /// and the explicit funding source (Central Grant / Regional Treasury).
 function MandatesList({ mandates }: { mandates: MandateSummaryExtended[] }) {
-  if (mandates.length === 0) {
+  const [expandedKey, setExpandedKey] = React.useState<string | null>(null);
+  // v4.22 WS3.3: merge same-turn duplicates of a single mandate into
+  // revisions. Identity = imposing bill (or description when legacy) + the
+  // turn it was imposed; the highest-progress record is authoritative.
+  const byKey = new Map<string, { latest: MandateSummaryExtended; revisions: number }>();
+  for (const m of mandates) {
+    const key = `${m.source_bill_id || m.description}::${m.imposed_turn ?? 0}`;
+    const prev = byKey.get(key);
+    if (!prev || safeNum(m.progress) >= safeNum(prev.latest.progress)) {
+      byKey.set(key, { latest: m, revisions: (prev?.revisions ?? 0) + 1 });
+    } else {
+      byKey.set(key, { latest: prev.latest, revisions: prev.revisions + 1 });
+    }
+  }
+  const deduped = [...byKey.values()];
+
+  if (deduped.length === 0) {
     return <div className="text-muted-foreground text-sm">No active mandates</div>;
   }
   return (
     <div className="space-y-2">
-      {mandates.map((m, i) => {
+      {deduped.map(({ latest: m, revisions }, i) => {
         const progress = Math.min(Math.max(m.progress ?? 0, 0), 1);
         const sources = safeStr(m.funding_source)
           .split("+")
           .map((s) => s.trim())
           .filter((s) => s.length > 0 && s !== "—");
+        const mKey = `${m.source_bill_id || m.description}::${m.imposed_turn ?? 0}`;
+        const isOpen = expandedKey === mKey;
+        // v4.22 WS3.3: derived negotiation/status log from real mandate
+        // fields — explains rejection/underfunding and co-financing shares
+        // without a separate backend event store.
+        const central = safeNum(m.central_disbursed);
+        const regional = safeNum(m.regional_disbursed);
+        const coTotal = central + regional;
+        const centralShare = coTotal > 0 ? central / coTotal : 0;
+        const logLines: string[] = [];
+        if (m.imposed_turn) logLines.push(`T${m.imposed_turn}: Mandate imposed${m.source_bill_id ? ` by ${m.source_bill_id}` : ""}.`);
+        if (revisions > 1) logLines.push(`Renegotiated ${revisions - 1}× — latest revision authoritative.`);
+        logLines.push(
+          m.status === "Refused"
+            ? `Refused: funding gap of ${fmt(safeNum(m.funding_gap))} could not be covered by regional treasury or central grant.`
+            : safeNum(m.funding_gap) > 0
+              ? `Underfunded by ${fmt(safeNum(m.funding_gap))}: ${fmt(safeNum(m.central_funding))} committed centrally, remainder deferred to regional budget.`
+              : `Fully funded: ${fmt(safeNum(m.central_funding))} central + ${fmt(safeNum(m.required_spending) - safeNum(m.central_funding))} regional share.`
+        );
+        if (coTotal > 0) {
+          logLines.push(`Co-financing to date: ${(centralShare * 100).toFixed(0)}% central (${fmt(central)}) / ${((1 - centralShare) * 100).toFixed(0)}% regional (${fmt(regional)}).`);
+        }
         return (
-          <div key={`${m.source_bill_id || m.description}-${i}`} className="text-sm border border-border rounded p-2 space-y-1.5">
-            <div className="font-medium whitespace-normal break-words">{safeStr(m.description)}</div>
+          <div key={`${mKey}-${i}`} className="text-sm border border-border rounded p-2 space-y-1.5">
+            <div className="font-medium whitespace-normal break-words">
+              {safeStr(m.description)}
+              {revisions > 1 && <Badge variant="secondary" className="ml-2">rev. {revisions}</Badge>}
+            </div>
             {m.scope && (
               <div className="text-xs text-muted-foreground whitespace-normal break-words">
                 <span className="font-medium text-foreground/80">Scope:</span> {m.scope}
@@ -732,6 +824,12 @@ function MandatesList({ mandates }: { mandates: MandateSummaryExtended[] }) {
                   style={{ width: `${progress * 100}%` }}
                 />
               </div>
+              {coTotal > 0 && (
+                <div className="flex h-1 mt-0.5 rounded overflow-hidden">
+                  <div className="bg-sky-500" style={{ width: `${centralShare * 100}%` }} />
+                  <div className="bg-amber-500" style={{ width: `${(1 - centralShare) * 100}%` }} />
+                </div>
+              )}
               {safeNum(m.per_turn_disbursement) > 0 && (
                 <div className="text-muted-foreground mt-0.5">
                   ≈ {fmt(safeNum(m.per_turn_disbursement))}/turn
@@ -751,6 +849,18 @@ function MandatesList({ mandates }: { mandates: MandateSummaryExtended[] }) {
                 {safeStr(m.status)}
               </Badge>
             </div>
+            <button
+              type="button"
+              className="text-xs text-primary hover:underline"
+              onClick={() => setExpandedKey(isOpen ? null : mKey)}
+            >
+              {isOpen ? "▾ Hide" : "▸"} Negotiation &amp; Status Log
+            </button>
+            {isOpen && (
+              <div className="text-xs text-muted-foreground border-l-2 border-border pl-2 space-y-0.5">
+                {logLines.map((l, li) => <div key={li}>{l}</div>)}
+              </div>
+            )}
           </div>
         );
       })}
@@ -801,7 +911,10 @@ function MegaregionDetailPanel({ detail }: { detail: MegaregionDetailExtended })
             { label: "Council", value: "council", content: (
               <div className="space-y-4">
                 <div>
-                  <CouncilPieChart factions={safeArr(detail.council_factions)} />
+                  <Hemicycle
+                    entries={councilHemicycleEntries(safeArr(detail.council_factions))}
+                    totalSeats={safeNum(detail.total_council_seats) || undefined}
+                  />
                   {safeNum(detail.total_council_seats) > 0 && (
                     <div className="text-center text-sm text-muted-foreground mt-2">
                       Assembly Seats: <span className="font-bold text-foreground">{safeNum(detail.total_council_seats)}</span>
@@ -814,7 +927,10 @@ function MegaregionDetailPanel({ detail }: { detail: MegaregionDetailExtended })
                   rollCalls={safeArr(detail.council_roll_calls)}
                   members={safeArr(detail.council_members)}
                 />
-                <CouncilResolutions resolutions={safeArr(detail.council_resolutions)} />
+                <CouncilResolutions
+                  resolutions={safeArr(detail.council_resolutions)}
+                  rollCalls={safeArr(detail.council_roll_calls)}
+                />
               </div>
             )},
             { label: "Employment", value: "employment", content: (

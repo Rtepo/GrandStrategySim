@@ -66,7 +66,7 @@ Updated: 2026-10-25 (Agent 5 / Manager, session-1526-RDW192022, agent-7c3134e8)
 | 6  | DONE   | ef933972 | Society tab (pyramid/education/ethnicity/religion/vitals/class table), Press tab (4 ideological front pages + media context), Organizations KPI header |
 | 5  | PARTIAL| c2953469 | Military OOB + morale grouped Country→expandable Region. Treaties + org/sanctions panels already existed. TODO: IA per-country resolution votes, AI friction wars |
 | 2  | PARTIAL| 662c6f90, c6f3b4d0 | Regime legislature names in sidebar (legislature_names map, GameStatus), five-shade outcome badges, theocracy-confessional party bids. TODO: elections-tab redesign, ministry report drawer, committee composition, votes-table consolidation |
-| 3  | PARTIAL| 6a9d833b | Governance mode column (Autonomous Council/Appointed Governor/Commissary Admin), MPZP targets blended w/ real endowments. TODO: hemicycle councils, mandate dedup + negotiation logs |
+| 3  | DONE   | 6a9d833b + v4221 | Governance mode column, MPZP endowment blend; v4.22.1: SVG Hemicycle (region+megaregion councils), expandable resolutions w/ per-faction roll call + named councilors, mandate dedup→revisions + Negotiation & Status Log + central/regional co-financing split |
 | gate | PASS   | — | v4220_release_gate_1900 PASSED 305s release mode |
 | CI   | GREEN  | f8b2144e | build OK; test --workspace --all-targets OK (30 suites, 0 fail); clippy -D warnings OK; npm build OK; release-gate epic PASS 305s |
 
