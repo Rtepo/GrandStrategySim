@@ -2809,6 +2809,15 @@ fn random_head_of_state(
 pub fn process_advisory_council_turn(country: &mut Country, current_turn: u32) -> Vec<String> {
     let mut messages = Vec::new();
 
+    // v4.23.0 WS2: lazily seed/populate the council for non-elected regimes —
+    // bootstrap seeds one path, this covers saves that predate it and any
+    // empty-member councils left by older code paths.
+    crate::politics::advisory_council::ensure_advisory_council(
+        country,
+        current_turn,
+        &mut messages,
+    );
+
     // Only process if an advisory council exists.
     let council = match country.politics.advisory_council.as_mut() {
         Some(c) => c,
@@ -2910,6 +2919,15 @@ pub fn process_advisory_council_turn(country: &mut Country, current_turn: u32) -
             ));
         }
     }
+
+    // v4.23.0 WS2: the autocratic legislative record — petition resolution,
+    // new petitions from disloyal councilors, and decree issuance on cadence.
+    // (`council`'s mutable borrow ends above; this re-borrows disjointly.)
+    crate::politics::advisory_council::process_council_legislation(
+        country,
+        current_turn,
+        &mut messages,
+    );
 
     messages
 }
