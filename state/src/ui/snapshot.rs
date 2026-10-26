@@ -10,6 +10,9 @@ use crate::economy::market::GlobalMarket;
 use crate::entities::legal_form::LegalForm;
 use crate::entities::Company;
 use crate::politics::ideology::{classify, IdeologyCoordinates};
+use crate::politics::local_government::{
+    AdministrativeStatus, RegionalGovernance, RegionalHeadType,
+};
 use crate::registries::enums::Commodity;
 use crate::registries::enums::Sector;
 use crate::society::geography::RuralClass;
@@ -407,7 +410,30 @@ pub struct RegionRow {
     pub regional_gdp: f64,
     pub gdp_per_capita: f64,
     pub has_governance: bool,
+    /// v4.22 WS3: human-readable governance mode — "Autonomous Council" |
+    /// "Appointed Governor" | "Commissary Admin" | "Martial Law" | "None".
+    pub governance_mode: String,
     pub liquid_reserves: f64,
+}
+
+/// v4.22 WS3: derive the display governance mode from real governance state —
+/// commissary/martial administration first (status overrides head type), then
+/// elected councils (Mayor + council) vs centrally appointed heads.
+fn regional_governance_mode(g: Option<&RegionalGovernance>) -> String {
+    let Some(g) = g else {
+        return "None".to_string();
+    };
+    match g.admin_status {
+        AdministrativeStatus::CommissaryAdministration => "Commissary Admin".to_string(),
+        AdministrativeStatus::MartialLaw => "Martial Law".to_string(),
+        AdministrativeStatus::Normal => match g.head_type {
+            RegionalHeadType::Mayor => "Autonomous Council".to_string(),
+            RegionalHeadType::CentralAdministrator => "Appointed Governor".to_string(),
+            RegionalHeadType::VillageHead | RegionalHeadType::Governor => {
+                "Appointed Governor".to_string()
+            }
+        },
+    }
 }
 
 /// Treasury fields for the Finance tab.
@@ -3922,6 +3948,7 @@ pub fn build_country_snapshot(
                 regional_gdp,
                 gdp_per_capita,
                 has_governance: r.governance.is_some(),
+                governance_mode: regional_governance_mode(r.governance.as_ref()),
                 liquid_reserves: r
                     .governance
                     .as_ref()

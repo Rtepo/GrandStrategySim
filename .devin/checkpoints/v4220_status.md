@@ -60,4 +60,17 @@ Updated: 2026-10-25 (Agent 5 / Manager, session-1526-RDW192022, agent-7c3134e8)
 ## Workstream Log
 | WS | Status | Commit | Notes |
 |----|--------|--------|-------|
-| 0  | DONE   | pending | Phase 0 salvage commit |
+| 0  | DONE   | 128eba8d | Phase 0 salvage commit |
+| 1  | DONE   | a8817463, 0f8912a4 | Calendar h=turn+offset(14), Jan rollover; Commodity::introduction_year era gate; Fertilizers 1880 seeds chemical plants; state recipes era-aware; Market UI hides uninvented goods; unit tests green |
+| 4  | DONE   | ef933972 | GDP donut (Macro + Region Overview), OEC treemap (Market) via ECharts |
+| 6  | DONE   | ef933972 | Society tab (pyramid/education/ethnicity/religion/vitals/class table), Press tab (4 ideological front pages + media context), Organizations KPI header |
+| 5  | PARTIAL| c2953469 | Military OOB + morale grouped Country→expandable Region. Treaties + org/sanctions panels already existed. TODO: IA per-country resolution votes, AI friction wars |
+| 2  | TODO   | — | parliament/regime/elections/ministry overhaul (6 items) |
+| 3  | TODO   | — | regions/councils/mandates/MPZP (4 items) |
+| gate | IN PROGRESS | — | v4220_release_gate_test.rs epic added (Y1900, 120 turns, all 6 assertion groups); [[test]] registered |
+
+### Post-Phase-0 notes
+- All manifests already 4.22.0 (salvage). Cargo.lock matches.
+- `cargo check --workspace` clean after WS1; `tsc --noEmit` clean after WS4/6.
+- Remaining hardcoded `1925+turn/24` sites eliminated; fiscal cadence (budget FY,
+  year-end settlement, legislative sessions, agriculture crop index) January-anchored.

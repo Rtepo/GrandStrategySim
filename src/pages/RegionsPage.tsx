@@ -127,7 +127,16 @@ export function RegionsPage() {
                               <TableCell className="text-right">{num(r.population ?? 0)}</TableCell>
                               <TableCell className="text-right">{fmt(r.regional_gdp ?? 0)}</TableCell>
                               <TableCell className="text-right">{fmt(r.gdp_per_capita ?? 0)}</TableCell>
-                              <TableCell>{r.has_governance ? <Badge variant="success">Yes</Badge> : <Badge variant="destructive">No</Badge>}</TableCell>
+                              <TableCell>
+                                {/* v4.22 WS3: real governance mode, not a static Yes badge */}
+                                {r.governance_mode && r.governance_mode !== "None" ? (
+                                  <Badge variant={r.governance_mode === "Commissary Admin" || r.governance_mode === "Martial Law" ? "destructive" : "success"}>
+                                    {r.governance_mode}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="destructive">None</Badge>
+                                )}
+                              </TableCell>
                             </TableRow>
                           );
                         }

@@ -93,6 +93,11 @@ path = "tests/epics/supply_chain_integrity_test.rs"
 required-features = ["epic-tests"]
 
 [[test]]
+name = "v4220_release_gate_test"
+path = "tests/epics/v4220_release_gate_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
 name = "world_gen_audit_test"
 path = "tests/epics/world_gen_audit_test.rs"
 required-features = ["epic-tests"]

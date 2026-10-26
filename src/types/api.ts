@@ -2540,7 +2540,12 @@ export type RegionRow = { id: string, display_name: string, megaregion: string,
 /**
  * Phase 61.3: Megaregion ID for drill-down lookup (separate from display name).
  */
-megaregion_id: string, population: bigint, regional_gdp: number, gdp_per_capita: number, has_governance: boolean, liquid_reserves: number, };
+megaregion_id: string, population: bigint, regional_gdp: number, gdp_per_capita: number, has_governance: boolean, 
+/**
+ * v4.22 WS3: human-readable governance mode — "Autonomous Council" |
+ * "Appointed Governor" | "Commissary Admin" | "Martial Law" | "None".
+ */
+governance_mode: string, liquid_reserves: number, };
 
 /**
  * Per-region expenditure composition for the Region Overview.

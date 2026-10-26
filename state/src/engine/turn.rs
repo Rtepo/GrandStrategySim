@@ -13835,7 +13835,54 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
                 .unwrap_or_default();
 
             let modifiers = evaluate_market_behavior(&governor_traits);
-            let preferences = cad::derive_governor_preferences(&modifiers);
+            let mut preferences = cad::derive_governor_preferences(&modifiers);
+
+            // v4.22 WS3.4: blend real region endowments into the weight
+            // vector so MPZP targets differ by urbanization, resource
+            // endowments, and industrial demand — not identical percentages
+            // for every region.
+            {
+                let region = &country.regions[region_idx];
+                let pop = region.population.max(1) as f64;
+                let urban_share = (region
+                    .class_demographics
+                    .urban_classes
+                    .values()
+                    .map(|c| c.population as f64)
+                    .sum::<f64>()
+                    / pop)
+                    .clamp(0.0, 1.0);
+                let soil_fertility = region
+                    .soil_profile
+                    .values()
+                    .copied()
+                    .fold(0.0_f64, f64::max)
+                    .clamp(0.0, 1.0);
+                let has_minerals =
+                    !region.resources.is_empty() || !region.extraction_limits.is_empty();
+                let total_area = region.land_use_inventory.total_area.max(1.0);
+                let category_share = |needle: &str| -> f64 {
+                    region
+                        .land_use_inventory
+                        .categories
+                        .iter()
+                        .filter(|(k, _)| k.contains(needle))
+                        .map(|(_, v)| v.area_hectares)
+                        .sum::<f64>()
+                        / total_area
+                };
+                let forest_share = category_share("Forests").clamp(0.0, 1.0);
+                let cropland_share = category_share("Agricultural").clamp(0.0, 1.0);
+
+                preferences.residential_preference += urban_share * 0.5;
+                preferences.commercial_preference += urban_share * 0.3;
+                preferences.industrial_preference += urban_share * 0.15
+                    + if has_minerals { 0.25 } else { 0.0 };
+                preferences.agricultural_preference +=
+                    soil_fertility * 0.3 + cropland_share * 0.3;
+                preferences.protected_preference += forest_share * 0.4;
+                preferences.unplanned_tolerance *= (1.0 - urban_share * 0.5).max(0.3);
+            }
 
             // Check if there's already an active plan
             let has_active_plan = country.regions[region_idx]
