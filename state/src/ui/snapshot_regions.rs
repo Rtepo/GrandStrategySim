@@ -24,6 +24,22 @@ pub struct CouncilorRow {
     /// can group assembly members by their home council.
     #[serde(skip_serializing_if = "String::is_empty")]
     pub region_id: String,
+    /// v4.23 WS7: Party affiliation (empty when unaffiliated).
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub party: String,
+    /// v4.23 WS7: Represented social class (curial seat origin — real
+    /// `Councilor.represented_class`).
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub represented_class: String,
+    /// v4.23 WS7: Voting-behavior trait, emitted ONLY when revealed —
+    /// `hidden_trait` stays hidden while `trait_revealed` is false so the
+    /// UI never leaks unrevealed councilor internals.
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub trait_label: String,
+    /// v4.23 WS7: Political influence (0–100, `Councilor.political_influence`).
+    pub influence: f64,
+    /// v4.23 WS7: Years in office.
+    pub years_in_office: u32,
 }
 
 /// Flatten a `LocalCouncil`'s sitting councilors into UI rows, tagged
@@ -37,6 +53,15 @@ pub fn council_member_rows(council: &LocalCouncil, region_id: &str) -> Vec<Counc
             faction: c.faction.to_string(),
             vip_id: c.id.clone(),
             region_id: region_id.to_string(),
+            party: c.party.clone(),
+            represented_class: c.represented_class.clone(),
+            trait_label: if c.trait_revealed {
+                format!("{:?}", c.hidden_trait)
+            } else {
+                String::new()
+            },
+            influence: c.political_influence,
+            years_in_office: c.years_in_office,
         })
         .collect()
 }

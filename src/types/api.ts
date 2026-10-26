@@ -854,7 +854,19 @@ export type CouncilMemberRow = { vip_id: string, name: string, faction: string, 
  * mirrors `CouncilResolution` on `politics::local_council::LocalCouncil`
  * and the `CouncilResolutionRow` api.ts contract.
  */
-export type CouncilResolutionRow = { title: string, resolution_type: string, status: string, votes_for: number, votes_against: number, abstentions: number, turn: number, };
+export type CouncilResolutionRow = { title: string, resolution_type: string, status: string, votes_for: number, votes_against: number, abstentions: number, turn: number, 
+/**
+ * v4.23 WS7: Region whose council held the vote — populated for
+ * megaregion assembly aggregation (member-region unions share titles);
+ * empty for single-region rows. serde(default) tolerates old payloads.
+ */
+region_id: string, 
+/**
+ * v4.23 WS7: What the ordinance actually does — derived from the
+ * resolution type and, for adopted spending resolutions, the linked
+ * execution mandate's real appropriation/scope/effects.
+ */
+description: string, };
 
 /**
  * v4.20 WS4: Per-councilor vote record for a council resolution — mirrors
@@ -2327,6 +2339,13 @@ media: PressMediaContext,
  * Front pages (one per ideological paper).
  */
 papers: Array<PressPaperDto>, 
+/**
+ * v4.23 WS7: Financial & Business Press — stock movers, earnings,
+ * dividends and major investments sourced from real company/market
+ * state (one shared business section, not per-paper selection).
+ * `serde(default)` tolerates snapshots built before this section.
+ */
+business_articles: Array<PressArticleDto>, 
 /**
  * Total articles emitted across all papers.
  */

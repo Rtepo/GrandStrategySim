@@ -80,7 +80,9 @@ pub struct PressArticleDto {
     pub body: String,
     /// Event category: "floor_vote" | "veto_override" | "budget_bill" |
     /// "council_resolution" | "royal_birth" | "royal_marriage" | "strike" |
-    /// "mass_movement" | "treaty" | "war" | "economy" | "election_scheduled".
+    /// "mass_movement" | "treaty" | "war" | "economy" | "election_scheduled";
+    /// business section adds "stock_mover" | "earnings" | "dividend" |
+    /// "investment".
     pub event_kind: String,
     /// Deterministic event reference for frontend linking/dedup
     /// (e.g. "floor_vote:BILL-12:187", "royal_birth:VIP-91").
@@ -141,6 +143,12 @@ pub struct PressSnapshotDto {
     pub media: PressMediaContext,
     /// Front pages (one per ideological paper).
     pub papers: Vec<PressPaperDto>,
+    /// v4.23 WS7: Financial & Business Press — stock movers, earnings,
+    /// dividends and major investments sourced from real company/market
+    /// state (one shared business section, not per-paper selection).
+    /// `serde(default)` tolerates snapshots built before this section.
+    #[serde(default)]
+    pub business_articles: Vec<PressArticleDto>,
     /// Total articles emitted across all papers.
     pub total_articles: usize,
 }
@@ -150,7 +158,7 @@ pub struct PressSnapshotDto {
 // ============================================================================
 
 /// Internal event kind — also the DTO `event_kind` label.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum NewsKind {
     FloorVote,
     VetoOverride,
@@ -284,11 +292,11 @@ fn collect_events(
                         .and_then(Value::as_str)
                         .unwrap_or("Untitled bill")
                         .to_string(),
-                    object: obj
-                        .get("bill_type")
-                        .and_then(Value::as_str)
-                        .unwrap_or("")
-                        .to_string(),
+                    object: humanize(
+                        obj.get("bill_type")
+                            .and_then(Value::as_str)
+                            .unwrap_or(""),
+                    ),
                     votes_for: num("votes_for"),
                     votes_against: num("votes_against"),
                     abstentions: num("abstentions"),
@@ -408,7 +416,7 @@ fn collect_events(
                 ),
                 subject: format!("{s1} and {s2}"),
                 object: if foreign.is_empty() {
-                    format!("{:?}", marriage.political_significance)
+                    humanize(&format!("{:?}", marriage.political_significance))
                 } else {
                     foreign
                 },
@@ -446,7 +454,7 @@ fn collect_events(
             } else {
                 union.name.clone()
             },
-            object: format!("{:?}", union.sector),
+            object: union.sector.display_name(),
             votes_for: 0.0,
             votes_against: 0.0,
             abstentions: 0.0,
@@ -474,9 +482,9 @@ fn collect_events(
             event_ref: format!("movement:{}", movement.id),
             subject: mtype.to_string(),
             object: format!(
-                "{} ({:?} status, demands: {})",
+                "{} ({} status, demands: {})",
                 region_name(country, &movement.region_id),
-                movement.status,
+                humanize(&format!("{:?}", movement.status)),
                 if movement.demands.is_empty() {
                     "unspecified".to_string()
                 } else {
@@ -623,8 +631,8 @@ fn collect_events(
                 event_ref: format!("econ:{current_turn}"),
                 subject: parts.join(", "),
                 object: format!(
-                    "GDP {:.0}, CPI {:.1}, unemployment {:.1}%",
-                    md.gdp_breakdown.official_gdp,
+                    "GDP {}, CPI {:.1}, unemployment {:.1}%",
+                    fmt_money(md.gdp_breakdown.official_gdp),
                     md.inflation_indices.cpi_index,
                     md.labor_market.unemployment_rate
                 ),
@@ -654,6 +662,31 @@ fn collect_events(
                 magnitude: (et - current_turn) as f64,
             });
         }
+    }
+
+    // v4.23 WS7: dedup the event pool — one real event must never emit two
+    // articles, whether the duplicate surfaced across papers, across turns,
+    // or inside a single front page. Two keys collapse duplicates:
+    //   1. `event_ref` — the deterministic event id; the history log can
+    //      double-write an event (both chambers voting the same bill in one
+    //      turn, a repeated `budget_bill` record) producing identical refs.
+    //   2. (kind, subject, object, turn) — the template + subject identity,
+    //      so stale double-emissions of one vote (same council resolution
+    //      title in the same region on the same turn) still collapse even
+    //      when persisted log entries lack a stable id.
+    // The first occurrence wins; collection order is deterministic.
+    {
+        let mut seen_refs = std::collections::HashSet::new();
+        let mut seen_idents = std::collections::HashSet::new();
+        events.retain(|e| {
+            seen_refs.insert(e.event_ref.clone())
+                && seen_idents.insert((
+                    e.kind,
+                    e.subject.clone(),
+                    e.object.clone(),
+                    e.turn,
+                ))
+        });
     }
 
     // Deterministic ordering: newest first, ties by event_ref.
@@ -716,6 +749,94 @@ fn fmt_votes(e: &NewsEvent) -> String {
         "{} for, {} against, {} abstentions",
         e.votes_for as u64, e.votes_against as u64, e.abstentions as u64
     )
+}
+
+/// v4.23 WS7: Compact money formatter for interpolated article figures —
+/// raw engine magnitudes like `749732294` must never reach the page.
+/// `$749.73M` / `$1.24B` / `$812.50K` / `-$3.10M`; sub-thousand values keep
+/// cents so small treasuries still read as money.
+pub(crate) fn fmt_money(v: f64) -> String {
+    if !v.is_finite() {
+        return "$0.00".to_string();
+    }
+    // Collapse negative-zero / sub-cent dust — a formatting artifact.
+    let v = if v.abs() < 0.005 { 0.0 } else { v };
+    let (abs, sign) = (v.abs(), if v < 0.0 { "-" } else { "" });
+    if abs >= 1e9 {
+        format!("{sign}${:.2}B", abs / 1e9)
+    } else if abs >= 1e6 {
+        format!("{sign}${:.2}M", abs / 1e6)
+    } else if abs >= 1e3 {
+        format!("{sign}${:.2}K", abs / 1e3)
+    } else {
+        format!("{sign}${abs:.2}")
+    }
+}
+
+/// v4.23 WS7: Thousands-separated count formatter for interpolated
+/// participant/worker figures ("roughly 50,000 participants").
+fn fmt_count(v: f64) -> String {
+    let n = v.round() as i64;
+    let neg = n < 0;
+    let digits = n.unsigned_abs().to_string();
+    let mut out = String::with_capacity(digits.len() + digits.len() / 3);
+    for (i, c) in digits.chars().enumerate() {
+        if i > 0 && (digits.len() - i).is_multiple_of(3) {
+            out.push(',');
+        }
+        out.push(c);
+    }
+    if neg {
+        format!("-{out}")
+    } else {
+        out
+    }
+}
+
+/// v4.23 WS7: Humanize a debug-style token for display — `{:?}` enum
+/// variants (`HeavyIndustry` → "Heavy Industry"), snake_case ids
+/// (`tax_reform` → "Tax Reform") and kebab-case. Multi-word results are
+/// Title Cased; single words keep their capitalization.
+fn humanize(raw: &str) -> String {
+    let mut words: Vec<String> = Vec::new();
+    let mut cur = String::new();
+    for c in raw.trim().chars() {
+        if c == '_' || c == '-' || c == ' ' {
+            if !cur.is_empty() {
+                words.push(std::mem::take(&mut cur));
+            }
+        } else if c.is_ascii_uppercase()
+            && !cur.is_empty()
+            && cur
+                .chars()
+                .last()
+                .map(|p| p.is_ascii_lowercase() || p.is_ascii_digit())
+                .unwrap_or(false)
+        {
+            // CamelCase boundary: lower/digit → Upper.
+            words.push(std::mem::take(&mut cur));
+            cur.push(c);
+        } else {
+            cur.push(c);
+        }
+    }
+    if !cur.is_empty() {
+        words.push(cur);
+    }
+    if words.is_empty() {
+        return String::new();
+    }
+    words
+        .iter()
+        .map(|w| {
+            let mut ch = w.chars();
+            match ch.next() {
+                Some(first) => first.to_ascii_uppercase().to_string() + ch.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 /// Slant-phrased headline. All variants report the same real fact.
@@ -962,9 +1083,9 @@ fn body_for(paper: &str, e: &NewsEvent, country: &Country) -> String {
         ),
         NewsKind::BudgetBill => format!(
             "The budget session for this term concluded with the national budget {}. \
-             Treasury reserves stand at {:.0}.",
+             Treasury reserves stand at {}.",
             if e.positive { "enacted" } else { "left unenacted" },
-            country.budget.liquid_reserves
+            fmt_money(country.budget.liquid_reserves)
         ),
         NewsKind::CouncilResolution => format!(
             "The {} council voted on “{}” ({}) — {}.",
@@ -988,12 +1109,16 @@ fn body_for(paper: &str, e: &NewsEvent, country: &Country) -> String {
             e.subject, e.object
         ),
         NewsKind::Strike => format!(
-            "{} ({}) remains on strike — roughly {:.0} workers are out.",
-            e.subject, e.object, e.magnitude
+            "{} ({}) remains on strike — roughly {} workers are out.",
+            e.subject,
+            e.object,
+            fmt_count(e.magnitude)
         ),
         NewsKind::MassMovement => format!(
-            "A {} involving roughly {:.0} participants is reported in {}.",
-            e.subject, e.magnitude, e.object
+            "A {} involving roughly {} participants is reported in {}.",
+            e.subject,
+            fmt_count(e.magnitude),
+            e.object
         ),
         NewsKind::Treaty => {
             if e.positive {
@@ -1064,6 +1189,245 @@ fn body_for(paper: &str, e: &NewsEvent, country: &Country) -> String {
     } else {
         format!("{facts} {flavor}")
     }
+}
+
+// ============================================================================
+// FINANCIAL & BUSINESS PRESS (v4.23 WS7)
+// ============================================================================
+//
+// A separate business-desk section — stock movers, earnings, dividends and
+// major corporate investments — every item sourced from real company/market
+// state only:
+//
+// * `Company.price_history` — day-over-day share-price change (the same
+//   series `securities/exchange.rs` appends each turn, bounded to 60).
+// * `Company.financial_history` — latest reported `revenue`/`net_profit`/
+//   `year` record written by `corporate/manager.rs::process_company`.
+// * `Company.aggregated_stats.total_dividends` + `dividend_yield` — real
+//   routed distributions.
+// * `Company.action_ledger.action_records` — major board actions ("Expand",
+//   "Ipo", "DesignBlueprint", "GeologicalSurvey") recorded with their turn;
+//   `pending_expansion.investment` supplies the committed amount while the
+//   expansion is still in flight.
+//
+// Neutral wire voice (no ideological slant — a shared business section),
+// deterministic ordering inside each category.
+
+/// Minimum |day-over-day % move| for a stock to make the movers column.
+const BUSINESS_MOVER_MIN_PCT: f64 = 3.0;
+/// Editorial caps per business category.
+const BUSINESS_MAX_MOVERS: usize = 3;
+const BUSINESS_MAX_EARNINGS: usize = 3;
+const BUSINESS_MAX_DIVIDENDS: usize = 2;
+const BUSINESS_MAX_INVESTMENTS: usize = 2;
+
+/// Collect the business-desk article set for a country (one section shared
+/// by all front pages — not per-paper editorial selection).
+fn collect_business_articles(
+    companies: &[crate::entities::Company],
+    current_turn: u32,
+) -> Vec<PressArticleDto> {
+    let window_start = current_turn.saturating_sub(NEWS_WINDOW_TURNS);
+    let mut articles: Vec<PressArticleDto> = Vec::new();
+
+    let company_label = |c: &crate::entities::Company| {
+        if c.name.is_empty() {
+            c.id.clone()
+        } else {
+            c.name.clone()
+        }
+    };
+    let mk = |kind: &str,
+              company_id: &str,
+              headline: String,
+              body: String,
+              turn: u32|
+     -> PressArticleDto {
+        PressArticleDto {
+            id: format!("biz:{kind}:{company_id}"),
+            paper_id: "business".to_string(),
+            headline,
+            body,
+            event_kind: kind.to_string(),
+            event_ref: format!("biz_{kind}:{company_id}"),
+            turn,
+        }
+    };
+
+    // -- Stock movers: real day-over-day share-price change -----------------
+    // (|pct|, company, signed pct, last price)
+    let mut movers: Vec<(f64, &crate::entities::Company, f64, f64)> = Vec::new();
+    for c in companies {
+        let h = &c.price_history;
+        if h.len() < 2 {
+            continue;
+        }
+        let (prev, last) = (h[h.len() - 2], h[h.len() - 1]);
+        if prev.abs() < 1e-9 {
+            continue;
+        }
+        let pct = (last - prev) / prev * 100.0;
+        if pct.abs() >= BUSINESS_MOVER_MIN_PCT {
+            movers.push((pct.abs(), c, pct, last));
+        }
+    }
+    movers.sort_by(|a, b| {
+        b.0.partial_cmp(&a.0)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.1.id.cmp(&b.1.id))
+    });
+    for (_, c, pct, last) in movers.into_iter().take(BUSINESS_MAX_MOVERS) {
+        let name = company_label(c);
+        let cap = c.shares_count as f64 * last;
+        let direction = if pct >= 0.0 { "Surges" } else { "Slides" };
+        let pe = if c.pe_ratio > 0.0 {
+            format!("; P/E {:.1}", c.pe_ratio)
+        } else {
+            String::new()
+        };
+        articles.push(mk(
+            "stock_mover",
+            &c.id,
+            format!("{name} {direction} {pct:+.1}% on the Exchange"),
+            format!(
+                "Shares of {name} ({}) closed at {}{}; market capitalization {}.",
+                c.sector.display_name(),
+                fmt_money(last),
+                pe,
+                fmt_money(cap)
+            ),
+            current_turn,
+        ));
+    }
+
+    // -- Earnings: latest reported accounts ---------------------------------
+    // (|revenue|, company, revenue, net_profit, report_year)
+    let mut earners: Vec<(f64, &crate::entities::Company, f64, f64, f64)> = Vec::new();
+    for c in companies {
+        let Some(rec) = c.financial_history.last() else {
+            continue;
+        };
+        let Some(map) = rec.as_object() else {
+            continue;
+        };
+        let num = |k: &str| map.get(k).and_then(Value::as_f64).unwrap_or(0.0);
+        let (revenue, profit, year) = (num("revenue"), num("net_profit"), num("year"));
+        if revenue.abs() < 1e-9 && profit.abs() < 1e-9 {
+            continue;
+        }
+        earners.push((revenue.abs(), c, revenue, profit, year));
+    }
+    earners.sort_by(|a, b| {
+        b.0.partial_cmp(&a.0)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.1.id.cmp(&b.1.id))
+    });
+    for (_, c, revenue, profit, year) in earners.into_iter().take(BUSINESS_MAX_EARNINGS) {
+        let name = company_label(c);
+        let result = if profit >= 0.0 { "Profit" } else { "Loss" };
+        articles.push(mk(
+            "earnings",
+            &c.id,
+            format!(
+                "{name} Posts {} {result} on {} Revenue",
+                fmt_money(profit.abs()),
+                fmt_money(revenue)
+            ),
+            format!(
+                "Reported accounts for year {:.0}: revenue {}, net profit {}. \
+                 {name} ({}) employs {} workers.",
+                year,
+                fmt_money(revenue),
+                fmt_money(profit),
+                c.sector.display_name(),
+                fmt_count(c.fulfilled_fte as f64)
+            ),
+            current_turn,
+        ));
+    }
+
+    // -- Dividends: real routed distributions --------------------------------
+    let mut payers: Vec<(f64, &crate::entities::Company)> = companies
+        .iter()
+        .filter(|c| c.aggregated_stats.total_dividends > 1e-9)
+        .map(|c| (c.aggregated_stats.total_dividends, c))
+        .collect();
+    payers.sort_by(|a, b| {
+        b.0.partial_cmp(&a.0)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.1.id.cmp(&b.1.id))
+    });
+    for (total, c) in payers.into_iter().take(BUSINESS_MAX_DIVIDENDS) {
+        let name = company_label(c);
+        let cap = c.shares_count as f64 * c.share_price;
+        articles.push(mk(
+            "dividend",
+            &c.id,
+            format!("{name} Distributes {} in Dividends", fmt_money(total)),
+            format!(
+                "Distributions to shareholders total {} ({:.2}% yield); \
+                 market capitalization {}.",
+                fmt_money(total),
+                c.dividend_yield * 100.0,
+                fmt_money(cap)
+            ),
+            current_turn,
+        ));
+    }
+
+    // -- Major investments: board decisions on the corporate action ledger ---
+    // (action turn, company, action label, committed amount when serialized)
+    const INVESTMENT_ACTIONS: [(&str, &str); 4] = [
+        ("Expand", "expansion program"),
+        ("Ipo", "public share offering"),
+        ("DesignBlueprint", "blueprint design program"),
+        ("GeologicalSurvey", "geological survey"),
+    ];
+    let mut invest: Vec<(u32, &crate::entities::Company, &'static str, f64)> = Vec::new();
+    for c in companies {
+        let mut best: Option<(u32, &'static str)> = None;
+        for (action, label) in INVESTMENT_ACTIONS {
+            if let Some(recs) = c.action_ledger.action_records.get(action) {
+                if let Some(&(turn, _)) = recs.iter().max_by_key(|(t, _)| *t) {
+                    if turn >= window_start && best.map(|(bt, _)| turn > bt).unwrap_or(true) {
+                        best = Some((turn, label));
+                    }
+                }
+            }
+        }
+        if let Some((turn, label)) = best {
+            // Committed capital is serialized only while an expansion is in
+            // flight (`pending_expansion` is consumed on project creation).
+            let amount = c
+                .pending_expansion
+                .as_ref()
+                .map(|p| p.investment)
+                .unwrap_or(0.0);
+            invest.push((turn, c, label, amount));
+        }
+    }
+    invest.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.id.cmp(&b.1.id)));
+    for (turn, c, label, amount) in invest.into_iter().take(BUSINESS_MAX_INVESTMENTS) {
+        let name = company_label(c);
+        let commitment = if amount > 0.0 {
+            format!(" committing {}", fmt_money(amount))
+        } else {
+            String::new()
+        };
+        articles.push(mk(
+            "investment",
+            &c.id,
+            format!("{name} Green-Lights {}", humanize(label)),
+            format!(
+                "The corporate ledger records a {label} decision in turn \
+                 {turn}{commitment}. {name} operates in {}.",
+                c.sector.display_name()
+            ),
+            turn,
+        ));
+    }
+
+    articles
 }
 
 // ============================================================================
@@ -1194,12 +1558,16 @@ pub fn build_press_snapshot(
         });
     }
 
+    // -- Financial & Business Press (real company/market state) -------------
+    let business_articles = collect_business_articles(companies, current_turn);
+
     PressSnapshotDto {
         country: country.name.clone(),
         current_turn,
         year,
         media,
         papers,
+        business_articles,
         total_articles,
     }
 }
