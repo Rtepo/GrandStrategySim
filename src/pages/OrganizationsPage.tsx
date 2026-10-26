@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api/core';
-import type { OrganizationsSnapshot, OrganizationRow, OrganizationCategory } from '../types/api';
+import type { OrganizationsSnapshot, OrganizationRow, OrganizationCategory, OrganizationsSummaryDto } from '../types/api';
+import { useGameStore } from '../store/gameStore';
+import { getOrganizationsSummary } from '../hooks/useTauriCommand';
+import { num, pct } from '../lib/format';
 
 const CATEGORY_LABELS: Record<string, string> = {
   guild: 'Guild',
@@ -20,12 +23,20 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export const OrganizationsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { selectedCountry } = useGameStore();
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
 
   const { data: snapshot, isLoading, error } = useQuery({
     queryKey: ['organizations-snapshot'],
     queryFn: () => invoke<OrganizationsSnapshot>('get_organizations_snapshot'),
+  });
+
+  // v4.22 WS6: country-scoped macro KPI header (unionization, strikes, ...).
+  const { data: summary } = useQuery({
+    queryKey: ['organizations-summary', selectedCountry],
+    queryFn: () => getOrganizationsSummary(selectedCountry!),
+    enabled: !!selectedCountry,
   });
 
   if (isLoading) return <div className="p-6 text-muted-foreground">Loading organizations...</div>;
@@ -50,6 +61,17 @@ export const OrganizationsPage: React.FC = () => {
       <p className="text-sm text-muted-foreground">
         Consolidated view of Guilds, Trade Unions, and Political Movements.
       </p>
+
+      {summary && (
+        <div className="grid grid-cols-6 gap-3">
+          <Kpi label="Unionization Rate" value={pct(summary.unionization_rate * 100)} />
+          <Kpi label="Union Members" value={num(summary.union_member_workers)} />
+          <Kpi label="Guild Workshops" value={num(summary.guild_member_workshops)} />
+          <Kpi label="Movement Members" value={num(summary.movement_participants)} />
+          <Kpi label="Radicalization Index" value={pct(summary.radicalization_index * 100)} />
+          <Kpi label="Active Strikes / Workers" value={`${summary.active_strikes} / ${num(summary.striking_workers)}`} />
+        </div>
+      )}
 
       <div className="flex gap-4 items-center">
         <select
@@ -116,3 +138,12 @@ export const OrganizationsPage: React.FC = () => {
     </div>
   );
 };
+
+function Kpi({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded border border-border bg-card p-3">
+      <div className="text-[11px] text-muted-foreground">{label}</div>
+      <div className="text-sm font-semibold tabular-nums">{value}</div>
+    </div>
+  );
+}

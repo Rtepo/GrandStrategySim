@@ -3,6 +3,7 @@ import { useGameStore } from "../store/gameStore";
 import { getMacroIndicators, getMacroHistory, getSectors } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from "../components/ui";
 import { GdpChart } from "../components/charts/GdpChart";
+import { GdpDonutChart } from "../components/charts/GdpDonutChart";
 import { fmt, pct, num } from "../lib/format";
 
 export function MacroPage() {
@@ -67,7 +68,7 @@ export function MacroPage() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <Card>
               <CardHeader><CardTitle>GDP Components</CardTitle></CardHeader>
               <CardContent>
@@ -81,6 +82,21 @@ export function MacroPage() {
                     <ComponentRow label="Total GDP" value={macro.gdp} bold />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* v4.22 WS4: GDP expenditure donut (C+I+G+NX) */}
+            <Card>
+              <CardHeader><CardTitle>GDP Composition</CardTitle></CardHeader>
+              <CardContent>
+                <GdpDonutChart
+                  consumption={macro.consumption}
+                  imputedConsumption={macro.imputed_consumption}
+                  investment={macro.investment}
+                  governmentSpending={macro.government_spending}
+                  netExports={macro.net_exports}
+                  height={230}
+                />
               </CardContent>
             </Card>
 

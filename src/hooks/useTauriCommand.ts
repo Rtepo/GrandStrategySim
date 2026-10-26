@@ -38,6 +38,11 @@ import type {
   ArbitrationCasesResponse,
   MinistryLandReportDTO,
   MunicipalAiSnapshot,
+  GdpCompositionDto,
+  TradeTreemapDto,
+  OrganizationsSummaryDto,
+  SocietySnapshotDto,
+  PressSnapshotDto,
 } from "../types/api";
 
 export async function getGameStatus(): Promise<GameStatus> {
@@ -252,4 +257,29 @@ export async function getAvailableRegions(country: string): Promise<RegionOption
 /// Phase 54: Fetch available VIP roles for the role filter dropdown.
 export async function getAvailableRoles(): Promise<RoleOption[]> {
   return invoke<RoleOption[]>("get_available_roles");
+}
+
+/// v4.22 WS4: GDP expenditure composition (C+I+G+NX) with regional rows.
+export async function getGdpComposition(country: string): Promise<GdpCompositionDto> {
+  return invoke<GdpCompositionDto>("get_gdp_composition", { country });
+}
+
+/// v4.22 WS4: OEC-style trade treemap entries for the Market tab.
+export async function getTradeTreemap(country: string): Promise<TradeTreemapDto> {
+  return invoke<TradeTreemapDto>("get_trade_treemap", { country });
+}
+
+/// v4.22 WS6: Organizations summary KPIs (unionization, members, strikes).
+export async function getOrganizationsSummary(country: string): Promise<OrganizationsSummaryDto> {
+  return invoke<OrganizationsSummaryDto>("get_organizations_summary", { country });
+}
+
+/// v4.22 WS6: Society snapshot — demographics, education, ethnicity, class.
+export async function getSocietySnapshot(country: string): Promise<SocietySnapshotDto> {
+  return invoke<SocietySnapshotDto>("get_society_snapshot", { country });
+}
+
+/// v4.22 WS6: Press snapshot — ideological front pages generated from events.
+export async function getPressSnapshot(country: string): Promise<PressSnapshotDto> {
+  return invoke<PressSnapshotDto>("get_press_snapshot", { country });
 }

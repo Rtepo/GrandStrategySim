@@ -20,6 +20,7 @@ import {
   Trees,
   Shield,
   Zap,
+  Newspaper,
 } from "lucide-react";
 import { useGameStore } from "./store/gameStore";
 import { advanceTurn, newGame } from "./hooks/useTauriCommand";
@@ -43,6 +44,8 @@ import GuildsPage from "./pages/GuildsPage";
 import CitiesPage from "./pages/CitiesPage";
 import { OrganizationsPage } from "./pages/OrganizationsPage";
 import { OrganizationDetailPage } from "./pages/OrganizationDetailPage";
+import { SocietyPage } from "./pages/SocietyPage";
+import { PressPage } from "./pages/PressPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useUpdater } from "./hooks/useUpdater";
@@ -64,6 +67,8 @@ const NAV_ITEMS = [
   { to: "/military", label: "Military", icon: Shield },
   { to: "/energy", label: "Energy", icon: Zap },
   { to: "/organizations", label: "Organizations", icon: Building2 },
+  { to: "/society", label: "Society", icon: Users },
+  { to: "/press", label: "Press", icon: Newspaper },
 ];
 
 interface SidebarProps {
@@ -418,6 +423,8 @@ export default function App() {
             <Route path="/energy" element={<EnergyPage />} />
             <Route path="/organizations" element={<OrganizationsPage />} />
             <Route path="/organizations/:category/:id" element={<OrganizationDetailPage />} />
+            <Route path="/society" element={<SocietyPage />} />
+            <Route path="/press" element={<PressPage />} />
           </Routes>
         </ErrorBoundary>
       </main>

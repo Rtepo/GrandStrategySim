@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import * as echarts from "echarts";
 import { useGameStore } from "../store/gameStore";
-import { getRegions, getRegionDetail, getMegaregionDetail } from "../hooks/useTauriCommand";
+import { getRegions, getRegionDetail, getMegaregionDetail, getGdpComposition } from "../hooks/useTauriCommand";
+import { GdpDonutChart } from "../components/charts/GdpDonutChart";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button, Tabs } from "../components/ui";
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
@@ -198,6 +199,8 @@ function RegionDetailPanel({ detail }: { detail: RegionDetailExtended }) {
                 <Field label="Debt Total" value={fmt(safeNum(detail.debt_total))} />
                 <Field label="Debt/Revenue" value={debtRatio.toFixed(2)} />
                 <Field label="Infra Avg Condition" value={`${(infraCond * 100).toFixed(1)}%`} />
+                {/* v4.22 WS4: regional GDP expenditure donut */}
+                <RegionGdpDonut regionId={safeStr(detail.region_id)} />
               </div>
             )},
             { label: "Council", value: "council", content: (
@@ -244,6 +247,33 @@ function RegionDetailPanel({ detail }: { detail: RegionDetailExtended }) {
         />
       </CardContent>
     </Card>
+  );
+}
+
+/// v4.22 WS4: donut of this region's GDP expenditure legs (C+I+G+NX).
+function RegionGdpDonut({ regionId }: { regionId: string }) {
+  const { selectedCountry } = useGameStore();
+  const { data } = useQuery({
+    queryKey: ["gdp_composition", selectedCountry],
+    queryFn: () => getGdpComposition(selectedCountry!),
+    enabled: !!selectedCountry,
+  });
+  const row = data?.regions.find((r) => r.region_id === regionId);
+  if (!row) return null;
+  return (
+    <div className="pt-2">
+      <div className="text-xs text-muted-foreground mb-1">
+        GDP Composition — {fmt(row.reconciled_gdp)}
+      </div>
+      <GdpDonutChart
+        consumption={row.consumption}
+        imputedConsumption={row.imputed_consumption}
+        investment={row.investment}
+        governmentSpending={row.government_spending}
+        netExports={row.net_exports}
+        height={220}
+      />
+    </div>
   );
 }
 

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
-import { getCommodities } from "../hooks/useTauriCommand";
+import { getCommodities, getTradeTreemap } from "../hooks/useTauriCommand";
+import { TradeTreemapChart } from "../components/charts/TradeTreemapChart";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from "../components/ui";
 import { fmt } from "../lib/format";
 
@@ -12,6 +13,13 @@ export function MarketPage() {
   const { data: commodities, isLoading } = useQuery({
     queryKey: ["commodities", selectedCountry, showInactive],
     queryFn: () => getCommodities(selectedCountry!, showInactive),
+    enabled: !!selectedCountry,
+  });
+
+  // v4.22 WS4: OEC-style treemap of market value shares by sector.
+  const { data: treemap } = useQuery({
+    queryKey: ["trade_treemap", selectedCountry],
+    queryFn: () => getTradeTreemap(selectedCountry!),
     enabled: !!selectedCountry,
   });
 
@@ -30,6 +38,15 @@ export function MarketPage() {
           Show Inactive
         </label>
       </div>
+
+      {treemap && treemap.entries.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle>Trade Value Treemap — {fmt(treemap.total_value)}</CardTitle></CardHeader>
+          <CardContent>
+            <TradeTreemapChart data={treemap} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle>Commodities</CardTitle></CardHeader>
