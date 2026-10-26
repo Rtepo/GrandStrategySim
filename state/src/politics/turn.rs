@@ -1136,6 +1136,35 @@ fn regenerate_parties(
         bids.insert(ideo, bid);
     }
 
+    // v4.22 WS2.1: Regime-consistent party bids — a theocracy seats
+    // confessional and traditionalist parties; revolutionary left and
+    // secular-liberal bids are suppressed so the ruling party reflects the
+    // clerical order rather than spawning Orthodox Marxists.
+    if politics.government_form == GovernmentForm::Theocracy {
+        for ideo in [
+            Ideology::OrthodoxMarxism,
+            Ideology::MarxismLeninism,
+            Ideology::Maoism,
+            Ideology::SocialDemocracy,
+            Ideology::GreenPolitics,
+            Ideology::AnarchoCapitalism,
+            Ideology::Neoliberalism,
+            Ideology::ClassicalLiberalism,
+        ] {
+            bids.insert(ideo, 0.0);
+        }
+        for ideo in [
+            Ideology::ChristianDemocracy,
+            Ideology::SocialConservatism,
+            Ideology::NationalConservatism,
+        ] {
+            // Theocratic threshold is 0 (non-democratic); floor bids at a
+            // governing-majority scale so a confessional party always leads.
+            let bid = bids.get(&ideo).copied().unwrap_or(0.0);
+            bids.insert(ideo, bid.max(20.0));
+        }
+    }
+
     let mut new_parties: HashMap<String, Party> = HashMap::new();
     let mut used_ideologies: Vec<Ideology> = Vec::new();
     let mut rng = crate::engine::seeded_rng::thread_rng();
