@@ -591,7 +591,11 @@ export type CommitteeRow = { name: string, committee_type: string, chair: string
  * v4.18: The bills actually sitting in this committee right now, with
  * their pipeline stage/progress and the committee's recommendation.
  */
-bills: Array<CommitteeBillRow>, };
+bills: Array<CommitteeBillRow>, 
+/**
+ * v4.22.1 WS2.5: Per-party seat composition of the committee membership.
+ */
+party_seats: Array<[string, number]>, };
 
 /**
  * Phase 56: Commodity futures row.
@@ -1015,6 +1019,19 @@ color_hex: string,
 ideology_icon: string, };
 
 /**
+ * v4.22.1 WS2.3: One completed election for the historical sub-view.
+ */
+export type ElectionRecordRow = { turn: number, year: number, 
+/**
+ * (party name, vote share, seats won).
+ */
+results: Array<[string, number, number]>, 
+/**
+ * (round, candidate, backing party, vote share, is_winner).
+ */
+presidential_rounds: Array<[number, string, string, number, boolean]>, };
+
+/**
  * Response for the get_elections command.
  */
 export type ElectionsResponse = { government_form: string, 
@@ -1054,7 +1071,19 @@ campaign_actions: Array<CampaignActionRow>,
 /**
  * Current lower-chamber seat distribution (latest election result).
  */
-current_seats: Array<[string, number]>, };
+current_seats: Array<[string, number]>, 
+/**
+ * v4.22.1 WS2.3: Completed elections, latest last (results + rounds).
+ */
+election_history: Array<ElectionRecordRow>, 
+/**
+ * v4.22.1 WS2.3: Rolling 24-turn support history for the trend chart.
+ */
+support_history: Array<SupportSnapshotRow>, 
+/**
+ * v4.22.1 WS2.3: Party backing the current head of state (ruling party).
+ */
+head_of_state_party: string, };
 
 /**
  * State of Emergency snapshot.
@@ -1426,7 +1455,12 @@ export type GovernanceDetail = { company_id: string, company_name: string, is_li
 /**
  * Government tab data.
  */
-export type GovernmentSnapshot = { head_of_state_name: string, head_of_state_role: string, pm_name: string, pm_party: string, pm_ideology: string, 
+export type GovernmentSnapshot = { head_of_state_name: string, 
+/**
+ * v4.22.1 WS2.2: VIP registry id of the head of state — enables the
+ * clickable dossier link on the Government card.
+ */
+head_of_state_vip_id: string | null, head_of_state_role: string, pm_name: string, pm_party: string, pm_ideology: string, 
 /**
  * Ideology Step 6: Ruling party's ideological coordinates for 3-axis
  * radar chart (Directive 17). `Option` for fog-of-war stripping (Rule 11).
@@ -2859,6 +2893,15 @@ total_dispatched_mw: number, };
  * Phase 56: Full stock exchange response for the securities UI.
  */
 export type StockExchangeResponse = { main_index: MarketIndexSnapshot, sector_indices: Array<SectorIndexSnapshot>, listed_companies: Array<ListedCompanyRow>, recent_trades: Array<TradeRow>, trading_halted: boolean, commodity_spot: Array<CommoditySpotRow>, commodity_futures: Array<CommodityFuturesRow>, };
+
+/**
+ * v4.22.1 WS2.3: One turn's party support readings.
+ */
+export type SupportSnapshotRow = { turn: number, 
+/**
+ * (party name, support).
+ */
+support: Array<[string, number]>, };
 
 /**
  * ToT (Turn-over-Turn) and YoY (Year-over-Year) percentage deltas

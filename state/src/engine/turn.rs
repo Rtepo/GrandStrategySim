@@ -13297,6 +13297,12 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
         &mut expel_actions,
     );
 
+    // v4.22.1 WS5.3: AI diplomatic friction → localized wars. Deeply hostile
+    // bilateral relations accumulate border-incident tension every turn;
+    // tension decays globally and auto-declares a localized war at the
+    // configured threshold. Driven purely by AI relation drift.
+    process_diplomatic_friction(state, &diplomacy, state.calendar.global_turn);
+
     // Phase 66: Process intel updates from spy activity
     for (observer, target, new_level) in &intel_updates {
         let target_country = match state.countries.get(target) {
@@ -14864,4 +14870,84 @@ pub fn state_fingerprint(
         }
     }
     h.finish()
+}
+
+/// v4.22.1 WS5.3: AI diplomatic friction → occasional localized wars.
+///
+/// Each turn, bilateral relations at or below the hostility threshold
+/// (-60 of the -100..100 scale) generate a border-incident provocation whose
+/// intensity scales with hostility depth. Tension decays globally at the
+/// configured rate; any pair crossing `war_tension_threshold` auto-declares
+/// a localized war via `declare_war`, updating both countries' `at_war_with`
+/// lists and recording the `WarState` for history/UI. Driven purely by AI
+/// relation drift — deterministic given the same seeded relation updates.
+fn process_diplomatic_friction(
+    state: &mut GameState,
+    diplomacy: &HashMap<String, HashMap<String, crate::international::DiplomaticRelation>>,
+    current_turn: u32,
+) {
+    use crate::military::war_declarations::{
+        check_tension_escalations, decay_all_tensions, tension_key,
+    };
+
+    let config = state.war_declaration_config.clone();
+    const HOSTILITY_THRESHOLD: i64 = -60;
+
+    // Provocations: only the lexicographically-first side of each pair is
+    // visited (relations are stored per-direction), so each pair contributes
+    // one incident scaled by its worst recorded hostility.
+    let mut provocations: Vec<(String, f64)> = Vec::new();
+    for (c1, partners) in diplomacy {
+        for (c2, rel) in partners {
+            if c1 < c2 && rel.relations < HOSTILITY_THRESHOLD {
+                let intensity =
+                    ((-(rel.relations as f64) - 60.0) / 40.0).clamp(0.0, 1.0);
+                provocations.push((tension_key(c1, c2), intensity));
+            }
+        }
+    }
+    provocations.sort_by(|a, b| a.0.cmp(&b.0));
+    for (key, intensity) in provocations {
+        state
+            .bilateral_tensions
+            .entry(key)
+            .or_default()
+            .add_provocation(intensity, config.tension_per_provocation);
+    }
+    decay_all_tensions(&mut state.bilateral_tensions, &config);
+
+    // Materialize existing at_war_with lists into the HashMap form the
+    // escalation checker expects.
+    let mut at_war_map: HashMap<String, Vec<String>> = HashMap::new();
+    for (name, country) in &state.countries {
+        if !country.at_war_with.is_empty() {
+            at_war_map
+                .insert(name.clone(), country.at_war_with.clone());
+        }
+    }
+
+    let results = check_tension_escalations(
+        &mut state.bilateral_tensions,
+        &mut at_war_map,
+        current_turn,
+        &config,
+    );
+    for result in results {
+        for msg in &result.messages {
+            eprintln!("{}", msg);
+        }
+        if let Some(ws) = result.war_state {
+            for (name, enemy) in [
+                (ws.aggressor.clone(), ws.defender.clone()),
+                (ws.defender.clone(), ws.aggressor.clone()),
+            ] {
+                if let Some(country) = state.countries.get_mut(&name) {
+                    if !country.at_war_with.contains(&enemy) {
+                        country.at_war_with.push(enemy);
+                    }
+                }
+            }
+            state.declared_wars.push(ws);
+        }
+    }
 }

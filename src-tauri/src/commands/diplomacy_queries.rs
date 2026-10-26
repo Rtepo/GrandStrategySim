@@ -426,6 +426,38 @@ pub async fn get_organizations(
                     directive_count: org.directives.len(),
                     founded_turn: org.founded_turn,
                     sanctions: org_sanctions,
+                    directives: org
+                        .directives
+                        .iter()
+                        .map(|d| sim_engine::ui::snapshot::DirectiveRow {
+                            id: d.id.clone(),
+                            title: d.title.clone(),
+                            status: d.status.clone(),
+                            mandate_type: d.mandate_type.as_str().to_string(),
+                            enacted_turn: d.enacted_turn,
+                            compliance_deadline: d.compliance_deadline,
+                            votes_for: d
+                                .votes
+                                .values()
+                                .filter(|v| v.as_str() == "For")
+                                .count(),
+                            votes_against: d
+                                .votes
+                                .values()
+                                .filter(|v| v.as_str() == "Against")
+                                .count(),
+                            votes_abstain: d
+                                .votes
+                                .values()
+                                .filter(|v| v.as_str() == "Abstain")
+                                .count(),
+                            votes: d
+                                .votes
+                                .iter()
+                                .map(|(m, v)| (m.clone(), v.clone()))
+                                .collect(),
+                        })
+                        .collect(),
                 }
             })
             .collect();

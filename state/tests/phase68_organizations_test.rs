@@ -136,6 +136,8 @@ fn test_directive_enforcement_applies_fines() {
         fine_for_noncompliance: 5_000_000.0,
         target_law: None,
         enacted_turn: 1,
+        votes: std::collections::BTreeMap::new(),
+        status: "Passed".to_string(),
     });
     registry.organizations.push(org);
 
@@ -163,6 +165,8 @@ fn test_directive_fine_double_entry() {
         fine_for_noncompliance: 1_000_000.0,
         target_law: None,
         enacted_turn: 1,
+        votes: std::collections::BTreeMap::new(),
+        status: "Passed".to_string(),
     });
     state.international_organizations.organizations.push(org);
 
@@ -653,6 +657,8 @@ fn test_directive_serialization() {
         fine_for_noncompliance: 1_000_000.0,
         target_law: Some("TaxRateChange".to_string()),
         enacted_turn: 5,
+        votes: std::collections::BTreeMap::new(),
+        status: "Passed".to_string(),
     };
     let json = serde_json::to_string(&directive).unwrap();
     let deserialized: Directive = serde_json::from_str(&json).unwrap();

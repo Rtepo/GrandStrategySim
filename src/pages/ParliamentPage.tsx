@@ -4,6 +4,7 @@ import { useGameStore } from "../store/gameStore";
 import { getParliament, getConstitutionLaws, getElections } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
 import { Hemicycle } from "../components/Hemicycle";
+import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { partyColor, ideologyIcon, estateVisual, spectrumOf } from "../lib/partyVisuals";
 import { fmt } from "../lib/format";
@@ -459,6 +460,25 @@ function CommitteesView({ parliament }: { parliament: ParliamentSnapshot }) {
                   {expanded === c.name && (
                     <TableRow>
                       <TableCell colSpan={5} className="bg-accent/20">
+                        {/* v4.22.1 WS2.5: real per-party seat composition of the committee. */}
+                        {c.party_seats && c.party_seats.length > 0 && (
+                          <div className="mb-3">
+                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                              Party Composition
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {c.party_seats.map(([party, seats]) => (
+                                <Badge key={party} variant="secondary" className="text-xs">
+                                  <span
+                                    className="inline-block w-2 h-2 rounded-full mr-1"
+                                    style={{ backgroundColor: partyColor(null, party) }}
+                                  />
+                                  {party}: {seats}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         {c.bills.length > 0 ? (
                           <Table>
                             <TableHeader>
@@ -1122,27 +1142,34 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
   const turnsRemaining =
     (data.turns_remaining ?? 0) > 0 ? data.turns_remaining : data.estimated_turns_remaining;
   const scheduledTurn = data.scheduled_election_turn ?? 0;
+  // v4.22.1 WS2.3: derive the calendar remainder from the LIVE turn countdown
+  // (the flat `years_to_elections` field can lag by a year around boundaries).
+  const remYears = Math.floor(turnsRemaining / 24);
+  const remHalfMonths = turnsRemaining % 24;
 
   const partyById = new Map(data.parties.map((p) => [p.party_id, p]));
-  const seatEntries = data.current_seats
-    .filter(([, seats]) => seats > 0)
-    .map(([name, seats]) => {
-      const p = partyById.get(name);
-      return {
-        name,
-        seats,
-        color: partyColor(p?.color_hex, name),
-        icon: ideologyIcon(p?.ideology_icon, p?.ideology),
-        // v4.21 WS1: wedge ordering + tooltip ideology — election rows carry
-        // no coordinates, so spectrumOf resolves via icon key / label / name.
-        ideology: p?.ideology || name,
-        spectrum: spectrumOf({
-          iconKey: p?.ideology_icon,
-          label: p?.ideology,
-          name,
-        }),
-      };
-    });
+  const lastElection = data.election_history?.[data.election_history.length - 1];
+  const priorElections = (data.election_history ?? []).slice(0, -1).reverse();
+
+  // v4.22.1 WS2.3: 24-turn support trend — pivot the ring buffer into one
+  // series per party, keyed by turn for the x-axis.
+  const trendParties = new Map<string, Array<[number, number]>>();
+  for (const snap of data.support_history ?? []) {
+    for (const [name, support] of snap.support) {
+      const arr = trendParties.get(name) ?? [];
+      arr.push([snap.turn, support]);
+      trendParties.set(name, arr);
+    }
+  }
+  const trendSeries = [...trendParties.entries()].map(([name, points]) => ({
+    name,
+    type: "line" as const,
+    data: points,
+    smooth: false,
+    showSymbol: false,
+    lineStyle: { width: 1.5, color: partyColor(partyById.get(name)?.color_hex, name) },
+    itemStyle: { color: partyColor(partyById.get(name)?.color_hex, name) },
+  }));
 
   return (
     <div className="space-y-4">
@@ -1153,20 +1180,118 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-xs">
             <DetailField label="State" value={data.election_state} />
-            <DetailField label="Years Remaining" value={`${data.years_to_elections}`} />
-            <DetailField label="Turns Remaining" value={`${turnsRemaining}`} />
+            <DetailField
+              label="Time Remaining"
+              value={`${remYears}y ${remHalfMonths}h (${turnsRemaining} turns)`}
+            />
             <DetailField
               label="Scheduled Turn"
               value={scheduledTurn > 0 ? `T${scheduledTurn}` : "—"}
             />
             <DetailField label="Next Election Year" value={`${data.next_election_year}`} />
             <DetailField label="Head of State" value={data.head_of_state_name} />
-            <DetailField label="Head of State Role" value={data.head_of_state_title} />
+            <DetailField
+              label="Head of State Role"
+              value={`${data.head_of_state_title}${data.head_of_state_party ? ` — ${data.head_of_state_party}` : ""}`}
+            />
             <DetailField label="Campaign Duration" value={`${data.campaign_duration_turns} turns`} />
             <DetailField label="Government Form" value={data.government_form} />
           </div>
         </CardContent>
       </Card>
+
+      {lastElection && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Latest Election Results — {lastElection.year}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Party</TableHead>
+                  <TableHead className="text-right">Vote Share</TableHead>
+                  <TableHead className="text-right">Seats</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {lastElection.results.map(([party, share, seats]) => (
+                  <TableRow key={party}>
+                    <TableCell className="text-xs font-medium">
+                      <span className="inline-flex items-center gap-1.5">
+                        <ColorSwatch hex={partyById.get(party)?.color_hex} seed={party} />
+                        {party}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">{share.toFixed(1)}%</TableCell>
+                    <TableCell className="text-right">{seats}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {lastElection.presidential_rounds.length > 0 && (
+              <div className="mt-4 space-y-3">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Presidential Race
+                </div>
+                {[1, 2].map((round) => {
+                  const rows = lastElection.presidential_rounds.filter((r) => r[0] === round);
+                  if (rows.length === 0) return null;
+                  return (
+                    <Table key={round}>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Round {round === 1 ? "1" : "2 (Run-off)"} — Candidate</TableHead>
+                          <TableHead>Backing Party</TableHead>
+                          <TableHead className="text-right">Vote Share</TableHead>
+                          <TableHead>Result</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {rows.map(([r, cand, party, share, won]) => (
+                          <TableRow key={`${r}-${cand}`}>
+                            <TableCell className="text-xs font-medium">{cand}</TableCell>
+                            <TableCell className="text-xs">{party}</TableCell>
+                            <TableCell className="text-right">{share.toFixed(1)}%</TableCell>
+                            <TableCell>{won && <Badge variant="success">Winner</Badge>}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {trendSeries.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Party Support Trend (Last {data.support_history.length} Turns)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EChart
+              style={{ height: 220 }}
+              option={{
+                grid: { left: 40, right: 16, top: 28, bottom: 28 },
+                xAxis: { type: "value", name: "Turn", min: "dataMin", axisLabel: { fontSize: 10 } },
+                yAxis: {
+                  type: "value",
+                  name: "Support",
+                  min: 0,
+                  max: 100,
+                  axisLabel: { fontSize: 10, formatter: "{value}" },
+                },
+                legend: { type: "scroll", top: 0, textStyle: { fontSize: 10 } },
+                tooltip: { trigger: "axis" },
+                series: trendSeries,
+              }}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -1212,18 +1337,43 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Seat Distribution (Latest Election)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {seatEntries.length > 0 ? (
-            <Hemicycle entries={seatEntries} />
-          ) : (
-            <div className="text-muted-foreground text-sm">No seat data available</div>
-          )}
-        </CardContent>
-      </Card>
+      {priorElections.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Historical Elections</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {priorElections.map((e) => {
+              const winner = e.results[0];
+              return (
+                <details key={`${e.turn}-${e.year}`} className="text-xs border rounded px-3 py-2">
+                  <summary className="cursor-pointer font-medium">
+                    {e.year} Election — {winner ? `${winner[0]} won (${winner[1].toFixed(1)}%, ${winner[2]} seats)` : "no results"}
+                  </summary>
+                  <Table className="mt-2">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Party</TableHead>
+                        <TableHead className="text-right">Vote Share</TableHead>
+                        <TableHead className="text-right">Seats</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {e.results.map(([party, share, seats]) => (
+                        <TableRow key={party}>
+                          <TableCell className="text-xs">{party}</TableCell>
+                          <TableCell className="text-right">{share.toFixed(1)}%</TableCell>
+                          <TableCell className="text-right">{seats}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </details>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

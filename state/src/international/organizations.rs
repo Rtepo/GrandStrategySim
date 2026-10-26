@@ -11,6 +11,7 @@
 //! - FullEmbargo: all three combined
 
 use crate::state::Treasury;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 /// Integration level of an international organization.
@@ -196,6 +197,19 @@ pub struct Directive {
     pub target_law: Option<String>,
     /// Turn the directive was enacted.
     pub enacted_turn: u32,
+    /// v4.22.1 WS5.2: per-country vote record (member name → "For"/"Against"/
+    /// "Abstain") captured when the resolution was debated — powers the
+    /// International Assembly panel's roll call.
+    #[serde(default)]
+    pub votes: std::collections::BTreeMap<String, String>,
+    /// v4.22.1 WS5.2: outcome — "Enacted" | "Rejected". Legacy saves default
+    /// to Enacted (all pre-existing directives were live).
+    #[serde(default = "default_directive_status")]
+    pub status: String,
+}
+
+fn default_directive_status() -> String {
+    "Enacted".to_string()
 }
 
 /// Type of mandate for a directive.
@@ -333,6 +347,8 @@ pub struct OrgConfig {
     pub qmv_integration_threshold: IntegrationLevel,
     /// QMV threshold fraction.
     pub qmv_threshold: f64,
+    /// v4.22.1 WS5.2: turns between International Assembly resolutions.
+    pub resolution_interval_turns: u32,
 }
 
 impl Default for OrgConfig {
@@ -345,6 +361,7 @@ impl Default for OrgConfig {
             default_compliance_deadline_turns: 20,
             qmv_integration_threshold: IntegrationLevel::CommonMarket,
             qmv_threshold: 0.65,
+            resolution_interval_turns: 48,
         }
     }
 }
@@ -430,6 +447,77 @@ impl OrganizationRegistry {
                 };
             }
         }
+
+        // v4.22.1 WS5.2: International Assembly deliberation — every
+        // `resolution_interval_turns` each org debates and votes a
+        // resolution, recording per-member roll calls for the IA panel.
+        if current_turn > 0
+            && current_turn.is_multiple_of(config.resolution_interval_turns)
+        {
+            self.deliberate_resolutions(current_turn, config);
+        }
+    }
+
+    /// v4.22.1 WS5.2: Assembly deliberation — each org with ≥2 members votes
+    /// on a resolution. Member ballots come from the seeded RNG in canonical
+    /// (sorted) member order, so a given seed reproduces the same assembly
+    /// record. Assent propensity rises with integration depth — a Free Trade
+    /// Area debates more contested measures than a Political Union.
+    pub fn deliberate_resolutions(&mut self, current_turn: u32, config: &OrgConfig) {
+        const RESOLUTION_THEMES: [&str; 6] = [
+            "Harmonized Tariff Schedule",
+            "Emission Standards Accord",
+            "Freedom of Navigation Compact",
+            "Regional Infrastructure Compact",
+            "Common Agricultural Charter",
+            "Mutual Defense Consultation Pact",
+        ];
+        let mut rng = crate::engine::seeded_rng::thread_rng();
+        let cycle = (current_turn / config.resolution_interval_turns) as usize;
+        for org in &mut self.organizations {
+            if org.member_states.len() < 2 {
+                continue;
+            }
+            let theme = RESOLUTION_THEMES
+                [(cycle + org.member_states.len()) % RESOLUTION_THEMES.len()];
+            // Canonical draw order — member_states insertion order can differ
+            // across loads; sorting keeps the RNG stream deterministic.
+            let mut members = org.member_states.clone();
+            members.sort();
+            let assent = 0.55 + 0.10 * f64::from(org.integration_level.ordinal());
+            let mut votes = BTreeMap::new();
+            let mut yes: u32 = 0;
+            for member in &members {
+                let roll: f64 = rng.gen();
+                let vote = if roll < assent {
+                    yes += 1;
+                    "For"
+                } else if roll < assent + 0.10 {
+                    "Abstain"
+                } else {
+                    "Against"
+                };
+                votes.insert(member.clone(), vote.to_string());
+            }
+            let total = votes.len() as u32;
+            let passed = org.vote_passes(yes, total);
+            org.directives.push(Directive {
+                id: format!("RES-{}-{:04}", org.id, org.directives.len() + 1),
+                title: theme.to_string(),
+                mandate_type: MandateType::UnfundedMandate,
+                compliance_deadline: current_turn
+                    + config.default_compliance_deadline_turns,
+                fine_for_noncompliance: config.default_noncompliance_fine,
+                target_law: None,
+                enacted_turn: current_turn,
+                votes,
+                status: if passed {
+                    "Enacted".to_string()
+                } else {
+                    "Rejected".to_string()
+                },
+            });
+        }
     }
 
     /// Enforces directives — checks compliance and applies fines.
@@ -438,7 +526,9 @@ impl OrganizationRegistry {
         let mut fines = Vec::new();
         for org in &self.organizations {
             for directive in &org.directives {
-                if current_turn > directive.compliance_deadline {
+                if directive.status != "Rejected"
+                    && current_turn > directive.compliance_deadline
+                {
                     // Non-compliant — fine each member that hasn't complied
                     // (Simplified: all members are checked; in full impl, we'd check law enactment)
                     for member in &org.member_states {
@@ -656,6 +746,8 @@ mod tests {
             fine_for_noncompliance: 5_000_000.0,
             target_law: None,
             enacted_turn: 1,
+            votes: std::collections::BTreeMap::new(),
+            status: "Passed".to_string(),
         });
         registry.organizations.push(org);
 
@@ -683,6 +775,8 @@ mod tests {
             fine_for_noncompliance: 500_000.0,
             target_law: Some("TaxRateChange".to_string()),
             enacted_turn: 1,
+            votes: std::collections::BTreeMap::new(),
+            status: "Passed".to_string(),
         };
         let json = serde_json::to_string(&directive).unwrap();
         let deserialized: Directive = serde_json::from_str(&json).unwrap();

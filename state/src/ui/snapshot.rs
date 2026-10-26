@@ -588,6 +588,31 @@ pub struct DiplomacySnapshot {
     /// Phase 68: Active sanctions against this country.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub sanctions_against: Vec<SanctionRow>,
+    /// v4.22.1 WS5.3: Localized wars declared through diplomatic friction.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub declared_wars: Vec<DeclaredWarRow>,
+    /// v4.22.1 WS5.3: Bilateral friction levels (tension toward war).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub tensions: Vec<TensionRow>,
+}
+
+/// v4.22.1 WS5.3: A localized war declared through diplomatic friction.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct DeclaredWarRow {
+    pub aggressor: String,
+    pub defender: String,
+    pub start_turn: u32,
+    pub reason: String,
+}
+
+/// v4.22.1 WS5.3: A bilateral friction level — the pair's tension level and
+/// provocation count driving the AI war-escalation pipeline.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct TensionRow {
+    pub country_a: String,
+    pub country_b: String,
+    pub level: f64,
+    pub provocations: u32,
 }
 
 /// Phase 66: A single bilateral relation row.
@@ -711,10 +736,29 @@ pub struct InternationalOrgRow {
     pub member_states: Vec<String>,
     /// Number of active directives.
     pub directive_count: usize,
+    /// v4.22.1 WS5.2: debated resolutions with per-country roll calls.
+    pub directives: Vec<DirectiveRow>,
     /// Founded turn.
     pub founded_turn: u32,
     /// Active sanctions enacted by this organization.
     pub sanctions: Vec<SanctionRow>,
+}
+
+/// v4.22.1 WS5.2: A debated International Assembly resolution — status,
+/// vote tally, and per-member roll call for the IA panel.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct DirectiveRow {
+    pub id: String,
+    pub title: String,
+    pub status: String,
+    pub mandate_type: String,
+    pub enacted_turn: u32,
+    pub compliance_deadline: u32,
+    pub votes_for: usize,
+    pub votes_against: usize,
+    pub votes_abstain: usize,
+    /// (member state, "For"|"Against"|"Abstain") roll call, sorted by member.
+    pub votes: Vec<(String, String)>,
 }
 
 /// Phase 68: A sanction row for the diplomacy snapshot.
@@ -1670,6 +1714,34 @@ pub fn build_diplomacy_snapshot(
                 is_active: s.is_active_at(current_turn),
             })
             .collect();
+        let directives: Vec<DirectiveRow> = org
+            .directives
+            .iter()
+            .map(|d| DirectiveRow {
+                id: d.id.clone(),
+                title: d.title.clone(),
+                status: d.status.clone(),
+                mandate_type: d.mandate_type.as_str().to_string(),
+                enacted_turn: d.enacted_turn,
+                compliance_deadline: d.compliance_deadline,
+                votes_for: d.votes.values().filter(|v| v.as_str() == "For").count(),
+                votes_against: d
+                    .votes
+                    .values()
+                    .filter(|v| v.as_str() == "Against")
+                    .count(),
+                votes_abstain: d
+                    .votes
+                    .values()
+                    .filter(|v| v.as_str() == "Abstain")
+                    .count(),
+                votes: d
+                    .votes
+                    .iter()
+                    .map(|(m, v)| (m.clone(), v.clone()))
+                    .collect(),
+            })
+            .collect();
         organizations.push(InternationalOrgRow {
             id: org.id.clone(),
             name: org.name.clone(),
@@ -1677,6 +1749,7 @@ pub fn build_diplomacy_snapshot(
             voting_mechanism: org.voting_mechanism.as_str().to_string(),
             member_states: org.member_states.clone(),
             directive_count: org.directives.len(),
+            directives,
             founded_turn: org.founded_turn,
             sanctions: org_sanctions,
         });
@@ -1699,6 +1772,37 @@ pub fn build_diplomacy_snapshot(
         })
         .collect();
 
+    // v4.22.1 WS5.3: declared localized wars + bilateral friction levels.
+    let declared_wars: Vec<DeclaredWarRow> = state
+        .declared_wars
+        .iter()
+        .map(|w| DeclaredWarRow {
+            aggressor: w.aggressor.clone(),
+            defender: w.defender.clone(),
+            start_turn: w.start_turn,
+            reason: format!("{:?}", w.reason),
+        })
+        .collect();
+    let mut tensions: Vec<TensionRow> = state
+        .bilateral_tensions
+        .iter()
+        .filter_map(|(key, t)| {
+            let mut parts = key.splitn(2, '|');
+            Some(TensionRow {
+                country_a: parts.next()?.to_string(),
+                country_b: parts.next()?.to_string(),
+                level: t.level,
+                provocations: t.provocation_count,
+            })
+        })
+        .filter(|t| t.level > 0.0)
+        .collect();
+    tensions.sort_by(|a, b| {
+        b.level
+            .partial_cmp(&a.level)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
     DiplomacySnapshot {
         country: country_name.to_string(),
         relations,
@@ -1709,6 +1813,8 @@ pub fn build_diplomacy_snapshot(
         doctrine,
         organizations,
         sanctions_against,
+        declared_wars,
+        tensions,
     }
 }
 
@@ -1818,6 +1924,9 @@ impl From<IdeologyCoordinates> for IdeologyCoordinatesDto {
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct GovernmentSnapshot {
     pub head_of_state_name: String,
+    /// v4.22.1 WS2.2: VIP registry id of the head of state — enables the
+    /// clickable dossier link on the Government card.
+    pub head_of_state_vip_id: Option<String>,
     pub head_of_state_role: String,
     pub pm_name: String,
     pub pm_party: String,
@@ -1912,6 +2021,8 @@ pub struct CommitteeRow {
     /// v4.18: The bills actually sitting in this committee right now, with
     /// their pipeline stage/progress and the committee's recommendation.
     pub bills: Vec<CommitteeBillRow>,
+    /// v4.22.1 WS2.5: Per-party seat composition of the committee membership.
+    pub party_seats: Vec<(String, u32)>,
 }
 
 /// v4.18: A bill currently under committee review, for the Committees tab.
@@ -3445,6 +3556,33 @@ pub struct ElectionsResponse {
     pub campaign_actions: Vec<CampaignActionRow>,
     /// Current lower-chamber seat distribution (latest election result).
     pub current_seats: Vec<(String, u32)>,
+    /// v4.22.1 WS2.3: Completed elections, latest last (results + rounds).
+    pub election_history: Vec<ElectionRecordRow>,
+    /// v4.22.1 WS2.3: Rolling 24-turn support history for the trend chart.
+    pub support_history: Vec<SupportSnapshotRow>,
+    /// v4.22.1 WS2.3: Party backing the current head of state (ruling party).
+    pub head_of_state_party: String,
+}
+
+/// v4.22.1 WS2.3: One completed election for the historical sub-view.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ElectionRecordRow {
+    pub turn: u32,
+    pub year: u32,
+    /// (party name, vote share, seats won).
+    pub results: Vec<(String, f64, u32)>,
+    /// (round, candidate, backing party, vote share, is_winner).
+    pub presidential_rounds: Vec<(u32, String, String, f64, bool)>,
+}
+
+/// v4.22.1 WS2.3: One turn's party support readings.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct SupportSnapshotRow {
+    pub turn: u32,
+    /// (party name, support).
+    pub support: Vec<(String, f64)>,
 }
 
 /// Response for the get_macro_indicators command.
@@ -4650,6 +4788,38 @@ pub fn build_elections(country: &Country, current_year: u32) -> ElectionsRespons
         parties,
         campaign_actions,
         current_seats,
+        election_history: p
+            .election_history
+            .iter()
+            .map(|e| ElectionRecordRow {
+                turn: e.turn,
+                year: e.year,
+                results: e.results.clone(),
+                presidential_rounds: e
+                    .presidential_rounds
+                    .iter()
+                    .flat_map(|r| {
+                        let round = r.round;
+                        let winner = r.winner.clone();
+                        r.candidates
+                            .iter()
+                            .map(move |(cand, party, share)| {
+                                (round, cand.clone(), party.clone(), *share, *cand == winner)
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                    .collect(),
+            })
+            .collect(),
+        support_history: p
+            .party_support_history
+            .iter()
+            .map(|s| SupportSnapshotRow {
+                turn: s.turn,
+                support: s.support.clone(),
+            })
+            .collect(),
+        head_of_state_party: p.ruling_party.clone(),
     }
 }
 
@@ -6031,8 +6201,23 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
         }
     });
 
+    // v4.22.1 WS2.2: resolve the head of state's VIP id so the UI can link
+    // the name to the full dossier.
+    let hos_name = politics.head_of_state.name.clone();
+    let head_of_state_vip_id = country
+        .politics
+        .vip_registry
+        .as_ref()
+        .and_then(|r| {
+            r.vips
+                .values()
+                .find(|v| !v.is_dead && v.full_name == hos_name)
+                .map(|v| v.id.clone())
+        });
+
     GovernmentSnapshot {
         head_of_state_name,
+        head_of_state_vip_id,
         head_of_state_role: politics.government_form.display_name().to_string(),
         pm_name,
         // v4.18 WS3: report the canonical PM party (same source as pm_name).
@@ -6356,6 +6541,15 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                             bills_under_review: c.bills_under_review.len(),
                             partisan_bias: c.partisan_bias,
                             bills,
+                            party_seats: {
+                                let mut ps: Vec<(String, u32)> = c
+                                    .members
+                                    .iter()
+                                    .map(|(party, seats)| (party.clone(), *seats))
+                                    .collect();
+                                ps.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+                                ps
+                            },
                         }
                     })
                     .collect()

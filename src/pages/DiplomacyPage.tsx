@@ -45,6 +45,33 @@ type SanctionRow = {
   is_active: boolean;
 };
 
+type DirectiveRow = {
+  id: string;
+  title: string;
+  status: string;
+  mandate_type: string;
+  enacted_turn: number;
+  compliance_deadline: number;
+  votes_for: number;
+  votes_against: number;
+  votes_abstain: number;
+  votes: [string, string][];
+};
+
+type DeclaredWarRow = {
+  aggressor: string;
+  defender: string;
+  start_turn: number;
+  reason: string;
+};
+
+type TensionRow = {
+  country_a: string;
+  country_b: string;
+  level: number;
+  provocations: number;
+};
+
 type InternationalOrgRow = {
   id: string;
   name: string;
@@ -52,6 +79,7 @@ type InternationalOrgRow = {
   voting_mechanism: string;
   member_states: string[];
   directive_count: number;
+  directives?: DirectiveRow[];
   founded_turn: number;
   sanctions: SanctionRow[];
 };
@@ -64,6 +92,8 @@ type DiplomacySnapshot = {
   treaties?: TreatyRow[];
   organizations?: InternationalOrgRow[];
   sanctions_against?: SanctionRow[];
+  declared_wars?: DeclaredWarRow[];
+  tensions?: TensionRow[];
   reputation?: number | null;
   doctrine?: string | null;
 };
@@ -352,6 +382,59 @@ export function DiplomacyPage() {
       </Card>
 
       {/* International Organizations */}
+      {/* v4.22.1 WS5.3: Localized wars + bilateral friction — real outputs of
+          the AI diplomatic-friction → war-escalation pipeline. */}
+      {((diplomacy?.declared_wars?.length ?? 0) > 0 || (diplomacy?.tensions?.length ?? 0) > 0) && (
+        <Card>
+          <CardHeader><CardTitle>Conflicts &amp; Tensions</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            {(diplomacy?.declared_wars?.length ?? 0) > 0 && (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Aggressor</TableHead>
+                    <TableHead>Defender</TableHead>
+                    <TableHead>Reason</TableHead>
+                    <TableHead className="text-right">Since</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {diplomacy?.declared_wars?.map((w, i) => (
+                    <TableRow key={i} className="bg-red-600/10">
+                      <TableCell className="font-medium">{w.aggressor}</TableCell>
+                      <TableCell>{w.defender}</TableCell>
+                      <TableCell className="text-muted-foreground">{w.reason}</TableCell>
+                      <TableCell className="text-right">T{w.start_turn}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+            {(diplomacy?.tensions?.length ?? 0) > 0 && (
+              <div>
+                <div className="text-xs font-semibold text-foreground mb-1">Friction Hotspots</div>
+                <div className="space-y-1">
+                  {diplomacy?.tensions?.slice(0, 8).map((t, i) => (
+                    <div key={i} className="text-xs flex items-center gap-2">
+                      <span className="w-56 truncate">{t.country_a} ↔ {t.country_b}</span>
+                      <div className="flex-1 h-1.5 rounded bg-muted overflow-hidden">
+                        <div
+                          className={t.level > 60 ? "h-full bg-red-500" : "h-full bg-amber-500"}
+                          style={{ width: `${Math.min(t.level, 100)}%` }}
+                        />
+                      </div>
+                      <span className="text-muted-foreground w-24 text-right">
+                        {t.level.toFixed(0)} tension · {t.provocations} incidents
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader><CardTitle>International Organizations</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -384,6 +467,30 @@ export function DiplomacyPage() {
                   <span className="text-muted-foreground">Members: </span>
                   <span>{org.member_states.join(", ")}</span>
                 </div>
+                {/* v4.22.1 WS5.2: International Assembly resolutions with
+                    expandable per-country roll calls. */}
+                {org.directives && org.directives.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold text-foreground mb-1">
+                      Assembly Resolutions
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Resolution</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">F · A · Ab</TableHead>
+                          <TableHead className="text-right">Turn</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {org.directives.map((d) => (
+                          <AssemblyResolutionRow key={d.id} directive={d} />
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
                 {org.sanctions.length > 0 ? (
                   <Table>
                     <TableHeader>
@@ -459,5 +566,54 @@ export function DiplomacyPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+/// v4.22.1 WS5.2: One Assembly resolution row — expands on click to reveal
+/// the per-country roll call (member → For/Against/Abstain).
+function AssemblyResolutionRow({ directive }: { directive: DirectiveRow }) {
+  const [open, setOpen] = useState(false);
+  const enacted = directive.status === "Enacted";
+  return (
+    <>
+      <TableRow className="cursor-pointer hover:bg-muted/40" onClick={() => setOpen(!open)}>
+        <TableCell className="text-xs font-medium">
+          <span className="text-muted-foreground mr-1">{open ? "▾" : "▸"}</span>
+          {directive.title}
+          <div className="text-muted-foreground font-normal">{directive.mandate_type} · deadline T{directive.compliance_deadline}</div>
+        </TableCell>
+        <TableCell>
+          <span className={enacted ? "text-emerald-500 font-medium" : "text-red-500 font-medium"}>
+            {directive.status}
+          </span>
+        </TableCell>
+        <TableCell className="text-right text-xs">
+          <span className="text-green-400">{directive.votes_for}</span>
+          <span className="text-muted-foreground"> · </span>
+          <span className="text-red-400">{directive.votes_against}</span>
+          <span className="text-muted-foreground"> · </span>
+          <span className="text-muted-foreground">{directive.votes_abstain}</span>
+        </TableCell>
+        <TableCell className="text-right text-xs">T{directive.enacted_turn}</TableCell>
+      </TableRow>
+      {open && (
+        <TableRow>
+          <TableCell colSpan={4} className="bg-muted/20">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-0.5 py-1">
+              {directive.votes.map(([member, vote]) => (
+                <div key={member} className="text-xs">
+                  <span>{member}</span>
+                  <span className={
+                    vote === "For" ? "text-green-400 ml-1" :
+                    vote === "Against" ? "text-red-400 ml-1" :
+                    "text-muted-foreground ml-1"
+                  }>({vote})</span>
+                </div>
+              ))}
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
   );
 }

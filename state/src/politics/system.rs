@@ -1050,6 +1050,88 @@ pub struct JusticeSystemState {
     pub fines_collected: f64,
 }
 
+/// v4.22.1 WS2.3: One completed election in the historical record.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct ElectionRecord {
+    pub turn: u32,
+    pub year: u32,
+    /// (party name, vote share 0-100, seats won).
+    pub results: Vec<(String, f64, u32)>,
+    /// Presidential races only: round-by-round candidate results.
+    #[serde(default)]
+    pub presidential_rounds: Vec<PresidentialRound>,
+}
+
+/// v4.22.1 WS2.3: One round of a presidential election.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct PresidentialRound {
+    pub round: u32,
+    /// (candidate name, backing party, vote share 0-100).
+    pub candidates: Vec<(String, String, f64)>,
+    pub winner: String,
+}
+
+/// v4.22.1 WS2.3: A party-support snapshot taken each turn (ring buffer).
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct SupportSnapshot {
+    pub turn: u32,
+    /// (party name, support 0-100).
+    pub support: Vec<(String, f64)>,
+}
+
+/// v4.22.1 WS2.3: Deterministic presidential two-round election derived from
+/// party support standings. Round 1 puts every party's leader on the ballot;
+/// a >50% result elects immediately, otherwise the top two face a run-off
+/// with their support renormalized. Called only for executive republics.
+pub fn build_presidential_rounds(politics: &Politics) -> Vec<PresidentialRound> {
+    let mut candidates: Vec<(String, String, f64)> = politics
+        .active_parties
+        .iter()
+        .map(|(name, p)| {
+            let candidate = if p.leader.name.is_empty() {
+                name.clone()
+            } else {
+                p.leader.name.clone()
+            };
+            (candidate, name.clone(), p.support)
+        })
+        .collect();
+    candidates.retain(|c| c.2 > 0.0);
+    candidates.sort_by(|a, b| {
+        b.2.partial_cmp(&a.2)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.0.cmp(&b.0))
+    });
+    if candidates.is_empty() {
+        return Vec::new();
+    }
+    let total: f64 = candidates.iter().map(|c| c.2).sum();
+    let mut r1 = candidates.clone();
+    for c in &mut r1 {
+        c.2 = if total > 0.0 { c.2 / total * 100.0 } else { 0.0 };
+    }
+    let round_one_winner = r1[0].0.clone();
+    let mut rounds = vec![PresidentialRound {
+        round: 1,
+        candidates: r1.clone(),
+        winner: round_one_winner.clone(),
+    }];
+    if r1[0].2 <= 50.0 && r1.len() > 1 {
+        let mut r2: Vec<(String, String, f64)> = r1.into_iter().take(2).collect();
+        let sum: f64 = r2.iter().map(|c| c.2).sum();
+        for c in &mut r2 {
+            c.2 = if sum > 0.0 { c.2 / sum * 100.0 } else { 50.0 };
+        }
+        let winner = r2[0].0.clone();
+        rounds.push(PresidentialRound {
+            round: 2,
+            candidates: r2,
+            winner,
+        });
+    }
+    rounds
+}
+
 /// The whole political subsystem for one country.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Politics {
@@ -1083,6 +1165,12 @@ pub struct Politics {
     /// v4.20: Total elections executed (scheduled + snap) — release gate.
     #[serde(default)]
     pub elections_held: u32,
+    /// v4.22.1 WS2.3: Historical record of completed elections (latest last).
+    #[serde(default)]
+    pub election_history: Vec<ElectionRecord>,
+    /// v4.22.1 WS2.3: Rolling 24-turn party support history (latest last).
+    #[serde(default)]
+    pub party_support_history: Vec<SupportSnapshot>,
     #[serde(default)]
     pub active_parties: HashMap<String, Party>,
     #[serde(default)]
