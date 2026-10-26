@@ -3314,6 +3314,10 @@ pub struct GameStatus {
     pub season: String,
     pub processing: bool,
     pub countries: Vec<String>,
+    /// v4.22 WS2.1: per-country regime legislature name (e.g. "Royal
+    /// Council", "National Salvation Junta") for the sidebar tab label.
+    #[serde(default)]
+    pub legislature_names: std::collections::BTreeMap<String, String>,
 }
 
 /// Response for the get_parliament command.

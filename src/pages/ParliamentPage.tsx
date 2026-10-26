@@ -33,14 +33,32 @@ const VIP_LINK_AFFORDANCE = "hover:underline decoration-dotted underline-offset-
 
 const CHIP_BASE = "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium";
 
-/// v4.20: colored status chip for BillDetailRow.status_badge — green Passed,
-/// red Rejected, amber veto/override outcomes, slate committee/pending.
+/// v4.20/v4.22 WS2.4: colored status chip with five standardized outcome
+/// shades — Enacted (emerald), Senate Veto Overridden (teal-green),
+/// Rejected in Lower House (standard red), Rejected by Upper House
+/// (amber-orange), Senate Veto Override Failed (deep crimson).
+/// Committee/pending statuses stay slate.
 function StatusChip({ status, className = "" }: { status: string; className?: string }) {
   const s = status.toLowerCase();
+  // Deep crimson: lower house attempted a veto override and failed.
+  if (s.includes("override") && (s.includes("fail") || s.includes("defeat"))) {
+    return <span className={`${CHIP_BASE} bg-red-900/60 text-red-200 border-red-800 ${className}`}>{status}</span>;
+  }
+  // Teal-green: senate veto successfully overridden.
+  if ((s.includes("veto") && s.includes("overrid")) || s.includes("override") && s.includes("pass")) {
+    return <span className={`${CHIP_BASE} bg-teal-600/30 text-teal-300 border-teal-500/40 ${className}`}>{status}</span>;
+  }
+  // Amber-orange: rejected by the upper house (Bundesrat/Senate), no override.
+  if (s.includes("reject") && (s.includes("upper") || s.includes("senate") || s.includes("bundesrat"))) {
+    return <span className={`${CHIP_BASE} bg-amber-600/30 text-amber-300 border-amber-500/40 ${className}`}>{status}</span>;
+  }
+  // Any other veto/override pending state keeps the amber tone.
   if (s.includes("veto") || s.includes("overrid")) {
     return <span className={`${CHIP_BASE} bg-amber-500/20 text-amber-400 border-amber-500/30 ${className}`}>{status}</span>;
   }
+  // Emerald: enacted.
   if (s === "passed" || s === "enacted") return <Badge variant="success" className={className}>{status}</Badge>;
+  // Standard red: rejected in the lower house / generic failure.
   if (s.includes("reject") || s.includes("fail") || s.includes("defeat")) {
     return <Badge variant="destructive" className={className}>{status}</Badge>;
   }

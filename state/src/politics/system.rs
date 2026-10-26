@@ -125,7 +125,7 @@ impl GovernmentForm {
             GovernmentForm::ElectiveMonarchy => "Elective Sejm",
             GovernmentForm::AbsoluteMonarchy => "Royal Council",
             GovernmentForm::OnePartyState => "People's Assembly",
-            GovernmentForm::MilitaryDictatorship => "National Salvation Committee",
+            GovernmentForm::MilitaryDictatorship => "National Salvation Junta",
             GovernmentForm::Theocracy => "Supreme Religious Council",
         }
     }

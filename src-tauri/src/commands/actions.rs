@@ -215,6 +215,18 @@ pub async fn get_game_status(state: tauri::State<'_, AppState>) -> Result<GameSt
                 sim_engine::state::Season::Autumn => "Autumn",
             };
 
+            let legislature_names = engine_state
+                .game_state
+                .countries
+                .iter()
+                .map(|(name, c)| {
+                    (
+                        name.clone(),
+                        c.politics.government_form.legislature_name().to_string(),
+                    )
+                })
+                .collect();
+
             Ok(GameStatus {
                 has_game: true,
                 turn: calendar.global_turn,
@@ -223,6 +235,7 @@ pub async fn get_game_status(state: tauri::State<'_, AppState>) -> Result<GameSt
                 season: season.to_string(),
                 countries,
                 processing,
+                legislature_names,
             })
         }
         None => Ok(GameStatus {
@@ -233,6 +246,7 @@ pub async fn get_game_status(state: tauri::State<'_, AppState>) -> Result<GameSt
             season: String::new(),
             countries: Vec::new(),
             processing,
+            legislature_names: Default::default(),
         }),
     }
 }

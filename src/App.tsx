@@ -171,7 +171,14 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
       )}
 
       <nav className="flex-1 overflow-y-auto p-2">
-        {NAV_ITEMS.map((item) => (
+        {NAV_ITEMS.map((item) => {
+          // v4.22 WS2.1: the legislature tab takes the regime's real name
+          // ("Royal Council", "National Salvation Junta", ...).
+          const label =
+            item.to === "/parliament" && selectedCountry
+              ? gameStatus?.legislature_names?.[selectedCountry] ?? item.label
+              : item.label;
+          return (
           <NavLink
             key={item.to}
             to={item.to}
@@ -184,9 +191,10 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
             }
           >
             <item.icon size={16} />
-            {item.label}
+            {label}
           </NavLink>
-        ))}
+          );
+        })}
       </nav>
 
       <div className="p-3 border-t border-border space-y-2">

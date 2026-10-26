@@ -1293,7 +1293,12 @@ month: number,
 /**
  * Emergency Stabilization: Current season name (Winter/Spring/Summer/Autumn).
  */
-season: string, processing: boolean, countries: Array<string>, };
+season: string, processing: boolean, countries: Array<string>, 
+/**
+ * v4.22 WS2.1: per-country regime legislature name (e.g. "Royal
+ * Council", "National Salvation Junta") for the sidebar tab label.
+ */
+legislature_names?: Record<string, string>, };
 
 /**
  * National + per-region GDP composition with a ~24-turn history.
