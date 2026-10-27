@@ -102,3 +102,10 @@ Protocol: disk-first checkpoints, logs → /tmp/, incremental commit per WS.
 ## Verification status
 - Lib suite: 1746/1746 green @ 6f5110b0; determinism fingerprints + same_seed_same_world PASS
 - Release gate: run 3 in flight @ 9cb6214c (gate1 elections PASS post-051f2c11; gate3 now samples persistent counter)
+
+## Release pipeline status (final)
+- Iron CI @ a6450b19: build 4m30s green, workspace tests all-green, clippy green (post a6450b19 fixes), npm 50s green
+- Release gate: PASS @ 9cb6214c (334.7s; all 5 gates)
+- Clippy fixes: a6450b19 (for_kv_map, match-guard, char-array split)
+- Merge worker upgrade: 015fbcdc (--tag mints at merged HEAD)
+- Merge launched: agent-5-cash1-merge worktree, merge commit +7210/-811 clean, harness running (882b54); SESSION_ID=session-manager-v4230-merge token minted in merge worktree
