@@ -2768,6 +2768,18 @@ pub struct FundHoldingRow {
     pub market_value: f64,
     /// Position weight as a fraction of fund AUM (0–1).
     pub weight_pct: f64,
+    /// v4.23 WS4: asset-class bucket for the 3-level allocation drill-down
+    /// (Asset Classes → Sectors → Companies): `"Equities"` |
+    /// `"Covered Bonds"` | `"Mortgage-Backed Securities"` |
+    /// `"Government Bonds"` | `"Other Securities"`.
+    #[serde(default)]
+    pub asset_class: String,
+    /// v4.23 WS4: issuer sector for the drill-down's middle ring — the
+    /// holding company's sector for equities, the issuer's sector for
+    /// covered bonds, `"Real Estate"` for MBS tranches, `"Government"`
+    /// for treasury securities.
+    #[serde(default)]
+    pub sector: String,
 }
 
 /// Phase 57: Detailed fund view for the fund detail panel.
@@ -2793,6 +2805,14 @@ pub struct FundDetail {
     pub top_holdings: Vec<(String, f64)>,
     /// Resolved portfolio rows with instrument names.
     pub portfolio_holdings: Vec<FundHoldingRow>,
+    /// v4.23 WS4: uninvested brokerage cash — part of AUM but not a
+    /// portfolio holding; the allocation drill-down shows it as a
+    /// `"Cash & Equivalents"` leaf so rings sum to total AUM.
+    #[serde(default)]
+    pub cash_value: f64,
+    /// v4.23 WS4: brokerage cash frozen against open orders (same role).
+    #[serde(default)]
+    pub frozen_cash: f64,
 }
 
 /// Phase 57: KNF audit finding row for the regulatory UI.
@@ -4173,6 +4193,151 @@ pub fn build_country_snapshot(
         advisory_council: build_advisory_council_snapshot(country),
         royal_dynasty: build_royal_dynasty_snapshot(country),
         government_form: country.politics.government_form.display_name().to_string(),
+    }
+}
+
+// ============================================================================
+// v4.23 WS4: COUNTRY TRADE TREEMAP (settled legs, SITC-grouped)
+// ============================================================================
+
+/// One row of the per-country trade treemap — a commodity's settled
+/// quantity and value in one flow direction (exports / imports /
+/// domestic), grouped under a SITC Rev.2 section for the chart.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CountryTradeTreemapEntry {
+    /// Commodity display name (serde key, e.g. `"hard_coal"`).
+    pub commodity: String,
+    /// SITC Rev.2 one-digit section label (`Commodity::sitc_section`).
+    pub sitc_section: String,
+    /// Settled physical units this turn.
+    pub quantity: f64,
+    /// Settled currency value this turn (Σ qty × execution price).
+    pub value: f64,
+    /// Volume-weighted average execution price (0 when qty is 0).
+    pub avg_price: f64,
+    /// Share of the mode's total value (0.0–1.0).
+    pub share: f64,
+}
+
+/// v4.23 WS4: Per-country trade treemap — REAL settled trade legs this
+/// turn, replacing the old global cleared-volume bound
+/// (`snapshot_society::TradeTreemapDto`, still emitted for the legacy
+/// command surface).
+///
+/// * `exports` — domestic seller → foreign endpoint: modeled-country
+///   buyers (the order book) plus the FOREIGN-SECTOR world-market sweep.
+/// * `imports` — foreign seller → domestic endpoint, same two sources.
+/// * `domestic` — both-endpoints-domestic order-book legs plus
+///   ministry / JST / public-works procurement (domestic-only books).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CountryTradeTreemapDto {
+    /// Country name.
+    pub country: String,
+    /// Export legs sorted by value desc (commodity name breaks ties —
+    /// deterministic).
+    pub exports: Vec<CountryTradeTreemapEntry>,
+    /// Import legs, same ordering.
+    pub imports: Vec<CountryTradeTreemapEntry>,
+    /// Domestic legs, same ordering.
+    pub domestic: Vec<CountryTradeTreemapEntry>,
+    /// Total settled export value this turn.
+    pub total_exports: f64,
+    /// Total settled import value this turn.
+    pub total_imports: f64,
+    /// Total settled domestic trade value this turn.
+    pub total_domestic: f64,
+}
+
+/// v4.23 WS4: Build the per-country trade treemap from the settled
+/// trade-leg maps the turn engine stages into
+/// `macro_indicators.extra` — `{commodity_key: {"quantity", "value"}}`
+/// keyed by the commodity's serde name, written by the order-book
+/// endpoint-classification pass and merged by the ROW export/import
+/// sweeps in `engine::turn`.
+///
+/// `calendar_year` era-gates every row by `Commodity::introduction_year`
+/// and additionally hides `RareEarthElements` before the industrial
+/// separation era (~1965) — rare earths were not a traded commodity
+/// class at a 1900 start even where legacy monazite placers exist.
+pub fn build_country_trade_treemap(
+    country: &Country,
+    calendar_year: u32,
+) -> CountryTradeTreemapDto {
+    use std::str::FromStr;
+
+    /// Industrial solvent-extraction era — the treemap's REE visibility
+    /// gate (narrower than `introduction_year`, which stays 0 so the
+    /// 1890 monazite method remains seedable at genesis).
+    const REE_TREEMAP_ERA: u32 = 1965;
+
+    let read_legs = |key: &str| -> Vec<CountryTradeTreemapEntry> {
+        let mut entries: Vec<CountryTradeTreemapEntry> = Vec::new();
+        if let Some(obj) = country
+            .macro_indicators
+            .extra
+            .get(key)
+            .and_then(|v| v.as_object())
+        {
+            for (k, v) in obj {
+                let Ok(c) = Commodity::from_str(k) else {
+                    continue;
+                };
+                if calendar_year < c.introduction_year() {
+                    continue;
+                }
+                if c == Commodity::RareEarthElements && calendar_year < REE_TREEMAP_ERA {
+                    continue;
+                }
+                let qty = v
+                    .get("quantity")
+                    .and_then(|x| x.as_f64())
+                    .unwrap_or(0.0);
+                let val = v
+                    .get("value")
+                    .and_then(|x| x.as_f64())
+                    .unwrap_or(0.0);
+                if qty <= 0.0 || val <= 0.0 {
+                    continue;
+                }
+                entries.push(CountryTradeTreemapEntry {
+                    commodity: c.to_string(),
+                    sitc_section: c.sitc_section().to_string(),
+                    quantity: qty,
+                    value: val,
+                    avg_price: val / qty,
+                    share: 0.0,
+                });
+            }
+        }
+        let total: f64 = entries.iter().map(|e| e.value).sum();
+        if total > 0.0 {
+            for e in &mut entries {
+                e.share = e.value / total;
+            }
+        }
+        entries.sort_by(|a, b| {
+            b.value
+                .partial_cmp(&a.value)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.commodity.cmp(&b.commodity))
+        });
+        entries
+    };
+
+    let exports = read_legs("trade_exports_by_commodity");
+    let imports = read_legs("trade_imports_by_commodity");
+    let domestic = read_legs("trade_domestic_by_commodity");
+
+    CountryTradeTreemapDto {
+        country: country.name.clone(),
+        total_exports: exports.iter().map(|e| e.value).sum(),
+        total_imports: imports.iter().map(|e| e.value).sum(),
+        total_domestic: domestic.iter().map(|e| e.value).sum(),
+        exports,
+        imports,
+        domestic,
     }
 }
 
