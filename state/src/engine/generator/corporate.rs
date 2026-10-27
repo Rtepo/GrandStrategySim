@@ -1593,7 +1593,7 @@ pub fn generate_corporate_entities(
                         if building.sector != Sector::Energy {
                             continue;
                         }
-                        for (_, qty) in building.active_method.outputs.iter_mut() {
+                        for qty in building.active_method.outputs.values_mut() {
                             *qty /= scale;
                         }
                         if building.active_method.thermal_efficiency > 0.0 {

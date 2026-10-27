@@ -955,11 +955,11 @@ pub fn process_dynamic_diplomacy(
                     );
                 }
             }
-            TreatyStatus::Suspended => {
-                if !pair_at_war && min_rel >= RESUME_MIN_RELATIONS {
-                    t.status = TreatyStatus::Active;
-                    eprintln!("[DIPLOMACY] {} resumed (normalized)", t.name);
-                }
+            TreatyStatus::Suspended
+                if !pair_at_war && min_rel >= RESUME_MIN_RELATIONS =>
+            {
+                t.status = TreatyStatus::Active;
+                eprintln!("[DIPLOMACY] {} resumed (normalized)", t.name);
             }
             _ => {}
         }
@@ -969,7 +969,7 @@ pub fn process_dynamic_diplomacy(
 /// Title-case a snake/kebab/space-separated identifier for display names
 /// ("north_germanic" → "North Germanic").
 fn title_case(raw: &str) -> String {
-    raw.split(|c: char| c == '_' || c == '-' || c == ' ')
+    raw.split(['_', '-', ' '])
         .filter(|w| !w.is_empty())
         .map(|w| {
             let mut chars = w.chars();
