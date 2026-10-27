@@ -270,8 +270,9 @@ export async function getTradeTreemap(country: string): Promise<TradeTreemapDto>
 }
 
 /// v4.22 WS6: Organizations summary KPIs (unionization, members, strikes).
-export async function getOrganizationsSummary(country: string): Promise<OrganizationsSummaryDto> {
-  return invoke<OrganizationsSummaryDto>("get_organizations_summary", { country });
+/// v4.23.0: backend returns all-country rows — callers pick their country.
+export async function getOrganizationsSummary(): Promise<OrganizationsSummaryDto[]> {
+  return invoke<OrganizationsSummaryDto[]>("get_organizations_summary");
 }
 
 /// v4.22 WS6: Society snapshot — demographics, education, ethnicity, class.
