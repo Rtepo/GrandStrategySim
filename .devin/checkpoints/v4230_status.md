@@ -89,3 +89,16 @@ Protocol: disk-first checkpoints, logs → /tmp/, incremental commit per WS.
    self-immunity fix makes tag push reliable; verify `git ls-remote --tags`.
 
 
+
+## Integration fix log (manager, post-merge)
+| Fix | Commit | Notes |
+|-----|--------|-------|
+| Stale test asserts | 6e7fb87f | budget haircut 80%→90% CR + ministry public-service pool incl. defense personnel floor |
+| Election spam | 6e7fb87f | last_election_turn + 24t min interval in run_election_if_due |
+| Determinism | 6f5110b0 | cap_by_company.values() HashMap f64 sum → sorted carrier_ids (non-associative float) |
+| Provisional deadlock | 051f2c11 | refresh_parties seats top-3 bidders on threshold shut-out; caretaker never preserved; elections_held>0 gate for t0 election |
+| Gate-3 signal | 9cb6214c | turn_settled_sales is transient (reset by process_companies @9349) → persistent cumulative_freight_revenue in Company.extra at both freight-credit sites |
+
+## Verification status
+- Lib suite: 1746/1746 green @ 6f5110b0; determinism fingerprints + same_seed_same_world PASS
+- Release gate: run 3 in flight @ 9cb6214c (gate1 elections PASS post-051f2c11; gate3 now samples persistent counter)
