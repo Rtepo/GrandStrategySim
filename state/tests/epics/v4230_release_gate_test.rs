@@ -59,12 +59,19 @@ mod tests {
         for _tick in 0..TURNS {
             run_turn_inner(&mut state, &registries, &mut ctx, &mut probe)
                 .unwrap_or_else(|e| panic!("turn {_tick} failed: {e:?}"));
-            // Gate 3: sampled cumulatively — any settled sale by an
-            // ExportServices-sector company proves the revenue wiring.
+            // Gate 3: sampled cumulatively — `turn_settled_sales` is a
+            // transient field consumed by `process_companies` within the
+            // turn, so the persistent `cumulative_freight_revenue` counter
+            // on the credited carrier company is the observable signal.
             if !export_services_sold {
                 for ents in ctx.entities.values() {
                     if ents.companies.iter().any(|c| {
-                        c.sector == Sector::ExportServices && c.turn_settled_sales > 0.0
+                        c.sector == Sector::ExportServices
+                            && c.extra
+                                .get("cumulative_freight_revenue")
+                                .and_then(|v| v.as_f64())
+                                .unwrap_or(0.0)
+                                > 0.0
                     }) {
                         export_services_sold = true;
                         break;
@@ -103,10 +110,36 @@ mod tests {
         }
 
         // -- Gate 3: ExportServices revenue --------------------------------
-        assert!(
-            export_services_sold,
-            "no ExportServices company recorded settled revenue in 120 turns"
-        );
+        if !export_services_sold {
+            for (cname, ents) in &ctx.entities {
+                let n_export = ents
+                    .companies
+                    .iter()
+                    .filter(|c| c.sector == Sector::ExportServices)
+                    .count();
+                let n_freight = ents
+                    .companies
+                    .iter()
+                    .filter(|c| {
+                        c.extra
+                            .get("cumulative_freight_revenue")
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(0.0)
+                            > 0.0
+                    })
+                    .count();
+                let export_val = state.countries[cname]
+                    .macro_indicators
+                    .extra
+                    .get("foreign_export_value")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                eprintln!(
+                    "GATE3-DIAG {cname}: export_cos={n_export} freight_paid_cos={n_freight} foreign_export_value={export_val:.2}"
+                );
+            }
+            panic!("no ExportServices company recorded freight revenue in 120 turns");
+        }
 
         // -- Gate 4: society realism ----------------------------------------
         for (cname, country) in &state.countries {

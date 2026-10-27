@@ -2876,6 +2876,15 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                                     task.companies.iter_mut().find(|c| &c.id == cid)
                                 {
                                     c.turn_settled_sales += share;
+                                    let prev = c
+                                        .extra
+                                        .get("cumulative_freight_revenue")
+                                        .and_then(|v| v.as_f64())
+                                        .unwrap_or(0.0);
+                                    c.extra.insert(
+                                        "cumulative_freight_revenue".to_string(),
+                                        serde_json::Value::from(prev + share),
+                                    );
                                 }
                                 match task.region_of_company(cid) {
                                     Some(rid) => {
@@ -3165,6 +3174,15 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                                 task.companies.iter_mut().find(|c| &c.id == cid)
                             {
                                 c.turn_settled_sales += share;
+                                let prev = c
+                                    .extra
+                                    .get("cumulative_freight_revenue")
+                                    .and_then(|v| v.as_f64())
+                                    .unwrap_or(0.0);
+                                c.extra.insert(
+                                    "cumulative_freight_revenue".to_string(),
+                                    serde_json::Value::from(prev + share),
+                                );
                             }
                             match task.region_of_company(cid) {
                                 Some(rid) => {
