@@ -26,15 +26,17 @@ export type AdvisoryCouncilSnapshot = { council_type: string, members: Array<Cou
 /**
  * One age cohort row of the demographic structure.
  *
- * The sim tracks three real cohorts — children / adults / elderly
+ * The engine tracks three real cohorts — children / adults / elderly
  * (`Demographics::age_groups`, shares updated every turn by the
- * demographic model). Finer granularity (5-year brackets) does not exist
- * in engine state, so the honest three-cohort structure is emitted; the
- * frontend renders it as the population pyramid's coarse form.
+ * demographic model). The pyramid expands them into ten-year bands via
+ * [`ten_year_pyramid_shares`], a stable-population geometric model whose
+ * parameters are fitted to the REAL children (0–14) and elderly (65+)
+ * shares — the coarse truth is honored exactly while the intermediate
+ * shape follows the era-typical declining staircase.
  */
 export type AgeCohortDto = { 
 /**
- * Cohort label ("children" | "adults" | "elderly").
+ * Cohort label ("0-9" | "10-19" | … | "70+").
  */
 label: string, 
 /**
@@ -44,7 +46,13 @@ share: number,
 /**
  * Absolute population (share × population).
  */
-population: number, };
+population: number, 
+/**
+ * Male share within this cohort (0.0–1.0) — declines with age
+ * (higher male mortality), normalized so the population-weighted
+ * mean equals the real national male share.
+ */
+male_share: number, };
 
 /**
  * Phase 60: Arbitration case row (public data).
@@ -2783,7 +2791,8 @@ country: string,
  */
 population: bigint, 
 /**
- * Age structure — the real children/adults/elderly cohorts.
+ * Age structure — ten-year cohorts (0-9 … 70+) interpolated from the
+ * real children/adults/elderly shares (v4.23.0 WS6).
  */
 age_cohorts: Array<AgeCohortDto>, 
 /**
@@ -2823,7 +2832,9 @@ birth_rate: number,
  */
 death_rate: number, 
 /**
- * Net migration rate (fraction of population per year).
+ * Net migration rate (fraction of population per year) — annualized
+ * from `last_migration` (24 turns/yr), the real per-turn cross-border
+ * flow recorded by the Phase 85B society telemetry hook.
  */
 net_migration_rate: number, 
 /**
@@ -2835,12 +2846,16 @@ last_births: number,
  */
 last_deaths: number, 
 /**
- * Net migration in the last turn.
+ * Net cross-border migration in the last turn — real immigrant-cohort
+ * inflows (seniority 0) minus deportations, recorded by the Phase 85B
+ * society telemetry hook (`labor.rs`'s own `net_migration` input
+ * stays 0 — real flows move through physical transport).
  */
 last_migration: number, 
 /**
  * Life expectancy (`health_statistics.average_lifespan`, computed each
- * turn from health infrastructure/quality).
+ * turn from health infrastructure/quality and era-anchored to the
+ * 42–65 band by the Phase 85B society telemetry hook).
  */
 life_expectancy: number, 
 /**

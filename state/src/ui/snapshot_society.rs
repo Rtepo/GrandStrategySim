@@ -483,20 +483,26 @@ pub fn build_organizations_summary(
 
 /// One age cohort row of the demographic structure.
 ///
-/// The sim tracks three real cohorts — children / adults / elderly
+/// The engine tracks three real cohorts — children / adults / elderly
 /// (`Demographics::age_groups`, shares updated every turn by the
-/// demographic model). Finer granularity (5-year brackets) does not exist
-/// in engine state, so the honest three-cohort structure is emitted; the
-/// frontend renders it as the population pyramid's coarse form.
+/// demographic model). The pyramid expands them into ten-year bands via
+/// [`ten_year_pyramid_shares`], a stable-population geometric model whose
+/// parameters are fitted to the REAL children (0–14) and elderly (65+)
+/// shares — the coarse truth is honored exactly while the intermediate
+/// shape follows the era-typical declining staircase.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct AgeCohortDto {
-    /// Cohort label ("children" | "adults" | "elderly").
+    /// Cohort label ("0-9" | "10-19" | … | "70+").
     pub label: String,
     /// Share of total population (0.0–1.0).
     pub share: f64,
     /// Absolute population (share × population).
     pub population: f64,
+    /// Male share within this cohort (0.0–1.0) — declines with age
+    /// (higher male mortality), normalized so the population-weighted
+    /// mean equals the real national male share.
+    pub male_share: f64,
 }
 
 /// One education-level row of the national education distribution.
@@ -563,7 +569,8 @@ pub struct SocietySnapshotDto {
     pub country: String,
     /// Total population (`budget.population`).
     pub population: u64,
-    /// Age structure — the real children/adults/elderly cohorts.
+    /// Age structure — ten-year cohorts (0-9 … 70+) interpolated from the
+    /// real children/adults/elderly shares (v4.23.0 WS6).
     pub age_cohorts: Vec<AgeCohortDto>,
     /// Male share of population (0.0–1.0).
     pub male_share: f64,
@@ -583,16 +590,22 @@ pub struct SocietySnapshotDto {
     pub birth_rate: f64,
     /// Annual mortality rate percent (`demographics.death_rate`).
     pub death_rate: f64,
-    /// Net migration rate (fraction of population per year).
+    /// Net migration rate (fraction of population per year) — annualized
+    /// from `last_migration` (24 turns/yr), the real per-turn cross-border
+    /// flow recorded by the Phase 85B society telemetry hook.
     pub net_migration_rate: f64,
     /// Births in the last turn.
     pub last_births: f64,
     /// Deaths in the last turn (natural + workplace).
     pub last_deaths: f64,
-    /// Net migration in the last turn.
+    /// Net cross-border migration in the last turn — real immigrant-cohort
+    /// inflows (seniority 0) minus deportations, recorded by the Phase 85B
+    /// society telemetry hook (`labor.rs`'s own `net_migration` input
+    /// stays 0 — real flows move through physical transport).
     pub last_migration: f64,
     /// Life expectancy (`health_statistics.average_lifespan`, computed each
-    /// turn from health infrastructure/quality).
+    /// turn from health infrastructure/quality and era-anchored to the
+    /// 42–65 band by the Phase 85B society telemetry hook).
     pub life_expectancy: f64,
     /// Literacy rate (`education_statistics.literacy_rate`).
     pub literacy_rate: f64,
@@ -608,29 +621,112 @@ pub struct SocietySnapshotDto {
     pub classes: Vec<ClassLivingRow>,
 }
 
+/// Stable-population pyramid interpolation into ten-year bands.
+///
+/// Buckets i = 0..7 cover ages [10i, 10i+10); bucket 7 is the open 70+
+/// tail. Model weights: `w_i = q^i` for i < 7 and `w_7 = d·q^7`, normalized.
+/// * `q` (decay per decade) is fitted to the REAL children share
+///   (0–14 ≈ w₀ + w₁/2) — monotone decreasing in q.
+/// * `d` (tail damp) is fitted to the REAL elderly share
+///   (65+ ≈ w₆/2 + w₇) — monotone increasing in d.
+/// Nested bisection (~48×40 iterations) — fully deterministic, no RNG.
+fn ten_year_pyramid_shares(children_share: f64, elderly_share: f64) -> [f64; 8] {
+    let c = children_share.clamp(0.005, 0.85);
+    let e = elderly_share.clamp(0.005, 0.85);
+
+    let eval = |q: f64, d: f64| -> (f64, f64, [f64; 8]) {
+        let mut w = [0.0f64; 8];
+        let mut pow = 1.0;
+        for item in w.iter_mut().take(7) {
+            *item = pow;
+            pow *= q;
+        }
+        w[7] = d * pow; // pow == q^7 after the loop
+        let s: f64 = w.iter().sum();
+        if s > 0.0 {
+            for item in &mut w {
+                *item /= s;
+            }
+        }
+        (w[0] + 0.5 * w[1], 0.5 * w[6] + w[7], w)
+    };
+
+    // Inner solve: for fixed q, model elderly share is increasing in d.
+    let solve_d = |q: f64| -> f64 {
+        let (mut lo, mut hi) = (1e-6_f64, 128.0_f64);
+        for _ in 0..40 {
+            let mid = (lo + hi) / 2.0;
+            let (_, el, _) = eval(q, mid);
+            if el < e {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        (lo + hi) / 2.0
+    };
+
+    // Outer solve: model children share is decreasing in q.
+    let (mut lo, mut hi) = (0.02_f64, 0.999_f64);
+    for _ in 0..48 {
+        let q = (lo + hi) / 2.0;
+        let (ch, _, _) = eval(q, solve_d(q));
+        if ch > c {
+            lo = q;
+        } else {
+            hi = q;
+        }
+    }
+    let q = (lo + hi) / 2.0;
+    eval(q, solve_d(q)).2
+}
+
+/// Era-plausible per-cohort male share. Male birth surplus decays with age
+/// (higher male mortality): `male_i = a·r^i` with `r` fixed at 0.965 per
+/// decade. `a` is solved so the population-weighted mean equals the real
+/// national male share — the aggregate gender truth is preserved exactly.
+fn cohort_male_shares(shares: &[f64; 8], male_total: f64) -> [f64; 8] {
+    const R: f64 = 0.965;
+    let weighted: f64 = shares
+        .iter()
+        .enumerate()
+        .map(|(i, s)| s * R.powi(i as i32))
+        .sum();
+    let a = if weighted > 0.0 {
+        male_total / weighted
+    } else {
+        male_total
+    };
+    let mut out = [0.0f64; 8];
+    for (i, item) in out.iter_mut().enumerate() {
+        *item = (a * R.powi(i as i32)).clamp(0.30, 0.56);
+    }
+    out
+}
+
 /// Build the society snapshot for a country — aggregates the real regional
 /// class demographics and national demographic indicators.
 pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
     let demo = &country.macro_indicators.demographics;
     let population = country.budget.population;
 
-    let age_cohorts = vec![
-        AgeCohortDto {
-            label: "children".to_string(),
-            share: demo.age_groups.children,
-            population: demo.age_groups.children * population as f64,
-        },
-        AgeCohortDto {
-            label: "adults".to_string(),
-            share: demo.age_groups.adults,
-            population: demo.age_groups.adults * population as f64,
-        },
-        AgeCohortDto {
-            label: "elderly".to_string(),
-            share: demo.age_groups.elderly,
-            population: demo.age_groups.elderly * population as f64,
-        },
+    // v4.23.0 WS6: ten-year pyramid cohorts fitted to the real
+    // children/elderly shares (replaces the coarse 3-cohort emit).
+    const COHORT_LABELS: [&str; 8] = [
+        "0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70+",
     ];
+    let cohort_shares = ten_year_pyramid_shares(demo.age_groups.children, demo.age_groups.elderly);
+    let cohort_male = cohort_male_shares(&cohort_shares, demo.gender.male);
+    let age_cohorts: Vec<AgeCohortDto> = cohort_shares
+        .iter()
+        .enumerate()
+        .map(|(i, s)| AgeCohortDto {
+            label: COHORT_LABELS[i].to_string(),
+            share: *s,
+            population: s * population as f64,
+            male_share: cohort_male[i],
+        })
+        .collect();
 
     let mut education = vec![
         EducationLevelDto {
@@ -678,7 +774,11 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
     #[derive(Default)]
     struct ClassAcc {
         population: i64,
-        savings_pc_weighted: f64,
+        // v4.23.0 WS6: aggregate the raw `savings` stock — per-capita is
+        // recomputed as savings/population at the end. The stale
+        // `savings_per_capita` cache field is only refreshed by some
+        // writers, which produced the Aristocracy < FreePeasant inversion.
+        savings: f64,
         mental_health_weighted: f64,
         radical_weighted: f64,
         loyalist_weighted: f64,
@@ -710,7 +810,7 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
             let pop = demo.population.max(0);
             acc.population += demo.population;
             let pop_f = pop as f64;
-            acc.savings_pc_weighted += pop_f * demo.savings_per_capita;
+            acc.savings += demo.savings;
             acc.mental_health_weighted += pop_f * demo.mental_health;
             acc.radical_weighted += pop_f * demo.political_sentiment.radicals;
             acc.loyalist_weighted += pop_f * demo.political_sentiment.loyalists;
@@ -737,7 +837,7 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
             .unwrap_or_default()
     }
 
-    let class_rows: Vec<ClassLivingRow> = classes
+    let mut class_rows: Vec<ClassLivingRow> = classes
         .into_iter()
         .map(|(name, acc)| {
             let pop_f = acc.population.max(0) as f64;
@@ -745,7 +845,7 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
                 class_name: name,
                 population: acc.population,
                 savings_per_capita: if pop_f > 0.0 {
-                    acc.savings_pc_weighted / pop_f
+                    acc.savings / pop_f
                 } else {
                     0.0
                 },
@@ -778,6 +878,16 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
         })
         .collect();
 
+    // v4.23.0 WS6: order class rows by real per-capita savings descending
+    // (wealth hierarchy; Aristocracy above FreePeasant), name-tiebroken for
+    // determinism.
+    class_rows.sort_by(|a, b| {
+        b.savings_per_capita
+            .partial_cmp(&a.savings_per_capita)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.class_name.cmp(&b.class_name))
+    });
+
     SocietySnapshotDto {
         country: country.name.clone(),
         population,
@@ -791,7 +901,15 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
         religions,
         birth_rate: demo.birth_rate,
         death_rate: demo.death_rate,
-        net_migration_rate: demo.net_migration,
+        // v4.23.0 WS6: annualize the real per-turn cross-border flow
+        // recorded by the Phase 85B telemetry hook (24 turns/yr). The
+        // `net_migration` labor-model *input* is intentionally not read —
+        // it stays 0 while real flows move through physical transport.
+        net_migration_rate: if population > 0 {
+            demo.last_migration * 24.0 / population as f64
+        } else {
+            0.0
+        },
         last_births: demo.last_births,
         last_deaths: demo.last_deaths,
         last_migration: demo.last_migration,

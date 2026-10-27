@@ -916,6 +916,50 @@ pub fn process_urbanization_cycle(
         }
     }
 
+    // ── v4.23.0 WS6: Society telemetry anchors ──────────────────────────
+    // This hook runs once per country per turn, after the labor model
+    // (process_demographics_and_labor) AND after the Phase 15B cross-border
+    // migration settlement + deportations, so it sees the settled truth.
+    {
+        // 1. Record this turn's real cross-border migration into
+        //    `Demographics::last_migration`. `apply_migration_flows` pushes
+        //    seniority-0 `ImmigrantCohort` entries for actual inflows and
+        //    `process_deportations` records outflows on `BorderState`;
+        //    neither writes `last_migration` (the labor model's own
+        //    `net_migration` input stays 0 by design — Phase R5 routes real
+        //    flows through physical transport capacity instead). Without
+        //    this the telemetry permanently read 0. `seniority == 0` marks
+        //    cohorts pushed since the last labor pass, i.e. this turn.
+        let inflow: f64 = country
+            .macro_indicators
+            .demographics
+            .immigrant_cohorts
+            .iter()
+            .filter(|c| c.seniority == 0)
+            .map(|c| c.count)
+            .sum();
+        let deported = country
+            .politics
+            .border_state
+            .as_ref()
+            .map(|b| b.deportations as f64)
+            .unwrap_or(0.0);
+        country.macro_indicators.demographics.last_migration = inflow - deported;
+
+        // 2. Era-anchor `average_lifespan`. The labor model tracks it on a
+        //    modern 60–95 scale (60 + 0.2·coverage + 0.15·quality + sports);
+        //    the sim's 1900+ era band is 42–65. Rescale the stored real
+        //    value once per turn — preserving its real infrastructure /
+        //    quality ordering — so snapshots and saves read an
+        //    era-plausible figure. Rewritten from inputs every turn, so the
+        //    rescale never compounds.
+        let h = &mut country.macro_indicators.health_statistics;
+        if h.average_lifespan > 0.0 {
+            h.average_lifespan =
+                (42.0 + (h.average_lifespan - 60.0).max(0.0) / 35.0 * 23.0).clamp(42.0, 65.0);
+        }
+    }
+
     // Restore the cadastre.
     country.cadastre = cadastre;
 }
