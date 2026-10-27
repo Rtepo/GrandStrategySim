@@ -66,7 +66,7 @@ use crate::state::{process_banking_turn, process_tax_collection_turn, settle_tra
 use rand::SeedableRng;
 use rayon::prelude::*;
 use rustc_hash::FxHashMap;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::path::PathBuf;
 
@@ -2400,6 +2400,20 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 .macro_indicators
                 .extra
                 .insert("foreign_import_value".to_string(), serde_json::json!(0.0));
+            // v4.23 WS4: per-commodity trade-leg maps for the country trade
+            // treemap. `extra` is persistent country state — stale maps from
+            // a prior turn must be cleared before this turn's legs accrue.
+            for key in [
+                "trade_exports_by_commodity",
+                "trade_imports_by_commodity",
+                "trade_domestic_by_commodity",
+            ] {
+                task.ctx
+                    .country
+                    .macro_indicators
+                    .extra
+                    .insert(key.to_string(), serde_json::json!({}));
+            }
         }
         if export_purse > 0.0 && total_residual_value > 0.0 {
             for task in &mut tasks {
@@ -2797,6 +2811,32 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                             "foreign_export_value".to_string(),
                             serde_json::json!(task_spend + export_freight_paid),
                         );
+                    // v4.23 WS4: world-market export legs by commodity for
+                    // the country trade treemap. {commodity: {quantity,
+                    // value}} — settled qty × exec price per leg.
+                    {
+                        let mut legs: BTreeMap<Commodity, (f64, f64)> =
+                            BTreeMap::new();
+                        for t in &export_trades {
+                            let e = legs.entry(t.commodity).or_default();
+                            e.0 += t.quantity;
+                            e.1 += t.quantity * t.execution_price;
+                        }
+                        task.ctx
+                            .country
+                            .macro_indicators
+                            .extra
+                            .insert(
+                                "trade_exports_by_commodity".to_string(),
+                                serde_json::json!(legs
+                                    .iter()
+                                    .map(|(c, (q, v))| (
+                                        c.to_string(),
+                                        serde_json::json!({"quantity": q, "value": v})
+                                    ))
+                                    .collect::<serde_json::Map<String, serde_json::Value>>()),
+                            );
+                    }
                     #[cfg(feature = "diagnostic")]
                     {
                         let sellers: std::collections::BTreeSet<&str> = export_trades
