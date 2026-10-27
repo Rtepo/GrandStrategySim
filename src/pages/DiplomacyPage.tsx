@@ -63,6 +63,10 @@ type DeclaredWarRow = {
   defender: string;
   start_turn: number;
   reason: string;
+  /** v4.23.0 WS5: war still live on the military ledger (fronts exist). */
+  active?: boolean;
+  /** v4.23.0 WS5: turn the war settled; null/undefined = ongoing. */
+  end_turn?: number | null;
 };
 
 type TensionRow = {
@@ -395,15 +399,25 @@ export function DiplomacyPage() {
                     <TableHead>Aggressor</TableHead>
                     <TableHead>Defender</TableHead>
                     <TableHead>Reason</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Since</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {diplomacy?.declared_wars?.map((w, i) => (
-                    <TableRow key={i} className="bg-red-600/10">
+                    <TableRow key={i} className={w.active === false ? "" : "bg-red-600/10"}>
                       <TableCell className="font-medium">{w.aggressor}</TableCell>
                       <TableCell>{w.defender}</TableCell>
                       <TableCell className="text-muted-foreground">{w.reason}</TableCell>
+                      <TableCell>
+                        {w.active === false ? (
+                          <span className="text-xs text-muted-foreground">
+                            Peace{w.end_turn != null ? ` T${w.end_turn}` : ""}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-semibold text-red-500">ACTIVE WAR</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">T{w.start_turn}</TableCell>
                     </TableRow>
                   ))}

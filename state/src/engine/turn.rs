@@ -13307,6 +13307,18 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
     // configured threshold. Driven purely by AI relation drift.
     process_diplomatic_friction(state, &diplomacy, state.calendar.global_turn);
 
+    // v4.23.0 WS5: War bridge — diplomatic wars materialize into military
+    // fronts (1 per war pair per belligerent), a bounded battle resolves per
+    // pair per turn, casualties route to demographics, devastation lands on
+    // combat-zone parcels, POWs are captured/repatriated, and the
+    // peacetime→wartime disaster engine runs. Sequential GameState scope —
+    // cross-country mutation cannot run inside the per-country military pass.
+    crate::military::war_bridge::process_war_bridge(
+        state,
+        &diplomacy,
+        state.calendar.global_turn,
+    );
+
     // Phase 66: Process intel updates from spy activity
     for (observer, target, new_level) in &intel_updates {
         let target_country = match state.countries.get(target) {
@@ -13367,6 +13379,17 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
     crate::state::diplomatic_actions::drain_diplomatic_actions(
         state,
         &state.diplomatic_config.clone(),
+    );
+
+    // v4.23.0 WS5b: Dynamic diplomacy — cultural-group regional blocs
+    // federate into Compact organizations, and bilateral treaties are
+    // proposed + suspended/resumed from real relations and tensions.
+    // Runs before advance_negotiations so fresh proposals begin
+    // negotiating this same turn.
+    crate::international::diplomacy::process_dynamic_diplomacy(
+        state,
+        &diplomacy,
+        state.calendar.global_turn,
     );
 
     // Phase 66: Process intel for all observer-target pairs

@@ -603,6 +603,12 @@ pub struct DeclaredWarRow {
     pub defender: String,
     pub start_turn: u32,
     pub reason: String,
+    /// v4.23.0 WS5: war still live on the military ledger (fronts exist).
+    /// `declared_wars` is full history — `active` lets the UI and the
+    /// release gate count live diplomatic wars against military fronts.
+    pub active: bool,
+    /// v4.23.0 WS5: turn the war settled (None = ongoing).
+    pub end_turn: Option<u32>,
 }
 
 /// v4.22.1 WS5.3: A bilateral friction level — the pair's tension level and
@@ -1773,6 +1779,9 @@ pub fn build_diplomacy_snapshot(
         .collect();
 
     // v4.22.1 WS5.3: declared localized wars + bilateral friction levels.
+    // v4.23.0 WS5: `active` = war not yet settled (`end_turn` unset) — the
+    // bridge marks `end_turn` when `settle_peace` runs so the diplomatic
+    // ledger's live-war count matches the military ledger's war fronts.
     let declared_wars: Vec<DeclaredWarRow> = state
         .declared_wars
         .iter()
@@ -1781,6 +1790,8 @@ pub fn build_diplomacy_snapshot(
             defender: w.defender.clone(),
             start_turn: w.start_turn,
             reason: format!("{:?}", w.reason),
+            active: w.end_turn.is_none(),
+            end_turn: w.end_turn,
         })
         .collect();
     let mut tensions: Vec<TensionRow> = state
@@ -7389,14 +7400,25 @@ pub struct MilitaryDashboardResponse {
 
 /// Builds the full military dashboard response.
 pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse {
-    let mut wars = Vec::new();
-    let mut recent_battles = Vec::new();
+    // v4.23.0 WS5: war-bridge fronts materialize in EVERY belligerent's
+    // `military_fronts` under the same `WAR-{a}-{b}` id. Dedup by front id
+    // (sorted country iteration + first-writer-wins) so the dashboard's
+    // "Active Wars" count equals the number of live war PAIRS — the same
+    // figure the diplomacy ledger reports (`declared_wars.active`). The
+    // BTreeMap also makes row order deterministic across runs.
+    let mut wars: std::collections::BTreeMap<String, WarRow> =
+        std::collections::BTreeMap::new();
+    let mut recent_battles: std::collections::BTreeMap<String, BattleRow> =
+        std::collections::BTreeMap::new();
     let mut army_compositions = Vec::new();
     let mut war_morale = Vec::new();
     let mut pow_camps = Vec::new();
 
-    for (country_name, country) in &state.countries {
-        // Active wars/fronts
+    let mut sorted_countries: Vec<(&String, &crate::state::Country)> =
+        state.countries.iter().collect();
+    sorted_countries.sort_by(|a, b| a.0.cmp(b.0));
+    for (country_name, country) in sorted_countries {
+        // Active wars/fronts — one row per unique front id.
         for front in &country.military_fronts {
             let battle_count = front.battles.len();
             let last_battle_result = front
@@ -7405,7 +7427,7 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 .map(|b| format!("{:?}", b.result))
                 .unwrap_or_else(|| "No battles".to_string());
 
-            wars.push(WarRow {
+            wars.entry(front.id.clone()).or_insert_with(|| WarRow {
                 front_id: front.id.clone(),
                 front_name: front.name.clone(),
                 involved_countries: front.involved_countries.clone(),
@@ -7419,18 +7441,21 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 last_battle_result,
             });
 
-            // Recent battles (last 5 per front)
+            // Recent battles (last 5 per front) — dedup by battle id; the
+            // same battle is recorded on both belligerents' front copies.
             for battle in front.battles.iter().rev().take(5) {
-                recent_battles.push(BattleRow {
-                    battle_id: battle.id.clone(),
-                    location: battle.location.clone(),
-                    attacker: battle.attacker.clone(),
-                    defender: battle.defender.clone(),
-                    result: format!("{:?}", battle.result),
-                    attacker_casualties: battle.attacker_casualties.total(),
-                    defender_casualties: battle.defender_casualties.total(),
-                    turn: battle.turn,
-                });
+                recent_battles
+                    .entry(battle.id.clone())
+                    .or_insert_with(|| BattleRow {
+                        battle_id: battle.id.clone(),
+                        location: battle.location.clone(),
+                        attacker: battle.attacker.clone(),
+                        defender: battle.defender.clone(),
+                        result: format!("{:?}", battle.result),
+                        attacker_casualties: battle.attacker_casualties.total(),
+                        defender_casualties: battle.defender_casualties.total(),
+                        turn: battle.turn,
+                    });
             }
         }
 
@@ -7639,8 +7664,15 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         }
     }
 
+    // Recent battles: deduped by id above, then newest-first for the panel.
+    let mut recent_battles: Vec<BattleRow> =
+        recent_battles.into_values().collect();
+    recent_battles.sort_by(|a, b| {
+        b.turn.cmp(&a.turn).then_with(|| a.battle_id.cmp(&b.battle_id))
+    });
+
     MilitaryDashboardResponse {
-        wars,
+        wars: wars.into_values().collect(),
         recent_battles,
         devastation_map,
         army_compositions,
