@@ -629,8 +629,8 @@ mod tests {
 
         assert_eq!(country.politics.years_to_elections, 1);
         assert!(country.politics.budget_crisis);
-        // 80% funding
+        // 90% continuing-resolution funding
         let config = country.politics.ministry_config.as_ref().unwrap();
-        assert!((config.ministries[0].allocated_cash - 800.0).abs() < 1e-6);
+        assert!((config.ministries[0].allocated_cash - 900.0).abs() < 1e-6);
     }
 }

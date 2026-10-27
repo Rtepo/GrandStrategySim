@@ -1363,6 +1363,12 @@ pub struct Politics {
     /// to prevent infinite election loops when election formation fails.
     #[serde(default)]
     pub last_snap_election_turn: u32,
+    /// v4.23.0: Last turn ANY election executed (`run_election_if_due`).
+    /// Enforces a constitutional minimum interval between mandates so
+    /// repeated crisis triggers cannot chain back-to-back elections.
+    /// 0 = no election held yet.
+    #[serde(default)]
+    pub last_election_turn: u32,
     /// Phase 48: Global VIP registry — tracks all power holders with age,
     /// health, incapacity, traits, and death. See `politics/vip_registry.rs`.
     #[serde(default)]

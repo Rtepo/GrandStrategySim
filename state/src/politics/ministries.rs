@@ -2282,12 +2282,22 @@ mod tests {
             .iter()
             .any(|a| matches!(a, MinistrySpendingAction::B2BProcurementOrder { .. })));
 
-        // Healthcare funded the public-service payroll pool (double-entry).
+        // Healthcare funded the public-service payroll pool (double-entry),
+        // alongside the Defense personnel-floor appropriation.
         assert!(country.ministry_public_service_pool > 0.0);
         assert!(config.ministries[1].spent_cash > 0.0);
+        let defense_personnel: f64 = config.ministries[0]
+            .spending_actions
+            .iter()
+            .map(|a| match a {
+                MinistrySpendingAction::PublicServiceWages { total_amount, .. } => *total_amount,
+                _ => 0.0,
+            })
+            .sum();
+        assert!(defense_personnel > 0.0);
         assert_eq!(
             country.ministry_public_service_pool,
-            config.ministries[1].spent_cash
+            config.ministries[1].spent_cash + defense_personnel
         );
         country.politics.ministry_config = Some(config);
         // Procurement encumbrance is not counted toward non-procurement G;

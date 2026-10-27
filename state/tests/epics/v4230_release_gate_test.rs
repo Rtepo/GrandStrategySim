@@ -77,8 +77,14 @@ mod tests {
         for (cname, country) in &state.countries {
             assert!(
                 country.politics.elections_held <= 5,
-                "{cname}: at most 5 elections per 120 turns (got {})",
-                country.politics.elections_held
+                "{cname}: at most 5 elections per 120 turns (got {}; turns {:?})",
+                country.politics.elections_held,
+                country
+                    .politics
+                    .election_history
+                    .iter()
+                    .map(|e| e.turn)
+                    .collect::<Vec<_>>()
             );
         }
 

@@ -1377,6 +1377,20 @@ pub fn run_election_if_due(
         return messages;
     }
 
+    // v4.23.0 release gate: minimum interval between EXECUTED elections.
+    // Snap/crisis triggers (`check_snap_election`, budget-failure continuing
+    // resolutions, minority-collapse) can re-flag `years_to_elections` or
+    // `budget_crisis` every turn; without a floor on executions a fragile
+    // polity churns a dozen mandates in five years. Deferred conditions stay
+    // flagged, so the pending election fires the turn the interval elapses.
+    const MIN_ELECTION_INTERVAL_TURNS: u32 = 24;
+    if country.politics.last_election_turn != 0
+        && current_turn.saturating_sub(country.politics.last_election_turn)
+            < MIN_ELECTION_INTERVAL_TURNS
+    {
+        return messages;
+    }
+
     // Phase 45: Single global VIP deduplication set for this election cycle.
     // Pre-populated with all party leader names so generated VIPs never collide.
     let mut used_vip_names: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -1406,6 +1420,7 @@ pub fn run_election_if_due(
     // v4.20: count every executed election (scheduled, snap, crisis) —
     // release gate `elections_held_count > 0`.
     country.politics.elections_held = country.politics.elections_held.saturating_add(1);
+    country.politics.last_election_turn = current_turn;
 
     // v4.22.1 WS2.3: record this election in the historical record (results,
     // vote shares, and presidential rounds for executive republics).
