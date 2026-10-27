@@ -1139,6 +1139,35 @@ fn execute_competency_spending_with_parties(
         | GovernmentCompetency::Housing
         | GovernmentCompetency::Justice
         | GovernmentCompetency::Culture => {
+            // v4.23 WS4: Floor appropriation — every portfolio funds a
+            // baseline civil-service payroll before discretionary
+            // procurement. Courts, gendarmerie barracks, general staff and
+            // ministry clerks are the bulk of real appropriations; the old
+            // code posted ONLY commodity bids, so a ministry whose basket
+            // had no domestic supply (armaments / office machinery in early
+            // economies) had every encumbrance refunded at post-clearing
+            // and ended the turn with spent_cash == 0 — the Justice /
+            // Internal Affairs / Defense / Heavy Industry "zero-spending
+            // ministry" bug. The personnel leg rides the same M0-safe
+            // `ministry_public_service_pool` → State Employer wage channel
+            // as Healthcare/Education/Labor, so it always books a real
+            // outflow that lands as household wages (and thus G through
+            // the payroll path — NOT added to `total_g_spending` here, or
+            // the wage pass would double-count it).
+            const PERSONNEL_FLOOR_SHARE: f64 = 0.35;
+            let personnel = (spend * PERSONNEL_FLOOR_SHARE).min(ministry.ministry_cash);
+            let spend = spend - personnel;
+            if personnel > 0.0 {
+                ministry.ministry_cash -= personnel;
+                country.ministry_public_service_pool += personnel;
+                ministry.spent_cash += personnel;
+                ministry.spending_actions.push(
+                    MinistrySpendingAction::PublicServiceWages {
+                        building_ids: vec!["STATE_EMPLOYER_POOL".to_string()],
+                        total_amount: personnel,
+                    },
+                );
+            }
             let commodities = match comp {
                 GovernmentCompetency::HeavyIndustry => {
                     vec![Commodity::Steel, Commodity::IndustrialMachinery]

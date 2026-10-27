@@ -227,6 +227,50 @@ export function GovernmentPage() {
                                 <div>Spent: {fmt(m.spent_cash)}</div>
                                 <div>Remaining: {fmt(m.ministry_cash)}</div>
                               </div>
+                              {/* v4.23 WS4: qualitative policy KPIs & targets
+                                  for the ministry's portfolio — real engine
+                                  metrics, status-colored. */}
+                              {m.policy_kpis && m.policy_kpis.length > 0 && (
+                                <div className="md:col-span-3">
+                                  <div className="font-semibold mb-1">Policy KPIs & Targets</div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+                                    {m.policy_kpis.map((k, i) => (
+                                      <div
+                                        key={i}
+                                        className="flex items-center justify-between rounded border border-border/50 bg-background/40 px-2 py-1"
+                                      >
+                                        <div>
+                                          <div className="font-medium">{k.label}</div>
+                                          <div className="text-muted-foreground">
+                                            Target: {k.target}
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="font-semibold">
+                                            {fmt(k.value)}
+                                            {k.unit && (
+                                              <span className="text-muted-foreground ml-0.5">{k.unit}</span>
+                                            )}
+                                          </div>
+                                          <Badge
+                                            variant={
+                                              k.status === "on_track"
+                                                ? "success"
+                                                : k.status === "at_risk"
+                                                  ? "secondary"
+                                                  : k.status === "off_track"
+                                                    ? "destructive"
+                                                    : "outline"
+                                            }
+                                          >
+                                            {k.status.replace("_", " ")}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>

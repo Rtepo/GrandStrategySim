@@ -1866,7 +1866,44 @@ coordinates: IdeologyCoordinatesDto | null, allocated_cash: number, spent_cash: 
 /**
  * Phase 35: Current cash pocket available for spending.
  */
-ministry_cash: number, };
+ministry_cash: number, 
+/**
+ * v4.23 WS4: qualitative policy KPIs & targets for the Reports drawer —
+ * measured from live engine state and keyed by the ministry's
+ * competencies (empty only when the country snapshot path cannot
+ * supply entities).
+ */
+policy_kpis: Array<MinistryKpiRow>, };
+
+/**
+ * v4.23 WS4: One qualitative policy KPI for a ministry's Reports drawer.
+ *
+ * `value`/`unit` are measured from real engine state (never fabricated);
+ * `target` is the portfolio's qualitative policy goal; `status` is the
+ * assessment the measurement supports:
+ * `"on_track"` | `"at_risk"` | `"off_track"` | `"watch"`.
+ */
+export type MinistryKpiRow = { 
+/**
+ * KPI label (e.g. "Unemployment", "Demand coverage").
+ */
+label: string, 
+/**
+ * Measured value from live state.
+ */
+value: number, 
+/**
+ * Display unit — "%", "MW", "seats", "personnel", "yrs", "¤", "count".
+ */
+unit: string, 
+/**
+ * Qualitative target text (e.g. "≤ 5%", "≥ 100%", "0 — peace").
+ */
+target: string, 
+/**
+ * Assessment vs. target.
+ */
+status: string, };
 
 /**
  * Phase 54: A single ministry expenditure category entry for the Finance tab.
