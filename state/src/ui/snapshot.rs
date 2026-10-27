@@ -1273,28 +1273,73 @@ pub fn build_organizations_snapshot(
 ) -> OrganizationsSnapshot {
     let mut organizations = Vec::new();
 
-    // Guilds
-    for company in companies {
-        if let crate::entities::LegalForm::Guild(data) = &company.legal_form {
-            organizations.push(OrganizationRow {
-                id: company.id.clone(),
-                name: company.name.clone(),
-                category: OrganizationCategory::Guild,
-                sector: data.guild_sector.clone(),
-                region_id: company.region_id.clone(),
-                member_count: data.member_workshop_ids.len(),
-                funds: if is_classified {
-                    None
+    // Guilds — v4.23.0 WS6: deduplicate per-region sector guilds.
+    // Every GuildBurgher domain mints its own `"{Sector} Guild"` company
+    // (`GUILD-{domain}-{Sector}`), so a region hosting several domains
+    // showed N visually-identical "LightIndustry Guild" rows. Merge rows
+    // sharing (name, sector, region): member workshop counts and welfare
+    // funds are summed as real aggregates, the first-seen id survives so
+    // row-click still drills into a concrete guild, and the merged row's
+    // activity summary reports the real guild count. First-seen ordering
+    // is preserved — fully deterministic.
+    {
+        let mut guild_index: std::collections::HashMap<(String, String, String), usize> =
+            std::collections::HashMap::new();
+        let mut guild_rows: Vec<OrganizationRow> = Vec::new();
+        // Parallel accumulators (not on the row): merged count + quality sum.
+        let mut merged_count: Vec<usize> = Vec::new();
+        let mut quality_sum: Vec<f64> = Vec::new();
+        for company in companies {
+            if let crate::entities::LegalForm::Guild(data) = &company.legal_form {
+                let key = (
+                    company.name.clone(),
+                    data.guild_sector.clone(),
+                    company.region_id.clone(),
+                );
+                if let Some(&i) = guild_index.get(&key) {
+                    let row = &mut guild_rows[i];
+                    row.member_count += data.member_workshop_ids.len();
+                    if let Some(f) = row.funds.as_mut() {
+                        *f += data.welfare_fund;
+                    }
+                    merged_count[i] += 1;
+                    quality_sum[i] += data.quality_standard;
                 } else {
-                    Some(data.welfare_fund)
-                },
-                activity_summary: format!(
-                    "Guild with {} workshops, quality {:.2}",
-                    data.member_workshop_ids.len(),
-                    data.quality_standard
-                ),
-            });
+                    guild_index.insert(key, guild_rows.len());
+                    merged_count.push(1);
+                    quality_sum.push(data.quality_standard);
+                    guild_rows.push(OrganizationRow {
+                        id: company.id.clone(),
+                        name: company.name.clone(),
+                        category: OrganizationCategory::Guild,
+                        sector: data.guild_sector.clone(),
+                        region_id: company.region_id.clone(),
+                        member_count: data.member_workshop_ids.len(),
+                        funds: if is_classified {
+                            None
+                        } else {
+                            Some(data.welfare_fund)
+                        },
+                        activity_summary: String::new(),
+                    });
+                }
+            }
         }
+        for ((row, &count), &qsum) in guild_rows.iter_mut().zip(&merged_count).zip(&quality_sum) {
+            let mean_quality = qsum / count as f64;
+            row.activity_summary = if count > 1 {
+                format!(
+                    "{} guilds, {} workshops, mean quality {:.2}",
+                    count, row.member_count, mean_quality
+                )
+            } else {
+                format!(
+                    "Guild with {} workshops, quality {:.2}",
+                    row.member_count, mean_quality
+                )
+            };
+        }
+        organizations.extend(guild_rows);
     }
 
     // Trade Unions

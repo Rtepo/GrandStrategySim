@@ -221,10 +221,23 @@ pub fn generate_cultural_background(_country_name: &str) -> CulturalBackground {
     let demonym = generate_demonym(nation);
 
     let fertility = fertility_for_religion(religion);
-    let mortality = rng.gen_range(0.6..1.2);
-    let growth = fertility - mortality;
+    // v4.23.0 WS6: era-plausible vital rates (percent/yr).
+    // `birth_rate`/`mortality` are persisted as `Demographics` *percent*
+    // rates and consumed as annual rates by the labor model
+    // (`demographics.birth_rate / 100.0`). Pre-WS6 the raw 0.7–1.25
+    // religious multiplier was stored, which the UI's fertility estimate
+    // rendered as 33.33 and which implied a sub-1%/yr crude birth rate.
+    // Scale the multiplier onto the 1900-era band: base 4.2%/yr CBR ×
+    // religion → clamped [2.0, 5.5]%/yr (islam ~4.8, folk ~5.0,
+    // undeclared ~2.9 — pre-transition differentiation preserved).
+    let birth_rate = (4.2 * fertility).clamp(2.0, 5.5);
+    // 1900-era crude death rate ~18–34‰ (percent/yr).
+    let mortality = rng.gen_range(1.8..3.4);
+    let growth = birth_rate - mortality;
 
-    let (children, elderly) = if growth > 0.5 {
+    // Age-structure bands keyed on natural increase, rescaled for the
+    // %-per-year units above (was >0.5 / <0.0 on multiplier units).
+    let (children, elderly) = if growth > 1.0 {
         (rng.gen_range(0.25..0.40), rng.gen_range(0.05..0.15))
     } else if growth < 0.0 {
         (rng.gen_range(0.10..0.20), rng.gen_range(0.20..0.35))
@@ -296,7 +309,7 @@ pub fn generate_cultural_background(_country_name: &str) -> CulturalBackground {
         religion: religion.to_string(),
         ethnic_composition: ethnic,
         religious_composition: religious,
-        birth_rate: fertility,
+        birth_rate,
         mortality,
         age_groups: AgeGroups {
             children,

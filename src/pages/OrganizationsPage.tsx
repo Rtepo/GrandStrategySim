@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api/core';
 import type { OrganizationsSnapshot, OrganizationRow, OrganizationCategory, OrganizationsSummaryDto } from '../types/api';
 import { useGameStore } from '../store/gameStore';
-import { getOrganizationsSummary } from '../hooks/useTauriCommand';
 import { num, pct } from '../lib/format';
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -33,11 +32,19 @@ export const OrganizationsPage: React.FC = () => {
   });
 
   // v4.22 WS6: country-scoped macro KPI header (unionization, strikes, ...).
-  const { data: summary } = useQuery({
-    queryKey: ['organizations-summary', selectedCountry],
-    queryFn: () => getOrganizationsSummary(selectedCountry!),
-    enabled: !!selectedCountry,
+  // The backend returns one summary per country (the page is global) —
+  // select the row for the currently selected country. The previous
+  // single-object typing read fields off the array → NaN% / undefined KPIs.
+  const { data: summaryList } = useQuery({
+    queryKey: ['organizations-summary'],
+    queryFn: () => invoke<OrganizationsSummaryDto[]>('get_organizations_summary'),
   });
+  const summary = useMemo(
+    () =>
+      summaryList?.find((s) => s.country === selectedCountry) ??
+      summaryList?.[0],
+    [summaryList, selectedCountry],
+  );
 
   if (isLoading) return <div className="p-6 text-muted-foreground">Loading organizations...</div>;
   if (error) return <div className="p-6 text-red-600">Error: {String(error)}</div>;
@@ -64,11 +71,11 @@ export const OrganizationsPage: React.FC = () => {
 
       {summary && (
         <div className="grid grid-cols-6 gap-3">
-          <Kpi label="Unionization Rate" value={pct(summary.unionization_rate * 100)} />
+          <Kpi label="Unionization Rate" value={pct((Number.isFinite(summary.unionization_rate) ? summary.unionization_rate : 0) * 100)} />
           <Kpi label="Union Members" value={num(summary.union_member_workers)} />
           <Kpi label="Guild Workshops" value={num(summary.guild_member_workshops)} />
           <Kpi label="Movement Members" value={num(summary.movement_participants)} />
-          <Kpi label="Radicalization Index" value={pct(summary.radicalization_index * 100)} />
+          <Kpi label="Radicalization Index" value={pct((Number.isFinite(summary.radicalization_index) ? summary.radicalization_index : 0) * 100)} />
           <Kpi label="Active Strikes / Workers" value={`${summary.active_strikes} / ${num(summary.striking_workers)}`} />
         </div>
       )}
