@@ -54,7 +54,16 @@ export function GovernmentPage() {
             <Card>
               <CardHeader><CardTitle>Prime Minister</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <Row label="Name" value={gov.pm_name} />
+                <Row
+                  label="Name"
+                  value={
+                    gov.pm_vip_id ? (
+                      <VipHoverCard vipId={gov.pm_vip_id}>{gov.pm_name}</VipHoverCard>
+                    ) : (
+                      gov.pm_name
+                    )
+                  }
+                />
                 <Row label="Party" value={gov.pm_party} />
                 <Row label="Ideology" value={gov.pm_ideology} />
               </CardContent>
@@ -96,7 +105,13 @@ export function GovernmentPage() {
                       gov.cabinet.map((m) => (
                         <TableRow key={m.ministry_name}>
                           <TableCell className="font-medium">{m.ministry_name}</TableCell>
-                          <TableCell>{m.minister_name}</TableCell>
+                          <TableCell>
+                            {m.minister_vip_id ? (
+                              <VipHoverCard vipId={m.minister_vip_id}>{m.minister_name}</VipHoverCard>
+                            ) : (
+                              m.minister_name
+                            )}
+                          </TableCell>
                           <TableCell className="text-xs">{m.party}</TableCell>
                           <TableCell className="text-right">{fmt(m.allocated_cash)}</TableCell>
                           <TableCell className="text-right">{fmt(m.spent_cash)}</TableCell>
@@ -126,8 +141,14 @@ export function GovernmentPage() {
                   <TableBody>
                     {gov.vips.length > 0 ? (
                       gov.vips.map((v, i) => (
-                        <TableRow key={i}>
-                          <TableCell className="font-medium">{v.full_name}</TableCell>
+                        <TableRow key={v.vip_id ?? i}>
+                          <TableCell className="font-medium">
+                            {v.vip_id ? (
+                              <VipHoverCard vipId={v.vip_id}>{v.full_name}</VipHoverCard>
+                            ) : (
+                              v.full_name
+                            )}
+                          </TableCell>
                           <TableCell>{v.role}</TableCell>
                           <TableCell className="text-xs">{v.party}</TableCell>
                           <TableCell className="text-right">{v.age}</TableCell>
@@ -255,9 +276,31 @@ export function GovernmentPage() {
           <Card>
             <CardHeader><CardTitle>Royal Dynasty — {dynasty.dynasty_name}</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <Row label="Monarch" value={dynasty.current_monarch_name || "(vacant)"} />
+              <Row
+                label="Monarch"
+                value={
+                  dynasty.current_monarch_id ? (
+                    <VipHoverCard vipId={dynasty.current_monarch_id}>
+                      {dynasty.current_monarch_name || "(vacant)"}
+                    </VipHoverCard>
+                  ) : (
+                    dynasty.current_monarch_name || "(vacant)"
+                  )
+                }
+              />
               {dynasty.regency_active && (
-                <Row label="Regent" value={dynasty.current_regent_name || "(none)"} />
+                <Row
+                  label="Regent"
+                  value={
+                    dynasty.current_regent_id ? (
+                      <VipHoverCard vipId={dynasty.current_regent_id}>
+                        {dynasty.current_regent_name || "(none)"}
+                      </VipHoverCard>
+                    ) : (
+                      dynasty.current_regent_name || "(none)"
+                    )
+                  }
+                />
               )}
               <Row label="Regency Active" value={dynasty.regency_active ? "Yes" : "No"} />
             </CardContent>
