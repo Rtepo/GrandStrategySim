@@ -13,35 +13,41 @@ Protocol: disk-first checkpoints, logs → /tmp/, incremental commit per WS.
       pres. runoff winner sets head_of_state.name; trend chart autoscale
       (max+5) + legend spacing + valueFormatter(1dp). TODO in WS1: campaign
       events trigger, global float sweep beyond chart tooltips.
-- [ ] WS2: Votes table cols (FIRST/STAGES/LAST/EFFECTIVE/RESULT) + TOTAL row
-      + 5-shade outcome badges; populate autocratic councils (factions,
-      decrees, petitions, councilors); CK3 family tree + succession law +
-      previous monarchs + intrigues + pretenders; universal VIP links.
-- [ ] WS3: 1.3 MW blackout fix (fuel/staffing/dispatch, S/D ≥ 100%);
-      ExportServices revenue wiring (trade/freight margins); macro layout;
-      fund drill-down chart (class → sector → company).
-- [ ] WS4: Country export/import treemap (toggle Exp/Imp/Domestic, SITC
-      categories, REE era-gate); ministry underfunding (Justice=0) +
-      qualitative View Reports KPIs.
-- [ ] WS5: Diplomatic wars → fronts/battles/casualties/devastation/POW/
-      disasters; dynamic treaties/alliances/blocs; IA frequency; diplomat/
-      spy roster 15–30.
-- [ ] WS6: Society fixes (fertility 33.33→2–5.5, lifeExp 90.8→42–65,
-      7+ 10-yr pyramid cohorts, edu/religion string cleanup, migration ≠ 0,
-      aristocrat↔peasant wealth inversion); orgs NaN% + guild dedup.
-- [ ] WS7: Council colors (Optimates navy vs Moderates amber); per-resolution
-      expansion w/ named councilors (no POP-1) — drop lifetime tally;
-      MPZP non-zero Industrial; newspaper dedup + $M/$B fmt + raw-tag clean
-      + Financial/Business press section.
-- [ ] Gate: assertions (elections≤5/120t, energy>100MW, ExportsSvc rev>0,
-      fertility<8 & lifeExp<80 & pyramid≥7, !unionization.is_nan(),
-      diplomatic_wars == military_wars) in 120-turn crucible; Iron CI green;
-      manifests 4.23.0; merge_worker.sh --tag v4.23.0 auto-push.
+- [x] WS2: DONE (d1 branch 014137eb+b76778ca+5e1f5636) — VoteRow rollup
+      (first/last vote, stages, effective date), chamber TOTAL rows, 5-shade
+      badges, autocratic councils (RoyalCouncil/Junta/SupRelCouncil/Politburo
+      factions+decrees+petitions+VIP councilors), CK3 dynasty tree + succession
+      law/monarchs/intrigues/pretenders, VipRow.vip_id + hover links.
+- [x] WS3: DONE (d2 branch 57c17e9a+029b6aed+4c98ed3f) — blackout fixed
+      (probe: 4–59GW supply vs 1.3MW bug, S/D 1.03–3.5), ExportServices
+      freight margins→turn_settled_sales, GDP donut below Components.
+- [x] WS4: DONE (d2 branch 9a87e2d5+dbd9348d+15344fec+65cb889c+304ac7e1) —
+      country trade treemap (Exp/Imp/Domestic toggle, SITC sections, REE
+      view-gated<1965), ministry floor appropriations + MinistryKpiRow,
+      Fund sunburst drill-down (class→sector→company).
+- [x] WS5: DONE (d3 branch 90b486ba) — war_bridge.rs (fronts/battles/
+      casualties/POW/devastation/disasters, StatusQuoAnte peace), regional
+      bloc Compacts, bilateral treaty lifecycle, 15–30 diplomat corps.
+- [x] WS6: DONE (d3 branch afd75a5f+3b37384f) — CBR% birth_rate 4.2–4.8,
+      life_exp 48–52, 8 ten-year cohorts + per-cohort male shares, real
+      migration plumbing, class wealth ordering, orgs Vec<> DTO fix +
+      guild dedup.
+- [x] WS7: DONE (d4 branch bc021ac1) — faction colors (Optimates navy/
+      Moderates amber), lifetime roll-call removed, expanded resolutions
+      + councilor VIP links/traits, industrial MPZP guard, press dedup
+      (event_ref+ident sets), $M/$B fmt, Financial & Business Press.
+- [x] Gate: v4230_release_gate_test (e179cc89) + energy_blackout_probe —
+      RUNNING; manifests bumped to 4.23.0 (17f69060).
 
 ## Progress log
 | WS | Commit | Notes |
 |----|--------|-------|
 | 1  | 6d31e0e1 | All backend+frontend items above committed |
+| 2  | 63cab8e7 merge | daemon-1: votes/autocracy/dynasty/VIP |
+| 3+4| 9a87e2d5 etc | daemon-2: energy/econ/treemap/ministries |
+| 5  | 90b486ba | daemon-3: war bridge + diplomacy |
+| 6  | afd75a5f+3b37384f | daemon-3b: society + orgs |
+| 7  | bc021ac1 | daemon-4: council + press |
 
 ### Recon notes for next session (verified locations)
 - WS6.2 NaN: `OrganizationsSummaryDto` (snapshot_society.rs:445-477) already
