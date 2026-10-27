@@ -2834,7 +2834,18 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                             }
                         }
                     }
-                    let total_freight_cap: f64 = cap_by_company.values().sum();
+                    // Determinism: sum capacity in sorted carrier-id order —
+                    // `HashMap::values()` iterates in RandomState order and
+                    // f64 addition is not associative, so an unordered sum
+                    // can differ in the last bits between cloned runs
+                    // (b2b_settlement_post fingerprint divergence).
+                    let mut carrier_ids: Vec<&String> =
+                        cap_by_company.keys().collect();
+                    carrier_ids.sort();
+                    let total_freight_cap: f64 = carrier_ids
+                        .iter()
+                        .map(|cid| cap_by_company[*cid])
+                        .sum();
                     let mut export_freight_paid = 0.0f64;
                     if total_freight_cap > 0.0 {
                         let paid =
@@ -2843,9 +2854,6 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                         if paid > 0.0 {
                             market.foreign_sector_balance -= paid;
                             export_freight_paid = paid;
-                            let mut carrier_ids: Vec<&String> =
-                                cap_by_company.keys().collect();
-                            carrier_ids.sort();
                             for cid in carrier_ids {
                                 let share =
                                     paid * cap_by_company[cid] / total_freight_cap;
@@ -3121,15 +3129,21 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                         }
                     }
                 }
-                let total_freight_cap: f64 = cap_by_company.values().sum();
+                // Determinism: same sorted-key summation as the export leg —
+                // unordered `HashMap::values()` f64 sums can differ in the
+                // last bits between cloned runs.
+                let mut carrier_ids: Vec<&String> =
+                    cap_by_company.keys().collect();
+                carrier_ids.sort();
+                let total_freight_cap: f64 = carrier_ids
+                    .iter()
+                    .map(|cid| cap_by_company[*cid])
+                    .sum();
                 if total_freight_cap > 0.0 {
                     let paid = (task_import_spend * IMPORT_FREIGHT_MARGIN)
                         .min(market.foreign_sector_balance.max(0.0));
                     if paid > 0.0 {
                         market.foreign_sector_balance -= paid;
-                        let mut carrier_ids: Vec<&String> =
-                            cap_by_company.keys().collect();
-                        carrier_ids.sort();
                         for cid in carrier_ids {
                             let share = paid * cap_by_company[cid] / total_freight_cap;
                             if share <= 0.0 {
