@@ -603,6 +603,12 @@ pub struct DeclaredWarRow {
     pub defender: String,
     pub start_turn: u32,
     pub reason: String,
+    /// v4.23.0 WS5: war still live on the military ledger (fronts exist).
+    /// `declared_wars` is full history — `active` lets the UI and the
+    /// release gate count live diplomatic wars against military fronts.
+    pub active: bool,
+    /// v4.23.0 WS5: turn the war settled (None = ongoing).
+    pub end_turn: Option<u32>,
 }
 
 /// v4.22.1 WS5.3: A bilateral friction level — the pair's tension level and
@@ -1267,28 +1273,73 @@ pub fn build_organizations_snapshot(
 ) -> OrganizationsSnapshot {
     let mut organizations = Vec::new();
 
-    // Guilds
-    for company in companies {
-        if let crate::entities::LegalForm::Guild(data) = &company.legal_form {
-            organizations.push(OrganizationRow {
-                id: company.id.clone(),
-                name: company.name.clone(),
-                category: OrganizationCategory::Guild,
-                sector: data.guild_sector.clone(),
-                region_id: company.region_id.clone(),
-                member_count: data.member_workshop_ids.len(),
-                funds: if is_classified {
-                    None
+    // Guilds — v4.23.0 WS6: deduplicate per-region sector guilds.
+    // Every GuildBurgher domain mints its own `"{Sector} Guild"` company
+    // (`GUILD-{domain}-{Sector}`), so a region hosting several domains
+    // showed N visually-identical "LightIndustry Guild" rows. Merge rows
+    // sharing (name, sector, region): member workshop counts and welfare
+    // funds are summed as real aggregates, the first-seen id survives so
+    // row-click still drills into a concrete guild, and the merged row's
+    // activity summary reports the real guild count. First-seen ordering
+    // is preserved — fully deterministic.
+    {
+        let mut guild_index: std::collections::HashMap<(String, String, String), usize> =
+            std::collections::HashMap::new();
+        let mut guild_rows: Vec<OrganizationRow> = Vec::new();
+        // Parallel accumulators (not on the row): merged count + quality sum.
+        let mut merged_count: Vec<usize> = Vec::new();
+        let mut quality_sum: Vec<f64> = Vec::new();
+        for company in companies {
+            if let crate::entities::LegalForm::Guild(data) = &company.legal_form {
+                let key = (
+                    company.name.clone(),
+                    data.guild_sector.clone(),
+                    company.region_id.clone(),
+                );
+                if let Some(&i) = guild_index.get(&key) {
+                    let row = &mut guild_rows[i];
+                    row.member_count += data.member_workshop_ids.len();
+                    if let Some(f) = row.funds.as_mut() {
+                        *f += data.welfare_fund;
+                    }
+                    merged_count[i] += 1;
+                    quality_sum[i] += data.quality_standard;
                 } else {
-                    Some(data.welfare_fund)
-                },
-                activity_summary: format!(
-                    "Guild with {} workshops, quality {:.2}",
-                    data.member_workshop_ids.len(),
-                    data.quality_standard
-                ),
-            });
+                    guild_index.insert(key, guild_rows.len());
+                    merged_count.push(1);
+                    quality_sum.push(data.quality_standard);
+                    guild_rows.push(OrganizationRow {
+                        id: company.id.clone(),
+                        name: company.name.clone(),
+                        category: OrganizationCategory::Guild,
+                        sector: data.guild_sector.clone(),
+                        region_id: company.region_id.clone(),
+                        member_count: data.member_workshop_ids.len(),
+                        funds: if is_classified {
+                            None
+                        } else {
+                            Some(data.welfare_fund)
+                        },
+                        activity_summary: String::new(),
+                    });
+                }
+            }
         }
+        for ((row, &count), &qsum) in guild_rows.iter_mut().zip(&merged_count).zip(&quality_sum) {
+            let mean_quality = qsum / count as f64;
+            row.activity_summary = if count > 1 {
+                format!(
+                    "{} guilds, {} workshops, mean quality {:.2}",
+                    count, row.member_count, mean_quality
+                )
+            } else {
+                format!(
+                    "Guild with {} workshops, quality {:.2}",
+                    row.member_count, mean_quality
+                )
+            };
+        }
+        organizations.extend(guild_rows);
     }
 
     // Trade Unions
@@ -1773,6 +1824,9 @@ pub fn build_diplomacy_snapshot(
         .collect();
 
     // v4.22.1 WS5.3: declared localized wars + bilateral friction levels.
+    // v4.23.0 WS5: `active` = war not yet settled (`end_turn` unset) — the
+    // bridge marks `end_turn` when `settle_peace` runs so the diplomatic
+    // ledger's live-war count matches the military ledger's war fronts.
     let declared_wars: Vec<DeclaredWarRow> = state
         .declared_wars
         .iter()
@@ -1781,6 +1835,8 @@ pub fn build_diplomacy_snapshot(
             defender: w.defender.clone(),
             start_turn: w.start_turn,
             reason: format!("{:?}", w.reason),
+            active: w.end_turn.is_none(),
+            end_turn: w.end_turn,
         })
         .collect();
     let mut tensions: Vec<TensionRow> = state
@@ -1929,6 +1985,10 @@ pub struct GovernmentSnapshot {
     pub head_of_state_vip_id: Option<String>,
     pub head_of_state_role: String,
     pub pm_name: String,
+    /// v4.23.0 WS2: VIP registry id of the prime minister — enables the
+    /// clickable dossier link on the PM name.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pm_vip_id: Option<String>,
     pub pm_party: String,
     pub pm_ideology: String,
     /// Ideology Step 6: Ruling party's ideological coordinates for 3-axis
@@ -1963,6 +2023,10 @@ pub struct GovernmentSnapshot {
 pub struct MinisterRow {
     pub ministry_name: String,
     pub minister_name: String,
+    /// v4.23.0 WS2: VIP registry id of the minister (resolved by name) —
+    /// enables the clickable dossier link.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub minister_vip_id: Option<String>,
     pub party: String,
     pub ideology: String,
     /// Ideology Step 6: Minister's party ideological coordinates (Directive 17).
@@ -1972,6 +2036,33 @@ pub struct MinisterRow {
     pub spent_cash: f64,
     /// Phase 35: Current cash pocket available for spending.
     pub ministry_cash: f64,
+    /// v4.23 WS4: qualitative policy KPIs & targets for the Reports drawer —
+    /// measured from live engine state and keyed by the ministry's
+    /// competencies (empty only when the country snapshot path cannot
+    /// supply entities).
+    #[serde(default)]
+    pub policy_kpis: Vec<MinistryKpiRow>,
+}
+
+/// v4.23 WS4: One qualitative policy KPI for a ministry's Reports drawer.
+///
+/// `value`/`unit` are measured from real engine state (never fabricated);
+/// `target` is the portfolio's qualitative policy goal; `status` is the
+/// assessment the measurement supports:
+/// `"on_track"` | `"at_risk"` | `"off_track"` | `"watch"`.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MinistryKpiRow {
+    /// KPI label (e.g. "Unemployment", "Demand coverage").
+    pub label: String,
+    /// Measured value from live state.
+    pub value: f64,
+    /// Display unit — "%", "MW", "seats", "personnel", "yrs", "¤", "count".
+    pub unit: String,
+    /// Qualitative target text (e.g. "≤ 5%", "≥ 100%", "0 — peace").
+    pub target: String,
+    /// Assessment vs. target.
+    pub status: String,
 }
 
 /// State of Emergency snapshot.
@@ -2014,6 +2105,10 @@ pub struct CommitteeRow {
     pub name: String,
     pub committee_type: String,
     pub chair: String,
+    /// v4.23.0 WS2: VIP registry id of the committee chair — enables the
+    /// clickable dossier link on the chair name.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub chair_vip_id: Option<String>,
     pub chair_party: String,
     pub member_count: usize,
     pub bills_under_review: usize,
@@ -2047,6 +2142,10 @@ pub struct CommitteeBillRow {
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct VipRow {
     pub full_name: String,
+    /// v4.23.0 WS2: VIP registry id (resolved by name) — enables the
+    /// clickable dossier link on the name.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vip_id: Option<String>,
     pub party: String,
     pub role: String,
     pub ideology: String,
@@ -2063,6 +2162,10 @@ pub struct ChamberSnapshot {
     pub name: String,
     pub total_seats: u32,
     pub speaker_name: String,
+    /// v4.23.0 WS2: VIP registry id of the speaker (resolved by name) —
+    /// enables the clickable dossier link.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speaker_vip_id: Option<String>,
     pub speaker_club: String,
     pub seat_distribution: Vec<(String, u32)>,
 }
@@ -2117,6 +2220,10 @@ pub struct ClubOfficeRow {
     /// Officeholder display name (VIP name, or the recorded role+party
     /// fallback when the seat is unnamed).
     pub holder: String,
+    /// v4.23.0 WS2: VIP registry id of the officeholder when a named VIP
+    /// occupies the seat — enables the clickable dossier link.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub holder_vip_id: Option<String>,
 }
 
 /// v4.21 WS1: A bill the club sponsored — live-session bills plus completed
@@ -2180,6 +2287,26 @@ pub struct VoteRow {
     pub club_breakdown: Vec<ClubVoteRow>,
     /// v4.18: Bill provisions/effects snapshot taken at vote time.
     pub detail: Option<BillDetailRow>,
+    /// v4.23.0 WS2: Turn of the FIRST recorded vote on this bill across all
+    /// chambers (same on every row of the bill group).
+    pub first_vote_turn: u32,
+    /// v4.23.0 WS2: Turn of the LAST recorded vote on this bill across all
+    /// chambers (same on every row of the bill group).
+    pub last_vote_turn: u32,
+    /// v4.23.0 WS2: Turn the law took effect (enactment) — None while the
+    /// bill is in flight or was rejected/vetoed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effective_turn: Option<u32>,
+    /// v4.23.0 WS2: How many chamber votes the bill has PASSED so far.
+    pub stages_passed: u32,
+    /// v4.23.0 WS2: How many chamber stages the bill requires — 2 for
+    /// bicameral legislatures, 1 for unicameral.
+    pub stages_required: u32,
+    /// v4.23.0 WS2: Canonical per-bill outcome for the RESULT column —
+    /// "Enacted", "Senate Veto Overridden", "Senate Veto Override Failed",
+    /// "Rejected in Lower House", "Rejected by Upper House",
+    /// "Presidential Veto", or the live stage label while in flight.
+    pub result: String,
 }
 
 /// v4.18: Per-club vote tally within one chamber vote.
@@ -2741,6 +2868,18 @@ pub struct FundHoldingRow {
     pub market_value: f64,
     /// Position weight as a fraction of fund AUM (0–1).
     pub weight_pct: f64,
+    /// v4.23 WS4: asset-class bucket for the 3-level allocation drill-down
+    /// (Asset Classes → Sectors → Companies): `"Equities"` |
+    /// `"Covered Bonds"` | `"Mortgage-Backed Securities"` |
+    /// `"Government Bonds"` | `"Other Securities"`.
+    #[serde(default)]
+    pub asset_class: String,
+    /// v4.23 WS4: issuer sector for the drill-down's middle ring — the
+    /// holding company's sector for equities, the issuer's sector for
+    /// covered bonds, `"Real Estate"` for MBS tranches, `"Government"`
+    /// for treasury securities.
+    #[serde(default)]
+    pub sector: String,
 }
 
 /// Phase 57: Detailed fund view for the fund detail panel.
@@ -2766,6 +2905,14 @@ pub struct FundDetail {
     pub top_holdings: Vec<(String, f64)>,
     /// Resolved portfolio rows with instrument names.
     pub portfolio_holdings: Vec<FundHoldingRow>,
+    /// v4.23 WS4: uninvested brokerage cash — part of AUM but not a
+    /// portfolio holding; the allocation drill-down shows it as a
+    /// `"Cash & Equivalents"` leaf so rings sum to total AUM.
+    #[serde(default)]
+    pub cash_value: f64,
+    /// v4.23 WS4: brokerage cash frozen against open orders (same role).
+    #[serde(default)]
+    pub frozen_cash: f64,
 }
 
 /// Phase 57: KNF audit finding row for the regulatory UI.
@@ -3208,6 +3355,79 @@ pub struct CouncilResolutionRow {
     pub votes_against: u32,
     pub abstentions: u32,
     pub turn: u32,
+    /// v4.23 WS7: Region whose council held the vote — populated for
+    /// megaregion assembly aggregation (member-region unions share titles);
+    /// empty for single-region rows. serde(default) tolerates old payloads.
+    #[serde(default)]
+    pub region_id: String,
+    /// v4.23 WS7: What the ordinance actually does — derived from the
+    /// resolution type and, for adopted spending resolutions, the linked
+    /// execution mandate's real appropriation/scope/effects.
+    #[serde(default)]
+    pub description: String,
+}
+
+/// v4.23 WS7: Human-readable description of what a council resolution
+/// actually does, derived from its real type plus the linked execution
+/// mandate (adopted spending resolutions impose an `UnfundedMandate` whose
+/// `source_bill_id` is `COUNCIL-RES-{region_id}-{mandate_key}` — real
+/// appropriation amount, scope and effects). Rejected resolutions describe
+/// the proposal that was declined. Deterministic; never fabricated.
+fn council_resolution_description(
+    resolution_type: &str,
+    status: &str,
+    region_id: &str,
+    mandates: &[crate::politics::local_legislation::UnfundedMandate],
+) -> String {
+    // Agenda `mandate_key` per resolution type — must mirror the keys used
+    // by `politics::local_legislation::process_regional_council_sessions`.
+    let mandate_key = match resolution_type {
+        "infrastructure" => "infra",
+        other => other,
+    };
+    let source_id = format!("COUNCIL-RES-{region_id}-{mandate_key}");
+    let mandate = mandates.iter().find(|m| m.source_bill_id == source_id);
+
+    let base = match resolution_type {
+        "infrastructure" => {
+            "Appropriation ordinance funding regional roads, water, and \
+             public-works upgrades toward the 60-point JST service standard."
+        }
+        "sanitation" => {
+            "Emergency appropriation for waste-collection routes, landfill \
+             capacity, and sewerage to clear the sanitation backlog."
+        }
+        "budget" => {
+            "Austerity ordinance — on adoption the council cuts local \
+             expenditures by 5% immediately to stabilize the budget."
+        }
+        _ => "Ordinance debated and voted by the regional council.",
+    };
+
+    let mut desc = base.to_string();
+    match (status, mandate) {
+        ("adopted", Some(m)) => {
+            desc.push_str(&format!(
+                " Appropriates {} — {} {}",
+                crate::ui::snapshot_press::fmt_money(m.required_spending_per_region),
+                m.scope,
+                m.effects
+            ));
+        }
+        ("adopted", None) => {
+            if resolution_type != "budget" {
+                desc.push_str(
+                    " The execution mandate has completed or is being funded \
+                     through the normal council-funding process.",
+                );
+            }
+        }
+        ("rejected", _) => {
+            desc.push_str(" The council declined the proposal.");
+        }
+        _ => {}
+    }
+    desc
 }
 
 /// v4.20 WS4: Per-councilor vote record for a council resolution — mirrors
@@ -3301,6 +3521,14 @@ pub struct AdvisoryCouncilSnapshot {
     pub aggregate_loyalty: f64,
     pub coup_risk_threshold: f64,
     pub coup_cooldown_until_turn: u32,
+    /// v4.23.0 WS2: Faction aggregates — member count, mean loyalty, total
+    /// influence — grouped from the live member list.
+    pub factions: Vec<CouncilFactionRow>,
+    /// v4.23.0 WS2: Decrees issued by the ruler with the council's recorded
+    /// opinion (the autocratic legislative record).
+    pub decrees: Vec<CouncilDecreeRow>,
+    /// v4.23.0 WS2: Petitions factions carried to the ruler.
+    pub petitions: Vec<CouncilPetitionRow>,
 }
 
 /// A single council member row.
@@ -3310,8 +3538,66 @@ pub struct CouncilMemberRow {
     pub vip_id: String,
     pub name: String,
     pub faction: String,
+    /// v4.23.0 WS2: Faction category (Nobility, Military, Religious, ...) —
+    /// used to group the Factions tab.
+    pub faction_type: String,
     pub loyalty: f64,
     pub influence: u32,
+}
+
+/// v4.23.0 WS2: One faction inside an autocratic legislature — aggregated
+/// from the real member list (count, mean loyalty, total influence).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CouncilFactionRow {
+    pub faction: String,
+    pub faction_type: String,
+    pub members: u32,
+    pub avg_loyalty: f64,
+    pub total_influence: f64,
+}
+
+/// v4.23.0 WS2: A `{vip_id, display name}` pair — lets the UI render a
+/// hover-card link without a second lookup.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct VipLinkRow {
+    pub vip_id: String,
+    pub name: String,
+}
+
+/// v4.23.0 WS2: A decree row for the autocratic legislature view.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CouncilDecreeRow {
+    pub id: String,
+    pub title: String,
+    pub domain: String,
+    pub issued_turn: u32,
+    pub net_opinion: f64,
+    /// Supporters/opponents as `{vip_id, name}` pairs resolved at build
+    /// time (deceased councilors included).
+    pub supporters: Vec<VipLinkRow>,
+    pub opponents: Vec<VipLinkRow>,
+    /// "Promulgated" | "Promulgated over Council Objection" | "Withdrawn".
+    pub status: String,
+}
+
+/// v4.23.0 WS2: A petition row for the autocratic legislature view.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CouncilPetitionRow {
+    pub id: String,
+    pub faction: String,
+    pub petitioner_vip_id: String,
+    pub petitioner_name: String,
+    pub subject: String,
+    pub filed_turn: u32,
+    pub urgency: f64,
+    /// "Pending" | "Granted" | "Rejected" | "Ignored".
+    pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resolved_turn: Option<u32>,
 }
 
 /// Royal dynasty snapshot for the Parliament tab (monarchies).
@@ -3328,6 +3614,63 @@ pub struct RoyalDynastySnapshot {
     /// Phase 86: Genealogy event history.
     pub marriage_history: Vec<MarriageEventRow>,
     pub birth_history: Vec<BirthEventRow>,
+    /// v4.23.0 WS2: Succession law label describing the rule the succession
+    /// engine applies (primogeniture for hereditary crowns; elective note
+    /// for elective monarchies).
+    pub succession_law: String,
+    /// v4.23.0 WS2: Dead members who held the throne — the reign history.
+    pub previous_monarchs: Vec<PreviousMonarchRow>,
+    /// v4.23.0 WS2: Active court intrigues — derived from real council
+    /// disloyalty, regent ambition, and rival claimants.
+    pub intrigues: Vec<CourtIntrigueRow>,
+    /// v4.23.0 WS2: Living claimants in the succession line behind the heir.
+    pub pretenders: Vec<PretenderRow>,
+}
+
+/// v4.23.0 WS2: A dead member who reigned — one row of reign history.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct PreviousMonarchRow {
+    pub vip_id: String,
+    pub name: String,
+    /// Turn the reign began (None for founding-era monarchs without a
+    /// recorded accession).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reign_start_turn: Option<u32>,
+    /// Turn the reign ended (the monarch's death turn).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reign_end_turn: Option<u32>,
+    pub death_cause: String,
+    pub age_at_death: u32,
+}
+
+/// v4.23.0 WS2: One active court intrigue — a real state condition the UI
+/// surfaces: council faction conspiracy, regent power grab, or a rival
+/// claimant. `severity` (0.0–1.0) drives the row tint.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CourtIntrigueRow {
+    pub vip_id: String,
+    pub name: String,
+    /// "Faction Conspiracy" | "Regent Ambition" | "Rival Claimant".
+    pub kind: String,
+    pub description: String,
+    pub severity: f64,
+}
+
+/// v4.23.0 WS2: A living claimant in the succession line behind the heir
+/// apparent — the pretenders table.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct PretenderRow {
+    pub vip_id: String,
+    pub name: String,
+    pub age: u32,
+    pub relation: String,
+    pub succession_order: u32,
+    /// Claim strength derived from line position (1/order).
+    pub claim_strength: f64,
+    pub trait_label: String,
 }
 
 /// A single dynasty member row.
@@ -3351,6 +3694,10 @@ pub struct DynastyMemberRow {
     pub gender: String,
     /// Phase 92: Portrait seed for deterministic avatar generation.
     pub portrait_seed: String,
+    /// v4.23.0 WS2: Turn this member's reign began (monarchs only) — lets
+    /// the tree card show "reigns since T{n}".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reign_start_turn: Option<u32>,
 }
 
 /// Phase 86: A royal marriage event row for UI display.
@@ -4129,7 +4476,7 @@ pub fn build_country_snapshot(
         population: country.budget.population,
         sovereign_default_turns: country.sovereign_default_turns_remaining,
         deltas,
-        government: build_government_snapshot(country, country_year(country)),
+        government: build_government_snapshot(country, country_year(country), companies, buildings),
         parliament: build_parliament_snapshot(country, country_year(country)),
         regions,
         finance: build_finance_snapshot(country, companies),
@@ -4146,6 +4493,151 @@ pub fn build_country_snapshot(
         advisory_council: build_advisory_council_snapshot(country),
         royal_dynasty: build_royal_dynasty_snapshot(country),
         government_form: country.politics.government_form.display_name().to_string(),
+    }
+}
+
+// ============================================================================
+// v4.23 WS4: COUNTRY TRADE TREEMAP (settled legs, SITC-grouped)
+// ============================================================================
+
+/// One row of the per-country trade treemap — a commodity's settled
+/// quantity and value in one flow direction (exports / imports /
+/// domestic), grouped under a SITC Rev.2 section for the chart.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CountryTradeTreemapEntry {
+    /// Commodity display name (serde key, e.g. `"hard_coal"`).
+    pub commodity: String,
+    /// SITC Rev.2 one-digit section label (`Commodity::sitc_section`).
+    pub sitc_section: String,
+    /// Settled physical units this turn.
+    pub quantity: f64,
+    /// Settled currency value this turn (Σ qty × execution price).
+    pub value: f64,
+    /// Volume-weighted average execution price (0 when qty is 0).
+    pub avg_price: f64,
+    /// Share of the mode's total value (0.0–1.0).
+    pub share: f64,
+}
+
+/// v4.23 WS4: Per-country trade treemap — REAL settled trade legs this
+/// turn, replacing the old global cleared-volume bound
+/// (`snapshot_society::TradeTreemapDto`, still emitted for the legacy
+/// command surface).
+///
+/// * `exports` — domestic seller → foreign endpoint: modeled-country
+///   buyers (the order book) plus the FOREIGN-SECTOR world-market sweep.
+/// * `imports` — foreign seller → domestic endpoint, same two sources.
+/// * `domestic` — both-endpoints-domestic order-book legs plus
+///   ministry / JST / public-works procurement (domestic-only books).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CountryTradeTreemapDto {
+    /// Country name.
+    pub country: String,
+    /// Export legs sorted by value desc (commodity name breaks ties —
+    /// deterministic).
+    pub exports: Vec<CountryTradeTreemapEntry>,
+    /// Import legs, same ordering.
+    pub imports: Vec<CountryTradeTreemapEntry>,
+    /// Domestic legs, same ordering.
+    pub domestic: Vec<CountryTradeTreemapEntry>,
+    /// Total settled export value this turn.
+    pub total_exports: f64,
+    /// Total settled import value this turn.
+    pub total_imports: f64,
+    /// Total settled domestic trade value this turn.
+    pub total_domestic: f64,
+}
+
+/// v4.23 WS4: Build the per-country trade treemap from the settled
+/// trade-leg maps the turn engine stages into
+/// `macro_indicators.extra` — `{commodity_key: {"quantity", "value"}}`
+/// keyed by the commodity's serde name, written by the order-book
+/// endpoint-classification pass and merged by the ROW export/import
+/// sweeps in `engine::turn`.
+///
+/// `calendar_year` era-gates every row by `Commodity::introduction_year`
+/// and additionally hides `RareEarthElements` before the industrial
+/// separation era (~1965) — rare earths were not a traded commodity
+/// class at a 1900 start even where legacy monazite placers exist.
+pub fn build_country_trade_treemap(
+    country: &Country,
+    calendar_year: u32,
+) -> CountryTradeTreemapDto {
+    use std::str::FromStr;
+
+    /// Industrial solvent-extraction era — the treemap's REE visibility
+    /// gate (narrower than `introduction_year`, which stays 0 so the
+    /// 1890 monazite method remains seedable at genesis).
+    const REE_TREEMAP_ERA: u32 = 1965;
+
+    let read_legs = |key: &str| -> Vec<CountryTradeTreemapEntry> {
+        let mut entries: Vec<CountryTradeTreemapEntry> = Vec::new();
+        if let Some(obj) = country
+            .macro_indicators
+            .extra
+            .get(key)
+            .and_then(|v| v.as_object())
+        {
+            for (k, v) in obj {
+                let Ok(c) = Commodity::from_str(k) else {
+                    continue;
+                };
+                if calendar_year < c.introduction_year() {
+                    continue;
+                }
+                if c == Commodity::RareEarthElements && calendar_year < REE_TREEMAP_ERA {
+                    continue;
+                }
+                let qty = v
+                    .get("quantity")
+                    .and_then(|x| x.as_f64())
+                    .unwrap_or(0.0);
+                let val = v
+                    .get("value")
+                    .and_then(|x| x.as_f64())
+                    .unwrap_or(0.0);
+                if qty <= 0.0 || val <= 0.0 {
+                    continue;
+                }
+                entries.push(CountryTradeTreemapEntry {
+                    commodity: c.to_string(),
+                    sitc_section: c.sitc_section().to_string(),
+                    quantity: qty,
+                    value: val,
+                    avg_price: val / qty,
+                    share: 0.0,
+                });
+            }
+        }
+        let total: f64 = entries.iter().map(|e| e.value).sum();
+        if total > 0.0 {
+            for e in &mut entries {
+                e.share = e.value / total;
+            }
+        }
+        entries.sort_by(|a, b| {
+            b.value
+                .partial_cmp(&a.value)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.commodity.cmp(&b.commodity))
+        });
+        entries
+    };
+
+    let exports = read_legs("trade_exports_by_commodity");
+    let imports = read_legs("trade_imports_by_commodity");
+    let domestic = read_legs("trade_domestic_by_commodity");
+
+    CountryTradeTreemapDto {
+        country: country.name.clone(),
+        total_exports: exports.iter().map(|e| e.value).sum(),
+        total_imports: imports.iter().map(|e| e.value).sum(),
+        total_domestic: domestic.iter().map(|e| e.value).sum(),
+        exports,
+        imports,
+        domestic,
     }
 }
 
@@ -5193,6 +5685,13 @@ fn build_region_detail(
                     votes_against: r.votes_against,
                     abstentions: r.abstentions,
                     turn: r.turn,
+                    region_id: String::new(),
+                    description: council_resolution_description(
+                        &r.resolution_type,
+                        &r.status,
+                        region_id,
+                        &country.politics.active_mandates,
+                    ),
                 })
                 .collect()
         })
@@ -5581,6 +6080,13 @@ fn build_megaregion_detail(
                     votes_against: r.votes_against,
                     abstentions: r.abstentions,
                     turn: r.turn,
+                    region_id: region.id.clone(),
+                    description: council_resolution_description(
+                        &r.resolution_type,
+                        &r.status,
+                        &region.id,
+                        &country.politics.active_mandates,
+                    ),
                 }
             }));
             council_roll_calls.extend(gov.council.roll_calls.iter().map(|rc| {
@@ -5667,55 +6173,177 @@ fn build_megaregion_detail(
 }
 
 /// Build advisory council snapshot for autocracies.
+/// v4.23.0 WS2: now emits the full autocratic legislative record —
+/// faction aggregates, decree history, and the petition log — all
+/// resolved from live council state (names looked up across living AND
+/// deceased registry entries so historical councilors stay named).
 fn build_advisory_council_snapshot(country: &Country) -> Option<AdvisoryCouncilSnapshot> {
     let council = country.politics.advisory_council.as_ref()?;
     let registry = &country.politics.vip_registry;
+    // Name resolution that also covers the deceased archive — a purged or
+    // dead councilor must still render a name on the decree/petition record.
+    let name_of = |vip_id: &str| -> String {
+        registry
+            .as_ref()
+            .and_then(|r| {
+                r.get(vip_id).or_else(|| {
+                    r.deceased.iter().find(|v| v.id == vip_id)
+                })
+            })
+            .map(|v| v.full_name.clone())
+            .unwrap_or_else(|| vip_id.to_string())
+    };
     let members = council
         .members
         .iter()
         .map(|m| {
-            let name = registry
-                .as_ref()
-                .and_then(|r| r.get(&m.vip_id))
-                .map(|v| v.full_name.clone())
-                .unwrap_or_else(|| m.vip_id.clone());
             CouncilMemberRow {
                 vip_id: m.vip_id.clone(),
-                name,
+                name: name_of(&m.vip_id),
                 faction: m.faction.clone(),
+                faction_type: format!("{:?}", m.faction_type),
                 loyalty: m.loyalty,
                 influence: m.influence as u32,
             }
         })
         .collect();
+
+    // v4.23.0 WS2: faction aggregates — grouped from the live member list,
+    // ordered by total influence (most powerful faction first).
+    let mut faction_map: BTreeMap<String, (String, u32, f64, f64)> = BTreeMap::new();
+    for m in &council.members {
+        let e = faction_map
+            .entry(m.faction.clone())
+            .or_insert_with(|| (format!("{:?}", m.faction_type), 0, 0.0, 0.0));
+        e.1 += 1;
+        e.2 += m.loyalty;
+        e.3 += m.influence;
+    }
+    let mut factions: Vec<CouncilFactionRow> = faction_map
+        .into_iter()
+        .map(|(faction, (faction_type, count, loyalty_sum, influence))| CouncilFactionRow {
+            faction,
+            faction_type,
+            members: count,
+            avg_loyalty: if count > 0 {
+                loyalty_sum / count as f64
+            } else {
+                0.0
+            },
+            total_influence: influence,
+        })
+        .collect();
+    factions.sort_by(|a, b| {
+        b.total_influence
+            .partial_cmp(&a.total_influence)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.faction.cmp(&b.faction))
+    });
+
+    let decrees = council
+        .decrees
+        .iter()
+        .map(|d| CouncilDecreeRow {
+            id: d.id.clone(),
+            title: d.title.clone(),
+            domain: d.domain.clone(),
+            issued_turn: d.issued_turn,
+            net_opinion: d.net_opinion,
+            supporters: d
+                .supporters
+                .iter()
+                .map(|id| VipLinkRow {
+                    vip_id: id.clone(),
+                    name: name_of(id),
+                })
+                .collect(),
+            opponents: d
+                .opponents
+                .iter()
+                .map(|id| VipLinkRow {
+                    vip_id: id.clone(),
+                    name: name_of(id),
+                })
+                .collect(),
+            status: d.status.clone(),
+        })
+        .collect();
+
+    let petitions = council
+        .petitions
+        .iter()
+        .map(|p| CouncilPetitionRow {
+            id: p.id.clone(),
+            faction: p.faction.clone(),
+            petitioner_vip_id: p.petitioner_vip_id.clone(),
+            petitioner_name: name_of(&p.petitioner_vip_id),
+            subject: p.subject.clone(),
+            filed_turn: p.filed_turn,
+            urgency: p.urgency,
+            status: p.status.clone(),
+            resolved_turn: p.resolved_turn,
+        })
+        .collect();
+
     Some(AdvisoryCouncilSnapshot {
-        council_type: format!("{:?}", council.council_type),
+        // v4.23.0 WS2: human display name ("Royal Council", "Junta",
+        // "Supreme Religious Council", "Politburo") — not the Debug tag.
+        council_type: crate::politics::advisory_council::council_type_name(
+            &council.council_type,
+        )
+        .to_string(),
         members,
         aggregate_loyalty: council.aggregate_loyalty,
         coup_risk_threshold: council.coup_risk_threshold,
         coup_cooldown_until_turn: council.coup_cooldown_until_turn,
+        factions,
+        decrees,
+        petitions,
     })
 }
 
 /// Build royal dynasty snapshot for monarchies.
+/// v4.23.0 WS2: resolves names across living AND deceased registry entries
+/// (dead monarchs/parents must still render names in the tree and the
+/// reign history), flags members dead via `death_turn`/deceased archive
+/// (the old code only checked `vip.is_dead`, which misses archived dead),
+/// and derives succession law, previous monarchs, court intrigues and
+/// pretenders from the real succession/council state.
 fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapshot> {
     let dynasty = country.politics.royal_dynasty.as_ref()?;
     let registry = &country.politics.vip_registry;
-    let resolve_name = |vip_id: &str| -> String {
-        registry
-            .as_ref()
-            .and_then(|r| r.get(vip_id))
+    // v4.23.0 WS2: resolution that also reaches into the deceased archive.
+    let vip_any = |vip_id: &str| -> Option<&crate::politics::vip_registry::Vip> {
+        registry.as_ref().and_then(|r| {
+            r.get(vip_id)
+                .or_else(|| r.deceased.iter().find(|v| v.id == vip_id))
+        })
+    };
+    let resolve_name_full = |vip_id: &str| -> String {
+        vip_any(vip_id)
             .map(|v| v.full_name.clone())
             .unwrap_or_else(|| vip_id.to_string())
+    };
+    // v4.23.0 WS2: real dead check — registry flag, archived dead, or the
+    // member's own recorded death turn.
+    let member_dead = |m: &crate::politics::succession::RoyalFamilyMember| -> bool {
+        m.death_turn.is_some()
+            || registry
+                .as_ref()
+                .map(|r| {
+                    r.get(&m.vip_id).map(|v| v.is_dead).unwrap_or(false)
+                        || r.deceased.iter().any(|v| v.id == m.vip_id)
+                })
+                .unwrap_or(false)
     };
     let members = dynasty
         .members
         .iter()
         .map(|m| {
-            let vip = registry.as_ref().and_then(|r| r.get(&m.vip_id));
+            let vip = vip_any(&m.vip_id);
             DynastyMemberRow {
                 vip_id: m.vip_id.clone(),
-                name: resolve_name(&m.vip_id),
+                name: resolve_name_full(&m.vip_id),
                 relation: format!("{:?}", m.relation),
                 age: vip.map(|v| v.age).unwrap_or(0),
                 succession_order: m.succession_order,
@@ -5725,33 +6353,36 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                 mother_vip_id: m.mother_vip_id.clone(),
                 spouse_vip_id: m.spouse_vip_id.clone(),
                 children_vip_ids: m.children_vip_ids.clone(),
-                is_dead: vip.map(|v| v.is_dead).unwrap_or(false),
+                is_dead: member_dead(m),
                 death_cause: m.death_cause.as_ref().map(|c| format!("{:?}", c)),
                 // Phase 92: Gender and portrait seed for visual indicators.
                 gender: vip.map(|v| v.gender.clone()).unwrap_or_default(),
                 portrait_seed: vip.map(|v| v.portrait_seed.clone()).unwrap_or_default(),
+                reign_start_turn: m.reign_start_turn,
             }
         })
         .collect();
     let current_monarch_name = dynasty
         .current_monarch_id
         .as_ref()
-        .map(|id| resolve_name(id))
+        .map(|id| resolve_name_full(id))
         .unwrap_or_default();
     let current_regent_name = dynasty
         .current_regent_id
         .as_ref()
-        .map(|id| resolve_name(id))
+        .map(|id| resolve_name_full(id))
         .unwrap_or_default();
 
     // Phase 86: Build marriage and birth event history rows.
+    // v4.23.0 WS2: resolve through the deceased archive too — a dead
+    // spouse/parent must still render a name, not a raw VIP id.
     let marriage_history = dynasty
         .marriage_history
         .iter()
         .map(|m| MarriageEventRow {
             turn: m.turn,
-            spouse1_name: resolve_name(&m.spouse1_vip_id),
-            spouse2_name: resolve_name(&m.spouse2_vip_id),
+            spouse1_name: resolve_name_full(&m.spouse1_vip_id),
+            spouse2_name: resolve_name_full(&m.spouse2_vip_id),
             significance: format!("{:?}", m.political_significance),
             foreign_dynasty: m.foreign_dynasty.clone(),
         })
@@ -5761,12 +6392,172 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
         .iter()
         .map(|b| BirthEventRow {
             turn: b.turn,
-            child_name: resolve_name(&b.child_vip_id),
-            father_name: resolve_name(&b.father_vip_id),
-            mother_name: resolve_name(&b.mother_vip_id),
+            child_name: resolve_name_full(&b.child_vip_id),
+            father_name: resolve_name_full(&b.father_vip_id),
+            mother_name: resolve_name_full(&b.mother_vip_id),
             is_legitimate: b.is_legitimate,
         })
         .collect();
+
+    // v4.23.0 WS2: Succession law label — the rule the engine actually
+    // applies. `recalculate_succession_order` ranks the monarch's
+    // legitimate children eldest-first with no gender clause (absolute
+    // primogeniture); collateral dynasts follow. Elective crowns route
+    // through the same dynastic line, so the label names the election.
+    let succession_law = match country.politics.government_form {
+        crate::politics::system::GovernmentForm::ElectiveMonarchy => {
+            "Elective — foremost legitimate dynast acclaimed to the throne".to_string()
+        }
+        _ => {
+            "Absolute Primogeniture — eldest legitimate child inherits; \
+             collateral dynasts follow in line"
+                .to_string()
+        }
+    };
+
+    // v4.23.0 WS2: Reign history — dead members who held the throne. A
+    // member "reigned" when accession stamped `reign_start_turn` (v4.23.0+)
+    // or they carried the Monarch relation into death (older saves).
+    let mut previous_monarchs: Vec<PreviousMonarchRow> = dynasty
+        .members
+        .iter()
+        .filter(|m| {
+            member_dead(m)
+                && (m.relation == crate::politics::succession::RoyalRelation::Monarch
+                    || m.reign_start_turn.is_some())
+        })
+        .map(|m| PreviousMonarchRow {
+            vip_id: m.vip_id.clone(),
+            name: resolve_name_full(&m.vip_id),
+            reign_start_turn: m.reign_start_turn,
+            reign_end_turn: m
+                .death_turn
+                .or_else(|| vip_any(&m.vip_id).and_then(|v| v.death_turn)),
+            death_cause: m
+                .death_cause
+                .as_ref()
+                .map(|c| format!("{:?}", c))
+                .unwrap_or_else(|| "—".to_string()),
+            age_at_death: vip_any(&m.vip_id).map(|v| v.age).unwrap_or(0),
+        })
+        .collect();
+    previous_monarchs.sort_by_key(|m| m.reign_end_turn.unwrap_or(u32::MAX));
+
+    // v4.23.0 WS2: Pretenders — living legitimate claimants in the
+    // succession line behind the monarch and the heir apparent. Claim
+    // strength is positional (1/order): the next claimant has the
+    // strongest claim.
+    let current_monarch_id = dynasty.current_monarch_id.clone().unwrap_or_default();
+    let pretenders: Vec<PretenderRow> = dynasty
+        .succession_line()
+        .into_iter()
+        .filter(|m| {
+            m.vip_id != current_monarch_id && !m.is_heir_apparent && !member_dead(m)
+        })
+        .map(|m| {
+            let vip = vip_any(&m.vip_id);
+            PretenderRow {
+                vip_id: m.vip_id.clone(),
+                name: resolve_name_full(&m.vip_id),
+                age: vip.map(|v| v.age).unwrap_or(0),
+                relation: format!("{:?}", m.relation),
+                succession_order: m.succession_order,
+                claim_strength: 1.0 / m.succession_order.max(1) as f64,
+                trait_label: vip
+                    .map(|v| {
+                        if !v.main_trait.is_empty() {
+                            v.main_trait.clone()
+                        } else {
+                            v.traits.first().cloned().unwrap_or_else(|| "—".to_string())
+                        }
+                    })
+                    .unwrap_or_else(|| "—".to_string()),
+            }
+        })
+        .collect();
+
+    // v4.23.0 WS2: Court intrigues — every row is a real state condition
+    // the politics engine already tracks, not decorative filler:
+    //  (a) disloyal council members (loyalty below the 0.2 revolt
+    //      threshold — the same check that feeds coup risk),
+    //  (b) a regent whose traits drive PowerGrab/Usurpation behavior,
+    //  (c) Ambitious pretenders in the succession line.
+    let mut intrigues: Vec<CourtIntrigueRow> = Vec::new();
+    if let Some(ref council) = country.politics.advisory_council {
+        for m in council.disloyal_members() {
+            intrigues.push(CourtIntrigueRow {
+                vip_id: m.vip_id.clone(),
+                name: resolve_name_full(&m.vip_id),
+                kind: "Faction Conspiracy".to_string(),
+                description: format!(
+                    "{} of the {} faction is disloyal to the crown (loyalty {:.2}).",
+                    resolve_name_full(&m.vip_id),
+                    m.faction,
+                    m.loyalty
+                ),
+                severity: ((0.2 - m.loyalty) / 0.2).clamp(0.0, 1.0),
+            });
+        }
+    }
+    if dynasty.regency_active {
+        if let Some(ref regent_id) = dynasty.current_regent_id {
+            if let Some(regent_vip) = registry.as_ref().and_then(|r| r.get(regent_id)) {
+                use crate::politics::succession::{regent_behavior, RegentBehavior};
+                let (description, severity) = match regent_behavior(regent_vip) {
+                    RegentBehavior::PowerGrab => (
+                        format!(
+                            "Regent {} delays the handover of power to the heir.",
+                            resolve_name_full(regent_id)
+                        ),
+                        0.65,
+                    ),
+                    RegentBehavior::Usurpation => (
+                        format!(
+                            "Regent {} is positioned to seize the throne outright.",
+                            resolve_name_full(regent_id)
+                        ),
+                        0.95,
+                    ),
+                    RegentBehavior::Stewardship => (String::new(), 0.0),
+                };
+                if severity > 0.0 {
+                    intrigues.push(CourtIntrigueRow {
+                        vip_id: regent_id.clone(),
+                        name: resolve_name_full(regent_id),
+                        kind: "Regent Ambition".to_string(),
+                        description,
+                        severity,
+                    });
+                }
+            }
+        }
+    }
+    for p in &pretenders {
+        if registry
+            .as_ref()
+            .and_then(|r| r.get(&p.vip_id))
+            .map(|v| v.has_trait("Ambitious"))
+            .unwrap_or(false)
+        {
+            intrigues.push(CourtIntrigueRow {
+                vip_id: p.vip_id.clone(),
+                name: p.name.clone(),
+                kind: "Rival Claimant".to_string(),
+                description: format!(
+                    "{} ({} in line, {}) harbors Ambitious designs on the throne.",
+                    p.name,
+                    ordinal_suffix(p.succession_order),
+                    p.relation
+                ),
+                severity: p.claim_strength.clamp(0.0, 1.0),
+            });
+        }
+    }
+    intrigues.sort_by(|a, b| {
+        b.severity
+            .partial_cmp(&a.severity)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     Some(RoyalDynastySnapshot {
         dynasty_name: dynasty.dynasty_name.clone(),
@@ -5778,7 +6569,27 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
         members,
         marriage_history,
         birth_history,
+        succession_law,
+        previous_monarchs,
+        intrigues,
+        pretenders,
     })
+}
+
+/// v4.23.0 WS2: Ordinal label for succession positions ("1st", "2nd",
+/// "3rd", "4th", ...) used in intrigue descriptions.
+fn ordinal_suffix(n: u32) -> String {
+    let suffix = if (11..=13).contains(&(n % 100)) {
+        "th"
+    } else {
+        match n % 10 {
+            1 => "st",
+            2 => "nd",
+            3 => "rd",
+            _ => "th",
+        }
+    };
+    format!("{}{}", n, suffix)
 }
 
 /// Phase 35: Build the Finance tab snapshot from existing country data.
@@ -6094,8 +6905,443 @@ fn build_ministry_expenditure_breakdown(country: &Country) -> Vec<MinistryExpend
         .collect()
 }
 
+/// v4.23 WS4: Qualitative policy KPIs & targets for a ministry's Reports
+/// drawer, keyed by the ministry's competencies. Every `value` is measured
+/// from live engine state — the KPI table never fabricates a number; where
+/// a portfolio has no measurable gauge the row is simply omitted.
+fn ministry_policy_kpis(
+    ministry: &crate::politics::ministries::Ministry,
+    country: &Country,
+    companies: &[Company],
+    buildings: &[crate::entities::Building],
+) -> Vec<MinistryKpiRow> {
+    use crate::politics::ministries::GovernmentCompetency as Comp;
+
+    /// Small helpers so each arm stays a declarative row.
+    fn kpi(label: &str, value: f64, unit: &str, target: &str, status: &str) -> MinistryKpiRow {
+        MinistryKpiRow {
+            label: label.to_string(),
+            value,
+            unit: unit.to_string(),
+            target: target.to_string(),
+            status: status.to_string(),
+        }
+    }
+    /// Higher-is-better assessment: ≥target on_track, ≥70% of target at_risk.
+    fn hib(value: f64, target: f64) -> &'static str {
+        if value >= target {
+            "on_track"
+        } else if value >= target * 0.7 {
+            "at_risk"
+        } else {
+            "off_track"
+        }
+    }
+    /// Lower-is-better assessment: ≤target on_track, ≤1.5× target at_risk.
+    fn lib(value: f64, target: f64) -> &'static str {
+        if value <= target {
+            "on_track"
+        } else if value <= target * 1.5 {
+            "at_risk"
+        } else {
+            "off_track"
+        }
+    }
+    /// Sector-aggregate helper: firm count, workforce, settled sales.
+    fn sector_stats(
+        companies: &[Company],
+        sector: crate::registries::enums::Sector,
+    ) -> (usize, f64, f64) {
+        let mut n = 0usize;
+        let mut fte = 0.0f64;
+        let mut sales = 0.0f64;
+        for c in companies {
+            if c.sector == sector {
+                n += 1;
+                fte += c.fulfilled_fte as f64;
+                sales += c.turn_settled_sales;
+            }
+        }
+        (n, fte, sales)
+    }
+    /// Sum of regional capacity-pool entries for the given capacity types.
+    fn capacity_sum(country: &Country, types: &[crate::registries::enums::CapacityType]) -> f64 {
+        country
+            .regions
+            .iter()
+            .flat_map(|r| r.capacity_pool.iter())
+            .filter(|(t, _)| types.contains(t))
+            .map(|(_, v)| *v)
+            .sum()
+    }
+
+    let inspectorate = country.politics.inspectorate_state.as_ref();
+    let gdp = country.budget.gdp.max(1.0);
+    let labor = &country.macro_indicators.labor_market;
+    let health = &country.macro_indicators.health_statistics;
+    let education = &country.macro_indicators.education_statistics;
+    let grid = &country.power_grid_state;
+
+    let mut rows: Vec<MinistryKpiRow> = Vec::new();
+    for comp in &ministry.competencies {
+        if rows.len() >= 6 {
+            break;
+        }
+        match comp {
+            Comp::Treasury => {
+                let reserves = country.budget.liquid_reserves;
+                rows.push(kpi(
+                    "Liquid reserves",
+                    reserves,
+                    "¤",
+                    "> 0 — solvent",
+                    if reserves > 0.0 { "on_track" } else { "off_track" },
+                ));
+                let debt_share = country.foreign_debt / gdp * 100.0;
+                rows.push(kpi(
+                    "Foreign debt",
+                    debt_share,
+                    "% of GDP",
+                    "≤ 25%",
+                    lib(debt_share, 25.0),
+                ));
+                let inflation = country.macro_indicators.inflation;
+                rows.push(kpi(
+                    "Inflation",
+                    inflation,
+                    "%",
+                    "0 – 4%",
+                    if (0.0..=4.0).contains(&inflation) {
+                        "on_track"
+                    } else if inflation <= 8.0 {
+                        "at_risk"
+                    } else {
+                        "off_track"
+                    },
+                ));
+            }
+            Comp::Defense => {
+                let manpower = country.order_of_battle.total_manpower() as f64;
+                rows.push(kpi(
+                    "Standing forces",
+                    manpower,
+                    "personnel",
+                    "Adequate deterrent",
+                    if manpower > 0.0 { "on_track" } else { "at_risk" },
+                ));
+                let units = country.order_of_battle.unit_count() as f64;
+                rows.push(kpi(
+                    "Combat units",
+                    units,
+                    "units",
+                    "≥ 10",
+                    hib(units, 10.0),
+                ));
+                let stockpile: f64 = country.military_stockpile.values().sum();
+                rows.push(kpi(
+                    "Armament stockpile",
+                    stockpile,
+                    "units",
+                    "War reserve",
+                    "watch",
+                ));
+                let wars = country.at_war_with.len() as f64;
+                rows.push(kpi(
+                    "Active wars",
+                    wars,
+                    "count",
+                    "0 — peace",
+                    if wars <= 0.0 { "on_track" } else { "off_track" },
+                ));
+            }
+            Comp::InternalSecurity => {
+                let unrest = country.macro_indicators.social_unrest;
+                rows.push(kpi("Social unrest", unrest, "%", "≤ 25", lib(unrest, 25.0)));
+                let corruption = inspectorate.map(|i| i.corruption_index * 100.0).unwrap_or(0.0);
+                rows.push(kpi(
+                    "Corruption index",
+                    corruption,
+                    "%",
+                    "≤ 20%",
+                    lib(corruption, 20.0),
+                ));
+                let capacity = inspectorate
+                    .map(|i| {
+                        i.sanepid_capacity
+                            + i.building_inspectorate_capacity
+                            + i.environmental_inspectorate_capacity
+                            + i.labor_inspection_capacity
+                    })
+                    .unwrap_or(0.0);
+                rows.push(kpi(
+                    "Inspectorate capacity",
+                    capacity,
+                    "capacity",
+                    "Nationwide coverage",
+                    "watch",
+                ));
+            }
+            Comp::Justice => {
+                let violations = inspectorate.map(|i| i.violations_detected as f64).unwrap_or(0.0);
+                rows.push(kpi(
+                    "Violations detected",
+                    violations,
+                    "/turn",
+                    "Enforcement active",
+                    "watch",
+                ));
+                let fines = inspectorate.map(|i| i.fines_issued).unwrap_or(0.0);
+                rows.push(kpi("Fines issued", fines, "¤/turn", "Deterrence", "watch"));
+                let bribes = inspectorate
+                    .map(|i| i.bribes_accepted_this_turn as f64)
+                    .unwrap_or(0.0);
+                rows.push(kpi("Bribes taken", bribes, "/turn", "0", lib(bribes, 0.5)));
+            }
+            Comp::HeavyIndustry | Comp::LightIndustry | Comp::Agriculture => {
+                let sector = match comp {
+                    Comp::HeavyIndustry => crate::registries::enums::Sector::HeavyIndustry,
+                    Comp::LightIndustry => crate::registries::enums::Sector::LightIndustry,
+                    _ => crate::registries::enums::Sector::Agriculture,
+                };
+                let (firms, fte, sales) = sector_stats(companies, sector);
+                rows.push(kpi("Sector firms", firms as f64, "count", "Growing base", "watch"));
+                rows.push(kpi(
+                    "Sector workforce",
+                    fte,
+                    "FTE",
+                    "Full employment",
+                    if fte > 0.0 { "on_track" } else { "at_risk" },
+                ));
+                rows.push(kpi("Sector sales", sales, "¤/turn", "Positive output", "watch"));
+            }
+            Comp::Infrastructure | Comp::Transport => {
+                let links = country.transport_networks.links.len() as f64;
+                rows.push(kpi("Network links", links, "count", "Full connectivity", "watch"));
+                let (cond_sum, n) = country
+                    .transport_networks
+                    .links
+                    .values()
+                    .fold((0.0f64, 0usize), |(s, n), l| (s + l.condition, n + 1));
+                let avg_cond = if n > 0 { cond_sum / n as f64 * 100.0 } else { 0.0 };
+                rows.push(kpi(
+                    "Avg link condition",
+                    avg_cond,
+                    "%",
+                    "≥ 80%",
+                    if n == 0 { "watch" } else { hib(avg_cond, 80.0) },
+                ));
+                let cong_sum: f64 = country
+                    .transport_networks
+                    .links
+                    .values()
+                    .map(|l| l.congestion)
+                    .sum();
+                let avg_cong = if n > 0 { cong_sum / n as f64 * 100.0 } else { 0.0 };
+                rows.push(kpi(
+                    "Avg congestion",
+                    avg_cong,
+                    "%",
+                    "≤ 30%",
+                    if n == 0 { "watch" } else { lib(avg_cong, 30.0) },
+                ));
+            }
+            Comp::Education => {
+                let literacy = education.literacy_rate * 100.0;
+                rows.push(kpi("Literacy rate", literacy, "%", "≥ 90%", hib(literacy, 90.0)));
+                let higher = education.higher_education_rate * 100.0;
+                rows.push(kpi("Higher-ed rate", higher, "%", "≥ 25%", hib(higher, 25.0)));
+                use crate::registries::enums::CapacityType as CT;
+                let seats = capacity_sum(
+                    country,
+                    &[CT::PrimarySeats, CT::MiddleSeats, CT::HighSchoolSeats, CT::UniversitySlots],
+                );
+                rows.push(kpi("School seats", seats, "seats", "Per-capita coverage", "watch"));
+            }
+            Comp::Healthcare => {
+                let life = health.average_lifespan;
+                rows.push(kpi("Life expectancy", life, "yrs", "≥ 70", hib(life, 70.0)));
+                let coverage = health.hospital_coverage;
+                rows.push(kpi(
+                    "Hospital coverage",
+                    coverage,
+                    "capacity",
+                    "≥ 40",
+                    hib(coverage, 40.0),
+                ));
+                let mortality = health.mortality_rate;
+                rows.push(kpi("Mortality rate", mortality, "%", "≤ 2%", lib(mortality, 2.0)));
+            }
+            Comp::SocialWelfare => {
+                let active = country
+                    .social_programs
+                    .iter()
+                    .filter(|p| p.is_active)
+                    .count() as f64;
+                rows.push(kpi("Active programs", active, "count", "Safety net in place", "watch"));
+                let poverty = labor.poverty_pool_percent;
+                rows.push(kpi("Poverty pool", poverty, "%", "≤ 10%", lib(poverty, 10.0)));
+                let unemployment = labor.unemployment_rate;
+                rows.push(kpi("Unemployment", unemployment, "%", "≤ 5%", lib(unemployment, 5.0)));
+            }
+            Comp::Science => {
+                let rd_budget: f64 = companies.iter().map(|c| c.rd_budget).sum();
+                rows.push(kpi(
+                    "Corporate R&D budgets",
+                    rd_budget,
+                    "¤",
+                    "Funded programs",
+                    "watch",
+                ));
+                let active_firms = companies.iter().filter(|c| c.rd_budget > 0.0).count() as f64;
+                rows.push(kpi(
+                    "Research-active firms",
+                    active_firms,
+                    "count",
+                    "Widening base",
+                    "watch",
+                ));
+            }
+            Comp::Energy => {
+                let supply: f64 = grid.region_supply_mw.values().sum();
+                let demand: f64 = grid.region_demand_mw.values().sum();
+                rows.push(kpi("Grid supply", supply, "MW", "≥ demand", hib(supply, demand)));
+                let coverage = if demand > 0.0 { supply / demand * 100.0 } else { 100.0 };
+                rows.push(kpi(
+                    "Demand coverage",
+                    coverage,
+                    "%",
+                    "≥ 100%",
+                    hib(coverage, 100.0),
+                ));
+                let shedding = grid
+                    .load_shed_tiers
+                    .values()
+                    .filter(|t| !matches!(t, crate::energy::types::LoadShedTier::Normal))
+                    .count() as f64;
+                rows.push(kpi(
+                    "Load-shed regions",
+                    shedding,
+                    "count",
+                    "0",
+                    lib(shedding, 0.5),
+                ));
+            }
+            Comp::Housing => {
+                let pipeline = buildings.iter().filter(|b| b.active_project.is_some()).count() as f64;
+                rows.push(kpi(
+                    "Construction pipeline",
+                    pipeline,
+                    "projects",
+                    "Expanding stock",
+                    "watch",
+                ));
+                let (cond_sum, n) = buildings.iter().fold((0.0f64, 0usize), |(s, n), b| {
+                    (s + b.condition, n + 1)
+                });
+                let avg_cond = if n > 0 { cond_sum / n as f64 * 100.0 } else { 0.0 };
+                rows.push(kpi(
+                    "Avg building condition",
+                    avg_cond,
+                    "%",
+                    "≥ 80%",
+                    if n == 0 { "watch" } else { hib(avg_cond, 80.0) },
+                ));
+            }
+            Comp::Culture => {
+                let institutions = country.cultural_institutions.len() as f64;
+                rows.push(kpi(
+                    "Cultural institutions",
+                    institutions,
+                    "count",
+                    "Nationwide access",
+                    "watch",
+                ));
+                let heritage = buildings.iter().filter(|b| b.is_heritage_site).count() as f64;
+                rows.push(kpi("Heritage sites", heritage, "count", "Preserved", "watch"));
+            }
+            Comp::Labor => {
+                let unemployment = labor.unemployment_rate;
+                rows.push(kpi("Unemployment", unemployment, "%", "≤ 5%", lib(unemployment, 5.0)));
+                let participation = labor.labor_force_participation;
+                rows.push(kpi(
+                    "Labor participation",
+                    participation,
+                    "%",
+                    "≥ 60%",
+                    hib(participation, 60.0),
+                ));
+                let pip = inspectorate.map(|i| i.labor_inspection_capacity).unwrap_or(0.0);
+                rows.push(kpi(
+                    "Labor inspection capacity",
+                    pip,
+                    "capacity",
+                    "Nationwide coverage",
+                    "watch",
+                ));
+            }
+            Comp::Environment => {
+                let protected = (country.national_parks.len()
+                    + country.landscape_parks.len()
+                    + country.nature_reserves.len()
+                    + country.buffer_zones.len()
+                    + country.urban_parks.len()) as f64;
+                rows.push(kpi("Protected areas", protected, "count", "Expanding network", "watch"));
+                let (waste_firms, _, _) =
+                    sector_stats(companies, crate::registries::enums::Sector::WasteManagement);
+                rows.push(kpi(
+                    "Waste operators",
+                    waste_firms as f64,
+                    "count",
+                    "Full coverage",
+                    "watch",
+                ));
+                let env_cap = inspectorate
+                    .map(|i| i.environmental_inspectorate_capacity)
+                    .unwrap_or(0.0);
+                rows.push(kpi(
+                    "Env. inspection capacity",
+                    env_cap,
+                    "capacity",
+                    "Nationwide coverage",
+                    "watch",
+                ));
+            }
+            Comp::ForeignAffairs => {
+                let reputation = country.global_reputation.score;
+                rows.push(kpi(
+                    "Global reputation",
+                    reputation,
+                    "score",
+                    "≥ 0",
+                    hib(reputation, 0.0),
+                ));
+                let violations = country.global_reputation.violation_history.len() as f64;
+                rows.push(kpi("Treaty violations", violations, "count", "0", lib(violations, 0.5)));
+            }
+            Comp::StateAssets => {
+                let soes: Vec<&Company> = companies.iter().filter(|c| c.state_share >= 1.0).collect();
+                rows.push(kpi(
+                    "State enterprises",
+                    soes.len() as f64,
+                    "count",
+                    "Viable portfolio",
+                    "watch",
+                ));
+                let soe_fte: f64 = soes.iter().map(|c| c.fulfilled_fte as f64).sum();
+                rows.push(kpi("SOE workforce", soe_fte, "FTE", "Productive employment", "watch"));
+            }
+        }
+    }
+    rows
+}
+
 /// Phase 32: Build the Government tab snapshot.
-fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot {
+fn build_government_snapshot(
+    country: &Country,
+    year: u32,
+    companies: &[Company],
+    buildings: &[crate::entities::Building],
+) -> GovernmentSnapshot {
     let politics = &country.politics;
 
     // Head of State.
@@ -6147,6 +7393,22 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
                 // Ideology Step 6: Minister party coordinates for radar chart.
                 let minister_coords = minister_party
                     .map(|p| IdeologyCoordinatesDto::from(p.coordinates));
+                let minister_name = if m.minister_name.is_empty() {
+                    // Try to get the party leader's name as fallback.
+                    politics
+                        .active_parties
+                        .get(&m.minister_party)
+                        .map(|p| {
+                            if !p.leader.name.is_empty() {
+                                p.leader.name.clone()
+                            } else {
+                                format!("Minister ({})", m.minister_party)
+                            }
+                        })
+                        .unwrap_or_else(|| format!("Minister ({})", m.minister_party))
+                } else {
+                    m.minister_name.clone()
+                };
                 MinisterRow {
                     // Phase 34: Strip "Ministry of " prefix for cleaner UI display.
                     ministry_name: m
@@ -6156,22 +7418,12 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
                         .unwrap_or(&m.name)
                         .to_string(),
                     // Phase 34: Use resolve_minister_name fallback instead of "(unnamed)".
-                    minister_name: if m.minister_name.is_empty() {
-                        // Try to get the party leader's name as fallback.
-                        politics
-                            .active_parties
-                            .get(&m.minister_party)
-                            .map(|p| {
-                                if !p.leader.name.is_empty() {
-                                    p.leader.name.clone()
-                                } else {
-                                    format!("Minister ({})", m.minister_party)
-                                }
-                            })
-                            .unwrap_or_else(|| format!("Minister ({})", m.minister_party))
-                    } else {
-                        m.minister_name.clone()
-                    },
+                    minister_vip_id: politics
+                        .vip_registry
+                        .as_ref()
+                        .and_then(|r| r.get_by_name(&minister_name))
+                        .map(|v| v.id.clone()),
+                    minister_name,
                     party: m.minister_party.clone(),
                     ideology,
                     coordinates: minister_coords,
@@ -6180,6 +7432,8 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
                     // outflow total and can never render negative.
                     spent_cash: crate::politics::ministries::ministry_spent(m),
                     ministry_cash: m.ministry_cash,
+                    // v4.23 WS4: qualitative per-competency KPIs & targets.
+                    policy_kpis: ministry_policy_kpis(m, country, companies, buildings),
                 }
             })
             .collect()
@@ -6215,11 +7469,21 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
                 .map(|v| v.id.clone())
         });
 
+    // v4.23.0 WS2: same resolution for the prime minister — the canonical
+    // PM party leader is a registered VIP.
+    let pm_vip_id = country
+        .politics
+        .vip_registry
+        .as_ref()
+        .and_then(|r| r.get_by_name(&pm_name))
+        .map(|v| v.id.clone());
+
     GovernmentSnapshot {
         head_of_state_name,
         head_of_state_vip_id,
         head_of_state_role: politics.government_form.display_name().to_string(),
         pm_name,
+        pm_vip_id,
         // v4.18 WS3: report the canonical PM party (same source as pm_name).
         pm_party: canonical_pm_party.to_string(),
         pm_ideology,
@@ -6248,6 +7512,7 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
 
 /// Phase 41: Build VIP rows from the parliament struct for the Government tab.
 fn build_vip_rows(country: &Country, year: u32) -> Vec<VipRow> {
+    let registry = country.politics.vip_registry.as_ref();
     if let Some(ref parl) = country.politics.parliament_struct {
         parl.vips
             .iter()
@@ -6257,6 +7522,11 @@ fn build_vip_rows(country: &Country, year: u32) -> Vec<VipRow> {
                 let ideology = classify(v.coordinates, year).0.to_string();
                 VipRow {
                     full_name: v.full_name.clone(),
+                    // v4.23.0 WS2: resolve the persistent registry id by name —
+                    // enables the dossier hover link on every VIP row.
+                    vip_id: registry
+                        .and_then(|r| r.get_by_name(&v.full_name))
+                        .map(|vip| vip.id.clone()),
                     party: v.party.clone(),
                     role: format!("{:?}", v.role),
                     ideology,
@@ -6345,6 +7615,13 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                     name: c.name.clone(),
                     total_seats: c.total_seats,
                     speaker_name: c.presidium.speaker.full_name.clone(),
+                    // v4.23.0 WS2: resolve the speaker's registry id by name —
+                    // party-leader speakers are registered VIPs.
+                    speaker_vip_id: politics
+                        .vip_registry
+                        .as_ref()
+                        .and_then(|r| r.get_by_name(&c.presidium.speaker.full_name))
+                        .map(|v| v.id.clone()),
                     speaker_club: c.presidium.speaker_club.clone(),
                     seat_distribution,
                 }
@@ -6392,31 +7669,114 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
 
         // Recent votes from BOTH chambers — each VoteRecord is tagged with
         // the chamber that cast it so the UI can show lower/upper tallies.
+        //
+        // v4.23.0 WS2: two-pass build. Pass 1 rolls every VoteRecord up per
+        // bill — first/last vote turn, passed stages, terminal badge and
+        // enactment turn — so each row can carry the bill's full lifecycle
+        // (FIRST VOTE / STAGES PASSED / LAST VOTE / EFFECTIVE DATE / RESULT).
+        struct BillRollup {
+            first_vote: u32,
+            last_vote: u32,
+            stages_passed: u32,
+            badge: String,
+            stage: String,
+            enacted_turn: Option<u32>,
+        }
+        let mut rollups: std::collections::HashMap<String, BillRollup> =
+            std::collections::HashMap::new();
+        for c in &parl.chambers {
+            for v in &c.recent_votes {
+                let r = rollups
+                    .entry(v.bill_id.clone())
+                    .or_insert_with(|| BillRollup {
+                        first_vote: v.turn,
+                        last_vote: v.turn,
+                        stages_passed: 0,
+                        badge: String::new(),
+                        stage: String::new(),
+                        enacted_turn: None,
+                    });
+                r.first_vote = r.first_vote.min(v.turn);
+                r.last_vote = r.last_vote.max(v.turn);
+                if v.passed {
+                    r.stages_passed += 1;
+                }
+                if let Some(d) = &v.detail {
+                    // `mark_bill_terminal` stamps every record of the bill
+                    // uniformly; the latest write is the terminal outcome.
+                    if !d.status_badge.is_empty() {
+                        r.badge = d.status_badge.clone();
+                    }
+                    if !d.stage.is_empty() {
+                        r.stage = d.stage.clone();
+                    }
+                    if d.enacted_turn.is_some() {
+                        r.enacted_turn = d.enacted_turn;
+                    }
+                }
+            }
+        }
+        let stages_required: u32 = if parl.upper_chamber().is_some() { 2 } else { 1 };
+        // Canonical per-bill outcome vocabulary for the RESULT column —
+        // terminal badges pass through; "Rejected" (lower-house stamp) is
+        // remapped to the mandate's wording; in-flight bills surface their
+        // live pipeline stage.
+        fn canonical_result(r: &BillRollup) -> String {
+            match r.badge.as_str() {
+                "Rejected" => "Rejected in Lower House".to_string(),
+                "" => {
+                    if !r.stage.is_empty() {
+                        r.stage.clone()
+                    } else if r.enacted_turn.is_some() {
+                        "Enacted".to_string()
+                    } else if r.stages_passed > 0 {
+                        "Passed".to_string()
+                    } else {
+                        "Rejected in Lower House".to_string()
+                    }
+                }
+                s => s.to_string(),
+            }
+        }
+
+        // `rollups` is borrowed by the `move` closures below — bind a
+        // shared reference (Copy) so the `flat_map` FnMut doesn't move the
+        // map itself.
+        let rollups = &rollups;
         let recent_votes: Vec<VoteRow> = parl
             .chambers
             .iter()
             .flat_map(|c| {
-                c.recent_votes.iter().map(move |v| VoteRow {
-                    bill_id: v.bill_id.clone(),
-                    bill_title: v.bill_title.clone(),
-                    chamber: c.id.clone(),
-                    chamber_name: c.name.clone(),
-                    votes_for: v.votes_for,
-                    votes_against: v.votes_against,
-                    abstentions: v.abstentions,
-                    passed: v.passed,
-                    turn: v.turn,
-                    club_breakdown: v
-                        .club_breakdown
-                        .iter()
-                        .map(|t| ClubVoteRow {
-                            club_id: t.club_id.clone(),
-                            votes_for: t.votes_for,
-                            votes_against: t.votes_against,
-                            abstentions: t.abstentions,
-                        })
-                        .collect(),
-                    detail: v.detail.as_ref().map(bill_detail_row),
+                c.recent_votes.iter().map(move |v| {
+                    let rollup = rollups.get(&v.bill_id);
+                    VoteRow {
+                        bill_id: v.bill_id.clone(),
+                        bill_title: v.bill_title.clone(),
+                        chamber: c.id.clone(),
+                        chamber_name: c.name.clone(),
+                        votes_for: v.votes_for,
+                        votes_against: v.votes_against,
+                        abstentions: v.abstentions,
+                        passed: v.passed,
+                        turn: v.turn,
+                        club_breakdown: v
+                            .club_breakdown
+                            .iter()
+                            .map(|t| ClubVoteRow {
+                                club_id: t.club_id.clone(),
+                                votes_for: t.votes_for,
+                                votes_against: t.votes_against,
+                                abstentions: t.abstentions,
+                            })
+                            .collect(),
+                        detail: v.detail.as_ref().map(bill_detail_row),
+                        first_vote_turn: rollup.map(|r| r.first_vote).unwrap_or(v.turn),
+                        last_vote_turn: rollup.map(|r| r.last_vote).unwrap_or(v.turn),
+                        effective_turn: rollup.and_then(|r| r.enacted_turn),
+                        stages_passed: rollup.map(|r| r.stages_passed).unwrap_or(0),
+                        stages_required,
+                        result: rollup.map(canonical_result).unwrap_or_default(),
+                    }
                 })
             })
             .collect();
@@ -6536,6 +7896,7 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                                 &format!("{:?}", c.committee_type),
                             ),
                             chair: chair_name,
+                            chair_vip_id: c.chair_vip_id.clone(),
                             chair_party: c.chair.clone(),
                             member_count: c.members.values().map(|v| *v as usize).sum(),
                             bills_under_review: c.bills_under_review.len(),
@@ -6594,12 +7955,20 @@ fn club_offices(
     let mut offices = Vec::new();
 
     // Chamber presidiums — speaker and deputy speakers carry a party id.
+    let vip_id_of = |name: &str| -> Option<String> {
+        politics
+            .vip_registry
+            .as_ref()
+            .and_then(|r| r.get_by_name(name))
+            .map(|v| v.id.clone())
+    };
     for chamber in &parl.chambers {
         if matches(&chamber.presidium.speaker_club) {
             offices.push(ClubOfficeRow {
                 office: "Speaker".to_string(),
                 body: chamber.name.clone(),
                 holder: chamber.presidium.speaker.full_name.clone(),
+                holder_vip_id: vip_id_of(&chamber.presidium.speaker.full_name),
             });
         }
         for deputy in &chamber.presidium.deputy_speakers {
@@ -6608,6 +7977,7 @@ fn club_offices(
                     office: "Deputy Speaker".to_string(),
                     body: chamber.name.clone(),
                     holder: deputy.full_name.clone(),
+                    holder_vip_id: vip_id_of(&deputy.full_name),
                 });
             }
         }
@@ -6633,6 +8003,7 @@ fn club_offices(
                     office: "Committee Chair".to_string(),
                     body: committee.name.clone(),
                     holder,
+                    holder_vip_id: committee.chair_vip_id.clone(),
                 });
             }
         }
@@ -6656,10 +8027,12 @@ fn club_offices(
                     .filter(|n| !n.is_empty())
             })
             .unwrap_or_else(|| format!("PM ({})", pm_party));
+        let holder_vip_id = vip_id_of(&holder);
         offices.push(ClubOfficeRow {
             office: "Prime Minister".to_string(),
             body: "Cabinet".to_string(),
             holder,
+            holder_vip_id,
         });
     }
 
@@ -6667,6 +8040,11 @@ fn club_offices(
     if let Some(ref config) = politics.ministry_config {
         for m in &config.ministries {
             if matches(&m.minister_party) {
+                let holder = if m.minister_name.is_empty() {
+                    format!("Minister ({})", m.minister_party)
+                } else {
+                    m.minister_name.clone()
+                };
                 offices.push(ClubOfficeRow {
                     office: "Minister".to_string(),
                     // Same display convention as MinisterRow — strip the
@@ -6676,11 +8054,8 @@ fn club_offices(
                         .strip_prefix("Ministry of ")
                         .unwrap_or(&m.name)
                         .to_string(),
-                    holder: if m.minister_name.is_empty() {
-                        format!("Minister ({})", m.minister_party)
-                    } else {
-                        m.minister_name.clone()
-                    },
+                    holder_vip_id: vip_id_of(&holder),
+                    holder,
                 });
             }
         }
@@ -7389,14 +8764,25 @@ pub struct MilitaryDashboardResponse {
 
 /// Builds the full military dashboard response.
 pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse {
-    let mut wars = Vec::new();
-    let mut recent_battles = Vec::new();
+    // v4.23.0 WS5: war-bridge fronts materialize in EVERY belligerent's
+    // `military_fronts` under the same `WAR-{a}-{b}` id. Dedup by front id
+    // (sorted country iteration + first-writer-wins) so the dashboard's
+    // "Active Wars" count equals the number of live war PAIRS — the same
+    // figure the diplomacy ledger reports (`declared_wars.active`). The
+    // BTreeMap also makes row order deterministic across runs.
+    let mut wars: std::collections::BTreeMap<String, WarRow> =
+        std::collections::BTreeMap::new();
+    let mut recent_battles: std::collections::BTreeMap<String, BattleRow> =
+        std::collections::BTreeMap::new();
     let mut army_compositions = Vec::new();
     let mut war_morale = Vec::new();
     let mut pow_camps = Vec::new();
 
-    for (country_name, country) in &state.countries {
-        // Active wars/fronts
+    let mut sorted_countries: Vec<(&String, &crate::state::Country)> =
+        state.countries.iter().collect();
+    sorted_countries.sort_by(|a, b| a.0.cmp(b.0));
+    for (country_name, country) in sorted_countries {
+        // Active wars/fronts — one row per unique front id.
         for front in &country.military_fronts {
             let battle_count = front.battles.len();
             let last_battle_result = front
@@ -7405,7 +8791,7 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 .map(|b| format!("{:?}", b.result))
                 .unwrap_or_else(|| "No battles".to_string());
 
-            wars.push(WarRow {
+            wars.entry(front.id.clone()).or_insert_with(|| WarRow {
                 front_id: front.id.clone(),
                 front_name: front.name.clone(),
                 involved_countries: front.involved_countries.clone(),
@@ -7419,18 +8805,21 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 last_battle_result,
             });
 
-            // Recent battles (last 5 per front)
+            // Recent battles (last 5 per front) — dedup by battle id; the
+            // same battle is recorded on both belligerents' front copies.
             for battle in front.battles.iter().rev().take(5) {
-                recent_battles.push(BattleRow {
-                    battle_id: battle.id.clone(),
-                    location: battle.location.clone(),
-                    attacker: battle.attacker.clone(),
-                    defender: battle.defender.clone(),
-                    result: format!("{:?}", battle.result),
-                    attacker_casualties: battle.attacker_casualties.total(),
-                    defender_casualties: battle.defender_casualties.total(),
-                    turn: battle.turn,
-                });
+                recent_battles
+                    .entry(battle.id.clone())
+                    .or_insert_with(|| BattleRow {
+                        battle_id: battle.id.clone(),
+                        location: battle.location.clone(),
+                        attacker: battle.attacker.clone(),
+                        defender: battle.defender.clone(),
+                        result: format!("{:?}", battle.result),
+                        attacker_casualties: battle.attacker_casualties.total(),
+                        defender_casualties: battle.defender_casualties.total(),
+                        turn: battle.turn,
+                    });
             }
         }
 
@@ -7639,8 +9028,15 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         }
     }
 
+    // Recent battles: deduped by id above, then newest-first for the panel.
+    let mut recent_battles: Vec<BattleRow> =
+        recent_battles.into_values().collect();
+    recent_battles.sort_by(|a, b| {
+        b.turn.cmp(&a.turn).then_with(|| a.battle_id.cmp(&b.battle_id))
+    });
+
     MilitaryDashboardResponse {
-        wars,
+        wars: wars.into_values().collect(),
         recent_battles,
         devastation_map,
         army_compositions,

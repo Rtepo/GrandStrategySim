@@ -6,11 +6,16 @@ import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Table, TableHe
 import { Hemicycle } from "../components/Hemicycle";
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
+import { DynastyTree } from "../components/DynastyTree";
 import { partyColor, ideologyIcon, estateVisual, spectrumOf } from "../lib/partyVisuals";
 import { fmt } from "../lib/format";
 import type { AdvisoryCouncilSnapshot, RoyalDynastySnapshot, ParliamentSnapshot, ClubRow, ClubVoteHistoryRow, VoteRow, BillDetailRow, ConstitutionLawsResponse, ElectionsResponse } from "../types/api";
 
-const AUTHORITARIAN_FORMS = ["Absolute Monarchy", "Constitutional Monarchy", "Authoritarian Republic", "Personalist Dictatorship", "Military Junta", "One-Party State"];
+/// v4.23.0 WS2: an advisory council exists ONLY for autocratic forms
+/// (Royal Council / Politburo / Junta / Supreme Religious Council) — its
+/// presence is the reliable regime gate, replacing the old display-name
+/// list that missed Theocracy, Military Dictatorship and Dualist/Elective
+/// monarchies.
 
 /// v4.20: RegimeType keys (normalized: lowercase, non-alpha stripped) whose
 /// legislature is not popularly elected — the Elections tab collapses to a
@@ -62,6 +67,18 @@ function StatusChip({ status, className = "" }: { status: string; className?: st
   // Standard red: rejected in the lower house / generic failure.
   if (s.includes("reject") || s.includes("fail") || s.includes("defeat")) {
     return <Badge variant="destructive" className={className}>{status}</Badge>;
+  }
+  // v4.23.0 WS2: decree/petition vocabulary — promulgated-over-objection
+  // keeps the amber warning tone, clean promulgations/grants go emerald,
+  // pending/withdrawn/ignored stay slate.
+  if (s.includes("promulgat") && s.includes("objection")) {
+    return <span className={`${CHIP_BASE} bg-amber-500/20 text-amber-400 border-amber-500/30 ${className}`}>{status}</span>;
+  }
+  if (s === "granted" || s.startsWith("promulgat")) {
+    return <Badge variant="success" className={className}>{status}</Badge>;
+  }
+  if (s === "pending" || s === "withdrawn" || s === "ignored") {
+    return <Badge variant="secondary" className={className}>{status}</Badge>;
   }
   return <Badge variant="secondary" className={className}>{status}</Badge>;
 }
@@ -116,7 +133,6 @@ export function ParliamentPage() {
   if (isLoading) return <div className="p-6 text-muted-foreground">Loading parliament data...</div>;
   if (!data) return null;
 
-  const isAuthoritarian = AUTHORITARIAN_FORMS.some((f) => data.government_form.includes(f));
   const hasAdvisoryCouncil = data.advisory_council !== null;
   const hasRoyalDynasty = data.royal_dynasty !== null;
   // v4.20: regime-aware legislature label ("Royal Council", "People's
@@ -133,36 +149,58 @@ export function ParliamentPage() {
         {data.parliament.suspended && <Badge variant="destructive">Suspended</Badge>}
       </div>
 
-      {isAuthoritarian && hasAdvisoryCouncil ? (
+      {hasAdvisoryCouncil ? (
         <div className="space-y-4">
-          <AdvisoryCouncilView council={data.advisory_council!} dynasty={hasRoyalDynasty ? data.royal_dynasty! : null} />
+          <AdvisoryCouncilView
+            council={data.advisory_council!}
+            dynasty={hasRoyalDynasty ? data.royal_dynasty! : null}
+            parliament={data.parliament}
+            regimeType={regimeType}
+            legislatureName={legislatureName}
+          />
           <ConstitutionLawsView />
         </div>
       ) : (
-        <DemocraticParliamentView parliament={data.parliament} />
+        <DemocraticParliamentView
+          parliament={data.parliament}
+          dynasty={hasRoyalDynasty ? data.royal_dynasty! : null}
+        />
       )}
     </div>
   );
 }
 
-function DemocraticParliamentView({ parliament }: { parliament: ParliamentSnapshot }) {
+function DemocraticParliamentView({
+  parliament,
+  dynasty,
+}: {
+  parliament: ParliamentSnapshot;
+  dynasty: RoyalDynastySnapshot | null;
+}) {
   const legislatureName = legislatureLabel(parliament.legislature_name);
 
-  return (
-    <Tabs
-      tabs={[
-        // v4.20: Chambers + Seat Distribution merged — the hemicycle IS the
-        // seat distribution, rendered per chamber inside each chamber card.
-        { label: "Chambers", value: "chambers", content: <ChambersView parliament={parliament} /> },
-        { label: "Clubs", value: "clubs", content: <ClubsView parliament={parliament} legislatureName={legislatureName} /> },
-        { label: "Committees", value: "committees", content: <CommitteesView parliament={parliament} /> },
-        { label: "Votes", value: "votes", content: <VotesView parliament={parliament} /> },
-        { label: "Legislative Queue", value: "queue", content: <QueueView parliament={parliament} /> },
-        { label: "Constitution & Laws", value: "laws", content: <ConstitutionLawsView /> },
-        { label: "Elections", value: "elections", content: <ElectionsView regimeType={parliament.regime_type ?? ""} legislatureName={legislatureName} /> },
-      ]}
-    />
-  );
+  const tabs = [
+    // v4.20: Chambers + Seat Distribution merged — the hemicycle IS the
+    // seat distribution, rendered per chamber inside each chamber card.
+    { label: "Chambers", value: "chambers", content: <ChambersView parliament={parliament} /> },
+    { label: "Clubs", value: "clubs", content: <ClubsView parliament={parliament} legislatureName={legislatureName} /> },
+    { label: "Committees", value: "committees", content: <CommitteesView parliament={parliament} /> },
+    { label: "Votes", value: "votes", content: <VotesView parliament={parliament} /> },
+    { label: "Legislative Queue", value: "queue", content: <QueueView parliament={parliament} /> },
+    { label: "Constitution & Laws", value: "laws", content: <ConstitutionLawsView /> },
+    { label: "Elections", value: "elections", content: <ElectionsView regimeType={parliament.regime_type ?? ""} legislatureName={legislatureName} /> },
+  ];
+  // v4.23.0 WS2: crowned parliaments (Constitutional/Dualist monarchies —
+  // the forms whose legislature is a real parliament, not the council)
+  // get the full royal-dynasty tab too.
+  if (dynasty) {
+    tabs.push({
+      label: "Royal Dynasty",
+      value: "dynasty",
+      content: <DynastyTree dynasty={dynasty} />,
+    });
+  }
+  return <Tabs tabs={tabs} />;
 }
 
 function ChambersView({ parliament }: { parliament: ParliamentSnapshot }) {
@@ -209,7 +247,11 @@ function ChambersView({ parliament }: { parliament: ParliamentSnapshot }) {
                 <div>
                   <div className="text-xs text-muted-foreground">Speaker</div>
                   <div className="text-sm font-medium">
-                    <span className={VIP_LINK_AFFORDANCE}>{chamber.speaker_name}</span>
+                    {chamber.speaker_vip_id ? (
+                      <VipHoverCard vipId={chamber.speaker_vip_id}>{chamber.speaker_name}</VipHoverCard>
+                    ) : (
+                      <span className={VIP_LINK_AFFORDANCE}>{chamber.speaker_name}</span>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -348,7 +390,14 @@ function ClubDetailSections({ club }: { club: ClubRow }) {
               <li key={`${o.office}-${o.body}-${i}`} className="flex items-baseline gap-1.5">
                 <Badge variant="outline" className="shrink-0">{o.office}</Badge>
                 <span className="text-foreground">{o.body}</span>
-                <span className="text-muted-foreground">· {o.holder}</span>
+                <span className="text-muted-foreground">
+                  ·{" "}
+                  {o.holder_vip_id ? (
+                    <VipHoverCard vipId={o.holder_vip_id}>{o.holder}</VipHoverCard>
+                  ) : (
+                    o.holder
+                  )}
+                </span>
               </li>
             ))}
           </ul>
@@ -453,7 +502,14 @@ function CommitteesView({ parliament }: { parliament: ParliamentSnapshot }) {
                       {c.name}
                     </TableCell>
                     <TableCell>{c.committee_type}</TableCell>
-                    <TableCell><span className={VIP_LINK_AFFORDANCE}>{c.chair}</span> ({c.chair_party})</TableCell>
+                    <TableCell>
+                      {c.chair_vip_id ? (
+                        <VipHoverCard vipId={c.chair_vip_id}>{c.chair}</VipHoverCard>
+                      ) : (
+                        <span className={VIP_LINK_AFFORDANCE}>{c.chair}</span>
+                      )}{" "}
+                      ({c.chair_party})
+                    </TableCell>
                     <TableCell className="text-right">{c.member_count}</TableCell>
                     <TableCell className="text-right">{c.bills_under_review}</TableCell>
                   </TableRow>
@@ -566,55 +622,27 @@ function RecommendationBadge({ value }: { value: number }) {
   );
 }
 
-/// v4.21 WS1: ONE canonical bill status for a recorded chamber-vote row.
-/// Precedence: Enacted (incl. veto-override enactments) → Passed both
-/// chambers → Passed lower / awaiting upper → Rejected → in-flight stage.
-/// Terminal stamps written by `mark_bill_terminal` onto every record of
-/// the bill always win over the individual chamber outcome, which is how a
-/// row can never show contradictory badges ("Passed" + "Rejected by …").
-function canonicalVoteStatus(
-  v: VoteRow,
-  billVotes: VoteRow[],
-  hasUpperChamber: boolean
-): { label: string; variant: "success" | "destructive" | "default" | "secondary" } {
-  const badge = (v.detail?.status_badge ?? "").trim();
-  const stage = (v.detail?.stage ?? "").trim();
-  const b = badge.toLowerCase();
-  const s = stage.toLowerCase();
-  // Terminal outcome — "Enacted", "Senate Veto Overridden".
-  if (s === "enacted" || b === "enacted" || b.includes("overrid")) {
-    return { label: badge || "Enacted", variant: "success" };
-  }
-  // Terminal rejection — "Rejected", "Rejected by Upper House",
-  // "Presidential Veto", "Vetoed by …".
-  if (s.startsWith("rejected") || s.startsWith("vetoed") || b.includes("reject") || b.includes("veto")) {
-    return { label: badge || stage, variant: "destructive" };
-  }
-  // In-flight: this chamber's own recorded outcome.
-  if (!v.passed) return { label: `Rejected by ${v.chamber_name}`, variant: "destructive" };
-  if (v.chamber === "upper") return { label: "Passed Both Chambers", variant: "success" };
-  const upper = billVotes.find((x) => x.chamber === "upper");
-  if (upper) {
-    return upper.passed
-      ? { label: "Passed Both Chambers", variant: "success" }
-      : { label: `Rejected by ${upper.chamber_name}`, variant: "destructive" };
-  }
-  return hasUpperChamber
-    ? { label: "Passed — Awaiting Upper House", variant: "default" }
-    : { label: "Passed", variant: "success" };
+/// v4.23.0 WS2: ONE canonical result label for a bill — the snapshot now
+/// ships the per-bill outcome computed from the vote rollup (terminal
+/// `mark_bill_terminal` badges pass through; in-flight bills surface their
+/// live pipeline stage). `stageLabel` keeps enum-key stages readable.
+function resultLabel(result: string): string {
+  return stageLabel(result || "—");
 }
 
 function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
   const [expanded, setExpanded] = useState<string | null>(null);
-  const hasUpperChamber = parliament.chambers.length > 1;
-  // Group recorded chamber votes by bill so the drawer can show per-club
-  // tallies separately for the Lower vs Upper chamber vote on the same bill.
+  // v4.23.0 WS2: group recorded chamber votes by bill — the top-level
+  // table is ONE ROW PER BILL carrying the full lifecycle (first/last
+  // vote, stages passed, effective date, canonical result); the drawer
+  // decomposes each chamber's per-club tallies + chamber TOTAL rows.
   const votesByBill = new Map<string, VoteRow[]>();
   for (const v of parliament.recent_votes) {
     const arr = votesByBill.get(v.bill_id) ?? [];
     arr.push(v);
     votesByBill.set(v.bill_id, arr);
   }
+  const billGroups = [...votesByBill.values()];
   return (
     <Card>
       <CardHeader><CardTitle>Recent Votes</CardTitle></CardHeader>
@@ -623,18 +651,18 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
           <TableHeader>
             <TableRow>
               <TableHead>Bill</TableHead>
-              <TableHead className="text-right">For</TableHead>
-              <TableHead className="text-right">Against</TableHead>
-              <TableHead className="text-right">Abstain</TableHead>
+              <TableHead className="text-right">First Vote</TableHead>
+              <TableHead className="text-right">Stages Passed</TableHead>
+              <TableHead className="text-right">Last Vote</TableHead>
+              <TableHead className="text-right">Effective Date</TableHead>
               <TableHead>Result</TableHead>
-              <TableHead className="text-right">Turn</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {parliament.recent_votes.length > 0 ? (
-              parliament.recent_votes.map((v) => {
-                const rowKey = `${v.bill_id}:${v.chamber}:${v.turn}`;
-                const status = canonicalVoteStatus(v, votesByBill.get(v.bill_id) ?? [v], hasUpperChamber);
+            {billGroups.length > 0 ? (
+              billGroups.map((group) => {
+                const v = group[0];
+                const rowKey = v.bill_id;
                 return (
                   <Fragment key={rowKey}>
                     <TableRow
@@ -646,13 +674,17 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
                         {v.bill_title}
                         {v.detail?.theme_tag ? <ThemeTag tag={v.detail.theme_tag} className="ml-1.5" /> : null}
                       </TableCell>
-                      <TableCell className="text-right text-green-400">{v.votes_for}</TableCell>
-                      <TableCell className="text-right text-red-400">{v.votes_against}</TableCell>
-                      <TableCell className="text-right text-muted-foreground">{v.abstentions}</TableCell>
-                      <TableCell>
-                        <Badge variant={status.variant}>{status.label}</Badge>
+                      <TableCell className="text-right">T{v.first_vote_turn}</TableCell>
+                      <TableCell className="text-right">
+                        {v.stages_passed}/{v.stages_required}
                       </TableCell>
-                      <TableCell className="text-right">{v.turn}</TableCell>
+                      <TableCell className="text-right">T{v.last_vote_turn}</TableCell>
+                      <TableCell className="text-right">
+                        {v.effective_turn !== null ? `T${v.effective_turn}` : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <StatusChip status={resultLabel(v.result)} />
+                      </TableCell>
                     </TableRow>
                     {expanded === rowKey && (
                       <TableRow>
@@ -665,10 +697,10 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
                                 No bill detail retained for this vote (recorded before detail capture).
                               </div>
                             )}
-                            {/* Per-club tallies — separated by chamber. Every
-                                recorded vote for this bill renders its own
-                                chamber's For/Against/Abstain decomposition. */}
-                            {(votesByBill.get(v.bill_id) ?? [v]).map((cv) => (
+                            {/* Per-chamber decomposition — every recorded
+                                vote for this bill renders its chamber's
+                                outcome badge + per-club tallies + TOTAL row. */}
+                            {group.map((cv) => (
                               <ClubBreakdownPanel key={`${cv.chamber}:${cv.turn}`} vote={cv} />
                             ))}
                           </div>
@@ -688,12 +720,19 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
   );
 }
 
-/// Per-club For/Against/Abstain decomposition of one chamber's vote.
+/// Per-club For/Against/Abstain decomposition of one chamber's vote,
+/// closed by a per-chamber TOTAL row (v4.23.0 WS2).
 function ClubBreakdownPanel({ vote }: { vote: VoteRow }) {
+  const turnout = vote.votes_for + vote.votes_against + vote.abstentions;
   return (
     <div>
-      <div className="text-xs font-medium text-muted-foreground mb-1">
-        {vote.chamber_name} — Club Breakdown <span className="opacity-60">(T{vote.turn})</span>
+      <div className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-2">
+        <span>
+          {vote.chamber_name} — Club Breakdown <span className="opacity-60">(T{vote.turn})</span>
+        </span>
+        <Badge variant={vote.passed ? "success" : "destructive"}>
+          {vote.passed ? "Passed" : "Rejected"}
+        </Badge>
       </div>
       {vote.club_breakdown.length > 0 ? (
         <Table>
@@ -714,10 +753,28 @@ function ClubBreakdownPanel({ vote }: { vote: VoteRow }) {
                 <TableCell className="text-right text-muted-foreground">{t.abstentions}</TableCell>
               </TableRow>
             ))}
+            {/* v4.23.0 WS2: per-chamber TOTAL — the full recorded tally,
+                not a per-club sum, so absent clubs still count. */}
+            <TableRow className="border-t-2 border-border font-medium">
+              <TableCell className="text-xs">
+                TOTAL — {vote.chamber_name} ({turnout} voting)
+              </TableCell>
+              <TableCell className="text-right text-green-400">{vote.votes_for}</TableCell>
+              <TableCell className="text-right text-red-400">{vote.votes_against}</TableCell>
+              <TableCell className="text-right text-muted-foreground">{vote.abstentions}</TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       ) : (
         <div className="text-xs text-muted-foreground">
+          <div className="flex items-center gap-3 py-1">
+            <span className="font-medium text-foreground">
+              TOTAL — {vote.chamber_name} ({turnout} voting)
+            </span>
+            <span className="text-green-400">For {vote.votes_for}</span>
+            <span className="text-red-400">Against {vote.votes_against}</span>
+            <span className="text-muted-foreground">Abstain {vote.abstentions}</span>
+          </div>
           No per-club tallies retained for this vote (recorded before tally capture).
         </div>
       )}
@@ -874,106 +931,325 @@ function QueueView({ parliament }: { parliament: ParliamentSnapshot }) {
   );
 }
 
-function AdvisoryCouncilView({ council, dynasty }: { council: AdvisoryCouncilSnapshot; dynasty: RoyalDynastySnapshot | null }) {
+/// v4.23.0 WS2: Autocratic legislature — the council IS the parliament of
+/// an autocracy. Tabbed: named councilors, faction aggregates, the decree
+/// record (with per-councilor support/opposition), petitions, and — for
+/// crowned regimes — the royal dynasty. Regimes that also seat a
+/// rubber-stamp chamber (One-Party State, Theocracy, Elective Monarchy)
+/// keep Chambers/Votes/Elections tabs so no section renders empty. All
+/// real engine data.
+function AdvisoryCouncilView({
+  council,
+  dynasty,
+  parliament,
+  regimeType,
+  legislatureName,
+}: {
+  council: AdvisoryCouncilSnapshot;
+  dynasty: RoyalDynastySnapshot | null;
+  parliament: ParliamentSnapshot;
+  regimeType: string;
+  legislatureName: string;
+}) {
+  const tabs = [
+    {
+      label: `Councilors (${council.members.length})`,
+      value: "councilors",
+      content: <CouncilorsTab council={council} />,
+    },
+    {
+      label: `Factions (${council.factions.length})`,
+      value: "factions",
+      content: <CouncilFactionsTab council={council} />,
+    },
+    {
+      label: `Decrees (${council.decrees.length})`,
+      value: "decrees",
+      content: <CouncilDecreesTab council={council} />,
+    },
+    {
+      label: `Petitions (${council.petitions.length})`,
+      value: "petitions",
+      content: <CouncilPetitionsTab council={council} />,
+    },
+  ];
+  // A seated chamber (One-Party State / Theocracy / Elective Monarchy)
+  // keeps its real parliamentary record under the council's tabs.
+  if (parliament.chambers.length > 0) {
+    tabs.push({
+      label: "Chambers",
+      value: "chambers",
+      content: <ChambersView parliament={parliament} />,
+    });
+    tabs.push({
+      label: "Votes",
+      value: "votes",
+      content: <VotesView parliament={parliament} />,
+    });
+    tabs.push({
+      label: "Elections",
+      value: "elections",
+      content: <ElectionsView regimeType={regimeType} legislatureName={legislatureName} />,
+    });
+  }
+  if (dynasty) {
+    tabs.push({
+      label: "Royal Dynasty",
+      value: "dynasty",
+      content: <DynastyTree dynasty={dynasty} />,
+    });
+  }
+  return <Tabs tabs={tabs} />;
+}
+
+/// Named councilors — the autocratic legislature's membership roster.
+function CouncilorsTab({ council }: { council: AdvisoryCouncilSnapshot }) {
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Advisory Council — {council.council_type}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div>
-              <div className="text-xs text-muted-foreground">Aggregate Loyalty</div>
-              <div className="text-lg font-bold">{council.aggregate_loyalty.toFixed(2)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Coup Risk Threshold</div>
-              <div className="text-lg font-bold">{council.coup_risk_threshold.toFixed(2)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Coup Cooldown</div>
-              <div className="text-lg font-bold">T{council.coup_cooldown_until_turn}</div>
-            </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>{council.council_type} — Councilors</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div>
+            <div className="text-xs text-muted-foreground">Aggregate Loyalty</div>
+            <div className="text-lg font-bold">{council.aggregate_loyalty.toFixed(2)}</div>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Faction</TableHead>
-                <TableHead className="text-right">Loyalty</TableHead>
-                <TableHead className="text-right">Influence</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {council.members.map((m) => (
+          <div>
+            <div className="text-xs text-muted-foreground">Coup Risk Threshold</div>
+            <div className="text-lg font-bold">{council.coup_risk_threshold.toFixed(2)}</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">Coup Cooldown</div>
+            <div className="text-lg font-bold">T{council.coup_cooldown_until_turn}</div>
+          </div>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Faction</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead className="text-right">Loyalty</TableHead>
+              <TableHead className="text-right">Influence</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {council.members.length > 0 ? (
+              council.members.map((m) => (
                 <TableRow key={m.vip_id}>
                   <TableCell className="font-medium">
                     <VipHoverCard vipId={m.vip_id}>{m.name}</VipHoverCard>
                   </TableCell>
                   <TableCell>{m.faction}</TableCell>
+                  <TableCell><Badge variant="outline">{m.faction_type}</Badge></TableCell>
                   <TableCell className="text-right">
-                    <Badge variant={m.loyalty > 70 ? "success" : m.loyalty > 40 ? "default" : "destructive"}>
-                      {m.loyalty.toFixed(0)}
+                    {/* Engine loyalty is 0–1 — render as a percent. */}
+                    <Badge variant={m.loyalty > 0.7 ? "success" : m.loyalty > 0.4 ? "default" : "destructive"}>
+                      {(m.loyalty * 100).toFixed(0)}%
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">{m.influence.toFixed(1)}</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {dynasty && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Royal Dynasty — {dynasty.dynasty_name}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <div className="text-xs text-muted-foreground">Monarch</div>
-                <div className="text-sm font-medium">{dynasty.current_monarch_name}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Regent</div>
-                <div className="text-sm font-medium">
-                  {dynasty.regency_active ? dynasty.current_regent_name : "—"}
-                </div>
-              </div>
-              {dynasty.regency_active && <Badge variant="destructive">Regency Active</Badge>}
-            </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Relation</TableHead>
-                  <TableHead className="text-right">Age</TableHead>
-                  <TableHead className="text-right">Succession</TableHead>
-                  <TableHead>Heir Apparent</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {dynasty.members.map((m) => (
-                  <TableRow key={m.vip_id}>
-                    <TableCell className="font-medium">
-                      <VipHoverCard vipId={m.vip_id}>{m.name}</VipHoverCard>
-                    </TableCell>
-                    <TableCell>{m.relation}</TableCell>
-                    <TableCell className="text-right">{m.age}</TableCell>
-                    <TableCell className="text-right">{m.succession_order}</TableCell>
-                    <TableCell>{m.is_heir_apparent ? <Badge variant="success">Yes</Badge> : "—"}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+              ))
+            ) : (
+              <TableEmpty colSpan={5} message="No councilors seated" />
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
+
+/// Faction aggregates — the council's power blocs, ordered by influence.
+function CouncilFactionsTab({ council }: { council: AdvisoryCouncilSnapshot }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{council.council_type} — Factions</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Faction</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead className="text-right">Members</TableHead>
+              <TableHead className="text-right">Avg Loyalty</TableHead>
+              <TableHead className="text-right">Total Influence</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {council.factions.length > 0 ? (
+              council.factions.map((f) => (
+                <TableRow key={f.faction}>
+                  <TableCell className="font-medium">{f.faction}</TableCell>
+                  <TableCell><Badge variant="outline">{f.faction_type}</Badge></TableCell>
+                  <TableCell className="text-right">{f.members}</TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant={f.avg_loyalty > 0.7 ? "success" : f.avg_loyalty > 0.4 ? "default" : "destructive"}>
+                      {(f.avg_loyalty * 100).toFixed(0)}%
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">{f.total_influence.toFixed(1)}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableEmpty colSpan={5} message="No factions recorded" />
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+/// Decree record — the autocratic legislature's legislative output, with
+/// the council's recorded opinion decomposed per councilor.
+function CouncilDecreesTab({ council }: { council: AdvisoryCouncilSnapshot }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{council.council_type} — Decrees</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Decree</TableHead>
+              <TableHead>Domain</TableHead>
+              <TableHead className="text-right">Issued</TableHead>
+              <TableHead className="text-right">Council Opinion</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {council.decrees.length > 0 ? (
+              council.decrees.map((d) => (
+                <Fragment key={d.id}>
+                  <TableRow
+                    className="cursor-pointer"
+                    onClick={() => setExpanded(expanded === d.id ? null : d.id)}
+                  >
+                    <TableCell className="text-xs font-medium">
+                      <span className="text-muted-foreground mr-1">{expanded === d.id ? "▾" : "▸"}</span>
+                      {d.title}
+                    </TableCell>
+                    <TableCell><Badge variant="outline">{d.domain}</Badge></TableCell>
+                    <TableCell className="text-right">T{d.issued_turn}</TableCell>
+                    <TableCell className={`text-right ${d.net_opinion >= 0 ? "text-green-400" : "text-red-400"}`}>
+                      {d.net_opinion >= 0 ? "+" : ""}{d.net_opinion.toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <StatusChip status={d.status} />
+                    </TableCell>
+                  </TableRow>
+                  {expanded === d.id && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="bg-accent/20">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-1">
+                          <div>
+                            <div className="text-xs font-medium text-muted-foreground mb-1.5">
+                              Supporters ({d.supporters.length})
+                            </div>
+                            {d.supporters.length > 0 ? (
+                              <ul className="space-y-1 text-xs">
+                                {d.supporters.map((s) => (
+                                  <li key={s.vip_id}>
+                                    <VipHoverCard vipId={s.vip_id}>{s.name}</VipHoverCard>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <div className="text-xs text-muted-foreground">None recorded.</div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-xs font-medium text-muted-foreground mb-1.5">
+                              Opponents ({d.opponents.length})
+                            </div>
+                            {d.opponents.length > 0 ? (
+                              <ul className="space-y-1 text-xs">
+                                {d.opponents.map((s) => (
+                                  <li key={s.vip_id}>
+                                    <VipHoverCard vipId={s.vip_id}>{s.name}</VipHoverCard>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <div className="text-xs text-muted-foreground">None recorded.</div>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
+              ))
+            ) : (
+              <TableEmpty colSpan={5} message="No decrees issued yet — the ruler has not legislated" />
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+/// Petition log — faction grievances carried to the ruler.
+function CouncilPetitionsTab({ council }: { council: AdvisoryCouncilSnapshot }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{council.council_type} — Petitions</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Subject</TableHead>
+              <TableHead>Faction</TableHead>
+              <TableHead>Petitioner</TableHead>
+              <TableHead className="text-right">Filed</TableHead>
+              <TableHead className="text-right">Urgency</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Resolved</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {council.petitions.length > 0 ? (
+              council.petitions.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="text-xs font-medium">{p.subject}</TableCell>
+                  <TableCell className="text-xs">{p.faction}</TableCell>
+                  <TableCell className="text-xs">
+                    <VipHoverCard vipId={p.petitioner_vip_id}>{p.petitioner_name}</VipHoverCard>
+                  </TableCell>
+                  <TableCell className="text-right">T{p.filed_turn}</TableCell>
+                  <TableCell className="text-right">{p.urgency.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <StatusChip status={p.status} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {p.resolved_turn !== null ? `T${p.resolved_turn}` : "—"}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableEmpty colSpan={7} message="No petitions filed yet" />
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+/// Royal dynasty inside the autocratic legislature view reuses the shared
+/// `DynastyTree` component (hierarchical tree + reign history + court
+/// politics) directly — see the tab registration above.
 
 // ============================================================================
 // v4.19 WS4: CONSTITUTION & LAWS TAB
@@ -1142,10 +1418,12 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
   const turnsRemaining =
     (data.turns_remaining ?? 0) > 0 ? data.turns_remaining : data.estimated_turns_remaining;
   const scheduledTurn = data.scheduled_election_turn ?? 0;
-  // v4.22.1 WS2.3: derive the calendar remainder from the LIVE turn countdown
-  // (the flat `years_to_elections` field can lag by a year around boundaries).
+  // v4.23.0 WS1.2: 1 turn = 15 days (half-month). Render the remainder as
+  // years + months + days — never "h" (that read as hours).
   const remYears = Math.floor(turnsRemaining / 24);
-  const remHalfMonths = turnsRemaining % 24;
+  const remTurns = turnsRemaining % 24;
+  const remMonths = Math.floor(remTurns / 2);
+  const remDays = (remTurns % 2) * 15;
 
   const partyById = new Map(data.parties.map((p) => [p.party_id, p]));
   const lastElection = data.election_history?.[data.election_history.length - 1];
@@ -1170,6 +1448,11 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
     lineStyle: { width: 1.5, color: partyColor(partyById.get(name)?.color_hex, name) },
     itemStyle: { color: partyColor(partyById.get(name)?.color_hex, name) },
   }));
+  // v4.23.0 WS1.3: autoscale to the observed max + 5pp instead of dead 0-100.
+  const trendMax = Math.max(
+    15,
+    ...[...trendParties.values()].flatMap((pts) => pts.map(([, v]) => v)),
+  ) + 5;
 
   return (
     <div className="space-y-4">
@@ -1182,7 +1465,7 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
             <DetailField label="State" value={data.election_state} />
             <DetailField
               label="Time Remaining"
-              value={`${remYears}y ${remHalfMonths}h (${turnsRemaining} turns)`}
+              value={`${remYears}y ${remMonths}m ${remDays}d (${turnsRemaining} turns)`}
             />
             <DetailField
               label="Scheduled Turn"
@@ -1275,17 +1558,22 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
             <EChart
               style={{ height: 220 }}
               option={{
-                grid: { left: 40, right: 16, top: 28, bottom: 28 },
+                grid: { left: 44, right: 16, top: 36, bottom: 30 },
                 xAxis: { type: "value", name: "Turn", min: "dataMin", axisLabel: { fontSize: 10 } },
                 yAxis: {
                   type: "value",
-                  name: "Support",
+                  name: "Support %",
+                  nameGap: 6,
                   min: 0,
-                  max: 100,
+                  max: Math.ceil(trendMax),
                   axisLabel: { fontSize: 10, formatter: "{value}" },
                 },
-                legend: { type: "scroll", top: 0, textStyle: { fontSize: 10 } },
-                tooltip: { trigger: "axis" },
+                legend: { type: "scroll", top: 0, height: 24, textStyle: { fontSize: 10 } },
+                tooltip: {
+                  trigger: "axis",
+                  valueFormatter: (v: unknown) =>
+                    typeof v === "number" ? v.toFixed(1) : String(v),
+                },
                 series: trendSeries,
               }}
             />

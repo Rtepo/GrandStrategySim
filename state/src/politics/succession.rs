@@ -56,6 +56,11 @@ pub struct RoyalFamilyMember {
     /// Cause of death (if dead).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub death_cause: Option<crate::politics::vip_registry::DeathCause>,
+    /// v4.23.0 WS2: Turn this member's reign began — set when the member
+    /// accedes to the throne (`relation` → `Monarch`). `Some(0)` for the
+    /// founding monarch; `None` for members who never reigned.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reign_start_turn: Option<u32>,
 }
 
 /// Relationship of a royal family member to the monarch.
@@ -341,6 +346,7 @@ pub fn process_dynasty_turn(
                 marriage_turn: Some(current_turn),
                 death_turn: None,
                 death_cause: None,
+                reign_start_turn: None,
             });
 
             // Log marriage event.
@@ -490,6 +496,7 @@ pub fn process_dynasty_turn(
                 marriage_turn: None,
                 death_turn: None,
                 death_cause: None,
+                reign_start_turn: None,
             });
 
             // Log birth event.
@@ -765,7 +772,7 @@ fn monarchy_succession<R: rand::Rng>(
     country: &mut Country,
     vip_registry: &mut VipRegistry,
     deceased_vip_id: &str,
-    _current_turn: u32,
+    current_turn: u32,
     rng: &mut R,
     messages: &mut Vec<String>,
 ) -> SuccessionOutcome {
@@ -797,6 +804,18 @@ fn monarchy_succession<R: rand::Rng>(
                     dynasty.current_regent_id = Some(regent_id.clone());
                     dynasty.current_monarch_id = Some(heir.vip_id.clone());
 
+                    // v4.23.0 WS2: the heir now reigns (under regency) — stamp
+                    // the reign start and Monarch relation on the member row
+                    // so the reign-history table reports real dates.
+                    if let Some(m) = dynasty
+                        .members
+                        .iter_mut()
+                        .find(|m| m.vip_id == heir.vip_id)
+                    {
+                        m.relation = RoyalRelation::Monarch;
+                        m.reign_start_turn = Some(current_turn);
+                    }
+
                     // Mark heir as Monarch role.
                     if let Some(heir_vip) = vip_registry.get_mut(&heir.vip_id) {
                         heir_vip.add_role(VipRoleExtended::Monarch);
@@ -821,6 +840,18 @@ fn monarchy_succession<R: rand::Rng>(
                 dynasty.current_monarch_id = Some(heir.vip_id.clone());
                 dynasty.regency_active = false;
                 dynasty.current_regent_id = None;
+
+                // v4.23.0 WS2: stamp the accession — the member's relation
+                // flips to Monarch and the reign start is recorded for the
+                // previous-monarchs history the UI renders.
+                if let Some(m) = dynasty
+                    .members
+                    .iter_mut()
+                    .find(|m| m.vip_id == heir.vip_id)
+                {
+                    m.relation = RoyalRelation::Monarch;
+                    m.reign_start_turn = Some(current_turn);
+                }
 
                 // Update the country's head_of_state.
                 if let Some(heir_vip) = vip_registry.get(&heir.vip_id) {

@@ -1564,6 +1564,49 @@ pub fn generate_corporate_entities(
                         .current_employment
                         .min(building.worker_capacity);
                 }
+                // v4.23 WS3: power-sector output rates must survive the
+                // labor-pool rescale. A plant's per-1k Energy rate was
+                // calibrated to its ORIGINAL fleet crew (engineering_crew
+                // = workers_per_plant x plant_count), so shrinking seats
+                // without recalibrating strands generation at ~scale x
+                // nameplate — Venedia's 2.9 GW fleet delivered ~600 MW at
+                // 12% staffing, a national blackout that no dispatch layer
+                // can route around. Generation fleets pool crews across
+                // their virtual plants (the crew cap in
+                // create_specialized_power_plant already encodes the
+                // employment-share model), so boosting the fleet-level
+                // output rates by 1/scale restores the nameplate the grid
+                // sized while the shrunken complement stays attainable.
+                //
+                // Thermal-method fuel slots scale in lockstep: the slot
+                // capacities bound burnable MJ per cycle, and the fuel
+                // gate's coverage ratio = provided_MJ / required_MJ is
+                // unchanged only if both numerator slots and the
+                // output-driven requirement keep their design ratio.
+                // Fixed-rate (non-thermal) inputs stay proportional to the
+                // pooled crew — the draw the shrunken supply base can
+                // actually serve — so the AND-gate coverage ratio is
+                // preserved rather than forcing a design-sized fuel draw
+                // on a rescaled forestry sector.
+                if scale < 1.0 {
+                    for building in all_buildings.iter_mut() {
+                        if building.sector != Sector::Energy {
+                            continue;
+                        }
+                        for qty in building.active_method.outputs.values_mut() {
+                            *qty /= scale;
+                        }
+                        if building.active_method.thermal_efficiency > 0.0 {
+                            for (commodity, qty) in
+                                building.active_method.inputs.iter_mut()
+                            {
+                                if commodity.is_fuel() {
+                                    *qty /= scale;
+                                }
+                            }
+                        }
+                    }
+                }
                 // Persist the rescale: `all_buildings` only feeds a transient
                 // ctx here — the runtime loads buildings from building_store.
                 // Same (sector, region) grouping as the Phase-94 re-save.
@@ -5674,6 +5717,14 @@ fn create_specialized_power_plant(
                 .production
                 .values()
                 .filter(|pm| pm.year <= start_year)
+                // v4.23 WS3: the method must actually generate Energy —
+                // the nameplate calibration below is a silent no-op on a
+                // method whose outputs lack it, seeding a plant that can
+                // never feed the grid.
+                .filter(|pm| {
+                    pm.outputs
+                        .contains_key(&crate::registries::enums::Commodity::Energy)
+                })
                 .filter(|pm| match &pm.required_tech {
                     None => true,
                     Some(tech_id) => registries
@@ -5689,6 +5740,10 @@ fn create_specialized_power_plant(
     // method calibration below can target the full nameplate MW.
     let total_nameplate = nameplate * plant_count as f64;
 
+    // Crew the company was commissioned with (Some arm: the labor-pool-
+    // capped engineering complement; None arm: the generic fallback target).
+    // Needed below to finalize the commissioning FTE fill.
+    let mut commissioned_crew = target_workers;
     let (company, mut building) = match method {
         Some(pm) => {
             let mut method = method_from_ratios(
@@ -5728,9 +5783,24 @@ fn create_specialized_power_plant(
             // crew its plants need — workers_per_plant x plant_count (~350
             // x 15 ≈ 5K), NOT the capital-derived target x plant_count that
             // minted 65M-FTE companies against a 3M-person labor pool.
-            let planned_workers = (workers_per_plant(start_year)
-                * (plant_count.max(1) as u32))
-                .max(1);
+            //
+            // v4.23 WS3: the engineering complement is itself unattainable
+            // in electrifying regions — 10 workers/MW (pre-automation) x
+            // hundreds of virtual plants demands ~110% of the regional
+            // labor pool, so labor clearing rations the plant to a small
+            // fraction and per-worker-calibrated output collapses to
+            // actual/planned of nameplate (the blackout cascade: a 2.9 GW
+            // fleet delivering ~600 MW). Generation fleets pool crews
+            // across their virtual plants; the employment-share model
+            // (generator EnergyMix) allots the power sector 5-12% of
+            // employment. Crew the fleet at 10% of the same labor-pool
+            // basis the demand projection uses so the plant can hold its
+            // staff and deliver its nameplate.
+            let engineering_crew = workers_per_plant(start_year)
+                * (plant_count.max(1) as u32);
+            let crew_cap = (labor_pool_fte * 0.10).max(1.0) as u32;
+            let planned_workers = engineering_crew.min(crew_cap).max(1);
+            commissioned_crew = planned_workers;
             // Output calibrates against the same physical staffing floor:
             // production scales with ACTUAL employment — calibrating to an
             // inflated headcount stranded supply at ~actual/planned (~5%)
@@ -5813,6 +5883,19 @@ fn create_specialized_power_plant(
     building
         .inventory
         .insert(crate::registries::enums::Commodity::Energy, total_nameplate);
+
+    // v4.23 WS3: commission the fleet fully crewed. The generic 60%
+    // initial FTE fill seeds generation understrength into a grid that
+    // drains the buffer on the first dispatch — the plant then has to
+    // win back crew through the same rationed labor clearing that
+    // stranded the unbounded complement. The crew cap above sizes the
+    // fleet to labor the region can actually hold, so a full
+    // commissioning crew is attainable and calibrated output delivers
+    // nameplate from the first production cycle.
+    let mut company = company;
+    building.current_employment = building.worker_capacity;
+    company.fulfilled_fte = commissioned_crew.min(company.worker_capacity);
+    company.prev_fulfilled_fte = company.fulfilled_fte;
 
     (company, building)
 }

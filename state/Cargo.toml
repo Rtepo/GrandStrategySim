@@ -1,6 +1,6 @@
 [package]
 name = "sim_engine"
-version = "4.22.1"
+version = "4.23.0"
 edition = "2021"
 description = "Rust migration of the Grand Strategy simulation engine (Target 0: static registries & core math)."
 license = "MIT"
@@ -98,6 +98,11 @@ path = "tests/epics/v4220_release_gate_test.rs"
 required-features = ["epic-tests"]
 
 [[test]]
+name = "v4230_release_gate_test"
+path = "tests/epics/v4230_release_gate_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
 name = "world_gen_audit_test"
 path = "tests/epics/world_gen_audit_test.rs"
 required-features = ["epic-tests"]
@@ -156,6 +161,11 @@ required-features = ["epic-tests", "diagnostic"]
 name = "adaptive_production_viability_test"
 path = "tests/epics/adaptive_production_viability_test.rs"
 required-features = ["epic-tests", "diagnostic"]
+
+[[test]]
+name = "energy_blackout_probe"
+path = "tests/epics/energy_blackout_probe.rs"
+required-features = ["epic-tests"]
 
 [profile.release]
 opt-level = 3

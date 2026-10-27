@@ -21,20 +21,36 @@ summary: string, };
 /**
  * Advisory council snapshot for the Parliament tab (autocracies).
  */
-export type AdvisoryCouncilSnapshot = { council_type: string, members: Array<CouncilMemberRow>, aggregate_loyalty: number, coup_risk_threshold: number, coup_cooldown_until_turn: number, };
+export type AdvisoryCouncilSnapshot = { council_type: string, members: Array<CouncilMemberRow>, aggregate_loyalty: number, coup_risk_threshold: number, coup_cooldown_until_turn: number, 
+/**
+ * v4.23.0 WS2: Faction aggregates — member count, mean loyalty, total
+ * influence — grouped from the live member list.
+ */
+factions: Array<CouncilFactionRow>, 
+/**
+ * v4.23.0 WS2: Decrees issued by the ruler with the council's recorded
+ * opinion (the autocratic legislative record).
+ */
+decrees: Array<CouncilDecreeRow>, 
+/**
+ * v4.23.0 WS2: Petitions factions carried to the ruler.
+ */
+petitions: Array<CouncilPetitionRow>, };
 
 /**
  * One age cohort row of the demographic structure.
  *
- * The sim tracks three real cohorts — children / adults / elderly
+ * The engine tracks three real cohorts — children / adults / elderly
  * (`Demographics::age_groups`, shares updated every turn by the
- * demographic model). Finer granularity (5-year brackets) does not exist
- * in engine state, so the honest three-cohort structure is emitted; the
- * frontend renders it as the population pyramid's coarse form.
+ * demographic model). The pyramid expands them into ten-year bands via
+ * [`ten_year_pyramid_shares`], a stable-population geometric model whose
+ * parameters are fitted to the REAL children (0–14) and elderly (65+)
+ * shares — the coarse truth is honored exactly while the intermediate
+ * shape follows the era-typical declining staircase.
  */
 export type AgeCohortDto = { 
 /**
- * Cohort label ("children" | "adults" | "elderly").
+ * Cohort label ("0-9" | "10-19" | … | "70+").
  */
 label: string, 
 /**
@@ -44,7 +60,13 @@ share: number,
 /**
  * Absolute population (share × population).
  */
-population: number, };
+population: number, 
+/**
+ * Male share within this cohort (0.0–1.0) — declines with age
+ * (higher male mortality), normalized so the population-weighted
+ * mean equals the real national male share.
+ */
+male_share: number, };
 
 /**
  * Phase 60: Arbitration case row (public data).
@@ -338,7 +360,12 @@ securities_cgt_rate: number, };
 /**
  * A chamber snapshot for the Parliament tab.
  */
-export type ChamberSnapshot = { name: string, total_seats: number, speaker_name: string, speaker_club: string, seat_distribution: Array<[string, number]>, };
+export type ChamberSnapshot = { name: string, total_seats: number, speaker_name: string, 
+/**
+ * v4.23.0 WS2: VIP registry id of the speaker (resolved by name) —
+ * enables the clickable dossier link.
+ */
+speaker_vip_id: string | null, speaker_club: string, seat_distribution: Array<[string, number]>, };
 
 /**
  * Phase 85B: Cities snapshot for the CitiesPage.
@@ -484,7 +511,12 @@ body: string,
  * Officeholder display name (VIP name, or the recorded role+party
  * fallback when the seat is unnamed).
  */
-holder: string, };
+holder: string, 
+/**
+ * v4.23.0 WS2: VIP registry id of the officeholder when a named VIP
+ * occupies the seat — enables the clickable dossier link.
+ */
+holder_vip_id: string | null, };
 
 /**
  * A parliamentary club row.
@@ -586,7 +618,12 @@ initiator: string, };
 /**
  * Phase 42: A committee row for the Parliament tab.
  */
-export type CommitteeRow = { name: string, committee_type: string, chair: string, chair_party: string, member_count: number, bills_under_review: number, partisan_bias: number, 
+export type CommitteeRow = { name: string, committee_type: string, chair: string, 
+/**
+ * v4.23.0 WS2: VIP registry id of the committee chair — enables the
+ * clickable dossier link on the chair name.
+ */
+chair_vip_id: string | null, chair_party: string, member_count: number, bills_under_review: number, partisan_bias: number, 
 /**
  * v4.18: The bills actually sitting in this committee right now, with
  * their pipeline stage/progress and the committee's recommendation.
@@ -845,16 +882,62 @@ export type CottageInputEntry = { commodity: string, demand: number, };
 export type CottageOutputEntry = { commodity: string, volume: number, };
 
 /**
+ * v4.23.0 WS2: A decree row for the autocratic legislature view.
+ */
+export type CouncilDecreeRow = { id: string, title: string, domain: string, issued_turn: number, net_opinion: number, 
+/**
+ * Supporters/opponents as `{vip_id, name}` pairs resolved at build
+ * time (deceased councilors included).
+ */
+supporters: Array<VipLinkRow>, opponents: Array<VipLinkRow>, 
+/**
+ * "Promulgated" | "Promulgated over Council Objection" | "Withdrawn".
+ */
+status: string, };
+
+/**
+ * v4.23.0 WS2: One faction inside an autocratic legislature — aggregated
+ * from the real member list (count, mean loyalty, total influence).
+ */
+export type CouncilFactionRow = { faction: string, faction_type: string, members: number, avg_loyalty: number, total_influence: number, };
+
+/**
  * A single council member row.
  */
-export type CouncilMemberRow = { vip_id: string, name: string, faction: string, loyalty: number, influence: number, };
+export type CouncilMemberRow = { vip_id: string, name: string, faction: string, 
+/**
+ * v4.23.0 WS2: Faction category (Nobility, Military, Religious, ...) —
+ * used to group the Factions tab.
+ */
+faction_type: string, loyalty: number, influence: number, };
+
+/**
+ * v4.23.0 WS2: A petition row for the autocratic legislature view.
+ */
+export type CouncilPetitionRow = { id: string, faction: string, petitioner_vip_id: string, petitioner_name: string, subject: string, filed_turn: number, urgency: number, 
+/**
+ * "Pending" | "Granted" | "Rejected" | "Ignored".
+ */
+status: string, resolved_turn: number | null, };
 
 /**
  * v4.20 WS4: A resolution debated and voted by a regional council —
  * mirrors `CouncilResolution` on `politics::local_council::LocalCouncil`
  * and the `CouncilResolutionRow` api.ts contract.
  */
-export type CouncilResolutionRow = { title: string, resolution_type: string, status: string, votes_for: number, votes_against: number, abstentions: number, turn: number, };
+export type CouncilResolutionRow = { title: string, resolution_type: string, status: string, votes_for: number, votes_against: number, abstentions: number, turn: number, 
+/**
+ * v4.23 WS7: Region whose council held the vote — populated for
+ * megaregion assembly aggregation (member-region unions share titles);
+ * empty for single-region rows. serde(default) tolerates old payloads.
+ */
+region_id: string, 
+/**
+ * v4.23 WS7: What the ordinance actually does — derived from the
+ * resolution type and, for adopted spending resolutions, the linked
+ * execution mandate's real appropriation/scope/effects.
+ */
+description: string, };
 
 /**
  * v4.20 WS4: Per-councilor vote record for a council resolution — mirrors
@@ -866,6 +949,80 @@ export type CouncilRollCallRow = { resolution_title: string, member_name: string
  * Extra: councilor persistent id (VIP identifier where registered).
  */
 vip_id: string, };
+
+/**
+ * v4.23 WS4: Per-country trade treemap — REAL settled trade legs this
+ * turn, replacing the old global cleared-volume bound
+ * (`snapshot_society::TradeTreemapDto`, still emitted for the legacy
+ * command surface).
+ *
+ * * `exports` — domestic seller → foreign endpoint: modeled-country
+ * buyers (the order book) plus the FOREIGN-SECTOR world-market sweep.
+ * * `imports` — foreign seller → domestic endpoint, same two sources.
+ * * `domestic` — both-endpoints-domestic order-book legs plus
+ * ministry / JST / public-works procurement (domestic-only books).
+ */
+export type CountryTradeTreemapDto = { 
+/**
+ * Country name.
+ */
+country: string, 
+/**
+ * Export legs sorted by value desc (commodity name breaks ties —
+ * deterministic).
+ */
+exports: Array<CountryTradeTreemapEntry>, 
+/**
+ * Import legs, same ordering.
+ */
+imports: Array<CountryTradeTreemapEntry>, 
+/**
+ * Domestic legs, same ordering.
+ */
+domestic: Array<CountryTradeTreemapEntry>, 
+/**
+ * Total settled export value this turn.
+ */
+total_exports: number, 
+/**
+ * Total settled import value this turn.
+ */
+total_imports: number, 
+/**
+ * Total settled domestic trade value this turn.
+ */
+total_domestic: number, };
+
+/**
+ * One row of the per-country trade treemap — a commodity's settled
+ * quantity and value in one flow direction (exports / imports /
+ * domestic), grouped under a SITC Rev.2 section for the chart.
+ */
+export type CountryTradeTreemapEntry = { 
+/**
+ * Commodity display name (serde key, e.g. `"hard_coal"`).
+ */
+commodity: string, 
+/**
+ * SITC Rev.2 one-digit section label (`Commodity::sitc_section`).
+ */
+sitc_section: string, 
+/**
+ * Settled physical units this turn.
+ */
+quantity: number, 
+/**
+ * Settled currency value this turn (Σ qty × execution price).
+ */
+value: number, 
+/**
+ * Volume-weighted average execution price (0 when qty is 0).
+ */
+avg_price: number, 
+/**
+ * Share of the mode's total value (0.0–1.0).
+ */
+share: number, };
 
 /**
  * Phase 60: Response wrapper for court backlog query.
@@ -884,6 +1041,17 @@ export type CourtBacklogRow = { region_id: string, region_name: string, pending_
  * Whether the court is in crisis (severely backlogged or paralyzed).
  */
 is_crisis: boolean, };
+
+/**
+ * v4.23.0 WS2: One active court intrigue — a real state condition the UI
+ * surfaces: council faction conspiracy, regent power grab, or a rival
+ * claimant. `severity` (0.0–1.0) drives the row tint.
+ */
+export type CourtIntrigueRow = { vip_id: string, name: string, 
+/**
+ * "Faction Conspiracy" | "Regent Ambition" | "Rival Claimant".
+ */
+kind: string, description: string, severity: number, };
 
 /**
  * Building defect summary.
@@ -977,7 +1145,12 @@ gender: string,
 /**
  * Phase 92: Portrait seed for deterministic avatar generation.
  */
-portrait_seed: string, };
+portrait_seed: string, 
+/**
+ * v4.23.0 WS2: Turn this member's reign began (monarchs only) — lets
+ * the tree card show "reigns since T{n}".
+ */
+reign_start_turn: number | null, };
 
 /**
  * One education-level row of the national education distribution.
@@ -1251,7 +1424,17 @@ top_holdings: Array<[string, number]>,
 /**
  * Resolved portfolio rows with instrument names.
  */
-portfolio_holdings: Array<FundHoldingRow>, };
+portfolio_holdings: Array<FundHoldingRow>, 
+/**
+ * v4.23 WS4: uninvested brokerage cash — part of AUM but not a
+ * portfolio holding; the allocation drill-down shows it as a
+ * `"Cash & Equivalents"` leaf so rings sum to total AUM.
+ */
+cash_value: number, 
+/**
+ * v4.23 WS4: brokerage cash frozen against open orders (same role).
+ */
+frozen_cash: number, };
 
 /**
  * v4.18 WS4: One resolved holding row on the fund detail view — the
@@ -1289,7 +1472,21 @@ market_value: number,
 /**
  * Position weight as a fraction of fund AUM (0–1).
  */
-weight_pct: number, };
+weight_pct: number, 
+/**
+ * v4.23 WS4: asset-class bucket for the 3-level allocation drill-down
+ * (Asset Classes → Sectors → Companies): `"Equities"` |
+ * `"Covered Bonds"` | `"Mortgage-Backed Securities"` |
+ * `"Government Bonds"` | `"Other Securities"`.
+ */
+asset_class: string, 
+/**
+ * v4.23 WS4: issuer sector for the drill-down's middle ring — the
+ * holding company's sector for equities, the issuer's sector for
+ * covered bonds, `"Real Estate"` for MBS tranches, `"Government"`
+ * for treasury securities.
+ */
+sector: string, };
 
 /**
  * Phase 57: Fund row for the investment funds UI.
@@ -1460,7 +1657,12 @@ export type GovernmentSnapshot = { head_of_state_name: string,
  * v4.22.1 WS2.2: VIP registry id of the head of state — enables the
  * clickable dossier link on the Government card.
  */
-head_of_state_vip_id: string | null, head_of_state_role: string, pm_name: string, pm_party: string, pm_ideology: string, 
+head_of_state_vip_id: string | null, head_of_state_role: string, pm_name: string, 
+/**
+ * v4.23.0 WS2: VIP registry id of the prime minister — enables the
+ * clickable dossier link on the PM name.
+ */
+pm_vip_id: string | null, pm_party: string, pm_ideology: string, 
 /**
  * Ideology Step 6: Ruling party's ideological coordinates for 3-axis
  * radar chart (Directive 17). `Option` for fog-of-war stripping (Rule 11).
@@ -1858,7 +2060,12 @@ pow_camps: Array<PowCampRow>, };
 /**
  * A minister row for the Government tab.
  */
-export type MinisterRow = { ministry_name: string, minister_name: string, party: string, ideology: string, 
+export type MinisterRow = { ministry_name: string, minister_name: string, 
+/**
+ * v4.23.0 WS2: VIP registry id of the minister (resolved by name) —
+ * enables the clickable dossier link.
+ */
+minister_vip_id: string | null, party: string, ideology: string, 
 /**
  * Ideology Step 6: Minister's party ideological coordinates (Directive 17).
  */
@@ -1866,7 +2073,44 @@ coordinates: IdeologyCoordinatesDto | null, allocated_cash: number, spent_cash: 
 /**
  * Phase 35: Current cash pocket available for spending.
  */
-ministry_cash: number, };
+ministry_cash: number, 
+/**
+ * v4.23 WS4: qualitative policy KPIs & targets for the Reports drawer —
+ * measured from live engine state and keyed by the ministry's
+ * competencies (empty only when the country snapshot path cannot
+ * supply entities).
+ */
+policy_kpis: Array<MinistryKpiRow>, };
+
+/**
+ * v4.23 WS4: One qualitative policy KPI for a ministry's Reports drawer.
+ *
+ * `value`/`unit` are measured from real engine state (never fabricated);
+ * `target` is the portfolio's qualitative policy goal; `status` is the
+ * assessment the measurement supports:
+ * `"on_track"` | `"at_risk"` | `"off_track"` | `"watch"`.
+ */
+export type MinistryKpiRow = { 
+/**
+ * KPI label (e.g. "Unemployment", "Demand coverage").
+ */
+label: string, 
+/**
+ * Measured value from live state.
+ */
+value: number, 
+/**
+ * Display unit — "%", "MW", "seats", "personnel", "yrs", "¤", "count".
+ */
+unit: string, 
+/**
+ * Qualitative target text (e.g. "≤ 5%", "≥ 100%", "0 — peace").
+ */
+target: string, 
+/**
+ * Assessment vs. target.
+ */
+status: string, };
 
 /**
  * Phase 54: A single ministry expenditure category entry for the Finance tab.
@@ -2328,9 +2572,40 @@ media: PressMediaContext,
  */
 papers: Array<PressPaperDto>, 
 /**
+ * v4.23 WS7: Financial & Business Press — stock movers, earnings,
+ * dividends and major investments sourced from real company/market
+ * state (one shared business section, not per-paper selection).
+ * `serde(default)` tolerates snapshots built before this section.
+ */
+business_articles: Array<PressArticleDto>, 
+/**
  * Total articles emitted across all papers.
  */
 total_articles: number, };
+
+/**
+ * v4.23.0 WS2: A living claimant in the succession line behind the heir
+ * apparent — the pretenders table.
+ */
+export type PretenderRow = { vip_id: string, name: string, age: number, relation: string, succession_order: number, 
+/**
+ * Claim strength derived from line position (1/order).
+ */
+claim_strength: number, trait_label: string, };
+
+/**
+ * v4.23.0 WS2: A dead member who reigned — one row of reign history.
+ */
+export type PreviousMonarchRow = { vip_id: string, name: string, 
+/**
+ * Turn the reign began (None for founding-era monarchs without a
+ * recorded accession).
+ */
+reign_start_turn: number | null, 
+/**
+ * Turn the reign ended (the monarch's death turn).
+ */
+reign_end_turn: number | null, death_cause: string, age_at_death: number, };
 
 /**
  * v4.18: One provision inside a bill detail — typed effect data.
@@ -2656,7 +2931,26 @@ export type RoyalDynastySnapshot = { dynasty_name: string, current_monarch_id: s
 /**
  * Phase 86: Genealogy event history.
  */
-marriage_history: Array<MarriageEventRow>, birth_history: Array<BirthEventRow>, };
+marriage_history: Array<MarriageEventRow>, birth_history: Array<BirthEventRow>, 
+/**
+ * v4.23.0 WS2: Succession law label describing the rule the succession
+ * engine applies (primogeniture for hereditary crowns; elective note
+ * for elective monarchies).
+ */
+succession_law: string, 
+/**
+ * v4.23.0 WS2: Dead members who held the throne — the reign history.
+ */
+previous_monarchs: Array<PreviousMonarchRow>, 
+/**
+ * v4.23.0 WS2: Active court intrigues — derived from real council
+ * disloyalty, regent ambition, and rival claimants.
+ */
+intrigues: Array<CourtIntrigueRow>, 
+/**
+ * v4.23.0 WS2: Living claimants in the succession line behind the heir.
+ */
+pretenders: Array<PretenderRow>, };
 
 /**
  * Phase 56: Sector index snapshot.
@@ -2783,7 +3077,8 @@ country: string,
  */
 population: bigint, 
 /**
- * Age structure — the real children/adults/elderly cohorts.
+ * Age structure — ten-year cohorts (0-9 … 70+) interpolated from the
+ * real children/adults/elderly shares (v4.23.0 WS6).
  */
 age_cohorts: Array<AgeCohortDto>, 
 /**
@@ -2823,7 +3118,9 @@ birth_rate: number,
  */
 death_rate: number, 
 /**
- * Net migration rate (fraction of population per year).
+ * Net migration rate (fraction of population per year) — annualized
+ * from `last_migration` (24 turns/yr), the real per-turn cross-border
+ * flow recorded by the Phase 85B society telemetry hook.
  */
 net_migration_rate: number, 
 /**
@@ -2835,12 +3132,16 @@ last_births: number,
  */
 last_deaths: number, 
 /**
- * Net migration in the last turn.
+ * Net cross-border migration in the last turn — real immigrant-cohort
+ * inflows (seniority 0) minus deportations, recorded by the Phase 85B
+ * society telemetry hook (`labor.rs`'s own `net_migration` input
+ * stays 0 — real flows move through physical transport).
  */
 last_migration: number, 
 /**
  * Life expectancy (`health_statistics.average_lifespan`, computed each
- * turn from health infrastructure/quality).
+ * turn from health infrastructure/quality and era-anchored to the
+ * 42–65 band by the Phase 85B society telemetry hook).
  */
 life_expectancy: number, 
 /**
@@ -3226,6 +3527,12 @@ search: string,
 role_filter: string, };
 
 /**
+ * v4.23.0 WS2: A `{vip_id, display name}` pair — lets the UI render a
+ * hover-card link without a second lookup.
+ */
+export type VipLinkRow = { vip_id: string, name: string, };
+
+/**
  * Response for paginated VIP queries.
  */
 export type VipPageResponse = { rows: Array<VipDossierRow>, total_count: number, };
@@ -3233,7 +3540,12 @@ export type VipPageResponse = { rows: Array<VipDossierRow>, total_count: number,
 /**
  * Phase 34: A named VIP row for the Parliament tab.
  */
-export type VipRow = { full_name: string, party: string, role: string, ideology: string, 
+export type VipRow = { full_name: string, 
+/**
+ * v4.23.0 WS2: VIP registry id (resolved by name) — enables the
+ * clickable dossier link on the name.
+ */
+vip_id: string | null, party: string, role: string, ideology: string, 
 /**
  * Ideology Step 6: VIP ideological coordinates for radar chart (Directive 17).
  */
@@ -3258,7 +3570,38 @@ club_breakdown: Array<ClubVoteRow>,
 /**
  * v4.18: Bill provisions/effects snapshot taken at vote time.
  */
-detail: BillDetailRow | null, };
+detail: BillDetailRow | null, 
+/**
+ * v4.23.0 WS2: Turn of the FIRST recorded vote on this bill across all
+ * chambers (same on every row of the bill group).
+ */
+first_vote_turn: number, 
+/**
+ * v4.23.0 WS2: Turn of the LAST recorded vote on this bill across all
+ * chambers (same on every row of the bill group).
+ */
+last_vote_turn: number, 
+/**
+ * v4.23.0 WS2: Turn the law took effect (enactment) — None while the
+ * bill is in flight or was rejected/vetoed.
+ */
+effective_turn: number | null, 
+/**
+ * v4.23.0 WS2: How many chamber votes the bill has PASSED so far.
+ */
+stages_passed: number, 
+/**
+ * v4.23.0 WS2: How many chamber stages the bill requires — 2 for
+ * bicameral legislatures, 1 for unicameral.
+ */
+stages_required: number, 
+/**
+ * v4.23.0 WS2: Canonical per-bill outcome for the RESULT column —
+ * "Enacted", "Senate Veto Overridden", "Senate Veto Override Failed",
+ * "Rejected in Lower House", "Rejected by Upper House",
+ * "Presidential Veto", or the live stage label while in flight.
+ */
+result: string, };
 
 /**
  * A single active war/front row for the Military dashboard.

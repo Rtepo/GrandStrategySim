@@ -54,7 +54,16 @@ export function GovernmentPage() {
             <Card>
               <CardHeader><CardTitle>Prime Minister</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <Row label="Name" value={gov.pm_name} />
+                <Row
+                  label="Name"
+                  value={
+                    gov.pm_vip_id ? (
+                      <VipHoverCard vipId={gov.pm_vip_id}>{gov.pm_name}</VipHoverCard>
+                    ) : (
+                      gov.pm_name
+                    )
+                  }
+                />
                 <Row label="Party" value={gov.pm_party} />
                 <Row label="Ideology" value={gov.pm_ideology} />
               </CardContent>
@@ -96,7 +105,13 @@ export function GovernmentPage() {
                       gov.cabinet.map((m) => (
                         <TableRow key={m.ministry_name}>
                           <TableCell className="font-medium">{m.ministry_name}</TableCell>
-                          <TableCell>{m.minister_name}</TableCell>
+                          <TableCell>
+                            {m.minister_vip_id ? (
+                              <VipHoverCard vipId={m.minister_vip_id}>{m.minister_name}</VipHoverCard>
+                            ) : (
+                              m.minister_name
+                            )}
+                          </TableCell>
                           <TableCell className="text-xs">{m.party}</TableCell>
                           <TableCell className="text-right">{fmt(m.allocated_cash)}</TableCell>
                           <TableCell className="text-right">{fmt(m.spent_cash)}</TableCell>
@@ -126,8 +141,14 @@ export function GovernmentPage() {
                   <TableBody>
                     {gov.vips.length > 0 ? (
                       gov.vips.map((v, i) => (
-                        <TableRow key={i}>
-                          <TableCell className="font-medium">{v.full_name}</TableCell>
+                        <TableRow key={v.vip_id ?? i}>
+                          <TableCell className="font-medium">
+                            {v.vip_id ? (
+                              <VipHoverCard vipId={v.vip_id}>{v.full_name}</VipHoverCard>
+                            ) : (
+                              v.full_name
+                            )}
+                          </TableCell>
                           <TableCell>{v.role}</TableCell>
                           <TableCell className="text-xs">{v.party}</TableCell>
                           <TableCell className="text-right">{v.age}</TableCell>
@@ -227,6 +248,50 @@ export function GovernmentPage() {
                                 <div>Spent: {fmt(m.spent_cash)}</div>
                                 <div>Remaining: {fmt(m.ministry_cash)}</div>
                               </div>
+                              {/* v4.23 WS4: qualitative policy KPIs & targets
+                                  for the ministry's portfolio — real engine
+                                  metrics, status-colored. */}
+                              {m.policy_kpis && m.policy_kpis.length > 0 && (
+                                <div className="md:col-span-3">
+                                  <div className="font-semibold mb-1">Policy KPIs & Targets</div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+                                    {m.policy_kpis.map((k, i) => (
+                                      <div
+                                        key={i}
+                                        className="flex items-center justify-between rounded border border-border/50 bg-background/40 px-2 py-1"
+                                      >
+                                        <div>
+                                          <div className="font-medium">{k.label}</div>
+                                          <div className="text-muted-foreground">
+                                            Target: {k.target}
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="font-semibold">
+                                            {fmt(k.value)}
+                                            {k.unit && (
+                                              <span className="text-muted-foreground ml-0.5">{k.unit}</span>
+                                            )}
+                                          </div>
+                                          <Badge
+                                            variant={
+                                              k.status === "on_track"
+                                                ? "success"
+                                                : k.status === "at_risk"
+                                                  ? "secondary"
+                                                  : k.status === "off_track"
+                                                    ? "destructive"
+                                                    : "outline"
+                                            }
+                                          >
+                                            {k.status.replace("_", " ")}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -255,9 +320,31 @@ export function GovernmentPage() {
           <Card>
             <CardHeader><CardTitle>Royal Dynasty — {dynasty.dynasty_name}</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <Row label="Monarch" value={dynasty.current_monarch_name || "(vacant)"} />
+              <Row
+                label="Monarch"
+                value={
+                  dynasty.current_monarch_id ? (
+                    <VipHoverCard vipId={dynasty.current_monarch_id}>
+                      {dynasty.current_monarch_name || "(vacant)"}
+                    </VipHoverCard>
+                  ) : (
+                    dynasty.current_monarch_name || "(vacant)"
+                  )
+                }
+              />
               {dynasty.regency_active && (
-                <Row label="Regent" value={dynasty.current_regent_name || "(none)"} />
+                <Row
+                  label="Regent"
+                  value={
+                    dynasty.current_regent_id ? (
+                      <VipHoverCard vipId={dynasty.current_regent_id}>
+                        {dynasty.current_regent_name || "(none)"}
+                      </VipHoverCard>
+                    ) : (
+                      dynasty.current_regent_name || "(none)"
+                    )
+                  }
+                />
               )}
               <Row label="Regency Active" value={dynasty.regency_active ? "Yes" : "No"} />
             </CardContent>

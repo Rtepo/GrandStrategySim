@@ -943,6 +943,105 @@ impl Commodity {
         }
     }
 
+    /// v4.23 WS4: SITC Rev.2 section grouping for the country trade treemap.
+    ///
+    /// Maps each commodity to a Standard International Trade Classification
+    /// one-digit section label (goods only — SITC does not classify services,
+    /// so intangibles get the pseudo-section `"S — Services & Intangibles"`).
+    /// Grouping is by the good's *nature*, not its VAT rate:
+    ///
+    /// - `"0 — Food & Live Animals"` — crops, livestock, fish, prepared food,
+    ///   animal feed, seeds, and draft animals (live working animals are
+    ///   SITC 00/01 by convention).
+    /// - `"1 — Beverages, Tobacco & Luxury Crops"` — processed luxury crops
+    ///   (sugar, coffee, tobacco, spices).
+    /// - `"2 — Crude Materials, Inedible (ex Fuels)"` — ores, minerals, raw
+    ///   fibres, timber, salt, sulfur, water, and sorted secondary raw
+    ///   materials (B2B-tradeable waste streams).
+    /// - `"3 — Mineral Fuels & Energy"` — coals, peat, crude oil, natural
+    ///   gas, refined petroleum products, coke, coal gas, bitumen, and the
+    ///   local-utility energy carriers.
+    /// - `"5 — Chemicals & Related Products"` — chemicals, fertilizers,
+    ///   pharmaceuticals, catalysts, industrial gases, plastics in primary
+    ///   form.
+    /// - `"6 — Manufactured Goods (by Material)"` — metals, wood products,
+    ///   construction materials, glass, paper, textiles.
+    /// - `"7 — Machinery & Transport Equipment"` — machinery, vehicles,
+    ///   rolling stock, ships, aircraft, electronics/appliances.
+    /// - `"8 — Miscellaneous Manufactures"` — furniture, clothing,
+    ///   instruments, printed matter, art.
+    /// - `"9 — Arms, Bullion & Unclassified"` — military equipment and
+    ///   weaponry, precious-metal bullion, B2B-excluded waste streams, and
+    ///   anything not elsewhere classified (SITC 9 / NEC).
+    pub fn sitc_section(&self) -> &'static str {
+        use Commodity::*;
+        match self {
+            // SITC 0 — food & live animals.
+            Meat | Fruit | Cereal | Vegetable | Fodder | Livestock | Fish | Food | Seeds
+            | DraftAnimals => "0 — Food & Live Animals",
+
+            // SITC 1 — beverages & tobacco (luxury processed crops).
+            Luxury => "1 — Beverages, Tobacco & Luxury Crops",
+
+            // SITC 2 — crude materials, inedible, except fuels (incl. ores,
+            // raw fibres, timber, salt/sulfur, and sorted waste scrap).
+            IndustrialFiber | Timber | Iron | Copper | Tin | Zinc | Lead | Bauxite
+            | Lithium | RareEarthElements | Uranium | Clay | Stone | Sand | Gravel
+            | Limestone | Salt | Sulfur | MineralResources | Water | MetalWaste
+            | GlassWaste | PlasticWaste | ElectronicWaste | TextileWaste => {
+                "2 — Crude Materials (ex Fuels)"
+            }
+
+            // SITC 3 — mineral fuels, lubricants & related materials
+            // (incl. the local-utility energy carriers for grouping parity).
+            HardCoal | BrownCoal | Peat | Oil | NaturalGas | Fuels | RefinedFuel | Coke
+            | CoalGas | Bitumen | Energy | Heat => "3 — Mineral Fuels & Energy",
+
+            // SITC 5 — chemicals & related products.
+            Chemicals | Fertilizers | Pharmaceuticals | Catalysts | SodaAsh | Ammonia
+            | Hydrogen | Plastics => "5 — Chemicals & Related Products",
+
+            // SITC 6 — manufactured goods classified chiefly by material.
+            Steel | Aluminum | Silicon | Magnesium | Planks | Bricks | Cement | Glass
+            | Paper | Prefabricates | Fibers | Asphalt => {
+                "6 — Manufactured Goods (by Material)"
+            }
+
+            // SITC 7 — machinery & transport equipment (incl. electronics,
+            // appliances, and electrical equipment).
+            IndustrialMachinery | ConstructionMachinery | AgriculturalMachinery
+            | OfficeMachinery | Trucks | Cars | Trains | RollingStock | Airplanes
+            | Helicopters | PassengerShips | CargoShips | ElectronicComponents
+            | Semiconductors | MechanicalComponents | Batteries | CoolingTower
+            | PhotovoltaicPanels | Radio | Televisions | Agd => {
+                "7 — Machinery & Transport Equipment"
+            }
+
+            // SITC 8 — miscellaneous manufactured articles.
+            Furniture | LuxuryFurniture | Clothing | LuxuryClothing | MedicalEquipment
+            | ReligiousTexts | ReligiousArt => "8 — Miscellaneous Manufactures",
+
+            // Pseudo-section — services & intangibles are outside goods SITC.
+            Software | AdministrativeServices | BankingServices | ConstructionServices
+            | MaintenanceServices | LocalServicesCommodity | InsuranceServices
+            | RenovationServices | Information | MarketResearch | PassengerTransport
+            | FreightCapacity | InnovationEngineering | InnovationMetallurgy
+            | InnovationChemistry | InnovationElectronics | InnovationComputing
+            | InnovationMedicine | InnovationPhysics | InnovationAgronomy
+            | ResearchOutput | HealthCapacity | EducationSlots | JusticeCapacity
+            | SecurityCapacity | IntelligenceCapacity | FireProtectionCapacity
+            | ShelterCapacity | BorderEnforcementCapacity | CustomsCapacity
+            | SanitaryInspectionCapacity | BuildingInspectionCapacity
+            | EnvironmentalInspectionCapacity | LaborInspectionCapacity
+            | AssimilationCapacity | SportsCapacity => "S — Services & Intangibles",
+
+            // SITC 9 — commodities not elsewhere classified: arms & military
+            // equipment, precious-metal bullion, B2B-excluded waste streams,
+            // constructed well assets.
+            _ => "9 — Arms, Bullion & Unclassified",
+        }
+    }
+
     /// Returns all tradeable commodity variants in canonical (English) JSON order.
     pub fn all() -> [Commodity; 152] {
         [

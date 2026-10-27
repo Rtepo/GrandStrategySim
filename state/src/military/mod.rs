@@ -17,6 +17,7 @@ pub mod retreat;
 pub mod turn;
 pub mod units;
 pub mod upkeep;
+pub mod war_bridge;
 pub mod war_declarations;
 pub mod war_economy;
 

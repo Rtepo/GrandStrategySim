@@ -894,10 +894,13 @@ pub fn process_legislation_turn(
                         ));
                         sess.rejected_bills.push(bill_id.clone());
                         if let Some(ref mut parl) = country.politics.parliament_struct {
+                            // v4.23.0 WS2: a failed constitutional override
+                            // gets its own terminal badge so the UI can badge
+                            // it distinctly from a plain upper-house rejection.
                             parl.mark_bill_terminal(
                                 bill_id,
-                                &format!("Rejected by {upper_name}"),
-                                "Rejected by Upper House",
+                                &format!("Override Failed — Rejected by {upper_name}"),
+                                "Senate Veto Override Failed",
                                 current_turn,
                             );
                         }
@@ -1980,6 +1983,33 @@ fn policy_domain_urgency(
         BT::Transport if country.politics.transport_law.is_none() => 1.5,
         _ => 1.0,
     }
+}
+
+/// v4.23.0 WS2: Snapshot of the routine policy agenda for the autocratic
+/// decree machinery — `(bill_type, base title, ideology signature, urgency)`
+/// for every domain. Shares the exact domain table and macro-urgency math
+/// the democratic agenda uses, so a junta or royal council legislates under
+/// the same real pressures (unemployment, unrest, treasury coverage, missing
+/// laws) that drive a parliament's queue.
+pub(crate) fn policy_agenda_for_country(
+    country: &crate::state::Country,
+) -> Vec<(
+    super::legislation::BillType,
+    &'static str,
+    IdeologyCoordinates,
+    f64,
+)> {
+    POLICY_DOMAINS
+        .iter()
+        .map(|spec| {
+            (
+                spec.bill_type,
+                spec.title,
+                spec.signature,
+                policy_domain_urgency(spec.bill_type, country),
+            )
+        })
+        .collect()
 }
 
 /// Affinity of a parliamentary club/party to a policy domain signature —

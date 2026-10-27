@@ -22,9 +22,25 @@
 
 set -uo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# ─── Self-immunity: never execute the live script file ───────────────────
+# The merge rewrites this file mid-run when the worker branch ships a newer
+# merge_worker.sh. Bash reads scripts incrementally by byte offset, so the
+# remaining commands were skipped/corrupted (v4.22.1 tag push never ran).
+# Copy ourselves to a stable temp path and exec that instead — subsequent
+# writes to the repo file cannot affect the running interpreter.
+if [ -z "${MW_SELF_COPY:-}" ]; then
+    MW_SELF_COPY=1
+    export MW_SELF_COPY
+    export MW_SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    export MW_PROJECT_DIR="$(cd "$MW_SCRIPT_DIR/../.." && pwd)"
+    _mw_tmp="$(mktemp /tmp/merge_worker_exec.XXXXXX.sh 2>/dev/null || echo /tmp/merge_worker_exec.sh)"
+    cp "$0" "$_mw_tmp"
+    exec bash "$_mw_tmp" "$@"
+fi
+
+SCRIPT_DIR="${MW_SCRIPT_DIR:-$(cd "$(dirname "$0")" && pwd)}"
 source "$SCRIPT_DIR/sync_lib.sh"
-PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PROJECT_DIR="${MW_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
 # ─── Parse args: <worker_branch> [--tag vX.Y.Z] ────────────────────────────
 WORKER_BRANCH=""
@@ -206,6 +222,17 @@ fi
 # Auto-push release tags: every v* tag pointing at the merged HEAD, plus an
 # explicit --tag flag. Release tags must reach GitHub without a second manual
 # push (the user should never run `git push origin vX.Y.Z` themselves).
+# Mint --tag at the merged HEAD when absent — release-tag convention names
+# the merge commit on main, not the feature tip (v4.22.1 needed a manual
+# repoint because the tag pre-existed at the worker branch tip).
+if [ -n "$TAG_FLAG" ]; then
+    if git rev-parse -q --verify "refs/tags/$TAG_FLAG" >/dev/null 2>&1; then
+        echo "  ⚠ Tag $TAG_FLAG already exists at $(git rev-parse "$TAG_FLAG" | head -c8) — not repointing"
+    else
+        git tag "$TAG_FLAG" HEAD
+        echo "  Minted tag $TAG_FLAG at merged HEAD."
+    fi
+fi
 TAGS_TO_PUSH="$TAG_FLAG"
 for t in $(git tag --points-at HEAD 2>/dev/null | grep -E '^v' || true); do
     case " $TAGS_TO_PUSH " in

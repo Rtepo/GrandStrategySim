@@ -39,7 +39,7 @@ import type {
   MinistryLandReportDTO,
   MunicipalAiSnapshot,
   GdpCompositionDto,
-  TradeTreemapDto,
+  CountryTradeTreemapDto,
   OrganizationsSummaryDto,
   SocietySnapshotDto,
   PressSnapshotDto,
@@ -264,14 +264,16 @@ export async function getGdpComposition(country: string): Promise<GdpComposition
   return invoke<GdpCompositionDto>("get_gdp_composition", { country });
 }
 
-/// v4.22 WS4: OEC-style trade treemap entries for the Market tab.
-export async function getTradeTreemap(country: string): Promise<TradeTreemapDto> {
-  return invoke<TradeTreemapDto>("get_trade_treemap", { country });
+/// v4.23 WS4: per-country trade treemap — real settled export/import/
+/// domestic legs this turn, SITC-grouped for the Market tab toggle.
+export async function getTradeTreemap(country: string): Promise<CountryTradeTreemapDto> {
+  return invoke<CountryTradeTreemapDto>("get_trade_treemap", { country });
 }
 
 /// v4.22 WS6: Organizations summary KPIs (unionization, members, strikes).
-export async function getOrganizationsSummary(country: string): Promise<OrganizationsSummaryDto> {
-  return invoke<OrganizationsSummaryDto>("get_organizations_summary", { country });
+/// v4.23.0: backend returns all-country rows — callers pick their country.
+export async function getOrganizationsSummary(): Promise<OrganizationsSummaryDto[]> {
+  return invoke<OrganizationsSummaryDto[]>("get_organizations_summary");
 }
 
 /// v4.22 WS6: Society snapshot — demographics, education, ethnicity, class.

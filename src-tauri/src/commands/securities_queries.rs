@@ -130,6 +130,63 @@ fn resolve_instrument(
     )
 }
 
+/// v4.23 WS4: asset-class bucket for the fund drill-down's outer ring —
+/// derived from the instrument-id convention the exchange itself uses.
+fn instrument_asset_class(
+    inst: &str,
+    country_ref: &sim_engine::state::Country,
+) -> &'static str {
+    if inst.starts_with("EQUITY:") {
+        "Equities"
+    } else if inst.starts_with("BOND:") {
+        "Covered Bonds"
+    } else if inst.starts_with("MBS:") || inst.starts_with("mbs:") {
+        "Mortgage-Backed Securities"
+    } else if country_ref
+        .debt_market
+        .outstanding_securities
+        .iter()
+        .any(|s| s.id == inst)
+    {
+        "Government Bonds"
+    } else {
+        "Other Securities"
+    }
+}
+
+/// v4.23 WS4: sector label for the instrument's issuer — the drill-down's
+/// middle ring. Equities/covered bonds resolve to the issuer company's
+/// sector; MBS tranches map to Real Estate; treasuries to Government.
+fn instrument_sector(
+    inst: &str,
+    entities: &[sim_engine::entities::Company],
+    country_ref: &sim_engine::state::Country,
+) -> String {
+    if let Some(cid) = inst.strip_prefix("EQUITY:") {
+        entities
+            .iter()
+            .find(|c| c.id == cid)
+            .map(|c| format!("{:?}", c.sector))
+            .unwrap_or_else(|| "Unlisted".to_string())
+    } else if let Some(bond_id) = inst.strip_prefix("BOND:") {
+        country_ref
+            .covered_bonds_issued
+            .iter()
+            .find(|b| b.id == bond_id)
+            .and_then(|b| {
+                entities
+                    .iter()
+                    .find(|c| c.id == b.issuer_id)
+                    .map(|c| format!("{:?}", c.sector))
+            })
+            .unwrap_or_else(|| "Banking".to_string())
+    } else if inst.starts_with("MBS:") || inst.starts_with("mbs:") {
+        "Real Estate".to_string()
+    } else {
+        "Government".to_string()
+    }
+}
+
 /// v4.18 WS4: pretty-print a PascalCase class key ("FreePeasant" →
 /// "Free Peasant") for CGT entity display names.
 fn prettify_pascal_case(s: &str) -> String {
@@ -755,6 +812,8 @@ pub async fn get_fund_detail(
                     .map(|(inst, qty, avg_cost, market_value)| {
                         let (display_name, ticker) =
                             resolve_instrument(&inst, entities, country_ref);
+                        let asset_class = instrument_asset_class(&inst, country_ref);
+                        let sector = instrument_sector(&inst, entities, country_ref);
                         FundHoldingRow {
                             instrument_id: inst,
                             display_name,
@@ -763,6 +822,8 @@ pub async fn get_fund_detail(
                             avg_cost,
                             market_value,
                             weight_pct: 0.0, // filled below once AUM is known
+                            asset_class: asset_class.to_string(),
+                            sector,
                         }
                     })
                     .collect()
@@ -782,6 +843,9 @@ pub async fn get_fund_detail(
                 avg_cost: holding.purchase_price,
                 market_value: holding.face_value,
                 weight_pct: 0.0,
+                asset_class: instrument_asset_class(&holding.security_id, country_ref)
+                    .to_string(),
+                sector: instrument_sector(&holding.security_id, entities, country_ref),
             });
         }
 
@@ -830,6 +894,18 @@ pub async fn get_fund_detail(
             performance_fee: ledger.performance_fee,
             top_holdings,
             portfolio_holdings,
+            // v4.23 WS4: cash legs of AUM — shown as a "Cash &
+            // Equivalents" leaf in the allocation drill-down.
+            cash_value: fund
+                .brokerage_account
+                .as_ref()
+                .map(|a| a.cash)
+                .unwrap_or(0.0),
+            frozen_cash: fund
+                .brokerage_account
+                .as_ref()
+                .map(|a| a.frozen_cash)
+                .unwrap_or(0.0),
         }))
     })
     .await

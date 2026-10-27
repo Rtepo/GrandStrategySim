@@ -1203,6 +1203,14 @@ fn regenerate_parties(
     old_party_names.sort();
     for name in old_party_names {
         let party = &old_parties[name];
+        // v4.23.0: never preserve the provisional caretaker as an electoral
+        // party. It holds seats after every forced election, so preserving it
+        // kept it alive each refresh — the snap guard then re-fired forever
+        // (Illyria: an election every cooldown). The fallback below recreates
+        // it when literally no real party can be seated.
+        if name.as_str() == "Provisional Technocratic Government" {
+            continue;
+        }
         if let Some(ideo) = Ideology::from_name(&party.ideology) {
             if let Some(&bid) = bids.get(&ideo) {
                 if bid > threshold || parliament.contains_key(name) {
@@ -1230,8 +1238,22 @@ fn regenerate_parties(
     // `contains_key` check below depend on which parties already exist).
     let mut bid_list: Vec<(Ideology, f64)> = bids.into_iter().collect();
     bid_list.sort_by(|a, b| a.0.as_str().cmp(b.0.as_str()));
-    for (ideo, bid) in bid_list {
-        if bid > threshold && !used_ideologies.contains(&ideo) {
+    // v4.23.0: a strict-threshold shut-out must not produce a permanent
+    // provisional monopoly. When fewer than two bids clear the real
+    // threshold, relax it just far enough to seat the three highest bidders
+    // — a fragmented-but-real party system that can actually end the
+    // provisional snap-election loop.
+    let eff_threshold = {
+        let mut ranked: Vec<f64> = bid_list.iter().map(|(_, b)| *b).collect();
+        ranked.sort_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal));
+        if ranked.iter().filter(|b| **b > threshold).count() >= 2 {
+            threshold
+        } else {
+            (ranked.get(2).copied().unwrap_or(0.0) - f64::EPSILON).max(0.0)
+        }
+    };
+    for &(ideo, bid) in &bid_list {
+        if bid > eff_threshold && bid > 0.0 && !used_ideologies.contains(&ideo) {
             // Use procedural name generator
             let name = generator::generate_party_name(country_name, cultural_group, ideo.compass(), year, &mut rng);
             let organization =
@@ -1377,6 +1399,20 @@ pub fn run_election_if_due(
         return messages;
     }
 
+    // v4.23.0 release gate: minimum interval between EXECUTED elections.
+    // Snap/crisis triggers (`check_snap_election`, budget-failure continuing
+    // resolutions, minority-collapse) can re-flag `years_to_elections` or
+    // `budget_crisis` every turn; without a floor on executions a fragile
+    // polity churns a dozen mandates in five years. Deferred conditions stay
+    // flagged, so the pending election fires the turn the interval elapses.
+    const MIN_ELECTION_INTERVAL_TURNS: u32 = 24;
+    if country.politics.elections_held > 0
+        && current_turn.saturating_sub(country.politics.last_election_turn)
+            < MIN_ELECTION_INTERVAL_TURNS
+    {
+        return messages;
+    }
+
     // Phase 45: Single global VIP deduplication set for this election cycle.
     // Pre-populated with all party leader names so generated VIPs never collide.
     let mut used_vip_names: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -1406,6 +1442,7 @@ pub fn run_election_if_due(
     // v4.20: count every executed election (scheduled, snap, crisis) —
     // release gate `elections_held_count > 0`.
     country.politics.elections_held = country.politics.elections_held.saturating_add(1);
+    country.politics.last_election_turn = current_turn;
 
     // v4.22.1 WS2.3: record this election in the historical record (results,
     // vote shares, and presidential rounds for executive republics).
@@ -1434,6 +1471,15 @@ pub fn run_election_if_due(
             } else {
                 Vec::new()
             };
+        // v4.23.0 WS1.2: a decided presidential race installs the winner as
+        // head of state immediately (the field was staying stale).
+        if let Some(new_president) = presidential_rounds.last().map(|r| r.winner.clone()) {
+            if !new_president.is_empty()
+                && country.politics.head_of_state.name != new_president
+            {
+                country.politics.head_of_state.name = new_president;
+            }
+        }
         country.politics.election_history.push(
             super::system::ElectionRecord {
                 turn: current_turn,
@@ -1970,6 +2016,8 @@ pub fn bootstrap_politics(
                 marriage_turn: None,
                 death_turn: None,
                 death_cause: None,
+                // Founding monarch's reign counts from the simulation start.
+                reign_start_turn: Some(0),
             });
 
         // Generate a royal consort (spouse for the monarch).
@@ -2029,6 +2077,7 @@ pub fn bootstrap_politics(
                 marriage_turn: Some(0),
                 death_turn: None,
                 death_cause: None,
+                reign_start_turn: None,
             });
 
         // Generate 1-2 royal heirs (children of monarch and consort).
@@ -2094,6 +2143,7 @@ pub fn bootstrap_politics(
                     marriage_turn: None,
                     death_turn: None,
                     death_cause: None,
+                    reign_start_turn: None,
                 });
             children_ids.push(heir_vip_id);
         }
@@ -2167,6 +2217,7 @@ pub fn bootstrap_politics(
                     marriage_turn: None,
                     death_turn: None,
                     death_cause: None,
+                    reign_start_turn: None,
                 });
             next_succession_order += 1;
             sibling_ids.push(sibling_vip_id);
@@ -2225,6 +2276,7 @@ pub fn bootstrap_politics(
                     marriage_turn: None,
                     death_turn: None,
                     death_cause: None,
+                    reign_start_turn: None,
                 });
             next_succession_order += 1;
             uncle_aunt_ids.push(ua_vip_id);
@@ -2295,6 +2347,7 @@ pub fn bootstrap_politics(
                     marriage_turn: None,
                     death_turn: None,
                     death_cause: None,
+                    reign_start_turn: None,
                 });
             // Link cousin to uncle/aunt's children list.
             if let Some(pid) = &parent_id {
@@ -2585,9 +2638,19 @@ fn build_constitution(form: GovernmentForm, _rng: &mut impl Rng) -> Constitution
             | GovernmentForm::ElectiveMonarchy
     );
     let upper_house = if form.chambers() >= 2 {
+        // v4.23.0 WS1.1: estate/noble upper houses (House of Lords) belong to
+        // monarchies only — republics get a party-proportional Senate. A
+        // corporatist chamber of interest groups blocked every budget and
+        // spammed snap elections.
+        let (name, elections) = match form {
+            GovernmentForm::ConstitutionalMonarchy
+            | GovernmentForm::DualistMonarchy
+            | GovernmentForm::ElectiveMonarchy => ("House of Lords", "Hereditary"),
+            _ => ("Senate", "Proportional Representation"),
+        };
         Some(UpperHouse {
-            name: "Upper House".to_string(),
-            elections: "Indirect Elections".to_string(),
+            name: name.to_string(),
+            elections: elections.to_string(),
             powers: "Bill Veto".to_string(),
         })
     } else {
@@ -2790,6 +2853,15 @@ fn random_head_of_state(
 pub fn process_advisory_council_turn(country: &mut Country, current_turn: u32) -> Vec<String> {
     let mut messages = Vec::new();
 
+    // v4.23.0 WS2: lazily seed/populate the council for non-elected regimes —
+    // bootstrap seeds one path, this covers saves that predate it and any
+    // empty-member councils left by older code paths.
+    crate::politics::advisory_council::ensure_advisory_council(
+        country,
+        current_turn,
+        &mut messages,
+    );
+
     // Only process if an advisory council exists.
     let council = match country.politics.advisory_council.as_mut() {
         Some(c) => c,
@@ -2891,6 +2963,15 @@ pub fn process_advisory_council_turn(country: &mut Country, current_turn: u32) -
             ));
         }
     }
+
+    // v4.23.0 WS2: the autocratic legislative record — petition resolution,
+    // new petitions from disloyal councilors, and decree issuance on cadence.
+    // (`council`'s mutable borrow ends above; this re-borrows disjointly.)
+    crate::politics::advisory_council::process_council_legislation(
+        country,
+        current_turn,
+        &mut messages,
+    );
 
     messages
 }

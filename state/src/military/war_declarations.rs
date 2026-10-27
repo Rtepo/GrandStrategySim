@@ -99,6 +99,12 @@ pub struct WarState {
     pub peace_requested_by: Option<String>,
     /// Proposed peace terms (if any).
     pub proposed_terms: Option<PeaceTerms>,
+    /// v4.23.0 WS5: Turn the war settled (None = still active). Set by the
+    /// war bridge when `settle_peace` runs, so `declared_wars` history can
+    /// distinguish live wars from past ones and `diplomatic_active_wars`
+    /// can be counted against military fronts.
+    #[serde(default)]
+    pub end_turn: Option<u32>,
 }
 
 impl WarState {
@@ -111,6 +117,7 @@ impl WarState {
             reason,
             peace_requested_by: None,
             proposed_terms: None,
+            end_turn: None,
         }
     }
 }

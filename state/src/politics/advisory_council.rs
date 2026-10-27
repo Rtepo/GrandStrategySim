@@ -6,10 +6,14 @@
 //! Very low loyalty triggers faction-organized revolts (military defection,
 //! mass strikes, religious uprisings, aristocratic conspiracies).
 
+use rand::Rng;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 use crate::politics::ideology::IdeologyCoordinates;
+use crate::politics::system::GovernmentForm;
 use crate::politics::vip_registry::VipRegistry;
+use crate::state::Country;
 
 // ============================================================================
 // COUNCIL TYPES
@@ -79,6 +83,77 @@ pub enum FactionType {
 }
 
 // ============================================================================
+// v4.23.0 WS2: DECREES & PETITIONS — the autocratic legislative record
+// ============================================================================
+
+/// v4.23.0 WS2: A decree issued by the ruler of a non-elected regime.
+/// For chamberless autocracies decrees ARE the legislation: each is laid
+/// before the advisory council, which renders a real faction-weighted
+/// `CouncilOpinion` from the decree's ideological signature; the ruler then
+/// promulgates it — sometimes over the council's objection, which damages
+/// faction loyalty — or withdraws it.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct CouncilDecree {
+    /// Stable id (`DECREE-####`), unique within the council.
+    #[serde(default)]
+    pub id: String,
+    /// Decree title (e.g. "Royal Decree on Labor Standards").
+    #[serde(default)]
+    pub title: String,
+    /// Policy domain the decree legislates (`BillType` debug label).
+    #[serde(default)]
+    pub domain: String,
+    /// Turn the decree was issued.
+    #[serde(default)]
+    pub issued_turn: u32,
+    /// Council net opinion at issue, -1.0 (hostile) .. 1.0 (favorable) —
+    /// the real `calculate_council_opinion` output for the bill signature.
+    #[serde(default)]
+    pub net_opinion: f64,
+    /// VIP ids of council members who supported the decree.
+    #[serde(default)]
+    pub supporters: Vec<String>,
+    /// VIP ids of council members who opposed the decree.
+    #[serde(default)]
+    pub opponents: Vec<String>,
+    /// "Promulgated" | "Promulgated over Council Objection" | "Withdrawn".
+    #[serde(default)]
+    pub status: String,
+}
+
+/// v4.23.0 WS2: A petition carried to the ruler by a council member whose
+/// faction loyalty has eroded — the autocratic counterpart of a democratic
+/// opposition's floor motions. Ignored or rejected petitions push loyalty
+/// toward the coup threshold; granted ones buy the regime time.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct CouncilPetition {
+    /// Stable id (`PET-####`), unique within the council.
+    #[serde(default)]
+    pub id: String,
+    /// Display label of the faction that filed it.
+    #[serde(default)]
+    pub faction: String,
+    /// VIP id of the council member who carried the petition.
+    #[serde(default)]
+    pub petitioner_vip_id: String,
+    /// Petition subject (faction-specific grievance).
+    #[serde(default)]
+    pub subject: String,
+    /// Turn filed.
+    #[serde(default)]
+    pub filed_turn: u32,
+    /// Loyalty deficit that motivated the petition (0.0–1.0).
+    #[serde(default)]
+    pub urgency: f64,
+    /// "Pending" | "Granted" | "Rejected" | "Ignored".
+    #[serde(default)]
+    pub status: String,
+    /// Turn the petition was resolved (None while pending).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resolved_turn: Option<u32>,
+}
+
+// ============================================================================
 // ADVISORY COUNCIL
 // ============================================================================
 
@@ -101,6 +176,21 @@ pub struct AdvisoryCouncil {
     /// Set to current_turn + 24 after a successful coup/revolt.
     #[serde(default)]
     pub coup_cooldown_until_turn: u32,
+    /// v4.23.0 WS2: Decrees the ruler has issued — for chamberless
+    /// autocracies decrees ARE the legislation; the council renders a
+    /// faction-weighted opinion on each (newest first, capped at 24).
+    #[serde(default)]
+    pub decrees: Vec<CouncilDecree>,
+    /// v4.23.0 WS2: Petitions factions carry to the ruler when their loyalty
+    /// erodes (newest first, capped at 24).
+    #[serde(default)]
+    pub petitions: Vec<CouncilPetition>,
+    /// v4.23.0 WS2: Monotone decree id counter (`DECREE-####`).
+    #[serde(default)]
+    pub next_decree_id: u32,
+    /// v4.23.0 WS2: Monotone petition id counter (`PET-####`).
+    #[serde(default)]
+    pub next_petition_id: u32,
 }
 
 impl Default for AdvisoryCouncil {
@@ -111,6 +201,10 @@ impl Default for AdvisoryCouncil {
             aggregate_loyalty: default_loyalty(),
             coup_risk_threshold: default_coup_threshold(),
             coup_cooldown_until_turn: 0,
+            decrees: Vec::new(),
+            petitions: Vec::new(),
+            next_decree_id: 1,
+            next_petition_id: 1,
         }
     }
 }
@@ -128,6 +222,10 @@ impl AdvisoryCouncil {
             aggregate_loyalty: 0.7,
             coup_risk_threshold: 0.3,
             coup_cooldown_until_turn: 0,
+            decrees: Vec::new(),
+            petitions: Vec::new(),
+            next_decree_id: 1,
+            next_petition_id: 1,
         }
     }
 
@@ -407,8 +505,11 @@ pub fn apply_decree_against_council(
 
 /// Convert an ideology string to an IdeologyCoordinates.
 /// Simplified mapping for council opinion calculation.
+/// v4.23.0 WS2: whitespace-insensitive — VIP records carry both enum-debug
+/// ("NationalConservatism") and display ("National Conservatism") spellings.
 fn ideology_from_string(ideology: &str) -> IdeologyCoordinates {
-    match ideology {
+    let key: String = ideology.chars().filter(|c| !c.is_whitespace()).collect();
+    match key.as_str() {
         "OrthodoxMarxism" | "MarxismLeninism" | "Maoism" => IdeologyCoordinates {
             economy: -0.8,
             liberty: -0.3,
@@ -455,6 +556,476 @@ fn ideology_from_string(ideology: &str) -> IdeologyCoordinates {
             tradition: 0.0,
         },
     }
+}
+
+// ============================================================================
+// v4.23.0 WS2: COUNCIL SEEDING, DECREES & PETITIONS
+// ============================================================================
+//
+// The autocratic counterpart of the democratic floor machinery: instead of
+// elections → seats → floor votes, non-elected regimes get factions → named
+// councilors → decrees (the legislation) + petitions (the grievance channel).
+// Everything below runs on real state — councilor VIPs are registered in the
+// country's `VipRegistry`, decree opinions come from the existing
+// `calculate_council_opinion` machinery, petition pressure comes from the
+// real per-member loyalty that `apply_loyalty_drift` maintains.
+
+/// Map a government form to the advisory-council type that serves it.
+/// Returns `None` for regimes that legislate exclusively through elected
+/// chambers — monarchies with a rubber-stamp chamber still keep their
+/// royal council, so dualist and elective monarchies map to `RoyalCouncil`.
+pub fn council_type_for(form: GovernmentForm) -> Option<CouncilType> {
+    use GovernmentForm::*;
+    match form {
+        AbsoluteMonarchy | DualistMonarchy | ElectiveMonarchy => {
+            Some(CouncilType::RoyalCouncil)
+        }
+        MilitaryDictatorship => Some(CouncilType::MilitaryJunta),
+        Theocracy => Some(CouncilType::ReligiousSynod),
+        OnePartyState => Some(CouncilType::PartyPolitburo),
+        _ => None,
+    }
+}
+
+/// Display name of a council type — log lines and the UI both use it.
+pub fn council_type_name(council_type: &CouncilType) -> &'static str {
+    match council_type {
+        CouncilType::RoyalCouncil => "Royal Council",
+        CouncilType::PartyPolitburo => "Politburo",
+        CouncilType::MilitaryJunta => "Junta",
+        CouncilType::ReligiousSynod => "Supreme Religious Council",
+    }
+}
+
+/// Honorific prefix for decree titles per council type.
+fn decree_prefix(council_type: &CouncilType) -> &'static str {
+    match council_type {
+        CouncilType::RoyalCouncil => "Royal Decree",
+        CouncilType::PartyPolitburo => "Politburo Resolution",
+        CouncilType::MilitaryJunta => "Junta Directive",
+        CouncilType::ReligiousSynod => "Holy Ordinance",
+    }
+}
+
+/// Faction roster per council type: `(faction_type, display label, seats)`.
+/// Rosters are fixed per regime so faction composition is stable across
+/// turns once seeded.
+fn faction_roster(council_type: &CouncilType) -> &'static [(FactionType, &'static str, u32)] {
+    match council_type {
+        CouncilType::RoyalCouncil => &[
+            (FactionType::Nobility, "Nobility", 2),
+            (FactionType::Military, "Army", 1),
+            (FactionType::Religious, "Clergy", 1),
+            (FactionType::Bureaucratic, "Civil Service", 1),
+        ],
+        CouncilType::MilitaryJunta => &[
+            (FactionType::Military, "Army", 2),
+            (FactionType::Military, "Navy & Air Force", 1),
+            (FactionType::Bureaucratic, "Civil Service", 1),
+            (FactionType::Party, "Government Party", 1),
+        ],
+        CouncilType::ReligiousSynod => &[
+            (FactionType::Religious, "High Clergy", 2),
+            (FactionType::Religious, "Monastic Orders", 1),
+            (FactionType::Bureaucratic, "Temple Administration", 1),
+        ],
+        CouncilType::PartyPolitburo => &[
+            (FactionType::Party, "Party Old Guard", 2),
+            (FactionType::Party, "Reformist Wing", 1),
+            (FactionType::Bureaucratic, "State Apparatus", 1),
+            (FactionType::Labor, "Trade Unions", 1),
+        ],
+    }
+}
+
+/// Faction grievance — what the faction petitions the ruler about.
+fn petition_subject(faction_type: &FactionType) -> &'static str {
+    match faction_type {
+        FactionType::Military => "Increased defense appropriations",
+        FactionType::Labor => "Wage and bread relief for the workers",
+        FactionType::Religious => "Strengthened clerical authority",
+        FactionType::Nobility => "Restoration of estate privileges",
+        FactionType::Party => "Expanded party cadre appointments",
+        FactionType::Bureaucratic => "Civil service funding and appointments",
+    }
+}
+
+/// Ideology label stamped on a seeded councilor's VIP record — the same
+/// debug-form strings `ideology_from_string` understands, so decree opinion
+/// alignment is meaningful per faction.
+fn faction_ideology(faction_type: &FactionType) -> String {
+    match faction_type {
+        FactionType::Military => "NationalConservatism".to_string(),
+        FactionType::Labor => "SocialDemocracy".to_string(),
+        FactionType::Religious => "SocialConservatism".to_string(),
+        FactionType::Nobility => "Neoconservatism".to_string(),
+        FactionType::Party => "NationalConservatism".to_string(),
+        FactionType::Bureaucratic => "ChristianDemocracy".to_string(),
+    }
+}
+
+/// Registry role assigned to a seeded councilor.
+fn faction_role(
+    faction_type: &FactionType,
+) -> crate::politics::vip_registry::VipRoleExtended {
+    use crate::politics::vip_registry::VipRoleExtended as Role;
+    match faction_type {
+        FactionType::Military => Role::MilitaryCommander,
+        FactionType::Labor => Role::UnionBoss,
+        FactionType::Religious => Role::ReligiousLeader,
+        _ => Role::Minister,
+    }
+}
+
+/// v4.23.0 WS2: Lazily ensure the country's advisory council exists and is
+/// populated. Called at the top of `process_advisory_council_turn`, so
+/// councils populate on saves that predate council bootstrap or where the
+/// bootstrap seeding produced an empty member list. No-op for regimes that
+/// have no council type.
+pub fn ensure_advisory_council(
+    country: &mut Country,
+    current_turn: u32,
+    messages: &mut Vec<String>,
+) {
+    if country
+        .politics
+        .advisory_council
+        .as_ref()
+        .map(|c| !c.members.is_empty())
+        .unwrap_or(false)
+    {
+        return; // Populated already.
+    }
+    let Some(council_type) = council_type_for(country.politics.government_form) else {
+        return;
+    };
+    seed_council_members(country, council_type, current_turn, messages);
+}
+
+/// Seed a full council roster — one real registered VIP per roster seat.
+fn seed_council_members(
+    country: &mut Country,
+    council_type: CouncilType,
+    current_turn: u32,
+    messages: &mut Vec<String>,
+) {
+    use crate::politics::vip_registry::{assign_core_traits, Vip};
+
+    let cultural_group = if country.macro_indicators.cultural_group.is_empty() {
+        "western".to_string()
+    } else {
+        country.macro_indicators.cultural_group.clone()
+    };
+    let country_name = country.name.clone();
+
+    // Councillors are registered VIPs — the registry must exist.
+    if country.politics.vip_registry.is_none() {
+        country.politics.vip_registry = Some(VipRegistry::new());
+    }
+
+    let politics = &mut country.politics;
+    let council = {
+        let registry = politics.vip_registry.as_mut().unwrap();
+        // Seed the dedup set with every name already taken so councilors
+        // never collide with monarchs, ministers or party leaders.
+        let mut used_names: HashSet<String> = registry
+            .vips
+            .values()
+            .map(|v| v.full_name.clone())
+            .chain(registry.deceased.iter().map(|v| v.full_name.clone()))
+            .collect();
+        let mut rng = crate::engine::seeded_rng::thread_rng();
+
+        let mut members = Vec::new();
+        for (faction_type, label, count) in faction_roster(&council_type) {
+            for _ in 0..*count {
+                let name = crate::politics::names::generate_key_vip(
+                    &cultural_group,
+                    &mut rng,
+                    &mut used_names,
+                );
+                let (traits, main_trait) = assign_core_traits(&mut rng);
+                let age = 40 + rng.gen_range(0..28);
+                let influence = 30.0 + rng.gen_range(0..45) as f64;
+                let vip = Vip {
+                    full_name: name.full_name,
+                    gender: name.gender,
+                    age,
+                    traits,
+                    main_trait,
+                    ideology: faction_ideology(faction_type),
+                    nationality: country_name.clone(),
+                    roles: vec![faction_role(faction_type)],
+                    base_influence: influence as u32,
+                    ..Default::default()
+                };
+                let vip_id = registry.register_new(vip);
+                members.push(CouncilMember {
+                    vip_id,
+                    faction: (*label).to_string(),
+                    // New councilors start loyal-ish; drift does the rest.
+                    loyalty: 0.55 + rng.gen_range(0..=25) as f64 / 100.0,
+                    influence,
+                    current_opinion: 0.0,
+                    faction_type: faction_type.clone(),
+                });
+            }
+        }
+
+        let mut council = politics
+            .advisory_council
+            .take()
+            .unwrap_or_else(|| AdvisoryCouncil::new(council_type));
+        council.members = members;
+        council.recalculate_loyalty();
+        council
+    };
+    politics.advisory_council = Some(council);
+    if let Some(council) = politics.advisory_council.as_ref() {
+        messages.push(format!(
+            "[COUNCIL] {} convened with {} councilors (T{}).",
+            council_type_name(&council.council_type),
+            council.members.len(),
+            current_turn
+        ));
+    }
+}
+
+/// v4.23.0 WS2: Per-turn council legislature — the chamberless counterpart
+/// of `process_bill_stage`. Runs three phases on real state:
+/// 1. Resolve pending petitions (grant / reject / age-out to Ignored).
+/// 2. Disloyal councilors file new petitions (prob ∝ loyalty deficit).
+/// 3. On cadence, the ruler issues a decree the council opines on through
+///    the existing `calculate_council_opinion` machinery.
+pub fn process_council_legislation(
+    country: &mut Country,
+    current_turn: u32,
+    messages: &mut Vec<String>,
+) {
+    // The decree agenda is an immutable read of country macro state — take
+    // it before the mutable council borrow below.
+    let agenda = crate::politics::bill_lifecycle::policy_agenda_for_country(country);
+    let politics = &mut country.politics;
+    let Some(council) = politics.advisory_council.as_mut() else {
+        return;
+    };
+    let Some(registry) = politics.vip_registry.as_ref() else {
+        return;
+    };
+
+    resolve_petitions(council, current_turn, messages);
+    spawn_petitions(council, current_turn, messages);
+    maybe_issue_decree(council, registry, &agenda, current_turn, messages);
+}
+
+/// Phase 1: resolve pending petitions — grant (loyalty +), reject
+/// (loyalty −), or let them age out after 6 turns (Ignored, loyalty −).
+fn resolve_petitions(
+    council: &mut AdvisoryCouncil,
+    current_turn: u32,
+    messages: &mut Vec<String>,
+) {
+    let coup_active = council.coup_risk_active(current_turn);
+    // Member loyalty effects are applied after the petition scan so the
+    // two field borrows never overlap.
+    let mut loyalty_effects: Vec<(String, f64)> = Vec::new();
+    for petition in &mut council.petitions {
+        if petition.status != "Pending" {
+            continue;
+        }
+        // Filed this turn — stays pending at least one turn.
+        if petition.filed_turn >= current_turn {
+            continue;
+        }
+        if current_turn.saturating_sub(petition.filed_turn) > 6 {
+            petition.status = "Ignored".to_string();
+            petition.resolved_turn = Some(current_turn);
+            loyalty_effects.push((petition.petitioner_vip_id.clone(), -0.03));
+            continue;
+        }
+        let petitioner_influence = council
+            .members
+            .iter()
+            .find(|m| m.vip_id == petition.petitioner_vip_id)
+            .map(|m| m.influence)
+            .unwrap_or(50.0);
+        // Influential petitioners and petitioners holding a knife at the
+        // throne (coup risk active) get heard more often.
+        let grant_prob = (0.25
+            + petitioner_influence / 100.0 * 0.35
+            + if coup_active { 0.25 } else { 0.0 })
+        .clamp(0.05, 0.9);
+        let seed = format!("petition:{}:{}:resolve", petition.id, current_turn);
+        if crate::politics::bill_lifecycle::deterministic_roll(&seed, grant_prob) {
+            petition.status = "Granted".to_string();
+            petition.resolved_turn = Some(current_turn);
+            loyalty_effects.push((petition.petitioner_vip_id.clone(), 0.10));
+            messages.push(format!(
+                "[COUNCIL] Petition {} ({}) GRANTED.",
+                petition.id, petition.faction
+            ));
+        } else {
+            petition.status = "Rejected".to_string();
+            petition.resolved_turn = Some(current_turn);
+            loyalty_effects.push((petition.petitioner_vip_id.clone(), -0.05));
+            messages.push(format!(
+                "[COUNCIL] Petition {} ({}) REJECTED.",
+                petition.id, petition.faction
+            ));
+        }
+    }
+    for (vip_id, delta) in loyalty_effects {
+        if let Some(member) = council.members.iter_mut().find(|m| m.vip_id == vip_id) {
+            member.loyalty = (member.loyalty + delta).clamp(0.0, 1.0);
+        }
+    }
+    if !council.members.is_empty() {
+        council.recalculate_loyalty();
+    }
+}
+
+/// Phase 2: disloyal councilors (loyalty < 0.45) who don't already have a
+/// pending petition file one — probability proportional to the deficit.
+fn spawn_petitions(
+    council: &mut AdvisoryCouncil,
+    current_turn: u32,
+    messages: &mut Vec<String>,
+) {
+    let candidates: Vec<(String, String, f64, FactionType)> = council
+        .members
+        .iter()
+        .filter(|m| m.loyalty < 0.45)
+        .filter(|m| {
+            !council
+                .petitions
+                .iter()
+                .any(|p| p.status == "Pending" && p.petitioner_vip_id == m.vip_id)
+        })
+        .filter(|m| {
+            let prob = (0.45 - m.loyalty) * 0.9;
+            crate::politics::bill_lifecycle::deterministic_roll(
+                &format!("petition:{}:{}:file", m.vip_id, current_turn),
+                prob,
+            )
+        })
+        .map(|m| {
+            (
+                m.vip_id.clone(),
+                m.faction.clone(),
+                m.loyalty,
+                m.faction_type.clone(),
+            )
+        })
+        .collect();
+
+    for (vip_id, faction, loyalty, faction_type) in candidates {
+        let subject = petition_subject(&faction_type).to_string();
+        let id = format!("PET-{:04}", council.next_petition_id);
+        council.next_petition_id += 1;
+        council.petitions.insert(
+            0,
+            CouncilPetition {
+                id: id.clone(),
+                faction: faction.clone(),
+                petitioner_vip_id: vip_id,
+                subject: subject.clone(),
+                filed_turn: current_turn,
+                urgency: (0.45 - loyalty).clamp(0.0, 1.0),
+                status: "Pending".to_string(),
+                resolved_turn: None,
+            },
+        );
+        messages.push(format!(
+            "[COUNCIL] Petition {} filed by the {} — {}.",
+            id, faction, subject
+        ));
+    }
+    council.petitions.truncate(24);
+}
+
+/// Phase 3: on cadence (~every 6 turns) the ruler issues a decree drawn
+/// from the same macro-weighted policy agenda a parliament would face —
+/// the council renders a real faction-weighted opinion, and promulgation
+/// over objection damages loyalty through `apply_decree_against_council`.
+fn maybe_issue_decree(
+    council: &mut AdvisoryCouncil,
+    registry: &VipRegistry,
+    agenda: &[(
+        crate::politics::legislation::BillType,
+        &'static str,
+        IdeologyCoordinates,
+        f64,
+    )],
+    current_turn: u32,
+    messages: &mut Vec<String>,
+) {
+    // Decree cadence: once every six turns (≈quarterly on the 24-turn year).
+    if current_turn % 6 != 2 {
+        return;
+    }
+    if council.members.is_empty() || agenda.is_empty() {
+        return;
+    }
+
+    // Weighted draw over the agenda by macro urgency — deterministic hash,
+    // no RNG state, so replays reproduce the same decree sequence.
+    let total: f64 = agenda.iter().map(|d| d.3.max(0.01)).sum();
+    let roll = crate::politics::bill_lifecycle::deterministic_uniform(&format!(
+        "decree:{}:{}:domain",
+        current_turn, council.next_decree_id
+    )) * total;
+    let mut picked = &agenda[0];
+    let mut acc = 0.0;
+    for domain in agenda {
+        acc += domain.3.max(0.01);
+        if roll <= acc {
+            picked = domain;
+            break;
+        }
+    }
+
+    let mut opinion = calculate_council_opinion(council, &picked.2, registry);
+    opinion.decree = picked.1.to_string();
+
+    let status = if opinion.net_opinion < -0.05 {
+        // A hostile council is overridden three times out of four — the
+        // override path runs the real loyalty-damage machinery.
+        let seed = format!("decree:{}:{}:override", current_turn, council.next_decree_id);
+        if crate::politics::bill_lifecycle::deterministic_roll(&seed, 0.75) {
+            messages.extend(apply_decree_against_council(council, &opinion));
+            "Promulgated over Council Objection"
+        } else {
+            "Withdrawn"
+        }
+    } else {
+        "Promulgated"
+    };
+
+    let id = format!("DECREE-{:04}", council.next_decree_id);
+    council.next_decree_id += 1;
+    let title = format!(
+        "{} on {}",
+        decree_prefix(&council.council_type),
+        picked.1.trim_end_matches(" Act")
+    );
+    messages.push(format!(
+        "[COUNCIL] {} issued — {} (net opinion {:+.2}).",
+        id, title, opinion.net_opinion
+    ));
+    council.decrees.insert(
+        0,
+        CouncilDecree {
+            id,
+            title,
+            domain: format!("{:?}", picked.0),
+            issued_turn: current_turn,
+            net_opinion: opinion.net_opinion,
+            supporters: opinion.supporters,
+            opponents: opinion.opponents,
+            status: status.to_string(),
+        },
+    );
+    council.decrees.truncate(24);
 }
 
 // ============================================================================

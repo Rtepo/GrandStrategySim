@@ -9,10 +9,9 @@ import { partyColor, spectrumOf } from "../lib/partyVisuals";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button, Tabs } from "../components/ui";
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
-import { fmt, num } from "../lib/format";
+import { fmt, num, humanize } from "../lib/format";
 import type { CouncilResolutionRow, CouncilRollCallRow } from "../types/api";
 import type {
-  CouncilFactionSummary,
   CouncilorRow,
   MandateSummaryExtended,
   MegaregionDetailExtended,
@@ -23,6 +22,24 @@ const safeStr = (v: string | null | undefined): string => v ?? "—";
 const safeNum = (v: number | null | undefined): number => v ?? 0;
 const safeArr = <T,>(v: T[] | null | undefined): T[] => v ?? [];
 
+/**
+ * v4.23 WS7: Canonical council-faction colors. The hash fallback in
+ * `partyColor` collides for "Optimates" and "Moderates" (both → indigo
+ * #6366f1), making the hemicycle wedges and faction rows indistinguishable.
+ * Canonical Roman-council palette: Populares red, Moderates amber,
+ * Optimates navy. Unknown/estate faction names still hash deterministically.
+ */
+const COUNCIL_FACTION_COLORS: Record<string, string> = {
+  Populares: "#ef4444", // red
+  Moderates: "#f59e0b", // amber
+  Optimates: "#1e3a8a", // navy
+};
+
+/** Resolve a council faction's display color (canonical map → hash fallback). */
+function councilFactionColor(name: string): string {
+  return COUNCIL_FACTION_COLORS[name] ?? partyColor(null, name);
+}
+
 /// v4.22 WS3.2: Council faction pairs → hemicycle seat entries. Faction names
 /// are free-form (estate/party labels); color is deterministic by name hash and
 /// the wedge order resolves through the shared ideology-spectrum helpers.
@@ -32,7 +49,7 @@ function councilHemicycleEntries(factions: [string, number][]): HemicycleEntry[]
     .map(([name, seats]) => ({
       name,
       seats,
-      color: partyColor(null, name),
+      color: councilFactionColor(name),
       spectrum: spectrumOf({ name }),
     }));
 }
@@ -241,17 +258,13 @@ function RegionDetailPanel({ detail }: { detail: RegionDetailExtended }) {
                     </div>
                   )}
                 </div>
-                {/* v4.21 WS3: faction summary (Faction | Seats | For | Against |
-                    Abstain) with expandable councilor rows — replaces the
-                    endless flat Councilor POP-1..N roll-call list. */}
-                <CouncilFactionTable
-                  factions={safeArr<[string, number]>(detail.council_factions)}
-                  rollCalls={safeArr(detail.council_roll_calls)}
-                  members={safeArr(detail.council_members)}
-                />
+                {/* v4.23 WS7: the cumulative lifetime Council Roll Call table
+                    was removed — vote detail lives inside each expandable
+                    resolution row (per-faction tallies + named councilors). */}
                 <CouncilResolutions
                   resolutions={safeArr(detail.council_resolutions)}
                   rollCalls={safeArr(detail.council_roll_calls)}
+                  members={safeArr(detail.council_members)}
                 />
               </div>
             )},
@@ -259,7 +272,7 @@ function RegionDetailPanel({ detail }: { detail: RegionDetailExtended }) {
               <div className="space-y-2">
                 {safeArr(detail.sector_employment).map(([sector, emp]) => (
                   <div key={sector} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{sector}</span>
+                    <span className="text-muted-foreground">{humanize(sector)}</span>
                     <span className="text-foreground">{fmt(safeNum(emp))}</span>
                   </div>
                 ))}
@@ -466,22 +479,24 @@ function WasteTab({ detail }: { detail: RegionDetailExtended }) {
 /// Phase 53: ECharts pie chart for local council faction distribution.
 /// v4.22 WS3.2: Per-resolution faction tally — groups that specific vote's
 /// roll calls by faction and counts For/Against/Abstain inside each.
+/// v4.23 WS7: members carry `vip_id` so expanded rows can resolve real VIP
+/// councilors (hover dossier + trait/party chips from `CouncilorRow`).
 function factionBreakdown(
   rollCalls: CouncilRollCallRow[],
   resolutionTitle: string,
   turn: number,
-): { faction: string; for_: number; against: number; abstain: number; members: { name: string; vote: string }[] }[] {
+): { faction: string; for_: number; against: number; abstain: number; members: { name: string; vote: string; vip_id: string }[] }[] {
   const relevant = rollCalls.filter(
     (rc) => rc.resolution_title === resolutionTitle && rc.turn === turn,
   );
-  const byFaction = new Map<string, { for_: number; against: number; abstain: number; members: { name: string; vote: string }[] }>();
+  const byFaction = new Map<string, { for_: number; against: number; abstain: number; members: { name: string; vote: string; vip_id: string }[] }>();
   for (const rc of relevant) {
     const bucket = byFaction.get(rc.faction) ?? { for_: 0, against: 0, abstain: 0, members: [] };
     const v = rc.vote.toLowerCase();
     if (v.includes("for") || v.includes("aye") || v.includes("yes")) bucket.for_ += 1;
     else if (v.includes("against") || v.includes("nay") || v.includes("no")) bucket.against += 1;
     else bucket.abstain += 1;
-    bucket.members.push({ name: rc.member_name, vote: rc.vote });
+    bucket.members.push({ name: rc.member_name, vote: rc.vote, vip_id: rc.vip_id });
     byFaction.set(rc.faction, bucket);
   }
   return [...byFaction.entries()]
@@ -497,169 +512,63 @@ function councilStatusVariant(status: string): "success" | "destructive" | "seco
   return "secondary";
 }
 
-/// v4.21 WS3: Roll-call votes aggregated per faction across the recorded
-/// window — drives the `Faction | Seats | For | Against | Abstain` summary.
-function buildFactionSummaries(
-  factions: [string, number][],
-  rollCalls: CouncilRollCallRow[],
-  members: CouncilorRow[],
-): CouncilFactionSummary[] {
-  const byFaction = new Map<string, CouncilFactionSummary>();
-  const ensure = (faction: string): CouncilFactionSummary => {
-    let s = byFaction.get(faction);
-    if (!s) {
-      s = { faction, seats: 0, votesFor: 0, votesAgainst: 0, abstentions: 0, members: [] };
-      byFaction.set(faction, s);
-    }
-    return s;
-  };
-  for (const [faction, seats] of factions) ensure(faction).seats = seats;
-  // Real vote tallies — every recorded roll call counts exactly once.
-  for (const rc of rollCalls) {
-    const s = ensure(rc.faction);
-    const v = rc.vote.toLowerCase();
-    if (v.includes("for") || v.includes("yea") || v.includes("aye") || v.includes("yes") || v.includes("favor")) s.votesFor += 1;
-    else if (v.includes("abstain") || v.includes("absent") || v.includes("present")) s.abstentions += 1;
-    else s.votesAgainst += 1;
+/// v4.23 WS7: Fallback description for resolutions serialized before the
+/// `description` field existed — mirrors the agenda semantics in
+/// `process_regional_council_sessions` (deterministic, no fabrication).
+function resolutionFallbackDescription(resolutionType: string): string {
+  switch (resolutionType) {
+    case "infrastructure":
+      return "Appropriation ordinance funding regional roads, water, and public-works upgrades toward the 60-point JST service standard.";
+    case "sanitation":
+      return "Emergency appropriation for waste-collection routes, landfill capacity, and sewerage to clear the sanitation backlog.";
+    case "budget":
+      return "Austerity ordinance — on adoption the council cuts local expenditures by 5% immediately to stabilize the budget.";
+    default:
+      return "Ordinance debated and voted by the regional council.";
   }
-  // Members: real councilors when serialized; fall back to distinct
-  // roll-call members on saves that predate `council_members`.
-  const memberByFaction = new Map<string, Map<string, CouncilorRow>>();
-  for (const m of members) {
-    let fm = memberByFaction.get(m.faction);
-    if (!fm) { fm = new Map(); memberByFaction.set(m.faction, fm); }
-    fm.set(m.vip_id || m.name, m);
-  }
-  if (memberByFaction.size === 0) {
-    for (const rc of rollCalls) {
-      let fm = memberByFaction.get(rc.faction);
-      if (!fm) { fm = new Map(); memberByFaction.set(rc.faction, fm); }
-      if (!fm.has(rc.vip_id || rc.member_name)) {
-        fm.set(rc.vip_id || rc.member_name, {
-          name: rc.member_name, faction: rc.faction, vip_id: rc.vip_id,
-        });
-      }
-    }
-  }
-  for (const [faction, fm] of memberByFaction) {
-    const s = ensure(faction);
-    s.members = [...fm.values()].sort((a, b) => a.name.localeCompare(b.name));
-    if (s.seats === 0) s.seats = s.members.length;
-  }
-  const order = ["Populares", "Moderates", "Optimates"];
-  return [...byFaction.values()].sort(
-    (a, b) => order.indexOf(a.faction) - order.indexOf(b.faction),
-  );
-}
-
-/// v4.21 WS3: Council faction-summary roll call — exactly
-/// `Faction | Seats | For | Against | Abstain`, each row expandable to
-/// list the faction's individual councilors (real member data). No
-/// horizontal scroll: 5 compact columns, fixed layout.
-function CouncilFactionTable({
-  factions,
-  rollCalls,
-  members,
-}: {
-  factions: [string, number][];
-  rollCalls: CouncilRollCallRow[];
-  members: CouncilorRow[];
-}) {
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const rows = buildFactionSummaries(factions, rollCalls, members);
-  // Per-member vote tally for the expanded detail rows.
-  const memberVotes = new Map<string, { for: number; against: number; abstain: number }>();
-  for (const rc of rollCalls) {
-    const key = rc.vip_id || `${rc.faction}::${rc.member_name}`;
-    const t = memberVotes.get(key) ?? { for: 0, against: 0, abstain: 0 };
-    const v = rc.vote.toLowerCase();
-    if (v.includes("for") || v.includes("yea") || v.includes("aye") || v.includes("yes") || v.includes("favor")) t.for += 1;
-    else if (v.includes("abstain") || v.includes("absent") || v.includes("present")) t.abstain += 1;
-    else t.against += 1;
-    memberVotes.set(key, t);
-  }
-  return (
-    <div>
-      <h3 className="text-sm font-semibold text-foreground mb-1">Council Roll Call</h3>
-      {rows.length > 0 ? (
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Faction</TableHead>
-              <TableHead className="text-right w-12">Seats</TableHead>
-              <TableHead className="text-right w-10">For</TableHead>
-              <TableHead className="text-right w-12">Against</TableHead>
-              <TableHead className="text-right w-14">Abstain</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((s) => {
-              const isOpen = expanded === s.faction;
-              return (
-                <React.Fragment key={s.faction}>
-                  <TableRow
-                    className="cursor-pointer hover:bg-accent"
-                    onClick={() => setExpanded(isOpen ? null : s.faction)}
-                  >
-                    <TableCell className="text-xs font-medium whitespace-normal break-words">
-                      {isOpen ? "▾" : "▸"} {s.faction}
-                    </TableCell>
-                    <TableCell className="text-right">{s.seats}</TableCell>
-                    <TableCell className="text-right text-green-400">{s.votesFor}</TableCell>
-                    <TableCell className="text-right text-red-400">{s.votesAgainst}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{s.abstentions}</TableCell>
-                  </TableRow>
-                  {isOpen && s.members.map((m) => {
-                    const t = memberVotes.get(m.vip_id || `${m.faction}::${m.name}`)
-                      ?? { for: 0, against: 0, abstain: 0 };
-                    return (
-                      <TableRow key={m.vip_id || m.name} className="bg-muted/30">
-                        <TableCell className="text-xs pl-7 whitespace-normal break-words">
-                          {m.name}
-                          {m.region_id ? (
-                            <span className="text-muted-foreground"> · {m.region_id}</span>
-                          ) : null}
-                        </TableCell>
-                        <TableCell className="text-right text-xs text-muted-foreground">
-                          {t.for + t.against + t.abstain > 0 ? `${t.for}F` : "—"}
-                        </TableCell>
-                        <TableCell className="text-right text-xs text-green-400/70">
-                          {t.for + t.against + t.abstain > 0 ? `${t.against}A` : ""}
-                        </TableCell>
-                        <TableCell className="text-right text-xs text-muted-foreground/70">
-                          {t.for + t.against + t.abstain > 0 ? `${t.abstain}Ab` : ""}
-                        </TableCell>
-                        <TableCell />
-                      </TableRow>
-                    );
-                  })}
-                </React.Fragment>
-              );
-            })}
-          </TableBody>
-        </Table>
-      ) : (
-        <div className="text-muted-foreground text-sm">No council roll-call data</div>
-      )}
-    </div>
-  );
 }
 
 /// v4.21 WS3: Regional council resolutions — deduplicated by stable
 /// identity (title+type+turn) and laid out to fit the drawer width
 /// without horizontal scrolling (fixed table, wrapping title cell).
-function CouncilResolutions({ resolutions, rollCalls }: { resolutions: CouncilResolutionRow[]; rollCalls: CouncilRollCallRow[] }) {
-  // Stable-identity dedup: one (title, type, turn) vote may legitimately
-  // appear once — duplicates of that exact key are stale double-emissions
-  // from saves predating the session fix.
+/// v4.23 WS7: expanded rows show the ordinance description, per-faction
+/// vote tallies with canonical faction colors, and every voting councilor
+/// as a VIP hover dossier enriched with party/trait/influence chips from
+/// `CouncilorRow`. `showRegionTag` labels member-region resolutions in the
+/// megaregion assembly view.
+function CouncilResolutions({
+  resolutions,
+  rollCalls,
+  members,
+  showRegionTag = false,
+}: {
+  resolutions: CouncilResolutionRow[];
+  rollCalls: CouncilRollCallRow[];
+  members: CouncilorRow[];
+  showRegionTag?: boolean;
+}) {
+  // Stable-identity dedup: one (title, type, turn, region) vote may
+  // legitimately appear once — duplicates of that exact key are stale
+  // double-emissions from saves predating the session fix.
   const seen = new Set<string>();
   const rows = resolutions.filter((r) => {
-    const key = `${r.title}::${r.resolution_type}::${r.turn}`;
+    const key = `${r.region_id ?? ""}::${r.title}::${r.resolution_type}::${r.turn}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
   const [expanded, setExpanded] = React.useState<string | null>(null);
+  // Resolve councilor details by vip_id first, then by name — the roll
+  // call's own vip_id links the voter to the sitting-member record that
+  // carries party/trait/influence.
+  const memberByVip = new Map<string, CouncilorRow>();
+  const memberByName = new Map<string, CouncilorRow>();
+  for (const m of members) {
+    if (m.vip_id) memberByVip.set(m.vip_id, m);
+    if (m.name) memberByName.set(m.name, m);
+  }
+  const memberInfo = (vipId: string, name: string): CouncilorRow | undefined =>
+    (vipId && memberByVip.get(vipId)) || memberByName.get(name);
   return (
     <div>
       <h3 className="text-sm font-semibold text-foreground mb-1">Resolutions</h3>
@@ -675,7 +584,7 @@ function CouncilResolutions({ resolutions, rollCalls }: { resolutions: CouncilRe
           </TableHeader>
           <TableBody>
             {rows.map((r, i) => {
-              const key = `${r.title}::${r.turn}`;
+              const key = `${r.region_id ?? ""}::${r.title}::${r.turn}`;
               const isOpen = expanded === key;
               const factions = isOpen ? factionBreakdown(rollCalls, r.title, r.turn) : [];
               return (
@@ -687,7 +596,10 @@ function CouncilResolutions({ resolutions, rollCalls }: { resolutions: CouncilRe
                     <TableCell className="text-xs font-medium whitespace-normal break-words">
                       <span className="text-muted-foreground mr-1">{isOpen ? "▾" : "▸"}</span>
                       {r.title}
-                      <div className="text-muted-foreground font-normal">{r.resolution_type}</div>
+                      <div className="text-muted-foreground font-normal">
+                        {humanize(r.resolution_type)}
+                        {showRegionTag && r.region_id ? ` · ${r.region_id}` : ""}
+                      </div>
                     </TableCell>
                     <TableCell><Badge variant={councilStatusVariant(r.status)}>{r.status}</Badge></TableCell>
                     <TableCell className="text-right text-xs">
@@ -702,27 +614,60 @@ function CouncilResolutions({ resolutions, rollCalls }: { resolutions: CouncilRe
                   {isOpen && (
                     <TableRow>
                       <TableCell colSpan={4} className="bg-muted/20">
-                        {factions.length > 0 ? (
-                          <div className="space-y-1 py-1">
-                            {factions.map((f) => (
-                              <div key={f.faction} className="text-xs">
-                                <span className="font-medium">{f.faction}</span>
-                                <span className="text-muted-foreground"> — </span>
-                                <span className="text-green-400">{f.for_} for</span>
-                                <span className="text-muted-foreground"> · </span>
-                                <span className="text-red-400">{f.against} against</span>
-                                <span className="text-muted-foreground"> · {f.abstain} abstain</span>
-                                <div className="text-muted-foreground pl-3">
-                                  {f.members.map((m, mi) => (
-                                    <span key={mi}>{m.name} <span className="opacity-70">({m.vote})</span>{mi < f.members.length - 1 ? ", " : ""}</span>
-                                  ))}
+                        <div className="space-y-2 py-1">
+                          <p className="text-xs text-muted-foreground whitespace-normal break-words">
+                            {r.description || resolutionFallbackDescription(r.resolution_type)}
+                          </p>
+                          {factions.length > 0 ? (
+                            <div className="space-y-2">
+                              {factions.map((f) => (
+                                <div key={f.faction} className="text-xs">
+                                  <span
+                                    className="inline-block w-2 h-2 rounded-full mr-1 align-middle"
+                                    style={{ backgroundColor: councilFactionColor(f.faction) }}
+                                  />
+                                  <span className="font-medium">{f.faction}</span>
+                                  <span className="text-muted-foreground"> — </span>
+                                  <span className="text-green-400">{f.for_} for</span>
+                                  <span className="text-muted-foreground"> · </span>
+                                  <span className="text-red-400">{f.against} against</span>
+                                  <span className="text-muted-foreground"> · {f.abstain} abstain</span>
+                                  <div className="pl-3 space-y-0.5 mt-0.5">
+                                    {f.members.map((m, mi) => {
+                                      const info = memberInfo(m.vip_id, m.name);
+                                      return (
+                                        <div key={mi} className="text-muted-foreground flex flex-wrap items-center gap-1">
+                                          {m.vip_id ? (
+                                            <VipHoverCard vipId={m.vip_id} className="text-foreground/90">
+                                              {m.name}
+                                            </VipHoverCard>
+                                          ) : (
+                                            <span className="text-foreground/90">{m.name}</span>
+                                          )}
+                                          <span className="opacity-70">({m.vote})</span>
+                                          {info?.party && (
+                                            <Badge variant="secondary" className="text-[10px] px-1 py-0">{info.party}</Badge>
+                                          )}
+                                          {info?.trait_label && (
+                                            <Badge variant="secondary" className="text-[10px] px-1 py-0">{info.trait_label}</Badge>
+                                          )}
+                                          {info?.represented_class && (
+                                            <span className="opacity-60">{info.represented_class}</span>
+                                          )}
+                                          {info !== undefined && (info.influence ?? 0) > 0 && (
+                                            <span className="opacity-60">inf {info.influence!.toFixed(0)}</span>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-xs text-muted-foreground py-1">No per-councilor roll call recorded for this vote.</div>
-                        )}
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-xs text-muted-foreground">No per-councilor roll call recorded for this vote.</div>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   )}
@@ -922,14 +867,11 @@ function MegaregionDetailPanel({ detail }: { detail: MegaregionDetailExtended })
                     </div>
                   )}
                 </div>
-                <CouncilFactionTable
-                  factions={safeArr<[string, number]>(detail.council_factions)}
-                  rollCalls={safeArr(detail.council_roll_calls)}
-                  members={safeArr(detail.council_members)}
-                />
                 <CouncilResolutions
                   resolutions={safeArr(detail.council_resolutions)}
                   rollCalls={safeArr(detail.council_roll_calls)}
+                  members={safeArr(detail.council_members)}
+                  showRegionTag
                 />
               </div>
             )},
@@ -938,7 +880,7 @@ function MegaregionDetailPanel({ detail }: { detail: MegaregionDetailExtended })
                 {safeArr(detail.sector_employment).length > 0 ? (
                   safeArr(detail.sector_employment).map(([sector, emp]) => (
                     <div key={sector} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{sector}</span>
+                      <span className="text-muted-foreground">{humanize(sector)}</span>
                       <span className="text-foreground">{fmt(safeNum(emp))}</span>
                     </div>
                   ))

@@ -412,9 +412,10 @@ pub fn staff_diplomatic_posts(
 
     for home_name in &sorted_names {
         // Snapshot the home country's staffing state (single borrow).
+        // v4.23: per-post-type counts + per-type host coverage so a scaled
+        // corps can station several envoy types on the same host.
         let (
-            envoy_count,
-            spy_count,
+            post_counts,
             covered_hosts,
             affordable,
             cultural_group,
@@ -426,23 +427,22 @@ pub fn staff_diplomatic_posts(
                 continue;
             };
             let reg = home.politics.vip_registry.as_ref();
-            let mut envoys = 0usize;
-            let mut spies = 0usize;
-            let mut covered: std::collections::HashSet<String> =
-                std::collections::HashSet::new();
+            let mut counts: HashMap<DiplomaticPostType, usize> = HashMap::new();
+            let mut covered: HashMap<
+                DiplomaticPostType,
+                std::collections::HashSet<String>,
+            > = HashMap::new();
             if let Some(r) = reg {
                 for v in r.vips.values() {
                     if v.is_dead {
                         continue;
                     }
                     if let Some(p) = &v.diplomatic_post {
-                        match p.post_type {
-                            DiplomaticPostType::Spy => spies += 1,
-                            DiplomaticPostType::Ambassador
-                            | DiplomaticPostType::Consul
-                            | DiplomaticPostType::MilitaryAttache => envoys += 1,
-                        }
-                        covered.insert(p.host_country.clone());
+                        *counts.entry(p.post_type.clone()).or_insert(0) += 1;
+                        covered
+                            .entry(p.post_type.clone())
+                            .or_default()
+                            .insert(p.host_country.clone());
                     }
                 }
             }
@@ -451,8 +451,7 @@ pub fn staff_diplomatic_posts(
                 .unwrap_or_default();
             let population: i64 = home.regions.iter().map(|r| r.population).sum();
             (
-                envoys,
-                spies,
+                counts,
                 covered,
                 if cost > 0.0 {
                     (home.budget.liquid_reserves / cost).floor() as usize
@@ -471,21 +470,82 @@ pub fn staff_diplomatic_posts(
         // per 250B GDP. Both targets clamp to the number of foreign hosts.
         let pop_tier = ((population.max(1) as f64).log10() - 6.0).max(0.0) as usize;
         let gdp_tier = (gdp.max(0.0) / 250_000_000_000.0) as usize;
-        let target_envoys = (1 + pop_tier + gdp_tier).min(foreign_count);
-        let target_spies = (1 + pop_tier).min(foreign_count);
+        // v4.23 WS5b: major powers (pop_tier + gdp_tier ≥ 4 — i.e. ~100M+
+        // people AND ~$500B+ GDP) field a full diplomatic corps of 15–30
+        // personnel: envoys distributed across ambassador/consul/attaché
+        // posts plus a spy network. Minor powers keep the lean bilateral
+        // corps from v4.22.
+        let is_major = pop_tier + gdp_tier >= 4;
+        let (target_envoys, target_spies) = if is_major {
+            (18usize.min(foreign_count * 2), 9usize.min(foreign_count))
+        } else {
+            (
+                (1 + pop_tier + gdp_tier).min(foreign_count),
+                (1 + pop_tier).min(foreign_count),
+            )
+        };
+
+        // Build the staffing plan. Majors distribute envoy slots over the
+        // three envoy post types (ambassador/consul/military attaché) —
+        // per-host type caps (1/2/1) and per-type coverage still apply, so
+        // the corps spreads across hosts while allowing several envoy types
+        // on the same mission. Minors stay ambassador-only as in v4.22.
+        let staffing_plan: Vec<(DiplomaticPostType, usize, usize)> = if is_major {
+            const ENVOY_TYPES: [DiplomaticPostType; 3] = [
+                DiplomaticPostType::Ambassador,
+                DiplomaticPostType::Consul,
+                DiplomaticPostType::MilitaryAttache,
+            ];
+            let per_type = (target_envoys / ENVOY_TYPES.len()).max(1);
+            let mut plan: Vec<(DiplomaticPostType, usize, usize)> = ENVOY_TYPES
+                .iter()
+                .map(|t| {
+                    (
+                        t.clone(),
+                        *post_counts.get(t).unwrap_or(&0),
+                        per_type.min(foreign_count),
+                    )
+                })
+                .collect();
+            plan.push((
+                DiplomaticPostType::Spy,
+                *post_counts.get(&DiplomaticPostType::Spy).unwrap_or(&0),
+                target_spies,
+            ));
+            plan
+        } else {
+            let envoy_total: usize = post_counts
+                .iter()
+                .filter(|(t, _)| **t != DiplomaticPostType::Spy)
+                .map(|(_, n)| *n)
+                .sum();
+            vec![
+                (
+                    DiplomaticPostType::Ambassador,
+                    envoy_total,
+                    target_envoys,
+                ),
+                (
+                    DiplomaticPostType::Spy,
+                    *post_counts.get(&DiplomaticPostType::Spy).unwrap_or(&0),
+                    target_spies,
+                ),
+            ]
+        };
 
         let mut used_names = used_names;
         let mut covered_hosts = covered_hosts;
         let mut slots = affordable;
 
-        for (post_type, have, target) in [
-            (DiplomaticPostType::Ambassador, envoy_count, target_envoys),
-            (DiplomaticPostType::Spy, spy_count, target_spies),
-        ] {
+        for (post_type, have, target) in staffing_plan {
             for _ in have..target {
                 if slots == 0 {
                     break;
                 }
+                // Per-type coverage: an ambassador on host X doesn't block a
+                // consul or attaché on X (embassy staff of different types).
+                let covered_for_type =
+                    covered_hosts.entry(post_type.clone()).or_default();
                 let Some(host_name) = pick_staffing_host(
                     state,
                     diplomacy,
@@ -493,7 +553,7 @@ pub fn staff_diplomatic_posts(
                     &post_type,
                     &sorted_names,
                     &cap,
-                    &covered_hosts,
+                    covered_for_type,
                 ) else {
                     break;
                 };
@@ -550,9 +610,9 @@ pub fn staff_diplomatic_posts(
                         assigned_turn: current_turn,
                     },
                 );
-                // Mark covered so the next slot spreads to a new host, and
-                // reserve the funds the drain will move for this post.
-                covered_hosts.insert(host_name);
+                // Mark covered so the next slot spreads to a new host (for
+                // this post type), and reserve the funds the drain will move.
+                covered_for_type.insert(host_name);
                 slots = slots.saturating_sub(1);
             }
         }
@@ -617,6 +677,312 @@ fn pick_staffing_host(
         }
     }
     best.map(|(name, _)| name)
+}
+
+/// v4.23.0 WS5b: Dynamic diplomacy — regional blocs federate by cultural
+/// group, and bilateral treaties are proposed and lifecycle-driven by
+/// relations and bilateral tension. Runs once per turn at GameState scope,
+/// before `advance_negotiations` so fresh proposals begin negotiating the
+/// same turn.
+///
+/// **Bloc rule:** every cultural group with ≥2 countries federates a
+/// `"{Group} Compact"` international organization at `FreeTradeArea`
+/// integration. A country accedes when it is not at war with any current
+/// member, its average bilateral relation with the membership is ≥ -20,
+/// and no bilateral tension with a member exceeds 30. A member that goes
+/// to war with another member is expelled — no bloc spans a live war.
+/// Integration progression thereafter rides the existing organization
+/// turn pipeline (`OrganizationRegistry::process_turn`).
+///
+/// **Treaty rule:** the two best bilateral pairs by average relations
+/// (≥60) that share no live treaty are proposed a Trade Preference pact
+/// each turn (≥80 also adds Mutual Defense). Proposals enter the standard
+/// `Proposed → Negotiating → Active` lifecycle. Active treaties suspend
+/// when a participant pair goes to war or minimum pairwise relations
+/// collapse below -50; suspended treaties resume when peace returns and
+/// minimum pairwise relations recover to ≥0.
+///
+/// Determinism: BTreeMap/BTreeSet iteration, sorted candidate order with
+/// name tie-breaks, no RNG.
+pub fn process_dynamic_diplomacy(
+    state: &mut GameState,
+    diplomacy: &HashMap<String, HashMap<String, DiplomaticRelation>>,
+    current_turn: u32,
+) {
+    use std::collections::{BTreeMap, BTreeSet, HashSet};
+
+    use crate::international::organizations::{
+        IntegrationLevel, InternationalOrganization, VotingMechanism,
+    };
+    use crate::international::treaties::{Treaty, TreatyClause, TreatyStatus};
+    use crate::military::war_declarations::tension_key;
+
+    /// A candidate must not join a bloc while this hostile toward it.
+    const BLOC_MIN_RELATIONS: i64 = -20;
+    /// Only genuinely friendly pairs get treaty proposals.
+    const PROPOSE_MIN_RELATIONS: i64 = 60;
+    /// The closest pairs add a mutual-defense clause.
+    const DEFENSE_PACT_RELATIONS: i64 = 80;
+    /// Bounded churn — at most this many new proposals per turn.
+    const MAX_TREATY_PROPOSALS_PER_TURN: usize = 2;
+    /// Active treaties suspend below this pairwise-relations floor.
+    const SUSPEND_MIN_RELATIONS: i64 = -50;
+    /// Suspended treaties resume at this pairwise-relations level.
+    const RESUME_MIN_RELATIONS: i64 = 0;
+    /// Bloc accession requires cool bilateral tension with every member.
+    const TENSION_ACCESSION_CAP: f64 = 30.0;
+
+    let pair_key =
+        |a: &str, b: &str| -> String { tension_key(a, b) };
+
+    // Active war pairs (canonical tension-key format).
+    let mut at_war: HashSet<String> = HashSet::new();
+    for (name, c) in &state.countries {
+        for e in &c.at_war_with {
+            at_war.insert(pair_key(name, e));
+        }
+    }
+    let rel_avg = |a: &str, b: &str| -> i64 {
+        let fwd = diplomacy
+            .get(a)
+            .and_then(|m| m.get(b))
+            .map(|r| r.relations)
+            .unwrap_or(0);
+        let bwd = diplomacy
+            .get(b)
+            .and_then(|m| m.get(a))
+            .map(|r| r.relations)
+            .unwrap_or(0);
+        (fwd + bwd) / 2
+    };
+    let tension_of = |a: &str, b: &str| -> f64 {
+        state
+            .bilateral_tensions
+            .get(&pair_key(a, b))
+            .map(|t| t.level)
+            .unwrap_or(0.0)
+    };
+
+    // ── A) Regional blocs (cultural-group compacts) ──
+    let mut groups: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for (name, c) in &state.countries {
+        let g = c.macro_indicators.cultural_group.trim().to_string();
+        if !g.is_empty() {
+            groups.entry(g).or_default().insert(name.clone());
+        }
+    }
+    for (group, members) in &groups {
+        if members.len() < 2 {
+            continue;
+        }
+        let bloc_name = format!("{} Compact", title_case(group));
+        let idx = match state
+            .international_organizations
+            .organizations
+            .iter()
+            .position(|o| o.name == bloc_name)
+        {
+            Some(i) => i,
+            None => {
+                // Founding members: no pair at war inside the new bloc.
+                let founders: Vec<String> = members
+                    .iter()
+                    .filter(|m| {
+                        !members
+                            .iter()
+                            .any(|o| o != *m && at_war.contains(&pair_key(m, o)))
+                    })
+                    .cloned()
+                    .collect();
+                if founders.len() < 2 {
+                    continue;
+                }
+                let id = state.international_organizations.next_org_id();
+                state.international_organizations.organizations.push(
+                    InternationalOrganization::new(
+                        id,
+                        bloc_name.clone(),
+                        founders,
+                        IntegrationLevel::FreeTradeArea,
+                        VotingMechanism::Unanimity,
+                        current_turn,
+                    ),
+                );
+                eprintln!("[BLOC] {} founded", bloc_name);
+                state.international_organizations.organizations.len() - 1
+            }
+        };
+        let org = &mut state.international_organizations.organizations[idx];
+        // Expel members at war with another member — no bloc spans a live
+        // war (collect first to keep the iteration immutable).
+        let mut expel: Vec<String> = Vec::new();
+        for m in &org.member_states {
+            if org
+                .member_states
+                .iter()
+                .any(|o| o != m && at_war.contains(&pair_key(m, o)))
+            {
+                expel.push(m.clone());
+            }
+        }
+        for m in expel {
+            let org_name = org.name.clone();
+            org.remove_member(&m);
+            eprintln!("[BLOC] {} expelled from {} (war within bloc)", m, org_name);
+        }
+        // Accession: group members not at war with the membership, with
+        // calm relations AND cool bilateral tension.
+        for m in members {
+            if org.is_member(m) {
+                continue;
+            }
+            if org
+                .member_states
+                .iter()
+                .any(|o| at_war.contains(&pair_key(m, o)))
+            {
+                continue;
+            }
+            let member_rel: i64 = org
+                .member_states
+                .iter()
+                .map(|o| rel_avg(m, o))
+                .sum::<i64>()
+                / (org.member_states.len().max(1) as i64);
+            if member_rel < BLOC_MIN_RELATIONS {
+                continue;
+            }
+            if org
+                .member_states
+                .iter()
+                .any(|o| tension_of(m, o) > TENSION_ACCESSION_CAP)
+            {
+                continue;
+            }
+            let org_name = org.name.clone();
+            org.add_member(m);
+            eprintln!("[BLOC] {} joins {}", m, org_name);
+        }
+    }
+
+    // ── B) Bilateral treaty proposals — best relations, no live treaty ──
+    let mut names: Vec<String> = state.countries.keys().cloned().collect();
+    names.sort();
+    let mut candidates: Vec<(i64, String, String)> = Vec::new();
+    for i in 0..names.len() {
+        for j in (i + 1)..names.len() {
+            let (a, b) = (&names[i], &names[j]);
+            let avg = rel_avg(a, b);
+            if avg >= PROPOSE_MIN_RELATIONS && !at_war.contains(&pair_key(a, b))
+            {
+                candidates.push((avg, a.clone(), b.clone()));
+            }
+        }
+    }
+    // Strongest relations first; ties break by sorted names.
+    candidates.sort_by(|x, y| {
+        y.0.cmp(&x.0)
+            .then_with(|| x.1.cmp(&y.1))
+            .then_with(|| x.2.cmp(&y.2))
+    });
+
+    let treaty_duration = state.treaty_config.default_duration_turns;
+    let mut proposals = 0usize;
+    for (avg, a, b) in candidates {
+        if proposals >= MAX_TREATY_PROPOSALS_PER_TURN {
+            break;
+        }
+        // Skip pairs already bound by a live (non-expired/abrogated) treaty.
+        let bound = state.treaty_registry.treaties.iter().any(|t| {
+            t.has_participants(&a, &b)
+                && !matches!(
+                    t.status,
+                    TreatyStatus::Expired | TreatyStatus::Abrogated
+                )
+        });
+        if bound {
+            continue;
+        }
+        let (label, clauses) = if avg >= DEFENSE_PACT_RELATIONS {
+            (
+                "Mutual Defense & Trade Pact",
+                vec![
+                    TreatyClause::MutualDefense,
+                    TreatyClause::TradePreference,
+                ],
+            )
+        } else {
+            (
+                "Trade Preference Pact",
+                vec![TreatyClause::TradePreference],
+            )
+        };
+        let id = state.treaty_registry.next_treaty_id();
+        let name = format!("{}–{} {}", a, b, label);
+        state.treaty_registry.treaties.push(Treaty::new(
+            id,
+            name.clone(),
+            vec![a.clone(), b.clone()],
+            clauses,
+            current_turn,
+            treaty_duration,
+            a.clone(),
+        ));
+        eprintln!("[DIPLOMACY] {} proposed (avg relations {})", name, avg);
+        proposals += 1;
+    }
+
+    // ── C) Treaty lifecycle — war/hostility suspends, normalization resumes ──
+    for t in &mut state.treaty_registry.treaties {
+        let mut min_rel: i64 = i64::MAX;
+        let mut pair_at_war = false;
+        for i in 0..t.participants.len() {
+            for j in (i + 1)..t.participants.len() {
+                let (a, b) = (&t.participants[i], &t.participants[j]);
+                if at_war.contains(&pair_key(a, b)) {
+                    pair_at_war = true;
+                }
+                min_rel = min_rel.min(rel_avg(a, b));
+            }
+        }
+        match t.status {
+            TreatyStatus::Active => {
+                if pair_at_war || min_rel < SUSPEND_MIN_RELATIONS {
+                    t.status = TreatyStatus::Suspended;
+                    eprintln!(
+                        "[DIPLOMACY] {} suspended (war/hostility)",
+                        t.name
+                    );
+                }
+            }
+            TreatyStatus::Suspended
+                if !pair_at_war && min_rel >= RESUME_MIN_RELATIONS =>
+            {
+                t.status = TreatyStatus::Active;
+                eprintln!("[DIPLOMACY] {} resumed (normalized)", t.name);
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Title-case a snake/kebab/space-separated identifier for display names
+/// ("north_germanic" → "North Germanic").
+fn title_case(raw: &str) -> String {
+    raw.split(['_', '-', ' '])
+        .filter(|w| !w.is_empty())
+        .map(|w| {
+            let mut chars = w.chars();
+            match chars.next() {
+                Some(f) => {
+                    f.to_uppercase().collect::<String>()
+                        + &chars.as_str().to_lowercase()
+                }
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]

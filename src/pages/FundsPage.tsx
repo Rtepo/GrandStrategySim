@@ -286,8 +286,10 @@ function FundDetailPanel({
               </Table>
             </div>
             <div>
-              <h4 className="text-sm font-medium mb-2">Allocation</h4>
-              <HoldingsPieChart holdings={detail.top_holdings} />
+              <h4 className="text-sm font-medium mb-2">
+                Allocation — Asset Classes → Sectors → Companies
+              </h4>
+              <AllocationSunburst detail={detail} />
             </div>
           </div>
         )}
@@ -296,20 +298,140 @@ function FundDetailPanel({
   );
 }
 
-function HoldingsPieChart({ holdings }: { holdings: [string, number][] }) {
+/** Muted palette keyed by the drill-down's asset-class buckets. */
+const ASSET_CLASS_COLORS: Record<string, string> = {
+  Equities: "#2563eb",
+  "Covered Bonds": "#0891b2",
+  "Government Bonds": "#65a30d",
+  "Mortgage-Backed Securities": "#7c3aed",
+  "Cash & Equivalents": "#64748b",
+  "Other Securities": "#b45309",
+};
+
+/**
+ * v4.23 WS4: three-level allocation drill-down — inner ring Asset
+ * Classes, middle ring issuer Sectors, outer ring the individual
+ * Companies/instruments held. Click a node to zoom into it
+ * (`rootToNode`); the breadcrumb walks back out. Sums to the fund's
+ * real AUM (holdings marked to market + cash legs).
+ */
+function AllocationSunburst({ detail }: { detail: FundDetail }) {
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!chartRef.current || holdings.length === 0) return;
+    if (!chartRef.current) return;
+
+    // Group holdings: class → sector → instrument leaves.
+    const classes = new Map<string, Map<string, { name: string; value: number; tip: string }[]>>();
+    for (const h of detail.portfolio_holdings) {
+      if (h.market_value <= 0) continue;
+      const cls = h.asset_class || "Other Securities";
+      const sec = h.sector || "Unclassified";
+      const sectorMap = classes.get(cls) ?? new Map();
+      const leaves = sectorMap.get(sec) ?? [];
+      leaves.push({
+        name: h.display_name,
+        value: h.market_value,
+        tip: `${h.display_name}<br/>${h.asset_class} · ${h.sector}<br/>${fmt(h.market_value)} (${(h.weight_pct * 100).toFixed(1)}% of AUM)`,
+      });
+      sectorMap.set(sec, leaves);
+      classes.set(cls, sectorMap);
+    }
+    // Uninvested cash is a real AUM leg — its own class → "Cash" sector.
+    const cashLegs: { name: string; value: number; tip: string }[] = [];
+    if (detail.cash_value > 0) {
+      cashLegs.push({
+        name: "Uninvested cash",
+        value: detail.cash_value,
+        tip: `Uninvested cash<br/>Cash & Equivalents<br/>${fmt(detail.cash_value)}`,
+      });
+    }
+    if (detail.frozen_cash > 0) {
+      cashLegs.push({
+        name: "Frozen (open orders)",
+        value: detail.frozen_cash,
+        tip: `Frozen (open orders)<br/>Cash & Equivalents<br/>${fmt(detail.frozen_cash)}`,
+      });
+    }
+    if (cashLegs.length > 0) {
+      classes.set(
+        "Cash & Equivalents",
+        new Map([["Cash", cashLegs]]),
+      );
+    }
+
+    // Deterministic ordering: classes by value desc, sectors by value
+    // desc, leaves by value desc.
+    const data = [...classes.entries()]
+      .map(([cls, sectorMap]) => {
+        const sectors = [...sectorMap.entries()]
+          .map(([sec, leaves]) => ({
+            name: sec,
+            value: leaves.reduce((s, l) => s + l.value, 0),
+            children: leaves
+              .sort((a, b) => b.value - a.value)
+              .map((l) => ({ name: l.name, value: l.value, tip: l.tip })),
+          }))
+          .sort((a, b) => b.value - a.value);
+        return {
+          name: cls,
+          value: sectors.reduce((s, x) => s + x.value, 0),
+          itemStyle: { color: ASSET_CLASS_COLORS[cls] ?? "#475569" },
+          children: sectors,
+        };
+      })
+      .sort((a, b) => b.value - a.value);
+
+    const total = data.reduce((s, d) => s + d.value, 0);
+    if (total <= 0) return;
+
     const chart = echarts.init(chartRef.current);
     chart.setOption({
-      tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
-      series: [{
-        type: "pie",
-        radius: ["40%", "70%"],
-        data: holdings.map(([name, value]) => ({ name, value })),
-        label: { fontSize: 10 },
-      }],
+      tooltip: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        formatter: (p: any) => {
+          const tip = (p.data as { tip?: string } | undefined)?.tip;
+          if (tip) return tip;
+          return `<b>${p.name}</b><br/>${fmt(Number(p.value) || 0)} (${((Number(p.value) / total) * 100).toFixed(1)}% of AUM)`;
+        },
+      },
+      series: [
+        {
+          type: "sunburst",
+          radius: ["12%", "95%"],
+          nodeClick: "rootToNode",
+          breadcrumb: {
+            show: true,
+            top: 0,
+            itemStyle: { color: "#1e293b", textStyle: { color: "#cbd5e1" } },
+          },
+          sort: undefined,
+          label: { fontSize: 9, color: "#f8fafc", minAngle: 8 },
+          itemStyle: { borderColor: "#0f172a", borderWidth: 1 },
+          levels: [
+            {},
+            {
+              // Asset-class ring — widest arc, always labeled.
+              r0: "12%",
+              r: "42%",
+              label: { rotate: "radial", fontSize: 10 },
+            },
+            {
+              // Sector ring — tangential labels, thin slices hidden.
+              r0: "42%",
+              r: "68%",
+              label: { rotate: "tangential", fontSize: 9, minAngle: 6 },
+            },
+            {
+              // Companies ring — labels off (tooltips carry the names).
+              r0: "68%",
+              r: "95%",
+              label: { show: false },
+            },
+          ],
+          data,
+        },
+      ],
     });
     const handleResize = () => chart.resize();
     window.addEventListener("resize", handleResize);
@@ -317,9 +439,9 @@ function HoldingsPieChart({ holdings }: { holdings: [string, number][] }) {
       window.removeEventListener("resize", handleResize);
       chart.dispose();
     };
-  }, [holdings]);
+  }, [detail]);
 
-  return <div ref={chartRef} style={{ width: "100%", height: "240px" }} />;
+  return <div ref={chartRef} style={{ width: "100%", height: "320px" }} />;
 }
 
 /** Compact axis formatter — e.g. 1_500_000 → "1.5M" — keeps the Y-axis
