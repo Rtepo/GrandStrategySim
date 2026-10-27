@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { getCommodities, getTradeTreemap } from "../hooks/useTauriCommand";
-import { TradeTreemapChart } from "../components/charts/TradeTreemapChart";
-import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from "../components/ui";
+import { TradeTreemapChart, type TreemapMode } from "../components/charts/TradeTreemapChart";
+import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button } from "../components/ui";
 import { fmt } from "../lib/format";
 
 export function MarketPage() {
   const { selectedCountry } = useGameStore();
   const [showInactive, setShowInactive] = useState(false);
+  const [treemapMode, setTreemapMode] = useState<TreemapMode>("exports");
 
   const { data: commodities, isLoading } = useQuery({
     queryKey: ["commodities", selectedCountry, showInactive],
@@ -16,7 +17,8 @@ export function MarketPage() {
     enabled: !!selectedCountry,
   });
 
-  // v4.22 WS4: OEC-style treemap of market value shares by sector.
+  // v4.23 WS4: per-country settled trade legs — the selected country's
+  // real exports/imports/domestic volume, SITC-grouped.
   const { data: treemap } = useQuery({
     queryKey: ["trade_treemap", selectedCountry],
     queryFn: () => getTradeTreemap(selectedCountry!),
@@ -39,11 +41,34 @@ export function MarketPage() {
         </label>
       </div>
 
-      {treemap && treemap.entries.length > 0 && (
+      {treemap && (treemap.exports.length > 0 || treemap.imports.length > 0 || treemap.domestic.length > 0) && (
         <Card>
-          <CardHeader><CardTitle>Trade Value Treemap — {fmt(treemap.total_value)}</CardTitle></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <CardTitle>
+                Trade Treemap — {selectedCountry}
+                <span className="text-muted-foreground font-normal text-sm ml-2">
+                  {treemapMode === "exports" && `Exports ${fmt(treemap.total_exports)}`}
+                  {treemapMode === "imports" && `Imports ${fmt(treemap.total_imports)}`}
+                  {treemapMode === "domestic" && `Domestic ${fmt(treemap.total_domestic)}`}
+                </span>
+              </CardTitle>
+              <div className="flex gap-1">
+                {(["exports", "imports", "domestic"] as const).map((m) => (
+                  <Button
+                    key={m}
+                    size="sm"
+                    variant={treemapMode === m ? "default" : "outline"}
+                    onClick={() => setTreemapMode(m)}
+                  >
+                    {m[0].toUpperCase() + m.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardHeader>
           <CardContent>
-            <TradeTreemapChart data={treemap} />
+            <TradeTreemapChart data={treemap} mode={treemapMode} />
           </CardContent>
         </Card>
       )}

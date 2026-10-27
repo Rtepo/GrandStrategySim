@@ -951,6 +951,80 @@ export type CouncilRollCallRow = { resolution_title: string, member_name: string
 vip_id: string, };
 
 /**
+ * v4.23 WS4: Per-country trade treemap — REAL settled trade legs this
+ * turn, replacing the old global cleared-volume bound
+ * (`snapshot_society::TradeTreemapDto`, still emitted for the legacy
+ * command surface).
+ *
+ * * `exports` — domestic seller → foreign endpoint: modeled-country
+ * buyers (the order book) plus the FOREIGN-SECTOR world-market sweep.
+ * * `imports` — foreign seller → domestic endpoint, same two sources.
+ * * `domestic` — both-endpoints-domestic order-book legs plus
+ * ministry / JST / public-works procurement (domestic-only books).
+ */
+export type CountryTradeTreemapDto = { 
+/**
+ * Country name.
+ */
+country: string, 
+/**
+ * Export legs sorted by value desc (commodity name breaks ties —
+ * deterministic).
+ */
+exports: Array<CountryTradeTreemapEntry>, 
+/**
+ * Import legs, same ordering.
+ */
+imports: Array<CountryTradeTreemapEntry>, 
+/**
+ * Domestic legs, same ordering.
+ */
+domestic: Array<CountryTradeTreemapEntry>, 
+/**
+ * Total settled export value this turn.
+ */
+total_exports: number, 
+/**
+ * Total settled import value this turn.
+ */
+total_imports: number, 
+/**
+ * Total settled domestic trade value this turn.
+ */
+total_domestic: number, };
+
+/**
+ * One row of the per-country trade treemap — a commodity's settled
+ * quantity and value in one flow direction (exports / imports /
+ * domestic), grouped under a SITC Rev.2 section for the chart.
+ */
+export type CountryTradeTreemapEntry = { 
+/**
+ * Commodity display name (serde key, e.g. `"hard_coal"`).
+ */
+commodity: string, 
+/**
+ * SITC Rev.2 one-digit section label (`Commodity::sitc_section`).
+ */
+sitc_section: string, 
+/**
+ * Settled physical units this turn.
+ */
+quantity: number, 
+/**
+ * Settled currency value this turn (Σ qty × execution price).
+ */
+value: number, 
+/**
+ * Volume-weighted average execution price (0 when qty is 0).
+ */
+avg_price: number, 
+/**
+ * Share of the mode's total value (0.0–1.0).
+ */
+share: number, };
+
+/**
  * Phase 60: Response wrapper for court backlog query.
  */
 export type CourtBacklogResponse = { rows: Array<CourtBacklogRow>, 
@@ -1350,7 +1424,17 @@ top_holdings: Array<[string, number]>,
 /**
  * Resolved portfolio rows with instrument names.
  */
-portfolio_holdings: Array<FundHoldingRow>, };
+portfolio_holdings: Array<FundHoldingRow>, 
+/**
+ * v4.23 WS4: uninvested brokerage cash — part of AUM but not a
+ * portfolio holding; the allocation drill-down shows it as a
+ * `"Cash & Equivalents"` leaf so rings sum to total AUM.
+ */
+cash_value: number, 
+/**
+ * v4.23 WS4: brokerage cash frozen against open orders (same role).
+ */
+frozen_cash: number, };
 
 /**
  * v4.18 WS4: One resolved holding row on the fund detail view — the
@@ -1388,7 +1472,21 @@ market_value: number,
 /**
  * Position weight as a fraction of fund AUM (0–1).
  */
-weight_pct: number, };
+weight_pct: number, 
+/**
+ * v4.23 WS4: asset-class bucket for the 3-level allocation drill-down
+ * (Asset Classes → Sectors → Companies): `"Equities"` |
+ * `"Covered Bonds"` | `"Mortgage-Backed Securities"` |
+ * `"Government Bonds"` | `"Other Securities"`.
+ */
+asset_class: string, 
+/**
+ * v4.23 WS4: issuer sector for the drill-down's middle ring — the
+ * holding company's sector for equities, the issuer's sector for
+ * covered bonds, `"Real Estate"` for MBS tranches, `"Government"`
+ * for treasury securities.
+ */
+sector: string, };
 
 /**
  * Phase 57: Fund row for the investment funds UI.
@@ -1975,7 +2073,44 @@ coordinates: IdeologyCoordinatesDto | null, allocated_cash: number, spent_cash: 
 /**
  * Phase 35: Current cash pocket available for spending.
  */
-ministry_cash: number, };
+ministry_cash: number, 
+/**
+ * v4.23 WS4: qualitative policy KPIs & targets for the Reports drawer —
+ * measured from live engine state and keyed by the ministry's
+ * competencies (empty only when the country snapshot path cannot
+ * supply entities).
+ */
+policy_kpis: Array<MinistryKpiRow>, };
+
+/**
+ * v4.23 WS4: One qualitative policy KPI for a ministry's Reports drawer.
+ *
+ * `value`/`unit` are measured from real engine state (never fabricated);
+ * `target` is the portfolio's qualitative policy goal; `status` is the
+ * assessment the measurement supports:
+ * `"on_track"` | `"at_risk"` | `"off_track"` | `"watch"`.
+ */
+export type MinistryKpiRow = { 
+/**
+ * KPI label (e.g. "Unemployment", "Demand coverage").
+ */
+label: string, 
+/**
+ * Measured value from live state.
+ */
+value: number, 
+/**
+ * Display unit — "%", "MW", "seats", "personnel", "yrs", "¤", "count".
+ */
+unit: string, 
+/**
+ * Qualitative target text (e.g. "≤ 5%", "≥ 100%", "0 — peace").
+ */
+target: string, 
+/**
+ * Assessment vs. target.
+ */
+status: string, };
 
 /**
  * Phase 54: A single ministry expenditure category entry for the Finance tab.

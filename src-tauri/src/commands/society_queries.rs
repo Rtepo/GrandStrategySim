@@ -1,7 +1,8 @@
 use crate::state::AppState;
+use sim_engine::ui::snapshot::CountryTradeTreemapDto;
 use sim_engine::ui::snapshot_press::PressSnapshotDto;
 use sim_engine::ui::snapshot_society::{
-    GdpCompositionDto, OrganizationsSummaryDto, SocietySnapshotDto, TradeTreemapDto,
+    GdpCompositionDto, OrganizationsSummaryDto, SocietySnapshotDto,
 };
 
 /// v4.22 WS4: GDP expenditure composition (national C+I+G+NX, per-region
@@ -39,20 +40,30 @@ pub async fn get_gdp_composition(
     .map_err(|e| format!("Task join error: {e}"))?
 }
 
-/// v4.22 WS4: Per-commodity market-value shares (trade treemap) from the
-/// real global order book priced at settled VWAP. Global — not per-country.
+/// v4.23 WS4: per-country trade treemap — REAL settled trade legs this
+/// turn (order-book legs classified by endpoint ownership + the
+/// FOREIGN-SECTOR export/import sweeps + domestic state procurement),
+/// SITC-grouped for the Exports/Imports/Domestic toggle on the Market
+/// page. Replaces the v4.22 global cleared-volume bound.
 #[tauri::command]
 pub async fn get_trade_treemap(
     state: tauri::State<'_, AppState>,
-) -> Result<TradeTreemapDto, String> {
+    country: String,
+) -> Result<CountryTradeTreemapDto, String> {
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();
         let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
-        Ok(sim_engine::ui::snapshot_society::build_trade_treemap(
-            &engine_state.turn_context.market,
-            &engine_state.game_state.market_history,
+        let country_ref = engine_state
+            .game_state
+            .countries
+            .get(&country)
+            .ok_or(format!("Country '{country}' not found"))?;
+
+        Ok(sim_engine::ui::snapshot::build_country_trade_treemap(
+            country_ref,
+            engine_state.game_state.calendar.current_year,
         ))
     })
     .await

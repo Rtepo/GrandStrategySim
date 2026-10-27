@@ -1433,7 +1433,11 @@ fn find_freight_producer(
 /// proportionally to the FreightCapacity they hold — the depots providing
 /// the service book the income in `last_profit` and `last_output_value`,
 /// matching the GRID96 offtake revenue-recognition pattern.
-fn accrue_freight_revenue(buildings: &mut [Building], producer_id: &str, amount: f64) {
+pub(crate) fn accrue_freight_revenue(
+    buildings: &mut [Building],
+    producer_id: &str,
+    amount: f64,
+) {
     if amount <= 0.0 {
         return;
     }

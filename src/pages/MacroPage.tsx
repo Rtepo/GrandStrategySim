@@ -69,38 +69,40 @@ export function MacroPage() {
           </Card>
 
           <div className="grid grid-cols-3 gap-4">
-            <Card>
-              <CardHeader><CardTitle>GDP Components</CardTitle></CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <ComponentRow label="Consumption" value={macro.consumption} />
-                  <ComponentRow label="Imputed C (in-kind)" value={macro.imputed_consumption} />
-                  <ComponentRow label="Investment" value={macro.investment} />
-                  <ComponentRow label="Gov Spending" value={macro.government_spending} />
-                  <ComponentRow label="Net Exports" value={macro.net_exports} />
-                  <div className="border-t border-border pt-2 mt-2">
-                    <ComponentRow label="Total GDP" value={macro.gdp} bold />
+            <div className="space-y-4">
+              <Card>
+                <CardHeader><CardTitle>GDP Components</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <ComponentRow label="Consumption" value={macro.consumption} />
+                    <ComponentRow label="Imputed C (in-kind)" value={macro.imputed_consumption} />
+                    <ComponentRow label="Investment" value={macro.investment} />
+                    <ComponentRow label="Gov Spending" value={macro.government_spending} />
+                    <ComponentRow label="Net Exports" value={macro.net_exports} />
+                    <div className="border-t border-border pt-2 mt-2">
+                      <ComponentRow label="Total GDP" value={macro.gdp} bold />
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* v4.22 WS4: GDP expenditure donut (C+I+G+NX) */}
-            <Card>
-              <CardHeader><CardTitle>GDP Composition</CardTitle></CardHeader>
-              <CardContent>
-                <GdpDonutChart
-                  consumption={macro.consumption}
-                  imputedConsumption={macro.imputed_consumption}
-                  investment={macro.investment}
-                  governmentSpending={macro.government_spending}
-                  netExports={macro.net_exports}
-                  height={230}
-                />
-              </CardContent>
-            </Card>
+              {/* v4.23 WS4: GDP expenditure donut (C+I+G+NX), under Components */}
+              <Card>
+                <CardHeader><CardTitle>GDP Composition</CardTitle></CardHeader>
+                <CardContent>
+                  <GdpDonutChart
+                    consumption={macro.consumption}
+                    imputedConsumption={macro.imputed_consumption}
+                    investment={macro.investment}
+                    governmentSpending={macro.government_spending}
+                    netExports={macro.net_exports}
+                    height={230}
+                  />
+                </CardContent>
+              </Card>
+            </div>
 
-            <Card>
+            <Card className="col-span-2">
               <CardHeader><CardTitle>Sector Overview</CardTitle></CardHeader>
               <CardContent>
                 <Table>

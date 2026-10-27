@@ -66,7 +66,7 @@ use crate::state::{process_banking_turn, process_tax_collection_turn, settle_tra
 use rand::SeedableRng;
 use rayon::prelude::*;
 use rustc_hash::FxHashMap;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::path::PathBuf;
 
@@ -312,6 +312,38 @@ impl<'a> CountryTask<'a> {
             .iter()
             .find(|b| b.owner_id == company.id && !b.region_id.is_empty())
             .map(|b| b.region_id.clone())
+    }
+}
+
+/// v4.23 WS4: merge settled per-commodity trade legs into a country's
+/// `macro_indicators.extra` map (`key → {commodity: {quantity, value}}`).
+/// The order-book pass writes the map first; the ROW export/import sweeps
+/// then merge their legs on top, so modeled-country and world-market
+/// flows share one treemap series.
+fn accrue_trade_legs(
+    extra: &mut serde_json::Map<String, serde_json::Value>,
+    key: &str,
+    legs: &BTreeMap<Commodity, (f64, f64)>,
+) {
+    let entry = extra
+        .entry(key.to_string())
+        .or_insert_with(|| serde_json::json!({}));
+    let Some(obj) = entry.as_object_mut() else {
+        return;
+    };
+    for (c, (q, v)) in legs {
+        let cell = obj
+            .entry(c.to_string())
+            .or_insert_with(|| serde_json::json!({"quantity": 0.0, "value": 0.0}));
+        let pq = cell
+            .get("quantity")
+            .and_then(|x| x.as_f64())
+            .unwrap_or(0.0);
+        let pv = cell
+            .get("value")
+            .and_then(|x| x.as_f64())
+            .unwrap_or(0.0);
+        *cell = serde_json::json!({"quantity": pq + q, "value": pv + v});
     }
 }
 
@@ -2103,6 +2135,83 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 task.cross_border_gross_by_region = xb;
             }
 
+            // v4.23 WS4: per-commodity trade legs for the country trade
+            // treemap — classified by endpoint ownership. A trade reaches
+            // this task whenever one of the country's companies is an
+            // endpoint, so each leg is recorded once, from the country's
+            // own perspective: domestic seller → foreign buyer is an
+            // export, foreign seller → domestic buyer an import, and
+            // both-domestic a domestic clear. Non-company endpoints
+            // (ministry/state buyer ids — FOREIGN-SECTOR never enters the
+            // order book) count as domestic state demand. `extra` is
+            // persistent country state, so the maps are rewritten every
+            // turn here rather than accreted: order-book legs land now,
+            // the ROW export/import sweeps merge on top further below.
+            {
+                let cname = task.ctx.country_name.clone();
+                let mut exp_legs: BTreeMap<Commodity, (f64, f64)> =
+                    BTreeMap::new();
+                let mut imp_legs: BTreeMap<Commodity, (f64, f64)> =
+                    BTreeMap::new();
+                let mut dom_legs: BTreeMap<Commodity, (f64, f64)> =
+                    BTreeMap::new();
+                for t in &secured_trades {
+                    let s_dom = company_country
+                        .get(&t.seller_id)
+                        .map(|c| c == &cname)
+                        .unwrap_or(true);
+                    let b_dom = company_country
+                        .get(&t.buyer_id)
+                        .map(|c| c == &cname)
+                        .unwrap_or(true);
+                    let legs = match (s_dom, b_dom) {
+                        (true, false) => &mut exp_legs,
+                        (false, true) => &mut imp_legs,
+                        (true, true) => &mut dom_legs,
+                        // Both endpoints foreign companies — unreachable
+                        // (the task filter requires a domestic endpoint)
+                        // but kept explicit for exhaustiveness.
+                        (false, false) => continue,
+                    };
+                    let e = legs.entry(t.commodity).or_default();
+                    e.0 += t.quantity;
+                    e.1 += t.quantity * t.execution_price;
+                }
+                let legs_json = |legs: &BTreeMap<Commodity, (f64, f64)>| {
+                    serde_json::json!(legs
+                        .iter()
+                        .map(|(c, (q, v))| (
+                            c.to_string(),
+                            serde_json::json!({"quantity": q, "value": v})
+                        ))
+                        .collect::<serde_json::Map<String, serde_json::Value>>())
+                };
+                task.ctx
+                    .country
+                    .macro_indicators
+                    .extra
+                    .insert(
+                        "trade_exports_by_commodity".to_string(),
+                        legs_json(&exp_legs),
+                    );
+                task.ctx
+                    .country
+                    .macro_indicators
+                    .extra
+                    .insert(
+                        "trade_imports_by_commodity".to_string(),
+                        legs_json(&imp_legs),
+                    );
+                task.ctx
+                    .country
+                    .macro_indicators
+                    .extra
+                    .insert(
+                        "trade_domestic_by_commodity".to_string(),
+                        legs_json(&dom_legs),
+                    );
+            }
+
             // Phase 13: Storage transaction settlement will be wired when
             // warehouse extraction system produces FinancialTransaction records.
 
@@ -2685,6 +2794,90 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     }
                     market.foreign_sector_balance -= task_spend;
                     all_export_trades.extend(export_trades.iter().cloned());
+                    // v4.23 WS3: freight & trade margin for the carriage
+                    // sector. Cross-border haulage is real work the sweep
+                    // bypassed — the purse pays a forwarding margin on
+                    // delivered value to the FreightCapacity-holding
+                    // carriers (ExportServices / TransportLogistics). The
+                    // charge is M0-conserved (foreign pocket ↓, corporate
+                    // pockets ↑) and booked as a service export alongside
+                    // the goods leg, matching the tourism inflow pattern.
+                    const TRADE_FREIGHT_MARGIN: f64 = 0.08;
+                    let mut cap_by_company: HashMap<String, f64> = HashMap::new();
+                    for b in &task.ctx.buildings {
+                        if b.owner_id.is_empty() {
+                            continue;
+                        }
+                        let cap = b
+                            .inventory
+                            .get(&Commodity::FreightCapacity)
+                            .copied()
+                            .unwrap_or(0.0);
+                        if cap > 0.0 {
+                            *cap_by_company
+                                .entry(b.owner_id.clone())
+                                .or_insert(0.0) += cap;
+                        }
+                    }
+                    // Fallback: a fully-deployed fleet still earns the
+                    // forwarding margin — weight sector members by crew
+                    // when no capacity stock sits in depots this turn.
+                    if cap_by_company.is_empty() {
+                        for c in &task.companies {
+                            if matches!(
+                                c.sector,
+                                Sector::ExportServices | Sector::TransportLogistics
+                            ) && c.worker_capacity > 0
+                            {
+                                cap_by_company
+                                    .insert(c.id.clone(), c.worker_capacity as f64);
+                            }
+                        }
+                    }
+                    let total_freight_cap: f64 = cap_by_company.values().sum();
+                    let mut export_freight_paid = 0.0f64;
+                    if total_freight_cap > 0.0 {
+                        let paid =
+                            (task_spend * TRADE_FREIGHT_MARGIN)
+                                .min(market.foreign_sector_balance.max(0.0));
+                        if paid > 0.0 {
+                            market.foreign_sector_balance -= paid;
+                            export_freight_paid = paid;
+                            let mut carrier_ids: Vec<&String> =
+                                cap_by_company.keys().collect();
+                            carrier_ids.sort();
+                            for cid in carrier_ids {
+                                let share =
+                                    paid * cap_by_company[cid] / total_freight_cap;
+                                if share <= 0.0 {
+                                    continue;
+                                }
+                                if !crate::economy::transfer_settler::credit_company_by_id(
+                                    &mut task.companies,
+                                    cid,
+                                    share,
+                                ) {
+                                    continue;
+                                }
+                                crate::economy::logistics::accrue_freight_revenue(
+                                    &mut task.ctx.buildings,
+                                    cid,
+                                    share,
+                                );
+                                if let Some(c) =
+                                    task.companies.iter_mut().find(|c| &c.id == cid)
+                                {
+                                    c.turn_settled_sales += share;
+                                }
+                                match task.region_of_company(cid) {
+                                    Some(rid) => {
+                                        task.gdp_acc.add_net_exports(&rid, share)
+                                    }
+                                    None => task.gdp_acc.net_exports += share,
+                                }
+                            }
+                        }
+                    }
                     // v4.17.0: export proceeds at the exporting firm's region.
                     // v4.18 WS2: canonical seller order — HashMap iteration
                     // accumulated `gdp_acc.net_exports` (a float sum) in
@@ -2704,14 +2897,35 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     // Persist for the end-of-turn GDP patch — `trade_balances`
                     // overwrites gdp_breakdown.net_exports later, so the
                     // export value must reach that patch via the country.
+                    // Goods + carriage margin are both FX earned abroad.
                     task.ctx
                         .country
                         .macro_indicators
                         .extra
                         .insert(
                             "foreign_export_value".to_string(),
-                            serde_json::json!(task_spend),
+                            serde_json::json!(task_spend + export_freight_paid),
                         );
+                    // v4.23 WS4: world-market export legs by commodity for
+                    // the country trade treemap. {commodity: {quantity,
+                    // value}} — settled qty × exec price per leg, MERGED
+                    // into the map the order-book pass already recorded
+                    // (modeled-country buyers and the ROW sweep are
+                    // disjoint leg sets sharing one series).
+                    {
+                        let mut legs: BTreeMap<Commodity, (f64, f64)> =
+                            BTreeMap::new();
+                        for t in &export_trades {
+                            let e = legs.entry(t.commodity).or_default();
+                            e.0 += t.quantity;
+                            e.1 += t.quantity * t.execution_price;
+                        }
+                        accrue_trade_legs(
+                            &mut task.ctx.country.macro_indicators.extra,
+                            "trade_exports_by_commodity",
+                            &legs,
+                        );
+                    }
                     #[cfg(feature = "diagnostic")]
                     {
                         let sellers: std::collections::BTreeSet<&str> = export_trades
@@ -2869,6 +3083,96 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     &company_country,
                 );
                 market.foreign_sector_balance += task_import_spend;
+                // v4.23 WS3: inbound carriage margin — the ROW seller's
+                // delivered price includes haulage contracted to the same
+                // domestic FreightCapacity carriers. Symmetric with the
+                // export-leg margin: purse-funded, M0-conserved, booked
+                // as a service export (the carriers sell freight services
+                // to the foreign seller).
+                const IMPORT_FREIGHT_MARGIN: f64 = 0.08;
+                let mut cap_by_company: HashMap<String, f64> = HashMap::new();
+                for b in &task.ctx.buildings {
+                    if b.owner_id.is_empty() {
+                        continue;
+                    }
+                    let cap = b
+                        .inventory
+                        .get(&Commodity::FreightCapacity)
+                        .copied()
+                        .unwrap_or(0.0);
+                    if cap > 0.0 {
+                        *cap_by_company
+                            .entry(b.owner_id.clone())
+                            .or_insert(0.0) += cap;
+                    }
+                }
+                // Fallback: a fully-deployed fleet still earns the
+                // forwarding margin — weight sector members by crew when
+                // no capacity stock sits in depots this turn.
+                if cap_by_company.is_empty() {
+                    for c in &task.companies {
+                        if matches!(
+                            c.sector,
+                            Sector::ExportServices | Sector::TransportLogistics
+                        ) && c.worker_capacity > 0
+                        {
+                            cap_by_company
+                                .insert(c.id.clone(), c.worker_capacity as f64);
+                        }
+                    }
+                }
+                let total_freight_cap: f64 = cap_by_company.values().sum();
+                if total_freight_cap > 0.0 {
+                    let paid = (task_import_spend * IMPORT_FREIGHT_MARGIN)
+                        .min(market.foreign_sector_balance.max(0.0));
+                    if paid > 0.0 {
+                        market.foreign_sector_balance -= paid;
+                        let mut carrier_ids: Vec<&String> =
+                            cap_by_company.keys().collect();
+                        carrier_ids.sort();
+                        for cid in carrier_ids {
+                            let share = paid * cap_by_company[cid] / total_freight_cap;
+                            if share <= 0.0 {
+                                continue;
+                            }
+                            if !crate::economy::transfer_settler::credit_company_by_id(
+                                &mut task.companies,
+                                cid,
+                                share,
+                            ) {
+                                continue;
+                            }
+                            crate::economy::logistics::accrue_freight_revenue(
+                                &mut task.ctx.buildings,
+                                cid,
+                                share,
+                            );
+                            if let Some(c) =
+                                task.companies.iter_mut().find(|c| &c.id == cid)
+                            {
+                                c.turn_settled_sales += share;
+                            }
+                            match task.region_of_company(cid) {
+                                Some(rid) => {
+                                    task.gdp_acc.add_net_exports(&rid, share)
+                                }
+                                None => task.gdp_acc.net_exports += share,
+                            }
+                        }
+                        // The carriage margin is service-export FX inflow —
+                        // accumulate onto the same `foreign_export_value`
+                        // patch the goods leg and tourism already feed.
+                        let entry = task
+                            .ctx
+                            .country
+                            .macro_indicators
+                            .extra
+                            .entry("foreign_export_value".to_string())
+                            .or_insert(serde_json::json!(0.0));
+                        let prev = entry.as_f64().unwrap_or(0.0);
+                        *entry = serde_json::json!(prev + paid);
+                    }
+                }
                 // v4.17.0: imports subtract where the importing buyer sits.
                 for t in &import_trades {
                     let v = t.quantity * t.execution_price;
@@ -2888,6 +3192,22 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                         "foreign_import_value".to_string(),
                         serde_json::json!(task_import_spend),
                     );
+                // v4.23 WS4: ROW import legs by commodity — merge into the
+                // treemap imports map alongside modeled-country sellers.
+                {
+                    let mut legs: BTreeMap<Commodity, (f64, f64)> =
+                        BTreeMap::new();
+                    for t in &import_trades {
+                        let e = legs.entry(t.commodity).or_default();
+                        e.0 += t.quantity;
+                        e.1 += t.quantity * t.execution_price;
+                    }
+                    accrue_trade_legs(
+                        &mut task.ctx.country.macro_indicators.extra,
+                        "trade_imports_by_commodity",
+                        &legs,
+                    );
+                }
                 #[cfg(feature = "diagnostic")]
                 eprintln!(
                     "IMPORTSWEEP: t={} c={} trades={} spend={:.3e} purse={:.3e}",
@@ -3289,6 +3609,24 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                             .government_spending += v;
                     }
                 }
+                // v4.23 WS4: ministry procurement is domestic-cleared volume —
+                // a separate local book whose legs never reach the global
+                // order book, so they merge into the treemap's domestic
+                // series here (buyer = ministry/state, seller = domestic).
+                {
+                    let mut legs: BTreeMap<Commodity, (f64, f64)> =
+                        BTreeMap::new();
+                    for t in &ministry_trades {
+                        let e = legs.entry(t.commodity).or_default();
+                        e.0 += t.quantity;
+                        e.1 += t.quantity * t.execution_price;
+                    }
+                    accrue_trade_legs(
+                        &mut task.ctx.country.macro_indicators.extra,
+                        "trade_domestic_by_commodity",
+                        &legs,
+                    );
+                }
                 // Process post-clearing refunds for unfilled ministry bids
                 for ministry in &mut config.ministries {
                     process_minister_post_clearing(
@@ -3386,6 +3724,23 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                 &gen_config_jst,
                 &company_country,
             );
+
+            // v4.23 WS4: JST procurement is domestic-cleared volume (local
+            // book, domestic sellers) — merge into the treemap domestic legs.
+            {
+                let mut legs: BTreeMap<Commodity, (f64, f64)> =
+                    BTreeMap::new();
+                for t in &jst_trades {
+                    let e = legs.entry(t.commodity).or_default();
+                    e.0 += t.quantity;
+                    e.1 += t.quantity * t.execution_price;
+                }
+                accrue_trade_legs(
+                    &mut task.ctx.country.macro_indicators.extra,
+                    "trade_domestic_by_commodity",
+                    &legs,
+                );
+            }
 
             // Step 5: Record procured quantities and credit sellers via TransferSettler.
             let procured = crate::politics::jst_spending::settle_jst_trades(
@@ -6592,6 +6947,24 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                                         .or_default()
                                         .investment += v;
                                 }
+                            }
+                            // v4.23 WS4: public-works materials are
+                            // domestic-cleared volume (state buyer,
+                            // domestic sellers) — merge into the treemap
+                            // domestic legs.
+                            {
+                                let mut legs: BTreeMap<Commodity, (f64, f64)> =
+                                    BTreeMap::new();
+                                for t in &works_trades {
+                                    let e = legs.entry(t.commodity).or_default();
+                                    e.0 += t.quantity;
+                                    e.1 += t.quantity * t.execution_price;
+                                }
+                                accrue_trade_legs(
+                                    &mut task.ctx.country.macro_indicators.extra,
+                                    "trade_domestic_by_commodity",
+                                    &legs,
+                                );
                             }
                             // Return the unspent tranche — reserves were
                             // debited `funded` up front, so only the

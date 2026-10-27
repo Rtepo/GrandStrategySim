@@ -2036,6 +2036,33 @@ pub struct MinisterRow {
     pub spent_cash: f64,
     /// Phase 35: Current cash pocket available for spending.
     pub ministry_cash: f64,
+    /// v4.23 WS4: qualitative policy KPIs & targets for the Reports drawer —
+    /// measured from live engine state and keyed by the ministry's
+    /// competencies (empty only when the country snapshot path cannot
+    /// supply entities).
+    #[serde(default)]
+    pub policy_kpis: Vec<MinistryKpiRow>,
+}
+
+/// v4.23 WS4: One qualitative policy KPI for a ministry's Reports drawer.
+///
+/// `value`/`unit` are measured from real engine state (never fabricated);
+/// `target` is the portfolio's qualitative policy goal; `status` is the
+/// assessment the measurement supports:
+/// `"on_track"` | `"at_risk"` | `"off_track"` | `"watch"`.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MinistryKpiRow {
+    /// KPI label (e.g. "Unemployment", "Demand coverage").
+    pub label: String,
+    /// Measured value from live state.
+    pub value: f64,
+    /// Display unit — "%", "MW", "seats", "personnel", "yrs", "¤", "count".
+    pub unit: String,
+    /// Qualitative target text (e.g. "≤ 5%", "≥ 100%", "0 — peace").
+    pub target: String,
+    /// Assessment vs. target.
+    pub status: String,
 }
 
 /// State of Emergency snapshot.
@@ -2841,6 +2868,18 @@ pub struct FundHoldingRow {
     pub market_value: f64,
     /// Position weight as a fraction of fund AUM (0–1).
     pub weight_pct: f64,
+    /// v4.23 WS4: asset-class bucket for the 3-level allocation drill-down
+    /// (Asset Classes → Sectors → Companies): `"Equities"` |
+    /// `"Covered Bonds"` | `"Mortgage-Backed Securities"` |
+    /// `"Government Bonds"` | `"Other Securities"`.
+    #[serde(default)]
+    pub asset_class: String,
+    /// v4.23 WS4: issuer sector for the drill-down's middle ring — the
+    /// holding company's sector for equities, the issuer's sector for
+    /// covered bonds, `"Real Estate"` for MBS tranches, `"Government"`
+    /// for treasury securities.
+    #[serde(default)]
+    pub sector: String,
 }
 
 /// Phase 57: Detailed fund view for the fund detail panel.
@@ -2866,6 +2905,14 @@ pub struct FundDetail {
     pub top_holdings: Vec<(String, f64)>,
     /// Resolved portfolio rows with instrument names.
     pub portfolio_holdings: Vec<FundHoldingRow>,
+    /// v4.23 WS4: uninvested brokerage cash — part of AUM but not a
+    /// portfolio holding; the allocation drill-down shows it as a
+    /// `"Cash & Equivalents"` leaf so rings sum to total AUM.
+    #[serde(default)]
+    pub cash_value: f64,
+    /// v4.23 WS4: brokerage cash frozen against open orders (same role).
+    #[serde(default)]
+    pub frozen_cash: f64,
 }
 
 /// Phase 57: KNF audit finding row for the regulatory UI.
@@ -4429,7 +4476,7 @@ pub fn build_country_snapshot(
         population: country.budget.population,
         sovereign_default_turns: country.sovereign_default_turns_remaining,
         deltas,
-        government: build_government_snapshot(country, country_year(country)),
+        government: build_government_snapshot(country, country_year(country), companies, buildings),
         parliament: build_parliament_snapshot(country, country_year(country)),
         regions,
         finance: build_finance_snapshot(country, companies),
@@ -4446,6 +4493,151 @@ pub fn build_country_snapshot(
         advisory_council: build_advisory_council_snapshot(country),
         royal_dynasty: build_royal_dynasty_snapshot(country),
         government_form: country.politics.government_form.display_name().to_string(),
+    }
+}
+
+// ============================================================================
+// v4.23 WS4: COUNTRY TRADE TREEMAP (settled legs, SITC-grouped)
+// ============================================================================
+
+/// One row of the per-country trade treemap — a commodity's settled
+/// quantity and value in one flow direction (exports / imports /
+/// domestic), grouped under a SITC Rev.2 section for the chart.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CountryTradeTreemapEntry {
+    /// Commodity display name (serde key, e.g. `"hard_coal"`).
+    pub commodity: String,
+    /// SITC Rev.2 one-digit section label (`Commodity::sitc_section`).
+    pub sitc_section: String,
+    /// Settled physical units this turn.
+    pub quantity: f64,
+    /// Settled currency value this turn (Σ qty × execution price).
+    pub value: f64,
+    /// Volume-weighted average execution price (0 when qty is 0).
+    pub avg_price: f64,
+    /// Share of the mode's total value (0.0–1.0).
+    pub share: f64,
+}
+
+/// v4.23 WS4: Per-country trade treemap — REAL settled trade legs this
+/// turn, replacing the old global cleared-volume bound
+/// (`snapshot_society::TradeTreemapDto`, still emitted for the legacy
+/// command surface).
+///
+/// * `exports` — domestic seller → foreign endpoint: modeled-country
+///   buyers (the order book) plus the FOREIGN-SECTOR world-market sweep.
+/// * `imports` — foreign seller → domestic endpoint, same two sources.
+/// * `domestic` — both-endpoints-domestic order-book legs plus
+///   ministry / JST / public-works procurement (domestic-only books).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CountryTradeTreemapDto {
+    /// Country name.
+    pub country: String,
+    /// Export legs sorted by value desc (commodity name breaks ties —
+    /// deterministic).
+    pub exports: Vec<CountryTradeTreemapEntry>,
+    /// Import legs, same ordering.
+    pub imports: Vec<CountryTradeTreemapEntry>,
+    /// Domestic legs, same ordering.
+    pub domestic: Vec<CountryTradeTreemapEntry>,
+    /// Total settled export value this turn.
+    pub total_exports: f64,
+    /// Total settled import value this turn.
+    pub total_imports: f64,
+    /// Total settled domestic trade value this turn.
+    pub total_domestic: f64,
+}
+
+/// v4.23 WS4: Build the per-country trade treemap from the settled
+/// trade-leg maps the turn engine stages into
+/// `macro_indicators.extra` — `{commodity_key: {"quantity", "value"}}`
+/// keyed by the commodity's serde name, written by the order-book
+/// endpoint-classification pass and merged by the ROW export/import
+/// sweeps in `engine::turn`.
+///
+/// `calendar_year` era-gates every row by `Commodity::introduction_year`
+/// and additionally hides `RareEarthElements` before the industrial
+/// separation era (~1965) — rare earths were not a traded commodity
+/// class at a 1900 start even where legacy monazite placers exist.
+pub fn build_country_trade_treemap(
+    country: &Country,
+    calendar_year: u32,
+) -> CountryTradeTreemapDto {
+    use std::str::FromStr;
+
+    /// Industrial solvent-extraction era — the treemap's REE visibility
+    /// gate (narrower than `introduction_year`, which stays 0 so the
+    /// 1890 monazite method remains seedable at genesis).
+    const REE_TREEMAP_ERA: u32 = 1965;
+
+    let read_legs = |key: &str| -> Vec<CountryTradeTreemapEntry> {
+        let mut entries: Vec<CountryTradeTreemapEntry> = Vec::new();
+        if let Some(obj) = country
+            .macro_indicators
+            .extra
+            .get(key)
+            .and_then(|v| v.as_object())
+        {
+            for (k, v) in obj {
+                let Ok(c) = Commodity::from_str(k) else {
+                    continue;
+                };
+                if calendar_year < c.introduction_year() {
+                    continue;
+                }
+                if c == Commodity::RareEarthElements && calendar_year < REE_TREEMAP_ERA {
+                    continue;
+                }
+                let qty = v
+                    .get("quantity")
+                    .and_then(|x| x.as_f64())
+                    .unwrap_or(0.0);
+                let val = v
+                    .get("value")
+                    .and_then(|x| x.as_f64())
+                    .unwrap_or(0.0);
+                if qty <= 0.0 || val <= 0.0 {
+                    continue;
+                }
+                entries.push(CountryTradeTreemapEntry {
+                    commodity: c.to_string(),
+                    sitc_section: c.sitc_section().to_string(),
+                    quantity: qty,
+                    value: val,
+                    avg_price: val / qty,
+                    share: 0.0,
+                });
+            }
+        }
+        let total: f64 = entries.iter().map(|e| e.value).sum();
+        if total > 0.0 {
+            for e in &mut entries {
+                e.share = e.value / total;
+            }
+        }
+        entries.sort_by(|a, b| {
+            b.value
+                .partial_cmp(&a.value)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.commodity.cmp(&b.commodity))
+        });
+        entries
+    };
+
+    let exports = read_legs("trade_exports_by_commodity");
+    let imports = read_legs("trade_imports_by_commodity");
+    let domestic = read_legs("trade_domestic_by_commodity");
+
+    CountryTradeTreemapDto {
+        country: country.name.clone(),
+        total_exports: exports.iter().map(|e| e.value).sum(),
+        total_imports: imports.iter().map(|e| e.value).sum(),
+        total_domestic: domestic.iter().map(|e| e.value).sum(),
+        exports,
+        imports,
+        domestic,
     }
 }
 
@@ -6713,8 +6905,443 @@ fn build_ministry_expenditure_breakdown(country: &Country) -> Vec<MinistryExpend
         .collect()
 }
 
+/// v4.23 WS4: Qualitative policy KPIs & targets for a ministry's Reports
+/// drawer, keyed by the ministry's competencies. Every `value` is measured
+/// from live engine state — the KPI table never fabricates a number; where
+/// a portfolio has no measurable gauge the row is simply omitted.
+fn ministry_policy_kpis(
+    ministry: &crate::politics::ministries::Ministry,
+    country: &Country,
+    companies: &[Company],
+    buildings: &[crate::entities::Building],
+) -> Vec<MinistryKpiRow> {
+    use crate::politics::ministries::GovernmentCompetency as Comp;
+
+    /// Small helpers so each arm stays a declarative row.
+    fn kpi(label: &str, value: f64, unit: &str, target: &str, status: &str) -> MinistryKpiRow {
+        MinistryKpiRow {
+            label: label.to_string(),
+            value,
+            unit: unit.to_string(),
+            target: target.to_string(),
+            status: status.to_string(),
+        }
+    }
+    /// Higher-is-better assessment: ≥target on_track, ≥70% of target at_risk.
+    fn hib(value: f64, target: f64) -> &'static str {
+        if value >= target {
+            "on_track"
+        } else if value >= target * 0.7 {
+            "at_risk"
+        } else {
+            "off_track"
+        }
+    }
+    /// Lower-is-better assessment: ≤target on_track, ≤1.5× target at_risk.
+    fn lib(value: f64, target: f64) -> &'static str {
+        if value <= target {
+            "on_track"
+        } else if value <= target * 1.5 {
+            "at_risk"
+        } else {
+            "off_track"
+        }
+    }
+    /// Sector-aggregate helper: firm count, workforce, settled sales.
+    fn sector_stats(
+        companies: &[Company],
+        sector: crate::registries::enums::Sector,
+    ) -> (usize, f64, f64) {
+        let mut n = 0usize;
+        let mut fte = 0.0f64;
+        let mut sales = 0.0f64;
+        for c in companies {
+            if c.sector == sector {
+                n += 1;
+                fte += c.fulfilled_fte as f64;
+                sales += c.turn_settled_sales;
+            }
+        }
+        (n, fte, sales)
+    }
+    /// Sum of regional capacity-pool entries for the given capacity types.
+    fn capacity_sum(country: &Country, types: &[crate::registries::enums::CapacityType]) -> f64 {
+        country
+            .regions
+            .iter()
+            .flat_map(|r| r.capacity_pool.iter())
+            .filter(|(t, _)| types.contains(t))
+            .map(|(_, v)| *v)
+            .sum()
+    }
+
+    let inspectorate = country.politics.inspectorate_state.as_ref();
+    let gdp = country.budget.gdp.max(1.0);
+    let labor = &country.macro_indicators.labor_market;
+    let health = &country.macro_indicators.health_statistics;
+    let education = &country.macro_indicators.education_statistics;
+    let grid = &country.power_grid_state;
+
+    let mut rows: Vec<MinistryKpiRow> = Vec::new();
+    for comp in &ministry.competencies {
+        if rows.len() >= 6 {
+            break;
+        }
+        match comp {
+            Comp::Treasury => {
+                let reserves = country.budget.liquid_reserves;
+                rows.push(kpi(
+                    "Liquid reserves",
+                    reserves,
+                    "¤",
+                    "> 0 — solvent",
+                    if reserves > 0.0 { "on_track" } else { "off_track" },
+                ));
+                let debt_share = country.foreign_debt / gdp * 100.0;
+                rows.push(kpi(
+                    "Foreign debt",
+                    debt_share,
+                    "% of GDP",
+                    "≤ 25%",
+                    lib(debt_share, 25.0),
+                ));
+                let inflation = country.macro_indicators.inflation;
+                rows.push(kpi(
+                    "Inflation",
+                    inflation,
+                    "%",
+                    "0 – 4%",
+                    if (0.0..=4.0).contains(&inflation) {
+                        "on_track"
+                    } else if inflation <= 8.0 {
+                        "at_risk"
+                    } else {
+                        "off_track"
+                    },
+                ));
+            }
+            Comp::Defense => {
+                let manpower = country.order_of_battle.total_manpower() as f64;
+                rows.push(kpi(
+                    "Standing forces",
+                    manpower,
+                    "personnel",
+                    "Adequate deterrent",
+                    if manpower > 0.0 { "on_track" } else { "at_risk" },
+                ));
+                let units = country.order_of_battle.unit_count() as f64;
+                rows.push(kpi(
+                    "Combat units",
+                    units,
+                    "units",
+                    "≥ 10",
+                    hib(units, 10.0),
+                ));
+                let stockpile: f64 = country.military_stockpile.values().sum();
+                rows.push(kpi(
+                    "Armament stockpile",
+                    stockpile,
+                    "units",
+                    "War reserve",
+                    "watch",
+                ));
+                let wars = country.at_war_with.len() as f64;
+                rows.push(kpi(
+                    "Active wars",
+                    wars,
+                    "count",
+                    "0 — peace",
+                    if wars <= 0.0 { "on_track" } else { "off_track" },
+                ));
+            }
+            Comp::InternalSecurity => {
+                let unrest = country.macro_indicators.social_unrest;
+                rows.push(kpi("Social unrest", unrest, "%", "≤ 25", lib(unrest, 25.0)));
+                let corruption = inspectorate.map(|i| i.corruption_index * 100.0).unwrap_or(0.0);
+                rows.push(kpi(
+                    "Corruption index",
+                    corruption,
+                    "%",
+                    "≤ 20%",
+                    lib(corruption, 20.0),
+                ));
+                let capacity = inspectorate
+                    .map(|i| {
+                        i.sanepid_capacity
+                            + i.building_inspectorate_capacity
+                            + i.environmental_inspectorate_capacity
+                            + i.labor_inspection_capacity
+                    })
+                    .unwrap_or(0.0);
+                rows.push(kpi(
+                    "Inspectorate capacity",
+                    capacity,
+                    "capacity",
+                    "Nationwide coverage",
+                    "watch",
+                ));
+            }
+            Comp::Justice => {
+                let violations = inspectorate.map(|i| i.violations_detected as f64).unwrap_or(0.0);
+                rows.push(kpi(
+                    "Violations detected",
+                    violations,
+                    "/turn",
+                    "Enforcement active",
+                    "watch",
+                ));
+                let fines = inspectorate.map(|i| i.fines_issued).unwrap_or(0.0);
+                rows.push(kpi("Fines issued", fines, "¤/turn", "Deterrence", "watch"));
+                let bribes = inspectorate
+                    .map(|i| i.bribes_accepted_this_turn as f64)
+                    .unwrap_or(0.0);
+                rows.push(kpi("Bribes taken", bribes, "/turn", "0", lib(bribes, 0.5)));
+            }
+            Comp::HeavyIndustry | Comp::LightIndustry | Comp::Agriculture => {
+                let sector = match comp {
+                    Comp::HeavyIndustry => crate::registries::enums::Sector::HeavyIndustry,
+                    Comp::LightIndustry => crate::registries::enums::Sector::LightIndustry,
+                    _ => crate::registries::enums::Sector::Agriculture,
+                };
+                let (firms, fte, sales) = sector_stats(companies, sector);
+                rows.push(kpi("Sector firms", firms as f64, "count", "Growing base", "watch"));
+                rows.push(kpi(
+                    "Sector workforce",
+                    fte,
+                    "FTE",
+                    "Full employment",
+                    if fte > 0.0 { "on_track" } else { "at_risk" },
+                ));
+                rows.push(kpi("Sector sales", sales, "¤/turn", "Positive output", "watch"));
+            }
+            Comp::Infrastructure | Comp::Transport => {
+                let links = country.transport_networks.links.len() as f64;
+                rows.push(kpi("Network links", links, "count", "Full connectivity", "watch"));
+                let (cond_sum, n) = country
+                    .transport_networks
+                    .links
+                    .values()
+                    .fold((0.0f64, 0usize), |(s, n), l| (s + l.condition, n + 1));
+                let avg_cond = if n > 0 { cond_sum / n as f64 * 100.0 } else { 0.0 };
+                rows.push(kpi(
+                    "Avg link condition",
+                    avg_cond,
+                    "%",
+                    "≥ 80%",
+                    if n == 0 { "watch" } else { hib(avg_cond, 80.0) },
+                ));
+                let cong_sum: f64 = country
+                    .transport_networks
+                    .links
+                    .values()
+                    .map(|l| l.congestion)
+                    .sum();
+                let avg_cong = if n > 0 { cong_sum / n as f64 * 100.0 } else { 0.0 };
+                rows.push(kpi(
+                    "Avg congestion",
+                    avg_cong,
+                    "%",
+                    "≤ 30%",
+                    if n == 0 { "watch" } else { lib(avg_cong, 30.0) },
+                ));
+            }
+            Comp::Education => {
+                let literacy = education.literacy_rate * 100.0;
+                rows.push(kpi("Literacy rate", literacy, "%", "≥ 90%", hib(literacy, 90.0)));
+                let higher = education.higher_education_rate * 100.0;
+                rows.push(kpi("Higher-ed rate", higher, "%", "≥ 25%", hib(higher, 25.0)));
+                use crate::registries::enums::CapacityType as CT;
+                let seats = capacity_sum(
+                    country,
+                    &[CT::PrimarySeats, CT::MiddleSeats, CT::HighSchoolSeats, CT::UniversitySlots],
+                );
+                rows.push(kpi("School seats", seats, "seats", "Per-capita coverage", "watch"));
+            }
+            Comp::Healthcare => {
+                let life = health.average_lifespan;
+                rows.push(kpi("Life expectancy", life, "yrs", "≥ 70", hib(life, 70.0)));
+                let coverage = health.hospital_coverage;
+                rows.push(kpi(
+                    "Hospital coverage",
+                    coverage,
+                    "capacity",
+                    "≥ 40",
+                    hib(coverage, 40.0),
+                ));
+                let mortality = health.mortality_rate;
+                rows.push(kpi("Mortality rate", mortality, "%", "≤ 2%", lib(mortality, 2.0)));
+            }
+            Comp::SocialWelfare => {
+                let active = country
+                    .social_programs
+                    .iter()
+                    .filter(|p| p.is_active)
+                    .count() as f64;
+                rows.push(kpi("Active programs", active, "count", "Safety net in place", "watch"));
+                let poverty = labor.poverty_pool_percent;
+                rows.push(kpi("Poverty pool", poverty, "%", "≤ 10%", lib(poverty, 10.0)));
+                let unemployment = labor.unemployment_rate;
+                rows.push(kpi("Unemployment", unemployment, "%", "≤ 5%", lib(unemployment, 5.0)));
+            }
+            Comp::Science => {
+                let rd_budget: f64 = companies.iter().map(|c| c.rd_budget).sum();
+                rows.push(kpi(
+                    "Corporate R&D budgets",
+                    rd_budget,
+                    "¤",
+                    "Funded programs",
+                    "watch",
+                ));
+                let active_firms = companies.iter().filter(|c| c.rd_budget > 0.0).count() as f64;
+                rows.push(kpi(
+                    "Research-active firms",
+                    active_firms,
+                    "count",
+                    "Widening base",
+                    "watch",
+                ));
+            }
+            Comp::Energy => {
+                let supply: f64 = grid.region_supply_mw.values().sum();
+                let demand: f64 = grid.region_demand_mw.values().sum();
+                rows.push(kpi("Grid supply", supply, "MW", "≥ demand", hib(supply, demand)));
+                let coverage = if demand > 0.0 { supply / demand * 100.0 } else { 100.0 };
+                rows.push(kpi(
+                    "Demand coverage",
+                    coverage,
+                    "%",
+                    "≥ 100%",
+                    hib(coverage, 100.0),
+                ));
+                let shedding = grid
+                    .load_shed_tiers
+                    .values()
+                    .filter(|t| !matches!(t, crate::energy::types::LoadShedTier::Normal))
+                    .count() as f64;
+                rows.push(kpi(
+                    "Load-shed regions",
+                    shedding,
+                    "count",
+                    "0",
+                    lib(shedding, 0.5),
+                ));
+            }
+            Comp::Housing => {
+                let pipeline = buildings.iter().filter(|b| b.active_project.is_some()).count() as f64;
+                rows.push(kpi(
+                    "Construction pipeline",
+                    pipeline,
+                    "projects",
+                    "Expanding stock",
+                    "watch",
+                ));
+                let (cond_sum, n) = buildings.iter().fold((0.0f64, 0usize), |(s, n), b| {
+                    (s + b.condition, n + 1)
+                });
+                let avg_cond = if n > 0 { cond_sum / n as f64 * 100.0 } else { 0.0 };
+                rows.push(kpi(
+                    "Avg building condition",
+                    avg_cond,
+                    "%",
+                    "≥ 80%",
+                    if n == 0 { "watch" } else { hib(avg_cond, 80.0) },
+                ));
+            }
+            Comp::Culture => {
+                let institutions = country.cultural_institutions.len() as f64;
+                rows.push(kpi(
+                    "Cultural institutions",
+                    institutions,
+                    "count",
+                    "Nationwide access",
+                    "watch",
+                ));
+                let heritage = buildings.iter().filter(|b| b.is_heritage_site).count() as f64;
+                rows.push(kpi("Heritage sites", heritage, "count", "Preserved", "watch"));
+            }
+            Comp::Labor => {
+                let unemployment = labor.unemployment_rate;
+                rows.push(kpi("Unemployment", unemployment, "%", "≤ 5%", lib(unemployment, 5.0)));
+                let participation = labor.labor_force_participation;
+                rows.push(kpi(
+                    "Labor participation",
+                    participation,
+                    "%",
+                    "≥ 60%",
+                    hib(participation, 60.0),
+                ));
+                let pip = inspectorate.map(|i| i.labor_inspection_capacity).unwrap_or(0.0);
+                rows.push(kpi(
+                    "Labor inspection capacity",
+                    pip,
+                    "capacity",
+                    "Nationwide coverage",
+                    "watch",
+                ));
+            }
+            Comp::Environment => {
+                let protected = (country.national_parks.len()
+                    + country.landscape_parks.len()
+                    + country.nature_reserves.len()
+                    + country.buffer_zones.len()
+                    + country.urban_parks.len()) as f64;
+                rows.push(kpi("Protected areas", protected, "count", "Expanding network", "watch"));
+                let (waste_firms, _, _) =
+                    sector_stats(companies, crate::registries::enums::Sector::WasteManagement);
+                rows.push(kpi(
+                    "Waste operators",
+                    waste_firms as f64,
+                    "count",
+                    "Full coverage",
+                    "watch",
+                ));
+                let env_cap = inspectorate
+                    .map(|i| i.environmental_inspectorate_capacity)
+                    .unwrap_or(0.0);
+                rows.push(kpi(
+                    "Env. inspection capacity",
+                    env_cap,
+                    "capacity",
+                    "Nationwide coverage",
+                    "watch",
+                ));
+            }
+            Comp::ForeignAffairs => {
+                let reputation = country.global_reputation.score;
+                rows.push(kpi(
+                    "Global reputation",
+                    reputation,
+                    "score",
+                    "≥ 0",
+                    hib(reputation, 0.0),
+                ));
+                let violations = country.global_reputation.violation_history.len() as f64;
+                rows.push(kpi("Treaty violations", violations, "count", "0", lib(violations, 0.5)));
+            }
+            Comp::StateAssets => {
+                let soes: Vec<&Company> = companies.iter().filter(|c| c.state_share >= 1.0).collect();
+                rows.push(kpi(
+                    "State enterprises",
+                    soes.len() as f64,
+                    "count",
+                    "Viable portfolio",
+                    "watch",
+                ));
+                let soe_fte: f64 = soes.iter().map(|c| c.fulfilled_fte as f64).sum();
+                rows.push(kpi("SOE workforce", soe_fte, "FTE", "Productive employment", "watch"));
+            }
+        }
+    }
+    rows
+}
+
 /// Phase 32: Build the Government tab snapshot.
-fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot {
+fn build_government_snapshot(
+    country: &Country,
+    year: u32,
+    companies: &[Company],
+    buildings: &[crate::entities::Building],
+) -> GovernmentSnapshot {
     let politics = &country.politics;
 
     // Head of State.
@@ -6805,6 +7432,8 @@ fn build_government_snapshot(country: &Country, year: u32) -> GovernmentSnapshot
                     // outflow total and can never render negative.
                     spent_cash: crate::politics::ministries::ministry_spent(m),
                     ministry_cash: m.ministry_cash,
+                    // v4.23 WS4: qualitative per-competency KPIs & targets.
+                    policy_kpis: ministry_policy_kpis(m, country, companies, buildings),
                 }
             })
             .collect()
