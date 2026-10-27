@@ -222,6 +222,17 @@ fi
 # Auto-push release tags: every v* tag pointing at the merged HEAD, plus an
 # explicit --tag flag. Release tags must reach GitHub without a second manual
 # push (the user should never run `git push origin vX.Y.Z` themselves).
+# Mint --tag at the merged HEAD when absent — release-tag convention names
+# the merge commit on main, not the feature tip (v4.22.1 needed a manual
+# repoint because the tag pre-existed at the worker branch tip).
+if [ -n "$TAG_FLAG" ]; then
+    if git rev-parse -q --verify "refs/tags/$TAG_FLAG" >/dev/null 2>&1; then
+        echo "  ⚠ Tag $TAG_FLAG already exists at $(git rev-parse "$TAG_FLAG" | head -c8) — not repointing"
+    else
+        git tag "$TAG_FLAG" HEAD
+        echo "  Minted tag $TAG_FLAG at merged HEAD."
+    fi
+fi
 TAGS_TO_PUSH="$TAG_FLAG"
 for t in $(git tag --points-at HEAD 2>/dev/null | grep -E '^v' || true); do
     case " $TAGS_TO_PUSH " in
