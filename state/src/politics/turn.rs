@@ -1203,6 +1203,14 @@ fn regenerate_parties(
     old_party_names.sort();
     for name in old_party_names {
         let party = &old_parties[name];
+        // v4.23.0: never preserve the provisional caretaker as an electoral
+        // party. It holds seats after every forced election, so preserving it
+        // kept it alive each refresh — the snap guard then re-fired forever
+        // (Illyria: an election every cooldown). The fallback below recreates
+        // it when literally no real party can be seated.
+        if name.as_str() == "Provisional Technocratic Government" {
+            continue;
+        }
         if let Some(ideo) = Ideology::from_name(&party.ideology) {
             if let Some(&bid) = bids.get(&ideo) {
                 if bid > threshold || parliament.contains_key(name) {
@@ -1230,8 +1238,22 @@ fn regenerate_parties(
     // `contains_key` check below depend on which parties already exist).
     let mut bid_list: Vec<(Ideology, f64)> = bids.into_iter().collect();
     bid_list.sort_by(|a, b| a.0.as_str().cmp(b.0.as_str()));
-    for (ideo, bid) in bid_list {
-        if bid > threshold && !used_ideologies.contains(&ideo) {
+    // v4.23.0: a strict-threshold shut-out must not produce a permanent
+    // provisional monopoly. When fewer than two bids clear the real
+    // threshold, relax it just far enough to seat the three highest bidders
+    // — a fragmented-but-real party system that can actually end the
+    // provisional snap-election loop.
+    let eff_threshold = {
+        let mut ranked: Vec<f64> = bid_list.iter().map(|(_, b)| *b).collect();
+        ranked.sort_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal));
+        if ranked.iter().filter(|b| **b > threshold).count() >= 2 {
+            threshold
+        } else {
+            (ranked.get(2).copied().unwrap_or(0.0) - f64::EPSILON).max(0.0)
+        }
+    };
+    for &(ideo, bid) in &bid_list {
+        if bid > eff_threshold && bid > 0.0 && !used_ideologies.contains(&ideo) {
             // Use procedural name generator
             let name = generator::generate_party_name(country_name, cultural_group, ideo.compass(), year, &mut rng);
             let organization =
@@ -1384,7 +1406,7 @@ pub fn run_election_if_due(
     // polity churns a dozen mandates in five years. Deferred conditions stay
     // flagged, so the pending election fires the turn the interval elapses.
     const MIN_ELECTION_INTERVAL_TURNS: u32 = 24;
-    if country.politics.last_election_turn != 0
+    if country.politics.elections_held > 0
         && current_turn.saturating_sub(country.politics.last_election_turn)
             < MIN_ELECTION_INTERVAL_TURNS
     {
