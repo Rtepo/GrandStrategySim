@@ -119,5 +119,25 @@ mod tests {
             assert!(result.is_ok(), "tick {} failed: {:?}", tick, result.err());
             dump_state(tick, &state, &ctx, tick >= 5);
         }
+
+        // v4.23 WS4: the release-gate criterion — after the dispatch
+        // cycle has run, every country's national generation must clear
+        // 100 MW (the v4.22 blackout delivered ~1.3 MW nationally) and
+        // at least 100% of national demand.
+        for (cname, _) in &ctx.entities {
+            let country = state.countries.get(cname).expect("country");
+            let grid = &country.power_grid_state;
+            let nat_supply: f64 = grid.region_supply_mw.values().sum();
+            let nat_demand: f64 = grid.region_demand_mw.values().sum();
+            assert!(
+                nat_supply > 100.0,
+                "[{cname}] national supply {nat_supply:.2} MW below the 100 MW blackout gate"
+            );
+            assert!(
+                nat_supply >= nat_demand,
+                "[{cname}] supply/demand ratio {:.3} below 1.0 ({nat_supply:.2}/{nat_demand:.2} MW)",
+                nat_supply / nat_demand.max(1e-9),
+            );
+        }
     }
 }
