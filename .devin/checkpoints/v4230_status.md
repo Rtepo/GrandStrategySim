@@ -109,3 +109,9 @@ Protocol: disk-first checkpoints, logs → /tmp/, incremental commit per WS.
 - Clippy fixes: a6450b19 (for_kv_map, match-guard, char-array split)
 - Merge worker upgrade: 015fbcdc (--tag mints at merged HEAD)
 - Merge launched: agent-5-cash1-merge worktree, merge commit +7210/-811 clean, harness running (882b54); SESSION_ID=session-manager-v4230-merge token minted in merge worktree
+
+## RELEASED — v4.23.0 LIVE
+- main: 8738e49f (merge commit, pushed by worker)
+- tag v4.23.0: 8738e49f — minted at merged HEAD by upgraded merge_worker (015fbcdc), auto-pushed
+- Merge-worktree diagnostics: Iron CI (build/test/clippy/npm) + M0 audit ALL PASSED
+- Note: reverse-sync skipped (w2 dirty phantoms) — branch tip has 2 doc commits (272fdf98+) post-merge
