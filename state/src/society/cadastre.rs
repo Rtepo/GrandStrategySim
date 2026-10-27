@@ -1850,7 +1850,7 @@ impl ZoningPlanRegistry {
 
 /// National zoning quota set by the central government (player as PM).
 /// The player sets macro-policy; local governors implement it.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct NationalZoningQuota {
     /// Minimum fraction of land that must be Agricultural
     pub min_agricultural: f64,
@@ -1862,6 +1862,24 @@ pub struct NationalZoningQuota {
     pub min_protected: f64,
     /// Whether foreign funds are restricted from acquiring border-zone land
     pub restrict_foreign_border_land: bool,
+}
+
+impl Default for NationalZoningQuota {
+    /// v4.23 WS7: an *unlegislated* quota must be non-binding. The derived
+    /// all-zero default read `max_industrial = 0.0` as a hard industrial ban,
+    /// so `governor_enact_zoning_plan` clamped every region's Industrial
+    /// share to zero and swept it into Agricultural — industrialized regions
+    /// produced MPZP targets with no Industrial zoning at all. Caps default
+    /// to 1.0 (a share can never exceed the whole) and minimums to 0.0.
+    fn default() -> Self {
+        Self {
+            min_agricultural: 0.0,
+            max_industrial: 1.0,
+            max_residential: 1.0,
+            min_protected: 0.0,
+            restrict_foreign_border_land: false,
+        }
+    }
 }
 
 /// Governor zoning preferences derived from `MarketBehaviorModifiers`.
@@ -1992,7 +2010,10 @@ pub fn governor_enact_zoning_plan(
         }
     }
     if let Some(&ind) = target.get(&ZoningDesignation::Industrial) {
-        if ind > quota.max_industrial {
+        // v4.23 WS7: only a *positive* cap binds. `max_industrial == 0.0` is
+        // the unlegislated/legacy-save placeholder (all quota fields zero) —
+        // treating it as a ban zeroed Industrial targets everywhere.
+        if quota.max_industrial > 0.0 && ind > quota.max_industrial {
             let excess = ind - quota.max_industrial;
             *target.entry(ZoningDesignation::Industrial).or_insert(0.0) -= excess;
             *target.entry(ZoningDesignation::Agricultural).or_insert(0.0) += excess;

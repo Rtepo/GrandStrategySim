@@ -15,4 +15,27 @@ vip_id: string,
  * Owning region id — populated for megaregion aggregation so the UI
  * can group assembly members by their home council.
  */
-region_id: string, };
+region_id: string, 
+/**
+ * v4.23 WS7: Party affiliation (empty when unaffiliated).
+ */
+party: string, 
+/**
+ * v4.23 WS7: Represented social class (curial seat origin — real
+ * `Councilor.represented_class`).
+ */
+represented_class: string, 
+/**
+ * v4.23 WS7: Voting-behavior trait, emitted ONLY when revealed —
+ * `hidden_trait` stays hidden while `trait_revealed` is false so the
+ * UI never leaks unrevealed councilor internals.
+ */
+trait_label: string, 
+/**
+ * v4.23 WS7: Political influence (0–100, `Councilor.political_influence`).
+ */
+influence: number, 
+/**
+ * v4.23 WS7: Years in office.
+ */
+years_in_office: number, };

@@ -21,4 +21,35 @@ function num(n: number | bigint | null | undefined): string {
   return fmt(n);
 }
 
-export { fmt, pct, num };
+/**
+ * v4.23 WS7: Humanize a debug-style token for display — `{:?}` enum
+ * variants (`HeavyIndustry` → "Heavy Industry"), snake_case ids
+ * (`tax_reform` → "Tax Reform"), kebab-case. Title-cases each word while
+ * preserving interior capitals/digits.
+ */
+function humanize(raw: string | null | undefined): string {
+  if (!raw) return "—";
+  const words: string[] = [];
+  let cur = "";
+  for (const c of raw.trim()) {
+    if (c === "_" || c === "-" || c === " ") {
+      if (cur) words.push(cur), (cur = "");
+    } else if (
+      c >= "A" && c <= "Z" &&
+      cur.length > 0 &&
+      /[a-z0-9]/.test(cur[cur.length - 1])
+    ) {
+      words.push(cur);
+      cur = c;
+    } else {
+      cur += c;
+    }
+  }
+  if (cur) words.push(cur);
+  if (words.length === 0) return "—";
+  return words
+    .map((w) => (w.length ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
+export { fmt, pct, num, humanize };

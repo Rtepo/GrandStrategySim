@@ -3,13 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { getPressSnapshot } from "../hooks/useTauriCommand";
 import { Badge } from "../components/ui";
-import type { PressPaperDto, PressSnapshotDto } from "../types/api";
+import { humanize } from "../lib/format";
+import type { PressArticleDto, PressPaperDto, PressSnapshotDto } from "../types/api";
 
 const SLANT_BADGE: Record<string, string> = {
   official: "bg-sky-900 text-sky-200",
   socialist: "bg-red-900 text-red-200",
   conservative: "bg-amber-900 text-amber-200",
   liberal: "bg-emerald-900 text-emerald-200",
+  business: "bg-cyan-900 text-cyan-200",
 };
 
 const STATUS_BADGE: Record<string, string> = {
@@ -18,12 +20,15 @@ const STATUS_BADGE: Record<string, string> = {
   underground: "bg-red-900 text-red-200",
 };
 
+/// v4.23 WS7: editorial ordering + labels for the business-desk categories.
+const BUSINESS_KIND_ORDER = ["stock_mover", "earnings", "dividend", "investment"];
+
 function MediaContext({ snap }: { snap: PressSnapshotDto }) {
   return (
     <div className="flex flex-wrap gap-2 text-xs">
-      <Badge className="bg-slate-800 text-slate-200">Speech: {snap.media.free_speech_level}</Badge>
-      <Badge className="bg-slate-800 text-slate-200">Press: {snap.media.press_freedom}</Badge>
-      <Badge className="bg-slate-800 text-slate-200">Assembly: {snap.media.assembly_rights}</Badge>
+      <Badge className="bg-slate-800 text-slate-200">Speech: {humanize(snap.media.free_speech_level)}</Badge>
+      <Badge className="bg-slate-800 text-slate-200">Press: {humanize(snap.media.press_freedom)}</Badge>
+      <Badge className="bg-slate-800 text-slate-200">Assembly: {humanize(snap.media.assembly_rights)}</Badge>
       {snap.media.propaganda_active && (
         <Badge className="bg-red-900 text-red-200">PROPAGANDA CAMPAIGN ACTIVE</Badge>
       )}
@@ -38,8 +43,17 @@ function MediaContext({ snap }: { snap: PressSnapshotDto }) {
 
 function FrontPage({ paper, year }: { paper: PressPaperDto; year: number }) {
   const [expanded, setExpanded] = useState<string | null>(null);
-  const lead = paper.articles[0];
-  const rest = paper.articles.slice(1);
+  // v4.23 WS7: defensive dedup by event_ref — the backend already filters
+  // the pool; this guards against double-rendered stories on stale caches.
+  const seen = new Set<string>();
+  const articles = paper.articles.filter((a) => {
+    const key = a.event_ref || a.id;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const lead = articles[0];
+  const rest = articles.slice(1);
   return (
     <section className="rounded border border-border bg-card overflow-hidden">
       <header className="border-b-4 border-double border-border px-4 py-3 text-center">
@@ -47,10 +61,10 @@ function FrontPage({ paper, year }: { paper: PressPaperDto; year: number }) {
         <div className="mt-1 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
           <span>Anno {year}</span>
           <Badge className={SLANT_BADGE[paper.ideological_slant] ?? "bg-slate-800 text-slate-200"}>
-            {paper.ideological_slant}
+            {humanize(paper.ideological_slant)}
           </Badge>
           <Badge className={STATUS_BADGE[paper.status] ?? "bg-slate-800 text-slate-200"}>
-            {paper.status}
+            {humanize(paper.status)}
           </Badge>
         </div>
       </header>
@@ -61,7 +75,7 @@ function FrontPage({ paper, year }: { paper: PressPaperDto; year: number }) {
           <p className={`mt-1 text-xs text-muted-foreground whitespace-pre-line ${expanded === lead.id ? "" : "line-clamp-3"}`}>
             {lead.body}
           </p>
-          <div className="mt-1 text-[10px] text-muted-foreground uppercase tracking-wider">{lead.event_kind} · T{lead.turn}</div>
+          <div className="mt-1 text-[10px] text-muted-foreground uppercase tracking-wider">{humanize(lead.event_kind)} · T{lead.turn}</div>
         </article>
       ) : (
         <p className="px-4 py-6 text-center text-xs text-muted-foreground italic">No news fit to print.</p>
@@ -75,8 +89,53 @@ function FrontPage({ paper, year }: { paper: PressPaperDto; year: number }) {
             <p className={`mt-1 text-[11px] text-muted-foreground whitespace-pre-line ${expanded === a.id ? "" : "line-clamp-2"}`}>
               {a.body}
             </p>
-            <div className="mt-1 text-[10px] text-muted-foreground uppercase tracking-wider">{a.event_kind}</div>
+            <div className="mt-1 text-[10px] text-muted-foreground uppercase tracking-wider">{humanize(a.event_kind)}</div>
           </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/// v4.23 WS7: Financial & Business Press — one shared business-desk section
+/// (stock movers, earnings, dividends, major investments) rendered from real
+/// company/market state; grouped by category in editorial order.
+function BusinessPress({ articles, year }: { articles: PressArticleDto[]; year: number }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const grouped = new Map<string, PressArticleDto[]>();
+  for (const kind of BUSINESS_KIND_ORDER) grouped.set(kind, []);
+  for (const a of articles) {
+    if (!grouped.has(a.event_kind)) grouped.set(a.event_kind, []);
+    grouped.get(a.event_kind)!.push(a);
+  }
+  const groups = [...grouped.entries()].filter(([, list]) => list.length > 0);
+  if (groups.length === 0) return null;
+  return (
+    <section className="rounded border border-border bg-card overflow-hidden">
+      <header className="border-b-4 border-double border-border px-4 py-3 text-center">
+        <h3 className="font-serif text-2xl font-bold tracking-wide">Financial &amp; Business Press</h3>
+        <div className="mt-1 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
+          <span>Anno {year}</span>
+          <Badge className={SLANT_BADGE.business}>markets</Badge>
+        </div>
+      </header>
+      <div className="grid grid-cols-2">
+        {groups.map(([kind, list]) => (
+          <div key={kind} className="px-4 py-3 border-b border-r border-border">
+            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              {humanize(kind)}
+            </h4>
+            <div className="space-y-2">
+              {list.map((a) => (
+                <article key={a.id} className="cursor-pointer" onClick={() => setExpanded(expanded === a.id ? null : a.id)}>
+                  <h5 className="font-serif text-sm font-semibold leading-snug">{a.headline}</h5>
+                  <p className={`mt-0.5 text-[11px] text-muted-foreground whitespace-pre-line ${expanded === a.id ? "" : "line-clamp-2"}`}>
+                    {a.body}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </section>
@@ -106,6 +165,7 @@ export function PressPage() {
           <FrontPage key={p.paper_id} paper={p} year={snap.year} />
         ))}
       </div>
+      <BusinessPress articles={snap.business_articles ?? []} year={snap.year} />
     </div>
   );
 }

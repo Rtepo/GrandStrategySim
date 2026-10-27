@@ -3208,6 +3208,79 @@ pub struct CouncilResolutionRow {
     pub votes_against: u32,
     pub abstentions: u32,
     pub turn: u32,
+    /// v4.23 WS7: Region whose council held the vote — populated for
+    /// megaregion assembly aggregation (member-region unions share titles);
+    /// empty for single-region rows. serde(default) tolerates old payloads.
+    #[serde(default)]
+    pub region_id: String,
+    /// v4.23 WS7: What the ordinance actually does — derived from the
+    /// resolution type and, for adopted spending resolutions, the linked
+    /// execution mandate's real appropriation/scope/effects.
+    #[serde(default)]
+    pub description: String,
+}
+
+/// v4.23 WS7: Human-readable description of what a council resolution
+/// actually does, derived from its real type plus the linked execution
+/// mandate (adopted spending resolutions impose an `UnfundedMandate` whose
+/// `source_bill_id` is `COUNCIL-RES-{region_id}-{mandate_key}` — real
+/// appropriation amount, scope and effects). Rejected resolutions describe
+/// the proposal that was declined. Deterministic; never fabricated.
+fn council_resolution_description(
+    resolution_type: &str,
+    status: &str,
+    region_id: &str,
+    mandates: &[crate::politics::local_legislation::UnfundedMandate],
+) -> String {
+    // Agenda `mandate_key` per resolution type — must mirror the keys used
+    // by `politics::local_legislation::process_regional_council_sessions`.
+    let mandate_key = match resolution_type {
+        "infrastructure" => "infra",
+        other => other,
+    };
+    let source_id = format!("COUNCIL-RES-{region_id}-{mandate_key}");
+    let mandate = mandates.iter().find(|m| m.source_bill_id == source_id);
+
+    let base = match resolution_type {
+        "infrastructure" => {
+            "Appropriation ordinance funding regional roads, water, and \
+             public-works upgrades toward the 60-point JST service standard."
+        }
+        "sanitation" => {
+            "Emergency appropriation for waste-collection routes, landfill \
+             capacity, and sewerage to clear the sanitation backlog."
+        }
+        "budget" => {
+            "Austerity ordinance — on adoption the council cuts local \
+             expenditures by 5% immediately to stabilize the budget."
+        }
+        _ => "Ordinance debated and voted by the regional council.",
+    };
+
+    let mut desc = base.to_string();
+    match (status, mandate) {
+        ("adopted", Some(m)) => {
+            desc.push_str(&format!(
+                " Appropriates {} — {} {}",
+                crate::ui::snapshot_press::fmt_money(m.required_spending_per_region),
+                m.scope,
+                m.effects
+            ));
+        }
+        ("adopted", None) => {
+            if resolution_type != "budget" {
+                desc.push_str(
+                    " The execution mandate has completed or is being funded \
+                     through the normal council-funding process.",
+                );
+            }
+        }
+        ("rejected", _) => {
+            desc.push_str(" The council declined the proposal.");
+        }
+        _ => {}
+    }
+    desc
 }
 
 /// v4.20 WS4: Per-councilor vote record for a council resolution — mirrors
@@ -5193,6 +5266,13 @@ fn build_region_detail(
                     votes_against: r.votes_against,
                     abstentions: r.abstentions,
                     turn: r.turn,
+                    region_id: String::new(),
+                    description: council_resolution_description(
+                        &r.resolution_type,
+                        &r.status,
+                        region_id,
+                        &country.politics.active_mandates,
+                    ),
                 })
                 .collect()
         })
@@ -5581,6 +5661,13 @@ fn build_megaregion_detail(
                     votes_against: r.votes_against,
                     abstentions: r.abstentions,
                     turn: r.turn,
+                    region_id: region.id.clone(),
+                    description: council_resolution_description(
+                        &r.resolution_type,
+                        &r.status,
+                        &region.id,
+                        &country.politics.active_mandates,
+                    ),
                 }
             }));
             council_roll_calls.extend(gov.council.roll_calls.iter().map(|rc| {

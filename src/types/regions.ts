@@ -28,6 +28,16 @@ export interface CouncilorRow {
   vip_id: string;
   /** Owning region id — populated when a megaregion aggregates member councils. */
   region_id?: string;
+  /** v4.23 WS7: Party affiliation (empty when unaffiliated). */
+  party?: string;
+  /** v4.23 WS7: Represented social class (curial seat origin). */
+  represented_class?: string;
+  /** v4.23 WS7: Voting-behavior trait — emitted only when revealed. */
+  trait_label?: string;
+  /** v4.23 WS7: Political influence (0–100). */
+  influence?: number;
+  /** v4.23 WS7: Years in office. */
+  years_in_office?: number;
 }
 
 /**
