@@ -1073,19 +1073,20 @@ pub fn resolve_regional_labor_market(
     // the region's Aristocracy class (M0-conserving). The rate is the
     // population-weighted `feudal_dues_rate` of the region's
     // AristocraticEstate domains where they exist; where domains aren't
-    // modeled but a Serf class exists, serfdom itself implies the
-    // manorial burden (serfdom IS a feudal relation — it doesn't exist
-    // without dues), scaled by serf share of the rural population.
+    // modeled, the rate scales with manorial COVERAGE — the fraction of
+    // the rural labor market tied to estates (Latifundium capacity plus
+    // bound serf FTE over total rural FTE). Serfdom IS a feudal relation:
+    // where serfs work, dues exist regardless of how few serfs remain.
     let feudal_rent_rate = {
         use crate::society::factional_domains::FactionalDomainConfig;
         use crate::society::geography::FactionDomainType;
-        let rural_pop: f64 = region
+        let rural_fte: f64 = region
             .class_demographics
             .rural_classes
             .values()
-            .map(|d| d.population as f64)
+            .map(|d| d.available_fte)
             .sum();
-        if rural_pop <= 0.0 {
+        if rural_fte <= 0.0 {
             0.0
         } else {
             let default_dues =
@@ -1100,18 +1101,41 @@ pub fn resolve_regional_labor_market(
                 }
             }
             let domain_rate = if estate_pop > 0.0 {
-                (weighted_rate / rural_pop).min(default_dues)
+                (weighted_rate / estate_pop).min(default_dues)
             } else {
                 0.0
             };
-            let serf_pop = region
+            // Manorial presence: the estate economy is the class
+            // structure itself — where an Aristocracy class or bound
+            // serfs exist, landless rural labor works estate land and
+            // owes dues. (Latifundium legal-form companies are only a
+            // marginal estate representation — e.g. monastery farms —
+            // so they can't gate the rule.)
+            let latif_fte: f64 = companies
+                .iter()
+                .filter(|c| {
+                    c.region_id == region.id
+                        && matches!(
+                            c.legal_form,
+                            crate::entities::legal_form::LegalForm::Latifundium(_)
+                        )
+                })
+                .map(|c| c.worker_capacity as f64)
+                .sum();
+            let has_serfs = region
                 .class_demographics
                 .rural_classes
                 .get(&crate::society::geography::RuralClass::Serf)
-                .map(|d| d.population as f64)
-                .unwrap_or(0.0);
-            let serf_baseline = (serf_pop / rural_pop) * default_dues;
-            domain_rate.max(serf_baseline)
+                .map(|d| d.population > 0 || d.available_fte > 0.0)
+                .unwrap_or(false);
+            let has_aristocracy = region
+                .class_demographics
+                .rural_classes
+                .get(&crate::society::geography::RuralClass::Aristocracy)
+                .map(|d| d.population > 0)
+                .unwrap_or(false);
+            let has_manors = latif_fte > 0.0 || has_serfs || has_aristocracy;
+            domain_rate.max(if has_manors { default_dues } else { 0.0 })
         }
     };
     let mut total_feudal_rent = 0.0_f64;
@@ -1149,20 +1173,24 @@ pub fn resolve_regional_labor_market(
             let pit_amount = taxable_base * pit_rate;
             let net_wage = post_garnishment - pit_amount;
 
-            // v4.24.0 WS2: feudal rent — tied rural classes (Serf,
-            // LandlessLaborer) owe manorial dues on net wage income,
-            // withheld before the class credit and pooled for the
-            // region's Aristocracy (credited after this loop — the
-            // aristocracy class can't be borrowed while rural_classes is
-            // iterated mutably).
-            let feudal_due = if matches!(
-                rural_class,
-                crate::society::geography::RuralClass::Serf
-                    | crate::society::geography::RuralClass::LandlessLaborer
-            ) {
-                (net_wage * feudal_rent_rate).max(0.0)
-            } else {
-                0.0
+            // v4.24.0 WS2: feudal rent — tied rural classes owe manorial
+            // dues on net wage income, withheld before the class credit
+            // and pooled for the region's Aristocracy (credited after
+            // this loop — the aristocracy class can't be borrowed while
+            // rural_classes is iterated mutably).
+            //
+            // Serfs are BOUND labor: their entire labor product belongs
+            // to the estate — they subsist on in-kind payment, never
+            // cash (see payment_in_kind: "in-kind INSTEAD of wages").
+            // The whole net wage is the manorial due. Landless laborers
+            // are free wage workers — only the estate-covered share of
+            // their wage owes dues.
+            let feudal_due = match rural_class {
+                crate::society::geography::RuralClass::Serf => net_wage.max(0.0),
+                crate::society::geography::RuralClass::LandlessLaborer => {
+                    (net_wage * feudal_rent_rate).max(0.0)
+                }
+                _ => 0.0,
             };
             total_feudal_rent += feudal_due;
             let take_home = net_wage - feudal_due;
@@ -1184,6 +1212,12 @@ pub fn resolve_regional_labor_market(
             total_garnishments_withheld += garnishment_amount;
         }
     }
+
+    #[cfg(feature = "diagnostic")]
+    eprintln!(
+        "FEUDALRENT: r={} rate={:.4} rent={:.0}",
+        region.id, feudal_rent_rate, total_feudal_rent
+    );
 
     // v4.24.0 WS2: transfer pooled feudal rent to the region's
     // Aristocracy class — the manorial income that funds aristocratic
