@@ -361,6 +361,43 @@ pub fn process_war_bridge(
         for msg in &result.messages {
             eprintln!("{}", msg);
         }
+
+        // ── v4.24.0: POW camp lifecycle (per-country, once per turn) ──
+        // Fresh captures are processed into internment (labor-eligible),
+        // interned POWs attempt deterministic escapes at a rate set by
+        // camp conditions (worse rations/health ⇒ more pressure), and
+        // attrition removes a fraction of the held population. Rates are
+        // derived from average prisoner productivity (the health/ration
+        // proxy), never magic constants.
+        let held = country.pow_camp.prisoners.len();
+        if held > 0 || country.pow_camp.captured_last_turn > 0 {
+            let avg_prod = if held > 0 {
+                country
+                    .pow_camp
+                    .prisoners
+                    .iter()
+                    .map(|p| p.productivity_factor)
+                    .sum::<f64>()
+                    / held as f64
+            } else {
+                0.6
+            };
+            let intake = country.pow_camp.process_intake(current_turn);
+            if intake > 0 {
+                eprintln!("[POW] {}: {} POWs processed into internment", name, intake);
+            }
+            let escape_rate = (1.0 - avg_prod.clamp(0.0, 1.0)) * 0.01;
+            let escapes = country.pow_camp.process_escapes(escape_rate);
+            if escapes > 0 {
+                eprintln!("[POW] {}: {} POWs escaped internment", name, escapes);
+            }
+            let attrition_rate = (1.0 - avg_prod.clamp(0.0, 1.0)) * 0.005;
+            let deaths = country.pow_camp.process_attrition(attrition_rate);
+            if deaths > 0 {
+                eprintln!("[POW] {}: {} POWs died in captivity", name, deaths);
+            }
+            country.pow_camp.cleanup();
+        }
     }
 
     // ── 4. Materialize fronts + resolve one battle per war pair. ──
@@ -437,7 +474,7 @@ fn invasion_corridor(country: &Country, front_id: &str) -> Vec<String> {
 /// corridor region not under occupation. `Occupied` markers accumulate in
 /// `region_control` as the attacker advances; everything ahead of the
 /// first unoccupied cell is taken ground.
-fn frontier_region(front: &Front, corridor: &[String]) -> Option<String> {
+pub(crate) fn frontier_region(front: &Front, corridor: &[String]) -> Option<String> {
     for rid in corridor {
         match front.region_control.get(rid) {
             Some(RegionControl::Occupied(_)) => continue,
@@ -1053,7 +1090,7 @@ fn resolve_war_battle(
 /// +1.0 per decisive attacker victory, +0.5 per pyrrhic/forced-retreat
 /// win, −1.0 per defender victory, +1.0 per corridor region currently
 /// occupied. Deterministic — derived purely from the battle ledger.
-fn front_war_score(front: &Front, aggressor: &str) -> f64 {
+pub(crate) fn front_war_score(front: &Front, aggressor: &str) -> f64 {
     let mut score = 0.0;
     for b in &front.battles {
         match &b.result {
@@ -1079,7 +1116,7 @@ fn front_war_score(front: &Front, aggressor: &str) -> f64 {
 }
 
 /// Corridor regions currently under occupation, in corridor order.
-fn occupied_corridor_regions(front: &Front, corridor: &[String]) -> Vec<String> {
+pub(crate) fn occupied_corridor_regions(front: &Front, corridor: &[String]) -> Vec<String> {
     corridor
         .iter()
         .filter(|rid| {
