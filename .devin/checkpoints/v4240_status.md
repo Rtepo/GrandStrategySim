@@ -49,3 +49,15 @@ votes DTO has no "Tundefined". Plus retained v4.23 gates.
 - funds: state/src/corporate/ (manager.rs, strategy.rs, lifecycle.rs) escrow/deployment
 - votes: politics/bill_lifecycle.rs + snapshot.rs VoteRow (WS2 v4.23)
 - autocracy: politics/advisory_council.rs (WS2 v4.23), succession.rs dynasty
+
+## Integration status (post-daemon)
+| WS | State |
+|----|-------|
+| WS2 demographics | merged 725972bd — 3 commits (stable pyramid 4cdaba66, religion persistence a157c7e8, class wealth 2af096b2) |
+| WS6 map | merged 2283fd6f — 2 commits (snapshot_map backend 2b92677b, MapPage+MiniMap fd04caf9) — daemon reported all-green verify |
+| WS1 press/funds | merged 9fb9241a — press fix 6f23f624 (i18n panic + error boundary + bounded scan, perf test pass) + salvage cc61cb4e (fund escrow + test) |
+| WS3 military | merged 01e980dc — throttle ff41e472+36ec5298 (adjacency/casus-belli, border-first fronts, exhaustion, wars conclude, non-zero casualties) + salvage 2b484293 (POW/UI) |
+| WS4+5 autocracy | merged e0630eb4 — salvage e3ebb0d2: decree majority-gate+Override, dynasty surnames, coups.rs(715L)+turn wiring, treaty/diplomat changes, votes/snapshot fixes; snapshot.rs conflict resolved (ended_wars+IC union) |
+
+All agents died silently (rate limits) — ALL work salvage-committed pre-respawn. Integration compiles (cargo check + tsc green).
+Release gate v4240 running at e0630eb4 in bisect-a → /tmp/v4240_gate.log.
