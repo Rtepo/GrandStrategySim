@@ -16,6 +16,7 @@ import {
   Badge,
 } from "../components/ui";
 import { fmt, num } from "../lib/format";
+import { MiniMap } from "../components/map/MiniMap";
 import type { MilitaryDashboardResponse } from "../types/api";
 
 // ============================================================================
@@ -509,6 +510,14 @@ export function MilitaryPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* v4.24.0 WS5: military-theatre mini-map — battles flash red,
+          occupied regions hatched; click opens the full Map tab. */}
+      <Card>
+        <CardContent className="p-3">
+          <MiniMap mode="military" heightClass="h-72" title="Theatre map — click to open" />
+        </CardContent>
+      </Card>
 
       {/* Main panels */}
       <WarsPanel wars={dashboard.wars} />

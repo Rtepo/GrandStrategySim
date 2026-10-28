@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import * as echarts from "echarts";
 import { useGameStore } from "../store/gameStore";
@@ -9,6 +10,7 @@ import { partyColor, spectrumOf } from "../lib/partyVisuals";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button, Tabs } from "../components/ui";
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
+import { MiniMap } from "../components/map/MiniMap";
 import { fmt, num, humanize } from "../lib/format";
 import type { CouncilResolutionRow, CouncilRollCallRow } from "../types/api";
 import type {
@@ -56,7 +58,12 @@ function councilHemicycleEntries(factions: [string, number][]): HemicycleEntry[]
 
 export function RegionsPage() {
   const { selectedCountry } = useGameStore();
-  const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
+  // v4.24.0 WS5: deep-link target from the Map tab's region card
+  // (`navigate("/regions", { state: { regionId } })`) — auto-select the row.
+  const location = useLocation();
+  const deepLinkedRegionId =
+    (location.state as { regionId?: string } | null)?.regionId ?? null;
+  const [selectedRegionId, setSelectedRegionId] = useState<string | null>(deepLinkedRegionId);
   const [selectedMegaregionId, setSelectedMegaregionId] = useState<string | null>(null);
 
   const { data: regions, isLoading } = useQuery({
@@ -98,6 +105,13 @@ export function RegionsPage() {
   return (
     <div className="p-6 space-y-4">
       <h2 className="text-xl font-bold text-foreground">Regions — {selectedCountry}</h2>
+
+      {/* v4.24.0 WS5: compact mini-map of this country — click opens the Map tab. */}
+      <Card>
+        <CardContent className="p-3">
+          <MiniMap onlyCountry={selectedCountry} mode="governance" heightClass="h-64" />
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-2">
