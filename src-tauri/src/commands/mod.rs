@@ -6,6 +6,7 @@ pub mod diplomacy_queries;
 pub mod energy_queries;
 pub mod governance_queries;
 pub mod macro_queries;
+pub mod map_queries;
 pub mod military_queries;
 pub mod parliament_queries;
 pub mod phase85_queries;

@@ -87,6 +87,8 @@ fn main() {
             commands::diplomacy_queries::lift_sanction,
             // Phase 73: Military & Crisis dashboard (read-only)
             commands::military_queries::get_military_dashboard,
+            // v4.24.0 WS5: Procedural world map (Map tab + mini-map embeds)
+            commands::map_queries::get_world_map,
             commands::energy_queries::get_energy_grid,
             // Phase 85: Factional domains, cottage industry, and guilds
             commands::phase85_queries::get_factional_domains_snapshot,

@@ -951,16 +951,45 @@ export type CouncilRollCallRow = { resolution_title: string, member_name: string
 vip_id: string, };
 
 /**
+ * A country's slice of the world map.
+ */
+export type CountryMapDto = { 
+/**
+ * Country name (map key in `GameState.countries`).
+ */
+country: string, 
+/**
+ * Deterministic index (sorted country order) for the UI palette.
+ */
+color_index: number, 
+/**
+ * Countries this nation is currently at war with.
+ */
+at_war_with: Array<string>, 
+/**
+ * Display name of the capital region, for the country label.
+ */
+capital_name: string, 
+/**
+ * Country-label anchor (the capital's layout site).
+ */
+anchor: MapPoint, 
+/**
+ * Outer boundary polygon the region cells tile (sea frontier).
+ */
+boundary: Array<MapPoint>, regions: Array<MapRegionDto>, };
+
+/**
  * v4.23 WS4: Per-country trade treemap — REAL settled trade legs this
  * turn, replacing the old global cleared-volume bound
  * (`snapshot_society::TradeTreemapDto`, still emitted for the legacy
  * command surface).
  *
  * * `exports` — domestic seller → foreign endpoint: modeled-country
- * buyers (the order book) plus the FOREIGN-SECTOR world-market sweep.
+ *   buyers (the order book) plus the FOREIGN-SECTOR world-market sweep.
  * * `imports` — foreign seller → domestic endpoint, same two sources.
  * * `domestic` — both-endpoints-domestic order-book legs plus
- * ministry / JST / public-works procurement (domestic-only books).
+ *   ministry / JST / public-works procurement (domestic-only books).
  */
 export type CountryTradeTreemapDto = { 
 /**
@@ -1972,6 +2001,98 @@ progress: number,
 per_turn_disbursement: number, };
 
 /**
+ * One land-border adjacency edge between two regions (deduplicated).
+ */
+export type MapEdgeDto = { from_region: string, to_region: string, 
+/**
+ * `land_border` | `coastline` | `sea_lane` | `river`.
+ */
+edge_type: string, };
+
+/**
+ * A single 2D point in world-map space (procedural units, not lat/lon).
+ */
+export type MapPoint = { x: number, y: number, };
+
+/**
+ * One region polygon on the world map.
+ */
+export type MapRegionDto = { 
+/**
+ * Region id (`"{country}-Region{N}"`), globally unique.
+ */
+id: string, 
+/**
+ * Owning country name.
+ */
+country: string, 
+/**
+ * Display name (`display_name` with `id` fallback).
+ */
+name: string, 
+/**
+ * Ordered polygon vertices (world-map units, y-down for SVG).
+ */
+polygon: Array<MapPoint>, 
+/**
+ * Label anchor — the layout site the polygon was grown around.
+ */
+centroid: MapPoint, 
+/**
+ * `Region.is_capital` — rendered as the capital-district star.
+ */
+is_capital_district: boolean, 
+/**
+ * Region borders the sea frontier (engine traits/edges when present,
+ * else procedural: its cell touches the country boundary).
+ */
+is_coastal: boolean, 
+/**
+ * Phase 85B emancipated City Region (`city_metadata.is_some()`).
+ */
+is_city_region: boolean, population: bigint, 
+/**
+ * Regional GDP (currency units).
+ */
+gdp: number, 
+/**
+ * Regional GDP per capita (`Region.gdp_pc`).
+ */
+gdp_per_capita: number, 
+/**
+ * Cadastre devastation index, 0.0 pristine – 1.0 total ruin.
+ */
+devastation: number, 
+/**
+ * Urban-class share of the region's demographic population (0–1).
+ */
+urbanization: number, 
+/**
+ * Phase 47 development level (0–1).
+ */
+development_level: number, 
+/**
+ * Military control: `owner` | `occupied` | `contested` | `rebel_control`.
+ */
+control: string, 
+/**
+ * Occupying/contesting country when `control == "occupied"`.
+ */
+controller: string, 
+/**
+ * A battle was recorded at this region within the last few turns.
+ */
+active_battle: boolean, 
+/**
+ * Region belongs to a currently-active military front.
+ */
+on_front: boolean, 
+/**
+ * Land-border neighbour region ids (engine edge graph).
+ */
+neighbors: Array<string>, };
+
+/**
  * Phase 56: Market index snapshot for the stock exchange UI.
  */
 export type MarketIndexSnapshot = { value: number, change_pct: number, history: Array<number>, total_market_cap: number, total_volume: bigint, advancing: number, declining: number, volatility: number, };
@@ -2083,6 +2204,11 @@ ministry_cash: number,
 policy_kpis: Array<MinistryKpiRow>, };
 
 /**
+ * Phase 54: A single ministry expenditure category entry for the Finance tab.
+ */
+export type MinistryExpenditureEntry = { category: string, amount: number, share_pct: number, };
+
+/**
  * v4.23 WS4: One qualitative policy KPI for a ministry's Reports drawer.
  *
  * `value`/`unit` are measured from real engine state (never fabricated);
@@ -2111,11 +2237,6 @@ target: string,
  * Assessment vs. target.
  */
 status: string, };
-
-/**
- * Phase 54: A single ministry expenditure category entry for the Finance tab.
- */
-export type MinistryExpenditureEntry = { category: string, amount: number, share_pct: number, };
 
 /**
  * Phase 60: Ministry land report (role-gated — internal government document).
@@ -2476,7 +2597,9 @@ body: string,
 /**
  * Event category: "floor_vote" | "veto_override" | "budget_bill" |
  * "council_resolution" | "royal_birth" | "royal_marriage" | "strike" |
- * "mass_movement" | "treaty" | "war" | "economy" | "election_scheduled".
+ * "mass_movement" | "treaty" | "war" | "economy" | "election_scheduled";
+ * business section adds "stock_mover" | "earnings" | "dividend" |
+ * "investment".
  */
 event_kind: string, 
 /**
@@ -3766,6 +3889,23 @@ surface_water_volume: number,
  * Surface water quality (0.0-1.0).
  */
 surface_water_quality: number, };
+
+/**
+ * Complete world-map snapshot for the Map tab and mini-map embeds.
+ */
+export type WorldMapSnapshot = { 
+/**
+ * Current game turn (`calendar.global_turn`).
+ */
+turn: number, 
+/**
+ * `[min_x, min_y, max_x, max_y]` of every boundary vertex.
+ */
+bounds: Array<number>, countries: Array<CountryMapDto>, 
+/**
+ * Land-border adjacency edges across the whole world.
+ */
+edges: Array<MapEdgeDto>, };
 
 /**
  * Phase 60: Zoning plan row (public data).
