@@ -405,6 +405,9 @@ pub fn resolve_multi_domain_battle(
                 demographic_breakdown: std::collections::HashMap::new(),
             },
             result: BattleResult::AttackerVictory,
+            captured_by_attacker: 0,
+            captured_by_defender: 0,
+            phases: Vec::new(),
         }
     } else {
         // No land units on either side — stalemate
@@ -429,6 +432,9 @@ pub fn resolve_multi_domain_battle(
                 demographic_breakdown: std::collections::HashMap::new(),
             },
             result: BattleResult::Stalemate,
+            captured_by_attacker: 0,
+            captured_by_defender: 0,
+            phases: Vec::new(),
         }
     };
 

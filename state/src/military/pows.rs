@@ -437,7 +437,12 @@ pub fn repatriate_pows_from_country(
 ) -> Vec<PrisonerOfWar> {
     let mut repatriated = Vec::new();
     for pow in &mut pow_camp.prisoners {
-        if pow.origin_country == origin_country && pow.status != PowStatus::Deceased {
+        // v4.24.0: skip Deceased AND already-Repatriated — a second call
+        // for the same origin (e.g., two wars ending on different turns)
+        // must not re-count prisoners into `total_repatriated`.
+        if pow.origin_country == origin_country
+            && !matches!(pow.status, PowStatus::Deceased | PowStatus::Repatriated)
+        {
             pow.status = PowStatus::Repatriated;
             pow.assigned_factory_id = None;
             repatriated.push(pow.clone());

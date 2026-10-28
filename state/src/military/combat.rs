@@ -124,6 +124,44 @@ pub fn resolve_battle(
     let attacker_casualties = calculate_casualties(attacker_units, attacker_casualty_ratio, config);
     let defender_casualties = calculate_casualties(defender_units, defender_casualty_ratio, config);
 
+    // v4.24.0: Deterministic tactical phases for the expandable battle
+    // view. No RNG — derived from the same power figures that decided the
+    // battle: Contact (committed strengths), Exchange (effective power
+    // after supply burn — the figures the result was computed from),
+    // Decision (result + casualty totals).
+    let phases = vec![
+        crate::military::fronts::BattlePhase {
+            name: "Contact".to_string(),
+            attacker_power: attacker_power,
+            defender_power: defender_power,
+            note: format!(
+                "{} units engage {} units",
+                attacker_units.len(),
+                defender_units.len()
+            ),
+        },
+        crate::military::fronts::BattlePhase {
+            name: "Exchange".to_string(),
+            attacker_power: attacker_power,
+            defender_power: defender_power,
+            note: format!(
+                "Power ratio {:.2}:1 after supply burn",
+                attacker_power / defender_power.max(1.0)
+            ),
+        },
+        crate::military::fronts::BattlePhase {
+            name: "Decision".to_string(),
+            attacker_power: attacker_power,
+            defender_power: defender_power,
+            note: format!(
+                "{:?} — {} vs {} casualties",
+                result,
+                attacker_casualties.total(),
+                defender_casualties.total()
+            ),
+        },
+    ];
+
     Battle {
         id: battle_id,
         location,
@@ -135,6 +173,9 @@ pub fn resolve_battle(
         attacker_casualties,
         defender_casualties,
         result,
+        captured_by_attacker: 0,
+        captured_by_defender: 0,
+        phases,
     }
 }
 
@@ -153,7 +194,18 @@ fn calculate_casualties(
     config: &MilitaryCombatConfig,
 ) -> Casualties {
     let total_manpower: i64 = units.iter().map(|u| u.manpower).sum();
-    let base_casualties = (total_manpower as f64 * casualty_ratio) as i64;
+    // v4.24.0: every resolved battle produces non-zero casualties. When
+    // engaged manpower is nonzero, a 1% casualty floor (and a hard floor of
+    // one soldier) prevents the "0 losses on both sides" battles produced
+    // by f64→i64 truncation at tiny forces/odds.
+    const MIN_BATTLE_CASUALTY_RATIO: f64 = 0.01;
+    let effective_ratio = if total_manpower > 0 {
+        casualty_ratio.max(MIN_BATTLE_CASUALTY_RATIO)
+    } else {
+        0.0
+    };
+    let base_casualties =
+        ((total_manpower as f64 * effective_ratio) as i64).max(if total_manpower > 0 { 1 } else { 0 });
 
     let dead = (base_casualties as f64 * config.dead_ratio) as i64;
     let wounded = (base_casualties as f64 * config.wounded_ratio) as i64;
