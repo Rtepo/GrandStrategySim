@@ -7597,7 +7597,7 @@ fn bill_theme_tag_from_type(bill_type: &str) -> String {
 }
 
 /// Phase 32: Build the Parliament tab snapshot.
-fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot {
+pub fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot {
     let politics = &country.politics;
 
     if let Some(ref parl) = politics.parliament_struct {
