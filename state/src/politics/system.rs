@@ -1389,6 +1389,11 @@ pub struct Politics {
     /// See `politics/succession.rs`.
     #[serde(default)]
     pub royal_dynasty: Option<crate::politics::succession::RoyalDynasty>,
+    /// v4.24.0 WS4.3: Internal conflicts — military coup plots, Politburo
+    /// power struggles and royal claimant crises.
+    /// See `politics/coups.rs`.
+    #[serde(default)]
+    pub internal_conflicts: crate::politics::coups::InternalConflicts,
     /// Phase 65: State structure (Unitary/Federation/Totalitarian/AutonomousRepublic).
     /// Controls tax retention rates and regional law authority.
     #[serde(default)]

@@ -79,6 +79,12 @@ pub struct VoteRecord {
     pub abstentions: u32,
     pub passed: bool,
     pub turn: u32,
+    /// v4.24.0 WS4.2: which vote this record is — "Floor Vote" |
+    /// "Upper House Vote" | "Veto Override Vote". The lower chamber's
+    /// `recent_votes` log holds BOTH floor and override records, so the
+    /// UI must label the vote kind, not just the chamber name.
+    #[serde(default)]
+    pub vote_kind: String,
     /// v4.18: Per-club For/Against/Abstain tallies recorded at vote time —
     /// real bookkeeping so the UI can decompose the totals by club.
     #[serde(default)]
