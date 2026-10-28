@@ -1235,6 +1235,54 @@ pub fn resolve_regional_labor_market(
         }
     }
 
+    // v4.24.0 WS2: serfs hold no property — the feudal relation vests
+    // everything in the manor ("in-kind INSTEAD of wages … savings forced
+    // to 0", payment_in_kind.rs). Non-wage scraps still trickle in from
+    // relief, remittances, helicopter backstops and migration, so sweep
+    // the residual class balance into the estate pool each turn. Pure
+    // class-to-class transfer (M0-conserving); gated on the manorial
+    // economy operating this turn — serfs exist and dues were extracted
+    // (or a resident Aristocracy claims the feudal right).
+    {
+        use crate::society::geography::RuralClass;
+        let serf_residual = region
+            .class_demographics
+            .rural_classes
+            .get(&RuralClass::Serf)
+            .map(|d| d.savings.max(0.0))
+            .unwrap_or(0.0);
+        let manor_active = total_feudal_rent > 0.0
+            || region
+                .class_demographics
+                .rural_classes
+                .get(&RuralClass::Aristocracy)
+                .map(|d| d.population > 0)
+                .unwrap_or(false);
+        if serf_residual > 0.0 && manor_active {
+            if let Some(serf) = region
+                .class_demographics
+                .rural_classes
+                .get_mut(&RuralClass::Serf)
+            {
+                serf.savings -= serf_residual;
+                serf.savings_per_capita = if serf.population > 0 {
+                    serf.savings / serf.population as f64
+                } else {
+                    0.0
+                };
+            }
+            let demo = region
+                .class_demographics
+                .rural_classes
+                .entry(RuralClass::Aristocracy)
+                .or_default();
+            demo.savings += serf_residual;
+            if demo.population > 0 {
+                demo.savings_per_capita = demo.savings / demo.population as f64;
+            }
+        }
+    }
+
     for (urban_class, demographics) in region.class_demographics.urban_classes.iter_mut() {
         let demo_class = DemographicClass::from(*urban_class);
         if let Some(ledger) = pool.class_ledgers.get(&demo_class) {

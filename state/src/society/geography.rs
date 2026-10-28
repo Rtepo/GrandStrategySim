@@ -1179,6 +1179,17 @@ pub struct ClassDemographics {
     #[serde(default)]
     pub smoothed_income: f64,
 
+    /// v4.24.0 WS2: consumer-loan principal disbursed to this class this
+    /// turn. Disbursements land in `savings` like income, so without a
+    /// separate tally `smoothed_income` (and therefore `class_spend_capacity`
+    /// and `consumer_credit_demand`'s leverage target) counted borrowing
+    /// as earnings — a positive feedback loop where debt funded its own
+    /// measured creditworthiness (Venedia aristocracy: 60M debt on 4k
+    /// savings). `income_now` subtracts this tally; reset each turn beside
+    /// `savings_stock_turn_start`.
+    #[serde(default)]
+    pub loan_inflow_this_turn: f64,
+
     /// v4.18 WS1 follow-up: last turn's raw spend capacity (smoothed
     /// income + bounded stock draw), refreshed at settle time. The demand
     /// cap clamps this turn's capacity to `prev × [0.85, 1.15]` — the

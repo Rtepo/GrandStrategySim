@@ -4856,6 +4856,7 @@ pub fn process_banking_turn(
                 let rate = consumer_rate;
                 class.savings += loan_amount;
                 class.debt += loan_amount;
+                class.loan_inflow_this_turn += loan_amount;
                 bank.consumer_loans.push(ConsumerLoan {
                     region_id: region.id.clone(),
                     class_key: key.to_string(),
@@ -4912,6 +4913,7 @@ pub fn process_banking_turn(
                 let rate = consumer_rate;
                 class.savings += loan_amount;
                 class.debt += loan_amount;
+                class.loan_inflow_this_turn += loan_amount;
                 bank.consumer_loans.push(ConsumerLoan {
                     region_id: region.id.clone(),
                     class_key: key.to_string(),

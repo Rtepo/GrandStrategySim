@@ -257,6 +257,18 @@ const MAX_SAVINGS_DRAWDOWN_RATE: f64 = 0.12;
 /// long wage-growth regime, suppressing household consumption share.
 const INCOME_SMOOTHING_ALPHA: f64 = 0.50;
 
+/// v4.24.0 WS2: marginal propensity to consume out of permanent income.
+/// Previously classes budgeted 100% of smoothed income plus the stock
+/// drawdown — net savings change ≈ −r×S, so any class whose shelves were
+/// stocked decayed geometrically to a zero cash stock regardless of
+/// income (Venedia's aristocracy ended the crucible at 0.09/capita while
+/// drawing ~20M/turn in manorial dues). Wealthy classes only accumulated
+/// by accident of goods shortages. A 15% saving share makes equilibrium
+/// stock = saved_income / MAX_SAVINGS_DRAWDOWN_RATE — proportional to
+/// class income — so the savings hierarchy tracks the income hierarchy
+/// (Aristocracy ≫ Serf) instead of shelf-stocking luck.
+const SAVINGS_PROPENSITY: f64 = 0.85;
+
 /// v4.18 WS1: solvency signal (savings/capita) at which durable upgrade
 /// demand reaches full strength — scaled linearly below it so the
 /// 5%-of-stock upgrade lump fades in instead of toggling at a hard line.
@@ -305,7 +317,12 @@ pub fn class_spend_capacity(
     // spending the live figure turn-for-turn re-creates the wage-cycle
     // volatility the mandate forbids; the unspent share of a spike sits
     // in `savings` and is released by the bounded drawdown anyway.
-    let raw = demographics.smoothed_income.max(0.0) + stock * MAX_SAVINGS_DRAWDOWN_RATE;
+    // Loan principal is spendable cash but NOT income — it sits in the
+    // capacity base as its own term so credit-financed demand still works,
+    // while `income_now`/`consumer_credit_demand` see only real earnings.
+    let raw = demographics.smoothed_income.max(0.0) * SAVINGS_PROPENSITY
+        + stock * MAX_SAVINGS_DRAWDOWN_RATE
+        + demographics.loan_inflow_this_turn.max(0.0);
     // Conservation ceiling: never demand beyond the whole balance.
     let target = raw.min(demographics.savings.max(0.0));
     // Habit-formation envelope: consumption retunes at ≤15%/turn. On an
@@ -1866,7 +1883,10 @@ pub fn settle_b2c_clearing(
         // `savings` here still holds this turn's wage/dividend/transfer
         // inflows (post-credit, pre-retail-debit), so the difference over
         // the turn-start marker is the realized income signal.
-        let income_now = (demo.savings - demo.savings_stock_turn_start).max(0.0);
+        let income_now = (demo.savings
+            - demo.savings_stock_turn_start
+            - demo.loan_inflow_this_turn)
+            .max(0.0);
         demo.smoothed_income +=
             INCOME_SMOOTHING_ALPHA * (income_now - demo.smoothed_income);
         // Refresh next turn's envelope basis on the same pre-debit basis
@@ -1877,8 +1897,9 @@ pub fn settle_b2c_clearing(
         // the t≈12-14 capacity spike the crucible caught. Storing the
         // clamped value makes the ±15% band truly recursive: the sequence
         // of spendable-power values can never move faster than the band.
-        let raw_basis = demo.smoothed_income.max(0.0)
-            + demo.savings_stock_turn_start.max(0.0) * MAX_SAVINGS_DRAWDOWN_RATE;
+        let raw_basis = demo.smoothed_income.max(0.0) * SAVINGS_PROPENSITY
+            + demo.savings_stock_turn_start.max(0.0) * MAX_SAVINGS_DRAWDOWN_RATE
+            + demo.loan_inflow_this_turn.max(0.0);
         demo.prev_spend_capacity = if demo.prev_spend_capacity <= 0.0 {
             raw_basis
         } else {

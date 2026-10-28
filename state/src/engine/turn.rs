@@ -624,9 +624,11 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             for region in &mut task.ctx.country.regions {
                 for demo in region.class_demographics.rural_classes.values_mut() {
                     demo.savings_stock_turn_start = demo.savings;
+                    demo.loan_inflow_this_turn = 0.0;
                 }
                 for demo in region.class_demographics.urban_classes.values_mut() {
                     demo.savings_stock_turn_start = demo.savings;
+                    demo.loan_inflow_this_turn = 0.0;
                 }
             }
         });
