@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import { getPressSnapshot } from "../hooks/useTauriCommand";
 import { Badge } from "../components/ui";
 import { humanize } from "../lib/format";
@@ -144,28 +145,69 @@ function BusinessPress({ articles, year }: { articles: PressArticleDto[]; year: 
 
 export function PressPage() {
   const { selectedCountry } = useGameStore();
-  const { data: snap, isLoading } = useQuery({
+  // v4.24 WS1: the old render path showed "Loading…" whenever query data was
+  // undefined — which is also the state after a failed fetch, so one backend
+  // error (panic inside spawn_blocking, serialization failure, a join error
+  // while the engine write lock is held during a turn) trapped the tab on
+  // "Loading…" forever. Now: loading is only the pending state, errors render
+  // an explicit failure card with a manual retry, and the page body sits
+  // behind an error boundary so a render fault can't blank the route either.
+  // `retry: 1` surfaces failures fast — each turn invalidates the query and
+  // refetches anyway, so transient faults self-heal on the next turn.
+  const { data: snap, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["press", selectedCountry],
     queryFn: () => getPressSnapshot(selectedCountry!),
     enabled: !!selectedCountry,
+    retry: 1,
   });
 
   if (!selectedCountry) return <p className="p-6 text-muted-foreground">Select a country.</p>;
-  if (isLoading || !snap) return <p className="p-6 text-muted-foreground">Loading…</p>;
+  if (isLoading) return <p className="p-6 text-muted-foreground">Loading…</p>;
+  if (isError || !snap) {
+    return (
+      <div className="p-6">
+        <div className="rounded border border-destructive/40 bg-destructive/10 p-4 space-y-3 max-w-lg">
+          <h2 className="text-sm font-semibold text-destructive">Press snapshot failed to load</h2>
+          <p className="text-xs text-muted-foreground">
+            The newspaper desk could not be generated this turn. The rest of the
+            application is unaffected — the page will retry on the next turn,
+            or you can retry now.
+          </p>
+          {isError && (
+            <details className="text-xs text-muted-foreground">
+              <summary className="cursor-pointer select-none">Error details</summary>
+              <pre className="mt-2 p-2 bg-muted rounded overflow-auto whitespace-pre-wrap">
+                {error instanceof Error ? error.message : String(error)}
+              </pre>
+            </details>
+          )}
+          <button
+            onClick={() => void refetch()}
+            disabled={isFetching}
+            className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 disabled:opacity-50"
+          >
+            {isFetching ? "Retrying…" : "Retry"}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-xl font-bold text-foreground">Gazety — {snap.country}, {snap.year}</h2>
-        <span className="text-xs text-muted-foreground">{snap.total_articles} articles</span>
+    <ErrorBoundary>
+      <div className="p-6 space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-xl font-bold text-foreground">Gazety — {snap.country}, {snap.year}</h2>
+          <span className="text-xs text-muted-foreground">{snap.total_articles} articles</span>
+        </div>
+        <MediaContext snap={snap} />
+        <div className="grid grid-cols-2 gap-4">
+          {snap.papers.map((p) => (
+            <FrontPage key={p.paper_id} paper={p} year={snap.year} />
+          ))}
+        </div>
+        <BusinessPress articles={snap.business_articles ?? []} year={snap.year} />
       </div>
-      <MediaContext snap={snap} />
-      <div className="grid grid-cols-2 gap-4">
-        {snap.papers.map((p) => (
-          <FrontPage key={p.paper_id} paper={p} year={snap.year} />
-        ))}
-      </div>
-      <BusinessPress articles={snap.business_articles ?? []} year={snap.year} />
-    </div>
+    </ErrorBoundary>
   );
 }

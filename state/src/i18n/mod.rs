@@ -113,10 +113,24 @@ pub fn init_i18n(locales_dir: &std::path::Path) -> Result<(), String> {
 }
 
 /// Get the global i18n manager (thread-safe).
+///
+/// Panics if `init_i18n` was never called. Prefer [`i18n_opt`] for callers
+/// that can degrade gracefully to English fallbacks (e.g., DTO display
+/// names) — the Tauri app never initializes this manager, so any `i18n()`
+/// call on a query path is a latent panic.
 pub fn i18n() -> &'static I18nManager {
     I18N_MANAGER
         .get()
         .expect("i18n not initialized. Call init_i18n() first.")
+}
+
+/// Non-panicking accessor for the global i18n manager.
+///
+/// Returns `None` when `init_i18n` has not been called. v4.24 WS1:
+/// `Sector::display_name()` used `i18n()` and crashed the Press snapshot
+/// builder every turn; callers should use this and fall back to English.
+pub fn i18n_opt() -> Option<&'static I18nManager> {
+    I18N_MANAGER.get()
 }
 
 /// Convenience macro for UI translations.
