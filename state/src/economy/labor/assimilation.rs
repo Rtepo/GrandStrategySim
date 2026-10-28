@@ -363,6 +363,12 @@ pub fn process_assimilation_turn(
     result
 }
 
+/// v4.24.0 WS2: absolute bound on per-turn religious drift — at most
+/// 0.05% of a class's population may change religion in one engine turn
+/// (~1.2%/yr equivalent at 24 turns/yr). The legacy 5% cap produced a
+/// monoculture wipeout within a handful of turns.
+const MAX_RELIGION_DRIFT_PER_TURN: f64 = 0.0005;
+
 /// Process the religious conversion turn.
 ///
 /// # Arguments
@@ -377,7 +383,9 @@ pub fn process_assimilation_turn(
 /// * High authority attracts converts from low-authority religions.
 /// * Apostasy: authority < 0.2 with > 1000 followers → followers leave to "undeclared".
 /// * Atheist conversion: authority > 0.6 → atheists convert to that religion.
-/// * Conversion rate bounded at 0.05/turn.
+/// * Conversion rate bounded at 0.0005/turn (v4.24.0 WS2: was 0.05 — a
+///   5%-per-half-month churn that erased religious minorities in a few
+///   turns; realistic religious drift is measured in basis points).
 /// * Holy Sites double conversion rate TO that religion in that region.
 /// * No conversion at baseline authority (0.3) without authority differential.
 /// * Phase 2 (Conservation): Population and wealth are physically moved between
@@ -456,7 +464,8 @@ pub fn process_religious_conversion_turn(
 
             // Apostasy: low authority causes followers to leave to "undeclared".
             if current_auth < 0.2 && demo.population > 1000 {
-                let apostasy_rate = ((0.2 - current_auth) * 0.1).min(0.05);
+                let apostasy_rate =
+                    ((0.2 - current_auth) * 0.005).min(MAX_RELIGION_DRIFT_PER_TURN);
                 let apostasy_pop = (demo.population as f64 * apostasy_rate) as i64;
                 if apostasy_pop > 0 {
                     let wealth_per_capita = if demo.population > 0 {
@@ -479,12 +488,14 @@ pub fn process_religious_conversion_turn(
             if let Some((target_display, target_auth)) = &highest_authority_religion {
                 if demo.religion != *target_display && *target_auth > current_auth {
                     let auth_diff = target_auth - current_auth;
-                    let mut conversion_rate = (auth_diff * 0.05).min(0.05);
+                    let mut conversion_rate =
+                        (auth_diff * 0.002).min(MAX_RELIGION_DRIFT_PER_TURN);
 
                     if let Some(hs_key) = &holy_site_religion_key {
                         let target_engine_key = reg.religion_key_from_display(target_display);
                         if hs_key == &target_engine_key {
-                            conversion_rate = (conversion_rate * 2.0).min(0.05);
+                            conversion_rate = (conversion_rate * 2.0)
+                                .min(MAX_RELIGION_DRIFT_PER_TURN);
                         }
                     }
 
@@ -521,7 +532,8 @@ pub fn process_religious_conversion_turn(
 
             // Apostasy.
             if current_auth < 0.2 && demo.population > 1000 {
-                let apostasy_rate = ((0.2 - current_auth) * 0.1).min(0.05);
+                let apostasy_rate =
+                    ((0.2 - current_auth) * 0.005).min(MAX_RELIGION_DRIFT_PER_TURN);
                 let apostasy_pop = (demo.population as f64 * apostasy_rate) as i64;
                 if apostasy_pop > 0 {
                     let wealth_per_capita = if demo.population > 0 {
@@ -544,12 +556,14 @@ pub fn process_religious_conversion_turn(
             if let Some((target_display, target_auth)) = &highest_authority_religion {
                 if demo.religion != *target_display && *target_auth > current_auth {
                     let auth_diff = target_auth - current_auth;
-                    let mut conversion_rate = (auth_diff * 0.05).min(0.05);
+                    let mut conversion_rate =
+                        (auth_diff * 0.002).min(MAX_RELIGION_DRIFT_PER_TURN);
 
                     if let Some(hs_key) = &holy_site_religion_key {
                         let target_engine_key = reg.religion_key_from_display(target_display);
                         if hs_key == &target_engine_key {
-                            conversion_rate = (conversion_rate * 2.0).min(0.05);
+                            conversion_rate = (conversion_rate * 2.0)
+                                .min(MAX_RELIGION_DRIFT_PER_TURN);
                         }
                     }
 

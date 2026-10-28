@@ -631,24 +631,46 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
         });
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
-        // Phase 13: Initialize per-class religion from country's dominant religion.
-        // Runs after demographics processing creates class entries.
+        // Phase 13 / v4.24.0 WS2: initialize per-class religions from the
+        // national religious composition via population-weighted quota
+        // allocation. The old path stamped EVERY class with the dominant
+        // religion, which collapsed a diverse Turn-0 composition into a
+        // 100% monoculture by Turn 1 — this backfill now preserves
+        // minorities at class granularity (and still only fills empty
+        // slots, so it remains a safe save-migration path).
         let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
-            let religion = task.ctx.country.macro_indicators.religion.clone();
-            if !religion.is_empty() {
+            let composition = task
+                .ctx
+                .country
+                .macro_indicators
+                .demographics
+                .religious_composition
+                .clone();
+            if composition.is_empty() {
+                // Legacy save without composition data: fall back to the
+                // dominant religion so no class is left unlabeled.
+                let religion = task.ctx.country.macro_indicators.religion.clone();
+                if religion.is_empty() {
+                    return;
+                }
+                let mut fallback = std::collections::BTreeMap::new();
+                fallback.insert(religion, 1.0);
                 for region in &mut task.ctx.country.regions {
-                    for demo in region.class_demographics.rural_classes.values_mut() {
-                        if demo.religion.is_empty() {
-                            demo.religion = religion.clone();
-                        }
-                    }
-                    for demo in region.class_demographics.urban_classes.values_mut() {
-                        if demo.religion.is_empty() {
-                            demo.religion = religion.clone();
-                        }
-                    }
+                    crate::society::geography::allocate_class_religions(
+                        &mut region.class_demographics.rural_classes,
+                        &mut region.class_demographics.urban_classes,
+                        &fallback,
+                    );
+                }
+            } else {
+                for region in &mut task.ctx.country.regions {
+                    crate::society::geography::allocate_class_religions(
+                        &mut region.class_demographics.rural_classes,
+                        &mut region.class_demographics.urban_classes,
+                        &composition,
+                    );
                 }
             }
         });
