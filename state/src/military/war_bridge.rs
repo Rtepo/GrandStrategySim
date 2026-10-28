@@ -77,6 +77,69 @@ fn canonical_pair(a: &str, b: &str) -> (String, String) {
     }
 }
 
+// ============================================================================
+// v4.24.0: Synthetic world adjacency (casus belli border gate)
+// ============================================================================
+//
+// The generated world has no explicit inter-country border graph — each
+// country's regions form a country-local ring. For the war-declaration
+// gate we derive a deterministic synthetic adjacency from the sorted
+// country roster:
+//
+//  1. **Continental ring** — every country borders its lexicographic
+//     neighbours (i ↔ i+1, plus wraparound), like provinces around a
+//     continent's rim. With N countries this yields exactly N borders.
+//  2. **Cultural bridge** — countries sharing `macro_indicators
+//     .cultural_group` form chains in sorted order, so culturally related
+//     neighbours border even when the ring separates them.
+//
+// Everything is derived from sorted names + stored culture — no RNG, no
+// HashMap iteration order, identical across runs and platforms.
+/// Deterministic synthetic border set over all country pairs — see the
+/// module comment above for the construction (continental ring +
+/// cultural bridge chains).
+pub fn compute_country_adjacency(state: &GameState) -> BTreeSet<(String, String)> {
+    let mut names: Vec<String> = state.countries.keys().cloned().collect();
+    names.sort();
+    let n = names.len();
+    let mut adjacency: BTreeSet<(String, String)> = BTreeSet::new();
+
+    // 1) Continental ring.
+    for i in 0..n {
+        let a = &names[i];
+        let b = &names[(i + 1) % n];
+        if a != b {
+            adjacency.insert(canonical_pair(a, b));
+        }
+    }
+
+    // 2) Cultural bridge — chain consecutive members of each culture group.
+    let mut by_culture: std::collections::BTreeMap<String, Vec<String>> =
+        std::collections::BTreeMap::new();
+    for name in &names {
+        let group = state.countries[name]
+            .macro_indicators
+            .cultural_group
+            .trim()
+            .to_string();
+        if !group.is_empty() {
+            by_culture.entry(group).or_default().push(name.clone());
+        }
+    }
+    for (_group, members) in by_culture {
+        for w in members.windows(2) {
+            adjacency.insert(canonical_pair(&w[0], &w[1]));
+        }
+    }
+
+    adjacency
+}
+
+/// Whether two countries share a synthetic land border.
+pub fn countries_share_border(state: &GameState, a: &str, b: &str) -> bool {
+    compute_country_adjacency(state).contains(&canonical_pair(a, b))
+}
+
 /// Turn-level entry point. Called sequentially from the engine after
 /// `process_diplomatic_friction` so wars declared *this* turn materialize
 /// immediately. `diplomacy` is the per-direction relations map already

@@ -15353,7 +15353,7 @@ fn process_diplomatic_friction(
     current_turn: u32,
 ) {
     use crate::military::war_declarations::{
-        check_tension_escalations, decay_all_tensions, tension_key,
+        check_tension_escalations_gated, decay_all_tensions, tension_key,
     };
 
     let config = state.war_declaration_config.clone();
@@ -15392,11 +15392,76 @@ fn process_diplomatic_friction(
         }
     }
 
-    let results = check_tension_escalations(
+    // v4.24.0: Casus-belli gates — no war without a border AND a legal
+    // path. A tension pair crossing the war threshold may still NOT
+    // declare unless all of these hold:
+    //   1. **Border adjacency** — belligerents share a synthetic land
+    //      border (`compute_country_adjacency`). Remote hostility stays
+    //      simmering tension, never a shooting war.
+    //   2. **Global war cap** — `max_simultaneous_wars` active pairs.
+    //      Excess candidates keep their tension and can escalate later.
+    //   3. **Recidivism cooldown** — a pair that ended a war within
+    //      `war_recidivism_cooldown_turns` cannot redeclare yet.
+    let adjacency = crate::military::war_bridge::compute_country_adjacency(state);
+    let pair_of = |a: &str, b: &str| -> (String, String) {
+        if a <= b {
+            (a.to_string(), b.to_string())
+        } else {
+            (b.to_string(), a.to_string())
+        }
+    };
+    let active_pairs: std::collections::BTreeSet<(String, String)> = state
+        .countries
+        .iter()
+        .flat_map(|(name, country)| {
+            country
+                .at_war_with
+                .iter()
+                .map(move |e| pair_of(name, e))
+        })
+        .collect();
+    // Most recent end_turn per pair — drives the recidivism cooldown.
+    let mut last_end: HashMap<(String, String), u32> = HashMap::new();
+    for ws in &state.declared_wars {
+        if let Some(end) = ws.end_turn {
+            let key = pair_of(&ws.aggressor, &ws.defender);
+            let e = last_end.entry(key).or_insert(end);
+            *e = (*e).max(end);
+        }
+    }
+    let max_wars = config.max_simultaneous_wars;
+    let cooldown = config.war_recidivism_cooldown_turns;
+    let require_adjacency = config.require_border_adjacency;
+    // Interior mutability: pairs declared THIS turn must count against the
+    // cap immediately (the candidate list is pre-filtered above threshold,
+    // so several pairs may qualify in one call).
+    let gate_pairs = std::cell::RefCell::new(active_pairs);
+    let gate = move |a: &str, b: &str| -> bool {
+        let pair = pair_of(a, b);
+        if require_adjacency && !adjacency.contains(&pair) {
+            return false;
+        }
+        {
+            let active = gate_pairs.borrow();
+            if !active.contains(&pair) && active.len() >= max_wars as usize {
+                return false;
+            }
+        }
+        if let Some(&end) = last_end.get(&pair) {
+            if current_turn.saturating_sub(end) < cooldown {
+                return false;
+            }
+        }
+        gate_pairs.borrow_mut().insert(pair);
+        true
+    };
+
+    let results = check_tension_escalations_gated(
         &mut state.bilateral_tensions,
         &mut at_war_map,
         current_turn,
         &config,
+        &gate,
     );
     for result in results {
         for msg in &result.messages {
