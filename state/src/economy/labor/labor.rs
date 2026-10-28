@@ -176,6 +176,33 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         1.0
     };
 
+    // v4.24.0 WS2: urbanization split from real class populations —
+    // Worker/Bourgeoisie population IS the urban population, rural
+    // classes the rural population. Replaces the static worldgen
+    // logistic seed which never moved as industrialization pulled
+    // classes into cities. Computed before the borrow split.
+    let (mut class_urban_pop, mut class_rural_pop) = (0.0_f64, 0.0_f64);
+    for region in &country.regions {
+        for demo in region.class_demographics.rural_classes.values() {
+            class_rural_pop += demo.population as f64;
+        }
+        for demo in region.class_demographics.urban_classes.values() {
+            class_urban_pop += demo.population as f64;
+        }
+    }
+    let class_pop_total = class_urban_pop + class_rural_pop;
+    let (urban_share, rural_share) = if class_pop_total > 0.0 {
+        (
+            class_urban_pop / class_pop_total,
+            class_rural_pop / class_pop_total,
+        )
+    } else {
+        (
+            country.macro_indicators.demographics.city_urban,
+            country.macro_indicators.demographics.rural,
+        )
+    };
+
     let budget = &mut country.budget;
     let macro_indicators = &mut country.macro_indicators;
 
@@ -347,43 +374,122 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             .retain(|k| k.count > 10.0 && k.seniority <= max_seniority);
         demographics.unassimilated_immigrants = active_immigrants;
 
-        // Age groups.
-        let children = demographics.age_groups.children;
-        let adults = demographics.age_groups.adults;
-        let elderly = demographics.age_groups.elderly;
+        // Age groups — v4.24.0 WS2 cohort-component model.
+        // Sixteen five-year bands ([0–4]…[70–74], open [75+]) age per turn:
+        // 1/120 of each band graduates (Δt = 1/24 yr ÷ 5-yr band), deaths
+        // follow life-table hazards scaled so the realized total equals
+        // the authoritative natural_deaths + work_deaths count above, and
+        // births enter band 0 while net migrants join prime working ages.
+        // This replaces the legacy 3-bucket update, which applied ANNUAL
+        // birth/death/migration rates every engine turn — ~24× too fast —
+        // producing a phantom mass die-off and a bottom-heavy triangle.
+        use crate::society::cultures::{
+            aggregate_three_cohorts, cohort_age_stats, cohort_band_hazards,
+            solve_cohort_death_scale, stable_age_cohorts, ADULT_BAND_START,
+            AGE_COHORT_BANDS, AGE_GRADUATION_PER_TURN, ELDERLY_BAND_START,
+            MIGRANT_AGE_WEIGHTS, TURN_YEARS,
+        };
 
-        let children_aging_out = children / 15.0;
-        let children_entering_adulthood_count = children_aging_out * population;
+        // Reseed legacy/empty cohort state from the stable-population
+        // identity so old saves migrate forward deterministically.
+        if demographics.age_cohorts.len() != AGE_COHORT_BANDS
+            || demographics.age_cohorts.iter().sum::<f64>() <= 0.0
+        {
+            demographics.age_cohorts = stable_age_cohorts(
+                demographics.birth_rate,
+                demographics.death_rate,
+                life_expectancy,
+            )
+            .to_vec();
+        }
+
+        // Children entering adulthood = survivors graduating out of the
+        // 10–14 band into the 15–19 band this turn.
+        let children_entering_adulthood_count = demographics.age_cohorts
+            [ADULT_BAND_START - 1]
+            * AGE_GRADUATION_PER_TURN
+            * population;
         let inborn_working_disabled = children_entering_adulthood_count * 0.0010;
         let inborn_unable_to_work = children_entering_adulthood_count * 0.0005;
 
-        labor_market.active_disabled =
-            (labor_market.active_disabled * (1.0 - reduced_death_rate)) + inborn_working_disabled;
-        labor_market.unable_to_work =
-            (labor_market.unable_to_work * (1.0 - reduced_death_rate)) + inborn_unable_to_work;
+        labor_market.active_disabled = (labor_market.active_disabled
+            * (1.0 - per_turn_death_rate))
+            + inborn_working_disabled;
+        labor_market.unable_to_work = (labor_market.unable_to_work
+            * (1.0 - per_turn_death_rate))
+            + inborn_unable_to_work;
 
-        let productive_period_years = (healthy_life_expectancy - 16.0).max(20.0);
-        let adults_aging_to_elderly = adults / productive_period_years;
-
-        let elderly_deaths = reduced_death_rate.min(elderly + adults_aging_to_elderly - 0.01);
-        let remaining_deaths = (reduced_death_rate - elderly_deaths).max(0.0);
-
-        let new_children_share = (children - children_aging_out + birth_rate_index).max(0.01);
-        let work_deaths_fraction = work_deaths / population.max(1.0);
-        let new_adults_share = (adults + children_aging_out
-            - adults_aging_to_elderly
-            - remaining_deaths
-            - work_deaths_fraction
-            + migration_rate)
-            .max(0.01);
-        let new_elderly_share = (elderly + adults_aging_to_elderly - elderly_deaths).max(0.01);
-
-        let total_share = new_children_share + new_adults_share + new_elderly_share;
-        if total_share > 0.0 {
-            demographics.age_groups.children = new_children_share / total_share;
-            demographics.age_groups.adults = new_adults_share / total_share;
-            demographics.age_groups.elderly = new_elderly_share / total_share;
+        let total_death_share = (natural_deaths + work_deaths) / population.max(1.0);
+        let mut band_hazards = cohort_band_hazards(life_expectancy);
+        // Healthy-life-expectancy relief: when the healthy-years horizon
+        // approaches total lifespan, midlife mortality attenuates toward
+        // the senescent regime (deaths concentrate in childhood + old
+        // age) — the same pipeline the legacy productive_period_years
+        // term approximated.
+        let hle_relief =
+            (healthy_life_expectancy / life_expectancy.max(1.0)).clamp(0.5, 1.0);
+        for hazard in band_hazards
+            .iter_mut()
+            .take(ELDERLY_BAND_START)
+            .skip(ADULT_BAND_START)
+        {
+            *hazard *= hle_relief;
         }
+        let death_scale = solve_cohort_death_scale(
+            &demographics.age_cohorts,
+            &band_hazards,
+            total_death_share,
+        );
+
+        let mut next = [0.0_f64; AGE_COHORT_BANDS];
+        for i in 0..AGE_COHORT_BANDS {
+            let survive = (-death_scale * band_hazards[i] * TURN_YEARS).exp();
+            let survivors = demographics.age_cohorts[i] * survive;
+            next[i] += survivors * (1.0 - AGE_GRADUATION_PER_TURN);
+            if i + 1 < AGE_COHORT_BANDS {
+                next[i + 1] += survivors * AGE_GRADUATION_PER_TURN;
+            } else {
+                // Open 75+ band graduates in place.
+                next[i] += survivors * AGE_GRADUATION_PER_TURN;
+            }
+        }
+        // Births enter the youngest band; net cross-border migration is
+        // distributed over prime working ages (emigration removes the
+        // same profile, floored at zero).
+        next[0] += births / population.max(1.0);
+        let migrant_share = migrants / population.max(1.0);
+        if migrant_share != 0.0 {
+            for (offset, weight) in MIGRANT_AGE_WEIGHTS.iter().enumerate() {
+                let band = ADULT_BAND_START + offset;
+                next[band] = (next[band] + migrant_share * weight).max(0.0);
+            }
+        }
+        let next_total: f64 = next.iter().sum();
+        if next_total > 0.0 {
+            for band in &mut next {
+                *band /= next_total;
+            }
+            demographics.age_cohorts.copy_from_slice(&next);
+        }
+
+        // Re-derive the legacy three-bucket aggregate and headline ages
+        // from the real cohort state — no more free parameters.
+        let (children, adults, elderly) = aggregate_three_cohorts(&demographics.age_cohorts);
+        demographics.age_groups.children = children;
+        demographics.age_groups.adults = adults;
+        demographics.age_groups.elderly = elderly;
+        let (average_age, median_age) = cohort_age_stats(&demographics.age_cohorts);
+        demographics.average_age = average_age;
+        demographics.median_age = median_age;
+
+        // v4.24.0 WS2: write back the urbanization split derived from
+        // real class populations (computed above). Nomads are a residual
+        // mobile population that settles as the urban share advances —
+        // their share decays by the realized urban growth each turn.
+        let urban_growth = (urban_share - demographics.city_urban).max(0.0);
+        demographics.city_urban = urban_share;
+        demographics.rural = rural_share;
+        demographics.nomads *= (1.0 - urban_growth).clamp(0.0, 1.0);
 
         // Ethnic assimilation is now handled by Phase 17B process_assimilation_turn
         // in economy/assimilation.rs, which uses dual-channel coverage

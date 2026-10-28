@@ -710,12 +710,26 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
     let demo = &country.macro_indicators.demographics;
     let population = country.budget.population;
 
-    // v4.23.0 WS6: ten-year pyramid cohorts fitted to the real
-    // children/elderly shares (replaces the coarse 3-cohort emit).
+    // v4.24.0 WS2: the pyramid now reads the real sixteen five-year
+    // cohort state aged by the per-turn cohort-component model — pairs of
+    // bands are merged into the eight ten-year display cohorts (the open
+    // 75+ tail lands in "70+"). Legacy saves without the cohort vector
+    // fall back to the fitted geometric profile.
     const COHORT_LABELS: [&str; 8] = [
         "0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70+",
     ];
-    let cohort_shares = ten_year_pyramid_shares(demo.age_groups.children, demo.age_groups.elderly);
+    let cohort_shares = if demo.age_cohorts.len()
+        == crate::society::cultures::AGE_COHORT_BANDS
+        && demo.age_cohorts.iter().sum::<f64>() > 0.0
+    {
+        let mut merged = [0.0_f64; 8];
+        for i in 0..8 {
+            merged[i] = demo.age_cohorts[2 * i] + demo.age_cohorts[2 * i + 1];
+        }
+        merged
+    } else {
+        ten_year_pyramid_shares(demo.age_groups.children, demo.age_groups.elderly)
+    };
     let cohort_male = cohort_male_shares(&cohort_shares, demo.gender.male);
     let age_cohorts: Vec<AgeCohortDto> = cohort_shares
         .iter()
@@ -899,8 +913,21 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
         education,
         ethnicities,
         religions,
-        birth_rate: demo.birth_rate,
-        death_rate: demo.death_rate,
+        // v4.24.0 WS2: realized crude vital rates — last turn's real
+        // births/deaths annualized (24 turns/yr), so displayed fertility
+        // and mortality move with shortages, aging structure, and health
+        // instead of sitting on the worldgen input parameters forever.
+        // Turn-0 (no turn processed yet) falls back to the stored inputs.
+        birth_rate: if population > 0 && demo.last_births > 0.0 {
+            demo.last_births * 24.0 / population as f64 * 100.0
+        } else {
+            demo.birth_rate
+        },
+        death_rate: if population > 0 && demo.last_deaths > 0.0 {
+            demo.last_deaths * 24.0 / population as f64 * 100.0
+        } else {
+            demo.death_rate
+        },
         // v4.23.0 WS6: annualize the real per-turn cross-border flow
         // recorded by the Phase 85B telemetry hook (24 turns/yr). The
         // `net_migration` labor-model *input* is intentionally not read —

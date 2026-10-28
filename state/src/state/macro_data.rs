@@ -196,6 +196,13 @@ pub struct Demographics {
     /// Age distribution.
     #[serde(default)]
     pub age_groups: AgeGroups,
+    /// v4.24.0 WS2: sixteen five-year age cohort shares ([0-4] … [70-74],
+    /// open [75+]) — the real cohort state aged each turn by the
+    /// cohort-component model in `labor.rs`. `age_groups` is a derived
+    /// three-bucket aggregate of this vector. Empty on legacy saves →
+    /// reseeded from the stable-population model on first use.
+    #[serde(default)]
+    pub age_cohorts: Vec<f64>,
     /// Gender split.
     #[serde(default)]
     pub gender: Gender,
