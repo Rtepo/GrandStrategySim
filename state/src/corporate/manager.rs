@@ -816,29 +816,100 @@ pub fn process_companies(
             }
             total_withholding_tax += withholding;
         } else {
-            // R1.3: Owner not found in companies — this is a citizen shareholder
-            // or foreign entity. Route to regional class demographics savings
-            // (pro-rata by population). Apply 19% withholding tax (no exemption
-            // check possible for untracked entities).
+            // R1.3 / v4.24.0 WS2: Owner not found in companies — this is an
+            // untracked citizen shareholder. Shareholding wealth tracks
+            // financial wealth, not head-count, so the dividend routes to
+            // the propertied classes — Aristocracy and Bourgeoisie —
+            // pro-rata by class savings. The old population-proportional
+            // smear handed most of every dividend to Serfs and Landless
+            // Laborers, inverting the class wealth hierarchy. Apply 19%
+            // withholding tax (no exemption check for untracked owners).
             let withholding = *amount * DIVIDEND_WITHHOLDING_TAX_RATE;
             let net_dividend = *amount - withholding;
             total_withholding_tax += withholding;
 
-            // Distribute net dividend proportionally across all regional classes
-            // by population (Rule 5: proportional distribution).
-            if total_population > 0.0 {
+            use crate::society::geography::{RuralClass, UrbanClass};
+
+            // Propertied-class capital base (savings) across all regions.
+            let mut capital_total = 0.0_f64;
+            let mut propertied_pop = 0.0_f64;
+            for region in &country.regions {
+                if let Some(a) = region
+                    .class_demographics
+                    .rural_classes
+                    .get(&RuralClass::Aristocracy)
+                {
+                    capital_total += a.savings.max(0.0);
+                    propertied_pop += a.population as f64;
+                }
+                if let Some(b) = region
+                    .class_demographics
+                    .urban_classes
+                    .get(&UrbanClass::Bourgeoisie)
+                {
+                    capital_total += b.savings.max(0.0);
+                    propertied_pop += b.population as f64;
+                }
+            }
+
+            if capital_total > 0.0 {
                 for region in &mut country.regions {
-                    for class in region.class_demographics.rural_classes.values_mut() {
-                        let share = class.population as f64 / total_population;
-                        class.savings += net_dividend * share;
+                    if let Some(a) = region
+                        .class_demographics
+                        .rural_classes
+                        .get_mut(&RuralClass::Aristocracy)
+                    {
+                        let share = a.savings.max(0.0) / capital_total;
+                        a.savings += net_dividend * share;
+                        if a.population > 0 {
+                            a.savings_per_capita =
+                                a.savings / a.population as f64;
+                        }
                     }
-                    for class in region.class_demographics.urban_classes.values_mut() {
-                        let share = class.population as f64 / total_population;
-                        class.savings += net_dividend * share;
+                    if let Some(b) = region
+                        .class_demographics
+                        .urban_classes
+                        .get_mut(&UrbanClass::Bourgeoisie)
+                    {
+                        let share = b.savings.max(0.0) / capital_total;
+                        b.savings += net_dividend * share;
+                        if b.population > 0 {
+                            b.savings_per_capita =
+                                b.savings / b.population as f64;
+                        }
+                    }
+                }
+            } else if propertied_pop > 0.0 {
+                // No recorded capital yet (fresh genesis): distribute by
+                // propertied-class population rather than total head-count.
+                for region in &mut country.regions {
+                    if let Some(a) = region
+                        .class_demographics
+                        .rural_classes
+                        .get_mut(&RuralClass::Aristocracy)
+                    {
+                        let share = a.population as f64 / propertied_pop;
+                        a.savings += net_dividend * share;
+                        if a.population > 0 {
+                            a.savings_per_capita =
+                                a.savings / a.population as f64;
+                        }
+                    }
+                    if let Some(b) = region
+                        .class_demographics
+                        .urban_classes
+                        .get_mut(&UrbanClass::Bourgeoisie)
+                    {
+                        let share = b.population as f64 / propertied_pop;
+                        b.savings += net_dividend * share;
+                        if b.population > 0 {
+                            b.savings_per_capita =
+                                b.savings / b.population as f64;
+                        }
                     }
                 }
             } else {
-                // No population: escheat to Treasury as unclaimed
+                // No propertied classes: escheat to Treasury as unclaimed.
                 country.budget.liquid_reserves += net_dividend;
             }
         }
@@ -2114,6 +2185,7 @@ pub fn process_company(
         // If a Latifundium has a dynasty_id matching a RegionalGovernance.id,
         // the calculated aristocracy_profit is added directly to that region's
         // RegionalBudget.liquid_reserves as non-tax revenue.
+        let mut routed = false;
         if let Some(municipality_id) = &latifundium.dynasty_id {
             if let Some(region) = country
                 .regions
@@ -2121,6 +2193,38 @@ pub fn process_company(
                 .find(|r| r.governance.as_ref().map(|g| &g.id) == Some(municipality_id))
             {
                 region.governance.as_mut().unwrap().budget.liquid_reserves += aristocracy_profit;
+                routed = true;
+            }
+        }
+
+        // v4.24.0 WS2: when no matching dynasty governance exists, the
+        // estate's aristocratic profit share must reach the Aristocracy
+        // class itself — manorial rents are the aristocracy's economic
+        // base and were previously dropped on the floor, starving the
+        // class while serf savings ballooned. M0-conserving: the payout
+        // is debited from `available_cash` — the M0-tracked cash account
+        // (liquid_capital is accounting-only and is NOT in M0) — capped
+        // at cash on hand before crediting class savings.
+        if !routed && aristocracy_profit > 0.0 {
+            let payout = aristocracy_profit.min(company.available_cash.max(0.0));
+            if payout > 0.0 {
+                company.available_cash -= payout;
+                if let Some(region) = country
+                    .regions
+                    .iter_mut()
+                    .find(|r| r.id == company.region_id)
+                {
+                    let demo = region
+                        .class_demographics
+                        .rural_classes
+                        .entry(crate::society::geography::RuralClass::Aristocracy)
+                        .or_default();
+                    demo.savings += payout;
+                    if demo.population > 0 {
+                        demo.savings_per_capita =
+                            demo.savings / demo.population as f64;
+                    }
+                }
             }
         }
     }
