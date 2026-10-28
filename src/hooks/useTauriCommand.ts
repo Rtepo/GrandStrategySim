@@ -43,6 +43,7 @@ import type {
   OrganizationsSummaryDto,
   SocietySnapshotDto,
   PressSnapshotDto,
+  WorldMapSnapshot,
 } from "../types/api";
 
 export async function getGameStatus(): Promise<GameStatus> {
@@ -284,4 +285,9 @@ export async function getSocietySnapshot(country: string): Promise<SocietySnapsh
 /// v4.22 WS6: Press snapshot — ideological front pages generated from events.
 export async function getPressSnapshot(country: string): Promise<PressSnapshotDto> {
   return invoke<PressSnapshotDto>("get_press_snapshot", { country });
+}
+
+/// v4.24.0 WS5: Deterministic procedural world-map snapshot (Map tab + embeds).
+export async function getWorldMap(): Promise<WorldMapSnapshot> {
+  return invoke<WorldMapSnapshot>("get_world_map");
 }

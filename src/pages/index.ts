@@ -9,3 +9,4 @@ export { ParliamentPage } from "./ParliamentPage";
 export { GovernmentPage } from "./GovernmentPage";
 export { RegionsPage } from "./RegionsPage";
 export { DiplomacyPage } from "./DiplomacyPage";
+export { MapPage } from "./MapPage";

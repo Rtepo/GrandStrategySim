@@ -21,6 +21,7 @@ import {
   Shield,
   Zap,
   Newspaper,
+  MapPinned,
 } from "lucide-react";
 import { useGameStore } from "./store/gameStore";
 import { advanceTurn, newGame } from "./hooks/useTauriCommand";
@@ -46,6 +47,7 @@ import { OrganizationsPage } from "./pages/OrganizationsPage";
 import { OrganizationDetailPage } from "./pages/OrganizationDetailPage";
 import { SocietyPage } from "./pages/SocietyPage";
 import { PressPage } from "./pages/PressPage";
+import { MapPage } from "./pages/MapPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useUpdater } from "./hooks/useUpdater";
@@ -61,6 +63,7 @@ const NAV_ITEMS = [
   { to: "/companies", label: "Companies", icon: Building2 },
   { to: "/parliament", label: "Parliament", icon: Globe },
   { to: "/government", label: "Government", icon: Landmark },
+  { to: "/map", label: "Map", icon: MapPinned },
   { to: "/regions", label: "Regions", icon: Map },
   { to: "/land", label: "Land", icon: Trees },
   { to: "/diplomacy", label: "Diplomacy", icon: Globe },
@@ -424,6 +427,7 @@ export default function App() {
             <Route path="/companies" element={<CompaniesPage />} />
             <Route path="/parliament" element={<ParliamentPage />} />
             <Route path="/government" element={<GovernmentPage />} />
+            <Route path="/map" element={<MapPage />} />
             <Route path="/regions" element={<RegionsPage />} />
             <Route path="/land" element={<LandPage />} />
             <Route path="/diplomacy" element={<DiplomacyPage />} />

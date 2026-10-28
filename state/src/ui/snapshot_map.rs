@@ -456,7 +456,7 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             .filter(|r| r.node_type == NodeType::LandRegion)
             .cloned()
             .collect();
-        regions.sort_by(|a, b| region_sort_key(&a.id).cmp(&region_sort_key(&b.id)));
+        regions.sort_by_key(|r| region_sort_key(&r.id));
 
         let land_count = regions.len().max(1) as f64;
         // Blob radius grows with sqrt(region count) → uniform site density.
