@@ -390,7 +390,7 @@ fn disaster_type_name(dt: &DisasterType) -> &str {
 /// * `cadastre` - Mutable cadastre (parcels will have devastation updated).
 /// * `spread_rate` - Fraction of excess devastation that spreads to neighbors.
 pub fn spread_devastation(cadastre: &mut Cadastre, spread_rate: f64) {
-    // First pass: compute the devastation to spread from each parcel
+    // First pass: snapshot each parcel's devastation + adjacency.
     let spread_from: Vec<(ParcelId, f64, Vec<ParcelId>)> = {
         cadastre
             .iter()
@@ -400,25 +400,37 @@ pub fn spread_devastation(cadastre: &mut Cadastre, spread_rate: f64) {
             })
             .collect()
     };
+    let dev_of: std::collections::HashMap<ParcelId, f64> = spread_from
+        .iter()
+        .map(|(id, d, _)| (*id, *d))
+        .collect();
 
-    // Second pass: apply spread to neighbors
-    let mut spread_to: std::collections::HashMap<ParcelId, f64> = std::collections::HashMap::new();
-
-    for (_, devastation, neighbors) in &spread_from {
+    // Second pass: mass-conserving diffusion. Only the *excess* over each
+    // neighbor flows, and the source relinquishes exactly what the neighbor
+    // gains — devastation redistributes outward instead of being created
+    // ex nihilo at every heavily-hit parcel.
+    let mut deltas: std::collections::HashMap<ParcelId, f64> = std::collections::HashMap::new();
+    for (id, devastation, neighbors) in &spread_from {
         if neighbors.is_empty() {
             continue;
         }
-        // Each neighbor receives a fraction of the devastation
-        let per_neighbor = devastation * spread_rate / neighbors.len() as f64;
         for neighbor_id in neighbors {
-            *spread_to.entry(*neighbor_id).or_insert(0.0) += per_neighbor;
+            let excess =
+                devastation - dev_of.get(neighbor_id).copied().unwrap_or(0.0);
+            if excess <= 0.0 {
+                continue;
+            }
+            let flow = excess * spread_rate / neighbors.len() as f64;
+            *deltas.entry(*id).or_insert(0.0) -= flow;
+            *deltas.entry(*neighbor_id).or_insert(0.0) += flow;
         }
     }
 
-    // Apply the spread (capped at 1.0)
-    for (parcel_id, spread_amount) in spread_to {
+    // Apply net deltas (each parcel's update is independent → deterministic
+    // even though HashMap iteration order varies).
+    for (parcel_id, delta) in deltas {
         if let Some(p) = cadastre.get_mut(parcel_id) {
-            p.devastation_index = (p.devastation_index + spread_amount).min(1.0);
+            p.devastation_index = (p.devastation_index + delta).clamp(0.0, 1.0);
         }
     }
 }
