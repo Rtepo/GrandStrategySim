@@ -802,7 +802,13 @@ pub fn instrument_display_name(
         if let Some(c) = companies.iter().find(|c| c.id == company_id) {
             return (format!("{} (Shares)", c.name), Some(company_id.to_string()));
         }
-        return (format!("{} (Shares)", company_id), Some(company_id.to_string()));
+        // v4.24 WS1: annotate unresolved issuers instead of rendering a bare
+        // id indistinguishable from a real name — stale lots (liquidated or
+        // merged issuers) must be readable at a glance.
+        return (
+            format!("{} (Shares — issuer unresolved)", company_id),
+            Some(company_id.to_string()),
+        );
     }
 
     if let Some(bond_id) = instrument_id.strip_prefix("BOND:") {

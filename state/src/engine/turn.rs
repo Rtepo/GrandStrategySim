@@ -9910,6 +9910,18 @@ tasks.par_iter_mut().for_each(|task| {
             // SEC-2: Submit fund orders (deterministic valuation score)
             let len = task.companies.len();
             let (funds_half, companies_half) = task.companies.split_at_mut(len);
+            // v4.24 WS1: institutional non-competitive tender — funds absorb
+            // stale DSPW auction inventory into their fixed-income sleeve
+            // BEFORE equity deployment, so the bond allocation takes
+            // precedence over the equity overflow channel. Runs here (not
+            // inside submit_fund_orders) because it needs &mut Country for
+            // the debt market and treasury reserve credit.
+            crate::securities::funds::subscribe_fund_treasury_bonds(
+                funds_half,
+                &mut task.ctx.country,
+                &config,
+                current_turn,
+            );
             crate::securities::funds::submit_fund_orders(
                 funds_half,
                 &mut task.ctx.country.stock_exchange,

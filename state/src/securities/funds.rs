@@ -867,6 +867,24 @@ pub fn fund_purchase_treasury_bond(
     current_turn: u32,
 ) -> bool {
     // Validate fund has a ledger and brokerage account
+    let fund_id = fund.id.clone();
+    // v4.24 WS1: record the fund-class holder type instead of the
+    // retail-savings default — holder_type drives holder analytics and the
+    // retail label was simply wrong for institutional subscribers.
+    let holder_type = match fund.fund_type {
+        Some(FundType::OpenEndInvestmentFund)
+        | Some(FundType::ExchangeTradedFund)
+        | Some(FundType::MutualFund) => {
+            crate::economy::debt_market::SecurityHolderType::OpenEndFund
+        }
+        Some(FundType::ClosedEndInvestmentFund) => {
+            crate::economy::debt_market::SecurityHolderType::ClosedEndFund
+        }
+        Some(FundType::HedgeFund) => {
+            crate::economy::debt_market::SecurityHolderType::HedgeFund
+        }
+        None => crate::economy::debt_market::SecurityHolderType::OpenEndFund,
+    };
     let ledger = match fund.fund_ledger.as_mut() {
         Some(l) => l,
         None => return false,
@@ -899,10 +917,10 @@ pub fn fund_purchase_treasury_bond(
     country.budget.liquid_reserves += purchase_price;
 
     // Add fund as a holder of this security
-    use crate::economy::debt_market::{SecurityHolder, SecurityHolderType};
+    use crate::economy::debt_market::SecurityHolder;
     security.holders.push(SecurityHolder {
-        entity_id: fund.id.clone(),
-        holder_type: SecurityHolderType::RetailSavingsBond,
+        entity_id: fund_id,
+        holder_type,
         quantity: face_value,
         purchase_price,
     });
@@ -919,6 +937,166 @@ pub fn fund_purchase_treasury_bond(
     });
 
     true
+}
+
+/// v4.24 WS1: institutional non-competitive tender — funds absorb stale
+/// DSPW auction inventory into their fixed-income sleeve.
+///
+/// `is_auction_inventory` securities are real treasury paper the state has
+/// already issued but no primary dealer pulled (`issue_price` discount is
+/// the DSPW convention; the treasury receives no cash until purchased).
+/// Funds buy only inventory issued BEFORE this turn — same-day tranches
+/// stay reserved for the DSPW banks' `dspw_auction_settlement` step — so
+/// this channel picks up leftovers, never pre-empts the dealers.
+///
+/// Budget: each fund spends at most its fixed-income sleeve
+/// (`investable_cash - equity_deficit`, the same construction
+/// `submit_fund_orders` uses) and never dips below its cash buffer —
+/// equities keep first claim on AUM, treasuries absorb the bond sleeve.
+///
+/// Accounting is the existing `fund_purchase_treasury_bond` double-entry:
+/// fund cash ↓, treasury `liquid_reserves` ↑, `SecurityHolder` recorded,
+/// `FundBondHolding` written to the ledger — no synthetic money.
+///
+/// # Arguments
+/// * `funds` - Mutable slice of ALL companies (the current turn wiring
+///   passes the full company slice as `funds`; non-fund entries skip).
+/// * `country` - Mutable country (debt market + treasury reserves).
+/// * `config` - Securities market config (kept for symmetry with the
+///   order-submission signature; bond-yield screens may key off it later).
+/// * `current_turn` - Current turn.
+pub fn subscribe_fund_treasury_bonds(
+    funds: &mut [Company],
+    country: &mut crate::state::Country,
+    _config: &SecuritiesMarketConfig,
+    current_turn: u32,
+) {
+    // Snapshot purchasable inventory once — index + terms — so the
+    // per-fund loop can mutate `country` without holding a borrow on the
+    // debt market. Vector order = issuance order (deterministic).
+    let inventory: Vec<(usize, String, f64, f64)> = country
+        .debt_market
+        .outstanding_securities
+        .iter()
+        .enumerate()
+        .filter(|(_, s)| {
+            s.is_auction_inventory && !s.is_matured && s.issue_turn < current_turn
+        })
+        .map(|(i, s)| {
+            (
+                i,
+                s.id.clone(),
+                s.face_value,
+                s.face_value * s.issue_price,
+            )
+        })
+        .collect();
+    if inventory.is_empty() {
+        return;
+    }
+    let mut consumed = vec![false; inventory.len()];
+
+    let equity_prices = equity_price_map(funds, &[]);
+    for fund in funds.iter_mut() {
+        if fund.fund_type.is_none() || fund.fund_ledger.is_none() {
+            continue;
+        }
+        if fund.brokerage_account.is_none() {
+            continue;
+        }
+        let mandate = fund
+            .fund_ledger
+            .as_ref()
+            .map(|l| l.investment_mandate.clone())
+            .unwrap_or_default();
+        let risk_profile = mandate.risk_profile;
+        let fund_equity_target = if mandate.equity_target_share > 0.0 {
+            mandate.equity_target_share.min(1.0)
+        } else {
+            risk_profile.equity_target_share()
+        };
+        let cash_buffer = if mandate.cash_buffer_pct > 0.0 {
+            mandate.cash_buffer_pct.min(1.0)
+        } else {
+            risk_profile.cash_buffer_pct()
+        };
+
+        // Same AUM construction as submit_fund_orders: cash + frozen +
+        // equity marks + treasury ledger holdings.
+        let equity_value_held: f64 = fund
+            .brokerage_account
+            .as_ref()
+            .map(|a| {
+                let mut terms: Vec<f64> = a
+                    .portfolio
+                    .iter()
+                    .filter(|(inst, _)| inst.starts_with("EQUITY:"))
+                    .map(|(inst, lots)| {
+                        let qty: u64 = lots.iter().map(|l| l.quantity).sum();
+                        let cid = inst.strip_prefix("EQUITY:").unwrap_or("");
+                        equity_prices.get(cid).copied().unwrap_or(0.0) * qty as f64
+                    })
+                    .collect();
+                terms.sort_by(|x, y| x.total_cmp(y));
+                terms.into_iter().sum()
+            })
+            .unwrap_or(0.0);
+        let bond_holdings_value: f64 = fund
+            .fund_ledger
+            .as_ref()
+            .map(|l| {
+                l.bond_holdings
+                    .iter()
+                    .filter(|h| !h.redeemed)
+                    .map(|h| h.face_value)
+                    .sum()
+            })
+            .unwrap_or(0.0);
+        let fund_cash = fund
+            .brokerage_account
+            .as_ref()
+            .map(|b| b.cash)
+            .unwrap_or(0.0);
+        let aum = fund_cash
+            + fund
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.frozen_cash)
+                .unwrap_or(0.0)
+            + equity_value_held
+            + bond_holdings_value;
+
+        let investable_cash = fund_cash * (1.0 - cash_buffer);
+        let equity_deficit = (aum * fund_equity_target - equity_value_held).max(0.0);
+        let mut sleeve_budget = (investable_cash - equity_deficit).max(0.0);
+        let cash_floor = aum * cash_buffer;
+        if sleeve_budget <= 0.0 {
+            continue;
+        }
+
+        for (k, (idx, sec_id, face, cost)) in inventory.iter().enumerate() {
+            if sleeve_budget <= 0.0 {
+                break;
+            }
+            if consumed[k] || *cost <= 0.0 || *cost > sleeve_budget {
+                continue;
+            }
+            let free_cash = fund
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash)
+                .unwrap_or(0.0);
+            if free_cash - *cost < cash_floor {
+                continue;
+            }
+            if fund_purchase_treasury_bond(fund, country, sec_id, *face, *cost, current_turn) {
+                country.debt_market.outstanding_securities[*idx].is_auction_inventory =
+                    false;
+                consumed[k] = true;
+                sleeve_budget -= *cost;
+            }
+        }
+    }
 }
 
 /// Phase 36: Process coupon payments for all fund bond holdings.
@@ -1033,6 +1211,16 @@ const FLOAT_TOPUP_SHARES_DIVISOR: u64 = 1000;
 /// fair-value asks walking at `mark·(1+FLOAT_REQUOTE_STEP)`; the matcher
 /// still executes at the ask, never above it.
 const RETAIL_BID_TOLERANCE: f64 = 0.05;
+
+/// v4.24 WS1: per-turn cap on follow-on (primary) issuance to fund
+/// subscribers — at most this fraction of an issuer's outstanding shares
+/// may be newly minted per turn across ALL funds (bounded dilution). The
+/// primary channel exists because secondary supply is structurally thin:
+/// the underwriter dribbles `shares/1000` per name per turn while fund
+/// subscription inflow compounds at ~2%/turn of AUM — without primary
+/// issuance the non-cash sleeve can never be reached (the ~90% idle-cash
+/// deadlock this release fixes).
+const PRIMARY_ISSUE_MAX_SHARE_PCT: f64 = 0.02;
 
 /// v4.20 WS3: Re-quote the standing TREASURY-underwritten float asks for
 /// every listed equity at a fair-value-anchored price.
@@ -1261,6 +1449,18 @@ pub fn submit_fund_orders(
     // turn. Runs once per turn (not per fund) — the underwriter is a
     // single market liquidity provider, not per-fund state.
     requote_float_asks(exchange, &equity_candidates, config, current_turn);
+
+    // v4.24 WS1: primary-subscription bookkeeping. Issuers must live in
+    // the mutable `funds` slice (the `companies` argument is immutable and
+    // empty under the current turn wiring) — subscribing to a candidate
+    // whose issuer cannot be credited would debit the fund without a
+    // counterparty credit, breaking double-entry conservation.
+    let fund_ids: std::collections::HashSet<String> =
+        funds.iter().map(|c| c.id.clone()).collect();
+    let mut primary_issued_shares: BTreeMap<String, u64> = BTreeMap::new();
+    // (issuer_company_id, qty, price) — applied to issuers after the
+    // per-fund loop (the fund's own bookkeeping happens in-loop).
+    let mut primary_subs: Vec<(String, u64, f64)> = Vec::new();
 
     for fund in funds.iter_mut() {
         if fund.fund_type.is_none() || fund.fund_ledger.is_none() {
@@ -1798,8 +1998,17 @@ pub fn submit_fund_orders(
                 .unwrap_or_default();
 
             // Sleeve-level excess is sold pro-rata across held names.
-            let sleeve_excess = if equity_value_held > target_equity * (1.0 + band) {
-                equity_value_held - target_equity
+            // v4.24 WS1: the trim floor is the LARGER of the mandate's
+            // equity target and the non-cash floor (`1 - cash_buffer`).
+            // The primary-subscription pass deliberately invests the
+            // fixed-income sleeve into equity when bond supply is absent —
+            // trimming that overflow back to `target_equity` would dump it
+            // into cash again next rebalance and oscillate forever.
+            let non_cash_min = aum
+                * (1.0 - cash_buffer.max(modifiers.cash_reserve_preference.min(1.0)));
+            let sleeve_floor = target_equity.max(non_cash_min);
+            let sleeve_excess = if equity_value_held > sleeve_floor * (1.0 + band) {
+                equity_value_held - sleeve_floor
             } else {
                 0.0
             };
@@ -1964,6 +2173,108 @@ pub fn submit_fund_orders(
                         book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
                     }
                 }
+            }
+        }
+
+        // ── v4.24 WS1: Primary subscription — market-clearing deployment ──
+        // Secondary bids can only fill against OFFERED float, and MBS /
+        // covered-bond asks are likewise supply-bound: unfilled bids expire,
+        // release their pledges, and the same cash is re-bid next turn —
+        // the ~90% idle-cash deadlock the release gate measures.
+        //
+        // The mandate's non-cash floor (`aum · (1 - cash_buffer)`) is
+        // therefore met by subscribing NEWLY-ISSUED shares at the mark —
+        // the IPO queue's own closed loop: real fund cash → issuer
+        // `liquid_capital`, real shares → the fund's brokerage book, real
+        // dilution on the issuer's cap table. No synthetic money: the
+        // issuer gains genuine investable capital and the subscriber takes
+        // genuine equity risk at the prevailing mark. Equity may exceed
+        // `target_equity` here — that is the mandate's fixed-income sleeve
+        // falling back to listed equity when fixed-income supply is absent;
+        // the rebalance floor (sleeve_floor) does not churn it back.
+        {
+            let cash_floor =
+                aum * cash_buffer.max(modifiers.cash_reserve_preference.min(1.0));
+            let free_cash = fund
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash)
+                .unwrap_or(0.0);
+            let mut deployable = free_cash - cash_floor;
+            if deployable > 0.0 {
+                for cand in &ranked {
+                    if deployable <= 0.0 {
+                        break;
+                    }
+                    if cand.id == fund_id || !fund_ids.contains(&cand.id) {
+                        continue;
+                    }
+                    let mark = cand.share_price;
+                    if mark <= 0.0 {
+                        continue;
+                    }
+                    // The mandate's single-name concentration cap binds the
+                    // primary sleeve exactly as it binds secondary buys.
+                    let position_cap_value =
+                        aum * position_cap_pct.min(modifiers.max_position_pct);
+                    let held_qty: u64 = fund
+                        .brokerage_account
+                        .as_ref()
+                        .map(|a| a.get_quantity(&cand.instrument_id))
+                        .unwrap_or(0);
+                    let name_room = (position_cap_value - held_qty as f64 * mark).max(0.0);
+                    if name_room <= 0.0 {
+                        continue;
+                    }
+                    // Issuer-level turn cap: at most
+                    // PRIMARY_ISSUE_MAX_SHARE_PCT of outstanding shares may
+                    // be newly minted per turn across all subscribers.
+                    let issuer_turn_cap = ((cand.shares_count as f64
+                        * PRIMARY_ISSUE_MAX_SHARE_PCT)
+                        as u64)
+                        .max(1);
+                    let issued_so_far =
+                        primary_issued_shares.get(&cand.id).copied().unwrap_or(0);
+                    let issuer_room = issuer_turn_cap.saturating_sub(issued_so_far);
+                    if issuer_room == 0 {
+                        continue;
+                    }
+                    let qty = ((deployable.min(name_room) / mark) as u64).min(issuer_room);
+                    if qty == 0 {
+                        continue;
+                    }
+                    let cost = qty as f64 * mark;
+                    if let Some(ref mut acct) = fund.brokerage_account {
+                        if acct.cash >= cost {
+                            acct.cash -= cost;
+                            acct.add_lot(&cand.instrument_id, qty, mark, current_turn);
+                            deployable -= cost;
+                            primary_issued_shares.insert(cand.id.clone(), issued_so_far + qty);
+                            primary_subs.push((cand.id.clone(), qty, mark));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Apply the issuer side of this turn's primary subscriptions: real
+    // proceeds into `liquid_capital` (the IPO-queue convention), real new
+    // shares onto the cap table, real float — every subscribed share is
+    // institutional free float.
+    for (issuer_id, qty, price) in primary_subs {
+        let proceeds = qty as f64 * price;
+        if let Some(issuer) = funds.iter_mut().find(|c| c.id == issuer_id) {
+            issuer.liquid_capital += proceeds;
+            let old_count = issuer.shares_count;
+            issuer.shares_count = issuer.shares_count.saturating_add(qty);
+            if let crate::entities::LegalForm::JointStockCompany(ref mut data) =
+                issuer.legal_form
+            {
+                let float_shares = data.free_float * old_count as f64 + qty as f64;
+                data.shares_issued = issuer.shares_count;
+                data.free_float =
+                    (float_shares / issuer.shares_count.max(1) as f64).clamp(0.0, 1.0);
             }
         }
     }

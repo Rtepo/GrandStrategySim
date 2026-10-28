@@ -2413,8 +2413,20 @@ pub fn process_company(
     }
 
     // Phase 55: Compute EPS, P/E ratio, and dividend yield for listed companies.
+    //
+    // v4.24 WS1: `net_profit` is a PER-TURN flow (24 turns/year) but every
+    // consumer compares it against ANNUAL multiples — fund mandate screens
+    // (`pe_or_pb <= fund_max_pe_threshold`), the underwriter fair-value
+    // requote (`0.5·eps·max_pe + 0.5·book_ps`), fund bid caps
+    // (`eps · profile_pe_threshold`), and the Press business-section P/E
+    // print. A per-turn EPS made `pe_ratio` read ~24x a real P/E — every
+    // listed name screened "overvalued", funds never bid, and ~90% of AUM
+    // sat in idle cash. Annualize the earnings stream so the ratios are
+    // true multiples.
     if company.shares_count > 0 {
-        company.eps = net_profit / company.shares_count as f64;
+        company.eps =
+            net_profit * crate::state::macro_data::TURNS_PER_YEAR as f64
+                / company.shares_count as f64;
         if company.eps > 0.0 && company.share_price > 0.0 {
             company.pe_ratio = company.share_price / company.eps;
         } else {
