@@ -9970,6 +9970,7 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         war_morale,
         disasters: Vec::new(), // Disasters are transient — would need a log
         pow_camps,
+        ended_wars,
         internal_conflicts,
         coup_resolutions,
     }
