@@ -3336,7 +3336,7 @@ pub fn allocate_class_religions(
                 continue;
             }
             let fit = ((pop / total_pop) - target_share).abs();
-            if best.map_or(true, |(_, b)| fit < b) {
+            if best.is_none_or(|(_, b)| fit < b) {
                 best = Some((i, fit));
             }
         }

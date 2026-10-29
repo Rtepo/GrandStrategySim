@@ -184,12 +184,12 @@ pub fn aggregate_three_cohorts(cohorts: &[f64]) -> (f64, f64, f64) {
 pub fn cohort_band_hazards(life_expectancy: f64) -> [f64; AGE_COHORT_BANDS] {
     let scale = fit_life_table_scale(life_expectancy);
     let mut hazards = [0.0_f64; AGE_COHORT_BANDS];
-    for i in 0..AGE_COHORT_BANDS {
+    for (i, h) in hazards.iter_mut().enumerate() {
         let a0 = i as f64 * AGE_BAND_YEARS;
         let a1 = a0 + AGE_BAND_YEARS;
         let l0 = life_table_survival(a0, scale);
         let l1 = life_table_survival(a1, scale);
-        hazards[i] = if l0 > 0.0 && l1 > 0.0 {
+        *h = if l0 > 0.0 && l1 > 0.0 {
             (-(l1 / l0).ln() / AGE_BAND_YEARS).max(1e-9)
         } else {
             // Deep tail: survival ~0 — use the local mortality rate

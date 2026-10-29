@@ -10029,7 +10029,7 @@ tasks.par_iter_mut().for_each(|task| {
             // the debt market and treasury reserve credit.
             crate::securities::funds::subscribe_fund_treasury_bonds(
                 funds_half,
-                &mut task.ctx.country,
+                task.ctx.country,
                 &config,
                 current_turn,
             );

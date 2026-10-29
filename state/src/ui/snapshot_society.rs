@@ -723,8 +723,8 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
         && demo.age_cohorts.iter().sum::<f64>() > 0.0
     {
         let mut merged = [0.0_f64; 8];
-        for i in 0..8 {
-            merged[i] = demo.age_cohorts[2 * i] + demo.age_cohorts[2 * i + 1];
+        for (i, m) in merged.iter_mut().enumerate() {
+            *m = demo.age_cohorts[2 * i] + demo.age_cohorts[2 * i + 1];
         }
         merged
     } else {

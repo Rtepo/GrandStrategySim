@@ -132,8 +132,8 @@ pub fn resolve_battle(
     let phases = vec![
         crate::military::fronts::BattlePhase {
             name: "Contact".to_string(),
-            attacker_power: attacker_power,
-            defender_power: defender_power,
+            attacker_power,
+            defender_power,
             note: format!(
                 "{} units engage {} units",
                 attacker_units.len(),
@@ -142,8 +142,8 @@ pub fn resolve_battle(
         },
         crate::military::fronts::BattlePhase {
             name: "Exchange".to_string(),
-            attacker_power: attacker_power,
-            defender_power: defender_power,
+            attacker_power,
+            defender_power,
             note: format!(
                 "Power ratio {:.2}:1 after supply burn",
                 attacker_power / defender_power.max(1.0)
@@ -151,8 +151,8 @@ pub fn resolve_battle(
         },
         crate::military::fronts::BattlePhase {
             name: "Decision".to_string(),
-            attacker_power: attacker_power,
-            defender_power: defender_power,
+            attacker_power,
+            defender_power,
             note: format!(
                 "{:?} — {} vs {} casualties",
                 result,
