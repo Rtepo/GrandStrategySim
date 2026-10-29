@@ -624,31 +624,55 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             for region in &mut task.ctx.country.regions {
                 for demo in region.class_demographics.rural_classes.values_mut() {
                     demo.savings_stock_turn_start = demo.savings;
+                    demo.loan_inflow_this_turn = 0.0;
                 }
                 for demo in region.class_demographics.urban_classes.values_mut() {
                     demo.savings_stock_turn_start = demo.savings;
+                    demo.loan_inflow_this_turn = 0.0;
                 }
             }
         });
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
-        // Phase 13: Initialize per-class religion from country's dominant religion.
-        // Runs after demographics processing creates class entries.
+        // Phase 13 / v4.24.0 WS2: initialize per-class religions from the
+        // national religious composition via population-weighted quota
+        // allocation. The old path stamped EVERY class with the dominant
+        // religion, which collapsed a diverse Turn-0 composition into a
+        // 100% monoculture by Turn 1 — this backfill now preserves
+        // minorities at class granularity (and still only fills empty
+        // slots, so it remains a safe save-migration path).
         let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
-            let religion = task.ctx.country.macro_indicators.religion.clone();
-            if !religion.is_empty() {
+            let composition = task
+                .ctx
+                .country
+                .macro_indicators
+                .demographics
+                .religious_composition
+                .clone();
+            if composition.is_empty() {
+                // Legacy save without composition data: fall back to the
+                // dominant religion so no class is left unlabeled.
+                let religion = task.ctx.country.macro_indicators.religion.clone();
+                if religion.is_empty() {
+                    return;
+                }
+                let mut fallback = std::collections::BTreeMap::new();
+                fallback.insert(religion, 1.0);
                 for region in &mut task.ctx.country.regions {
-                    for demo in region.class_demographics.rural_classes.values_mut() {
-                        if demo.religion.is_empty() {
-                            demo.religion = religion.clone();
-                        }
-                    }
-                    for demo in region.class_demographics.urban_classes.values_mut() {
-                        if demo.religion.is_empty() {
-                            demo.religion = religion.clone();
-                        }
-                    }
+                    crate::society::geography::allocate_class_religions(
+                        &mut region.class_demographics.rural_classes,
+                        &mut region.class_demographics.urban_classes,
+                        &fallback,
+                    );
+                }
+            } else {
+                for region in &mut task.ctx.country.regions {
+                    crate::society::geography::allocate_class_religions(
+                        &mut region.class_demographics.rural_classes,
+                        &mut region.class_demographics.urban_classes,
+                        &composition,
+                    );
                 }
             }
         });
@@ -2073,6 +2097,113 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             task.ctx.country.transport_networks = network_overlay;
             // Merge deferred trades into the country's deferred list.
             task.ctx.country.deferred_trades.extend(new_deferred);
+
+            // v4.24 freight elasticity: backlog-responsive surge hiring in
+            // TransportLogistics. Rigid carrier capacity stranded
+            // 20k-74k units/turn while millions sat unemployed — let
+            // carriers bid above their seated baseline in proportion to
+            // the deferred/capacity ratio so idle workers flow into
+            // auxiliary carting/hauling shifts and the squeeze unwinds
+            // endogenously over the next few turns. Endogenous — no
+            // money moves here; the FreightCapacity they produce scales
+            // with employment.
+            let backlog_units: f64 = task
+                .ctx
+                .country
+                .deferred_trades
+                .iter()
+                .map(|d| d.trade.quantity)
+                .sum();
+            let secured_units: f64 =
+                secured_trades.iter().map(|t| t.quantity).sum();
+            if backlog_units > 0.0 {
+                let fleet_cap: f64 = task
+                    .ctx
+                    .buildings
+                    .iter()
+                    .map(|b| {
+                        b.inventory
+                            .get(&crate::registries::enums::Commodity::FreightCapacity)
+                            .copied()
+                            .unwrap_or(0.0)
+                    })
+                    .sum();
+                let surge = (backlog_units / fleet_cap.max(1.0)).min(1.0);
+                if surge > 0.0 {
+                    for c in task.companies.iter_mut() {
+                        if c.sector == Sector::TransportLogistics
+                            && c.physical_fte_demand > 0
+                        {
+                            c.target_fte_demand =
+                                (c.physical_fte_demand as f64 * (1.0 + surge))
+                                    .round() as u32;
+                        }
+                    }
+                }
+
+                // v4.24 statist stimulus (ideology-gated): dirigiste,
+                // socialist and state-capitalist regimes fund a
+                // counter-cyclical logistics stimulus through state
+                // development credit — carrier payroll subsidies sized by
+                // the surge-crew wage bill, absorbing idle workers into
+                // productive freight employment rather than passive cash
+                // relief. Liberal economies rely on the private
+                // surge-hiring response alone.
+                let ruling = crate::politics::crisis_management::get_ruling_ideology(
+                    &task.ctx.country.politics,
+                );
+                let statist = matches!(
+                    ruling,
+                    crate::politics::ideology::Ideology::OrthodoxMarxism
+                        | crate::politics::ideology::Ideology::MarxismLeninism
+                        | crate::politics::ideology::Ideology::Maoism
+                        | crate::politics::ideology::Ideology::SocialDemocracy
+                        | crate::politics::ideology::Ideology::Fascism
+                        | crate::politics::ideology::Ideology::NationalConservatism
+                );
+                let flow_units = backlog_units + secured_units;
+                let bottleneck_share = if flow_units > 0.0 {
+                    backlog_units / flow_units
+                } else {
+                    0.0
+                };
+                let unemp_pct = task
+                    .ctx
+                    .country
+                    .macro_indicators
+                    .labor_market
+                    .unemployment_rate;
+                if statist
+                    && surge > 0.0
+                    && (unemp_pct > 15.0 || bottleneck_share > 0.10)
+                {
+                    let avg_wage = task
+                        .ctx
+                        .country
+                        .macro_indicators
+                        .average_wage
+                        .max(1.0);
+                    let stimulus = surge * fleet_cap * avg_wage;
+                    if stimulus > 0.0 {
+                        // State development credit: M0-tracked central-bank
+                        // issuance paid straight into carrier payrolls,
+                        // pro-rata by fleet capacity — the same booked
+                        // channel the works-program advance uses.
+                        task.ctx.country.central_bank.liquidity_injected +=
+                            stimulus;
+                        for c in task.companies.iter_mut() {
+                            if c.sector != Sector::TransportLogistics
+                                || c.worker_capacity == 0
+                            {
+                                continue;
+                            }
+                            c.available_cash += stimulus
+                                * c.worker_capacity as f64
+                                / fleet_cap;
+                        }
+                    }
+                }
+            }
 
             #[cfg(feature = "diagnostic")]
             let _res_pre: f64 = task
@@ -8711,6 +8842,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     .iter()
                     .map(|(c, _qty, vwap)| (*c, *vwap))
                     .collect();
+                let b2c_avg_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
                 let (b2c_settled, vat_collected, municipal_revenue) = settle_b2c_clearing(
                     &clearing_result.store_revenue,
                     &consumer_demand,
@@ -8721,6 +8853,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     &task.store_id_to_owner,
                     &task.company_id_to_idx,
                     &settle_prices,
+                    b2c_avg_wage,
                 );
                 // Phase 41: Credit treasury with VAT (SINGLE credit — no double-counting in tax turn).
                 // Municipal-market revenue from orphaned stores also returns
@@ -9888,6 +10021,18 @@ tasks.par_iter_mut().for_each(|task| {
             // SEC-2: Submit fund orders (deterministic valuation score)
             let len = task.companies.len();
             let (funds_half, companies_half) = task.companies.split_at_mut(len);
+            // v4.24 WS1: institutional non-competitive tender — funds absorb
+            // stale DSPW auction inventory into their fixed-income sleeve
+            // BEFORE equity deployment, so the bond allocation takes
+            // precedence over the equity overflow channel. Runs here (not
+            // inside submit_fund_orders) because it needs &mut Country for
+            // the debt market and treasury reserve credit.
+            crate::securities::funds::subscribe_fund_treasury_bonds(
+                funds_half,
+                task.ctx.country,
+                &config,
+                current_turn,
+            );
             crate::securities::funds::submit_fund_orders(
                 funds_half,
                 &mut task.ctx.country.stock_exchange,
@@ -15319,7 +15464,7 @@ fn process_diplomatic_friction(
     current_turn: u32,
 ) {
     use crate::military::war_declarations::{
-        check_tension_escalations, decay_all_tensions, tension_key,
+        check_tension_escalations_gated, decay_all_tensions, tension_key,
     };
 
     let config = state.war_declaration_config.clone();
@@ -15358,11 +15503,76 @@ fn process_diplomatic_friction(
         }
     }
 
-    let results = check_tension_escalations(
+    // v4.24.0: Casus-belli gates — no war without a border AND a legal
+    // path. A tension pair crossing the war threshold may still NOT
+    // declare unless all of these hold:
+    //   1. **Border adjacency** — belligerents share a synthetic land
+    //      border (`compute_country_adjacency`). Remote hostility stays
+    //      simmering tension, never a shooting war.
+    //   2. **Global war cap** — `max_simultaneous_wars` active pairs.
+    //      Excess candidates keep their tension and can escalate later.
+    //   3. **Recidivism cooldown** — a pair that ended a war within
+    //      `war_recidivism_cooldown_turns` cannot redeclare yet.
+    let adjacency = crate::military::war_bridge::compute_country_adjacency(state);
+    let pair_of = |a: &str, b: &str| -> (String, String) {
+        if a <= b {
+            (a.to_string(), b.to_string())
+        } else {
+            (b.to_string(), a.to_string())
+        }
+    };
+    let active_pairs: std::collections::BTreeSet<(String, String)> = state
+        .countries
+        .iter()
+        .flat_map(|(name, country)| {
+            country
+                .at_war_with
+                .iter()
+                .map(move |e| pair_of(name, e))
+        })
+        .collect();
+    // Most recent end_turn per pair — drives the recidivism cooldown.
+    let mut last_end: HashMap<(String, String), u32> = HashMap::new();
+    for ws in &state.declared_wars {
+        if let Some(end) = ws.end_turn {
+            let key = pair_of(&ws.aggressor, &ws.defender);
+            let e = last_end.entry(key).or_insert(end);
+            *e = (*e).max(end);
+        }
+    }
+    let max_wars = config.max_simultaneous_wars;
+    let cooldown = config.war_recidivism_cooldown_turns;
+    let require_adjacency = config.require_border_adjacency;
+    // Interior mutability: pairs declared THIS turn must count against the
+    // cap immediately (the candidate list is pre-filtered above threshold,
+    // so several pairs may qualify in one call).
+    let gate_pairs = std::cell::RefCell::new(active_pairs);
+    let gate = move |a: &str, b: &str| -> bool {
+        let pair = pair_of(a, b);
+        if require_adjacency && !adjacency.contains(&pair) {
+            return false;
+        }
+        {
+            let active = gate_pairs.borrow();
+            if !active.contains(&pair) && active.len() >= max_wars as usize {
+                return false;
+            }
+        }
+        if let Some(&end) = last_end.get(&pair) {
+            if current_turn.saturating_sub(end) < cooldown {
+                return false;
+            }
+        }
+        gate_pairs.borrow_mut().insert(pair);
+        true
+    };
+
+    let results = check_tension_escalations_gated(
         &mut state.bilateral_tensions,
         &mut at_war_map,
         current_turn,
         &config,
+        &gate,
     );
     for result in results {
         for msg in &result.messages {

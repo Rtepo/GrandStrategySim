@@ -244,18 +244,10 @@ pub async fn get_active_treaties(
             .treaty_registry
             .treaties_for_country(&country)
             .into_iter()
-            .map(|t| TreatyRow {
-                id: t.id.clone(),
-                name: t.name.clone(),
-                status: t.status.as_str().to_string(),
-                participants: t.participants.clone(),
-                clauses: t.clauses.iter().map(|c| c.as_str().to_string()).collect(),
-                negotiation_progress: t.negotiation_progress,
-                diplomatic_capacity_cost: t.diplomatic_capacity_cost,
-                initiated_turn: t.initiated_turn,
-                signed_turn: t.signed_turn,
-                duration_turns: t.duration_turns,
-                initiator: t.initiator.clone(),
+            // v4.24.0 WS5: shared builder — clause obligations, expiry,
+            // compliance for the expandable row.
+            .map(|t| {
+                sim_engine::ui::snapshot::treaty_row_from(t, &engine_state.game_state)
             })
             .collect();
         Ok(treaties)

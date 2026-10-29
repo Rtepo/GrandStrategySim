@@ -135,8 +135,19 @@ pub fn process_rural_urban_class_transitions(
                             };
                             let transferred_savings = savings_per_capita * transitioning as f64;
 
+                            // v4.24.0: move labor capacity WITH the movers —
+                            // leaving available_fte/allocated_fte behind
+                            // creates a ghost workforce on the drained class
+                            // (wages keep landing while population shrinks).
+                            let frac = transitioning as f64
+                                / fp_demo.population.max(1) as f64;
+                            let fte_mv = fp_demo.available_fte * frac;
+                            let alloc_mv = fp_demo.allocated_fte * frac;
+
                             fp_demo.population -= transitioning;
                             fp_demo.savings -= transferred_savings;
+                            fp_demo.available_fte -= fte_mv;
+                            fp_demo.allocated_fte -= alloc_mv;
 
                             let worker_demo = region
                                 .class_demographics
@@ -145,6 +156,8 @@ pub fn process_rural_urban_class_transitions(
                                 .or_default();
                             worker_demo.population += transitioning;
                             worker_demo.savings += transferred_savings;
+                            worker_demo.available_fte += fte_mv;
+                            worker_demo.allocated_fte += alloc_mv;
 
                             result.rural_to_urban += transitioning;
                         }
@@ -175,8 +188,17 @@ pub fn process_rural_urban_class_transitions(
                             };
                             let transferred_savings = savings_per_capita * transitioning as f64;
 
+                            // v4.24.0: labor capacity migrates with the
+                            // movers (ghost-workforce fix — see FP→Worker).
+                            let frac = transitioning as f64
+                                / ll_demo.population.max(1) as f64;
+                            let fte_mv = ll_demo.available_fte * frac;
+                            let alloc_mv = ll_demo.allocated_fte * frac;
+
                             ll_demo.population -= transitioning;
                             ll_demo.savings -= transferred_savings;
+                            ll_demo.available_fte -= fte_mv;
+                            ll_demo.allocated_fte -= alloc_mv;
 
                             let worker_demo = region
                                 .class_demographics
@@ -185,6 +207,8 @@ pub fn process_rural_urban_class_transitions(
                                 .or_default();
                             worker_demo.population += transitioning;
                             worker_demo.savings += transferred_savings;
+                            worker_demo.available_fte += fte_mv;
+                            worker_demo.allocated_fte += alloc_mv;
 
                             result.rural_to_urban += transitioning;
                         }
@@ -217,8 +241,23 @@ pub fn process_rural_urban_class_transitions(
                     if transition_fraction > 0.0 {
                         let transitioning = (serf_demo.population as f64 * transition_fraction) as i64;
                         if transitioning > 0 {
-                            // Serfs have zero savings — no savings to transfer.
+                            // v4.24.0: emancipated serfs carry their labor
+                            // AND their savings into the free pool. Without
+                            // the FTE transfer the shrunken Serf class kept
+                            // a ghost workforce and its per-capita wage
+                            // income exploded; without the savings transfer
+                            // emancipation silently confiscated accumulated
+                            // wealth.
+                            let frac = transitioning as f64
+                                / serf_demo.population.max(1) as f64;
+                            let fte_mv = serf_demo.available_fte * frac;
+                            let alloc_mv = serf_demo.allocated_fte * frac;
+                            let sav_mv = serf_demo.savings * frac;
+
                             serf_demo.population -= transitioning;
+                            serf_demo.available_fte -= fte_mv;
+                            serf_demo.allocated_fte -= alloc_mv;
+                            serf_demo.savings -= sav_mv;
 
                             let fp_demo = region
                                 .class_demographics
@@ -226,6 +265,9 @@ pub fn process_rural_urban_class_transitions(
                                 .entry(RuralClass::FreePeasant)
                                 .or_default();
                             fp_demo.population += transitioning;
+                            fp_demo.available_fte += fte_mv;
+                            fp_demo.allocated_fte += alloc_mv;
+                            fp_demo.savings += sav_mv;
 
                             // Phase E.2: Emancipation grant funded by Treasury (no fiat).
                             // Previously: grant = avg_wage * 0.1 * transitioning (fiat creation).
@@ -286,8 +328,17 @@ pub fn process_rural_urban_class_transitions(
                             if transitioning > 0 {
                                 let transferred_savings = savings_per_capita * transitioning as f64;
 
+                                // v4.24.0: labor capacity moves with the
+                                // promoted workers (ghost-workforce fix).
+                                let frac = transitioning as f64
+                                    / worker_demo.population.max(1) as f64;
+                                let fte_mv = worker_demo.available_fte * frac;
+                                let alloc_mv = worker_demo.allocated_fte * frac;
+
                                 worker_demo.population -= transitioning;
                                 worker_demo.savings -= transferred_savings;
+                                worker_demo.available_fte -= fte_mv;
+                                worker_demo.allocated_fte -= alloc_mv;
 
                                 let bourgeois_demo = region
                                     .class_demographics
@@ -296,6 +347,8 @@ pub fn process_rural_urban_class_transitions(
                                     .or_default();
                                 bourgeois_demo.population += transitioning;
                                 bourgeois_demo.savings += transferred_savings;
+                                bourgeois_demo.available_fte += fte_mv;
+                                bourgeois_demo.allocated_fte += alloc_mv;
 
                                 result.worker_to_bourgeoisie += transitioning;
                             }

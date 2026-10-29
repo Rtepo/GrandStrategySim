@@ -61,6 +61,15 @@ const FRONT_PAGE_SIZE: usize = 8;
 /// Only events from the last N turns are eligible for front pages
 /// (royal/council/history logs can stretch back further).
 const NEWS_WINDOW_TURNS: u32 = 96;
+/// v4.24 WS1: hard bound on `politics.history` entries scanned per snapshot.
+/// The ledger grows unboundedly (a `budget_bill` record is appended every
+/// budget session plus every floor/veto vote); scanning it whole made
+/// snapshot latency grow with game length — perceived by the Press tab as an
+/// infinite "Loading…". Entries are appended in chronological order, so the
+/// newest entries sit at the tail — scan backwards and stop after this many.
+/// 8192 covers ~8000 turns of budget records; anything older is outside the
+/// 96-turn news window anyway.
+const MAX_HISTORY_SCAN: usize = 8192;
 
 // ============================================================================
 // DTOs
@@ -266,7 +275,13 @@ fn collect_events(
     let window_start = current_turn.saturating_sub(NEWS_WINDOW_TURNS);
 
     // -- 1. Parliamentary JSON event log ------------------------------------
-    for entry in &country.politics.history {
+    // Scan the tail of the ledger (newest entries first) and stop after
+    // MAX_HISTORY_SCAN — the log is appended chronologically and only the
+    // NEWS_WINDOW_TURNS tail is newsworthy; this keeps worst-case latency
+    // constant regardless of save length. Iteration order does not affect
+    // output: dedup collapses identical refs/idents and the final event sort
+    // is fully deterministic.
+    for entry in country.politics.history.iter().rev().take(MAX_HISTORY_SCAN) {
         let Some(obj) = entry.as_object() else { continue };
         let kind = obj.get("event").and_then(Value::as_str).unwrap_or("");
         let turn = obj

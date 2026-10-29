@@ -1997,6 +1997,35 @@ pub fn bootstrap_politics(
         let monarch_gender = hos.gender.clone();
         let monarch_age = hos.age;
 
+        // v4.24.0 WS4.3: the dynastic surname every blood relation
+        // inherits — last token of the monarch's registered name
+        // ("King Mate Šešelj" → "Šešelj"). Consorts keep their birth
+        // names; children, siblings, uncles/aunts and cousins all carry
+        // the house name so the Dynasty Tree reads as one family.
+        let royal_surname = hos
+            .name
+            .split_whitespace()
+            .last()
+            .unwrap_or("")
+            .to_string();
+        // Inherit `first_name` + royal surname unless that full name is
+        // already taken — collision falls back to the generated name so
+        // VIP uniqueness is preserved.
+        let royalize = |generated: &crate::politics::names::VipName,
+                        used_names: &mut std::collections::HashSet<String>|
+         -> String {
+            if royal_surname.is_empty() {
+                return generated.full_name.clone();
+            }
+            let candidate = format!("{} {}", generated.first_name, royal_surname);
+            if used_names.contains(&candidate) {
+                generated.full_name.clone()
+            } else {
+                used_names.insert(candidate.clone());
+                candidate
+            }
+        };
+
         // Create the dynasty with the monarch as the first member.
         let mut royal_dynasty = super::succession::RoyalDynasty::new(dynasty_name.clone());
         royal_dynasty.current_monarch_id = Some(monarch_vip_id.clone());
@@ -2093,6 +2122,7 @@ pub fn bootstrap_politics(
                 rng,
                 &mut used_names,
             );
+            let heir_full_name = royalize(&heir_vip_name, &mut used_names);
             let (heir_traits, heir_main_trait) = assign_core_traits(rng);
             let heir_age = if monarch_age > 30 {
                 rng.gen_range(5..25)
@@ -2100,7 +2130,7 @@ pub fn bootstrap_politics(
                 rng.gen_range(1..10)
             };
             let heir_vip_id = registry.register_new(Vip {
-                full_name: heir_vip_name.full_name.clone(),
+                full_name: heir_full_name,
                 gender: heir_gender.to_string(),
                 age: heir_age,
                 health: crate::politics::vip_registry::VipHealth {
@@ -2180,10 +2210,11 @@ pub fn bootstrap_politics(
                 rng,
                 &mut used_names,
             );
+            let sibling_full_name = royalize(&sibling_name, &mut used_names);
             let (sib_traits, sib_main_trait) = assign_core_traits(rng);
             let sibling_age = (monarch_age as i32 + rng.gen_range(-5..6)).max(18) as u32;
             let sibling_vip_id = registry.register_new(Vip {
-                full_name: sibling_name.full_name.clone(),
+                full_name: sibling_full_name,
                 gender: sibling_gender.to_string(),
                 age: sibling_age.max(18),
                 health: crate::politics::vip_registry::VipHealth {
@@ -2234,10 +2265,11 @@ pub fn bootstrap_politics(
                 rng,
                 &mut used_names,
             );
+            let ua_full_name = royalize(&ua_name, &mut used_names);
             let (ua_traits, ua_main_trait) = assign_core_traits(rng);
             let ua_age = monarch_age + 15 + rng.gen_range(0..11); // 15-25 years older
             let ua_vip_id = registry.register_new(Vip {
-                full_name: ua_name.full_name.clone(),
+                full_name: ua_full_name,
                 gender: ua_gender.to_string(),
                 age: ua_age,
                 health: crate::politics::vip_registry::VipHealth {
@@ -2292,6 +2324,7 @@ pub fn bootstrap_politics(
                 rng,
                 &mut used_names,
             );
+            let cousin_full_name = royalize(&cousin_name, &mut used_names);
             let (c_traits, c_main_trait) = assign_core_traits(rng);
             let cousin_age = if monarch_age > 10 {
                 monarch_age - 10 + rng.gen_range(0..11)
@@ -2299,7 +2332,7 @@ pub fn bootstrap_politics(
                 rng.gen_range(1..10)
             };
             let cousin_vip_id = registry.register_new(Vip {
-                full_name: cousin_name.full_name.clone(),
+                full_name: cousin_full_name,
                 gender: cousin_gender.to_string(),
                 age: cousin_age.max(1),
                 health: crate::politics::vip_registry::VipHealth {
@@ -2968,6 +3001,15 @@ pub fn process_advisory_council_turn(country: &mut Country, current_turn: u32) -
     // new petitions from disloyal councilors, and decree issuance on cadence.
     // (`council`'s mutable borrow ends above; this re-borrows disjointly.)
     crate::politics::advisory_council::process_council_legislation(
+        country,
+        current_turn,
+        &mut messages,
+    );
+
+    // v4.24.0 WS4.3: internal conflicts — coup plots, Politburo power
+    // struggles and claimant crises accrue from the same faction-loyalty
+    // state the council maintains, and resolve into the history ledger.
+    crate::politics::coups::process_internal_conflicts_turn(
         country,
         current_turn,
         &mut messages,

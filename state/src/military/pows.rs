@@ -70,6 +70,8 @@ pub enum PowStatus {
     Repatriated,
     /// Died in captivity (from disease, malnutrition, or execution).
     Deceased,
+    /// v4.24.0: Escaped from internment (fled toward home country).
+    Escaped,
 }
 
 // ============================================================================
@@ -89,6 +91,13 @@ pub struct PowCamp {
     pub total_repatriated: i64,
     /// Total lease fees collected from factories (lifetime).
     pub total_lease_fees_collected: f64,
+    /// v4.24.0: Total POWs who escaped internment.
+    #[serde(default)]
+    pub total_escaped: i64,
+    /// v4.24.0: POWs captured during the most recent turn (UI "captured
+    /// this turn" — rewritten each intake pass).
+    #[serde(default)]
+    pub captured_last_turn: i64,
 }
 
 impl PowCamp {
@@ -97,12 +106,56 @@ impl PowCamp {
         Self::default()
     }
 
-    /// Current count of POWs (excluding deceased and repatriated).
+    /// Current count of POWs held (excluding deceased, repatriated, escaped).
     pub fn current_count(&self) -> i64 {
         self.prisoners
             .iter()
-            .filter(|p| p.status != PowStatus::Deceased && p.status != PowStatus::Repatriated)
+            .filter(|p| {
+                !matches!(
+                    p.status,
+                    PowStatus::Deceased | PowStatus::Repatriated | PowStatus::Escaped
+                )
+            })
             .count() as i64
+    }
+
+    /// v4.24.0: Camp intake — freshly `Captured` POWs are processed into
+    /// `Interned` status so they become labor-eligible. Returns the number
+    /// processed. Called once per turn from the war bridge's per-country
+    /// step; also refreshes `captured_last_turn` for the UI.
+    pub fn process_intake(&mut self, current_turn: u32) -> i64 {
+        self.captured_last_turn = self
+            .prisoners
+            .iter()
+            .filter(|p| p.capture_turn == current_turn)
+            .count() as i64;
+        let mut processed = 0i64;
+        for pow in &mut self.prisoners {
+            if pow.status == PowStatus::Captured {
+                pow.status = PowStatus::Interned;
+                processed += 1;
+            }
+        }
+        processed
+    }
+
+    /// v4.24.0: Deterministic escapes — interned POWs slip the wire at a
+    /// rate derived from camp conditions (harsher camps, lower
+    /// productivity/health ⇒ more escape pressure). Uses the same
+    /// hash-of-id scheme as `process_attrition`: no RNG, stable across
+    /// runs.
+    pub fn process_escapes(&mut self, escape_rate: f64) -> i64 {
+        let mut escapes = 0i64;
+        for pow in &mut self.prisoners {
+            if pow.status == PowStatus::Interned
+                && deterministic_attrition_check(&pow.id, escape_rate)
+            {
+                pow.status = PowStatus::Escaped;
+                escapes += 1;
+            }
+        }
+        self.total_escaped += escapes;
+        escapes
     }
 
     /// Count of POWs available for forced labor (interned, not yet assigned).
@@ -187,10 +240,14 @@ impl PowCamp {
         deaths
     }
 
-    /// Removes deceased and repatriated POWs from the active list.
+    /// Removes deceased, repatriated, and escaped POWs from the active list.
     pub fn cleanup(&mut self) {
-        self.prisoners
-            .retain(|p| p.status != PowStatus::Deceased && p.status != PowStatus::Repatriated);
+        self.prisoners.retain(|p| {
+            !matches!(
+                p.status,
+                PowStatus::Deceased | PowStatus::Repatriated | PowStatus::Escaped
+            )
+        });
     }
 }
 
@@ -437,7 +494,16 @@ pub fn repatriate_pows_from_country(
 ) -> Vec<PrisonerOfWar> {
     let mut repatriated = Vec::new();
     for pow in &mut pow_camp.prisoners {
-        if pow.origin_country == origin_country && pow.status != PowStatus::Deceased {
+        // v4.24.0: skip Deceased/Escaped AND already-Repatriated — a second
+        // call for the same origin (e.g., two wars ending on different
+        // turns) must not re-count prisoners into `total_repatriated`,
+        // and an escaped prisoner is already gone.
+        if pow.origin_country == origin_country
+            && !matches!(
+                pow.status,
+                PowStatus::Deceased | PowStatus::Repatriated | PowStatus::Escaped
+            )
+        {
             pow.status = PowStatus::Repatriated;
             pow.assigned_factory_id = None;
             repatriated.push(pow.clone());

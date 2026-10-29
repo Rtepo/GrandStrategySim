@@ -35,7 +35,13 @@ decrees: Array<CouncilDecreeRow>,
 /**
  * v4.23.0 WS2: Petitions factions carried to the ruler.
  */
-petitions: Array<CouncilPetitionRow>, };
+petitions: Array<CouncilPetitionRow>, 
+/**
+ * v4.24.0 WS4.1: constitutional mechanics banner — how the ruling
+ * council relates to the consultative/rubber-stamp assembly
+ * (empty when no such explanation applies).
+ */
+mechanics_banner: string, };
 
 /**
  * One age cohort row of the demographic structure.
@@ -80,6 +86,8 @@ export type ArbitrationCasesResponse = { rows: Array<ArbitrationCaseRow>, total_
 
 /**
  * Army composition for a single country.
+ * v4.24.0: expands per army — branch split, quality, command VIPs,
+ * conscription law, mobilized-vs-reserve manpower, casualty breakdown.
  */
 export type ArmyCompositionRow = { 
 /**
@@ -118,7 +126,80 @@ manpower_by_type: Array<[string, bigint]>,
  * v4.22: Per-region unit/manpower breakdown keyed by unit `location`
  * (Country→Region grouping for the UI). Regions are country-local IDs.
  */
-region_breakdown: Array<RegionArmyRow>, };
+region_breakdown: Array<RegionArmyRow>, 
+/**
+ * v4.24.0: Per-army detail rows (expandable).
+ */
+armies: Array<ArmyRow>, 
+/**
+ * v4.24.0: Active conscription law label.
+ */
+conscription_law: string, 
+/**
+ * v4.24.0: Manpower currently under arms (== total_manpower).
+ */
+mobilized_manpower: bigint, 
+/**
+ * v4.24.0: Eligible draft pool not yet under arms.
+ */
+reserve_manpower: bigint, 
+/**
+ * v4.24.0: War casualties to date (KIA/WIA/POW/missing).
+ */
+casualty_breakdown: CasualtyBreakdownRow, };
+
+/**
+ * Per-army expandable detail (v4.24.0).
+ */
+export type ArmyRow = { 
+/**
+ * Army ID (e.g., "ARMY-001").
+ */
+id: string, 
+/**
+ * Display name (e.g., "1st Army").
+ */
+name: string, 
+/**
+ * Home region ID of the army's garrison.
+ */
+home_region: string, 
+/**
+ * Garrison display name (region `display_name`, falls back to ID).
+ */
+garrison_name: string, 
+/**
+ * Divisions under this army.
+ */
+division_count: number, 
+/**
+ * Regiments under this army.
+ */
+regiment_count: number, 
+/**
+ * Total units.
+ */
+unit_count: number, 
+/**
+ * Total manpower.
+ */
+manpower: bigint, 
+/**
+ * Branch split: (branch label, manpower) for Land / Navy / Air.
+ */
+branch_manpower: Array<[string, bigint]>, 
+/**
+ * Mean equipment quality (0–100) across units.
+ */
+avg_equipment_quality: number, 
+/**
+ * Mean training/experience (0–100) across units.
+ */
+avg_experience: number, 
+/**
+ * Assigned command VIPs (Generals/Admirals by dominant branch).
+ */
+commanders: Array<CommanderRow>, };
 
 /**
  * v4.19 WS2: Full bank detail for the expandable row panel — balance-sheet
@@ -159,6 +240,27 @@ export type BankingAggregates = { total_bank_reserves: number, total_bank_deposi
  * Phase 54: Banking history response for sparkline tooltips.
  */
 export type BankingHistoryResponse = { turns: Array<number>, total_reserves: Array<number>, total_deposits: Array<number>, total_loans: Array<number>, };
+
+/**
+ * One deterministic tactical phase of a battle (v4.24.0).
+ */
+export type BattlePhaseRow = { 
+/**
+ * Phase label.
+ */
+name: string, 
+/**
+ * Attacker combat power at this phase.
+ */
+attacker_power: number, 
+/**
+ * Defender combat power at this phase.
+ */
+defender_power: number, 
+/**
+ * Outcome note.
+ */
+note: string, };
 
 /**
  * A single battle row for the Military dashboard.
@@ -356,6 +458,27 @@ last_settled_year: number | null,
  * The securities CGT rate applied (for the "estimated" pending column).
  */
 securities_cgt_rate: number, };
+
+/**
+ * KIA/WIA/POW/Missing casualty rollup for a country (v4.24.0).
+ */
+export type CasualtyBreakdownRow = { 
+/**
+ * Killed in action.
+ */
+kia: bigint, 
+/**
+ * Wounded in action.
+ */
+wia: bigint, 
+/**
+ * Captured (held as POWs by any enemy).
+ */
+captured: bigint, 
+/**
+ * Missing / deserted.
+ */
+missing_deserted: bigint, };
 
 /**
  * A chamber snapshot for the Parliament tab.
@@ -592,6 +715,27 @@ passed: boolean, };
  * v4.18: Per-club vote tally within one chamber vote.
  */
 export type ClubVoteRow = { club_id: string, votes_for: number, votes_against: number, abstentions: number, };
+
+/**
+ * A resolved command VIP on an army (v4.24.0).
+ */
+export type CommanderRow = { 
+/**
+ * VIP ID.
+ */
+vip_id: string, 
+/**
+ * Full name.
+ */
+name: string, 
+/**
+ * Rank label ("General", "Admiral", "Air Marshal").
+ */
+rank: string, 
+/**
+ * Echelon the VIP commands ("Army", "Division", "Regiment").
+ */
+echelon: string, };
 
 /**
  * v4.18: A bill currently under committee review, for the Committees tab.
@@ -891,9 +1035,28 @@ export type CouncilDecreeRow = { id: string, title: string, domain: string, issu
  */
 supporters: Array<VipLinkRow>, opponents: Array<VipLinkRow>, 
 /**
- * "Promulgated" | "Promulgated over Council Objection" | "Withdrawn".
+ * "Promulgated" | "Supreme Leader Override" | "Withdrawn"
+ * ("Promulgated over Council Objection" on pre-v4.24 saves).
  */
-status: string, };
+status: string, 
+/**
+ * v4.24.0 WS4.1: concrete policy effect of the decree.
+ */
+effect: string, 
+/**
+ * v4.24.0 WS4.1: council seats at issue time (for "3 of 5" display).
+ */
+member_count: number, 
+/**
+ * v4.24.0 WS4.1: supporters needed for normal promulgation
+ * (member_count / 2 + 1).
+ */
+majority_required: number, 
+/**
+ * v4.24.0 WS4.1: one-line human explanation of the outcome —
+ * "Council backed it 4–1 (majority of 3 required)" etc.
+ */
+summary: string, };
 
 /**
  * v4.23.0 WS2: One faction inside an autocratic legislature — aggregated
@@ -918,7 +1081,17 @@ export type CouncilPetitionRow = { id: string, faction: string, petitioner_vip_i
 /**
  * "Pending" | "Granted" | "Rejected" | "Ignored".
  */
-status: string, resolved_turn: number | null, };
+status: string, 
+/**
+ * v4.24.0 WS4.1: emitted as `null` while pending (previously the key
+ * was omitted entirely, leaking `undefined` into the UI).
+ */
+resolved_turn: number | null, 
+/**
+ * v4.24.0 WS4.1: what the petition asks the throne for — concrete
+ * relief/consequence text under the grievance subject.
+ */
+relief: string, };
 
 /**
  * v4.20 WS4: A resolution debated and voted by a regional council —
@@ -951,16 +1124,45 @@ export type CouncilRollCallRow = { resolution_title: string, member_name: string
 vip_id: string, };
 
 /**
+ * A country's slice of the world map.
+ */
+export type CountryMapDto = { 
+/**
+ * Country name (map key in `GameState.countries`).
+ */
+country: string, 
+/**
+ * Deterministic index (sorted country order) for the UI palette.
+ */
+color_index: number, 
+/**
+ * Countries this nation is currently at war with.
+ */
+at_war_with: Array<string>, 
+/**
+ * Display name of the capital region, for the country label.
+ */
+capital_name: string, 
+/**
+ * Country-label anchor (the capital's layout site).
+ */
+anchor: MapPoint, 
+/**
+ * Outer boundary polygon the region cells tile (sea frontier).
+ */
+boundary: Array<MapPoint>, regions: Array<MapRegionDto>, };
+
+/**
  * v4.23 WS4: Per-country trade treemap — REAL settled trade legs this
  * turn, replacing the old global cleared-volume bound
  * (`snapshot_society::TradeTreemapDto`, still emitted for the legacy
  * command surface).
  *
  * * `exports` — domestic seller → foreign endpoint: modeled-country
- * buyers (the order book) plus the FOREIGN-SECTOR world-market sweep.
+ *   buyers (the order book) plus the FOREIGN-SECTOR world-market sweep.
  * * `imports` — foreign seller → domestic endpoint, same two sources.
  * * `domestic` — both-endpoints-domestic order-book legs plus
- * ministry / JST / public-works procurement (domestic-only books).
+ *   ministry / JST / public-works procurement (domestic-only books).
  */
 export type CountryTradeTreemapDto = { 
 /**
@@ -1023,6 +1225,61 @@ avg_price: number,
  * Share of the mode's total value (0.0–1.0).
  */
 share: number, };
+
+/**
+ * One escalation log entry on an active plot.
+ */
+export type CoupEventRow = { turn: number, text: string, };
+
+/**
+ * An active plot against a regime — military coup, Politburo power
+ * struggle, or royal claimant crisis.
+ */
+export type CoupPlotRow = { id: string, 
+/**
+ * Stable kind key: "MilitaryCoup" | "PalaceStruggle" | "ClaimantCrisis".
+ */
+kind: string, 
+/**
+ * Display label: "Military Coup" | "Power Struggle" | "Claimant Crisis".
+ */
+kind_label: string, title: string, 
+/**
+ * Country whose regime is targeted (used by the military dashboard —
+ * always set; equals the viewed country on the Government tab).
+ */
+country: string, instigator_vip_id: string, instigator_name: string, 
+/**
+ * Backing factions (council faction labels / "Royal Court").
+ */
+backers: Array<string>, 
+/**
+ * Plot strength 0–100; ≥70 reads Imminent, ≥100 resolves.
+ */
+strength: number, 
+/**
+ * "Brewing" | "Critical" | "Imminent" — derived from strength.
+ */
+status: string, started_turn: number, last_change_turn: number, 
+/**
+ * Escalation events — oldest first.
+ */
+events: Array<CoupEventRow>, };
+
+/**
+ * A resolved plot — the historical record row.
+ */
+export type CoupResolutionRow = { plot_id: string, 
+/**
+ * Stable kind key + display label (same mapping as CoupPlotRow).
+ */
+kind: string, kind_label: string, title: string, country: string, instigator_name: string, 
+/**
+ * "Coup Crushed" | "Junta Installed" | "Monarch Abdicated" |
+ * "Claimant Exiled" | "Purge Executed" | "Reforms Conceded" |
+ * "Reformists Sidelined" | "Plot Dissolved".
+ */
+outcome: string, resolved_turn: number, peak_strength: number, };
 
 /**
  * Phase 60: Response wrapper for court backlog query.
@@ -1271,6 +1528,59 @@ export type EnactedStatuteRow = { bill_id: string, title: string, initiator: str
  * Provisions/effects recorded at vote time.
  */
 provisions: Array<string>, };
+
+/**
+ * A concluded war for the Historical Wars sub-tab (v4.24.0).
+ */
+export type EndedWarRow = { 
+/**
+ * Recorded aggressor.
+ */
+aggressor: string, 
+/**
+ * Recorded defender.
+ */
+defender: string, 
+/**
+ * War goal / casus belli label.
+ */
+war_goal: string, 
+/**
+ * Turn the war started.
+ */
+start_turn: number, 
+/**
+ * Turn the war concluded.
+ */
+end_turn: number, 
+/**
+ * Victor (None = negotiated/white peace).
+ */
+victor: string | null, 
+/**
+ * Treaty label (e.g., "Treaty of Cession", "White Peace").
+ */
+terms_label: string, 
+/**
+ * Regions ceded to the victor under the treaty.
+ */
+regions_ceded: Array<string>, 
+/**
+ * Reparations paid by the loser (fiat).
+ */
+reparations_paid: number, 
+/**
+ * Total casualties suffered by the aggressor.
+ */
+aggressor_casualties: bigint, 
+/**
+ * Total casualties suffered by the defender.
+ */
+defender_casualties: bigint, 
+/**
+ * Whether POW repatriation was part of the settlement.
+ */
+pows_repatriated: boolean, };
 
 /**
  * Role-gated: foreign observers see only public aggregate data (national
@@ -1681,6 +1991,18 @@ government_form: string,
  */
 royal_dynasty: RoyalDynastySnapshot | null, 
 /**
+ * v4.24.0 WS4.1: constitutional mechanics banner for council regimes —
+ * how the ruling Council/Politburo interacts with the consultative or
+ * rubber-stamp assembly. `None` for elected governments.
+ */
+constitutional_mechanics: string | null, 
+/**
+ * v4.24.0 WS4.3: active coup plots + resolution history — populated
+ * whenever a court exists to conspire in (advisory council) or the
+ * ledger carries history.
+ */
+internal_conflicts: InternalConflictsSnapshot | null, 
+/**
  * D.7.1: Inspectorate stats for the Government tab.
  */
 inspectorate_sanepid_capacity: number, inspectorate_building_capacity: number, inspectorate_environmental_capacity: number, inspectorate_labor_capacity: number, inspectorate_violations_detected: number, inspectorate_fines_issued: number, inspectorate_corruption_index: number, inspectorate_bribes_accepted: number, inspectorate_bribes_total_value: number, inspectorate_pip_fleet_range_km: number, };
@@ -1789,6 +2111,11 @@ condition: number,
  * Transmission loss fraction (0.0–1.0).
  */
 loss_fraction: number, };
+
+/**
+ * Internal conflicts snapshot — active plots + resolution history.
+ */
+export type InternalConflictsSnapshot = { active_plots: Array<CoupPlotRow>, resolutions: Array<CoupResolutionRow>, };
 
 /**
  * KIO appeal summary.
@@ -1972,6 +2299,98 @@ progress: number,
 per_turn_disbursement: number, };
 
 /**
+ * One land-border adjacency edge between two regions (deduplicated).
+ */
+export type MapEdgeDto = { from_region: string, to_region: string, 
+/**
+ * `land_border` | `coastline` | `sea_lane` | `river`.
+ */
+edge_type: string, };
+
+/**
+ * A single 2D point in world-map space (procedural units, not lat/lon).
+ */
+export type MapPoint = { x: number, y: number, };
+
+/**
+ * One region polygon on the world map.
+ */
+export type MapRegionDto = { 
+/**
+ * Region id (`"{country}-Region{N}"`), globally unique.
+ */
+id: string, 
+/**
+ * Owning country name.
+ */
+country: string, 
+/**
+ * Display name (`display_name` with `id` fallback).
+ */
+name: string, 
+/**
+ * Ordered polygon vertices (world-map units, y-down for SVG).
+ */
+polygon: Array<MapPoint>, 
+/**
+ * Label anchor — the layout site the polygon was grown around.
+ */
+centroid: MapPoint, 
+/**
+ * `Region.is_capital` — rendered as the capital-district star.
+ */
+is_capital_district: boolean, 
+/**
+ * Region borders the sea frontier (engine traits/edges when present,
+ * else procedural: its cell touches the country boundary).
+ */
+is_coastal: boolean, 
+/**
+ * Phase 85B emancipated City Region (`city_metadata.is_some()`).
+ */
+is_city_region: boolean, population: bigint, 
+/**
+ * Regional GDP (currency units).
+ */
+gdp: number, 
+/**
+ * Regional GDP per capita (`Region.gdp_pc`).
+ */
+gdp_per_capita: number, 
+/**
+ * Cadastre devastation index, 0.0 pristine – 1.0 total ruin.
+ */
+devastation: number, 
+/**
+ * Urban-class share of the region's demographic population (0–1).
+ */
+urbanization: number, 
+/**
+ * Phase 47 development level (0–1).
+ */
+development_level: number, 
+/**
+ * Military control: `owner` | `occupied` | `contested` | `rebel_control`.
+ */
+control: string, 
+/**
+ * Occupying/contesting country when `control == "occupied"`.
+ */
+controller: string, 
+/**
+ * A battle was recorded at this region within the last few turns.
+ */
+active_battle: boolean, 
+/**
+ * Region belongs to a currently-active military front.
+ */
+on_front: boolean, 
+/**
+ * Land-border neighbour region ids (engine edge graph).
+ */
+neighbors: Array<string>, };
+
+/**
  * Phase 56: Market index snapshot for the stock exchange UI.
  */
 export type MarketIndexSnapshot = { value: number, change_pct: number, history: Array<number>, total_market_cap: number, total_volume: bigint, advancing: number, declining: number, volatility: number, };
@@ -2055,7 +2474,21 @@ disasters: Array<DisasterRow>,
 /**
  * POW camp statistics.
  */
-pow_camps: Array<PowCampRow>, };
+pow_camps: Array<PowCampRow>, 
+/**
+ * v4.24.0: Concluded wars (Historical Wars sub-tab).
+ */
+ended_wars: Array<EndedWarRow>, 
+/**
+ * v4.24.0 WS4.3: active internal-conflict plots across all countries
+ * — military coups, Politburo power struggles, claimant crises.
+ */
+internal_conflicts: Array<CoupPlotRow>, 
+/**
+ * v4.24.0 WS4.3: resolved plots across all countries ("Coup Crushed",
+ * "Monarch Abdicated", "Junta Installed", ...).
+ */
+coup_resolutions: Array<CoupResolutionRow>, };
 
 /**
  * A minister row for the Government tab.
@@ -2081,6 +2514,11 @@ ministry_cash: number,
  * supply entities).
  */
 policy_kpis: Array<MinistryKpiRow>, };
+
+/**
+ * Phase 54: A single ministry expenditure category entry for the Finance tab.
+ */
+export type MinistryExpenditureEntry = { category: string, amount: number, share_pct: number, };
 
 /**
  * v4.23 WS4: One qualitative policy KPI for a ministry's Reports drawer.
@@ -2111,11 +2549,6 @@ target: string,
  * Assessment vs. target.
  */
 status: string, };
-
-/**
- * Phase 54: A single ministry expenditure category entry for the Finance tab.
- */
-export type MinistryExpenditureEntry = { category: string, amount: number, share_pct: number, };
 
 /**
  * Phase 60: Ministry land report (role-gated — internal government document).
@@ -2397,6 +2830,8 @@ total_capacity_mw: number, };
 
 /**
  * POW camp statistics for a single country.
+ * v4.24.0: expandable — internment status mix, captured-this-turn,
+ * escapes, camp QoL (ration/health proxy), and per-turn ration cost.
  */
 export type PowCampRow = { 
 /**
@@ -2422,7 +2857,41 @@ average_health: number,
 /**
  * POWs assigned to forced labor.
  */
-forced_labor_assigned: bigint, };
+forced_labor_assigned: bigint, 
+/**
+ * v4.24.0: POWs held in internment (labor-eligible).
+ */
+interned: bigint, 
+/**
+ * v4.24.0: POWs captured this turn (fresh intake).
+ */
+captured_this_turn: bigint, 
+/**
+ * v4.24.0: Total escaped over the war(s).
+ */
+escaped: bigint, 
+/**
+ * v4.24.0: Total repatriated.
+ */
+repatriated: bigint, 
+/**
+ * v4.24.0: Total deceased in captivity.
+ */
+deceased: bigint, 
+/**
+ * v4.24.0: Camp quality-of-life proxy — mean prisoner
+ * productivity/health factor (0–1; higher = better rations/health).
+ */
+camp_qol: number, 
+/**
+ * v4.24.0: Rations consumed per turn (food units per 1000 POWs,
+ * same rate as field upkeep).
+ */
+rations_per_turn: number, 
+/**
+ * v4.24.0: POWs by internment region.
+ */
+prisoners_by_region: Array<[string, bigint]>, };
 
 /**
  * Phase 81 Wave 2: PPA summary info.
@@ -2476,7 +2945,9 @@ body: string,
 /**
  * Event category: "floor_vote" | "veto_override" | "budget_bill" |
  * "council_resolution" | "royal_birth" | "royal_marriage" | "strike" |
- * "mass_movement" | "treaty" | "war" | "economy" | "election_scheduled".
+ * "mass_movement" | "treaty" | "war" | "economy" | "election_scheduled";
+ * business section adds "stock_mover" | "earnings" | "dividend" |
+ * "investment".
  */
 event_kind: string, 
 /**
@@ -3564,6 +4035,13 @@ chamber: string,
  */
 chamber_name: string, votes_for: number, votes_against: number, abstentions: number, passed: boolean, turn: number, 
 /**
+ * v4.24.0 WS4.2: which vote this row is — "Floor Vote" |
+ * "Upper House Vote" | "Veto Override Vote". The lower chamber's log
+ * holds both floor and override records; labeling the kind (not just
+ * the chamber) keeps the two chamber tables honest.
+ */
+vote_kind: string, 
+/**
  * v4.18: Per-club For/Against/Abstain tallies recorded at vote time.
  */
 club_breakdown: Array<ClubVoteRow>, 
@@ -3584,6 +4062,8 @@ last_vote_turn: number,
 /**
  * v4.23.0 WS2: Turn the law took effect (enactment) — None while the
  * bill is in flight or was rejected/vetoed.
+ * v4.24.0 WS4.2: always serialized (emits `null`) — the previous
+ * `skip_serializing_if` let `undefined` reach the UI as "Tundefined".
  */
 effective_turn: number | null, 
 /**
@@ -3604,7 +4084,74 @@ stages_required: number,
 result: string, };
 
 /**
+ * One battle inside an expanded war row (v4.24.0).
+ */
+export type WarBattleRow = { 
+/**
+ * Battle ID.
+ */
+battle_id: string, 
+/**
+ * Turn.
+ */
+turn: number, 
+/**
+ * Location (region).
+ */
+location: string, 
+/**
+ * Battle result.
+ */
+result: string, 
+/**
+ * Engaged unit ids, attacker side.
+ */
+attacker_units: Array<string>, 
+/**
+ * Engaged unit ids, defender side.
+ */
+defender_units: Array<string>, 
+/**
+ * Attacker KIA.
+ */
+attacker_dead: bigint, 
+/**
+ * Attacker WIA.
+ */
+attacker_wounded: bigint, 
+/**
+ * Attacker missing/deserted.
+ */
+attacker_deserted: bigint, 
+/**
+ * POWs the attacker captured.
+ */
+attacker_captured: bigint, 
+/**
+ * Defender KIA.
+ */
+defender_dead: bigint, 
+/**
+ * Defender WIA.
+ */
+defender_wounded: bigint, 
+/**
+ * Defender missing/deserted.
+ */
+defender_deserted: bigint, 
+/**
+ * POWs the defender captured.
+ */
+defender_captured: bigint, 
+/**
+ * Deterministic tactical phases (Contact → Exchange → Decision).
+ */
+phases: Array<BattlePhaseRow>, };
+
+/**
  * A single active war/front row for the Military dashboard.
+ * v4.24.0: rows expand — war goal, war score, forces & casualties per
+ * side, the contested frontier, and the per-war battle ledger.
  */
 export type WarRow = { 
 /**
@@ -3634,7 +4181,57 @@ battle_count: number,
 /**
  * Last battle result (if any).
  */
-last_battle_result: string, };
+last_battle_result: string, 
+/**
+ * v4.24.0: Recorded aggressor (war-goal claimant).
+ */
+aggressor: string, 
+/**
+ * v4.24.0: Recorded defender.
+ */
+defender: string, 
+/**
+ * v4.24.0: War goal / casus belli label (the `WarReason` that
+ * opened the war).
+ */
+war_goal: string, 
+/**
+ * v4.24.0: Turn the war started.
+ */
+start_turn: number, 
+/**
+ * v4.24.0: Net war score, attacker-positive (decisive wins,
+ * occupations, forced retreats).
+ */
+war_score: number, 
+/**
+ * v4.24.0: Total OOB manpower of the aggressor.
+ */
+aggressor_forces: bigint, 
+/**
+ * v4.24.0: Total OOB manpower of the defender.
+ */
+defender_forces: bigint, 
+/**
+ * v4.24.0: Casualties suffered by the aggressor.
+ */
+aggressor_casualties: bigint, 
+/**
+ * v4.24.0: Casualties suffered by the defender.
+ */
+defender_casualties: bigint, 
+/**
+ * v4.24.0: Current front-line region (first unoccupied corridor cell).
+ */
+contested_region: string, 
+/**
+ * v4.24.0: Corridor regions currently under occupation.
+ */
+occupied_regions: Array<string>, 
+/**
+ * v4.24.0: Per-war battle ledger (expandable per battle).
+ */
+battles: Array<WarBattleRow>, };
 
 /**
  * Phase 84: Waste grid snapshot for UI display.
@@ -3766,6 +4363,23 @@ surface_water_volume: number,
  * Surface water quality (0.0-1.0).
  */
 surface_water_quality: number, };
+
+/**
+ * Complete world-map snapshot for the Map tab and mini-map embeds.
+ */
+export type WorldMapSnapshot = { 
+/**
+ * Current game turn (`calendar.global_turn`).
+ */
+turn: number, 
+/**
+ * `[min_x, min_y, max_x, max_y]` of every boundary vertex.
+ */
+bounds: Array<number>, countries: Array<CountryMapDto>, 
+/**
+ * Land-border adjacency edges across the whole world.
+ */
+edges: Array<MapEdgeDto>, };
 
 /**
  * Phase 60: Zoning plan row (public data).

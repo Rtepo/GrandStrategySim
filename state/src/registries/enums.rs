@@ -159,33 +159,41 @@ pub enum Sector {
 
 impl Sector {
     /// Get localized display name for UI.
+    ///
+    /// Falls back to the hardcoded English name when the global i18n
+    /// manager is not initialized (the Tauri app never calls `init_i18n`,
+    /// so a raw `i18n()` here used to panic — v4.24 WS1 root cause of the
+    /// Press tab hanging on "Loading…"). Strings match the independent
+    /// `sector_display_name` table in `ui::snapshot` so pages agree.
     pub fn display_name(&self) -> String {
-        let key = match self {
-            Sector::Mining => "mining",
-            Sector::Agriculture => "agriculture",
-            Sector::HeavyIndustry => "heavy_industry",
-            Sector::LightIndustry => "light_industry",
-            Sector::ArmamentsIndustry => "armaments_industry",
-            Sector::LocalServices => "local_services",
-            Sector::ExportServices => "export_services",
-            Sector::Construction => "construction",
-            Sector::Energy => "energy",
-            Sector::PublicServices => "public_services",
-            Sector::MedicalServices => "medical_services",
-            Sector::EducationalServices => "educational_services",
-            Sector::TransportLogistics => "transport_logistics",
-            Sector::PublicAdministration => "public_administration",
-            Sector::Banking => "banking",
-            Sector::MediaAndEntertainment => "media_and_entertainment",
-            Sector::WasteManagement => "waste_management",
-            Sector::Hospitality => "hospitality",
-            Sector::NGO => "ngo",
-            Sector::Religion => "religion",
-            Sector::MaintenanceWorkshops => "maintenance_workshops",
-            Sector::Government => "government",
-            Sector::SportsRecreation => "sports_recreation",
+        let (key, english) = match self {
+            Sector::Mining => ("mining", "Mining"),
+            Sector::Agriculture => ("agriculture", "Agriculture"),
+            Sector::HeavyIndustry => ("heavy_industry", "Heavy Industry"),
+            Sector::LightIndustry => ("light_industry", "Light Industry"),
+            Sector::ArmamentsIndustry => ("armaments_industry", "Armaments Industry"),
+            Sector::LocalServices => ("local_services", "Local Services"),
+            Sector::ExportServices => ("export_services", "Export Services"),
+            Sector::Construction => ("construction", "Construction"),
+            Sector::Energy => ("energy", "Energy"),
+            Sector::PublicServices => ("public_services", "Public Services"),
+            Sector::MedicalServices => ("medical_services", "Medical Services"),
+            Sector::EducationalServices => ("educational_services", "Educational Services"),
+            Sector::TransportLogistics => ("transport_logistics", "Transport & Logistics"),
+            Sector::PublicAdministration => ("public_administration", "Public Administration"),
+            Sector::Banking => ("banking", "Banking"),
+            Sector::MediaAndEntertainment => ("media_and_entertainment", "Media & Entertainment"),
+            Sector::WasteManagement => ("waste_management", "Waste Management"),
+            Sector::Hospitality => ("hospitality", "Hospitality"),
+            Sector::NGO => ("ngo", "NGO"),
+            Sector::Religion => ("religion", "Religion"),
+            Sector::MaintenanceWorkshops => ("maintenance_workshops", "Maintenance Workshops"),
+            Sector::Government => ("government", "Government"),
+            Sector::SportsRecreation => ("sports_recreation", "Sports & Recreation"),
         };
-        crate::i18n::i18n().sector(key)
+        crate::i18n::i18n_opt()
+            .map(|m| m.sector(key))
+            .unwrap_or_else(|| english.to_string())
     }
 
     /// Phase 29: Map this sector to the set of commodities it primarily produces.

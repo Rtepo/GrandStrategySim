@@ -101,7 +101,11 @@ export function SocietyPage() {
       typeof c.male_share === "number" ? c.male_share : male;
     return {
       tooltip: { trigger: "axis" as const },
-      grid: { left: 80, right: 40, top: 20, bottom: 30 },
+      // v4.24.0 WS2: legend moved to the top (it previously sat at
+      // bottom: 0 on top of the x-axis value labels). Grid top is padded
+      // for the legend strip; bottom padding now only needs to cover the
+      // axis labels.
+      grid: { left: 80, right: 40, top: 34, bottom: 30 },
       xAxis: {
         type: "value" as const,
         // Positive labels on BOTH sides of the pyramid (male bars are
@@ -129,7 +133,7 @@ export function SocietyPage() {
           data: cohorts.map((c) => c.population * (1 - maleOf(c))),
         },
       ],
-      legend: { bottom: 0, textStyle: { color: "#cbd5e1" } },
+      legend: { top: 0, textStyle: { color: "#cbd5e1" } },
     };
   }, [s]);
 

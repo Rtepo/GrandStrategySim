@@ -116,9 +116,15 @@ pub struct CouncilDecree {
     /// VIP ids of council members who opposed the decree.
     #[serde(default)]
     pub opponents: Vec<String>,
-    /// "Promulgated" | "Promulgated over Council Objection" | "Withdrawn".
+    /// "Promulgated" | "Supreme Leader Override" | "Withdrawn".
+    /// ("Promulgated over Council Objection" is the pre-v4.24 spelling of
+    /// the override outcome — treated identically wherever it appears.)
     #[serde(default)]
     pub status: String,
+    /// v4.24.0 WS4.1: concrete policy effect of the decree — what the law
+    /// actually changes once promulgated (or would have changed).
+    #[serde(default)]
+    pub effect: String,
 }
 
 /// v4.23.0 WS2: A petition carried to the ruler by a council member whose
@@ -149,8 +155,14 @@ pub struct CouncilPetition {
     #[serde(default)]
     pub status: String,
     /// Turn the petition was resolved (None while pending).
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// v4.24.0 WS4.1: serialized as `null` (not omitted) so the frontend
+    /// can safely render `T{resolved_turn}` without `undefined` leaks.
+    #[serde(default)]
     pub resolved_turn: Option<u32>,
+    /// v4.24.0 WS4.1: what the petition actually asks of the throne —
+    /// the concrete relief the petitioner seeks if granted.
+    #[serde(default)]
+    pub relief: String,
 }
 
 // ============================================================================
@@ -650,6 +662,60 @@ fn petition_subject(faction_type: &FactionType) -> &'static str {
     }
 }
 
+/// v4.24.0 WS4.1: concrete relief a granted petition delivers — displayed
+/// under the petition subject so the row explains the stakes, not just
+/// the grievance.
+fn petition_relief(faction_type: &FactionType) -> &'static str {
+    match faction_type {
+        FactionType::Military => {
+            "Grant: restores Army loyalty via new procurement and pay; Reject: pushes the barracks toward the coup threshold"
+        }
+        FactionType::Labor => {
+            "Grant: wage floors and bread subsidies calm the unions; Reject: strike pressure builds"
+        }
+        FactionType::Religious => {
+            "Grant: clerical courts and tithe privileges; Reject: sermons turn against the throne"
+        }
+        FactionType::Nobility => {
+            "Grant: estate and hunting privileges restored; Reject: aristocratic intrigue spreads"
+        }
+        FactionType::Party => {
+            "Grant: cadre appointments to the apparatus; Reject: factional infighting inside the party"
+        }
+        FactionType::Bureaucratic => {
+            "Grant: civil-service funding and postings; Reject: administrative foot-dragging"
+        }
+    }
+}
+
+/// v4.24.0 WS4.1: human-readable decree domain — the UI must never see a
+/// raw `BillType` debug token like `TaxReform`.
+fn decree_domain_label(bill_type: &crate::politics::legislation::BillType) -> String {
+    crate::politics::system::humanize_debug_token(&format!("{:?}", bill_type))
+}
+
+/// v4.24.0 WS4.1: concrete policy effect of a decree — what the law does
+/// once promulgated, displayed as the decree's description line.
+fn decree_effect(bill_type: &crate::politics::legislation::BillType) -> &'static str {
+    use crate::politics::legislation::BillType as B;
+    match bill_type {
+        B::Budget => "Sets the year's appropriations across all ministries",
+        B::EmergencyFiscal => "Raises emergency fiscal authority — tax and spending powers without chamber review",
+        B::EmergencyBonds => "Authorizes emergency bond issuance to finance the deficit",
+        B::Labor => "Adjusts wage floors, working-hour caps and child-labor rules",
+        B::Infrastructure => "Mandates state infrastructure investment and construction quotas",
+        B::TaxReform => "Rewrites tax rates and brackets — shifts the revenue burden between classes",
+        B::Healthcare => "Reshapes the health service — capacity targets and funding model",
+        B::Education => "Reshapes the school system — enrollment targets and funding model",
+        B::Justice => "Reforms the courts — judicial independence and caseload capacity",
+        B::Sentencing => "Changes sentencing and prison-labor policy",
+        B::FreeSpeech => "Adjusts press, speech and assembly restrictions",
+        B::Transport => "Changes transport ownership and fare subsidies",
+        B::Migration => "Adjusts border enforcement and migration quotas",
+        B::Other => "Miscellaneous administrative provisions",
+    }
+}
+
 /// Ideology label stamped on a seeded councilor's VIP record — the same
 /// debug-form strings `ideology_from_string` understands, so decree opinion
 /// alignment is meaningful per faction.
@@ -933,6 +999,7 @@ fn spawn_petitions(
                 urgency: (0.45 - loyalty).clamp(0.0, 1.0),
                 status: "Pending".to_string(),
                 resolved_turn: None,
+                relief: petition_relief(&faction_type).to_string(),
             },
         );
         messages.push(format!(
@@ -987,18 +1054,26 @@ fn maybe_issue_decree(
     let mut opinion = calculate_council_opinion(council, &picked.2, registry);
     opinion.decree = picked.1.to_string();
 
-    let status = if opinion.net_opinion < -0.05 {
-        // A hostile council is overridden three times out of four — the
-        // override path runs the real loyalty-damage machinery.
+    // v4.24.0 WS4.1: council-majority gate. A decree promulgates through
+    // the normal channel only when a strict majority of seated councilors
+    // backs it (≥3 of 5). Anything less can only go out as an explicit
+    // "Supreme Leader Override" — a 1-for/4-against opinion must never
+    // read "Promulgated".
+    let majority_required = council.members.len() / 2 + 1;
+    let council_majority = opinion.supporters.len() >= majority_required;
+    let status = if council_majority {
+        "Promulgated"
+    } else {
+        // Lacking a council majority the ruler either withdraws the
+        // decree or signs it anyway — an explicit override that runs the
+        // real loyalty-damage machinery on every opponent.
         let seed = format!("decree:{}:{}:override", current_turn, council.next_decree_id);
         if crate::politics::bill_lifecycle::deterministic_roll(&seed, 0.75) {
             messages.extend(apply_decree_against_council(council, &opinion));
-            "Promulgated over Council Objection"
+            "Supreme Leader Override"
         } else {
             "Withdrawn"
         }
-    } else {
-        "Promulgated"
     };
 
     let id = format!("DECREE-{:04}", council.next_decree_id);
@@ -1009,20 +1084,25 @@ fn maybe_issue_decree(
         picked.1.trim_end_matches(" Act")
     );
     messages.push(format!(
-        "[COUNCIL] {} issued — {} (net opinion {:+.2}).",
-        id, title, opinion.net_opinion
+        "[COUNCIL] {} issued — {} ({}-{} council, {}).",
+        id,
+        title,
+        opinion.supporters.len(),
+        opinion.opponents.len(),
+        status
     ));
     council.decrees.insert(
         0,
         CouncilDecree {
             id,
             title,
-            domain: format!("{:?}", picked.0),
+            domain: decree_domain_label(&picked.0),
             issued_turn: current_turn,
             net_opinion: opinion.net_opinion,
             supporters: opinion.supporters,
             opponents: opinion.opponents,
             status: status.to_string(),
+            effect: decree_effect(&picked.0).to_string(),
         },
     );
     council.decrees.truncate(24);
@@ -1213,5 +1293,84 @@ mod tests {
         assert_eq!(compass.economy, 0.0);
         assert_eq!(compass.liberty, 0.0);
         assert_eq!(compass.tradition, 0.0);
+    }
+
+    /// v4.24.0 WS4.1: a decree may read "Promulgated" only when a strict
+    /// majority of seated councilors supports it (≥3 of 5). The reported
+    /// bug had Supporters(1)/Opponents(4) displaying "Promulgated".
+    #[test]
+    fn test_decree_requires_council_majority() {
+        use crate::politics::legislation::BillType;
+
+        // Every agenda entry shares one ideological signature, so the
+        // weighted draw always lands on it — supporter counts are fully
+        // deterministic. `sig` equals AnarchoCapitalism's mapping.
+        let sig = IdeologyCoordinates {
+            economy: 0.9,
+            liberty: 0.8,
+            tradition: -0.3,
+        };
+        let agenda: Vec<(BillType, &'static str, IdeologyCoordinates, f64)> =
+            vec![(BillType::TaxReform, "Tax Act", sig, 1.0)];
+
+        // Build a council of `n_aligned` AnarchoCapitalists + `n_hostile`
+        // Marxists (max-distance ideologies → deterministic opinion split).
+        let build = |n_aligned: usize, n_hostile: usize| {
+            let mut council = AdvisoryCouncil::new(CouncilType::RoyalCouncil);
+            let mut registry = VipRegistry::new();
+            for i in 0..(n_aligned + n_hostile) {
+                let ideology = if i < n_aligned {
+                    "AnarchoCapitalism"
+                } else {
+                    "MarxismLeninism"
+                };
+                let vip_id = registry.register_new(Vip {
+                    id: format!("VIP-{i:03}"),
+                    full_name: format!("Councilor {i}"),
+                    ideology: ideology.to_string(),
+                    ..Default::default()
+                });
+                council.members.push(CouncilMember {
+                    vip_id,
+                    faction: "Test Faction".to_string(),
+                    loyalty: 0.8,
+                    influence: 50.0,
+                    ..Default::default()
+                });
+            }
+            (council, registry)
+        };
+
+        // 1 supporter / 4 opponents — must never read "Promulgated".
+        let (mut council, registry) = build(1, 4);
+        let mut msgs = Vec::new();
+        maybe_issue_decree(&mut council, &registry, &agenda, 2, &mut msgs);
+        assert_eq!(council.decrees.len(), 1);
+        let decree = &council.decrees[0];
+        assert_eq!(decree.supporters.len(), 1);
+        assert_eq!(decree.opponents.len(), 4);
+        assert_ne!(
+            decree.status, "Promulgated",
+            "1-for/4-against decree must never promulgate through the normal channel"
+        );
+        assert!(
+            decree.status == "Supreme Leader Override" || decree.status == "Withdrawn",
+            "non-majority decree resolves only as override or withdrawal, got {}",
+            decree.status
+        );
+        // Enriched fields — human-readable domain + concrete effect.
+        assert!(!decree.effect.is_empty());
+        assert!(!decree.domain.contains("TaxReform"));
+
+        // 3 supporters / 2 opponents — a strict majority → "Promulgated".
+        let (mut council, registry) = build(3, 2);
+        let mut msgs = Vec::new();
+        maybe_issue_decree(&mut council, &registry, &agenda, 2, &mut msgs);
+        let decree = &council.decrees[0];
+        assert_eq!(decree.supporters.len(), 3);
+        assert_eq!(
+            decree.status, "Promulgated",
+            "majority-backed decree promulgates normally"
+        );
     }
 }

@@ -603,6 +603,7 @@ pub fn process_legislation_turn(
                         abstentions,
                         passed,
                         turn: current_turn,
+                        vote_kind: "Floor Vote".to_string(),
                         club_breakdown: club_tallies,
                         // Snapshot the bill's provisions/sponsor at vote time —
                         // the record must carry its own detail once the bill
@@ -749,6 +750,7 @@ pub fn process_legislation_turn(
                             abstentions,
                             passed,
                             turn: current_turn,
+                            vote_kind: "Upper House Vote".to_string(),
                             club_breakdown: upper_tallies,
                             detail: Some(build_bill_detail(&bill, current_turn, true)),
                         };
@@ -804,8 +806,9 @@ pub fn process_legislation_turn(
                 LegislativeStage::VetoOverride => {
                     // v4.20 T5: Constitutional override — the lower chamber
                     // votes to enact over the upper house's veto. Requires a
-                    // 2/3 supermajority of the TOTAL lower chamber (not just
-                    // members present) — the constitutional threshold.
+                    // 2/3 supermajority of votes cast (standard override
+                    // rule — v4.24.0 WS4.2 fixed the total-chamber basis so
+                    // a 50–0 tally can never "fail the override").
                     let social_unrest =
                         (country.macro_indicators.social_unrest / 100.0).clamp(0.0, 1.0);
                     let health_capacity_ratio = country
@@ -841,7 +844,12 @@ pub fn process_legislation_turn(
                         continue;
                     }
 
-                    let override_passed = votes_for * 3 > total_lower_seats * 2;
+                    // v4.24.0 WS4.2: override requires ⅔ of votes cast —
+                    // the standard veto-override rule. The previous
+                    // total-chamber basis let a unanimous 50–0 tally read
+                    // "Senate Veto Override Failed" in a 150-seat chamber.
+                    let override_cast = votes_for + votes_against;
+                    let override_passed = override_cast > 0 && votes_for * 3 > override_cast * 2;
 
                     // Record the override attempt in the lower chamber log.
                     let override_record = super::parliament::VoteRecord {
@@ -853,6 +861,7 @@ pub fn process_legislation_turn(
                         abstentions,
                         passed: override_passed,
                         turn: current_turn,
+                        vote_kind: "Veto Override Vote".to_string(),
                         club_breakdown: override_tallies,
                         detail: Some(build_bill_detail(&bill, current_turn, true)),
                     };

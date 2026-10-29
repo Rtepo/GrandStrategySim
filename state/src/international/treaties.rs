@@ -49,6 +49,38 @@ impl TreatyClause {
         }
     }
 
+    /// v4.24.0 WS5: concrete clause interpretation for the expandable
+    /// treaty detail — what the clause actually obliges or delivers.
+    pub fn effect_description(&self) -> String {
+        match self {
+            TreatyClause::CustomsUnion => {
+                "Merged market: demand and supply pooled between participants".to_string()
+            }
+            TreatyClause::SchengenFreeMovement => {
+                "Zero border enforcement; citizens migrate freely between participants"
+                    .to_string()
+            }
+            TreatyClause::FinancialMarketIntegration => {
+                "Cross-border stock and land purchases bypass foreign ownership caps"
+                    .to_string()
+            }
+            TreatyClause::MutualDefense => {
+                "Mutual defense obligation — an attack on one participant triggers a joint response"
+                    .to_string()
+            }
+            TreatyClause::TradePreference => {
+                "Mutual tariff reduction on bilateral trade".to_string()
+            }
+            TreatyClause::ResourceAccess { commodity } => {
+                format!("Guaranteed access to participants' {commodity} market")
+            }
+            TreatyClause::IntellectualPropertyEnforcement => {
+                "Cross-border IP judgments enforced — back-royalties and treble damages"
+                    .to_string()
+            }
+        }
+    }
+
     /// Returns the base diplomatic capacity cost for this clause type.
     pub fn base_capacity_cost(&self) -> u32 {
         match self {

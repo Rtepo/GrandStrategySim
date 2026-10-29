@@ -713,6 +713,11 @@ pub struct TreatyRow {
     pub participants: Vec<String>,
     /// Clause labels.
     pub clauses: Vec<String>,
+    /// v4.24.0 WS5: exact clause obligations — "Label — concrete effect"
+    /// strings for the expandable detail (e.g. "Mutual Defense — attack
+    /// on one participant triggers a joint response").
+    #[serde(default)]
+    pub clause_details: Vec<String>,
     /// Negotiation progress (0.0 to 1.0).
     pub negotiation_progress: f64,
     /// Diplomatic capacity cost.
@@ -723,8 +728,108 @@ pub struct TreatyRow {
     pub signed_turn: Option<u32>,
     /// Duration in turns.
     pub duration_turns: u32,
+    /// v4.24.0 WS5: turn the treaty lapses (`signed + duration`), or
+    /// `null` while the treaty is unsigned/negotiating.
+    #[serde(default)]
+    pub expires_turn: Option<u32>,
+    /// v4.24.0 WS5: compliance status — "In force — full compliance" |
+    /// "Violated by {country} (T{n})" | "Suspended — clauses not applied"
+    /// | "Abrogated by {country}" | "Elapsed" | "Under negotiation".
+    #[serde(default)]
+    pub compliance: String,
     /// Initiating country.
     pub initiator: String,
+}
+
+/// v4.24.0 WS5: build a TreatyRow — shared by the diplomacy snapshot and
+/// the `get_active_treaties` Tauri command so both expose the same
+/// expandable detail (clause obligations, expiry, compliance).
+pub fn treaty_row_from(
+    treaty: &crate::international::treaties::Treaty,
+    state: &GameState,
+) -> TreatyRow {
+    TreatyRow {
+        id: treaty.id.clone(),
+        name: treaty.name.clone(),
+        status: treaty.status.as_str().to_string(),
+        participants: treaty.participants.clone(),
+        clauses: treaty
+            .clauses
+            .iter()
+            .map(|c| c.as_str().to_string())
+            .collect(),
+        clause_details: treaty
+            .clauses
+            .iter()
+            .map(|c| format!("{} — {}", c.as_str(), c.effect_description()))
+            .collect(),
+        negotiation_progress: treaty.negotiation_progress,
+        diplomatic_capacity_cost: treaty.diplomatic_capacity_cost,
+        initiated_turn: treaty.initiated_turn,
+        signed_turn: treaty.signed_turn,
+        duration_turns: treaty.duration_turns,
+        expires_turn: treaty.signed_turn.map(|s| s + treaty.duration_turns),
+        compliance: treaty_compliance_text(treaty, state),
+        initiator: treaty.initiator.clone(),
+    }
+}
+
+/// v4.24.0 WS5: compliance status line — violations recorded on
+/// participants' reputation ledgers, suspension, abrogation, expiry, or
+/// the live negotiation progress.
+fn treaty_compliance_text(
+    treaty: &crate::international::treaties::Treaty,
+    state: &GameState,
+) -> String {
+    use crate::international::treaties::TreatyStatus as S;
+    match treaty.status {
+        S::Proposed | S::Negotiating => format!(
+            "Under negotiation — {:.0}%",
+            treaty.negotiation_progress * 100.0
+        ),
+        S::Suspended => "Suspended — clauses not currently applied".to_string(),
+        S::Abrogated => {
+            let who = violators_of(treaty, state);
+            if who.is_empty() {
+                "Abrogated — clause obligations ended".to_string()
+            } else {
+                format!("Abrogated by {}", who.join(", "))
+            }
+        }
+        S::Expired => "Elapsed — treaty reached its term".to_string(),
+        S::Active => {
+            let who = violators_of(treaty, state);
+            if who.is_empty() {
+                "In force — full compliance".to_string()
+            } else {
+                format!("Violated by {}", who.join(", "))
+            }
+        }
+    }
+}
+
+/// v4.24.0 WS5: countries whose reputation ledger records a violation of
+/// this treaty, rendered "Name (T{latest turn})" — sorted for
+/// deterministic output.
+fn violators_of(
+    treaty: &crate::international::treaties::Treaty,
+    state: &GameState,
+) -> Vec<String> {
+    let mut out: Vec<String> = state
+        .countries
+        .iter()
+        .filter_map(|(name, c)| {
+            c.global_reputation
+                .violation_history
+                .iter()
+                .filter(|v| v.treaty_id == treaty.id)
+                .map(|v| v.turn)
+                .max()
+                .map(|turn| format!("{name} (T{turn})"))
+        })
+        .collect();
+    out.sort();
+    out
 }
 
 /// Phase 68: An international organization row for the diplomacy snapshot.
@@ -1713,23 +1818,9 @@ pub fn build_diplomacy_snapshot(
     // Phase 67: Build treaty rows for this country
     let mut treaties = Vec::new();
     for treaty in state.treaty_registry.treaties_for_country(country_name) {
-        treaties.push(TreatyRow {
-            id: treaty.id.clone(),
-            name: treaty.name.clone(),
-            status: treaty.status.as_str().to_string(),
-            participants: treaty.participants.clone(),
-            clauses: treaty
-                .clauses
-                .iter()
-                .map(|c| c.as_str().to_string())
-                .collect(),
-            negotiation_progress: treaty.negotiation_progress,
-            diplomatic_capacity_cost: treaty.diplomatic_capacity_cost,
-            initiated_turn: treaty.initiated_turn,
-            signed_turn: treaty.signed_turn,
-            duration_turns: treaty.duration_turns,
-            initiator: treaty.initiator.clone(),
-        });
+        // v4.24.0 WS5: shared builder — clause obligations, expiry,
+        // compliance for the expandable row.
+        treaties.push(treaty_row_from(treaty, state));
     }
 
     // Phase 67: Get reputation and doctrine
@@ -2004,6 +2095,16 @@ pub struct GovernmentSnapshot {
     pub government_form: String,
     /// Phase 54: Royal dynasty snapshot (only populated for monarchies).
     pub royal_dynasty: Option<RoyalDynastySnapshot>,
+    /// v4.24.0 WS4.1: constitutional mechanics banner for council regimes —
+    /// how the ruling Council/Politburo interacts with the consultative or
+    /// rubber-stamp assembly. `None` for elected governments.
+    #[serde(default)]
+    pub constitutional_mechanics: Option<String>,
+    /// v4.24.0 WS4.3: active coup plots + resolution history — populated
+    /// whenever a court exists to conspire in (advisory council) or the
+    /// ledger carries history.
+    #[serde(default)]
+    pub internal_conflicts: Option<InternalConflictsSnapshot>,
     /// D.7.1: Inspectorate stats for the Government tab.
     pub inspectorate_sanepid_capacity: f64,
     pub inspectorate_building_capacity: f64,
@@ -2283,6 +2384,12 @@ pub struct VoteRow {
     pub abstentions: u32,
     pub passed: bool,
     pub turn: u32,
+    /// v4.24.0 WS4.2: which vote this row is — "Floor Vote" |
+    /// "Upper House Vote" | "Veto Override Vote". The lower chamber's log
+    /// holds both floor and override records; labeling the kind (not just
+    /// the chamber) keeps the two chamber tables honest.
+    #[serde(default)]
+    pub vote_kind: String,
     /// v4.18: Per-club For/Against/Abstain tallies recorded at vote time.
     pub club_breakdown: Vec<ClubVoteRow>,
     /// v4.18: Bill provisions/effects snapshot taken at vote time.
@@ -2295,7 +2402,8 @@ pub struct VoteRow {
     pub last_vote_turn: u32,
     /// v4.23.0 WS2: Turn the law took effect (enactment) — None while the
     /// bill is in flight or was rejected/vetoed.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// v4.24.0 WS4.2: always serialized (emits `null`) — the previous
+    /// `skip_serializing_if` let `undefined` reach the UI as "Tundefined".
     pub effective_turn: Option<u32>,
     /// v4.23.0 WS2: How many chamber votes the bill has PASSED so far.
     pub stages_passed: u32,
@@ -3529,6 +3637,11 @@ pub struct AdvisoryCouncilSnapshot {
     pub decrees: Vec<CouncilDecreeRow>,
     /// v4.23.0 WS2: Petitions factions carried to the ruler.
     pub petitions: Vec<CouncilPetitionRow>,
+    /// v4.24.0 WS4.1: constitutional mechanics banner — how the ruling
+    /// council relates to the consultative/rubber-stamp assembly
+    /// (empty when no such explanation applies).
+    #[serde(default)]
+    pub mechanics_banner: String,
 }
 
 /// A single council member row.
@@ -3579,8 +3692,19 @@ pub struct CouncilDecreeRow {
     /// time (deceased councilors included).
     pub supporters: Vec<VipLinkRow>,
     pub opponents: Vec<VipLinkRow>,
-    /// "Promulgated" | "Promulgated over Council Objection" | "Withdrawn".
+    /// "Promulgated" | "Supreme Leader Override" | "Withdrawn"
+    /// ("Promulgated over Council Objection" on pre-v4.24 saves).
     pub status: String,
+    /// v4.24.0 WS4.1: concrete policy effect of the decree.
+    pub effect: String,
+    /// v4.24.0 WS4.1: council seats at issue time (for "3 of 5" display).
+    pub member_count: u32,
+    /// v4.24.0 WS4.1: supporters needed for normal promulgation
+    /// (member_count / 2 + 1).
+    pub majority_required: u32,
+    /// v4.24.0 WS4.1: one-line human explanation of the outcome —
+    /// "Council backed it 4–1 (majority of 3 required)" etc.
+    pub summary: String,
 }
 
 /// v4.23.0 WS2: A petition row for the autocratic legislature view.
@@ -3596,8 +3720,80 @@ pub struct CouncilPetitionRow {
     pub urgency: f64,
     /// "Pending" | "Granted" | "Rejected" | "Ignored".
     pub status: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// v4.24.0 WS4.1: emitted as `null` while pending (previously the key
+    /// was omitted entirely, leaking `undefined` into the UI).
     pub resolved_turn: Option<u32>,
+    /// v4.24.0 WS4.1: what the petition asks the throne for — concrete
+    /// relief/consequence text under the grievance subject.
+    #[serde(default)]
+    pub relief: String,
+}
+
+// ============================================================================
+// v4.24.0 WS4.3: INTERNAL CONFLICTS — COUPS & PLOTS
+// ============================================================================
+
+/// One escalation log entry on an active plot.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CoupEventRow {
+    pub turn: u32,
+    pub text: String,
+}
+
+/// An active plot against a regime — military coup, Politburo power
+/// struggle, or royal claimant crisis.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CoupPlotRow {
+    pub id: String,
+    /// Stable kind key: "MilitaryCoup" | "PalaceStruggle" | "ClaimantCrisis".
+    pub kind: String,
+    /// Display label: "Military Coup" | "Power Struggle" | "Claimant Crisis".
+    pub kind_label: String,
+    pub title: String,
+    /// Country whose regime is targeted (used by the military dashboard —
+    /// always set; equals the viewed country on the Government tab).
+    pub country: String,
+    pub instigator_vip_id: String,
+    pub instigator_name: String,
+    /// Backing factions (council faction labels / "Royal Court").
+    pub backers: Vec<String>,
+    /// Plot strength 0–100; ≥70 reads Imminent, ≥100 resolves.
+    pub strength: f64,
+    /// "Brewing" | "Critical" | "Imminent" — derived from strength.
+    pub status: String,
+    pub started_turn: u32,
+    pub last_change_turn: u32,
+    /// Escalation events — oldest first.
+    pub events: Vec<CoupEventRow>,
+}
+
+/// A resolved plot — the historical record row.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CoupResolutionRow {
+    pub plot_id: String,
+    /// Stable kind key + display label (same mapping as CoupPlotRow).
+    pub kind: String,
+    pub kind_label: String,
+    pub title: String,
+    pub country: String,
+    pub instigator_name: String,
+    /// "Coup Crushed" | "Junta Installed" | "Monarch Abdicated" |
+    /// "Claimant Exiled" | "Purge Executed" | "Reforms Conceded" |
+    /// "Reformists Sidelined" | "Plot Dissolved".
+    pub outcome: String,
+    pub resolved_turn: u32,
+    pub peak_strength: f64,
+}
+
+/// Internal conflicts snapshot — active plots + resolution history.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct InternalConflictsSnapshot {
+    pub active_plots: Vec<CoupPlotRow>,
+    pub resolutions: Vec<CoupResolutionRow>,
 }
 
 /// Royal dynasty snapshot for the Parliament tab (monarchies).
@@ -6240,32 +6436,62 @@ fn build_advisory_council_snapshot(country: &Country) -> Option<AdvisoryCouncilS
             .then_with(|| a.faction.cmp(&b.faction))
     });
 
+    // v4.24.0 WS4.1: council-majority display data — same arithmetic the
+    // issuance gate uses (members/2 + 1).
+    let member_count = council.members.len() as u32;
+    let majority_required = member_count / 2 + 1;
     let decrees = council
         .decrees
         .iter()
-        .map(|d| CouncilDecreeRow {
-            id: d.id.clone(),
-            title: d.title.clone(),
-            domain: d.domain.clone(),
-            issued_turn: d.issued_turn,
-            net_opinion: d.net_opinion,
-            supporters: d
-                .supporters
-                .iter()
-                .map(|id| VipLinkRow {
-                    vip_id: id.clone(),
-                    name: name_of(id),
-                })
-                .collect(),
-            opponents: d
-                .opponents
-                .iter()
-                .map(|id| VipLinkRow {
-                    vip_id: id.clone(),
-                    name: name_of(id),
-                })
-                .collect(),
-            status: d.status.clone(),
+        .map(|d| {
+            let s = d.supporters.len();
+            let o = d.opponents.len();
+            let summary = match d.status.as_str() {
+                "Promulgated" => format!(
+                    "Council backed it {s}–{o} (majority of {majority_required} required)"
+                ),
+                "Supreme Leader Override" | "Promulgated over Council Objection" => format!(
+                    "No council majority ({s}–{o}, {majority_required} needed) — signed by Supreme Leader Override; opponents' loyalty damaged"
+                ),
+                "Withdrawn" => format!(
+                    "No council majority ({s}–{o}, {majority_required} needed) — decree withdrawn"
+                ),
+                other => format!("{s}–{o} council opinion — {other}"),
+            };
+            CouncilDecreeRow {
+                id: d.id.clone(),
+                title: d.title.clone(),
+                domain: d.domain.clone(),
+                issued_turn: d.issued_turn,
+                net_opinion: d.net_opinion,
+                supporters: d
+                    .supporters
+                    .iter()
+                    .map(|id| VipLinkRow {
+                        vip_id: id.clone(),
+                        name: name_of(id),
+                    })
+                    .collect(),
+                opponents: d
+                    .opponents
+                    .iter()
+                    .map(|id| VipLinkRow {
+                        vip_id: id.clone(),
+                        name: name_of(id),
+                    })
+                    .collect(),
+                status: d.status.clone(),
+                // Pre-v4.24 saves carry no effect — fall back to the
+                // domain label so the row still reads as a description.
+                effect: if d.effect.is_empty() {
+                    d.domain.clone()
+                } else {
+                    d.effect.clone()
+                },
+                member_count,
+                majority_required,
+                summary,
+            }
         })
         .collect();
 
@@ -6282,6 +6508,7 @@ fn build_advisory_council_snapshot(country: &Country) -> Option<AdvisoryCouncilS
             urgency: p.urgency,
             status: p.status.clone(),
             resolved_turn: p.resolved_turn,
+            relief: p.relief.clone(),
         })
         .collect();
 
@@ -6299,7 +6526,95 @@ fn build_advisory_council_snapshot(country: &Country) -> Option<AdvisoryCouncilS
         factions,
         decrees,
         petitions,
+        // v4.24.0 WS4.1: constitutional mechanics banner — how the ruling
+        // council interacts with the consultative/rubber-stamp assembly.
+        mechanics_banner: constitutional_mechanics_text(country).unwrap_or_default(),
     })
+}
+
+/// v4.24.0 WS4.1: constitutional mechanics text for council regimes —
+/// explains that the council/Politburo is the effective legislature while
+/// any seated chamber is consultative/rubber-stamp. `None` for regimes
+/// with no advisory council.
+fn constitutional_mechanics_text(country: &Country) -> Option<String> {
+    let politics = &country.politics;
+    let council = politics.advisory_council.as_ref()?;
+    let council_name =
+        crate::politics::advisory_council::council_type_name(&council.council_type);
+    let member_count = council.members.len();
+    let majority = member_count / 2 + 1;
+    let chamber_seats: u32 = politics
+        .parliament_struct
+        .as_ref()
+        .map(|p| p.chambers.iter().map(|c| c.total_seats).sum())
+        .unwrap_or(0);
+    let legislature = politics.government_form.legislature_name();
+    let mut text = format!(
+        "The {council_name} is the effective legislature: the ruler issues decrees that need a council majority ({majority} of {member_count} councilors) to promulgate; short of that the ruler must withdraw or sign a Supreme Leader Override at the cost of faction loyalty."
+    );
+    if chamber_seats > 0 {
+        text.push_str(&format!(
+            " The {legislature} seats {chamber_seats} members as a consultative chamber — it deliberates and ratifies by acclaim but cannot block the Council's line."
+        ));
+    } else {
+        text.push_str(" No consultative assembly is seated — the country is ruled by decree alone.");
+    }
+    Some(text)
+}
+
+/// v4.24.0 WS4.3: project the internal-conflict ledger (active plots +
+/// resolutions) for one country — `country_label` tags rows on the
+/// multi-country military dashboard.
+fn build_internal_conflicts_snapshot(
+    country: &Country,
+    country_label: &str,
+) -> InternalConflictsSnapshot {
+    let ic = &country.politics.internal_conflicts;
+    InternalConflictsSnapshot {
+        active_plots: ic
+            .active_plots
+            .iter()
+            .map(|p| CoupPlotRow {
+                id: p.id.clone(),
+                kind: format!("{:?}", p.kind),
+                kind_label: crate::politics::coups::plot_kind_label(&p.kind)
+                    .to_string(),
+                title: p.title.clone(),
+                country: country_label.to_string(),
+                instigator_vip_id: p.instigator_vip_id.clone(),
+                instigator_name: p.instigator_name.clone(),
+                backers: p.backers.clone(),
+                strength: p.strength,
+                status: crate::politics::coups::plot_status(p.strength).to_string(),
+                started_turn: p.started_turn,
+                last_change_turn: p.last_change_turn,
+                events: p
+                    .events
+                    .iter()
+                    .map(|e| CoupEventRow {
+                        turn: e.turn,
+                        text: e.text.clone(),
+                    })
+                    .collect(),
+            })
+            .collect(),
+        resolutions: ic
+            .resolutions
+            .iter()
+            .map(|r| CoupResolutionRow {
+                plot_id: r.plot_id.clone(),
+                kind: format!("{:?}", r.kind),
+                kind_label: crate::politics::coups::plot_kind_label(&r.kind)
+                    .to_string(),
+                title: r.title.clone(),
+                country: country_label.to_string(),
+                instigator_name: r.instigator_name.clone(),
+                outcome: r.outcome.clone(),
+                resolved_turn: r.resolved_turn,
+                peak_strength: r.peak_strength,
+            })
+            .collect(),
+    }
 }
 
 /// Build royal dynasty snapshot for monarchies.
@@ -6344,7 +6659,13 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
             DynastyMemberRow {
                 vip_id: m.vip_id.clone(),
                 name: resolve_name_full(&m.vip_id),
-                relation: format!("{:?}", m.relation),
+                // v4.24.0 WS4.3: humanized relation label — "FormerMonarch"
+                // (abdication) renders "Former Monarch" like every other
+                // PascalCase variant renders its spaced form.
+                relation: crate::politics::system::humanize_debug_token(&format!(
+                    "{:?}",
+                    m.relation
+                )),
                 age: vip.map(|v| v.age).unwrap_or(0),
                 succession_order: m.succession_order,
                 is_heir_apparent: m.is_heir_apparent,
@@ -7496,6 +7817,19 @@ fn build_government_snapshot(
         // Phase 54: Government form + royal dynasty for monarchy sub-tab.
         government_form: politics.government_form.display_name().to_string(),
         royal_dynasty: build_royal_dynasty_snapshot(country),
+        // v4.24.0 WS4.1: council↔assembly mechanics banner (autocracies).
+        constitutional_mechanics: constitutional_mechanics_text(country),
+        // v4.24.0 WS4.3: coups & plots — shown when a court exists or the
+        // ledger has history (empty plots + empty resolutions otherwise
+        // still render an explicit "no internal conflicts" state).
+        internal_conflicts: if politics.advisory_council.is_some()
+            || !politics.internal_conflicts.active_plots.is_empty()
+            || !politics.internal_conflicts.resolutions.is_empty()
+        {
+            Some(build_internal_conflicts_snapshot(country, &country.name))
+        } else {
+            None
+        },
         // D.7.1: Inspectorate stats from InspectorateState
         inspectorate_sanepid_capacity: politics.inspectorate_state.as_ref().map(|ist| ist.sanepid_capacity).unwrap_or(0.0),
         inspectorate_building_capacity: politics.inspectorate_state.as_ref().map(|ist| ist.building_inspectorate_capacity).unwrap_or(0.0),
@@ -7597,7 +7931,7 @@ fn bill_theme_tag_from_type(bill_type: &str) -> String {
 }
 
 /// Phase 32: Build the Parliament tab snapshot.
-fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot {
+pub fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot {
     let politics = &country.politics;
 
     if let Some(ref parl) = politics.parliament_struct {
@@ -7732,7 +8066,10 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                     } else if r.stages_passed > 0 {
                         "Passed".to_string()
                     } else {
-                        "Rejected in Lower House".to_string()
+                        // v4.24.0 WS4.2: no terminal stamp and nothing
+                        // passed — say "Recorded" rather than guessing a
+                        // rejection the tally may not support.
+                        "Recorded".to_string()
                     }
                 }
                 s => s.to_string(),
@@ -7759,6 +8096,19 @@ fn build_parliament_snapshot(country: &Country, year: u32) -> ParliamentSnapshot
                         abstentions: v.abstentions,
                         passed: v.passed,
                         turn: v.turn,
+                        // v4.24.0 WS4.2: label the vote kind — the lower
+                        // chamber log mixes floor and veto-override
+                        // records; saves predating the field default to
+                        // "Floor Vote" via the chamber id.
+                        vote_kind: if v.vote_kind.is_empty() {
+                            if c.id == "upper" {
+                                "Upper House Vote".to_string()
+                            } else {
+                                "Floor Vote".to_string()
+                            }
+                        } else {
+                            v.vote_kind.clone()
+                        },
                         club_breakdown: v
                             .club_breakdown
                             .iter()
@@ -8579,6 +8929,8 @@ pub fn build_global_snapshot(
 // ============================================================================
 
 /// A single active war/front row for the Military dashboard.
+/// v4.24.0: rows expand — war goal, war score, forces & casualties per
+/// side, the contested frontier, and the per-war battle ledger.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct WarRow {
@@ -8596,6 +8948,112 @@ pub struct WarRow {
     pub battle_count: usize,
     /// Last battle result (if any).
     pub last_battle_result: String,
+    /// v4.24.0: Recorded aggressor (war-goal claimant).
+    pub aggressor: String,
+    /// v4.24.0: Recorded defender.
+    pub defender: String,
+    /// v4.24.0: War goal / casus belli label (the `WarReason` that
+    /// opened the war).
+    pub war_goal: String,
+    /// v4.24.0: Turn the war started.
+    pub start_turn: u32,
+    /// v4.24.0: Net war score, attacker-positive (decisive wins,
+    /// occupations, forced retreats).
+    pub war_score: f64,
+    /// v4.24.0: Total OOB manpower of the aggressor.
+    pub aggressor_forces: i64,
+    /// v4.24.0: Total OOB manpower of the defender.
+    pub defender_forces: i64,
+    /// v4.24.0: Casualties suffered by the aggressor.
+    pub aggressor_casualties: i64,
+    /// v4.24.0: Casualties suffered by the defender.
+    pub defender_casualties: i64,
+    /// v4.24.0: Current front-line region (first unoccupied corridor cell).
+    pub contested_region: String,
+    /// v4.24.0: Corridor regions currently under occupation.
+    pub occupied_regions: Vec<String>,
+    /// v4.24.0: Per-war battle ledger (expandable per battle).
+    pub battles: Vec<WarBattleRow>,
+}
+
+/// One battle inside an expanded war row (v4.24.0).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct WarBattleRow {
+    /// Battle ID.
+    pub battle_id: String,
+    /// Turn.
+    pub turn: u32,
+    /// Location (region).
+    pub location: String,
+    /// Battle result.
+    pub result: String,
+    /// Engaged unit ids, attacker side.
+    pub attacker_units: Vec<String>,
+    /// Engaged unit ids, defender side.
+    pub defender_units: Vec<String>,
+    /// Attacker KIA.
+    pub attacker_dead: i64,
+    /// Attacker WIA.
+    pub attacker_wounded: i64,
+    /// Attacker missing/deserted.
+    pub attacker_deserted: i64,
+    /// POWs the attacker captured.
+    pub attacker_captured: i64,
+    /// Defender KIA.
+    pub defender_dead: i64,
+    /// Defender WIA.
+    pub defender_wounded: i64,
+    /// Defender missing/deserted.
+    pub defender_deserted: i64,
+    /// POWs the defender captured.
+    pub defender_captured: i64,
+    /// Deterministic tactical phases (Contact → Exchange → Decision).
+    pub phases: Vec<BattlePhaseRow>,
+}
+
+/// One deterministic tactical phase of a battle (v4.24.0).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct BattlePhaseRow {
+    /// Phase label.
+    pub name: String,
+    /// Attacker combat power at this phase.
+    pub attacker_power: f64,
+    /// Defender combat power at this phase.
+    pub defender_power: f64,
+    /// Outcome note.
+    pub note: String,
+}
+
+/// A concluded war for the Historical Wars sub-tab (v4.24.0).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct EndedWarRow {
+    /// Recorded aggressor.
+    pub aggressor: String,
+    /// Recorded defender.
+    pub defender: String,
+    /// War goal / casus belli label.
+    pub war_goal: String,
+    /// Turn the war started.
+    pub start_turn: u32,
+    /// Turn the war concluded.
+    pub end_turn: u32,
+    /// Victor (None = negotiated/white peace).
+    pub victor: Option<String>,
+    /// Treaty label (e.g., "Treaty of Cession", "White Peace").
+    pub terms_label: String,
+    /// Regions ceded to the victor under the treaty.
+    pub regions_ceded: Vec<String>,
+    /// Reparations paid by the loser (fiat).
+    pub reparations_paid: f64,
+    /// Total casualties suffered by the aggressor.
+    pub aggressor_casualties: i64,
+    /// Total casualties suffered by the defender.
+    pub defender_casualties: i64,
+    /// Whether POW repatriation was part of the settlement.
+    pub pows_repatriated: bool,
 }
 
 /// A single battle row for the Military dashboard.
@@ -8639,6 +9097,8 @@ pub struct DevastationRow {
 }
 
 /// Army composition for a single country.
+/// v4.24.0: expands per army — branch split, quality, command VIPs,
+/// conscription law, mobilized-vs-reserve manpower, casualty breakdown.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct ArmyCompositionRow {
@@ -8661,6 +9121,74 @@ pub struct ArmyCompositionRow {
     /// v4.22: Per-region unit/manpower breakdown keyed by unit `location`
     /// (Country→Region grouping for the UI). Regions are country-local IDs.
     pub region_breakdown: Vec<RegionArmyRow>,
+    /// v4.24.0: Per-army detail rows (expandable).
+    pub armies: Vec<ArmyRow>,
+    /// v4.24.0: Active conscription law label.
+    pub conscription_law: String,
+    /// v4.24.0: Manpower currently under arms (== total_manpower).
+    pub mobilized_manpower: i64,
+    /// v4.24.0: Eligible draft pool not yet under arms.
+    pub reserve_manpower: i64,
+    /// v4.24.0: War casualties to date (KIA/WIA/POW/missing).
+    pub casualty_breakdown: CasualtyBreakdownRow,
+}
+
+/// Per-army expandable detail (v4.24.0).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ArmyRow {
+    /// Army ID (e.g., "ARMY-001").
+    pub id: String,
+    /// Display name (e.g., "1st Army").
+    pub name: String,
+    /// Home region ID of the army's garrison.
+    pub home_region: String,
+    /// Garrison display name (region `display_name`, falls back to ID).
+    pub garrison_name: String,
+    /// Divisions under this army.
+    pub division_count: usize,
+    /// Regiments under this army.
+    pub regiment_count: usize,
+    /// Total units.
+    pub unit_count: usize,
+    /// Total manpower.
+    pub manpower: i64,
+    /// Branch split: (branch label, manpower) for Land / Navy / Air.
+    pub branch_manpower: Vec<(String, i64)>,
+    /// Mean equipment quality (0–100) across units.
+    pub avg_equipment_quality: f64,
+    /// Mean training/experience (0–100) across units.
+    pub avg_experience: f64,
+    /// Assigned command VIPs (Generals/Admirals by dominant branch).
+    pub commanders: Vec<CommanderRow>,
+}
+
+/// A resolved command VIP on an army (v4.24.0).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CommanderRow {
+    /// VIP ID.
+    pub vip_id: String,
+    /// Full name.
+    pub name: String,
+    /// Rank label ("General", "Admiral", "Air Marshal").
+    pub rank: String,
+    /// Echelon the VIP commands ("Army", "Division", "Regiment").
+    pub echelon: String,
+}
+
+/// KIA/WIA/POW/Missing casualty rollup for a country (v4.24.0).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CasualtyBreakdownRow {
+    /// Killed in action.
+    pub kia: i64,
+    /// Wounded in action.
+    pub wia: i64,
+    /// Captured (held as POWs by any enemy).
+    pub captured: i64,
+    /// Missing / deserted.
+    pub missing_deserted: i64,
 }
 
 /// Per-region slice of a country's order of battle.
@@ -8725,6 +9253,8 @@ pub struct DisasterRow {
 }
 
 /// POW camp statistics for a single country.
+/// v4.24.0: expandable — internment status mix, captured-this-turn,
+/// escapes, camp QoL (ration/health proxy), and per-turn ration cost.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct PowCampRow {
@@ -8740,6 +9270,24 @@ pub struct PowCampRow {
     pub average_health: f64,
     /// POWs assigned to forced labor.
     pub forced_labor_assigned: i64,
+    /// v4.24.0: POWs held in internment (labor-eligible).
+    pub interned: i64,
+    /// v4.24.0: POWs captured this turn (fresh intake).
+    pub captured_this_turn: i64,
+    /// v4.24.0: Total escaped over the war(s).
+    pub escaped: i64,
+    /// v4.24.0: Total repatriated.
+    pub repatriated: i64,
+    /// v4.24.0: Total deceased in captivity.
+    pub deceased: i64,
+    /// v4.24.0: Camp quality-of-life proxy — mean prisoner
+    /// productivity/health factor (0–1; higher = better rations/health).
+    pub camp_qol: f64,
+    /// v4.24.0: Rations consumed per turn (food units per 1000 POWs,
+    /// same rate as field upkeep).
+    pub rations_per_turn: f64,
+    /// v4.24.0: POWs by internment region.
+    pub prisoners_by_region: Vec<(String, i64)>,
 }
 
 /// Full military dashboard response.
@@ -8760,6 +9308,14 @@ pub struct MilitaryDashboardResponse {
     pub disasters: Vec<DisasterRow>,
     /// POW camp statistics.
     pub pow_camps: Vec<PowCampRow>,
+    /// v4.24.0: Concluded wars (Historical Wars sub-tab).
+    pub ended_wars: Vec<EndedWarRow>,
+    /// v4.24.0 WS4.3: active internal-conflict plots across all countries
+    /// — military coups, Politburo power struggles, claimant crises.
+    pub internal_conflicts: Vec<CoupPlotRow>,
+    /// v4.24.0 WS4.3: resolved plots across all countries ("Coup Crushed",
+    /// "Monarch Abdicated", "Junta Installed", ...).
+    pub coup_resolutions: Vec<CoupResolutionRow>,
 }
 
 /// Builds the full military dashboard response.
@@ -8777,11 +9333,54 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
     let mut army_compositions = Vec::new();
     let mut war_morale = Vec::new();
     let mut pow_camps = Vec::new();
+    // v4.24.0 WS4.3: coups & plots across all countries (observer view).
+    let mut internal_conflicts = Vec::new();
+    let mut coup_resolutions = Vec::new();
+
+    // v4.24.0: resolve war-goal metadata for active pairs from the live
+    // WarState ledger (aggressor/defender/casus belli/start turn).
+    let war_goal_label = |reason: &crate::military::war_declarations::WarReason| -> String {
+        match reason {
+            crate::military::war_declarations::WarReason::TerritorialConquest => {
+                "Territorial Conquest".to_string()
+            }
+            crate::military::war_declarations::WarReason::RegimeChange => {
+                "Regime Change".to_string()
+            }
+            crate::military::war_declarations::WarReason::ResourceControl => {
+                "Resource Control".to_string()
+            }
+            crate::military::war_declarations::WarReason::PreemptiveStrike => {
+                "Preemptive Strike".to_string()
+            }
+            crate::military::war_declarations::WarReason::TensionEscalation => {
+                "Tension Escalation".to_string()
+            }
+        }
+    };
+    let live_war_of = |a: &str, b: &str| -> Option<&crate::military::war_declarations::WarState> {
+        let pair = if a <= b { (a, b) } else { (b, a) };
+        state.declared_wars.iter().rev().find(|ws| {
+            ws.end_turn.is_none()
+                && (if ws.aggressor <= ws.defender {
+                    (ws.aggressor.as_str(), ws.defender.as_str())
+                } else {
+                    (ws.defender.as_str(), ws.aggressor.as_str())
+                }) == pair
+        })
+    };
 
     let mut sorted_countries: Vec<(&String, &crate::state::Country)> =
         state.countries.iter().collect();
     sorted_countries.sort_by(|a, b| a.0.cmp(b.0));
-    for (country_name, country) in sorted_countries {
+    for &(country_name, country) in &sorted_countries {
+        // v4.24.0 WS4.3: internal conflicts ledger → dashboard rows.
+        {
+            let ic = build_internal_conflicts_snapshot(country, country_name);
+            internal_conflicts.extend(ic.active_plots);
+            coup_resolutions.extend(ic.resolutions);
+        }
+
         // Active wars/fronts — one row per unique front id.
         for front in &country.military_fronts {
             let battle_count = front.battles.len();
@@ -8791,18 +9390,102 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 .map(|b| format!("{:?}", b.result))
                 .unwrap_or_else(|| "No battles".to_string());
 
-            wars.entry(front.id.clone()).or_insert_with(|| WarRow {
-                front_id: front.id.clone(),
-                front_name: front.name.clone(),
-                involved_countries: front.involved_countries.clone(),
-                regions: front.regions.clone(),
-                war_exhaustion: front
-                    .war_exhaustion
+            wars.entry(front.id.clone()).or_insert_with(|| {
+                // v4.24.0: resolve belligerent roles + war goal from the
+                // live WarState; fall back to involved_countries order.
+                let (aggressor, defender) = if front.involved_countries.len() == 2 {
+                    (
+                        front.involved_countries[0].clone(),
+                        front.involved_countries[1].clone(),
+                    )
+                } else {
+                    (String::new(), String::new())
+                };
+                let ws = live_war_of(&aggressor, &defender);
+                let (war_goal, start_turn, agg, ddf) = ws
+                    .map(|w| {
+                        (
+                            war_goal_label(&w.reason),
+                            w.start_turn,
+                            w.aggressor.clone(),
+                            w.defender.clone(),
+                        )
+                    })
+                    .unwrap_or_else(|| {
+                        ("—".to_string(), 0, aggressor.clone(), defender.clone())
+                    });
+                let occupied = crate::military::war_bridge::occupied_corridor_regions(
+                    front,
+                    &front.regions,
+                );
+                let contested = crate::military::war_bridge::frontier_region(
+                    front,
+                    &front.regions,
+                )
+                .unwrap_or_default();
+                let battles: Vec<WarBattleRow> = front
+                    .battles
                     .iter()
-                    .map(|(k, v)| (k.clone(), *v))
-                    .collect(),
-                battle_count,
-                last_battle_result,
+                    .map(|b| WarBattleRow {
+                        battle_id: b.id.clone(),
+                        turn: b.turn,
+                        location: b.location.clone(),
+                        result: format!("{:?}", b.result),
+                        attacker_units: b.attacker_units.clone(),
+                        defender_units: b.defender_units.clone(),
+                        attacker_dead: b.attacker_casualties.dead,
+                        attacker_wounded: b.attacker_casualties.wounded,
+                        attacker_deserted: b.attacker_casualties.deserters,
+                        attacker_captured: b.captured_by_attacker,
+                        defender_dead: b.defender_casualties.dead,
+                        defender_wounded: b.defender_casualties.wounded,
+                        defender_deserted: b.defender_casualties.deserters,
+                        defender_captured: b.captured_by_defender,
+                        phases: b
+                            .phases
+                            .iter()
+                            .map(|p| BattlePhaseRow {
+                                name: p.name.clone(),
+                                attacker_power: p.attacker_power,
+                                defender_power: p.defender_power,
+                                note: p.note.clone(),
+                            })
+                            .collect(),
+                    })
+                    .collect();
+                WarRow {
+                    front_id: front.id.clone(),
+                    front_name: front.name.clone(),
+                    involved_countries: front.involved_countries.clone(),
+                    regions: front.regions.clone(),
+                    war_exhaustion: front
+                        .war_exhaustion
+                        .iter()
+                        .map(|(k, v)| (k.clone(), *v))
+                        .collect(),
+                    battle_count,
+                    last_battle_result,
+                    aggressor: agg.clone(),
+                    defender: ddf.clone(),
+                    war_goal,
+                    start_turn,
+                    war_score: crate::military::war_bridge::front_war_score(front, &agg),
+                    aggressor_forces: state
+                        .countries
+                        .get(&agg)
+                        .map(|c| c.order_of_battle.total_manpower())
+                        .unwrap_or(0),
+                    defender_forces: state
+                        .countries
+                        .get(&ddf)
+                        .map(|c| c.order_of_battle.total_manpower())
+                        .unwrap_or(0),
+                    aggressor_casualties: front.get_country_casualties(&agg),
+                    defender_casualties: front.get_country_casualties(&ddf),
+                    contested_region: contested,
+                    occupied_regions: occupied,
+                    battles,
+                }
             });
 
             // Recent battles (last 5 per front) — dedup by battle id; the
@@ -8866,6 +9549,168 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             })
             .collect();
 
+        // ── v4.24.0: Per-army expandable detail ──
+        // Real garrison names (region display_name), branch split by
+        // unit-type class, mean equipment/training quality, command VIPs
+        // resolved through the country's VIP registry.
+        let region_name_of = |rid: &str| -> String {
+            country
+                .regions
+                .iter()
+                .find(|r| r.id == rid)
+                .map(|r| {
+                    if r.display_name.is_empty() {
+                        r.id.clone()
+                    } else {
+                        r.display_name.clone()
+                    }
+                })
+                .unwrap_or_else(|| rid.to_string())
+        };
+        let vip_name = |vid: &Option<String>| -> Option<String> {
+            vid.as_ref().and_then(|id| {
+                country
+                    .politics
+                    .vip_registry
+                    .as_ref()
+                    .and_then(|reg| reg.vips.get(id))
+                    .map(|v| v.full_name.clone())
+                    .or_else(|| Some(id.clone()))
+            })
+        };
+        let branch_of = |t: &crate::military::units::UnitType| -> &'static str {
+            match t {
+                crate::military::units::UnitType::Infantry
+                | crate::military::units::UnitType::Tanks
+                | crate::military::units::UnitType::Artillery
+                | crate::military::units::UnitType::PeasantBattalion => "Land",
+                crate::military::units::UnitType::Naval => "Navy",
+                crate::military::units::UnitType::AirForce => "Air",
+            }
+        };
+        let rank_of = |branches: &std::collections::BTreeMap<String, i64>| -> &'static str {
+            let dominant = branches
+                .iter()
+                .max_by(|a, b| a.1.cmp(b.1).then_with(|| a.0.cmp(b.0)))
+                .map(|(b, _)| b.as_str())
+                .unwrap_or("Land");
+            match dominant {
+                "Navy" => "Admiral",
+                "Air" => "Air Marshal",
+                _ => "General",
+            }
+        };
+        let mut armies: Vec<ArmyRow> = Vec::new();
+        for army in &oob.armies {
+            let mut branch_mp: std::collections::BTreeMap<String, i64> =
+                std::collections::BTreeMap::new();
+            let mut mp = 0i64;
+            let mut n_units = 0usize;
+            let mut eq_sum = 0.0;
+            let mut xp_sum = 0.0;
+            let mut regiments = 0usize;
+            for div in &army.divisions {
+                for reg in &div.regiments {
+                    regiments += 1;
+                    for u in &reg.units {
+                        n_units += 1;
+                        mp += u.manpower;
+                        eq_sum += u.equipment_quality;
+                        xp_sum += u.experience;
+                        *branch_mp.entry(branch_of(&u.unit_type).to_string()).or_insert(0) +=
+                            u.manpower;
+                    }
+                }
+            }
+            // Command VIPs: army, then divisions, then regiments — dedup.
+            let mut commanders: Vec<CommanderRow> = Vec::new();
+            let mut seen_cmd: std::collections::BTreeSet<String> =
+                std::collections::BTreeSet::new();
+            let rank = rank_of(&branch_mp);
+            let mut push_cmd = |vid: &Option<String>, echelon: &str| {
+                if let Some(id) = vid {
+                    if seen_cmd.insert(id.clone()) {
+                        commanders.push(CommanderRow {
+                            vip_id: id.clone(),
+                            name: vip_name(&Some(id.clone())).unwrap_or_else(|| id.clone()),
+                            rank: rank.to_string(),
+                            echelon: echelon.to_string(),
+                        });
+                    }
+                }
+            };
+            push_cmd(&army.commander_id, "Army");
+            for div in &army.divisions {
+                push_cmd(&div.commander_id, "Division");
+                for reg in &div.regiments {
+                    push_cmd(&reg.commander_id, "Regiment");
+                }
+            }
+            armies.push(ArmyRow {
+                id: army.id.clone(),
+                name: army.name.clone(),
+                home_region: army.home_region.clone(),
+                garrison_name: region_name_of(&army.home_region),
+                division_count: army.divisions.len(),
+                regiment_count: regiments,
+                unit_count: n_units,
+                manpower: mp,
+                branch_manpower: branch_mp.into_iter().collect(),
+                avg_equipment_quality: if n_units > 0 {
+                    eq_sum / n_units as f64
+                } else {
+                    0.0
+                },
+                avg_experience: if n_units > 0 {
+                    xp_sum / n_units as f64
+                } else {
+                    0.0
+                },
+                commanders,
+            });
+        }
+
+        // Mobilized vs reserve: the OOB-generation draft pool formula
+        // (2.5% of population scaled down by GDP/capita) minus what's
+        // already under arms.
+        let gdp_pc = if country.budget.population > 0 {
+            country.budget.gdp / country.budget.population as f64
+        } else {
+            0.0
+        };
+        let draft_rate = (0.025 - gdp_pc * 0.000004).max(0.005).min(0.025);
+        let draft_pool = (country.budget.population as f64 * draft_rate) as i64;
+        let reserve_manpower = (draft_pool - total_manpower).max(0);
+        let conscription_law = format!("{:?}", country.war_economy.conscription_level);
+
+        // Casualty breakdown across this country's war fronts — dedup
+        // battles by id (the shared WAR-* copies are identical anyway,
+        // but the BTreeMap keeps the sum honest if fronts ever fork).
+        let mut casualty_breakdown = CasualtyBreakdownRow::default();
+        {
+            let mut seen_battles: std::collections::BTreeSet<String> =
+                std::collections::BTreeSet::new();
+            for front in &country.military_fronts {
+                for b in &front.battles {
+                    if !seen_battles.insert(b.id.clone()) {
+                        continue;
+                    }
+                    if b.attacker == *country_name {
+                        casualty_breakdown.kia += b.attacker_casualties.dead;
+                        casualty_breakdown.wia += b.attacker_casualties.wounded;
+                        casualty_breakdown.missing_deserted += b.attacker_casualties.deserters;
+                        casualty_breakdown.captured += b.captured_by_defender;
+                    }
+                    if b.defender == *country_name {
+                        casualty_breakdown.kia += b.defender_casualties.dead;
+                        casualty_breakdown.wia += b.defender_casualties.wounded;
+                        casualty_breakdown.missing_deserted += b.defender_casualties.deserters;
+                        casualty_breakdown.captured += b.captured_by_attacker;
+                    }
+                }
+            }
+        }
+
         army_compositions.push(ArmyCompositionRow {
             country: country_name.clone(),
             total_manpower,
@@ -8876,6 +9721,11 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             units_by_type: units_by_type.into_iter().collect(),
             manpower_by_type: manpower_by_type.into_iter().collect(),
             region_breakdown,
+            armies,
+            conscription_law,
+            mobilized_manpower: total_manpower,
+            reserve_manpower,
+            casualty_breakdown,
         });
 
         // War morale per class — regions is a Vec<Region>.
@@ -8945,6 +9795,8 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         }
 
         // POW camp stats — Phase 86.5B: Now wired from country.pow_camp.
+        // v4.24.0: expandable — status mix, captured-this-turn, escapes,
+        // camp QoL, per-turn ration cost, internment-region split.
         let pow_camp = &country.pow_camp;
         let total_prisoners = pow_camp.prisoners.len() as i64;
         let prisoner_groups = pow_camp
@@ -8958,10 +9810,24 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             .iter()
             .filter(|p| p.status == crate::military::pows::PowStatus::ForcedLabor)
             .count() as i64;
+        let interned = pow_camp
+            .prisoners
+            .iter()
+            .filter(|p| p.status == crate::military::pows::PowStatus::Interned)
+            .count() as i64;
         let prisoners_by_origin: Vec<(String, i64)> = {
-            let mut map: std::collections::HashMap<String, i64> = std::collections::HashMap::new();
+            let mut map: std::collections::BTreeMap<String, i64> =
+                std::collections::BTreeMap::new();
             for p in &pow_camp.prisoners {
                 *map.entry(p.origin_country.clone()).or_insert(0) += 1;
+            }
+            map.into_iter().collect()
+        };
+        let prisoners_by_region: Vec<(String, i64)> = {
+            let mut map: std::collections::BTreeMap<String, i64> =
+                std::collections::BTreeMap::new();
+            for p in &pow_camp.prisoners {
+                *map.entry(p.internment_region.clone()).or_insert(0) += 1;
             }
             map.into_iter().collect()
         };
@@ -8975,7 +9841,12 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         } else {
             0.0
         };
-        if total_prisoners > 0 {
+        // Ration draw: held POWs eat at the same per-1000 food upkeep
+        // rate as field units — reported as a per-turn cost estimate.
+        let held = pow_camp.current_count();
+        let rations_per_turn =
+            held as f64 / 1000.0 * country.military_config.food_upkeep_per_1000;
+        if total_prisoners > 0 || pow_camp.total_ever_captured > 0 {
             pow_camps.push(PowCampRow {
                 country: country_name.clone(),
                 total_prisoners,
@@ -8983,9 +9854,52 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 prisoners_by_origin,
                 average_health,
                 forced_labor_assigned,
+                interned,
+                captured_this_turn: pow_camp.captured_last_turn,
+                escaped: pow_camp.total_escaped,
+                repatriated: pow_camp.total_repatriated,
+                deceased: pow_camp.total_deceased,
+                camp_qol: average_health,
+                rations_per_turn,
+                prisoners_by_region,
             });
         }
     }
+
+    // ── v4.24.0: Historical Wars ledger — concluded wars with their
+    // recorded treaty outcomes. Sorted by end turn (newest last for the
+    // UI; the frontend sorts anyway). ──
+    let mut ended_wars: Vec<EndedWarRow> = state
+        .declared_wars
+        .iter()
+        .filter(|ws| ws.end_turn.is_some())
+        .map(|ws| {
+            let o = ws.outcome.clone().unwrap_or(crate::military::war_declarations::WarOutcome {
+                victor: None,
+                terms_label: "Peace (unrecorded)".to_string(),
+                regions_ceded: Vec::new(),
+                reparations_paid: 0.0,
+                aggressor_casualties: 0,
+                defender_casualties: 0,
+                pows_repatriated: false,
+            });
+            EndedWarRow {
+                aggressor: ws.aggressor.clone(),
+                defender: ws.defender.clone(),
+                war_goal: war_goal_label(&ws.reason),
+                start_turn: ws.start_turn,
+                end_turn: ws.end_turn.unwrap_or(0),
+                victor: o.victor,
+                terms_label: o.terms_label,
+                regions_ceded: o.regions_ceded,
+                reparations_paid: o.reparations_paid,
+                aggressor_casualties: o.aggressor_casualties,
+                defender_casualties: o.defender_casualties,
+                pows_repatriated: o.pows_repatriated,
+            }
+        })
+        .collect();
+    ended_wars.sort_by_key(|w| (w.end_turn, w.aggressor.clone()));
 
     // Devastation map — aggregate per region per country
     let mut devastation_map = Vec::new();
@@ -9035,6 +9949,19 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         b.turn.cmp(&a.turn).then_with(|| a.battle_id.cmp(&b.battle_id))
     });
 
+    // v4.24.0 WS4.3: strongest plots first, then most recent resolutions.
+    internal_conflicts.sort_by(|a, b| {
+        b.strength
+            .partial_cmp(&a.strength)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.id.cmp(&b.id))
+    });
+    coup_resolutions.sort_by(|a, b| {
+        b.resolved_turn
+            .cmp(&a.resolved_turn)
+            .then_with(|| a.plot_id.cmp(&b.plot_id))
+    });
+
     MilitaryDashboardResponse {
         wars: wars.into_values().collect(),
         recent_battles,
@@ -9043,6 +9970,8 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         war_morale,
         disasters: Vec::new(), // Disasters are transient — would need a log
         pow_camps,
+        internal_conflicts,
+        coup_resolutions,
     }
 }
 

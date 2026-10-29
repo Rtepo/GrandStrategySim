@@ -105,6 +105,10 @@ pub struct WarState {
     /// can be counted against military fronts.
     #[serde(default)]
     pub end_turn: Option<u32>,
+    /// v4.24.0: Recorded settlement outcome for the historical wars ledger —
+    /// victor, treaty terms, territorial/reparations results, casualties.
+    #[serde(default)]
+    pub outcome: Option<WarOutcome>,
 }
 
 impl WarState {
@@ -118,8 +122,35 @@ impl WarState {
             peace_requested_by: None,
             proposed_terms: None,
             end_turn: None,
+            outcome: None,
         }
     }
+}
+
+// ============================================================================
+// WAR OUTCOME (v4.24.0 — Historical Wars ledger)
+// ============================================================================
+
+/// The recorded outcome of a concluded war — written once when a peace
+/// settlement lands, then preserved on `declared_wars` for the Historical
+/// Wars dashboard.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct WarOutcome {
+    /// Victor country, or `None` for a negotiated/white peace.
+    pub victor: Option<String>,
+    /// Human-readable treaty label (e.g., "Treaty of Status Quo Ante").
+    pub terms_label: String,
+    /// Region IDs transferred to the victor (empty for status-quo peace).
+    pub regions_ceded: Vec<String>,
+    /// Reparations paid (fiat). Signed from the LOSER's perspective:
+    /// positive = loser paid the victor.
+    pub reparations_paid: f64,
+    /// Total casualties suffered by the recorded aggressor.
+    pub aggressor_casualties: i64,
+    /// Total casualties suffered by the recorded defender.
+    pub defender_casualties: i64,
+    /// Whether POW repatriation was part of the settlement.
+    pub pows_repatriated: bool,
 }
 
 // ============================================================================
@@ -192,6 +223,31 @@ pub struct WarDeclarationConfig {
     pub tension_per_provocation: f64,
     /// Tension added when funding proxy wars in the other country (e.g., 10.0).
     pub tension_per_proxy_funding: f64,
+    /// v4.24.0: Hard cap on simultaneous active war PAIRS worldwide.
+    /// Wars that would exceed the cap stay simmering tensions — the
+    /// border-incident pressure that created them persists, so they can
+    /// escalate later once a slot frees. Keeps global war count ~0–3.
+    #[serde(default = "default_max_simultaneous_wars")]
+    pub max_simultaneous_wars: u32,
+    /// v4.24.0: Turns a pair must wait after a war between them ends before
+    /// either can declare on the other again. Prevents settle→redeclare
+    /// churn cycles on persistently hostile borders.
+    #[serde(default = "default_war_recidivism_cooldown")]
+    pub war_recidivism_cooldown_turns: u32,
+    /// v4.24.0: Require belligerents to share a land border before a war
+    /// can be declared (the synthetic world adjacency in `war_bridge`).
+    #[serde(default = "default_require_adjacency")]
+    pub require_border_adjacency: bool,
+}
+
+fn default_max_simultaneous_wars() -> u32 {
+    3
+}
+fn default_war_recidivism_cooldown() -> u32 {
+    24
+}
+fn default_require_adjacency() -> bool {
+    true
 }
 
 impl Default for WarDeclarationConfig {
@@ -201,6 +257,9 @@ impl Default for WarDeclarationConfig {
             tension_decay_rate: 0.05,
             tension_per_provocation: 15.0,
             tension_per_proxy_funding: 10.0,
+            max_simultaneous_wars: default_max_simultaneous_wars(),
+            war_recidivism_cooldown_turns: default_war_recidivism_cooldown(),
+            require_border_adjacency: default_require_adjacency(),
         }
     }
 }
@@ -302,10 +361,29 @@ pub fn check_tension_escalations(
     turn: u32,
     config: &WarDeclarationConfig,
 ) -> Vec<WarDeclarationResult> {
+    check_tension_escalations_gated(tensions, at_war_with, turn, config, &|_, _| true)
+}
+
+/// v4.24.0: Gated variant of [`check_tension_escalations`]. Before any
+/// qualifying pair auto-declares, the `can_declare` predicate must accept —
+/// the engine uses it to enforce the casus-belli gates:
+///   * border adjacency (belligerents share a synthetic land border),
+///   * the global simultaneous-war cap,
+///   * the post-war recidivism cooldown.
+/// Candidates are visited in sorted-pair order for determinism.
+pub fn check_tension_escalations_gated(
+    tensions: &mut HashMap<String, BilateralTension>,
+    at_war_with: &mut HashMap<String, Vec<String>>,
+    turn: u32,
+    config: &WarDeclarationConfig,
+    can_declare: &dyn Fn(&str, &str) -> bool,
+) -> Vec<WarDeclarationResult> {
     let mut results = Vec::new();
 
-    // Find tensions that exceed the threshold
-    let escalated: Vec<(String, String)> = tensions
+    // Find tensions that exceed the threshold — sorted by canonical pair
+    // key so declaration order is deterministic (HashMap iteration order
+    // must never drive simulation outcomes).
+    let mut escalated: Vec<(String, String)> = tensions
         .iter()
         .filter(|(_, t)| t.exceeds_threshold(config.war_tension_threshold))
         .filter_map(|(key, _)| {
@@ -318,6 +396,7 @@ pub fn check_tension_escalations(
             }
         })
         .collect();
+    escalated.sort();
 
     for (country_a, country_b) in escalated {
         // Check if already at war
@@ -327,6 +406,17 @@ pub fn check_tension_escalations(
             .unwrap_or(false);
 
         if already_at_war {
+            continue;
+        }
+
+        // v4.24.0: Casus-belli gate — adjacency, war cap, cooldown.
+        if !can_declare(&country_a, &country_b) {
+            eprintln!(
+                "[WAR] Tension between {} and {} crosses the war threshold, \
+                 but no casus belli path (no shared border, war cap reached, \
+                 or post-war cooldown) — declaration blocked",
+                country_a, country_b
+            );
             continue;
         }
 

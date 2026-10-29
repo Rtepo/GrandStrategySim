@@ -773,6 +773,40 @@ pub fn procure_freight_and_split_trades(
         .map(|c| (c.id.clone(), c.region_id.clone()))
         .collect();
 
+    // v4.24 route-unblocking: some legal entities are not graph nodes —
+    // `STRATEGIC_RESERVE_<country>` carries `region_id = country.name`,
+    // so every reserve purchase (fuel, food, ammunition) routed to a
+    // non-existent node and deferred as ImpassableRoute forever,
+    // sequestering its matched asks (253k+ units/turn of Peat in Dacia)
+    // while power plants starved.
+    //
+    // Resolve such entities to a physical facility node: a distributed
+    // agency takes delivery at the facility co-located with the
+    // counterparty (local pickup — no freight), else at its first
+    // facility that IS a graph node (pays freight there like anyone).
+    let region_ids: std::collections::HashSet<String> =
+        regions.iter().map(|r| r.id.clone()).collect();
+    let mut facility_regions: HashMap<String, Vec<String>> = HashMap::new();
+    for b in buildings.iter() {
+        facility_regions
+            .entry(b.owner_id.clone())
+            .or_default()
+            .push(b.region_id.clone());
+    }
+    let resolve_node = |company_id: &str, counterparty: &str| -> Option<String> {
+        let raw = company_region.get(company_id)?;
+        if region_ids.contains(raw.as_str()) {
+            return Some(raw.clone());
+        }
+        let facs = facility_regions.get(company_id)?;
+        if facs.iter().any(|r| r == counterparty) {
+            return Some(counterparty.to_string());
+        }
+        facs.iter()
+            .find(|r| region_ids.contains(r.as_str()))
+            .cloned()
+    };
+
     // Pre-compute building inventory of FreightCapacity by owner company.
     let mut freight_capacity_by_company: HashMap<String, f64> = HashMap::new();
     // Agent 4 — Phase 5: Pre-compute transport mode by company for
@@ -806,14 +840,44 @@ pub fn procure_freight_and_split_trades(
         }
     }
 
-    for trade in trades {
-        // Determine buyer and seller regions.
-        let buyer_region = company_region.get(&trade.buyer_id);
-        let seller_region = company_region.get(&trade.seller_id);
+    // v4.24 freight elasticity: allocate scarce carrier capacity by
+    // willingness-to-pay (contract value), not blind FIFO. The match
+    // order arrives in bid order — under a capacity squeeze that starved
+    // multi-megawatt power-fuel shipments behind trivial parcels until
+    // whole grids blacked out. Sorting by executed trade value (qty ×
+    // price, deterministic with a stable tie-break on ids) secures bulk
+    // industrial freight first; minor shipments defer instead.
+    let mut ordered: Vec<&Trade> = trades.iter().collect();
+    ordered.sort_by(|a, b| {
+        (b.quantity * b.execution_price)
+            .partial_cmp(&(a.quantity * a.execution_price))
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.buyer_id.cmp(&b.buyer_id))
+            .then_with(|| a.seller_id.cmp(&b.seller_id))
+    });
 
-        // If either company's region is unknown (e.g., MIN-DEF), bypass freight.
+    for trade in ordered {
+        // Determine buyer and seller regions. `resolve_node` maps
+        // entities whose `region_id` is not a graph node (e.g. the
+        // Strategic Reserve Agency, whose region_id is the country
+        // name) onto a physical facility node: co-located delivery at
+        // the counterparty's node where the entity owns a facility
+        // there, else its first facility on the graph.
+        let seller_region = resolve_node(&trade.seller_id, "");
+        let buyer_region = resolve_node(
+            &trade.buyer_id,
+            seller_region.as_deref().unwrap_or(""),
+        );
+        // If the seller was still unresolved, retry co-located delivery
+        // at the buyer's node (symmetric facility pickup).
+        let seller_region = seller_region.or_else(|| {
+            resolve_node(&trade.seller_id, buyer_region.as_deref().unwrap_or(""))
+        });
+
+        // If either company's region is unresolvable (e.g., MIN-DEF),
+        // bypass freight.
         let (buyer_region_id, seller_region_id) = match (buyer_region, seller_region) {
-            (Some(br), Some(sr)) => (br.clone(), sr.clone()),
+            (Some(br), Some(sr)) => (br, sr),
             _ => {
                 secured.push(trade.clone());
                 continue;

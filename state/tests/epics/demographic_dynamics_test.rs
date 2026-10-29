@@ -96,8 +96,8 @@ fn test_demographic_structure_varies_with_development() {
     let pop = 1_000_000_i64;
 
     for year in [1900_u32, 1925, 1950, 1975] {
-        let low = generate_class_demographics(pop, year, 0.1, "TestCulture", &ethnic);
-        let high = generate_class_demographics(pop, year, 0.9, "TestCulture", &ethnic);
+        let low = generate_class_demographics(pop, year, 0.1, "TestCulture", &ethnic, &BTreeMap::new());
+        let high = generate_class_demographics(pop, year, 0.9, "TestCulture", &ethnic, &BTreeMap::new());
 
         let peasant_low = peasant_share(&low);
         let peasant_high = peasant_share(&high);
@@ -145,7 +145,7 @@ fn test_demographic_structure_varies_with_development() {
 
     // Sanity: dev = 0 reproduces the documented Phase 44 era baselines.
     for (year, expected_rural) in [(1900_u32, 0.80), (1925, 0.65), (1950, 0.50), (1975, 0.40)] {
-        let base = generate_class_demographics(pop, year, 0.0, "TestCulture", &ethnic);
+        let base = generate_class_demographics(pop, year, 0.0, "TestCulture", &ethnic, &BTreeMap::new());
         let rural = share_of(
             &base,
             base.rural_classes.values().map(|d| d.population).sum(),
@@ -164,7 +164,7 @@ fn test_demographic_structure_varies_with_development() {
         let mut prev = f64::MAX;
         for dev_i in 0..=10 {
             let dev = dev_i as f64 / 10.0;
-            let demo = generate_class_demographics(pop, year, dev, "TestCulture", &ethnic);
+            let demo = generate_class_demographics(pop, year, dev, "TestCulture", &ethnic, &BTreeMap::new());
             let share = peasant_share(&demo);
             assert!(
                 share <= prev + 1e-9,
@@ -191,7 +191,7 @@ fn test_demographic_shares_conserved_and_nonnegative() {
         for dev_i in 0..=10 {
             let dev = dev_i as f64 / 10.0;
             for &pop in &[0_i64, 1, 3, 999, 12_345, 1_000_000] {
-                let demo = generate_class_demographics(pop, year, dev, "C", &ethnic);
+                let demo = generate_class_demographics(pop, year, dev, "C", &ethnic, &BTreeMap::new());
                 for (class, d) in demo
                     .rural_classes
                     .iter()
@@ -354,7 +354,7 @@ fn test_demographic_worldgen_spread_and_determinism() {
     let ethnic: BTreeMap<String, f64> = BTreeMap::new();
     for region in regions.values() {
         let recomputed =
-            generate_class_demographics(region.population, 1950, region.development_level, "C", &ethnic);
+            generate_class_demographics(region.population, 1950, region.development_level, "C", &ethnic, &BTreeMap::new());
         let stored_rural: Vec<i64> = region
             .class_demographics
             .rural_classes

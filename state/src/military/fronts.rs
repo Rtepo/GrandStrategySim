@@ -71,6 +71,23 @@ impl Casualties {
     }
 }
 
+/// A single tactical phase of a resolved battle (v4.24.0).
+///
+/// `resolve_battle` records three deterministic phases so the UI can show
+/// how the engagement unfolded without any RNG: Contact (forces engaged),
+/// Exchange (combat power after supply burn), and Decision (final result).
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct BattlePhase {
+    /// Phase label ("Contact", "Exchange", "Decision").
+    pub name: String,
+    /// Attacker combat power at this phase.
+    pub attacker_power: f64,
+    /// Defender combat power at this phase.
+    pub defender_power: f64,
+    /// Human-readable outcome note for the phase.
+    pub note: String,
+}
+
 /// Battle record
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Battle {
@@ -103,6 +120,20 @@ pub struct Battle {
 
     /// Battle result
     pub result: BattleResult,
+
+    /// v4.24.0: POWs the ATTACKER captured this battle (a subset of the
+    /// defender's wounded+deserters — recorded post-hoc by the war bridge).
+    #[serde(default)]
+    pub captured_by_attacker: i64,
+    /// v4.24.0: POWs the DEFENDER captured this battle (a subset of the
+    /// attacker's wounded+deserters).
+    #[serde(default)]
+    pub captured_by_defender: i64,
+
+    /// v4.24.0: Deterministic tactical phases (Contact → Exchange →
+    /// Decision) for the expandable battle view. Empty on legacy records.
+    #[serde(default)]
+    pub phases: Vec<BattlePhase>,
 }
 
 /// Battle outcome

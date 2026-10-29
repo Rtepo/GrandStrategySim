@@ -134,6 +134,11 @@ pub async fn get_society_snapshot(
 /// v4.22 WS6: Press snapshot — deterministic newspaper front pages built
 /// from real events (legislative log, council resolutions, royal genealogy,
 /// strikes, movements, treaties, war state, telemetry deltas).
+///
+/// v4.24 WS1: the builder is wrapped in `catch_unwind` — a panic used to
+/// surface only as an opaque "Task join error" which the Press page rendered
+/// as "Loading…" forever. Panics now return a descriptive error payload so
+/// the page's error state can display (and log) the real cause.
 #[tauri::command]
 pub async fn get_press_snapshot(
     state: tauri::State<'_, AppState>,
@@ -157,14 +162,26 @@ pub async fn get_press_snapshot(
             .map(|e| (e.companies.as_slice(), e.unions.as_slice()))
             .unwrap_or((&[], &[]));
 
-        Ok(sim_engine::ui::snapshot_press::build_press_snapshot(
-            country_ref,
-            companies,
-            unions,
-            &engine_state.game_state.treaty_registry,
-            engine_state.game_state.calendar.global_turn,
-            engine_state.game_state.calendar.current_year,
-        ))
+        let snapshot = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            sim_engine::ui::snapshot_press::build_press_snapshot(
+                country_ref,
+                companies,
+                unions,
+                &engine_state.game_state.treaty_registry,
+                engine_state.game_state.calendar.global_turn,
+                engine_state.game_state.calendar.current_year,
+            )
+        }));
+        snapshot.map_err(|panic| {
+            let msg = if let Some(s) = panic.downcast_ref::<&str>() {
+                s.to_string()
+            } else if let Some(s) = panic.downcast_ref::<String>() {
+                s.clone()
+            } else {
+                "unknown panic".to_string()
+            };
+            format!("Press snapshot failed: {msg}")
+        })
     })
     .await
     .map_err(|e| format!("Task join error: {e}"))?

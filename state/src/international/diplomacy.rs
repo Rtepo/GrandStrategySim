@@ -470,27 +470,35 @@ pub fn staff_diplomatic_posts(
         // per 250B GDP. Both targets clamp to the number of foreign hosts.
         let pop_tier = ((population.max(1) as f64).log10() - 6.0).max(0.0) as usize;
         let gdp_tier = (gdp.max(0.0) / 250_000_000_000.0) as usize;
-        // v4.23 WS5b: major powers (pop_tier + gdp_tier ≥ 4 — i.e. ~100M+
-        // people AND ~$500B+ GDP) field a full diplomatic corps of 15–30
-        // personnel: envoys distributed across ambassador/consul/attaché
-        // posts plus a spy network. Minor powers keep the lean bilateral
-        // corps from v4.22.
-        let is_major = pop_tier + gdp_tier >= 4;
+        // v4.23 WS5b / v4.24.0 WS5: corps size by power tier —
+        //   * major powers (pop_tier + gdp_tier ≥ 4): full corps ~30
+        //     (21 envoys + 9 spies),
+        //   * medium powers (tier ≥ 2): regional corps ~12
+        //     (8 envoys + 4 spies),
+        //   * minor powers: the lean bilateral corps from v4.22.
+        // The old binary floor left mediums at ~4 staff — well under the
+        // 12–30 band medium/major states warrant.
+        let tier = pop_tier + gdp_tier;
+        let is_major = tier >= 4;
+        let is_medium = !is_major && tier >= 2;
         let (target_envoys, target_spies) = if is_major {
-            (18usize.min(foreign_count * 2), 9usize.min(foreign_count))
+            (21usize.min(foreign_count * 2), 9usize.min(foreign_count))
+        } else if is_medium {
+            (8usize.min(foreign_count * 2), 4usize.min(foreign_count))
         } else {
             (
-                (1 + pop_tier + gdp_tier).min(foreign_count),
+                (1 + tier).min(foreign_count),
                 (1 + pop_tier).min(foreign_count),
             )
         };
 
-        // Build the staffing plan. Majors distribute envoy slots over the
-        // three envoy post types (ambassador/consul/military attaché) —
-        // per-host type caps (1/2/1) and per-type coverage still apply, so
-        // the corps spreads across hosts while allowing several envoy types
-        // on the same mission. Minors stay ambassador-only as in v4.22.
-        let staffing_plan: Vec<(DiplomaticPostType, usize, usize)> = if is_major {
+        // Build the staffing plan. Medium and major powers distribute
+        // envoy slots over the three envoy post types
+        // (ambassador/consul/military attaché) — per-host type caps
+        // (1/2/1) and per-type coverage still apply, so the corps spreads
+        // across hosts while allowing several envoy types on the same
+        // mission. Minors stay ambassador-only as in v4.22.
+        let staffing_plan: Vec<(DiplomaticPostType, usize, usize)> = if is_major || is_medium {
             const ENVOY_TYPES: [DiplomaticPostType; 3] = [
                 DiplomaticPostType::Ambassador,
                 DiplomaticPostType::Consul,

@@ -1179,6 +1179,17 @@ pub struct ClassDemographics {
     #[serde(default)]
     pub smoothed_income: f64,
 
+    /// v4.24.0 WS2: consumer-loan principal disbursed to this class this
+    /// turn. Disbursements land in `savings` like income, so without a
+    /// separate tally `smoothed_income` (and therefore `class_spend_capacity`
+    /// and `consumer_credit_demand`'s leverage target) counted borrowing
+    /// as earnings — a positive feedback loop where debt funded its own
+    /// measured creditworthiness (Venedia aristocracy: 60M debt on 4k
+    /// savings). `income_now` subtracts this tally; reset each turn beside
+    /// `savings_stock_turn_start`.
+    #[serde(default)]
+    pub loan_inflow_this_turn: f64,
+
     /// v4.18 WS1 follow-up: last turn's raw spend capacity (smoothed
     /// income + bounded stock draw), refreshed at settle time. The demand
     /// cap clamps this turn's capacity to `prev × [0.85, 1.15]` — the
@@ -1592,14 +1603,28 @@ impl ClassDemographics {
             0.0
         };
 
+        // v4.24.0 WS2: class-condition pressure — a class whose real
+        // economics sit at Destitute/Struggling produces ambient
+        // radicalization even when macro drivers are flat (this was the
+        // `RADICAL:+0.00%` gap: drivers are macro-averaged and can read
+        // zero while a class starves). Prosperity symmetrically relieves.
+        let (condition_pressure, prosperity_relief) = match self.economic_status {
+            EconomicStatus::Destitute => (0.5, 0.0),
+            EconomicStatus::Struggling => (0.25, 0.0),
+            EconomicStatus::Stable => (0.05, 0.1),
+            EconomicStatus::Prosperous => (0.0, 0.3),
+        };
+
         let radicalization = (drivers.inflation_rate.max(0.0) * config.inflation_weight
             + (-drivers.real_wage_growth).max(0.0) * config.real_wage_weight
             + unemployment_rate * config.unemployment_weight
             + drivers.savings_depletion_rate.max(0.0) * config.savings_depletion_weight)
-            * drivers.exploitation_penalty.max(0.0);
+            * drivers.exploitation_penalty.max(0.0)
+            + condition_pressure * config.unemployment_weight;
 
         let loyalization = drivers.real_wage_growth.max(0.0) * config.real_wage_weight
-            + government_approval.clamp(0.0, 1.0) * config.government_approval_weight;
+            + government_approval.clamp(0.0, 1.0) * config.government_approval_weight
+            + prosperity_relief * config.government_approval_weight;
 
         let shift = ((radicalization - loyalization) * config.shift_magnitude_base)
             .clamp(-config.shift_magnitude_base, config.shift_magnitude_base);
@@ -1940,12 +1965,8 @@ pub fn update_class_demographics(
                     class_demographics.savings / class_demographics.population as f64;
             }
 
-            class_demographics.economic_status = match class_demographics.savings_per_capita {
-                x if x >= 1000.0 => EconomicStatus::Prosperous,
-                x if x >= 500.0 => EconomicStatus::Stable,
-                x if x >= 100.0 => EconomicStatus::Struggling,
-                _ => EconomicStatus::Destitute,
-            };
+            class_demographics.economic_status =
+                economic_status_from_savings(class_demographics.savings_per_capita);
         }
     }
 }
@@ -1955,6 +1976,20 @@ pub fn update_class_demographics(
 pub struct MarketPrices {
     /// Cost of subsistence basket
     pub subsistence_basket: f64,
+}
+
+/// v4.24.0 WS2: derive a class's economic status from its real savings
+/// per capita. Shared between the legacy `update_class_demographics`
+/// thresholds and the per-turn refresh in `process_mass_movements_turn`,
+/// which is what actually keeps `economic_status` dynamic — the status
+/// previously froze at its genesis value forever.
+pub fn economic_status_from_savings(savings_per_capita: f64) -> EconomicStatus {
+    match savings_per_capita {
+        x if x >= 1000.0 => EconomicStatus::Prosperous,
+        x if x >= 500.0 => EconomicStatus::Stable,
+        x if x >= 100.0 => EconomicStatus::Struggling,
+        _ => EconomicStatus::Destitute,
+    }
 }
 
 /// A megaregion grouping.
@@ -2624,6 +2659,7 @@ pub fn generate_regional_topology(
     start_year: u32,
     dominant_culture: &str,
     ethnic_composition: &BTreeMap<String, f64>,
+    religious_composition: &BTreeMap<String, f64>,
 ) -> HashMap<String, Region> {
     let mut rng = crate::engine::seeded_rng::thread_rng();
     let gdp_pc = gdp / population as f64;
@@ -2771,6 +2807,7 @@ pub fn generate_regional_topology(
                 development_level,
                 dominant_culture,
                 ethnic_composition,
+                religious_composition,
             ),
             education: crate::state::macro_data::Education::default(),
             governance,
@@ -2961,6 +2998,7 @@ pub fn generate_class_demographics(
     development_level: f64,
     dominant_culture: &str,
     ethnic_composition: &BTreeMap<String, f64>,
+    religious_composition: &BTreeMap<String, f64>,
 ) -> RegionalClassDemographics {
     let mut rural_classes: BTreeMap<RuralClass, ClassDemographics> = BTreeMap::new();
     let mut urban_classes: BTreeMap<UrbanClass, ClassDemographics> = BTreeMap::new();
@@ -3177,9 +3215,194 @@ pub fn generate_class_demographics(
         demo
     });
 
+    // v4.24.0 WS2: seed per-class religions from the national religious
+    // composition by population-weighted quota — replaces the turn-1
+    // dominant-religion stamp that wiped out every minority at genesis.
+    allocate_class_religions(
+        &mut rural_classes,
+        &mut urban_classes,
+        religious_composition,
+    );
+
     RegionalClassDemographics {
         rural_classes,
         urban_classes,
+    }
+}
+
+/// v4.24.0 WS2: deterministic population-weighted religion allocation
+/// over class slots.
+///
+/// `ClassDemographics.religion` is a single engine key, so the national
+/// religious composition can only be represented at class granularity.
+/// Two deterministic phases (BTreeMap ordering + explicit tie-breaks —
+/// no HashMap iteration, no RNG):
+///
+/// 1. Guarantee pass — religions in descending composition order each
+///    claim the still-unassigned class whose population share is closest
+///    to the religion's own share. Every religion representable at class
+///    granularity gets a slot, so minorities persist at Turn 0 instead of
+///    being stamped over by the dominant religion (the Turn-1 monoculture
+///    wipeout this replaces).
+/// 2. Fill pass — remaining classes go to the religion that minimizes the
+///    resulting Σ|assigned − target| deviation, concentrating large
+///    classes on the largest religions.
+///
+/// Slots whose `religion` is already set are treated as fixed
+/// pre-assignments: they contribute to their religion's assigned totals
+/// and are never rewritten, so this doubles as the legacy-save migration
+/// path for partially-seeded states.
+pub fn allocate_class_religions(
+    rural_classes: &mut BTreeMap<RuralClass, ClassDemographics>,
+    urban_classes: &mut BTreeMap<UrbanClass, ClassDemographics>,
+    religious_composition: &BTreeMap<String, f64>,
+) {
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum Slot {
+        R(RuralClass),
+        U(UrbanClass),
+    }
+
+    let total_share: f64 = religious_composition.values().sum();
+    if total_share <= 0.0 {
+        return;
+    }
+    // Descending share order; alphabetical tie-break keeps the order
+    // fully deterministic beyond BTreeMap key order.
+    let mut religions: Vec<(String, f64)> = religious_composition
+        .iter()
+        .filter(|(_, s)| **s > 0.0)
+        .map(|(k, s)| (k.clone(), *s / total_share))
+        .collect();
+    religions.sort_by(|a, b| {
+        b.1.partial_cmp(&a.1)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.0.cmp(&b.0))
+    });
+    if religions.is_empty() {
+        return;
+    }
+
+    // Class slots in deterministic order (BTreeMap iterates enum Ord).
+    let mut slots: Vec<(Slot, f64)> = Vec::new();
+    for (k, d) in rural_classes.iter() {
+        slots.push((Slot::R(*k), d.population as f64));
+    }
+    for (k, d) in urban_classes.iter() {
+        slots.push((Slot::U(*k), d.population as f64));
+    }
+    let total_pop: f64 = slots.iter().map(|(_, p)| *p).sum();
+    if total_pop <= 0.0 {
+        return;
+    }
+
+    // Pre-assigned slots stay fixed; usize::MAX marks "unassigned" and a
+    // religion not present in the composition keeps its slot untouched.
+    const PRESET_OTHER: usize = usize::MAX - 1;
+    let mut assigned: Vec<f64> = vec![0.0; religions.len()];
+    let mut slot_religion: Vec<Option<usize>> = vec![None; slots.len()];
+    for (i, (slot, pop)) in slots.iter().enumerate() {
+        let preset = match slot {
+            Slot::R(k) => &rural_classes[k].religion,
+            Slot::U(k) => &urban_classes[k].religion,
+        };
+        if preset.is_empty() {
+            continue;
+        }
+        match religions.iter().position(|(name, _)| name == preset) {
+            Some(ridx) => {
+                slot_religion[i] = Some(ridx);
+                assigned[ridx] += *pop;
+            }
+            None => slot_religion[i] = Some(PRESET_OTHER),
+        }
+    }
+    if slot_religion.iter().all(Option::is_some) {
+        return;
+    }
+
+    // Phase 1 — guarantee pass: every religion in descending share order
+    // that doesn't already own a slot claims the unassigned class whose
+    // population share is closest to its own share. Religions beyond the
+    // free-slot count can't be represented and are skipped.
+    for ridx in 0..religions.len() {
+        if assigned[ridx] > 0.0 {
+            continue;
+        }
+        let target_share = religions[ridx].1;
+        let mut best: Option<(usize, f64)> = None;
+        for (i, (_, pop)) in slots.iter().enumerate() {
+            if slot_religion[i].is_some() {
+                continue;
+            }
+            let fit = ((pop / total_pop) - target_share).abs();
+            if best.is_none_or(|(_, b)| fit < b) {
+                best = Some((i, fit));
+            }
+        }
+        match best {
+            Some((i, _)) => {
+                slot_religion[i] = Some(ridx);
+                assigned[ridx] += slots[i].1;
+            }
+            None => break,
+        }
+    }
+
+    // Phase 2 — fill pass: each remaining class goes to the religion that
+    // minimizes the resulting Σ|assigned_j − target_j| deviation.
+    // Targets are population-weighted shares of the composition.
+    for i in 0..slots.len() {
+        if slot_religion[i].is_some() {
+            continue;
+        }
+        let pop = slots[i].1;
+        let mut best_ridx = 0usize;
+        let mut best_err = f64::INFINITY;
+        for ridx in 0..religions.len() {
+            let mut err = 0.0;
+            for (j, (_, jshare)) in religions.iter().enumerate() {
+                let jtarget = jshare * total_pop;
+                let jassigned = if j == ridx {
+                    assigned[j] + pop
+                } else {
+                    assigned[j]
+                };
+                err += (jassigned - jtarget).abs();
+            }
+            if err < best_err {
+                best_err = err;
+                best_ridx = ridx;
+            }
+        }
+        slot_religion[i] = Some(best_ridx);
+        assigned[best_ridx] += pop;
+    }
+
+    // Write back.
+    for (i, (slot, _)) in slots.iter().enumerate() {
+        if let Some(ridx) = slot_religion[i] {
+            if ridx == PRESET_OTHER {
+                continue;
+            }
+            let religion = &religions[ridx].0;
+            match slot {
+                Slot::R(k) => {
+                    if let Some(demo) = rural_classes.get_mut(k) {
+                        if demo.religion.is_empty() {
+                            demo.religion = religion.clone();
+                        }
+                    }
+                }
+                Slot::U(k) => {
+                    if let Some(demo) = urban_classes.get_mut(k) {
+                        if demo.religion.is_empty() {
+                            demo.religion = religion.clone();
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

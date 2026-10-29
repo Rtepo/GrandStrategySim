@@ -7002,7 +7002,19 @@ fn create_strategic_reserve_agency(
         file_stem: "strategic_reserve".to_string(),
         name: "Strategic Reserve Agency".to_string(),
         sector: Sector::PublicServices,
-        region_id: country.name.clone(),
+        // v4.24: the agency's registered node must be a real region —
+        // `country.name` was never a graph node, so every SRA freight
+        // route resolved impassable and reserve purchases (fuel, food,
+        // ammunition) deferred forever, sequestering their matched
+        // asks while the market starved. Registered office = capital;
+        // the freight resolver still delivers to the co-located
+        // warehouse in the counterparty's region when one exists.
+        region_id: regions
+            .iter()
+            .find(|r| r.is_capital)
+            .or_else(|| regions.first())
+            .map(|r| r.id.clone())
+            .unwrap_or_else(|| country.name.clone()),
         legal_form: LegalForm::StrategicReserveAgency(StrategicReserveData {
             commodity_reserves: BTreeMap::new(),
             purchase_triggers,

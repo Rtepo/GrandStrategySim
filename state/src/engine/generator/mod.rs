@@ -599,7 +599,10 @@ fn generate_country(
         crate::engine::seeded_rng::draw_count()
     );
 
-    let cultural = generate_cultural_background(name);
+    // v4.24.0 WS2: the worldgen life-expectancy anchor (same expression as
+    // `health_statistics.average_lifespan` below) fits the model life table
+    // behind the Turn-0 stable age distribution.
+    let cultural = generate_cultural_background(name, 40.0 + gdp_pc * 10.0);
     let demographics = build_demographics(&cultural, population, gdp_pc);
     let tech_limit = start_year.tech_limit(wealth);
 
@@ -937,6 +940,7 @@ fn generate_country(
         start_year.as_year(),
         &cultural.demonym,
         &cultural.ethnic_composition,
+        &cultural.religious_composition,
     );
     #[cfg(feature = "diagnostic")]
     eprintln!(
@@ -1563,8 +1567,11 @@ fn build_demographics(
     };
 
     let age = &cultural.age_groups;
-    let average_age = 7.5 * age.children + 38.0 * age.working + 75.0 * age.elderly;
-    let median_age = median_from_age_groups(age.children, age.working, age.elderly);
+    // v4.24.0 WS2: mean/median age read directly off the real sixteen-band
+    // stable-population distribution (midpoint-weighted + interpolated)
+    // instead of the three-bucket midpoint heuristic.
+    let (average_age, median_age) =
+        crate::society::cultures::cohort_age_stats(&cultural.age_cohorts);
 
     let city_urban = (0.2 + 0.6 / (1.0 + (-2.0 * (gdp_pc - 1.5)).exp())).min(0.95);
     let rural = (1.0 - city_urban).max(0.0);
@@ -1580,6 +1587,7 @@ fn build_demographics(
             elderly: age.elderly,
             extra: Map::new(),
         },
+        age_cohorts: cultural.age_cohorts.clone(),
         gender: Gender {
             male: 0.5,
             female: 0.5,
@@ -1594,23 +1602,6 @@ fn build_demographics(
         rural,
         ..Demographics::default()
     }
-}
-
-fn median_from_age_groups(children: f64, adults: f64, elderly: f64) -> f64 {
-    let total = children + adults + elderly;
-    if total == 0.0 {
-        return 35.0;
-    }
-    let p = 0.5 * total;
-    if p < children {
-        return (p / children) * 15.0;
-    }
-    if p < children + adults {
-        let t = (p - children) / adults;
-        return 15.0 + t * 45.0;
-    }
-    let t = (p - children - adults) / elderly.max(f64::EPSILON);
-    60.0 + t * 30.0
 }
 
 fn build_treasury(

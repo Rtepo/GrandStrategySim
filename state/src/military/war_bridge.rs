@@ -45,7 +45,7 @@ use crate::military::pows::{
 };
 use crate::military::units::MilitaryUnit;
 use crate::military::war_declarations::{
-    settle_peace, tension_key, PeaceTerms,
+    settle_peace, tension_key, PeaceTerms, WarOutcome,
 };
 use crate::society::cadastre::{parcel_id_to_index, ParcelId};
 use crate::society::disasters::{
@@ -60,7 +60,7 @@ const MAX_WAR_UNITS_PER_SIDE: usize = 8;
 /// Maximum parcels tracked as a front's combat zone (devastation target).
 const MAX_COMBAT_ZONE_PARCELS: usize = 64;
 /// Prefix identifying fronts created by the war bridge.
-const WAR_FRONT_PREFIX: &str = "WAR-";
+pub const WAR_FRONT_PREFIX: &str = "WAR-";
 
 /// Canonical front id for a war pair (sorted countries — one front per pair).
 pub fn war_front_id(country_a: &str, country_b: &str) -> String {
@@ -75,6 +75,69 @@ fn canonical_pair(a: &str, b: &str) -> (String, String) {
     } else {
         (b.to_string(), a.to_string())
     }
+}
+
+// ============================================================================
+// v4.24.0: Synthetic world adjacency (casus belli border gate)
+// ============================================================================
+//
+// The generated world has no explicit inter-country border graph — each
+// country's regions form a country-local ring. For the war-declaration
+// gate we derive a deterministic synthetic adjacency from the sorted
+// country roster:
+//
+//  1. **Continental ring** — every country borders its lexicographic
+//     neighbours (i ↔ i+1, plus wraparound), like provinces around a
+//     continent's rim. With N countries this yields exactly N borders.
+//  2. **Cultural bridge** — countries sharing `macro_indicators
+//     .cultural_group` form chains in sorted order, so culturally related
+//     neighbours border even when the ring separates them.
+//
+// Everything is derived from sorted names + stored culture — no RNG, no
+// HashMap iteration order, identical across runs and platforms.
+/// Deterministic synthetic border set over all country pairs — see the
+/// module comment above for the construction (continental ring +
+/// cultural bridge chains).
+pub fn compute_country_adjacency(state: &GameState) -> BTreeSet<(String, String)> {
+    let mut names: Vec<String> = state.countries.keys().cloned().collect();
+    names.sort();
+    let n = names.len();
+    let mut adjacency: BTreeSet<(String, String)> = BTreeSet::new();
+
+    // 1) Continental ring.
+    for i in 0..n {
+        let a = &names[i];
+        let b = &names[(i + 1) % n];
+        if a != b {
+            adjacency.insert(canonical_pair(a, b));
+        }
+    }
+
+    // 2) Cultural bridge — chain consecutive members of each culture group.
+    let mut by_culture: std::collections::BTreeMap<String, Vec<String>> =
+        std::collections::BTreeMap::new();
+    for name in &names {
+        let group = state.countries[name]
+            .macro_indicators
+            .cultural_group
+            .trim()
+            .to_string();
+        if !group.is_empty() {
+            by_culture.entry(group).or_default().push(name.clone());
+        }
+    }
+    for (_group, members) in by_culture {
+        for w in members.windows(2) {
+            adjacency.insert(canonical_pair(&w[0], &w[1]));
+        }
+    }
+
+    adjacency
+}
+
+/// Whether two countries share a synthetic land border.
+pub fn countries_share_border(state: &GameState, a: &str, b: &str) -> bool {
+    compute_country_adjacency(state).contains(&canonical_pair(a, b))
 }
 
 /// Turn-level entry point. Called sequentially from the engine after
@@ -147,13 +210,62 @@ pub fn process_war_bridge(
             for msg in &result.messages {
                 eprintln!("{}", msg);
             }
-            // Mark the live WarState ended (history rows stay, flagged).
+            // Mark the live WarState ended (history rows stay, flagged)
+            // and record the outcome for the Historical Wars ledger —
+            // relations-normalized settlements are white peaces; casualty
+            // totals come from the shared front ledger before teardown.
+            let front_id = war_front_id(a, b);
+            // `roles` is built below — resolve aggressor/defender from the
+            // live WarState directly.
+            let (agg, ddf) = state
+                .declared_wars
+                .iter()
+                .rev()
+                .find(|ws| {
+                    ws.end_turn.is_none()
+                        && canonical_pair(&ws.aggressor, &ws.defender)
+                            == canonical_pair(a, b)
+                })
+                .map(|ws| (ws.aggressor.clone(), ws.defender.clone()))
+                .unwrap_or_else(|| (a.clone(), b.clone()));
+            let (agg_cas, def_cas, score) = state
+                .countries
+                .get(&ddf)
+                .and_then(|c| {
+                    c.military_fronts
+                        .iter()
+                        .find(|f| f.id == front_id)
+                        .map(|f| {
+                            (
+                                f.get_country_casualties(&agg),
+                                f.get_country_casualties(&ddf),
+                                front_war_score(f, &agg),
+                            )
+                        })
+                })
+                .unwrap_or((0, 0, 0.0));
+            let outcome = WarOutcome {
+                victor: if score > 0.0 {
+                    Some(agg.clone())
+                } else if score < 0.0 {
+                    Some(ddf.clone())
+                } else {
+                    None
+                },
+                terms_label: "White Peace — normalized relations".to_string(),
+                regions_ceded: Vec::new(),
+                reparations_paid: 0.0,
+                aggressor_casualties: agg_cas,
+                defender_casualties: def_cas,
+                pows_repatriated: true,
+            };
             for ws in state.declared_wars.iter_mut().rev() {
                 if ws.end_turn.is_none()
                     && canonical_pair(&ws.aggressor, &ws.defender)
                         == canonical_pair(a, b)
                 {
                     ws.end_turn = Some(current_turn);
+                    ws.outcome = Some(outcome.clone());
                     break;
                 }
             }
@@ -249,6 +361,43 @@ pub fn process_war_bridge(
         for msg in &result.messages {
             eprintln!("{}", msg);
         }
+
+        // ── v4.24.0: POW camp lifecycle (per-country, once per turn) ──
+        // Fresh captures are processed into internment (labor-eligible),
+        // interned POWs attempt deterministic escapes at a rate set by
+        // camp conditions (worse rations/health ⇒ more pressure), and
+        // attrition removes a fraction of the held population. Rates are
+        // derived from average prisoner productivity (the health/ration
+        // proxy), never magic constants.
+        let held = country.pow_camp.prisoners.len();
+        if held > 0 || country.pow_camp.captured_last_turn > 0 {
+            let avg_prod = if held > 0 {
+                country
+                    .pow_camp
+                    .prisoners
+                    .iter()
+                    .map(|p| p.productivity_factor)
+                    .sum::<f64>()
+                    / held as f64
+            } else {
+                0.6
+            };
+            let intake = country.pow_camp.process_intake(current_turn);
+            if intake > 0 {
+                eprintln!("[POW] {}: {} POWs processed into internment", name, intake);
+            }
+            let escape_rate = (1.0 - avg_prod.clamp(0.0, 1.0)) * 0.01;
+            let escapes = country.pow_camp.process_escapes(escape_rate);
+            if escapes > 0 {
+                eprintln!("[POW] {}: {} POWs escaped internment", name, escapes);
+            }
+            let attrition_rate = (1.0 - avg_prod.clamp(0.0, 1.0)) * 0.005;
+            let deaths = country.pow_camp.process_attrition(attrition_rate);
+            if deaths > 0 {
+                eprintln!("[POW] {}: {} POWs died in captivity", name, deaths);
+            }
+            country.pow_camp.cleanup();
+        }
     }
 
     // ── 4. Materialize fronts + resolve one battle per war pair. ──
@@ -272,51 +421,137 @@ fn fnv1a(s: &str) -> u64 {
     h
 }
 
+/// v4.24.0: Ordered invasion corridor on a country's land ring.
+///
+/// Regions form a country-local ring (see `build_structured_edges`):
+/// index 0 is the capital, `i` borders `i±1 mod n`. A war front enters at
+/// a deterministic border province — `fnv1a(front_id) % n_provinces` picks
+/// the entry edge — then the front line marches inward along contiguous
+/// ring neighbours toward the capital, which is ALWAYS last:
+///
+///   `[border_entry, …, Region3, Region2, Capital]`
+///
+/// Both belligerents' copies of a `WAR-*` front share this corridor, so
+/// the two ledgers stay byte-identical. Determinism: region Vec order is
+/// generation order (capital first, then ring order); only LandRegion
+/// nodes participate (maritime nodes excluded).
+fn invasion_corridor(country: &Country, front_id: &str) -> Vec<String> {
+    let land: Vec<&Region> = country
+        .regions
+        .iter()
+        .filter(|r| r.node_type == crate::society::geography::NodeType::LandRegion)
+        .collect();
+    let capital_id = land
+        .iter()
+        .find(|r| r.is_capital)
+        .map(|r| r.id.clone());
+    let provinces: Vec<String> = land
+        .iter()
+        .filter(|r| !r.is_capital)
+        .map(|r| r.id.clone())
+        .collect();
+    let m = provinces.len();
+    if m == 0 {
+        // Single-region country (capital only) — the corridor IS the capital.
+        return capital_id.into_iter().collect();
+    }
+    // Entry edge rotates per war pair so different wars breach different
+    // borders. The corridor then walks contiguous ring neighbours inward
+    // (provinces are stored in ring order, so index-1 is the neighbour
+    // one step closer to the capital).
+    let entry = (fnv1a(front_id) as usize) % m;
+    let mut corridor: Vec<String> = provinces[..=entry].iter().rev().cloned().collect();
+    if let Some(cap) = capital_id {
+        corridor.push(cap);
+    } else {
+        // Legacy save without a capital flag — append the rest of the ring.
+        corridor.extend(provinces[entry + 1..].iter().rev().cloned());
+    }
+    corridor
+}
+
+/// The region where a war front's battle line currently sits — the first
+/// corridor region not under occupation. `Occupied` markers accumulate in
+/// `region_control` as the attacker advances; everything ahead of the
+/// first unoccupied cell is taken ground.
+pub(crate) fn frontier_region(front: &Front, corridor: &[String]) -> Option<String> {
+    for rid in corridor {
+        match front.region_control.get(rid) {
+            Some(RegionControl::Occupied(_)) => continue,
+            _ => return Some(rid.clone()),
+        }
+    }
+    corridor.last().cloned()
+}
+
+/// The last corridor cell the attacker holds — counter-attacks roll the
+/// front line back here first.
+fn last_occupied_region(front: &Front, corridor: &[String]) -> Option<String> {
+    corridor
+        .iter()
+        .rev()
+        .find(|rid| matches!(front.region_control.get(*rid), Some(RegionControl::Occupied(_))))
+        .cloned()
+}
+
+/// Deterministic mustering region — a country's own corridor entry for
+/// this war pair (its border province facing the enemy).
+fn muster_region(country: &Country, front_id: &str) -> Option<String> {
+    invasion_corridor(country, front_id).into_iter().next()
+}
+
 /// Ensures the war front exists in `country.military_fronts`, creating it
-/// with the country's own mustering region and combat-zone parcels.
-/// `involved` must be the canonical [aggressor, defender] ordering.
+/// with the DEFENDER's invasion corridor and combat-zone parcels. Both
+/// belligerents' copies share the corridor so the two ledgers stay
+/// byte-identical. `involved` must be the canonical [aggressor, defender]
+/// ordering. Legacy fronts (single mustering region) are migrated: their
+/// `regions` list is replaced by the corridor, preserving any existing
+/// control marks.
 fn ensure_war_front(
     country: &mut Country,
     front_id: &str,
     front_name: &str,
     involved: &[String],
+    corridor: &[String],
+    zone_parcels: &[ParcelId],
 ) {
-    if country.military_fronts.iter().any(|f| f.id == front_id) {
+    if corridor.is_empty() {
+        return; // Landless defender — no front possible.
+    }
+    if let Some(front) = country
+        .military_fronts
+        .iter_mut()
+        .find(|f| f.id == front_id)
+    {
+        // Legacy-front migration: rebuild the corridor, preserving
+        // occupation marks for regions still on the line.
+        if front.regions != corridor {
+            front.regions = corridor.to_vec();
+        }
+        for rid in corridor {
+            front
+                .region_control
+                .entry(rid.clone())
+                .or_insert(RegionControl::Owner);
+        }
         return;
     }
-    // Copy what we need out of the region before mutating the front list.
-    let (region_id, parcels) = {
-        let Some(region) = pick_front_region(country) else {
-            return; // Landless country — no front possible.
-        };
-        let mut parcels: Vec<ParcelId> = region.parcel_ids.clone();
-        parcels.sort_by_key(|p| parcel_id_to_index(*p));
-        parcels.truncate(MAX_COMBAT_ZONE_PARCELS);
-        (region.id.clone(), parcels)
-    };
     let mut front = Front::new(
         front_id.to_string(),
         front_name.to_string(),
-        vec![region_id.clone()],
+        corridor.to_vec(),
         involved.to_vec(),
     );
-    front.combat_zones = parcels;
+    front.combat_zones = zone_parcels.to_vec();
     country.military_fronts.push(front);
     eprintln!(
-        "[WAR] Front '{}' materializes in {} (region {})",
-        front_id, country.name, region_id
+        "[WAR] Front '{}' materializes in {} (invasion corridor: {} → {} … → {})",
+        front_id,
+        country.name,
+        corridor.first().cloned().unwrap_or_default(),
+        corridor.get(1).cloned().unwrap_or_default(),
+        corridor.last().cloned().unwrap_or_default()
     );
-}
-
-/// The region a country fights its war front from — the most populous
-/// region (largest mustering ground), ties broken by region id for
-/// determinism.
-fn pick_front_region(country: &Country) -> Option<&Region> {
-    country.regions.iter().max_by(|a, b| {
-        a.population
-            .cmp(&b.population)
-            .then_with(|| b.id.cmp(&a.id))
-    })
 }
 
 /// Selects up to `MAX_WAR_UNITS_PER_SIDE` combat units for a war battle.
@@ -383,19 +618,59 @@ fn process_war_pair(
     let front_name = format!("{}–{} War", aggressor, defender);
     let involved = vec![aggressor.to_string(), defender.to_string()];
 
+    // v4.24.0: the theater is the DEFENDER's invasion corridor — border
+    // provinces first, capital last. Both front copies share it so the
+    // ledgers stay byte-identical.
+    let corridor = state
+        .countries
+        .get(defender)
+        .map(|dc| invasion_corridor(dc, &front_id))
+        .unwrap_or_default();
+    // Combat zone = the current frontier region's parcels (recomputed each
+    // battle; at materialization it's the border entry region).
+    let zone_parcels: Vec<ParcelId> = {
+        let dc = state.countries.get(defender);
+        let front = dc.and_then(|c| {
+            c.military_fronts.iter().find(|f| f.id == front_id)
+        });
+        let battle_region = front
+            .and_then(|f| frontier_region(f, &corridor))
+            .or_else(|| corridor.first().cloned());
+        dc.and_then(|c| {
+            c.regions
+                .iter()
+                .find(|r| Some(&r.id) == battle_region.as_ref())
+                .map(|r| {
+                    let mut p = r.parcel_ids.clone();
+                    p.sort_by_key(|pid| parcel_id_to_index(*pid));
+                    p.truncate(MAX_COMBAT_ZONE_PARCELS);
+                    p
+                })
+        })
+        .unwrap_or_default()
+    };
+
     // Materialize the front in BOTH countries — 1 front per war pair per
     // belligerent, so military_active_wars == diplomatic_active_wars.
     for name in [aggressor, defender] {
         if let Some(country) = state.countries.get_mut(name) {
-            ensure_war_front(country, &front_id, &front_name, &involved);
+            ensure_war_front(
+                country,
+                &front_id,
+                &front_name,
+                &involved,
+                &corridor,
+                &zone_parcels,
+            );
         }
     }
 
     // Split-borrow both belligerents for the battle itself.
     let mut agg = state.countries.remove(aggressor);
     let mut def = state.countries.remove(defender);
+    let mut concluded: Option<WarOutcome> = None;
     if let (Some(ac), Some(dc)) = (agg.as_mut(), def.as_mut()) {
-        resolve_war_battle(ac, dc, &front_id, current_turn);
+        concluded = resolve_war_battle(ac, dc, &front_id, &corridor, current_turn);
     }
     if let Some(c) = agg {
         state.countries.insert(aggressor.to_string(), c);
@@ -403,61 +678,96 @@ fn process_war_pair(
     if let Some(c) = def {
         state.countries.insert(defender.to_string(), c);
     }
+
+    // Post-battle: a concluded war (exhaustion/capitulation) marks the
+    // live WarState ended — the recidivism cooldown and the Historical
+    // Wars ledger both read `end_turn`/`outcome`.
+    if let Some(outcome) = concluded {
+        for ws in state.declared_wars.iter_mut().rev() {
+            if ws.end_turn.is_none()
+                && canonical_pair(&ws.aggressor, &ws.defender)
+                    == canonical_pair(aggressor, defender)
+            {
+                ws.end_turn = Some(current_turn);
+                ws.outcome = Some(outcome);
+                break;
+            }
+        }
+    }
 }
 
 /// Executes the bounded per-turn battle between aggressor (attacker) and
-/// defender on the defender's front region, then writes everything back:
-/// unit stockpiles/casualties, demographic routing, POW capture,
-/// devastation, region control, war exhaustion, and the battle record on
-/// both countries' war fronts.
+/// defender at the front's current FRONTIER region (v4.24.0 — the border
+/// provinces fight first; the line advances contiguously toward the
+/// capital instead of teleporting to `*-Region1`). Then writes everything
+/// back: unit stockpiles/casualties, demographic routing, POW capture,
+/// devastation on the battle region's parcels, region control
+/// (occupation advance / counter-attack rollback), war exhaustion
+/// (+2%–8% per decisive battle, stalemates grind slower), and the battle
+/// record on both countries' byte-identical war fronts.
+///
+/// Returns `Some(WarOutcome)` when the battle concluded the war —
+/// exhaustion collapse, score capitulation, or capital fall — after
+/// clearing `at_war_with`, applying treaty terms (incl. real reparations
+/// transfers), and recording the outcome on both fronts.
 fn resolve_war_battle(
     ac: &mut Country,
     dc: &mut Country,
     front_id: &str,
+    corridor: &[String],
     current_turn: u32,
-) {
+) -> Option<WarOutcome> {
     let aggressor = ac.name.clone();
     let defender = dc.name.clone();
 
-    // Front regions: each country's own mustering region (set at front
-    // creation; fall back to the most populous region for legacy saves).
-    let agg_region = ac
+    // Front-line positions: the battle happens at the defender's current
+    // frontier region (first unoccupied corridor cell). The aggressor
+    // musters from its own border province for the same war pair.
+    let def_front = dc
         .military_fronts
         .iter()
-        .find(|f| f.id == front_id)
-        .and_then(|f| f.regions.first().cloned())
-        .or_else(|| pick_front_region(ac).map(|r| r.id.clone()));
-    let def_region = dc
-        .military_fronts
-        .iter()
-        .find(|f| f.id == front_id)
-        .and_then(|f| f.regions.first().cloned())
-        .or_else(|| pick_front_region(dc).map(|r| r.id.clone()));
-    let (Some(agg_region), Some(def_region)) = (agg_region, def_region) else {
-        return;
+        .find(|f| f.id == front_id);
+    let def_corridor: Vec<String> = if corridor.is_empty() {
+        def_front.map(|f| f.regions.clone()).unwrap_or_default()
+    } else {
+        corridor.to_vec()
     };
+    let battle_region = def_front
+        .and_then(|f| frontier_region(f, &def_corridor))
+        .or_else(|| def_corridor.first().cloned());
+    let agg_region = muster_region(ac, front_id);
+    let (Some(agg_region), Some(battle_region)) = (agg_region, battle_region) else {
+        return None;
+    };
+    // Legacy alias: demographic routing for the defender happens on the
+    // battle region (their soil); the attacker routes on its muster region.
+    let def_region = battle_region.clone();
 
     // Draw bounded combat forces (clones — resolve_battle mutates stockpiles).
+    // v4.24.0: the defender's units AT the frontier fight first (defense
+    // concentrates at the front line).
     let mut attacker_units = select_war_units(&ac.order_of_battle, &agg_region);
-    let mut defender_units = select_war_units(&dc.order_of_battle, &def_region);
+    let mut defender_units = select_war_units(&dc.order_of_battle, &battle_region);
     if attacker_units.is_empty() || defender_units.is_empty() {
-        return; // No forces committed — cold war, no battle this turn.
+        return None; // No forces committed — cold war, no battle this turn.
     }
+    let attacker_engaged: i64 = attacker_units.iter().map(|u| u.manpower).sum();
+    let defender_engaged: i64 = defender_units.iter().map(|u| u.manpower).sum();
 
     // Battle happens on defender soil — defender's config + terrain apply.
     let config = dc.military_config.clone();
     let terrain = dc
         .regions
         .iter()
-        .find(|r| r.id == def_region)
+        .find(|r| r.id == battle_region)
         .map(derive_terrain)
         .unwrap_or("plains");
     let battle_id = format!("WARBATTLE-{}-{}", current_turn, front_id);
 
-    let battle = resolve_battle(
+    let mut battle = resolve_battle(
         &mut attacker_units,
         &mut defender_units,
-        def_region.clone(),
+        battle_region.clone(),
         aggressor.clone(),
         defender.clone(),
         current_turn,
@@ -473,7 +783,7 @@ fn resolve_war_battle(
         battle.id,
         aggressor,
         defender,
-        def_region,
+        battle_region,
         battle.result,
         attacker_casualties.total(),
         defender_casualties.total()
@@ -591,6 +901,7 @@ fn resolve_war_battle(
         } else {
             (&defender_casualties, &mut *ac, &defender, &agg_region)
         };
+    let captor_is_attacker = captor.name == aggressor;
     let mut pow_counter = captor.pow_camp.total_ever_captured as u64;
     let captor_name = captor.name.clone();
     let captured = capture_pows_from_casualties(
@@ -609,54 +920,367 @@ fn resolve_war_battle(
             captured.len(),
             origin
         );
+        if captor_is_attacker {
+            battle.captured_by_attacker = captured.len() as i64;
+        } else {
+            battle.captured_by_defender = captured.len() as i64;
+        }
         captor.pow_camp.add_prisoners(captured);
     }
 
-    // Devastation — decisive results crater the defender's combat-zone
-    // parcels; stalemates grind more slowly. Same `devastation_index` the
-    // cadastre heatmap reads.
+    // Devastation — decisive results crater the BATTLE region's parcels
+    // (the frontier where the fight happened — not a fixed capital
+    // district); stalemates grind more slowly. Same `devastation_index`
+    // the cadastre heatmap reads.
     let impact = match battle.result {
         BattleResult::AttackerVictory
         | BattleResult::PyrrhicVictory
         | BattleResult::DefenderVictory => config.devastation_per_decisive_battle,
         _ => config.devastation_per_stalemate_turn,
     };
-    if let Some(front) =
-        dc.military_fronts.iter_mut().find(|f| f.id == front_id)
-    {
-        for pid in front.combat_zones.clone() {
-            if let Some(p) = dc.cadastre.get_mut(pid) {
-                p.devastation_index = (p.devastation_index + impact).min(1.0);
-            }
-        }
-        // Attacker success contests the region outright.
-        if matches!(
-            battle.result,
-            BattleResult::AttackerVictory | BattleResult::PyrrhicVictory
-        ) {
-            front.update_region_control(
-                def_region.clone(),
-                RegionControl::Contested,
-            );
+    let mut zone_parcels: Vec<ParcelId> = dc
+        .regions
+        .iter()
+        .find(|r| r.id == battle_region)
+        .map(|r| r.parcel_ids.clone())
+        .unwrap_or_default();
+    zone_parcels.sort_by_key(|p| parcel_id_to_index(*p));
+    zone_parcels.truncate(MAX_COMBAT_ZONE_PARCELS);
+    for pid in &zone_parcels {
+        if let Some(p) = dc.cadastre.get_mut(*pid) {
+            p.devastation_index = (p.devastation_index + impact).min(1.0);
         }
     }
 
-    // War exhaustion + battle record on BOTH countries' front copies —
-    // BOTH exhaustion entries land on each copy so the two ledgers stay
-    // byte-identical (the military dashboard dedups war fronts by id).
-    let agg_delta = (attacker_casualties.total() as f64 / 1000.0)
-        * config.war_exhaustion_per_casualty;
-    let def_delta = (defender_casualties.total() as f64 / 1000.0)
-        * config.war_exhaustion_per_casualty;
+    // Front-line movement on the defender's corridor — applied to BOTH
+    // front copies below so the ledgers stay byte-identical:
+    //   * attacker decisive/pyrrhic win → battle region OCCUPIED, the
+    //     corridor advances one contiguous step toward the capital;
+    //   * defender win → the attacker's deepest occupation rolls back to
+    //     Contested (counter-attack), or the assault is repelled in place;
+    //   * stalemate → the battle region is Contested ground.
+    let decisive_attacker = matches!(
+        battle.result,
+        BattleResult::AttackerVictory | BattleResult::PyrrhicVictory
+    );
+    let defender_win = matches!(battle.result, BattleResult::DefenderVictory);
+    let capital_id = def_corridor.last().cloned();
+    let capital_fell = decisive_attacker
+        && capital_id.as_deref() == Some(battle_region.as_str());
+    let rollback_region = if defender_win {
+        dc.military_fronts
+            .iter()
+            .find(|f| f.id == front_id)
+            .and_then(|f| last_occupied_region(f, &def_corridor))
+    } else {
+        None
+    };
+
+    // v4.24.0 war exhaustion — +2%–8% per DECISIVE battle scaled by each
+    // side's casualty share of its engaged force; stalemates grind at
+    // +0.5%–1.5%. Region loss adds +3% defender shock (+15% if the capital
+    // itself falls). Scale is 0–100 points to match the dashboard.
+    const EXH_DECISIVE_BASE: f64 = 2.0;
+    const EXH_DECISIVE_SCALE: f64 = 6.0;
+    const EXH_STALEMATE_BASE: f64 = 0.5;
+    const EXH_STALEMATE_SCALE: f64 = 1.0;
+    const EXH_REGION_FALLEN: f64 = 3.0;
+    const EXH_CAPITAL_FALLEN: f64 = 15.0;
+    /// War-exhaustion level (0–100) at which a belligerent collapses to
+    /// the negotiating table.
+    const SURRENDER_EXHAUSTION: f64 = 80.0;
+    /// Net war score (decisive wins + held occupations, attacker-positive)
+    /// that forces capitulation regardless of exhaustion.
+    const CAPITULATION_SCORE: f64 = 6.0;
+
+    let attacker_share = (attacker_casualties.total() as f64
+        / (attacker_engaged.max(1) as f64))
+        .clamp(0.0, 1.0);
+    let defender_share = (defender_casualties.total() as f64
+        / (defender_engaged.max(1) as f64))
+        .clamp(0.0, 1.0);
+    let decisive = decisive_attacker || defender_win;
+    let (mut agg_delta, mut def_delta) = if decisive {
+        (
+            EXH_DECISIVE_BASE + EXH_DECISIVE_SCALE * attacker_share,
+            EXH_DECISIVE_BASE + EXH_DECISIVE_SCALE * defender_share,
+        )
+    } else {
+        (
+            EXH_STALEMATE_BASE + EXH_STALEMATE_SCALE * attacker_share,
+            EXH_STALEMATE_BASE + EXH_STALEMATE_SCALE * defender_share,
+        )
+    };
+    if decisive_attacker {
+        def_delta += EXH_REGION_FALLEN;
+        if capital_fell {
+            def_delta += EXH_CAPITAL_FALLEN;
+        }
+    }
+
+    // Write combat zones, region control, exhaustion, and the battle
+    // record to BOTH countries' front copies — identical values so the two
+    // ledgers stay byte-identical (the dashboard dedups war fronts by id).
     for country in [&mut *ac, &mut *dc] {
         if let Some(front) =
             country.military_fronts.iter_mut().find(|f| f.id == front_id)
         {
+            front.combat_zones = zone_parcels.clone();
+            if decisive_attacker {
+                front.update_region_control(
+                    battle_region.clone(),
+                    RegionControl::Occupied(aggressor.clone()),
+                );
+            } else if let Some(rb) = &rollback_region {
+                front.update_region_control(rb.clone(), RegionControl::Contested);
+            } else if !decisive_attacker {
+                front.update_region_control(
+                    battle_region.clone(),
+                    RegionControl::Contested,
+                );
+            }
             front.increase_war_exhaustion(aggressor.clone(), agg_delta);
             front.increase_war_exhaustion(defender.clone(), def_delta);
+            for v in front.war_exhaustion.values_mut() {
+                *v = v.clamp(0.0, 100.0);
+            }
             front.add_battle(battle.clone());
         }
     }
+
+    // ── v4.24.0: War termination check ──
+    // A war concludes when either belligerent's exhaustion crosses the
+    // surrender threshold, the war score is a runaway, or the capital has
+    // fallen. The treaty is written into `declared_wars.outcome` by the
+    // caller; fronts tear down + POWs repatriate on the next bridge pass.
+    let (agg_exh, def_exh, score, occupied) = dc
+        .military_fronts
+        .iter()
+        .find(|f| f.id == front_id)
+        .map(|f| {
+            (
+                f.war_exhaustion.get(&aggressor).copied().unwrap_or(0.0),
+                f.war_exhaustion.get(&defender).copied().unwrap_or(0.0),
+                front_war_score(f, &aggressor),
+                occupied_corridor_regions(f, &def_corridor),
+            )
+        })
+        .unwrap_or((0.0, 0.0, 0.0, Vec::new()));
+
+    let collapse = agg_exh >= SURRENDER_EXHAUSTION
+        || def_exh >= SURRENDER_EXHAUSTION;
+    let capitulation = score.abs() >= CAPITULATION_SCORE;
+    if !collapse && !capitulation && !capital_fell {
+        return None;
+    }
+
+    Some(conclude_war(
+        ac,
+        dc,
+        front_id,
+        &def_corridor,
+        score,
+        occupied,
+        capital_fell,
+        current_turn,
+    ))
+}
+
+/// Net war score from the ATTACKER's perspective on the shared front:
+/// +1.0 per decisive attacker victory, +0.5 per pyrrhic/forced-retreat
+/// win, −1.0 per defender victory, +1.0 per corridor region currently
+/// occupied. Deterministic — derived purely from the battle ledger.
+pub(crate) fn front_war_score(front: &Front, aggressor: &str) -> f64 {
+    let mut score = 0.0;
+    for b in &front.battles {
+        match &b.result {
+            BattleResult::AttackerVictory => score += 1.0,
+            BattleResult::PyrrhicVictory => score += 0.5,
+            BattleResult::DefenderVictory => score -= 1.0,
+            BattleResult::Stalemate => {}
+            BattleResult::Retreat { retreating_side } => {
+                if retreating_side == aggressor {
+                    score -= 0.5;
+                } else {
+                    score += 0.5;
+                }
+            }
+        }
+    }
+    score += front
+        .region_control
+        .values()
+        .filter(|c| matches!(c, RegionControl::Occupied(_)))
+        .count() as f64;
+    score
+}
+
+/// Corridor regions currently under occupation, in corridor order.
+pub(crate) fn occupied_corridor_regions(front: &Front, corridor: &[String]) -> Vec<String> {
+    corridor
+        .iter()
+        .filter(|rid| {
+            matches!(front.region_control.get(*rid), Some(RegionControl::Occupied(_)))
+        })
+        .cloned()
+        .collect()
+}
+
+/// Concludes a war between two in-hand belligerents: clears both
+/// `at_war_with` lists, applies treaty terms (real double-entry
+/// reparations), and builds the `WarOutcome` the caller records on
+/// `declared_wars`. `score`/`occupied` come from the shared front;
+/// `capital_fell` forces an unconditional surrender of the defender.
+fn conclude_war(
+    ac: &mut Country,
+    dc: &mut Country,
+    front_id: &str,
+    corridor: &[String],
+    score: f64,
+    occupied: Vec<String>,
+    capital_fell: bool,
+    current_turn: u32,
+) -> WarOutcome {
+    let aggressor = ac.name.clone();
+    let defender = dc.name.clone();
+
+    // Victor by war score; a dead-even score is a negotiated white peace
+    // unless the capital fell (then the defender must surrender).
+    let victor: Option<String> = if capital_fell || score > 0.0 {
+        Some(aggressor.clone())
+    } else if score < 0.0 {
+        Some(defender.clone())
+    } else {
+        None
+    };
+
+    // Casualty totals from the shared front ledger (both copies agree).
+    let (agg_cas, def_cas) = dc
+        .military_fronts
+        .iter()
+        .find(|f| f.id == front_id)
+        .map(|f| {
+            (
+                f.get_country_casualties(&aggressor),
+                f.get_country_casualties(&defender),
+            )
+        })
+        .unwrap_or((0, 0));
+
+    // Treaty terms by victor. `settle_peace`'s messaging always frames
+    // defender→aggressor, so treasury motion + the outcome ledger are
+    // written here with explicit direction instead.
+    let reparations_for = |payer: &Country| -> f64 {
+        (payer.budget.liquid_reserves * 0.05).max(0.0)
+    };
+    let (terms, terms_label, mut regions_ceded, mut reparations_paid) =
+        match victor.as_deref() {
+            Some(v) if v == aggressor => {
+                let amount = reparations_for(dc);
+                let regions = if capital_fell || !occupied.is_empty() {
+                    occupied.clone()
+                } else {
+                    Vec::new()
+                };
+                let label = if capital_fell {
+                    format!("Capitulation of {} — {} regions ceded", defender, regions.len())
+                } else if !regions.is_empty() {
+                    format!("Treaty of Cession — {} regions to {}", regions.len(), aggressor)
+                } else {
+                    format!("Indemnity Peace — {} pays reparations", defender)
+                };
+                (
+                    if regions.is_empty() {
+                        PeaceTerms::Reparations {
+                            amount,
+                            pow_repatriation: true,
+                        }
+                    } else {
+                        PeaceTerms::UnconditionalSurrender {
+                            regions: regions.clone(),
+                            reparations: amount,
+                        }
+                    },
+                    label,
+                    regions,
+                    amount,
+                )
+            }
+            Some(v) if v == defender => {
+                // Victorious defender — the AGGRESSOR pays the indemnity.
+                let amount = reparations_for(ac);
+                (
+                    PeaceTerms::Reparations {
+                        amount,
+                        pow_repatriation: true,
+                    },
+                    format!("Defender's Peace — {} pays reparations", aggressor),
+                    Vec::new(),
+                    amount,
+                )
+            }
+            _ => (
+                PeaceTerms::StatusQuoAnte,
+                "White Peace — status quo ante bellum".to_string(),
+                Vec::new(),
+                0.0,
+            ),
+        };
+
+    // Real double-entry reparations transfer: loser → victor treasury.
+    if reparations_paid > 0.0 {
+        let (payer, payee) = if victor.as_deref() == Some(aggressor.as_str()) {
+            (&mut *dc, &mut *ac)
+        } else {
+            (&mut *ac, &mut *dc)
+        };
+        let amount = reparations_paid.min(payer.budget.liquid_reserves.max(0.0));
+        if amount > 0.0 {
+            payer.budget.liquid_reserves -= amount;
+            payee.budget.liquid_reserves += amount;
+            reparations_paid = amount;
+        } else {
+            reparations_paid = 0.0;
+        }
+    }
+    if regions_ceded.is_empty() {
+        regions_ceded = Vec::new();
+    }
+
+    // Clear the diplomatic war flags — the war is over.
+    ac.at_war_with.retain(|e| *e != defender);
+    dc.at_war_with.retain(|e| *e != aggressor);
+
+    let outcome = WarOutcome {
+        victor: victor.clone(),
+        terms_label: terms_label.clone(),
+        regions_ceded: regions_ceded.clone(),
+        reparations_paid,
+        aggressor_casualties: agg_cas,
+        defender_casualties: def_cas,
+        // POWs repatriate when the front tears down on the next bridge
+        // pass (`repatriate_pows_from_country`) — always true at peace.
+        pows_repatriated: true,
+    };
+
+    let _ = terms; // Terms are summarized by `terms_label`; the enum stays
+                   // available for future diplomatic-action paths.
+    eprintln!(
+        "[WAR] PEACE after {} battles — {} vs {} ends t{}: {} (victor: {}, score {:+.1}, rep ${:.0})",
+        dc.military_fronts
+            .iter()
+            .find(|f| f.id == front_id)
+            .map(|f| f.battles.len())
+            .unwrap_or(0),
+        aggressor,
+        defender,
+        current_turn,
+        terms_label,
+        victor.unwrap_or_else(|| "none".to_string()),
+        score,
+        reparations_paid
+    );
+    outcome
 }
 
 /// Writes post-battle supply/equipment state back to real units by id, then

@@ -123,7 +123,14 @@ pub fn process_military_turn(
 
     // MIL-3: Resolve battles on active fronts
     for front in fronts.iter_mut() {
-        if front.is_active(turn, 5) {
+        // v4.24.0: WAR-* fronts belong to the sequential war bridge — their
+        // region list is the DEFENDER's invasion corridor shared by both
+        // belligerents' copies, so resolving them here would split this
+        // country's own units into a fratricidal "front battle" (and
+        // cross-country mutation can't run inside this per-country pass
+        // anyway). Exhaustion decay below still applies to them.
+        let war_bridge_front = front.id.starts_with(crate::military::war_bridge::WAR_FRONT_PREFIX);
+        if !war_bridge_front && front.is_active(turn, 5) {
             let battle_messages = resolve_front_battles(
                 front,
                 &mut units,
@@ -608,6 +615,13 @@ fn resolve_front_battles(
         &pow_config,
         &mut pow_counter,
     );
+    // v4.24.0: record who took the prisoners for the battle ledger.
+    let captured_count = captured_pows.len() as i64;
+    let (cap_by_attacker, cap_by_defender) = if *captor_country == attacker_country {
+        (captured_count, 0)
+    } else {
+        (0, captured_count)
+    };
     if !captured_pows.is_empty() {
         messages.push(format!(
             "[POW] {} POWs captured by {} from {}",
@@ -646,6 +660,9 @@ fn resolve_front_battles(
         attacker_casualties,
         defender_casualties,
         result: battle_result,
+        captured_by_attacker: cap_by_attacker,
+        captured_by_defender: cap_by_defender,
+        phases: Vec::new(),
     };
     front.add_battle(battle);
 

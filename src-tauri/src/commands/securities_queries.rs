@@ -50,10 +50,16 @@ fn fund_holdings_value(
             {
                 total += b.principal * qty as f64;
             }
-        } else if inst.starts_with("MBS:") {
+        } else if inst.starts_with("MBS:") || inst.starts_with("mbs:") {
+            // v4.24 WS1: securitize_loans emits lowercase `mbs:` ids — the
+            // old uppercase-only prefix silently dropped MBS lots from AUM.
             let parts: Vec<&str> = inst.splitn(3, ':').collect();
             if parts.len() == 3 {
-                if let Some(mbs) = country_ref.mbs_pool.iter().find(|m| m.id == parts[1]) {
+                if let Some(mbs) = country_ref
+                    .mbs_pool
+                    .iter()
+                    .find(|m| m.id.eq_ignore_ascii_case(parts[1]))
+                {
                     if let Some(t) = mbs.tranches.iter().find(|t| {
                         format!("{:?}", t.priority).to_lowercase() == parts[2]
                     }) {

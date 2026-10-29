@@ -83,6 +83,9 @@ pub enum RoyalRelation {
     Aunt,
     /// Acting ruler during minority/incapacity.
     Regent,
+    /// v4.24.0 WS4.3: Abdicated/deposed ex-monarch — keeps their place in
+    /// the tree but is off the throne (set by the claimant-crisis path).
+    FormerMonarch,
 }
 
 /// Royal dynasty tracking (stored on `Politics::royal_dynasty`).
@@ -423,6 +426,22 @@ pub fn process_dynasty_turn(
             let child_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
             let (traits, main_trait) = crate::politics::vip_registry::assign_core_traits(&mut rng);
 
+            // v4.24.0 WS4.3: dynastic surname inheritance — a royal child
+            // carries the blood parent's family name so the Dynasty Tree
+            // reads as one house (e.g. "Boris Šešelj" under King Mate
+            // Šešelj), not a random surname from the cultural pool.
+            let dynastic_surname = vip
+                .full_name
+                .split_whitespace()
+                .last()
+                .unwrap_or("")
+                .to_string();
+            let child_full_name = if dynastic_surname.is_empty() {
+                child_name.full_name.clone()
+            } else {
+                format!("{} {}", child_name.first_name, dynastic_surname)
+            };
+
             // Determine father and mother.
             let (father_id, mother_id) = if is_female {
                 (spouse_id.clone(), member.vip_id.clone())
@@ -432,7 +451,7 @@ pub fn process_dynasty_turn(
 
             let child_vip = crate::politics::vip_registry::Vip {
                 id: String::new(),
-                full_name: child_name.full_name.clone(),
+                full_name: child_full_name,
                 gender: child_gender.to_string(),
                 age: 0,
                 health: crate::politics::vip_registry::VipHealth {
@@ -902,7 +921,8 @@ fn select_regent<R: rand::Rng>(
         RoyalRelation::Uncle => 4,
         RoyalRelation::Aunt => 5,
         RoyalRelation::Regent => 6,
-        RoyalRelation::Monarch => 7,
+        RoyalRelation::FormerMonarch => 7,
+        RoyalRelation::Monarch => 8,
     });
 
     // Find first candidate who is alive and adult.

@@ -647,6 +647,15 @@ pub fn process_mass_movements_turn(
 
     for region in regions.iter_mut() {
         for class in region.class_demographics.rural_classes.values_mut() {
+            // v4.24.0 WS2: refresh economic_status from real per-capita
+            // savings every turn — the legacy `update_class_demographics`
+            // updater was dead code, freezing every class at its genesis
+            // status, starving the Destitute transition gate and the
+            // class-condition sentiment term below.
+            class.economic_status =
+                crate::society::geography::economic_status_from_savings(
+                    class.savings_per_capita,
+                );
             let drivers = class.calculate_yoy_drivers(
                 current_turn,
                 class.savings_per_capita,
@@ -662,6 +671,10 @@ pub fn process_mass_movements_turn(
             );
         }
         for class in region.class_demographics.urban_classes.values_mut() {
+            class.economic_status =
+                crate::society::geography::economic_status_from_savings(
+                    class.savings_per_capita,
+                );
             let drivers = class.calculate_yoy_drivers(
                 current_turn,
                 class.savings_per_capita,

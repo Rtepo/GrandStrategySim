@@ -19,6 +19,7 @@ pub mod chaos_config;
 pub mod citizenship;
 pub mod committees;
 pub mod conservation;
+pub mod coups;
 pub mod crisis_management;
 pub mod elections;
 pub mod espionage;
